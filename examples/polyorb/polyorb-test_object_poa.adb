@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ with PolyORB.Components;
 with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Types;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 
 package body PolyORB.Test_Object_POA is
 
@@ -100,7 +100,7 @@ package body PolyORB.Test_Object_POA is
          declare
             use PolyORB.Any.NVList.Internals;
             use PolyORB.Any.NVList.Internals.NV_Lists;
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             Req   : constant Request_Access
               := Execute_Request (Msg).Req;

@@ -39,6 +39,7 @@ with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.CORBA_P.Interceptors_Slots;
+with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.POA;
@@ -161,7 +162,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
    procedure POA_Create
      (POA   : in     PolyORB.POA.Obj_Adapter_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    --  ORB_Initializers
 
@@ -544,7 +545,7 @@ package body PolyORB.CORBA_P.Interceptors is
          for J in reverse 0 .. Index - 1 loop
             if not PolyORB.Any.Is_Empty (Cur_Req.Exception_Info) then
                if PolyORB.Any.Get_Type (Cur_Req.Exception_Info) =
-                 PolyORB.Exceptions.TC_ForwardRequest
+                 PolyORB.Errors.TC_ForwardRequest
                then
                   Call_Receive_Other
                     (Element (All_Client_Interceptors, J).all,
@@ -586,7 +587,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
          exit when PolyORB.Any.Is_Empty (Cur_Req.Exception_Info)
            or else PolyORB.Any.Get_Type (Cur_Req.Exception_Info) /=
-                     PolyORB.Exceptions.TC_ForwardRequest;
+                     PolyORB.Errors.TC_ForwardRequest;
 
          --  Reinvocation. Extract object reference from ForwardRequest
          --  exception and reinitialize request.
@@ -596,8 +597,8 @@ package body PolyORB.CORBA_P.Interceptors is
          --  pragma Assert here?
 
          declare
-            Members : constant PolyORB.Exceptions.ForwardRequest_Members
-              := PolyORB.Exceptions.From_Any (Cur_Req.Exception_Info);
+            Members : constant PolyORB.Errors.ForwardRequest_Members
+              := PolyORB.Errors.From_Any (Cur_Req.Exception_Info);
             Ref     : PolyORB.References.Ref;
             Aux_Req : PolyORB.Requests.Request_Access;
          begin
@@ -783,7 +784,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
    procedure POA_Create
      (POA   : in     PolyORB.POA.Obj_Adapter_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       Iter     : IORInterceptor_Lists.Iterator;
       Info     : PortableInterceptor.IORInfo.Local_Ref;
@@ -828,12 +829,12 @@ package body PolyORB.CORBA_P.Interceptors is
                   Info);
             exception
                when others =>
-                  PolyORB.Exceptions.Throw
+                  PolyORB.Errors.Throw
                    (Error,
-                    PolyORB.Exceptions.Obj_Adapter_E,
-                    PolyORB.Exceptions.System_Exception_Members'
+                    PolyORB.Errors.Obj_Adapter_E,
+                    PolyORB.Errors.System_Exception_Members'
                      (Minor     => 6,
-                      Completed => PolyORB.Exceptions.Completed_No));
+                      Completed => PolyORB.Errors.Completed_No));
                   return;
             end;
          end if;
@@ -1015,7 +1016,7 @@ package body PolyORB.CORBA_P.Interceptors is
       for J in reverse 0 .. Note.Last_Interceptor - 1 loop
          if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
             if PolyORB.Any.Get_Type (Request.Exception_Info) =
-              PolyORB.Exceptions.TC_ForwardRequest
+              PolyORB.Errors.TC_ForwardRequest
             then
                Call_Send_Other
                  (Element (All_Server_Interceptors, J).all,
@@ -1068,8 +1069,8 @@ package body PolyORB.CORBA_P.Interceptors is
    is
    begin
       return
-        PolyORB.Exceptions.To_Any
-        (PolyORB.Exceptions.ForwardRequest_Members'
+        PolyORB.Errors.To_Any
+        (PolyORB.Errors.ForwardRequest_Members'
          (Forward_Reference =>
             PolyORB.Smart_Pointers.Ref
           (CORBA.Object.To_PolyORB_Ref (Members.Forward))));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,14 +39,14 @@ package PolyORB.Representations.CDR.GIOP_Utils is
      (Buffer         : access Buffers.Buffer_Type;
       Representation : in     CDR_Representation'Class;
       Data           : in     PolyORB.Any.NamedValue;
-      Error          : in out Exceptions.Error_Container);
+      Error          : in out Errors.Error_Container);
    --  Marshall Data according to selected CDR representation Representation
 
    procedure Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
       Representation : in     CDR_Representation'Class;
       Data           :    out PolyORB.Any.NamedValue;
-      Error          : in out Exceptions.Error_Container);
+      Error          : in out Errors.Error_Container);
    --  Unmarshall data according to selected CDR representation Representation
 
 end PolyORB.Representations.CDR.GIOP_Utils;

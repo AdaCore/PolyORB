@@ -41,7 +41,7 @@ with PolyORB.References.IOR;
 
 package body PolyORB.POA.Basic_POA is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.Types;
 
@@ -59,7 +59,7 @@ package body PolyORB.POA.Basic_POA is
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container)
+      Error        : in out PolyORB.Errors.Error_Container)
    is
    begin
       POA := new Basic_Obj_Adapter;
@@ -103,7 +103,7 @@ package body PolyORB.POA.Basic_POA is
          U_Oid : Unmarshalled_Oid;
 
          Obj_OA : Obj_Adapter_Access;
-         Error  : PolyORB.Exceptions.Error_Container;
+         Error  : PolyORB.Errors.Error_Container;
 
       begin
          Oid_To_U_Oid (Oid.all, U_Oid, Error);
@@ -134,7 +134,7 @@ package body PolyORB.POA.Basic_POA is
      (OA    : access Basic_Obj_Adapter;
       R     :        References.Ref;
       Oid   :    out Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Debug (O ("To_Proxy_Oid: enter"));
 
@@ -179,7 +179,7 @@ package body PolyORB.POA.Basic_POA is
      (OA    : access Basic_Obj_Adapter;
       Oid   : access Objects.Object_Id;
       Ref   : out References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);

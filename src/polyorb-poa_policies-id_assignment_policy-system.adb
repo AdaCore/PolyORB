@@ -68,7 +68,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    procedure Check_Compatibility
      (Self           : System_Id_Policy;
       Other_Policies : AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container)
+      Error          : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self, Other_Policies, Error);
@@ -120,7 +120,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       Hint  : Object_Id_Access;
       U_Oid : out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
 
    is
       pragma Warnings (Off);
@@ -129,7 +129,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
       use PolyORB.POA_Policies.Lifespan_Policy;
       use PolyORB.Object_Maps.System;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
@@ -236,7 +236,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       OA    : Obj_Adapter_Access;
       Oid   : Object_Id;
       U_Oid : out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
@@ -255,7 +255,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
      (Self   : System_Id_Policy;
       Oid    : Object_Id_Access;
       Result : out Object_Id_Access;
-      Error  : in out PolyORB.Exceptions.Error_Container)
+      Error  : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self, Error);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.ORB;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Types;
@@ -97,10 +97,10 @@ package body RTPortableServer.POA is
       Priority  : in RTCORBA.Priority)
      return CORBA.Object.Ref
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.RT_POA;
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
       RT_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access
         := To_RT_POA (Self);
@@ -150,10 +150,10 @@ package body RTPortableServer.POA is
       Priority  : in RTCORBA.Priority)
      return CORBA.Object.Ref
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.POA_Types;
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
       RT_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access
         := To_RT_POA (Self);
@@ -208,9 +208,9 @@ package body RTPortableServer.POA is
      return PortableServer.ObjectId
    is
       use PortableServer;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
       RT_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access
         := To_RT_POA (Self);
@@ -251,9 +251,9 @@ package body RTPortableServer.POA is
       Priority  : in RTCORBA.Priority)
    is
       use PortableServer;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
       RT_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access
         := To_RT_POA (Self);

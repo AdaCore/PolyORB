@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ with MOMA.Types;
 with PolyORB.MOMA_P.Provider.Warehouse;
 
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Types;
@@ -93,7 +93,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
       Args : PolyORB.Any.NVList.Ref;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Error : Error_Container;
    begin

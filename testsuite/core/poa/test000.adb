@@ -39,7 +39,7 @@ with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
 with PolyORB.POA_Config.Minimum;
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Initialization;
 with PolyORB.Servants;
 with PolyORB.Types;
@@ -70,7 +70,7 @@ procedure Test000 is
    use Ada.Text_IO;
    use Ada.Exceptions;
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Types;
    use PolyORB.Utils.Report;
 

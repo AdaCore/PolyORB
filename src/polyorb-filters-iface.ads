@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 2001-2005 Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ with Ada.Streams; use Ada.Streams;
 with PolyORB.Binding_Objects;
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Components; use PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Types;
 
 package PolyORB.Filters.Iface is
@@ -119,7 +119,7 @@ package PolyORB.Filters.Iface is
       --  Semantics: an error in the transport or filtering layers
       --  has occured.
 
-      Error : Exceptions.Error_Container;
+      Error : Errors.Error_Container;
    end record;
 
    ---------------------

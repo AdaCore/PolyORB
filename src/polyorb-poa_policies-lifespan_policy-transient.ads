@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@ package PolyORB.POA_Policies.Lifespan_Policy.Transient is
    procedure Check_Compatibility
      (Self           :        Transient_Policy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container);
+      Error          : in out PolyORB.Errors.Error_Container);
 
    function Policy_Id
      (Self : Transient_Policy)
@@ -58,6 +58,6 @@ package PolyORB.POA_Policies.Lifespan_Policy.Transient is
      (Self  :        Transient_Policy;
       OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid :        Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
 end PolyORB.POA_Policies.Lifespan_Policy.Transient;

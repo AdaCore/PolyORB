@@ -9,8 +9,7 @@ with SOAP.Types;
 with SOAP.Message.Payload;
 with SOAP.Parameters;
 
-with PolyORB.Exceptions;
-with PolyORB.Any;
+with PolyORB.Errors;
 with PolyORB.Any.NVList;
 with PolyORB.Requests;
 with PolyORB.Objects;
@@ -46,7 +45,7 @@ package body AWS.Server.Servants is
      (PolyORB_Servant : access AWS.Server.HTTP'Class;
       PolyORB_Request : in PolyORB.Requests.Request_Access)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       HTTP_10      : constant String := "HTTP/1.0";
 
@@ -127,7 +126,6 @@ package body AWS.Server.Servants is
          declare
             use PolyORB.Types;
             use PolyORB.Any.NVList;
-            use PolyORB.Exceptions;
             use PolyORB.Setup;
             use PolyORB.ORB.Iface;
 
@@ -352,7 +350,6 @@ package body AWS.Server.Servants is
          AWS.Status.Set.Free (AWS_Request);
       end Integrate_Data;
 
-      use PolyORB.Exceptions;
       use PolyORB.Requests;
 
    begin
@@ -410,7 +407,7 @@ package body AWS.Server.Servants is
       if Msg in Execute_Request then
          declare
             use PolyORB.Requests;
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             R : constant Request_Access := Execute_Request (Msg).Req;
             Error : Error_Container;
@@ -445,7 +442,7 @@ package body AWS.Server.Servants is
       if Msg in Execute_Request then
          declare
             use PolyORB.Requests;
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             R : constant Request_Access := Execute_Request (Msg).Req;
             Error : Error_Container;
@@ -468,7 +465,6 @@ package body AWS.Server.Servants is
          raise Program_Error;
       end if;
    end Execute_Servant;
-
 
 end AWS.Server.Servants;
 

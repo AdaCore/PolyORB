@@ -43,6 +43,7 @@ with PolyORB.Types;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.Object_Maps;
    use PolyORB.Tasking.Mutexes;
@@ -70,7 +71,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    procedure Check_Compatibility
      (Self           :        Retain_Policy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container)
+      Error          : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -108,13 +109,12 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant :        Servants.Servant_Access;
       U_Oid     :        Unmarshalled_Oid;
-      Error     : in out PolyORB.Exceptions.Error_Container)
+      Error     : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      use PolyORB.Exceptions;
       use PolyORB.Object_Maps.System;
       use PolyORB.Object_Maps.User;
       use PolyORB.POA_Policies.Id_Assignment_Policy;
@@ -218,13 +218,11 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
      (Self  :        Retain_Policy;
       OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid :        Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-
-      use PolyORB.Exceptions;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access :=
         PolyORB.POA.Obj_Adapter_Access (OA);
@@ -241,7 +239,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       Leave (POA.Map_Lock);
 
       if An_Entry = null then
-         PolyORB.Exceptions.Throw
+         PolyORB.Errors.Throw
            (Error,
             ObjectNotActive_E,
             Null_Member);
@@ -303,13 +301,12 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid   :        Unmarshalled_Oid;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Warnings (On); --  WAG:3.15
 
-      use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Lifespan_Policy;
 
       An_Entry : Object_Map_Entry_Access;
@@ -357,13 +354,11 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    procedure Ensure_Servant_Manager_Type
      (Self    :        Retain_Policy;
       Manager :        ServantManager'Class;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Warnings (On); --  WAG:3.15
-
-      use PolyORB.Exceptions;
 
    begin
       if Manager not in ServantActivator'Class then

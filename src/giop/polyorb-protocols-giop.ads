@@ -1,4 +1,4 @@
------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.ORB;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
@@ -93,7 +93,7 @@ package PolyORB.Protocols.GIOP is
    procedure Handle_Unmarshall_Arguments
      (Sess  : access GIOP_Session;
       Args  : in out Any.NVList.Ref;
-      Error : in out Exceptions.Error_Container);
+      Error : in out Errors.Error_Container);
 
    procedure Handle_Flush (Sess : access GIOP_Session);
 
@@ -249,7 +249,7 @@ private
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
       R      : in     Pending_Request_Access;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
    --  send a request
 
@@ -268,7 +268,7 @@ private
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
-      Error               : in out Exceptions.Error_Container);
+      Error               : in out Errors.Error_Container);
    --  Internal subprogram: Marshall arguments from Args
    --  into Buf.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
@@ -284,7 +284,7 @@ private
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
-      Error               : in out Exceptions.Error_Container);
+      Error               : in out Errors.Error_Container);
    --  Internal subprogram: set the values of arguments in
    --  Args by unmarshalling them from Ses.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues

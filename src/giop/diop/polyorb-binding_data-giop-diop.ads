@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ package PolyORB.Binding_Data.GIOP.DIOP is
      (Profile :     DIOP_Profile_Type;
       The_ORB :     Components.Component_Access;
       BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Exceptions.Error_Container);
+      Error   : out Errors.Error_Container);
 
    function Get_Profile_Tag (Profile : DIOP_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);

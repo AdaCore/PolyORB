@@ -1412,7 +1412,7 @@ package body PolyORB.Representations.SRP is
      (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Any.Any;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
    begin
       raise Program_Error;
@@ -1787,7 +1787,7 @@ package body PolyORB.Representations.SRP is
      (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       Encoded_URL : String_Ptr;
       Decoded_URL : String_Ptr;
@@ -2373,7 +2373,7 @@ package body PolyORB.Representations.SRP is
       Buffer : access Buffers.Buffer_Type) return Any.Any
    is
       Data  : Any.Any;
-      Error : Exceptions.Error_Container;
+      Error : Errors.Error_Container;
    begin
       Unmarshall_To_Any (R, Buffer, Data, Error);
       return Data;

@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ package PolyORB.Protocols.Iface is
    end record;
 
    type Arguments_Error is new Components.Message with record
-      Error : Exceptions.Error_Container;
+      Error : Errors.Error_Container;
    end record;
 
    type Flush is new Components.Message with null record;

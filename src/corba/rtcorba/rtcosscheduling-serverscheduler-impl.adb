@@ -33,7 +33,7 @@
 
 with PolyORB.Binding_Data;
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters.File;
@@ -197,7 +197,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
    is
       pragma Unreferenced (Self);
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.RT_POA_Policies.Priority_Model_Policy;
 
       CORBA_Priority : Integer;

@@ -37,7 +37,7 @@ with PolyORB.Parameters;
 
 package body PolyORB.GIOP_P.Code_Sets is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
 
    function Is_In
      (List : in Code_Set_Id_List;
@@ -269,7 +269,7 @@ package body PolyORB.GIOP_P.Code_Sets is
      SCCS     : in     Code_Set_Id_List;
      Fallback : in     Code_Set_Id;
      TCS      :    out Code_Set_Id;
-     Error    : in out PolyORB.Exceptions.Error_Container)
+     Error    : in out PolyORB.Errors.Error_Container)
    is
    begin
       --  Implementation Note: this algorithm is defined in CORBA3

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Any;
 with PolyORB.Dynamic_Dict;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Utils;
@@ -41,7 +41,7 @@ with PolyORB.Utils;
 package body PolyORB.GIOP_P.Exceptions is
 
    use PolyORB.Any;
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.Types;
    use PolyORB.Utils;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +26,26 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  A dummy data representation method, just for show.
 
-with Ada.Streams; use Ada.Streams;
-with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
+with Ada.Streams;
+with PolyORB.Utils.Buffers;
 
 package body PolyORB.Representations.Test is
+
+   use Ada.Streams;
+   use PolyORB.Utils.Buffers;
 
    procedure Marshall_From_Any
      (R      : in     Rep_Test;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Any.Any;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
    begin
       raise Program_Error;
@@ -52,7 +55,7 @@ package body PolyORB.Representations.Test is
      (R      : in     Rep_Test;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
    begin
       raise Program_Error;

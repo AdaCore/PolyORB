@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,8 +38,9 @@ package body PolyORB.Obj_Adapters.Simple is
 
    use Ada.Streams;
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Tasking.Mutexes;
+
    use Object_Map_Entry_Arrays;
 
    subtype Simple_OA_Oid is Stream_Element_Array
@@ -55,7 +56,7 @@ package body PolyORB.Obj_Adapters.Simple is
      (OA    :        Simple_Obj_Adapter;
       Index :        Integer;
       OME   :    out Object_Map_Entry;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Check that Index is a valid object Index (associated to a
    --  non-null Servant) for object adapter OA, and return a copy of
    --  the associated entry. If Index is out of range or associated to
@@ -69,7 +70,7 @@ package body PolyORB.Obj_Adapters.Simple is
      (OA    :        Simple_Obj_Adapter;
       Index :        Integer;
       OME   :    out Object_Map_Entry;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       use type Servants.Servant_Access;
 
@@ -155,7 +156,7 @@ package body PolyORB.Obj_Adapters.Simple is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       use type Servants.Servant_Access;
       use type Objects.Object_Id_Access;
@@ -207,7 +208,7 @@ package body PolyORB.Obj_Adapters.Simple is
    procedure Unexport
      (OA    : access Simple_Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       use type Servants.Servant_Access;
 
@@ -244,13 +245,13 @@ package body PolyORB.Obj_Adapters.Simple is
      (OA      : access Simple_Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (OA, Id);
       pragma Warnings (On); --  WAG:3.15
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
    begin
       Throw (Error,
@@ -375,7 +376,7 @@ package body PolyORB.Obj_Adapters.Simple is
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       Index : constant Integer
         := Oid_To_Index (Simple_OA_Oid (Id.all));

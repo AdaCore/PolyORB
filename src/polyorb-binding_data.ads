@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@
 --  that designate a remote middleware TSAP.
 
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.Smart_Pointers;
 pragma Elaborate_All (PolyORB.Smart_Pointers);
@@ -100,7 +100,7 @@ package PolyORB.Binding_Data is
      (Profile :     Profile_Type;
       The_ORB :     Components.Component_Access;
       BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Exceptions.Error_Container)
+      Error   : out Errors.Error_Container)
       is abstract;
    --  Retrieve a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,

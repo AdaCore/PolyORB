@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -194,7 +194,7 @@ package PolyORB.Representations.SRP is
      (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Any.Any;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
@@ -204,7 +204,7 @@ package PolyORB.Representations.SRP is
      (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
      (Buffer : access Buffer_Type;

@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,7 +38,6 @@ with PolyORB.Binding_Data.GIOP;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Components;
-with PolyORB.Exceptions;
 with PolyORB.Filters;
 with PolyORB.GIOP_P.Code_Sets.Converters;
 with PolyORB.GIOP_P.Service_Contexts;
@@ -64,7 +63,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.GIOP_P.Code_Sets;
    use PolyORB.GIOP_P.Code_Sets.Converters;
    use PolyORB.GIOP_P.Service_Contexts;
@@ -408,7 +407,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
       use PolyORB.Components;
-      use PolyORB.Exceptions;
       use PolyORB.Obj_Adapters;
       use PolyORB.ORB;
       use PolyORB.ORB.Iface;
@@ -429,7 +427,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Req              : Request_Access;
       CSP              : QoS_GIOP_Code_Sets_Parameter_Access;
       Service_Contexts : QoS_GIOP_Service_Contexts_Parameter_Access;
-      Error            : Exceptions.Error_Container;
+      Error            : Errors.Error_Container;
       Result           : Any.NamedValue;
       --  Dummy NamedValue for Create_Request;
       --  the actual Result is set by the called method.
@@ -599,7 +597,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Sess  : GIOP_Session renames GIOP_Session (S.all);
       Ctx   : GIOP_Ctx_1_2 renames GIOP_Ctx_1_2 (Sess.Ctx.all);
-      Error : Exceptions.Error_Container;
+      Error : Errors.Error_Container;
    begin
       if Sess.Role = Client then
          raise Bidirectionnal_GIOP_Not_Implemented;
@@ -887,7 +885,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Component : PolyORB.Components.Component_Access;
          Profile : PolyORB.Binding_Data.Profile_Access;
 
-         Error : PolyORB.Exceptions.Error_Container;
+         Error : PolyORB.Errors.Error_Container;
       begin
          PolyORB.References.Binding.Bind
            (Target,
@@ -897,7 +895,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             True,
             Error);
 
-         if PolyORB.Exceptions.Found (Error) then
+         if PolyORB.Errors.Found (Error) then
             if Error.Kind = ForwardRequest_E then
                Result := Object_Forward;
                Set
@@ -910,7 +908,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                Result := Unknown_Object;
             end if;
 
-            PolyORB.Exceptions.Catch (Error);
+            PolyORB.Errors.Catch (Error);
 
          else
             Result := Object_Here;
@@ -991,7 +989,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
       R      : in     Pending_Request_Access;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);

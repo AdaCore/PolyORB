@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.References;
@@ -71,7 +71,7 @@ package PolyORB.Obj_Adapters is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Create an identifier for Obj within OA. If Key is not null, use it as
    --  an application-level identifier for the object (which will be used to
@@ -80,7 +80,7 @@ package PolyORB.Obj_Adapters is
    procedure Unexport
      (OA    : access Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Id is an object identifier attributed by OA. The corresponding
    --  association is suppressed.
@@ -89,7 +89,7 @@ package PolyORB.Obj_Adapters is
      (OA      : access Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  If Id is user defined associated with Id, return user identifier
    --  component of Id, else raise an error.
@@ -119,7 +119,7 @@ package PolyORB.Obj_Adapters is
      (OA      : access Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Retrieve the servant managed by OA for logical object Id. The servant
    --  that incarnates the object is returned.
@@ -141,8 +141,7 @@ package PolyORB.Obj_Adapters is
      (OA    : access Obj_Adapter;
       Id    : access Objects.Object_Id;
       URI   : out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container);
-
+      Error : in out PolyORB.Errors.Error_Container);
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
@@ -172,7 +171,7 @@ package PolyORB.Obj_Adapters is
      (OA    : access Obj_Adapter;
       R     : References.Ref;
       Oid   : out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Create a proxy oid for reference R. No_Implement_E is thrown if OA
    --  does not support proxy objects.
 
@@ -180,7 +179,7 @@ package PolyORB.Obj_Adapters is
      (OA    : access Obj_Adapter;
       Oid   : access Objects.Object_Id;
       Ref   : out References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Retrieve the reference for which Oid is a proxy oid into Ref.
    --  No_Implement_E is thrown if OA does not support proxy objects.
 

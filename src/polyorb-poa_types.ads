@@ -37,7 +37,7 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Servants;
@@ -188,7 +188,7 @@ package PolyORB.POA_Types is
    procedure Oid_To_U_Oid
      (Oid   :        Object_Id;
       U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Unmarshall an Object_Id into a Unmarshalled_Oid
 
    function U_Oid_To_Oid
@@ -221,7 +221,7 @@ package PolyORB.POA_Types is
       Parent : access Obj_Adapter'Class;
       Name   : in     String;
       Result :    out Boolean;
-      Error  : in out PolyORB.Exceptions.Error_Container)
+      Error  : in out PolyORB.Errors.Error_Container)
      is abstract;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -247,7 +247,7 @@ package PolyORB.POA_Types is
       Oid     : in     Object_Id;
       Adapter : access Obj_Adapter'Class;
       Returns :    out PolyORB.Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  The Error argument used only for processing location forwarding, thus
    --  the only valid Error.Kind is ForwardRequest_E.
@@ -282,7 +282,7 @@ package PolyORB.POA_Types is
       Operation  : in     PolyORB.Types.Identifier;
       The_Cookie :    out Cookie;
       Returns    :    out PolyORB.Servants.Servant_Access;
-      Error      : in out PolyORB.Exceptions.Error_Container)
+      Error      : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  The Error argument used only for processing location forwarding, thus
    --  the only valid Error.Kind is ForwardRequest_E.

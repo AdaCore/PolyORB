@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    procedure Check_Compatibility
      (Self           :        Non_Retain_Policy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container)
+      Error          : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -63,7 +63,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
       use Ada.Tags;
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.POA_Policies.Request_Processing_Policy;
       use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
       use PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
@@ -116,7 +116,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant :        Servants.Servant_Access;
       U_Oid     :        Unmarshalled_Oid;
-      Error     : in out PolyORB.Exceptions.Error_Container)
+      Error     : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA, P_Servant, U_Oid, Error);
@@ -137,7 +137,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
      (Self  :        Non_Retain_Policy;
       OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid :        Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA, U_Oid, Error);
@@ -178,7 +178,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid   :        Unmarshalled_Oid;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA, U_Oid, Error);
@@ -197,13 +197,13 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    procedure Ensure_Servant_Manager_Type
      (Self    :        Non_Retain_Policy;
       Manager :        ServantManager'Class;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Warnings (On); --  WAG:3.15
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
    begin
       if Manager not in ServantLocator'Class then

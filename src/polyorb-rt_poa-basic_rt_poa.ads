@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.POA;
 with PolyORB.POA_Manager;
@@ -55,14 +55,14 @@ package PolyORB.RT_POA.Basic_RT_POA is
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out PolyORB.POA.Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container);
+      Error        : in out PolyORB.Errors.Error_Container);
 
    procedure Export
      (OA    : access Basic_RT_Obj_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    ------------------------------------------------
    -- CORBA-like RT POA interface implementation --
@@ -74,7 +74,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container);
+      Error                    : in out PolyORB.Errors.Error_Container);
 
    procedure Activate_Object_With_Id_And_Priority
      (Self                     : access Basic_RT_Obj_Adapter;
@@ -83,7 +83,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container);
+      Error                    : in out PolyORB.Errors.Error_Container);
 
    procedure Get_Scheduling_Parameters
      (Self                     : access Basic_RT_Obj_Adapter;
@@ -91,7 +91,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;
-      Error                    : in out PolyORB.Exceptions.Error_Container);
+      Error                    : in out PolyORB.Errors.Error_Container);
 
 private
 

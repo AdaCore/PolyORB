@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -87,10 +87,10 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      (Profile :     IIOP_Profile_Type;
       The_ORB :     Components.Component_Access;
       BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Exceptions.Error_Container)
+      Error   : out Errors.Error_Container)
    is
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Filters;
       use PolyORB.ORB;
       use PolyORB.Protocols;
@@ -122,7 +122,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
    exception
       when Sockets.Socket_Error =>
-         Throw (Error, Comm_Failure_E, System_Exception_Members'
+         Throw (Error, Comm_Failure_E,
+                System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
 

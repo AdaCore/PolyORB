@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Abstract interface for the POA manager.
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Servants;
 with PolyORB.POA_Types;
 
@@ -59,19 +59,19 @@ package PolyORB.POA_Manager is
 
    procedure Activate
      (Self  : access POAManager;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
       is abstract;
 
    procedure Hold_Requests
      (Self                : access POAManager;
       Wait_For_Completion :        Boolean;
-      Error               : in out PolyORB.Exceptions.Error_Container)
+      Error               : in out PolyORB.Errors.Error_Container)
      is abstract;
 
    procedure Discard_Requests
      (Self                : access POAManager;
       Wait_For_Completion :        Boolean;
-      Error               : in out PolyORB.Exceptions.Error_Container)
+      Error               : in out PolyORB.Errors.Error_Container)
       is abstract;
 
    procedure Deactivate

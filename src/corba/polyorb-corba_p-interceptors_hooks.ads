@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Hook to set up request's invoke method used by the CORBA personality.
 
 with PolyORB.Binding_Data;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.POA;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
@@ -57,7 +57,7 @@ package PolyORB.CORBA_P.Interceptors_Hooks is
 
    type POA_Create_Handler is access procedure
      (POA   : in     PolyORB.POA.Obj_Adapter_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    Client_Invoke : Client_Invoke_Handler := null;
 

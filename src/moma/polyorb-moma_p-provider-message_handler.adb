@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 
 package body PolyORB.MOMA_P.Provider.Message_Handler is
 
@@ -95,7 +95,7 @@ package body PolyORB.MOMA_P.Provider.Message_Handler is
    procedure Invoke (Self : access Object;
                      Req  : in     PolyORB.Requests.Request_Access)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Args        : PolyORB.Any.NVList.Ref;
       Operation   : String renames Req.Operation.all;

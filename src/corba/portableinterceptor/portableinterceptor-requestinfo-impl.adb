@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,10 +37,11 @@ with CORBA.Repository_Root;
 with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
+
 with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Slots;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.References;
 with PolyORB.Request_QoS.Service_Contexts;
 with PolyORB.Smart_Pointers;
@@ -137,8 +138,8 @@ package body PortableInterceptor.RequestInfo.Impl is
       end if;
 
       declare
-         Members : PolyORB.Exceptions.ForwardRequest_Members
-           := PolyORB.Exceptions.From_Any (Self.Request.Exception_Info);
+         Members : PolyORB.Errors.ForwardRequest_Members
+           := PolyORB.Errors.From_Any (Self.Request.Exception_Info);
          Ref     : PolyORB.References.Ref;
          Result  : CORBA.Object.Ref;
       begin

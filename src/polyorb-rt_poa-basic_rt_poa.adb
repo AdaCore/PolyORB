@@ -38,6 +38,7 @@ with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.RT_POA.Basic_RT_POA is
 
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.POA;
 
@@ -123,10 +124,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out PolyORB.POA.Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container)
+      Error        : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-
    begin
       POA := new Basic_RT_Obj_Adapter;
 
@@ -154,10 +153,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-
    begin
       pragma Debug (O ("Export: enter"));
 
@@ -200,10 +197,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-
       Servant : Servants.Servant_Access;
 
    begin
@@ -213,7 +208,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          declare
             U_Oid  : Unmarshalled_Oid;
             It     : Iterator := First (Shadow_Oids);
-            Error2 : PolyORB.Exceptions.Error_Container;
+            Error2 : PolyORB.Errors.Error_Container;
          begin
             Oid_To_U_Oid (Id.all, U_Oid, Error2);
             if Found (Error2) then
@@ -261,9 +256,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
    begin
@@ -318,9 +312,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
       It : Iterator := First (Shadow_Oids);

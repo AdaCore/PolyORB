@@ -1,4 +1,4 @@
-with PolyORB.Exceptions;                use PolyORB.Exceptions;
+with PolyORB.Errors;                use PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.POA;
 with PolyORB.POA.Basic_POA;
@@ -31,7 +31,7 @@ package body AWS.Object_Adapter is
       Parent : access Obj_Adapter'Class;
       Name   : in     String;
       Result :    out Boolean;
-      Error  : in out PolyORB.Exceptions.Error_Container)
+      Error  : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);

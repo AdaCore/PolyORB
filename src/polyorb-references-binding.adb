@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ with PolyORB.Types;
 package body PolyORB.References.Binding is
 
    use PolyORB.Binding_Data;
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.binding");
@@ -76,7 +76,7 @@ package body PolyORB.References.Binding is
       Servant    :    out Components.Component_Access;
       Pro        :    out Binding_Data.Profile_Access;
       Local_Only :        Boolean;
-      Error      : in out PolyORB.Exceptions.Error_Container)
+      Error      : in out PolyORB.Errors.Error_Container)
    is
       use type Components.Component_Access;
       use Binding_Data;
@@ -346,7 +346,7 @@ package body PolyORB.References.Binding is
      (R         :        Ref;
       Tag       :        Binding_Data.Profile_Tag;
       Pro       :    out Binding_Data.Profile_Access;
-      Error     : in out PolyORB.Exceptions.Error_Container)
+      Error     : in out PolyORB.Errors.Error_Container)
    is
       use PolyORB.ORB;
       use type PolyORB.Types.Unsigned_Long;

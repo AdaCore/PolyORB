@@ -41,6 +41,7 @@ with PortableServer.ServantLocator;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
+with PolyORB.Exceptions;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -68,7 +69,7 @@ with PolyORB.CORBA_P.ServantLocator;
 
 package body PortableServer.POA is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("portableserver.poa");
@@ -154,7 +155,7 @@ package body PortableServer.POA is
         := PolyORB.CORBA_P.POA_Config.Convert_PolicyList (Policies);
 
       Note    : PolyORB.CORBA_P.Policy_Management.Policy_Manager_Note;
-      Error   : PolyORB.Exceptions.Error_Container;
+      Error   : PolyORB.Errors.Error_Container;
       Indexes : CORBA.Short;
 
    begin
@@ -174,10 +175,10 @@ package body PortableServer.POA is
                (CORBA.Policy.IDL_Sequence_Policy.Element_Of (Policies, J));
 
             if not Is_POA_Policy (The_Type) then
-               PolyORB.Exceptions.Throw
+               PolyORB.Errors.Throw
                 (Error,
-                 PolyORB.Exceptions.InvalidPolicy_E,
-                 PolyORB.Exceptions.InvalidPolicy_Members'
+                 PolyORB.Errors.InvalidPolicy_E,
+                 PolyORB.Errors.InvalidPolicy_Members'
                   (Index => PolyORB.Types.Short (J)));
                exit;
             end if;
@@ -651,7 +652,7 @@ package body PortableServer.POA is
      return Servant
    is
       POA     : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-      Error   : PolyORB.Exceptions.Error_Container;
+      Error   : PolyORB.Errors.Error_Container;
       Servant : PolyORB.Servants.Servant_Access;
 
    begin
@@ -676,7 +677,7 @@ package body PortableServer.POA is
       P_Servant : in Servant)
    is
       POA   : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
    begin
       PolyORB.POA.Set_Servant
@@ -698,7 +699,7 @@ package body PortableServer.POA is
       P_Servant : Servant)
      return ObjectId
    is
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -732,7 +733,7 @@ package body PortableServer.POA is
       Oid       : in ObjectId;
       P_Servant : in Servant)
    is
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -762,7 +763,7 @@ package body PortableServer.POA is
      (Self : in Ref;
       Oid  : in ObjectId)
    is
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -786,9 +787,9 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -829,10 +830,10 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.POA_Types;
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -879,7 +880,7 @@ package body PortableServer.POA is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
       Oid   : PolyORB.POA_Types.Object_Id_Access;
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
    begin
       PolyORB.POA.Servant_To_Id
@@ -920,7 +921,7 @@ package body PortableServer.POA is
       P_Result : PolyORB.References.Ref;
       C_Result : CORBA.Object.Ref;
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
    begin
       PolyORB.POA.Export
         (POA,
@@ -1028,7 +1029,7 @@ package body PortableServer.POA is
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
       S     : PolyORB.Servants.Servant_Access;
 
    begin
@@ -1063,7 +1064,7 @@ package body PortableServer.POA is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container) is
+     (Error : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Debug (O ("Raise_From_Error: enter."));
 
@@ -1099,7 +1100,7 @@ package body PortableServer.POA is
                  (CORBA.IDL_Exception_Members with
                    Index =>
                      CORBA.Short
-                      (PolyORB.Exceptions.InvalidPolicy_Members
+                      (PolyORB.Errors.InvalidPolicy_Members
                         (Error.Member.all).Index));
             begin
                Free (Error.Member);
@@ -1480,7 +1481,7 @@ package body PortableServer.POA is
    procedure Initialize is
       Root_POA : PortableServer.POA.Ref;
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
    begin
       PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error

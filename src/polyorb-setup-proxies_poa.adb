@@ -38,7 +38,7 @@ with PolyORB.POA.Basic_POA;
 
 procedure PolyORB.Setup.Proxies_POA
   (Root_POA_Object :        PolyORB.POA.Obj_Adapter_Access;
-   Error           : in out PolyORB.Exceptions.Error_Container)
+   Error           : in out PolyORB.Errors.Error_Container)
 is
 
    use PolyORB.POA_Manager;
@@ -63,7 +63,7 @@ begin
          Proxy_POA,
          Error);
 
-      if PolyORB.Exceptions.Found (Error) then
+      if PolyORB.Errors.Found (Error) then
          return;
       end if;
 

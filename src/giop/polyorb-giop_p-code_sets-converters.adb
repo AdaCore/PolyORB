@@ -43,7 +43,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
 
    use Ada.Streams;
    use PolyORB.Buffers;
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Utils.Buffers;
    use PolyORB.Types;
@@ -296,7 +296,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Char;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
       pragma Unreferenced (Error);
@@ -309,7 +309,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
       pragma Unreferenced (Error);
@@ -322,7 +322,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Char;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
 
@@ -343,7 +343,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
       pragma Unreferenced (Error);
@@ -383,7 +383,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wchar;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (Error);
 
@@ -400,7 +400,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wide_String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (Error);
 
@@ -432,7 +432,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wchar;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
    begin
       if Data in Surrogate_Character
@@ -460,7 +460,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wide_String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       Equiv : constant Wide_String := To_Wide_String (Data);
       Align : Alignment_Type;
@@ -639,7 +639,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
       pragma Unreferenced (Error);
@@ -652,7 +652,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
       pragma Unreferenced (Error);
@@ -665,7 +665,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
 
@@ -686,7 +686,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (C);
       pragma Unreferenced (Error);
@@ -724,7 +724,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (Error);
 
@@ -748,7 +748,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Unreferenced (Error);
 
@@ -786,7 +786,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       Code : Unsigned_Short;
 
@@ -848,7 +848,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       Length : constant Unsigned_Long := Unmarshall (Buffer);
       Result : Standard.Wide_String (1 .. Integer (Length));

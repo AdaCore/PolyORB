@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -47,7 +47,6 @@ with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Buffer_Sources;
-with PolyORB.Exceptions;
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Iface;
 with PolyORB.HTTP_Methods;
@@ -275,7 +274,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    procedure Handle_Unmarshall_Arguments
      (S     : access SOAP_Session;
       Args  : in out PolyORB.Any.NVList.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Unreferenced (Error);
 
@@ -340,7 +339,7 @@ package body PolyORB.Protocols.SOAP_Pr is
             Args : Any.NVList.Ref;
             --  Nil (not initialised).
 
-            Error : PolyORB.Exceptions.Error_Container;
+            Error : PolyORB.Errors.Error_Container;
 
          begin
             Create_Local_Profile

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -108,7 +108,7 @@ package body PolyORB.Transport.Datagram is
    is
       use PolyORB.Buffers;
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Filters;
       use PolyORB.Filters.Iface;
 
@@ -136,7 +136,7 @@ package body PolyORB.Transport.Datagram is
          declare
             use type Ada.Streams.Stream_Element_Count;
             Size : Ada.Streams.Stream_Element_Count := TE.Max;
-            Error : Exceptions.Error_Container;
+            Error : Errors.Error_Container;
          begin
             if TE.In_Buf = null then
                O ("Unexpected data (no buffer)");
@@ -160,12 +160,12 @@ package body PolyORB.Transport.Datagram is
 
       elsif Msg in Data_Out then
          declare
-            Error : Exceptions.Error_Container;
+            Error : Errors.Error_Container;
          begin
             Write
               (Transport_Endpoint'Class (TE.all),
                Data_Out (Msg).Out_Buf, Error);
-            if Exceptions.Is_Error (Error) then
+            if Errors.Is_Error (Error) then
                return Filter_Error'(Error => Error);
             end if;
          end;

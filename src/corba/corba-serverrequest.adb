@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.Log;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 
 package body CORBA.ServerRequest is
 
@@ -62,7 +62,7 @@ package body CORBA.ServerRequest is
    ---------------
 
    procedure Arguments (O : access Object; NV : in out NVList.Ref) is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       PolyORB_Args : PolyORB.Any.NVList.Ref
         := CORBA.NVList.To_PolyORB_Ref (NV);
@@ -88,7 +88,7 @@ package body CORBA.ServerRequest is
    ----------------
 
    procedure Set_Result (O : access Object; Val : Any) is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Error : Error_Container;
 
@@ -123,7 +123,7 @@ package body CORBA.ServerRequest is
 
       if Kind (Get_Type (Exception_Any)) /= PolyORB.Any.Tk_Except then
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             Error : Error_Container;
 

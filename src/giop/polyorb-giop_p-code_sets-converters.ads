@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -50,28 +50,28 @@ package PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Char;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Marshall
      (C      : in     Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
      (C      : in     Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
      (C      : in     Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    type Wide_Converter is abstract tagged private;
@@ -85,28 +85,28 @@ package PolyORB.GIOP_P.Code_Sets.Converters is
      (C      : in     Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wchar;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Marshall
      (C      : in     Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wide_String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
      (C      : in     Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
      (C      : in     Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    function Get_Converter
@@ -195,25 +195,25 @@ private
      (C      : in     ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Char;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Marshall
      (C      : in     ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.String;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
      (C      : in     ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
      (C      : in     ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    type ISO88591_UTF8_Converter is new Converter with null record;
 
@@ -221,25 +221,25 @@ private
      (C      : in     ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Char;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Marshall
      (C      : in     ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.String;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
      (C      : in     ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
      (C      : in     ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    type UCS2_Native_Wide_Converter is new Wide_Converter with null record;
 
@@ -247,25 +247,25 @@ private
      (C      : in     UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wchar;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Marshall
      (C      : in     UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wide_String;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
      (C      : in     UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
      (C      : in     UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    type UCS2_UTF16_Wide_Converter is new Wide_Converter with null record;
 
@@ -273,24 +273,24 @@ private
      (C      : in     UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wchar;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Marshall
      (C      : in     UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Types.Wide_String;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
      (C      : in     UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall
      (C      : in     UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
 end PolyORB.GIOP_P.Code_Sets.Converters;

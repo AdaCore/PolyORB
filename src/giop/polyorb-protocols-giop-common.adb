@@ -26,13 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Any.ExceptionList;
 with PolyORB.Buffers;
+with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
@@ -44,6 +45,7 @@ with PolyORB.Smart_Pointers;
 package body PolyORB.Protocols.GIOP.Common is
 
    use PolyORB.Buffers;
+   use PolyORB.Exceptions;
    use PolyORB.Log;
    use PolyORB.Representations.CDR;
    use PolyORB.Representations.CDR.Common;
@@ -141,13 +143,13 @@ package body PolyORB.Protocols.GIOP.Common is
       Request        :        Requests.Request_Access;
       Request_Id_Ptr : access Types.Unsigned_Long;
       Reply_Stat_Ptr : access Reply_Status_Type;
-      Error          : in out Exceptions.Error_Container)
+      Error          : in out Errors.Error_Container)
    is
       use PolyORB.Annotations;
       use PolyORB.Any;
       use PolyORB.Buffers;
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Types;
       use type PolyORB.Any.TypeCode.Object;
 
@@ -398,11 +400,11 @@ package body PolyORB.Protocols.GIOP.Common is
       case Loc_Type is
          when Object_Here | Unknown_Object =>
             declare
-               use PolyORB.Exceptions;
+               use PolyORB.Errors;
 
                Req     : Pending_Request_Access;
                Success : Boolean;
-               Error   : Exceptions.Error_Container;
+               Error   : Errors.Error_Container;
             begin
                Get_Pending_Request_By_Locate
                  (Sess,
@@ -464,8 +466,8 @@ package body PolyORB.Protocols.GIOP.Common is
 
                begin
                   Req.Req.Exception_Info :=
-                    PolyORB.Exceptions.To_Any
-                    (PolyORB.Exceptions.ForwardRequest_Members'
+                    PolyORB.Errors.To_Any
+                    (PolyORB.Errors.ForwardRequest_Members'
                      (Forward_Reference => Smart_Pointers.Ref (Ref)));
                end;
 
@@ -543,7 +545,7 @@ package body PolyORB.Protocols.GIOP.Common is
    is
       use PolyORB.Any;
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.ORB;
 
       Current_Req  : Pending_Request;
@@ -552,7 +554,7 @@ package body PolyORB.Protocols.GIOP.Common is
       ORB          : constant ORB_Access := ORB_Access (Sess.Server);
       Arguments_Alignment : Buffers.Alignment_Type
         := Sess.Implem.Data_Alignment;
-      Error        : Exceptions.Error_Container;
+      Error        : Errors.Error_Container;
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
                      (Sess.Implem.Version = GIOP_Version'(1, 1)) or
@@ -736,8 +738,8 @@ package body PolyORB.Protocols.GIOP.Common is
                Ref : constant References.Ref := Unmarshall (Sess.Buffer_In);
             begin
                Current_Req.Req.Exception_Info :=
-                 PolyORB.Exceptions.To_Any
-                 (PolyORB.Exceptions.ForwardRequest_Members'
+                 PolyORB.Errors.To_Any
+                 (PolyORB.Errors.ForwardRequest_Members'
                   (Forward_Reference => Smart_Pointers.Ref (Ref)));
             end;
 
@@ -776,10 +778,10 @@ package body PolyORB.Protocols.GIOP.Common is
    ---------------------------------------
 
    procedure Replace_Marshal_5_To_Bad_Param_23
-     (Error  : in out Exceptions.Error_Container;
-      Status : in     Exceptions.Completion_Status)
+     (Error  : in out Errors.Error_Container;
+      Status : in     Errors.Completion_Status)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use type Types.Unsigned_Long;
    begin
       if Error.Kind = Marshal_E
@@ -796,10 +798,10 @@ package body PolyORB.Protocols.GIOP.Common is
    ---------------------------------------
 
    procedure Replace_Marshal_5_To_Inv_Objref_2
-     (Error  : in out Exceptions.Error_Container;
-      Status : in     Exceptions.Completion_Status)
+     (Error  : in out Errors.Error_Container;
+      Status : in     Errors.Completion_Status)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use type Types.Unsigned_Long;
    begin
       if Error.Kind = Marshal_E

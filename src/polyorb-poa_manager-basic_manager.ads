@@ -26,15 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Base POA Manager concrete implementation.
 
 with PolyORB.Components;
-with PolyORB.Exceptions;
 with PolyORB.POA_Types;
 with PolyORB.Servants.Iface;
 with PolyORB.Tasking.Mutexes;
@@ -56,17 +55,17 @@ package PolyORB.POA_Manager.Basic_Manager is
 
    procedure Activate
      (Self  : access Basic_POA_Manager;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean;
-      Error               : in out PolyORB.Exceptions.Error_Container);
+      Error               : in out PolyORB.Errors.Error_Container);
 
    procedure Discard_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean;
-      Error               : in out PolyORB.Exceptions.Error_Container);
+      Error               : in out PolyORB.Errors.Error_Container);
    procedure Deactivate
      (Self                : access Basic_POA_Manager;
       Etherealize_Objects :        Boolean;

@@ -38,6 +38,7 @@ with PolyORB.CORBA_P.Interceptors_Hooks;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
+with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -125,7 +126,7 @@ package body PortableServer is
             use PolyORB.Binding_Data;
             use PolyORB.Requests;
             use CORBA.ServerRequest;
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             R : constant Request_Access := Execute_Request (Msg).Req;
             P : constant Profile_Access := Execute_Request (Msg).Pro;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@
 
 with PolyORB.Any.NVList;
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.Utils.Chained_Lists;
@@ -70,13 +70,13 @@ package PolyORB.Servants.Group_Servants is
    procedure Get_Group_Object_Id
      (Group :        PolyORB.Servants.Servant_Access;
       Oid   :    out Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Return group object id
 
    procedure Get_Group_Length
      (Group :        PolyORB.Servants.Servant_Access;
       L     :    out Natural;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Return group length
 
    --------------------------
@@ -86,13 +86,13 @@ package PolyORB.Servants.Group_Servants is
    procedure Associate
      (Group :        PolyORB.Servants.Servant_Access;
       Ref   :        PolyORB.References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Associate a servant ref with a group
 
    procedure Disassociate
      (Group :        PolyORB.Servants.Servant_Access;
       Ref   :        PolyORB.References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Disassociate a servant ref with a group
 
    --  Iterator on a group servant
@@ -102,7 +102,7 @@ package PolyORB.Servants.Group_Servants is
    procedure First
      (Group :        PolyORB.Servants.Servant_Access;
       It    :    out Iterator;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Create Iterator and set it on the first element
 
    function Value (It : in Iterator) return PolyORB.References.Ref;
@@ -147,7 +147,7 @@ private
       Args_Src    : PolyORB.Components.Component_Access;
       --  Current Args list
       Args        : PolyORB.Any.NVList.Ref;
-      Error       : PolyORB.Exceptions.Error_Container;
+      Error       : PolyORB.Errors.Error_Container;
       --  Proxy state
       State       : Proxy_State := Not_Ready;
       --  Mutex to avoid concurrent proxy access

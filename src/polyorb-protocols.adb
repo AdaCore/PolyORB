@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ package body PolyORB.Protocols is
    procedure Handle_Unmarshall_Arguments
      (S     : access Session;
       Args  : in out Any.NVList.Ref;
-      Error : in out Exceptions.Error_Container)
+      Error : in out Errors.Error_Container)
    is
    begin
       raise Program_Error;
@@ -79,11 +79,11 @@ package body PolyORB.Protocols is
       S    :        Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Nothing : Components.Null_Message;
       Req     : Request_Access;
-      Error   : Exceptions.Error_Container;
+      Error   : Errors.Error_Container;
 
    begin
       pragma Debug
@@ -180,7 +180,8 @@ package body PolyORB.Protocols is
                else
                   pragma Debug (O ("Unmarshall deferred arguments error"));
                   Req.Exception_Info :=
-                    Error_To_Any (Arguments_Error (Reply).Error);
+                    PolyORB.Errors.Error_To_Any
+                    (Arguments_Error (Reply).Error);
                end if;
             end;
 

@@ -45,7 +45,7 @@
 --  CORBA-like POA interface and the PolyORB Obj_Adapter interface.
 
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.Object_Maps;
 with PolyORB.POA_Manager;
@@ -145,7 +145,7 @@ package PolyORB.POA is
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container)
+      Error        : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided.
@@ -157,7 +157,7 @@ package PolyORB.POA is
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          : in out Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container);
+      Error        : in out PolyORB.Errors.Error_Container);
    --  Create a POA given its name and a list of policies Policies are
    --  optionnal : defaults values are provided. Compability of Policies is
    --  checked.
@@ -167,7 +167,7 @@ package PolyORB.POA is
       Name        :        String;
       Activate_It :        Boolean;
       POA         :    out Obj_Adapter_Access;
-      Error       : in out PolyORB.Exceptions.Error_Container);
+      Error       : in out PolyORB.Errors.Error_Container);
    --  Starting from given POA, looks for the POA in all the descendancy whose
    --  name is Name. Returns null if not found.
 
@@ -181,7 +181,7 @@ package PolyORB.POA is
      (Self  : access Obj_Adapter;
       Hint  :        Object_Id_Access;
       U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Reserve a complete object identifier, possibly using the given Hint (if
    --  not null) for the construction of the object identifier included in the
    --  Object_Id.
@@ -191,7 +191,7 @@ package PolyORB.POA is
       P_Servant :        Servants.Servant_Access;
       Hint      :        Object_Id_Access;
       U_Oid     :    out Unmarshalled_Oid;
-      Error     : in out PolyORB.Exceptions.Error_Container);
+      Error     : in out PolyORB.Errors.Error_Container);
    --  Activates an object, i.e. associate it with a local identification,
    --  possibly using the given Hint (if not null) for the construction of the
    --  object identifier included in the Object_Id.
@@ -199,7 +199,7 @@ package PolyORB.POA is
    procedure Deactivate_Object
      (Self  : access Obj_Adapter;
       Oid   : in     Object_Id;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Deactivates an object from the Active Object Map (requires the RETAIN
    --  policy). In case a ServantManager is used, calls its etherealize
    --  method.
@@ -210,13 +210,13 @@ package PolyORB.POA is
      (Self      : access Obj_Adapter;
       P_Servant : in     Servants.Servant_Access;
       Oid       :    out Object_Id_Access;
-      Error     : in out PolyORB.Exceptions.Error_Container);
+      Error     : in out PolyORB.Errors.Error_Container);
 
    procedure Id_To_Servant
      (Self    : access Obj_Adapter;
       Oid     :        Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
    --  Requires RETAIN or USE_DEFAULT_SERVANT
    --  Case RETAIN:
    --    Look for the given Object_Id in the Active Object Map.
@@ -230,22 +230,22 @@ package PolyORB.POA is
    procedure Get_Servant
      (Self    : access Obj_Adapter;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Set_Servant
      (Self    : access Obj_Adapter;
       Servant :        Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Get_Servant_Manager
      (Self    : access Obj_Adapter;
       Manager :    out ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Set_Servant_Manager
      (Self    : access Obj_Adapter;
       Manager :        ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Get_The_Children
      (Self     : access Obj_Adapter;
@@ -266,18 +266,18 @@ package PolyORB.POA is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Unexport
      (OA    : access Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Object_Key
      (OA      : access Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    function Get_Empty_Arg_List
      (OA     : access Obj_Adapter;
@@ -295,7 +295,7 @@ package PolyORB.POA is
      (OA      : access Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Release_Servant
      (OA      : access Obj_Adapter;
@@ -321,7 +321,7 @@ package PolyORB.POA is
      (OA    : access Obj_Adapter;
       Id    : access Object_Id;
       URI   : out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Convert an object id to its representation as a relative URI
 
    function Rel_URI_To_Oid
@@ -344,7 +344,7 @@ private
 
    procedure Check_Policies_Compatibility
      (OA    :        Obj_Adapter_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Destroy_Policies
      (OA : in out Obj_Adapter);
@@ -366,7 +366,7 @@ private
       Id       : access Objects.Object_Id;
       Do_Check :        Boolean;
       Servant  :    out Servants.Servant_Access;
-      Error    : in out PolyORB.Exceptions.Error_Container);
+      Error    : in out PolyORB.Errors.Error_Container);
    --  The Find_Servant from PolyORB, plus a parameter.
    --  If Do_Check is True, then the POA checks the state of its POA
    --  Manager.

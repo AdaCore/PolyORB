@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ with PolyORB.Setup;
 
 package body PolyORB.POA_Manager.Basic_Manager is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
 
@@ -67,7 +67,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    procedure Activate
      (Self  : access Basic_POA_Manager;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       use Requests_Queue_P;
 
@@ -112,7 +112,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean;
-      Error               : in out PolyORB.Exceptions.Error_Container)
+      Error               : in out PolyORB.Errors.Error_Container)
    is
    begin
       pragma Debug (O ("Hold requests, Wait_For_Completion is "
@@ -149,7 +149,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Discard_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean;
-      Error               : in out PolyORB.Exceptions.Error_Container)
+      Error               : in out PolyORB.Errors.Error_Container)
    is
    begin
       pragma Debug (O ("Discard requests, Wait_For_Completion is "

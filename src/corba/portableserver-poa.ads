@@ -53,7 +53,7 @@ with PortableServer.RequestProcessingPolicy;
 with PortableServer.ServantRetentionPolicy;
 with PortableServer.ThreadPolicy;
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 
 package PortableServer.POA is
 
@@ -239,7 +239,7 @@ package PortableServer.POA is
    ----------------------------------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container);
+     (Error : in out PolyORB.Errors.Error_Container);
 
    --  AdapterAlreadyExists
 

@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ package body PolyORB.Obj_Adapters is
      (OA    : access Obj_Adapter;
       Id    : access Objects.Object_Id;
       URI   : out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA, Error);
@@ -125,12 +125,12 @@ package body PolyORB.Obj_Adapters is
      (OA    : access Obj_Adapter;
       R     :        References.Ref;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-      pragma Warnings (Off);
       pragma Unreferenced (OA, R, Oid);
-      pragma Warnings (On);
+
+      use PolyORB.Errors;
+
    begin
       Throw (Error, No_Implement_E,
              System_Exception_Members'
@@ -145,12 +145,12 @@ package body PolyORB.Obj_Adapters is
      (OA    : access Obj_Adapter;
       Oid   : access Objects.Object_Id;
       Ref   : out References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-      pragma Warnings (Off);
       pragma Unreferenced (OA, Ref, Oid);
-      pragma Warnings (On);
+
+      use PolyORB.Errors;
+
    begin
       Throw (Error, No_Implement_E,
              System_Exception_Members'

@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,7 +37,6 @@ with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Components;
-with PolyORB.Exceptions;
 with PolyORB.Protocols.GIOP.Common;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
@@ -269,9 +268,9 @@ package body PolyORB.Protocols.GIOP is
    procedure Handle_Unmarshall_Arguments
      (Sess  : access GIOP_Session;
       Args  : in out Any.NVList.Ref;
-      Error : in out Exceptions.Error_Container)
+      Error : in out Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
    begin
       pragma Debug (O ("Unmarshalling_Request_Arguments"));
@@ -359,11 +358,11 @@ package body PolyORB.Protocols.GIOP is
       Pro  : access Binding_Data.Profile_Type'Class)
    is
       use PolyORB.Binding_Data;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use Unsigned_Long_Flags;
 
       New_Pending_Req : Pending_Request_Access;
-      Error           : Exceptions.Error_Container;
+      Error           : Errors.Error_Container;
       Success         : Boolean;
    begin
       if (Sess.Conf.Permitted_Sync_Scopes and R.Req_Flags) = 0
@@ -620,7 +619,7 @@ package body PolyORB.Protocols.GIOP is
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
-      Error               : in out Exceptions.Error_Container)
+      Error               : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -629,7 +628,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       It  : Iterator := First (List_Of (Args).all);
       Arg : Element_Access;
@@ -668,7 +667,7 @@ package body PolyORB.Protocols.GIOP is
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
-      Error               : in out Exceptions.Error_Container)
+      Error               : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -677,7 +676,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       It  : Iterator;
       Arg : Element_Access;
@@ -730,13 +729,13 @@ package body PolyORB.Protocols.GIOP is
       Repr   : in     Representations.CDR.CDR_Representation'Class;
       Info   :    out Any.Any)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.GIOP_P.Exceptions;
 
       Exception_Name : constant String
         := Extract_System_Exception_Name
              (To_Standard_String (Types.RepositoryId'(Unmarshall (Buffer))));
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
 
    begin
       Info := Any.Get_Empty_Any

@@ -45,6 +45,7 @@ with PolyORB.Binding_Data;
 with PolyORB.DSA_P.Exceptions;
 with PolyORB.DSA_P.Partitions;
 with PolyORB.Dynamic_Dict;
+with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -357,10 +358,11 @@ package body System.PolyORB_Interface is
      (E : Ada.Exceptions.Exception_Occurrence)
       return Any
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Types;
 
-      Name : constant RepositoryId := Occurrence_To_Name (E);
+      Name : constant RepositoryId
+        := PolyORB.Exceptions.Occurrence_To_Name (E);
       TC : PATC.Object := PATC.TC_Except;
       Result : PolyORB.Any.Any;
    begin
@@ -547,7 +549,7 @@ package body System.PolyORB_Interface is
 
             pragma Assert (Self.Handler /= null);
             declare
-               use PolyORB.Exceptions;
+               use PolyORB.Errors;
             begin
                Self.Handler.all (EMsg.Req);
             exception
@@ -756,7 +758,7 @@ package body System.PolyORB_Interface is
       Is_Local : out Boolean;
       Addr     : out System.Address)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Profiles : constant Profile_Array
         := PolyORB.References.Profiles_Of (Ref);
@@ -985,7 +987,7 @@ package body System.PolyORB_Interface is
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
       Last : Integer := Typ'Last;
@@ -1094,7 +1096,7 @@ package body System.PolyORB_Interface is
    procedure Initialize
    is
       use PolyORB;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       use type PolyORB.POA.Obj_Adapter_Access;
 
@@ -1366,10 +1368,10 @@ package body System.PolyORB_Interface is
      (R     :        PolyORB.Requests.Request_Access;
       Args  : in out PolyORB.Any.NVList.Ref)
    is
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
    begin
       PolyORB.Requests.Arguments (R, Args, Error);
-      if PolyORB.Exceptions.Found (Error) then
+      if PolyORB.Errors.Found (Error) then
          PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
    end Request_Arguments;
@@ -1398,10 +1400,10 @@ package body System.PolyORB_Interface is
    procedure Request_Set_Out
      (R     : PolyORB.Requests.Request_Access)
    is
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
    begin
       PolyORB.Requests.Set_Out_Args (R, Error);
-      if PolyORB.Exceptions.Found (Error) then
+      if PolyORB.Errors.Found (Error) then
          PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
    end Request_Set_Out;
@@ -1442,7 +1444,7 @@ package body System.PolyORB_Interface is
      (Name            : String;
       Default_Servant : Servant_Access)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.POA;
       use PolyORB.POA_Config;
       use PolyORB.POA_Manager;

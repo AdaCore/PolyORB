@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,6 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
 with PolyORB.Protocols.Iface;
@@ -193,12 +192,11 @@ package body PolyORB.Requests is
       Ignore_Src_Mode :        Boolean        := True;
       Can_Extend      :        Boolean        := False)
    is
-      use PolyORB.Components;
-
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Components;
 
       Src_It : Iterator := First (List_Of (Src_Args).all);
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
@@ -319,7 +317,6 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
 
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
@@ -438,7 +435,6 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
 
       function Name_Exists
         (Name : Types.Identifier; From : Iterator)
@@ -704,7 +700,6 @@ package body PolyORB.Requests is
    is
       use Any.NVList;
       use Components;
-      use Exceptions;
 
    begin
       if Self.Arguments_Called

@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +36,6 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
-with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -257,7 +256,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.ORB;
       use PolyORB.ORB.Iface;
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
       use PolyORB.Obj_Adapters;
@@ -278,7 +277,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Target           : References.Ref;
       Req              : Request_Access;
       Service_Contexts : QoS_GIOP_Service_Contexts_Parameter_Access;
-      Error            : Exceptions.Error_Container;
+      Error            : Errors.Error_Container;
 
       Result      : Any.NamedValue;
       --  Dummy NamedValue for Create_Request;
@@ -392,11 +391,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Warnings (On);
 
       use PolyORB.ORB;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Sess  : GIOP_Session renames GIOP_Session (S.all);
       Ctx   : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
-      Error : Exceptions.Error_Container;
+      Error : Errors.Error_Container;
    begin
       if Sess.Role = Client then
          raise GIOP_Error;
@@ -513,13 +512,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
       R      : in     Pending_Request_Access;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Requests.Unsigned_Long_Flags;
       use PolyORB.Types;
 

@@ -37,7 +37,7 @@
 --  user to affect priorities to servants. It is notionnally
 --  equivalent to RTCORBA specification of the RT-POA.
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.POA;
 with PolyORB.POA_Types;
 with PolyORB.Servants;
@@ -70,7 +70,7 @@ package PolyORB.RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Reserve a complete object identifier, possibly using
    --  the given Hint (if not null) for the construction of
@@ -83,7 +83,7 @@ package PolyORB.RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Activate an object, i.e. associate it with a local
    --  identification, possibly using the given Hint (if not null) for
@@ -95,7 +95,7 @@ package PolyORB.RT_POA is
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Return scheduling parameters associated to servant P_Servant
    --  stored in Self.

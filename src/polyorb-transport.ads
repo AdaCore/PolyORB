@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Buffers;
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Smart_Pointers;
 
 package PolyORB.Transport is
@@ -135,7 +135,7 @@ package PolyORB.Transport is
      (TE     : in out Transport_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  :    out Exceptions.Error_Container)
+      Error  :    out Errors.Error_Container)
       is abstract;
    --  Receive data from TE into Buffer. When Read is Called,
    --  Size is set to the maximum size of the data to be received.
@@ -144,7 +144,7 @@ package PolyORB.Transport is
    procedure Write
      (TE     : in out Transport_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Error  :    out Exceptions.Error_Container)
+      Error  :    out Errors.Error_Container)
       is abstract;
    --  Write out the contents of Buffer onto TE.
 

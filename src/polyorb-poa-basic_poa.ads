@@ -38,7 +38,7 @@
 --  CORBA-like POA API (defined in PolyORB.POA) and PolyORB Obj_Adapter
 --  (defined in PolyORB.Obj_Adapters) upon which the Basic POA depends.
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.References;
 
@@ -56,7 +56,7 @@ package PolyORB.POA.Basic_POA is
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container);
+      Error        : in out PolyORB.Errors.Error_Container);
 
    --------------------------------
    -- Proxy namespace management --
@@ -75,13 +75,13 @@ package PolyORB.POA.Basic_POA is
      (OA    : access Basic_Obj_Adapter;
       R     :        References.Ref;
       Oid   :    out Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Proxy_To_Ref
      (OA    : access Basic_Obj_Adapter;
       Oid   : access Objects.Object_Id;
       Ref   : out References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
 private
 

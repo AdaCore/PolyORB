@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,22 +41,19 @@ with PolyORB.Any.Initialization;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Objects;
-with PolyORB.Exceptions;
-with PolyORB.Filters;
+with PolyORB.Errors;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
-with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers.Initialization;
 with PolyORB.Tasking.Threads;
 with PolyORB.Task_Info;
-with PolyORB.Transport;
 with PolyORB.Transport.Handlers;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
@@ -872,7 +869,7 @@ package body PolyORB.ORB is
          --  or a surrogate if this is remote reference.
 
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             Error : Error_Container;
 
@@ -890,8 +887,7 @@ package body PolyORB.ORB is
                --  implies a problem within the object adapter. We bounce the
                --  exception to the user for further processing.
 
-               J.Request.Exception_Info
-                 := PolyORB.Exceptions.Error_To_Any (Error);
+               J.Request.Exception_Info := Error_To_Any (Error);
 
                Catch (Error);
 
@@ -1140,7 +1136,8 @@ package body PolyORB.ORB is
 
       elsif Msg in Iface.Oid_Translate then
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
+
             URI   : Types.String;
             Error : Error_Container;
             Empty : Components.Null_Message;
@@ -1267,7 +1264,6 @@ begin
        & "protocols.giop?"
        & "protocols.soap?"
        & "smart_pointers"
-       & "exceptions"
        & "tasking.threads",
        Provides => Empty,
        Implicit => False,

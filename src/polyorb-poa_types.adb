@@ -33,7 +33,6 @@
 
 with Ada.Streams;
 
-with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Types;
 
@@ -61,7 +60,7 @@ package body PolyORB.POA_Types is
      (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       ULo   :    out Types.Unsigned_Long;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Extract an unsigned long.
 
    function Put_ULong
@@ -73,7 +72,7 @@ package body PolyORB.POA_Types is
      (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       Boo   :    out Types.Boolean;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Extract a boolean.
 
    function Put_Boolean
@@ -85,7 +84,7 @@ package body PolyORB.POA_Types is
      (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       Str   :    out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Extract a string stored with prefixed U_Long length
 
    function Put_String
@@ -192,15 +191,15 @@ package body PolyORB.POA_Types is
      (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       ULo   :    out Types.Unsigned_Long;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       R : Types.Unsigned_Long := 0;
    begin
       if SEI + 7 > SEA'Last then
-         PolyORB.Exceptions.Throw
+         PolyORB.Errors.Throw
            (Error,
-            PolyORB.Exceptions.Invalid_Object_Id_E,
-            PolyORB.Exceptions.Null_Member);
+            PolyORB.Errors.Invalid_Object_Id_E,
+            PolyORB.Errors.Null_Member);
 
          ULo := 0;
          return;
@@ -259,7 +258,7 @@ package body PolyORB.POA_Types is
      (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       Boo   :    out Types.Boolean;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       case SEA (SEI) is
          when Character'Pos ('F') =>
@@ -271,10 +270,10 @@ package body PolyORB.POA_Types is
          when others =>
             Boo := False;
 
-            PolyORB.Exceptions.Throw
+            PolyORB.Errors.Throw
               (Error,
-               PolyORB.Exceptions.Invalid_Object_Id_E,
-               PolyORB.Exceptions.Null_Member);
+               PolyORB.Errors.Invalid_Object_Id_E,
+               PolyORB.Errors.Null_Member);
       end case;
 
       SEI := SEI + 1;
@@ -302,7 +301,7 @@ package body PolyORB.POA_Types is
      (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
       Str   :    out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       Len : Types.Unsigned_Long;
    begin
@@ -310,14 +309,14 @@ package body PolyORB.POA_Types is
 
       if SEI + Stream_Element_Offset (Len) >
         SEA'Last + Stream_Element_Offset (1)
-        or else PolyORB.Exceptions.Found (Error)
+        or else PolyORB.Errors.Found (Error)
       then
          Str := Types.To_PolyORB_String ("");
 
-         PolyORB.Exceptions.Throw
+         PolyORB.Errors.Throw
            (Error,
-            PolyORB.Exceptions.Invalid_Object_Id_E,
-            PolyORB.Exceptions.Null_Member);
+            PolyORB.Errors.Invalid_Object_Id_E,
+            PolyORB.Errors.Null_Member);
          return;
       end if;
 
@@ -373,7 +372,7 @@ package body PolyORB.POA_Types is
    procedure Oid_To_U_Oid
      (Oid   :        Object_Id;
       U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       Index : Stream_Element_Offset;
       Oid_Str : String (1 .. Oid'Length);
@@ -414,17 +413,17 @@ package body PolyORB.POA_Types is
 
       if Index <= Oid'Last then
          Get_String_With_Length (Oid, Index, Id, Error);
-         if PolyORB.Exceptions.Found (Error) then
+         if PolyORB.Errors.Found (Error) then
             return;
          end if;
 
          Get_Boolean (Oid, Index, System_Generated, Error);
-         if PolyORB.Exceptions.Found (Error) then
+         if PolyORB.Errors.Found (Error) then
             return;
          end if;
 
          Get_ULong (Oid, Index, Persistency_Flag, Error);
-         if PolyORB.Exceptions.Found (Error) then
+         if PolyORB.Errors.Found (Error) then
             return;
          end if;
       end if;

@@ -35,7 +35,6 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
@@ -48,7 +47,7 @@ with PolyORB.Utils;
 
 package body PolyORB.POA is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.POA_Manager;
    use PolyORB.POA_Policies;
@@ -69,7 +68,7 @@ package body PolyORB.POA is
      (OA    : access Obj_Adapter;
       Id    : access Object_Id;
       URI   : out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
@@ -369,7 +368,7 @@ package body PolyORB.POA is
 
    procedure Check_Policies_Compatibility
      (OA    :        Obj_Adapter_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       OA_Policies : AllPolicies;
 
@@ -567,9 +566,8 @@ package body PolyORB.POA is
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          : in out Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container)
+      Error        : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
       use PolyORB.POA_Types.POA_HTables;
 
       Ref : PolyORB.POA_Types.Obj_Adapter_Ref;
@@ -818,7 +816,7 @@ package body PolyORB.POA is
      (Self  : access Obj_Adapter;
       Hint  :        Object_Id_Access;
       U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       Assign_Object_Identifier
         (Self.Id_Assignment_Policy.all,
@@ -837,7 +835,7 @@ package body PolyORB.POA is
       P_Servant : in     Servants.Servant_Access;
       Hint      :        Object_Id_Access;
       U_Oid     :    out Unmarshalled_Oid;
-      Error     : in out PolyORB.Exceptions.Error_Container) is
+      Error     : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Debug (O ("Activate_Object: enter"));
 
@@ -875,7 +873,7 @@ package body PolyORB.POA is
    procedure Deactivate_Object
      (Self  : access Obj_Adapter;
       Oid   : in     Object_Id;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       U_Oid : Unmarshalled_Oid;
    begin
@@ -954,7 +952,7 @@ package body PolyORB.POA is
      (Self      : access Obj_Adapter;
       P_Servant : in     Servants.Servant_Access;
       Oid       :    out Object_Id_Access;
-      Error     : in out PolyORB.Exceptions.Error_Container)
+      Error     : in out PolyORB.Errors.Error_Container)
    is
       Temp_Oid, Temp_Oid2 : Object_Id_Access;
    begin
@@ -1001,7 +999,7 @@ package body PolyORB.POA is
      (Self    : access Obj_Adapter;
       Oid     :        Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       U_Oid : Unmarshalled_Oid;
    begin
@@ -1036,9 +1034,8 @@ package body PolyORB.POA is
       Name        :        String;
       Activate_It :        Boolean;
       POA         :    out Obj_Adapter_Access;
-      Error       : in out PolyORB.Exceptions.Error_Container)
+      Error       : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
       use PolyORB.POA_Types.POA_HTables;
 
       --------------------------
@@ -1050,7 +1047,7 @@ package body PolyORB.POA is
          Name        :        String;
          Activate_It :        Boolean;
          POA         :    out Obj_Adapter_Access;
-         Error       : in out PolyORB.Exceptions.Error_Container);
+         Error       : in out PolyORB.Errors.Error_Container);
       --  Looks for 'name', searching from 'Self', using a recursive search.
       --  If necessary, will invoke AdapterActivator call backs.
 
@@ -1059,7 +1056,7 @@ package body PolyORB.POA is
          Name        :        String;
          Activate_It :        Boolean;
          POA         :    out Obj_Adapter_Access;
-         Error       : in out PolyORB.Exceptions.Error_Container)
+         Error       : in out PolyORB.Errors.Error_Container)
       is
          A_Child     : Obj_Adapter_Access;
          Result      : Boolean;
@@ -1194,7 +1191,7 @@ package body PolyORB.POA is
    procedure Get_Servant
      (Self    : access Obj_Adapter;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Get_Servant
         (Self.Request_Processing_Policy.all,
@@ -1210,7 +1207,7 @@ package body PolyORB.POA is
    procedure Set_Servant
      (Self    : access Obj_Adapter;
       Servant :        Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Set_Servant
         (Self.Request_Processing_Policy.all,
@@ -1226,7 +1223,7 @@ package body PolyORB.POA is
    procedure Get_Servant_Manager
      (Self    : access Obj_Adapter;
       Manager :    out ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Ensure_Servant_Manager
         (Self.Request_Processing_Policy.all,
@@ -1246,7 +1243,7 @@ package body PolyORB.POA is
    procedure Set_Servant_Manager
      (Self    : access Obj_Adapter;
       Manager :        ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Ensure_Servant_Manager
         (Self.Request_Processing_Policy.all,
@@ -1386,7 +1383,7 @@ package body PolyORB.POA is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       --  NOTE: Per construction, this procedure has the same semantics as
       --  Servant_To_Ref CORBA procedure.
@@ -1426,7 +1423,7 @@ package body PolyORB.POA is
    procedure Unexport
      (OA    : access Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       Deactivate_Object (OA, Id.all, Error);
    end Unexport;
@@ -1439,7 +1436,7 @@ package body PolyORB.POA is
      (OA      : access Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
@@ -1543,7 +1540,7 @@ package body PolyORB.POA is
      (OA      : access Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Find_Servant (OA, Id, True, Servant, Error);
    end Find_Servant;
@@ -1553,7 +1550,7 @@ package body PolyORB.POA is
       Id       : access Objects.Object_Id;
       Do_Check :        Boolean;
       Servant  :    out Servants.Servant_Access;
-      Error    : in out PolyORB.Exceptions.Error_Container)
+      Error    : in out PolyORB.Errors.Error_Container)
    is
       use type PolyORB.Servants.Servant_Access;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -86,7 +86,7 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
      (TE     : in out Socket_Out_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count;
-      Error  :    out Exceptions.Error_Container)
+      Error  :    out Errors.Error_Container)
    is
       pragma Unreferenced (TE, Buffer, Size);
 
@@ -102,10 +102,10 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    procedure Write
    (TE     : in out Socket_Out_Endpoint;
     Buffer :        Buffers.Buffer_Access;
-    Error  :    out Exceptions.Error_Container)
+    Error  :    out Errors.Error_Container)
    is
       use PolyORB.Buffers;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Data : constant Stream_Element_Array :=
         To_Stream_Element_Array (Buffer);
@@ -121,11 +121,13 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
          PolyORB.Sockets.Send_Socket (TE.Socket, Data, Last, TE.Addr);
       exception
          when PolyORB.Sockets.Socket_Error =>
-            Throw (Error, Comm_Failure_E, System_Exception_Members'
+            Throw (Error, Comm_Failure_E,
+                   System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
 
          when others =>
-            Throw (Error, Unknown_E, System_Exception_Members'
+            Throw (Error, Unknown_E,
+                   System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
       end;
       pragma Debug (O ("Write: leave"));

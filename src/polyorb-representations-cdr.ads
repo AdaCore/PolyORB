@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -55,13 +55,13 @@ package PolyORB.Representations.CDR is
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Any.Any;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
    --  Unmarshall the value of Result from Buffer. Result must have
    --  a valid TypeCode, which defines what kind of value is unmarshalled.
    --  If Result already has a value, then its memory location
@@ -75,14 +75,14 @@ package PolyORB.Representations.CDR is
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     PolyORB.Types.Char;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Char;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    --  'wchar' type
@@ -91,14 +91,14 @@ package PolyORB.Representations.CDR is
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     PolyORB.Types.Wchar;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Wchar;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    --  'string' type
@@ -107,14 +107,14 @@ package PolyORB.Representations.CDR is
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     PolyORB.Types.String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    --  'wstring' type
@@ -123,14 +123,14 @@ package PolyORB.Representations.CDR is
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     PolyORB.Types.Wide_String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    procedure Unmarshall
      (R      : in     CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Wide_String;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
       is abstract;
 
    function Create_Representation

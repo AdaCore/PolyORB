@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -147,10 +147,10 @@ package body PolyORB.Transport.Datagram.Sockets_In is
      (TE     : in out Socket_In_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count;
-      Error  :    out Exceptions.Error_Container)
+      Error  :    out Errors.Error_Container)
    is
       use PolyORB.Buffers;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Data_Received : Stream_Element_Count;
       Request : Request_Type (N_Bytes_To_Read);
@@ -182,11 +182,13 @@ package body PolyORB.Transport.Datagram.Sockets_In is
          Receive_Buffer (Buffer, Size, Data_Received);
       exception
          when PolyORB.Sockets.Socket_Error =>
-            Throw (Error, Comm_Failure_E, System_Exception_Members'
+            Throw (Error, Comm_Failure_E,
+                   System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
 
          when others =>
-            Throw (Error, Unknown_E, System_Exception_Members'
+            Throw (Error, Unknown_E,
+                   System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
       end;
 
@@ -204,7 +206,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    procedure Write
      (TE     : in out Socket_In_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Error  :    out Exceptions.Error_Container)
+      Error  :    out Errors.Error_Container)
    is
    begin
       raise Program_Error;

@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ with Ada.Text_IO;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;
 with PolyORB.ORB.Iface;
@@ -61,7 +61,7 @@ package body PolyORB.Setup.Test_SOA is
 
    use Ada.Text_IO;
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Objects;
    use PolyORB.ORB;
    use PolyORB.Utils.Report;
