@@ -1,3 +1,10 @@
+--  Et Quinot prit le Droopi, il l'implémenta,
+--  et le donna à ses disciples en disant :
+--    "prenez et codez-en tous, car ceci est ma thèse,
+--     livrée pour vous et pour la multitude open-source,
+--     vous ferez cela en votre mémoire pour moi."
+
+
 --  Je vous salue Ada, pleine de types,
 --  Robert Deware est avec vous,
 --  Vous êtes bénie entre tous les langages,
