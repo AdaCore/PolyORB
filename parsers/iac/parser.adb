@@ -4,11 +4,12 @@ with Errors;    use Errors;
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Namet;     use Namet;
-with Nodes;     use Nodes;
-with Nutils;    use Nutils;
 with Scopes;    use Scopes;
 with Types;     use Types;
 with Values;    use Values;
+
+with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nutils; use Frontend.Nutils;
 
 package body Parser is
 

@@ -1,8 +1,7 @@
-with GNAT.OS_Lib;       use GNAT.OS_Lib;
+with GNAT.OS_Lib;    use GNAT.OS_Lib;
 
 with Analyzer;  use Analyzer;
 with Backend;   use Backend;
-with Debug;     use Debug;
 with Errors;    use Errors;
 with Flags;     use Flags;
 with Lexer;     use Lexer;
@@ -13,6 +12,7 @@ with Types;     use Types;
 with Usage;
 
 with Backend.Config;
+with Frontend.Debug;
 
 procedure IAC is
    Preprocessed_File : File_Descriptor;
@@ -58,7 +58,7 @@ begin
    Analyze (Root);
 
    if Print_Full_Tree then
-      W_Full_Tree;
+      Frontend.Debug.W_Full_Tree;
    end if;
 
    if N_Errors > 0 then

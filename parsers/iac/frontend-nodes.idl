@@ -1,4 +1,4 @@
-module Nodes {
+module Frontend::Nodes {
 
   /******************/
   /* Internal types */

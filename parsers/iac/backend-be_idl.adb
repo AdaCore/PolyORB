@@ -2,11 +2,12 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 
 with Lexer;     use Lexer;
 with Namet;     use Namet;
-with Nodes;     use Nodes;
-with Nutils;    use Nutils;
 with Output;    use Output;
 with Types;     use Types;
 with Values;    use Values;
+
+with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nutils; use Frontend.Nutils;
 
 package body Backend.BE_IDL is
 

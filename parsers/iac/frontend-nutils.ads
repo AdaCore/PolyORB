@@ -1,9 +1,16 @@
 with Lexer;     use Lexer;
 with Locations; use Locations;
-with Nodes;     use Nodes;
 with Types;     use Types;
 
-package Nutils is
+with Frontend.Nodes; use Frontend.Nodes;
+
+package Frontend.Nutils is
+
+   procedure Check_Identifier (Ref, Def : Node_Id);
+   --  Return true when L and R have the same IDL names
+
+   function First_Homonym (N : Node_Id) return Node_Id;
+   procedure Set_First_Homonym (N : Node_Id; V : Node_Id);
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
    --  Append node N to list L.
@@ -64,4 +71,4 @@ package Nutils is
      return Node_Id;
    --  Return constant declaration
 
-end Nutils;
+end Frontend.Nutils;

@@ -1,5 +1,6 @@
-with Nodes; use Nodes;
 with Types; use Types;
+
+with Frontend.Nodes; use Frontend.Nodes;
 
 package Values is
 

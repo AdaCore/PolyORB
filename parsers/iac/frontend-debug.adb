@@ -2,14 +2,15 @@ with Charset;     use Charset;
 with Locations;   use Locations;
 with Lexer;       use Lexer;
 with Namet;       use Namet;
-with Nodes;       use Nodes;
 with Output;      use Output;
 with Scopes;      use Scopes;
 with Types;       use Types;
 with Utils;       use Utils;
 with Values;      use Values;
 
-package body Debug is
+with Frontend.Nodes; use Frontend.Nodes;
+
+package body Frontend.Debug is
 
    -----------
    -- Image --
@@ -239,4 +240,4 @@ package body Debug is
       N_Indents := I;
    end wfi;
 
-end Debug;
+end Frontend.Debug;

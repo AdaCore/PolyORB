@@ -5,9 +5,10 @@ with Errors;    use Errors;
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Namet;     use Namet;
-with Nodes;     use Nodes;
 with Output;    use Output;
 with Types;     use Types;
+
+with Frontend.Nodes;           use Frontend.Nodes;
 
 with Backend.BE_Ada.Debug;     use Backend.BE_Ada.Debug;
 with Backend.BE_Ada.Generator; use Backend.BE_Ada.Generator;

@@ -1,8 +1,9 @@
-with Nodes;  use Nodes;
 with Output; use Output;
 with Types;  use Types;
 
-package Debug is
+with Frontend.Nodes; use Frontend.Nodes;
+
+package Frontend.Debug is
 
    N_Indents : Natural := 0;
 
@@ -39,4 +40,4 @@ package Debug is
    procedure wfi (N : Node_Id);
    pragma Export (C, wfi, "wfi");
 
-end Debug;
+end Frontend.Debug;

@@ -1,20 +1,18 @@
 with GNAT.Table;
 with GNAT.Bubble_Sort;
 
-with Debug;     use Debug;
 with Errors;    use Errors;
 with Flags;     use Flags;
 with Lexer;     use Lexer;
 with Locations; use Locations;
-with Names;     use Names;
---  with Namet;     use Namet;
-with Nodes;     use Nodes;
-with Nutils;    use Nutils;
---  with Output;    use Output;
 with Scopes;    use Scopes;
 with Types;     use Types;
 with Utils;     use Utils;
 with Values;    use Values;
+
+with Frontend.Debug;  use Frontend.Debug;
+with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nutils; use Frontend.Nutils;
 
 package body Analyzer is
 
@@ -58,7 +56,8 @@ package body Analyzer is
       K1 : Node_Kind;
       K2 : Node_Kind := K_Void);
 
-   package Labels is new GNAT.Table (Node_Id, Natural, 1, 10, 10);
+   package LT is new GNAT.Table (Node_Id, Natural, 1, 10, 10);
+   --  Label table
 
    procedure Exchange (Op1, Op2 : Natural);
    function  Less_Than (Op1, Op2 : Natural) return Boolean;
@@ -819,7 +818,7 @@ package body Analyzer is
 
       Alternative := First_Node (Switch_Type_Body (E));
       while Present (Alternative) loop
-         Label := First_Node (Nodes.Labels (Alternative));
+         Label := First_Node (Labels (Alternative));
          while Present (Label) loop
             Analyze (Expression (Label));
             Resolve_Expr (Label, Switch_Type);
@@ -831,39 +830,39 @@ package body Analyzer is
 
       --  Check there is no duplicated choice
 
-      Labels.Init;
+      LT.Init;
       Alternative := First_Node (Switch_Type_Body (E));
       while Present (Alternative) loop
-         Label := First_Node (Nodes.Labels (Alternative));
+         Label := First_Node (Labels (Alternative));
          while Present (Label) loop
-            Labels.Append (Label);
+            LT.Append (Label);
             Label := Next_Node (Label);
          end loop;
          Alternative := Next_Node (Alternative);
       end loop;
 
-      GNAT.Bubble_Sort.Sort (Labels.Last, Exchange'Access, Less_Than'Access);
+      GNAT.Bubble_Sort.Sort (LT.Last, Exchange'Access, Less_Than'Access);
 
-      for I in 1 .. Labels.Last - 1 loop
+      for I in 1 .. LT.Last - 1 loop
 
          --  If this comparison is false once sorted, it means that
          --  the two nodes are equal. This is not an issue when these
          --  nodes are already incorrect (No_Value).
 
          if not Less_Than (I, I + 1)
-           and then Value (Labels.Table (I)) /= No_Value
+           and then Value (LT.Table (I)) /= No_Value
          then
 
             --  Reorder nodes in order to output the error message on
             --  the second node in the file.
 
-            if Loc (Labels.Table (I + 1)) < Loc (Labels.Table (I)) then
-               Error_Loc (1) := Loc (Labels.Table (I));
-               Error_Loc (2) := Loc (Labels.Table (I + 1));
+            if Loc (LT.Table (I + 1)) < Loc (LT.Table (I)) then
+               Error_Loc (1) := Loc (LT.Table (I));
+               Error_Loc (2) := Loc (LT.Table (I + 1));
 
             else
-               Error_Loc (1) := Loc (Labels.Table (I + 1));
-               Error_Loc (2) := Loc (Labels.Table (I));
+               Error_Loc (1) := Loc (LT.Table (I + 1));
+               Error_Loc (2) := Loc (LT.Table (I));
             end if;
             DE ("duplication of choice value at line!");
             exit;
@@ -923,10 +922,10 @@ package body Analyzer is
    --------------
 
    procedure Exchange (Op1, Op2 : Natural) is
-      N : constant Node_Id := Labels.Table (Op1);
+      N : constant Node_Id := LT.Table (Op1);
    begin
-      Labels.Table (Op1) := Labels.Table (Op2);
-      Labels.Table (Op2) := N;
+      LT.Table (Op1) := LT.Table (Op2);
+      LT.Table (Op2) := N;
    end Exchange;
 
    ---------------
@@ -942,7 +941,7 @@ package body Analyzer is
 
       --  N1 is default
 
-      N1 := Labels.Table (Op1);
+      N1 := LT.Table (Op1);
       if No (N1) then
          return False;
       end if;
@@ -950,7 +949,7 @@ package body Analyzer is
 
       --  N2 is default
 
-      N2 := Labels.Table (Op2);
+      N2 := LT.Table (Op2);
       if No (N2) then
          return True;
       end if;

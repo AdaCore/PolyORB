@@ -1,16 +1,15 @@
 with GNAT.Table;
 
-with Debug;     use Debug;
-pragma Warnings (Off, Debug);
 with Errors;    use Errors;
 with Flags;     use Flags;
 with Locations; use Locations;
-with Names;     use Names;
 with Namet;     use Namet;
-with Nodes;     use Nodes;
-with Nutils;    use Nutils;
 with Scopes;    use Scopes;
 with Types;     use Types;
+
+with Frontend.Debug;  use Frontend.Debug;
+with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nutils; use Frontend.Nutils;
 
 package body Scopes is
 
