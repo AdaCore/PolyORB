@@ -478,6 +478,8 @@ package body Ada_Be.Idl2Ada is
         := Stubs_Name & Skel_Suffix;
       Impl_Name : constant String
         := Stubs_Name & Impl_Suffix;
+      Helper_Name : constant String
+        := Stubs_Name & Helper_Suffix;
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
@@ -498,6 +500,12 @@ package body Ada_Be.Idl2Ada is
         := New_Package (Impl_Name, Unit_Spec);
       Impl_Body : Compilation_Unit
         := New_Package (Impl_Name, Unit_Body);
+
+      Helper_Spec : Compilation_Unit
+        := New_Package (Helper_Name, Unit_Spec);
+      Impl_Body : Compilation_Unit
+        := New_Package (Helper_Name, Unit_Body);
+
 
    begin
       case Kind (Node) is
@@ -725,7 +733,10 @@ package body Ada_Be.Idl2Ada is
             DI (Stubs_Body);
             PL (Stubs_Body, "end Is_A;");
 
+            --  backward compatibility, will disappear
             Gen_To_Ref (Stubs_Spec, Stubs_Body);
+            --  CORBA 2.3
+            Gen_To_Ref (Helper_Spec, Helper_Body);
 
             declare
                Forward_Node : constant Node_Id
