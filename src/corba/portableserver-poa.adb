@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#52 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#53 $
 
 with Ada.Exceptions;
 
@@ -849,7 +849,14 @@ package body PortableServer.POA is
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      return ObjectId (Oid.all);
+      declare
+         Result : constant ObjectId := ObjectId (Oid.all);
+
+      begin
+         PolyORB.POA_Types.Free (Oid);
+
+         return Result;
+      end;
    end Servant_To_Id;
 
    --------------------------

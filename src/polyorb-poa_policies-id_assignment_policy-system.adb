@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -271,7 +271,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Warnings (On); -- WAG:3.15
 
    begin
-      Result := Oid;
+      Result := new Object_Id'(Oid.all);
    end Object_Identifier;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

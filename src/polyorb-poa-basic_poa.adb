@@ -1550,6 +1550,7 @@ package body PolyORB.POA.Basic_POA is
               (Activator'Access,
                Oid.all,
                Basic_OA);
+            Free (Oid);
          end;
       end if;
 

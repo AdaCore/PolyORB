@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,5 +68,7 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
       Oid    :     Object_Id_Access;
       Result : out Object_Id_Access)
       is abstract;
+   --  Return the Object_Id stored in Oid. Note that Result is a newly
+   --  allocated variable that must be deallocated.
 
 end PolyORB.POA_Policies.Id_Assignment_Policy;
