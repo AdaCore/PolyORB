@@ -958,7 +958,7 @@ package body Ada_Be.Idl2Ada is
       else
          PL (CU, " with private;");
          NL (CU);
-         PL (CU, "type Object_Ptr is access all Object;");
+         PL (CU, "type Object_Ptr is access all Object'Class;");
       end if;
    end Gen_Object_Servant_Declaration;
 
