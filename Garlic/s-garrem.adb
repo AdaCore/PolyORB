@@ -207,7 +207,7 @@ package body System.Garlic.Remote is
       else
          declare
             Rsh_Full_Command : constant String :=
-              Launcher & " " & Host & " -n """ & Command & """ >/dev/null";
+              Launcher & " " & Host & " """ & Command & """ >/dev/null";
             Return_Code      : int;
             C_Command        : C.Strings.chars_ptr :=
               C.Strings.New_String (Rsh_Full_Command);

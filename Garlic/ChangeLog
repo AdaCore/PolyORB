@@ -1,5 +1,8 @@
 1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-garrem.adb: Do not add -n inconditionnally onto the launcher
+	command line.
+
 	* Makefile.am (COMMONSOURCES): Get s-gatcop.ads from the build
 	directory instead of the source directory (it won't be present
 	there if VPATH is used).
