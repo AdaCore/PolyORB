@@ -1,4 +1,4 @@
-SUBDIRS = InterfaceORB omniidl2 Examples
+SUBDIRS = InterfaceORB omniidl2 
 
 all::
 	@$(MakeSubdirs)
