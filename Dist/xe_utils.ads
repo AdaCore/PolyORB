@@ -27,7 +27,6 @@
 ------------------------------------------------------------------------------
 
 with Unchecked_Deallocation;
-with ALI;
 with GNAT.OS_Lib;
 with Types;
 

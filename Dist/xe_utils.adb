@@ -564,6 +564,8 @@ package body XE_Utils is
    ----------------
 
    procedure Initialize is
+      GARLIC_Included : Boolean := False;
+
    begin
 
       --  Default initialization of the flags affecting gnatdist
@@ -651,11 +653,21 @@ package body XE_Utils is
       Name_Buffer (2) := 'L';
       L_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-      for Next_Arg in 1 .. Argument_Count loop
-         Scan_Make_Arg (Argument (Next_Arg));
+      for I in 1 .. Argument_Count loop
+         if (Argument (I)(1) = Switch_Character or else Argument (I)(1) = '-')
+           and then (Argument (I)(2 .. Argument (I)'Last) = "cargs"
+                     or else Argument (I)(2 .. Argument (I)'Last) = "bargs"
+                     or else Argument (I)(2 .. Argument (I)'Last) = "largs")
+         then
+            Scan_Make_Arg (I_GARLIC_Dir.all);
+            GARLIC_Included := True;
+         end if;
+         Scan_Make_Arg (Argument (I));
       end loop;
 
-      Scan_Make_Arg (I_GARLIC_Dir.all);
+      if not GARLIC_Included then
+         Scan_Make_Arg (I_GARLIC_Dir.all);
+      end if;
 
       Osint.Add_Default_Search_Dirs;
 
@@ -690,6 +702,30 @@ package body XE_Utils is
          GNAT_Verbose := new String' ("-v");
       else
          GNAT_Verbose := new String' ("-q");
+      end if;
+
+      if Debug_Mode then
+         for I in Gcc_Switches.First .. Gcc_Switches.Last loop
+            Write_Str ("compiler [");
+            Write_Int (Int (I));
+            Write_Str ("] = ");
+            Write_Str (Gcc_Switches.Table (I).all);
+            Write_Eol;
+         end loop;
+         for I in Binder_Switches.First .. Binder_Switches.Last loop
+            Write_Str ("binder [");
+            Write_Int (Int (I));
+            Write_Str ("] = ");
+            Write_Str (Binder_Switches.Table (I).all);
+            Write_Eol;
+         end loop;
+         for I in Linker_Switches.First .. Linker_Switches.Last loop
+            Write_Str ("linker [");
+            Write_Int (Int (I));
+            Write_Str ("] = ");
+            Write_Str (Linker_Switches.Table (I).all);
+            Write_Eol;
+         end loop;
       end if;
    end Initialize;
 

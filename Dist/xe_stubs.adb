@@ -1065,6 +1065,11 @@ package body XE_Stubs is
       end if;
       Ptr := Ptr + 1;
 
+      --  Load new line (DOS/Windows).
+      if Buffer (Ptr) = Ascii.CR then
+         Ptr := Ptr + 1;
+      end if;
+
       --  Load configuration file stamp.
       for I in Exec_Stamp1'Range loop
          if Buffer (Ptr) not in '0' .. '9' then

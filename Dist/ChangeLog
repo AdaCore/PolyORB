@@ -1,7 +1,10 @@
 1998-04-05  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* xe_stubs.adb: Skip Ascii.CR to please DOS/Windows.
+
 	* xe_utils.adb: (Locate) When locating executable, add executable
- 	suffix.
+ 	suffix. (Initialize) Add include GARLIC flag before -largs, -cargs 
+	and -bargs but after other flags.
 
 1998-03-30  Laurent Pautet  <pautet@dorine.enst.fr>
 
