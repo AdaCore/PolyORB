@@ -804,9 +804,33 @@ package body Droopi.POA.Basic_POA is
       Obj :        Droopi.Objects.Servant_Access)
      return Droopi.Objects.Object_Id
    is
-      Id : Droopi.Objects.Object_Id
-        := Droopi.Objects.Object_Id (Activate_Object (OA,
-                                                      Servant_Access (Obj)));
+      Id : constant Droopi.Objects.Object_Id
+        := Droopi.Objects.Object_Id
+          (Activate_Object (OA, Servant_Access (Obj)));
+      --  XXX The name 'Activate_Object' is improper.
+      --  Activation will actually be performed only if
+      --  Obj has not already been activated *and*
+      --  the implicit activation policy allows implicit activation.
+
+      --  If the implicit allocation policy does not allow implicit
+      --  activation, then this call to Activate_Object must not
+      --  activate Obj. It must return the previous Id if Obj has
+      --  been activated *and* the retention policy is RETAIN.
+      --  It must return an error condition if Obj has not been
+      --  activated, or if the retention policy is NON_RETAIN.
+
+      --  If implicit activation is allowed but the object has
+      --  already been activated, and the retention policy is RETAIN,
+      --  then the previous ID must be return and no activation must
+      --  be performed. If the retention policy is not RETAIN, the
+      --  behaviour then depends on the Id_Uniqueness_Policy...
+
+      --  To make a long story short: there are a number of conditions
+      --  where the correct behaviour here consists in NOT activating
+      --  an object. A corollary of that is:
+      --  either the declaration above is incorrect, or the function
+      --  name should be changed to something else.
+
    begin
       pragma Debug (O ("Exporting Servant, resulting Id is "
                        & Droopi.Objects.To_String (Id)));
