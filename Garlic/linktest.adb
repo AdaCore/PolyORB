@@ -33,12 +33,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.RPC.Server;
+pragma Warnings (Off, System.RPC.Server);
+with System.Garlic.Storages.Dsm;
+pragma Warnings (Off, System.Garlic.Storages.Dsm);
+with System.Garlic.Storages.Dfs;
+pragma Warnings (Off, System.Garlic.Storages.Dfs);
+with System.Garlic.Protocols.Replay.Server;
+pragma Warnings (Off, System.Garlic.Protocols.Replay.Server);
+with System.Garlic.Protocols.Tcp.Server;
+pragma Warnings (Off, System.Garlic.Protocols.Tcp.Server);
+with System.Garlic.Tasking;
+pragma Warnings (Off, System.Garlic.Tasking);
+with System.Garlic.No_Tasking;
+pragma Warnings (Off, System.Garlic.No_Tasking);
 with System.Garlic.Termination;
 pragma Warnings (Off, System.Garlic.Termination);
 with System.Partition_Interface;
 pragma Warnings (Off, System.Partition_Interface);
 with System.Garlic.Non_Blocking;
 pragma Warnings (Off, System.Garlic.Non_Blocking);
+with System.RPC.Stream_IO;
+pragma Warnings (Off, System.RPC.Stream_IO);
 
 procedure Linktest is
 
