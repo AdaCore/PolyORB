@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with System;
 
 package body RTCORBA.PriorityMapping.Direct is

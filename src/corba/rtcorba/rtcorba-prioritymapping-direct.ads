@@ -38,8 +38,6 @@
 
 --  Direct priority mapping between CORBA and Native priority
 
---  $Id$
-
 package RTCORBA.PriorityMapping.Direct is
 
    type Object is new RTCORBA.PriorityMapping.Object with private;
