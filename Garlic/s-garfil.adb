@@ -52,6 +52,11 @@ package body System.Garlic.Filters is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   function Name (Partition : Partition_ID) return String
+     renames Heart.Name;
+   --  Renaming used to make sure that this function gets precedence over
+   --  the System.Name type.
+
    --  This unit can be elaborated and used while its children (filters)
    --  are not elaborated. When System.Garlic.Elaboration is initialized, a
    --  filter can be assigned to some channels. A channel is a peer of
@@ -106,11 +111,13 @@ package body System.Garlic.Filters is
       Outgoing  : Half_Channel_Type;
    end record;
 
-   Null_Channel : constant Channel_Type
-     := (Null_Partition_ID,
-         null, False, False,
-         Null_Half_Channel,
-         Null_Half_Channel);
+   Null_Channel : constant Channel_Type :=
+     (Partition => Null_Partition_ID,
+      Filter    => null,
+      Installed => False,
+      Exchange  => False,
+      Incoming  => Null_Half_Channel,
+      Outgoing  => Null_Half_Channel);
 
    Default  : Filter_Access := null;
    --  Default filter to be used when no filter is assigned to a channel
@@ -192,7 +199,7 @@ package body System.Garlic.Filters is
          if not Channels.Table (Partition).Incoming.Ready then
             pragma Debug
               (D (D_Debug,
-                  "Partition " & Get (Get_Partition_Data (Partition).Name) &
+                  "Partition " & Name (Partition) &
                   " incoming filter not initialized"));
 
             Channels.Apply (Partition, Init_Request, Incoming'Access);
@@ -203,7 +210,7 @@ package body System.Garlic.Filters is
          if Channels.Table (Partition).Filter /= null then
             pragma Debug
               (D (D_Debug,
-                  "Partition " & Get (Get_Partition_Data (Partition).Name) &
+                  "Partition " & Name (Partition) &
                   " incoming filter non null"));
 
             return Filter_Incoming
@@ -238,7 +245,7 @@ package body System.Garlic.Filters is
          if not Channels.Table (Partition).Outgoing.Ready then
             pragma Debug
               (D (D_Debug,
-                  "Partition " & Get (Get_Partition_Data (Partition).Name) &
+                  "Partition " & Name (Partition) &
                   " outgoing filter not initialized"));
 
             Channels.Apply (Partition, Init_Request, Outgoing'Access);
@@ -249,7 +256,7 @@ package body System.Garlic.Filters is
          if Channels.Table (Partition).Filter /= null then
             pragma Debug
               (D (D_Debug,
-                  "Partition " & Get (Get_Partition_Data (Partition).Name) &
+                  "Partition " & Name (Partition) &
                   " outgoing filter non null"));
 
             return Filter_Outgoing
@@ -276,7 +283,7 @@ package body System.Garlic.Filters is
       F : Name_Id;
 
    begin
-      P := Get_Partition_Data (Partition).Name;
+      P := Name (Partition);
 
       pragma Debug
         (D (D_Debug, "Looking for partition " & Get (P) & "'s filter"));
@@ -284,7 +291,7 @@ package body System.Garlic.Filters is
       --  Info of "partition name" + "'filter" corresponds to the name of
       --  the filter to apply on this channel.
 
-      F := Name_Id (Get_Info (Get (Get (P) & Filter_Attribute_Name)));
+      F := To_Name_Id (Get_Info (Get (Get (P) & Filter_Attribute_Name)));
       if F /= Null_Name then
          pragma Debug
            (D (D_Debug,
@@ -315,7 +322,7 @@ package body System.Garlic.Filters is
       if not Channel.Installed then
          pragma Debug
            (D (D_Debug,
-               "Partition " & Get (Get_Partition_Data (Partition).Name) &
+               "Partition " & Name (Partition) &
                " filter initialized"));
 
          Channel.Filter    := Get_Partition_Filter (Partition);
@@ -332,8 +339,7 @@ package body System.Garlic.Filters is
       if not Channel.Incoming.Ready then
          pragma Debug
            (D (D_Debug,
-               "Generate params for partition " &
-               Get (Get_Partition_Data (Partition).Name) &
+               "Generate params for partition " & Name (Partition) &
                " incoming filter"));
 
          --  Always generate params. An incoming channel will always use
@@ -356,8 +362,7 @@ package body System.Garlic.Filters is
       if Request.Command = Get_Params then
          pragma Debug
            (D (D_Debug,
-               "Provide params for partition " &
-               Get (Get_Partition_Data (Partition).Name) &
+               "Provide params for partition " & Name (Partition) &
                " incoming filter"));
 
          Send_Message (Partition, Set_Params, Channel);
@@ -373,7 +378,7 @@ package body System.Garlic.Filters is
    begin
       --  Initialize default filter
 
-      F := Name_Id (Get_Info (Get (Default_Filter_Name)));
+      F := To_Name_Id (Get_Info (Get (Default_Filter_Name)));
       if F /= Null_Name then
          pragma Debug (D (D_Debug, "Use default filter " & Get (F)));
 
@@ -383,7 +388,7 @@ package body System.Garlic.Filters is
       --  Initialize registration filter and create corresponding params
       --  when needed.
 
-      F := Name_Id (Get_Info (Get (Registration_Filter_Name)));
+      F := To_Name_Id (Get_Info (Get (Registration_Filter_Name)));
       if F /= Null_Name then
          pragma Debug (D (D_Debug, "Use registration filter " & Get (F)));
 
@@ -419,7 +424,7 @@ package body System.Garlic.Filters is
       if not Channel.Installed then
          pragma Debug
            (D (D_Debug,
-               "Partition " & Get (Get_Partition_Data (Partition).Name) &
+               "Partition " & Name (Partition) &
                " filter initialized"));
 
          Channel.Filter    := Get_Partition_Filter (Partition);
@@ -443,8 +448,7 @@ package body System.Garlic.Filters is
          if Request.Command = Set_Params then
             pragma Debug
               (D (D_Debug,
-                  "Save params for partition " &
-                  Get (Get_Partition_Data (Partition).Name) &
+                  "Save params for partition " & Name (Partition) &
                   " outgoing filter"));
 
             Channel.Outgoing.Ready := True;
@@ -467,7 +471,7 @@ package body System.Garlic.Filters is
                pragma Debug
                  (D (D_Debug,
                      "Exchange no params for partition " &
-                     Get (Get_Partition_Data (Partition).Name) &
+                     Name (Partition) &
                      " outgoing filter"));
 
                Channel.Outgoing.Ready := True;
@@ -484,8 +488,7 @@ package body System.Garlic.Filters is
 
                pragma Debug
                  (D (D_Debug,
-                     "Query params for partition " &
-                     Get (Get_Partition_Data (Partition).Name) &
+                     "Query params for partition " & Name (Partition) &
                      " outgoing filter"));
 
                Send_Message (Partition, Get_Params, Channel);
@@ -614,7 +617,8 @@ package body System.Garlic.Filters is
 
    procedure Set_Channel_Filter (Partition, Filter : in String) is
    begin
-      Set_Info (Get (Partition & Filter_Attribute_Name), Get (Filter));
+      Set_Info (Get (Partition & Filter_Attribute_Name),
+                To_Natural (Get (Filter)));
    end Set_Channel_Filter;
 
    ------------------------
@@ -623,7 +627,7 @@ package body System.Garlic.Filters is
 
    procedure Set_Default_Filter (Filter : in String) is
    begin
-      Set_Info (Get (Default_Filter_Name), Get (Filter));
+      Set_Info (Get (Default_Filter_Name), To_Natural (Get (Filter)));
    end Set_Default_Filter;
 
    -----------------------------
@@ -632,7 +636,7 @@ package body System.Garlic.Filters is
 
    procedure Set_Registration_Filter (Filter : in String) is
    begin
-      Set_Info (Get (Registration_Filter_Name), Get (Filter));
+      Set_Info (Get (Registration_Filter_Name), To_Natural (Get (Filter)));
    end Set_Registration_Filter;
 
 end System.Garlic.Filters;
