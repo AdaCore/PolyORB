@@ -1,3 +1,8 @@
+1998-08-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* NEWS: Update "New ports", "New functionnalities" and "Bug fixes" 
+	sections. Remove redundant subsections.
+
 1998-08-06  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in, configure: Adopt a solution based on platform

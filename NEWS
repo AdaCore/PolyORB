@@ -1,6 +1,12 @@
 Changes since GLADE 1.03
 ========================
 
+New Ports
+---------
+
+*   GLADE has been ported on SGI, NT and OpenNT. It is now working
+    when the GNAT run-time is using FSU threads.
+
 New Functionnalities
 --------------------
 
@@ -22,6 +28,9 @@ New Functionnalities
     Remote_Call_Interface must be applied on both the generic package
     and the instantiation.
 
+  * Pragma All_Calls_Remote
+    GLADE now supports pragma All_Calls_Remote.
+
   * New stubs compilation model
     GNAT does not generate plain Ada stubs anymore but generates
     object file directly instead. GNATDIST takes advantages from this
@@ -30,15 +39,16 @@ New Functionnalities
     justifies the new major number for GLADE, which gets bumped to
     version 2.01.
 
+  * Building some partitions only
+    GNATDIST now allows to build partitions with an incomplete set of
+    sources. It is now no longer required to provide the body of a RCI 
+    unit when we would only need the RCI spec.
+
   * Parallel compilation
     GNATDIST now partially supports the -jN flag, where N is the
     maximum number of processes to launch at the same time (the
-    default being one). This option is useful for multiprocessor
-    machines or in case of slow disk I/O (the unused CPU time caused
-    by the fact that some data is yet unavailable may be used by
-    another compilation).
-    This support is not yet complete and is used only by the build of
-    the non-distributed application.
+    default being one). This support is not yet complete and is used
+    only by the build of the non-distributed application.
 
   * Streams pool
     The internal mechanism to allocate streams has been enhanced to
@@ -46,14 +56,20 @@ New Functionnalities
     streams is avoided using pre-allocated chunks of memory through
     Ada95 storage pools.
 
+  * Reconnection policy
+    It is now possible to restart a partition once it has crashed.  To
+    do this use partition reconnection attribute. Three policies are
+    available. The defaut is Rejected_On_Restart which prevents any
+    restart of a partition. When a client reconnection policy is set
+    to Failed_Until_Restart, the client will raise Communication_Error 
+    on any attempt to connect to the server partition until this
+    partition has been restarted. Any attempt to connect to the server 
+    partition will block the client until the partition has been
+    restarted when reconnection policy is set to Blocked_Until_Restart.
+
   * Filters interface change
     The filtering interface uses access types rather than arrays to
-    avoid blowing-up the stack when using large data.
-
-  * New stream allocation policy
-    Small streams are automatically selected from a pre-allocated
-    chunk of memory, while big streams are created on the heap to
-    prevent stack blowups.
+    avoid blowing-up the stack when using large data. 
 
   * New default flags
     When no optimization level (-O flag) and no debugging information (-g)
@@ -62,6 +78,14 @@ New Functionnalities
 
 Bug fixes
 ---------
+
+  * Filtering facilities have been re-written to fix problems
+    with filter key exchange.
+
+  * Some problems with the launching facilities have been fixed. It is 
+    now possible to use a remote shell command different from rsh.
+    No more "-n" will be added on the command line if --with-remsh has 
+    been chosen at configuration time.
 
   * Remote access to subprogram now work correctly
 
@@ -78,9 +102,6 @@ Bug fixes
 
   * GNATDIST now checks that RCI children of a RCI package are configured
     on the same partition.
-
-  * No more "-n" will be added on the command line if --with-remsh has 
-    been chosen at configuration time.
 
 Misc
 ----
@@ -119,7 +140,7 @@ New Functionnalities
     exception message to allow easier debugging.
 
   * gnat.adc
-    gnatdist handles gnat.adc.
+    GNATDIST handles gnat.adc.
 
   * Version checks
     If a RCI version id is a blank string, then the version check is
