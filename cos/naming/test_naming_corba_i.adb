@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -94,6 +94,10 @@ procedure Test_Naming_CORBA_I is
 
    Syntax_Error : exception;
 
+   -------
+   -- M --
+   -------
+
    function M (S : String) return String_Access;
    function M (S : String) return String_Access is
    begin
@@ -161,6 +165,10 @@ procedure Test_Naming_CORBA_I is
      return String;
 
    procedure Usage;
+   --  Print help on console's functions
+
+   procedure Cmd_Line_Usage;
+   --  Print help on command line's parameters
 
    Argv    : String_Access;
    Argc    : Natural;
@@ -313,6 +321,10 @@ procedure Test_Naming_CORBA_I is
    Cmmd     : Command;
    Register_Service : Boolean := False;
 
+   ---------------
+   -- Bind_Self --
+   ---------------
+
    procedure Bind_Self
       (Self : CosNaming.NamingContext.Ref;
        As   : Name);
@@ -329,10 +341,29 @@ procedure Test_Naming_CORBA_I is
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
    end Bind_Self;
 
+   --------------------
+   -- Cmd_Line_Usage --
+   --------------------
+
+   procedure Cmd_Line_Usage is
+   begin
+      Ada.Text_IO.Put_Line ("test_naming_corba_i [-s] [-i] [-I <IOR>] [-n]");
+      Ada.Text_IO.Put_Line (" -s register Root directory initial reference");
+      Ada.Text_IO.Put_Line (" -i retrieve root directory initial reference");
+      Ada.Text_IO.Put_Line (" -I <IOR>, use object denoted by IOR as"
+                            & " root directory");
+      Ada.Text_IO.Put_Line (" -n retrieve root directory by name");
+   end Cmd_Line_Usage;
+
+   --  Start of processing for Test_Naming_CORBA_I
+
 begin
    CORBA.ORB.Initialize ("ORB");
    PolyORB.CORBA_P.Server_Tools.Initiate_Server
      (Start_New_Task => True);
+
+   --  Parse the command line
+
    begin
       Initialize_Option_Scan ('-', False, "");
 
@@ -398,7 +429,8 @@ begin
                end;
 
             when others =>
-               --  This never happens.
+               --  This never happens
+
                raise Program_Error;
          end case;
       end loop;
@@ -407,12 +439,17 @@ begin
       when Invalid_Switch    =>
          Ada.Text_IO.Put_Line
            (Ada.Text_IO.Current_Error, "Invalid Switch " & Full_Switch);
-         Usage;
+         Cmd_Line_Usage;
+         return;
+
       when Invalid_Parameter =>
          Ada.Text_IO.Put_Line
            (Ada.Text_IO.Current_Error, "No parameter for " & Full_Switch);
-         Usage;
+         Cmd_Line_Usage;
+         return;
    end;
+
+   --  If no root naming context is set up, create one
 
    if Is_Nil (WDR) then
       Ada.Text_IO.Put_Line ("creating root directory");
@@ -429,6 +466,8 @@ begin
 
    Bind_Self (WDR, Here);
    Bind_Self (WDR, Back);
+
+   --  Console main loop: read inputs and process them
 
    loop
       Argc := Count;
@@ -457,6 +496,7 @@ begin
                   if Argc /= 2 then
                      raise Syntax_Error;
                   end if;
+
                   Argv := Argument (2);
                   WDR  := To_Dir (Argv.all);
 
