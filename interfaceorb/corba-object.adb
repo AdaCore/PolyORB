@@ -45,7 +45,6 @@
 
 
 with Ada.Exceptions ;
-with Sys_Dep ;
 with Iop ;
 with Omniobject ;
 use type Omniobject.Object_Ptr ;
@@ -338,11 +337,9 @@ package body Corba.Object is
    begin
       pragma Debug(Output(Debug,"Corba.Object.Internal_Copy : entering ...")) ;
       Finalize(To) ;
-      Output(True, "***********INITOK : " & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(From.Omniobj.all.Init_Ok))) ;
       To.Omniobj := From.Omniobj ;
       To.Dynamic_Type := From.Dynamic_Type ;
       pragma Debug(Output(Debug,"Corba.Object.Internal_Copy : adjusting ...")) ;
-      Output(True, "***********INITOK : " & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(From.Omniobj.all.Init_Ok))) ;
       Adjust(To) ;
       pragma Debug(Output(Debug,"Corba.Object.Internal_Copy : exiting ... OK")) ;
    end ;
@@ -552,7 +549,6 @@ package body Corba.Object is
       pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : entering ...")) ;
       if not Is_Nil(Self) then
          pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : not nil -> duplicating  ...")) ;
-         Output(True, "***********INITOK : " & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(self.Omniobj.all.Init_Ok))) ;
          Self.Omniobj := Omniobject.Omniobject_Duplicate(Self.Omniobj) ;
       end if ;
       pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : exiting ... OK")) ;
