@@ -30,10 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#18 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#19 $
 
 with Ada.Exceptions;
 
+with PolyORB.Binding_Data;
+with PolyORB.Components;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.ORB;
@@ -41,6 +43,7 @@ with PolyORB.POA;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Types;
 with PolyORB.References;
+with PolyORB.References.Binding;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 
@@ -57,7 +60,6 @@ package body PortableServer.POA is
    package L is new PolyORB.Log.Facility_Log ("portableserver.poa");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
 
    function Create_Ref
      (Referenced : PolyORB.Smart_Pointers.Entity_Ptr) return Ref;
@@ -586,12 +588,11 @@ package body PortableServer.POA is
       POA  : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
       Oid : aliased PolyORB.Objects.Object_Id
         := PolyORB.POA.Export (POA, To_PolyORB_Servant (P_Servant));
-      --  XXX
-      --  There is a pending possibility that Export is incorrect.
-      --  See caveats in its body.
+      TID : constant Standard.String
+        := CORBA.To_Standard_String (Get_Type_Id (P_Servant));
 
-      The_Ref : PolyORB.References.Ref;
---      Skel : PolyORB.POA.Skeleton_Ptr;
+      P_Result : PolyORB.References.Ref;
+      C_Result : CORBA.Object.Ref;
    begin
 --       --  FIXME: If Servant_To_Reference is called in the context
 --       --    of executing a request on the given servant, there are
@@ -608,18 +609,12 @@ package body PortableServer.POA is
 
 --       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
 
-      declare
-         TID : constant Standard.String
-           := CORBA.To_Standard_String (Get_Type_Id (P_Servant));
-         Result : CORBA.Object.Ref;
-      begin
-         PolyORB.ORB.Create_Reference
-           (PolyORB.Setup.The_ORB, Oid'Access, TID, The_Ref);
-         --  Obtain object reference.
+      PolyORB.ORB.Create_Reference
+        (PolyORB.Setup.The_ORB, Oid'Access, TID, P_Result);
+      --  Obtain object reference.
 
-         CORBA.Object.Convert_To_CORBA_Ref (The_Ref, Result);
-         return Result;
-      end;
+      CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+      return C_Result;
    end Servant_To_Reference;
 
    ---------------------
@@ -656,10 +651,19 @@ package body PortableServer.POA is
       Reference : CORBA.Object.Ref'Class)
      return Servant
    is
-      POA  : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-      --  Skel : PolyORB.POA.Skeleton_Ptr;
-
+      The_Servant : PolyORB.Components.Component_Access;
+      The_Profile : PolyORB.Binding_Data.Profile_Access;
    begin
+      PolyORB.References.Binding.Bind
+        (CORBA.Object.To_PolyORB_Ref (Reference), PolyORB.Setup.The_ORB,
+         The_Servant, The_Profile, Local_Only => True);
+
+      --  Using 'Local_Only' should guarantee that The_Servant
+      --  is castable to PolyORB.Objects.Servant_Access.
+
+      return Servant (CORBA.Impl.To_CORBA_Servant
+        (PolyORB.Objects.Servant_Access (The_Servant)));
+
 --       Skel := PolyORB.POA.Ref_To_Skeleton (Reference);
 --       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
 --          raise WrongAdapter;
@@ -672,11 +676,6 @@ package body PortableServer.POA is
 --       end if;
 
 --       return PolyORB.POA.Skeleton_To_Servant (POA, Skel);
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Reference_To_Servant (Self, Reference);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
    end Reference_To_Servant;
 
    -------------------

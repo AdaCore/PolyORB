@@ -58,10 +58,11 @@ package body PolyORB.References.Binding is
      renames L.Output;
 
    procedure Bind
-     (R         : Ref;
-      Local_ORB : ORB.ORB_Access;
-      Servant   : out Components.Component_Access;
-      Pro       : out Binding_Data.Profile_Access)
+     (R          : Ref;
+      Local_ORB  : ORB.ORB_Access;
+      Servant    : out Components.Component_Access;
+      Pro        : out Binding_Data.Profile_Access;
+      Local_Only : Boolean := False)
    is
       use type Components.Component_Access;
       use Binding_Data;
@@ -85,12 +86,22 @@ package body PolyORB.References.Binding is
          raise Invalid_Reference;
       end if;
 
+      --  Initial values: failure.
+      Servant := null;
+      Pro := null;
+
+      --  First check whether the reference is already bound,
+      --  and in that case reuse the binding object.
+
       Get_Binding_Info (R, Existing_Servant, Existing_Profile);
       if Existing_Servant /= null then
-         --  The reference is already bound: reuse the binding
-         --  object.
-         Servant := Existing_Servant;
-         Pro := Existing_Profile;
+         if (not Local_Only)
+           or else Existing_Profile.all in Local_Profile_Type
+           or else Is_Profile_Local (Local_ORB, Existing_Profile)
+         then
+            Servant := Existing_Servant;
+            Pro := Existing_Profile;
+         end if;
          return;
       end if;
 
@@ -138,42 +149,7 @@ package body PolyORB.References.Binding is
 
             Object_Id := Get_Object_Key (Selected_Profile.all);
 
-            if Is_Proxy_Oid (OA, Object_Id) then
-               begin
-                  declare
-                     Continuation : constant PolyORB.References.Ref
-                       := Proxy_To_Ref (OA, Object_Id);
-                  begin
-                     if Is_Nil (Continuation) then
-                        --  Fail.
-                        Servant := null;
-                        Pro := null;
-                     else
-                        Binding_Data.Set_Continuation
-                          (Selected_Profile,
-                           Smart_Pointers.Ref (Continuation));
-                        --  This is necessary in order to prevent the
-                        --  profiles in Continuation (a ref to the
-                        --  actual object) from being finalised before
-                        --  Selected_Profile (a local profile with a
-                        --  proxy oid) is finalized itself.
-                        pragma Debug (O ("Bind: recursing on proxy ref"));
-                        Bind (Continuation, Local_ORB, Servant, Pro);
-                        pragma Debug (O ("Recursed."));
-                        Share_Binding_Info
-                          (Dest => R, Source => Continuation);
-                        pragma Debug (O ("Cached binding data."));
-                     end if;
-                     pragma Debug (O ("About to finalize Continuation"));
-                  end;
-               exception
-                  when E : others =>
-                     pragma Debug (O ("Argh! Got exception:"));
-                     pragma Debug
-                       (O (Ada.Exceptions.Exception_Information (E)));
-                     null;
-               end;
-            else
+            if not Is_Proxy_Oid (OA, Object_Id) then
                --  Real local object
                Pro := Selected_Profile;
                Servant := Components.Component_Access
@@ -190,10 +166,49 @@ package body PolyORB.References.Binding is
                --      query for each profile (for the condition below).
             end if;
 
+            if Local_Only then
+               return;
+            end if;
+
+            begin
+               declare
+                  Continuation : constant PolyORB.References.Ref
+                    := Proxy_To_Ref (OA, Object_Id);
+               begin
+                  if not Is_Nil (Continuation) then
+                     Binding_Data.Set_Continuation
+                       (Selected_Profile,
+                        Smart_Pointers.Ref (Continuation));
+                     --  This is necessary in order to prevent the
+                     --  profiles in Continuation (a ref to the
+                     --  actual object) from being finalised before
+                     --  Selected_Profile (a local profile with a
+                     --  proxy oid) is finalized itself.
+                     pragma Debug (O ("Bind: recursing on proxy ref"));
+                     Bind (Continuation, Local_ORB, Servant, Pro);
+                     pragma Debug (O ("Recursed."));
+                     Share_Binding_Info
+                       (Dest => R, Source => Continuation);
+                     pragma Debug (O ("Cached binding data."));
+                  end if;
+                  pragma Debug (O ("About to finalize Continuation"));
+               end;
+            exception
+               when E : others =>
+                  pragma Debug (O ("Argh! Got exception:"));
+                  pragma Debug
+                    (O (Ada.Exceptions.Exception_Information (E)));
+                  null;
+            end;
+
             --  End of processing for local profile case.
 
             return;
 
+         end if;
+
+         if Local_Only then
+            return;
          end if;
 
          declare

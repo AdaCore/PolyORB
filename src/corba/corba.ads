@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#18 $
+--  $Id: //droopi/main/src/corba/corba.ads#19 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -643,6 +643,18 @@ package CORBA is
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
 
+   ------------------
+   -- RepositoryId --
+   ------------------
+
+   function Is_Equivalent (RI1, RI2 : RepositoryId)
+     return Boolean;
+
+   function Is_Equivalent (RI1, RI2 : Standard.String)
+     return Boolean;
+   --  Return True if, and only if, RI1 and RI2 denote the same
+   --  repository entity (a case-insensitive string match).
+
 private
 
    VTM_NONE        : constant ValueModifier := PolyORB.Any.VTM_NONE;
@@ -670,17 +682,5 @@ private
    ARG_OUT :       constant Flags := PolyORB.Any.ARG_OUT;
    ARG_INOUT :     constant Flags := PolyORB.Any.ARG_INOUT;
    IN_COPY_VALUE : constant Flags := PolyORB.Any.IN_COPY_VALUE;
-
-   ------------------
-   -- RepositoryId --
-   ------------------
-
-   function Is_Equivalent (RI1, RI2 : RepositoryId)
-     return Boolean;
-
-   function Is_Equivalent (RI1, RI2 : Standard.String)
-     return Boolean;
-   --  Return True if, and only if, RI1 and RI2 denote the same
-   --  repository entity (a case-insensitive string match).
 
 end CORBA;

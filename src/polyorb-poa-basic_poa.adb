@@ -892,10 +892,21 @@ package body PolyORB.POA.Basic_POA is
       Obj :        PolyORB.Objects.Servant_Access)
      return PolyORB.Objects.Object_Id
    is
-      Id : constant PolyORB.Objects.Object_Id
-        := PolyORB.Objects.Object_Id
-        (Activate_Object (OA, Servant_Access (Obj)));
+      Oid : PolyORB.Objects.Object_Id_Access;
+   begin
+      --  First find out whether we have retained a previous
+      --  association for this servant.
 
+      Oid := Retained_Servant_To_Id
+        (Self      => OA.Servant_Retention_Policy.all,
+         OA        => POA_Types.Obj_Adapter_Access (OA),
+         P_Servant => POA_Types.Servant_Access (Obj));
+
+      if Oid /= null then
+         return Oid.all;
+      end if;
+
+      return Activate_Object (OA, Servant_Access (Obj));
       --  XXX Is it approriate to call Activate_Object
       --  (a standard operation of the POA) at this point?
 
@@ -920,10 +931,6 @@ package body PolyORB.POA.Basic_POA is
       --  where the correct behaviour here consists in NOT activating
       --  an object. So, is the above correct? This is not a
       --  trivial question.
-   begin
-      pragma Debug (O ("Exporting Servant, resulting Id is "
-                       & PolyORB.Objects.To_String (Id)));
-      return Id;
    end Export;
 
    --------------

@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#22 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#23 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -122,10 +122,6 @@ package body Ada_Be.Idl2Ada is
       Stubs_Body : in out Compilation_Unit);
    --  Generate code for Repository_Id and Is_A
    --  object reference operation.
-   pragma Warnings (Off);
-   pragma Unreferenced (Gen_Is_A);
-   pragma Warnings (On);
-   --  XXX Not rewritten for PolyORB yet.
 
    procedure Gen_Client_Stub_Type_Declaration
      (CU        : in out Compilation_Unit;
@@ -826,9 +822,8 @@ package body Ada_Be.Idl2Ada is
             end;
 
             Gen_Repository_Id (Node, Stubs_Spec);
-            --  Gen_Is_A (Node, Stubs_Spec, Stubs_Body);
-            --  Gen_Local_Is_A (Stubs_Body, Node);
-            --  XXX Disabled for use with PolyORB (uses Broca.Repository).
+            Gen_Is_A (Node, Stubs_Spec, Stubs_Body);
+            Gen_Local_Is_A (Stubs_Body, Node);
 
             --  CORBA 2.3
             Helper.Gen_Node_Spec (Helper_Spec, Node);
@@ -957,28 +952,30 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Body, "   Logical_Type_Id : Standard.String)");
       PL (Stubs_Body, "  return CORBA.Boolean");
       PL (Stubs_Body, "is");
-      II (Stubs_Body);
-      PL (Stubs_Body, "use Broca.Repository;");
-      DI (Stubs_Body);
       PL (Stubs_Body, "begin");
       II (Stubs_Body);
       PL (Stubs_Body, "return False");
       NL (Stubs_Body);
       PL (Stubs_Body, "  or else Is_A (Logical_Type_Id)");
+      II (Stubs_Body);
       PL (Stubs_Body,
-          "  --  Locally check class membership for this interface");
+          "--  Locally check class membership for this interface");
+      DI (Stubs_Body);
       NL (Stubs_Body);
       PL (Stubs_Body, "  or else CORBA.Object.Is_A");
       PL (Stubs_Body,
           "           (CORBA.Object.Ref (Self), Logical_Type_Id);");
+
+      II (Stubs_Body);
       PL (Stubs_Body,
-          "  --  Fall back to a remote membership check (may involve");
+          "--  Fall back to a remote membership check (may involve");
       PL (Stubs_Body,
-          "  --  an actual request invocation on Self).");
-      NL (Stubs_Body);
-      PL (Stubs_Body, "end Is_A;");
+          "--  an actual request invocation on Self).");
       DI (Stubs_Body);
 
+      NL (Stubs_Body);
+      DI (Stubs_Body);
+      PL (Stubs_Body, "end Is_A;");
    end Gen_Is_A;
 
    ----------------------
@@ -1004,21 +1001,19 @@ package body Ada_Be.Idl2Ada is
       PL (CU, "  (Logical_Type_Id : Standard.String)");
       PL (CU, "  return CORBA.Boolean");
       PL (CU, "is");
-      II (CU);
-      Add_With (CU, "Broca.Repository", Use_It => True);
-      DI (CU);
       PL (CU, "begin");
       II (CU);
 
       --  An instance of a type verifies Is_A for that type...
 
-      PL (CU,
-          "return Is_Equivalent (Logical_Type_Id, "
-          & Ada_Full_Name (Node)
-          & "."
+      PL (CU, "return CORBA.Is_Equivalent");
+      PL (CU, "  (Logical_Type_Id,");
+      II (CU);
+      PL (CU, Ada_Full_Name (Node) & "."
           & Repository_Id_Name (Node) & ")");
-      PL (CU, "  or else Is_Equivalent");
-      PL (CU, "    (Logical_Type_Id, ");
+      DI (CU);
+      PL (CU, "  or else CORBA.Is_Equivalent");
+      PL (CU, "    (Logical_Type_Id,");
 
       --  ... and for CORBA::Object (if it is an interface) or
       --  CORBA::ValueBase (if it is a valuetype), either
@@ -1044,9 +1039,12 @@ package body Ada_Be.Idl2Ada is
             Get_Next_Node (It, P_Node);
 
             Add_With (CU, Ada_Full_Name (P_Node));
-            PL (CU, "  or else Is_Equivalent (Logical_Type_Id, "
-                & Ada_Full_Name (P_Node)
+            PL (CU, "  or else CORBA.Is_Equivalent");
+            PL (CU, "     (Logical_Type_Id,");
+            II (CU);
+            PL (CU, Ada_Full_Name (P_Node)
                 & "." & Repository_Id_Name (P_Node) & ")");
+            DI (CU);
          end loop;
          Free (Parents);
       end;

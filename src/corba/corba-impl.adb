@@ -61,6 +61,12 @@ package body CORBA.Impl is
       return S.Neutral_View'Access;
    end To_PolyORB_Servant;
 
+   function To_CORBA_Servant (S : PolyORB.Objects.Servant_Access)
+     return Object_Ptr is
+   begin
+      return Object_Ptr (Implementation (S.all).As_Object);
+   end To_CORBA_Servant;
+
    function "=" (X, Y : Implementation) return Boolean
    is
    begin

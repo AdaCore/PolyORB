@@ -58,6 +58,9 @@ package CORBA.Impl is
    function To_PolyORB_Servant (S : access Object)
      return PolyORB.Objects.Servant_Access;
 
+   function To_CORBA_Servant (S : PolyORB.Objects.Servant_Access)
+     return Object_Ptr;
+
 private
 
    type Implementation (As_Object : access Object'Class)
