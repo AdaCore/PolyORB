@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -181,15 +181,19 @@ package XE_Utils is
    --  Returns the unit name of a spec from a given name (i.e. it ends
    --  with the characters %s).
 
-
    function Quote
-     (N : Types.Name_Id;
-      I : Natural := 0;
-      S : Positive := 48)
+     (N : Types.Name_Id)
      return Types.Name_Id;
-   --  Make a string containing N and return it as a
-   --  Name_Id. Moreover, split the string in several chunks of size
-   --  lesser than S. For each chunk add I indentations of 3 spaces.
+   --  Make a string containing N and return it as a Name_Id.
+
+   function Split_String
+     (N : Types.Name_Id;
+      I : Natural  := 0;
+      S : Positive := 64)
+     return Types.Name_Id;
+   --  If N is not a string, return N. Otherwise, split the string in
+   --  several chunks of size lesser than S. For each chunk add I
+   --  indentations of 3 spaces.
 
    procedure Remove_GNAT_Flag (Flag : in String);
    --  Remove from command line any gnat flag beginning with string
@@ -260,7 +264,7 @@ package XE_Utils is
 
    procedure Dwrite_Call
      (File   : in GNAT.OS_Lib.File_Descriptor;
-      Ind    : in Types.Int;
+      Ind    : in Natural;
       S1     : in String;
       N1     : in Types.Name_Id := Types.No_Name;
       S2     : in String        := No_Str;

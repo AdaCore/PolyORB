@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -428,6 +428,7 @@ package body XE_Stubs is
       Light_PCS    : Boolean;
       Pure_Client  : Boolean;
       Remote_Host  : Name_Id;
+      Use_Rem_Host : Boolean;
 
       CID : CID_Type;
       File  : File_Descriptor;
@@ -530,16 +531,18 @@ package body XE_Stubs is
 
       Reconnection := Get_Reconnection (PID);
       if Reconnection /= Unknown_Reconnection then
-         Dwrite_Call (File, 2, "Set_Reconnection",
-                      Reconnection_Img (Reconnection));
+         Dwrite_Call
+           (File, 2, "Set_Reconnection",
+            Reconnection_Img (Reconnection));
       end if;
 
       --  If a protocol has been specified, then use it (with its data
       --  if present).
 
       if Def_Boot_Location_First /= Null_LID then
-         Dwrite_Call (File, 2, "Set_Boot_Location",
-                      Build_Location_String (Def_Boot_Location_First));
+         Dwrite_Call
+           (File, 2, "Set_Boot_Location",
+            Build_Location_String (Def_Boot_Location_First));
       end if;
 
       --  Compute the self location string (eventually composed of
@@ -547,8 +550,9 @@ package body XE_Stubs is
 
       Location := Get_Protocol (PID);
       if Location /= Null_LID then
-         Dwrite_Call (File, 2, "Set_Self_Location",
-                      Build_Location_String (Location));
+         Dwrite_Call
+           (File, 2, "Set_Self_Location",
+            Build_Location_String (Location));
       end if;
 
       --  Compute the data location string (eventually composed of
@@ -556,8 +560,9 @@ package body XE_Stubs is
 
       Location := Get_Storage (PID);
       if Location /= Null_LID then
-         Dwrite_Call (File, 2, "Set_Data_Location",
-                      Build_Location_String (Location));
+         Dwrite_Call
+           (File, 2, "Set_Data_Location",
+            Build_Location_String (Location));
       end if;
 
       --  If we have no Ada starter (None or Shell), then it is equivalent
@@ -600,17 +605,20 @@ package body XE_Stubs is
       --  If the partition holds the main unit, then it cannot be slave.
       --  Otherwise, it is.
 
-      Dwrite_Call (File, 2, "Set_Partition_Name",
-                   Quote (Partitions.Table (PID).Name));
+      Dwrite_Call
+        (File, 2, "Set_Partition_Name",
+         Quote (Partitions.Table (PID).Name));
 
       if Default_Registration_Filter /= No_Filter_Name then
-         Dwrite_Call (File, 2, "Set_Registration_Filter",
-                      Quote (Default_Registration_Filter));
+         Dwrite_Call
+           (File, 2, "Set_Registration_Filter",
+            Quote (Default_Registration_Filter));
       end if;
 
       if Partitions.Table (Default_Partition).Filter /= No_Filter_Name then
-         Dwrite_Call (File, 2, "Set_Default_Filter",
-                      Quote (Partitions.Table (Default_Partition).Filter));
+         Dwrite_Call
+           (File, 2, "Set_Default_Filter",
+            Quote (Partitions.Table (Default_Partition).Filter));
       end if;
 
       if Partitions.Table (PID).Last_Channel /= Null_CID then
@@ -670,18 +678,17 @@ package body XE_Stubs is
                if Partition /= Main_Partition
                  and then Get_Passive (Partition) /= Btrue
                then
-                  Dwrite_Line (File, 2, "Register_Partition_To_Launch");
-                  Remote_Host := Get_Host (Partition);
-                  if Remote_Host = No_Name then
-                     Dwrite_Line (File, 3, "(False, """,
-                                  Partitions.Table (Partition).Name, """,");
-                  else
-                     Dwrite_Line (File, 3, "(True, ", Remote_Host, ",");
+                  Remote_Host  := Get_Host (Partition);
+                  Use_Rem_Host := (Remote_Host /= No_Name);
+                  if not Use_Rem_Host then
+                     Remote_Host := Quote (Partitions.Table (Partition).Name);
                   end if;
-                  Dwrite_Line
-                    (File, 3, "",
+                  Dwrite_Call
+                    (File, 2, "Register_Partition_To_Launch",
+                     C (Boolean'Image (Use_Rem_Host)),
+                     Get_Name_String (Remote_Host),
                      Quote (Get_Absolute_Exec (Partition) &
-                            Get_Command_Line  (Partition), 3), ");");
+                            Get_Command_Line  (Partition)));
                end if;
             end loop;
          end if;
@@ -885,9 +892,10 @@ package body XE_Stubs is
       CU := Partitions.Table (PID).First_Unit;
       while CU /= Null_CUID loop
          if Units.Table (CUnits.Table (CU).My_Unit).Shared_Passive then
-            Dwrite_Call (File, 1, "Register_Passive_Package",
-                         Quote (CUnits.Table (CU).CUname), No_Str,
-                         Name (CUnits.Table (CU).My_Unit) & "'Version");
+            Dwrite_Call
+              (File, 1, "Register_Passive_Package",
+               Quote (CUnits.Table (CU).CUname), No_Str,
+               Name (CUnits.Table (CU).My_Unit) & "'Version");
          end if;
          CU := CUnits.Table (CU).Next;
       end loop;
