@@ -10,14 +10,12 @@ EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir) \
                           -g -O2 -m -gnata
 
 CLEANFILES = b~*.* \
-	$(EXAMPLE).o $(EXAMPLE).ali \
-	$(EXAMPLE)-*.o $(EXAMPLE)-*.ali \
+	*.o *.ali \
+	$(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb \
 	$(EXAMPLE).ads $(EXAMPLE).adb \
 	$(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb \
 	$(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb \
-	$(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb \
-	genericserver.o genericserver.ali \
-	report.o report.ali
+	$(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb
 
 DISTCLEANFILES = client server
 

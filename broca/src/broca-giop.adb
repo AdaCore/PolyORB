@@ -121,21 +121,6 @@ package body Broca.GIOP is
 
    procedure Marshall_GIOP_Header
      (Buffer       : access Buffer_Type;
-      Message_Type : in MsgType)
-   is
-      use Broca.CDR;
-      Message_Size : Index_Type;
-   begin
-      --  FIXME
-      --  This is a place-holder for an old syntax
-      --  of Marshall_GIOP_Header that must not be used
-      --  anymore.
-
-      raise Program_Error;
-   end Marshall_GIOP_Header;
-
-   procedure Marshall_GIOP_Header
-     (Buffer       : access Buffer_Type;
       Message_Type : in MsgType;
       Message_Size : in Index_Type)
    is

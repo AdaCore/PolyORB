@@ -1017,25 +1017,36 @@ package body Broca.Server is
             when Broca.GIOP.Locate_Request =>
                Log ("handle locate_request message");
 
-               --  Request Id
-               Request_Id := Unmarshall
-                 (Message_Body_Buffer'Access);
+               declare
+                  Reply_Buffer : aliased Buffer_Type;
+               begin
+                  --  FIXME: This should be encapsulated.
+                  --  Prepare the reply body buffer to hold
+                  --  the reply message data.
+                  Set_Initial_Position
+                    (Reply_Buffer'Access,
+                     GIOP.Message_Header_Size);
 
-               --  ObjectKey ??
+                  --  Request Id
+                  Request_Id := Unmarshall
+                    (Message_Body_Buffer'Access);
 
-               --  FIXME
-               --  There may be a problem here, ask Tristan.
-               --    -- Thomas, 2000-02-22.
-               Broca.GIOP.Marshall_GIOP_Header
-                 (Buffer, Broca.GIOP.Locate_Reply);
+                  --  ObjectKey ??
 
-               Marshall (Buffer, Request_Id);
-               Broca.GIOP.Marshall (Buffer, Broca.GIOP.Object_Here);
+                  --  FIXME: Should add the possibility
+                  --     to reply OBJECT_FORWARD
+                  Marshall (Reply_Buffer'Access, Request_Id);
+                  Broca.GIOP.Marshall
+                    (Reply_Buffer'Access, Broca.GIOP.Object_Here);
 
-               Lock_Send (Stream);
-               Send (Stream, Buffer);
-               Unlock_Send (Stream);
+                  Broca.GIOP.Prepend_GIOP_Header
+                    (Reply_Buffer'Access, Broca.GIOP.Locate_Reply);
 
+                  Lock_Send (Stream);
+                  Send (Stream, Reply_Buffer'Access);
+                  Unlock_Send (Stream);
+                  Release (Reply_Buffer);
+               end;
             when others =>
                Broca.Exceptions.Raise_Comm_Failure;
          end case;

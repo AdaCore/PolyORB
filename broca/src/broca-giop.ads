@@ -72,10 +72,6 @@ package Broca.GIOP is
 
    procedure Marshall_GIOP_Header
      (Buffer       : access Buffers.Buffer_Type;
-      Message_Type : in MsgType);
-
-   procedure Marshall_GIOP_Header
-     (Buffer       : access Buffers.Buffer_Type;
       Message_Type : in MsgType;
       Message_Size : in Opaque.Index_Type);
 
