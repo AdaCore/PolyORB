@@ -61,7 +61,6 @@ package body PolyORB.Binding_Data.Print is
       Print   : in Print_Procedure)
    is
    begin
-      Put_Line ("register", Profile'Img);
       Append (Callbacks, Node'(Profile => Profile, Print => Print));
    end Register;
 
