@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#34 $
+--  $Id: //droopi/main/src/corba/corba.ads#35 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -537,6 +537,8 @@ package CORBA is
    BAD_POLICY_TYPE          : constant PolicyErrorCode := PolicyErrorCode'(2);
    BAD_POLICY_VALUE         : constant PolicyErrorCode := PolicyErrorCode'(3);
    UNSUPPORTED_POLICY_VALUE : constant PolicyErrorCode := PolicyErrorCode'(4);
+
+   type SetOverrideType is (SET_OVERRIDE, ADD_OVERRIDE);
 
    --------------------
    -- ORB Exceptions --

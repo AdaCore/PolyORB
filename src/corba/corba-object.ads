@@ -115,7 +115,6 @@ package CORBA.Object is
 --    --  ??? The following subprogram is declared a function in
 --    --  the Ada Language Mapping specification.
 
---    type SetOverrideType is (SET_OVERRIDE, ADD_OVERRIDE);
 --    procedure Set_Policy_Overrides
 --      (Self : in Ref;
 --       Policies : CORBA.Policy.PolicyList;
