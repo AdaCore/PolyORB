@@ -53,10 +53,8 @@ package XE_Utils is
    ADB_Suffix_Id : File_Name_Type;
    ADS_Suffix_Id : File_Name_Type;
    Stub_Dir_Name : File_Name_Type;
-   Skel_Dir_Name : File_Name_Type;
    PWD_Id        : File_Name_Type;
    Stub_Dir      : String_Access;
-   Skel_Dir      : String_Access;
    I_Current_Dir : String_Access;
    E_Current_Dir : String_Access;
    I_Stub_Dir    : String_Access;
@@ -64,6 +62,8 @@ package XE_Utils is
    Part_Main_Src_Name : File_Name_Type;
    Part_Main_ALI_Name : File_Name_Type;
    Part_Main_Obj_Name : File_Name_Type;
+
+   Part_Prj_File_Name : File_Name_Type;
 
    No_Args : constant Argument_List (1 .. 0) := (others => null);
 
@@ -129,15 +129,14 @@ package XE_Utils is
    procedure Exit_Program (Code : Exit_Code_Type);
    --  Call exit() with return code
 
-   procedure Fail (S1 : String; S2 : String := No_Str; S3 : String := No_Str);
-   --  Output an error message and exit with fatal error
-
    procedure Write_Missing_File (Fname : File_Name_Type);
    --  Output an error message to indicate that Fname is missing
 
    -----------------------
    --  Command Handling --
    -----------------------
+
+   type File_Name_List is array (Natural range <>) of File_Name_Type;
 
    procedure Execute
      (Command   : String_Access;
@@ -146,7 +145,6 @@ package XE_Utils is
 
    procedure Build
      (Library    : File_Name_Type;
-      Executable : File_Name_Type;
       Arguments  : Argument_List;
       Fatal      : Boolean := True);
    --  Execute gnat make and add gnatdist link flags
@@ -158,7 +156,7 @@ package XE_Utils is
    --  Execute gnat compile and add gnatdist gcc flags
 
    procedure List
-     (Source    : File_Name_Type;
+     (Sources   : File_Name_List;
       Arguments : Argument_List;
       Output    : out File_Name_Type;
       Fatal     : Boolean := True);
