@@ -1155,12 +1155,19 @@ package body Ada_Be.Expansion is
                     (New_Node, Append_Node (Nil_List, D_Node));
                   Set_Parent (D_Node, New_Node);
                   Insert_After
-                    (Members (Parent_Scope (D_Node)), New_Node, Position);
+                    (Members (Parent_Scope (D_Node)),
+                     New_Node,
+                     After => Position);
 
-                  Expand_Member (New_Node);
+                  Expand_Array_Declarator (D_Node);
+                  Expand_Node_List (Decl (New_Node), False);
                   --  The new member would not be processed by
                   --  Expand_Struct, because the iterator in that
                   --  procedure is already pointing to the next one.
+                  --  Also note that Expand_Member should not be
+                  --  called on New_Node, because the M_Type
+                  --  has already been expanded; only the declarators
+                  --  of New_Node have node been expanded.
 
                   Position := New_Node;
                end;
@@ -1241,7 +1248,7 @@ package body Ada_Be.Expansion is
    end Expand_Array_Declarator;
 
    -----------------------------------------
-   --          private utilities          --
+   --          Private utilities          --
    -----------------------------------------
 
    --------------------
