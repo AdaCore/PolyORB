@@ -1,8 +1,0 @@
-*.ali
-*.o
-Makefile
-b_*.c
-config.cache
-config.log
-config.status
-make-check-stamp
