@@ -124,8 +124,14 @@ package body omniProxyCallWrapper is
             -- verify that the object exists
             Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
 
+            pragma Debug(Output(Debug,
+                                "Corba.omniproxycallwrapper.invoke : "
+                                & "Object existent OK")) ;
+
             -- get the current values of the rope and the key
-            Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key.Real,Is_Fwd) ;
+            Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,
+                                        Rope_And_Key.Real,
+                                        Is_Fwd) ;
 
             pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : calling Giop_c.init"));
 

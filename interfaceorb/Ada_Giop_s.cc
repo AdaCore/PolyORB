@@ -50,6 +50,9 @@
 #include "Ada_Giop_s.hh"
 #include "Ada_exceptions.hh"
 
+// DEBUG is defined at the beginning of each
+// file and undefined at the end
+#define DEBUG
 
 // Default Constructor
 //--------------------
@@ -145,7 +148,12 @@ size_t
 Ada_Giop_s::ReplyHeaderSize()
 {
 ADABROKER_TRY
-  GIOP_S::ReplyHeaderSize ();
+  size_t result = GIOP_S::ReplyHeaderSize ();
+#ifdef DEBUG
+  cerr << "Ada_Giop_s::ReplyHeaderSize : returning  ... " << result << endl ;
+#endif 
+  return result ;
 ADABROKER_CATCH
 }
 
+#undef DEBUG

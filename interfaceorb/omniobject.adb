@@ -371,6 +371,7 @@ package body OmniObject is
       C_R : Sys_Dep.C_Boolean ;
       C_Profiles : System.Address ;
       C_Result : System.Address ;
+      Result : Object_Ptr ;
    begin
       C_Mdr := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Most_Derived_Repoid)) ;
       -- never deallocatd, it will be stored in the object
@@ -378,7 +379,14 @@ package body OmniObject is
       C_Profiles := System.Address(Profiles) ;
 
       C_Result := C_Create_Omniobject(C_Mdr, C_Profiles, C_R) ;
-      return To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
+      Result :=  To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
+
+      if not (Result = null) then
+         Result.all.Implobj := null ;
+         pragma Debug(Output(Omniobject,"Omniobject.Create_Omniobject : setting result.all.implobj to null")) ;
+      end if ;
+
+      return Result ;
    end ;
 
 
@@ -394,10 +402,15 @@ package body OmniObject is
    function Omniobject_Duplicate(Self : in Object_Ptr) return Object_Ptr is
       C_Result : System.Address ;
       C_Arg : System.Address ;
+      Result : Object_Ptr ;
    begin
       C_Arg := Address_To_Object.To_Address(From_Object_Ptr(Self)) ;
       C_Result := C_Omniobject_Duplicate(C_Arg) ;
-      return To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
+      Result := To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
+      if not (Result = null) then
+         Result.all.Implobj := null ;
+      end if ;
+      return Result ;
    end ;
 
 
@@ -472,6 +485,7 @@ package body OmniObject is
                              return Object_Ptr is
       C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
       C_Result : System.Address ;
+      Result : Object_Ptr ;
    begin
       -- transform arguments into C types ...
       C_Repoid := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repoid)) ;
@@ -483,7 +497,9 @@ package body OmniObject is
       if  C_Result = System.Null_Address then
          return null ;
       else
-         return To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
+         Result :=  To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
+         Result.all.Implobj := null ;
+         return Result ;
       end if ;
    end ;
 
@@ -547,7 +563,7 @@ package body OmniObject is
    ---------------------
    procedure C_Get_Rope_And_Key (Self : in Object'Class ;
                                 L : in out Omniropeandkey.Object ;
-                                Success : out Sys_Dep.C_Boolean) ;
+                                Success : in out Sys_Dep.C_Boolean) ;
    pragma Import (CPP,
                   C_Get_Rope_And_Key,
                   "getRopeAndKey__14Ada_OmniObjectR18Ada_OmniRopeAndKeyRb") ;
@@ -562,7 +578,8 @@ package body OmniObject is
                                Success : out Corba.Boolean ) is
       C_Success : Sys_Dep.C_Boolean ;
    begin
-      if Is_Proxy(Self) then
+
+      if not Is_Proxy(Self) then
          Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                         "Omniobject.Get_Rope_And_Key cannot be called on a local object") ;
       end if ;

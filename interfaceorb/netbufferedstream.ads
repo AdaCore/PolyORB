@@ -61,7 +61,12 @@ with Corba ;
 with Sys_Dep ;
 with Rope ;
 
+with Adabroker_Debug ;
+
 package NetBufferedStream is
+
+   Debug : constant Boolean := Adabroker_Debug.Is_Active("netbufferedstream") ;
+
 
    type Object is tagged record
       C_Object : System.Address := System.Null_Address ;
