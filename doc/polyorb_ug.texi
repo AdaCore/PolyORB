@@ -55,7 +55,9 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#26 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#27 $
+
+@include version.texi
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -68,6 +70,8 @@
 @titlepage
 
 @title PolyORB User's Guide
+@subtitle Version @value{EDITION}
+@subtitle Date: @value{UPDATED}
 @author J@'er@^ome Hugues
 
 @page
@@ -231,7 +235,10 @@ middleware and PolyORB's architecture.
 on your system.
 
 @item @ref{Overview of PolyORB personalities} enumerates the different
-personalities, or distribution mechanisms, provided by PolyORB.
+personalities, or distribution mechanisms, PolyORB provides.
+
+@item @ref{Building an application with PolyORB} presents the
+different steps to build a distributed application using PolyORB.
 
 @item @ref{CORBA} describes PolyORB's implementation of OMG's CORBA.
 
@@ -241,6 +248,9 @@ protocol defined as part of CORBA.
 @item @ref{SOAP} describes PolyORB's implementation of SOAP.
 
 @item @ref{Tools} describes PolyORB's tools.
+
+@item @ref{References} provides a list of useful references to
+complete this documentation.
 
 @item
 @ref{GNU Free Documentation License}, contains the text of the license
@@ -419,8 +429,6 @@ Reusable Object-Oriented Polymorphic Infrastructure}
 * Platform notes::
 @end menu
 
-@c XXX check consistency with INSTALL file
-
 @c -------------------------------------------------------------------
 @node Supported Platforms
 @section Supported Platforms
@@ -523,7 +531,7 @@ Available options for the 'configure' script include:
 
 @item  @option{--with-proto-perso="..."}: personalities to build
       
-      Available personalities: GIOP, SOAP, SRP
+      Available personalities: GIOP, SOAP
       
       e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP 
              and SOAP personalities
@@ -559,7 +567,10 @@ guess at what compilers to use:
 @item @code{CC}:  the C compiler
 @item @code{ADA}: the Ada 95 compiler
 @item @code{CXXCPP}, @code{CXXCPPFLAGS}: the preprocessor used by
-idlac (only when setting up the CORBA application personality).
+idlac (only when setting up the CORBA application personality).  CORBA
+specifications require this preprocessor to be compatible with the
+preprocessing rules defined in the @i{C++} programming language
+specifications.
 
 @end itemize
 
@@ -659,7 +670,7 @@ distribution model (@cite{[OMG02]}). It is now a well-known and
 well-established specification, used in a wide range of industrial
 applications.
 
-PolyORB provides a CORBA-compliant implementation based on mapping of
+PolyORB provides a CORBA-compatible implementation based on mapping of
 the IDL language version 1.2 described in @cite{[OMG01]} and CORBA
 core specifications.
 
@@ -667,7 +678,7 @@ core specifications.
 @node DSAoverview
 @subsection Distributed System Annex of Ada (DSA)
 @cindex Distributed System Annex (DSA)
-@cindex DSA
+@cindex DSA, Distributed System Annex
 @c -------------------------------------------------------------------
 
 @noindent
@@ -679,7 +690,7 @@ schemes applied to most language constructs.
 @node MOMAoverview
 @subsection Message Oriented Middleware for Ada (MOMA)
 @cindex Message Oriented Middleware for Ada (MOMA)
-@cindex MOMA
+@cindex MOMA, Message Oriented Middleware for Ada
 @c -------------------------------------------------------------------
 
 @noindent
@@ -691,8 +702,7 @@ models.
 @c -------------------------------------------------------------------
 @node AWSoverview
 @subsection Ada Web Server (AWS)
-@cindex Ada Web Server (AWS)
-@cindex AWS
+@cindex AWS, Ada Web Server
 @c -------------------------------------------------------------------
 
 @noindent
@@ -1832,6 +1842,7 @@ Here is a summary of available parameters for each instance of SOAP.
 
 @menu
 * po_catref::
+* po_dumpir::
 * po_names::
 @end menu
 
@@ -1843,12 +1854,40 @@ Here is a summary of available parameters for each instance of SOAP.
 
 @noindent
 @command{po_catref} is a utility for viewing components of a
-stringified reference (CORBA IOR, corbaloc or URI).
+stringified reference (CORBA IOR, corbaloc or URI).  Reference's
+component include reference to access an object through multiple
+protocols (e.g. CORBA IIOP, SOAP) and configuration parameters
+associated to a reference (e.g. GIOP Service Contexts).
 
 @smallexample
 Usage:
        po_catref <stringified reference>
 @end smallexample
+
+@noindent
+@i{Note: @command{po_catref} can only process protocols PolyORB has
+been configured with.}
+
+@c -------------------------------------------------------------------
+@node po_dumpir
+@section @command{po_dumpir}
+@cindex @command{po_dumpir}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{po_dumpir} is a utility for viewing the content of an
+instance of the CORBA Interface Repository.
+
+@smallexample
+Usage:
+       po_dumpir <stringified reference>
+@end smallexample
+
+@noindent
+@i{Note: @command{po_dumpir} will be compiled and installed only if
+the CORBA personality and the @file{ir} service is compiled. Please
+see @ref{Building an application with PolyORB} for more details on how
+to set up PolyORB.}
 
 @c -------------------------------------------------------------------
 @node po_names
