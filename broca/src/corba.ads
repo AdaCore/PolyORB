@@ -1098,10 +1098,24 @@ private
       Ref_Counter : Natural_Ptr := new Natural'(0);
    end record;
 
-   --  The associated control procedures
+   --  Some methods to deal with the Any fields.
+   --  These are the only way to deal with the fields if you want to
+   --  stay thread safe
+   --  Apart from the management of locks, these methods do not
+   --  make any test. So use them carefully
+   procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr);
+   procedure Set_Counter (Obj : in out Any; The_Counter : in Natural_Ptr);
+   function Get_Value (Obj : Any) return Any_Content_Ptr;
+   function Get_Counter (Obj : Any) return Natural_Ptr;
+
+   --  The control procedures to the Any type
    procedure Initialize (Object : in out Any);
    procedure Adjust (Object : in out Any);
    procedure Finalize (Object : in out Any);
+
+   --  And the management of the counter
+   procedure Inc_Usage (Obj : in Any);
+   procedure Dec_Usage (Obj : in out Any);
 
    ------------------
    --  Named_Value --

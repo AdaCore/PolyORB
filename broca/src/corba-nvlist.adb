@@ -88,9 +88,10 @@ package body CORBA.NVList is
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
       pragma Debug (O ("Add_Item (4 params) : Item type is "
-                       & Ada.Tags.External_Tag (Item.The_Value'Tag)));
+                       & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
-                       & Positive'Image (Item.Ref_Counter.all)));
+                       & Positive'Image (Get_Counter (Item).all)));
+      --  LOCK Item
       Item.Ref_Counter.all := Item.Ref_Counter.all + 1;
       Add_Item (Self, (Name => Item_Name,
                        Argument => (Ada.Finalization.Controlled
@@ -100,8 +101,9 @@ package body CORBA.NVList is
                                     As_Reference => True,
                                     Ref_Counter => Item.Ref_Counter),
                        Arg_Modes => Item_Flags));
+      --  UNLOCK
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
-                       & Positive'Image (Item.Ref_Counter.all)));
+                       & Positive'Image (Get_Counter (Item).all)));
       pragma Debug (O ("Add_Item (4 params) : end"));
    end Add_Item;
 
@@ -115,10 +117,10 @@ package body CORBA.NVList is
    begin
       pragma Debug (O ("Add_Item (2 params) : enter"));
       pragma Debug (O ("Add_Item (2 params) : ref_counter = "
-                       & Positive'Image (Item.Argument.Ref_Counter.all)));
+                       & Positive'Image (Get_Counter (Item.Argument).all)));
       Add_Cell (Actual_Ref.List, Item);
       pragma Debug (O ("Add_Item (2 params) : ref_counter = "
-                       & Positive'Image (Item.Argument.Ref_Counter.all)));
+                       & Positive'Image (Get_Counter (Item.Argument).all)));
       pragma Debug (O ("Add_Item (2 params) : end"));
    end Add_Item;
 
@@ -175,7 +177,7 @@ package body CORBA.NVList is
             pragma Debug
               (O ("Marshall : NV type is "
                   & Ada.Tags.External_Tag
-                  (List.NV.Argument.The_Value'Tag)));
+                  (Get_Value (List.NV.Argument).all'Tag)));
             Broca.CDR.Marshall (Buffer, List.NV);
          end if;
          List := List.Next;
@@ -210,7 +212,7 @@ package body CORBA.NVList is
                               (CORBA.Get_Type (List.NV.Argument)))));
             pragma Debug (O ("Unmarshall : value kind is "
                              & Ada.Tags.External_Tag
-                              (List.NV.Argument.The_Value'Tag)));
+                              (Get_Value (List.NV.Argument).all'Tag)));
          end if;
          List := List.Next;
       end loop;
@@ -244,7 +246,7 @@ package body CORBA.NVList is
       pragma Debug
         (O ("Actual_Add_Cell : NV type is "
             & Ada.Tags.External_Tag
-            (List.NV.Argument.The_Value'Tag)));
+            (Get_Value (List.NV.Argument).all'Tag)));
       pragma Debug (O ("Actual_Add_Cell : NV assigned"));
       List.Next := Null_NVList;
    end Set_Last_Cell;
