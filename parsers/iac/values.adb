@@ -31,10 +31,6 @@ package body Values is
       Add_Char_To_Name_Buffer (Hex (Natural (R + 1)));
    end Add_ULL_To_Name_Buffer;
 
-   procedure Reduce;
-
-   procedure Reduce is
-
    -----------
    -- Image --
    -----------
