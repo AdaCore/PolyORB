@@ -146,7 +146,7 @@ package body RTCORBA.PriorityModelPolicy is
      return CORBA.Policy.Ref
    is
    begin
-      pragma Assert (The_Type = THREADPOOL_POLICY_TYPE);
+      pragma Assert (The_Type = PRIORITY_MODEL_POLICY_TYPE);
 
       if Get_Type (Value) /= TC_Unsigned_Long then
          Raise_PolicyError ((Reason => BAD_POLICY_TYPE));
@@ -200,11 +200,11 @@ package body RTCORBA.PriorityModelPolicy is
          Priority_Model_Policy_Allocator'Access);
 
       Register
-        (The_Type       => THREADPOOL_POLICY_TYPE,
+        (The_Type       => PRIORITY_MODEL_POLICY_TYPE,
          POA_Level      => True,
          Factory        => Create_PriorityModelPolicy'Access,
          System_Default =>
-           Create_PriorityModelPolicy (THREADPOOL_POLICY_TYPE,
+           Create_PriorityModelPolicy (PRIORITY_MODEL_POLICY_TYPE,
                                        To_Any (CORBA.Unsigned_Long (0))));
       --  XXX Is this correct? If policy can't be created with
       --  CORBA::create_policy then we must not register factory procedure.
