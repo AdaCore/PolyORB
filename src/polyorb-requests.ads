@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -233,10 +233,8 @@ package PolyORB.Requests is
       Dependent_Binding_Object   : in     Smart_Pointers.Entity_Ptr
         := null);
 
-   procedure Invoke
-     (Self         : Request_Access;
-      Invoke_Flags : Flags := 0);
-   --  Run Self.
+   procedure Invoke (Self : Request_Access; Invoke_Flags : Flags := 0);
+   --  Run Self
 
    procedure Arguments
      (Self           :        Request_Access;
@@ -254,10 +252,8 @@ package PolyORB.Requests is
       --  appended. Identification is used to specify the capailities
       --  of the server personality.
 
-   procedure Set_Result
-     (Self : Request_Access;
-      Val  : Any.Any);
-   --  Set the value of Self's result to Val.
+   procedure Set_Result (Self : Request_Access; Val  : Any.Any);
+   --  Set the value of Self's result to Val
 
    procedure Set_Out_Args
      (Self           :        Request_Access;
@@ -267,14 +263,10 @@ package PolyORB.Requests is
    --  to Args.  Identification is used to specify the
    --  capailities of the server personality.
 
+   procedure Destroy_Request (R : in out Request_Access);
 
-   procedure Destroy_Request
-     (R : in out Request_Access);
-
-   function Image
-     (Req : Request)
-     return String;
-   --  For debugging purposes.
+   function Image (Req : Request) return String;
+   --  For debugging purposes
 
 private
 
