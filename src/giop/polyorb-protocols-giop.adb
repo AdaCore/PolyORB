@@ -585,6 +585,7 @@ package body PolyORB.Protocols.GIOP is
       use Internals;
       use Internals.NV_Sequence;
       use PolyORB.Objects;
+      use type PolyORB.Binding_Data.Profile_Access;
 
       Header_Space  : constant Reservation
         := Reserve (Buffer_Out, Message_Header_Size);
@@ -617,6 +618,8 @@ package body PolyORB.Protocols.GIOP is
 
          when 2 =>
             --  GIOP 1.2
+
+            pragma Assert (Pend_Req.Target_Profile /= null);
 
             pragma Debug
               (O (Image (IIOP_Profile_Type
@@ -1755,10 +1758,6 @@ package body PolyORB.Protocols.GIOP is
       R   : Requests.Request_Access;
       Pro : access Binding_Data.Profile_Type'Class)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Pro);
-      pragma Warnings (On);
-
       use Buffers;
       use Binding_Data.IIOP;
       use PolyORB.Filters.Interface;
@@ -1784,6 +1783,16 @@ package body PolyORB.Protocols.GIOP is
          References.Get_Binding_Info (R.Target, Binding_Object, Profile);
          Current_Req.Req := R;
          Current_Req.Target_Profile := Profile;
+         if Profile = null then
+            Current_Req.Target_Profile := Profile_Access (Pro);
+            --  XXX this should *not* happen, it would be logical
+            --  to Assesrt (Pro = Profile)!
+            --  This work-around is currently necessary to pass
+            --  all_types with a dynamic proxy. Apparently,
+            --  Profile is left null for the target reference of
+            --  a proxied request (on the client side of the proxy).
+            --  Needs to be investigated.
+         end if;
          Add_Pending_Request (S, Current_Req);
       end;
 

@@ -153,6 +153,7 @@ package body PolyORB.References is
       BOP : constant Entity_Ptr := Entity_Of (RI.Binding_Object_Ref);
    begin
       if BOP = null then
+         pragma Debug (O ("Get_Binding_Info: Reference is not bound"));
          BOC := null;
          Pro := null;
       else
