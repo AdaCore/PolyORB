@@ -762,11 +762,20 @@ package body PolyORB.POA.Basic_POA is
       Oid   : in     Object_Id;
       Error : in out PolyORB.Exceptions.Error_Container)
    is
-      A_Oid : aliased Object_Id := Oid;
-      U_Oid : Unmarshalled_Oid
-        := Oid_To_U_Oid (A_Oid'Unchecked_Access);
+      U_Oid : Unmarshalled_Oid;
    begin
       pragma Debug (O ("Deactivate_Object: enter"));
+
+      Reconstruct_Object_Identifier
+        (Self.Id_Assignment_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         Oid,
+         U_Oid,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
 
       Etherealize_All
         (Self.Request_Processing_Policy.all,
@@ -798,7 +807,7 @@ package body PolyORB.POA.Basic_POA is
       Oid       :    out Object_Id_Access;
       Error     : in out PolyORB.Exceptions.Error_Container)
    is
-      Temp_Oid : Object_Id_Access;
+      Temp_Oid, Temp_Oid2 : Object_Id_Access;
    begin
       Temp_Oid := Retained_Servant_To_Id
         (Self.Servant_Retention_Policy.all,
@@ -810,12 +819,14 @@ package body PolyORB.POA.Basic_POA is
          POA_Types.Obj_Adapter_Access (Self),
          P_Servant,
          Temp_Oid,
-         Oid,
+         Temp_Oid2,
          Error);
 
       if Found (Error) then
          return;
       end if;
+
+      Oid := Temp_Oid2;
 
       if Oid = null then
          Throw (Error,
@@ -827,6 +838,11 @@ package body PolyORB.POA.Basic_POA is
          --  Servant, and if it is the case return the 'current'
          --  oid (for USE_DEFAULT_SERVANT policy).
       end if;
+
+      Object_Identifier
+        (Self.Id_Assignment_Policy.all,
+         Temp_Oid2,
+         Oid);
 
    end Servant_To_Id;
 
