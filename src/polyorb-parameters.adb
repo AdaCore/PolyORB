@@ -43,7 +43,6 @@ with System;
 
 with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
-with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Parameters is
@@ -99,21 +98,6 @@ package body PolyORB.Parameters is
    --  Convert a String value to a Boolean value according
    --  to the rules indicated in the spec for boolean configuration
    --  variables.
-
-   -----------------------------------------
-   -- The list of parameter input methods --
-   -----------------------------------------
-
-   type Parameters_Input is record
-      Init : Parameters_Initializer;
-      Rank : Natural;
-   end record;
-
-   package Parameters_Input_Lists is
-      new PolyORB.Utils.Chained_Lists (Parameters_Input);
-   use Parameters_Input_Lists;
-
-   Repositories : Parameters_Input_Lists.List;
 
    ---------------------
    -- Make_Global_Key --
@@ -325,42 +309,6 @@ package body PolyORB.Parameters is
    procedure Initialize is
    begin
       PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
-
-      --  Read configuration parameters from each input method
-
-      declare
-         It : Iterator := First (Repositories);
-
-      begin
-         while not Last (It) loop
-            Parameters_Initializer (Value (It).Init).all;
-            Next (It);
-         end loop;
-      end;
    end Initialize;
-
-   -------------------------------------
-   -- Register_Parameters_Initializer --
-   -------------------------------------
-
-   procedure Register_Parameters_Initializer
-     (Init : Parameters_Initializer;
-      Rank : Natural)
-   is
-      It : Iterator := First (Repositories);
-
-   begin
-      while not Last (It) loop
-         if Value (It).Rank > Rank then
-            Insert (Repositories,
-                    Parameters_Input'(Init, Rank),
-                    It);
-            return;
-         end if;
-      end loop;
-
-      Append (Repositories,
-              Parameters_Input'(Init, Rank));
-   end Register_Parameters_Initializer;
 
 end PolyORB.Parameters;

@@ -85,12 +85,6 @@ package PolyORB.Parameters is
 
    type Parameters_Initializer is access procedure;
 
-   procedure Register_Parameters_Initializer
-     (Init : Parameters_Initializer;
-      Rank : Natural);
-   --  Register a procedure that input keys in configuration subsystem.
-   --  Rank denotes rank at which Init is called.
-
 private
 
    function Get_Env
