@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Asynch_Ev;
 with PolyORB.Constants;
 with PolyORB.Initialization;

@@ -39,8 +39,6 @@
 --   * mono tasking ORB only
 --   * one asynchronous event monitor
 
---  $Id$
-
 package PolyORB.ORB_Controller.No_Tasking is
 
    type ORB_Controller_No_Tasking is new ORB_Controller with private;

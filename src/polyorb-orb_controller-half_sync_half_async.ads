@@ -42,8 +42,6 @@
 --  Under this implementation, a dedicated task monitors AES, other
 --  tasks process requests.
 
---  $Id$
-
 with PolyORB.Calendar;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;

@@ -43,8 +43,6 @@
 --  of an incoming request: from monitors polling up to dispatching
 --  the request to servant code.
 
---  $Id$
-
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
