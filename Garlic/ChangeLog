@@ -1,5 +1,7 @@
 2000-12-14  Laurent Pautet  <pautet@arlequin.enst.fr>
 
+	* 5egarsoc.adb: s-garsoc.adb for Unix.
+
 	* s-garsoc.adb, s-garsoc.ads: New thick binding for socket that is
 	intended to be portable for JVM and native platforms (NT and
 	Unix).
