@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -154,13 +154,16 @@ adabe_sequence::produce_stream_adb (dep_list & with,
     "     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
     "      Val : in " + type_name + ")\n" 
     "   is\n"
+    "      use " + inter_name + ";\n"
+    "\n"
+    "      Elements : Element_Array\n"
+    "        := To_Element_Array (Val);\n"
     "      Len : CORBA.Unsigned_Long\n"
-    "        := CORBA.Unsigned_Long (" + inter_name + ".Length (Val));\n"
+    "        := CORBA.Unsigned_Long (Elements'Length);\n"
     "   begin\n"
     "      Marshall (Stream, Len);\n"
-    "      for I in 1 .. Len loop\n"
-    "         Marshall\n"
-    "            (Stream, " + inter_name + ".Element_Of (Val, Integer (I)));\n"
+    "      for I in Elements'Range loop\n"
+    "         Marshall (Stream, Elements (I));\n"
     "      end loop;\n"
     "   end Marshall;\n"
     "\n"
@@ -168,32 +171,38 @@ adabe_sequence::produce_stream_adb (dep_list & with,
     "     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
     "      Res : out " + type_name + ")\n"
     "   is\n"
+    "      use " + inter_name + ";\n"
+    "\n"
     "      Len : CORBA.Unsigned_Long;\n"
-    "      Tmp : " + type_name + ";\n"
-    "      El : " + name + ";\n"
     "   begin\n"
     "      Unmarshall (Stream, Len);\n"
-    "      Tmp := " + inter_name + ".To_Sequence (Natural (Len));\n"
-    "      for I in 1 .. Len loop\n"
-    "         Unmarshall (Stream, El);\n"
-    "         " + inter_name + ".Replace_Element (Tmp, Positive (Len), El);\n"
-    "      end loop;\n"
-    "      Res := Tmp;\n"
+    "      declare\n"
+    "         Elements : Element_Array (1 .. Integer (Len));\n"
+    "      begin\n"
+    "         for I in Elements'Range loop\n"
+    "            Unmarshall (Stream, Elements (I));\n"
+    "         end loop;\n"
+    "         Res := IDL_Sequence_Short.To_Sequence (Elements);\n"
+    "      end;\n"
     "   end Unmarshall;\n"
     "\n"
     "   procedure Compute_New_Size\n"
     "     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
     "      Val : in " + type_name + ")\n" 
     "   is\n"
+    "      use Broca.Buffers;\n"
+    "      use " + inter_name + ";\n"
+    "\n"
     "      Len : CORBA.Unsigned_Long\n"
-    "        := CORBA.Unsigned_Long (" + inter_name + ".Length (Val));\n"
+    "        := CORBA.Unsigned_Long (Length (Val));\n"
+    "      One_Element : Element_Array (1 .. 1);\n"
     "   begin\n"
     "      Compute_New_Size (Stream, UL_Size, UL_Size);\n"
     "      for I in 1 .. Len loop\n"
-    "         Compute_New_Size\n"
-    "            (Stream, " + inter_name + ".Element_Of (Val, Integer (I)));\n"
+    "         Compute_New_Size (Stream, One_Element (1));\n"
     "      end loop;\n"
-    "   end Compute_New_Size;\n";
+    "   end Compute_New_Size;\n\n";
+
   set_already_defined ();
 }
 

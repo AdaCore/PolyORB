@@ -67,16 +67,12 @@ begin
       Output ("test union", Pass);
    end;
 
---   begin
---      Ok := False;
---      Simple_Exception_Test (MyAll_Types);
---   exception
---      when Simple_Exception =>
---         Ok := True;
---      when others =>
---         null;
---   end;
---   Output ("test simple exception", Ok);
+   declare
+      X : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
+   begin
+      X := X & 16 & 32 & 64 & 128 & 257;
+      Output ("test unbounded sequence", EchoUsequence (MyAll_Types, X) = X);
+   end;
 
    declare
       Member : My_Exception_Members;
@@ -110,13 +106,6 @@ begin
 
 --   Output ("test enumeration", Echo3 (MyAll_Types, Blue) = Blue);
 --
---   declare
---      X : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
---   begin
---      X := X & 1 & 2 & 3 & 4 & 5;
---      Output ("test unbounded sequence", Echo6 (MyAll_Types, X) = X);
---   end;
-
    -- bounded sequences
 --   declare
 --      X : B_Sequence := B_Sequence (IDL_SEQUENCE_Long_1.Null_Sequence);

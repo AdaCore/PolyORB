@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.8 $
+//                            $Revision: 1.9 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -169,13 +169,17 @@ adabe_typedef::produce_stream_ads (dep_list & with,
 	case AST_Decl::NT_array:
 	case AST_Decl::NT_string:
 	case AST_Decl::NT_union:
+	case AST_Decl::NT_sequence:
 	  {
 	    string arg2 = "";
 	    adabe_name *c = dynamic_cast<adabe_name *>(b);
 	    c->produce_stream_ads (with, body, arg2);
 	    body += arg2;
-            set_already_defined ();
-            return;
+
+	    if (base_node_type != AST_Decl::NT_sequence) {
+	      set_already_defined ();
+	      return;
+	    }
           }
 	default : {}
 	}
@@ -208,14 +212,18 @@ adabe_typedef::produce_stream_adb (dep_list & with,
 	case AST_Decl::NT_array:
 	case AST_Decl::NT_string:
 	case AST_Decl::NT_union:
+	case AST_Decl::NT_sequence:
 	  {
 	    adabe_name *c = dynamic_cast<adabe_name *>(b);
 	    c->produce_stream_adb (with, body, arg2);
 	    body += arg2;
-            set_already_defined ();
-            return;
+
+	    if (base_node_type != AST_Decl::NT_sequence) {
+	      set_already_defined ();
+	      return;
+	    }
           }
-	  default : {}
+	default : {}
 	}
     }
   

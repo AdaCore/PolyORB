@@ -155,6 +155,15 @@ package body all_types.Impl is
       return Arg;
    end EchoUnion;
 
+   function echoUsequence
+     (Self : access Object;
+      arg : in U_sequence)
+     return U_Sequence
+   is
+   begin
+      return Arg;
+   end EchoUsequence;
+
    procedure Set_MyColor
      (Self : access Object;
       arg : in Color)

@@ -413,13 +413,9 @@ package body CORBA.Sequences.Unbounded is
    begin
 
       if Index <= Source.Length then
-
          Source.Content (Index) := By;
-
       else
-
          raise Index_Error;
-
       end if;
 
    end Replace_Element;

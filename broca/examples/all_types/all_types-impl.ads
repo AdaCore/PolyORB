@@ -101,6 +101,11 @@ private
       arg : in myUnion)
      return myUnion;
 
+   function echoUsequence
+     (Self : access Object;
+      arg : in U_sequence)
+      return U_sequence;
+
    procedure Set_MyColor
      (Self : access Object;
       arg : in Color);

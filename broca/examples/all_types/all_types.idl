@@ -65,10 +65,10 @@ interface all_types {
 
   // Sequences
   //----------
-//  typedef sequence<short> U_sequence;
+  typedef sequence<short> U_sequence;
 //  typedef sequence<long,512> B_sequence;
 
-//  U_sequence echo6 (in U_sequence arg);
+  U_sequence echoUsequence (in U_sequence arg);
 //  B_sequence echo7 (in B_sequence arg);
 
 
