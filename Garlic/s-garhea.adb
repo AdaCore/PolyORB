@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Filters;           use System.Garlic.Filters;
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
@@ -602,8 +601,8 @@ package body System.Garlic.Heart is
          Trace_Data (Partition, Data);
       end if;
 
-      pragma Debug (D (D_Debug, "Dumping incoming stream"));
-      pragma Debug (Dump (D_Debug, Data, Private_Debug_Key));
+      pragma Debug (D (D_Dump, "Dumping incoming stream"));
+      pragma Debug (Dump (D_Dump, Data, Private_Debug_Key));
 
       declare
          Params : aliased Params_Stream_Type (Opcode_Size);
@@ -986,8 +985,8 @@ package body System.Garlic.Heart is
          Free (Filtered_Data);
          pragma Debug
            (D (D_Debug, "Sending an operation with opcode " & Operation'Img));
-         pragma Debug (D (D_Debug, "Dumping outgoing stream"));
-         pragma Debug (Dump (D_Debug, Packet, Private_Debug_Key));
+         pragma Debug (D (D_Dump, "Dumping outgoing stream"));
+         pragma Debug (Dump (D_Dump, Packet, Private_Debug_Key));
          if Partition /= Get_My_Partition_ID_Immediately then
             Protocols.Send (Protocol, Partition, Packet'Access);
          else
