@@ -947,6 +947,9 @@ testsuite/corba/portableserver/test_job.adb
 testsuite/corba/portableserver/test_job.ads
 testsuite/core/Makefile.am
 testsuite/core/Makefile.in
+testsuite/core/any/Makefile.am
+testsuite/core/any/Makefile.in
+testsuite/core/any/test000.adb
 testsuite/core/chained_lists/Makefile.am
 testsuite/core/chained_lists/Makefile.in
 testsuite/core/chained_lists/test000.adb
