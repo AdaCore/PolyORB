@@ -90,6 +90,15 @@ package body all_types.Impl is
       return arg;
    end echoString;
 
+   function echoRef
+     (Self : access Object;
+      arg : in Ref)
+      return Ref
+   is
+   begin
+      return arg;
+   end echoRef;
+
 --   procedure simple_exception_test
 --     (Self : access Object)
 --   is

@@ -67,6 +67,11 @@ private
       arg : in CORBA.String)
       return CORBA.String;
 
+   function echoRef
+     (Self : access Object;
+      arg : in Ref)
+      return Ref;
+
 --   procedure simple_exception_test
 --     (Self : access Object);
 --

@@ -1,3 +1,5 @@
+interface all_types;
+
 interface all_types {
 
   // simple types
@@ -12,7 +14,7 @@ interface all_types {
   char echoChar(in char arg) ;
   octet echoOctet (in octet arg) ;
   string echoString (in string arg) ;
-
+  all_types echoRef (in all_types arg);
 
   // Exceptions
   //-----------
@@ -102,10 +104,3 @@ interface all_types {
 //  simple_array echoArray(in simple_array arg);
 
 };
-
-
-
-
-
-
-
