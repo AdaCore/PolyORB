@@ -1,8 +1,10 @@
---  $Id: //droopi/main/src/corba/broca-exceptions-stack.adb#2 $
+--  $Id: //droopi/main/src/corba/broca-exceptions-stack.adb#3 $
 
 with Ada.Unchecked_Deallocation;
 
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 with Droopi.Soft_Links;
 
 package body Broca.Exceptions.Stack is

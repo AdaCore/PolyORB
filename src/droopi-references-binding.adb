@@ -6,6 +6,8 @@ with Ada.Tags;
 
 with Droopi.Binding_Data.Local;
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 with Droopi.Obj_Adapters;
 with Droopi.ORB;
 

@@ -5,6 +5,7 @@
 
 with Droopi.Asynch_Ev.Sockets;
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Transport.Sockets is
 

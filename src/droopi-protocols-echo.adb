@@ -12,6 +12,8 @@ with Droopi.Buffers;
 with Droopi.Filters;
 with Droopi.Filters.Interface;
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 with Droopi.Obj_Adapters;
 with Droopi.Objects;
 with Droopi.ORB;

@@ -5,6 +5,7 @@
 with Droopi.Constants;
 
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Asynch_Ev.Sockets is
 

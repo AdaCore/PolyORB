@@ -3,6 +3,7 @@
 --  $Id$
 
 with Sequences.Unbounded;
+pragma Elaborate_All (Sequences.Unbounded);
 
 package Droopi.Components is
 
@@ -95,6 +96,7 @@ private
 
    package Component_Seqs is new Sequences.Unbounded
      (Component_Access);
+
    subtype Component_Seq is Component_Seqs.Sequence;
 
    type Group is abstract new Component with record

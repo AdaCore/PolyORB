@@ -3,6 +3,8 @@
 with Ada.Tags;
 
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 with Droopi.Locks; use Droopi.Locks;
 with Droopi.Smart_Pointers;
 

@@ -9,6 +9,8 @@ with Droopi.Constants;
 with Droopi.Filters;
 with Droopi.Filters.Interface;
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 with Droopi.Objects.Interface;
 with Droopi.ORB.Interface;
 with Droopi.References.Binding;

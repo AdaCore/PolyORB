@@ -6,6 +6,7 @@
 --  $Id$
 
 with Sequences.Unbounded;
+pragma Elaborate_All (Sequences.Unbounded);
 
 package Droopi.Annotations is
 

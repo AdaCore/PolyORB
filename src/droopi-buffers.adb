@@ -35,6 +35,7 @@ with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
 
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 --  with CORBA;
 --  --  For CORBA.Octet and CORBA.Bool in Decapsulate.

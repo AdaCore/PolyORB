@@ -7,6 +7,7 @@ pragma Warnings (Off, Ada.Tags);
 --  Only used within pragma Debug.
 
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Components is
 

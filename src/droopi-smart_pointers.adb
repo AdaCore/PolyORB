@@ -36,6 +36,8 @@ with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 with Droopi.Soft_Links;
 
 package body Droopi.Smart_Pointers is

@@ -8,6 +8,8 @@ with CORBA.NVList;
 
 with Droopi.Components;
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 with Droopi.Obj_Adapters;
 with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects.Interface;

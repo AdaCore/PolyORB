@@ -3,6 +3,7 @@
 --  $Id$
 
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Requests is
 

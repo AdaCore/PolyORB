@@ -1,10 +1,12 @@
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/droopi-locks.adb#1 $
+--  $Id: //droopi/main/src/droopi-locks.adb#2 $
 
 with Ada.Unchecked_Deallocation;
 
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 with Droopi.Soft_Links; use Droopi.Soft_Links;
 
 package body Droopi.Locks is
