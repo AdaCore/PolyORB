@@ -2,14 +2,16 @@ Thu Nov 28 22:33:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* two.py: Serial-line connector simulator (connects two sockets).
 
-	* serial.c: Serial-line simulator using sockets.
+	* serial.c: Serial-line simulator using sockets. Changed procedure
+	names to match the ones used in Spif.
 
-	* s-gaseli.adb: Optimization.
+	* s-gaseli.adb: Optimization. Changed procedure names to match the
+	ones used in Spif.
 
 	* s-garhea.adb: Added debug entries.
 
 	* s-garela.adb: Removed useless faulty lines (do not work with
-	  serial protocol).
+	serial protocol).
 
 	* s-rpc.adb: Handle task non-abortion (which is quite frequent :-)
 	more elegantly than before. It also corrects a strange

@@ -28,7 +28,7 @@
 
 static int fd;
 
-int open_device (void)
+int packet_open (void)
 {
   int one = 1, i;
   struct hostent *hp;
@@ -55,7 +55,7 @@ int open_device (void)
   return 1;
 }
 
-int put_packet (const char *buffer, int len)
+int packet_write (const char *buffer, int len)
 {
   int n;
   trace ("Writing packet of length %d\n",len);
@@ -72,7 +72,7 @@ int put_packet (const char *buffer, int len)
   return 1;
 }
 
-int get_packet (char *buffer, int len)
+int packet_read (char *buffer, int len)
 {
   int n;
   trace ("Waiting for packet of length %d\n",len);

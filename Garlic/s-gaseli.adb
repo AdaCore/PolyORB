@@ -80,17 +80,17 @@ package body System.Garlic.Serial_Line is
    pragma Linker_Options ("-lsocket");
 
    function Open_Device return C.int;
-   pragma Import (C, Open_Device, "open_device");
+   pragma Import (C, Open_Device, "packet_open");
 
    function Put_Packet (Buffer : System.Address;
                         Length : C.int)
      return C.int;
-   pragma Import (C, Put_Packet, "put_packet");
+   pragma Import (C, Put_Packet, "packet_write");
 
    function Get_Packet (Buffer : System.Address;
                         Length : C.int)
      return C.int;
-   pragma Import (C, Get_Packet, "get_packet");
+   pragma Import (C, Get_Packet, "packet_read");
 
    C_Failure : constant C.int := 0;
    C_Success : constant C.int := 1;
