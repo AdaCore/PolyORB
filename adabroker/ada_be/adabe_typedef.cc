@@ -17,7 +17,8 @@ adabe_typedef::produce_ads(dep_list with,string &String, string &previousdefinit
   compute_ada_names();
   INDENTATION(String);
   String += "type" + get_ada_name() + "is new ";
-  String += base_type()->dump_name(with, &String, &previousdefinition); //virtual method
+  AST_Decl *b  base_type();
+  String +=  adabe_name::narrow_from_decl(b)->dump_name(with, &String, &previousdefinition); //virtual method
   String += "\n";
 }
 
@@ -31,7 +32,7 @@ adabe_typedef::produce_adb(dep_list with,string &String, string &previousdefinit
 void
 adabe_typedef::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
 {
-  produce_ads(with, &String, &previousdefinition);
+  produce_ads(with, String, previousdefinition);
 }
 
 void

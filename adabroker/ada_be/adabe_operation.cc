@@ -35,12 +35,13 @@ adabe_operation::produce_ads(dep_list with,string &String, string &previousdefin
 	  AST_Decl *d = i.item();
 	  //	if (d->node_type() == AST_Decl::NT_Argument)
 	  //	  {
-	  d->produce_ads(with, &String, &previousdefinition);
+	  adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
 	  //        }
 	  i.next();
 	}
-      String += ") return ";
-      String += return_type()->dump_name(with, &String, &previousdefinition) + ";\n";
+      String += ") return "; 
+      AST_Decl *b = return_type();
+      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ";\n";
     }
   else
     {
@@ -52,12 +53,13 @@ adabe_operation::produce_ads(dep_list with,string &String, string &previousdefin
 	  AST_Decl *d = i.item();
 	  //	if (d->node_type() == AST_Decl::NT_Argument)
 	  //	  {
-	  d->produce_ads(with, &String, &previousdefinition);
+	  adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
 	  //        }
 	  i.next();
 	}
       String += ", Result : out ";
-      String += return_type()->dump_name(with, &String, &previousdefinition) + ");\n";
+      AST_Decl *b = return_type();
+      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ");\n";
 }
 
 void
@@ -82,12 +84,13 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
 	  AST_Decl *d = i.item();
 	  //	if (d->node_type() == AST_Decl::NT_Argument)
 	  //	  {
-	  d->produce_ads(with, &String, &previousdefinition);
+	  adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
 	  //        }
 	  i.next();
 	}
       String += ") return ";
-      string name += return_type()->dump_name(with, &String, &previousdefinition);
+      AST_Decl *b = return_type();
+      string name += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition);
       String += name + "is \n";
       AST_Decl  *i = defined_in();
       name_of_the_package = i->get_ada_name();
@@ -132,12 +135,13 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
 	  AST_Decl *d = i.item();
 	  //	if (d->node_type() == AST_Decl::NT_Argument)
 	  //	  {
-	  d->produce_ads(with, &String, &previousdefinition);
+	  adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
 	  //        }
 	  i.next();
 	}
       if (return_type() != NULL) {
-	string name =  return_type()->dump_name(with, &String, &previousdefinition);
+	AST_Decl *b = return_type();
+	string name =  adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition);
 	String += ", Result : out " + name + ") is\n";
       }
       else   String += ") is \n";
@@ -197,12 +201,13 @@ adabe_operation::produce_impl_ads(dep_list with,string &String, string &previous
 	  AST_Decl *d = i.item();
 	  //	if (d->node_type() == AST_Decl::NT_Argument)
 	  //	  {
-	  d->produce_impl_ads(with, &String, &previousdefinition);
+	  adabe_name::narrow_from_decl(d)->produce_impl_ads(with, String, previousdefinition);
 	  //        }
 	  i.next();
 	}
       String += ") return ";
-      String += return_type()->dump_name(with, &String, &previousdefinition) + ";\n";
+      AST_Decl *b = return_type();
+      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ";\n";
   }
   else
     {
@@ -214,12 +219,13 @@ adabe_operation::produce_impl_ads(dep_list with,string &String, string &previous
 	  AST_Decl *d = i.item();
 	  //	if (d->node_type() == AST_Decl::NT_Argument)
 	  //	  {
-	  d->produce_impl_ads(with, &String, &previousdefinition);
+	  adabe_name::narrow_from_decl(d)->produce_impl_ads(with, String, previousdefinition);
 	  //        }
 	  i.next();
 	}
       String += ", Result : out ";
-      String += return_type()->dump_name(with, &String, &previousdefinition) + ");\n";
+      AST_Decl *b = return_type();
+      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ");\n";
     }
 }
 
@@ -246,12 +252,13 @@ adabe_operation::produce_impl_adb(dep_list with,string &String, string &previous
 	  AST_Decl *d = i.item();
 	  //	if (d->node_type() == AST_Decl::NT_Argument)
 	  //	  {
-	  d->produce_impl_ads(with, &String, &previousdefinition);
+	  adabe_name::narrow_from_decl(d)->produce_impl_ads(with, String, previousdefinition);
 	  //        }
 	  i.next();
 	}
       String += ") return ";
-      String += return_type()->dump_name(with, &String, &previousdefinition) + ";\n";
+      AST_Decl *b = return_type();
+      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ";\n";
       INDENT();
       String += "begin \n\n";
       INDENT();
@@ -267,12 +274,13 @@ adabe_operation::produce_impl_adb(dep_list with,string &String, string &previous
 	  AST_Decl *d = i.item();
 	  //	if (d->node_type() == AST_Decl::NT_Argument)
 	  //	  {
-	  d->produce_impl_ads(with, &String, &previousdefinition);
+	  adabe_name::narrow_from_decl(d)->produce_impl_ads(with, String, previousdefinition);
 	  //        }
 	  i.next();
 	}
       if (return_type != NULL) {
-           string name =  return_type()->dump_name(with, &String, &previousdefinition);
+	   AST_Decl *b = return_type();
+           string name =  adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition);
 	   String += ", Result : out " + name + ") is\n";
       }
       else   String += ") is \n";
@@ -318,7 +326,8 @@ adabe_operation::produce_proxies_ads(dep_list with,string &String, string &priva
     {
       String += " function Get_Result (Self : in " + name + "_Proxy ) return ";
       INDENT();
-      String += return_type()->.dump_name( with, &String, &previousdefinition) + "; \n"; 
+      AST_Decl *b = return_type();
+      String += adabe_name::narrow_from_decl(b)->dump_name( with, String, previousdefinition) + "; \n"; 
     }
   privatedefinition += "type " + name + "_Proxy is new OmniProxyCallDesc.Object with record \n";
 

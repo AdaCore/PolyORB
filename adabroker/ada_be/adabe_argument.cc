@@ -26,26 +26,27 @@ adabe_argument::produce_ads(dep_list with,string &String, string &previousdefini
     String += " inout ";
     break;
   }
-  String += field_type()->dump_name( with, &String, &previousdefinition); // virtual method
+  AST_Decl d* = field_type();
+  String += adabe_name::narrow_from_decl(d)->dump_name( with, String, previousdefinition); // virtual method
 }
 
 void
 adabe_argument::produce_adb(dep_list with,string &String, string &previousdefinition)
 {
-  produce_ads(with, &String, &previousdefinition);
+  produce_ads(with, String, previousdefinition);
 }
 
 void
 adabe_argument::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
 {
-  produce_ads( with, &String, &previousdefinition); 
+  produce_ads( with, String, previousdefinition); 
 }
 
 ///////////////perhaps useless////////////////////////
 void
 adabe_argument::produce_impl_adb(dep_list with,string &String, string &previousdefinition)
 {
-  produce_ads(with, &String, &previousdefinition);
+  produce_ads(with, String, previousdefinition);
 }
 
 IMPL_NARROW_METHODS1(adabe_argument, AST_Argument)

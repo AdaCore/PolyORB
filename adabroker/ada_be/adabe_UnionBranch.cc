@@ -27,7 +27,7 @@ adabe_union_branch::produce_ads(dep_list with,string &String, string &previousde
     {
       temp += "others ";
       temp += "=> ";
-      adabe_field.produce_ads(with,&temp,&previousdefinition);
+      adabe_field.produce_ads(with, temp, previousdefinition);
       temp += " ;\n";
       previousdefinition += temp;
     }
@@ -37,7 +37,7 @@ adabe_union_branch::produce_ads(dep_list with,string &String, string &previousde
 void
 adabe_union_branch::produce_impl_ads(dep_list with,string &String, string &previousdefinition, AST_ConcreteType *concrete)
 {
-  produce_ads(with, &String, &previousdefinition, *concrete);
+  produce_ads(with, String, previousdefinition, concrete);
 }
   
 static string

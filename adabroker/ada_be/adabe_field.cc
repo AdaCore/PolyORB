@@ -15,7 +15,8 @@ adabe_field::produce_ads(dep_list with,string &String, string &previousdefinitio
   compute_ada_names();
   String +=  get_ada_name();
   String += " : ";
-  field_type()->dump_name( with, &String, &previousdefinition); //virtual method
+  AST_Decl *b = field_type();
+  String += adabe_name::narrow_from_decl(b)->dump_name( with, String, previousdefinition); 
 }
 
 void
@@ -23,7 +24,7 @@ adabe_field::produce_adb(dep_list with,string &String, string &previousdefinitio
 {
   produce_ads(with, &String, &previousdefinition);
 }
-  
+
   ///////////////// perhaps useless /////////////////////
 void
 adabe_field::produce_impl_ads(dep_list with,string &String, string &previousdefinition) 

@@ -23,7 +23,7 @@ adabe_structure::produce_ads(dep_list with,string &String, string &previousdefin
       AST_Decl *d = i.item();
       //	if (d->node_type() == AST_Decl::NT_field)
       //	  {
-      d->produce_ads(with, &temp, &previousdefinition);
+      adabe_name::narrow_from_decl(d)->produce_ads(with, temp, previousdefinition);
       temp += "\n";
       //        }
       i.next();
@@ -44,7 +44,7 @@ adabe_structure::produce_adb(dep_list with,string &String, string &previousdefin
 void
 adabe_structure::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
 {
-  produce_ads(with, &String, &previousdefinition);
+  produce_ads(with, String, previousdefinition);
 }
 
 void  
@@ -59,7 +59,7 @@ adabe_structure::dump_name(dep_list with,string &String, string &previousdefinit
 {
   if (!is_imported(with))
     {
-      if (!is_already_defined) previousdefinition += produce_ads( with, &String, &previousdefinition);
+      if (!is_already_defined) previousdefinition += produce_ads( with, String, previousdefinition);
       return get_ada_name();
     }
   return get_ada_full_name();	   

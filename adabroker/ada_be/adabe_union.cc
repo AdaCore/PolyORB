@@ -23,7 +23,8 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
   temp += "type " + get_ada_name();
   disc_type()->compute_ada_names();
   name = get_ada_name();
-  temp += "(Switch : "  + disc_type(with, &temp, &previousdefinition)->dump_name();
+  AST_Decl *b = disc_type();
+  temp += "(Switch : "  + adabe_name::narrow_from_decl(d)->dump_name(with, temp, previousdefinition);
   temp += " := " + name + "'first) is record\n";
   INC_INDENT();
   INDENT(temp);
@@ -36,7 +37,7 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
       AST_Decl *d = i.item();
       //	if (d->node_type() == AST_Decl::NT_UnionBranch)
       //	  {
-      d->produce_ads(with, &temp, &previousdefinition);
+      adabe_name::narrow_from_decl(d)->produce_ads(with, temp, previousdefinition);
       temp += "\n";
       //        }
       i.next();
@@ -60,7 +61,7 @@ adabe_union::produce_adb(dep_list with,string &String, string &previousdefinitio
 void
 adabe_union::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
 {
-  produce_ads(with, &String, &previousdefinition);
+  produce_ads(with, String, previousdefinition);
 }
 
 void
@@ -75,7 +76,7 @@ adabe_union::dump_name(dep_list with,string &String, string &previousdefinition)
 {
   if (!is_imported(with))
     {
-      if (!is_already_defined()) produce_ads( with, &String, &previousdefinition);
+      if (!is_already_defined()) produce_ads( with, String, previousdefinition);
       return get_ada_name();
     }
   return get_ada_full_name();	   
