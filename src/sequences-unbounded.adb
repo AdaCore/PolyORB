@@ -393,7 +393,7 @@ package body Sequences.Unbounded is
       First  : constant Integer := Pattern'First;
 
    begin
-      if Pattern = Null_Element_Array then
+      if Pattern'Length = 0 then
          raise Pattern_Error;
       end if;
 
@@ -607,7 +607,7 @@ package body Sequences.Unbounded is
       First  : constant Integer := Pattern'First;
 
    begin
-      if Pattern = Null_Element_Array then
+      if Pattern'Length = 0 then
          raise Pattern_Error;
       end if;
 

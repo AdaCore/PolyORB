@@ -68,8 +68,6 @@ package Sequences.Unbounded is
 
    type Element_Array is array (Integer range <>) of Element;
 
-   Null_Element_Array : Element_Array (1 .. 0);
-
    type Sequence is private;
 
    function Null_Sequence return Sequence;
