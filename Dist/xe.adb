@@ -1960,11 +1960,11 @@ package body XE is
       Nodes.Table (Node).Flag_1 := Extensible;
    end Type_Is_Frozen;
 
-   ----------------------------
-   -- Update_Partition_Stamp --
-   ----------------------------
+   ------------------
+   -- More_Recent_Stamp --
+   ------------------
 
-   procedure Update_Partition_Stamp (P : in PID_Type; F : in File_Name_Type) is
+   procedure More_Recent_Stamp (P : in PID_Type; F : in File_Name_Type) is
    begin
       if More_Recent (F, Partitions.Table (P).Most_Recent) then
          if Debug_Mode then
@@ -1981,7 +1981,7 @@ package body XE is
          end if;
          Partitions.Table (P).Most_Recent := F;
       end if;
-   end Update_Partition_Stamp;
+   end More_Recent_Stamp;
 
    ----------------
    -- Write_SLOC --

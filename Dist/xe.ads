@@ -190,8 +190,8 @@ package XE is
    First_Pre_Type : constant Pre_Type_Id := Pre_Type_Id'Succ (Wrong_Pre_Type);
    Last_Pre_Type  : constant Pre_Type_Id := Pre_Type_Id'Last;
 
-   function Convert (Item : in Predefined_Type) return Int;
-   function Convert (Item : in Int) return Predefined_Type;
+   function Convert (Item : Predefined_Type) return Int;
+   function Convert (Item : Int) return Predefined_Type;
 
    -----------------
    -- Termination --
@@ -249,39 +249,47 @@ package XE is
    Pragma_Version_Node     : Subprogram_Id;
 
    function Get_Node_Name
-     (Node : in Node_Id)
+     (Node : Node_Id)
      return Name_Id;
    pragma Inline (Get_Node_Name);
 
+   --------
+   -- Is --
+   --------
+
+   function  Is_Component
+     (Node : Node_Id)
+      return Boolean;
+   pragma Inline (Is_Component);
+
+   function  Is_Configuration
+     (Node : Node_Id)
+      return Boolean;
+   pragma Inline (Is_Configuration);
+
+   function  Is_Statement
+     (Node : Node_Id)
+      return Boolean;
+   pragma Inline (Is_Statement);
+
+   function  Is_Subprogram
+     (Node : Node_Id)
+      return Boolean;
+   pragma Inline (Is_Subprogram);
+
    function  Is_Type
-     (Node : in Node_Id)
+     (Node : Node_Id)
      return Boolean;
    pragma Inline (Is_Type);
 
    function  Is_Variable
-     (Node : in Node_Id)
+     (Node : Node_Id)
      return Boolean;
    pragma Inline (Is_Variable);
 
-   function  Is_Component
-     (Node : in Node_Id)
-      return Boolean;
-   pragma Inline (Is_Component);
-
-   function  Is_Subprogram
-     (Node : in Node_Id)
-      return Boolean;
-   pragma Inline (Is_Subprogram);
-
-   function  Is_Statement
-     (Node : in Node_Id)
-      return Boolean;
-   pragma Inline (Is_Statement);
-
-   function  Is_Configuration
-     (Node : in Node_Id)
-      return Boolean;
-   pragma Inline (Is_Configuration);
+   ----------
+   -- SLOC --
+   ----------
 
    procedure Set_Node_SLOC
      (Node  : in Node_Id;
@@ -295,6 +303,35 @@ package XE is
       Loc_Y : out Int);
    pragma Inline (Get_Node_SLOC);
 
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create_Configuration
+     (Configuration_Node : out Configuration_Id;
+      Configuration_Name : in  Name_Id);
+   pragma Inline (Create_Configuration);
+
+   procedure Create_Component
+     (Component_Node : out Component_Id;
+      Component_Name : in  Name_Id);
+   pragma Inline (Create_Component);
+
+   procedure Create_Parameter
+     (Parameter_Node : out Parameter_Id;
+      Parameter_Name : in  Name_Id);
+   pragma Inline (Create_Variable);
+
+   procedure Create_Statement
+     (Statement_Node : out Statement_Id;
+      Statement_Name : in  Name_Id);
+   pragma Inline (Create_Subprogram);
+
+   procedure Create_Subprogram
+     (Subprogram_Node : out Subprogram_Id;
+      Subprogram_Name : in  Name_Id);
+   pragma Inline (Create_Subprogram);
+
    procedure Create_Type
      (Type_Node : out Type_Id;
       Type_Name : in  Name_Id);
@@ -305,34 +342,13 @@ package XE is
       Variable_Name : in  Name_Id);
    pragma Inline (Create_Variable);
 
-   procedure Create_Parameter
-     (Parameter_Node : out Parameter_Id;
-      Parameter_Name : in  Name_Id);
-   pragma Inline (Create_Variable);
-
-   procedure Create_Component
-     (Component_Node : out Component_Id;
-      Component_Name : in  Name_Id);
-   pragma Inline (Create_Component);
-
-   procedure Create_Subprogram
-     (Subprogram_Node : out Subprogram_Id;
-      Subprogram_Name : in  Name_Id);
-   pragma Inline (Create_Subprogram);
-
-   procedure Create_Statement
-     (Statement_Node : out Statement_Id;
-      Statement_Name : in  Name_Id);
-   pragma Inline (Create_Subprogram);
-
-   procedure Create_Configuration
-     (Configuration_Node : out Configuration_Id;
-      Configuration_Name : in  Name_Id);
-   pragma Inline (Create_Configuration);
-
    -------------------
    -- Configuration --
    -------------------
+
+   procedure Append_Configuration_Declaration
+     (Configuration_Node : in Configuration_Id;
+      Declaration_Node   : in Node_Id);
 
    procedure First_Configuration_Declaration
      (Configuration_Node : in  Configuration_Id;
@@ -340,49 +356,55 @@ package XE is
 
    procedure Next_Configuration_Declaration
      (Declaration_Node   : in out Node_Id);
-
-   procedure Append_Configuration_Declaration
-     (Configuration_Node : in Configuration_Id;
-      Declaration_Node   : in Node_Id);
+   --  At the ime being, there are two configurations : the user one and
+   --  the standard one.
 
    ----------------
    -- Subprogram --
    ----------------
 
-   procedure Subprogram_Is_A_Procedure
+   procedure Add_Subprogram_Parameter
      (Subprogram_Node : in Subprogram_Id;
-      Procedure_Node  : in Boolean);
-
-   function Is_Subprogram_A_Procedure
-     (Subprogram_Node : in Subprogram_Id)
-     return Boolean;
-
-   procedure Set_Subprogram_Mark
-     (Subprogram_Node : in Subprogram_Id;
-      Subprogram_Mark : in Int);
-
-   function  Get_Subprogram_Mark
-     (Subprogram_Node : Subprogram_Id)
-      return Int;
-
-   procedure Set_Parameter_Mark
-     (Parameter_Node : in Parameter_Id;
-      Parameter_Mark : in Int);
-
-   function  Get_Parameter_Mark
-     (Parameter_Node : Parameter_Id)
-      return Int;
+      Parameter_Node  : in Parameter_Id);
 
    procedure First_Subprogram_Parameter
      (Subprogram_Node : in Subprogram_Id;
       Parameter_Node  : out Parameter_Id);
 
+   function  Get_Parameter_Mark
+     (Parameter_Node : Parameter_Id)
+      return Int;
+   --  Parameter are marked to find what parameter is missing in a
+   --  subprogram call.
+
+   function  Get_Subprogram_Mark
+     (Subprogram_Node : Subprogram_Id)
+      return Int;
+   --  The subprogram mark is used to easily retrieve a pragma kind, for
+   --  instance.
+
+   function Is_Subprogram_A_Procedure
+     (Subprogram_Node : Subprogram_Id)
+     return Boolean;
+
    procedure Next_Subprogram_Parameter
      (Parameter_Node  : in out Parameter_Id);
 
-   procedure Add_Subprogram_Parameter
+   procedure Set_Parameter_Mark
+     (Parameter_Node : in Parameter_Id;
+      Parameter_Mark : in Int);
+   --  Parameter are marked to find what parameter is missing in a
+   --  subprogram call.
+
+   procedure Set_Subprogram_Mark
      (Subprogram_Node : in Subprogram_Id;
-      Parameter_Node  : in Parameter_Id);
+      Subprogram_Mark : in Int);
+   --  The subprogram mark is used to easily retrieve a pragma_type id, for
+   --  instance.
+
+   procedure Subprogram_Is_A_Procedure
+     (Subprogram_Node : in Subprogram_Id;
+      Procedure_Node  : in Boolean);
 
    ----------
    -- Type --
@@ -391,35 +413,46 @@ package XE is
    function Get_Array_Element_Type
      (Array_Type_Node : Type_Id)
      return Type_Id;
+   --  When the type is an array or a list, this function returns the type
+   --  of an element. Otherwise, it returns null_type (neither a list nor
+   --  an array).
+
+   function  Get_Type_Mark
+     (Type_Node : Type_Id)
+      return Int;
+   --  The type mark is used to easily retrieve a predefined_type id, for
+   --  instance.
 
    function Is_Array_A_List
      (Array_Type_Node : Type_Id)
       return Boolean;
+   --  Is constrained or not.
+
+   function Is_Type_Frozen
+     (Type_Node : Type_Id)
+     return Boolean;
+   --  Is it possible to add new litteral in an enumeration type.
 
    procedure Set_Array_Type
      (Array_Type_Node   : in Type_Id;
       Element_Type_Node : in Type_Id;
       Array_Is_A_List   : in Boolean);
-
-   function  Get_Type_Mark
-     (Type_Node : Type_Id)
-      return Int;
+   --  This type becomes an array type. Each element is of type
+   --  element_type_node. array_is_a_list indicates whether it is a
+   --  constrained array or not.
 
    procedure Set_Type_Mark
      (Type_Node : in Type_Id;
       Type_Mark : in Int);
-
-   function Is_Type_Frozen
-     (Type_Node : Type_Id)
-     return Boolean;
+   --  The type mark is used to easily retrieve a predefined_type id, for
+   --  instance.
 
    procedure Type_Is_Frozen
      (Type_Node  : in Type_Id;
       Extensible : in Boolean);
-   --  For instance, Ada Unit Type is an extensible enumeration type.
-   --  During parsing, we can decide to create a constant that occur
-   --  earlier to any other declaration of the same constant or variable
-   --  name.
+   --  Is it possible to add new litteral in an enumeration type. Ada Unit
+   --  Type is an extensible enumeration type. When parsing, a variable of
+   --  this type can be pushed automatically in the declaration.
 
    procedure First_Type_Component
      (Type_Node       : in Type_Id;
@@ -441,24 +474,28 @@ package XE is
       Variable_Type : in Type_Id);
 
    function Get_Variable_Type
-     (Variable_Node : in Variable_Id)
+     (Variable_Node : Variable_Id)
      return Type_Id;
 
    procedure Set_Variable_Value
      (Variable_Node : in Variable_Id;
       Value_Node    : in Variable_Id);
+   --  This value is in fact a variable itself.
 
    function Get_Variable_Value
-     (Variable_Node : in Variable_Id)
+     (Variable_Node : Variable_Id)
      return Variable_Id;
+   --  This value is in fact a variable itself.
 
    procedure Set_Variable_Mark
      (Variable_Node : in Variable_Id;
       Variable_Mark : in Int);
+   --  This mark is used when the variable is of scalar type.
 
    function  Get_Variable_Mark
      (Variable_Node : Variable_Id)
       return Int;
+   --  This mark is used when the variable is of scalar type.
 
    procedure First_Variable_Component
      (Variable_Node   : in Variable_Id;
@@ -478,14 +515,17 @@ package XE is
    procedure Set_Component_Value
      (Component_Node : in Component_Id;
       Value_Node     : in Node_Id);
+   --  This value is in fact a variable itself.
 
    function  Get_Component_Value
      (Component_Node : Component_Id)
      return Node_Id;
+   --  This value is in fact a variable itself.
 
    function Has_Component_A_Value
      (Component_Node : Component_Id)
      return Boolean;
+   --  Is this component initialized.
 
    procedure Set_Component_Type
      (Component_Node : in Component_Id;
@@ -498,10 +538,12 @@ package XE is
    procedure Component_Is_An_Attribute
      (Component_Node : in Component_Id;
       Attribute_Node : in Boolean);
+   --  A type or a variable is a set of components and of attributes.
 
    function Is_Component_An_Attribute
      (Component_Node : Component_Id)
      return Boolean;
+   --  A type or a variable is a set of components and of attributes.
 
    procedure Set_Component_Mark
      (Component_Node : in Component_Id;
@@ -520,7 +562,7 @@ package XE is
       Parameter_Type : in Type_Id);
 
    function Get_Parameter_Type
-     (Parameter_Node : in Parameter_Id)
+     (Parameter_Node : Parameter_Id)
      return Type_Id;
 
    ---------------
@@ -532,13 +574,14 @@ package XE is
       Subprogram_Node : in Subprogram_Id);
 
    function  Get_Subprogram_Call
-     (Statement_Node  : in Statement_Id)
+     (Statement_Node  : Statement_Id)
       return Subprogram_Id;
 
    ------------------------------
    -- Parser Convention Naming --
    ------------------------------
 
+   --  Internal names
    Component_Unit : Name_Id;
    Part_Main_Unit : Name_Id;
    Returned_Param : Name_Id;
@@ -594,9 +637,9 @@ package XE is
    CUID_Last  : constant Int := 2_999_999;
 
    type CUID_Type is new Int range CUID_Wrong .. CUID_Last;
-   --  CUID = Configure Unit ID to differentiate from Unit_Id.
-   --  Such units from the configuration langage can be unknown
-   --  as ada units.
+   --  CUID = Configure Unit ID to differentiate from Unit_Id. Such units
+   --  from the configuration language are not always real ada units as
+   --  configuration file can be erroneous.
 
    Wrong_CUID : constant CUID_Type := CUID_Type'First;
    Null_CUID  : constant CUID_Type := CUID_Type'Succ (Wrong_CUID);
@@ -775,26 +818,29 @@ package XE is
    procedure Show_Configuration;
    --  Report the current configuration.
 
-   function Is_Set (Partition : in PID_Type) return Boolean;
+   function Is_Set (Partition : PID_Type) return Boolean;
    --  Some units have already been assigned to this partition.
 
-   function Str_To_Id (S : String) return Name_Id;
+   function Str_To_Id           (S : String) return Name_Id;
 
-   function Get_Partition_Dir   (P : in PID_Type) return File_Name_Type;
-   function Get_Absolute_Exec   (P : in PID_Type) return File_Name_Type;
-   function Get_Relative_Exec   (P : in PID_Type) return File_Name_Type;
-   function Get_Host            (P : in PID_Type) return Name_Id;
-   function Get_Command_Line    (P : in PID_Type) return Command_Line_Type;
-   function Get_Main_Subprogram (P : in PID_Type) return Main_Subprogram_Type;
-   function Get_Storage_Dir     (P : in PID_Type) return Storage_Dir_Name_Type;
-   function Get_Termination     (P : in PID_Type) return Termination_Type;
-   function Get_Unit_Sfile      (U : in Unit_Id)  return File_Name_Type;
+   function Get_Partition_Dir   (P : PID_Type) return File_Name_Type;
+   function Get_Absolute_Exec   (P : PID_Type) return File_Name_Type;
+   function Get_Relative_Exec   (P : PID_Type) return File_Name_Type;
+   function Get_Host            (P : PID_Type) return Name_Id;
+   function Get_Command_Line    (P : PID_Type) return Command_Line_Type;
+   function Get_Main_Subprogram (P : PID_Type) return Main_Subprogram_Type;
+   function Get_Storage_Dir     (P : PID_Type) return Storage_Dir_Name_Type;
+   function Get_Termination     (P : PID_Type) return Termination_Type;
+   function Get_Unit_Sfile      (U : Unit_Id)  return File_Name_Type;
+   --  Retrieve some data from tables.
 
-   procedure Update_Partition_Stamp (P : in PID_Type; F : in File_Name_Type);
+   procedure Update_Stamp (P : in PID_Type; F : in File_Name_Type);
+   --  The more recent stamp of files needed to build a partition is
+   --  updated.
 
    Configuration_File  : File_Name_Type  := No_File;
    Configuration       : Name_Id         := No_Name;
-   --  Name of the configuration
+   --  Name of the configuration.
 
    Main_Partition     : PID_Type  := Null_PID;
    --  Partition where the main procedure has been assigned.

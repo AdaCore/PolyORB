@@ -16,7 +16,9 @@ Sat Feb 15 15:18:03 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
  	xe_parse.adb, xe_usage.adb, xe_back.adb, xe_defs.adb, xe_scan.adb,
  	xe_utils.adb: Reorganize all code (alphabetical order).
 
-
+	* xe.ads: Reorganize specification and change
+ 	Update_Partition_Stamp into More_Recent_Stamp.
+	
 Thu Feb 13 15:21:57 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* xe.adb: Minor reformating

@@ -436,7 +436,7 @@ package body XE_Stubs is
 
       Close (FD);
 
-      Update_Partition_Stamp (PID, Elaboration);
+      More_Recent_Stamp (PID, Elaboration);
 
    end Create_Elaboration_File;
 
@@ -688,7 +688,7 @@ package body XE_Stubs is
 
       Close (FD);
 
-      Update_Partition_Stamp (PID, Main_File);
+      More_Recent_Stamp (PID, Main_File);
 
    end Create_Main_Unit;
 
@@ -920,7 +920,7 @@ package body XE_Stubs is
 
       --  If this unit is one of the most recent compiled unit,
       --  update Partitions.Table (PID).Most_Recent.
-      Update_Partition_Stamp (PID, ALIs.Table (ALI).Afile);
+      More_Recent_Stamp (PID, ALIs.Table (ALI).Afile);
 
       --  Mark this unit to avoid infinite recursive search.
       for I in ALIs.Table (ALI).First_Unit ..
