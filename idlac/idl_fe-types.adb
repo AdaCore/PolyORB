@@ -176,28 +176,6 @@ package body Idl_Fe.Types is
       end if;
    end Remove_Node;
 
-   --------------------
-   --  Replace_Node  --
-   --------------------
-
-   procedure Replace_Node
-     (List : in out Node_List;
-      Old : in Node_Id;
-      New_Node : in Node_Id) is
-   begin
-      if (Old = New_Node) then
-         return;
-      end if;
-      if List = Nil_List then
-         raise Constraint_Error;
-      end if;
-      if List.Car = Old then
-         List.Car := New_Node;
-      else
-         Replace_Node (List.Cdr, Old, New_Node);
-      end if;
-   end Replace_Node;
-
    ------------
    --  Free  --
    ------------

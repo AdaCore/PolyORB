@@ -163,6 +163,13 @@ print
 for i in spec:
     print i
 print ""
+print """
+   --  replaces in the hashtable of nodes the old node
+   --  by the new one, sets the origianal_node attribute
+   --  of the new node to old_node
+   procedure Replace_Node (Old : in out Node_Id; New_Node : in out Node_Id);
+"""
+print ""
 print "private"
 print
 print "   type Node_Type is limited record"
@@ -188,4 +195,20 @@ print "   use Nodes_Table;"
 print
 for i in body:
     print i
+print """
+
+   -------------------
+   --  Replace_Node --
+   -------------------
+   procedure Replace_Node (Old : in out Node_Id; New_Node : in out Node_Id) is
+      Temp_Node : Node_Access := Nodes_Table.Table (Old);
+      Temp_Id : Node_Id := Old;
+   begin
+      Nodes_Table.Table (Old) := Nodes_Table.Table (New_Node);
+      Nodes_Table.Table (New_Node) := Temp_Node;
+      Old := New_Node;
+      New_Node := Temp_Id;
+      Set_Original_Node (New_Node, Old);
+   end Replace_Node;
+"""
 print "end Idl_Fe.Tree;"

@@ -229,6 +229,12 @@
 --
 --  ValueBase
 --
+--  Ben_Node_List
+--    Contents : Node_List
+--
+--  Ben_Idl_File <-- Named
+--    Contents : Node_List
+--
 --  END
 --
 

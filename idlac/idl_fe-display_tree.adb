@@ -499,6 +499,13 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("native:");
             Disp_Tree (Declarator (N), N_Indent + Offset, Full);
 
+            --  ************************** --
+            --  expansion nodes
+         when K_Ben_Idl_File =>
+            Put_Line ("ben_idl_file " & Get_Name (N));
+            Disp_List (Contents (N), N_Indent, Full);
+
+            --  ************************** --
          when others =>
             Put_Line ("not implemented yet");
       end case;
