@@ -594,8 +594,8 @@ ${RM} ${PO_CATREF_WITHS}
 ##########################################
 
 if test ! -f support/move-if-change; then
-  rm -f support/move-if-change
-  cp ${ac_top_srcdir}/support/move_if_change support/move-if-change
+  ${RM} support/move-if-change 2> /dev/null
+  cp ${srcdir}/support/move-if-change support/move-if-change
 fi
 
 for a in linker adacompiler move-if-change
@@ -604,4 +604,3 @@ do
 done
 rm -f support/native-adacompiler
 ln -f support/adacompiler support/native-adacompiler
-
