@@ -3,6 +3,24 @@
 
 #include <string.h>
 
+class dep_list
+{
+ public:
+  dep_list();
+  ~dep_list();
+  // constructor and destructor
+  add (string);
+  // add a string to the list
+  check (string);
+  // check for the presence of the string in the list, and add it 
+  string produce();
+  // dump the content of the list in a string
+ private:
+  string *list;
+  item nb_item_in_list;
+  item max_item_in_list;
+}
+
 class adabe_name : public virtual AST_Decl
 {
 public:
@@ -16,12 +34,13 @@ public:
 
   void compute_ada_names(void);
   // determine the ADA local and complete name
-  
+  bool is_already_defined();
+  void set_already_defined();
 private:
   adabe_name();
   char *pd_ada_local_name;
   char *pd_ada_full_name;
-
+  bool pd_defined_type;
   void convert(void);
   // give the ADA name given by the OMG mapping rules of the AST node
 
@@ -59,13 +78,8 @@ public:
   DEF_NARROW_METHODS1(adabe_predefined_type, AST_PredefinedType);
   DEF_NARROW_FROM_DECL(adabe_predefined_type);
 
-  void produce_typedef_ads (std::fstream& s, adabe_typedef* tdef);
-  void produce_typedef_adb (std::fstream& s, adabe_typedef* tdef);
-  void produce_typedef_impl_ads (std::fstream& s, adabe_typedef* tdef);
-  void produce_typedef_impl_adb (std::fstream& s, adabe_typedef* tdef);
+  void produce_ads (dep_list with,string &String, string &previousdefinition);
 
-private:
-  adabe_predefined_type();
 };
 
 
@@ -82,10 +96,10 @@ public:
   DEF_NARROW_METHODS1(adabe_constant, AST_Constant);
   DEF_NARROW_FROM_DECL(adabe_constant);
 
-  void produce_typedef_ads (std::fstream& s, adabe_typedef* tdef);
-  void produce_typedef_adb (std::fstream& s, adabe_typedef* tdef);
-  void produce_typedef_impl_ads (std::fstream& s, adabe_typedef* tdef);
-  void produce_typedef_impl_adb (std::fstream& s, adabe_typedef* tdef);
+  void produce_ads (std::fstream& s, adabe_typedef* tdef);
+  void produce_adb (std::fstream& s, adabe_typedef* tdef);
+  void produce_impl_ads (std::fstream& s, adabe_typedef* tdef);
+  void produce_impl_adb (std::fstream& s, adabe_typedef* tdef);
 
 private:
   adabe_constant();
@@ -156,7 +170,7 @@ class adabe_field : public virtual AST_Field,
 public:
 
   adabe_field(AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p);
-
+  produce_ads (dep_list with,string &String, string &previousdefinition)
   DEF_NARROW_METHODS1(adabe_field, AST_Field);
   DEF_NARROW_FROM_DECL(adabe_field);
 
@@ -215,15 +229,12 @@ public:
 
   adabe_structure(UTL_ScopedName *n, UTL_StrList *p);
 
-   DEF_NARROW_METHODS1(adabe_structure, AST_Structure);
+  DEF_NARROW_METHODS1(adabe_structure, AST_Structure);
   DEF_NARROW_FROM_DECL(adabe_structure);
   DEF_NARROW_FROM_SCOPE(adabe_structure);
 
   void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s);
-
+  string dump_name();
 private:
   adabe_structure();
 };
