@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#17 $
+# $Id: //droopi/main/utils/cobuild#18 $
 
 PROJECT=DROOPI
 GNUMAKE=gmake
@@ -124,7 +124,7 @@ export CHANGE
   then
     $CLIENT_TOP/configure --disable-shared --enable-debug \
        --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
-       --with-services="naming ir event" --prefix=$OUTDIR/install
+       --with-services="naming ir event time" --prefix=$OUTDIR/install
   fi && ${GNUMAKE} && ${GNUMAKE} install
   RC=$?
   exit $RC
