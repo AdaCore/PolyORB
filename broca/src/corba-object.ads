@@ -58,40 +58,12 @@ package CORBA.Object is
    --  Returns the IOR corresponding to this object it is called by
    --  CORBA.ORB.Object_To_String see CORBA specification for details
 
-   --  function Is_Nil  (Self : in Ref) return CORBA.Boolean;
-   --  function Is_Null (Self : in Ref) return CORBA.Boolean renames Is_Nil;
-
---    procedure Release (Self : in out Ref);
-
    function Is_A
      (Self            : in Ref;
-      Type_Id : in RepositoryId)
+      Logical_Type_Id : in Standard.String)
       return CORBA.Boolean;
-   --  Returns True if this object is of this Logical_Type_Id (here
-   --  Logical_Type_Id is a Repository_Id) or one of its descendants
-   --  This method is now in corba.AbstractBase because valuetypes need
-   --  it too. (Fabien)
-
---    function Non_Existent
---      (Self : in Ref)
---       return CORBA.Boolean;
---    --  Returns True if the ORB knows that the implementation referenced by
---    --  this proxy object does not exist
-
---    function Is_Equivalent
---      (Self  : in Ref;
---       Other : in Ref)
---       return CORBA.Boolean;
---    --  Returns True if both objects point to the same distant
---    --  implementation
-
---    function Hash
---      (Self    : in Ref;
---       Maximum : in CORBA.Unsigned_Long)
---       return CORBA.Unsigned_Long;
---    --  Return a hash value for object not implemented yet, it returns 0
-
-
+   --  Returns True if this object is of this Logical_Type_Id
+   --  or one of its descendants.
 
    --    not yet implemented
    --
@@ -124,8 +96,11 @@ private
       record
          Value : Ref;
       end record;
+
    type Content_ObjRef_Ptr is access all Content_ObjRef;
-   function Duplicate (Object : access Content_ObjRef)
-                       return Any_Content_Ptr;
+
+   function Duplicate
+     (Object : access Content_ObjRef)
+     return Any_Content_Ptr;
 
 end CORBA.Object;

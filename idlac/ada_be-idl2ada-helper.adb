@@ -785,8 +785,8 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU, "if CORBA.Object.Is_A (The_Ref, CORBA.To_CORBA_String ("""
-             & Idl_Repository_Id (Node) & """)) then");
+         PL (CU, "if CORBA.Object.Is_A (The_Ref, """
+             & Idl_Repository_Id (Node) & """) then");
          II (CU);
          PL (CU, "return Unchecked_To_"
              & Short_Type_Name

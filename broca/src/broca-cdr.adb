@@ -302,36 +302,50 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.String)
-   is
-      Equiv : constant String := CORBA.To_String (Data) & ASCII.Nul;
+      Data   : in Standard.String) is
    begin
       pragma Debug (O ("Marshall (String) : enter"));
-      pragma Debug (O ("Marshall (String) : length is " &
-                       CORBA.Unsigned_Long'Image (Equiv'Length)));
-      Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
-      for I in Equiv'Range loop
-         Marshall (Buffer, CORBA.Char'Val (Character'Pos (Equiv (I))));
+
+      Marshall (Buffer, CORBA.Unsigned_Long'(Data'Length + 1));
+      for I in Data'Range loop
+         Marshall (Buffer, CORBA.Char (Data (I)));
       end loop;
+      Marshall (Buffer, CORBA.Char (ASCII.Nul));
+
       pragma Debug (O ("Marshall (String) : end"));
    end Marshall;
+
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.String) is
+   begin
+      pragma Debug (O ("Marshall (CORBA.String) : enter"));
+      Marshall (Buffer, CORBA.To_Standard_String (Data));
+      pragma Debug (O ("Marshall (CORBA.String) : end"));
+   end Marshall;
+
+   --  Marshall for CORBA.Wide_String could also
+   --  be implemented as a call to a Marshall for
+   --  Standard.Wide_String, just as CORBA.String/Standard.String.
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Wide_String)
    is
-      Equiv : constant Wide_String :=
-        CORBA.To_Wide_String (Data) & Standard.Wide_Character'Val (0);
+      Equiv : constant Wide_String
+        := CORBA.To_Wide_String (Data)
+        & Standard.Wide_Character'Val (0);
 
    begin
-      pragma Debug (O ("Marshall (Wide_String) : enter"));
-      pragma Debug (O ("Marshall (Wide_String) : length is " &
+      pragma Debug (O ("Marshall (CORBA.Wide_String) : enter"));
+      pragma Debug (O ("Marshall (CORBA.Wide_String) : length is " &
                        CORBA.Unsigned_Long'Image (Equiv'Length)));
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
          Marshall (Buffer, CORBA.Wchar'Val (Wide_Character'Pos (Equiv (I))));
       end loop;
-      pragma Debug (O ("Marshall (Wide_String) : end"));
+      pragma Debug (O ("Marshall (CORBA.Wide_String) : end"));
    end Marshall;
 
    procedure Marshall
@@ -1036,6 +1050,13 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data   : access Standard.String) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : access CORBA.String) is
    begin
       Marshall (Buffer, Data.all);
@@ -1249,11 +1270,12 @@ package body Broca.CDR is
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.String
+     return Standard.String
    is
       Length : constant CORBA.Unsigned_Long
         := Unmarshall (Buffer);
-      Equiv  : String (1 .. Natural (Length));
+      Equiv  : String (1 .. Natural (Length) - 1);
+
    begin
       pragma Debug (O ("Unmarshall (String) : enter"));
       pragma Debug (O ("Unmarshall (String) : length is " &
@@ -1262,9 +1284,22 @@ package body Broca.CDR is
          Equiv (I) := Character'Val (CORBA.Char'Pos
                                      (Unmarshall (Buffer)));
       end loop;
+
+      if Character'Val (CORBA.Char'Pos (Unmarshall (Buffer)))
+        /= ASCII.Nul then
+         Broca.Exceptions.Raise_Marshal;
+      end if;
+
       pragma Debug (O ("Unmarshall (String) : end"));
-      return CORBA.To_CORBA_String
-        (Equiv (1 .. Equiv'Length - 1));
+
+      return Equiv;
+   end Unmarshall;
+
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return CORBA.String is
+   begin
+      return CORBA.To_CORBA_String (Unmarshall (Buffer));
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)

@@ -463,7 +463,7 @@ package body Ada_Be.Idl2Ada.Skel is
       II (CU);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "IDL_Logical_Type_Id : constant CORBA.RepositoryId");
+      PL (CU, "IDL_Logical_Type_Id : constant Standard.String");
       PL (CU, "  := Unmarshall (Request_Buffer);");
       PL (CU, T_Returns & " : constant CORBA.Boolean");
       Put (CU, "  := ");
@@ -477,8 +477,7 @@ package body Ada_Be.Idl2Ada.Skel is
               Ada_Full_Name (Node)
               & Ada_Be.Idl2Ada.Value_Skel.Suffix);
       end if;
-      PL (CU, ".Is_A");
-      PL (CU, "       (IDL_Logical_Type_Id);");
+      PL (CU, ".Is_A (IDL_Logical_Type_Id);");
       DI (CU);
       PL (CU, "begin");
       II (CU);
@@ -602,9 +601,9 @@ package body Ada_Be.Idl2Ada.Skel is
       Divert (CU, Elaboration);
 
       PL (CU, "PortableServer.Register_Skeleton");
-      Put (CU, "  (");
+      Put (CU, "  (CORBA.To_CORBA_String (");
       Put (CU, Ada_Full_Name (Node));
-      PL (CU, "." & T_Repository_Id &",");
+      PL (CU, "." & T_Repository_Id &"),");
       PL (CU, "   Servant_Is_A'Access,");
       PL (CU, "   GIOP_Dispatch'Access);");
    end Gen_Body_Common_End;

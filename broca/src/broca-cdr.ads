@@ -173,6 +173,16 @@ package Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data   : access Standard.String);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Standard.String);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Standard.String;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : access CORBA.String);
    procedure Marshall
      (Buffer : access Buffer_Type;

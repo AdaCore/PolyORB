@@ -118,10 +118,9 @@ package body Ada_Be.Idl2Ada.Value_Skel is
       case Kind (Node) is
 
          when K_ValueType =>
-            --  we have to generate code for the is_a operation
-            Ada_Be.Idl2Ada.Gen_Effective_Is_A (Node,
-                                               CU);
-            --  and then register this operation
+
+            Ada_Be.Idl2Ada.Gen_Local_Is_A (CU, Node);
+
             Divert (CU, Elaboration);
             Add_With (CU, "Broca.Value.Value_Skel");
             PL (CU,
@@ -139,6 +138,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
 
 
          when K_Operation =>
+
             declare
                Opname : constant String := Ada_Operation_Name (Node);
                V_Impl_Name : constant String
@@ -165,7 +165,8 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                     & ".Object_Ptr (Self)");
                II (CU);
 
-               --  other parameters
+               --  Other formal parameters
+
                declare
                   It : Node_Iterator;
                   P_Node : Node_Id;
@@ -183,8 +184,8 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                PL (CU, "end " & Opname & ";");
                NL (CU);
 
-
                --  Register this operation in the proper Operation_Store.
+
                Divert (CU, Elaboration);
                declare
                   Original_VT_Name : constant String

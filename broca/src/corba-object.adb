@@ -47,32 +47,30 @@ package body CORBA.Object is
    ----------
 
    function Is_A
-     (Self : Ref;
-      Type_Id : CORBA.RepositoryId)
+     (Self            : in Ref;
+      Logical_Type_Id : in Standard.String)
       return CORBA.Boolean
    is
       use CORBA;
       use Broca.Repository;
 
    begin
+
+      if
+        Is_Equivalent
+        (Logical_Type_Id,
+         "IDL:omg.org/CORBA/Object:1.0")
       --  Any object Is_A CORBA::Object.
 
-      if Is_Equivalent
-        (Type_Id,
-         CORBA.To_CORBA_String
-         ("IDL:omg.org/CORBA/Object:1.0"))
-      then
-         return True;
-      end if;
+        or else
 
+        Is_Equivalent
+        (CORBA.To_CORBA_String (Logical_Type_Id),
+         CORBA.RepositoryId (Broca.Object.Object_Ptr
+                             (Object_Of (Self)).Type_Id))
       --  Any object is of the class of its
-      --  actual type.
+      --  actual (i. e. most derived) type.
 
-      if Is_Equivalent
-        (CORBA.RepositoryId
-         (Broca.Object.Object_Ptr
-          (Object_Of (Self)).Type_Id),
-         Type_Id)
       then
          return True;
       end if;
@@ -98,13 +96,15 @@ package body CORBA.Object is
             Broca.GIOP.Send_Request_Marshall
               (Handler, Broca.Object.Object_Ptr
                (Object_Of (Self)), True, is_a_Operation);
+
             Marshall
               (Handler.Buffer'Access,
-               Type_Id);
+               Logical_Type_Id);
 
             Broca.GIOP.Send_Request_Send
               (Handler, Broca.Object.Object_Ptr
                (Object_Of (Self)), True, Send_Request_Result);
+
             case Send_Request_Result is
                when Broca.GIOP.Sr_No_Reply =>
                   Broca.GIOP.Release (Handler);
