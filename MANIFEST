@@ -1004,7 +1004,6 @@ testsuite/scenarios/examples-corba-all_types.conf
 testsuite/scenarios/examples-corba-echo.conf
 testsuite/scenarios/examples-corba-random.conf
 testsuite/scenarios/examples-polyorb.conf
-testsuite/scenarios/polyorb_conf
 testsuite/scenarios/polyorb_conf/giop.conf
 testsuite/scenarios/polyorb_conf/soap.conf
 testsuite/utils/Makefile.am
