@@ -72,8 +72,8 @@ package PolyORB.Any.NVList is
    ------------------------------------------
 
    procedure Create
-     (NVList : out Ref;
-      Extensible : in Boolean := False);
+     (NVList     : out Ref;
+      Extensible :     Boolean := False);
    --  Create a new NVList object and return a reference to it.
 
    function Is_Extensible (Self : Ref) return Boolean;
