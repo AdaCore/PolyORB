@@ -55,6 +55,6 @@ package
      (Self :        Active_Map_Only_Policy;
       OA   :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Servant_Access;
+     return Objects.Servant_Access;
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

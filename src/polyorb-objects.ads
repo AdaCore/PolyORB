@@ -57,6 +57,7 @@ package PolyORB.Objects is
 
    type Servant is abstract new PolyORB.Components.Component
      with private;
+
    type Servant_Access is access all Servant'Class;
    --  A Servant is a Component that supports the messages
    --  defined in PolyORB.Objects.Interface. This type may

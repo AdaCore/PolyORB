@@ -69,7 +69,7 @@ package body PolyORB.References is
          pragma Debug (O ("Ref_Info_Of: nil ref."));
          null;
       end if;
-      raise Constraint_Error;
+      return null;
    end Ref_Info_Of;
 
    procedure Create_Reference
@@ -97,9 +97,18 @@ package body PolyORB.References is
    end Create_Reference;
 
    function Profiles_Of (R : Ref) return Profile_Array is
+      RI : constant Reference_Info_Access
+        := Ref_Info_Of (R);
    begin
-      return Profile_Seqs.To_Element_Array
-        (Ref_Info_Of (R).Profiles);
+      if RI /= null then
+         return Profile_Seqs.To_Element_Array (RI.Profiles);
+      else
+         declare
+            Null_Profile_Array : Profile_Array (1 .. 0);
+         begin
+            return Null_Profile_Array;
+         end;
+      end if;
    end Profiles_Of;
 
    function Type_Id_Of (R : Ref) return String is
@@ -111,17 +120,21 @@ package body PolyORB.References is
 
    function Image (R : Ref) return String
    is
-      P : constant Profile_Array
-        := Profiles_Of (R);
+      P : constant Profile_Array := Profiles_Of (R);
       Res : Unbounded_String
-        := To_Unbounded_String ("Object reference:" & ASCII.LF);
+        := To_Unbounded_String ("Object reference: ");
    begin
-      for I in P'Range loop
-         Res := Res & "  " & Ada.Tags.External_Tag
-           (P (I).all'Tag) & ASCII.LF;
-         Res := Res & "    " & Binding_Data.Image (P (I).all)
-           & ASCII.LF;
-      end loop;
+      if P'Length = 0 then
+         Res := Res & "<nil or invalid reference>";
+      else
+         Res := Res & Type_Id_Of (R) & ASCII.LF;
+         for I in P'Range loop
+            Res := Res & "  " & Ada.Tags.External_Tag
+              (P (I).all'Tag) & ASCII.LF;
+            Res := Res & "    " & Binding_Data.Image (P (I).all)
+              & ASCII.LF;
+         end loop;
+      end if;
 
       return To_String (Res);
    end Image;

@@ -650,7 +650,7 @@ package body PolyORB.POA.Basic_POA is
 
    function Activate_Object
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servant_Access;
+      P_Servant : in     Objects.Servant_Access;
       Hint      :        Object_Id_Access := null)
      return Object_Id
    is
@@ -709,7 +709,7 @@ package body PolyORB.POA.Basic_POA is
 
    function Servant_To_Id
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servant_Access)
+      P_Servant : in     Objects.Servant_Access)
      return Object_Id
    is
       Oid : Object_Id_Access
@@ -742,9 +742,8 @@ package body PolyORB.POA.Basic_POA is
    function Id_To_Servant
      (Self : access Basic_Obj_Adapter;
       Oid  :        Object_Id)
-     return Servant_Access
+     return Objects.Servant_Access
    is
-      Servant : Servant_Access;
       A_Oid : aliased Object_Id := Oid;
       U_Oid : constant Unmarshalled_Oid
         := Oid_To_U_Oid (A_Oid'Access);
@@ -754,11 +753,10 @@ package body PolyORB.POA.Basic_POA is
          POA_Types.Obj_Adapter_Access (Self),
          U_Oid);
 
-      Servant := Id_To_Servant
+      return Id_To_Servant
         (Self.Request_Processing_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
          U_Oid);
-      return Servant;
    end Id_To_Servant;
 
    --------------------------
@@ -902,13 +900,13 @@ package body PolyORB.POA.Basic_POA is
       Oid := Retained_Servant_To_Id
         (Self      => OA.Servant_Retention_Policy.all,
          OA        => POA_Types.Obj_Adapter_Access (OA),
-         P_Servant => POA_Types.Servant_Access (Obj));
+         P_Servant => Obj);
 
       if Oid /= null then
          return Oid.all;
       end if;
 
-      return Activate_Object (OA, Servant_Access (Obj));
+      return Activate_Object (OA, Obj);
       --  XXX Is it approriate to call Activate_Object
       --  (a standard operation of the POA) at this point?
 
@@ -957,28 +955,42 @@ package body PolyORB.POA.Basic_POA is
       Method : PolyORB.Requests.Operation_Id)
      return PolyORB.Any.NVList.Ref
    is
-      S : Servant_Access;
+      pragma Warnings (Off);
+      pragma Unreferenced (OA, Oid, Method);
+      pragma Warnings (On);
+--        S : Objects.Servant_Access;
       Nil_Result : PolyORB.Any.NVList.Ref;
    begin
-      pragma Debug (O ("Get_Empty_Arg_List for Id "
-                       & PolyORB.Objects.To_String (Oid.all)));
-      S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
-      if S.If_Desc.PP_Desc /= null then
-         return S.If_Desc.PP_Desc (Method);
-      else
+--        pragma Debug (O ("Get_Empty_Arg_List for Id "
+--                         & PolyORB.Objects.To_String (Oid.all)));
+--        S := Objects.Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
+
+--        if S.If_Desc.PP_Desc /= null then
+--           return S.If_Desc.PP_Desc (Method);
+--        else
          return Nil_Result;
-         --  If If_Desc is null (eg in the case of an actual
-         --  use of the DSI, where no generated code is used on
-         --  the server side, another means of determining the
-         --  signature must be used, eg a query to an
-         --  Interface repository. Here we only return a Nil
-         --  NVList.Ref, indicating to the Protocol layer
-         --  that arguments unmarshalling is to be deferred
-         --  until the request processing in the Application
-         --  layer is started (at which time the Application
-         --  layer can provide more information as to the
-         --  signature of the called method).
-      end if;
+--           --  If If_Desc is null (eg in the case of an actual
+--           --  use of the DSI, where no generated code is used on
+--           --  the server side, another means of determining the
+--           --  signature must be used, eg a query to an
+--           --  Interface repository. Here we only return a Nil
+--           --  NVList.Ref, indicating to the Protocol layer
+--           --  that arguments unmarshalling is to be deferred
+--           --  until the request processing in the Application
+--           --  layer is started (at which time the Application
+--           --  layer can provide more information as to the
+--           --  signature of the called method).
+--        end if;
+
+      --  XXX Actually, the code above shows that the generic
+      --  Basic_POA implementation does not manage a per-servant
+      --  If_Desc at all. If such functionality is desired,
+      --  it should be implemented as an annotation on the
+      --  generic PolyORB.Objects.Servant type (or else
+      --  the generic servant type could contain a
+      --  PolyORB.If_Descriptors.If_Descriptor_Access, where
+      --  applicable.
+
    end Get_Empty_Arg_List;
 
    ----------------------
@@ -991,15 +1003,18 @@ package body PolyORB.POA.Basic_POA is
       Method : PolyORB.Requests.Operation_Id)
      return PolyORB.Any.Any
    is
-      S : Servant_Access;
+      --  S : Objects.Servant_Access;
    begin
-      pragma Debug (O ("Get_Empty_Result for Id "
-                       & PolyORB.Objects.To_String (Oid.all)));
-      S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
-      if S.If_Desc.RP_Desc /= null then
-         return S.If_Desc.RP_Desc (Method);
-      end if;
+--        pragma Debug (O ("Get_Empty_Result for Id "
+--                         & PolyORB.Objects.To_String (Oid.all)));
+--        S := Objects.Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
+--        if S.If_Desc.RP_Desc /= null then
+--           return S.If_Desc.RP_Desc (Method);
+--        end if;
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
+      return Get_Empty_Result (OA, Oid, Method);
+      pragma Warnings (On);
       --  Cf. comment above.
    end Get_Empty_Result;
 

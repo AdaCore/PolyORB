@@ -1,16 +1,32 @@
 with PolyORB.Initialization;
+with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
+
 with PolyORB.References;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 
+--  XXX the following are dependant on configuration options
+--  and should be moved to a generated unit (à la s-garela).
+--  (an OA is required only on server units; any OA is OK
+--  for RCIs without RACWs, but RACWs require a POA).
+
+with PolyORB.POA.Basic_POA;
+with PolyORB.POA_Config.Minimum;
+
 package body System.PolyORB_Interface is
 
    use PolyORB.Any;
+   use PolyORB.Log;
    use PolyORB.Utils.Strings;
+
+   package L is new PolyORB.Log.Facility_Log ("system.polyorb_interface");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+
 
    type Receiving_Stub is record
       Name     : String_Ptr;
@@ -114,12 +130,31 @@ package body System.PolyORB_Interface is
    -- Initialize --
    ----------------
 
+   Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
+
    procedure Initialize
    is
+      use PolyORB;
+      use type PolyORB.POA.Obj_Adapter_Access;
       use Receiving_Stub_Lists;
 
       It : Iterator;
    begin
+      pragma Assert (Root_POA_Object = null);
+      pragma Debug (O ("Initializing default POA configuration..."));
+      POA_Config.Set_Configuration
+        (new POA_Config.Minimum.Minimum_Configuration);
+
+      pragma Debug (O ("Initializing root POA..."));
+      Root_POA_Object := new POA.Basic_POA.Basic_Obj_Adapter;
+      POA.Basic_POA.Create
+        (POA.Basic_POA.Basic_Obj_Adapter (Root_POA_Object.all)'Access);
+
+      ORB.Set_Object_Adapter
+        (Setup.The_ORB, Obj_Adapters.Obj_Adapter_Access (Root_POA_Object));
+      --  Link object adapter with ORB.
+
+      pragma Debug (O ("Initializing DSA library units"));
       It := First (All_Receiving_Stubs);
       while not Last (It) loop
          declare
@@ -134,10 +169,13 @@ package body System.PolyORB_Interface is
               := Export (Object_Adapter (The_ORB), Stub.Receiver);
             Ref : PolyORB.References.Ref;
          begin
+            pragma Debug (O ("Registering RCI: " & Stub.Name.all));
             Create_Reference
               (The_ORB, Oid'Access,
                Stub.Name.all & ":" & Stub.Version.all,
                Ref);
+            pragma Debug
+              (O ("Done, ref is: " & PolyORB.References.Image (Ref)));
             --  XXX register ref with naming service so it
             --  can be located by other partitions.
 
@@ -147,6 +185,7 @@ package body System.PolyORB_Interface is
          Next (It);
       end loop;
       Deallocate (All_Receiving_Stubs);
+      pragma Debug (O ("Done initializing DSA."));
    end Initialize;
 
    -----------------------------
@@ -265,7 +304,7 @@ begin
      (Module_Info'
       (Name => +"dsa",
        Conflicts => Empty,
-       Depends => +"orb",
+       Depends => +"orb" & "access_points",
        Provides => Empty,
        Init => Initialize'Access));
 end System.PolyORB_Interface;

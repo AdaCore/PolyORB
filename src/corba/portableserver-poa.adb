@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#21 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#22 $
 
 with Ada.Exceptions;
 
@@ -442,7 +442,7 @@ package body PortableServer.POA is
 --       end if;
 
       return ObjectId (PolyORB.POA.Activate_Object
-        (POA, PolyORB.POA_Types.Servant_Access
+        (POA, PolyORB.Objects.Servant_Access
          (To_PolyORB_Servant (P_Servant))));
 --       raise PolyORB.Not_Implemented;
 --       pragma Warnings (Off);
@@ -467,7 +467,7 @@ package body PortableServer.POA is
       pragma Warnings (Off);
       R_Oid : constant PolyORB.POA_Types.Object_Id
         := PolyORB.POA.Activate_Object
-        (POA, PolyORB.POA_Types.Servant_Access
+        (POA, PolyORB.Objects.Servant_Access
          (To_PolyORB_Servant (P_Servant)), A_Oid'Unchecked_Access);
       pragma Unreferenced (R_Oid);
       pragma Warnings (On);

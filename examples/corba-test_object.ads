@@ -35,7 +35,7 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.POA_Types;
+with PolyORB.Objects;
 with CORBA;
 
 package CORBA.Test_Object is
@@ -44,12 +44,7 @@ package CORBA.Test_Object is
 
    use CORBA;
 
-   type My_Object is new PolyORB.POA_Types.Servant with null record;
-
-   procedure Create (O : in out My_Object);
-
-   function "=" (Left, Right : My_Object)
-     return Standard.Boolean;
+   type My_Object is new PolyORB.Objects.Servant with null record;
 
    function echoString
      (O : My_Object;

@@ -259,7 +259,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    function Get_Hold_Servant
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access)
-     return Hold_Servant_Base_Access
+     return Objects.Servant_Access
    is
       S         : Hold_Servant_Access;
       New_Entry : Queue_Element_Access;
@@ -282,7 +282,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       S.Queue_Entry := New_Entry;
       Unlock_W (Self.Queue_Lock);
 
-      return Hold_Servant_Base_Access (S);
+      return Objects.Servant_Access (S);
    end Get_Hold_Servant;
 
    -----------------------

@@ -36,10 +36,12 @@
 
 --  $Id$
 
-with PolyORB.Sequences.Unbounded;
-
-with PolyORB.POA_Types;
 with PolyORB.Dynamic_Dict;
+with PolyORB.Objects;
+pragma Warnings (Off, PolyORB.Objects);
+--  Required in child units.
+with PolyORB.POA_Types;
+with PolyORB.Sequences.Unbounded;
 
 package PolyORB.POA_Policies is
 

@@ -83,17 +83,6 @@ package PolyORB.POA_Types is
       RP_Desc : Result_Profile_Description;
    end record;
 
-   type Servant is abstract new PolyORB.Objects.Servant with
-      record
-         If_Desc : Interface_Description;
-         --  Description of the most derived interface supported
-         --  by this servant. This must be set either by the
-         --  personality-specific generated code (for servers
-         --  that are statically described in the personality)
-         --  or by the user (for dynamic servers).
-      end record;
-   type Servant_Access is access all Servant'Class;
-
    package POA_Sequences is new PolyORB.Sequences.Unbounded
      (Obj_Adapter_Access);
    subtype POAList is POA_Sequences.Sequence;

@@ -106,11 +106,12 @@ is
      (Self  : Active_Map_Only_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Servant_Access
+     return Objects.Servant_Access
    is
       use PolyORB.POA_Policies.Servant_Retention_Policy;
+      use type PolyORB.Objects.Servant_Access;
 
-      Servant : Servant_Access;
+      Servant : Objects.Servant_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);

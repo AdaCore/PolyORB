@@ -77,7 +77,7 @@ package PolyORB.POA.Basic_POA is
 
    function Activate_Object
      (Self      : access Basic_Obj_Adapter;
-      P_Servant :        Servant_Access;
+      P_Servant :        Objects.Servant_Access;
       Hint      :        Object_Id_Access := null)
      return Object_Id;
 
@@ -87,13 +87,13 @@ package PolyORB.POA.Basic_POA is
 
    function Servant_To_Id
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servant_Access)
+      P_Servant : in     Objects.Servant_Access)
      return Object_Id;
 
    function Id_To_Servant
      (Self : access Basic_Obj_Adapter;
       Oid  :        Object_Id)
-     return Servant_Access;
+     return Objects.Servant_Access;
 
    --------------------------------------------------------
    --  Functions and procedures to interface with PolyORB --

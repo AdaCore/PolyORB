@@ -42,7 +42,7 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy is
    procedure Ensure_Servant_Uniqueness
      (Self      : IdUniquenessPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
+      P_Servant : Objects.Servant_Access)
      is abstract;
    --  Case UNIQUE_ID:
    --  Checks that the specified servant is not yet in the Active Objects Map.
@@ -53,7 +53,7 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy is
    function Activate_Again
      (Self      : IdUniquenessPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access;
+      P_Servant : Objects.Servant_Access;
       Oid : Object_Id_Access)
      return Object_Id_Access
       is abstract;

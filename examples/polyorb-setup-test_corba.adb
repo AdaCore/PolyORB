@@ -41,20 +41,13 @@ with CORBA;
 with CORBA.Test_Object; use CORBA.Test_Object;
 with CORBA.Object;
 with CORBA.ORB;
-with CORBA.ServerRequest;
-pragma Warnings (Off, CORBA.ServerRequest);
---  XXX Not used for now.
 
-with PortableServer.POA;
-pragma Warnings (Off, PortableServer.POA);
---  XXX Not used for now.
-
-with PolyORB.POA_Types;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB; use PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA.Basic_POA; use PolyORB.POA.Basic_POA;
+with PolyORB.POA_Types;
 with PolyORB.References;
 with PolyORB.Setup.Test; use PolyORB.Setup.Test;
 with PolyORB.Types;
@@ -64,7 +57,7 @@ with PolyORB.POA_Manager;
 
 package body PolyORB.Setup.Test_CORBA is
 
-   My_Servant : PolyORB.POA_Types.Servant_Access;
+   My_Servant : PolyORB.Objects.Servant_Access;
    Obj_Adapter : PolyORB.POA_Types.Obj_Adapter_Access;
 
    procedure Initialize_CORBA_Test_Object is
@@ -83,7 +76,6 @@ package body PolyORB.Setup.Test_CORBA is
 
       My_Servant := new CORBA.Test_Object.My_Object;
       --  Create application server object.
-      CORBA.Test_Object.Create (My_Object (My_Servant.all));
 
       PolyORB.POA_Manager.Activate
         (PolyORB.POA_Manager.POAManager_Access
@@ -93,8 +85,7 @@ package body PolyORB.Setup.Test_CORBA is
       declare
          My_Id : aliased Objects.Object_Id
            := PolyORB.Obj_Adapters.Export
-           (PolyORB.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter),
-            PolyORB.Objects.Servant_Access (My_Servant));
+           (Obj_Adapters.Obj_Adapter_Access (Obj_Adapter), My_Servant);
          --  Register it with the SOA.
          My_CORBA_Ref : CORBA.Object.Ref;
       begin

@@ -43,7 +43,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
    procedure Retain_Servant_Association
      (Self      : ServantRetentionPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access;
+      P_Servant : Objects.Servant_Access;
       U_Oid     : Unmarshalled_Oid)
      is abstract;
 
@@ -58,7 +58,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
    function Retained_Servant_To_Id
      (Self      : ServantRetentionPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
+      P_Servant : Objects.Servant_Access)
      return Object_Id_Access
      is abstract;
    --  Case RETAIN:
@@ -71,7 +71,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
      (Self      : ServantRetentionPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid     : Unmarshalled_Oid)
-     return Servant_Access
+     return Objects.Servant_Access
       is abstract;
    --  Case RETAIN:
    --    Asks the Id_Assignment_Policy to look for the given Object_Id.

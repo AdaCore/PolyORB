@@ -52,7 +52,7 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
      (Self  : RequestProcessingPolicy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Servant_Access
+     return Objects.Servant_Access
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:
    --    Asks the Servant Retention Policy to look for the given Oid.

@@ -34,7 +34,6 @@
 
 with PolyORB.Components;
 with PolyORB.Objects;
-with PolyORB.POA_Types;
 with PolyORB.Smart_Pointers;
 
 package CORBA.Impl is
@@ -43,7 +42,6 @@ package CORBA.Impl is
 
    type Object is abstract new PolyORB.Smart_Pointers.Entity
      with private;
-   --  type Object_Ptr is access all Object'Class;
    subtype Object_Ptr is PolyORB.Smart_Pointers.Entity_Ptr;
    --  Object_Ptr is the return type of CORBA.AbstractBase.Object_Of.
    --  It may either designate an actual local object
@@ -64,7 +62,7 @@ package CORBA.Impl is
 private
 
    type Implementation (As_Object : access Object'Class)
-   is new PolyORB.POA_Types.Servant with null record;
+   is new PolyORB.Objects.Servant with null record;
    --  The CORBA personality is based on the Portable Object Adapter.
 
    function "=" (X, Y : Implementation) return Boolean;

@@ -88,7 +88,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    procedure Retain_Servant_Association
      (Self      : Non_Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access;
+      P_Servant : Objects.Servant_Access;
       U_Oid     : Unmarshalled_Oid)
    is
       pragma Warnings (Off);
@@ -168,7 +168,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    function Retained_Servant_To_Id
      (Self      : Non_Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
+      P_Servant : Objects.Servant_Access)
      return Object_Id_Access
    is
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
@@ -201,7 +201,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
      (Self  : Non_Retain_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Servant_Access
+     return Objects.Servant_Access
    is
       use PolyORB.POA_Policies.Lifespan_Policy;
 

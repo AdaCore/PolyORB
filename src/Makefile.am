@@ -95,6 +95,7 @@ ADA_SPECS_WITH_BODY = \
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb.ads \
 		polyorb-constants.ads \
+		polyorb-if_descriptors.ads \
 		polyorb-objects-interface.ads \
 		polyorb-orb-interface.ads \
 		polyorb-poa_manager.ads \
@@ -176,6 +177,7 @@ polyorb-dynamic_dict.lo:polyorb-dynamic_dict.adb polyorb-dynamic_dict.ads polyor
 polyorb-filters-interface.lo:polyorb-buffers.ads polyorb-components.ads polyorb-filters-interface.adb polyorb-filters-interface.ads polyorb-filters.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-sequences-unbounded.ads polyorb-sequences.ads polyorb-sockets.ads polyorb-types.ads polyorb.ads 
 polyorb-filters-slicers.lo:polyorb-buffers.ads polyorb-components.ads polyorb-filters-interface.ads polyorb-filters-slicers.adb polyorb-filters-slicers.ads polyorb-filters.ads polyorb-log.adb polyorb-log.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-sequences-unbounded.ads polyorb-sequences.ads polyorb-sockets.ads polyorb-types.ads polyorb.ads 
 polyorb-filters.lo:polyorb-buffers.ads polyorb-components.ads polyorb-filters-interface.ads polyorb-filters.adb polyorb-filters.ads polyorb-log.adb polyorb-log.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-sequences-unbounded.ads polyorb-sequences.ads polyorb-sockets.ads polyorb-types.ads polyorb.ads 
+polyorb-if_descriptors.lo:polyorb-annotations.ads polyorb-any-exceptionlist.ads polyorb-any-nvlist.ads polyorb-any.ads polyorb-asynch_ev.ads polyorb-binding_data.ads polyorb-buffers.ads polyorb-components.ads polyorb-if_descriptors.ads polyorb-locks.ads polyorb-objects.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-references.ads polyorb-requests.ads polyorb-sequences-unbounded.ads polyorb-sequences.ads polyorb-smart_pointers.ads polyorb-sockets.ads polyorb-soft_links.ads polyorb-storage_pools.ads polyorb-task_info.ads polyorb-transport.ads polyorb-types.ads polyorb-utils-chained_lists.ads polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads 
 polyorb-initialization.lo:polyorb-configuration.ads polyorb-dynamic_dict.adb polyorb-dynamic_dict.ads polyorb-initialization.adb polyorb-initialization.ads polyorb-log.adb polyorb-log.ads polyorb-utils-chained_lists.adb polyorb-utils-chained_lists.ads polyorb-utils-strings-lists.ads polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads 
 polyorb-jobs.lo:polyorb-jobs.adb polyorb-jobs.ads polyorb.ads 
 polyorb-locked_queue.lo:polyorb-locked_queue.adb polyorb-locked_queue.ads polyorb-log.adb polyorb-log.ads polyorb-soft_links.ads polyorb.ads 
@@ -253,6 +255,8 @@ polyorb-transport.lo:polyorb-annotations.ads polyorb-any-exceptionlist.ads polyo
 polyorb-types.lo:polyorb-types.adb polyorb-types.ads polyorb.ads 
 polyorb-utils-buffers.lo:polyorb-buffers.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-sockets.ads polyorb-utils-buffers.adb polyorb-utils-buffers.ads polyorb-utils.ads polyorb.ads 
 polyorb-utils-chained_lists.lo:polyorb-utils-chained_lists.adb polyorb-utils-chained_lists.ads polyorb-utils.ads polyorb.ads 
+polyorb-utils-htables-perfect.lo:polyorb-utils-htables-perfect.ads polyorb-utils-htables.ads polyorb-utils.ads polyorb.ads 
+polyorb-utils-htables.lo:polyorb-utils-htables.ads polyorb-utils.ads polyorb.ads 
 polyorb-utils-srp.lo:polyorb-annotations.ads polyorb-any.ads polyorb-asynch_ev.ads polyorb-binding_data.ads polyorb-buffers.ads polyorb-components.ads polyorb-locks.ads polyorb-objects.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-references.ads polyorb-sequences-unbounded.ads polyorb-sequences.ads polyorb-smart_pointers.ads polyorb-sockets.ads polyorb-soft_links.ads polyorb-storage_pools.ads polyorb-transport.ads polyorb-types.ads polyorb-utils-chained_lists.ads polyorb-utils-srp.adb polyorb-utils-srp.ads polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads 
 polyorb-utils-strings-lists.lo:polyorb-utils-chained_lists.adb polyorb-utils-chained_lists.ads polyorb-utils-strings-lists.adb polyorb-utils-strings-lists.ads polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads 
 polyorb-utils-strings.lo:polyorb-utils-strings.adb polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads 

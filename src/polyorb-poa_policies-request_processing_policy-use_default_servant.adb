@@ -103,7 +103,7 @@ is
      (Self  : Use_Default_Servant_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Servant_Access
+     return Objects.Servant_Access
    is
    begin
       pragma Warnings (Off);
