@@ -283,7 +283,7 @@ package body ALI.Util is
 
    begin
       for I in ALIs.Table (Id).First_Unit .. ALIs.Table (Id).Last_Unit loop
-         for J in Unit.Table (I).First_With .. Unit.Table (I).Last_With loop
+         for J in Units.Table (I).First_With .. Units.Table (I).Last_With loop
 
             Afile := Withs.Table (J).Afile;
 

@@ -27,7 +27,7 @@
 ------------------------------------------------------------------------------
 
 --  This child unit provides utility data structures and procedures used
---  for manipulation of ALI data by the binder and by make.
+--  for manipulation of ALI data by the gnatbind and gnatmake.
 
 package ALI.Util is
 

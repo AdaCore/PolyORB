@@ -55,10 +55,13 @@ package ALI is
    type With_Id is range 2_000_000 .. 2_999_999;
    --  Id values used for Withs table entries
 
-   type Sdep_Id is range 3_000_000 .. 3_999_999;
+   type Arg_Id is range 3_000_000 .. 3_999_999;
+   --  Id values used for argument table entries
+
+   type Sdep_Id is range 4_000_000 .. 4_999_999;
    --  Id values used for Sdep table entries
 
-   type Source_Id is range 4_000_000 .. 4_999_999;
+   type Source_Id is range 5_000_000 .. 5_999_999;
    --  Id values used for Source table entries
 
    --------------------
@@ -244,10 +247,16 @@ package ALI is
       --  Indicates if unit is language predefined (or a child of such a unit)
 
       First_With : With_Id;
-      --  Id of first with table entry for this file
+      --  Id of first withs table entry for this file
 
       Last_With : With_Id;
-      --  Id of last with table entry for this file
+      --  Id of last withs table entry for this file
+
+      First_Arg : Arg_Id;
+      --  Id of first args table entry for this file
+
+      Last_Arg : Arg_Id;
+      --  Id of last args table entry for this file
 
       Utype : Unit_Type;
       --  Type of entry
@@ -280,7 +289,7 @@ package ALI is
 
    end record;
 
-   package Unit is new Table.Table (
+   package Units is new Table.Table (
      Table_Component_Type => Unit_Record,
      Table_Index_Type     => Unit_Id,
      Table_Low_Bound      => First_Unit_Entry,
@@ -344,7 +353,7 @@ package ALI is
    --  Each With line (W line) in an ALI file generates a Withs table entry
 
    No_With_Id : constant With_Id := With_Id'First;
-   --  Special value indicating no unit table entry
+   --  Special value indicating no withs table entry
 
    First_With_Entry : constant With_Id := No_With_Id + 1;
    --  Id of first actual entry in table
@@ -377,7 +386,27 @@ package ALI is
      Table_Low_Bound      => First_With_Entry,
      Table_Initial        => 5000,
      Table_Increment      => 200,
-     Table_Name           => "With");
+     Table_Name           => "Withs");
+
+   ---------------------
+   -- Arguments Table --
+   ---------------------
+
+   --  Each Arg line (A line) in an ALI file generates an Args table entry
+
+   No_Arg_Id : constant Arg_Id := Arg_Id'First;
+   --  Special value indicating no args table entry
+
+   First_Arg_Entry : constant Arg_Id := No_Arg_Id + 1;
+   --  Id of first actual entry in table
+
+   package Args is new Table.Table (
+     Table_Component_Type => String_Ptr,
+     Table_Index_Type     => Arg_Id,
+     Table_Low_Bound      => First_Arg_Entry,
+     Table_Initial        => 1000,
+     Table_Increment      => 100,
+     Table_Name           => "Args");
 
    --------------------------
    -- Linker_Options Table --
@@ -476,8 +505,8 @@ package ALI is
    --    to be ignored.
    --
    --    Err determines the action taken on an incorrectly formatted file.
-   --    If Err is False, then an error message is generated, and the
-   --    program is terminated. If Err is True, then no error message is
-   --    output, and No_ALI_Id is returned.
+   --    If Err is False, then an error message is putput, and the program
+   --    is terminated. If Err is True, then no error message is output,
+   --    and No_ALI_Id is returned.
 
 end ALI;

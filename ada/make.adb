@@ -578,10 +578,13 @@ package body Make is
          U_Chk : for U in
            ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
          loop
-            exit U_Chk when Unit.Table (U).Utype = Is_Body_Only
-               and then New_Spec (Unit.Table (U).Uname);
+            exit U_Chk when Units.Table (U).Utype = Is_Body_Only
+               and then New_Spec (Units.Table (U).Uname);
 
-            for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
+            for W in Units.Table (U).First_With
+                       ..
+                     Units.Table (U).Last_With
+            loop
                exit U_Chk when
                  Withs.Table (W).Afile /= No_File
                  and then New_Spec (Withs.Table (W).Uname);
@@ -1516,7 +1519,7 @@ package body Make is
               ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit
             loop
                for K in
-                 Unit.Table (J).First_With .. Unit.Table (J).Last_With
+                 Units.Table (J).First_With .. Units.Table (J).Last_With
                loop
                   Sfile := Withs.Table (K).Sfile;
 

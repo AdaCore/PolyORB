@@ -463,6 +463,15 @@ package Osint is
    --  behaves as if it did not find Lib_File (namely if Fatal_Err is
    --  False, null is returned).
 
+   procedure Read_Library_Info
+     (Name : out File_Name_Type;
+      Text : out Text_Buffer_Ptr);
+   --  The procedure version of Read_Library_Info is used from the compiler
+   --  to read an existing ali file associated with the main unit. If the
+   --  ALI file exists, then its file name is returned in Name, and its
+   --  text is returned in Text. If the file does not exist, then Text is
+   --  set to null.
+
    function Full_Library_Info_Name return File_Name_Type;
    function Full_Object_File_Name return File_Name_Type;
    --  Returns the full name of the library/object file most recently read

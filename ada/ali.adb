@@ -26,7 +26,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Binderr; use Binderr;
 with Butil;   use Butil;
 with Debug;   use Debug;
 with Fname;   use Fname;
@@ -55,7 +54,7 @@ package body ALI is
       end loop;
 
       ALIs.Init;
-      Unit.Init;
+      Units.Init;
       Withs.Init;
       Sdep.Init;
       Linker_Options.Init;
@@ -494,12 +493,19 @@ package body ALI is
 
       end if;
 
-      --  Skip argument lines
+      --  Acquire argument lines
 
       Arg_Loop : while C = 'A' loop
+         Checkc (' ');
+         Name_Len := 0;
+
          while not At_Eol loop
-            C := Getc;
+            Name_Len := Name_Len + 1;
+            Name_Buffer (Name_Len) := Getc;
          end loop;
+
+         Args.Increment_Last;
+         Args.Table (Args.Last) := new String'(Name_Buffer (1 .. Name_Len));
 
          Skip_Eol;
          C := Getc;
@@ -613,36 +619,37 @@ package body ALI is
       Unit_Loop : while C = 'U' loop
          Checkc (' ');
          Skip_Space;
-         Unit.Increment_Last;
+         Units.Increment_Last;
 
          if ALIs.Table (Id).First_Unit = No_Unit_Id then
-            ALIs.Table (Id).First_Unit := Unit.Last;
+            ALIs.Table (Id).First_Unit := Units.Last;
          end if;
 
-         Unit.Table (Unit.Last).Uname          := Get_Name;
-         Unit.Table (Unit.Last).Predefined     := Is_Predefined_Unit;
-         Unit.Table (Unit.Last).My_ALI         := Id;
-         Unit.Table (Unit.Last).Sfile          := Get_Name;
-         Unit.Table (Unit.Last).Pure           := False;
-         Unit.Table (Unit.Last).Preelab        := False;
-         Unit.Table (Unit.Last).No_Elab        := False;
-         Unit.Table (Unit.Last).Shared_Passive := False;
-         Unit.Table (Unit.Last).RCI            := False;
-         Unit.Table (Unit.Last).Remote_Types   := False;
-         Unit.Table (Unit.Last).Has_RACW_Type  := False;
-         Unit.Table (Unit.Last).Is_Generic     := False;
-         Unit.Table (Unit.Last).Icasing        := Mixed_Case;
-         Unit.Table (Unit.Last).Kcasing        := All_Lower_Case;
-         Unit.Table (Unit.Last).Elaborate_Body := False;
-         Unit.Table (Unit.Last).Version        := "00000000";
-         Unit.Table (Unit.Last).First_With     := Withs.Last + 1;
-         Unit.Table (Unit.Last).Elab_Position  := 0;
+         Units.Table (Units.Last).Uname          := Get_Name;
+         Units.Table (Units.Last).Predefined     := Is_Predefined_Unit;
+         Units.Table (Units.Last).My_ALI         := Id;
+         Units.Table (Units.Last).Sfile          := Get_Name;
+         Units.Table (Units.Last).Pure           := False;
+         Units.Table (Units.Last).Preelab        := False;
+         Units.Table (Units.Last).No_Elab        := False;
+         Units.Table (Units.Last).Shared_Passive := False;
+         Units.Table (Units.Last).RCI            := False;
+         Units.Table (Units.Last).Remote_Types   := False;
+         Units.Table (Units.Last).Has_RACW_Type  := False;
+         Units.Table (Units.Last).Is_Generic     := False;
+         Units.Table (Units.Last).Icasing        := Mixed_Case;
+         Units.Table (Units.Last).Kcasing        := All_Lower_Case;
+         Units.Table (Units.Last).Elaborate_Body := False;
+         Units.Table (Units.Last).Version        := "00000000";
+         Units.Table (Units.Last).First_With     := Withs.Last + 1;
+         Units.Table (Units.Last).First_Arg      := Args.Last + 1;
+         Units.Table (Units.Last).Elab_Position  := 0;
 
          if Debug_Flag_U then
             Write_Str (" ----> reading unit ");
-            Write_Unit_Name (Unit.Table (Unit.Last).Uname);
+            Write_Unit_Name (Units.Table (Units.Last).Uname);
             Write_Str (" from file ");
-            Write_Name (Unit.Table (Unit.Last).Sfile);
+            Write_Name (Units.Table (Units.Last).Sfile);
             Write_Eol;
          end if;
 
@@ -650,11 +657,11 @@ package body ALI is
 
          declare
             Info : constant Int := Get_Name_Table_Info
-                                     (Unit.Table (Unit.Last).Uname);
+                                     (Units.Table (Units.Last).Uname);
          begin
             if Info /= 0
-              and then Unit.Table (Unit.Last).Sfile /=
-                       Unit.Table (Unit_Id (Info)).Sfile
+              and then Units.Table (Units.Last).Sfile /=
+                       Units.Table (Unit_Id (Info)).Sfile
             then
                --  If Err is set then treat duplicate unit name as an instance
                --  of a bad ALI format. This is the case of being called from
@@ -667,19 +674,30 @@ package body ALI is
                --  If Err is not set, then this is a fatal error
 
                else
-                  Error_Msg ("duplicate unit name");
-                  Error_Msg_Name_1 := Unit.Table (Unit.Last).Uname;
-                  Error_Msg_Name_2 := Unit.Table (Unit.Last).Sfile;
-                  Error_Msg ("unit & found in file %");
-                  Error_Msg_Name_1 := Unit.Table (Unit_Id (Info)).Uname;
-                  Error_Msg_Name_2 := Unit.Table (Unit_Id (Info)).Sfile;
-                  Error_Msg ("unit & found in file %");
-                  raise Unrecoverable_Error;
+                  Write_Str ("duplicate unit name: ");
+                  Write_Eol;
+
+                  Write_Str ("  unit ");
+                  Write_Unit_Name (Units.Table (Units.Last).Uname);
+                  Write_Str ("found in file """);
+                  Get_Decoded_Name_String (Units.Table (Units.Last).Sfile);
+                  Write_Char ('"');
+                  Write_Eol;
+
+                  Write_Str ("  unit ");
+                  Write_Unit_Name (Units.Table (Unit_Id (Info)).Uname);
+                  Write_Str ("found in file """);
+                  Get_Decoded_Name_String (Units.Table (Unit_Id (Info)).Sfile);
+                  Write_Char ('"');
+                  Write_Eol;
+
+                  Exit_Program (E_Fatal);
                end if;
             end if;
          end;
 
-         Set_Name_Table_Info (Unit.Table (Unit.Last).Uname, Int (Unit.Last));
+         Set_Name_Table_Info
+           (Units.Table (Units.Last).Uname, Int (Units.Last));
 
          --  Scan out possible version and other parameters
 
@@ -691,11 +709,11 @@ package body ALI is
             --  Version field
 
             if C in '0' .. '9' or else C in 'a' .. 'f' then
-               Unit.Table (Unit.Last).Version (1) := C;
+               Units.Table (Units.Last).Version (1) := C;
 
                for J in 2 .. 8 loop
                   C := Getc;
-                  Unit.Table (Unit.Last).Version (J) := C;
+                  Units.Table (Units.Last).Version (J) := C;
                end loop;
 
             --  EB parameter (elaborate body)
@@ -703,14 +721,14 @@ package body ALI is
             elsif C = 'E' then
                Checkc ('B');
                Check_At_End_Of_Field;
-               Unit.Table (Unit.Last).Elaborate_Body := True;
+               Units.Table (Units.Last).Elaborate_Body := True;
 
             --  GE parameter (generic)
 
             elsif C = 'G' then
                Checkc ('E');
                Check_At_End_Of_Field;
-               Unit.Table (Unit.Last).Is_Generic := True;
+               Units.Table (Units.Last).Is_Generic := True;
 
             --  IL/IU parameters
 
@@ -718,10 +736,10 @@ package body ALI is
                C := Getc;
 
                if C = 'L' then
-                  Unit.Table (Unit.Last).Icasing := All_Lower_Case;
+                  Units.Table (Units.Last).Icasing := All_Lower_Case;
 
                elsif C = 'U' then
-                  Unit.Table (Unit.Last).Icasing := All_Upper_Case;
+                  Units.Table (Units.Last).Icasing := All_Upper_Case;
 
                else
                   Fatal_Error;
@@ -735,10 +753,10 @@ package body ALI is
                C := Getc;
 
                if C = 'M' then
-                  Unit.Table (Unit.Last).Kcasing := Mixed_Case;
+                  Units.Table (Units.Last).Kcasing := Mixed_Case;
 
                elsif C = 'U' then
-                  Unit.Table (Unit.Last).Kcasing := All_Upper_Case;
+                  Units.Table (Units.Last).Kcasing := All_Upper_Case;
 
                else
                   Fatal_Error;
@@ -755,7 +773,7 @@ package body ALI is
 
                if C = 'E' then
                   Check_At_End_Of_Field;
-                  Unit.Table (Unit.Last).No_Elab := True;
+                  Units.Table (Units.Last).No_Elab := True;
 
                else
                   Fatal_Error;
@@ -770,18 +788,18 @@ package body ALI is
 
                if C = 'R' then
                   Check_At_End_Of_Field;
-                  Unit.Table (Unit.Last).Preelab := True;
+                  Units.Table (Units.Last).Preelab := True;
 
                --  PU parameter (pure)
 
                elsif C = 'U' then
                   Check_At_End_Of_Field;
-                  Unit.Table (Unit.Last).Pure := True;
+                  Units.Table (Units.Last).Pure := True;
 
                --  PK indicates unit is package
 
                elsif C = 'K' then
-                  Unit.Table (Unit.Last).Unit_Kind := 'p';
+                  Units.Table (Units.Last).Unit_Kind := 'p';
                   Check_At_End_Of_Field;
 
                else
@@ -797,19 +815,19 @@ package body ALI is
 
                if C = 'C' then
                   Check_At_End_Of_Field;
-                  Unit.Table (Unit.Last).RCI := True;
+                  Units.Table (Units.Last).RCI := True;
 
                --  RT parameter (remote types)
 
                elsif C = 'T' then
                   Check_At_End_Of_Field;
-                  Unit.Table (Unit.Last).Remote_Types := True;
+                  Units.Table (Units.Last).Remote_Types := True;
 
                --  RA parameter (remote access to class wide type)
 
                elsif C = 'A' then
                   Check_At_End_Of_Field;
-                  Unit.Table (Unit.Last).Has_RACW_Type := True;
+                  Units.Table (Units.Last).Has_RACW_Type := True;
 
                else
                   Fatal_Error;
@@ -822,12 +840,12 @@ package body ALI is
 
                if C = 'P' then
                   Check_At_End_Of_Field;
-                  Unit.Table (Unit.Last).Shared_Passive := True;
+                  Units.Table (Units.Last).Shared_Passive := True;
 
                --  SU parameter indicates unit is subprogram
 
                elsif C = 'U' then
-                  Unit.Table (Unit.Last).Unit_Kind := 's';
+                  Units.Table (Units.Last).Unit_Kind := 's';
                   Check_At_End_Of_Field;
 
                else
@@ -902,32 +920,33 @@ package body ALI is
 
          end loop With_Loop;
 
-         Unit.Table (Unit.Last).Last_With := Withs.Last;
+         Units.Table (Units.Last).Last_With := Withs.Last;
+         Units.Table (Units.Last).Last_Arg  := Args.Last;
 
       end loop Unit_Loop;
 
       --  End loop through units for one ALI file
 
-      ALIs.Table (Id).Last_Unit := Unit.Last;
-      ALIs.Table (Id).Sfile := Unit.Table (ALIs.Table (Id).First_Unit).Sfile;
+      ALIs.Table (Id).Last_Unit := Units.Last;
+      ALIs.Table (Id).Sfile := Units.Table (ALIs.Table (Id).First_Unit).Sfile;
 
       --  Set types of the units (there can be at most 2 of them)
 
       if ALIs.Table (Id).First_Unit /= ALIs.Table (Id).Last_Unit then
-         Unit.Table (ALIs.Table (Id).First_Unit).Utype := Is_Body;
-         Unit.Table (ALIs.Table (Id).Last_Unit).Utype  := Is_Spec;
+         Units.Table (ALIs.Table (Id).First_Unit).Utype := Is_Body;
+         Units.Table (ALIs.Table (Id).Last_Unit).Utype  := Is_Spec;
 
       else
          --  Deal with body only and spec only cases, note that the reason we
          --  do our own checking of the name (rather than using Is_Body_Name)
          --  is that Uname drags in far too much compiler junk!
 
-         Get_Name_String (Unit.Table (Unit.Last).Uname);
+         Get_Name_String (Units.Table (Units.Last).Uname);
 
          if Name_Buffer (Name_Len) = 'b' then
-            Unit.Table (Unit.Last).Utype := Is_Body_Only;
+            Units.Table (Units.Last).Utype := Is_Body_Only;
          else
-            Unit.Table (Unit.Last).Utype := Is_Spec_Only;
+            Units.Table (Units.Last).Utype := Is_Spec_Only;
          end if;
       end if;
 

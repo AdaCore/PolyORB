@@ -87,6 +87,11 @@ package body Osint is
    --  Put in Buffer_Name the name of the current program being run
    --  excluding the directory path
 
+   procedure Set_Library_Info_Name;
+   --  Sets a default ali file name from the main compiler source name.
+   --  This is used by Create_Output_Library_Info, and by the version of
+   --  Read_Library_Info that takes a default file name.
+
    procedure Write_Info (Info : String);
    --  Implementation of Write_Binder_Info, Write_Debug_Info and
    --  Write_Library_Info (identical)
@@ -528,54 +533,9 @@ package body Osint is
    --------------------------------
 
    procedure Create_Output_Library_Info is
-      Dot_Index : Natural;
-
    begin
-      pragma Assert (In_Compiler);
-      Get_Name_String (Current_Main);
-
-      --  Find last dot since we replace the existing extension by .ali. The
-      --  initialization to Name_Len + 1 provides for simply adding the .ali
-      --  extension if the source file name has no extension.
-
-      Dot_Index := Name_Len + 1;
-      for J in reverse 1 .. Name_Len loop
-         if Name_Buffer (J) = '.' then
-            Dot_Index := J;
-            exit;
-         end if;
-      end loop;
-
-      --  Make sure that the output file name matches the source file name.
-      --  To compare them, remove filename directories and extensions.
-
-      if Output_Filename /= null then
-         declare
-            Name : String  := Name_Buffer (1 .. Dot_Index);
-            Len  : Natural := Dot_Index;
-
-         begin
-            Name_Buffer (1 .. Output_Filename'Length) := Output_Filename.all;
-
-            for J in reverse Output_Filename'Range loop
-               if Name_Buffer (J) = '.' then
-                  Dot_Index := J;
-                  exit;
-               end if;
-            end loop;
-
-            if Name /= Name_Buffer (Dot_Index - Len + 1 .. Dot_Index) then
-               Fail ("incorrect object file name");
-            end if;
-         end;
-      end if;
-
-      Name_Buffer (Dot_Index) := '.';
-      Name_Buffer (Dot_Index + 1 .. Dot_Index + 3) := ALI_Suffix.all;
-      Name_Buffer (Dot_Index + 4) := Ascii.NUL;
-      Name_Len := Dot_Index + 3;
+      Set_Library_Info_Name;
       Create_File_And_Check (Output_FD, Text);
-
    end Create_Output_Library_Info;
 
    --------------------------------
@@ -1863,6 +1823,18 @@ package body Osint is
 
    end Read_Library_Info;
 
+   --  Version with default file name
+
+   procedure Read_Library_Info
+     (Name : out File_Name_Type;
+      Text : out Text_Buffer_Ptr)
+   is
+   begin
+      Set_Library_Info_Name;
+      Name := Name_Find;
+      Text := Read_Library_Info (Name, Fatal_Err => False);
+   end Read_Library_Info;
+
    ----------------------
    -- Read_Source_File --
    ----------------------
@@ -1972,6 +1944,59 @@ package body Osint is
       Close (Source_File_FD);
 
    end Read_Source_File;
+
+   ---------------------------
+   -- Set_Library_Info_Name --
+   ---------------------------
+
+   procedure Set_Library_Info_Name is
+      Dot_Index : Natural;
+
+   begin
+      pragma Assert (In_Compiler);
+      Get_Name_String (Current_Main);
+
+      --  Find last dot since we replace the existing extension by .ali. The
+      --  initialization to Name_Len + 1 provides for simply adding the .ali
+      --  extension if the source file name has no extension.
+
+      Dot_Index := Name_Len + 1;
+      for J in reverse 1 .. Name_Len loop
+         if Name_Buffer (J) = '.' then
+            Dot_Index := J;
+            exit;
+         end if;
+      end loop;
+
+      --  Make sure that the output file name matches the source file name.
+      --  To compare them, remove filename directories and extensions.
+
+      if Output_Filename /= null then
+         declare
+            Name : String  := Name_Buffer (1 .. Dot_Index);
+            Len  : Natural := Dot_Index;
+
+         begin
+            Name_Buffer (1 .. Output_Filename'Length) := Output_Filename.all;
+
+            for J in reverse Output_Filename'Range loop
+               if Name_Buffer (J) = '.' then
+                  Dot_Index := J;
+                  exit;
+               end if;
+            end loop;
+
+            if Name /= Name_Buffer (Dot_Index - Len + 1 .. Dot_Index) then
+               Fail ("incorrect object file name");
+            end if;
+         end;
+      end if;
+
+      Name_Buffer (Dot_Index) := '.';
+      Name_Buffer (Dot_Index + 1 .. Dot_Index + 3) := ALI_Suffix.all;
+      Name_Buffer (Dot_Index + 4) := Ascii.NUL;
+      Name_Len := Dot_Index + 3;
+   end Set_Library_Info_Name;
 
    ---------------------
    -- Smart_Find_File --
