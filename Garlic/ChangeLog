@@ -1,3 +1,33 @@
+1998-08-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpc.ads: Minor reformatting.
+
+	* s-rpc.adb: Likewise.
+
+	* s-garstr.ads: (Dump): pass packet by reference instead of by
+	copy.
+
+	* s-garstr.adb: Likewise.
+
+	* s-gartra.ads: Unify Data_Type which is used by this package and 
+	System.Garlic.Replay. Define stream Read and Write attributes for
+	this type that do not require any large heap allocation.
+
+	* s-gartra.adb: Define new stream attributes for Data_Type.
+
+	* s-garhea.ads: (Has_Arrived): add an optional Offset argument
+	that says how much of the packet must be discarded. Pass the
+	packet by reference instead of by copy to prevent stack overflow.
+
+	* s-garhea.adb: Use new interface for tracing. Use the new Offset
+	parameter of Has_Arrived to discard the extra room allocated in
+	case of a All_Calls_Remote package.
+
+	* s-garrep.adb: Use Data_Type from System.Garlic.Trace. Use new
+	interface for Has_Arrived.
+
+	* s-gartcp.adb: Use new interface for Has_Arrived.
+
 1998-08-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garhea.adb: Remove previous use of reconnection in this
