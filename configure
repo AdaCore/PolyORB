@@ -1072,6 +1072,160 @@ case "${PLATFORM_SPECIFIC}" in
 esac
 echo "$ac_t""$PSNAME" 1>&6
 #
+# Find get_errno or __get_errno
+#
+echo $ac_n "checking for -lgnat""... $ac_c" 1>&6
+ac_lib_var=`echo gnat'_'is_regular_file | tr './+\055' '__p_'`
+if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  ac_save_LIBS="$LIBS"
+LIBS="-lgnat  $LIBS"
+cat > conftest.$ac_ext <<EOF
+#line 1086 "configure"
+#include "confdefs.h"
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char is_regular_file();
+
+int main() { return 0; }
+int t() {
+is_regular_file()
+; return 0; }
+EOF
+if { (eval echo configure:1098: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=yes"
+else
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=no"
+fi
+rm -f conftest*
+LIBS="$ac_save_LIBS"
+
+fi
+if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+    ac_tr_lib=HAVE_LIB`echo gnat | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_lib 1
+EOF
+
+  LIBS="-lgnat $LIBS"
+
+else
+  echo "$ac_t""no" 1>&6
+fi
+
+for ac_func in get_errno
+do
+echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 1129 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char $ac_func();
+
+int main() { return 0; }
+int t() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
+choke me
+#else
+$ac_func();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:1153: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=yes"
+else
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=no"
+fi
+rm -f conftest*
+
+fi
+if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+    ac_tr_func=HAVE_`echo $ac_func | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_func 1
+EOF
+ CERRNO=get_errno
+else
+  echo "$ac_t""no" 1>&6
+for ac_func in __get_errno
+do
+echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 1179 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char $ac_func();
+
+int main() { return 0; }
+int t() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
+choke me
+#else
+$ac_func();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:1203: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=yes"
+else
+  rm -rf conftest*
+  eval "ac_cv_func_$ac_func=no"
+fi
+rm -f conftest*
+
+fi
+if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+    ac_tr_func=HAVE_`echo $ac_func | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_func 1
+EOF
+ CERRNO=__get_errno
+else
+  echo "$ac_t""no" 1>&6
+fi
+done
+
+fi
+done
+
+
+#
 # Extra libraries
 #
 # Check whether --with-extra-libs or --without-extra-libs was given.
@@ -1186,6 +1340,7 @@ ac_given_INSTALL="$INSTALL"
 trap 'rm -fr `echo "Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile Garlic/s-gaprco.adb Garlic/s-garser.adb
+           Garlic/s-gaosli.ads
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile
@@ -1252,6 +1407,7 @@ s%@TCP_INCLUDED@%$TCP_INCLUDED%g
 s%@GNAT_SOURCE@%$GNAT_SOURCE%g
 s%@SET_MAKE@%$SET_MAKE%g
 s%@PLATFORM_SPECIFIC@%$PLATFORM_SPECIFIC%g
+s%@CERRNO@%$CERRNO%g
 s%@EXTRA_LIBS@%$EXTRA_LIBS%g
 
 CEOF
@@ -1261,6 +1417,7 @@ cat >> $CONFIG_STATUS <<EOF
 CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile Garlic/s-gaprco.adb Garlic/s-garser.adb
+           Garlic/s-gaosli.ads
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile

@@ -188,8 +188,6 @@ package System.Garlic.Thin is
 
    function C_Dup2 (Fildes, Fildes2 : C.int) return C.int;
 
-   function C_Errno return C.Int;
-
    function C_Fcntl
      (Fildes : C.int;
       Cmd    : C.int;
@@ -360,7 +358,6 @@ private
    pragma Import (C, C_Close, "close");
    pragma Import (C, C_Connect, "connect");
    pragma Import (C, C_Dup2, "dup2");
-   pragma Import (C, C_Errno, "get_errno");
    pragma Import (C, C_Fcntl, "fcntl");
    pragma Import (C, C_Getenv, "getenv");
    pragma Import (C, C_Gethostbyaddr, "gethostbyaddr");

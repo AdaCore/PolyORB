@@ -149,6 +149,8 @@ s-gaprco.adb: $(top_builddir)/config.status s-gaprco.adb.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 s-garser.adb: $(top_builddir)/config.status s-garser.adb.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+s-gaosli.ads: $(top_builddir)/config.status s-gaosli.ads.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 tags: TAGS
 TAGS:
 

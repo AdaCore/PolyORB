@@ -1,6 +1,8 @@
 
 	* COPYING: Added to the distribution.
 
+Tue Oct 22 10:25:36 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
 	* configure.in: Minor reformating.
 	Changed help message "--with-launching" into "--without-launching".
 

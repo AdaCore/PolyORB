@@ -150,6 +150,13 @@ AC_SUBST(PLATFORM_SPECIFIC)
 esac]
 AC_MSG_RESULT($PSNAME)
 #
+# Find get_errno or __get_errno
+#
+AC_CHECK_LIB(gnat, is_regular_file)
+AC_CHECK_FUNCS(get_errno, [CERRNO=get_errno],
+[AC_CHECK_FUNCS(__get_errno, [CERRNO=__get_errno])])
+AC_SUBST(CERRNO)
+#
 # Extra libraries
 #
 AC_ARG_WITH(extra-libs,
@@ -162,6 +169,7 @@ AC_SUBST(EXTRA_LIBS)
 AC_OUTPUT([Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile Garlic/s-gaprco.adb Garlic/s-garser.adb
+           Garlic/s-gaosli.ads
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile
