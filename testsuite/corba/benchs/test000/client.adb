@@ -137,7 +137,8 @@ begin
             CORBA.To_CORBA_String ("AAAA"));
       end loop;
       Finish := Clock;
-      Put_Line ("Time to process Requests_To_Send requests on one servant "
+      Put_Line ("Time to process"
+                & Integer'Image (Requests_To_Send)
                 & Duration'Image (Finish - Start));
       Put_Line ("Mean value:" & Duration'Image
                 ((Finish - Start) / Requests_To_Send));
