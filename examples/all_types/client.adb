@@ -542,10 +542,8 @@ begin
       Put (Ex3) ;
       Put_Line ("");
       Put_Line ("I send the All_types.Ref :") ;
-      Put_Line (Corba.To_Standard_String(Corba.Orb.Object_To_String(Myall_types))) ;
       all1 := Echo11 (MyAll_Types, Myall_Types) ;
       Put_Line ("I receive the object : ") ;
-      Put_Line (Corba.To_Standard_String(Corba.Orb.Object_To_String(all1))) ;
       Put ("Now, the value of this attribute is ") ;
       Ex2 := Get_N_Attribute (all1) ;
       Put(Ex2) ;
@@ -569,5 +567,8 @@ begin
    Put_Line ("") ;
 
 end Client ;
+
+
+
 
 
