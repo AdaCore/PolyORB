@@ -797,7 +797,6 @@ char *lower (const char *str)
       if ((str[i] > 64) && ( str[i] < 91))
 	new_str[i] = new_str[i] + 32;
     }
-  cout << "File name :" << new_str <<endl; 
   return new_str;
 }
 

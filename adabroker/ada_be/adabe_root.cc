@@ -95,7 +95,9 @@ adabe_root::produce() {
 		  
 		  string module_file_name =
 		    remove_dot(module->get_ada_full_name())+".ads";
-		  ofstream module_file(lower(module_file_name.c_str())); 	// Open the ads module file	
+		  char *lower_case_name = lower(module_file_name.c_str());
+		  ofstream module_file(lower_case_name); 	// Open the ads module file	
+		  delete[] lower_case_name;
 		  module_file << module_with_string;
 		  module_file << module_previous; 
 		  module_file << module_body;
@@ -116,7 +118,9 @@ adabe_root::produce() {
 
 		  interface_with_string = *interface_with.produce("with ");
 		  string interface_file_name = remove_dot(interface->get_ada_full_name())+".ads";
-		  ofstream interface_file(lower(interface_file_name.c_str()));
+		  char *lower_case_name = lower(interface_file_name.c_str());
+		  ofstream interface_file(lower_case_name); 
+		  delete[] lower_case_name;
 		  interface_file << interface_with_string;
 		  interface_file << interface_previous;    
 		  interface_file << interface_body;
@@ -142,7 +146,9 @@ adabe_root::produce() {
 #endif
       if (!first)
 	{
-	  ofstream header(lower(ada_file_name.c_str()));
+	  char *lower_case_name = lower(ada_file_name.c_str());
+	  ofstream header(lower_case_name); 
+	  delete[] lower_case_name;
 	  
 	  header_includes = *header_with.produce ("with ");
 	  header << header_includes;
@@ -194,7 +200,9 @@ adabe_root::produce() {
 		    interface_with_string = *interface_with.produce("with ");
 		    
 		    string interface_file_name = remove_dot(interface->get_ada_full_name())+".adb";
-		    ofstream interface_file(lower(interface_file_name.c_str()));	
+		    char *lower_case_name = lower(interface_file_name.c_str());
+		    ofstream interface_file(lower_case_name); 
+		    delete[] lower_case_name;
 		    interface_file << interface_with_string;
 		    interface_file << interface_previous;    
 		    interface_file << interface_body;
@@ -251,7 +259,9 @@ adabe_root::produce() {
 		    
 		    string impl_header_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-impl.ads";
-		    ofstream impl_header_interface_file(lower(impl_header_interface_file_name.c_str()));	
+		    char *lower_case_name = lower(impl_header_interface_file_name.c_str());
+		    ofstream impl_header_interface_file(lower_case_name); 
+		    delete[] lower_case_name;
 		    impl_header_interface_file << impl_header_interface_with_string;
 		    impl_header_interface_file << impl_header_interface_previous;    
 		    impl_header_interface_file << impl_header_interface_body;
@@ -304,7 +314,9 @@ adabe_root::produce() {
 		    
 		    string impl_body_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-impl.adb";
-		    ofstream impl_body_interface_file(lower(impl_body_interface_file_name.c_str()));	
+		    char *lower_case_name = lower(impl_body_interface_file_name.c_str());
+		    ofstream impl_body_interface_file(lower_case_name); 
+		    delete[] lower_case_name;
 		    impl_body_interface_file << impl_body_interface_with_string;
 		    impl_body_interface_file << impl_body_interface_previous;    
 		    impl_body_interface_file << impl_body_interface_body;
@@ -360,7 +372,9 @@ adabe_root::produce() {
 		    
 		    string proxy_header_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-proxies.ads";
-		    ofstream proxy_header_interface_file(lower(proxy_header_interface_file_name.c_str()));	
+		    char *lower_case_name = lower(proxy_header_interface_file_name.c_str());
+		    ofstream proxy_header_interface_file(lower_case_name); 
+		    delete[] lower_case_name;
 		    proxy_header_interface_file << proxy_header_interface_with_string;
 		    proxy_header_interface_file << proxy_header_interface_previous;    
 		    proxy_header_interface_file << proxy_header_interface_body;
@@ -413,7 +427,9 @@ adabe_root::produce() {
 		    
 		    string proxy_body_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-proxies.adb";
-		    ofstream proxy_body_interface_file(lower(proxy_body_interface_file_name.c_str()));	
+		    char *lower_case_name = lower(proxy_body_interface_file_name.c_str());
+		    ofstream proxy_body_interface_file(lower_case_name); 
+		    delete[] lower_case_name;
 		    proxy_body_interface_file << proxy_body_interface_with_string;
 		    proxy_body_interface_file << proxy_body_interface_previous;    
 		    proxy_body_interface_file << proxy_body_interface_body;
@@ -469,7 +485,9 @@ adabe_root::produce() {
 		    
 		    string skel_header_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-skeleton.ads";
-		    ofstream skel_header_interface_file(lower(skel_header_interface_file_name.c_str()));	
+		    char *lower_case_name = lower(skel_header_interface_file_name.c_str());
+		    ofstream skel_header_interface_file(lower_case_name); 
+		    delete[] lower_case_name;
 		    skel_header_interface_file << skel_header_interface_with_string;
 		    skel_header_interface_file << skel_header_interface_previous;    
 		    skel_header_interface_file << skel_header_interface_body;
@@ -522,7 +540,9 @@ adabe_root::produce() {
 		    
 		    string skel_body_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-skeleton.adb";
-		    ofstream skel_body_interface_file(lower(skel_body_interface_file_name.c_str()));	
+		    char *lower_case_name = lower(skel_body_interface_file_name.c_str());
+		    ofstream skel_body_interface_file(lower_case_name); 
+		    delete[] lower_case_name;
 		    skel_body_interface_file << skel_body_interface_with_string;
 		    skel_body_interface_file << skel_body_interface_previous;    
 		    skel_body_interface_file << skel_body_interface_body;
@@ -593,7 +613,9 @@ adabe_root::produce() {
 		    
 		    string marshal_module_file_name =
 		      remove_dot(module->get_ada_full_name())+"-marshal.ads";
-		    ofstream marshal_module_file(lower(marshal_module_file_name.c_str()));
+		    char *lower_case_name = lower(marshal_module_file_name.c_str());
+		    ofstream marshal_module_file(lower_case_name);
+		    delete[] lower_case_name;
 		    marshal_module_file << marshal_module_with_string;
 		    marshal_module_file << marshal_module_previous; 
 		    marshal_module_file << marshal_module_body;
@@ -614,7 +636,9 @@ adabe_root::produce() {
 		    
 		    string marshal_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-marshal.ads";
-		    ofstream marshal_interface_file(lower(marshal_interface_file_name.c_str()));	
+		    char *lower_case_name = lower(marshal_interface_file_name.c_str());
+		    ofstream marshal_interface_file(lower_case_name); 
+		    delete[] lower_case_name;
 		    marshal_interface_file << marshal_interface_with_string;
 		    marshal_interface_file << marshal_interface_previous;    
 		    marshal_interface_file << marshal_interface_body;
@@ -632,7 +656,9 @@ adabe_root::produce() {
       if (!first)
 	{
 	  string marshal_ada_file_name = idl_file_name+"-marshal.ads";
-	  ofstream marshal_header(lower(marshal_ada_file_name.c_str()));
+	  char *lower_case_name = lower(marshal_ada_file_name.c_str());
+	  ofstream marshal_header(lower_case_name); 
+	  delete[] lower_case_name;
 	  marshal_header_includes = *marshal_header_with.produce ("with ");
 	  marshal_header << marshal_header_includes;
 	  marshal_header << marshal_header_previous;
@@ -695,7 +721,9 @@ adabe_root::produce() {
 		    
 		    string marshal_module_file_name =
 		      remove_dot(module->get_ada_full_name())+"-marshal.adb";
-		    ofstream marshal_module_file(lower(marshal_module_file_name.c_str()));
+		    char *lower_case_name = lower(marshal_module_file_name.c_str());
+		    ofstream marshal_module_file(lower_case_name);
+		    delete[] lower_case_name;
 		    marshal_module_file << marshal_body_module_with_string;
 		    marshal_module_file << marshal_body_module_previous; 
 		    marshal_module_file << marshal_body_module_body;
@@ -717,7 +745,9 @@ adabe_root::produce() {
 		    
 		    string marshal_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-marshal.adb";
-		    ofstream marshal_interface_file(lower(marshal_interface_file_name.c_str()));	
+		    char *lower_case_name = lower(marshal_interface_file_name.c_str());
+		    ofstream marshal_interface_file(lower_case_name); 
+		    delete[] lower_case_name;
 		    marshal_interface_file << marshal_interface_with_string;
 		    marshal_interface_file << marshal_interface_previous;    
 		    marshal_interface_file << marshal_interface_body;
@@ -733,7 +763,9 @@ adabe_root::produce() {
 	{ 
 	  string marshal_ada_file_name =
 	    remove_dot(idl_file_name)+"-marshal.adb";
-	  ofstream marshal_body(lower(marshal_ada_file_name.c_str()));
+	  char *lower_case_name = lower(marshal_ada_file_name.c_str());
+	  ofstream marshal_body(lower_case_name); 
+	  delete[] lower_case_name;
 	  marshal_body_includes = *marshal_body_with.produce ("with ");
 	  marshal_body << marshal_body_includes;
 	  marshal_body << marshal_body_previous;

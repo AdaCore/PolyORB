@@ -58,13 +58,22 @@ string *string_list::produce (string repeat) {
   string *output;
   output = new string("");
   for (i = 0; i < nb_item_in_list; i++) {
-    (*output) += repeat + *str_list[i] +" ;";
-    if (str_list[i]->substr(str_list[i]->find_last_of('.') + 1) == "marshal") 
+    (*output) += repeat + *str_list[i] +" ;"; 
+    string substring =str_list[i]->substr(str_list[i]->find_last_of('.') + 1);
+    string lower_string = lower(substring.c_str());
+    if (lower_string ==  "marshal")      
       (*output) += " use " + *str_list[i] +" ;\n";
     else  (*output) += "\n";
   }
   return output;
 }
+
+
+
+
+
+
+
 
 
 
