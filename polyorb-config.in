@@ -2,42 +2,18 @@
 # @configure_input@
 
 prefix=@prefix@
-is_corba=@ENABLE_CORBA@
-is_dsa=@ENABLE_DSA@
-is_moma=@ENABLE_MOMA@
-is_giop=@ENABLE_GIOP@
-is_soap=@ENABLE_SOAP@
-is_srp=@ENABLE_SRP@
+appli="@APPLI_LIST@"
+proto="@PROTO_LIST@"
+services="@SERVICE_LIST@"
 
-if test x"$is_corba" = xyes 
-then
-corba_files="-I${prefix}/lib/polyorb-corba"
-corba_libs="${prefix}/lib/libpolyorb-corba.la"
-fi
+polyorb_dir="@XMLADA_INCS@ "
+polyorb_lib="@XMLADA_LIBS@ "
 
-if test x"$is_giop" = xyes 
-then
-giop_files="-I${prefix}/lib/polyorb-giop"
-giop_libs="${prefix}/lib/libpolyorb-giop.la"
-fi
-
-if test x"$is_moma" = xyes 
-then
-moma_files="-I${prefix}/lib/polyorb-moma"
-moma_libs="${prefix}/lib/libpolyorb-moma.la"
-fi
-
-if test x"$is_soap" = xyes 
-then
-soap_files="@XMLADA_INCS@ -I${prefix}/lib/polyorb-soap"
-soap_libs="@XMLADA_LIBS@ ${prefix}/lib/libpolyorb-soap.la"
-fi
-
-if test x"$is_srp" = xyes 
-then
-srp_files=" -I${prefix}/lib/polyorb-srp"
-srp_libs=" ${prefix}/lib/libpolyorb-srp.la"
-fi
+for P in $appli $proto
+do
+ polyorb_dir="$polyorb_dir -I${prefix}/lib/polyorb-${P}"
+ polyorb_lib="$polyorb_lib ${prefix}/lib/polyorb-${P}.la"
+done
 
 MAJOR=@POLYORB_MAJOR_VERSION@
 MINOR=@POLYORB_MINOR_VERSION@
@@ -86,19 +62,17 @@ while test $# -gt 0; do
       ;;
     --config)
       echo "Personalities built :" 
-      echo "* CORBA application personality : " $is_corba
-      echo "* MOMA  application personality : " $is_moma
-      echo "* GIOP  protocol    personality : " $is_giop
-      echo "* SOAP  protocol    personality : " $is_soap
-      echo "* SRP   protocol    personality : " $is_srp
+      echo "* Application personalities : " $appli
+      echo "* Protocol    personalities : " $proto
+      echo "* Services                  : " $services
       exit 0
       ;;  
     --libs)
-      echo "-largs ${prefix}/lib/libpolyorb.la $corba_libs $giop_libs $moma_libs $soap_libs $srp_libs"
+      echo $polyorb_lib
       exit 0
       ;;
     --cflags)
-      echo "-I${prefix}/lib/polyorb $corba_files $giop_files $moma_files $soap_files $srp_files"
+      echo $polyorb_dir
       exit 0
       ;;
     *)
@@ -109,4 +83,4 @@ while test $# -gt 0; do
   shift
 done
 
-echo  "-I${prefix}/lib/polyorb $corba_files $giop_files $moma_files $soap_files $srp_files" "-largs ${prefix}/lib/libpolyorb.la $corba_libs $giop_libs $moma_libs $soap_libs $srp_libs"
+echo  $polyorb_lib $polyorb_dir

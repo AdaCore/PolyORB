@@ -50,7 +50,9 @@ AC_ARG_WITH(proto-perso,
 [  --with-proto-perso=x    Enumerate protocol personalities],
 [
   PROTO_LIST=""
-  for P in ${withval}
+
+  newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
+  for P in ${newwithval}
   do
      if test -f ${srcdir}/src/${P}/polyorb-binding_data-*.ads
      then
@@ -64,6 +66,7 @@ AC_ARG_WITH(proto-perso,
   PROTO_LIST=" giop "
 ])
 AC_MSG_RESULT(${PROTO_LIST})
+AC_SUBST(PROTO_LIST)
 
 ##########################################
 # Application personalities list
@@ -74,7 +77,9 @@ AC_ARG_WITH(appli-perso,
 [  --with-appli-perso=x    Enumerate application personalities],
 [
   APPLI_LIST=""
-  for P in ${withval}
+
+  newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
+  for P in ${newwithval}
   do
      if test -d ${srcdir}/src/${P} -o ${P} = "dsa"
      then
@@ -88,6 +93,7 @@ AC_ARG_WITH(appli-perso,
    APPLI_LIST=" corba "
 ])
 AC_MSG_RESULT(${APPLI_LIST})
+AC_SUBST(APPLI_LIST)
 
 ##########################################
 # Services list.
@@ -98,7 +104,9 @@ AC_ARG_WITH(services,
 [  --with-services=x       Enumerate services],
 [
   SERVICE_LIST=""
-  for S in ${withval}
+
+  newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
+  for S in ${newwithval}
   do
      if test -f ${srcdir}/cos/${S}/Makefile.am
      then
@@ -288,7 +296,8 @@ AC_OUTPUT([Makefile
 	   examples/Makefile 
 	   examples/corba/Makefile examples/corba/all_types/Makefile 
 	   examples/corba/all_functions/Makefile examples/corba/echo/Makefile
-	   examples/dsa/Makefile examples/moma/Makefile examples/polyorb/Makefile
+	   examples/corba/random/Makefile examples/dsa/Makefile 
+           examples/moma/Makefile examples/polyorb/Makefile
 	   support/adacompiler support/native-adacompiler
            support/linker polyorb-config])
 

@@ -279,6 +279,12 @@ examples/corba/echo/echo-impl.adb
 examples/corba/echo/echo-impl.ads
 examples/corba/echo/echo.idl
 examples/corba/echo/server.adb
+examples/corba/random/Makefile.am
+examples/corba/random/Makefile.in
+examples/corba/random/client.adb
+examples/corba/random/random-impl.adb
+examples/corba/random/random-impl.ads
+examples/corba/random/server.adb
 examples/moma/Makefile.am
 examples/moma/Makefile.in
 examples/moma/README
@@ -491,10 +497,6 @@ src/moma/moma-connections-topics.adb
 src/moma/moma-connections-topics.ads
 src/moma/moma-connections.adb
 src/moma/moma-connections.ads
-src/moma/moma-destinations-queues.adb
-src/moma/moma-destinations-queues.ads
-src/moma/moma-destinations-topics.adb
-src/moma/moma-destinations-topics.ads
 src/moma/moma-destinations.adb
 src/moma/moma-destinations.ads
 src/moma/moma-message_consumers-queues.adb
@@ -541,11 +543,6 @@ src/moma/moma-sessions.ads
 src/moma/moma-types.adb
 src/moma/moma-types.ads
 src/moma/moma.ads
-src/moma/polyorb-minimal_servant.adb
-src/moma/polyorb-minimal_servant.ads
-src/moma/polyorb-moma_p-tools.adb
-src/moma/polyorb-moma_p-tools.ads
-src/moma/polyorb-moma_p.ads
 src/polyorb-annotations.adb
 src/polyorb-annotations.ads
 src/polyorb-any-exceptionlist.adb
@@ -596,6 +593,10 @@ src/polyorb-locks.adb
 src/polyorb-locks.ads
 src/polyorb-log.adb
 src/polyorb-log.ads
+src/polyorb-minimal_servant.adb
+src/polyorb-minimal_servant.ads
+src/polyorb-minimal_servant-tools.adb
+src/polyorb-minimal_servant-tools.ads
 src/polyorb-obj_adapters-simple.adb
 src/polyorb-obj_adapters-simple.ads
 src/polyorb-obj_adapters.adb
