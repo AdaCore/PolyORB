@@ -22,5 +22,5 @@ run_tests:
 	cd testsuite && ${MAKE} run_tests
 
 install-exec-local:
-	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
-	$(INSTALL_PROGRAM) polyorb-config $(DESTDIR)$(exec_prefix)/bin/polyorb-config
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) polyorb-config $(DESTDIR)$(bindir)/polyorb-config

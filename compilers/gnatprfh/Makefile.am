@@ -22,5 +22,5 @@ DISTCLEANFILES = $(PROG)
 force::
 
 install-exec-local:
-	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
-	$(INSTALL_PROGRAM) $(PROG) $(DESTDIR)$(exec_prefix)/bin/$(PROG)
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) $(PROG) $(DESTDIR)$(bindir)/$(PROG)

@@ -53,8 +53,8 @@ stamp-gen: $(IDL) $(IDLAC)
 	touch stamp-gen
 
 install-exec-local:
-	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
-	$(INSTALL_PROGRAM) ab_names $(DESTDIR)$(exec_prefix)/bin/ab_names
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) ab_names $(DESTDIR)$(bindir)/ab_names
 
 $(ir_exe): force_ir
 
