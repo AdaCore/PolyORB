@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#21 $
+# $Id: //droopi/main/utils/make_distrib#22 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -106,7 +106,7 @@ elif $perforce; then
     view_root=//droopi/${branch}
   fi
   cd ${tmp}/${dir}
-  tmp=`pwd`
+  tmp=`/bin/pwd`
   client=make_distrib_$$
   (cat <<__EOF__
 Client: $client
