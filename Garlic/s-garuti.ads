@@ -54,8 +54,8 @@ package System.Garlic.Utils is
      return String_Array_Access;
    --  Return an array of substrings sperated by C in S.
 
-   function Quote        (S : String; C : Character := '"') return String;
-   function Unquote      (S : String) return String;
+   function Quote   (S : String; C : Character := '"') return String; --  "
+   function Unquote (S : String) return String;
    --  If S is quoted, return the content.
 
    Null_String : constant String := "";
