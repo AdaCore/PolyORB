@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -314,7 +314,7 @@ package body System.Garlic.Termination is
       Send_Shutdown;
       Leave (Mutex);
 
-      pragma Debug (D ("Shudown myself"));
+      pragma Debug (D ("Shutdown myself"));
       Activate_Shutdown;
    end Global_Termination;
 
