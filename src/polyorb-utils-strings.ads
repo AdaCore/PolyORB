@@ -31,15 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  General-purpose string pointer.
+--  General-purpose string pointer and related functions
 
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Types;
+
 package PolyORB.Utils.Strings is
 
    pragma Preelaborate;
+
+   --------------------
+   -- String Pointer --
+   --------------------
 
    type String_Ptr is access all Standard.String;
 
@@ -50,5 +56,40 @@ package PolyORB.Utils.Strings is
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Standard.String, String_Ptr);
+
+   -------------------------
+   -- String manipulation --
+   -------------------------
+
+   procedure Extract_String_Before_Delimiter
+     (Str   : in out Types.String;
+      Delim : in     String;
+      Value :    out Types.String);
+   --  Slice Str in two part before and after Delim
+   --  Part before Delim in Value
+   --  Part after Delim in Str
+   --  If Delim is not found Str is unchanged and Value is set to empty
+
+   procedure Insert_Str_And_Delimiter
+     (Str   : in out Types.String;
+      Value : in     Types.String;
+      Delim : in     String);
+   --  Insert into Str the string Value and Delim
+   --  Check that Value do NOT contain Delim
+   --  If Value contain Delim, Str is unchanged
+
+   procedure Insert_Str_And_Delimiter
+     (Str   : in out Types.String;
+      Value : in     String;
+      Delim : in     String);
+   --  Same as previous
+
+   procedure Check_And_Remove_Header
+     (Str     : in out Types.String;
+      Value   : in     Types.String;
+      Success :    out Boolean);
+   --  Try to extract header from Str
+   --  If Str begin by the Value, remove this part from Str,
+   --  Else, Str is unchanged
 
 end PolyORB.Utils.Strings;
