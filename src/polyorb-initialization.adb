@@ -314,11 +314,12 @@ package body PolyORB.Initialization is
       while not Last (MI) loop
          Dep := Value (MI).all;
 
+         pragma Debug (O ("DEP: """
+                          & Module_Name (M).all & """ -> """
+                          & Module_Name (Dep).all & """;"));
+
          if not Dep.Visited then
             begin
-               pragma Debug (O ("DEP: """
-                                & Module_Name (M).all & """ -> """
-                                & Module_Name (Dep).all & """;"));
                Visit (Dep, Circular_Dependency_Detected);
 
                if Circular_Dependency_Detected then
