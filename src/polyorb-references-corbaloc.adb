@@ -34,7 +34,6 @@
 with Ada.Strings;
 with Ada.Strings.Unbounded;
 
-
 with PolyORB.Binding_Data;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -210,7 +209,7 @@ package body PolyORB.References.Corbaloc is
                     := Get_Profile_Preference (Profs (J).all);
                begin
                   if P > Best_Preference then
-                     for K in TL'Range loop
+                     for K in 1 .. N loop
                         if TL (K) = Get_Profile_Tag (Profs (J).all) then
                            Best_Preference := P;
                            Best_Profile_Index := K;
