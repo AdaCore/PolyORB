@@ -18,6 +18,7 @@ export S_GARSTA=true
 export S_GARSTO=true
 export S_GARSTR=true
 export S_GARTAB=true
+export S_GARTAS=true
 export S_GARTER=true
 export S_GARTRA=true
 export S_GARUNI=true
