@@ -3,12 +3,11 @@ GNATFLAGS       = -g -gnatwA
 FLAGS           = -I. 
 
 
-all : souches 
+all : stubs 
 
 force:
 
-souches: 
-	rm -f *ir_info*
+stubs: 
 	gnatmake $(GNATFLAGS) *.adb $(FLAGS) `polyorb-config`
 
 

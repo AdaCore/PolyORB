@@ -1,3 +1,11 @@
+2004-08-03  Saber Souli  <souli@neraka.enst.fr>
+
+	* testsuite/Makefile.ada (stubs): Renamed souches to stubs. Minor
+	reformatting.
+	
+	* test.cmd : Idlac output is now static, stored in subdirectory
+	named idlac.out 
+	
 2004-08-03  Saber Souli  <souli@siloe.enst.fr>
 
 	* backend-be_ada-idl_to_ada.adb: Applied GNAT coding style. 
