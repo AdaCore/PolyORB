@@ -1210,7 +1210,7 @@ package body Idl_Fe.Parser is
                                 Success : out Boolean) is
       Res, Prev : Node_Id;
       Scope : Node_Id;
-      A_Name : Node_Id;
+      A_Name : Node_Id := No_Node;
    begin
       pragma Debug (O2 ("Parse_Scoped_Name : enter"));
       Result := No_Node;
@@ -1244,9 +1244,12 @@ package body Idl_Fe.Parser is
          --    struct, union, operation, exception
          --  then we have to look at the parent scope level
          --  (see COBA v2.3 3.15.3 : Special Scoping Rules for Type Names)
+         --  if it is a union, you have to take care of a potential
+         --  enum type definition inside the switch statement. In this
+         --  precise case, one of the label of the enum can be used inside
+         --  the union.
          case Kind (Get_Current_Scope) is
             when K_Struct
-              | K_Union
               | K_Exception
               | K_Operation =>
                declare
@@ -1255,6 +1258,43 @@ package body Idl_Fe.Parser is
                   Pop_Scope;
                   A_Name := Find_Identifier_Node (Get_Token_String);
                   Push_Scope (The_Scope);
+               end;
+            when K_Union =>
+               declare
+                  The_Scope : Node_Id := Get_Current_Scope;
+               begin
+                  pragma Debug (O ("Parse_Scoped_Name : dealing with "
+                                    & "a union scope"));
+                  --  first try to find the name in the potential
+                  --  enum declaration of the switch statement
+                  --  for this purpose, we look in the current_scope
+                  --  and check if the result is in the switch or not
+                  --  if not, we just skip because of 3.15.3 (see above)
+                  A_Name := Find_Identifier_Node (Get_Token_String);
+                  if A_Name /= No_Node and then
+                    Kind (Switch_Type (Get_Current_Scope)) = K_Enum and then
+                    Is_In_List (Enumerators (Switch_Type (Get_Current_Scope)),
+                                A_Name)
+                  then
+                     pragma Debug (O ("Parse_Scoped_Name : found something "
+                                       & "in the current scope. That was "
+                                       & "interesting"));
+                     null;
+                  else
+                     pragma Debug (O ("Parse_Scoped_Name : found something "
+                                       & "in the current scope but "
+                                       & "not interesting"));
+                     A_Name := No_Node;
+                  end if;
+                  if A_Name = No_Node then
+                     pragma Debug (O ("Parse_Scoped_Name : looking in "
+                                       & "the parent scope"));
+                     --  else look at the parent scope
+                     Pop_Scope;
+                     A_Name := Find_Identifier_Node (Get_Token_String);
+                     --  this reopens the union scope.
+                     Push_Scope (The_Scope);
+                  end if;
                end;
             when others =>
                A_Name := Find_Identifier_Node (Get_Token_String);
@@ -5325,6 +5365,7 @@ package body Idl_Fe.Parser is
          end;
       end if;
       Next_Token;
+      Push_Scope (Result);
       declare
          Node : Node_Id;
       begin
@@ -5333,6 +5374,7 @@ package body Idl_Fe.Parser is
          Set_Switch_Type (Result, Node);
       end;
       if not Success then
+         Pop_Scope;
          return;
       end if;
       if Get_Token /= T_Right_Paren then
@@ -5342,6 +5384,7 @@ package body Idl_Fe.Parser is
             Errors.Error,
             Get_Token_Location);
          Success := False;
+         Pop_Scope;
          return;
       end if;
       Next_Token;
@@ -5357,11 +5400,11 @@ package body Idl_Fe.Parser is
                Loc);
             Result := No_Node;
             Success := False;
+            Pop_Scope;
             return;
          end;
       end if;
       Next_Token;
-      Push_Scope (Result);
       declare
          Node : Node_List;
          Default_Index : Long_Integer;
