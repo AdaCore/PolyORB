@@ -201,7 +201,7 @@ begin
      (Module_Info'
       (Name      => +"orb.no_tasking",
        Conflicts => Empty,
-       Depends   => +"soft_links",
+       Depends   => Empty,
        Provides  => +"orb.tasking_policy",
        Init      => Initialize'Access));
 end PolyORB.ORB.No_Tasking;

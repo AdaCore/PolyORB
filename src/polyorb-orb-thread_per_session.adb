@@ -388,7 +388,7 @@ begin
      (Module_Info'
       (Name      => +"orb.thread_per_session",
        Conflicts => +"no_tasking",
-       Depends   => +"soft_links",
+       Depends   => Empty,
        Provides  => +"orb.tasking_policy",
        Init      => Initialize'Access));
 end PolyORB.ORB.Thread_Per_Session;

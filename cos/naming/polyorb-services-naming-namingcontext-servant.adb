@@ -41,16 +41,17 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Any.ObjRef;
 with PolyORB.Exceptions;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.References;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Utils.Strings;
 
 with PolyORB.Minimal_Servant;
 with PolyORB.Minimal_Servant.Tools;
 
 with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.Helper;
---  with PolyORB.Services.Naming.BindingIterator.Servant;
 with PolyORB.Services.Naming.NamingContext.Client;
 with PolyORB.Services.Naming.NamingContext.Helper;
 
@@ -61,7 +62,6 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    use PolyORB.Any.ObjRef;
    use PolyORB.Log;
    use PolyORB.Requests;
-   use PolyORB.Tasking.Soft_Links;
    use PolyORB.Types;
 
    use PolyORB.Services.Naming.Helper;
@@ -74,6 +74,9 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
      ("polyorb.services.naming.namingcontext.servant");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   package PTM renames PolyORB.Tsking.Mutexes;
+   Critical_Section : PTM.Mutex_Access;
 
    procedure Bind
      (Self : access Object;
@@ -92,6 +95,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
    procedure Destroy
      (Self : access Object);
+
+   procedure Initialize;
 
    function Is_A (Logical_Type_Id : Standard.String)
                   return PolyORB.Types.Boolean;
@@ -820,14 +825,14 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             BON : constant String := Encode (Self.Self, Last);
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             if Look_For_BO_In_NC (Self.Self, BON) /= null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                raise AlreadyBound;
             end if;
 
             Append_BO_To_NC (Self.Self, BON, Last, Nobject, Obj);
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Bind;
@@ -859,15 +864,15 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             BON : constant String := Encode (Self.Self, Last);
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             if Look_For_BO_In_NC (Self.Self, BON) /= null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                raise AlreadyBound;
             end if;
 
             Append_BO_To_NC (Self.Self, BON, Last, Ncontext,
                              PolyORB.References.Ref (NC));
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Bind_Context;
@@ -1019,7 +1024,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       pragma Debug (O ("Get_Ctx_And_Last_NC: enter"));
       Valid (Self.Self);
 
-      Enter_Critical_Section;
+      PTM.Enter (Critical_Section);
       declare
          NCA         : Element_Array := To_Element_Array (Sequence (N));
          Current_Obj : PolyORB.References.Ref;
@@ -1027,7 +1032,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          Current_Idx : Natural;
 
       begin
-         Leave_Critical_Section;
+         PTM.Leave (Critical_Section);
 
          Len := NCA'Length;
          if Len = 0 then
@@ -1094,6 +1099,15 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       return N;
    end Hash;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      PTM.Create (Critical_Section);
+   end Initialize;
+
    ----------
    -- Is_A --
    ----------
@@ -1128,7 +1142,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 --    begin
 --       Valid (Self.Self);
 
---       Enter_Critical_Section;
+--       PTM.Enter (Critical_Section);
 
 --       --  How many bound objects in this naming context.
 
@@ -1169,7 +1183,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 --          Head := Head.Next;
 --       end loop;
 
---       Leave_Critical_Section;
+--       PTM.Leave (Critical_Section);
 
 --       --  Activate object Iterator.
 
@@ -1248,11 +1262,11 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             BO  : Bound_Object_Ptr;
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
                begin
@@ -1264,7 +1278,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             end if;
 
             if BO.BT /= Nobject then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
                begin
@@ -1277,7 +1291,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
             Remove_BO_From_NC (Self.Self, BO);
             Append_BO_To_NC   (Self.Self, BON, Last, Nobject, Obj);
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Rebind;
@@ -1307,11 +1321,11 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             BO  : Bound_Object_Ptr;
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
                begin
@@ -1323,7 +1337,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             end if;
 
             if BO.BT /= Ncontext then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
                begin
@@ -1337,7 +1351,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Remove_BO_From_NC (Self.Self, BO);
             Append_BO_To_NC (Self.Self, BON, Last, Ncontext,
                              PolyORB.References.Ref (NC));
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Rebind_Context;
@@ -1403,11 +1417,11 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Obj : PolyORB.References.Ref;
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
 
@@ -1420,7 +1434,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             end if;
 
             Obj := BO.Obj;
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
             return Obj;
          end;
       end if;
@@ -1459,11 +1473,11 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             BO  : Bound_Object_Ptr;
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
 
@@ -1476,7 +1490,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             end if;
 
             Remove_BO_From_NC (Self.Self, BO);
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Unbind;
@@ -1491,10 +1505,22 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    begin
       if NC = null then
          if Locked then
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end if;
          raise CannotProceed;
       end if;
    end Valid;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"naming.NamingContext.servant",
+       Conflicts => Empty,
+       Depends   => +"tasking.mutexes",
+       Provides  => Empty,
+       Init      => Initialize'Access));
 end PolyORB.Services.Naming.NamingContext.Servant;

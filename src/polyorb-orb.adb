@@ -1333,7 +1333,6 @@ begin
       (Name => +"orb",
        Conflicts => Empty,
        Depends => +"orb.tasking_policy"
-         & "soft_links"
          & "binding_data.soap?"
          & "binding_data.srp?"
          & "binding_data.iiop?"

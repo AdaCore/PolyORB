@@ -39,7 +39,7 @@ with PolyORB.ORB;
 
 package PolyORB.Setup is
 
-   pragma Elaborate_Body;
+   --  No elaboration control (no proper body).
 
    The_Tasking_Policy : PolyORB.ORB.Tasking_Policy_Access;
    The_ORB : PolyORB.ORB.ORB_Access;

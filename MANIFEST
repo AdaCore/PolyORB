@@ -826,8 +826,6 @@ src/polyorb-tasking-rw_locks.adb
 src/polyorb-tasking-rw_locks.ads
 src/polyorb-tasking-semaphores.adb
 src/polyorb-tasking-semaphores.ads
-src/polyorb-tasking-soft_links.adb
-src/polyorb-tasking-soft_links.ads
 src/polyorb-tasking-threads.adb
 src/polyorb-tasking-threads.ads
 src/polyorb-tasking-watchers.adb

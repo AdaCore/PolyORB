@@ -592,7 +592,7 @@ begin
      (Module_Info'
       (Name      => +"exceptions",
        Conflicts => Empty,
-       Depends   => +"soft_links",
+       Depends   => Empty,
        Provides  => Empty,
        Init      => Initialize'Access));
 
