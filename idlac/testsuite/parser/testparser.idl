@@ -11,6 +11,20 @@ module toto
 module toto {};
 module toto {};
 
+/***  Test of rule 4 through 7 ***/ 
+
+/* Test of rule Interface1 & 2 &3 */
+interface
+interface tata;
+interface tata;
+interface tata
+interface tata{};
+interface tutu{};
+interface tata;
+interface titi{}
+abstract interface to;
+interface to{};
+abstract interface tu{};
 
 /***  Test of rule 13 through 26 ***/
 

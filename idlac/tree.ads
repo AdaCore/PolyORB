@@ -105,6 +105,7 @@ package Tree is
    --  Forward declaration of an interface.
    type N_Forward_Interface is new N_Named with record
       Forward : N_Interface_Acc;
+      Abst : Boolean;
    end record;
    function Get_Kind (N : N_Forward_Interface) return Node_Kind;
 

@@ -98,6 +98,9 @@ package body Disp is
             Disp_List (N_Module (N).Contents, N_Indent + Offset, Full);
 
          when K_Interface =>
+            if N_Interface (N).Abst then
+               Put ("abstract ");
+            end if;
             Put_Line ("interface " & Get_Name (N_Interface (N)));
 --             if Full then
 --                if N_Interface (N).Parents /= Nil_List then
@@ -107,15 +110,18 @@ package body Disp is
 --                end if;
 --                Disp_List (N_Interface (N).Contents, N_Indent, Full);
 --             end if;
-
          when K_Forward_Interface =>
-            if N_Forward_Interface (N).Forward /= null then
-               Put_Line ("forward interface "
-                         & Get_Name (N_Forward_Interface (N).Forward.all));
-            else
-               Put_Line ("forward interface (never declared!!) "
-                         & Get_Name (N_Forward_Interface (N)));
+            if N_Forward_Interface (N).Abst then
+               Put ("abstract ");
             end if;
+               if N_Forward_Interface (N).Forward /= null then
+                  Put_Line ("forward interface "
+                            & Get_Name (N_Forward_Interface (N).Forward.all)
+                            );
+               else
+                  Put_Line ("forward interface (never declared!!) "
+                            & Get_Name (N_Forward_Interface (N)));
+               end if;
 
          when K_ValueType =>
             Put_Line ("valuetype " & Get_Name (N_ValueType (N)));

@@ -118,14 +118,56 @@ private
    procedure Parse_Module (Result : out N_Module_Acc;
                            Success : out Boolean);
 
-   --    --  Rule 9:
-   --    --  <export> ::= <type_dcl> ";"
-   --    --           |   <const_dcl> ";"
-   --    --           |   <except_dcl> ";"
-   --    --           |   <attr_dcl> ";"
-   --    --           |   <op_dcl> ";"
+   --  Rule 4:
+   --  <interface> ::= <interface_dcl> | <forward_dcl>
+   --
+   --  Rule 5:
+   --  <interface_decl> ::= <interface_header> "{" <interface_body> "}"
+   --
+   --  Rule 6:
+   --  <forward_dcl> ::= ["abstract"] "interface" <identifier>
+   --
+   --  Rule 7:
+   --  <interface_header> ::= ["abstract"] "interface" <identifier>
+   --                         [ <interface_inheritance_spec> ]
+   --
+   --
+   --  These rules are equivalent to
+   --
+   --  <interface> ::= ["abstract"] "interface" <identifier>
+   --                  <interface_end>
+   --
+   --  <interface_end> ::= <forward_dcl_end>
+   --                  |   <interface_dcl_end>
+   --
+   --  <forward_dcl_end> ::=
+   --
+   --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
+   --                          <interface_body> "}"
+   --  this last will be used in Parse_Interface_Dcl_End
+   procedure Parse_Interface (Result : out N_Named_Acc;
+                              Success : out Boolean);
+
+   --  Rule 8:
+   --  <interface_body> ::= <export>*
+   procedure Parse_Interface_Body (List : in out Node_List);
+
+   --  Rule 9:
+   --  <export> ::= <type_dcl> ";"
+   --           |   <const_dcl> ";"
+   --           |   <except_dcl> ";"
+   --           |   <attr_dcl> ";"
+   --           |   <op_dcl> ";"
    procedure Parse_Export (Result : out N_Root_Acc;
                            Success : out Boolean);
+
+   --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
+   --                          <interface_body> "}"
+   --
+   --  Rule 10:
+   --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
+   procedure Parse_Interface_Dcl_End (Result : in out  N_Interface_Acc;
+                                     Success : out Boolean);
 
    --    --  Rule 11:
    --    --  <scoped_name> ::= <identifier>
@@ -623,47 +665,6 @@ private
 --    --  <type_declarator> ::= <type_spec> <declarators>
 --    function Parse_Type_Declarator return N_Type_Declarator_Acc is
 
-   --  Rule 8:
-   --  <interface_body> ::= <export>*
-   procedure Parse_Interface_Body (List : in out Node_List);
-
-   --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
-   --                          <interface_body> "}"
-   --
-   --  Rule 10:
-   --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
-   procedure Parse_Interface_Dcl_End (Result : in out  N_Interface_Acc;
-                                     Success : out Boolean);
-
-   --  Rule 4:
-   --  <interface> ::= <interface_dcl> | <forward_dcl>
-   --
-   --  Rule 5:
-   --  <interface_decl> ::= <interface_header> "{" <interface_body> "}"
-   --
-   --  Rule 6:
-   --  <forward_dcl> ::= ["abstract"] "interface" <identifier>
-   --
-   --  Rule 7:
-   --  <interface_header> ::= ["abstract"] "interface" <identifier>
-   --                         [ <interface_inheritance_spec> ]
-   --
-   --
-   --  These rules are equivalent to
-   --
-   --  <interface> ::= ["abstract"] "interface" <identifier>
-   --                  <interface_end>
-   --
-   --  <interface_end> ::= <forward_dcl_end>
-   --                  |   <interface_dcl_end>
-   --
-   --  <forward_dcl_end> ::=
-   --
-   --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
-   --                          <interface_body> "}"
-   --  this last will be used in Parse_Interface_Dcl_End
-   procedure Parse_Interface (Result : out N_Named_Acc;
-                              Success : out Boolean);
 
 --    --  Rule 13:
 --    --  <const_type> ::= <integer_type>
