@@ -86,14 +86,13 @@ RSH = @RSH@
 
 bin_SCRIPTS = gnatdist
 libexec_PROGRAMS = dist1
-libexec_SCRIPTS = xe-gcc xe-gcc-filter xe-gcc-post xe-gcc-prep
 dist1_DEPENDENCIES = xe_defs.o sdefault.o
 dist1_SOURCES =
 dist1_LDADD =
 
 CLEANFILES = *.ali gnatdist xe_defs.adb sdefault.adb
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES =  xe-gcc xe-gcc-filter
+CONFIG_CLEAN_FILES = 
 PROGRAMS =  $(libexec_PROGRAMS)
 
 
@@ -103,10 +102,9 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 dist1_OBJECTS = 
 dist1_LDFLAGS = 
-SCRIPTS =  $(bin_SCRIPTS) $(libexec_SCRIPTS)
+SCRIPTS =  $(bin_SCRIPTS)
 
-DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO xe-gcc-filter.in \
-xe-gcc.in
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -126,10 +124,6 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-xe-gcc: $(top_builddir)/config.status xe-gcc.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
-xe-gcc-filter: $(top_builddir)/config.status xe-gcc-filter.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 
 mostlyclean-libexecPROGRAMS:
 
@@ -190,25 +184,6 @@ uninstall-binSCRIPTS:
 	  rm -f $(bindir)/`echo $$p|sed '$(transform)'`; \
 	done
 
-install-libexecSCRIPTS: $(libexec_SCRIPTS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(libexecdir)
-	@list='$(libexec_SCRIPTS)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(INSTALL_SCRIPT) $$p $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
-	    $(INSTALL_SCRIPT) $$p $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
-	  else if test -f $(srcdir)/$$p; then \
-	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
-	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
-	  else :; fi; fi; \
-	done
-
-uninstall-libexecSCRIPTS:
-	$(NORMAL_UNINSTALL)
-	list='$(libexec_SCRIPTS)'; for p in $$list; do \
-	  rm -f $(libexecdir)/`echo $$p|sed '$(transform)'`; \
-	done
-
 tags: TAGS
 
 ID: $(HEADERS) $(SOURCES)
@@ -247,7 +222,7 @@ dvi:
 check: all
 	$(MAKE)
 installcheck:
-install-exec: install-libexecPROGRAMS install-binSCRIPTS install-libexecSCRIPTS
+install-exec: install-libexecPROGRAMS install-binSCRIPTS
 	@$(NORMAL_INSTALL)
 
 install-data: 
@@ -256,14 +231,14 @@ install-data:
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libexecPROGRAMS uninstall-binSCRIPTS uninstall-libexecSCRIPTS
+uninstall: uninstall-libexecPROGRAMS uninstall-binSCRIPTS
 
 all: $(PROGRAMS) $(SCRIPTS) Makefile
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
-	$(mkinstalldirs)  $(libexecdir) $(bindir) $(libexecdir)
+	$(mkinstalldirs)  $(libexecdir) $(bindir)
 
 
 mostlyclean-generic:
@@ -300,12 +275,11 @@ maintainer-clean:  maintainer-clean-libexecPROGRAMS \
 clean-libexecPROGRAMS maintainer-clean-libexecPROGRAMS \
 uninstall-libexecPROGRAMS install-libexecPROGRAMS mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
-uninstall-binSCRIPTS install-binSCRIPTS uninstall-libexecSCRIPTS \
-install-libexecSCRIPTS tags mostlyclean-tags distclean-tags clean-tags \
-maintainer-clean-tags distdir info dvi installcheck install-exec \
-install-data install uninstall all installdirs mostlyclean-generic \
-distclean-generic clean-generic maintainer-clean-generic clean \
-mostlyclean distclean maintainer-clean
+uninstall-binSCRIPTS install-binSCRIPTS tags mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir info dvi \
+installcheck install-exec install-data install uninstall all \
+installdirs mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 force: 

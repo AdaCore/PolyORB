@@ -41,7 +41,6 @@ package body XE_Utils is
    Path         : constant String_Access := GNAT.Os_Lib.Getenv ("PATH");
 
    GNAT_Verbose   : String_Access;
-   XE_Gcc         : String_Access;
    Gcc            : String_Access;
    Mkdir          : String_Access;
    Copy           : String_Access;
@@ -134,12 +133,6 @@ package body XE_Utils is
       Exec : in File_Name_Type;
       Args : in Argument_List);
    --  Execute gnatlink and add gnatdist flags
-
-   procedure Execute_XE_Gcc
-     (Source : in String_Access;
-      Target : in String_Access;
-      Flags  : in Argument_List);
-   --  Execute xe-gcc and add gnatdist compilation flags
 
    function Locate
      (Exec_Name  : String;
@@ -524,37 +517,6 @@ package body XE_Utils is
 
    end Execute_Link;
 
-   --------------------
-   -- Execute_XE_Gcc --
-   --------------------
-
-   procedure Execute_XE_Gcc
-     (Source : in String_Access;
-      Target : in String_Access;
-      Flags  : in Argument_List) is
-      N : Natural := 1;
-      L : constant Natural
-        := Gcc_Switches.Last - Gcc_Switches.First + 5 + Flags'Length;
-      A : Argument_List (1 .. L);
-   begin
-      A (N) := Target;
-      N := N + 1;
-      A (N) := Gcc;
-      N := N + 1;
-      A (N) := Compile_Flag;
-      N := N + 1;
-      for I in Flags'First .. Flags'Last loop
-         A (N) := Flags (I);
-         N := N + 1;
-      end loop;
-      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
-         A (N) := Gcc_Switches.Table (I);
-         N := N + 1;
-      end loop;
-      A (N) := Source;
-      Execute (XE_Gcc, A);
-   end Execute_XE_Gcc;
-
    -----------------------------------
    -- Expand_And_Compile_RCI_Caller --
    -----------------------------------
@@ -570,12 +532,6 @@ package body XE_Utils is
       Source_Name := Name_Buffer (1 .. Name_Len);
       Get_Name_String (Target);
       Target_Name := Name_Buffer (1 .. Name_Len);
-      Execute_XE_Gcc
-        (new String'(Target_Name),
-         new String'(Source_Name),
-         (Sem_Only_Flag,
-          Caller_Build_Flag,
-          I_GARLIC_Dir));
    end Expand_And_Compile_RCI_Caller;
 
    -------------------------------------
@@ -593,12 +549,6 @@ package body XE_Utils is
       Source_Name := Name_Buffer (1 .. Name_Len);
       Get_Name_String (Target);
       Target_Name := Name_Buffer (1 .. Name_Len);
-      Execute_XE_Gcc
-        (new String'(Target_Name),
-         new String'(Source_Name),
-         (Sem_Only_Flag,
-          Receiver_Build_Flag,
-          I_GARLIC_Dir));
    end Expand_And_Compile_RCI_Receiver;
 
    ----------------
@@ -610,7 +560,6 @@ package body XE_Utils is
       Name       : Name_Id;
    begin
 
-      XE_Gcc          := Locate ("xe-gcc");
       Gcc             := Locate ("gcc");
       Mkdir           := Locate ("mkdir");
       Copy            := Locate ("cp");

@@ -1,3 +1,9 @@
+Mon Apr  7 16:27:47 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_utils.adb: Removed references to xe-gcc.
+
+	* Makefile.am: Ditto.
+
 Tue Apr  1 17:22:41 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* Makefile.am, Makefile.in: Add GNATSRC dependency for xe_defs.adb
