@@ -181,7 +181,6 @@ package Lexer is
    Max_Number_Of_Digits : constant Integer := 18;
    --  Number of digits of the biggest allowed integer, 2**64 have 20 digits
 
-
    Token          : Token_Type;
    Token_Location : Location;
 
@@ -190,13 +189,13 @@ package Lexer is
    Token_Name            : Name_Id;   --  for Tokens : T_identifier
    String_Literal_Value  : Name_Id;   --  for Tokens : T_String
 
-   Integer_Literal_Value : Unsigned_Long_Long;
+   Integer_Literal_Value : Long_Long_Unsigned;
    --  for Tokens : T_Integer_Literal
 
    Float_Literal_Value   : Long_Long_Float;
    --  for Tokens : T_Real_Literal
 
-   Numeric_Literal_Base  : Unsigned_Short_Short;
+   Numeric_Literal_Base  : Short_Short_Unsigned;
    --  for Tokens : T_Integer_Literal, T_Real_Literal
 
    function Image (T : Token_Type) return String;
@@ -215,6 +214,11 @@ package Lexer is
       Source_Name : Name_Id);
    --  Load file Source in the lexer
 
+   procedure Restore_Lexer (State : Location);
+   pragma Inline (Restore_Lexer);
+   procedure Save_Lexer (State : out Location);
+   pragma Inline (Save_Lexer);
+
    procedure Scan_Token;
    --  Scan token and update global variables Token, Token_Name
    --  (for identifiers and literals) and Token_Location.
@@ -225,5 +229,8 @@ package Lexer is
    --  special case, when T_Semicolon is expected, we output an error
    --  location at the end of the line instead of the current token
    --  location.
+
+   function End_Of_File return Boolean;
+   --  Return TRUE if there is no more useful data in file or EOF is reached
 
 end Lexer;

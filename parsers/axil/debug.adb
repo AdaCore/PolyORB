@@ -73,23 +73,52 @@ package body Debug is
       return S (S'First + 1 .. S'Last);
    end Image;
 
-   -----------
-   -- Print --
-   -----------
+   ----------------
+   -- Print_Node --
+   ----------------
 
-   procedure Print (N : Node_Id) is
+   procedure Print_Node (N : Node_Id) is
+      Ident : Node_Id;
+      Str   : Name_Id;
+      Node  : Node_Id;
    begin
       case Kind (N) is
          when K_Node_Id =>
-            Put ("Node");
-            Put ("Print TODO");
-            New_Line;
+            Write_Line ("Node_Id = " & Image (N));
+
+         when K_Identifier =>
+            Str := Name (N);
+            Write_Str (Get_Name_String (Str));
+
+         when K_AADL_Specification =>
+            Write_Line ("AADL_Specification: ");
+
+            Node := First_Node (Declarations (N));
+            while Present (Node) loop
+               Print_Node (Node);
+               Node := Next_Node (Node);
+            end loop;
+
+         when K_Package_Name =>
+            Ident := First_Node (List_Id (N));
+            while Present (Ident) loop
+               Print_Node (Ident);
+               Ident := Next_Node (Ident);
+               if Present (Ident) then
+                  Write_Char ('.');
+               end if;
+            end loop;
+
+         when K_Package_Spec =>
+            Write_Str ("Package: ");
+            Print_Node (Node_Id (Full_Name (N)));
+            Write_Eol;
 
          when others =>
-            Put ("Other");
+            Put ("Other node");
             New_Line;
       end case;
-   end Print;
+   end Print_Node;
 
    ---------------
    -- W_Boolean --

@@ -1,16 +1,20 @@
 with GNAT.Command_Line;
 with GNAT.OS_Lib;
-with Ada.Text_IO;     use Ada.Text_IO;
+--  with Ada.Text_IO;     use Ada.Text_IO;
 
+with Debug;           use Debug;
 with Errors;          use Errors;
-with Lexer;           use Lexer;
+with Lexer;
 with Namet;           use Namet;
+with Parser;
 with Types;           use Types;
 with Usage;
 
 procedure Axil is
    File_Desc   : GNAT.OS_Lib.File_Descriptor;
    Source_File : Name_Id := No_Name;
+   Root        : Node_Id;
+
 begin
 
    --  Initialization step
@@ -25,15 +29,9 @@ begin
       return;
    end if;
 
-   Preprocess (Source_File, File_Desc);
-   Process (File_Desc, Source_File);
+   Lexer.Preprocess (Source_File, File_Desc);
+   Lexer.Process (File_Desc, Source_File);
+   Parser.Process (Root);
 
-   loop
-      Scan_Token;
-      Put (Image_Current_Token);
-      Put (' ');
-      if Token = T_EOF then
-         exit;
-      end if;
-   end loop;
+   Print_Node (Root);
 end Axil;

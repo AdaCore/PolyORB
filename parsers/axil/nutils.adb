@@ -1,19 +1,6 @@
 package body Nutils is
 
    -------------------------
-   -- Append_List_To_List --
-   -------------------------
-
-   procedure Append_List_To_List (S : List_Id; D : List_Id) is
-      Last : Node_Id;
-   begin
-      --  TODO
-
-      Last := Last_Node (S);
-      Append_Node_To_List (Last, D);
-   end Append_List_To_List;
-
-   -------------------------
    -- Append_Node_To_List --
    -------------------------
 
@@ -26,6 +13,7 @@ package body Nutils is
       else
          Set_Next_Node (Last, E);
       end if;
+
       Last := E;
       while Present (Last) loop
          Set_Last_Node (L, Last);
