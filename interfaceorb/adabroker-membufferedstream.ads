@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -193,12 +193,12 @@ package AdaBroker.MemBufferedStream is
    --  Unmarshalls a CORBA.Completion_Status from a netbufferedstream object
 
    procedure Marshall
-     (A : in CORBA.Ex_Body'Class;
+     (A : in CORBA.System_Exception_Members'Class;
       S : in out Object'Class);
    --  Marshalls a CORBA system exception into a membufferedstream object
 
    procedure Unmarshall
-     (A : out CORBA.Ex_Body'Class;
+     (A : out CORBA.System_Exception_Members'Class;
       S : in out Object'Class);
    --  Unmarshalls a CORBA system exception from a membufferedstream object
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -824,7 +824,7 @@ package body AdaBroker.OmniORB is
 
       procedure Marshall_System_Exception
         (Repoid : in Constants.Exception_Id;
-         Exbd   : in CORBA.Ex_Body'Class;
+         Exbd   : in CORBA.System_Exception_Members'Class;
          Orls   : in out GIOP_S.Object);
 
       -------------------------------
@@ -833,7 +833,7 @@ package body AdaBroker.OmniORB is
 
       procedure Marshall_System_Exception
         (Repoid : in Constants.Exception_Id;
-         Exbd   : in CORBA.Ex_Body'Class;
+         Exbd   : in CORBA.System_Exception_Members'Class;
          Orls   : in out GIOP_S.Object)
       is
          Msgsize : CORBA.Unsigned_Long := 0;
@@ -873,7 +873,7 @@ package body AdaBroker.OmniORB is
          NetBufferedStream.Marshall (Exbd, Orls);
 
          pragma Debug (O ("Dispatch : Marshalling System Exception : " &
-                          " Ex_Body marshalled OK"));
+                          " System_Exception_Members marshalled OK"));
 
          GIOP_S.Reply_Completed (Orls);
 
@@ -1169,10 +1169,10 @@ package body AdaBroker.OmniORB is
                end;
 
             when E : CORBA.AdaBroker_Fatal_Error |
-              CORBA.No_Initialization_Error      |
+              CORBA.Not_Initialized_Yet          |
               CORBA.C_Out_Of_Range               |
               CORBA.OmniORB_Fatal_Error          |
-              CORBA.Dummy_User                   =>
+              CORBA.Wrong_Union_Case             =>
                pragma Debug (O ("Dispatch : caught a serious error : " &
                                 Ada.Exceptions.Exception_Name (E)));
                raise;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -276,17 +276,17 @@ package AdaBroker.NetBufferedStream is
    --  Compute the size needed to marshall A into S
 
    procedure Marshall
-     (A : in CORBA.Ex_Body'Class;
+     (A : in CORBA.System_Exception_Members'Class;
       S : in out Object'Class);
    --  Marshalls a CORBA system exception into a netbufferedstream object
 
    procedure Unmarshall
-     (A : out CORBA.Ex_Body'Class;
+     (A : out CORBA.System_Exception_Members'Class;
       S : in out Object'Class);
    --  Unmarshalls a CORBA system exception from a netbufferedstream object
 
    function Align_Size
-     (A              : in CORBA.Ex_Body'Class;
+     (A              : in CORBA.System_Exception_Members'Class;
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
