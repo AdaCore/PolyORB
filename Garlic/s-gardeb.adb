@@ -142,8 +142,8 @@ package body System.Garlic.Debug is
       Value    : String_Access    := Getenv (Variable);
       Value_OK : constant Boolean :=
         Value'Length /= 0
-          and then (Value (Value'First) /= 't'
-                   or else Value (Value'First) /= 'T');
+          and then (Value (Value'First) = 't'
+                   or else Value (Value'First) = 'T');
    begin
       Free (Value);
       pragma Assert (Current <= Debug_Key'Last);
