@@ -9,7 +9,7 @@ all:: test_basic
 never::
 
 test_basic: never t_b.cfg
-	gnatdist -v -g t_b.cfg -cargs -gnato -gnata
+	gnatdist -v -g t_b.cfg
 
 t_b.cfg: t_b.cfg.in
 	p=`pwd`; h=`hostname`; sed -e "s,YYYYY,$$h," \
