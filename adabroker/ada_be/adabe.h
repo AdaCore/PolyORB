@@ -82,9 +82,10 @@ public:
   DEF_NARROW_METHODS1(adabe_constant, AST_Constant);
   DEF_NARROW_FROM_DECL(adabe_constant);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
+  void produce_typedef_ads (std::fstream& s, adabe_typedef* tdef);
+  void produce_typedef_adb (std::fstream& s, adabe_typedef* tdef);
+  void produce_typedef_impl_ads (std::fstream& s, adabe_typedef* tdef);
+  void produce_typedef_impl_adb (std::fstream& s, adabe_typedef* tdef);
 
 private:
   adabe_constant();
@@ -104,51 +105,12 @@ public:
   DEF_NARROW_FROM_DECL(adabe_enum);
   DEF_NARROW_FROM_SCOPE(adabe_enum);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
-  void produce_typedef_hdr (std::fstream& s, adabe_typedef* tdef);
-
-  void produce_typecode_skel(std::fstream& s);
-
-  void produce_binary_operators_in_hdr(std::fstream& s);
-  void produce_binary_operators_in_dynskel(std::fstream& s);
-
-  void set_hdr_produced_in_field() { pd_hdr_produced_in_field = I_TRUE; }
-  idl_bool get_hdr_produced_in_field() { return pd_hdr_produced_in_field; }
-  void set_skel_produced_in_field() { pd_skel_produced_in_field = I_TRUE; }
-  idl_bool get_skel_produced_in_field() { return pd_skel_produced_in_field; }
-  void set_dynskel_produced_in_field()
-  { pd_dynskel_produced_in_field = I_TRUE; }
-  idl_bool get_dynskel_produced_in_field()
-  { return pd_dynskel_produced_in_field; }
-
-  void set_binary_operators_hdr_produced_in_field() {
-    pd_binary_operators_hdr_produced_in_field = I_TRUE;
-  }
-  idl_bool get_binary_operators_hdr_produced_in_field() {
-    return pd_binary_operators_hdr_produced_in_field;
-  }
-  void set_binary_operators_skel_produced_in_field() {
-    pd_binary_operators_skel_produced_in_field = I_TRUE;
-  }
-  idl_bool get_binary_operators_skel_produced_in_field() {
-    return pd_binary_operators_skel_produced_in_field;
-  }
-
-  void set_have_produced_typecode_skel()
-  { pd_have_produced_typecode_skel = I_TRUE; }
-  idl_bool have_produced_typecode_skel()
-  { return pd_have_produced_typecode_skel; }
-
+  void produce_ads(std::fstream& s);
+  void produce_ads(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s);
+  
 private:
-  idl_bool pd_hdr_produced_in_field;
-  idl_bool pd_skel_produced_in_field;
-  idl_bool pd_dynskel_produced_in_field;
-  idl_bool pd_binary_operators_hdr_produced_in_field;
-  idl_bool pd_binary_operators_skel_produced_in_field;
-  idl_bool pd_have_produced_typecode_skel;
-
   adabe_enum();
 };
 
@@ -181,9 +143,6 @@ public:
   DEF_NARROW_FROM_DECL(adabe_string);
 
   static const char* fieldMemberTypeName();
-  static void produce_typedef_hdr (std::fstream& s, adabe_typedef* tdef);
-
-  size_t max_length();
 
 private:
   adabe_string();
@@ -221,62 +180,11 @@ public:
 
   virtual AST_UnionBranch *add_union_branch(AST_UnionBranch *un);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
-  void produce_typedef_hdr (std::fstream& s, adabe_typedef* tdef);
-
-  void produce_typecode_skel(std::fstream& s);
-
-  void produce_decls_at_global_scope_in_hdr(std::fstream& s);
-
-  void produce_binary_operators_in_hdr(std::fstream& s);
-  void produce_binary_operators_in_dynskel(std::fstream& s);
-
-  idl_bool isVariable() { return pd_isvar; }
-  idl_bool nodefault() { return pd_nodefault; }
-  idl_bool no_missing_disc_value();
-
-  void set_hdr_produced_in_field() { pd_hdr_produced_in_field = I_TRUE; }
-  idl_bool get_hdr_produced_in_field() { return pd_hdr_produced_in_field; }
-  void set_skel_produced_in_field() { pd_skel_produced_in_field = I_TRUE; }
-  idl_bool get_skel_produced_in_field() { return pd_skel_produced_in_field; }
-  void set_dynskel_produced_in_field()
-  { pd_dynskel_produced_in_field = I_TRUE; }
-  idl_bool get_dynskel_produced_in_field()
-  { return pd_dynskel_produced_in_field; }
-
-  void set_binary_operators_hdr_produced_in_field() {
-    pd_binary_operators_hdr_produced_in_field = I_TRUE;
-  }
-  idl_bool get_binary_operators_hdr_produced_in_field() {
-    return pd_binary_operators_hdr_produced_in_field;
-  }
-  void set_binary_operators_skel_produced_in_field() {
-    pd_binary_operators_skel_produced_in_field = I_TRUE;
-  }
-  idl_bool get_binary_operators_skel_produced_in_field() {
-    return pd_binary_operators_skel_produced_in_field;
-  }
-
-  void set_have_produced_typecode_skel()
-  { pd_have_produced_typecode_skel = I_TRUE; }
-  idl_bool have_produced_typecode_skel()
-  { return pd_have_produced_typecode_skel; }
-
-  const char* out_adptarg_name(AST_Decl* used_in) const;
-
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s);
 private:
-  idl_bool pd_hdr_produced_in_field;
-  idl_bool pd_skel_produced_in_field;
-  idl_bool pd_dynskel_produced_in_field;
-  idl_bool pd_binary_operators_hdr_produced_in_field;
-  idl_bool pd_binary_operators_skel_produced_in_field;
-  idl_bool pd_isvar;
-  idl_bool pd_nodefault;
-  char* pd_out_adptarg_name;
-  idl_bool pd_have_produced_typecode_skel;
-
   adabe_union();
 
 };
@@ -307,67 +215,17 @@ public:
 
   adabe_structure(UTL_ScopedName *n, UTL_StrList *p);
 
-  virtual AST_Field *add_field(AST_Field *f);
-
-  DEF_NARROW_METHODS1(adabe_structure, AST_Structure);
+   DEF_NARROW_METHODS1(adabe_structure, AST_Structure);
   DEF_NARROW_FROM_DECL(adabe_structure);
   DEF_NARROW_FROM_SCOPE(adabe_structure);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
-  void produce_typedef_hdr (std::fstream& s, adabe_typedef* tdef);
-
-  void produce_typecode_skel(std::fstream& s);
-
-  void produce_decls_at_global_scope_in_hdr(std::fstream& s);
-
-  void produce_binary_operators_in_hdr(std::fstream& s);
-  void produce_binary_operators_in_dynskel(std::fstream& s);
-
-  idl_bool isVariable() { return pd_isvar; }
-
-  void set_hdr_produced_in_field() { pd_hdr_produced_in_field = I_TRUE; }
-  idl_bool get_hdr_produced_in_field() { return pd_hdr_produced_in_field; }
-  void set_skel_produced_in_field() { pd_skel_produced_in_field = I_TRUE; }
-  idl_bool get_skel_produced_in_field() { return pd_skel_produced_in_field; }
-  void set_dynskel_produced_in_field()
-  { pd_dynskel_produced_in_field = I_TRUE; }
-  idl_bool get_dynskel_produced_in_field()
-  { return pd_dynskel_produced_in_field; }
-
-  void set_binary_operators_hdr_produced_in_field() {
-    pd_binary_operators_hdr_produced_in_field = I_TRUE;
-  }
-  idl_bool get_binary_operators_hdr_produced_in_field() {
-    return pd_binary_operators_hdr_produced_in_field;
-  }
-  void set_binary_operators_skel_produced_in_field() {
-    pd_binary_operators_skel_produced_in_field = I_TRUE;
-  }
-  idl_bool get_binary_operators_skel_produced_in_field() {
-    return pd_binary_operators_skel_produced_in_field;
-  }
-
-  void set_have_produced_typecode_skel()
-  { pd_have_produced_typecode_skel = I_TRUE; }
-  idl_bool have_produced_typecode_skel()
-  { return pd_have_produced_typecode_skel; }
-
-  const char* out_adptarg_name(AST_Decl* used_in) const;
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s);
 
 private:
-  idl_bool pd_hdr_produced_in_field;
-  idl_bool pd_skel_produced_in_field;
-  idl_bool pd_dynskel_produced_in_field;
-  idl_bool pd_binary_operators_hdr_produced_in_field;
-  idl_bool pd_binary_operators_skel_produced_in_field;
-  idl_bool pd_isvar;
-  char* pd_out_adptarg_name;
-  idl_bool pd_have_produced_typecode_skel;
-
   adabe_structure();
-
 };
 
 
@@ -382,28 +240,12 @@ public:
   DEF_NARROW_FROM_DECL(adabe_exception);
   DEF_NARROW_FROM_SCOPE(adabe_exception);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
-
-  void produce_typecode_skel(std::fstream& s);
-
-  void set_have_produced_typecode_skel()
-  { pd_have_produced_typecode_skel = I_TRUE; }
-  idl_bool have_produced_typecode_skel()
-  { return pd_have_produced_typecode_skel; }
-
-  void produce_binary_operators_in_hdr(std::fstream& s);
-  void produce_binary_operators_in_dynskel(std::fstream& s);
-
-  size_t repoIdConstLen() const { return pd_repoidsize; }
-  const char* repoIdConstName() const { return pd_repoid; }
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s);
 
 private:
-  char* pd_repoid;
-  size_t pd_repoidsize;
-  idl_bool pd_have_produced_typecode_skel;
-
   adabe_exception();
 };
 
@@ -419,93 +261,16 @@ public:
   DEF_NARROW_METHODS1(adabe_array, AST_Array);
   DEF_NARROW_FROM_DECL(adabe_array);
 
-  idl_bool isVariable();
+  void produce_ads (std::fstream& s, adabe_typedef* tdef);
+  void produce_adb(std::fstream& s, adabe_typedef* tdef);
+  void produce_impl_ads(std::fstream& s, adabe_typedef* tdef);
+  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
-  size_t getSliceDim();
-  // Get the array slice dimension
 
-  AST_Decl *getElementType();
-  // returns the element type. If the element is an array, returns the
-  // value returned by the recursive call to getElementType().
-
-  size_t   getNumOfElements();
-  // return the total number of elements. This is the sum of all the
-  // dimensions. If the element is an array, multiply by the
-  // value returned by the recursive call to getNumOfElements().
-
-  size_t   getNumOfDims();
-  // return the number of dimensions. If the element is an array, add
-  // the value returned by the recursive call to getNumOfDims();
-
-  class dim_iterator {
-  public:
-    dim_iterator(adabe_array *);
-    ~dim_iterator() {};
-    size_t operator() ();
-    // iterates and returns the value of each dimension. If the element is
-    // an array, also returns the dimensions of the array element.
-  private:
-    size_t pd_ndim;
-    size_t pd_next;
-    AST_Expression **pd_dims;
-  };
-
-  const char* member_name(AST_Decl* decl, AST_Decl* used_in);
-  // Returns the type name for the c++ type that should
-  // be used to represent the given type in an array. The
-  // name is suitably scoped to be used in <used_in>.
-
-  const char* element_name(AST_Decl* used_in) {
-    return member_name(base_type(), used_in);
-  }
-  // Returns the type name for the c++ type we will be
-  // using as the element, suitably scoped.
-
-  void produce_hdr (std::fstream& s, adabe_typedef* tdef);
-  void produce_skel(std::fstream& s, adabe_typedef* tdef);
-  void produce_dynskel(std::fstream& s, adabe_typedef* tdef);
-
-  void produce_binary_operators_in_hdr(std::fstream& s, adabe_typedef* tdef);
-  void produce_binary_operators_in_dynskel(std::fstream& s, adabe_typedef*tdef);
-
-  void produce_typecode_skel(std::fstream& s);
-  void produce_typecode_member(std::fstream& s);
-
-  static void produce_typedef_hdr (std::fstream& s, adabe_typedef* tdef1,
-				   adabe_typedef* tdef2);
-  static void produce_typedef_skel (std::fstream& s, adabe_typedef* tdef1,
-				    adabe_typedef* tdef2);
-  void produce_typedef_in_union(std::fstream& s, const char* tname,
-				AST_Decl* used_in);
-  // Looks at the scope-name relation between this node and the one it is
-  // used in. Generate the fieldmember type that used the unambiguous name
-  // of this node in the scope where it is used.
-
-  void produce_struct_member_decl (std::fstream& s, AST_Decl *fieldtype,
-				   AST_Decl* used_in);
-  // Looks at the scope-name relation between <fieldtype> and the one it is
-  // used in. Generate the fieldmember type that used the unambiguous name
-  // of <fieldtype> in the scope where it is used.
-
-  void produce_union_member_decl (std::fstream& s, AST_Decl *fieldtype,
-				  AST_Decl* used_in);
-  // Looks at the scope-name relation between <fieldtype> and the one it is
-  // used in. Generate the fieldmember type that used the unambiguous name
-  // of <fieldtype> in the scope where it is used.
-
-  void produce_buildDesc_support(std::fstream& s);
-  // Generates the tcDescriptor code required for the array type.
-
-  void call_buildDesc(std::fstream& s, const char*, const char*);
-  // Produce a call to _0RL_tcParser_buildDesc() for this type.
-
-  const char* out_adptarg_name(adabe_typedef* tdef,AST_Decl* used_in) const;
 
 private:
   adabe_array();
-  void _produce_member_decl(std::fstream& s, char* varname,AST_Decl* used_in);
 
-  idl_bool pd_have_produced_tcParser_buildDesc_code;
 };
 
 
@@ -518,59 +283,17 @@ public:
   adabe_sequence(AST_Expression *v, AST_Type *bt);
   ~adabe_sequence() {}
 
-  char* seq_template_name(AST_Decl* used_in);
-  // Looks at the scope-name relation between the element class and the one it
-  // is used in. Generate the template that used the unambiguous name of
-  // the element in the scope where this template name is used.
-
-  const char* seq_member_name(AST_Decl* used_in);
-  // Looks at the scope-name relation between the element class and the one it
-  // is used in. Generate the template that used the unambiguous name of
-  // the element in the scope where this template name is used.
-
-  size_t bound();
-  // Returns the bound on the sequence - or 0 for an unbounded sequence.
-
-  size_t recursive_sequence_offset();
-  // Calculate the number of declarations between this sequence and
-  // it's content type - or zero if the sequence is not recursive.
-
   DEF_NARROW_METHODS1(adabe_sequence, AST_Sequence);
   DEF_NARROW_FROM_DECL(adabe_sequence);
   DEF_NARROW_FROM_SCOPE(adabe_sequence);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
-
-  void produce_binary_operators_in_hdr(std::fstream& s);
-  void produce_binary_operators_in_dynskel(std::fstream& s);
-
-  void produce_typedef_hdr (std::fstream& s, adabe_typedef* tdef);
-
-  void produce_typedef_binary_operators_in_hdr(std::fstream& s,
-					       adabe_typedef* tdef);
-  void produce_typedef_binary_operators_in_dynskel(std::fstream& s,
-						   adabe_typedef* tdef);
-
-  void produce_typecode_skel(std::fstream& s);
-  void produce_typecode_member(std::fstream& s);
-
-  static void produce_hdr_for_predefined_types(std::fstream& s);
-
-  void produce_buildDesc_support(std::fstream& s);
-  // Generates the tcDescriptor code required for this type.
-
-  static AST_Sequence *attach_seq_to_base_type(AST_Sequence *se);
-
-  const char* out_adptarg_name(adabe_typedef* tdef,AST_Decl* used_in) const;
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
 private:
   adabe_sequence();
-
-  idl_bool pd_have_produced_tcParser_buildDesc_code;
-  idl_bool pd_have_calc_rec_seq_offset;
-  size_t   pd_rec_seq_offset;
 };
 
 
@@ -600,69 +323,14 @@ public:
   DEF_NARROW_FROM_DECL(adabe_attribute);
   DEF_NARROW_FROM_SCOPE(adabe_attribute);
 
-  void produce_decl_rd(std::fstream& s,
-		       idl_bool use_fully_qualified_names = I_FALSE);
-
-  void produce_decl_wr(std::fstream& s,
-		       idl_bool use_fully_qualified_names = I_FALSE,
-		       idl_bool for_call_desc = I_FALSE);
-
-  void produce_read_proxy_call_desc(std::fstream& s, const char* class_name);
-  void produce_write_proxy_call_desc(std::fstream& s, const char* class_name);
-  // Generate the call descriptors for this attribute signature.
-
-  void produce_proxy_rd_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the definition of the proxy's method to get this attribute
-
-  void produce_proxy_wr_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the definition of the proxy's method to set this attribute
-
-  void produce_server_rd_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the code fragment within the server's dispatch routine
-  // to handle getting this attribute
-
-  void produce_server_wr_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the code fragment within the server's dispatch routine
-  // to handle setting this attirbute
-
-  void produce_nil_rd_skel(std::fstream& s);
-  // produce the definition of the nil object's method to get this attribute
-
-  void produce_nil_wr_skel(std::fstream& s);
-  // produce the definition of the nil object's method to set this attribute
-
-  void produce_dead_rd_skel(std::fstream& s);
-  // produce the definition of the dead object's get method
-
-  void produce_dead_wr_skel(std::fstream& s);
-  // produce the definition of the dead object's set method
-
-  void produce_home_rd_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the _wrap_home get method
-
-  void produce_home_wr_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the _wrap_home set method
-
-  void produce_lcproxy_rd_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the LifeCycle proxy's method to get this attribute
-
-  void produce_lcproxy_wr_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the LifeCycle proxy's method to set this attribute
-
-  void produce_wrapproxy_rd_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the _wrap_proxy get method
-
-  void produce_wrapproxy_wr_skel(std::fstream& s,adabe_interface &defined_in);
-  // produce the _wrap_proxy set method
-
-  const char* mangled_read_signature();
-  const char* mangled_write_signature();
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
 private:
   adabe_attribute();
 
-  char* pd_mangled_read_signature;
-  char* pd_mangled_write_signature;
 };
 
 
@@ -679,80 +347,11 @@ public:
   DEF_NARROW_FROM_DECL(adabe_operation);
   DEF_NARROW_FROM_SCOPE(adabe_operation);
 
-  void produce_decl(std::fstream& s,
-		    const char* prefix = 0,
-		    const char* alias_prefix = 0,
-		    idl_bool out_var_default = I_TRUE,
-		    idl_bool use_fully_qualified_names = I_FALSE);
-  // Produce the declaration of the mapping of this operation.
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
-  void produce_invoke(std::fstream& s);
-  // Produce an invocation. Uses the argument names as defined in
-  // the IDL.
-
-  static void produce_arg_decl(std::fstream& s, adabe_argument* arg,
-			       AST_Decl* used_in,
-			       const char* argname,
-			       const char* argnameprefix=0);
-  // Produce a declaration for an argument. If <argname> is zero
-  // then only the type is produced.
-
-  void produce_return_decl(std::fstream& s, AST_Decl* used_in,
-			   const char* varname,
-			   const char* varnameprefix=0);
-  // Produce a declaration for a variable of a type suitable
-  // for storing the return type of this operation. If <varname>
-  // is zero then only the type is produced.
-
-  void produce_proxy_call_desc(std::fstream& s, const char* class_name);
-  // Generate the call descriptor for this operation signature.
-
-  void produce_proxy_skel(std::fstream& s,adabe_interface &defined_in,
-			  const char* alias_prefix=0);
-  // Produce the definition of the proxy's method to invoke this
-  // operation.
-
-  void produce_server_skel(std::fstream& s, adabe_interface& defined_in);
-  // Produce the code fragment within the server's dispatch routine
-  // to handle this operation.
-
-  void produce_nil_skel(std::fstream& s,const char* alias_prefix=0);
-  // Produce the definition of the nil object's method.
-
-  void produce_dead_skel(std::fstream& s,const char* alias_prefix=0);
-  // Produce the definition of the dead object's method.
-
-  void produce_home_skel(std::fstream& s,adabe_interface &defined_in,
-			 const char* alias_prefix=0);
-  // Produce the _wrap_home method.
-
-  void produce_lcproxy_skel(std::fstream& s,adabe_interface &defined_in,
-			    const char* alias_prefix=0);
-  // Produce the LifeCycle proxy's method to invoke this operation.
-
-  void produce_wrapproxy_skel(std::fstream& s,adabe_interface &defined_in,
-			      const char* alias_prefix=0);
-  // Produce the _wrap_proxy method.
-
-  void produce_mapping_with_indirection(std::fstream& s,
-					const char* alias_prefix);
-  // Produce the mapping for this operation using the adaptation classes
-  // <T>_INOUT_arg and <T>_OUT_arg.
-
-  idl_bool has_variable_out_arg();
-  // Return true if there is any variable length OUT arguments.
-
-  idl_bool has_pointer_inout_arg();
-  // Return true if there is any string or objref INOUT arguments.
-
-  idl_bool return_is_void();
-  // Returns I_TRUE if the return value of this operation is void.
-
-  idl_bool has_any_in_args();
-  idl_bool has_any_inout_args();
-  idl_bool has_any_out_args();
-
-  const char* mangled_signature();
 
   friend class adabe_attribute;
   friend class adabe_structure;
@@ -761,76 +360,10 @@ public:
   friend class adabe_exception;
   friend class adabe_array;
 
-  enum argType {
-    tShort = 0, tLong = 1, tUShort = 2, tULong = 3, tFloat = 4, tDouble = 5,
-    tBoolean = 6, tChar = 7, tOctet = 8, tEnum = 9, tObjref = 10,
-    tStructFixed = 11, tStructVariable = 12, tUnionFixed = 13,
-    tUnionVariable = 14, tString = 15, tSequence = 16, tArrayFixed = 17,
-    tArrayVariable = 18, tAny = 19, tTypeCode = 20, tObjrefMember = 21,
-    tStringMember = 22, tTypeCodeMember = 23,
-    _tMaxValue
-  };
-
-  struct argMapping {
-    idl_bool is_const;
-    idl_bool is_reference;
-    idl_bool is_pointer;
-    idl_bool is_arrayslice;
-  };
-
-  enum argWhich {
-    wResult, wIN, wOUT, wINOUT
-  };
-
-  static argType ast2ArgMapping(AST_Decl* decl, argWhich dir,
-				argMapping& mapping);
 
 private:
   adabe_operation();
 
-  inline idl_bool no_user_exception() {
-    return exceptions() == NULL ? I_TRUE : I_FALSE;
-  }
-  // Returns I_TRUE if this operation does not raise a user exception.
-
-  static
-  void declareVarType(std::fstream& s, AST_Decl *decl, AST_Decl* used_in,
-		      idl_bool is_var=0,
-		      idl_bool is_arrayslice=0);
-
-  static
-  void produceUnMarshalCode(std::fstream& s, AST_Decl *decl, AST_Decl* used_in,
-			    const char* netstream,
-			    const char* argname,
-			    argType type, argMapping mapping,
-			    idl_bool no_size_check=0);
-
-  static
-  void produceMarshalCode(std::fstream& s, AST_Decl *decl, AST_Decl* used_in,
-			  const char* netstream,
-			  const char* argname,
-			  argType type, argMapping mapping);
-
-  static
-  void produceSizeCalculation(std::fstream& s, AST_Decl *decl,
-			      AST_Decl* used_in,
-			      const char* netstream,
-			      const char* sizevar,
-			      const char* argname,
-			      argType type, argMapping mapping);
-
-  static
-  void produceConstStringMarshalCode(std::fstream& s,
-				     const char* netstream,
-				     const char* str,size_t len);
-
-  static
-  void produceConstStringSizeCalculation(std::fstream& s,
-					 const char* sizevar,
-					 size_t len);
-
-private:
-  char* pd_mangled_signature;
 };
 
 
@@ -845,29 +378,13 @@ public:
   DEF_NARROW_METHODS1(adabe_typedef, AST_Typedef);
   DEF_NARROW_FROM_DECL(adabe_typedef);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
-  void produce_binary_operators_in_hdr(std::fstream& s);
-  void produce_binary_operators_in_dynskel(std::fstream& s);
-
-  void produce_typecode_skel(std::fstream& s);
-
-  void set_have_produced_typecode_skel()
-  { pd_have_produced_typecode_skel = I_TRUE; }
-  idl_bool have_produced_typecode_skel()
-  { return pd_have_produced_typecode_skel; }
-
-  const char* fieldMemberType_uqname() const { return pd_fm_uqname; }
-  const char* fieldMemberType_fqname(AST_Decl* used_in);
-  // Looks at the scope-name relation between this node and the one it is
-  // used in. Generate the fieldmember type that used the unambiguous name
-  // of this node in the scope where this template name is used.
 
 private:
-  char* pd_fm_uqname;
-  idl_bool pd_have_produced_typecode_skel;
 
   adabe_typedef();
 };
@@ -886,105 +403,12 @@ public:
   DEF_NARROW_FROM_DECL(adabe_interface);
   DEF_NARROW_FROM_SCOPE(adabe_interface);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
-
-  void produce_binary_operators_in_hdr(std::fstream& s);
-  void produce_binary_operators_in_dynskel(std::fstream& s);
-
-  void produce_typedef_hdr (std::fstream& s, adabe_typedef* tdef);
-  void produce_tie_templates(std::fstream& s);
-
-  void produce_buildDesc_decls(std::fstream& s, idl_bool even_if_in_main_file);
-
-  const char* objref_uqname() const { return pd_objref_uqname; }
-  const char* objref_fqname() const { return pd_objref_fqname; }
-  const char* proxy_uqname() const { return pd_proxy_uqname; }
-  const char* proxy_fqname() const { return pd_proxy_fqname; }
-  const char* server_uqname() const { return pd_server_uqname; }
-  const char* server_fqname() const { return pd_server_fqname; }
-  const char* fieldMemberType_uqname() const { return pd_fieldmem_uqname; }
-  const char* fieldMemberType_fqname(AST_Decl* used_in) const;
-  // Looks at the scope-name relation between this node and the one it is
-  // used in. Generate the fieldmember type that used the unambiguous name
-  // of this node in the scope where this template name is used.
-  //?? DJR - I think this should be called something with 'unambiguos'
-  // in the name. We can ALSO have one of this name which always gives
-  // it from the root context.
-
-  const char* nil_uqname() const { return pd_nil_uqname; }
-  const char* nil_fqname() const { return pd_nil_fqname; }
-
-  const char* lcserver_uqname() const { return pd_lcserver_uqname; }
-  const char* lcserver_fqname() const { return pd_lcserver_fqname; }
-  const char* dead_uqname() const { return pd_dead_uqname; }
-  const char* dead_fqname() const { return pd_dead_fqname; }
-  const char* home_uqname() const { return pd_home_uqname; }
-  const char* home_fqname() const { return pd_home_fqname; }
-  const char* lcproxy_uqname() const { return pd_lcproxy_uqname; }
-  const char* lcproxy_fqname() const { return pd_lcproxy_fqname; }
-  const char* wrapproxy_uqname() const { return pd_wrapproxy_uqname; }
-  const char* wrapproxy_fqname() const { return pd_wrapproxy_fqname; }
-
-  const char* IRrepoId() const { return pd_IRrepoId; }
-  size_t IRrepoIdSize() const { return pd_IRrepoIdSize; }
-  const char* inout_adptarg_name(AST_Decl* used_in) const;
-  const char* out_adptarg_name(AST_Decl* used_in) const;
-
-  const char* unambiguous_objref_name(AST_Decl* used_in,
-				      idl_bool use_fqname=I_FALSE) const;
-  const char* unambiguous_proxy_name(AST_Decl* used_in,
-				     idl_bool use_fqname=I_FALSE) const;
-  const char* unambiguous_server_name(AST_Decl* used_in,
-				      idl_bool use_fqname=I_FALSE) const;
-  const char* unambiguous_nil_name(AST_Decl* used_in,
-				   idl_bool use_fqname=I_FALSE) const;
-
-  const char* unambiguous_home_name(AST_Decl* used_in,
-				    idl_bool use_fqname=I_FALSE) const;
-  const char* unambiguous_dead_name(AST_Decl* used_in,
-				    idl_bool use_fqname=I_FALSE) const;
-
-  const char* unambiguous_wrapproxy_name(AST_Decl* used_in,
-					 idl_bool use_fqname=I_FALSE) const;
-  const char* unambiguous_lcserver_name(AST_Decl* used_in,
-					idl_bool use_fqname=I_FALSE) const;
-  const char* unambiguous_lcproxy_name(AST_Decl* used_in,
-				      idl_bool use_fqname=I_FALSE) const;
-
-  static idl_bool check_opname_clash(adabe_interface *p,char* opname);
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
 private:
-  char* pd_objref_uqname;
-  char* pd_objref_fqname;
-  char* pd_proxy_uqname;
-  char* pd_proxy_fqname;
-  char* pd_server_uqname;
-  char* pd_server_fqname;
-  char* pd_fieldmem_uqname;
-  char* pd_fieldmem_fqname;
-  char* pd_nil_uqname;
-  char* pd_nil_fqname;
-
-  char* pd_lcserver_uqname;
-  char* pd_lcserver_fqname;
-  char* pd_dead_uqname;
-  char* pd_dead_fqname;
-  char* pd_home_uqname;
-  char* pd_home_fqname;
-  char* pd_lcproxy_uqname;
-  char* pd_lcproxy_fqname;
-  char* pd_wrapproxy_uqname;
-  char* pd_wrapproxy_fqname;
-
-  char* pd_IRrepoId;
-  size_t pd_IRrepoIdSize;
-  char* pd_inout_adptarg_name;
-  char* pd_out_adptarg_name;
-
-  idl_bool pd_have_produced_buildDesc_decls;
-
   adabe_interface();
 };
 
@@ -1000,16 +424,15 @@ public:
   DEF_NARROW_FROM_DECL(adabe_interface_fwd);
   DEF_NARROW_FROM_SCOPE(adabe_interface_fwd);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
-  void produce_buildDesc_decls(std::fstream& s, idl_bool even_if_in_main_file);
 
 private:
   adabe_interface_fwd();
 
-  idl_bool pd_have_produced_buildDesc_decls;
 };
 
 
@@ -1024,16 +447,10 @@ public:
   DEF_NARROW_FROM_DECL(adabe_module);
   DEF_NARROW_FROM_SCOPE(adabe_module);
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
-
-  void produce_decls_at_global_scope_in_hdr(std::fstream& s);
-
-  void produce_binary_operators_in_hdr(std::fstream& s);
-  void produce_binary_operators_in_dynskel(std::fstream& s);
-
-  void produce_tie_templates(std::fstream& s);
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
 private:
   adabe_module();
@@ -1066,16 +483,12 @@ private:
   std::fstream pd_skel;
   std::fstream pd_dynskel;
 
-  void produce_hdr(std::fstream& s);
-  void produce_skel(std::fstream& s);
-  void produce_dynskel(std::fstream& s);
+  void produce_ads(std::fstream& s);
+  void produce_adb(std::fstream& s);
+  void produce_impl_ads(std::fstream& s);
+  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 };
 
-
-#define DEFAULT_IDL_HDR_SUFFIX     ".hh"
-#define DEFAULT_IDL_SKEL_SUFFIX    "SK.cc"
-#define DEFAULT_IDL_DYNSKEL_SUFFIX "DynSK.cc"
-#define DEFAULT_IDL_SUFFIXLEN      8    // Max. length of above strings
 
 class adabe_global {
 private:
@@ -1227,9 +640,6 @@ public:
   virtual AST_String *
           create_string(AST_Expression *v);
 
-  virtual AST_String *
-          create_wstring(AST_Expression *v);
-
   virtual AST_Typedef *
           create_typedef(AST_Type *bt,
 			 UTL_ScopedName *n,
@@ -1300,54 +710,5 @@ private:
   adabe_fe_error();
 };
 
-
-class adabe_buildDesc {
-public:
-  static void produce_decls(std::fstream& s, AST_Decl* decl,
-			    idl_bool even_if_in_main_file = I_FALSE);
-  // Declare _0RL_tcParser_buildDesc functions for types used as members
-  // of structs, exceptions, unions, sequence and array base types and
-  // union discriminators - if such a function has not already been
-  // declared.
-  //  If <even_if_in_main_file> is I_TRUE, then the declaration will be
-  // generated even if the type is defined in this source file. This is
-  // needed to support recursive sequences.
-
-  static void call_buildDesc(std::fstream& s, AST_Decl* decl,
-			     const char* newdesc, const char* instance_name);
-  // Produce code to call the _0RL_tcParser_buildDesc function
-  // for the given declaration. <newdesc> must be an expression
-  // which evaluates to a tcDescriptor&, and <from> an expression
-  // evalulating to the data object to be described by it.
-};
-
-
-class adabe_call_desc {
-public:
-  static void produce_descriptor(std::fstream& s, adabe_operation& op);
-  static void produce_descriptor(std::fstream& s, adabe_attribute& attr);
-  // Generate the call descriptor(s) for the given operation,
-  // if necassary. (ie. the call descriptor is generated at
-  // most once for a given signature. Some signatures are
-  // defined in the library, and so not generated at all).
-
-  static const char* descriptor_name(adabe_operation& op);
-  static const char* read_descriptor_name(adabe_attribute& attr);
-  static const char* write_descriptor_name(adabe_attribute& attr);
-  // These return the name of the call descriptor class for the
-  // given operation or attribute.
-};
-
-
-class adabe_name_mangler {
-public:
-  static char* produce_idname(UTL_ScopedName* n);
-  static char* produce_canonical_name(AST_Decl* decl);
-
-  static char* produce_operation_signature(adabe_operation& op);
-  static char* produce_attribute_read_signature(adabe_attribute& attr);
-  static char* produce_attribute_write_signature(adabe_attribute& attr);
-};
-
-
 #endif
+
