@@ -37,6 +37,10 @@ with System.Garlic.Heart;
 
 package System.Garlic.Options is
 
+   Task_Pool_Low_Bound  : Positive := 3;
+   Task_Pool_High_Bound : Positive := 6;
+   Task_Pool_Max_Bound  : Positive := 9;
+
    function Get_Boot_Server return String;
    --  Return value specified by --boot_server command line arg or else
    --         value specified by "BOOT_SERVER" environment var or else

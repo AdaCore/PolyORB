@@ -1,3 +1,11 @@
+Wed May 14 14:35:11 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* s-garopt.ads: Add three variables to handle anonymous task pool.
+
+Mon May 12 12:32:53 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* Makefile.am, Makefile.in: Add s-rpstio.o dependencies.
+
 Sun May 11 18:12:24 1997  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* Makefile.zip: Don't rebuild zlib all the time.
