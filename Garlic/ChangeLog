@@ -1,5 +1,7 @@
 1998-09-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* Makefile.am, Makefile.in: Update dependencies
+
 	* s-rpc.adb: Reject any partition error notification when shutdown 
 	in progress.
 
