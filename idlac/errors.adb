@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                               E R R O R S                                --
+--                        I D L _ F E . E R R O R S                         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --

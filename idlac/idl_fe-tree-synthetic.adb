@@ -26,16 +26,8 @@
 
 with Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
-with Idl_Fe.Debug;
 
 package body Idl_Fe.Tree.Synthetic is
-
-   -----------
-   -- Debug --
-   -----------
-
-   Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.tree.synthetic");
-   procedure O is new Idl_Fe.Debug.Output (Flag);
 
    function Is_Interface_Type
      (Node : Node_Id)
@@ -185,25 +177,6 @@ package body Idl_Fe.Tree.Synthetic is
 
       return Result;
    end All_Ancestors;
-
-   ---------------------
-   --  Primary_Parent --
-   ---------------------
-   function Primary_Parent (Node : in Node_Id) return Node_Id is
-      It : Node_Iterator;
-      Candidate : Node_Id;
-   begin
-      pragma Assert ((Kind (Node) = K_Interface)
-                     or (Kind (Node) = K_ValueType));
-      Init (It, Parents (Node));
-      while not Is_End (It) loop
-         Get_Next_Node (It, Candidate);
-         if not Abst (Value (Candidate)) then
-            return Candidate;
-         end if;
-      end loop;
-      return No_Node;
-   end Primary_Parent;
 
    function Integer_Value
      (Node : Node_Id)

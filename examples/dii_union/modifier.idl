@@ -1,9 +1,0 @@
-interface Modifier {
-  union example switch (long) {
-  case 1: long Counter;
-  case 2: boolean Flag;
-  default: long Unknown;
-  };
-
-  example modify (in example arg);
-};

@@ -102,11 +102,6 @@ package Idl_Fe.Tree.Synthetic is
    --  It is up to the caller to Free the returned Node_List
    --  after use.
 
-   function Primary_Parent (Node : in Node_Id) return Node_Id;
-   --  return the first non abstract parent interface for an interface node,
-   --  and the first non abstract parent valuetype for a valuetype node.
-   --  returns No_Node if such a parent does not exist
-
    function Integer_Value
      (Node : Node_Id)
      return Integer;

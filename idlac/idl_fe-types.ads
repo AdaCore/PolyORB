@@ -26,7 +26,6 @@
 
 with Errors;
 with Ada.Unchecked_Deallocation;
-with Interfaces;
 
 package Idl_Fe.Types is
 
@@ -52,13 +51,6 @@ package Idl_Fe.Types is
    procedure Set_Location (N : Node_Id;
                            Loc : Location);
    function Get_Location (N : Node_Id) return Location;
-
-   --  Version types for repository_ids
-   type Version_Type is
-      record
-         Major : Interfaces.Unsigned_16;
-         Minor : Interfaces.Unsigned_16;
-      end record;
 
 
    ----------------------------------
@@ -575,19 +567,6 @@ package Idl_Fe.Types is
       Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
       Content_Table : Table;
    end record;
-
-   -----------------------------------
-   --  dealing with Repository_Ids  --
-   -----------------------------------
-
-   procedure Set_Default_Repository_Id
-     (Node : Node_Id);
-   --  Set Node's default repository id.
-
-   procedure Set_Initial_Current_Prefix
-     (Node : Node_Id);
-   --  Set the current prefix for scope Node
-   --  from its parent's.
 
 private
 

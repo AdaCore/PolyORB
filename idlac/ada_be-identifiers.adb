@@ -114,9 +114,6 @@ package body Ada_Be.Identifiers is
      (Node : Node_Id)
      return String is
    begin
-      pragma Debug (O ("Parent_Scope_Name : enter & end"));
-      pragma Debug (O ("Parent_Scope_Name : node kind is "
-                       & Node_Kind'Image (Kind (Node))));
       return Ada_Full_Name (Parent_Scope (Node));
    end Parent_Scope_Name;
 

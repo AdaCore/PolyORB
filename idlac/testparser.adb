@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                           T E S T P A R S E R                            --
+--                        T E S T E X P A N S I O N                         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --

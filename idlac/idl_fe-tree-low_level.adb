@@ -40,7 +40,7 @@ package body Idl_Fe.Tree.Low_Level is
       New_Node := Temp_Id;
       Set_Original_Node (New_Node, Old_Node);
    end Replace_Node;
-
+   
    function Copy_Node
      (Old_Node : in Node_Id)
      return Node_Id
@@ -50,8 +50,7 @@ package body Idl_Fe.Tree.Low_Level is
    begin
       Node.all := Nodes_Table.Table (Old_Node).all;
       Nodes_Table.Table (Index) := Node;
-      Set_Original_Node (Index, Old_Node);
       return Index;
    end Copy_Node;
-
+   
 end Idl_Fe.Tree.Low_Level;

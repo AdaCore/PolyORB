@@ -27,9 +27,6 @@ Named
   Is_Explicit_Repository_Id : Boolean := False
   --  The repository ID for this entity was explicitly set
   --  using #pragma ID.
-  Is_Explicit_Version_Id : Boolean := False
-  --  The version of the Repository ID was explicitly set
-  --  using #pragma version
   Parent_Scope_Override : Node_Id
   --  Expansion attribute: override that
   --  value of Definition.Parent_Scope for this
@@ -171,7 +168,6 @@ Native
 
 Union <-- Scope
   Switch_Type : Node_Id
-  Default_Index : Long_Integer := -1
   Cases : Node_List
 
 Case
