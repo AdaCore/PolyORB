@@ -166,12 +166,17 @@ package System.PolyORB_Interface is
    type Any_Array is array (Natural range <>) of PolyORB.Any.Any;
 
    function TC_Build
-     (Base : PolyORB.Any.TypeCode.Object;
+     (Base       : PolyORB.Any.TypeCode.Object;
       Parameters : Any_Array)
       return PolyORB.Any.TypeCode.Object;
 
    procedure Copy_Any_Value (Dest, Src : PolyORB.Any.Any)
      renames PolyORB.Any.Copy_Any_Value;
+
+   procedure Set_Result
+     (Self : PolyORB.Requests.Request_Access;
+      Val  : PolyORB.Any.Any)
+     renames PolyORB.Requests.Set_Result;
 
    --  RPC receiver objets are PolyORB components
 

@@ -277,4 +277,20 @@ package body PolyORB.Requests is
          return S1 & " with non-representable arguments";
    end Image;
 
+   procedure Set_Result
+     (Self : Request_Access;
+      Val  : Any.Any)
+   is
+      use PolyORB.Any;
+   begin
+      if TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
+         Self.Result :=
+           (Name      => PolyORB.Types.To_PolyORB_String ("result"),
+            Argument  => Val,
+            Arg_Modes => ARG_OUT);
+      else
+         PolyORB.Any.Copy_Any_Value (Self.Result.Argument, Val);
+      end if;
+   end Set_Result;
+
 end PolyORB.Requests;

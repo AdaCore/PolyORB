@@ -1045,6 +1045,7 @@ package Rtsfind is
      RE_Null_Message,                    -- System.PolyORB_Interface
      RE_Execute_Request,                 -- System.PolyORB_Interface
      RE_Copy_Any_Value,                  -- System.PolyORB_Interface
+     RE_Set_Result,                      -- System.PolyORB_Interface
 
      RE_FA_AD,                           -- System.PolyORB_Interface
      RE_FA_AS,                           -- System.PolyORB_Interface
@@ -2045,6 +2046,7 @@ package Rtsfind is
      RE_Null_Message                     => System_PolyORB_Interface,
      RE_Execute_Request                  => System_PolyORB_Interface,
      RE_Copy_Any_Value                   => System_PolyORB_Interface,
+     RE_Set_Result                       => System_PolyORB_Interface,
 
      RE_FA_AD                            => System_PolyORB_Interface,
      RE_FA_AS                            => System_PolyORB_Interface,

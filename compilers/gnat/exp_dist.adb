@@ -3456,7 +3456,6 @@ package body Exp_Dist is
                   Make_Function_Call (Loc,
                     Name                   => Called_Subprogram,
                     Parameter_Associations => Parameter_List)));
-
 --              Append_To (After_Statements,
 --                Make_Attribute_Reference (Loc,
 --                  Prefix         => New_Occurrence_Of (Etyp, Loc),
@@ -3464,7 +3463,14 @@ package body Exp_Dist is
 --                  Expressions    => New_List (
 --                    New_Occurrence_Of (Result_Parameter, Loc),
 --                    New_Occurrence_Of (Result, Loc))));
-            --  XXX TBD!
+            Set_Etype (Result, Etyp);
+            Append_To (After_Statements,
+              Make_Procedure_Call_Statement (Loc,
+                Name =>
+                  New_Occurrence_Of (RTE (RE_Set_Result), Loc),
+                Parameter_Associations => New_List (
+                  New_Occurrence_Of (Request_Parameter, Loc),
+                  Build_To_Any_Call (New_Occurrence_Of (Result, Loc)))));
          end;
 
          Append_To (Statements,

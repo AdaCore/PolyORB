@@ -196,6 +196,11 @@ package PolyORB.Requests is
    --  a servant's Invoke primitive. Args MUST be a correctly
    --  typed NVList for the signature of the method being invoked.
 
+   procedure Set_Result
+     (Self : Request_Access;
+      Val  : Any.Any);
+   --  Set the value of Self's result to Val.
+
    procedure Destroy_Request is new Ada.Unchecked_Deallocation
      (Request, Request_Access);
 
