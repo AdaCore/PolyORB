@@ -520,10 +520,12 @@ package body Exp_Dist is
    procedure Specific_Add_Stub_Type
      (Decls     : List_Id;
       RACW_Type : Entity_Id;
-      Stub_Type : Entity_Id);
+      Stub_Type : Entity_Id;
+     RPC_Receiver_Decl : out Node_Id);
    --  Add a type declaration for the stub type associated with an RACW
    --  type, and the necessary RPC receiver, if applicable. PCS-specific
-   --  ancillary subprogram for Add_Stub_Type.
+   --  ancillary subprogram for Add_Stub_Type. If no RPC receiver declaration
+   --  is generated, then RPC_Receiver_Decl is set to Empty.
 
    package GARLIC_Support is
 
@@ -544,7 +546,8 @@ package body Exp_Dist is
       procedure Add_Stub_Type
         (Decls     : List_Id;
          RACW_Type : Entity_Id;
-         Stub_Type : Entity_Id);
+         Stub_Type : Entity_Id;
+         RPC_Receiver_Decl : out Node_Id);
 
       function Build_RPC_Receiver_Specification
         (RPC_Receiver     : Entity_Id;
@@ -575,7 +578,8 @@ package body Exp_Dist is
       procedure Add_Stub_Type
         (Decls     : List_Id;
          RACW_Type : Entity_Id;
-         Stub_Type : Entity_Id);
+         Stub_Type : Entity_Id;
+         RPC_Receiver_Decl : out Node_Id);
 
       function Build_RPC_Receiver_Specification
         (RPC_Receiver      : Entity_Id;
@@ -1970,15 +1974,7 @@ package body Exp_Dist is
             Related_Id => Chars (Stub_Type),
             Suffix     => 'A'));
 
-      Specific_Add_Stub_Type (Decls, RACW_Type, Stub_Type);
-      RPC_Receiver_Decl := Last (Decls);
-
-      --  This is in no way a type derivation, but we fake it to make
-      --  sure that the dispatching table gets built with the corresponding
-      --  primitive operations at the right place.
-
-      Derive_Subprograms (Parent_Type  => Designated_Type,
-                          Derived_Type => Stub_Type);
+      Specific_Add_Stub_Type (Decls, RACW_Type, Stub_Type, RPC_Receiver_Decl);
 
       Stub_Type_Access_Declaration :=
         Make_Full_Type_Declaration (Loc,
@@ -1987,14 +1983,20 @@ package body Exp_Dist is
             Make_Access_To_Object_Definition (Loc,
               All_Present        => True,
               Subtype_Indication => New_Occurrence_Of (Stub_Type, Loc)));
-
       Insert_After (Parent (Stub_Type), Stub_Type_Access_Declaration);
-
-      --  Susequent expansion processing needs the Designated_Type attribute
-      --  to be correctly set on Stub_Type_Access.
-
       Analyze (Parent (Stub_Type));
       Analyze (Stub_Type_Access_Declaration);
+
+      --  This is in no way a type derivation, but we fake it to make
+      --  sure that the dispatching table gets built with the corresponding
+      --  primitive operations at the right place.
+
+      Derive_Subprograms (Parent_Type  => Designated_Type,
+                          Derived_Type => Stub_Type);
+
+      if No (RPC_Receiver_Decl) then
+         RPC_Receiver_Decl := Last (Decls);
+      end if;
 
       Stubs_Table.Set (Designated_Type,
         (Stub_Type           => Stub_Type,
@@ -4470,7 +4472,8 @@ package body Exp_Dist is
       procedure Add_Stub_Type
         (Decls     : List_Id;
          RACW_Type : Entity_Id;
-         Stub_Type : Entity_Id)
+         Stub_Type : Entity_Id;
+         RPC_Receiver_Decl : out Node_Id)
       is
          Loc : constant Source_Ptr := Sloc (Stub_Type);
          Is_RAS : constant Boolean := not Comes_From_Source (RACW_Type);
@@ -4524,7 +4527,9 @@ package body Exp_Dist is
                                New_Occurrence_Of (
                                  Standard_Boolean, Loc))))))));
 
-         if not Is_RAS then
+         if Is_RAS then
+            RPC_Receiver_Decl := Empty;
+         else
             declare
                RPC_Receiver_Stream : constant Entity_Id :=
                                        Make_Defining_Identifier (Loc, Name_S);
@@ -4539,6 +4544,7 @@ package body Exp_Dist is
                      Stream_Parameter => RPC_Receiver_Stream,
                      Result_Parameter => RPC_Receiver_Result)));
             end;
+            RPC_Receiver_Decl := Last (Decls);
          end if;
       end Add_Stub_Type;
 
@@ -6332,7 +6338,8 @@ package body Exp_Dist is
       procedure Add_Stub_Type
         (Decls     : List_Id;
          RACW_Type : Entity_Id;
-         Stub_Type : Entity_Id)
+         Stub_Type : Entity_Id;
+         RPC_Receiver_Decl : out Node_Id)
       is
          Loc : constant Source_Ptr := Sloc (Stub_Type);
          pragma Unreferenced (RACW_Type);
@@ -6375,6 +6382,7 @@ package body Exp_Dist is
              Aliased_Present     => True,
              Object_Definition   =>
                New_Occurrence_Of (RTE (RE_Servant), Loc)));
+         RPC_Receiver_Decl := Last (Decls);
       end Add_Stub_Type;
 
       --------------------------------------
@@ -6585,13 +6593,16 @@ package body Exp_Dist is
    procedure Specific_Add_Stub_Type
      (Decls     : List_Id;
       RACW_Type : Entity_Id;
-      Stub_Type : Entity_Id) is
+      Stub_Type : Entity_Id;
+      RPC_Receiver_Decl : out Node_Id) is
    begin
       case Get_PCS_Name is
          when Name_PolyORB_DSA =>
-            PolyORB_Support.Add_Stub_Type (Decls, RACW_Type, Stub_Type);
+            PolyORB_Support.Add_Stub_Type (Decls,
+              RACW_Type, Stub_Type, RPC_Receiver_Decl);
          when others =>
-            GARLIC_Support.Add_Stub_Type (Decls, RACW_Type, Stub_Type);
+            GARLIC_Support.Add_Stub_Type (Decls,
+              RACW_Type, Stub_Type, RPC_Receiver_Decl);
       end case;
    end Specific_Add_Stub_Type;
 
