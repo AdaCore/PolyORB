@@ -54,13 +54,24 @@ with PortableServer; use PortableServer;
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
 
+with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 
 with PolyORB.Log;
-
+with Priority_Queue;
 
 package body CosEventChannelAdmin.EventChannel.Impl is
 
    use  PolyORB.CORBA_P.Server_Tools;
+
+   --------------------------------
+   --    Priority_Queue_Engine   --
+   --------------------------------
+
+   task type Priority_Queue_Engine is
+      entry Connect (Channel : in Object_Ptr);
+   end Priority_Queue_Engine;
+
+   type Priority_Queue_Engine_Access is access Priority_Queue_Engine;
 
    -----------
    -- Debug --
@@ -81,7 +92,41 @@ package body CosEventChannelAdmin.EventChannel.Impl is
          This     : Object_Ptr;
          Consumer : ConsumerAdmin.Impl.Object_Ptr;
          Supplier : SupplierAdmin.Impl.Object_Ptr;
+         Queue    : Priority_Queue.Priority_Queue_Access;
+         Engine   : Priority_Queue_Engine_Access;
       end record;
+
+   --------------------------------
+   --    Priority_Queue_Engine   --
+   --------------------------------
+
+   task body Priority_Queue_Engine is
+      Data  : CORBA.Any;
+      This  : Object_Ptr;
+      Queue : Priority_Queue.Priority_Queue_Access;
+   begin
+      loop
+         select
+            accept Connect (Channel : in Object_Ptr)
+            do
+               This := Channel;
+            end Connect;
+         or
+            terminate;
+         end select;
+         loop
+            Enter_Critical_Section;
+            Queue := This.X.Queue;
+            Leave_Critical_Section;
+            begin
+               Priority_Queue.Pop (Queue, Data);
+            exception when others =>
+               exit;
+            end;
+            ConsumerAdmin.Impl.Post (This.X.Consumer, Data);
+         end loop;
+      end loop;
+   end Priority_Queue_Engine;
 
    ------------
    -- Create --
@@ -100,6 +145,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       Channel.X.This     := Channel;
       Channel.X.Consumer := ConsumerAdmin.Impl.Create (Channel);
       Channel.X.Supplier := SupplierAdmin.Impl.Create (Channel);
+      Priority_Queue.Create (Channel.X.Queue, 0);
       Initiate_Servant (Servant (Channel), My_Ref);
       return Channel;
    end Create;
@@ -132,6 +178,10 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       pragma Debug (O ("create consumer admin for channel"));
 
       Servant_To_Reference (Servant (Self.X.Consumer), R);
+      if Self.X.Engine = null then
+         Self.X.Engine := new Priority_Queue_Engine;
+      end if;
+      Self.X.Engine.Connect (Self.X.This);
       return R;
    end For_Consumers;
 
@@ -160,7 +210,8 @@ package body CosEventChannelAdmin.EventChannel.Impl is
      (Self : access Object;
       Data : in CORBA.Any) is
    begin
-      ConsumerAdmin.Impl.Post (Self.X.Consumer, Data);
+      --  ConsumerAdmin.Impl.Post (Self.X.Consumer, Data);
+      Priority_Queue.Insert (Self.X.Queue, Data, 0);
    end Post;
 
 end CosEventChannelAdmin.EventChannel.Impl;
