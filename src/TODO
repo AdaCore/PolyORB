@@ -99,8 +99,6 @@ Items still requiring attention
   property of a buffer and all endianness considerations are irrelevant
   to PolyORB.Buffers).
 
-* PolyORB.Buffers: remove mention of sockets.
-
 * PolyORB.Buffers: Zero-copy buffers.
 
 * Configuration of memory allocation:
@@ -143,6 +141,8 @@ Items still requiring attention
 
 Items processed
 ---------------
+
+* PolyORB.Buffers: remove dependency upon sockets (8945)
 
 * Clarify the uniform interface of representations:
   create a PolyORB.Representations.CDR.CDR_Representation

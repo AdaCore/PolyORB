@@ -33,6 +33,8 @@
 
 --  Datagram Socket Access Point and End Point to recieve data from network
 
+with System.Storage_Elements;
+
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 
@@ -147,10 +149,27 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       Size   : in out Stream_Element_Count;
       Error  :    out Exceptions.Error_Container)
    is
+      use PolyORB.Buffers;
       use PolyORB.Exceptions;
 
       Data_Received : Stream_Element_Count;
       Request : Request_Type (N_Bytes_To_Read);
+
+      procedure Receive_Socket (V : access Iovec);
+      --  Lowlevel socket receive
+
+      procedure Receive_Socket (V : access Iovec) is
+         Count : Ada.Streams.Stream_Element_Count;
+         Vecs  : Vector_Type (1 .. 1);
+         pragma Import (Ada, Vecs);
+         for Vecs'Address use V.all'Address;
+      begin
+         PolyORB.Sockets.Receive_Vector (TE.Socket, Vecs, Count);
+         V.Iov_Len := System.Storage_Elements.Storage_Offset (Count);
+      end Receive_Socket;
+
+      procedure Receive_Buffer is new PolyORB.Buffers.Receive_Buffer
+        (Receive_Socket);
 
    begin
       --  Must read all data in one call from datagram socket.
@@ -160,8 +179,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       Size := Stream_Element_Offset (Request.Size);
       pragma Debug (O ("To read :" & Size'Img));
       begin
-         PolyORB.Buffers.Receive_Buffer
-           (Buffer, TE.Socket, Size, Data_Received);
+         Receive_Buffer (Buffer, Size, Data_Received);
       exception
          when PolyORB.Sockets.Socket_Error =>
             Throw (Error, Comm_Failure_E, System_Exception_Members'

@@ -35,6 +35,7 @@
 --  and communication endpoints.
 
 with Ada.Exceptions;
+with System.Storage_Elements;
 
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
@@ -193,13 +194,29 @@ package body PolyORB.Transport.Connected.Sockets is
       Size   : in out Stream_Element_Count;
       Error  :    out Exceptions.Error_Container)
    is
+      use PolyORB.Buffers;
       use PolyORB.Exceptions;
 
       Data_Received : Stream_Element_Count;
+
+      procedure Receive_Socket (V : access Iovec);
+      --  Lowlevel socket receive
+
+      procedure Receive_Socket (V : access Iovec) is
+         Count : Ada.Streams.Stream_Element_Count;
+         Vecs  : Vector_Type (1 .. 1);
+         pragma Import (Ada, Vecs);
+         for Vecs'Address use V.all'Address;
+      begin
+         PolyORB.Sockets.Receive_Vector (TE.Socket, Vecs, Count);
+         V.Iov_Len := System.Storage_Elements.Storage_Offset (Count);
+      end Receive_Socket;
+
+      procedure Receive_Buffer is new PolyORB.Buffers.Receive_Buffer
+        (Receive_Socket);
    begin
       begin
-         PolyORB.Buffers.Receive_Buffer
-           (Buffer, TE.Socket, Size, Data_Received);
+         Receive_Buffer (Buffer, Size, Data_Received);
       exception
          when PolyORB.Sockets.Socket_Error =>
             Throw
@@ -230,16 +247,48 @@ package body PolyORB.Transport.Connected.Sockets is
       Error  :    out Exceptions.Error_Container)
    is
       use PolyORB.Exceptions;
+      use PolyORB.Buffers;
+
+      procedure Socket_Send
+        (V     : access Iovec;
+         N     : Integer;
+         Count : out System.Storage_Elements.Storage_Offset);
+      --  Send gathered data
+
+      -----------------
+      -- Socket_Send --
+      -----------------
+
+      procedure Socket_Send
+        (V     : access Iovec;
+         N     : Integer;
+         Count : out System.Storage_Elements.Storage_Offset)
+      is
+         subtype SV_T is PolyORB.Sockets.Vector_Type (1 .. N);
+         SV : SV_T;
+         pragma Import (Ada, SV);
+         for SV'Address use V.all'Address;
+
+         S_Count : Ada.Streams.Stream_Element_Count;
+      begin
+         PolyORB.Sockets.Send_Vector (TE.Socket, SV, S_Count);
+         Count := System.Storage_Elements.Storage_Offset (S_Count);
+      end Socket_Send;
+
+      procedure Send_Buffer is new Buffers.Send_Buffer (Socket_Send);
+
    begin
       pragma Debug (O ("Write: enter"));
 
       --  Send_Buffer is not atomic, needs to be protected.
+      --  ??? Actually Send_Buffer *is* atomic on platforms where
+      --      writev for sockets is a system call.
 
       Enter (TE.Mutex);
       pragma Debug (O ("TE mutex acquired"));
 
       begin
-         PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket);
+         Send_Buffer (Buffer);
       exception
          when PolyORB.Sockets.Socket_Error =>
             Throw

@@ -36,7 +36,6 @@ Build requirements
 ------------------
 
 Ada 95 compiler:
-  GNAT Pro 3.16a1 or later
   GNAT Pro 5.02a1 or later
   GCC 3.4.1       or later
 

@@ -104,17 +104,21 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
     Buffer :        Buffers.Buffer_Access;
     Error  :    out Exceptions.Error_Container)
    is
+      use PolyORB.Buffers;
       use PolyORB.Exceptions;
+
+      Data : constant Stream_Element_Array :=
+        To_Stream_Element_Array (Buffer);
+      --  ??? Possible stack overflow if Buffer contains too much data
+
+      Last : Stream_Element_Offset;
 
    begin
       pragma Debug (O ("Write: enter"));
       pragma Debug (O ("Send to : " & Image (TE.Addr)));
 
-      --  Send_Buffer is not atomic, needs to be protected.
-
-      Enter (TE.Mutex);
       begin
-         PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket, TE.Addr);
+         PolyORB.Sockets.Send_Socket (TE.Socket, Data, Last, TE.Addr);
       exception
          when PolyORB.Sockets.Socket_Error =>
             Throw (Error, Comm_Failure_E, System_Exception_Members'
@@ -124,7 +128,6 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
             Throw (Error, Unknown_E, System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
       end;
-      Leave (TE.Mutex);
       pragma Debug (O ("Write: leave"));
    end Write;
 
