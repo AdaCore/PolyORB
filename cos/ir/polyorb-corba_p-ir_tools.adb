@@ -33,6 +33,9 @@
 
 --  $Id$
 
+with CORBA.Repository_Root.Repository.Helper;
+with PolyORB.CORBA_P.Naming_Tools;
+
 package body PolyORB.CORBA_P.IR_Tools is
 
    use CORBA.Repository_Root.Repository;
@@ -50,4 +53,4 @@ package body PolyORB.CORBA_P.IR_Tools is
       return Repo_Root_Ref;
    end Get_IR_Root;
 
-end PolyORB.CORBA_P.IRools;
+end PolyORB.CORBA_P.IR_Tools;

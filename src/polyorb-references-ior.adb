@@ -67,61 +67,78 @@ package body PolyORB.References.IOR is
       use PolyORB.Types;
       use Profile_Seqs;
 
-      Profs    : constant Profile_Array := Profiles_Of (Value);
-
-      Last_Callback  : Integer := 0;
-      Callback_Index : Integer;
-      Valid_Callbacks : array (1 .. Length (Callbacks))
-        of Profile_Record;
-
    begin
       pragma Debug (O ("Marshall: enter"));
 
-      for Profile_Index in Profs'Range loop
-         pragma Debug (O ("Considering profile with tag"
-                          & Get_Profile_Tag (Profs (Profile_Index).all)'Img));
+      if Is_Nil (Value) then
+         Marshall
+           (Buffer, PolyORB.Types.String'(To_PolyORB_String ("")));
+         Marshall (Buffer, Types.Unsigned_Long'(0));
+      else
+         declare
+            Profs    : constant Profile_Array
+              := Profiles_Of (Value);
 
-         for I in 1 .. Length (Callbacks) loop
-            pragma Assert (Profs (Profile_Index) /= null);
+            Last_Callback  : Integer := 0;
+            Callback_Index : Integer;
+            Valid_Callbacks : array (1 .. Length (Callbacks))
+              of Profile_Record;
+         begin
 
-            declare
-               T : constant Profile_Tag
-                 := Get_Profile_Tag (Profs (Profile_Index).all);
-               Info : constant Profile_Record
-                 := Element_Of (Callbacks, I);
-            begin
-               pragma Debug (O ("... with callback" & I'Img
-                                & " whose tag is "
-                                & Profile_Tag'Image (Info.Tag)));
+            for Profile_Index in Profs'Range loop
+               pragma Debug
+                 (O ("Considering profile with tag"
+                     & Get_Profile_Tag
+                     (Profs (Profile_Index).all)'Img));
 
-               if T = Info.Tag then
-                  Last_Callback := Last_Callback + 1;
-                  Valid_Callbacks (Last_Callback) := Info;
+               for I in 1 .. Length (Callbacks) loop
+                  pragma Assert (Profs (Profile_Index) /= null);
+
+                  declare
+                     T : constant Profile_Tag
+                       := Get_Profile_Tag
+                       (Profs (Profile_Index).all);
+
+                     Info : constant Profile_Record
+                       := Element_Of (Callbacks, I);
+                  begin
+                     pragma Debug
+                       (O ("... with callback" & I'Img
+                           & " whose tag is "
+                           & Profile_Tag'Image (Info.Tag)));
+
+                     if T = Info.Tag then
+                        Last_Callback := Last_Callback + 1;
+                        Valid_Callbacks (Last_Callback) := Info;
+                     end if;
+                  end;
+               end loop;
+            end loop;
+
+            Marshall
+              (Buffer, PolyORB.Types.String'
+               (To_PolyORB_String (Type_Id_Of (Value))));
+            Marshall (Buffer, Types.Unsigned_Long (Last_Callback));
+
+            Callback_Index := Valid_Callbacks'First;
+            for Profile_Index in Profs'Range loop
+               exit when Callback_Index > Last_Callback;
+
+               if Get_Profile_Tag (Profs (Profile_Index).all)
+                 = Valid_Callbacks (Callback_Index).Tag
+               then
+                  Marshall
+                    (Buffer, Types.Unsigned_Long
+                     (Valid_Callbacks (Callback_Index).Tag));
+
+                  Valid_Callbacks
+                    (Callback_Index).Marshall_Profile_Body
+                    (Buffer, Profs (Profile_Index));
+                  Callback_Index := Callback_Index + 1;
                end if;
-            end;
-         end loop;
-      end loop;
-
-      Marshall
-        (Buffer, PolyORB.Types.String'
-         (To_PolyORB_String (Type_Id_Of (Value))));
-      Marshall (Buffer, Types.Unsigned_Long (Last_Callback));
-
-      Callback_Index := Valid_Callbacks'First;
-      for Profile_Index in Profs'Range loop
-         exit when Callback_Index > Last_Callback;
-
-         if Get_Profile_Tag (Profs (Profile_Index).all)
-           = Valid_Callbacks (Callback_Index).Tag
-         then
-            Marshall (Buffer, Types.Unsigned_Long
-                      (Valid_Callbacks (Callback_Index).Tag));
-
-            Valid_Callbacks (Callback_Index).Marshall_Profile_Body
-              (Buffer, Profs (Profile_Index));
-            Callback_Index := Callback_Index + 1;
-         end if;
-      end loop;
+            end loop;
+         end;
+      end if;
       pragma Debug (O ("Marshall: Leave"));
    end Marshall_IOR;
 
@@ -203,9 +220,11 @@ package body PolyORB.References.IOR is
          end;
       end loop All_Profiles;
 
-      Create_Reference
-        (Profs (Profs'First .. Last_Profile), Type_Id,
-         References.Ref (Result));
+      if Last_Profile >= Profs'First then
+         Create_Reference
+           (Profs (Profs'First .. Last_Profile), Type_Id,
+            References.Ref (Result));
+      end if;
 
       return Result;
    end Unmarshall_IOR;

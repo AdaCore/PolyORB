@@ -269,7 +269,13 @@ package body Ada_Be.Expansion is
             --  Rename nodes whose name collide with Ada
             --  reserved words.
 
-            Add_Identifier_With_Renaming (Node, "IDL_" & Name (Node));
+            pragma Debug
+              (O ("Renaming node" & Node_Id'Image (Node)
+                  & " with kind " & Node_Kind'Image (Kind (Node))
+                  & " to IDL_" & Name (Node)));
+            Add_Identifier_With_Renaming
+              (Node, "IDL_" & Name (Node),
+               Is_Inheritable => False);
          end if;
 
          --  Allocate a name for the node's repository ID
@@ -833,7 +839,6 @@ package body Ada_Be.Expansion is
 
       while not Is_End (Iterator) loop
          Get_Next_Node (Iterator, Current_Declarator);
-         Expand_Node (Current_Declarator);
 
          if Exports_List = Nil_List then
             Exports_List := Contents (Parent_Scope (Current_Declarator));
@@ -933,6 +938,7 @@ package body Ada_Be.Expansion is
                Pop_Scope;
             end;
          end if;
+         Expand_Node (Current_Declarator);
       end loop;
    end Expand_Attribute_Or_State_Member;
 

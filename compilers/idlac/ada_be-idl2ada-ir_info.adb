@@ -1434,7 +1434,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
    begin
       Init (Bounds_It, Array_Bounds (Decl_Node));
       Add_With (CU, CRR & ".IDLType.Helper");
-      Add_With (CU, CRR & ".Repository.Helper");
       Rec_Gen_Array_IR (CU, Bounds_It, Element_Type_Node, Decl_Node);
    end Gen_Array_IR;
 
@@ -1457,7 +1456,9 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, ",");
       Put (CU, " scale => ");
       Gen_Constant_Value (CU, Scale (Node));
-      PL (CU, "))");
+      Put (CU, "))");
+      DI (CU);
+      DI (CU);
    end Gen_Fixed_IR;
 
    ---------------------
@@ -1489,6 +1490,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Put (CU, "element_type => ");
       Gen_IDLType (CU, T_Node => ET_Node, D_Node => No_Node);
       Put (CU, "))");
+      DI (CU);
    end Gen_Sequence_IR;
 
    ----------------------
@@ -1499,6 +1501,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
    begin
       Add_With (CU, CRR, Use_It => True);
       Add_With (CU, "PolyORB.CORBA_P.IR_Tools", Use_It => True);
+      NL (CU);
+      PL (CU, "pragma Warnings (Off);");
    end Gen_Body_Prelude;
 
 end Ada_Be.Idl2Ada.IR_Info;
