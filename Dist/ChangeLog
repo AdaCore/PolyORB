@@ -1,3 +1,7 @@
+2000-05-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: xe_sysdep.adb was VPATH-unfriendly.
+
 2000-04-21  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* Makefile.am, Makefile.in, xe_defs.ads: Add info on support name

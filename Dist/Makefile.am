@@ -29,9 +29,9 @@ gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
 xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 	@echo Selecting xe_sysdep.adb
 	@if [ "$(PSNAME)" = "Windows NT" ]; then \
-		cp xe_sysdep-nt.adb xe_sysdep.adb; \
+		cp $(srcdir)/xe_sysdep-nt.adb xe_sysdep.adb; \
 	else \
-		cp xe_sysdep-std.adb xe_sysdep.adb; \
+		cp $(srcdir)/xe_sysdep-std.adb xe_sysdep.adb; \
 	fi
 
 xe_defs.adb: Makefile
