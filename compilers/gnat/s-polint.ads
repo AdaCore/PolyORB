@@ -427,10 +427,10 @@ private
 
    pragma Inline (Caseless_String_Eq);
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access Servant;
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class;
-   pragma Inline (Handle_Message);
+   pragma Inline (Execute_Servant);
 
 end System.PolyORB_Interface;

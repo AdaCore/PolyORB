@@ -311,11 +311,11 @@ package body System.PolyORB_Interface is
       return Hash_String (PolyORB.References.Image (K_Ref));
    end Hash;
 
-   --------------------
-   -- Handle_Message --
-   --------------------
+   ---------------------
+   -- Execute_Servant --
+   ---------------------
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access Servant;
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class
@@ -429,7 +429,7 @@ package body System.PolyORB_Interface is
          end;
       end if;
       return Result;
-   end Handle_Message;
+   end Execute_Servant;
 
    ----------------
    -- Initialize --
