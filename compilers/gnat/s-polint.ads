@@ -58,12 +58,6 @@ package System.PolyORB_Interface is
      Invoke_Flags : PolyORB.Any.Flags := 0)
      renames PolyORB.Requests.Invoke;
 
-   type Long_Long_Unsigned is mod 2 ** Long_Long_Integer'Size;
-   type Long_Unsigned is mod 2 ** Long_Integer'Size;
-   type Short_Short_Unsigned is mod 2 ** Short_Short_Integer'Size;
-   type Short_Unsigned is mod 2 ** Short_Integer'Size;
-   type Unsigned is mod 2 ** Integer'Size;
-
 --       function FA_AD (Item : PolyORB.Any.Any) return X;
 --       function FA_AS (Item : PolyORB.Any.Any) return X;
    function FA_B (Item : PolyORB.Any.Any) return Boolean;

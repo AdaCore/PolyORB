@@ -1257,6 +1257,8 @@ package Rtsfind is
      RE_Packed_Bytes1,                   -- System.Unsigned_Types
      RE_Packed_Bytes2,                   -- System.Unsigned_Types
      RE_Packed_Bytes4,                   -- System.Unsigned_Types
+     RE_Short_Unsigned,                  -- System.Unsigned_Types
+     RE_Short_Short_Unsigned,            -- System.Unsigned_Types
      RE_Unsigned,                        -- System.Unsigned_Types
 
      RE_Value_Boolean,                   -- System.Val_Bool
@@ -2259,6 +2261,8 @@ package Rtsfind is
      RE_Packed_Bytes1                    => System_Unsigned_Types,
      RE_Packed_Bytes2                    => System_Unsigned_Types,
      RE_Packed_Bytes4                    => System_Unsigned_Types,
+     RE_Short_Unsigned                   => System_Unsigned_Types,
+     RE_Short_Short_Unsigned             => System_Unsigned_Types,
      RE_Unsigned                         => System_Unsigned_Types,
 
      RE_Value_Boolean                    => System_Val_Bool,

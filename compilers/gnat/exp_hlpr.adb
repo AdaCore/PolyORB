@@ -28,6 +28,7 @@
 
 with Atree;    use Atree;
 with Einfo;    use Einfo;
+with Exp_Tss;  use Exp_Tss;
 with Exp_Util; use Exp_Util;
 with Lib;      use Lib;
 with Namet;    use Namet;
@@ -44,8 +45,8 @@ with Snames;   use Snames;
 with Stand;    use Stand;
 with Stringt;  use Stringt;
 with Tbuild;   use Tbuild;
---  with Ttypes;   use Ttypes;
-with Exp_Tss;  use Exp_Tss;
+with Ttypes;   use Ttypes;
+with Uintp;    use Uintp;
 
 package body Exp_Hlpr is
 
@@ -76,6 +77,13 @@ package body Exp_Hlpr is
    --  A TSS reference for a representation aspect of a derived tagged type
    --  must take into account inheritance of that aspect from ancestor types.
    --  (copied from exp_attr.adb)
+
+   function Find_Numeric_Representation
+     (Typ : Entity_Id)
+      return Entity_Id;
+   --  Given a numeric type Typ, return the smallest integer or floarting point
+   --  type from Standard, or the smallest unsigned (modular) type from
+   --  System.Unsigned_Types, whose range  encompasses that of Typ.
 
    function Make_Stream_Procedure_Function_Name
      (Loc : Source_Ptr;
@@ -162,20 +170,20 @@ package body Exp_Hlpr is
 
       --  Unsigned integer types
 
---        elsif U_Type = Standard_Short_Short_Integer then
---           Lib_RE := RE_FA_SSU;
+      elsif U_Type = RTE (RE_Short_Short_Unsigned) then
+         Lib_RE := RE_FA_SSU;
 
---        elsif U_Type = Standard_Short_Integer then
---           Lib_RE := RE_FA_SU;
+      elsif U_Type = RTE (RE_Short_Unsigned) then
+         Lib_RE := RE_FA_SU;
 
---        elsif U_Type = Standard_Integer then
---           Lib_RE := RE_FA_U;
+      elsif U_Type = RTE (RE_Unsigned) then
+         Lib_RE := RE_FA_U;
 
---        elsif U_Type = Standard_Long_Integer then
---           Lib_RE := RE_FA_LU;
+      elsif U_Type = RTE (RE_Long_Unsigned) then
+         Lib_RE := RE_FA_LU;
 
---        elsif U_Type = Standard_Long_Long_Integer then
---           Lib_RE := RE_FA_LLU;
+      elsif U_Type = RTE (RE_Long_Long_Unsigned) then
+         Lib_RE := RE_FA_LLU;
 
       --  Access types
 
@@ -365,20 +373,20 @@ package body Exp_Hlpr is
 
       --  Unsigned integer types
 
---        elsif U_Type = Standard_Short_Short_Integer then
---           Lib_RE := RE_TA_SSU;
+      elsif U_Type = RTE (RE_Short_Short_Unsigned) then
+         Lib_RE := RE_TA_SSU;
 
---        elsif U_Type = Standard_Short_Integer then
---           Lib_RE := RE_TA_SU;
+      elsif U_Type = RTE (RE_Short_Unsigned) then
+         Lib_RE := RE_TA_SU;
 
---        elsif U_Type = Standard_Integer then
---           Lib_RE := RE_TA_U;
+      elsif U_Type = RTE (RE_Unsigned) then
+         Lib_RE := RE_TA_U;
 
---        elsif U_Type = Standard_Long_Integer then
---           Lib_RE := RE_TA_LU;
+      elsif U_Type = RTE (RE_Long_Unsigned) then
+         Lib_RE := RE_TA_LU;
 
---        elsif U_Type = Standard_Long_Long_Integer then
---           Lib_RE := RE_TA_LLU;
+      elsif U_Type = RTE (RE_Long_Long_Unsigned) then
+         Lib_RE := RE_TA_LLU;
 
       --  Access types
 
@@ -592,20 +600,20 @@ package body Exp_Hlpr is
 
       --  Unsigned integer types
 
---        elsif U_Type = Standard_Short_Short_Integer then
---           Lib_RE := RE_TC_SSU;
+      elsif U_Type = RTE (RE_Short_Short_Unsigned) then
+         Lib_RE := RE_TC_SSU;
 
---        elsif U_Type = Standard_Short_Integer then
---           Lib_RE := RE_TC_SU;
+      elsif U_Type = RTE (RE_Short_Unsigned) then
+         Lib_RE := RE_TC_SU;
 
---        elsif U_Type = Standard_Integer then
---           Lib_RE := RE_TC_U;
+      elsif U_Type = RTE (RE_Unsigned) then
+         Lib_RE := RE_TC_U;
 
---        elsif U_Type = Standard_Long_Integer then
---           Lib_RE := RE_TC_LU;
+      elsif U_Type = RTE (RE_Long_Unsigned) then
+         Lib_RE := RE_TC_LU;
 
---        elsif U_Type = Standard_Long_Long_Integer then
---           Lib_RE := RE_TC_LLU;
+      elsif U_Type = RTE (RE_Long_Long_Unsigned) then
+         Lib_RE := RE_TC_LLU;
 
       --  Access types
 
@@ -697,6 +705,9 @@ package body Exp_Hlpr is
                               Base_TypeCode))))));
       end Build_TC_Alias_Call;
 
+      Name_String : String_Id;
+      Repo_Id_String : String_Id;
+
    begin
       Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTypeCode);
 
@@ -709,16 +720,16 @@ package body Exp_Hlpr is
       if Is_Derived_Type (Typ)
         and then not Is_Tagged_Type (Typ)
       then
-         Get_Name_String (Chars
-                            (Defining_Identifier (Declaration_Node (Typ))));
-
          declare
             D_Node : constant Node_Id := Declaration_Node (Typ);
             Parent_Type : Entity_Id := Etype (Typ);
-            Name_String : constant String_Id := String_From_Name_Buffer;
-            Repo_Id_String : constant String_Id := Name_String;
-            --  XXX should compute a proper repository id!
          begin
+            Get_Name_String (Chars
+              (Defining_Identifier (Declaration_Node (Typ))));
+            Name_String := String_From_Name_Buffer;
+            Repo_Id_String := Name_String;
+            --  XXX should compute a proper repository id!
+
             if Is_Enumeration_Type (Typ)
               and then Nkind (D_Node) = N_Subtype_Declaration
               and then Nkind (Original_Node (D_Node))
@@ -738,6 +749,20 @@ package body Exp_Hlpr is
                   Repo_Id_String,
                   Build_TypeCode_Call (Loc, Parent_Type))));
          end;
+      elsif Is_Integer_Type (Typ)
+        or else Is_Unsigned_Type (Typ)
+      then
+         Get_Name_String (Chars
+           (Defining_Identifier (Declaration_Node (Typ))));
+         Name_String := String_From_Name_Buffer;
+         Repo_Id_String := Name_String;
+         Append_To (Stms,
+           Make_Return_Statement (Loc,
+             Expression => Build_TC_Alias_Call (Loc,
+               Name_String,
+               Repo_Id_String,
+               Build_TypeCode_Call (Loc,
+                  Find_Numeric_Representation (Typ)))));
       else
          declare
             TypeCode_Parameter : constant Entity_Id
@@ -858,6 +883,77 @@ package body Exp_Hlpr is
 
       return TSS (Base_Type (Underlying_Type (Typ)), Nam);
    end Find_Inherited_TSS;
+
+   ---------------------------------
+   -- Find_Numeric_Representation --
+   ---------------------------------
+
+   function Find_Numeric_Representation
+     (Typ : Entity_Id)
+      return Entity_Id
+   is
+      FST : constant Entity_Id := First_Subtype (Typ);
+      P_Size : constant Uint := Esize (FST);
+   begin
+      if Is_Unsigned_Type (Typ) then
+
+         if P_Size <= Standard_Short_Short_Integer_Size then
+            return RTE (RE_Short_Short_Unsigned);
+
+         elsif P_Size <= Standard_Short_Integer_Size then
+            return RTE (RE_Short_Unsigned);
+
+         elsif P_Size <= Standard_Integer_Size then
+            return RTE (RE_Unsigned);
+
+         elsif P_Size <= Standard_Long_Integer_Size then
+            return RTE (RE_Long_Unsigned);
+
+         else
+            return RTE (RE_Long_Long_Unsigned);
+         end if;
+
+      elsif Is_Integer_Type (Typ) then
+
+         if P_Size <= Standard_Short_Short_Integer_Size then
+            return Standard_Short_Short_Integer;
+
+         elsif P_Size <= Standard_Short_Integer_Size then
+            return Standard_Short_Integer;
+
+         elsif P_Size <= Standard_Integer_Size then
+            return Standard_Integer;
+
+         elsif P_Size <= Standard_Long_Integer_Size then
+            return Standard_Long_Integer;
+
+         else
+            return Standard_Long_Long_Integer;
+         end if;
+
+      elsif Is_Floating_Point_Type (Typ) then
+
+         if P_Size <= Standard_Short_Float_Size then
+            return Standard_Short_Float;
+
+         elsif P_Size <= Standard_Float_Size then
+            return Standard_Float;
+
+         elsif P_Size <= Standard_Long_Float_Size then
+            return Standard_Long_Float;
+
+         else
+            return Standard_Long_Long_Float;
+         end if;
+
+      else
+         raise Program_Error;
+      end if;
+
+      --  XXX fixed point types??
+      --  XXX numeric types with a biased representation??
+
+   end Find_Numeric_Representation;
 
    -----------------------------------------
    -- Make_Stream_Procedure_Function_Name --
