@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A dynamic, protected dictionnary of objects, indexed by Strings.
+--  A dynamic, protected dictionnary of Any, indexed by Strings.
 
 --  $Id$
 
@@ -48,22 +48,29 @@ package body MOMA.Provider.Warehouse is
 
    use Ada.Streams;
    use Ada.Streams.Stream_IO;
+
    use PolyORB.Any;
    use PolyORB.Buffers;
    use PolyORB.Locks;
    use PolyORB.Opaque;
    use PolyORB.Representations.CDR;
 
+   use MOMA.Types;
 
    ---------------------------
    -- Ensure_Initialization --
    ---------------------------
+
+   procedure Ensure_Initialization (W : in out Warehouse);
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that T was initialized
 
    procedure Ensure_Initialization (W : in out Warehouse) is
    begin
       if W.T_Initialized then
          return;
       end if;
+
       Initialize (W.T);
       Create (W.T_Lock);
       W.T_Initialized := True;
@@ -79,34 +86,35 @@ package body MOMA.Provider.Warehouse is
       return PolyORB.Any.Any
    is
       Result      : PolyORB.Any.Any;
-      --  Temp        : Warehouse := W;
       Stream_File : Ada.Streams.Stream_IO.File_Type;
       Buffer      : constant Buffer_Access := new Buffer_Type;
       Data        : Opaque_Pointer;
       Last        : Ada.Streams.Stream_Element_Offset;
       Received    : Ada.Streams.Stream_Element_Count;
+      Temp        : Warehouse := W;
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (W);
-      pragma Warnings (On);
-      --  Ensure_Initialization (Temp);
+      Ensure_Initialization (Temp);
 
-      --  Lock_R (W.T_Lock);
-      --  Result := Lookup (W.T, K);
-      --  Unlock_R (W.T_Lock);
+      if W.T_Persistence = None then
+         Lock_R (W.T_Lock);
+         Result := Lookup (W.T, K);
+         Unlock_R (W.T_Lock);
 
-      Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
-      Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
-      Ada.Streams.Stream_IO.Read (Stream_File, Data.Zone
-                                  (Data.Offset .. Data.Offset + 1024), Last);
+      else
+         Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
+         Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
+         Ada.Streams.Stream_IO.Read (Stream_File, Data.Zone
+                                     (Data.Offset .. Data.Offset + 1024),
+                                     Last);
 
-      Received := Last - Data.Offset + 1;
-      Unuse_Allocation (Buffer, 1024 - Received);
-      Ada.Streams.Stream_IO.Close (Stream_File);
+         Received := Last - Data.Offset + 1;
+         Unuse_Allocation (Buffer, 1024 - Received);
+         Ada.Streams.Stream_IO.Close (Stream_File);
 
-      Set_Type (Result, TypeCode.TC_Any);
-      Rewind (Buffer);
-      Unmarshall_To_Any (Buffer, Result);
+         Set_Type (Result, TypeCode.TC_Any);
+         Rewind (Buffer);
+         Unmarshall_To_Any (Buffer, Result);
+      end if;
 
       return Result;
    exception
@@ -125,7 +133,7 @@ package body MOMA.Provider.Warehouse is
       Ensure_Initialization (Temp);
 
       Lock_R (W.T_Lock);
-      V := Perfect_Htable.Lookup (W.T, K, Default);
+      V := Lookup (W.T, K, Default);
       Unlock_R (W.T_Lock);
 
       return V;
@@ -136,30 +144,28 @@ package body MOMA.Provider.Warehouse is
    --------------
 
    procedure Register
-     (W : Warehouse;
+     (W : in out Warehouse;
       K : String;
       V : PolyORB.Any.Any)
    is
-      --  Temp : Warehouse := W;
-      Stream_File   : Ada.Streams.Stream_IO.File_Type;
-      Buffer : constant Buffer_Access := new Buffer_Type;
+      Stream_File : Ada.Streams.Stream_IO.File_Type;
+      Buffer      : constant Buffer_Access := new Buffer_Type;
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (W);
-      pragma Warnings (On);
+      Ensure_Initialization (W);
 
-      --  Ensure_Initialization (Temp);
+      if W.T_Persistence = None then
+         Lock_W (W.T_Lock);
+         Insert (W.T, K, V);
+         Unlock_W (W.T_Lock);
 
-      --  Lock_W (W.T_Lock);
-      --  Insert (W.T, K, V);
-      --  Unlock_W (W.T_Lock);
+      else
+         Marshall_From_Any (Buffer, V);
 
-      Marshall_From_Any (Buffer, V);
-
-      Ada.Streams.Stream_IO.Create (Stream_File, Out_File, "message_" & K);
-      Ada.Streams.Stream_IO.Write (Stream_File,
-                                   To_Stream_Element_Array (Buffer));
-      Ada.Streams.Stream_IO.Close (Stream_File);
+         Ada.Streams.Stream_IO.Create (Stream_File, Out_File, "message_" & K);
+         Ada.Streams.Stream_IO.Write (Stream_File,
+                                      To_Stream_Element_Array (Buffer));
+         Ada.Streams.Stream_IO.Close (Stream_File);
+      end if;
 
    end Register;
 
@@ -168,24 +174,35 @@ package body MOMA.Provider.Warehouse is
    ----------------
 
    procedure Unregister
-     (W : Warehouse;
+     (W : in out Warehouse;
       K : String)
    is
-      V : PolyORB.Any.Any;
-      Temp : Warehouse := W;
+      Stream_File : Ada.Streams.Stream_IO.File_Type;
    begin
-      Ensure_Initialization (Temp);
+      Ensure_Initialization (W);
 
-      Lock_R (W.T_Lock);
-      V := Lookup (W.T, K);
-      Unlock_R (W.T_Lock);
+      if W.T_Persistence = None then
+         Lock_W (W.T_Lock);
+         Delete (W.T, K);
+         Unlock_W (W.T_Lock);
 
-      Lock_W (W.T_Lock);
-      Delete (W.T, K);
-      Unlock_W (W.T_Lock);
+      else
+         Ada.Streams.Stream_IO.Open (Stream_File, Out_File, "message_" & K);
+         Ada.Streams.Stream_IO.Delete (Stream_File);
+      end if;
 
    exception
       when No_Key => raise Key_Not_Found;
    end Unregister;
+
+   ---------------------
+   -- Set_Persistence --
+   ---------------------
+
+   procedure Set_Persistence (W : in out Warehouse;
+                             Persistence : MOMA.Types.Persistence_Mode) is
+   begin
+      W.T_Persistence := Persistence;
+   end Set_Persistence;
 
 end MOMA.Provider.Warehouse;

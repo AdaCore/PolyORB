@@ -34,26 +34,10 @@
 
 with MOMA.Types;
 with PolyORB.References;
-with PolyORB.Configuration;
 
 package MOMA.Configuration.Server is
 
-   type Pool_Category is (Queue, Topic);
-
-   type Message_Pool_Info is record
-      Pool_Type : Pool_Category;
-      Name      : MOMA.Types.String;
-   end record;
-
-   procedure Load_Configuration_File (Conf_File_Name : String)
-    renames PolyORB.Configuration.Load_Configuration_File;
-
-   procedure Create_Message_Pool (Name : in String;
+   procedure Create_Message_Pool (Pool : MOMA.Types.Message_Pool;
                                   Ref  : out PolyORB.References.Ref);
-
-   function Get_Message_Pool_Info (Number : Natural)
-                                   return Message_Pool_Info;
-
-
 
 end MOMA.Configuration.Server;

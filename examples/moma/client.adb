@@ -82,46 +82,200 @@ procedure Client is
    MOMA_Destination   : MOMA.Destinations.Destination;
    MOMA_Producer      : MOMA.Message_Producers.Queues.Queue;
    MOMA_Consumer      : MOMA.Message_Consumers.Queues.Queue;
-   MText_Message_Sent : MOMA.Messages.MTexts.MText;
-   MText_Message_Rcvd : MOMA.Messages.MTexts.MText;
-   MByte_Message_Sent : MOMA.Messages.MBytes.MByte;
-   MByte_Message_Rcvd : MOMA.Messages.MBytes.MByte;
 
    Ok : Boolean;
+
+   type Scenario_T is (Full, Stor, Retr);
+   Scenario : Scenario_T;
+
+   -----------------------
+   -- Text message test --
+   -----------------------
+
+   procedure Test_MText;
+
+   procedure Test_MText
+   is
+      MText_Message_Sent : MOMA.Messages.MTexts.MText;
+      MText_Message_Rcvd : MOMA.Messages.MTexts.MText;
+   begin
+      --  Create new Text Message
+      MText_Message_Sent := Create_Text_Message;
+      Set_Text (MText_Message_Sent, To_MOMA_String ("Hi MOM !"));
+
+      if Scenario in Full .. Stor then
+         --  Send Text Message
+         Send (MOMA_Producer, MText_Message_Sent);
+      end if;
+
+      if Scenario = Full or Scenario = Retr then
+         --  Get Text Message
+         declare
+            MOMA_Message_Temp : MOMA.Messages.Message'Class
+              := Receive (MOMA_Consumer);
+         begin
+            if MOMA_Message_Temp in MOMA.Messages.MTexts.MText then
+               MText_Message_Rcvd :=
+                 MOMA.Messages.MTexts.MText (MOMA_Message_Temp);
+            else
+               raise Program_Error;
+            end if;
+         end;
+
+         --  Print results
+         Ok := Get_Text (MText_Message_Sent) = Get_Text (MText_Message_Rcvd);
+         Output ("Testing Text Message ", Ok);
+      end if;
+
+
+   end Test_MText;
 
    -----------------------
    -- Byte Message Test --
    -----------------------
 
-   procedure Send_Receive_MByte (Sent : MOMA.Messages.MBytes.MByte;
-                                 Received : in out MOMA.Messages.MBytes.MByte);
+   procedure Test_MByte;
 
-   procedure Send_Receive_MByte (Sent : MOMA.Messages.MBytes.MByte;
-                                 Received : in out MOMA.Messages.MBytes.MByte)
+   procedure Test_MByte
    is
-   begin
-      --  Send byte message
-      Send (MOMA_Producer, Sent);
+      MByte_Message_Sent : MOMA.Messages.MBytes.MByte;
+      MByte_Message_Rcvd : MOMA.Messages.MBytes.MByte;
 
-      --  Get byte Message
-      declare
-         MOMA_Message_Temp : MOMA.Messages.Message'Class
-           := Receive (MOMA_Consumer);
+      procedure Send_Receive_MByte;
+
+      procedure Send_Receive_MByte is
       begin
-         if MOMA_Message_Temp in MOMA.Messages.MBytes.MByte then
-            Received :=
-              MOMA.Messages.MBytes.MByte (MOMA_Message_Temp);
-         else
-            raise Program_Error;
+
+         if Scenario in Full .. Stor then
+            --  Send byte message
+            Send (MOMA_Producer, MByte_Message_Sent);
          end if;
-      end;
-   end Send_Receive_MByte;
+
+         if Scenario = Full or Scenario = Retr then
+            --  Get byte Message
+            declare
+               MOMA_Message_Temp : MOMA.Messages.Message'Class
+                 := Receive (MOMA_Consumer);
+            begin
+               if MOMA_Message_Temp in MOMA.Messages.MBytes.MByte then
+                  MByte_Message_Rcvd :=
+                    MOMA.Messages.MBytes.MByte (MOMA_Message_Temp);
+               else
+                  raise Program_Error;
+               end if;
+            end;
+         end if;
+
+      end Send_Receive_MByte;
+
+   begin
+
+      --  Create new Byte Message
+      MByte_Message_Sent := Create_Byte_Message;
+
+      --  Byte/Boolean Test
+      Set_Boolean (MByte_Message_Sent, MOMA.Types.Boolean (True));
+      Send_Receive_MByte;
+      if Scenario /= Stor then
+         Ok := Get_Boolean (MByte_Message_Sent)
+           = Get_Boolean (MByte_Message_Rcvd);
+         Output ("Testing Byte/Boolean Message ", Ok);
+      end if;
+
+      --  Byte/Byte Test
+      Set_Byte (MByte_Message_Sent, MOMA.Types.Byte (42));
+      Send_Receive_MByte;
+      if Scenario /= Stor then
+         Ok := Get_Byte (MByte_Message_Sent) = Get_Byte (MByte_Message_Rcvd);
+         Output ("Testing Byte/Byte Message ", Ok);
+      end if;
+
+      --  Byte/Char Test
+      Set_Char (MByte_Message_Sent,
+                MOMA.Types.Char (Character'('A')));
+      Send_Receive_MByte;
+      if Scenario /= Stor then
+         Ok := Get_Char (MByte_Message_Sent) = Get_Char (MByte_Message_Rcvd);
+         Output ("Testing Byte/Char Message ", Ok);
+      end if;
+
+      --  Byte/Double Test
+      Set_Double (MByte_Message_Sent, MOMA.Types.Double (42.0));
+      Send_Receive_MByte;
+      if Scenario /= Stor then
+         Ok := Get_Double (MByte_Message_Sent)
+           = Get_Double (MByte_Message_Rcvd);
+         Output ("Testing Byte/Double Message ", Ok);
+      end if;
+
+      --  Byte/Float Test
+      Set_Float (MByte_Message_Sent, MOMA.Types.Float (42.0));
+      Send_Receive_MByte;
+      if Scenario /= Stor then
+         Ok := Get_Float (MByte_Message_Sent) = Get_Float (MByte_Message_Rcvd);
+         Output ("Testing Byte/Float Message ", Ok);
+      end if;
+
+      --  Byte/Short Test
+      Set_Short (MByte_Message_Sent, MOMA.Types.Short (3));
+      Send_Receive_MByte;
+      if Scenario /= Stor then
+         Ok := Get_Short (MByte_Message_Sent) = Get_Short (MByte_Message_Rcvd);
+         Output ("Testing Byte/Short Message ", Ok);
+      end if;
+
+      --  Byte/Long Test
+      Set_Long (MByte_Message_Sent, MOMA.Types.Long (21));
+      Send_Receive_MByte;
+      if Scenario /= Stor then
+         Ok := Get_Long (MByte_Message_Sent) = Get_Long (MByte_Message_Rcvd);
+         Output ("Testing Byte/Long Message ", Ok);
+      end if;
+
+      --  Byte/Unsigned_Long Test
+      Set_Unsigned_Long (MByte_Message_Sent, MOMA.Types.Unsigned_Long (12345));
+      Send_Receive_MByte;
+      if Scenario /= Stor then
+         Ok := Get_Unsigned_Long (MByte_Message_Sent)
+           = Get_Unsigned_Long (MByte_Message_Rcvd);
+         Output ("Testing Byte/Unsigned_Long Message ", Ok);
+      end if;
+
+      --  Byte/Unsigned_Short Test
+      Set_Unsigned_Short (MByte_Message_Sent, MOMA.Types.Unsigned_Short (123));
+      Send_Receive_MByte;
+      if Scenario /= Stor then
+         Ok := Get_Unsigned_Short (MByte_Message_Sent)
+           = Get_Unsigned_Short (MByte_Message_Rcvd);
+         Output ("Testing Byte/Unsigned_Short Message ", Ok);
+      end if;
+
+   end Test_MByte;
+
+   --------------------
+   -- Main procedure --
+   --------------------
 
 begin
    --  Argument check
-   if Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+   if Argument_Count < 2 then
+      Put_Line ("usage : client <IOR_string_from_server> <scenario>");
+      Put_Line (" where scenario is in {full, stor, retr}");
+      Put_Line ("  - full : full demo, send and receive messages");
+      Put_Line ("  - stor : only send messages");
+      Put_Line ("  - retr : only retrieve messages");
+      New_Line;
+      Put_Line ("{stor, retr} scenarios are to test persistency");
       return;
+   end if;
+
+   --  Determine scenario to run
+   if Ada.Command_Line.Argument (2) = "full" then
+      Scenario := Full;
+   elsif Ada.Command_Line.Argument (2) = "stor" then
+      Scenario := Stor;
+   elsif Ada.Command_Line.Argument (2) = "retr" then
+      Scenario := Retr;
    end if;
 
    --  Create Queue using Queue Connection Factory
@@ -142,96 +296,13 @@ begin
 
    Put_Line ("Ready to send messages !");
 
-   -----------------------
-   -- Text message test --
-   -----------------------
+   --  Testing MText.
 
-   --  Create new Text Message
-   MText_Message_Sent := Create_Text_Message;
-   Set_Text (MText_Message_Sent, To_MOMA_String ("Hi MOM !"));
+   Test_MText;
 
-   --  Send Text Message
-   Send (MOMA_Producer, MText_Message_Sent);
+   --  Testing MByte.
 
-   --  Get Text Message
-   declare
-      MOMA_Message_Temp : MOMA.Messages.Message'Class
-        := Receive (MOMA_Consumer);
-   begin
-      if MOMA_Message_Temp in MOMA.Messages.MTexts.MText then
-         MText_Message_Rcvd := MOMA.Messages.MTexts.MText (MOMA_Message_Temp);
-      else
-         raise Program_Error;
-      end if;
-   end;
-
-   --  Print results
-   Ok := Get_Text (MText_Message_Sent) = Get_Text (MText_Message_Rcvd);
-   Output ("Testing Text Message ", Ok);
-
-   -----------------------
-   -- Byte message test --
-   -----------------------
-
-   --  Create new Byte Message
-   MByte_Message_Sent := Create_Byte_Message;
-
-   --  Byte/Boolean Test
-   Set_Boolean (MByte_Message_Sent, MOMA.Types.Boolean (True));
-   Send_Receive_MByte (MByte_Message_Sent, MByte_Message_Rcvd);
-   Ok := Get_Boolean (MByte_Message_Sent) = Get_Boolean (MByte_Message_Rcvd);
-   Output ("Testing Byte/Boolean Message ", Ok);
-
-   --  Byte/Byte Test
-   Set_Byte (MByte_Message_Sent, MOMA.Types.Byte (42));
-   Send_Receive_MByte (MByte_Message_Sent, MByte_Message_Rcvd);
-   Ok := Get_Byte (MByte_Message_Sent) = Get_Byte (MByte_Message_Rcvd);
-   Output ("Testing Byte/Byte Message ", Ok);
-
-   --  Byte/Char Test
-   Set_Char (MByte_Message_Sent,
-             MOMA.Types.Char (Character'('A')));
-   Send_Receive_MByte (MByte_Message_Sent, MByte_Message_Rcvd);
-   Ok := Get_Char (MByte_Message_Sent) = Get_Char (MByte_Message_Rcvd);
-   Output ("Testing Byte/Char Message ", Ok);
-
-   --  Byte/Double Test
-   Set_Double (MByte_Message_Sent, MOMA.Types.Double (42.0));
-   Send_Receive_MByte (MByte_Message_Sent, MByte_Message_Rcvd);
-   Ok := Get_Double (MByte_Message_Sent) = Get_Double (MByte_Message_Rcvd);
-   Output ("Testing Byte/Double Message ", Ok);
-
-   --  Byte/Float Test
-   Set_Float (MByte_Message_Sent, MOMA.Types.Float (42.0));
-   Send_Receive_MByte (MByte_Message_Sent, MByte_Message_Rcvd);
-   Ok := Get_Float (MByte_Message_Sent) = Get_Float (MByte_Message_Rcvd);
-   Output ("Testing Byte/Float Message ", Ok);
-
-   --  Byte/Short Test
-   Set_Short (MByte_Message_Sent, MOMA.Types.Short (3));
-   Send_Receive_MByte (MByte_Message_Sent, MByte_Message_Rcvd);
-   Ok := Get_Short (MByte_Message_Sent) = Get_Short (MByte_Message_Rcvd);
-   Output ("Testing Byte/Short Message ", Ok);
-
-   --  Byte/Long Test
-   Set_Long (MByte_Message_Sent, MOMA.Types.Long (21));
-   Send_Receive_MByte (MByte_Message_Sent, MByte_Message_Rcvd);
-   Ok := Get_Long (MByte_Message_Sent) = Get_Long (MByte_Message_Rcvd);
-   Output ("Testing Byte/Long Message ", Ok);
-
-   --  Byte/Unsigned_Long Test
-   Set_Unsigned_Long (MByte_Message_Sent, MOMA.Types.Unsigned_Long (12345));
-   Send_Receive_MByte (MByte_Message_Sent, MByte_Message_Rcvd);
-   Ok := Get_Unsigned_Long (MByte_Message_Sent)
-     = Get_Unsigned_Long (MByte_Message_Rcvd);
-   Output ("Testing Byte/Unsigned_Long Message ", Ok);
-
-   --  Byte/Unsigned_Short Test
-   Set_Unsigned_Short (MByte_Message_Sent, MOMA.Types.Unsigned_Short (123));
-   Send_Receive_MByte (MByte_Message_Sent, MByte_Message_Rcvd);
-   Ok := Get_Unsigned_Short (MByte_Message_Sent)
-     = Get_Unsigned_Short (MByte_Message_Rcvd);
-   Output ("Testing Byte/Unsigned_Short Message ", Ok);
+   Test_MByte;
 
    --  End of File
    --  Put_Line ("waiting");

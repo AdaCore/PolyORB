@@ -65,6 +65,16 @@ package MOMA.Types is
 
    --  MOMA specific types
 
+   type Pool_Type is (Queue, Topic);
+
+   type Persistence_Mode is (None, File);
+
+   type Message_Pool is record
+      Pool        : MOMA.Types.Pool_Type;
+      Name        : MOMA.Types.String;
+      Persistence : MOMA.Types.Persistence_Mode;
+   end record;
+
    type Meta_Data        is new    Integer;
    type Acknowledge_Type is new    Integer;
    type Property_Type    is new    Integer;

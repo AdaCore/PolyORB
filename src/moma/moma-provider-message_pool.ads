@@ -32,22 +32,50 @@
 
 --  $Id$
 
+with MOMA.Types;
+with MOMA.Provider.Warehouse;
+
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
 
 package MOMA.Provider.Message_Pool is
 
-   type Object is new PolyORB.Minimal_Servant.Servant with null record;
+   type Object is new PolyORB.Minimal_Servant.Servant with private;
 
    type Object_Acc is access Object;
+
+   procedure Initialize (Self : access Object;
+                        Info : MOMA.Types.Message_Pool);
+   --  Initialize the object.
 
    procedure Invoke
      (Self : access Object;
       Req  : in     PolyORB.Requests.Request_Access);
+   --  Middleware 'glue'.
 
    function If_Desc
      return PolyORB.Obj_Adapters.Simple.Interface_Description;
    pragma Inline (If_Desc);
+   --  Middleware 'glue'.
+
+private
+
+   type Object is new PolyORB.Minimal_Servant.Servant with record
+     Pool : MOMA.Types.Message_Pool;
+         --  Pool information.
+
+     W : MOMA.Provider.Warehouse.Warehouse;
+         --  XXX up to now, we use one and only one Warehouse, per
+         --  message_pool, more warehouses would require message analysis,
+         --  => to be done later, after proper message definition.
+
+     Message_Id : Natural := 0;
+         --  XXX Dummy counter for message_id, to be trashed ...
+
+     Last_Read_Id : Natural := 0;
+         --  XXX Dummy counter for message_id, to be trashed ...
+
+   end record;
 
 end MOMA.Provider.Message_Pool;

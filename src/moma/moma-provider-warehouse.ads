@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A dynamic, protected  dictionnary of objects, indexed by Strings.
+--  A dynamic, protected  dictionnary of Any, indexed by Strings.
 
 --  $Id$
 
 with PolyORB.Any;
 with PolyORB.Utils.HTables.Perfect;
 with PolyORB.Locks;
+
+with MOMA.Types;
 
 package MOMA.Provider.Warehouse is
 
@@ -45,26 +47,18 @@ package MOMA.Provider.Warehouse is
 
    use Perfect_Htable;
 
-   type Warehouse is record
-      T : Table_Instance;
-      T_Initialized : Boolean := False;
-      T_Lock : PolyORB.Locks.Rw_Lock_Access;
-   end record;
-
    Key_Not_Found : exception;
 
-   procedure Ensure_Initialization (W : in out Warehouse);
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that T was initialized
+   type Warehouse is private;
 
    procedure Register
-     (W : Warehouse;
+     (W : in out Warehouse;
       K : String;
       V : PolyORB.Any.Any);
    --  Associate key K with value V.
 
    procedure Unregister
-     (W : Warehouse;
+     (W : in out Warehouse;
       K : String);
    --  Remove any association for K. Key_Not_Found is raised
    --  if no value was registered for this key.
@@ -84,5 +78,20 @@ package MOMA.Provider.Warehouse is
      return PolyORB.Any.Any;
    --  As above, but Default is returned for non-registered keys,
    --  insted of raising an exception.
+
+   procedure Set_Persistence (W : in out Warehouse;
+                              Persistence : MOMA.Types.Persistence_Mode);
+   --  Set persistency flag for this warehouse,
+   --  Note : this override any flag set for a message if set to a mode
+   --  allowing persistence.
+
+private
+
+   type Warehouse is record
+      T             : Table_Instance;
+      T_Initialized : Boolean := False;
+      T_Persistence : MOMA.Types.Persistence_Mode := MOMA.Types.None;
+      T_Lock        : PolyORB.Locks.Rw_Lock_Access;
+   end record;
 
 end MOMA.Provider.Warehouse;

@@ -1,4 +1,4 @@
-SUBDIRS=	echo all_types all_functions
+SUBDIRS=	echo all_types all_functions moma
 
 LINKER=	../support/linker
 

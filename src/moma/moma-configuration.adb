@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            M O M A . C O N F I G U R A T I O N . S E R V E R             --
+--                   M O M A . C O N F I G U R A T I O N                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -32,39 +32,93 @@
 
 --  $Id$
 
-with MOMA.Provider.Message_Pool;
+with PolyORB.Configuration;
 with PolyORB.Log;
-with PolyORB.MOMA_P.Tools;
 
-package body MOMA.Configuration.Server is
+with MOMA.Types;
+
+package body MOMA.Configuration is
 
    use PolyORB.Configuration;
-   use PolyORB.MOMA_P.Tools;
    use PolyORB.Log;
 
    use MOMA.Types;
 
-   package L is new PolyORB.Log.Facility_Log ("moma.configuration.server");
+   package L is new PolyORB.Log.Facility_Log ("moma.configuration");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   -------------------------
-   -- Create_Message_Pool --
-   -------------------------
+   ----------------------
+   -- Get_Message_Pool --
+   ----------------------
 
-   procedure Create_Message_Pool (Pool : MOMA.Types.Message_Pool;
-                                  Ref  : out PolyORB.References.Ref)
+   function Get_Message_Pool (Number : Natural)
+                              return MOMA.Types.Message_Pool
    is
-      MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc
-       := new MOMA.Provider.Message_Pool.Object;
+      Section : constant String
+        := "destination" & Natural'Image (Number);
 
+      Pool_S : constant String := Get_Conf (Section, "type");
+      Persistent_S : constant String := Get_Conf (Section, "persistent");
+
+      Result : Message_Pool;
    begin
-      pragma Debug (O ("Creating Message Pool "
-                       & To_Standard_String (Get_Name (Pool))));
-      Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Pool.If_Desc,
-                        Ref);
-      MOMA.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
-   end Create_Message_Pool;
+      Result.Name := To_MOMA_String (Get_Conf (Section, "name"));
 
-end MOMA.Configuration.Server;
+      pragma Debug (O ("Pool #" & Natural'Image (Number) & " : "
+                       & "Name : " & To_Standard_String (Result.Name)
+                       & ", Type : " & Pool_S
+                       & ", Persistent : " & Persistent_S));
+
+      if Pool_S = "queue" then
+         Result.Pool := Queue;
+      elsif Pool_S = "topic" then
+         Result.Pool := Topic;
+      else
+         raise Program_Error;
+         --  XXX should raise something else ...
+      end if;
+
+      if Persistent_S = "none" then
+         Result.Persistence := None;
+      elsif Persistent_S = "file" then
+         Result.Persistence := File;
+      else
+         raise Program_Error;
+         --  XXX should raise something else ...
+      end if;
+
+      return Result;
+   end Get_Message_Pool;
+
+   --------------
+   -- Get_Name --
+   --------------
+
+   function Get_Name (Pool : MOMA.Types.Message_Pool)
+                      return MOMA.Types.String is
+   begin
+      return Pool.Name;
+   end Get_Name;
+
+   --------------
+   -- Get_Type --
+   --------------
+
+   function Get_Type (Pool : MOMA.Types.Message_Pool)
+                      return Pool_Type is
+   begin
+      return Pool.Pool;
+   end Get_Type;
+
+   --------------------
+   -- Get_Persistent --
+   --------------------
+
+   function Get_Persistence (Pool : MOMA.Types.Message_Pool)
+                            return Persistence_Mode is
+   begin
+      return Pool.Persistence;
+   end Get_Persistence;
+
+end MOMA.Configuration;
