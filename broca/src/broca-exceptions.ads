@@ -99,6 +99,10 @@ package Broca.Exceptions is
    -- Utilities to raise System Exceptions --
    ------------------------------------------
 
+   procedure Raise_Unknown (Minor : Unsigned_Long := 0;
+                            Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Unknown);
+
    procedure Raise_Bad_Param
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No);
@@ -152,11 +156,6 @@ package Broca.Exceptions is
    procedure Raise_Imp_Limit (Minor : Unsigned_Long := 0;
                               Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Imp_Limit);
-
-   --  Raise_Unknown
-   procedure Raise_Unknown (Minor : Unsigned_Long := 0;
-                            Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Unknown);
 
    --  Raise_Bad_Inv_Order
    procedure Raise_Bad_Inv_Order (Minor : Unsigned_Long := 0;
