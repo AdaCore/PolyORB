@@ -23,9 +23,17 @@ package body Ada_Be.Expansion is
 
    procedure Expand_Node (Node : in Node_Id) is
    begin
+      pragma Debug (O ("Expanding node : "
+                       & Node_Kind'Image (Kind (Node))));
       case (Kind (Node)) is
          when K_Repository =>
             Expand_Repository (Node);
+         when K_Module =>
+            Expand_Module (Node);
+         when K_Interface =>
+            Expand_Interface (Node);
+         when K_Attribute =>
+            Expand_Attribute (Node);
          when others =>
             null;
       end case;
@@ -127,7 +135,7 @@ package body Ada_Be.Expansion is
          end;
       end loop;
 
-      Expand_Node_List (Contents (Node));
+      Expand_Node_List (Contents (New_Repository));
    end Expand_Repository;
 
 
@@ -153,9 +161,112 @@ package body Ada_Be.Expansion is
    --  Expand_Attribute --
    -----------------------
    procedure Expand_Attribute (Node : in Node_Id) is
-
+      New_Node : Node_Id;
+      Old_Node : Node_Id;
+      Iterator : Node_Iterator;
+      Current_Declarator : Node_Id;
    begin
-      null;
+      pragma Assert (Kind (Node) = K_Attribute);
+      --  create a new node (list of nodes)
+      New_Node := Make_Ben_Node_List;
+      Old_Node := Node;
+      Replace_Node (Old_Node, New_Node);
+
+      --  create an iterator for all the declarators
+      Init (Iterator, Declarators (Old_Node));
+
+      while not Is_End (Iterator) loop
+
+         Current_Declarator := Get_Node (Iterator);
+
+         --  create the get_method
+         declare
+            Get_Method : Node_Id := Make_Operation;
+            Success : Boolean;
+         begin
+            Success := Add_Identifier (Get_Method, "Get_"
+                                       & Get_Name (Current_Declarator));
+            pragma Assert (Success = True);
+            Set_Is_Oneway (Get_Method, False);
+            Set_Operation_Type (Get_Method, A_Type (Old_Node));
+            --  parameters
+            declare
+               Param1 : Node_Id := Make_Param;
+               Decl : Node_Id := Make_Declarator;
+               Params : Node_List := Nil_List;
+               Def : Identifier_Definition_Acc;
+            begin
+               Set_Mode (Param1, Mode_In);
+               Def := Definition (Current_Declarator);
+               Set_Param_Type (Param1, Def.all.Parent_Scope);
+               Success := Add_Identifier (Decl, "Self");
+               pragma Assert (Success = True);
+               Set_Array_Bounds (Decl, Nil_List);
+               Set_Parent (Decl, Param1);
+               Set_Declarator (Param1, Decl);
+               Append_Node (Params, Param1);
+               Set_Parameters (Get_Method, Params);
+            end;
+            Set_Raises (Get_Method, Nil_List);
+            Set_Contexts (Get_Method, Nil_List);
+
+            --  add the node to the node list
+            Append_Node_To_Contents (New_Node, Get_Method);
+         end;
+
+         --  create the Set method
+         if not Is_Readonly (Old_Node) then
+            declare
+               Set_Method : Node_Id := Make_Operation;
+               Success : Boolean;
+            begin
+               Success := Add_Identifier (Set_Method, "Set_"
+                                          & Get_Name (Current_Declarator));
+               pragma Assert (Success = True);
+               Set_Is_Oneway (Set_Method, False);
+               Set_Operation_Type (Set_Method, No_Node);
+               --  parameters
+               declare
+                  Param1 : Node_Id := Make_Param;
+                  Param2 : Node_Id := Make_Param;
+                  Decl1 : Node_Id := Make_Declarator;
+                  Decl2 : Node_Id := Make_Declarator;
+                  Params : Node_List := Nil_List;
+                  Def : Identifier_Definition_Acc;
+               begin
+                  --  Object Ref parameter
+                  Set_Mode (Param1, Mode_Inout);
+                  Def := Definition (Current_Declarator);
+                  Set_Param_Type (Param1, Def.all.Parent_Scope);
+                  Success := Add_Identifier (Decl1, "Self");
+                  pragma Assert (Success = True);
+                  Set_Array_Bounds (Decl1, Nil_List);
+                  Set_Parent (Decl1, Param1);
+                  Set_Declarator (Param1, Decl1);
+                  Append_Node (Params, Param1);
+
+                  --  new value parameter
+                  Set_Mode (Param2, Mode_In);
+                  Set_Param_Type (Param2, A_Type (Old_Node));
+                  Success := Add_Identifier (Decl2, "To");
+                  pragma Assert (Success = True);
+                  Set_Array_Bounds (Decl2, Nil_List);
+                  Set_Parent (Decl2, Param2);
+                  Set_Declarator (Param2, Decl2);
+                  Append_Node (Params, Param2);
+
+                  Set_Parameters (Set_Method, Params);
+               end;
+               Set_Raises (Set_Method, Nil_List);
+               Set_Contexts (Set_Method, Nil_List);
+
+               --  add the node to the node list
+               Append_Node_To_Contents (New_Node, Set_Method);
+            end;
+         end if;
+
+         Next (Iterator);
+      end loop;
    end Expand_Attribute;
 
 

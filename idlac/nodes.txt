@@ -13,6 +13,7 @@
 --
 --    Accessors will have the name Field and Set_Field.
 
+
 START
 
 Root
@@ -230,6 +231,17 @@ Fixed
 
 ValueBase
 
-END
 
+--  expansion specific nodes
+
+
+Ben_Idl_File <-- Named
+  Contents : Node_List
+
+--  an anonymous list to replace a single node by several nodes
+Ben_Node_List
+  Contents : Node_List
+
+
+END
 

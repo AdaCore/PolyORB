@@ -15,7 +15,7 @@ begin
                              True);
    Put_Line ("Testexpansion : Parsing");
    Rep := Idl_Fe.Parser.Parse_Specification;
-   Put_Line ("Testexpansion : Expanding");
+   Put_Line ("Testexpansion : Expanding ");
    Ada_Be.Expansion.Expand_Repository (Rep);
    Idl_Fe.Display_Tree.Disp_Tree (Rep);
    if Idl_Fe.Errors.Is_Error then
