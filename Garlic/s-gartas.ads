@@ -110,9 +110,8 @@ package System.Garlic.Tasking is
 
    procedure Set_Priority (P : in Natural);
 
-   --  We export Mutex_PO because a construct like select ... than
-   --  abort ... needs a call to such a protected object as a
-   --  statement for the first alternative.
+   --  We export Mutex_PO because the abortable part of a select ...
+   --  then abort construct must be an entry call.
 
    protected type Mutex_PO is
       entry Enter;

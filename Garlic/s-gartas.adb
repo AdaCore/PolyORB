@@ -35,10 +35,11 @@
 
 with Ada.Task_Attributes;
 with Ada.Dynamic_Priorities;
-
-with GNAT.Task_Lock;
+with Ada.Task_Identification;    use Ada.Task_Identification;
+pragma Elaborate_All (Ada.Task_Identification);
 
 with System;                     use System;
+with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
 with System.Garlic.Types;        use System.Garlic.Types;
 with System.Tasking;
@@ -49,6 +50,13 @@ with System.Tasking.Utilities;
 pragma Elaborate_All (System.Tasking.Utilities);
 
 package body System.Garlic.Tasking is
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GARTAS", "(s-gartas): ");
+   procedure D
+     (Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info_Nolock;
 
    use type System.Tasking.Task_ID;
 
@@ -76,8 +84,21 @@ package body System.Garlic.Tasking is
    procedure Free is
      new Ada.Unchecked_Deallocation (Watcher_PO, Watcher_PO_Access);
 
+   protected Global_Lock is
+      entry Lock;
+      entry Unlock;
+      --  This entry could be a procedure, but we want the Task_Id of the
+      --  caller for debugging purpose.
+   private
+      entry Contention;
+      Count : Natural := 0;
+      Owner : Task_Id;
+   end Global_Lock;
+
    procedure Lock;
+   pragma Inline (Lock);
    procedure Unlock;
+   pragma Inline (Unlock);
 
    ------------
    -- Create --
@@ -222,6 +243,50 @@ package body System.Garlic.Tasking is
       return Natural (Ada.Dynamic_Priorities.Get_Priority);
    end Get_Priority;
 
+   -----------------
+   -- Global_Lock --
+   -----------------
+
+   protected body Global_Lock is
+
+      ----------------
+      -- Contention --
+      ----------------
+
+      entry Contention when Count = 0 is
+      begin
+         Owner := Contention'Caller;
+         Count := 1;
+      end Contention;
+
+      ----------
+      -- Lock --
+      ----------
+
+      entry Lock when True is
+      begin
+         if Count = 0 or else Lock'Caller = Owner then
+            Count := Count + 1;
+            Owner := Lock'Caller;
+         else
+            pragma Debug (D ("Contention in lock, count is" & Count'Img));
+            requeue Contention with abort;
+         end if;
+      end Lock;
+
+      ------------
+      -- Unlock --
+      ------------
+
+      entry Unlock when True is
+      begin
+         pragma Assert (Unlock'Caller = Owner);
+         pragma Assert (Count > 0);
+         Count := Count - 1;
+      end Unlock;
+
+   end Global_Lock;
+
    ----------------------------
    -- Independent_Task_Count --
    ----------------------------
@@ -237,6 +302,7 @@ package body System.Garlic.Tasking is
 
    procedure Initialize is
    begin
+      pragma Debug (D ("Registering soft links"));
       Register_Enter_Critical_Section (Enter_Critical_Section'Access);
       Register_Leave_Critical_Section (Leave_Critical_Section'Access);
       Register_Watcher_Creation_Function (Create'Access);
@@ -303,8 +369,7 @@ package body System.Garlic.Tasking is
 
    procedure Lock is
    begin
-      GNAT.Task_Lock.Lock;
-      Set_Value (Value + 1);
+      Global_Lock.Lock;
    end Lock;
 
    ------------
@@ -369,8 +434,7 @@ package body System.Garlic.Tasking is
 
    procedure Unlock is
    begin
-      Set_Value (Value - 1);
-      GNAT.Task_Lock.Unlock;
+      Global_Lock.Unlock;
    end Unlock;
 
    ------------
