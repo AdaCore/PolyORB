@@ -1084,6 +1084,12 @@ package body PolyORB.ORB is
             pragma Debug (O ("Queue_Request: leave"));
          end;
 
+      elsif Msg in Protocols.Interface.Flush then
+
+         --  There is no session data to flush
+
+         null;
+
       elsif Msg in Executed_Request then
          declare
             use PolyORB.Task_Info;
