@@ -58,7 +58,7 @@ package body PolyORB.Setup.Access_Points.SOAP is
    use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Utils.TCP_Access_Points;
 
-   --  The 'SOAP' access point.
+   --  The SOAP access point
 
    SOAP_Access_Point : Access_Point_Info
      := (Socket  => No_Socket,
@@ -86,9 +86,9 @@ package body PolyORB.Setup.Access_Points.SOAP is
 
    procedure Initialize_Access_Points;
 
-   procedure Initialize_Access_Points
-   is
+   procedure Initialize_Access_Points is
       use PolyORB.Parameters;
+
    begin
       if Get_Conf ("access_points", "soap", True) then
 
@@ -99,8 +99,16 @@ package body PolyORB.Setup.Access_Points.SOAP is
                ("soap",
                 "polyorb.protocols.soap.default_port",
                 8080));
+
+            Addr : constant Inet_Addr_Type
+              := Inet_Addr (String'(Get_Conf
+                                    ("soap",
+                                     "polyorb.protocols.soap.default_addr",
+                                     Image (No_Inet_Addr))));
+
          begin
-            Initialize_Socket (SOAP_Access_Point, Port);
+            Initialize_Socket (SOAP_Access_Point, Addr, Port);
+
             Register_Access_Point
               (ORB    => The_ORB,
                TAP    => SOAP_Access_Point.SAP,

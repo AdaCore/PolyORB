@@ -59,9 +59,9 @@ package body PolyORB.Setup.Access_Points.IIOP is
    use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Utils.TCP_Access_Points;
 
-   --  The 'GIOP' access point.
+   --  The IIOP access point
 
-   GIOP_Access_Point : Access_Point_Info
+   IIOP_Access_Point : Access_Point_Info
      := (Socket  => No_Socket,
          Address => No_Sock_Addr,
          SAP     => new Socket_Access_Point,
@@ -78,12 +78,11 @@ package body PolyORB.Setup.Access_Points.IIOP is
 
    procedure Initialize_Access_Points;
 
-   procedure Initialize_Access_Points
-   is
+   procedure Initialize_Access_Points is
       use PolyORB.Parameters;
+
    begin
       if Get_Conf ("access_points", "iiop", True) then
-
          declare
             Port : constant Port_Type
               := Port_Type
@@ -91,14 +90,21 @@ package body PolyORB.Setup.Access_Points.IIOP is
                ("iiop",
                 "polyorb.protocols.iiop.default_port",
                 Integer (Any_Port)));
+
+            Addr : constant Inet_Addr_Type
+              := Inet_Addr (String'(Get_Conf
+                                    ("iiop",
+                                     "polyorb.protocols.iiop.default_addr",
+                                     Image (No_Inet_Addr))));
+
          begin
-            Initialize_Socket (GIOP_Access_Point, Port);
+            Initialize_Socket (IIOP_Access_Point, Addr, Port);
 
             Register_Access_Point
               (ORB    => The_ORB,
-               TAP    => GIOP_Access_Point.SAP,
+               TAP    => IIOP_Access_Point.SAP,
                Chain  => IIOP_Factories'Access,
-               PF     => GIOP_Access_Point.PF);
+               PF     => IIOP_Access_Point.PF);
          end;
       end if;
    end Initialize_Access_Points;

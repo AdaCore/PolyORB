@@ -82,7 +82,7 @@ package body PolyORB.Setup.Access_Points.SRP is
    begin
       if Get_Conf ("access_points", "srp", True) then
 
-         Initialize_Socket (SRP_Access_Point, Any_Port);
+         Initialize_Socket (SRP_Access_Point, Any_Inet_Addr, Any_Port);
          Register_Access_Point
            (ORB    => The_ORB,
             TAP    => SRP_Access_Point.SAP,

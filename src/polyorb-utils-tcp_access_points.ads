@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -60,8 +60,10 @@ package PolyORB.Utils.TCP_Access_Points is
 
    procedure Initialize_Socket
      (DAP       : in out Access_Point_Info;
+      Address   : in     Sockets.Inet_Addr_Type := Any_Inet_Addr;
       Port_Hint : in     Port_Type);
-   --  Initialize DAP.Socket and bind it to a free port,
-   --  Port if possible.
+   --  Initialize DAP.Socket and bind it to a free port, using one of
+   --  the address corresponding to hostname, or use Address and
+   --  Port_Hint if possible.
 
 end PolyORB.Utils.TCP_Access_Points;

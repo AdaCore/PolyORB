@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,17 +44,26 @@ package body PolyORB.Utils.TCP_Access_Points is
 
    use PolyORB.Transport.Connected.Sockets;
 
+   -----------------------
+   -- Initialize_Socket --
+   -----------------------
+
    procedure Initialize_Socket
-     (DAP  : in out Access_Point_Info;
-      Port_Hint : in Port_Type)
+     (DAP       : in out Access_Point_Info;
+      Address   : in     Sockets.Inet_Addr_Type := Any_Inet_Addr;
+      Port_Hint : in     Port_Type)
    is
       Port : Port_Type := Port_Hint;
+
    begin
       Create_Socket (DAP.Socket);
 
-      DAP.Address.Addr := Any_Inet_Addr;
+      DAP.Address :=
+        Sock_Addr_Type'(Addr => Address,
+                        Port => Port,
+                        Family => Family_Inet);
 
-      --  Allow reuse of local addresses.
+      --  Allow reuse of local addresses
 
       Set_Socket_Option
         (DAP.Socket,
@@ -64,6 +73,7 @@ package body PolyORB.Utils.TCP_Access_Points is
       if DAP.SAP = null then
          DAP.SAP := new Socket_Access_Point;
       end if;
+
       loop
          DAP.Address.Port := Port;
          begin
@@ -82,6 +92,7 @@ package body PolyORB.Utils.TCP_Access_Points is
                end if;
          end;
       end loop;
+
       if DAP.PF /= null then
          Create_Factory
            (DAP.PF.all, DAP.SAP, Components.Component_Access (Setup.The_ORB));

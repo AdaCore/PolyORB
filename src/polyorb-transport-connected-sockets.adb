@@ -97,11 +97,25 @@ package body PolyORB.Transport.Connected.Sockets is
       Listen_Socket (Socket);
 
       SAP.Socket := Socket;
-      SAP.Addr   := Get_Socket_Name (Socket);
-      if SAP.Addr.Addr = Any_Inet_Addr then
+
+      if Address.Addr = Any_Inet_Addr then
+
+         --  Address is unspecified, choose one IP for the SAP looking
+         --  up hostname.
+
          SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
+         Address := SAP.Addr;
+
+      else
+
+         --  Use specified address IP for SAP
+
+         SAP.Addr := Address;
       end if;
-      Address := SAP.Addr;
+
+      if SAP.Addr.Port = Any_Port then
+         SAP.Addr.Port := Get_Socket_Name (Socket).Port;
+      end if;
    end Create;
 
    -------------------------
