@@ -1,5 +1,10 @@
 2004-07-26  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-generator.adb: Add "in" keyword befor range
+	contraint in for statements. 
+
+2004-07-26  Saber Souli  <souli@neraka.enst.fr>
+
 	* backend-be_ada-helpers.adb: Generate To_Any body for complex
 	declarator and simple declarator.  
 

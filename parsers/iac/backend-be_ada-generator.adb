@@ -345,6 +345,8 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
       Write_Space;
+      Write (Tok_In);
+      Write_Space;
 
       Write_Str (Values.Image (First (Range_Constraint (N))));
       Write_Space;
@@ -364,6 +366,7 @@ package body Backend.BE_Ada.Generator is
          D := Next_Node (D);
       end loop;
       Decrement_Indentation;
+
       Write (Tok_Semicolon);
       Write_Eol;
       Write_Indentation;
