@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,13 +41,5 @@
 package PolyORB.Tasking.Profiles.Ravenscar is
 
    pragma Preelaborate;
-
-   Storage_Size : constant := 262_144;
-   --  Stack size of the tasks of the pool.
-   --  WAG:3.15
-   --  In 3.15, the pragma Ravenscar implies the restriction
-   --  Static_Storage_Size, so we cannot make Storage_Size a formal
-   --  generic parameter of PTPR.Threads.
-   --  This restriction has been removed in 3.16,
 
 end PolyORB.Tasking.Profiles.Ravenscar;

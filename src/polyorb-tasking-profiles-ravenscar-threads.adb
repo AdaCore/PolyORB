@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -446,12 +446,15 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
-      pragma Unreferenced (T);
       pragma Warnings (On);
-   begin
-      raise Tasking.Tasking_Profile_Error;
 
-      return 0;
+      Index : constant Integer := Get_Thread_Index (T);
+      pragma Unreferenced (Index);
+      --  Note: we compute index only to check T belongs to system
+      --  tasks. If not, getting its priority is meaningless.
+
+   begin
+      return Task_Priority;
    end Get_Priority;
 
    ----------------------
@@ -617,7 +620,12 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
          pragma Assert (Package_Initialized);
 
          while My_Task_Id_Arr (J) /= Tid loop
-            pragma Assert (J /= Thread_Index_Type'Last);
+            if J = Thread_Index_Type'Last then
+               --  Tis is not managed by this pool
+
+               raise Tasking_Profile_Error;
+            end if;
+
             J := J + 1;
          end loop;
          return J;
@@ -645,19 +653,25 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
      (TF               : access Ravenscar_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       P                : Parameterless_Procedure)
      return Thread_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
-      pragma Unreferenced (Default_Priority);
       pragma Warnings (On);
 
-      --  XXX The use of names and priorities is not implemented yet.
+      --  XXX The use of names is not implemented yet.
       Id : Thread_Index_Type;
       T  : Thread_Access;
    begin
+      if Default_Priority /= Task_Priority
+        or else Storage_Size /= Tasking.Profiles.Ravenscar.Threads.Storage_Size
+      then
+         raise Tasking_Error;
+      end if;
+
       --  The following call should not be executed in a protected
       --  object, because it can be blocking.
       Thread_Index_Manager.Get (Id);
@@ -682,6 +696,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
      (TF               : access Ravenscar_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       R                : Runnable_Access;
       C                : Runnable_Controller_Access)
      return Thread_Access
@@ -689,13 +704,18 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
-      pragma Unreferenced (Default_Priority);
       pragma Warnings (On);
 
-      --  XXX The use of names and priorities is not implemented yet.
+      --  XXX The use of names is not implemented yet.
       Id : Thread_Index_Type;
       T  : Thread_Access;
    begin
+      if Default_Priority /= Task_Priority
+        or else Storage_Size /= Tasking.Profiles.Ravenscar.Threads.Storage_Size
+      then
+         raise Tasking_Error;
+      end if;
+
       --  The following call should not be executed in a protected
       --  object, because it can be blocking.
       Thread_Index_Manager.Get (Id);

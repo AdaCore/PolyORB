@@ -76,6 +76,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       R                : PTT.Runnable_Access;
       C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access;
@@ -84,6 +85,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
+      Storage_Size     : Natural := 0;
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access;
 
@@ -114,8 +116,9 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 private
 
    type Full_Tasking_Thread_Type is new PTT.Thread_Type with record
-      Id        : PTT.Thread_Id;
-      Priority  : System.Any_Priority;
+      Id         : PTT.Thread_Id;
+      Priority   : System.Any_Priority;
+      Stack_Size : Natural;
    end record;
 
    type Full_Tasking_Thread_Factory_Type is
