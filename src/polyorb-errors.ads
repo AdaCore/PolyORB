@@ -276,7 +276,7 @@ package PolyORB.Errors is
    --  Concantenation of PolyORB_Exc_NameSpace, PolyORB_Root and
    --  PolyORB_Separator.
 
-   PolyORB_Exc_Version   : constant PolyORB.Types.String;
+   PolyORB_Exc_Version   : constant String;
    --  PolyORB exceptions version.
 
 private
@@ -289,7 +289,6 @@ private
      & PolyORB_Exc_Root
      & PolyORB_Exc_Separator;
 
-   PolyORB_Exc_Version   : constant PolyORB.Types.String
-     := PolyORB.Types.To_PolyORB_String (":1.0");
+   PolyORB_Exc_Version   : constant String := ":1.0";
 
 end PolyORB.Errors;

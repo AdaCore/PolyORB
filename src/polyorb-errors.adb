@@ -206,25 +206,29 @@ package body PolyORB.Errors is
       pragma Unreferenced (Member);
       pragma Warnings (On); --  WAG:3.15
 
-      TC : TypeCode.Object := TypeCode.TC_Except;
-      Shift : Natural := 0;
-
-      Repository_Id : PolyORB.Types.String;
+      TC    : TypeCode.Object := TypeCode.TC_Except;
+      Shift : Natural         := 0;
    begin
       --  Name
       TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
 
       if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
-        = PolyORB_Exc_Root then
+        = PolyORB_Exc_Root
+      then
          Shift := PolyORB_Exc_Root'Length + 1;
       end if;
 
       --  RepositoryId : 'INTERNAL:<Name>:1.0'
-      Repository_Id := To_PolyORB_String (PolyORB_Exc_Prefix)
-        & To_PolyORB_String (Name (Name'First + Shift .. Name'Last))
-        & PolyORB_Exc_Version;
 
-      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
+      declare
+         Repository_Id : constant String :=
+           PolyORB_Exc_Prefix
+           & Name (Name'First + Shift .. Name'Last)
+           & PolyORB_Exc_Version;
+      begin
+         TypeCode.Add_Parameter (TC,
+           To_Any (To_PolyORB_String (Repository_Id)));
+      end;
 
       return Get_Empty_Any_Aggregate (TC);
    end To_Any;
@@ -240,11 +244,9 @@ package body PolyORB.Errors is
    is
       TC : TypeCode.Object renames TC_ForwardRequest_Cache;
 
-      Name          : constant PolyORB.Types.String
-        := To_PolyORB_String ("ForwardRequest");
-      Repository_Id : constant PolyORB.Types.String
-        := To_PolyORB_String (PolyORB_Exc_Prefix)
-             & Name & PolyORB_Exc_Version;
+      Name          : constant String := "ForwardRequest";
+      Repository_Id : constant String :=
+        PolyORB_Exc_Prefix & Name & PolyORB_Exc_Version;
    begin
       if TypeCode.Parameter_Count (TC) /= 0 then
          return TC;
@@ -252,8 +254,8 @@ package body PolyORB.Errors is
 
       TC := TypeCode.TC_Except;
 
-      TypeCode.Add_Parameter (TC, To_Any (Name));
-      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
+      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
+      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Repository_Id)));
 
       TypeCode.Add_Parameter
         (TC, To_Any (TC_Object));
@@ -304,8 +306,6 @@ package body PolyORB.Errors is
    is
       TC    : TypeCode.Object := TypeCode.TC_Except;
       Shift : Natural := 0;
-
-      Repository_Id : PolyORB.Types.String;
    begin
       --  Name
       TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
@@ -316,28 +316,33 @@ package body PolyORB.Errors is
       end if;
 
       --  RepositoryId : 'INTERNAL:<Name>:1.0'
-      Repository_Id := To_PolyORB_String (PolyORB_Exc_Prefix)
-        & To_PolyORB_String (Name (Name'First + Shift .. Name'Last))
-        & PolyORB_Exc_Version;
 
-      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
+      declare
+         Repository_Id : constant String :=
+           PolyORB_Exc_Prefix
+             & Name (Name'First + Shift .. Name'Last)
+             & PolyORB_Exc_Version;
+      begin
+         TypeCode.Add_Parameter (TC,
+           To_Any (To_PolyORB_String (Repository_Id)));
 
-      --  Component 'minor'
-      TypeCode.Add_Parameter
-        (TC, To_Any (TC_Unsigned_Long));
-      TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("minor")));
+         --  Component 'minor'
+         TypeCode.Add_Parameter
+           (TC, To_Any (TC_Unsigned_Long));
+         TypeCode.Add_Parameter
+           (TC, To_Any (To_PolyORB_String ("minor")));
 
-      --  Component 'completed'
-      TypeCode.Add_Parameter
-        (TC, To_Any (TC_Completion_Status));
-      TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("completed")));
+         --  Component 'completed'
+         TypeCode.Add_Parameter
+           (TC, To_Any (TC_Completion_Status));
+         TypeCode.Add_Parameter
+           (TC, To_Any (To_PolyORB_String ("completed")));
 
-      pragma Debug (O ("Built Exception TypeCode for: "
-                       & To_Standard_String (Repository_Id)));
+         pragma Debug (O ("Built Exception TypeCode for: "
+                          & Repository_Id));
+      end;
+
       pragma Debug (O (" " & PolyORB.Any.Image (TC)));
-
       return TC;
    end System_Exception_TypeCode;
 

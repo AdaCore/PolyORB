@@ -65,9 +65,8 @@ package body PolyORB.GIOP_P.Exceptions is
 
    function Is_System_Exception (Name : String) return Boolean
    is
-      Prefix_Length : constant Natural := PolyORB_Exc_Prefix'Length;
-      Version_Length : constant Natural
-        := To_Standard_String (PolyORB_Exc_Version)'Length;
+      Prefix_Length  : constant Natural := PolyORB_Exc_Prefix'Length;
+      Version_Length : constant Natural := PolyORB_Exc_Version'Length;
 
       Result : Boolean := False;
    begin

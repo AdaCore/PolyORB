@@ -67,9 +67,8 @@ package body PolyORB.CORBA_P.Exceptions is
       Is_Error : out Boolean;
       Id       : out Error_Id)
    is
-      Prefix_Length : constant Natural := PolyORB_Exc_Prefix'Length;
-      Version_Length : constant Natural
-        := To_Standard_String (PolyORB_Exc_Version)'Length;
+      Prefix_Length  : constant Natural := PolyORB_Exc_Prefix'Length;
+      Version_Length : constant Natural := PolyORB_Exc_Version'Length;
 
    begin
       if Name'Length > Prefix_Length + Version_Length
