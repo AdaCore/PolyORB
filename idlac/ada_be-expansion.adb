@@ -829,6 +829,8 @@ package body Ada_Be.Expansion is
            (Members_Struct, Ada_Name (Node) & "_Members");
          pragma Assert (Success);
 
+         Set_Default_Repository_Id (Members_Struct);
+         Set_Initial_Current_Prefix (Members_Struct);
          Set_Members (Members_Struct, Members (Node));
          Set_Is_Exception_Members (Members_Struct, True);
          Expand_Node (Members_Struct);

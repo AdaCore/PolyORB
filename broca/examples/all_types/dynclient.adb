@@ -547,20 +547,16 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
       Result_Value : All_Types.Simple_Array := (0 ,0 ,0 ,0, 0);
    begin
-      Ada.Text_Io.Put_Line ("echoArray : enter");
       --  creating the argument list
       Argument := All_Types.Helper.To_Any (Arg);
-      Ada.Text_Io.Put_Line ("echoArray : after to_any");
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
                              CORBA.ARG_IN);
-      Ada.Text_Io.Put_Line ("echoArray : nvlist created");
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => All_Types.Helper.To_Any (Result_Value),
                  Arg_Modes => 0);
-      Ada.Text_Io.Put_Line ("echoArray : result type set");
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
                                    Ctx,
@@ -569,13 +565,10 @@ procedure DynClient is
                                    Result,
                                    Request,
                                    0);
-      Ada.Text_Io.Put_Line ("echoArray : request created");
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      Ada.Text_Io.Put_Line ("echoArray : message sent");
       --  FIXME : not logical
       CORBA.NVList.Free (Arg_List);
-      Ada.Text_Io.Put_Line ("echoArray : NVList freed");
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -622,47 +615,47 @@ procedure DynClient is
         (CORBA.Request.Return_Value (Request).Argument);
    end EchoMatrix;
 
---    function EchoStruct
---      (Self : in CORBA.Object.Ref;
---       Arg : in All_Types.Simple_Struct)
---       return All_Types.Simple_Struct is
---       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoStruct");
---       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
---       Request : CORBA.Request.Object;
---       Ctx : CORBA.Context.Ref;
---       Argument : CORBA.Any;
---       Arg_List : CORBA.NVList.Ref;
---       Result : CORBA.NamedValue;
---       Result_Name : CORBA.String := To_CORBA_String ("Result");
---       Result_Value : All_Types.Simple_Struct :=
---         (0, To_CORBA_String ("Not successfull"));
---    begin
---       --  creating the argument list
---       Argument := All_Types.Helper.To_Any (Arg);
---       CORBA.NVList.Add_Item (Arg_List,
---                              Arg_Name,
---                              Argument,
---                              CORBA.ARG_IN);
---       --  setting the result type
---       Result := (Name => Identifier (Result_Name),
---                  Argument => All_Types.Helper.To_Any (Result_Value),
---                  Arg_Modes => 0);
---       --  creating a request
---       CORBA.Object.Create_Request (Myall_Types,
---                                    Ctx,
---                                    Operation_Name,
---                                    Arg_List,
---                                    Result,
---                                    Request,
---                                    0);
---       --  sending message
---       CORBA.Request.Invoke (Request, 0);
---       --  FIXME : not logical
---       CORBA.NVList.Free (Arg_List);
---       --  getting the answer
---       return All_Types.Helper.From_Any
---         (CORBA.Request.Return_Value (Request).Argument);
---    end EchoStruct;
+   function EchoStruct
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.Simple_Struct)
+      return All_Types.Simple_Struct is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoStruct");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Value : All_Types.Simple_Struct :=
+        (0, To_CORBA_String ("Not successfull"));
+   begin
+      --  creating the argument list
+      Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => All_Types.Helper.To_Any (Result_Value),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  FIXME : not logical
+      CORBA.NVList.Free (Arg_List);
+      --  getting the answer
+      return All_Types.Helper.From_Any
+        (CORBA.Request.Return_Value (Request).Argument);
+   end EchoStruct;
 
 begin
    if Ada.Command_Line.Argument_Count < 1 then
@@ -724,13 +717,13 @@ begin
                  echoMatrix (Myall_types, M) = M);
       end;
       --  struct
---       declare
---          Test_Struct : constant All_Types.simple_struct
---            := (123, To_CORBA_String ("Hello world!"));
---       begin
---          Output ("test struct",
---                  echoStruct (Myall_types, Test_Struct) = Test_Struct);
---       end;
+      declare
+         Test_Struct : constant All_Types.simple_struct
+           := (123, To_CORBA_String ("Hello world!"));
+      begin
+         Output ("test struct",
+                 echoStruct (Myall_types, Test_Struct) = Test_Struct);
+      end;
       exit when One_Shot;
    end loop;
 

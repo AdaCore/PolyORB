@@ -568,6 +568,19 @@ package Idl_Fe.Types is
       Content_Table : Table;
    end record;
 
+   -----------------------------------
+   --  dealing with Repository_Ids  --
+   -----------------------------------
+
+   procedure Set_Default_Repository_Id
+     (Node : Node_Id);
+   --  Set Node's default repository id.
+
+   procedure Set_Initial_Current_Prefix
+     (Node : Node_Id);
+   --  Set the current prefix for scope Node
+   --  from its parent's.
+
 private
 
    ----------------------------------------
