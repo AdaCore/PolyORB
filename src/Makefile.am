@@ -55,6 +55,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-orb-thread_per_session.ads \
 		polyorb-orb-thread_pool.ads \
 		polyorb-parameters.ads \
+		polyorb-parameters-file.ads \
 		polyorb-poa-basic_poa.ads \
 		polyorb-poa.ads \
 		polyorb-poa_config.ads \

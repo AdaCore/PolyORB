@@ -43,7 +43,7 @@ with System;
 
 with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
-with PolyORB.Utils;
+with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Parameters is
@@ -89,11 +89,6 @@ package body PolyORB.Parameters is
    --  exists, otherwise it is an empty string), or the string itself
    --  otherwise.
 
-   function Get_Env (Key : String; Default : String := "")
-     return String;
-   --  Get the value of variable Key from the system
-   --  environment variables, returning Default if not found.
-
    function Make_Global_Key (Section, Key : String) return String;
    --  Build Dynamic Dict key from (Section, Key) tuple.
 
@@ -104,6 +99,21 @@ package body PolyORB.Parameters is
    --  Convert a String value to a Boolean value according
    --  to the rules indicated in the spec for boolean configuration
    --  variables.
+
+   -----------------------------------------
+   -- The list of parameter input methods --
+   -----------------------------------------
+
+   type Parameters_Input is record
+      Init : Parameters_Initializer;
+      Rank : Natural;
+   end record;
+
+   package Parameters_Input_Lists is
+      new PolyORB.Utils.Chained_Lists (Parameters_Input);
+   use Parameters_Input_Lists;
+
+   Repositories : Parameters_Input_Lists.List;
 
    ---------------------
    -- Make_Global_Key --
@@ -145,7 +155,7 @@ package body PolyORB.Parameters is
    -- Fetch --
    -----------
 
-   function Fetch (Key : String)  return String is
+   function Fetch (Key : String) return String is
    begin
       if Key'Length > 4
         and then Key (Key'First .. Key'First + 4) = "file:"
@@ -310,112 +320,6 @@ package body PolyORB.Parameters is
       Variables.Register (K, +Value);
    end Set_Conf;
 
-   -----------------------------
-   -- Load_Configuration_File --
-   -----------------------------
-
-   procedure Load_Configuration_File
-     (Conf_File_Name : String)
-   is
-      Current_Section : String_Ptr
-        := +Environment_Configuration_Section;
-      Current_Line : Integer := 0;
-
-      procedure Set_Current_Section (S : String);
-      --  Enter a new section named S.
-
-      procedure Set_Current_Section (S : String) is
-      begin
-         Free (Current_Section);
-         Current_Section := +S;
-      end Set_Current_Section;
-
-      Conf_File : File_Type;
-
-      Line : String (1 .. 1_024);
-      Last : Integer;
-
-      Success : Boolean := False;
-
-      use PolyORB.Utils;
-
-   begin
-      pragma Debug (O ("Loading configuration from " & Conf_File_Name));
-
-      begin
-         Open (Conf_File, In_File, Conf_File_Name);
-         Success := True;
-      exception
-         when Name_Error =>
-            --  No configuration file.
-            pragma Debug (O ("No " & Conf_File_Name & " configuration file."));
-            null;
-      end;
-
-      while Success and then not End_Of_File (Conf_File) loop
-         Get_Line (Conf_File, Line, Last);
-         Current_Line := Current_Line + 1;
-
-         if Last - Line'First >= 0 then
-            case Line (Line'First) is
-               when '#' =>
-                  null;
-
-               when '[' =>
-                  declare
-                     Bra : constant Integer := Line'First;
-                     Ket : constant Integer
-                       := Find (Line (Line'First .. Last), Bra, ']');
-                  begin
-                     if False
-                       or else Ket > Last
-                       or else Ket = Bra + 1
-                       or else Ket /= Last
-                     then
-                        O ("Syntax error on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
-                        raise Syntax_Error;
-                     end if;
-
-                     Set_Current_Section (Line (Bra + 1 .. Ket - 1));
-                  end;
-
-               when others =>
-                  declare
-                     Eq : constant Integer
-                       := Find (Line (Line'First .. Last),
-                                Line'First, '=');
-                  begin
-                     if Eq not in Line'First + 1 .. Last - 1 then
-                        O ("Syntax error on line" &
-                           Integer'Image (Current_Line) &
-                           ": " & Line (Line'First .. Last));
-                        raise Syntax_Error;
-                     end if;
-
-                     Set_Conf
-                       (Section => Current_Section.all,
-                        Key     => Line (Line'First .. Eq - 1),
-                        Value   => Line (Eq + 1 .. Last));
-                  end;
-            end case;
-         end if;
-      end loop;
-   end Load_Configuration_File;
-
-   -----------------------------
-   -- Configuration_File_Name --
-   -----------------------------
-
-   function Configuration_File_Name
-     return String is
-   begin
-      return Get_Env (PolyORB_Conf_Filename_Variable,
-                      PolyORB_Conf_Default_Filename);
-
-   end Configuration_File_Name;
-
    ----------------
    -- Initialize --
    ----------------
@@ -423,6 +327,42 @@ package body PolyORB.Parameters is
    procedure Initialize is
    begin
       PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
+
+      --  Read configuration parameters from each input method
+
+      declare
+         It : Iterator := First (Repositories);
+
+      begin
+         while not Last (It) loop
+            Parameters_Initializer (Value (It).Init).all;
+            Next (It);
+         end loop;
+      end;
    end Initialize;
+
+   -------------------------------------
+   -- Register_Parameters_Initializer --
+   -------------------------------------
+
+   procedure Register_Parameters_Initializer
+     (Init : Parameters_Initializer;
+      Rank : Natural)
+   is
+      It : Iterator := First (Repositories);
+
+   begin
+      while not Last (It) loop
+         if Value (It).Rank > Rank then
+            Insert (Repositories,
+                    Parameters_Input'(Init, Rank),
+                    It);
+            return;
+         end if;
+      end loop;
+
+      Append (Repositories,
+              Parameters_Input'(Init, Rank));
+   end Register_Parameters_Initializer;
 
 end PolyORB.Parameters;

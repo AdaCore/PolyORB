@@ -40,6 +40,10 @@ pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
 with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+
+with PolyORB.Parameters.File;
+pragma Warnings (Off, PolyORB.Parameters.File);
+pragma Elaborate_All (PolyORB.Parameters.File);
 @PROTO_CLIENT_WITHS@
 
 package body PolyORB.Setup.Client is

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . S E T U P . S E R V E R                  --
+--              P O L Y O R B . P A R A M E T E R S . F I L E               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,17 +31,47 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a simple ORB to act as a server.
+--  $Id$
 
---  The user must take care of also setting up a tasking runtime and a
---  ORB tasking policy.
+package PolyORB.Parameters.File is
 
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
+   pragma Elaborate_Body;
 
-@PROTO_SERVER_WITHS@
+   PolyORB_Conf_Default_Filename  : constant String := "polyorb.conf";
+   PolyORB_Conf_Filename_Variable : constant String := "POLYORB_CONF";
 
-package body PolyORB.Setup.Server is
+   Syntax_Error      : exception;
 
-end PolyORB.Setup.Server;
+   --  PolyORB supports a global runtime configuration file.
+   --  By default, the location of this file is Default_Filename.
+   --  This default value can be overridden by setting the environment
+   --  named by Filename_Variable.
+   --
+   --  The syntax of the configuration file is:
+   --  - empty lines and lines that have a '#' in column 1 are
+   --    ignored;
+   --  - sections can be started by lines of the form
+   --    '[' SECTION-NAME ']';
+   --  - variable assignments can be performed by lines of the
+   --    form VARIABLE-NAME '=' VALUE.
+   --
+   --  Anything else raises Syntax_Error.
+   --
+   --  Any variable assignment is local to a section.
+   --  Assignments that occur before the first section declaration
+   --  are relative to section [environment].
+   --  Section and variable names are case sensitive.
+
+   --  A variable Var.Iable in section [Sec] can be overridden by
+   --  setting environment variable "POLYORB_SEC_VAR_IABLE"
+   --  (see Make_Env_Name in body).
+   --  Furthermore, each time a resolved in that section value
+   --  starts with "file:", the contents of the file is used instead.
+
+   procedure Load_Configuration_File (Conf_File_Name : String);
+   --  Load Conf_File_Name configuration file.
+
+   function Configuration_File_Name return String;
+   --  Return PolyORB Configuration file name.
+
+end PolyORB.Parameters.File;

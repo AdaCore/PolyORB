@@ -380,11 +380,9 @@ package body PolyORB.Initialization is
          raise Already_Initialized;
       end if;
 
-      PolyORB.Parameters.Initialize;
-      --  Initialize Configuration subsystem.
+      --  Initialize Configuration subsystem
 
-      Load_Configuration_File (Configuration_File_Name);
-      --  Load PolyORB's configuration file.
+      PolyORB.Parameters.Initialize;
 
       --  Initialize registered packages:
       --  Recursive traversal of the dependency graph then initialize

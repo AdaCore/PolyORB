@@ -39,36 +39,6 @@ package PolyORB.Parameters is
 
    pragma Elaborate_Body;
 
-   PolyORB_Conf_Default_Filename  : constant String := "polyorb.conf";
-   PolyORB_Conf_Filename_Variable : constant String := "POLYORB_CONF";
-   Syntax_Error      : exception;
-
-   --  PolyORB supports a global runtime configuration file.
-   --  By default, the location of this file is Default_Filename.
-   --  This default value can be overridden by setting the environment
-   --  named by Filename_Variable.
-   --
-   --  The syntax of the configuration file is:
-   --  - empty lines and lines that have a '#' in column 1 are
-   --    ignored;
-   --  - sections can be started by lines of the form
-   --    '[' SECTION-NAME ']';
-   --  - variable assignments can be performed by lines of the
-   --    form VARIABLE-NAME '=' VALUE.
-   --
-   --  Anything else raises Syntax_Error.
-   --
-   --  Any variable assignment is local to a section.
-   --  Assignments that occur before the first section declaration
-   --  are relative to section [environment].
-   --  Section and variable names are case sensitive.
-
-   --  A variable Var.Iable in section [Sec] can be overridden by
-   --  setting environment variable "POLYORB_SEC_VAR_IABLE"
-   --  (see Make_Env_Name in body).
-   --  Furthermore, each time a resolved in that section value
-   --  starts with "file:", the contents of the file is used instead.
-
    ---------------------------------------------
    -- Operations related to the [environment] --
    -- configuration section.                  --
@@ -76,12 +46,6 @@ package PolyORB.Parameters is
 
    Environment_Configuration_Section : constant String
      := "environment";
-
-   procedure Load_Configuration_File (Conf_File_Name : String);
-   --  Load Conf_File_Name configuration file.
-
-   function Configuration_File_Name return String;
-   --  Return PolyORB Configuration file name.
 
    procedure Initialize;
    --  Initialize Configuration subsystem.
@@ -91,12 +55,16 @@ package PolyORB.Parameters is
       Value        : String);
    --  Sets the value of the given Key in the named Section.
 
-   function Get_Conf (Section, Key : String; Default : String := "")
+   function Get_Conf
+     (Section, Key : String;
+      Default : String := "")
      return String;
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined.
 
-   function Get_Conf (Section, Key : String; Default : Boolean := False)
+   function Get_Conf
+     (Section, Key : String;
+      Default : Boolean := False)
      return Boolean;
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined, interpreting the value as a Boolean:
@@ -106,11 +74,30 @@ package PolyORB.Parameters is
    --    or is "off" or "disable" or "false" or empty.
    --  Constraint_Error is raised if the value is set to anything else.
 
-   function Get_Conf (Section, Key : String; Default : Integer := 0)
+   function Get_Conf
+     (Section, Key : String;
+      Default : Integer := 0)
      return Integer;
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined, interpreting the value as the decimal
    --  representation of an integer number.
    --  Constraint_Error is raised if the value is set to anything else.
+
+   type Parameters_Initializer is access procedure;
+
+   procedure Register_Parameters_Initializer
+     (Init : Parameters_Initializer;
+      Rank : Natural);
+   --  Register a procedure that input keys in configuration subsystem.
+   --  Rank denotes rank at which Init is called.
+
+private
+
+   function Get_Env
+     (Key : String;
+      Default : String := "")
+     return String;
+   --  Get the value of variable Key from the system
+   --  environment variables, returning Default if not found.
 
 end PolyORB.Parameters;
