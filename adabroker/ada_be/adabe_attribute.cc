@@ -103,7 +103,7 @@ adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous
     {
       body += "   -- Set_" + get_ada_local_name() + "\n" ;
       body += "   --------------------------\n" ;
-      body += "   procedure Set_" + name +"(Self : access Object ; To : in ";
+      body += "   procedure Set_" + get_ada_local_name() +"(Self : access Object ; To : in ";
       body += name;
       body += ") is\n";
       body += "   begin\n";

@@ -44,7 +44,7 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
       string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); //virtual method
       body += name;
       body += ";\n";
-      body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
+      body += "   type " + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
       body += "   procedure free is new Ada.Unchecked_Deallocation(";
       body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";
     }

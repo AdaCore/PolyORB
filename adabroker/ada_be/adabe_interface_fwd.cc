@@ -15,8 +15,8 @@ adabe_interface_fwd::produce_ads(dep_list& with, string &body, string &previous)
   dynamic_cast<adabe_name *>(full_definition())->set_ada_full_name(get_ada_full_name());
   string file_name = get_ada_full_name() + "-forward.ads";
   ofstream file(lower(file_name.c_str()));
-  file << "with CORBA.Forward \n";
-  file << "package" + get_ada_local_name() + "_Forward is new CORBA.Forward \n";
+  file << "with Corba.Forward \n";
+  file << "package" + get_ada_local_name() + "_Forward is new Corba.Forward \n";
   file.close();  
 }
 

@@ -24,6 +24,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   with.add("Corba.Object");
   with.add("Corba");
   with.add("AdaBroker") ;
+  with.add("Ada.Unchecked_Deallocation") ;
 #ifdef DEBUG_INTERFACE
   cout << "befor compute_ada_name of the interface" << endl;
 #endif
@@ -338,9 +339,9 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   string tmp = "";
   adabe_interface * inher;
   with.add("Omniobject");
-  body += "package " + get_ada_full_name() + ".Impl is\n\n";
+  body += "\npackage " + get_ada_full_name() + ".Impl is\n\n";
   if (n_inherits() == 0)
-    body += "   type Object is new Omniobject.Implemented_Object with private ;\n";
+    body += "   type Object is new Omniobject.Implemented_Object with private ;\n\n";
 
  // forward declarated
 
@@ -352,8 +353,8 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   if (n_inherits() > 0)
     {
       inher = adabe_interface::narrow_from_decl(inherits()[0]);      
-      body += "   type Object is access " + inher->get_ada_full_name() +
-	".Object ;\n";
+      body += "   type Object is new " + inher->get_ada_full_name() +
+	".Object with private ;\n\n";
 /*
   UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
       while (!j.is_done())
@@ -443,13 +444,13 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
     body += "      null ;\n" ;
     body += "   end record ;\n\n" ;
   }
-  body += "--------------------------------------------------\n" ;
-  body += "----          finalization operators          ----\n" ;
-  body += "--------------------------------------------------\n" ;
-  body += "procedure Initialize(Self : in out Object) ;\n" ;
-  body += "procedure Adjust(Self : in out Object) ;\n" ;
-  body += "procedure Finalize(Self : in out Object) ;\n" ;
-  body += "end " + get_ada_full_name() + "\n";    
+  body += "   --------------------------------------------------\n" ;
+  body += "   ----          finalization operators          ----\n" ;
+  body += "   --------------------------------------------------\n" ;
+  body += "   procedure Initialize(Self : in out Object) ;\n" ;
+  body += "   procedure Adjust(Self : in out Object) ;\n" ;
+  body += "   procedure Finalize(Self : in out Object) ;\n\n" ;
+  body += "end " + get_ada_full_name() + ".Impl ;\n";    
   
 }
 
@@ -457,6 +458,7 @@ void
 adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
   adabe_global::set_adabe_current_file(this);
+  with.add(get_ada_full_name() + ".Skeleton") ;
   body += "\n\n" ;
   /*
     with.add("Ada.Tags");
@@ -505,14 +507,14 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "   begin\n" ;
   body += "      Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;\n" ;
   body += "      -- You can add things *BELOW* this line\n" ;
-  body += "   end ;\n\n\n" ;
+  body += "   end Adjust ;\n\n\n" ;
   body += "   -- Finalize\n" ;
   body += "   -----------\n" ;
   body += "   procedure Finalize(Self : in out Object) is\n" ;
   body += "   begin\n" ;
   body += "      -- You can add things *BEFORE* this line\n" ;
   body += "      Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;\n"  ;
-  body += "   end ;\n\n\n" ;
+  body += "   end Finalize ;\n\n\n" ;
   body += "end " + get_ada_full_name() + ".Impl ;\n";
 }
 
@@ -573,6 +575,15 @@ void
 adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous)
 {
   adabe_global::set_adabe_current_file(this);
+
+  with.add("Omniropeandkey") ;
+  with.add("Netbufferedstream ; use Netbufferedstream") ;
+  with.add("Giop_S ; use Giop_S") ;
+  with.add("Giop") ;
+  with.add("Corba") ;
+  with.add(get_ada_local_name() + ".Impl") ;
+  
+  body += "use type Corba.Unsigned_Long ;\n\n" ;
   body += "package body " + get_ada_full_name() + ".Skeleton is\n\n";
   body += "   procedure Dispatch (Myself : in Omniobject.Implemented_Object_Ptr ;\n";
   body += "                       Orls : in out Giop_S.Object ;\n";

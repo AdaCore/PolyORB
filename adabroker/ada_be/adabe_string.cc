@@ -104,16 +104,16 @@ void adabe_string::produce_ads (dep_list &with,string &body, string &previous)
   
   if (evaluate(max_size()->ev())==0)
     {
-      body+= "   type " + get_ada_local_name() + " is new CORBA.String ;\n";
+      body+= "   type " + get_ada_local_name() + " is new Corba.String ;\n";
     }
   else
     {
       
-      body += "   package CORBA.Bounded_String_" + to_string(max_size()->ev());
-      body += " is\n\t\t new CORBA.Bounded_String(";
+      body += "   package Corba.Bounded_String_" + to_string(max_size()->ev());
+      body += " is\n\t\t new Corba.Bounded_String(";
       body +=  to_string(max_size()->ev());
       body += ") ;\n\n";
-      body += "   type "+ get_ada_local_name() + " is\n\t\t new CORBA.Bounded_String_";
+      body += "   type "+ get_ada_local_name() + " is\n\t\t new Corba.Bounded_String_";
       body += to_string(max_size()->ev());
       body += ".Bounded_String ;\n\n";
     }
@@ -192,8 +192,8 @@ adabe_string::dump_name (dep_list &with, string &previous)
 					 != AST_Decl::NT_typedef))
 	    {
 	      set_already_defined();
-	      with.check("CORBA.String");
-	      return "CORBA.String";
+	      with.check("Corba.String");
+	      return "Corba.String";
 	    }
 	}
       if (!is_already_defined())

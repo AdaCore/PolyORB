@@ -106,8 +106,9 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       body += "      Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
       body += "      Result : " + name +";\n";
       body += "   begin \n";
-      body += "      " + name_of_the_package + ".Proxies.Init(Opcd, ";
+      body += "      " + name_of_the_package + ".Proxies.Init(Opcd";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
+      if (!j.is_done())  body += ", " ;
       while (!j.is_done())
 	{
 	  adabe_name *e = dynamic_cast<adabe_name *>(j.item());
@@ -145,7 +146,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       else   body += ") is \n";
       adabe_name  *b =  dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()));
       string name_of_the_package = b->get_ada_local_name();
-      body += "   Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
+      body += "      Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
       if (!return_is_void())
 	{	
 	  body += "   Result : " + name + ";\n";
@@ -161,7 +162,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
 	  j.next();
 	  if (!j.is_done()) body += ", ";
 	}
-      if (!return_is_void()) body += ", Result) ;\n";
+      if (!return_is_void()) body += ", Result";
       body += ") ;\n";
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
       body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
@@ -215,8 +216,8 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	AST_Decl *b = return_type();
 	body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) ;
       }
+      body += " ) ;\n" ;
     }
-  body += " ) ;\n" ;
 }
 
 void
@@ -307,7 +308,7 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   body += "   procedure Init(Self : in out " + get_ada_local_name() + "_Proxy";
   body += in_decls;  
   body += "   function Operation(Self : in " + get_ada_local_name() + "_Proxy )\n";
-  body += "                      return CORBA.String ;\n\n" ;
+  body += "                      return Corba.String ;\n\n" ;
   if (!no_in) {
       body += "   function Align_Size(Self : in " + get_ada_local_name() + "_Proxy ;\n";
       body += "                       Size_In : in Corba.Unsigned_Long)\n";
@@ -396,7 +397,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
   body += "   -- Operation\n" ;
   body += "   ------------\n" ;
   body += "   function Operation(Self : in " + get_ada_local_name() + "_Proxy )\n";
-  body += "                      return CORBA.String is\n";
+  body += "                      return Corba.String is\n";
   body += "   begin\n";
   body += "      return Corba.To_Corba_String(\"" + get_ada_local_name() + "\") ;\n";
   body += "   end ;\n\n\n";

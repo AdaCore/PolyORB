@@ -17,7 +17,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 
   body+=  "   " + get_ada_local_name() + " : exception ;\n";
   
-  body +=  "   type " +get_ada_local_name() +"_Members is new CORBA.IDL_Exception_Members with ";
+  body +=  "   type " +get_ada_local_name() +"_Members is new Corba.IDL_Exception_Members with ";
   
   // ...
   
