@@ -13,24 +13,24 @@ package body Backend.BE_Ada.Runtime is
    RED : array (RE_Id) of Node_Id;
    --  Arrays of run-time entity and unit designators
 
-   type Name_Rule is record
+   type Casing_Rule is record
       Size : Natural;
       From : String_Access;
       Into : String_Access;
    end record;
 
-   Rules : array (1 .. 64) of Name_Rule;
+   Rules : array (1 .. 64) of Casing_Rule;
    Rules_Last : Natural := 0;
 
-   procedure Apply_Name_Rules (S : in out String);
-   procedure Register_Name_Rule (S : String);
+   procedure Apply_Casing_Rules (S : in out String);
+   procedure Register_Casing_Rule (S : String);
    procedure Declare_Subunit (N : Node_Id);
 
-   ----------------------
-   -- Apply_Name_Rules --
-   ----------------------
+   ------------------------
+   -- Apply_Casing_Rules --
+   ------------------------
 
-   procedure Apply_Name_Rules (S : in out String) is
+   procedure Apply_Casing_Rules (S : in out String) is
       New_Word : Boolean := True;
       Length   : Natural := S'Length;
 
@@ -53,7 +53,7 @@ package body Backend.BE_Ada.Runtime is
          Length := Length - 1;
       end loop;
       Capitalize (S);
-   end Apply_Name_Rules;
+   end Apply_Casing_Rules;
 
    ---------------------
    -- Declare_Subunit --
@@ -81,13 +81,16 @@ package body Backend.BE_Ada.Runtime is
       Pkg_Spec   : Node_Id;
 
    begin
-      Register_Name_Rule ("AbstractBase");
-      Register_Name_Rule ("CORBA");
-      Register_Name_Rule ("NamedValue");
-      Register_Name_Rule ("NVList");
-      Register_Name_Rule ("PolyORB");
-      Register_Name_Rule ("TC_");
-      Register_Name_Rule ("TypeCode");
+      Register_Casing_Rule ("AbstractBase");
+      Register_Casing_Rule ("CORBA");
+      Register_Casing_Rule ("ARG_INOUT");
+      Register_Casing_Rule ("ARG_IN");
+      Register_Casing_Rule ("ARG_OUT");
+      Register_Casing_Rule ("NamedValue");
+      Register_Casing_Rule ("NVList");
+      Register_Casing_Rule ("PolyORB");
+      Register_Casing_Rule ("TC_");
+      Register_Casing_Rule ("TypeCode");
 
       for U in RU_Id'Succ (RU_Id'First) .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));
@@ -123,7 +126,7 @@ package body Backend.BE_Ada.Runtime is
          end if;
 
          Get_Name_String (Name);
-         Apply_Name_Rules (Name_Buffer (1 .. Name_Len));
+         Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
          Identifier := Make_Defining_Identifier (Name_Find);
          Set_Defining_Identifier (RUD (U), Identifier);
          Pkg_Spec := New_Node (K_Package_Specification);
@@ -148,7 +151,7 @@ package body Backend.BE_Ada.Runtime is
       for E in RE_Id loop
          Set_Str_To_Name_Buffer (RE_Id'Image (E));
          Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
-         Apply_Name_Rules (Name_Buffer (1 .. Name_Len));
+         Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
 
          while Name_Buffer (Name_Len) in '0' .. '9'
            or else Name_Buffer (Name_Len) = '_'
@@ -173,18 +176,18 @@ package body Backend.BE_Ada.Runtime is
       return Copy_Designator (RED (Id));
    end RE;
 
-   ---------------------------
-   -- Register_Name_Rule --
-   ---------------------------
+   --------------------------
+   -- Register_Casing_Rule --
+   --------------------------
 
-   procedure Register_Name_Rule (S : String) is
+   procedure Register_Casing_Rule (S : String) is
    begin
       Rules_Last := Rules_Last + 1;
       Rules (Rules_Last).Size := S'Length;
       Rules (Rules_Last).Into := new String'(S);
       Rules (Rules_Last).From := new String'(S);
       To_Lower (Rules (Rules_Last).From.all);
-   end Register_Name_Rule;
+   end Register_Casing_Rule;
 
    --------
    -- RU --

@@ -1,3 +1,10 @@
+2004-08-04  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-runtime.adb: Add rules for ARG_IN, ARG_INOUT and
+	ARG_OUT. Change name rules into casing rules.
+
+	* backend-be_ada-runtime.ads: Alphabetic order.
+
 2004-08-04  souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-helpers.adb: Consider the modification in
@@ -68,7 +75,7 @@
 	* backend-be_ada-nutils.ads: Add Op_Not in Operation_Type. 
 
 	* backend-be_ada-nutils.adb: Add Make_Designator to return a
-	designator for a given name_id. Right_Expr field in
+	designator from a given name id. Right_Expr field in
 	Make_Expression is now optional (to handle unary operation).
 
 2004-08-03  Saber Souli  <souli@neraka.enst.fr>
