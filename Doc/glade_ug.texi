@@ -8,8 +8,8 @@
 
 @title GLADE User's Guide
 @subtitle GLADE, GNAT Library for Ada Distributed Environment
-@subtitle Version 2.01 (DRAFT)
-@subtitle December 16, 1997
+@subtitle Version 3.12
+@subtitle @today
 @author Laurent Pautet, Samuel Tardieu
 
 @page
@@ -1072,7 +1072,9 @@ or Ada program (depending on the "pragma Starter" option, see
 @section Gnatdist Command Line Options
 
 @smallexample
+
 gnatdist [switches] configuration-file [list-of-partitions]
+
 @end smallexample
 
 The switches of gnatdist are, for the time being, exactly the same as
@@ -1136,6 +1138,7 @@ environment variables.
 
 @menu
 * Language Keywords::           
+* Pragmas and Representation Clauses::  
 * Configuration Declaration::   
 * Partition Declaration::       
 * Partition Attribute Main::    
@@ -1149,20 +1152,22 @@ environment variables.
 * Partition Attribute Reconnection::  
 * Channel Declaration::         
 * Partition and Channel Attribute Filter::  
+* Pragma Registration_Filter::  
 * Pragma Version::              
 * Partition Attribute Task_Pool::  
 * A Complete Example::          
 @end menu
 
-@node Language Keywords, Configuration Declaration, The Configuration Language, The Configuration Language
+@node Language Keywords, Pragmas and Representation Clauses, The Configuration Language, The Configuration Language
 @subsection Language Keywords
 
 All the Ada keywords are reserved keywords of the GLADE configuration
-language. As gnatdist generates full Ada code in order to build the
-different executables, all the Ada keywords have been reserved even if
-they are not used in the configuration language.
+language. gnatdist generates full Ada code in order to build the
+different executables. To avoid naming conflicts between Ada and the
+GLADE configuration language, all the Ada keywords have been reserved
+even if they are not used in the configuration language.
 
-There are three other keywords:
+There are three new keywords:
 
 @itemize @bullet
 
@@ -1171,26 +1176,41 @@ There are three other keywords:
 @item @i{Partition} that is a predefined type to declare partitions
 
 @item @i{Channel} that is a predefined type to declare channels between
-partitions
+partitions.
 
 @end itemize
 
-@node Configuration Declaration, Partition Declaration, Language Keywords, The Configuration Language
+@node Pragmas and Representation Clauses, Configuration Declaration, Language Keywords, The Configuration Language
+@subsection Pragmas and Representation Clauses
+
+It is possible to modify the default behaviour of the configuration via
+a pragma definition.
+
+It is also possible to modify the default behavior of all the partitions
+(or channels) via an attribute definition clause applied to the
+predefined type @b{Partition} (or @b{Channel}). It is also possible to
+modify the default behavior of a given partition (or channel) via an
+attribute definition clause applied to the partition (or channel)
+itself.
+
+@node Configuration Declaration, Partition Declaration, Pragmas and Representation Clauses, The Configuration Language
 @subsection Configuration Declaration
 
-The distribution of an Ada program is described by a single
+The distribution of one or several Ada programs is described by a single
 configuration unit. This configuration unit has a specification part and
 an optional body part. A configuration unit is declared as an Ada
 procedure would be. The keyword @b{configuration} is reserved for this
 purpose.
 
 @smallexample
+
 CONFIGURATION_UNIT ::= 
    @b{configuration} IDENTIFIER @b{is}
       DECLARATIVE_PART
    [@b{begin}
       SEQUENCE_OF_STATEMENTS]
    @b{end} [IDENTIFIER];
+
 @end smallexample
 
 @node Partition Declaration, Partition Attribute Main, Configuration Declaration, The Configuration Language
@@ -1202,6 +1222,7 @@ their default behavior. gnatdist provides a predefined type
 initialize these partitions with an initial list of Ada units.
 
 @smallexample
+
 DECLARATIVE_PART ::= @{DECLARATIVE_ITEM@}
 
 DECLARATIVE_ITEM ::= 
@@ -1223,6 +1244,7 @@ STATEMENT ::=
 
 SEQUENCE_OF_STATEMENTS ::=
    STATEMENT @{STATEMENT@}
+
 @end smallexample
 
 Once declared, a partition is an empty list of Ada units. The operator
@@ -1233,24 +1255,26 @@ is checked later on by the back-end of gnatdist. These assignments can
 occur in the declarative part as well as in the body part.
 
 @smallexample
+
 ENUMERATION_OF_ADA_UNITS ::= (@{ADA_UNIT @{, ADA_UNIT@}@});
+
 @end smallexample
 
 @node Partition Attribute Main, Pragma Starter, Partition Declaration, The Configuration Language
 @subsection Partition Attribute Main
 
-Basically, the distributed system annex helps an user in building a
-distributed application from a non-distributed application. The user can
-design, implement and test his application in a non-distributed
-environment, and then should be able to switch from his non-distributed
-case to a distributed case. This two-phase design approach has several
-advantages.
+Basically, the distributed system annex (DSA) helps an user in building
+a distributed application from a non-distributed application. Of course,
+it is not the only possible model proposed by DSA. The user can design,
+implement and test his application in a non-distributed environment, and
+then should be able to switch from his non-distributed case to a
+distributed case. This two-phase design approach has several advantages.
 
 In a non-distributed case, the user executes only one main executable
 possibly with a name corresponding to the main unit name of his
 application. With gnatdist, in a distributed case, a main executable
 with a name corresponding to the main unit name is responsible for
-starting the entire distributed application. For this reason, the user
+starting the entire distributed application. Therefore, the user
 can start his application the same way he used to do in the
 non-distributed case.
 
@@ -1258,7 +1282,9 @@ For this reason, the configuration language provides a way to declare
 the main procedure of the non-distributed application.
 
 @smallexample
+
 procedure MAIN_UNIT is in PARTITION;
+
 @end smallexample
 
 In this case, the partition in which the main procedure has been mapped
@@ -1267,12 +1293,16 @@ main procedure. The main partition has a specific role as the boot
 server is located on it (see @ref{GLADE Internals}).
 
 The other partitions have a null body as a main procedure. But the user
-can also modify this behavior by providing an alternate main procedure.
+can also modify this behavior by providing an alternate main
+procedure. To do this, a alternate main subprogram has to be declared
+and assigned to the partition Main attribute.
 
 @smallexample
+
 @b{procedure} MAIN_PROCEDURE;
 
 @b{for} PARTITION'Main @b{use} MAIN_PROCEDURE;
+
 @end smallexample
 
 @node Pragma Starter, Pragma Boot_Server, Partition Attribute Main, The Configuration Language
@@ -1280,12 +1310,17 @@ can also modify this behavior by providing an alternate main procedure.
 
 As a default, the main executable is a full Ada starter procedure. That
 means it launches all the other partitions from an Ada program. The
-pragma Starter allows the user to ask for one starter or another.
+pragma Starter allows the user to ask for one starter or another. When
+the partition host is not statically defined (see @ref{Partition
+Attribute Host}), the starter will ask for it interactively when it
+is executed.
 
 @smallexample
+
 @b{type} Method_Type @b{is} (Ada, Shell, None);
 
 @b{pragma} Starter (Method => Method_Type);
+
 @end smallexample
 
 @itemize @bullet
@@ -1297,15 +1332,15 @@ partition Ada procedure using a remote shell.
 @item
 The user may ask for a Shell script that starts one at a time the
 different partitions on the appropriate remote machines using a remote
-shell. This allows an user to edit the shell script and to modify it
+shell. As the Ada starter, the Shell script starter ask for partition
+hosts interactively when a partition host is not already defined. Having
+a textual shell script allows an user to edit it and to modify it
 easily.
 
 @item 
 The user may ask for a None starter. In this case, it is up to the user
 to launch the different partitions. The user may have to provide on the
-command line the boot server location. This occurs when the boot server
-is not connected on the default location computed during GLADE
-installation.
+command line the boot server location (see @ref{Architecture of GLADE PCS}).
 
 @end itemize
 
@@ -1313,20 +1348,30 @@ installation.
 @subsection Pragma Boot_Server
 
 When a partition starts executing, one of the first steps consists in a
-connection to a boot server (see @ref{Architecture of GLADE PCS}).
+connection to the boot partition where the boot server is located (see
+@ref{Architecture of GLADE PCS}).
 
 @smallexample
+
 PRAGMA ::=
    @b{pragma} Boot_Server
      (Protocol_Name => String,
       Protocol_Data => String);
+
 @end smallexample
+
+This boot server location can be concatenated into a single string. The
+formatted string must conform to the notation
+<protocol_name>://<protocol_data>. In general, this would be
+tcp://<machine>:<port>, that means that the protocol name is "tcp". The
+protocol data which is specific to the protocol name is
+"<machine>:<port>".
 
 @node Partition Attribute Host, Pragma Import, Pragma Boot_Server, The Configuration Language
 @subsection Partition Attribute Host
 
 Logical nodes (or partitions) can be mapped onto physical
-nodes. gnatdist default behavior is to ask for themi nteractively. It is
+nodes. gnatdist default behavior is to ask for them interactively. It is
 possible to modify the default behavior of all the partitions via an
 attribute definition clause applied to the predefined type
 @b{Partition}. It is also possible to modify the default behavior of a
@@ -1341,11 +1386,13 @@ is called, the partition name is passed as parameter and an host-name
 is returned.
 
 @smallexample
+
 REPRESENTATION_CLAUSE ::=
    @b{for} IDENTIFIER'Host @b{use} STRING_LITERAL;
  | @b{for} IDENTIFIER'Host @b{use} SUBPROGRAM;
  | @b{for} Partition'Host @b{use} STRING_LITERAL;
  | @b{for} Partition'Host @b{use} SUBPROGRAM;
+
 @end smallexample
 
 The signature of the function should be the following : it takes a
@@ -1362,70 +1409,87 @@ function can return the most appropriate host from among a set of hosts.
 @node Pragma Import, Partition Attribute Storage_Dir, Partition Attribute Host, The Configuration Language
 @subsection Pragma Import
 
-Two kinds of subprogram are allowed in the configuration language.
+Two kinds of subprograms are allowed in the GLADE configuration language.
 
 @smallexample
+
 @b{procedure} MAIN_SUBPROGRAM;
 
 @b{function} FUNCTION_NAME
   (PARAMETER_NAME : [@b{in}] String)
    @b{return} String;
+
 @end smallexample
 
 The function can be an Ada function (default) or a shell script. To
 import a shell script, the pragma Import can be used:
 
 @smallexample
+
 @b{pragma} Import (FUNCTION_NAME, Shell, "SCRIPT_NAME");
+
 @end smallexample
 
 In this case, the GLADE PCS invokes the shell script with the partition
-name as command line argument. The shell script is supposed to return
-an hostname (see @ref{Partition Attribute Host}).
+name as a command line argument. The shell script is supposed to return
+an host-name (see @ref{Partition Attribute Host}).
 
 @node Partition Attribute Storage_Dir, Partition Attribute Command_Line, Pragma Import, The Configuration Language
 @subsection Partition Attribute Storage_Dir
 
-There are several other attributes that can be applied to a
-partition. Storage_Dir allows the user to specify in which directory
-the partition executable is stored. This can be useful in heterogeneous
-systems when the user wants to store executables of the same target in
-a given directory. Specifying the directory is also useful if the
-partition executable is not directly visible from the user
-environment. For instance, when a remote command like @b{rsh} is
-invoked, the executable directory has to be present in the user
-path. If the Storage_Dir attribute has been specified, the executable
-full name is used.
+Storage_Dir allows the user to specify in which directory the partition
+executable is stored. This can be useful in heterogeneous systems when
+the user wants to store executables of the same target in a given
+directory. Specifying the directory is also useful if the partition
+executable is not directly visible from the user environment. For
+instance, when a remote command like @b{rsh} is invoked, the executable
+directory has to be present in the user path. If the Storage_Dir
+attribute has been specified, the executable full name is used.
 
 @smallexample
+
 REPRESENTATION_CLAUSE ::=
    @b{for} IDENTIFIER'Storage_Dir @b{use} STRING_LITERAL;
+
 @end smallexample
 
 @node Partition Attribute Command_Line, Partition Attribute Termination, Partition Attribute Storage_Dir, The Configuration Language
 @subsection Partition Attribute Command_Line
 
+The user may want to pass arguments on the command line of a
+partition. But when a partition is launched automatically by the main
+partition, the partition command line consists in GLADE arguments. To
+add arguments on the command line, the user can take advantage of the
+folloing attribute.
+
 @smallexample
+
 REPRESENTATION_CLAUSE ::=
    @b{for} IDENTIFIER'Command_Line @b{use} STRING_LITERAL;
+
 @end smallexample
 
 @node Partition Attribute Termination, Partition Attribute Reconnection, Partition Attribute Command_Line, The Configuration Language
 @subsection Partition Attribute Termination
 
+There is no specific rule to handle global termination of a distributed
+application in the Ada Reference Manual (see @ref{Abortion and
+Termination}).
+
+In GLADE, as a default, a set of partitions terminates when each
+partition can terminate and when no message is to be delivered. This
+distributed algorithm is activated periodically by the main boot server.
+
 @smallexample
+
 TERMINATION_LITTERAL ::= Global_Termination |
                          Local_Termination  |
                          Defered_Termination
 
 REPRESENTATION_CLAUSE ::=
    @b{for} IDENTIFIER'Termination @b{use} TERMINATION_LITERAL;
-@end smallexample
 
-As a default, a set of partitions terminates when each partition can
-terminate and when no message is waiting for being handled. This
-distributed algorithm is activated periodically by the main boot
-server.
+@end smallexample
 
 @itemize @bullet
 
@@ -1452,15 +1516,6 @@ termination request of the main boot server.
 @node Partition Attribute Reconnection, Channel Declaration, Partition Attribute Termination, The Configuration Language
 @subsection Partition Attribute Reconnection
 
-@smallexample
-RECONNECTION_LITTERAL ::= Rejected_On_Restart  |
-                          Failed_Until_Restart |
-                          Wait_Until_Restart
-
-REPRESENTATION_CLAUSE ::=
-   @b{for} IDENTIFIER'Reconnection @b{use} RECONNECTION_LITTERAL;
-@end smallexample
-
 When no RCI package is configured on a partition, such a partition can
 be launched several times without any problem. When one or more RCI
 packages are configured on a partition, such a partition cannot be
@@ -1474,6 +1529,18 @@ partition and possibly to restore its state with Shared_Passive
 packages. In such a situation, the partition is already defined on other
 partitions and possibly defined as a dead partition. Several policies
 can be selected:
+
+
+@smallexample
+
+RECONNECTION_LITTERAL ::= Rejected_On_Restart  |
+                          Failed_Until_Restart |
+                          Wait_Until_Restart
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} IDENTIFIER'Reconnection @b{use} RECONNECTION_LITTERAL;
+
+@end smallexample
 
 @itemize @bullet
 
@@ -1502,15 +1569,35 @@ calls to this partition are resumed.
 @node Channel Declaration, Partition and Channel Attribute Filter, Partition Attribute Reconnection, The Configuration Language
 @subsection Channel Declaration
 
+The configuration language not only knows about partitions, it also
+knows about the connections between them. Such a connection is called a
+Channel and represents a bi-directional link between two partitions. 
+
 @smallexample
+
 CHANNEL_DECLARATION ::= 
    DEFINING_IDENTIFIER_LIST : Channel
       [:= PARTITION_PEER];
 
-PARTITION_PEER ::= (IDENTIFIER, IDENTIFIER);
+PARTITION_PEER ::= (PARTITION_NAME1, PARTITION_NAME2);
+
 @end smallexample
 
-@node Partition and Channel Attribute Filter, Pragma Version, Channel Declaration, The Configuration Language
+A partition peer consists in a list of two different partition
+names. The list order is not important. Of course, the partition names
+have to declare prior to the channel declaration.
+
+@smallexample
+
+A_Channel : Channel := (Partition_1, Partition_2);
+
+@end smallexample
+
+This gives the link between partitions "Partition_1" and "Partition_2"
+the name "A_Channel". It is not possible to declare more than one
+channel between the same two partitions.
+
+@node Partition and Channel Attribute Filter, Pragma Registration_Filter, Channel Declaration, The Configuration Language
 @subsection Partition and Channel Attribute Filter
 
 GLADE contains a transparent extensible filtering mechanism allowing the
@@ -1528,30 +1615,77 @@ As a default, no filtering is performed by GLADE. As a default, the
 compression filter is available. Therefore, the user can configure his
 distributed application in order to use this filter.
 
-The configuration language not only knows about partitions, it also
-knows about the connections between them. Such a connection is called a
-"Channel" and represents a bi-directional link between two
-partitions. In order to define filtering, one must first declare the
-channels between the partitions of an application:
+In order to define filtering, one must first declare the channels
+between the partitions of an application. Once this channel is defined,
+the data transformation that is to be applied on all data sent through
+it can be defined:
 
 @smallexample
+
 A_Channel : Channel := (Partition_1, Partition_2);
-@end smallexample
 
-This gives the link between partitions "Partition_1" and "Partition_2"
-the name "A_Channel". It is not possible to declare more than one
-channel between the same two partitions.
+@b{for} A_Channel'Filter @b{use} "ZIP";
 
-Now that this channel is known, the data transformation that is to be
-applied on all data sent through it can be defined:
-
-@smallexample
-for A_Channel'Filter use "ZIP";
 @end smallexample
 
 This specifies that all data sent over this channel should be
 transformed by the filter named "ZIP". (There must be a filter with this
 name, implemented in the package 'System.Garlic.Filters.Zip'.)
+
+It may also be useful to specify that a partition use a certain filter
+for all remote calls, regardless of the channel (i.e., regardless of the
+partition that'll receive the remote call). This can be specified using
+the attribute 'Filter on a partition:
+
+@smallexample
+
+@b{for} Partition_1'Filter @b{use} "ZIP";
+
+@end smallexample
+
+or even
+
+@smallexample
+
+@b{for} Partition'Filter @b{use} "ZIP";
+
+@end smallexample
+
+The latter sets the default filter for all partitions of the application,
+the former only sets the default filter for the partition "Partition_1".
+It is also possible to apply a default filter and to override this default
+for specific channels:
+
+@smallexample
+
+My_Channel : Channel := (Partition_1, Partition_2);
+
+@b{for} My_Channel'Filter  @b{use} "ZIP";
+@b{for} Partition_1'Filter @b{use} "Some_Other_Filter";
+
+@end smallexample
+
+This makes 'Partition_1' use "Some_Other_Filter" for all remote calls
+except for any communication with 'Partition_2', where the filter "ZIP"
+is applied.
+
+Gnatdist takes care of consistency checking of a filter definition. For
+instance, multiple filter definitions for the same channel is not
+allowed. By default, no filtering is done. Filtering is only active if
+specified explicitly in the configuration file.
+ 
+@smallexample
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} CHANNEL_IDENTIFIER'Filter @b{use} STRING_LITERAL;
+ | @b{for} PARTITION_IDENTIFIER'Filter @b{use} STRING_LITERAL;
+ | @b{for} Channel'Filter @b{use} STRING_LITERAL;
+ | @b{for} Partition'Filter @b{use} STRING_LITERAL;
+
+@end smallexample
+
+@node Pragma Registration_Filter, Pragma Version, Partition and Channel Attribute Filter, The Configuration Language
+@subsection Pragma Registration_Filter
 
 Some filtering algorithms require that some parameters must be sent to the
 receiver first to enable it to correctly de-filter the data. If this is
@@ -1561,67 +1695,73 @@ which then will be used to filter the parameters of other filters. This
 filter is called the "registration filter". It can be set by a pragma:
 
 @smallexample
-pragma Registration_Filter ("Filter_Name");
+
+@b{pragma} Registration_Filter ("Filter_Name");
+
 @end smallexample
 
-It may also be useful to specify that a partition use a certain filter
-for all remote calls, regardless of the channel (i.e., regardless of the
-partition that'll receive the remote call). This can be specified using
-the attribute 'Filter on a partition:
-
-@smallexample
-for Partition_1'Filter use "ZIP";
-@end smallexample
-
-or even
-
-@smallexample
-for Partition'Filter use "ZIP";
-@end smallexample
-
-(The latter set the default filter for all partitions of the application,
-the former only sets the default filter for the partition "Partition_1".)
-It is also possible to apply a default filter and to override this default
-for specific channels:
-
-@smallexample
-My_Channel : Channel := (Partition_1, Partition_2);
-
-for My_Channel'Filter  use "ZIP";
-for Partition_1'Filter use "Some_Other_Filter";
-@end smallexample
-
-This makes 'Partition_1' use "Some_Other_Filter" for all remote calls
-except for any communication with 'Partition_2', where the filter "ZIP"
-is applied.
-
-Gnatdist takes care of consistency checking of a filter definition. By
-default, no filtering is done. Filtering is only active if specified
-explicitly in the configuration file.
- 
-@smallexample
-REPRESENTATION_CLAUSE ::=
-   @b{for} CHANNEL_IDENTIFIER'Filter @b{use} STRING_LITERAL;
- | @b{for} PARTITION_IDENTIFIER'Filter @b{use} STRING_LITERAL;
- | @b{for} Channel'Filter @b{use} STRING_LITERAL;
- | @b{for} Partition'Filter @b{use} STRING_LITERAL;
-@end smallexample
-
-@node Pragma Version, Partition Attribute Task_Pool, Partition and Channel Attribute Filter, The Configuration Language
+@node Pragma Version, Partition Attribute Task_Pool, Pragma Registration_Filter, The Configuration Language
 @subsection Pragma Version
 
+A library unit is consistent if the same version of its declaration is
+used throughout (see @ref{Consistency and Elaboration}). It could be
+useful to desactivate these checks especially when the user wants to be
+able to update a server without updating a client.
+
 @smallexample
-pragma Version (True | False);
+
+@b{pragma} Version (True | False);
+
 @end smallexample
 
 @node Partition Attribute Task_Pool, A Complete Example, Pragma Version, The Configuration Language
 @subsection Partition Attribute Task_Pool
 
+When multiple remote subprogram calls occur on the same partition, they
+are handled by several anonymous tasks. These tasks can be allocated
+dynamically or removed from a pool of (preallocated) tasks. When a
+remote subprogram call is completed, a task can be deallocated or queued
+in a pool to be re-used for other remote subprogram calls. The number of
+tasks in the anonymous tasks pool can be configured by three figures.
+
+@itemize @bullet
+
+@item The task pool minimum size indicates the number of anonymous tasks 
+preallocated and always available in the GLADE PCS. Preallocating
+anonymous tasks can be useful in real-time systems to prevent
+no-determinism because of dynamic allocation.
+
+@item The task pool high size is a ceiling. When a remote subprogram
+call is completed, its anonymous task is deallocated if the number of
+tasks in the pool is greater than the ceiling. If not, then the task is
+stored in the pool.
+
+@item The task pool maximum size indicates the maximum number of anonymous
+tasks in the GLADE PCS. In other words, it provides a way to limit the
+number of remote calls in the PCS. When a RPC request is received, if
+the number of active remote calls is greater than the task pool maximum
+size, then the request is kept pending until an anonymous task completes
+its own remote call.
+
+@end itemize
+
 @smallexample
+
 REPRESENTATION_CLAUSE ::=
-   @b{for} PARTITION_IDENTIFIER'Filter @b{use} TASK_POOL_SIZE_ARRAY;
- | @b{for} Partition'Filter @b{use} TASK_POOL_SIZE_ARRAY;
+   @b{for} PARTITION_IDENTIFIER'Task_Pool @b{use} TASK_POOL_SIZE_ARRAY;
+ | @b{for} Partition'Task_Pool @b{use} TASK_POOL_SIZE_ARRAY;
+
 TASK_POOL_SIZE_ARRAY := (POOL_MIN_SIZE, POOL_HIGH_SIZE, POOL_MAX_SIZE);
+
+@end smallexample
+
+To have only one active remote call at the time, a task pool
+configuration can be:
+
+@smallexample
+
+@b{for} Partition'Task_Pool @b{use} (0, 0, 1);
+
 @end smallexample
 
 @node A Complete Example,  , Partition Attribute Task_Pool, The Configuration Language
@@ -1792,14 +1932,18 @@ environment variable. If the user shell is @i{sh}, @i{bash} or @i{zsh},
 type:
 
 @smallexample
+
 AA_BB_CC=<x>
 export AA_BB_CC
+
 @end smallexample
 
 If the user shell is @i{csh} or @i{tcsh}, type:
 
 @smallexample
+
 setenv AA_BB_CC <x>
+
 @end smallexample
 
 where <x> is a value of the expected type.
@@ -2056,7 +2200,9 @@ Example: To replay a traced execution of partition whose executable is
 named PART, he would start it with the command
 
 @smallexample
+
 % PART [@code{--}nolaunch] [@code{--}slave] @code{--}replay @code{--}boot_server replay://
+
 @end smallexample
 
 possibly under the control of a debugger, such as gdb.
@@ -2082,8 +2228,10 @@ units status (resolved in System.Partition_Interface -
 s-parint.adb). For instance, using sh, bash or zsh, type:
 
 @smallexample
+
 S_RPC=true;    export S_RPC
 S_PARINT=true; export S_PARINT
+
 @end smallexample
 
 @node GLADE File Hierarchy, GLADE Internals, Debugging Facilities, Getting Started With GLADE
@@ -2617,11 +2765,6 @@ supplier).  Therefore, a proxy supplier (or proxy consumer) is an
 extended interface of consumer (or supplier). The Events service defines
 @i{push} and @i{pull} methods to exchange events. This allows to
 define four models to exchange events and data.
-
-@c \reviewers{We shall give more details on the distributed
-@c   application development in the final paper. This will also describe
-@c   the services available in CORBA: CosNaming, CosEvents,
-@c   ...}
 
 @node Some Elements of Comparison,  , Distributed Application Development, DSA and CORBA
 @section Some Elements of Comparison
