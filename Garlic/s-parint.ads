@@ -84,6 +84,12 @@ package System.Partition_Interface is
    --  to check the consistency of a passive unit located on a passive
    --  partition.
 
+   function Same_Partition
+      (Left  : access RACW_Stub_Type;
+       Right : access RACW_Stub_Type) return Boolean;
+   --  Determine whether Left and Right correspond to objects instantiated
+   --  on the same partition, for enforcement of E.4(19).
+
    procedure Register_Passive_Partition
      (Partition : out RPC.Partition_ID;
       Name      : in String;

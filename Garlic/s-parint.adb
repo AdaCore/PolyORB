@@ -691,6 +691,17 @@ package body System.Partition_Interface is
       raise;
    end Run;
 
+   --------------------
+   -- Same_Partition --
+   --------------------
+
+   function Same_Partition
+      (Left  : access RACW_Stub_Type;
+       Right : access RACW_Stub_Type) return Boolean is
+   begin
+      return Left.Origin = Right.Origin;
+   end Same_Partition;
+
    -----------------------
    -- Setup_RAS_Proxies --
    -----------------------
