@@ -56,6 +56,8 @@ GNATMAKE_FLAGS=	-I${srcdir} -I.. -I${srcdir}/.. ${ADASOCKETS_INCLUDE} \
 
 IDLAC= ../../idlac/idlac
 
+NAMING= -I../../cos/naming
+
 if ENABLE_IR
 all-local: server client print
 else
@@ -70,13 +72,13 @@ CLEANFILES=	*.o *.ali
 DISTCLEANFILES=	client server print ${DEP}
 
 server: server.adb ${SOURCE} ${DEP} force
-	${GNATMAKE} $@ ${GNATMAKE_FLAGS} 
+	${GNATMAKE} $@ ${NAMING} ${GNATMAKE_FLAGS}
 
 client: client.adb ${SOURCE} ${DEP} force
 	${GNATMAKE} $@ ${GNATMAKE_FLAGS} 
 
 print: print.adb ${SOURCE} ${DEP} force
-	${GNATMAKE} $@ ${GNATMAKE_FLAGS} 
+	${GNATMAKE} $@ ${NAMING} ${GNATMAKE_FLAGS} 
 
 .PHONY: force
 

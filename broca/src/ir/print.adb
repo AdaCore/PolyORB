@@ -34,6 +34,7 @@ with CORBA.ORB;
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.Repository;
+with CORBA.Repository_Root.Repository.Helper;
 with CORBA.Repository_Root.Container;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.Container.Helper;
@@ -44,6 +45,7 @@ with CORBA.Repository_Root.StructDef.Helper;
 with CORBA.Repository_Root.InterfaceDef.Helper;
 with CORBA.Repository_Root.ExceptionDef.Helper;
 with CORBA.Repository_Root.ValueDef.Helper;
+with Naming_Tools;
 
 procedure Print is
 
@@ -399,21 +401,23 @@ procedure Print is
       end loop;
    end Print_Content;
 
-   Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
    Myrep : Repository.Ref;
 
 begin
 
-   if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
-      return;
-   end if;
+   Myrep := Repository.Helper.To_Ref
+     (Naming_Tools.Locate ("Interface_Repository"));
+
+--  If Ada.Command_Line.Argument_Count < 1 then
+--      Put_Line ("usage : client <IOR_string_from_server>");
+--      return;
+--   end if;
 
    --  transforms the Ada string into CORBA.String
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
+--   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
 
    --  getting the CORBA.Object
-   CORBA.ORB.String_To_Object (IOR, Myrep);
+--   CORBA.ORB.String_To_Object (IOR, Myrep);
 
    --  checking if it worked
    if Repository.Is_Nil (Myrep) then

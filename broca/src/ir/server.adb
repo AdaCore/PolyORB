@@ -38,6 +38,10 @@ with CORBA.Repository_Root; use CORBA.Repository_Root;
 with PortableServer;
 
 with Broca.Server_Tools; use Broca.Server_Tools;
+
+with Naming_Tools;
+with CosNaming.NamingContext;
+
 pragma Elaborate (Broca.Server_Tools);
 
 with Ada.Text_IO;
@@ -51,9 +55,15 @@ begin
                          Dk_Repository,
                          Contained.Impl.Contained_Seq.Null_Sequence);
    Initiate_Servant (PortableServer.Servant (Repo), Ref);
-   Ada.Text_IO.Put_Line
-     ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
-      "'");
+--   Ada.Text_IO.Put_Line
+--     ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
+--      "'");
+   begin
+      Naming_Tools.Register ("Interface_Repository", Ref);
+   exception
+      when CosNaming.NamingContext.AlreadyBound =>
+         Naming_Tools.Register ("Interface_Repository", Ref, Rebind => True);
+   end;
    Initiate_Server;
 end Server;
 

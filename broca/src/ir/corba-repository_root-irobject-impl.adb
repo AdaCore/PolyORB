@@ -4,7 +4,10 @@
 ----------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IRObject.Skel;
+with CORBA.Repository_Root.Contained.Impl;
+with CORBA.Repository_Root.Container.Impl;
 with Broca.Debug;
 with Broca.Exceptions;
 
@@ -85,7 +88,21 @@ package body CORBA.Repository_Root.IRObject.Impl is
             Broca.Exceptions.Raise_Bad_Inv_Order (Minor => 2);
          when others =>
             --  dispatching call
-            Destroy (Object_Ptr (Self));
+            --  Destroy (Object_Ptr (Self));
+
+            --  Implemented for purpose of a DEMO...
+
+            --  FIXME  memory leak, should be dispatched
+            --  remove the contained from the previous container
+            declare
+               Cont : Contained.Impl.Object_Ptr
+                 := Contained.Impl.To_Contained (Get_Real_Object (Self));
+            begin
+               Container.Impl.Delete_From_Contents
+                 (Container.Impl.To_Object
+                  (Contained.Impl.Get_Defined_In (Cont)),
+                  Cont);
+            end;
       end case;
    end destroy;
 
