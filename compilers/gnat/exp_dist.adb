@@ -2133,10 +2133,6 @@ package body Exp_Dist is
              Expression => Value);
       end Set_Field;
 
-
-      Boolean_Literals : constant array (Boolean) of Entity_Id :=
-        (False => Standard_False, True => Standard_True);
-
    --  Start of processing for Add_RAS_Access_Attribute
 
    begin
