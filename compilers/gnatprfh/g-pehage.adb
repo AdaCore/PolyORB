@@ -385,7 +385,7 @@ package body GNAT.Perfect_Hash.Generators is
    Graph_Len          : Natural;
    --  G   : Values table to compute G
 
-   function  Get_Graph (I : Natural) return Natural;
+   function  Get_Graph (I : Natural) return Integer;
    procedure Set_Graph (I : Natural; Item : Integer);
 
    -----------
@@ -535,7 +535,7 @@ package body GNAT.Perfect_Hash.Generators is
    --------------
 
    function  Allocate (N : Natural; S : Natural) return Table_Id is
-      L : constant Natural := IT.Last;
+      L : constant Integer := IT.Last;
    begin
       IT.Set_Last (L + N * S);
       return L + 1;
@@ -983,7 +983,7 @@ package body GNAT.Perfect_Hash.Generators is
    -- Get_Graph --
    ---------------
 
-   function Get_Graph (I : Natural) return Natural is
+   function Get_Graph (I : Natural) return Integer is
       N : constant Natural := G + I * Graph_Item_Size;
    begin
       return IT.Table (N);

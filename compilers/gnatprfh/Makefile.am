@@ -16,7 +16,7 @@ $(srcdir)/g-perhas.ads
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb
 
-DISTCLEANFILES = $(GNATFILES) $(PROG)
+DISTCLEANFILES = $(PROG)
 
 force::
 
