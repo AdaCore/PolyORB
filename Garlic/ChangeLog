@@ -1,3 +1,8 @@
+1998-10-07  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garrem.adb: Use system to benefit from shell substitution for
+	non-local launches.
+
 1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.ads, s-parint.adb: New subprograms

@@ -36,7 +36,7 @@
 with Ada.Unchecked_Deallocation;
 with GNAT.IO;
 with GNAT.OS_Lib;                     use GNAT.OS_Lib;
-with Interfaces.C.Strings;
+with Interfaces.C.Strings;            use Interfaces.C, Interfaces.C.Strings;
 with System.Garlic.Constants;         use System.Garlic.Constants;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Heart;             use System.Garlic.Heart;
@@ -210,15 +210,15 @@ package body System.Garlic.Remote is
       Host     : in String;
       Command  : in String)
    is
-      Exec_Option      : String_Access       := new String'("-c");
-      Rsh_Full_Command : String_Access       :=
-        new String'(Launcher & " " & Host & " '" & Command & " &'");
-      PID              : constant Process_Id :=
-        Non_Blocking_Spawn ("sh", (Exec_Option, Rsh_Full_Command));
+      function C_System (Command : Address) return int;
+      pragma Import (C, C_System, "system");
+
+      Rsh_Full_Command : constant String     :=
+        Launcher & " " & Host & " """ & Command &
+        " &"" < /dev/null > /dev/null";
+      C_Command        : aliased char_array := To_C (Rsh_Full_Command);
    begin
-      Free (Exec_Option);
-      Free (Rsh_Full_Command);
-      if PID = Invalid_Pid then
+      if C_System (C_Command'Address) / 256 /= 0 then
          raise Program_Error;
       end if;
    end Rsh_Launcher;

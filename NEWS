@@ -7,9 +7,6 @@ Bug Fixes
 *   Fix a bug in partition death/revival that caused other partitions
     to fail in some cases.
 
-*   Local launching of partitions (with starter Ada) now works on
-    Windows NT.
-
 Changes since GLADE 1.03
 ========================
 

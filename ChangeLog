@@ -1,3 +1,7 @@
+1998-10-07  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Remove mention of Windows NT launch.
+
 1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* NEWS: Mention Windows NT visible changes and bug fixes.
