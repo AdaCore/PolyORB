@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#14 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#15 $
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -423,6 +423,9 @@ package body Ada_Be.Expansion is
 
             Idl_File_Node : Node_Id;
             Success : Boolean;
+
+            Has_Named_Subnodes : Boolean := False;
+            Named_Subnodes : Node_Iterator;
          begin
             Get_Next_Node (Iterator, Current);
             Loc := Get_Location (Current);
@@ -488,24 +491,32 @@ package body Ada_Be.Expansion is
                   pragma Assert (Success);
                end if;
 
-            elsif Is_Type_Declarator (Current) then
+               if Is_Enum (Current) then
+                  Has_Named_Subnodes := True;
+                  Init (Named_Subnodes, Enumerators (Current));
+                  --  Reparent all enumerators of current node.
+               end if;
 
+            elsif Is_Type_Declarator (Current) then
+               Has_Named_Subnodes := True;
+               Init (Named_Subnodes, Declarators (Current));
                --  Reparent all declarators of current node.
 
-               declare
-                  Dcl_It : Node_Iterator;
-                  Dcl_Node : Node_Id;
-               begin
-                  Init (Dcl_It, Declarators (Current));
-                  while not Is_End (Dcl_It) loop
-                     Get_Next_Node (Dcl_It, Dcl_Node);
-                     Success := Add_Identifier
-                       (Dcl_Node, Name (Dcl_Node));
-                     pragma Assert (Success);
-                  end loop;
-               end;
-
             end if;
+
+            --  If the current node has named subnodes, reparent
+            --  them now.
+
+            declare
+               Dcl_Node : Node_Id;
+            begin
+               while not Is_End (Named_Subnodes) loop
+                  Get_Next_Node (Named_Subnodes, Dcl_Node);
+                  Success := Add_Identifier
+                    (Dcl_Node, Name (Dcl_Node));
+                  pragma Assert (Success);
+               end loop;
+            end;
          end;
       end loop;
 
