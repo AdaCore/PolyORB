@@ -1,0 +1,4 @@
+	* configure.in, Garlic/Makefile.am: Several new variables :
+	[PROTOCOLS|NON_EMBEDDED]_[SOURCES|OBJECTS]
+	PROTOCOLS    :  list of protocols
+

@@ -1184,9 +1184,7 @@ ac_given_INSTALL="$INSTALL"
 
 trap 'rm -fr `echo "Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
-           Garlic/Makefile
-           Garlic/s-gaprco.adb
-           Garlic/s-garser.adb
+           Garlic/Makefile Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile
@@ -1261,9 +1259,7 @@ cat >> $CONFIG_STATUS <<EOF
 
 CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
-           Garlic/Makefile
-           Garlic/s-gaprco.adb
-           Garlic/s-garser.adb
+           Garlic/Makefile Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile
