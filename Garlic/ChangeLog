@@ -114,6 +114,8 @@
 	* s-rpstio.adb: Replace Barriers with Watchers and reorganize code
  	accordingly.
 
+	* DALL, UNDALL: update env. var.
+
 2000-06-09  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-gastha.adb: Protect increment operation on a shared variable
