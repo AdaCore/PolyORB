@@ -3,3 +3,4 @@
 * Add 2 new directories called protocols and filters with all the protocols
   and filters to make it easier to add new entities on the fly
   (Cyrille, 11 Apr 97)
+* Blank line
