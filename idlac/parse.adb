@@ -73,16 +73,17 @@ package body Parse is
    --  from the current token if we looked a bit further in the past)
    Newest_Index : Buffer_Index := 0;
 
-   --  This function returns the current token
+   -----------------
+   --  Get_Token  --
+   -----------------
    function Get_Token return Idl_Token is
    begin
       return Token_Buffer (Current_Index);
    end Get_Token;
 
-   --  This procedure gets the next token from the lexer and put it
-   --  into the token_buffer. It also gets its location and
-   --  eventually its string representation and put them in the
-   --  corresponding buffers
+   ----------------------------
+   --  Get_Token_From_Lexer  --
+   ----------------------------
    procedure Get_Token_From_Lexer is
    begin
       Newest_Index := Newest_Index + 1;
@@ -121,9 +122,9 @@ package body Parse is
       end case;
    end Get_Token_From_Lexer;
 
-   --  This procedure consumes a token. If the token was already
-   --  in the buffer, it just increases the index. Else, it gets
-   --  the next token from the lexer.
+   ------------------
+   --  Next_Token  --
+   ------------------
    procedure Next_Token is
    begin
       if Current_Index = Newest_Index then
@@ -132,8 +133,9 @@ package body Parse is
       Current_Index := Current_Index + 1;
    end Next_Token;
 
-   --  Returns the next token in the token stream coming from the
-   --  lexer without consuming it. It places it in the buffer
+   -----------------------
+   --  View_Next_Token  --
+   -----------------------
    function View_Next_Token return Idl_Token is
    begin
       if Current_Index = Newest_Index then
@@ -142,46 +144,54 @@ package body Parse is
       return Token_Buffer (Current_Index + 1);
    end View_Next_Token;
 
-   --  Returns the location of the current_token
+   --------------------------
+   --  Get_Token_Location  --
+   --------------------------
    function Get_Token_Location return Errors.Location is
    begin
       return Location_Buffer (Current_Index);
    end Get_Token_Location;
 
-   --  Returns the location of the previous token
+   -----------------------------------
+   --  Get_Previous_Token_Location  --
+   -----------------------------------
    function Get_Previous_Token_Location return Errors.Location is
    begin
       return Location_Buffer (Current_Index - 1);
    end Get_Previous_Token_Location;
 
-   --  Returns the location of the current_token
+   -------------------------------
+   --  Get_Next_Token_Location  --
+   -------------------------------
    function Get_Next_Token_Location return Errors.Location is
    begin
       return Location_Buffer (Current_Index + 1);
    end Get_Next_Token_Location;
 
-   --  The next three methods unreference a pointer without any
-   --  verification. that's because the verification is useless
-   --  in this case if this package is correctly written.
-   --  Since these methods are not exported...
-
-   --  Returns the location of the current_token
+   ------------------------
+   --  Get_Token_String  --
+   ------------------------
    function Get_Token_String return String is
    begin
       return String_Buffer (Current_Index).all;
    end Get_Token_String;
 
-   --  Returns the string of the previous token
+   ---------------------------------
+   --  Get_Previous_Token_String  --
+   ---------------------------------
    function Get_Previous_Token_String return String is
    begin
       return String_Buffer (Current_Index - 1).all;
    end Get_Previous_Token_String;
 
-   --  Returns the string of the current_token
+   -----------------------------
+   --  Get_Next_Token_String  --
+   -----------------------------
    function Get_Next_Token_String return String is
    begin
       return String_Buffer (Current_Index + 1).all;
    end Get_Next_Token_String;
+
 
 
    --------------------------

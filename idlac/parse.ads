@@ -35,6 +35,9 @@ package Parse is
    --------------------------
    --  Parsing of the idl  --
    --------------------------
+
+   --  CORVA V2.3, 3.4
+   --
    --  Rule 1 :
    --  <specification> ::= <definition>+
    function Parse_Specification return N_Repository_Acc;
@@ -60,8 +63,8 @@ private
    --  the next token from the lexer.
    procedure Next_Token;
 
-   --  Returns the next token in the token stream coming from the
-   --  lexer without consuming it. It places it in the buffer
+   --  Returns the next token in the token stream without consuming
+   --  it. If necessary get it from the lexer and put it in the buffer
    function View_Next_Token return Idl_Token;
 
    --  Returns the location of the current_token
@@ -92,6 +95,45 @@ private
    --------------------------
    --  Parsing of the idl  --
    --------------------------
+
+   --
+   --  CORVA V2.3, 3.4
+   --
+
+   --  Rule 2:
+   --  <definition> ::= <type_dcl> ";"
+   --               |   <const_dcl> ";"
+   --               |   <except_dcl> ";"
+   --               |   <interface> ";"
+   --               |   <module> ";"
+   --               |   <value> ";"
+   procedure Parse_Definition (Result : out N_Root_Acc;
+                               Success : out Boolean);
+
+   --  Rule 3:
+   --  <module> ::= "module" <identifier> "{" <definition>+ "}"
+   procedure Parse_Module (Result : out N_Module_Acc;
+                           Success : out Boolean);
+
+
+   ------------------------------
+   --  To resume after errors  --
+   ------------------------------
+
+   --  Tries to reach the beginning of the next definition.
+   --  Called when the parser encounters an error during the
+   --  parsing of a definition in order to try to continue the
+   --  parsing after the bad definition.
+   procedure Go_To_Next_Definition;
+
+
+
+
+
+
+
+
+
 
 --    --  FIXME: to add: rules 25, 26, 81, 82.
 
@@ -471,27 +513,7 @@ private
 --    function Parse_Const_Dcl return N_Const_Acc is
 
 
-   --  Tries to reach the beginning of the next definition.
-   --  Called when the parser encounters an error during the
-   --  parsing of a definition in order to try to continue the
-   --  parsing after the bad definition.
-   procedure Go_To_Next_Definition;
 
-
-   --  Rule 3:
-   --  <module> ::= "module" <identifier> "{" <definition>+ "}"
-   procedure Parse_Module (Result : out N_Module_Acc;
-                           Success : out Boolean);
-
-   --  Rule 2:
-   --  <definition> ::= <type_dcl> ";"
-   --               |   <const_dcl> ";"
-   --               |   <except_dcl> ";"
-   --               |   <interface> ";"
-   --               |   <module> ";"
-   --               |   <value> ";"
-   procedure Parse_Definition (Result : out N_Root_Acc;
-                               Success : out Boolean);
 
 
 end Parse;
