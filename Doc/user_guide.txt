@@ -213,6 +213,14 @@ configuration My_Config is
   --  Specify the partition main subprogram to use in a given
   --  partition.
 
+  for Partition_3'Reconnection use Blocked_Until_Restart;
+  --  Specify a reconnection policy on Partition_3 crash. Any attempt
+  --  to reconnect to Partition_3 when this partition is dead will
+  --  be kept blocking until Partition_3 restart. As a default, any
+  --  restart is rejected (Rejected_ON_Restart). Another policy is to
+  --  raise Communication_Error on any reconnection attempt until
+  --  Partition_3 has been restarted.
+
   for Partition_4'Command_Line use "-v";
   --  Specify additional arguments to pass on the command line when a 
   --  given partition is launched.
