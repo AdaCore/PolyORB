@@ -93,7 +93,7 @@ personalities.
 @node Main packages
 @chapter Main packages
 
-As PolyORB is rather a big program, here is a short description of the
+As PolyORB is a rather big program, here is a short description of the
 main packages, in order to help you find what functionnality you
 search. All these packages are located in @code{src/}.
 
