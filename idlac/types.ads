@@ -127,6 +127,52 @@ package Types is
    function Get_Location (N : N_Root'Class) return Errors.Location;
 
 
+   ------------------------------------
+   --  A usefull list of root nodes  --
+   ------------------------------------
+
+   --  Simple list type for a node list.
+   --  The Nil atom is Nil_List.
+   type Node_List is private;
+   Nil_List : constant Node_List;
+
+   --  Simple way to iterate over a node_list.
+   --  NODE_ITERATOR is a type representing an iterator, which must
+   --  be initialiazed by INIT.
+   --  End of list is detected by IS_END.
+   --  Until the end of list is reached, the node can be extracted
+   --  with GET_NODE and the iterator can be incremented with NEXT.
+   --  Therefore, usual way to use an iterator is:
+   --  declare
+   --    it: node_iterator;
+   --    node: n_root_acc;
+   --  begin
+   --    init (it, rep.contents);
+   --    while not is_end (it) loop
+   --      node := get_node (it);
+   --      ...
+   --      next (it);
+   --    end loop;
+   type Node_Iterator is limited private;
+   procedure Init (It : out Node_Iterator; List : Node_List);
+   function Get_Node (It : Node_Iterator) return N_Root_Acc;
+   procedure Next (It : in out Node_Iterator);
+   function Is_End (It : Node_Iterator) return Boolean;
+
+   --  Appends a node at the end of a list.
+   procedure Append_Node (List : in out Node_List; Node : N_Root_Acc);
+
+   --  Look whether node is in list or not
+   function Is_In_List (List : Node_List; Node : N_Root_Acc) return Boolean;
+
+   --  Removes a node from the list. Actually only removes the first
+   --  occurence of the node or does nothing if the node was not in
+   --  the list.
+   procedure Remove_Node (List : in out Node_List; Node : N_Root_Acc);
+
+   --  Frees all the list
+   procedure Free (List : in out Node_List);
+
    ---------------------------------------------------
    --  Named nodes in the tree parsed from the idl  --
    ---------------------------------------------------
@@ -199,6 +245,18 @@ package Types is
    --  Unstack the current scope.
    procedure Pop_Scope;
 
+   --  In order to ensure that each forward definition of a value
+   --  or an interface is implemented in the same scope, here are
+   --  some methods to take forward declarations and implementations
+   --  into account
+
+   --  To add a forward declaration in the list
+   procedure Add_Int_Val_Forward (Node : in N_Named_Acc);
+
+   --  To take an implementation into account and remove the
+   --  corresponding forward declaration from the list.
+   procedure Add_Int_Val_Definition (Node : in N_Named_Acc);
+
 
 
    ----------------------------
@@ -252,6 +310,24 @@ private
 
    Nil_Node : constant N_Root_Acc := null;
 
+   ------------------------------------
+   --  A usefull list of root nodes  --
+   ------------------------------------
+
+   --  Definition in a lisp like style of a node list
+   type Node_List_Cell;
+   type Node_List is access Node_List_Cell;
+   type Node_List_Cell is record
+      Car : N_Root_Acc;
+      Cdr : Node_List;
+   end record;
+
+   --  Definition of the iterator on a node list
+   type Node_Iterator is new Node_List;
+
+   --  the empty list
+   Nil_List : constant Node_List := null;
+
    ---------------------------------------------------
    --  Named nodes in the tree parsed from the idl  --
    ---------------------------------------------------
@@ -266,9 +342,11 @@ private
    --------------------------------------------------------------
 
    --  A scope contains all the definitions of the enclosed
-   --  identifiers
+   --  identifiers as well as a list of the forwarded interfaces
+   --  and values still not defined
    type N_Scope is abstract new N_Named with record
       Identifier_List : Identifier_Definition_List;
+      Unimplemented_Forwards : Node_List := null;
    end record;
 
    ----------------------------------------

@@ -18,107 +18,81 @@
 
 package body Tree is
 
-   -------------------------------------
-   --  Some usefull type and methods  --
-   -------------------------------------
-
-   procedure Init (It : out Node_Iterator; List : Node_List) is
-   begin
-      It := Node_Iterator (List);
-   end Init;
-
-   function Get_Node (It : Node_Iterator) return N_Root_Acc is
-   begin
-      return It.Car;
-   end Get_Node;
-
-   procedure Next (It : in out Node_Iterator) is
-   begin
-      It := Node_Iterator (It.Cdr);
-   end Next;
-
-   function Is_End (It : Node_Iterator) return Boolean is
-   begin
-      return It = null;
-   end Is_End;
-
-   procedure Append_Node (List : in out Node_List; Node : N_Root_Acc) is
-      Cell, Last : Node_List;
-   begin
-      Cell := new Node_List_Cell'(Car => Node, Cdr => null);
-      if List = null then
-         List := Cell;
-      else
-         Last := List;
-         while Last.Cdr /= null loop
-            Last := Last.Cdr;
-         end loop;
-         Last.Cdr := Cell;
-      end if;
-   end Append_Node;
-
-   function Is_In_List (List : Node_List; Node : N_Root_Acc) return Boolean is
-   begin
-      if List = Nil_List then
-         return False;
-      end if;
-      if List.Car = Node then
-         return True;
-      else
-         return Is_In_List (List.Cdr, Node);
-      end if;
-   end Is_In_List;
-
-
-   -------------------
-   --  The idl tree --
-   -------------------
-
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Repository) return Node_Kind is
    begin
       return K_Repository;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Module) return Node_Kind is
    begin
       return K_Module;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Interface) return Node_Kind is
    begin
       return K_Interface;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Forward_Interface) return Node_Kind is
    begin
       return K_Forward_Interface;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_ValueType) return Node_Kind is
    begin
       return K_ValueType;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Forward_ValueType) return Node_Kind is
    begin
       return K_Forward_ValueType;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Boxed_ValueType) return Node_Kind is
    begin
       return K_Boxed_ValueType;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_State_Member) return Node_Kind is
    begin
       return K_State_Member;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Initializer) return Node_Kind is
    begin
       return K_Initializer;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Scoped_Name) return Node_Kind is
    begin
       return K_Scoped_Name;
@@ -219,11 +193,17 @@ package body Tree is
 --       return K_String;
 --    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Param) return Node_Kind is
    begin
       return K_Param;
    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Exception) return Node_Kind is
    begin
       return K_Exception;
@@ -234,6 +214,9 @@ package body Tree is
 --       return K_Member;
 --    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Declarator) return Node_Kind is
    begin
       return K_Declarator;
@@ -349,6 +332,9 @@ package body Tree is
 --       return K_Sequence;
 --    end Get_Kind;
 
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Const) return Node_Kind is
    begin
       return K_Const;

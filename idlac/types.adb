@@ -46,6 +46,118 @@ package body Types is
 
 
 
+   ------------------------------------
+   --  A usefull list of root nodes  --
+   ------------------------------------
+
+   ------------
+   --  Init  --
+   ------------
+   procedure Init (It : out Node_Iterator; List : Node_List) is
+   begin
+      It := Node_Iterator (List);
+   end Init;
+
+   ----------------
+   --  Get_Node  --
+   ----------------
+   function Get_Node (It : Node_Iterator) return N_Root_Acc is
+   begin
+      return It.Car;
+   end Get_Node;
+
+   ------------
+   --  Next  --
+   ------------
+   procedure Next (It : in out Node_Iterator) is
+   begin
+      It := Node_Iterator (It.Cdr);
+   end Next;
+
+   --------------
+   --  Is_End  --
+   --------------
+   function Is_End (It : Node_Iterator) return Boolean is
+   begin
+      return It = null;
+   end Is_End;
+
+   -------------------
+   --  Append_Node  --
+   -------------------
+   procedure Append_Node (List : in out Node_List; Node : N_Root_Acc) is
+      Cell, Last : Node_List;
+   begin
+      Cell := new Node_List_Cell'(Car => Node, Cdr => null);
+      if List = null then
+         List := Cell;
+      else
+         Last := List;
+         while Last.Cdr /= null loop
+            Last := Last.Cdr;
+         end loop;
+         Last.Cdr := Cell;
+      end if;
+   end Append_Node;
+
+   ------------------
+   --  Is_In_List  --
+   ------------------
+   function Is_In_List (List : Node_List; Node : N_Root_Acc) return Boolean is
+   begin
+      if List = Nil_List then
+         return False;
+      end if;
+      if List.Car = Node then
+         return True;
+      else
+         return Is_In_List (List.Cdr, Node);
+      end if;
+   end Is_In_List;
+
+   -------------------
+   --  Remove_Node  --
+   -------------------
+   procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
+     (Node_List_Cell, Node_List);
+   procedure Remove_Node (List : in out Node_List; Node : N_Root_Acc) is
+      Old_List : Node_List;
+   begin
+      if List = null then
+         return;
+      end if;
+      if List.Car = Node then
+         Old_List := List;
+         List := List.Cdr;
+         Unchecked_Deallocation (Old_List);
+      else
+         while List.Cdr /= null loop
+            if List.Cdr.Car = Node then
+               Old_List := List.Cdr;
+               List.Cdr := List.Cdr.Cdr;
+               Unchecked_Deallocation (Old_List);
+               return;
+            end if;
+            List := List.Cdr;
+         end loop;
+      end if;
+   end Remove_Node;
+
+   ------------
+   --  Free  --
+   ------------
+   procedure Free (List : in out Node_List) is
+      Old_List : Node_List;
+   begin
+      while List /= null loop
+         Old_List := List;
+         List := List.Cdr;
+         Unchecked_Deallocation (Old_List);
+      end loop;
+   end Free;
+
+
+
    ---------------------------------------------------
    --  Named nodes in the tree parsed from the idl  --
    ---------------------------------------------------
@@ -125,7 +237,6 @@ package body Types is
 
 
 
-
    ----------------------------------
    --  identifiers handling types  --
    ----------------------------------
@@ -185,6 +296,24 @@ package body Types is
    --  scope handling types  methods  --
    -------------------------------------
 
+   ---------------------------
+   --  Add_Int_Val_Forward  --
+   ---------------------------
+   procedure Add_Int_Val_Forward (Node : in N_Named_Acc) is
+   begin
+      Append_Node (Current_Scope.Scope.Unimplemented_Forwards,
+                   N_Root_Acc (Node));
+   end Add_Int_Val_Forward;
+
+   ------------------------------
+   --  Add_Int_Val_Definition  --
+   ------------------------------
+   procedure Add_Int_Val_Definition (Node : in N_Named_Acc) is
+   begin
+      Remove_Node (Current_Scope.Scope.Unimplemented_Forwards,
+                   N_Root_Acc (Node));
+   end Add_Int_Val_Definition;
+
    ----------------------
    --  Get_Root_Scope  --
    ----------------------
@@ -223,9 +352,25 @@ package body Types is
       Old_Scope : Scope_Stack_Acc;
       Definition_List : Identifier_Definition_List;
       Old_Definition_List : Identifier_Definition_List;
+      Forward_Defs : Node_Iterator;
+      Forward_Def : N_Root_Acc;
    begin
       Old_Scope := Current_Scope;
       Current_Scope := Old_Scope.Parent;
+      --  Test if all forward definitions were implemented
+      Init (Forward_Defs, Old_Scope.Scope.Unimplemented_Forwards);
+      while not Is_End (Forward_Defs) loop
+         Forward_Def := Get_Node (Forward_Defs);
+         Errors.Parser_Error ("The forward declaration " &
+                              Errors.Display_Location
+                              (Get_Location (Forward_Def.all)) &
+                              " is not implemented.",
+                              Errors.Error,
+                              Get_Location (Old_Scope.Scope.all));
+         Next (Forward_Defs);
+      end loop;
+      --  frees the forward definition list
+      Free (Old_Scope.Scope.Unimplemented_Forwards);
       --  Remove all definition of scope from the hash table, and
       --  replace them by the previous one.
       Definition_List := Old_Scope.Scope.Identifier_List;

@@ -1,3 +1,10 @@
+/***  Outside any rule  ***/
+module module1 {
+  valuetype valuetype1;
+  interface interface1;
+};
+
+
 /***  Test of rule 2 ***/
 
 Error
@@ -54,6 +61,7 @@ valuetype forward_value;
 valuetype forward_value long;
 valuetype toto long;
 valuetype rightboxedvalue long;
+valuetype FooSeq sequence <FooSeq>;
 
 /* Test of rule 19 */
 /* test errors */
@@ -130,6 +138,7 @@ valuetype value47 {
   factory factory1 (out long l);
   factory factory2 (long l);
   factory factory3 (Error);
+  factory factory4 (out long l, out l ll);
 };
 
 /* Test of rule 51 */

@@ -1009,6 +1009,7 @@ package body Parse is
                Fd_Decl : N_Forward_ValueType_Acc;
             begin
                Fd_Decl := N_Forward_ValueType_Acc (Get_Node (Definition));
+               Add_Int_Val_Definition (N_Named_Acc (Fd_Decl));
                Fd_Decl.Forward := Result;
                Result.Forward := Fd_Decl;
                Redefine_Identifier (Definition, Result);
@@ -1133,6 +1134,7 @@ package body Parse is
       end if;
       --  consumes the identifier
       Next_Token;
+      Add_Int_Val_Forward (N_Named_Acc (Result));
       Success := True;
       return;
    end Parse_End_Value_Forward_Dcl;
@@ -1167,16 +1169,27 @@ package body Parse is
                Errors.Error,
                Get_Previous_Token_Location);
          end if;
+         Next_Token;
+         Parse_Type_Spec (Result.Boxed_Type, Success);
       else
          --  no previous forward
-         if not Add_Identifier (Result,
-                                Get_Token_String) then
-            raise Errors.Internal_Error;
-         end if;
+         declare
+            Name : String_Ptr;
+         begin
+            --  the purpose here is to avoid the use of the value
+            --  name in the definition of its type. For example, the
+            --  following declaration is illegal :
+            --      valuetype FooSeq sequence <FooSeq>
+            Name := new String'(Get_Token_String);
+            Next_Token;
+            Parse_Type_Spec (Result.Boxed_Type, Success);
+            if not Add_Identifier (Result,
+                                   Name.all) then
+               raise Errors.Internal_Error;
+            end if;
+            Free_String_Ptr (Name);
+         end;
       end if;
-      --  consumes the identifier
-      Next_Token;
-      Parse_Type_Spec (Result.Boxed_Type, Success);
       return;
    end Parse_End_Value_Box_Dcl;
 

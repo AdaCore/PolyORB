@@ -22,53 +22,6 @@ with Types; use Types;
 
 package Tree is
 
-   -------------------------------------
-   --  Some usefull type and methods  --
-   -------------------------------------
-
-   --  Different string types to be used for identifiers and versions
-   type Identifier is new String_Cacc;
-   type Version_Spec is new String_Cacc;
-
-   --  Simple list type for a node list.
-   --  The Nil atom is Nil_List.
-   type Node_List is private;
-   Nil_List : constant Node_List;
-
-   --  Simple way to iterate over a node_list.
-   --  NODE_ITERATOR is a type representing an iterator, which must
-   --  be initialiazed by INIT.
-   --  End of list is detected by IS_END.
-   --  Until the end of list is reached, the node can be extracted
-   --  with GET_NODE and the iterator can be incremented with NEXT.
-   --  Therefore, usual way to use an iterator is:
-   --  declare
-   --    it: node_iterator;
-   --    node: n_root_acc;
-   --  begin
-   --    init (it, rep.contents);
-   --    while not is_end (it) loop
-   --      node := get_node (it);
-   --      ...
-   --      next (it);
-   --    end loop;
-   type Node_Iterator is limited private;
-   procedure Init (It : out Node_Iterator; List : Node_List);
-   function Get_Node (It : Node_Iterator) return N_Root_Acc;
-   procedure Next (It : in out Node_Iterator);
-   function Is_End (It : Node_Iterator) return Boolean;
-
-   --  Appends a node at the end of a list.
-   procedure Append_Node (List : in out Node_List; Node : N_Root_Acc);
-
-   --  Look whether node is in list or not
-   function Is_In_List (List : Node_List; Node : N_Root_Acc) return Boolean;
-
-
-   -------------------
-   --  The idl tree --
-   -------------------
-
    --  An idl is represented as a tree, which is inspired by the
    --  interface repository (ada IR).
    --  However, contrary to the IR, it doesn't use multiple
@@ -426,20 +379,12 @@ package Tree is
    function Get_Kind (N : N_Const) return Node_Kind;
 
 
-private
+--
+--  INUTILE ???
+--
+--    --  Different string types to be used for identifiers and versions
+--    type Identifier is new String_Cacc;
+--    type Version_Spec is new String_Cacc;
 
-   --  Definition in a lisp like style of a node list
-   type Node_List_Cell;
-   type Node_List is access Node_List_Cell;
-   type Node_List_Cell is record
-      Car : N_Root_Acc;
-      Cdr : Node_List;
-   end record;
-
-   --  Definition of the iterator on a node list
-   type Node_Iterator is new Node_List;
-
-   --  the empty list
-   Nil_List : constant Node_List := null;
 
 end Tree;
