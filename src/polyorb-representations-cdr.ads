@@ -161,26 +161,4 @@ private
       Representation : in     CDR_Representation'Class)
       return PolyORB.Any.TypeCode.Object;
 
-   --  XXX Deprecated marshalling subprogram.
-
-   --  'Wchar' type
-
-   procedure Marshall
-     (Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Wchar);
-
-   function Unmarshall
-     (Buffer : access Buffers.Buffer_Type)
-      return PolyORB.Types.Wchar;
-
-   --  'Wide_String' type
-
-   procedure Marshall
-     (Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Wide_String);
-
-   function Unmarshall
-     (Buffer : access Buffers.Buffer_Type)
-     return PolyORB.Types.Wide_String;
-
 end PolyORB.Representations.CDR;

@@ -177,6 +177,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          Release (Ctx.Frag_Buf);
       end if;
       Free (GIOP_Ctx_1_1_Access (Sess.Ctx));
+      Release (GIOP_1_1_CDR_Representation (Sess.Repr.all));
       Free (GIOP_1_1_CDR_Representation_Access (Sess.Repr));
       pragma Debug (O ("Finalize context for GIOP session 1.1"));
    end Finalize_Session;
@@ -211,9 +212,17 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
                  Unmarshall (Sess.Buffer_In);
                Reply_Status : constant Reply_Status_Type :=
                  Unmarshall (Sess.Buffer_In);
-               QoS : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+               QoS          : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+               CS           : Code_Set_Context_Access;
+
             begin
-               Unmarshall_Service_Context_List (Sess.Buffer_In, QoS);
+               Unmarshall_Service_Context_List (Sess.Buffer_In, QoS, CS);
+
+               --  XXX CodeSets service context is not implemented
+
+               if CS /= null then
+                  raise Not_Implemented;
+               end if;
 
                Common_Reply_Received (Sess'Access, Request_Id, Reply_Status);
             end;
@@ -524,7 +533,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
-      use PolyORB.Annotations;
       use PolyORB.Requests.Unsigned_Long_Flags;
       use PolyORB.Types;
 
@@ -547,7 +555,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Header_Space := Reserve (Buffer, GIOP_Header_Size);
       Marshall_Service_Context_List
         (Buffer,
-         PolyORB.Request_QoS.Get_QoS (R.Req));
+         PolyORB.Request_QoS.Get_QoS (R.Req),
+         null);
       Marshall (Buffer, R.Request_Id);
       Marshall (Buffer, Resp_Exp);
       for J in 1 .. 3 loop
@@ -775,11 +784,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       use PolyORB.Types;
 
       Sink : Types.Octet;
+      CS   : Code_Set_Context_Access;
 
    begin
       --  Service context
 
-      Unmarshall_Service_Context_List (Buffer, QoS);
+      Unmarshall_Service_Context_List (Buffer, QoS, CS);
+
+      --  XXX CodeSets service context is not implemented
+
+      if CS /= null then
+         raise Not_Implemented;
+      end if;
 
       --  Request id
       Request_Id := Unmarshall (Buffer);
@@ -832,7 +848,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    begin
       Marshall_Service_Context_List
         (Buffer,
-         PolyORB.Request_QoS.Get_QoS (R));
+         PolyORB.Request_QoS.Get_QoS (R),
+         null);
+      --  CodeSets service context sent only in Request message.
+
       Marshall (Buffer, Ctx.Request_Id);
       Marshall (Buffer, Ctx.Reply_Status);
    end Marshall_GIOP_Header_Reply;

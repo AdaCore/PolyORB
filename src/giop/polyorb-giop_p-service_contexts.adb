@@ -53,22 +53,56 @@ package body PolyORB.GIOP_P.Service_Contexts is
 
    procedure Marshall_Service_Context_List
      (Buffer : access Buffers.Buffer_Type;
-      QoS    : in     PolyORB.Request_QoS.QoS_Parameter_Lists.List)
+      QoS    : in     PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+      CS     : in     Code_Set_Context_Access)
    is
       use PolyORB.Request_QoS;
       use PolyORB.Request_QoS.QoS_Parameter_Lists;
 
       It : Iterator := First (QoS);
+      SC_Length : Natural := Length (QoS);
 
    begin
       pragma Debug (O ("Marshall_Service_Context_List: enter, length="
                        & Integer'Image (Length (QoS))));
 
-      Marshall (Buffer, Types.Unsigned_Long (Length (QoS)));
+      if CS /= null then
+         SC_Length := SC_Length + 1;
+      end if;
+
+      Marshall (Buffer, Types.Unsigned_Long (SC_Length));
+
+      if CS /= null then
+         declare
+            Temp_Buf : Buffer_Access := new Buffer_Type;
+
+         begin
+            --  Marshalling a CodeSets service context
+
+            Marshall (Buffer, CodeSets);
+
+            pragma Debug (O ("Processing CodeSets service context"));
+
+            pragma Debug (O ("TCS-C:"
+                             & Code_Sets.Code_Set_Id'Image (CS.Char_Data)));
+            pragma Debug (O ("TCS-W:"
+                             & Code_Sets.Code_Set_Id'Image (CS.Wchar_Data)));
+
+            Start_Encapsulation (Temp_Buf);
+
+            Marshall (Temp_Buf, Unsigned_Long (CS.Char_Data));
+            Marshall (Temp_Buf, Unsigned_Long (CS.Wchar_Data));
+
+            Marshall (Buffer, Encapsulate (Temp_Buf));
+            Release_Contents (Temp_Buf.all);
+            Release (Temp_Buf);
+         end;
+      end if;
 
       while not Last (It) loop
          declare
             Temp_Buf : Buffer_Access := new Buffer_Type;
+
          begin
             case Value (It).all.Kind is
                when Static_Priority =>
@@ -111,7 +145,8 @@ package body PolyORB.GIOP_P.Service_Contexts is
 
    procedure Unmarshall_Service_Context_List
      (Buffer : access Buffers.Buffer_Type;
-      QoS    :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List)
+      QoS    :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+      CS     :    out Code_Set_Context_Access)
    is
       use PolyORB.Request_QoS;
       use PolyORB.Request_QoS.QoS_Parameter_Lists;
@@ -129,37 +164,65 @@ package body PolyORB.GIOP_P.Service_Contexts is
             Context_Data : aliased Encapsulation := Unmarshall (Buffer);
             Context_Buffer : aliased Buffer_Type;
 
-            EP : PolyORB.Types.Short;
-
-            OP : PTP.ORB_Priority;
-            Ok : Boolean;
-
          begin
             pragma Debug
               (O ("Got context id #"
                   & PolyORB.Types.Unsigned_Long'Image (Context_Id)));
 
-            if Context_Id = RTCorbaPriority then
-               --  Unmarshalling a RTCorbaPriority service context
+            if Context_Id = CodeSets then
+
+               --  Unmarshalling a CodeSets service context
 
                Decapsulate (Context_Data'Access, Context_Buffer'Access);
 
-               EP := Unmarshall (Context_Buffer'Access);
+               CS := new Code_Set_Context;
 
-               PolyORB.Tasking.Priorities.To_ORB_Priority
-                 (PolyORB.Tasking.Priorities.External_Priority (EP),
-                  OP,
-                  Ok);
+               CS.Char_Data :=
+                 Code_Sets.Code_Set_Id
+                  (Unsigned_Long'(Unmarshall (Context_Buffer'Access)));
+               CS.Wchar_Data :=
+                 Code_Sets.Code_Set_Id
+                  (Unsigned_Long'(Unmarshall (Context_Buffer'Access)));
 
-               pragma Debug (O ("Processing RTCorbaPriority service context"));
-               pragma Debug (O ("Priority:" & PolyORB.Types.Short'Image (EP)));
+               pragma Debug (O ("Processing CodeSets service context"));
 
-               Append (QoS,
-                       new QoS_Parameter'
-                       (Static_Priority,
-                        OP => OP,
-                        EP => PolyORB.Tasking.Priorities.External_Priority
-                        (EP)));
+               pragma Debug
+                 (O ("TCS-C:" & Code_Sets.Code_Set_Id'Image (CS.Char_Data)));
+               pragma Debug
+                 (O ("TCS-W:" & Code_Sets.Code_Set_Id'Image (CS.Wchar_Data)));
+
+            elsif Context_Id = RTCorbaPriority then
+
+               --  Unmarshalling a RTCorbaPriority service context
+
+               declare
+                  EP : PolyORB.Types.Short;
+
+                  OP : PTP.ORB_Priority;
+                  Ok : Boolean;
+
+               begin
+                  Decapsulate (Context_Data'Access, Context_Buffer'Access);
+
+                  EP := Unmarshall (Context_Buffer'Access);
+
+                  PolyORB.Tasking.Priorities.To_ORB_Priority
+                    (PolyORB.Tasking.Priorities.External_Priority (EP),
+                     OP,
+                     Ok);
+
+                  pragma Debug
+                    (O ("Processing RTCorbaPriority service context"));
+                  pragma Debug
+                    (O ("Priority:" & PolyORB.Types.Short'Image (EP)));
+
+                  Append (QoS,
+                          new QoS_Parameter'
+                          (Static_Priority,
+                           OP => OP,
+                           EP => PolyORB.Tasking.Priorities.External_Priority
+                           (EP)));
+               end;
             end if;
          end;
       end loop;

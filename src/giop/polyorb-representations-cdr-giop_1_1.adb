@@ -31,11 +31,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+
 with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.Representations.CDR.GIOP_1_1 is
 
+   use PolyORB.Exceptions;
+   use PolyORB.GIOP_P.Code_Sets.Converters;
    use PolyORB.Representations.CDR.Common;
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Converter'Class, Converter_Access);
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation
+          (Wide_Converter'Class, Wide_Converter_Access);
 
    --------------
    -- Marshall --
@@ -47,11 +58,14 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
       Data   : in     PolyORB.Types.Char;
       Error  : in out Exceptions.Error_Container)
    is
-      pragma Unreferenced (R);
-      pragma Unreferenced (Error);
-
    begin
-      Marshall_Latin_1_Char (Buffer, Data);
+      if R.C_Converter /= null then
+         Marshall (R.C_Converter.all, Buffer, Data, Error);
+      else
+         --  Backward compatibility mode
+
+         Marshall_Latin_1_Char (Buffer, Data);
+      end if;
    end Marshall;
 
    --------------
@@ -64,11 +78,14 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
       Data   : in     PolyORB.Types.String;
       Error  : in out Exceptions.Error_Container)
    is
-      pragma Unreferenced (R);
-      pragma Unreferenced (Error);
-
    begin
-      Marshall_Latin_1_String (Buffer, Data);
+      if R.C_Converter /= null then
+         Marshall (R.C_Converter.all, Buffer, Data, Error);
+      else
+         --  Backward compatibility mode
+
+         Marshall_Latin_1_String (Buffer, Data);
+      end if;
    end Marshall;
 
    --------------
@@ -81,11 +98,18 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
       Data   : in     PolyORB.Types.Wchar;
       Error  : in out Exceptions.Error_Container)
    is
-      pragma Unreferenced (R);
-      pragma Unreferenced (Error);
-
    begin
-      Marshall (Buffer, Data);
+      if R.W_Converter /= null then
+         Marshall (R.W_Converter.all, Buffer, Data, Error);
+      else
+         --  Backward compatibility mode
+
+         Throw
+           (Error,
+            Marshal_E,
+            System_Exception_Members'(5, Completed_No));
+         --  XXX Check exception and minor code.
+      end if;
    end Marshall;
 
    --------------
@@ -98,12 +122,43 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
       Data   : in     PolyORB.Types.Wide_String;
       Error  : in out Exceptions.Error_Container)
    is
-      pragma Unreferenced (R);
-      pragma Unreferenced (Error);
-
    begin
-      Marshall (Buffer, Data);
+      if R.W_Converter /= null then
+         Marshall (R.W_Converter.all, Buffer, Data, Error);
+      else
+         --  Backward compatibility mode
+
+         Throw
+           (Error,
+            Marshal_E,
+            System_Exception_Members'(5, Completed_No));
+         --  XXX Check exception and minor code.
+      end if;
    end Marshall;
+
+   -------------
+   -- Release --
+   -------------
+
+   procedure Release (R : in out GIOP_1_1_CDR_Representation) is
+   begin
+      Free (R.C_Converter);
+      Free (R.W_Converter);
+   end Release;
+
+   --------------------
+   -- Set_Converters --
+   --------------------
+
+   procedure Set_Converters
+     (R : in out GIOP_1_1_CDR_Representation;
+      C : in     PolyORB.GIOP_P.Code_Sets.Converters.Converter_Access;
+      W : in     PolyORB.GIOP_P.Code_Sets.Converters.Wide_Converter_Access)
+   is
+   begin
+      R.C_Converter := C;
+      R.W_Converter := W;
+   end Set_Converters;
 
    ----------------
    -- Unmarshall --
@@ -115,11 +170,14 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
       Data   :    out PolyORB.Types.Char;
       Error  : in out Exceptions.Error_Container)
    is
-      pragma Unreferenced (R);
-      pragma Unreferenced (Error);
-
    begin
-      Data := Unmarshall_Latin_1_Char (Buffer);
+      if R.C_Converter /= null then
+         Unmarshall (R.C_Converter.all, Buffer, Data, Error);
+      else
+         --  Backward compatibility mode
+
+         Data := Unmarshall_Latin_1_Char (Buffer);
+      end if;
    end Unmarshall;
 
    ----------------
@@ -132,11 +190,14 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
       Data   :    out PolyORB.Types.String;
       Error  : in out Exceptions.Error_Container)
    is
-      pragma Unreferenced (R);
-      pragma Unreferenced (Error);
-
    begin
-      Data := Unmarshall_Latin_1_String (Buffer);
+      if R.C_Converter /= null then
+         Unmarshall (R.C_Converter.all, Buffer, Data, Error);
+      else
+         --  Backward compatibility mode
+
+         Data := Unmarshall_Latin_1_String (Buffer);
+      end if;
    end Unmarshall;
 
    ----------------
@@ -149,11 +210,18 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
       Data   :    out PolyORB.Types.Wchar;
       Error  : in out Exceptions.Error_Container)
    is
-      pragma Unreferenced (R);
-      pragma Unreferenced (Error);
-
    begin
-      Data := Unmarshall (Buffer);
+      if R.W_Converter /= null then
+         Unmarshall (R.W_Converter.all, Buffer, Data, Error);
+      else
+         --  Backward compatibility mode
+
+         Throw
+           (Error,
+            Marshal_E,
+            System_Exception_Members'(5, Completed_No));
+         --  XXX Check exception and minor code.
+      end if;
    end Unmarshall;
 
    ----------------
@@ -166,11 +234,18 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
       Data   :    out PolyORB.Types.Wide_String;
       Error  : in out Exceptions.Error_Container)
    is
-      pragma Unreferenced (R);
-      pragma Unreferenced (Error);
-
    begin
-      Data := Unmarshall (Buffer);
+      if R.W_Converter /= null then
+         Unmarshall (R.W_Converter.all, Buffer, Data, Error);
+      else
+         --  Backward compatibility mode
+
+         Throw
+           (Error,
+            Marshal_E,
+            System_Exception_Members'(5, Completed_No));
+         --  XXX Check exception and minor code.
+      end if;
    end Unmarshall;
 
 end PolyORB.Representations.CDR.GIOP_1_1;

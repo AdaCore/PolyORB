@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.REPRESENTATIONS.CDR.GIOP_1_2                    --
+--               POLYORB.GIOP_P.TAGGED_COMPONENTS.CODE_SETS                 --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,20 +31,31 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body PolyORB.Representations.CDR.GIOP_1_2 is
+--  TAG_CODE_SETS tagged component
 
-   --------------------
-   -- Set_Converters --
-   --------------------
+with PolyORB.GIOP_P.Code_Sets;
 
-   procedure Set_Converters
-     (R : in out GIOP_1_2_CDR_Representation;
-      C : in     PolyORB.GIOP_P.Code_Sets.Converters.Converter_Access;
-      W : in     PolyORB.GIOP_P.Code_Sets.Converters.Wide_Converter_Access)
-   is
-   begin
-      PolyORB.GIOP_P.Code_Sets.Converters.Set_GIOP_1_2_Mode (W.all);
-      GIOP_1_1.Set_Converters (GIOP_1_1.GIOP_1_1_CDR_Representation (R), C, W);
-   end Set_Converters;
+package PolyORB.GIOP_P.Tagged_Components.Code_Sets is
 
-end PolyORB.Representations.CDR.GIOP_1_2;
+   type Code_Set_Component is record
+      Native_Code_Set      : GIOP_P.Code_Sets.Code_Set_Id;
+      Conversion_Code_Sets : GIOP_P.Code_Sets.Code_Set_Id_List;
+   end record;
+
+   type TC_Code_Sets is new Tagged_Component (Tag_Code_Sets) with record
+      For_Char_Data  : Code_Set_Component;
+      For_Wchar_Data : Code_Set_Component;
+   end record;
+
+   procedure Marshall
+     (C      : access TC_Code_Sets;
+      Buffer : access Buffer_Type);
+
+   procedure Unmarshall
+     (C      : access TC_Code_Sets;
+      Buffer : access Buffer_Type);
+
+   procedure Release_Contents
+     (C : access TC_Code_Sets);
+
+end PolyORB.GIOP_P.Tagged_Components.Code_Sets;

@@ -34,12 +34,15 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
+with PolyORB.Binding_Data.GIOP;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.Filters;
+with PolyORB.GIOP_P.Code_Sets.Converters;
 with PolyORB.GIOP_P.Service_Contexts;
+with PolyORB.GIOP_P.Tagged_Components.Code_Sets;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
@@ -60,6 +63,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
+   use PolyORB.GIOP_P.Code_Sets;
+   use PolyORB.GIOP_P.Code_Sets.Converters;
    use PolyORB.GIOP_P.Service_Contexts;
    use PolyORB.Log;
    use PolyORB.Objects;
@@ -85,6 +90,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Target_Address, Target_Address_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Code_Set_Context, Code_Set_Context_Access);
 
    --  Msg_Type
 
@@ -115,7 +123,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Sync       :    out Sync_Scope;
       Target_Ref :    out Target_Address_Access;
       Operation  :    out Types.String;
-      QoS        :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List);
+      QoS        :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+      CS         :    out Code_Set_Context_Access);
 
    -----------------------------------
    -- Internal function declaration --
@@ -187,6 +196,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end if;
 
       Free (GIOP_Ctx_1_2_Access (Sess.Ctx));
+      Release (GIOP_1_2_CDR_Representation (Sess.Repr.all));
       Free (GIOP_1_2_CDR_Representation_Access (Sess.Repr));
       pragma Debug (O ("Finalize context for GIOP session 1.2"));
    end Finalize_Session;
@@ -221,7 +231,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             declare
                Request_Id   : Types.Unsigned_Long;
                Reply_Status : Reply_Status_Type;
-               QoS : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+               QoS          : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+               CS           : Code_Set_Context_Access;
 
             begin
                if CDR_Position (Sess.Buffer_In) = GIOP_Header_Size then
@@ -233,7 +244,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                end if;
 
                Reply_Status := Unmarshall (Sess.Buffer_In);
-               Unmarshall_Service_Context_List (Sess.Buffer_In, QoS);
+               Unmarshall_Service_Context_List (Sess.Buffer_In, QoS, CS);
+               if CS /= null then
+                  Free (CS);
+                  --  CodeSets service context only sent in Request message
+                  raise GIOP_Error;
+               end if;
                Common_Reply_Received (Sess'Access, Request_Id, Reply_Status);
             end;
 
@@ -412,6 +428,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Target      : References.Ref;
       Req         : Request_Access;
       QoS         : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+      CS          : Code_Set_Context_Access;
 
       Result      : Any.NamedValue;
       --  Dummy NamedValue for Create_Request;
@@ -433,7 +450,21 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Sync,
          Target_Addr,
          Operation,
-         QoS);
+         QoS,
+         CS);
+
+      if not Ctx.CSN_Complete then
+         Ctx.CS_Context   := CS;
+         Ctx.CSN_Complete := True;
+         if CS /= null then
+            Set_Converters
+              (GIOP_1_2_CDR_Representation (GIOP_Session (S.all).Repr.all),
+               Get_Converter (Native_Char_Code_Set, CS.Char_Data),
+               Get_Converter (Native_Wchar_Code_Set, CS.Wchar_Data));
+         end if;
+      else
+         Free (CS);
+      end if;
 
       case Sync is
          when WITH_TARGET =>
@@ -934,7 +965,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
-      use PolyORB.Annotations;
       use PolyORB.Requests.Unsigned_Long_Flags;
       use PolyORB.Types;
 
@@ -946,6 +976,82 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    begin
       pragma Debug (O ("Sending request , Id :" & R.Request_Id'Img));
+
+      --  Process code sets negotiation once after setup connection
+
+      if not Ctx.CSN_Complete then
+         pragma Debug (O ("Negotiate code sets"));
+         declare
+            use PolyORB.Binding_Data.GIOP;
+            use PolyORB.Exceptions;
+            use PolyORB.GIOP_P.Code_Sets;
+            use PolyORB.GIOP_P.Tagged_Components;
+            use PolyORB.GIOP_P.Tagged_Components.Code_Sets;
+
+            TC : constant Tagged_Component_Access
+              := Get_Component
+                 (GIOP_Profile_Type (R.Target_Profile.all),
+                  Tag_Code_Sets);
+            Error : Exceptions.Error_Container;
+         begin
+            if TC = null then
+               pragma Debug (O ("No code sets tagged component in profile"));
+               null;
+            else
+               Ctx.CS_Context := new Code_Set_Context;
+
+               Negotiate_Code_Set
+                 (Native_Char_Code_Set,
+                  Conversion_Char_Code_Sets,
+                  TC_Code_Sets (TC.all).For_Char_Data.Native_Code_Set,
+                  TC_Code_Sets (TC.all).For_Char_Data.Conversion_Code_Sets,
+                  Char_Data_Fallback_Code_Set,
+                  Ctx.CS_Context.Char_Data,
+                  Error);
+
+               if Found (Error) then
+                  Catch (Error);
+                  raise Program_Error;
+                  --  XXX We cannot silently ignore any error. For now,
+                  --  we raise this exception. To be investigated.
+               end if;
+
+               pragma Debug
+                 (O ("   TCS-C:"
+                     & Code_Set_Id'Image (Ctx.CS_Context.Char_Data)));
+
+               Negotiate_Code_Set
+                 (Native_Wchar_Code_Set,
+                  Conversion_Wchar_Code_Sets,
+                  TC_Code_Sets (TC.all).For_Wchar_Data.Native_Code_Set,
+                  TC_Code_Sets (TC.all).For_Wchar_Data.Conversion_Code_Sets,
+                  Wchar_Data_Fallback_Code_Set,
+                  Ctx.CS_Context.Wchar_Data,
+                  Error);
+
+               if Found (Error) then
+                  Catch (Error);
+                  raise Program_Error;
+                  --  XXX We cannot silently ignore any error. For now,
+                  --  we raise this exception. To be investigated.
+               end if;
+
+               pragma Debug
+                 (O ("   TCS-W:"
+                     & Code_Set_Id'Image (Ctx.CS_Context.Wchar_Data)));
+
+               Set_Converters
+                 (GIOP_1_2_CDR_Representation (Sess.Repr.all),
+                  Get_Converter
+                   (Native_Char_Code_Set,
+                    Ctx.CS_Context.Char_Data),
+                  Get_Converter
+                   (Native_Wchar_Code_Set,
+                    Ctx.CS_Context.Wchar_Data));
+            end if;
+         end;
+         Ctx.CSN_Complete := True;
+      end if;
 
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
@@ -1034,7 +1140,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Marshall_Service_Context_List
         (Buffer,
-         PolyORB.Request_QoS.Get_QoS (R.Req));
+         PolyORB.Request_QoS.Get_QoS (R.Req),
+         Ctx.CS_Context);
 
       --  Arguments
 
@@ -1195,7 +1302,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Sync       :    out Sync_Scope;
       Target_Ref :    out Target_Address_Access;
       Operation  :    out Types.String;
-      QoS        :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List)
+      QoS        :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+      CS         :    out Code_Set_Context_Access)
    is
       use PolyORB.Types;
 
@@ -1302,7 +1410,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Service context
 
-      Unmarshall_Service_Context_List (Buffer, QoS);
+      Unmarshall_Service_Context_List (Buffer, QoS, CS);
    end Unmarshall_Request_Message;
 
    --------------------------------
@@ -1326,7 +1434,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Marshall (Buffer, Ctx.Reply_Status);
       Marshall_Service_Context_List
        (Buffer,
-        PolyORB.Request_QoS.Get_QoS (R));
+        PolyORB.Request_QoS.Get_QoS (R),
+        null);
+      --  CodeSets service context sent only in Request message.
    end Marshall_GIOP_Header_Reply;
 
    -----------------------------

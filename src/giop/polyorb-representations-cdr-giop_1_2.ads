@@ -33,6 +33,7 @@
 
 --  Support package for CDR representation of char and strings for GIOP 1.2
 
+with PolyORB.GIOP_P.Code_Sets.Converters;
 with PolyORB.Representations.CDR.GIOP_1_1;
 
 package PolyORB.Representations.CDR.GIOP_1_2 is
@@ -40,39 +41,21 @@ package PolyORB.Representations.CDR.GIOP_1_2 is
    pragma Elaborate_Body;
 
    type GIOP_1_2_CDR_Representation is
-      new GIOP_1_1.GIOP_1_1_CDR_Representation with null record;
+      new GIOP_1_1.GIOP_1_1_CDR_Representation with private;
 
    type GIOP_1_2_CDR_Representation_Access is
       access all GIOP_1_2_CDR_Representation;
 
    --  XXX Encapsulation is also GIOP version dependent.
 
-   --  'wchar' type
+   procedure Set_Converters
+     (R : in out GIOP_1_2_CDR_Representation;
+      C : in     PolyORB.GIOP_P.Code_Sets.Converters.Converter_Access;
+      W : in     PolyORB.GIOP_P.Code_Sets.Converters.Wide_Converter_Access);
 
-   procedure Marshall
-     (R      : in     GIOP_1_2_CDR_Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Wchar;
-      Error  : in out Exceptions.Error_Container);
+private
 
-   procedure Unmarshall
-     (R      : in     GIOP_1_2_CDR_Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   :    out PolyORB.Types.Wchar;
-      Error  : in out Exceptions.Error_Container);
-
-   --  'wstring' type
-
-   procedure Marshall
-     (R      : in     GIOP_1_2_CDR_Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : in     PolyORB.Types.Wide_String;
-      Error  : in out Exceptions.Error_Container);
-
-   procedure Unmarshall
-     (R      : in     GIOP_1_2_CDR_Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   :    out PolyORB.Types.Wide_String;
-      Error  : in out Exceptions.Error_Container);
+   type GIOP_1_2_CDR_Representation is
+      new GIOP_1_1.GIOP_1_1_CDR_Representation with null record;
 
 end PolyORB.Representations.CDR.GIOP_1_2;

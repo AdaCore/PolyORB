@@ -33,19 +33,38 @@
 
 --  Support package for CDR representation of char and strings for GIOP 1.1
 
-with PolyORB.Representations.CDR.GIOP_1_0;
+with PolyORB.GIOP_P.Code_Sets.Converters;
 
 package PolyORB.Representations.CDR.GIOP_1_1 is
 
    pragma Elaborate_Body;
 
-   type GIOP_1_1_CDR_Representation is
-      new GIOP_1_0.GIOP_1_0_CDR_Representation with null record;
+   type GIOP_1_1_CDR_Representation is new CDR_Representation with private;
 
    type GIOP_1_1_CDR_Representation_Access is
       access all GIOP_1_1_CDR_Representation;
 
    --  XXX Encapsulation is also GIOP version dependent.
+
+   procedure Set_Converters
+     (R : in out GIOP_1_1_CDR_Representation;
+      C : in     PolyORB.GIOP_P.Code_Sets.Converters.Converter_Access;
+      W : in     PolyORB.GIOP_P.Code_Sets.Converters.Wide_Converter_Access);
+   --  Set code sets converters for Character/String and
+   --  Wide_Character/Wide_String types. Code set converters may be
+   --  null value. If the code set converter is set to null, then we
+   --  assume what the backward compatibility mode with GIOP 1.0
+   --  enabled.
+
+   procedure Release (R : in out GIOP_1_1_CDR_Representation);
+   --  Deallocate content of R
+
+private
+
+   type GIOP_1_1_CDR_Representation is new CDR_Representation with record
+      C_Converter : PolyORB.GIOP_P.Code_Sets.Converters.Converter_Access;
+      W_Converter : PolyORB.GIOP_P.Code_Sets.Converters.Wide_Converter_Access;
+   end record;
 
    --  'char' type
 

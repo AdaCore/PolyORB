@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Objects;
+with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.References;
 with PolyORB.Protocols.GIOP.Common;
 pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
@@ -92,6 +93,9 @@ private
       Frag_Size    : Types.Unsigned_Long;
       Frag_Next    : Types.Unsigned_Long;
       Frag_Buf     : PolyORB.Buffers.Buffer_Access;
+      --  For code sets negotiation
+      CSN_Complete : Boolean := False;
+      CS_Context   : GIOP_P.Service_Contexts.Code_Set_Context_Access;
    end record;
 
    procedure Initialize_Implem

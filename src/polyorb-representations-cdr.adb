@@ -546,51 +546,6 @@ package body PolyORB.Representations.CDR is
       pragma Debug (O ("Marshall (Typecode) : end"));
    end Marshall;
 
-   --------------
-   -- Marshall --
-   --------------
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Wchar) is
-   begin
-      pragma Debug (O ("Marshall (WChar) : enter"));
-      Align_Marshall_Big_Endian_Copy
-        (Buffer,
-         Stream_Element_Array'
-         (Stream_Element (PolyORB.Types.Wchar'Pos (Data) / 256),
-         Stream_Element (PolyORB.Types.Wchar'Pos (Data) mod 256)), 2);
-      pragma Debug (O ("Marshall (WChar) : end"));
-   end Marshall;
-
-   --------------
-   -- Marshall --
-   --------------
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.Wide_String)
-   is
-      Equiv : constant Wide_String
-        := PolyORB.Types.To_Wide_String (Data)
-        & Standard.Wide_Character'Val (0);
-
-      --  XXXXX: Val (0) is suspicious ...
-   begin
-      pragma Debug (O ("Marshall (PolyORB.Types.Wide_String) : enter"));
-      pragma Debug (O ("Marshall (PolyORB.Types.Wide_String) : length is "
-                       & PolyORB.Types.Unsigned_Long'Image (Equiv'Length)));
-
-      Marshall (Buffer, PolyORB.Types.Unsigned_Long'(Equiv'Length));
-      for J in Equiv'Range loop
-         Marshall
-           (Buffer, PolyORB.Types.Wchar'Val
-            (Wide_Character'Pos (Equiv (J))));
-      end loop;
-
-      pragma Debug (O ("Marshall (PolyORB.Types.Wide_String) : end"));
-   end Marshall;
-
    -----------------------
    -- Marshall_From_Any --
    -----------------------
@@ -1589,47 +1544,6 @@ package body PolyORB.Representations.CDR is
 
       pragma Debug (O ("Unmarshall (TypeCode) : end"));
       return Result;
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Wchar
-   is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
-   begin
-      pragma Debug (O ("Unmarshall (WChar) : enter & end"));
-      return PolyORB.Types.Wchar'Val
-        (PolyORB.Types.Unsigned_Long (Octets (Octets'First)) * 256 +
-         PolyORB.Types.Unsigned_Long (Octets (Octets'First + 1)));
-   end Unmarshall;
-
-   ----------------
-   -- Unmarshall --
-   ----------------
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Wide_String
-   is
-      Length : constant PolyORB.Types.Unsigned_Long
-        := Unmarshall (Buffer);
-      Equiv  : Wide_String (1 .. Natural (Length));
-   begin
-      pragma Debug (O ("Unmarshall (Wide_String) : enter"));
-      pragma Debug (O ("Unmarshall (Wide_String) : length is " &
-                    PolyORB.Types.Unsigned_Long'Image (Length)));
-      for J in Equiv'Range loop
-         Equiv (J) := Wide_Character'Val (PolyORB.Types.Wchar'Pos
-                                          (Unmarshall (Buffer)));
-      end loop;
-      pragma Debug (O ("Unmarshall (Wide_String) : end"));
-      return PolyORB.Types.To_PolyORB_Wide_String
-        (Equiv (1 .. Equiv'Length - 1));
    end Unmarshall;
 
    -----------------------
