@@ -978,10 +978,24 @@ package body Idl_Fe.Parser is
                Parse_Attr_Dcl (Result_Attr, Success);
                Result := Result_Attr;
             end;
-         when T_Oneway | T_Void | T_Colon_Colon | T_Identifier |
-           T_Short | T_Long | T_Float | T_Double | T_Unsigned |
-           T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
-           T_String | T_Wstring =>
+         when T_Oneway
+           | T_Void
+           | T_Colon_Colon
+           | T_Identifier
+           | T_Short
+           | T_Long
+           | T_Float
+           | T_Double
+           | T_Unsigned
+           | T_Char
+           | T_Wchar
+           | T_Boolean
+           | T_Octet
+           | T_Any
+           | T_Object
+           | T_String
+           | T_Wstring
+           | T_ValueBase =>
             declare
                Result_Operation : Node_Id;
             begin
@@ -6340,14 +6354,14 @@ package body Idl_Fe.Parser is
            | T_Object
            | T_ValueBase
            | T_String
+           | T_Wstring
            | T_Colon_Colon
            | T_Identifier =>
             Parse_Param_Type_Spec (Result, Success);
             return;
          when others =>
             Errors.Error
-              ("void" &
-               " or type specification expected.",
+              ("void or type specification expected.",
                Errors.Error,
                Get_Token_Location);
             Success := False;
