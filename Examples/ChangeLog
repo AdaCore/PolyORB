@@ -1,3 +1,8 @@
+2001-01-24  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* MultiPro: Update protocol XYZ (copy of System.Garlic.XYZ) to
+	test multiprotocol feature.
+
 2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* check-config, check-config.in, all Makefile.am: Remove RCS

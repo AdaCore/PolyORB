@@ -35,9 +35,8 @@
 
 with Ada.Streams;
 
-with Interfaces.C;
-
 with System.Garlic.Exceptions;
+with GNAT.Sockets;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
@@ -46,6 +45,10 @@ package System.Garlic.Protocols.Xyz is
    --  This package needs documentation ???
 
    type XYZ_Protocol is new Protocol_Type with private;
+
+   procedure Activate
+     (Protocol : access XYZ_Protocol;
+      Error    : in out Exceptions.Error_Type);
 
    function Create return Protocol_Access;
 
@@ -57,17 +60,17 @@ package System.Garlic.Protocols.Xyz is
      (Protocol : access XYZ_Protocol)
      return String;
 
-   function Receive
-     (Protocol : access XYZ_Protocol;
-      Timeout  : Milliseconds)
-     return Boolean;
-
    procedure Initialize
      (Protocol  : access XYZ_Protocol;
       Self_Data : in String;
       Required  : in Boolean;
       Performed : out Boolean;
       Error     : in out Exceptions.Error_Type);
+
+   function Receive
+     (Protocol : access XYZ_Protocol;
+      Timeout  : Duration)
+     return Boolean;
 
    procedure Send
      (Protocol  : access XYZ_Protocol;
@@ -88,14 +91,14 @@ package System.Garlic.Protocols.Xyz is
      (Incoming : in Natural);
 
    procedure Receive_Until_Closed
-     (Peer : in Interfaces.C.int;
+     (Peer : in GNAT.Sockets.Socket_Type;
       PID  : in out Types.Partition_ID);
 
    type Allocate_Acceptor_Procedure is access procedure
      (Incoming : in Natural);
 
    type Allocate_Connector_Procedure is access procedure
-     (Peer : in Interfaces.C.int;
+     (Peer : in GNAT.Sockets.Socket_Type;
       PID  : in Types.Partition_ID);
 
    procedure Register_Task_Pool
