@@ -254,6 +254,7 @@ src/polyorb-orb.adb
 src/polyorb-orb.ads
 src/polyorb-poa-basic_poa.adb
 src/polyorb-poa-basic_poa.ads
+src/polyorb-poa.adb
 src/polyorb-poa.ads
 src/polyorb-poa_config-minimum.adb
 src/polyorb-poa_config-minimum.ads
@@ -299,8 +300,6 @@ src/polyorb-references-binding.adb
 src/polyorb-references-binding.ads
 src/polyorb-references.adb
 src/polyorb-references.ads
-src/polyorb-representations-http.adb
-src/polyorb-representations-http.ads
 src/polyorb-representations-srp.adb
 src/polyorb-representations-srp.ads
 src/polyorb-representations-test.adb

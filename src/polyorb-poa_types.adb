@@ -314,15 +314,6 @@ package body PolyORB.POA_Types is
    is
       Oid                : Object_Id_Access;
    begin
-      pragma Debug (O ("Making oid for "
-                       & To_Standard_String (U_Oid.Creator)
-                       & "/"
-                       & To_Standard_String (U_Oid.Id)
-                       & ";"
-                       & Boolean'Image (U_Oid.System_Generated)
-                       & ";"
-                       & Unsigned_Long'Image
-                       (U_Oid.Persistency_Flag)));
       Oid := new Object_Id'
         (Object_Id
          (Put_String    (U_Oid.Creator)

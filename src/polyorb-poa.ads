@@ -50,6 +50,8 @@ with PolyORB.Types;
 
 package PolyORB.POA is
 
+   pragma Elaborate_Body;
+
    use PolyORB.POA_Policies.Thread_Policy;
    use PolyORB.POA_Policies.Request_Processing_Policy;
    use PolyORB.POA_Policies.Id_Assignment_Policy;
@@ -95,12 +97,6 @@ package PolyORB.POA is
    --  The policies are used by all corba-policy-*, we can keep them public
 
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
-   --  XXX
-   --  for Obj_Adapter_Access'Storage_Pool
-   --    use PolyORB.Storage_Pools.Debug_Pool;
-
-   subtype Obj_Adapter_Ptr is Obj_Adapter_Access;
-   --  XXX for easier porting of legacy AdaBroker code.
 
    --------------------------------------------------
    --  Procedures and functions required by CORBA  --
@@ -193,6 +189,17 @@ package PolyORB.POA is
      (Self       : access Obj_Adapter;
       Child_Name :        Types.String)
      is abstract;
+   --  XXX documentation?
+
+   function Oid_To_Rel_URI
+     (OA : access Obj_Adapter;
+      Id : Object_Id)
+     return Types.String;
+
+   function Rel_URI_To_Oid
+     (OA  : access Obj_Adapter;
+      URI : Types.String)
+     return Object_Id;
 
    Invalid_Name : exception;
 

@@ -36,6 +36,7 @@ with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Locks;
 with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Utils;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
@@ -112,11 +113,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       Index := Add (P_OA.Active_Object_Map.all'Access,
                     Object_Map_Entry_Access (New_Entry));
 
-      New_U_Oid.Id := To_PolyORB_String (Integer'Image (Index));
+      New_U_Oid.Id := To_PolyORB_String (PolyORB.Utils.Trimmed_Image (Index));
       New_U_Oid.System_Generated := True;
-      New_U_Oid.Persistency_Flag :=
-        PolyORB.POA_Policies.Lifespan_Policy.Get_Time_Stamp
-        (P_OA.Lifespan_Policy.all, OA);
+      New_U_Oid.Persistency_Flag
+        := PolyORB.POA_Policies.Lifespan_Policy.Get_Time_Stamp
+           (P_OA.Lifespan_Policy.all, OA);
       New_U_Oid.Creator := P_OA.Absolute_Address;
       Unlock_W (P_OA.Map_Lock);
       return U_Oid_To_Oid (New_U_Oid);

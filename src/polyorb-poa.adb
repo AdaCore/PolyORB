@@ -2,20 +2,20 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . R E P R E S E N T A T I O N S . H T T P         --
+--                          P O L Y O R B . P O A                           --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                Copyright (C) 2001 Free Software Fundation                --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -30,32 +30,51 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A data representation used for implementing the HTTP protocol.
---  HTTP is standardised by IETF RFC2616:
---  Hypertext Transfer Protocol -- HTTP/1.1.
---  R. Fielding, J. Gettys, J. Mogul, H. Frystyk, L. Masinter,
---  P. Leach, T. Berners-Lee. June 1999.
+--  Abstract interface for the POA.
 
 --  $Id$
 
-with Ada.Streams;
+with PolyORB.Utils;
 
-package  PolyORB.Representations.HTTP is
+package body PolyORB.POA is
 
-   pragma Elaborate_Body;
+   use PolyORB.Types;
+   use PolyORB.Utils;
 
-   function Decode_URL (Str : in String) return String;
-   --  The translations are:
-   --     +     should be changed to a space
-   --     %xy   should be replaced by the character whose code is xy
+   function Oid_To_Rel_URI
+     (OA : access Obj_Adapter;
+      Id : Object_Id)
+     return Types.String
+   is
+      U_Oid : Unmarshalled_Oid_Access := Oid_To_U_Oid (Id);
+      URI : Types.String := To_PolyORB_String ("/");
+   begin
+      if Length (U_Oid.Creator) /= 0 then
+         URI := URI & U_Oid.Creator & To_PolyORB_String ("/");
+      end if;
+      URI := URI & URI_Encode (To_Standard_String (U_Oid.Id));
+      --  XXX Here we make the assumption that Id needs to be
+      --  URI-escaped, and Creator needs not, but there is
+      --  no reason to. What should actually be done is that
+      --  Creator should be a list, and each of its components
+      --  should be separately URLencoded.
 
-   function Encode_Stream (Data : Ada.Streams.Stream_Element_Array)
-     return String;
-   function Encode_String (Data : in String) return String;
-   --  Encode Data using the base64 algorithm
+      if U_Oid.Persistency_Flag /= 0 then
+         URI := URI & ";" & Trimmed_Image
+           (Integer (U_Oid.Persistency_Flag));
+      end if;
+      Free (U_Oid);
+      return URI;
+   end Oid_To_Rel_URI;
 
-   function Decode (B64_Data : in String)
-     return Ada.Streams.Stream_Element_Array;
-   --  Decode Data using the base64 algorithm
+   function Rel_URI_To_Oid
+     (OA  : access Obj_Adapter;
+      URI : Types.String)
+     return Object_Id is
+   begin
+      raise PolyORB.Not_Implemented;
+      return Rel_URI_To_Oid (OA, URI);
+   end Rel_URI_To_Oid;
 
-end  PolyORB.Representations.HTTP;
+
+end PolyORB.POA;

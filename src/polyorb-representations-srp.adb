@@ -57,45 +57,16 @@ package body PolyORB.Representations.SRP is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ------------------------------------------
-   -- Part taken from AWS (Ada Web Server) --
-   ------------------------------------------
-
    ----------------
    -- Decode_URL --
    ----------------
 
-   function Decode_URL (Str : in String) return String is
-      I, K   : Positive := Str'First;
-      Result : String (Str'Range);
-   begin
-      while I <= Str'Last loop
-         if Str (I) = '+' then
-            Result (K) := ' ';
-            I := I + 1;
+   function Decode_URL (Str : in String) return String
+     renames PolyORB.Utils.URI_Decode;
 
-         elsif Str (I) = '%'
-           and then I + 2 <= Str'Last
-           and then Characters.Handling.Is_Hexadecimal_Digit (Str (I + 1))
-           and then Characters.Handling.Is_Hexadecimal_Digit (Str (I + 2))
-         then
-            declare
-               Hex_Num : constant String := "16#" & Str (I + 1 .. I + 2) & '#';
-            begin
-               Result (K) := Character'Val (Natural'Value (Hex_Num));
-               I := I + 3;
-            end;
-
-         else
-            Result (K) := Str (I);
-            I := I + 1;
-         end if;
-
-         K := K + 1;
-      end loop;
-
-      return Result (Result'First .. K - 1);
-   end Decode_URL;
+   ------------------------------------------
+   -- Part taken from AWS (Ada Web Server) --
+   ------------------------------------------
 
    -------------------
    -- Base64_Encode --

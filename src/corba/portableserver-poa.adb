@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#12 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#13 $
 
 with Ada.Exceptions;
 
@@ -107,11 +107,11 @@ package body PortableServer.POA is
 
    function To_POA
      (Self : Ref)
-     return PolyORB.POA.Obj_Adapter_Ptr;
+     return PolyORB.POA.Obj_Adapter_Access;
 
    function To_POA
      (Self : Ref)
-     return PolyORB.POA.Obj_Adapter_Ptr
+     return PolyORB.POA.Obj_Adapter_Access
    is
       use PolyORB.Smart_Pointers;
 
@@ -126,8 +126,8 @@ package body PortableServer.POA is
       declare
          use PolyORB.POA_Manager;
 
-         The_POA : constant PolyORB.POA.Obj_Adapter_Ptr
-           := PolyORB.POA.Obj_Adapter_Ptr (Res);
+         The_POA : constant PolyORB.POA.Obj_Adapter_Access
+           := PolyORB.POA.Obj_Adapter_Access (Res);
       begin
          if Is_Nil (The_POA.POA_Manager) then
             PolyORB.CORBA_P.Exceptions.Raise_Object_Not_Exist;
@@ -171,7 +171,7 @@ package body PortableServer.POA is
      (Self : Ref)
      return PortableServer.ServantManager.Ref
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 
    begin
@@ -194,7 +194,7 @@ package body PortableServer.POA is
 --       package PSSA renames PortableServer.ServantActivator;
 --       package PSSL renames PortableServer.ServantLocator;
 
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 --       Servant_Manager : constant PSSM.Impl.Object_Ptr
 --         := PSSM.Impl.Object_Ptr (PSSM.Entity_Of (Imgr));
@@ -255,9 +255,9 @@ package body PortableServer.POA is
      return Ref'Class
    is
       pragma Warnings (Off);
-      Res : PolyORB.POA.Obj_Adapter_Ptr;
+      Res : PolyORB.POA.Obj_Adapter_Access;
       --  XXX Never assigned a value.
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
       --  XXX Never referenced.
       pragma Warnings (On);
@@ -310,7 +310,7 @@ package body PortableServer.POA is
       Activate_It  : CORBA.Boolean)
       return Ref'Class
    is
---       The_POA : constant PolyORB.POA.Obj_Adapter_Ptr
+--       The_POA : constant PolyORB.POA.Obj_Adapter_Access
 --         := To_POA (Self);
    begin
 --       Lock_W (All_POAs_Lock);
@@ -344,7 +344,7 @@ package body PortableServer.POA is
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean)
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 
    begin
@@ -364,7 +364,7 @@ package body PortableServer.POA is
      (Self : Ref)
      return Servant
    is
---       POA : constant PolyORB.POA.Obj_Adapter_Ptr
+--       POA : constant PolyORB.POA.Obj_Adapter_Access
 --         := To_POA (Self);
 
    begin
@@ -389,7 +389,7 @@ package body PortableServer.POA is
      (Self      : in Ref;
       P_Servant : in Servant)
    is
---       POA : constant PolyORB.POA.Obj_Adapter_Ptr
+--       POA : constant PolyORB.POA.Obj_Adapter_Access
 --         := To_POA (Self);
 
    begin
@@ -410,7 +410,7 @@ package body PortableServer.POA is
       P_Servant : Servant)
      return ObjectId
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 
    begin
@@ -435,7 +435,7 @@ package body PortableServer.POA is
       Oid       : in ObjectId;
       P_Servant : in Servant)
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 
    begin
@@ -456,7 +456,7 @@ package body PortableServer.POA is
      (Self : in Ref;
       Oid  : in ObjectId)
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 
    begin
@@ -478,7 +478,7 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 
    begin
@@ -501,7 +501,7 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 
    begin
@@ -518,7 +518,7 @@ package body PortableServer.POA is
       P_Servant : Servant)
      return ObjectId
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 
    begin
@@ -544,7 +544,7 @@ package body PortableServer.POA is
      (Self : Ref; P_Servant : Servant)
      return CORBA.Object.Ref
    is
-      POA  : constant PolyORB.POA.Obj_Adapter_Ptr := To_POA (Self);
+      POA  : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
       Oid : aliased PolyORB.Objects.Object_Id
         := PolyORB.POA.Export (POA, To_PolyORB_Servant (P_Servant));
       --  XXX
@@ -600,7 +600,7 @@ package body PortableServer.POA is
      (Self : Ref;
       Reference : CORBA.Object.Ref'Class) return ObjectId
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
       --  Skel : PolyORB.POA.Skeleton_Ptr;
 
    begin
@@ -623,7 +623,7 @@ package body PortableServer.POA is
       Reference : CORBA.Object.Ref'Class)
      return Servant
    is
-      POA  : constant PolyORB.POA.Obj_Adapter_Ptr := To_POA (Self);
+      POA  : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
       --  Skel : PolyORB.POA.Skeleton_Ptr;
 
    begin
@@ -652,7 +652,7 @@ package body PortableServer.POA is
       Oid  : ObjectId)
      return Servant
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
       --  Skel : PolyORB.POA.Skeleton_Ptr;
 
@@ -679,7 +679,7 @@ package body PortableServer.POA is
      (Self : Ref; Oid : ObjectId)
      return CORBA.Object.Ref
    is
-      POA  : constant PolyORB.POA.Obj_Adapter_Ptr
+      POA  : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
       --  Skel : PolyORB.POA.Skeleton_Ptr;
 

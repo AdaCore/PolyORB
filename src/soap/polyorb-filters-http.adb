@@ -125,7 +125,8 @@ package body PolyORB.Filters.HTTP is
    -- Preparation of outgoing messages --
    --------------------------------------
 
-   function Image (I : Integer) return String;
+   function Image (I : Integer) return String
+     renames PolyORB.Utils.Trimmed_Image;
 
    procedure Prepare_Header_Only
      (F : access HTTP_Filter;
@@ -667,17 +668,6 @@ package body PolyORB.Filters.HTTP is
       Last := Item_Last;
       Pos := Separator + 1;
    end Parse_CSL_Item;
-
-   function Image (I : Integer) return String
-   is
-      II : constant String := Integer'Image (I);
-   begin
-      if I > 0 then
-         return II (II'First + 1 .. II'Last);
-      else
-         return II;
-      end if;
-   end Image;
 
    function Image (V : HTTP_Version) return String is
    begin

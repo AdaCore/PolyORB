@@ -57,4 +57,18 @@ package PolyORB.Utils is
    --  Return the Stream_Element_Array represented by the
    --  string of hexadecimal digits contaned in S.
 
+   function URI_Encode (S : String) return String;
+   --  Return S with special characters replaced by
+   --  "%" "hexdigit" "hexdigit" if these characters
+   --  need to be escaped in URIs, except for spaces
+   --  which are replaced by '+'.
+
+   function URI_Decode (S : String) return String;
+   --  Return S with any %xy sequence replaced with
+   --  the character whose hexadecimal representation
+   --  is xy, and any '+' characters replaced by spaces.
+
+   function Trimmed_Image (I : Integer) return String;
+   --  Return Integer'Image (I) without a leading space.
+
 end PolyORB.Utils;

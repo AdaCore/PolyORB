@@ -332,7 +332,6 @@ package body PolyORB.Setup.Test is
 
          Put_Line ("Registered object: " & Image (My_Id.all));
          Put_Line ("Reference is     : " & References.Image (My_Ref));
-
          begin
             Put_Line ("IOR is           : "
                       & CORBA.To_Standard_String

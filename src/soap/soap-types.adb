@@ -35,6 +35,7 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 
 with PolyORB.Types;
+with PolyORB.Utils;
 
 package body SOAP.Types is
 
@@ -249,16 +250,8 @@ package body SOAP.Types is
    begin
       case TCK (O.Argument) is
          when Tk_Long =>
-            declare
-               V : constant Integer := Get (O);
-               VV : constant String := V'Img;
-            begin
-               if V > 0 then
-                  return VV (VV'First + 1 .. VV'Last);
-               else
-                  return VV;
-               end if;
-            end;
+            return PolyORB.Utils.Trimmed_Image (Get (O));
+
          when Tk_Double =>
 
             declare
