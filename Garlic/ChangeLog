@@ -1,3 +1,9 @@
+Wed Oct  1 18:30:25 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb: Remove reference to the new variable
+	  System.Standard_Library.Local_Partition_ID to preserve
+	  compatibility with GNAT 3.10.
+
 Tue Sep 30 15:57:24 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* s-stratt.adb: Change some type sizes to be more portable on
