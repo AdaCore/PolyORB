@@ -493,9 +493,9 @@ src/polyorb-filters-slicers.adb
 src/polyorb-filters-slicers.ads
 src/polyorb-filters.adb
 src/polyorb-filters.ads
-src/polyorb-if_descriptors.ads
 src/polyorb-if_descriptors-corba_ir.adb
 src/polyorb-if_descriptors-corba_ir.ads
+src/polyorb-if_descriptors.ads
 src/polyorb-initialization.adb
 src/polyorb-initialization.ads
 src/polyorb-jobs.adb
@@ -538,6 +538,7 @@ src/polyorb-poa_config-minimum.adb
 src/polyorb-poa_config-minimum.ads
 src/polyorb-poa_config-proxies.adb
 src/polyorb-poa_config-proxies.ads
+src/polyorb-poa_config-racws.ads
 src/polyorb-poa_config.adb
 src/polyorb-poa_config.ads
 src/polyorb-poa_manager-basic_manager.adb
@@ -644,6 +645,12 @@ src/polyorb-utils-buffers.adb
 src/polyorb-utils-buffers.ads
 src/polyorb-utils-chained_lists.adb
 src/polyorb-utils-chained_lists.ads
+src/polyorb-utils-dynamic_tables.adb
+src/polyorb-utils-dynamic_tables.ads
+src/polyorb-utils-htables-perfect.adb
+src/polyorb-utils-htables-perfect.ads
+src/polyorb-utils-htables.adb
+src/polyorb-utils-htables.ads
 src/polyorb-utils-simple_flags.adb
 src/polyorb-utils-simple_flags.ads
 src/polyorb-utils-srp.adb
