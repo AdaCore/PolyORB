@@ -34,10 +34,8 @@
 
 --  $Id$
 
-with PolyORB.Locks;
 with PolyORB.Object_Maps;
 with PolyORB.Objects;
-with PolyORB.Servants;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
 with PolyORB.POA_Policies.Thread_Policy;
@@ -48,6 +46,8 @@ with PolyORB.POA_Policies.Servant_Retention_Policy;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.POA_Types;
+with PolyORB.Servants;
+with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Types;
 
 package PolyORB.POA is
@@ -99,8 +99,8 @@ package PolyORB.POA is
          --  XXX should use a hash table instead.
          --  All subPOAs of this POA.
 
-         Children_Lock              : PolyORB.Locks.Rw_Lock_Access;
-         Map_Lock                   : PolyORB.Locks.Rw_Lock_Access;
+         Children_Lock              : Tasking.Rw_Locks.Rw_Lock_Access;
+         Map_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
          --  Locks
 
       end record;

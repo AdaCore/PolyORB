@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                        P O L Y O R B . L O C K S                         --
+--             P O L Y O R B . T A S K I N G . R W _ L O C K S              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,36 +32,44 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-locks.adb#5 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#1 $
 
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
 
-with PolyORB.Soft_Links; use PolyORB.Soft_Links;
-
-package body PolyORB.Locks is
+package body PolyORB.Tasking.Rw_Locks is
 
    use PolyORB.Log;
+   use PolyORB.Tasking.Condition_Variables;
+   use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.locks");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
    Rw_Lock_Counter : Natural := 0;
+   --  For debugging purposes.
+
+   All_Rw_Locks : Tasking.Mutexes.Mutex_Access;
 
    procedure Create (L : out Rw_Lock_Access)
    is
       Result : constant Rw_Lock_Access
         := new Rw_Lock_Type;
    begin
-      Enter_Critical_Section;
+      if All_Rw_Locks = null then
+         All_Rw_Locks := Create (Get_Mutex_Factory);
+      end if;
+      pragma Assert (All_Rw_Locks /= null);
+      Enter (All_Rw_Locks.all);
       Rw_Lock_Counter := Rw_Lock_Counter + 1;
       pragma Debug (O ("Rw_Lock: init/Serial ="
                        & Rw_Lock_Counter'Img));
       Result.Serial := Rw_Lock_Counter;
-      Leave_Critical_Section;
-      Create (Result.Guard_Values);
+      Leave (All_Rw_Locks.all);
+      Result.Guard_Values := Create (Get_Condition_Factory);
       L := Result;
    end Create;
 
@@ -72,96 +80,86 @@ package body PolyORB.Locks is
    begin
       pragma Debug
         (O ("Rw_Lock: final/Serial =" & L.Serial'Img));
-      Destroy (L.Guard_Values);
+      Destroy (Get_Condition_Factory.all, L.Guard_Values);
       Free (L);
    end Destroy;
 
-   procedure Lock_W (L : access Rw_Lock_Type)
-   is
-      Version : Version_Id;
+   procedure Lock_W (L : access Rw_Lock_Type) is
    begin
       pragma Debug (O ("Lock_W Serial =" & L.Serial'Img));
 
-      loop
-         Enter_Critical_Section;
-         L.Writers_Waiting := L.Writers_Waiting + 1;
-         exit when L.Count = 0;
-         Lookup (L.Guard_Values.all, Version);
-         Leave_Critical_Section;
+      Enter (All_Rw_Locks.all);
 
-         Differ (L.Guard_Values.all, Version);
+      while L.Count /= 0 loop
+         L.Writers_Waiting := L.Writers_Waiting + 1;
+         Wait (L.Guard_Values.all, All_Rw_Locks);
+         L.Writers_Waiting := L.Writers_Waiting - 1;
          --  Wait until the condition may have changed
          --  from the value it had when we were within
          --  the critical section.
       end loop;
 
       L.Count := -1;
-      L.Writers_Waiting := L.Writers_Waiting - 1;
-      Leave_Critical_Section;
+      Leave (All_Rw_Locks.all);
    end Lock_W;
 
-   procedure Lock_R (L : access Rw_Lock_Type)
-   is
-      Version : Version_Id;
+   procedure Lock_R (L : access Rw_Lock_Type) is
    begin
 
       pragma Debug (O ("Lock_R"));
 
+      Enter (All_Rw_Locks.all);
+
+      while not (True
+        and then L.Count >= 0
+        and then L.Count < L.Max_Count
+        and then L.Writers_Waiting = 0)
       loop
-         Enter_Critical_Section;
          L.Readers_Waiting := L.Readers_Waiting + 1;
-
-         exit when L.Count >= 0
-           and then L.Count < L.Max_Count
-           and then L.Writers_Waiting = 0;
-
-         Lookup (L.Guard_Values.all, Version);
-         Leave_Critical_Section;
-
-         Differ (L.Guard_Values.all, Version);
+         Wait (L.Guard_Values.all, All_Rw_Locks);
+         L.Readers_Waiting := L.Readers_Waiting - 1;
       end loop;
 
       L.Count := L.Count + 1;
-      L.Readers_Waiting := L.Readers_Waiting - 1;
-      Leave_Critical_Section;
+      Leave (All_Rw_Locks.all);
    end Lock_R;
 
    procedure Unlock_W (L : access Rw_Lock_Type) is
    begin
       pragma Debug (O ("Unlock_W"));
 
-      Enter_Critical_Section;
+      Enter (All_Rw_Locks.all);
       if L.Count /= -1 then
          raise Program_Error;
       else
          L.Count := 0;
       end if;
-      Update (L.Guard_Values.all);
-      Leave_Critical_Section;
+      Broadcast (L.Guard_Values.all);
+      Leave (All_Rw_Locks.all);
    end Unlock_W;
 
    procedure Unlock_R (L : access Rw_Lock_Type) is
    begin
       pragma Debug (O ("Unlock_R"));
 
-      Enter_Critical_Section;
+      Enter (All_Rw_Locks.all);
       if L.Count <= 0 then
          raise Program_Error;
       else
          L.Count := L.Count - 1;
       end if;
-      Update (L.Guard_Values.all);
-      Leave_Critical_Section;
+      Broadcast (L.Guard_Values.all);
+      Leave (All_Rw_Locks.all);
    end Unlock_R;
 
    procedure Set_Max_Count
      (L : access Rw_Lock_Type;
       Max : Natural) is
    begin
-      Enter_Critical_Section;
+      Enter (All_Rw_Locks.all);
       L.Max_Count := Max;
-      Update (L.Guard_Values.all);
-      Leave_Critical_Section;
+      Broadcast (L.Guard_Values.all);
+      Leave (All_Rw_Locks.all);
    end Set_Max_Count;
 
-end PolyORB.Locks;
+end PolyORB.Tasking.Rw_Locks;

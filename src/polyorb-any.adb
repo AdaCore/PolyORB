@@ -30,21 +30,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#41 $
+--  $Id: //droopi/main/src/polyorb-any.adb#42 $
 
 with Ada.Exceptions;
 with Ada.Tags;
 
-with PolyORB.Utils.Chained_Lists;
-with PolyORB.Locks;
 with PolyORB.Log;
+with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Utils.Chained_Lists;
 
 with System.Address_Image;
 
 package body PolyORB.Any is
 
-   use PolyORB.Locks;
    use PolyORB.Log;
+   use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any");
@@ -3103,7 +3103,7 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Initialize: enter, Object = "
                         & System.Address_Image (Object'Address)));
       Object.Ref_Counter := new Natural'(1);
-      PolyORB.Locks.Create (Object.Any_Lock);
+      Create (Object.Any_Lock);
       pragma Debug
         (O2 ("  Lck = "
              & System.Address_Image (Object.Any_Lock.all'Address)));
@@ -3239,7 +3239,7 @@ package body PolyORB.Any is
          Unlock_W (Obj.Any_Lock);
          pragma Debug (O2 ("Dec_Usage: lock released, DESTROYING Lck = "
                            & System.Address_Image (Obj.Any_Lock.all'Address)));
-         PolyORB.Locks.Destroy (Obj.Any_Lock);
+         Destroy (Obj.Any_Lock);
       end if;
       pragma Debug (O2 ("Dec_Usage : end"));
    end Dec_Usage;

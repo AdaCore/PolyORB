@@ -39,9 +39,9 @@ with Ada.Streams.Stream_IO;
 
 with PolyORB.Any;
 with PolyORB.Buffers;
-with PolyORB.Locks;
 with PolyORB.Opaque;
 with PolyORB.Representations.CDR;
+with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Utils.HTables.Perfect;
 
 with MOMA.Messages;
@@ -53,9 +53,9 @@ package body MOMA.Provider.Warehouse is
 
    use PolyORB.Any;
    use PolyORB.Buffers;
-   use PolyORB.Locks;
    use PolyORB.Opaque;
    use PolyORB.Representations.CDR;
+   use PolyORB.Tasking.Rw_Locks;
 
    use MOMA.Messages;
    use MOMA.Types;

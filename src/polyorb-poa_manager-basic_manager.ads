@@ -36,19 +36,19 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.POA_Types;
-with PolyORB.Locks;
 with PolyORB.Components;
+with PolyORB.Objects.Interface;
+with PolyORB.POA_Types;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Servants;
-with PolyORB.Objects.Interface;
+with PolyORB.Tasking.Rw_Locks;
 
 package PolyORB.POA_Manager.Basic_Manager is
 
    pragma Elaborate_Body;
 
-   use PolyORB.POA_Types;
    use PolyORB.Objects.Interface;
+   use PolyORB.POA_Types;
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
@@ -135,13 +135,13 @@ private
          Usage_Count     : Integer := 0;
          Holded_Requests : Requests_Queue;
          PM_Hold_Servant : Hold_Servant_Access := null;
-         State_Lock      : PolyORB.Locks.Rw_Lock_Access;
+         State_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
          --  Lock the state
-         Count_Lock      : PolyORB.Locks.Rw_Lock_Access;
+         Count_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
          --  Lock on the usage counter
-         POAs_Lock       : PolyORB.Locks.Rw_Lock_Access;
+         POAs_Lock       : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
          --  Lock on the sequence of managed POAs
-         Queue_Lock      : PolyORB.Locks.Rw_Lock_Access;
+         Queue_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
          --  Lock on the queue of pending requests
       end record;
 

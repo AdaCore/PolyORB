@@ -35,8 +35,8 @@
 --  $Id$
 
 with PolyORB.Any;
+with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Utils.HTables.Perfect;
-with PolyORB.Locks;
 
 with MOMA.Types;
 
@@ -93,7 +93,7 @@ private
       T             : Table_Instance;
       T_Initialized : Boolean := False;
       T_Persistence : MOMA.Types.Persistence_Mode := MOMA.Types.None;
-      T_Lock        : PolyORB.Locks.Rw_Lock_Access;
+      T_Lock        : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
    end record;
 
 end MOMA.Provider.Warehouse;

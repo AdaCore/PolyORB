@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                        P O L Y O R B . L O C K S                         --
+--             P O L Y O R B . T A S K I N G . R W _ L O C K S              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,11 +32,11 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-locks.ads#6 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#1 $
 
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Condition_Variables;
 
-package PolyORB.Locks is
+package PolyORB.Tasking.Rw_Locks is
 
    pragma Preelaborate;
 
@@ -66,8 +66,8 @@ package PolyORB.Locks is
 private
 
    type Rw_Lock_Type is limited record
-      Guard_Values : Soft_Links.Watcher_Access;
-      --  This watcher is updated each time an attribute
+      Guard_Values : Tasking.Condition_Variables.Condition_Access;
+      --  This condition is signalled each time an attribute
       --  of the Rw_Lock_Type that is used in a guard clause
       --  is changed.
 
@@ -83,7 +83,7 @@ private
       --  If COUNT = -1, a task is owning the lock in W mode.
 
       Max_Count : Natural := Natural'Last;
-         --  Maximum number of readers.
+      --  Maximum number of readers.
    end record;
 
-end PolyORB.Locks;
+end PolyORB.Tasking.Rw_Locks;

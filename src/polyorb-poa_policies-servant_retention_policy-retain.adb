@@ -30,8 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Locks;
 with PolyORB.Object_Maps;
+with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Types;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy;
@@ -39,7 +39,7 @@ with PolyORB.POA_Policies.Lifespan_Policy;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
-   use PolyORB.Locks;
+   use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Object_Maps;
 
    ------------
@@ -95,7 +95,6 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      use PolyORB.Locks;
       use PolyORB.Object_Maps;
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
 

@@ -49,12 +49,12 @@ with PolyORB.Types;
 
 package body PolyORB.POA.Basic_POA is
 
-   use PolyORB.Locks;
    use PolyORB.Log;
    use PolyORB.POA_Manager;
    use PolyORB.POA_Manager.Basic_Manager;
    use PolyORB.POA_Policies;
    use PolyORB.POA_Types;
+   use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Types;
 
    package L is new Log.Facility_Log ("polyorb.poa.basic_poa");
@@ -401,8 +401,7 @@ package body PolyORB.POA.Basic_POA is
    -- Destroy_Policies --
    ----------------------
 
-   procedure Destroy_Policies
-     (OA : in out Basic_Obj_Adapter)
+   procedure Destroy_Policies (OA : in out Basic_Obj_Adapter)
    is
       procedure Free is new Ada.Unchecked_Deallocation
         (Policy'Class, Policy_Access);
@@ -420,10 +419,7 @@ package body PolyORB.POA.Basic_POA is
    -- Destroy_Locks --
    -------------------
 
-   procedure Destroy_Locks
-     (OA : in out Basic_Obj_Adapter)
-   is
-      use Locks;
+   procedure Destroy_Locks (OA : in out Basic_Obj_Adapter) is
    begin
       if OA.Children_Lock /= null then
          Destroy (OA.Children_Lock);
@@ -437,9 +433,7 @@ package body PolyORB.POA.Basic_POA is
    -- Destroy_OA --
    ----------------
 
-   procedure Destroy_OA
-     (OA : access Basic_Obj_Adapter)
-   is
+   procedure Destroy_OA (OA : access Basic_Obj_Adapter) is
    begin
       if not Is_Nil (OA.POA_Manager) then
          Remove_POA

@@ -30,16 +30,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Locks;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
+with PolyORB.Tasking.Rw_Locks;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
-   use PolyORB.Locks;
    use PolyORB.Object_Maps;
    use PolyORB.POA_Policies.Implicit_Activation_Policy;
+   use PolyORB.Tasking.Rw_Locks;
 
    ------------
    -- Create --

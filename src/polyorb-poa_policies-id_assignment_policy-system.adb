@@ -35,14 +35,14 @@ with Ada.Unchecked_Conversion;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
-with PolyORB.Locks;
+with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Types; use PolyORB.Types;
 with PolyORB.Utils;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
-   use PolyORB.Locks;
+   use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Object_Maps;
 
    ------------

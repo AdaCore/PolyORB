@@ -35,15 +35,13 @@
 with PolyORB.Log;
 with PolyORB.POA;
 with PolyORB.Components;
---  with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.ORB.Interface;
---  with PolyORB.Requests;
 
 package body PolyORB.POA_Manager.Basic_Manager is
 
-   use PolyORB.Locks;
    use PolyORB.Log;
+   use PolyORB.Tasking.Rw_Locks;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.poa_manager.basic_manager");

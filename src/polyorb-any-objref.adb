@@ -34,11 +34,11 @@
 
 --  $Id$
 
-with PolyORB.Locks;
+with PolyORB.Tasking.Rw_Locks;
 
 package body PolyORB.Any.ObjRef is
 
-   use PolyORB.Locks;
+   use PolyORB.Tasking.Rw_Locks;
 
    type Content_ObjRef is new Content with record
       Value : PolyORB.References.Ref_Ptr;
