@@ -37,6 +37,8 @@ with Broca.Buffers;
 --  with Broca.Refs;
 with Broca.IOP;
 
+with CORBA.Impl;
+
 package Broca.Object is
 
    --  type Object_Type is new Broca.Refs.Ref_Type with

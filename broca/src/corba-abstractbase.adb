@@ -18,9 +18,9 @@ package body CORBA.AbstractBase is
       end if;
    end Adjust;
 
-   ----------------
-   --  Finalize  --
-   ----------------
+   ---------------
+   --  Finalize --
+   ---------------
    procedure Finalize (The_Ref : in out Ref) is
    begin
       if CORBA.Impl."/=" (The_Ref.Ptr, null) then
@@ -33,16 +33,12 @@ package body CORBA.AbstractBase is
    -------------
    function Is_Nil  (Self : in Ref) return CORBA.Boolean is
    begin
-      if CORBA.Impl."=" (Self.Ptr, null) then
-         return True;
-      else
-         return False;
-      end if;
+      return CORBA.Impl."=" (Self.Ptr, null);
    end Is_Nil;
 
-   ---------------
-   --  Release  --
-   ---------------
+   --------------
+   --  Release --
+   --------------
    procedure Release (Self : in out Ref) is
    begin
       if CORBA.Impl."/=" (Self.Ptr, null) then
@@ -59,14 +55,8 @@ package body CORBA.AbstractBase is
       return Self.Ptr;
    end Object_Of;
 
-   ---------
-   -- Get --
-   ---------
 
-   function Get (Self : in Ref) return CORBA.Impl.Object_Ptr is
-   begin
-      return Self.Ptr;
-   end Get;
+   --  Adabroker specific ------
 
    ---------
    -- Set --
@@ -84,6 +74,9 @@ package body CORBA.AbstractBase is
       end if;
    end Set;
 
+   function Get (Self : in Ref) return CORBA.Impl.Object_Ptr is
+   begin
+      return Self.Ptr;
+   end Get;
 
 end CORBA.AbstractBase;
-

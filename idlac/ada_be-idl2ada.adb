@@ -193,6 +193,18 @@ package body Ada_Be.Idl2Ada is
    --  of the Unchecked_To_Ref and To_Ref operations
    --  of an interface.
 
+   procedure Gen_Helper
+     (Node : in Node_Id;
+      Helper_Spec : in out Compilation_Unit;
+      Helper_Body : in out Compilation_Unit);
+   --  generates the To_Ref functions for the node
+
+   procedure Gen_Delegate
+     (Node : in Node_Id;
+      Delegate_Spec : in out Compilation_Unit;
+      Delegate_Body : in out Compilation_Unit);
+   --  generates the .delegate package
+
    ------------------------
    -- Helper subprograms --
    ------------------------
@@ -738,9 +750,9 @@ package body Ada_Be.Idl2Ada is
             PL (Stubs_Body, "end Is_A;");
 
             --  backward compatibility, will disappear
-            Gen_To_Ref (Stubs_Spec, Stubs_Body);
+            --  Gen_To_Ref (Stubs_Spec, Stubs_Body);
             --  CORBA 2.3
-            Gen_To_Ref (Helper_Spec, Helper_Body);
+            Gen_Helper (Node, Helper_Spec, Helper_Body);
 
             declare
                Forward_Node : constant Node_Id
@@ -796,8 +808,8 @@ package body Ada_Be.Idl2Ada is
       else
          Generate (Stubs_Spec, False, To_Stdout);
          Generate (Stubs_Body, False, To_Stdout);
-         --  Generate (Helper_Spec, False, To_Stdout);
-         --  Generate (Helper_Body, False, To_Stdout);
+         Generate (Helper_Spec, False, To_Stdout);
+         Generate (Helper_Body, False, To_Stdout);
          Generate (Stream_Spec, False, To_Stdout);
          Generate (Stream_Body, False, To_Stdout);
          Generate (Skel_Spec, False, To_Stdout);
@@ -827,8 +839,10 @@ package body Ada_Be.Idl2Ada is
       if Parents (Node) = Nil_List then
          case (Kind (Node)) is
             when K_Interface =>
+               Add_With (CU, "CORBA.Object");
                Put (CU, "CORBA.Object.Ref");
             when K_ValueType =>
+               Add_With (CU, "CORBA.Value");
                Put (CU, "CORBA.Value.Base");
             when others =>
                raise Program_Error;
@@ -2559,6 +2573,7 @@ package body Ada_Be.Idl2Ada is
 
             NL (CU);
             Gen_Marshall_Profile (CU, Node);
+            Add_With (CU, "Broca.CDR.Refs");
             if NK = K_Forward_Interface then
                NL (CU);
                PL (CU, "is");
@@ -2570,7 +2585,7 @@ package body Ada_Be.Idl2Ada is
             end if;
             PL (CU, "begin");
             II (CU);
-            PL (CU, "Marshall_Reference (Buffer, Val);");
+            PL (CU, "Broca.CDR.Refs.Marshall (Buffer, Val);");
             DI (CU);
             PL (CU, "end Marshall;");
 
@@ -2590,7 +2605,7 @@ package body Ada_Be.Idl2Ada is
             DI (CU);
             PL (CU, "begin");
             II (CU);
-            PL (CU, "Unmarshall_Reference (Buffer, New_Ref);");
+            PL (CU, "Broca.CDR.Refs.Unmarshall (Buffer, New_Ref);");
             PL (CU, "return New_Ref;");
             DI (CU);
             PL (CU, "end Unmarshall;");
@@ -3177,5 +3192,99 @@ package body Ada_Be.Idl2Ada is
       DI (Stubs_Body);
       PL (Stubs_Body, "end To_Ref;");
    end Gen_To_Ref;
+
+   -----------------
+   --  Gen_Helper --
+   -----------------
+   procedure Gen_Helper
+     (Node : in Node_Id;
+      Helper_Spec : in out Compilation_Unit;
+      Helper_Body : in out Compilation_Unit) is
+      Short_Type_Name : constant String
+        := Ada_Type_Defining_Name (Node);
+      Type_Name : constant String
+        := Ada_Type_Name (Node);
+   begin
+      Add_With (Helper_Spec, "CORBA.Object");
+      NL (Helper_Spec);
+      PL (Helper_Spec, "function Unchecked_To_" & Short_Type_Name);
+      PL (Helper_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
+      PL (Helper_Spec, "  return " & Type_Name & ";");
+      PL (Helper_Spec, "function To_" & Short_Type_Name);
+      PL (Helper_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
+      PL (Helper_Spec, "  return " & Type_Name & ";");
+
+      Add_With (Helper_Body, "Broca.Refs");
+      Add_With (Helper_Body, "Broca.Exceptions");
+
+      NL (Helper_Body);
+      PL (Helper_Body, "function Unchecked_To_" & Short_Type_Name);
+      PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
+      PL (Helper_Body, "  return " & Type_Name);
+      PL (Helper_Body, "is");
+      II (Helper_Body);
+      PL (Helper_Body, "Result : " & Type_Name & ";");
+      DI (Helper_Body);
+      PL (Helper_Body, "begin");
+      II (Helper_Body);
+      PL (Helper_Body, "Set (Result,");
+      PL (Helper_Body,
+          "     CORBA.Object.Get (The_Ref));");
+      PL (Helper_Body, "return Result;");
+      DI (Helper_Body);
+      PL (Helper_Body, "end Unchecked_To_" & Short_Type_Name & ";");
+      NL (Helper_Body);
+      PL (Helper_Body, "function To_" & Short_Type_Name);
+      PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
+      PL (Helper_Body, "  return " & Type_Name);
+      PL (Helper_Body, "is");
+      II (Helper_Body);
+      PL (Helper_Body, "Result : " & Type_Name & ";");
+      DI (Helper_Body);
+      PL (Helper_Body, "begin");
+      II (Helper_Body);
+      PL (Helper_Body,
+          "Result := Unchecked_To_"
+          & Short_Type_Name
+          & " (The_Ref);");
+      PL (Helper_Body, "if Is_A (Result, "
+          & T_Repository_Id & ") then");
+      II (Helper_Body);
+      PL (Helper_Body, "return Result;");
+      DI (Helper_Body);
+      PL (Helper_Body, "else");
+      II (Helper_Body);
+      PL (Helper_Body, "Broca.Exceptions.Raise_Bad_Param;");
+      DI (Helper_Body);
+      PL (Helper_Body, "end if;");
+      DI (Helper_Body);
+      PL (Helper_Body, "end To_" & Short_Type_Name & ";");
+   end Gen_Helper;
+
+
+   -------------------
+   --  Gen_Delegate --
+   -------------------
+   procedure Gen_Delegate
+     (Node : in Node_Id;
+      Delegate_Spec : in out Compilation_Unit;
+      Delegate_Body : in out Compilation_Unit) is
+      NK : constant Node_Kind
+        := Kind (Node);
+   begin
+      case NK is
+         when K_Interface =>
+            if Abst (Node) then
+               null;
+            else
+               PL (Delegate_Spec,
+                   "type Wrapped is limited private;");
+            end if;
+         when K_Operation =>
+            null; --  NIY
+         when others =>
+            null;
+      end case;
+   end Gen_Delegate;
 
 end Ada_Be.Idl2Ada;
