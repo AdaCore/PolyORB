@@ -100,6 +100,8 @@ package body PolyORB.Asynch_Ev.Sockets is
    is
       Monitored_Set : constant Source_Seqs.Element_Array
         := Source_Seqs.To_Element_Array (AEM.Sources);
+      Result : AES_Array (1 .. Monitored_Set'Length);
+      Last   : Integer := 0;
 
       T : Duration := Timeout;
 
@@ -107,8 +109,6 @@ package body PolyORB.Asynch_Ev.Sockets is
       R_Set : Socket_Set_Type;
       W_Set : Socket_Set_Type;
       Status : Selector_Status;
-
-      Event_Count : Natural;
 
    begin
       Empty (R_Set);
@@ -118,8 +118,6 @@ package body PolyORB.Asynch_Ev.Sockets is
          pragma Debug (O ("Monitoring socket" & Image (S)));
       end loop;
       Empty (W_Set);
-
-      pragma Debug (O ("Checking selector..."));
 
       if T = Constants.Forever then
          --  Convert special value of Timeout.
@@ -136,36 +134,24 @@ package body PolyORB.Asynch_Ev.Sockets is
       pragma Debug (O ("Selector returned status "
                        & Status'Img));
 
-      Event_Count := 0;
-
       if Status = Completed then
          for I in Monitored_Set'Range loop
             if Is_Set (R_Set, Socket_Event_Source
-                       (Monitored_Set (I).all).Socket) then
+                         (Monitored_Set (I).all).Socket) then
                pragma Debug
                  (O ("Got event on socket"
-                     & Image (Socket_Event_Source
-                              (Monitored_Set (I).all).Socket)));
+                       & Image (Socket_Event_Source
+                                  (Monitored_Set (I).all).Socket)));
 
-               Event_Count := Event_Count + 1;
                Unregister_Source (AEM.all, Monitored_Set (I));
+               Last := Last + 1;
+                  Result (Last) := Monitored_Set (I);
             end if;
          end loop;
+         pragma Assert (Last >= Result'First);
       end if;
+      return Result (1 .. Last);
 
-      declare
-         Result : AES_Array (1 .. Event_Count);
-      begin
-         for I in Monitored_Set'Range loop
-            if Is_Set (R_Set, Socket_Event_Source
-                       (Monitored_Set (I).all).Socket) then
-               Result (Event_Count) := Monitored_Set (I);
-               Event_Count := Event_Count - 1;
-            end if;
-         end loop;
-
-         return Result;
-      end;
    end Check_Sources;
 
    procedure Abort_Check_Sources (AEM : Socket_Event_Monitor) is
