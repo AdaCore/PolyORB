@@ -2,14 +2,14 @@ with Idl_Fe.Types; use Idl_Fe.Types;
 
 package Ada_Be.Identifiers is
 
-   --  returns a unique and valid ada identifier for this node
-   --  with package prefix
-   function Get_Ada_Full_Name (Node : in N_Named'Class)
+   function Ada_Name
+     (Node : N_Root_Acc)
      return String;
+   --  Return the Ada name (unqualified) of N_Named node.
 
-   --  returns a unique and valid ada identifier for this node
-   --  *without* package prefix
-   function Get_Ada_Name (Node : in N_Named'Class)
+   function Ada_Full_Name
+     (Node : N_Root_Acc)
      return String;
+   --  Return the Ada full name of N_Named Node.
 
 end Ada_Be.Identifiers;

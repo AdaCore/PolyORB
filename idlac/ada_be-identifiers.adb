@@ -1,17 +1,27 @@
 package body Ada_Be.Identifiers is
 
 
-   function Get_Ada_Full_Name (Node : in N_Named'Class)
-                               return String is
+   function Ada_Full_Name
+     (Node : N_Root_Acc)
+     return String is
    begin
-      return Get_Name (Node);
-   end Get_Ada_Full_Name;
+      return Get_Name (N_Named_Acc (Node).all);
+   end Ada_Full_Name;
 
-
-   function Get_Ada_Name (Node : in N_Named'Class)
-                          return String is
+   function Ada_Name
+     (Node : N_Root_Acc)
+     return String
+   is
+      Full_Name : constant String
+        := Ada_Full_Name (Node);
+      Last_Dot : Integer := Full_Name'First - 1;
    begin
-      return Get_Name (Node);
-   end Get_Ada_Name;
+      for I in Full_Name'Range loop
+         if Full_Name (I) = '.' then
+            Last_Dot := Integer (I);
+         end if;
+      end loop;
+      return Full_Name (Last_Dot + 1 .. Full_Name'Last);
+   end Ada_Name;
 
 end Ada_Be.Identifiers;

@@ -18,4 +18,4 @@
 * literal mapping (base, fp, fixed, char, string...)
 * add comments about generated code.
 * add blank lines.
-
+* expansion: (see README.Expansion)

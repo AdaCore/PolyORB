@@ -4,7 +4,7 @@ all: testlexer testparser testgen idlac # gidlac # idlac
 
 ACCESSOR_FILES=idl_fe-tree-accessors.ads idl_fe-tree-accessors.adb
 
-$(ACCESSOR_FILES): idl_fe-tree.ads
+$(ACCESSORS_FILES): idl_fe-tree.ads
 	./mk_accessors.py
 
 testparser testlexer testgen gidlac idlac: force $(ACCESSORS_FILES)

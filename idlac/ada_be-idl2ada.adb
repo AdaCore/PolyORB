@@ -3,7 +3,7 @@ with Idl_Fe.Tree;  use Idl_Fe.Tree;
 with Idl_Fe.Tree.Accessors; use Idl_Fe.Tree.Accessors;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
---  with Ada_Be.Identifiers; use Ada_Be.Identifiers;
+with Ada_Be.Identifiers; use Ada_Be.Identifiers;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 
 package body Ada_Be.Idl2Ada is
@@ -154,7 +154,18 @@ package body Ada_Be.Idl2Ada is
                end loop;
             end;
 
+            --  XXX Declare also inherited subprograms
+            --  (for multiple inheritance.)
+
             New_Line (Stubs_Spec);
+            Put_Line
+              (Stubs_Spec,
+               "function To_Ref (The_Ref : in CORBA.Object.Ref)");
+            Put_Line
+              (Stubs_Spec,
+               "  return Ref;");
+            New_Line (Stubs_Spec);
+
             Dec_Indent (Stubs_Spec);
             Put_Line (Stubs_Spec, "private");
             Inc_Indent (Stubs_Spec);
@@ -179,12 +190,6 @@ package body Ada_Be.Idl2Ada is
       Full_View : Boolean) is
    begin
       case Get_Kind (Node.all) is
-
-         when K_Repository =>
-            null;
-
-         when K_Module =>
-            null;
 
          when K_Interface =>
 
