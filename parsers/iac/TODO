@@ -1,0 +1,18 @@
+Frontend
+
+* Add CORBA 3.0 IDL keywords
+
+* Implement incomplete modules
+
+* Complete unions
+
+* Implement abstract and local interfaces
+
+* Implement complex declarators
+
+* Implement exceptions
+
+
+Backend Ada
+
+* Implement complex declarators
