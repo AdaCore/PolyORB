@@ -122,7 +122,7 @@ private
 
    --  a generic interval of values
    type Interval_Type is record
-      Min, Max : Constant_Value_Ptr;
+      Min, Max : Idl_Value;
    end record;
 
    --  a generic set of values, implemented as a list of intervals
@@ -412,50 +412,57 @@ private
 
    --  Rule 30
    --  <or_expr> ::= <xor_expr>
-   --            |   <or_expr> "|" <xor_expr>
+   --            |   <or_expr> "^" <xor_expr>
    --  actually, the implemented gramar is slightly different :
-   --  <or_expr> ::= <xor_expr> { "|" <xor_expr> }*
+   --  <or_expr> ::= <xor_expr>
+   --            |   <xor_expr> "^" <or_expr>
    procedure Parse_Or_Expr (Result : out Node_Id;
                             Success : out Boolean;
-                            Expr_Type : in Constant_Value_Ptr);
+                            Expr_Type : in Const_Type_Ptr);
 
    --  Rule 31
    --  <xor_expr> ::= <and_expr>
    --             |   <xor_expr> "^" <and_expr>
    --  actually, the implemented gramar is slightly different :
-   --  <xor_expr> ::= <and_expr> { "^" <and_expr> }*
+   --  <xor_expr> ::= <and_expr>
+   --             |   <and_expr> "^" <xor_expr>
    procedure Parse_Xor_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr);
+                             Expr_Type : in Const_Type_Ptr);
 
    --  Rule 32
    --  <and_expr> ::= <shift_expr>
    --             |   <and_expr> "&" <shift_expr>
    --  actually, the implemented gramar is slightly different :
-   --  <and_expr> ::= <shift_expr> { "&" <shift_expr> }*
+   --  <and_expr> ::= <shift_expr>
+   --             |   <shift_expr> "&" <and_expr>
    procedure Parse_And_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr);
+                             Expr_Type : in Const_Type_Ptr);
 
    --  Rule 33
    --  <shift_expr> ::= <add_expr>
    --               |   <shift_expr> ">>" <add_expr>
    --               |   <shift_expr> "<<" <add_expr>
    --  actually, the implemented gramar is slightly different :
-   --  <shift_expr> ::= <add_expr> { { ">>" | "<<" } <add_expr> }*
+   --  <shift_expr> ::= <add_expr>
+   --               |   <add_expr> ">>" <shift_expr>
+   --               |   <add_expr> "<<" <shift_expr>
    procedure Parse_Shift_Expr (Result : out Node_Id;
                                Success : out Boolean;
-                               Expr_Type : in Constant_Value_Ptr);
+                               Expr_Type : in Const_Type_Ptr);
 
    --  Rule 34
    --  <add_expr> ::= <mult_expr>
    --             |   <add_expr> "+" <mult_expr>
    --             |   <add_expr> "-" <mult_expr>
    --  actually, the implemented gramar is slightly different :
-   --  <add_expr> ::= <mult_expr> { { "+" | "-" } <mult_expr> }*
+   --  <Add_expr> ::= <mult_expr>
+   --             |   <mult_expr> ">>" <add_expr>
+   --             |   <mult_expr> "<<" <add_expr>
    procedure Parse_Add_Expr (Result : out Node_Id;
                              Success : out Boolean;
-                             Expr_Type : in Constant_Value_Ptr);
+                             Expr_Type : in Const_Type_Ptr);
 
    --  Rule 35
    --  <mult_expr> ::= <unary_expr>
@@ -463,10 +470,13 @@ private
    --              |   <mult_expr> "/" <unary_expr>
    --              |   <mult_expr> "%" <unary_expr>
    --  actually, the implemented gramar is slightly different :
-   --  <mult_expr> ::= <unary_expr> { { "*" | "/" | "%" } <unary_expr> }*
+   --  <mult_expr> ::= <unary_expr>
+   --              |   <unary_expr> "*" <mult_expr>
+   --              |   <unary_expr> "/" <mult_expr>
+   --              |   <unary_expr> "%" <mult_expr>
    procedure Parse_Mult_Expr (Result : out Node_Id;
                               Success : out Boolean;
-                              Expr_Type : in Constant_Value_Ptr);
+                              Expr_Type : in Const_Type_Ptr);
 
    --  Rule 36
    --  <unary_expr> ::= <unary_operator> <primary_expr>
@@ -475,7 +485,7 @@ private
    --  <unary_operator> ::= "+" | "-" | "~"
    procedure Parse_Unary_Expr (Result : out Node_Id;
                                Success : out Boolean;
-                               Expr_Type : in Constant_Value_Ptr);
+                               Expr_Type : in Const_Type_Ptr);
 
    --  Rule 38
    --  <primary_expr> ::= <scoped_name>
@@ -483,7 +493,7 @@ private
    --                 |   "(" <const_expr> ")"
    procedure Parse_Primary_Expr (Result : out Node_Id;
                                  Success : out Boolean;
-                                 Expr_Type : in Constant_Value_Ptr);
+                                 Expr_Type : in Const_Type_Ptr);
 
    --  Rule 39
    --  <literal> ::= <integer_literal>
@@ -503,15 +513,13 @@ private
    --            | <fixed_pt_literal>
    --            | <boolean_literal>
    procedure Parse_Literal (Result : out Node_Id;
-                            Success : out Boolean;
-                            Expr_Type : in Constant_Value_Ptr);
+                            Success : out Boolean);
 
    --  Rule 40
    --  <boolean_literal> ::= "TRUE"
    --                    | "FALSE"
    procedure Parse_Boolean_Literal (Result : out Node_Id;
-                                    Success : out Boolean;
-                                    Expr_Type : in Constant_Value_Ptr);
+                                    Success : out Boolean);
 
    --  Rule 41
    --  <positive_int_const> ::= <const_exp>
@@ -885,76 +893,33 @@ private
    --  Parsing of literals  --
    ---------------------------
 
-   --  gives the digit value correponding to an hexadecimal
-   --  character
-   function Hexa_Char_To_Digit (C : in Character)
-                                return Integer;
-
-   --  parse the character C at the beginning of the string S
-   --  Offset is the number of character used in the string S
-   --  For example, if S = "\12etc...", Result = LF and Offset = 3
-   procedure Get_Char_Literal (S : in String;
-                               Result : out Idl_Character;
-                               Offset : out Integer);
-
-   --  parse the wide character C at the beginning of the string S
-   --  Offset is the number of character used in the string S
-   --  For example, if S = "\u1a2etc...", Result = <1a2> and
-   --  Offset = 4
-   procedure Get_Wide_Char_Literal (S : in String;
-                                    Result : out Idl_Wide_Character;
-                                    Offset : out Integer);
-
    --  parsing of an integer
    procedure Parse_Integer_Literal (Result : out Node_Id;
-                                    Success : out Boolean;
-                                    Expr_Type : in Constant_Value_Ptr);
+                                    Success : out Boolean);
 
    --  parsing of a string
    procedure Parse_String_Literal (Result : out Node_Id;
-                                   Success : out Boolean;
-                                   Expr_Type : in Constant_Value_Ptr);
+                                   Success : out Boolean);
 
    --  parsing of a wide string
    procedure Parse_Wide_String_Literal (Result : out Node_Id;
-                                        Success : out Boolean;
-                                        Expr_Type : in Constant_Value_Ptr);
+                                        Success : out Boolean);
 
    --  parsing of a char
    procedure Parse_Char_Literal (Result : out Node_Id;
-                                 Success : out Boolean;
-                                 Expr_Type : in Constant_Value_Ptr);
+                                 Success : out Boolean);
 
    --  parsing of a wide char
    procedure Parse_Wide_Char_Literal (Result : out Node_Id;
-                                      Success : out Boolean;
-                                      Expr_Type : in Constant_Value_Ptr);
+                                      Success : out Boolean);
 
    --  parsing of a float
    procedure Parse_Floating_Pt_Literal (Result : out Node_Id;
-                                        Success : out Boolean;
-                                        Expr_Type : in Constant_Value_Ptr);
+                                        Success : out Boolean);
 
    --  parsing of a fixed point number
    procedure Parse_Fixed_Pt_Literal (Result : out Node_Id;
-                                     Success : out Boolean;
-                                     Expr_Type : in Constant_Value_Ptr);
-
-   --  Checks the range of an expression value in case of
-   --  integer or float type. If the range is not respected,
-   --  raises an error and put the type to C_General_Int or
-   --  C_General_Float
-   --  Full indicates whether signed and unsigned types should be
-   --  distinguished or not
-   procedure Check_Value_Range (Node : in out Node_Id;
-                                Full : in Boolean);
-
-   --  checks that the value contained by value is compatible with
-   --  the type of value_type.
-   --  If the value and type are not compatible, raises an error
-   procedure Check_Expr_Value
-      (Value : in Constant_Value_Ptr;
-       Value_Type : in Constant_Value_Ptr);
+                                     Success : out Boolean);
 
    --  CORBA V2.3 - 3.12.4
    --
@@ -973,63 +938,100 @@ private
    --  evaluation of expressions  --
    ---------------------------------
 
-   --  or operator between two Idl_Integer
-   function "or" (X, Y : Idl_Integer) return Idl_Integer;
+--    --  CORBA V2.3 - 3.9.2
+--    --
+--    --  "An infix operator can combine two integer, floats
+--    --  or fixed but not mixtures of these."
+--    --  "Infix operator are applicable only to integer, float
+--    --  and fixed types."
+--    --
+--    --  all the functions in this section raise an error if the types
+--    --  of each element are not compatible. It then computes the type
+--    --  of the result. In case of incompatibility, the type is
+--    --  C_No_Type
+--    --
+--    --  Beside that, when the type is ok, these functions compute
+--    --  the value of the expression.
 
-   --  xor operator between two Idl_Integer
-   function "xor" (X, Y : Idl_Integer) return Idl_Integer;
+--    --  Or expression evaluation
+--    procedure Eval_Or_Expr (Left : in Value_Ptr;
+--                            Right : in Value_Ptr;
+--                            Result : out Value_Ptr;
+--                            Loc : in Idl_Fe.Errors.Location);
 
-   --  and operator between two Idl_Integer
-   function "and" (X, Y : Idl_Integer) return Idl_Integer;
+--    --  Xor expression evaluation
+--    procedure Eval_Xor_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  << operator between an Idl_Integer and a natural
-   function Shift_Left (X : Idl_Integer; Y : Natural) return Idl_Integer;
+--    --  And expression evaluation
+--    procedure Eval_And_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  >> operator between an Idl_Integer and a natural
-   function Shift_Right (X : Idl_Integer; Y : Natural) return Idl_Integer;
+--    --  Right shift expression evaluation
+--    procedure Eval_Shr_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  computes the maximum of two idl_integer
-   function Max (X, Y : Idl_Integer) return Idl_Integer;
+--    --  Left shift expression evaluation
+--    procedure Eval_Shl_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  addition of two fixed integer :
-   --    R is the result
-   --    Left and right are the operands
-   procedure Fixed_Add (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr);
+--    --  Add expression evaluation
+--    procedure Eval_Add_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  subtraction of two fixed integer :
-   --    R is the result
-   --    Left and right are the operands
-   procedure Fixed_Sub (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr);
+--    --  Sub expression evaluation
+--    procedure Eval_Sub_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  multiplication of two fixed integer :
-   --    R is the result
-   --    Left and right are the operands
-   procedure Fixed_Mul (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr);
+--    --  Mul expression evaluation
+--    procedure Eval_Mul_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  division of two fixed integer :
-   --    R is the result
-   --    Left and right are the operands
-   procedure Fixed_Div (Res : in out Constant_Value_Ptr;
-                        Left, Right : in Constant_Value_Ptr);
+--    --  Div expression evaluation
+--    procedure Eval_Div_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  identity for a fixed integer :
-   --    R is the result
-   --    operand is the operand
-   procedure Fixed_Id (Res : in out Constant_Value_Ptr;
-                       Operand : in Constant_Value_Ptr);
+--    --  Mod expression evaluation
+--    procedure Eval_Mod_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  inversion of a fixed integer :
-   --    R is the result
-   --    operand is the operand
-   procedure Fixed_Neg (Res : in out Constant_Value_Ptr;
-                        Operand : in Constant_Value_Ptr);
+--    --  Neg expression evaluation
+--    procedure Eval_Neg_Expr (Operand : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  not operator between two Idl_Integer
-   function "not" (X : Idl_Integer) return Idl_Integer;
+--    --  Not expression evaluation
+--    procedure Eval_Not_Expr (Operand : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
+--    --  actual or functions for idl types
+--    function "or" (X, Y : Idl_Short) return Idl_Short;
+--    function "or" (X, Y : Idl_Long) return Idl_Long;
+--    function "or" (X, Y : Idl_LongLong) return Idl_LongLong;
+--    function "or" (X, Y : Idl_UShort) return Idl_UShort;
+--    function "or" (X, Y : Idl_ULong) return Idl_ULong;
+--    function "or" (X, Y : Idl_ULongLong) return Idl_ULongLong;
+
+   function "or" (X, Y : Idl_Value) return Idl_Value;
 
    ------------------------------
    --  To resume after errors  --
@@ -1041,13 +1043,10 @@ private
    --  Goes to the beginning of the next definition.
    procedure Go_To_Next_Definition;
 
-   --  Goes to the end of the export definition.
-   procedure Go_To_End_Of_Export;
-
    --  Goes to the next Cbracket opening.
    procedure Go_To_Next_Left_Cbracket;
 
-   --  Goes to the next Cbracket closing;
+   --  Goes to the next Cbracket opening.
    procedure Go_To_Next_Right_Cbracket;
 
    --  Goes to the next export (see rule 9)
@@ -1076,14 +1075,5 @@ private
 
    --  Goes to the next T_End_Pragma token and consumes it
    procedure Go_To_End_Of_Pragma;
-
-   --  Goes to the end of an enumeration
-   procedure Go_To_End_Of_Enumeration;
-
-   --  Goes to the next ';' and consumes it
-   procedure Go_To_Next_Semi_Colon;
-
-   --  Goes to the next '>' and consumes it
-   procedure Go_To_Next_Greater;
 
 end Idl_Fe.Parser;

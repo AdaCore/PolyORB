@@ -1,8 +1,0 @@
-interface Mystruct {
-  struct simple_struct {
-    string a;
-    long b;
-  };
-  
-  simple_struct echoStruct (in simple_struct arg);
-};
