@@ -297,7 +297,6 @@ package body Ada_Be.Source_Streams is
          if not Unit.Diversions (Private_Declarations).Empty then
             New_Line (File);
             Put_Line (File, "private");
-            New_Line (File);
             Put (File, To_String
                  (Unit.Diversions (Private_Declarations).Library_Item));
          end if;
@@ -305,7 +304,6 @@ package body Ada_Be.Source_Streams is
          if not Unit.Diversions (Elaboration).Empty then
             New_Line (File);
             Put_Line (File, "begin");
-            New_Line (File);
             Put (File, To_String (Unit.Diversions (Elaboration).Library_Item));
          end if;
 
