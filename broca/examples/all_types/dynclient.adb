@@ -64,7 +64,9 @@ procedure DynClient is
       Result : CORBA.NamedValue;
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -84,7 +86,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoBoolean;
@@ -103,7 +105,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -123,7 +127,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoShort;
@@ -142,7 +146,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -162,7 +168,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoLong;
@@ -181,7 +187,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -201,7 +209,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoUShort;
@@ -220,7 +228,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -240,7 +250,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoULong;
@@ -259,7 +269,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -279,7 +291,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoFloat;
@@ -298,7 +310,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -318,7 +332,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoDouble;
@@ -337,7 +351,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -357,7 +373,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoChar;
@@ -376,7 +392,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -396,7 +414,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoOctet;
@@ -415,7 +433,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -435,7 +455,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoString;
@@ -454,7 +474,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.Object.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -474,7 +496,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return CORBA.Object.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -494,7 +516,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -514,7 +538,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -534,7 +558,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -554,7 +580,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -574,7 +600,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -594,7 +622,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -614,7 +642,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -634,7 +664,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -654,7 +684,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -674,7 +706,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -694,7 +726,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -714,7 +748,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -734,7 +768,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -754,7 +790,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -774,7 +810,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -794,7 +832,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -814,7 +852,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -834,7 +874,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -853,7 +893,9 @@ procedure DynClient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -873,7 +915,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
    end Set_MyColor;
 
    function Get_MyColor (Self : in CORBA.Object.Ref)
@@ -900,7 +942,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -930,7 +972,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
+--      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return CORBA.From_Any
         (CORBA.Request.Return_Value (Request).Argument);

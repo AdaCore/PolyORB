@@ -1739,6 +1739,9 @@ package body CORBA is
       Result : Any;
    begin
       Result.The_Type := Tc;
+      --  we put ref_count to 1 even if there is no pointer is
+      --  because if there were one in the future, we would have
+      --  a reference on it here.
       return Result;
    end Get_Empty_Any;
 

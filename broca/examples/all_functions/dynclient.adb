@@ -26,9 +26,11 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
       Result : CORBA.NamedValue;
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -40,8 +42,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end Get_The_Attribute;
@@ -58,6 +58,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (To);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_To,
@@ -77,8 +78,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
    end Set_The_Attribute;
 
    function Get_The_Readonly_Attribute (Self : in CORBA.Object.Ref)
@@ -90,9 +89,11 @@ procedure Dynclient is
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -104,8 +105,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end Get_The_Readonly_Attribute;
@@ -118,6 +117,8 @@ procedure Dynclient is
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => Get_Empty_Any (CORBA.TC_Void),
@@ -132,8 +133,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
    end Void_Proc;
 
    procedure In_Proc (Self : in CORBA.Object.Ref;
@@ -152,6 +151,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -178,8 +178,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
    end In_Proc;
 
    procedure Out_Proc (Self : in CORBA.Object.Ref;
@@ -198,6 +196,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -224,8 +223,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       A := CORBA.From_Any (Argument_A);
       B := CORBA.From_Any (Argument_B);
@@ -246,6 +243,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -268,8 +266,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       A := CORBA.From_Any (Argument_A);
       B := CORBA.From_Any (Argument_B);
@@ -294,6 +290,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -324,8 +321,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       C := CORBA.From_Any (Argument_C);
       D := CORBA.From_Any (Argument_D);
@@ -352,6 +347,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -382,8 +378,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       B := CORBA.From_Any (Argument_B);
       D := CORBA.From_Any (Argument_D);
@@ -410,6 +404,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -440,8 +435,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       A := CORBA.From_Any (Argument_A);
       B := CORBA.From_Any (Argument_B);
@@ -468,6 +461,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -494,8 +488,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       B := CORBA.From_Any (Argument_B);
       C := CORBA.From_Any (Argument_C);
@@ -510,6 +502,8 @@ procedure Dynclient is
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => To_Any (CORBA.Short (0)),
@@ -524,8 +518,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end Void_Fun;
@@ -547,6 +539,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -573,8 +566,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end In_Fun;
@@ -597,6 +588,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -627,8 +619,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       A := CORBA.From_Any (Argument_A);
       B := CORBA.From_Any (Argument_B);
@@ -653,6 +643,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -679,8 +670,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       A := CORBA.From_Any (Argument_A);
       B := CORBA.From_Any (Argument_B);
@@ -708,6 +697,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -742,8 +732,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       C := CORBA.From_Any (Argument_C);
       D := CORBA.From_Any (Argument_D);
@@ -774,6 +762,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -808,8 +797,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       B := CORBA.From_Any (Argument_B);
       D := CORBA.From_Any (Argument_D);
@@ -840,6 +827,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -874,8 +862,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       A := CORBA.From_Any (Argument_A);
       B := CORBA.From_Any (Argument_B);
@@ -906,6 +892,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -936,8 +923,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  get out arguments
       B := CORBA.From_Any (Argument_B);
       C := CORBA.From_Any (Argument_C);
@@ -952,6 +937,8 @@ procedure Dynclient is
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => Get_Empty_Any (CORBA.TC_Void),
@@ -966,8 +953,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
    end Oneway_Void_Proc;
 
    procedure Oneway_In_Proc (Self : in CORBA.Object.Ref;
@@ -984,6 +969,7 @@ procedure Dynclient is
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name_A,
                              Argument_A,
@@ -1006,8 +992,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
    end Oneway_In_Proc;
 
    function Oneway_Checker (Self : in CORBA.Object.Ref)
@@ -1019,6 +1003,8 @@ procedure Dynclient is
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => To_Any (CORBA.Short (0)),
@@ -1033,8 +1019,6 @@ procedure Dynclient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end Oneway_Checker;

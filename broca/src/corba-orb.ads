@@ -35,6 +35,7 @@ with CORBA; use CORBA;
 with CORBA.Object;
 with CORBA.Sequences.Unbounded;
 pragma Elaborate_All (CORBA.Sequences.Unbounded);
+with CORBA.NVList;
 
 package CORBA.ORB is
 
@@ -87,12 +88,14 @@ package CORBA.ORB is
 --    --  Initializes the BOA with parameters of the command line and returns
 --    --  the BOA
 
---    ----------------------------------
---    --  Dynamic Invocation Related  --
---    ----------------------------------
+   ----------------------------------
+   --  Dynamic Invocation Related  --
+   ----------------------------------
 
---    procedure Create_List
---      (Count    : in     CORBA.Long;
---       New_List :    out CORBA.NVList.Ref);
+   --  creation of an empty NVList
+   --  Note that the count parameter is useless
+   procedure Create_List
+     (Count    : in     CORBA.Long;
+      New_List :    out CORBA.NVList.Ref);
 
 end CORBA.ORB;

@@ -766,8 +766,7 @@ package CORBA is
                               Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
-   --  Not in spec : returns an empty Any (with no value but a type)
-   --  Should never be called outside the broca.cdr package
+   --  returns  an empty Any (with no value but a type)
    function Get_Empty_Any (Tc : TypeCode.Object) return Any;
 
    --  Not in spec : return true if the Any has a value, false

@@ -35,10 +35,14 @@ with CORBA.AbstractBase;
 with System;
 with Ada.Unchecked_Deallocation;
 with Broca.Buffers;
+with CORBA.Impl;
 
 package CORBA.NVList is
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
+
+   type Object is new CORBA.Impl.Object with private;
+   type Object_Ptr is access all Object;
 
    procedure Add_Item
      (Self       :    Ref;
@@ -77,6 +81,9 @@ package CORBA.NVList is
      (Buffer : access Broca.Buffers.Buffer_Type;
       Data : in out Ref);
 
+   --  to create a new and empty Object
+   function Create_Object return Object_Ptr;
+
 private
    --  the actual implementation of an NVList, just a list of NamedValue
    type NV_Cell;
@@ -91,37 +98,12 @@ private
    procedure Free_All_List (List : in out NV_List);
    function Length (List : in NV_List) return CORBA.Long;
 
-   --  in order to be able to deal with several NVLists at the
-   --  same time, each NVList is associated to a Ref.
-   --  The set of NVLists is stored in an NVList_List
-   type NVList_Cell;
-   type NVList_List is access all NVList_Cell;
-   type NVList_Cell is record
-      Obj : Ref;
-      List : NV_List;
-      Next : NVList_List;
-   end record;
-   Null_NVList_List : constant NVList_List := null;
-
-   --  adds a cell with NV in it to the NVList contained by List
-   procedure Add_Cell (List : in NVList_List;
+   --  adds a NamedValue an NV_List
+   procedure Add_Cell (List : in out NV_List;
                        NV : in NamedValue);
 
-   --  Creates a new NVList_Cell and adds it to the list of current
-   --  NVLists. The new Cell is returned
-   function Create_NVList (Obj : in Ref)
-                           return NVList_List;
-
-   --  removes an NV_List from the list and frees it
-   --  does nothing if the given Ref does not correspond to any list
-   procedure Remove_NVList (Obj : Ref);
-
-   --  returns a cell containing the list associated to a given Ref
-   --  if there is no, creates a new one and returns it
-   function Get_NVList (Obj : Ref) return NVList_List;
-
-   --  to free a NV_List_Cell
-   procedure Free is new Ada.Unchecked_Deallocation
-     (NVList_Cell, NVList_List);
+   type Object is new CORBA.Impl.Object with record
+      List : NV_List;
+   end record;
 
 end CORBA.NVList;
