@@ -38,6 +38,226 @@ package body ALI is
    use Ascii;
    --  Make control characters visible
 
+   -----------------------
+   -- Local Subprograms --
+   -----------------------
+
+   procedure Accumulate_Checksum (C : Character; Csum : in out Word);
+   pragma Inline (Accumulate_Checksum);
+   --  This routine accumulates the checksum given character C. During the
+   --  scanning of a source file, this routine is called with every character
+   --  in the source, excluding blanks, and all control characters (except
+   --  that ESC is included in the checksum). Upper case letters not in string
+   --  literals are folded by the caller. See Sinput spec for the documentation
+   --  of the checksum algorithm. Note: checksum values are only used if we
+   --  generate code, so it is not necessary to worry about making the right
+   --  sequence of calls in any error situation.
+
+   -------------------------
+   -- Accumulate_Checksum --
+   -------------------------
+
+   procedure Accumulate_Checksum (C : Character; Csum : in out Word) is
+   begin
+      Csum := Csum + Csum + Character'Pos (C);
+
+      if Csum > 16#8000_0000# then
+         Csum := (Csum + 1) and 16#7FFF_FFFF#;
+      end if;
+   end Accumulate_Checksum;
+
+   -----------------------
+   -- Get_File_Checksum --
+   -----------------------
+
+   function Get_File_Checksum (Fname : Name_Id) return Word is
+      Src  : Source_Buffer_Ptr;
+      Hi   : Source_Ptr;
+      Csum : Word;
+      Ptr  : Source_Ptr;
+
+      Bad : exception;
+      --  Raised if file not found, or file format error
+
+      use Ascii;
+      --  Make control characters visible
+
+      procedure Free_Source;
+      --  Free source file buffer
+
+      procedure Free_Source is
+         procedure free (Arg : Source_Buffer_Ptr);
+         pragma Import (C, free, "free");
+
+      begin
+         free (Src);
+      end Free_Source;
+
+   --  Start of processing for Get_File_Checksum
+
+   begin
+      Read_Source_File (Fname, 0, Hi, Src);
+
+      --  If we cannot find the file, then return an impossible checksum,
+      --  impossible becaues checksums have the high order bit zero, so
+      --  that checksums do not match.
+
+      if Src = null then
+         raise Bad;
+      end if;
+
+      Csum := 0;
+      Ptr := 0;
+
+      loop
+         case Src (Ptr) is
+
+            --  Spaces and formatting information are ignored in checksum
+
+            when ' ' | CR | LF | VT | FF | HT =>
+               Ptr := Ptr + 1;
+
+            --  EOF is ignored unless it is the last character
+
+            when EOF =>
+               if Ptr = Hi then
+                  Free_Source;
+                  return Csum;
+               else
+                  Ptr := Ptr + 1;
+               end if;
+
+            --  Non-blank characters that are included in the checksum
+
+            when '#' | '&' | '*' | ':' | '(' | ',' | '.' | '=' | '>' |
+                 '<' | ')' | '/' | ';' | '|' | '!' | '+' | '_' |
+                 '0' .. '9' | 'a' .. 'z'
+            =>
+               Accumulate_Checksum (Src (Ptr), Csum);
+               Ptr := Ptr + 1;
+
+            --  Upper case letters, fold to lower case
+
+            when 'A' .. 'Z' =>
+               Accumulate_Checksum
+                 (Character'Val (Character'Pos (Src (Ptr)) + 32), Csum);
+               Ptr := Ptr + 1;
+
+            --  Left bracket, really should do wide character thing here,
+            --  but for now, don't bother.
+
+            when '[' =>
+               raise Bad;
+
+            --  Minus, could be comment
+
+            when '-' =>
+               if Src (Ptr + 1) = '-' then
+                  Ptr := Ptr + 2;
+
+                  while Src (Ptr) >= ' ' or else Src (Ptr) = HT loop
+                     Ptr := Ptr + 1;
+                  end loop;
+
+               else
+                  Accumulate_Checksum ('-', Csum);
+                  Ptr := Ptr + 1;
+               end if;
+
+            --  String delimited by double quote
+
+            when '"' =>
+               Accumulate_Checksum ('"', Csum);
+
+               loop
+                  Ptr := Ptr + 1;
+                  exit when Src (Ptr) = '"';
+
+                  if Src (Ptr) < ' ' then
+                     raise Bad;
+                  end if;
+
+                  Accumulate_Checksum (Src (Ptr), Csum);
+               end loop;
+
+               Accumulate_Checksum ('"', Csum);
+               Ptr := Ptr + 1;
+
+            --  String delimited by percent
+
+            when '%' =>
+               Accumulate_Checksum ('%', Csum);
+
+               loop
+                  Ptr := Ptr + 1;
+                  exit when Src (Ptr) = '%';
+
+                  if Src (Ptr) < ' ' then
+                     raise Bad;
+                  end if;
+
+                  Accumulate_Checksum (Src (Ptr), Csum);
+               end loop;
+
+               Accumulate_Checksum ('%', Csum);
+               Ptr := Ptr + 1;
+
+            --  Quote, could be character constant
+
+            when ''' =>
+               Accumulate_Checksum (''', Csum);
+
+               if Src (Ptr + 2) = ''' then
+                  Accumulate_Checksum (Src (Ptr + 1), Csum);
+                  Accumulate_Checksum (''', Csum);
+                  Ptr := Ptr + 3;
+
+               --  Otherwise assume attribute char. We should deal with wide
+               --  character cases here, but that's hard, so forget it.
+
+               else
+                  Ptr := Ptr + 1;
+               end if;
+
+            --  Upper half character, more to be done here, we should worry
+            --  about folding Latin-1, folding other character sets, and
+            --  dealing with the nasty case of upper half wide encoding.
+
+            when Upper_Half_Character =>
+               Accumulate_Checksum (Src (Ptr), Csum);
+               Ptr := Ptr + 1;
+
+            --  Escape character, we should do the wide character thing here,
+            --  but for now, do not bother.
+
+            when ESC =>
+               raise Bad;
+
+            --  Invalid control characters
+
+            when NUL | SOH | STX | ETX | EOT | ENQ | ACK | BEL | BS  | SO  |
+                 SI  | DLE | DC1 | DC2 | DC3 | DC4 | NAK | SYN | ETB | CAN |
+                 EM  | FS  | GS  | RS  | US  | DEL
+            =>
+               raise Bad;
+
+            --  Invalid graphic characters
+
+            when '$' | '?' | '@' | '`' | '\' |
+                 '^' | '~' | ']' | '{' | '}'
+            =>
+               raise Bad;
+
+         end case;
+      end loop;
+
+   exception
+      when Bad =>
+         Free_Source;
+         return 16#FFFF_FFFF#;
+
+   end Get_File_Checksum;
+
    --------------------
    -- Initialize_ALI --
    --------------------
@@ -313,20 +533,6 @@ package body ALI is
             Name_Buffer (Name_Len) := Getc;
             exit when At_End_Of_Field;
          end loop;
-
-         --  Here is where we adjust any references to units that are
-         --  affected by configuration pragmas.
-
-         if Queuing_Policy = 'P' then
-            if Name_Len = 12 then
-               if Name_Buffer (1 .. 12) = "s-tasque.adb"
-                 or else
-                  Name_Buffer (1 .. 12) = "s-tasque.ali"
-               then
-                  Name_Buffer (8) := 'p';
-               end if;
-            end if;
-         end if;
 
          return Name_Find;
       end Get_Name;
@@ -699,12 +905,14 @@ package body ALI is
                Withs.Table (Withs.Last).Sfile := Get_Name;
                Withs.Table (Withs.Last).Afile := Get_Name;
 
-               --  Scan out possible E and EA parameters
+               --  Scan out possible E, EA, and NE parameters
 
                while not At_Eol loop
                   Skip_Space;
 
-                  if Getc = 'E' then
+                  if Nextc = 'E' then
+                     P := P + 1;
+
                      if At_End_Of_Field then
                         Withs.Table (Withs.Last).Elaborate := True;
                      else
@@ -1048,6 +1256,24 @@ package body ALI is
    begin
       for D in ALIs.Table (A).First_Sdep .. ALIs.Table (A).Last_Sdep loop
          Src := Source_Id (Get_Name_Table_Info (Sdep.Table (D).Sfile));
+
+         if Opt.Smart_Compilations
+           and then Sdep.Table (D).Stamp /= Source.Table (Src).Stamp
+         then
+
+            --  If smart compilation is in action, replace the stamp
+            --  of the source file in the table if checksums match.
+            --  ??? It is probably worth updating the ALI file with a new
+            --  field to avoid recomputing it each time.
+
+            if Sdep.Table (D).Checksum_Present
+              and then Get_File_Checksum (Sdep.Table (D).Sfile) =
+              Source.Table (Src).Checksum
+            then
+               Sdep.Table (D).Stamp := Source.Table (Src).Stamp;
+            end if;
+
+         end if;
 
          if not Source.Table (Src).Source_Found
            or else Sdep.Table (D).Stamp /= Source.Table (Src).Stamp

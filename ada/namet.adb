@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -136,6 +136,16 @@ package body Namet is
       Name_Len := Name_Len + 1;
       Name_Buffer (Name_Len) := Character'Val (Character'Pos ('0') + V rem 10);
    end Add_Nat_To_Name_Buffer;
+
+   ----------------------------
+   -- Add_Str_To_Name_Buffer --
+   ----------------------------
+
+   procedure Add_Str_To_Name_Buffer (S : String) is
+   begin
+      Name_Buffer (Name_Len + 1 .. Name_Len + S'Length) := S;
+      Name_Len := Name_Len + S'Length;
+   end Add_Str_To_Name_Buffer;
 
    ----------
    -- Hash --

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -50,7 +50,7 @@ package body Debug is
    --  dg   Print source from tree (generated code only)
    --  dh   Generate listing showing loading of name table hash chains
    --  di   Generate messages for visibility linking/delinking
-   --  dj
+   --  dj   Suppress "junk null check" for access parameter values
    --  dk   Generate GNATBUG message on abort, even if previous errors
    --  dl   Generate unit load trace messages
    --  dm   Allow VMS features even if not OpenVMS version
@@ -195,6 +195,12 @@ package body Debug is
    --       effectively with typical sets of program identifiers.
 
    --  di   Generate messages for visibility linking/delinking
+
+   --  dj   Suppress "junk null check" for access parameters. This flag permits
+   --       Ada programs to pass null parameters to access parameters, and to
+   --       explicitly check such access values against the null literal.
+   --       Neither of these is valid Ada, but both were allowed in versions of
+   --       GNAT before 3.10, so this switch can ease the transition process.
 
    --  dk   Immediate kill on abort. Normally on an abort (i.e. a call to
    --       Comperr.Compiler_Abort), the GNATBUG message is not given if

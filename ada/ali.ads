@@ -263,6 +263,7 @@ package ALI is
 
       Elaborate_All : Boolean;
       --  Indicates presence of EA parameter
+
    end record;
 
    package Withs is new Table (
@@ -438,6 +439,19 @@ package ALI is
    --  Otherwise return the first file for which there is a mismatch.
    --  Note that in check source files mode (Check_Source_Files = True), the
    --  time stamp in the Source_Table should be the actual time stamp of the
-   --  source files.
+   --  source files. In smart compilation mode (Smart_Compilations = True),
+   --  no mismatch will be found if the file's timestamp has not changed.
+
+   --------------------------------------------
+   -- Subprograms for manipulating checksums --
+   --------------------------------------------
+
+   function Get_File_Checksum (Fname : Name_Id) return Word;
+   --  Compute checksum for the given file. As far as possible, this circuit
+   --  computes exactly the same value computed by the compiler, but it does
+   --  not matter if it gets it wrong in marginal cases, since the only result
+   --  is to miss some smart recompilation cases, correct functioning is not
+   --  affecte by a mis-computation. Returns an impossible checksum value,
+   --  with the upper bit set, if the file is missing or has an error.
 
 end ALI;

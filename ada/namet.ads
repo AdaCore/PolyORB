@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -140,7 +140,7 @@ package Namet is
    --  Get_Name_String is used to retrieve the string associated with an entry
    --  in the names table. The resulting string is stored in Name_Buffer
    --  and Name_Len is set. It is an error to call Get_Name_String with one
-   --  of the special name Id values (No_Name, Error_Name, or Child_Name).
+   --  of the special name Id values (No_Name or Error_Name).
 
    procedure Get_Name_String_And_Append (Id : Name_Id);
    --  Like Get_Name_String but the resulting characters are appended to
@@ -238,6 +238,10 @@ package Namet is
    procedure Add_Nat_To_Name_Buffer (V : Nat);
    --  Add decimal representation of given value to the end of the string
    --  currently stored in Name_Buffer, incrementing Name_Len as required.
+
+   procedure Add_Str_To_Name_Buffer (S : String);
+   --  Add characters of string S to the end of the string currently stored
+   --  in the Name_Buffer, incrementing Name_Len by the length of the string.
 
    procedure Set_Character_Literal_Name (C : Char_Code);
    --  This procedure sets the proper encoded name for the character literal

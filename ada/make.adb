@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,6 +36,7 @@ with Opt;
 with Osint;    use Osint;
 with Gnatvsn;
 with Output;   use Output;
+with Sdefault;
 with Switch;   use Switch;
 with Table;
 with Types;    use Types;
@@ -1343,8 +1344,9 @@ package body Make is
 
    procedure Initialize is
 
-      Next_Arg : Positive;
-
+      Next_Arg    : Positive;
+      Search_Dir  : String_Access;
+      Search_Path : String_Access;
    begin
 
       --  Default initialization of the flags affecting gnatmake
@@ -1376,6 +1378,27 @@ package body Make is
       end loop Scan_Args;
 
       Osint.Add_Default_Search_Dirs;
+
+      --  Add the default object directory to the -aL list in case the
+      --  objects are in a library.  This isn't necessary for the predefined
+      --  units, but the g- (GNAT.) units are no longer considered predefined
+      --  but are still precompiled.  Also other systems (notably VMS) have
+      --  multiple default source and object search paths which will have
+      --  non-predefined units that may be in a library.
+
+      --  Note that there still may be a problem where GNAT is not installed
+      --  in the default (sdefault) directories, but instead the environment
+      --  variable ADA_OBJECTS_PATH points to the RTL objects.  Should
+      --  these units also be in the -aL list ???
+
+      Search_Path := String_Access (Sdefault.Object_Dir_Default_Name);
+
+      Osint.Get_Next_Dir_In_Path_Init (Search_Path);
+      loop
+         Search_Dir := Osint.Get_Next_Dir_In_Path (Search_Path);
+         exit when Search_Dir = null;
+         Add_Ada_Lib_Search_Dir (Search_Dir.all);
+      end loop;
 
       Csets.Initialize;
       Namet.Initialize;
@@ -2134,6 +2157,12 @@ package body Make is
          then
             Add_Switch (Argv, Compiler);
             Add_Switch (Argv, Linker);
+
+            --  -s
+         elsif Argv (2) = 's'
+           and then (Argv'Last = 2)
+         then
+            Opt.Smart_Compilations := True;
 
             --  By default all switches with more than one character
             --  or one character switches which are not in 'a' .. 'z'

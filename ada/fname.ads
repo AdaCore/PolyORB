@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -163,7 +163,7 @@ package Fname is
    --  file name. The Renamings_Included parameter indicates whether annex
    --  J renamings such as Text_IO are to be considered as predefined. If
    --  Renamings_Included is True, then Text_IO will return True, otherwise
-   --  only children of GNAT, Ada, Interfaces and System return True.
+   --  only children of Ada, Interfaces and System return True.
 
    function File_Name_Of_Spec (Name : Name_Id) return File_Name_Type;
    --  Returns the file name that corresponds to the spec of a given unit

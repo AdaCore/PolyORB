@@ -76,16 +76,6 @@ package Osint is
      Table_Increment      => 100,
      Table_Name           => "Osint.Linker_Switches");
 
-   procedure Add_Src_Search_Dir (Dir : String);
-   --  Add Dir at the end of the source file search path
-
-   procedure Add_Lib_Search_Dir (Dir : String);
-   --  Add Dir at the end of the library file search path
-
-   function Get_Primary_Src_Search_Directory return String_Ptr;
-   --  Retrieved the primary directory (directory containing the main source
-   --   file for Gnatmake.
-
    procedure Set_Main_File_Name (Name : String);
    --  Set the main file name for Gnatmake.
 
@@ -116,18 +106,6 @@ package Osint is
    type Program_Type is (Compiler, Binder, Make);
    Program : Program_Type;
    --  Program currently running (set by Initialize below)
-
-   procedure Add_Default_Search_Dirs;
-   --  This routine adds the default search dirs indicated by the
-   --  environment variables and sdefault package.
-
-   function Nb_Dir_In_Src_Search_Path return Natural;
-   function Dir_In_Src_Search_Path (Position : Natural) return String_Ptr;
-   --  Functions to access the directory names in the source search path
-
-   function Nb_Dir_In_Obj_Search_Path return Natural;
-   function Dir_In_Obj_Search_Path (Position : Natural) return String_Ptr;
-   --  Functions to access the directory names in the Object search path
 
    procedure Initialize (P : Program_Type);
    --  This routine scans parameters and initializes for the first call to
@@ -173,6 +151,43 @@ package Osint is
    --  path information in order to locate it. If the source file cannot be
    --  opened, or Name = No_File, and all blank time stamp is returned (this is
    --  not an error situation).
+
+   -------------------------
+   -- Search Dir Routines --
+   -------------------------
+
+   procedure Add_Default_Search_Dirs;
+   --  This routine adds the default search dirs indicated by the
+   --  environment variables and sdefault package.
+
+   procedure Add_Lib_Search_Dir (Dir : String);
+   --  Add Dir at the end of the library file search path
+
+   procedure Add_Src_Search_Dir (Dir : String);
+   --  Add Dir at the end of the source file search path
+
+   procedure Get_Next_Dir_In_Path_Init
+     (Search_Path : String_Access);
+   function  Get_Next_Dir_In_Path
+     (Search_Path : String_Access)
+      return        String_Access;
+   --  These subprograms are used to parse out the directory names in a
+   --  search path specified by a Search_Path argument. The procedure
+   --  initializes an internal pointer to point to the initial directory
+   --  name, and calls to the function return sucessive directory names,
+   --  with a null pointer marking the end of the list.
+
+   function Get_Primary_Src_Search_Directory return String_Ptr;
+   --  Retrieved the primary directory (directory containing the main source
+   --   file for Gnatmake.
+
+   function Nb_Dir_In_Src_Search_Path return Natural;
+   function Dir_In_Src_Search_Path (Position : Natural) return String_Ptr;
+   --  Functions to access the directory names in the source search path
+
+   function Nb_Dir_In_Obj_Search_Path return Natural;
+   function Dir_In_Obj_Search_Path (Position : Natural) return String_Ptr;
+   --  Functions to access the directory names in the Object search path
 
    -----------------------
    -- Source File Input --

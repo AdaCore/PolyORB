@@ -420,6 +420,8 @@ package body Switch is
 
             if Program = Compiler then
                RM_Column_Check := True;
+            elsif Program = Binder then
+               Bind_Alternate_Main_Name := True;
             else
                raise Bad_Switch;
             end if;

@@ -1005,51 +1005,78 @@ package body Osint is
 
    end Scan_Compiler_Args;
 
+   -------------------------------
+   -- Get_Next_Dir_In_Path_Init --
+   -------------------------------
+
+   Search_Path_Pos : Integer;
+
+   procedure Get_Next_Dir_In_Path_Init (Search_Path : String_Access) is
+   begin
+      Search_Path_Pos := Search_Path'First;
+   end Get_Next_Dir_In_Path_Init;
+
+   --------------------------
+   -- Get_Next_Dir_In_Path --
+   --------------------------
+
+   function Get_Next_Dir_In_Path
+     (Search_Path : String_Access)
+      return        String_Access
+   is
+      Lower_Bound : Positive := Search_Path_Pos;
+      Upper_Bound : Positive;
+
+   begin
+      loop
+         while Lower_Bound <= Search_Path'Last
+           and then Search_Path.all (Lower_Bound) = Path_Separator
+         loop
+            Lower_Bound := Lower_Bound + 1;
+         end loop;
+
+         exit when Lower_Bound > Search_Path'Last;
+
+         Upper_Bound := Lower_Bound;
+         while Upper_Bound <= Search_Path'Last
+           and then Search_Path.all (Upper_Bound) /= Path_Separator
+         loop
+            Upper_Bound := Upper_Bound + 1;
+         end loop;
+
+         Search_Path_Pos := Upper_Bound;
+         return new String'(Search_Path.all (Lower_Bound .. Upper_Bound - 1));
+      end loop;
+
+      return null;
+   end Get_Next_Dir_In_Path;
+
    -----------------------------
    -- Add_Default_Search_Dirs --
    -----------------------------
 
    procedure Add_Default_Search_Dirs is
-      procedure Add_Search_Dir (Search_Path           : String_Access;
-                                Additional_Source_Dir : Boolean);
 
-      procedure Add_Search_Dir (Search_Path           : String_Access;
-                                Additional_Source_Dir : Boolean)
+      procedure Add_Search_Dir
+        (Search_Dir            : String_Access;
+         Additional_Source_Dir : Boolean);
+      --  Needs documentation ???
+
+      procedure Add_Search_Dir
+        (Search_Dir            : String_Access;
+         Additional_Source_Dir : Boolean)
       is
-         Lower_Bound : Positive := 1;
-         Upper_Bound : Positive;
-
       begin
-         loop
-            while Lower_Bound <= Search_Path'Last
-              and then Search_Path.all (Lower_Bound) = Path_Separator
-            loop
-               Lower_Bound := Lower_Bound + 1;
-            end loop;
-
-            exit when Lower_Bound > Search_Path'Last;
-
-            Upper_Bound := Lower_Bound;
-            while Upper_Bound <= Search_Path'Last
-              and then Search_Path.all (Upper_Bound) /= Path_Separator
-            loop
-               Upper_Bound := Upper_Bound + 1;
-            end loop;
-
-            if Additional_Source_Dir then
-               Add_Src_Search_Dir
-                 (Search_Path.all (Lower_Bound .. Upper_Bound - 1));
-            else
-               Add_Lib_Search_Dir
-                 (Search_Path.all (Lower_Bound .. Upper_Bound - 1));
-            end if;
-
-            Lower_Bound := Upper_Bound + 1;
-         end loop;
+         if Additional_Source_Dir then
+            Add_Src_Search_Dir (Search_Dir.all);
+         else
+            Add_Lib_Search_Dir (Search_Dir.all);
+         end if;
       end Add_Search_Dir;
 
       --  Initialize variables
 
+      Search_Dir  : String_Access;
       Search_Path : String_Access;
 
    --  Begin of Add_Default_Search_Dirs
@@ -1068,15 +1095,31 @@ package body Osint is
             Search_Path := Getenv ("ADA_OBJECTS_PATH");
          end if;
 
-         if Search_Path'Length > 0 then
-            Add_Search_Dir (Search_Path, Additional_Source_Dir);
-         end if;
+         Get_Next_Dir_In_Path_Init (Search_Path);
+         loop
+            Search_Dir := Get_Next_Dir_In_Path (Search_Path);
+            exit when Search_Dir = null;
+            Add_Search_Dir (Search_Dir, Additional_Source_Dir);
+         end loop;
       end loop;
 
       --  The last place to look are the defaults.
 
-      Add_Search_Dir (String_Access (Include_Dir_Default_Name), True);
-      Add_Search_Dir (String_Access (Object_Dir_Default_Name), False);
+      Search_Path := String_Access (Include_Dir_Default_Name);
+      Get_Next_Dir_In_Path_Init (Search_Path);
+      loop
+         Search_Dir := Get_Next_Dir_In_Path (Search_Path);
+         exit when Search_Dir = null;
+         Add_Search_Dir (Search_Dir, True);
+      end loop;
+
+      Search_Path := String_Access (Object_Dir_Default_Name);
+      Get_Next_Dir_In_Path_Init (Search_Path);
+      loop
+         Search_Dir := Get_Next_Dir_In_Path (Search_Path);
+         exit when Search_Dir = null;
+         Add_Search_Dir (Search_Dir, False);
+      end loop;
 
    end Add_Default_Search_Dirs;
 

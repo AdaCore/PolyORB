@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -94,6 +94,8 @@ package body System.Secondary_Stack is
    function From_Addr is new Unchecked_Conversion (Address, Stack_Ptr);
    function To_Addr   is new Unchecked_Conversion (Stack_Ptr, System.Address);
 
+   procedure Free is new Unchecked_Deallocation (Chunk_Id, Chunk_Ptr);
+
    --------------
    -- Allocate --
    --------------
@@ -111,6 +113,9 @@ package body System.Secondary_Stack is
                        ((Mark_Id (Storage_Size) + Max_Align - 1) / Max_Align)
                          * Max_Align;
 
+      Count_Unreleased_Chunks : Natural;
+      To_Be_Released_Chunk     : Chunk_Ptr;
+
    begin
       --  The Current_Chunk may not be the good one if a lot of release
       --  operations have taken place. So go down the stack if necessary
@@ -122,9 +127,20 @@ package body System.Secondary_Stack is
       --  Find out if the available memory in the current chunk is sufficient.
       --  if not, go to the next one and eventally create the necessary room
 
+      Count_Unreleased_Chunks := 0;
+
       while Chunk.Last - Stack.Top + 1 < Max_Size loop
          if Chunk.Next /= null then
-            null;
+
+            --  Release unused non-first empty chunk
+
+            if Chunk.Prev /= null and then Chunk.First = Stack.Top then
+               To_Be_Released_Chunk := Chunk;
+               Chunk := Chunk.Prev;
+               Chunk.Next := To_Be_Released_Chunk.Next;
+               To_Be_Released_Chunk.Next.Prev := Chunk;
+               Free (To_Be_Released_Chunk);
+            end if;
 
          --  Create new chunk of the default size unless it is not sufficient
 
@@ -179,7 +195,6 @@ package body System.Secondary_Stack is
       Chunk : Chunk_Ptr := Stack.Current_Chunk;
 
       procedure Free is new Unchecked_Deallocation (Stack_Id, Stack_Ptr);
-      procedure Free is new Unchecked_Deallocation (Chunk_Id, Chunk_Ptr);
 
    begin
       while Chunk.Prev /= null loop

@@ -80,6 +80,10 @@ package Opt is
    --  GNATBIND
    --  Set to False if not binding main Ada program.
 
+   Bind_Alternate_Main_Name : Boolean := False;
+   --  GNATBIND
+   --  Set to True if main should be called gnat_main.
+
    Brief_Output : Boolean := False;
    --  GNAT, GNATF, GNATBIND
    --  Force brief error messages to standard error, even if verbose mode is
