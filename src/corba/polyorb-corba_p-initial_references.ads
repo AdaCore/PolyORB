@@ -33,8 +33,6 @@
 
 --  Support package for CORBA initial references.
 
---  $Id$
-
 with CORBA.Object;
 
 with PolyORB.Utils.Strings.Lists;
