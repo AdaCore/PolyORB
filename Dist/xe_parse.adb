@@ -764,9 +764,9 @@ package body XE_Parse is
       Search_Pragma (Pragma_Name, Pragma_Kind, Pragma_Node);
       if Pragma_Kind = Pragma_Unknown then
          Write_Location (Get_Token_Location);
-         Write_Str  ("pragma ");
+         Write_Str  ("unrecognized pragma """);
          Write_Name (Token_Name);
-         Write_Str  (" not supported");
+         Write_Str  ("""");
          Write_Eol;
          Exit_On_Parsing_Error;
       end if;
@@ -938,9 +938,9 @@ package body XE_Parse is
 
          else
             Write_Location (Get_Token_Location);
-            Write_Str ("identifier ");
+            Write_Str ("identifier """);
             Write_Name (Direct_Name);
-            Write_Str (" is neither a variable");
+            Write_Str (""" is neither a variable");
             Write_Str (" nor a predefined type");
             Write_Eol;
             Exit_On_Parsing_Error;
@@ -948,9 +948,9 @@ package body XE_Parse is
 
       else
          Write_Location (Get_Token_Location);
-         Write_Str ("identifier ");
+         Write_Str ("identifier """);
          Write_Name (Direct_Name);
-         Write_Str (" is undefined here");
+         Write_Str (""" is undefined here");
          Write_Eol;
          Exit_On_Parsing_Error;
       end if;
@@ -2340,9 +2340,9 @@ package body XE_Parse is
       end loop;
 
       Write_Location (Get_Token_Location);
-      Write_Str  ("identifier ");
+      Write_Str  ("identifier """);
       Write_Name (Actual_Name);
-      Write_Str  (" is undefined");
+      Write_Str  (""" is undefined here");
       Write_Eol;
       Exit_On_Parsing_Error;
 
@@ -2459,7 +2459,11 @@ package body XE_Parse is
    begin
 
       Search_Subprogram (Pragma_Name, Node);
-      Pragma_Kind := Convert (Get_Subprogram_Mark (Node));
+      if Node = Null_Subprogram then
+         Pragma_Kind := Pragma_Unknown;
+      else
+         Pragma_Kind := Convert (Get_Subprogram_Mark (Node));
+      end if;
       Pragma_Node := Node;
 
    end Search_Pragma;
