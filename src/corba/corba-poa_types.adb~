@@ -1,0 +1,44 @@
+package body CORBA.POA_Types is
+
+   ---------------
+   -- Create_Id --
+   ---------------
+
+   function Create_Id
+     (Name             : in CORBA.String;
+      System_Generated : in CORBA.Boolean;
+      Persistency_Flag : in CORBA.Short)
+     return Unmarshalled_Oid
+   is
+      U_Oid : Unmarshalled_Oid_Ptr;
+   begin
+      U_Oid := new Unmarshalled_Oid'(Name,
+                                     System_Generated,
+                                     Persistency_Flag);
+      return U_Oid;
+   end Create_Id;
+
+   ---------------
+   -- Create_Id --
+   ---------------
+
+   function Create_Id
+     (Name             : in CORBA.String;
+      System_Generated : in CORBA.Boolean;
+      Persistency_Flag : in CORBA.Short)
+     return Object_Id
+   is
+   begin
+      return Create_Id (Name, System_Generated, Persistency_Flag);
+
+   function Unmarshall (Oid : Object_Id) return Unmarshalled_Oid;
+   --  Unmarshall an Object_Id into a Unmarshalled_Oid
+
+   function Marshall (U_Oid : Unmarshalled_Oid) return Object_Id;
+   --  Marshall an Unmarshalled_Oid into an Object_Id
+
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Unmarshalled_Oid, Unmarshalled_Oid_Ptr);
+
+
+end CORBA.POA_Types;
