@@ -48,8 +48,8 @@ with PolyORB.Smart_Pointers;
 package body PortableInterceptor.RequestInfo.Impl is
 
    use Dynamic;
-   use PolyORB.Request_QoS;
    use PolyORB.CORBA_P.Codec_Utils;
+   use PolyORB.Request_QoS;
    use PolyORB.Request_QoS.Service_Contexts;
 
    function To_CORBA_ParameterMode (Mode : in PolyORB.Any.Flags)
