@@ -53,6 +53,11 @@ package CORBA.Repository_Root.Container.Impl is
       Success : out Boolean;
       Result : out Object_Ptr);
 
+   --  should only be called if the cast is safe!
+   function To_Container
+     (Self : CORBA.Repository_Root.IRObject.Impl.Object_Ptr)
+     return Object_Ptr;
+
    -------------
    -- IR spec --
    -------------

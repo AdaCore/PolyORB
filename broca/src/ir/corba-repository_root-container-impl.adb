@@ -3,16 +3,36 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with Ada.Strings.Unbounded;
 with CORBA.AbstractBase;
+with CORBA.Impl;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Container.Skel;
 with CORBA.Repository_Root.StructDef.Impl;
 with CORBA.Repository_Root.UnionDef.Impl;
+with CORBA.Repository_Root.Repository.Impl;
+with CORBA.Repository_Root.InterfaceDef.Impl;
+with CORBA.Repository_Root.ValueDef.Impl;
 
+with Broca.Exceptions;
+with Broca.Debug;
 
 package body CORBA.Repository_Root.Container.Impl is
+
+   -----------
+   -- Debug --
+   -----------
+
+   Flag : constant Natural
+     := Broca.Debug.Is_Active ("container.impl");
+   procedure O is new Broca.Debug.Output (Flag);
+
+   Flag2 : constant Natural
+     := Broca.Debug.Is_Active ("container.impl_method_trace");
+   procedure O2 is new Broca.Debug.Output (Flag2);
+
 
    ----------------------
    --  Procedure init  --
@@ -28,6 +48,9 @@ package body CORBA.Repository_Root.Container.Impl is
    end Init;
 
 
+   -----------------
+   --  To_Object  --
+   -----------------
    function To_Object (Fw_Ref : Container_Forward.Ref)
                        return Container.Impl.Object_Ptr is
    begin
@@ -37,6 +60,9 @@ package body CORBA.Repository_Root.Container.Impl is
           (Fw_Ref)));
    end To_Object;
 
+   ------------------------------------------
+   --  manipulation of the contents field  --
+   ------------------------------------------
    function Get_Contents
      (Self : access Object)
       return CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence is
@@ -57,7 +83,7 @@ package body CORBA.Repository_Root.Container.Impl is
    begin
       Contained.Impl.Contained_Seq.Append (Self.Contents,
                                            Element);
-   end;
+   end Append_To_Contents;
 
    procedure Delete_From_Contents (Self : access Object;
                                    Element : Contained.Impl.Object_Ptr)
@@ -72,8 +98,11 @@ package body CORBA.Repository_Root.Container.Impl is
       Contained.Impl.Contained_Seq.Delete (Self.Contents,
                                            Index,
                                            Natural (Index));
-   end;
+   end Delete_From_Contents;
 
+   --------------------
+   --  To_Container  --
+   --------------------
    procedure To_Container
      (Self : IRObject.Impl.Object_Ptr;
       Success : out Boolean;
@@ -133,6 +162,61 @@ package body CORBA.Repository_Root.Container.Impl is
       return;
    end To_Container;
 
+   function To_Container
+     (Self : IRObject.Impl.Object_Ptr)
+      return Object_ptr
+   is
+   begin
+      case IRObject.Impl.Get_Def_Kind
+        (Self) is
+         when
+           Dk_Attribute  |
+           Dk_Constant   |
+           Dk_Operation  |
+           Dk_Typedef    |
+           Dk_Alias      |
+           Dk_Primitive  |
+           Dk_String     |
+           Dk_Sequence   |
+           Dk_Array      |
+           Dk_Wstring    |
+           Dk_Fixed      |
+           Dk_Enum       |
+           Dk_ValueBox   |
+           dk_ValueMember|
+           dk_Native     |
+           Dk_All        |
+           Dk_None       =>
+            Broca.Exceptions.Raise_Internal;
+            return null;
+         when
+           --  inherited types
+           Dk_Repository |
+           Dk_Value      |
+           Dk_Module     |
+           Dk_Exception  |
+           Dk_Interface  =>
+            return Object_Ptr (Self);
+         when
+           -- types containing a "container_view" field
+           Dk_Struct     =>
+            declare
+               Interm : Structdef.Impl.Object_Ptr :=
+                 Structdef.Impl.Object_Ptr (Self);
+            begin
+               return Structdef.Impl.Get_Container_View (Interm);
+            end;
+         when
+           -- types containing a "container_view" field
+           Dk_Union      =>
+            declare
+               Interm : Uniondef.Impl.Object_Ptr :=
+                 Uniondef.Impl.Object_Ptr (Self);
+            begin
+               return Uniondef.Impl.Get_Container_View (Interm);
+            end;
+      end case;
+   end To_Container;
 
    -------------
    -- IR spec --
@@ -143,11 +227,37 @@ package body CORBA.Repository_Root.Container.Impl is
       search_name : in CORBA.ScopedName)
      return CORBA.Repository_Root.Contained.Ref
    is
+      Result_Obj : Contained.Impl.Object_Ptr := null;
       Result : CORBA.Repository_Root.Contained.Ref;
+      use Contained.Impl;
+      use Ada.Strings.Unbounded;
    begin
-
-      --  Insert implementation of lookup
-
+      --  if it begins with :: then lookup in all the repository
+      if Head (Unbounded_String (Search_Name), 2) = "::" then
+         declare
+            New_Search : ScopedName
+              := ScopedName (Tail (Unbounded_String (Search_Name),
+                                   Length (Unbounded_String (Search_Name)) - 2));
+         begin
+            if Get_Def_Kind (Self) = Dk_Repository then
+               Result_Obj := Lookup_ScopedName (Self.Contents,
+                                                New_Search);
+            else
+               Result_Obj := Lookup_ScopedName
+                 (Repository.Impl.Get_Contents
+                  (Repository.Impl.To_Object
+                   (Get_Containing_Repository
+                    (To_Contained (Get_Real_Object (Self))))),
+                  New_Search);
+            end if;
+         end;
+      else
+         Result_Obj := Lookup_ScopedName (Self.Contents,
+                                          Search_Name);
+      end if;
+      --  return a Nil_ref if result_obj is null.
+      Contained.Set (Result,
+                     CORBA.Impl.Object_Ptr (Result_Obj));
       return Result;
    end lookup;
 
@@ -175,10 +285,51 @@ package body CORBA.Repository_Root.Container.Impl is
       exclude_inherited : in CORBA.Boolean)
      return CORBA.Repository_Root.ContainedSeq
    is
+      package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
       Result : CORBA.Repository_Root.ContainedSeq;
    begin
+      Result := Contained.Impl.Lookup_Name (Self.Contents,
+                                            Search_Name,
+                                            Limit_Type);
 
-      --  Insert implementation of lookup_name
+      if not Exclude_Inherited then
+         case Get_Def_Kind (Self) is
+            when Dk_Interface =>
+               declare
+                  package IDF renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
+                  IntDefSeq : InterfaceDefSeq
+                    := InterfaceDef.Impl.Get_Base_Interfaces
+                    (InterfaceDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  Int_Array : IDF.Element_Array
+                    := IDF.To_Element_Array (IDF.Sequence (IntDefSeq));
+               begin
+                  for I in Int_Array'Range loop
+                     declare
+                        Int : InterfaceDef.Impl.Object_Ptr
+                          := InterfaceDef.Impl.To_Object (Int_Array (I));
+                        Res : ContainedSeq;
+                     begin
+                        --  we will get all the definition of the inherited interface
+                        Res := Lookup_Name (Object_Ptr (Int),
+                                            Search_Name,
+                                            -1,
+                                            Limit_Type,
+                                            Exclude_Inherited);
+                        Contained_For_Seq.Append
+                          (Contained_For_Seq.Sequence (Result),
+                           Contained_For_Seq.Sequence (Res));
+                     end;
+                  end loop;
+               end;
+            when Dk_Value =>
+               declare
+               begin
+                  null;
+               end;
+            when others =>
+               null;
+         end case;
+      end if;
 
       return Result;
    end lookup_name;

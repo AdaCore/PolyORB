@@ -38,6 +38,10 @@ package CORBA.Repository_Root.Contained.Impl is
       Success : out Boolean;
       Result : out Object_Ptr);
 
+   --  should only be called if the cast is safe!
+   function To_Contained
+     (Self : CORBA.Repository_Root.IRObject.Impl.Object_Ptr)
+     return Object_Ptr;
 
    function get_id
      (Self : access Object)
@@ -100,10 +104,22 @@ package CORBA.Repository_Root.Contained.Impl is
    package Contained_Seq is new Sequences.Unbounded (Object_Ptr);
 
    --  return null if RepId not found in In_Seq
-   function Lookup_Id
-     (In_Seq : Contained_Seq.Sequence;
-      Search_Id : CORBA.RepositoryId)
-      return Object_Ptr;
+   function Lookup_Id (In_Seq : Contained_Seq.Sequence;
+                       Search_Id : CORBA.RepositoryId)
+                       return Object_Ptr;
+
+   --  Look for the given scopedName in the Sequence.
+   --  Returns  nil object reference if not found.
+   --  The Name should not begin with ::
+   function Lookup_ScopedName (In_Seq : Contained_Seq.Sequence;
+                               Name : ScopedName) return Object_Ptr;
+
+   --  Look for the given name in the given contained sequence
+   --  Check also if the definition_kind correspond to the limit
+   --  Returns the result in a ContainedSeq
+   function Lookup_Name (In_Seq : Contained_Seq.Sequence;
+                         Name : Identifier;
+                         Limit_Type : DefinitionKind) return ContainedSeq;
 
 private
 

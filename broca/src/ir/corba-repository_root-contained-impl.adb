@@ -4,6 +4,7 @@
 ----------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+with Ada.Strings.Unbounded;
 with CORBA.AbstractBase;
 with CORBA.Impl;
 
@@ -203,6 +204,77 @@ package body CORBA.Repository_Root.Contained.Impl is
       end case;
       return;
    end To_Contained;
+
+
+   function To_Contained
+     (Self : IRObject.Impl.Object_Ptr)
+     return  Object_ptr
+   is
+   begin
+      case IRObject.Impl.Get_Def_Kind
+        (Self) is
+         when
+           Dk_Repository |
+           Dk_Primitive  |
+           Dk_String     |
+           Dk_Sequence   |
+           Dk_Array      |
+           Dk_Wstring    |
+           Dk_Fixed      |
+           Dk_All        |
+           Dk_None       =>
+            Broca.Exceptions.Raise_Internal;
+            return null;
+         when
+           --  inherited types
+           Dk_Attribute  |
+           Dk_Constant   |
+           Dk_Operation  |
+           Dk_Typedef    |
+           Dk_Alias      |
+           Dk_Struct     |
+           Dk_Union      |
+           Dk_Enum       |
+           Dk_ValueBox   |
+           dk_ValueMember|
+           dk_Native =>
+            return Object_Ptr (Self);
+              -- types containing a "contained_view" field
+         when
+           Dk_Exception  =>
+            declare
+               Interm : Exceptiondef.Impl.Object_Ptr :=
+                 Exceptiondef.Impl.Object_Ptr (Self);
+            begin
+               return Exceptiondef.Impl.Get_Contained_View (Interm);
+            end;
+         when
+           Dk_Module     =>
+            declare
+               Interm : Moduledef.Impl.Object_Ptr :=
+                 Moduledef.Impl.Object_Ptr (Self);
+            begin
+               return Moduledef.Impl.Get_Contained_View (Interm);
+            end;
+         when
+           Dk_Value      =>
+            declare
+               Interm : Valuedef.Impl.Object_Ptr :=
+                 Valuedef.Impl.Object_Ptr (Self);
+            begin
+               return Valuedef.Impl.Get_Contained_View (Interm);
+            end;
+         when
+           Dk_Interface  =>
+            declare
+               Interm : Interfacedef.Impl.Object_Ptr :=
+                 Interfacedef.Impl.Object_Ptr (Self);
+            begin
+               return Interfacedef.Impl.Get_Contained_View (Interm);
+            end;
+      end case;
+   end To_Contained;
+
 
    -----------------------
    -- IR implementation --
@@ -583,6 +655,85 @@ package body CORBA.Repository_Root.Contained.Impl is
       return Result;
    end Lookup_Id;
 
+   -------------------------
+   -- Lookup_Scoped_Name --
+   -------------------------
+   function Lookup_ScopedName (In_Seq : Contained_Seq.Sequence;
+                               Name : ScopedName) return Object_Ptr is
+      use Ada.Strings.Unbounded;
+
+      Result : Object_Ptr := null;
+      Search : Unbounded_String := Unbounded_String (Name);
+      Look : Unbounded_String;
+      Ind : Natural;
+   begin
+      --  Should not begin with ::
+      if Head (Search, 2) = "::" then
+         Broca.Exceptions.Raise_Internal;
+      end if;
+
+      --  Calculate the Index of "::"
+      Ind := Index (Search, "::");
+      if Ind /= 0 then
+         --  create the name to look at in the In_Seq
+         Look := Head (Search, Ind - To_String (Search)'First);
+         --  create the new search
+         Tail (Search, Length (Search) - Length (Look) - 2);
+      else
+         --  create the name to look at in the In_Seq
+         Look := Search;
+      end if;
+
+      declare
+         Cont_Array : Contained_Seq.Element_Array
+           := Contained_Seq.To_Element_Array (In_Seq);
+      begin
+         for I in Cont_Array'Range loop
+            if Cont_Array (I).Name = Identifier (Look) then
+               Result := Cont_Array (I);
+               exit;
+            end if;
+         end loop;
+      end;
+
+      if Result = null then
+         return null;
+      end if;
+
+      if Ind = 0 then
+         --  we finally found the right object
+         return Result;
+      else
+         --  the scopedName is no empty, we have to continue the query
+         declare
+            Success : Boolean;
+            Obj : Container.Impl.Object_Ptr;
+         begin
+            --  What we found should be a container...
+            Container.Impl.To_Container (Get_Real_Object (Result),
+                                         Success,
+                                         Obj);
+            if not Success then
+               return null;
+            else
+               return Lookup_ScopedName (Container.Impl.Get_Contents (Obj),
+                                         ScopedName (Search));
+            end if;
+         end;
+      end if;
+   end Lookup_ScopedName;
+
+   -----------------
+   -- Lookup_Name --
+   -----------------
+   function Lookup_Name (In_Seq : Contained_Seq.Sequence;
+                         Name : Identifier;
+                         Limit_Type : DefinitionKind) return ContainedSeq is
+      Result : ContainedSeq;
+   begin
+      return Result;
+   end;
+
    -----------------------
    --  To_containedSeq  --
    -----------------------
@@ -606,7 +757,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          end;
       end loop;
       return Result;
-   end;
+   end To_ContainedSeq;
 
 
 end CORBA.Repository_Root.Contained.Impl;
