@@ -47,29 +47,30 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Calendar is
    -- Create --
    ------------
 
-   function Create (CF : access No_Tasking_Clock_Factory)
-                   return Time_Type_Access
+   function Create
+     (CF : access No_Tasking_Clock_Factory)
+     return Time_Type_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (CF);
       pragma Warnings (On);
 
-      New_Time : No_Tasking_Time_Type_Access;
    begin
-      New_Time := new No_Tasking_Time_Type;
-      return New_Time.all'Access;
+      return new No_Tasking_Time_Type;
    end Create;
 
    -------------
    -- Destroy --
    -------------
 
-   procedure Destroy (CF : access No_Tasking_Clock_Factory;
-                      Clock : in out Time_Type_Access)
+   procedure Destroy
+     (CF    : access No_Tasking_Clock_Factory;
+      Clock : in out Time_Type_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (CF);
       pragma Warnings (On);
+
    begin
       Free (No_Tasking_Time_Type_Access (Clock));
    end Destroy;
@@ -79,7 +80,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Calendar is
    -----------
 
    procedure Split
-     (Date    : No_Tasking_Time_Type;
+     (Date    :     No_Tasking_Time_Type;
       Year    : out Year_Number;
       Month   : out Month_Number;
       Day     : out Day_Number;
@@ -101,6 +102,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Calendar is
      return    No_Tasking_Time_Type
    is
       Result : No_Tasking_Time_Type;
+
    begin
       Result.Time := Ada.Calendar.Time_Of (Year, Month, Day, Seconds);
       return Result;
@@ -142,70 +144,98 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Calendar is
       return Ada.Calendar.Year (Date.Time);
    end Year;
 
-   function "+" (Left : No_Tasking_Time_Type; Right : Duration)
-                return No_Tasking_Time_Type
+   ---------
+   -- "+" --
+   ---------
+
+   function "+"
+     (Left  : No_Tasking_Time_Type;
+      Right : Duration)
+     return No_Tasking_Time_Type
    is
       use Ada.Calendar;
-      Result : No_Tasking_Time_Type;
+
    begin
-      Result.Time := Left.Time + Right;
-      return Result;
+      return No_Tasking_Time_Type'(Time => Left.Time + Right);
    end "+";
 
-   function "+" (Left : Duration; Right : No_Tasking_Time_Type)
-                return No_Tasking_Time_Type
+   function "+"
+     (Left  : Duration;
+      Right : No_Tasking_Time_Type)
+     return No_Tasking_Time_Type
    is
       use Ada.Calendar;
-      Result : No_Tasking_Time_Type;
+
    begin
-      Result.Time := Left + Right.Time;
-      return Result;
+      return No_Tasking_Time_Type'(Time => Left + Right.Time);
    end "+";
 
-   function "-" (Left : No_Tasking_Time_Type; Right : Duration)
-                return No_Tasking_Time_Type
+   ---------
+   -- "-" --
+   ---------
+
+   function "-"
+     (Left  : No_Tasking_Time_Type;
+      Right : Duration)
+     return No_Tasking_Time_Type
    is
       use Ada.Calendar;
-      Result : No_Tasking_Time_Type;
+
    begin
-      Result.Time := Left.Time - Right;
-      return Result;
+      return No_Tasking_Time_Type'(Time => Left.Time - Right);
    end "-";
 
-   function "-" (Left : No_Tasking_Time_Type; Right : No_Tasking_Time_Type)
-                return Duration
+   function "-"
+     (Left  : No_Tasking_Time_Type;
+      Right : No_Tasking_Time_Type)
+     return Duration
    is
       use Ada.Calendar;
-      Result : Duration;
+
    begin
-      Result := Left.Time - Right.Time;
-      return Result;
+      return Left.Time - Right.Time;
    end "-";
 
-   function "<"  (Left, Right : No_Tasking_Time_Type) return Boolean
-   is
+   ---------
+   -- "<" --
+   ---------
+
+   function "<"  (Left, Right : No_Tasking_Time_Type) return Boolean is
       use Ada.Calendar;
+
    begin
       return Left.Time < Right.Time;
    end "<";
 
-   function "<=" (Left, Right : No_Tasking_Time_Type) return Boolean
-   is
+   ---------
+   -- "<" --
+   ---------
+
+   function "<=" (Left, Right : No_Tasking_Time_Type) return Boolean is
       use Ada.Calendar;
+
    begin
       return Left.Time <= Right.Time;
    end "<=";
 
-   function ">"  (Left, Right : No_Tasking_Time_Type) return Boolean
-   is
+   ---------
+   -- ">" --
+   ---------
+
+   function ">"  (Left, Right : No_Tasking_Time_Type) return Boolean is
       use Ada.Calendar;
+
    begin
       return Left.Time > Right.Time;
    end ">";
 
-   function ">=" (Left, Right : No_Tasking_Time_Type) return Boolean
-   is
+   ----------
+   -- ">=" --
+   ----------
+
+   function ">=" (Left, Right : No_Tasking_Time_Type) return Boolean is
       use Ada.Calendar;
+
    begin
       return Left.Time >= Right.Time;
    end ">=";
@@ -214,21 +244,23 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Calendar is
    -- Clock --
    -----------
 
-   function Clock (CF : access No_Tasking_Clock_Factory)
-                     return Time_Type'Class
+   function Clock
+     (CF : access No_Tasking_Clock_Factory)
+     return Time_Type'Class
    is
       pragma Warnings (Off);
       pragma Unreferenced (CF);
       pragma Warnings (On);
-      Result : No_Tasking_Time_Type;
+
    begin
-      Result.Time := Ada.Calendar.Clock;
-      return Result;
+      return No_Tasking_Time_Type'(Time => Ada.Calendar.Clock);
    end Clock;
 
    ----------------
    -- Initialize --
    ----------------
+
+   procedure Initialize;
 
    procedure Initialize is
    begin

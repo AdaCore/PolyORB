@@ -116,10 +116,8 @@ package body PolyORB.Utils.RT_Calendar is
       pragma Unreferenced (CF);
       pragma Warnings (On);
 
-      New_Time : RT_Time_Type_Access;
    begin
-      New_Time := new RT_Time_Type;
-      return New_Time.all'Access;
+      return new RT_Time_Type;
    end Create;
 
    -------------
@@ -148,6 +146,7 @@ package body PolyORB.Utils.RT_Calendar is
       Month   : out Month_Number;
       Day     : out Day_Number;
       Seconds : out Day_Duration)
+
    is
       --  The following declare bounds for duration that are comfortably
       --  wider than the maximum allowed output result for the Ada range
@@ -434,10 +433,8 @@ package body PolyORB.Utils.RT_Calendar is
       pragma Unreferenced (CF);
       pragma Warnings (On);
 
-      Result : RT_Time_Type;
    begin
-      Result.Time := Ada.Real_Time.Clock;
-      return Result;
+      return RT_Time_Type'(Time => Ada.Real_Time.Clock);
    end Clock;
 
    ---------
@@ -446,18 +443,16 @@ package body PolyORB.Utils.RT_Calendar is
 
    function "+" (Left : RT_Time_Type; Right : Duration) return RT_Time_Type is
       use Ada.Real_Time;
-      Result : RT_Time_Type;
+
    begin
-      Result.Time := Left.Time + To_Time_Span (Right);
-      return Result;
+      return RT_Time_Type'(Time => Left.Time + To_Time_Span (Right));
    end "+";
 
    function "+" (Left : Duration; Right : RT_Time_Type) return RT_Time_Type is
       use Ada.Real_Time;
-      Result : RT_Time_Type;
+
    begin
-      Result.Time := To_Time_Span (Left) + Right.Time;
-      return Result;
+      return RT_Time_Type'(Time => To_Time_Span (Left) + Right.Time);
    end "+";
 
    ---------
@@ -466,18 +461,16 @@ package body PolyORB.Utils.RT_Calendar is
 
    function "-" (Left : RT_Time_Type; Right : Duration) return RT_Time_Type is
       use Ada.Real_Time;
-      Result : RT_Time_Type;
+
    begin
-      Result.Time := Left.Time - To_Time_Span (Right);
-      return Result;
+      return RT_Time_Type'(Time => Left.Time - To_Time_Span (Right));
    end "-";
 
    function "-" (Left : RT_Time_Type; Right : RT_Time_Type) return Duration is
       use Ada.Real_Time;
-      Result : Duration;
+
    begin
-      Result := To_Duration (Left.Time - Right.Time);
-      return Result;
+      return To_Duration (Left.Time - Right.Time);
    end "-";
 
    ---------
@@ -486,6 +479,7 @@ package body PolyORB.Utils.RT_Calendar is
 
    function "<"  (Left, Right : RT_Time_Type) return Boolean is
       use Ada.Real_Time;
+
    begin
       return Left.Time < Right.Time;
    end "<";
@@ -496,6 +490,7 @@ package body PolyORB.Utils.RT_Calendar is
 
    function "<=" (Left, Right : RT_Time_Type) return Boolean is
       use Ada.Real_Time;
+
    begin
       return Left.Time <= Right.Time;
    end "<=";
@@ -506,6 +501,7 @@ package body PolyORB.Utils.RT_Calendar is
 
    function ">"  (Left, Right : RT_Time_Type) return Boolean is
       use Ada.Real_Time;
+
    begin
       return Left.Time > Right.Time;
    end ">";
@@ -516,6 +512,7 @@ package body PolyORB.Utils.RT_Calendar is
 
    function ">=" (Left, Right : RT_Time_Type) return Boolean is
       use Ada.Real_Time;
+
    begin
       return Left.Time >= Right.Time;
    end ">=";

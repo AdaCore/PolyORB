@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             POLYORB.TASKING.PROFILES.NO_TASKING.CALENDAR                 --
+--              POLYORB.TASKING.PROFILES.NO_TASKING.CALENDAR                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2003 Free Software Foundation, Inc.              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,30 +31,33 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Calendar; use PolyORB.Calendar;
 with Ada.Calendar;
+
+with PolyORB.Calendar;
 
 package PolyORB.Tasking.Profiles.No_Tasking.Calendar is
 
-   procedure Initialize;
-   --  Initializes this package
+   use PolyORB.Calendar;
 
    type No_Tasking_Time_Type is new Time_Type with private;
    type No_Tasking_Time_Type_Access is access all No_Tasking_Time_Type;
 
    type No_Tasking_Clock_Factory is new Clock_Factory_Type with null record;
 
-   function Create (CF : access No_Tasking_Clock_Factory)
-                   return Time_Type_Access;
+   function Create
+     (CF : access No_Tasking_Clock_Factory)
+     return Time_Type_Access;
 
-   function Clock (CF : access No_Tasking_Clock_Factory)
-                     return Time_Type'Class;
+   function Clock
+     (CF : access No_Tasking_Clock_Factory)
+     return Time_Type'Class;
 
-   procedure Destroy (CF : access No_Tasking_Clock_Factory;
-                      Clock : in out Time_Type_Access);
+   procedure Destroy
+     (CF    : access No_Tasking_Clock_Factory;
+      Clock : in out Time_Type_Access);
 
    procedure Split
-     (Date    : No_Tasking_Time_Type;
+     (Date    :     No_Tasking_Time_Type;
       Year    : out Year_Number;
       Month   : out Month_Number;
       Day     : out Day_Number;
@@ -65,21 +68,32 @@ package PolyORB.Tasking.Profiles.No_Tasking.Calendar is
       Month   : Month_Number;
       Day     : Day_Number;
       Seconds : Day_Duration := 0.0)
-      return    No_Tasking_Time_Type;
+     return No_Tasking_Time_Type;
 
    function Year    (Date : No_Tasking_Time_Type) return Year_Number;
    function Month   (Date : No_Tasking_Time_Type) return Month_Number;
    function Day     (Date : No_Tasking_Time_Type) return Day_Number;
    function Seconds (Date : No_Tasking_Time_Type) return Day_Duration;
 
-   function "+" (Left : No_Tasking_Time_Type; Right : Duration)
-                return No_Tasking_Time_Type;
-   function "+" (Left : Duration; Right : No_Tasking_Time_Type)
-                return No_Tasking_Time_Type;
-   function "-" (Left : No_Tasking_Time_Type; Right : Duration)
-                return No_Tasking_Time_Type;
-   function "-" (Left : No_Tasking_Time_Type; Right : No_Tasking_Time_Type)
-                return Duration;
+   function "+"
+     (Left  : No_Tasking_Time_Type;
+      Right : Duration)
+     return No_Tasking_Time_Type;
+
+   function "+"
+     (Left  : Duration;
+      Right : No_Tasking_Time_Type)
+     return No_Tasking_Time_Type;
+
+   function "-"
+     (Left  : No_Tasking_Time_Type;
+      Right : Duration)
+     return No_Tasking_Time_Type;
+
+   function "-"
+     (Left  : No_Tasking_Time_Type;
+      Right : No_Tasking_Time_Type)
+     return Duration;
 
    function "<"  (Left, Right : No_Tasking_Time_Type) return Boolean;
    function "<=" (Left, Right : No_Tasking_Time_Type) return Boolean;

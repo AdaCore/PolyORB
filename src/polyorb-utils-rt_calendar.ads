@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,7 +61,7 @@ package PolyORB.Utils.RT_Calendar is
       Month   : Month_Number;
       Day     : Day_Number;
       Seconds : Day_Duration := 0.0)
-     return    RT_Time_Type;
+     return RT_Time_Type;
 
    function "+" (Left : RT_Time_Type; Right : Duration) return RT_Time_Type;
    function "+" (Left : Duration; Right : RT_Time_Type) return RT_Time_Type;

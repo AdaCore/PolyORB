@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . C A L E N D A R                       --
+--                     P O L Y O R B . C A L E N D A R                      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2003 Free Software Foundation, Inc.              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 package body PolyORB.Calendar is
 
    The_Clock_Factory : Clock_Factory_Access := null;
@@ -39,8 +41,7 @@ package body PolyORB.Calendar is
    -- Create --
    ------------
 
-   function Create return Time_Type_Access
-   is
+   function Create return Time_Type_Access is
    begin
       pragma Assert (The_Clock_Factory /= null);
       return Create (The_Clock_Factory);
@@ -50,8 +51,7 @@ package body PolyORB.Calendar is
    -- Destroy --
    -------------
 
-   procedure Destroy (Clock : in out Time_Type_Access)
-   is
+   procedure Destroy (Clock : in out Time_Type_Access) is
    begin
       pragma Assert (The_Clock_Factory /= null);
       Destroy (The_Clock_Factory, Clock);
@@ -61,8 +61,7 @@ package body PolyORB.Calendar is
    -- Clock --
    -----------
 
-   function Clock return Time_Type'Class
-   is
+   function Clock return Time_Type'Class is
    begin
       pragma Assert (The_Clock_Factory /= null);
       return Clock (The_Clock_Factory);
@@ -72,8 +71,7 @@ package body PolyORB.Calendar is
    -- Register_Clock_Factory --
    ----------------------------
 
-   procedure Register_Clock_Factory (CF : Clock_Factory_Access)
-   is
+   procedure Register_Clock_Factory (CF : Clock_Factory_Access) is
    begin
       pragma Assert (The_Clock_Factory = null);
       The_Clock_Factory := CF;
