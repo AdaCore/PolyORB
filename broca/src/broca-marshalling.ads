@@ -106,13 +106,6 @@ package Broca.Marshalling is
       Element_Size  : in Buffer_Index_Type;
       Array_Length  : in Natural);
 
-   function Compare
-     (Buffer  : in Buffer_Descriptor;
-      Pattern : in String)
-     return Boolean;
-   --  Return true if Buffer can be interpreted as Pattern.  The
-   --  string is not unmarshalled.
-
    procedure Skip_String (Buffer : in out Buffer_Descriptor);
    --  Unmarshall String and ignore result.
 

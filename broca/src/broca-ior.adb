@@ -62,7 +62,7 @@ package body Broca.Ior is
       Target : CORBA.String;
       Len : Natural;
    begin
-      Len := Natural (Buffer.Pos);
+      Len := Natural (Size (Buffer));
       Target := To_Unbounded_String (4 + 2 * Len);
 
       Replace_Element (Target, 1, 'I');

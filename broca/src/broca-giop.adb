@@ -9,6 +9,7 @@ with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Giop is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.giop");
    procedure O is new Broca.Debug.Output (Flag);
 
@@ -41,11 +42,6 @@ package body Broca.Giop is
 
       --  message size
       Marshall (Stream, Message_Size);
-
-      --  Internal check.
-      if Stream.Pos /= Message_Header_Size then
-         Broca.Exceptions.Raise_Internal (2000, CORBA.Completed_No);
-      end if;
    end Create_Giop_Header;
 
    procedure Create_Reply_System_Exception

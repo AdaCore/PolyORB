@@ -234,81 +234,38 @@ package body Broca.Exceptions is
          CORBA.Unsigned_Long (Completion_Status'Pos (Members.Completed)));
    end Marshall;
 
-   System_Exception_Header : constant Buffer_Type :=
-     (Character'Pos ('I'), Character'Pos ('D'), Character'Pos ('L'),
-      Character'Pos (':'),
-      Character'Pos ('o'), Character'Pos ('m'), Character'Pos ('g'),
-      Character'Pos ('.'),
-      Character'Pos ('o'), Character'Pos ('r'), Character'Pos ('g'),
-      Character'Pos ('/'),
-      Character'Pos ('C'), Character'Pos ('O'), Character'Pos ('R'),
-      Character'Pos ('B'), Character'Pos ('A'),
-      Character'Pos ('/'));
+   Prefix : constant String := "IDL:omg.org/CORBA/";
+   --  System Exception Prefix
 
    procedure Unmarshall_And_Raise (Buffer : in out Buffer_Descriptor) is
       use Broca.Marshalling;
       use Ada.Exceptions;
-      Len : CORBA.Unsigned_Long;
-      Pos : Buffer_Index_Type;
-      Minor : CORBA.Unsigned_Long;
-      Status : CORBA.Unsigned_Long;
-      Identity : Exception_Id;
+      Minor      : CORBA.Unsigned_Long;
+      Status     : CORBA.Unsigned_Long;
+      Identity   : Exception_Id;
+      Repository : CORBA.String;
    begin
-      Unmarshall (Buffer, Len);
-      Pos := Buffer.Pos;
-
-      --  Check the prefix.
-      if Buffer.Buffer (Pos .. Pos + System_Exception_Header'Length - 1)
-        /= System_Exception_Header
-      then
-         --  The completion status cannot be determined from the buffer,
-         --  because the exception might not be a system exception.
-         Raise_Marshal (Completed_Maybe);
-      end if;
-      Pos := Pos + System_Exception_Header'Length;
-      Buffer.Pos := Buffer.Pos + Buffer_Index_Type (Len) - 5;
-      --  Check version
-      if Buffer.Buffer (Buffer.Pos) /= Character'Pos (':') or else
-        Buffer.Buffer (Buffer.Pos + 1) /= Character'Pos ('1') or else
-        Buffer.Buffer (Buffer.Pos + 2) /= Character'Pos ('.') or else
-        Buffer.Buffer (Buffer.Pos + 3) /= Character'Pos ('0') or else
-        Buffer.Buffer (Buffer.Pos + 4) /= 0
-      then
-         Raise_Marshal (Completed_Maybe);
-      end if;
-
-      --  Unmarshall the body of the system exception.
-      Buffer.Pos := Buffer.Pos + 5;
-      Unmarshall (Buffer, Minor);
-      Unmarshall (Buffer, Status);
-
-      --  Remove the common prefix and the trailing (version and nul).
-      Len := Len - 5 - System_Exception_Header'Length;
-      --  Convert the marshalled string into an Ada string.
+      Unmarshall (Buffer, Repository);
       declare
-         Name_String : String (1 .. Natural (Len));
+         R : String  := To_Standard_String (Repository);
+         F : Natural := R'First;
+         L : Natural := R'Last;
       begin
-         for I in Pos .. Pos + Buffer_Index_Type (Len) - 1 loop
-            Name_String (1 + Natural (I - Pos)) :=
-              Character'Val (Buffer.Buffer (I));
-         end loop;
-         Identity := Null_Id;
+         if R'Length < Prefix'Length
+           or else R (F .. F + Prefix'Length - 1) /= Prefix
+         then
+            Raise_Marshal (Completed_Maybe);
+         end if;
 
-         --  Associate the exception name with Ada exception identity.
-         --  This is done by a selection on the length of the name and then
-         --  by comparison.
-         case Len is
-            when 9 =>
-               if Name_String = "TRANSIENT" then
-                  Identity := CORBA.Transient'Identity;
-               end if;
-            when 16 =>
-               if Name_String = "OBJECT_NOT_EXIST" then
-                  Identity := CORBA.Object_Not_Exist'Identity;
-               end if;
-            when others =>
-               null;
-         end case;
+         Identity := Null_Id;
+         F := F + Prefix'Length;
+
+         if R (F .. L) = "TRANSIENT" then
+            Identity := CORBA.Transient'Identity;
+
+         elsif R (F .. L) = "OBJECT_NOT_EXIST" then
+            Identity := CORBA.Object_Not_Exist'Identity;
+         end if;
       end;
 
       if Identity = Null_Id then

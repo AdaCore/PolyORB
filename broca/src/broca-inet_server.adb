@@ -20,6 +20,7 @@ with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Inet_Server is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.inet_server");
    procedure O is new Broca.Debug.Output (Flag);
 
@@ -56,6 +57,10 @@ package body Broca.Inet_Server is
         Image (Addr.S_B3) & '.' & Image (Addr.S_B4);
    end In_Addr_To_Str;
 
+   ----------------------
+   -- Get_Host_Address --
+   ----------------------
+
    procedure Get_Host_Address is
       use Interfaces.C;
       use Sockets.Thin;
@@ -83,6 +88,10 @@ package body Broca.Inet_Server is
       My_Addr := In_Addr_Access_Pointers.Value (Host.H_Addr_List)(1).all;
    end Get_Host_Address;
 
+   -----------
+   -- Htons --
+   -----------
+
    function Htons (Val : Natural) return Interfaces.C.unsigned_short is
    begin
       if Broca.Buffers.Is_Little_Endian then
@@ -92,6 +101,10 @@ package body Broca.Inet_Server is
          return Interfaces.C.unsigned_short (Val);
       end if;
    end Htons;
+
+   -----------
+   -- Ntohs --
+   -----------
 
    function Ntohs (Val : Interfaces.C.unsigned_short) return Natural
    is
@@ -118,9 +131,9 @@ package body Broca.Inet_Server is
    Fd_Server_Id : Broca.Server.Server_Id_Type;
    Fd_Pos : Integer;
 
-   procedure Signal_Poll_Set_Change is
-      C : aliased constant Character
-        := Character'Val (0);
+   procedure Signal_Poll_Set_Change 
+   is
+      C : aliased constant Character := Character'Val (0);
    begin
       pragma Debug (O ("Signalling poll set change."));
       if C_Send (Signal_Fd_Write, C'Address, 1, 0) = Failure then
@@ -379,6 +392,10 @@ package body Broca.Inet_Server is
       --  Key.
       Compute_New_Size (IOR, Object_Key);
    end Marshall_Size_Profile;
+ 
+   ----------------------
+   -- Marshall_Profile --
+   ----------------------
 
    procedure Marshall_Profile
      (Server     : access Fd_Server_Type;
@@ -386,12 +403,12 @@ package body Broca.Inet_Server is
       Object_Key : in Broca.Buffers.Buffer_Descriptor)
    is
       use Broca.Marshalling;
-      Length_Pos : Buffer_Index_Type;
-      Pos : Buffer_Index_Type;
    begin
       Marshall (IOR, CORBA.Iop.Tag_Internet_Iop);
-      Length_Pos := IOR.Pos;
-      Compute_New_Size (IOR, UL_Size, UL_Size);
+
+      Marshall (IOR, CORBA.Unsigned_Long (Size_Left (IOR)));
+
+      -- Endianess
       Marshall (IOR, Is_Little_Endian);
 
       --  Version
@@ -408,11 +425,6 @@ package body Broca.Inet_Server is
 
       --  Object key
       Append_Buffer (IOR, Object_Key);
-
-      Pos := IOR.Pos;
-      IOR.Pos := Length_Pos;
-      Marshall (IOR, CORBA.Unsigned_Long (Pos - Length_Pos - 4));
-      IOR.Pos := Pos;
    end Marshall_Profile;
 
    type Fd_Server_Acc is access Fd_Server_Type;

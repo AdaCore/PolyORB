@@ -154,12 +154,10 @@ package body Broca.Buffers is
      (Buffer : in out Buffer_Descriptor;
       Size   : in Buffer_Index_Type) is
    begin
-      if Buffer.Buffer = null
-        or else Buffer.Buffer'Last < Size - 1
-      then
+      if Buffer.Buffer /= null then
          Free (Buffer.Buffer);
-         Buffer.Buffer := new Buffer_Type (0 .. Size - 1);
       end if;
+      Buffer.Buffer := new Buffer_Type (0 .. Size - 1);
    end Fix_Buffer_Size;
 
    ----------
@@ -183,8 +181,19 @@ package body Broca.Buffers is
 
    function Size (Buffer : in Buffer_Descriptor) return Buffer_Index_Type is
    begin
-      return Buffer.Pos;
+      return Buffer.Buffer'Last + 1;
    end Size;
+
+   ---------------
+   -- Size_Left --
+   ---------------
+
+   function Size_Left
+     (Buffer : in Buffer_Descriptor)
+      return Buffer_Index_Type is
+   begin
+      return Buffer.Buffer'Last - Buffer.Pos + 1;
+   end Size_Left;
 
    -----------
    -- Write --

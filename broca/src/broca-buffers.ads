@@ -82,7 +82,8 @@ package Broca.Buffers is
    pragma Inline (Read);
    --  Read from Buffer an array of bytes
 
-   function Size (Buffer : Buffer_Descriptor) return Buffer_Index_Type;
+   function Size_Left (Buffer : Buffer_Descriptor) return  Buffer_Index_Type;
+   function Size      (Buffer : Buffer_Descriptor) return Buffer_Index_Type;
 
    procedure Write
      (Buffer  : in out Buffer_Descriptor;
