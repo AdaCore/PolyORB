@@ -37,7 +37,7 @@ with System.Garlic.Thin;
 
 private package System.Garlic.TCP.Platform_Specific is
 
-   --  Linux version of this package.
+   --  Digital Unix version of this package.
 
    package Net renames System.Garlic.Thin;
 
