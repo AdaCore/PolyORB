@@ -81,24 +81,6 @@ package PolyORB.Protocols is
       return PolyORB.Annotations.Notepad_Access;
    --  Return the notes  associated with session.
 
-   --  procedure Get_First_Request
-   --  (S      : in out Session_Access;
-   --   Result : out Request_Info);
-   --  Return in Result the first request in the list associated with session.
-
-   ---  procedure Add_Request
-   --  (S : in out Session_Access;
-   --   RI : Request_Info);
-   --  Add a request RI at the end of the list associated with the session.
-
-   --  function Is_Open
-   --      (S : in Session_Access)
-   --       return Boolean;
-   --  return false if the session is about to be closed
-
-   --    procedure Can_Close_Session
-   --      (S : in Session_Access);
-
    -----------------------------------------------------
    -- Protocol primitives (interface to upper layers) --
    -----------------------------------------------------
