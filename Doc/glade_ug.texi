@@ -10,12 +10,12 @@
 @subtitle GLADE, GNAT Library for Ada Distributed Environment
 @subtitle Version 1.02 (DRAFT)
 @subtitle April 13, 1997
-@author Laurent Pautet
+@author Laurent Pautet, Samuel Tardieu
 
 @page
 @vskip 0pt plus 1filll
 
-@copyright{} Copyright 1997-1997, Ada Core Technologies, Inc.
+@copyright{} Copyright 1997-1997, Free Soft Foundation.
 
 GLADE is free software; you can redistribute it and/or modify it under
 terms of the GNU General Public License as published by the Free
@@ -127,13 +127,13 @@ Extended Examples
 @node Using The Facilities Of The Distributed System Annex
 @section Using The Facilities Of The Distributed System Annex
 
-The basic idea of the Distributed Systems Annex is to allow a user to
-develop his application the same way whether this application is going
-to be executed as several programs on a distributed system or as a whole
-program on a non-distributed system. The Distributed Systems Annex has
-been designed so as to minimize the changes required to the source code
-of a program, in converting it from an ordinary non-distributed program,
-to a distributed program.
+The basic idea of the Distributed Systems Annex (DSA) is to allow a user
+to develop his application the same way whether this application is
+going to be executed as several programs on a distributed system or as a
+whole program on a non-distributed system. The DSA has been designed so
+as to minimize the changes required to the source code of a program, in
+converting it from an ordinary non-distributed program, to a distributed
+program.
 
 The first step is to develop the application on a non-distributed
 system. Of course, the design of the application should take into
@@ -147,19 +147,19 @@ remotely, or ones which provide types used in remote calls.
 Therefore, these units must contain only a restricted set of Ada
 entities. For instance, if the distributed system has no shared memory,
 shared variables should be forbidden. To ensure such restrictions, the
-Distributed System Annex provides several categorization pragmas in
-order to reduce the set of entities one can declare in a given unit.
+DSA provides several categorization pragmas in order to reduce the set
+of entities one can declare in a given unit.
 
 The second step is to develop the non-distributed application with your
 usual software engineering environment. This is very important to note
-that you don't need to acquire specialized tools to develop your
-distributed application. For instance, you can debug your application
-with your usual debugger. A non-distributed program is not to be
-confused with a distributed application composed of only one partition
-program. The later is built with the help of the configuration tool and
-includes the communication library.
+that the user needs no specialized tools to develop his/her distributed
+application. For instance, he can debug his/her application with his/her
+usual debugger. A non-distributed program is not to be confused with a
+distributed application composed of only one partition program. The
+later is built with the help of the configuration tool and includes the
+communication library.
 
-The third step is to partition and to configure your non-distributed
+The third step is to partition and to configure the non-distributed
 application into a distributed application, that means multiple
 partitions working cooperatively as part of a single Ada program. The
 process of mapping the partitions of a program to the nodes in a
@@ -189,81 +189,247 @@ pragmas :
 @item Pure
 @end enumerate
 
-When a library unit is not categorized, this unit is called a normal
-unit. The following paragraphs do not present the detailed semantics of
-these pragmas. Their purpose is to give to the reader an intuitive
-overview of what these pragmas are for.
+The following paragraphs do not present the detailed semantics of these
+pragmas. Their purpose is to give to the reader an intuitive overview of
+what these pragmas are for. When a library unit is not categorized, this
+unit is called a normal unit.
 
 As a general remark, to avoid the development of a specific run-time
-library for the Distributed System Annex, the notion of remote
-rendez-vous has not been introduced in the Distributed System
-Annex. Therefore, task types and protected types are not allowed in the
-following Ada library units.
+library for the DSA, the notion of remote rendez-vous has not been
+introduced in Ada 95. Therefore, task types and general protected types
+are not allowed in the following Ada library units.
 
 @node Pragma Remote_Call_Interface
 @subsection Pragma Remote_Call_Interface
 
 This pragma is probably the most important pragma of this set of pragmas
-as it provides several ways to implement Remote Procedure Call. When a
-pragma Remote_Call_Interface occurs in the specification of an Ada
-package, then this package is said to be RCI (Remote Call Interface). As
-this pragma is used to implement RPC features, entities forbidden in
-this model are also forbidden in such a unit. This applies to variables
-and to most access types. 
+as it provides several ways to implement Remote Procedure Call
+(RPC). When a pragma Remote_Call_Interface occurs in the specification
+of an Ada package, then this package is said to be a Remote Call
+Interface (RCI). As this pragma is used to implement RPC features,
+entities forbidden in this model are also forbidden in such a unit. For
+instance, this applies to variables, to subprograms with parameters of
+access type and to most access types.
 
 A distributed program retains the same type safety as the equivalent
 single partition program.
 
-If an exception is propagated by a remotely called subprogram, and the
-call is not an asynchronous call (see next subsection), the
+If an exception is propagated by a remotely called subprogram, and if
+the call is not an asynchronous call (see next subsection), the
 corresponding exception is reraised at the point of the remote
-subprogram call. If a given exception is propagated by a remote
-subprogram call, but the exception does not exist in the calling
-partition, the exception can be handled by an others choice or be
+subprogram call. Note that if a given exception is propagated by a
+remote subprogram call, but the exception does not exist in the calling
+partition, the exception can be handled by an other choice or be
 propagated to and handled by a third partition.
 
 @node Plain Remote Procedure Call
 @subsubsection Plain Remote Procedure Call
 
 Any subprogram declared in a RCI package specification becomes a remote
-subprogram. This package specification acts as an IDL specification. In
-other terms, Ada acts as an IDL.
+subprogram. This package specification acts as an Interface Description
+Lanuage (IDL) specification. In other terms, Ada acts as an IDL.
 
 @example 
 package RCI is 
+
    pragma Remote_Call_Interface;
+
    A_Constant : constant := 0;
    procedure A_Remote_Procedure (X : in out Integer);
    function A_Remote_Function return String;
    An_Exception : exception;
+
 end RCI;
 @end example
 
 Pragma Asynchronous can be applied to any subprogram of a RCI package as
 long as this subprogram has only "in" parameters. In this case, the
 subprogram calls is allowed to return prior to the completion of
-subprogram execution. In this case, any exception is lost.
+subprogram execution. Any exception is lost.
 
 @example
 package RCI is
-   function Name return String;
+
+   pragma Remote_Call_Interface;
+
+   function Get (Variable : String) return Integer;
+
    procedure Set (Variable : String; Value : Integer);
-   pragma Asynchronous (Name, Set);
+   pragma Asynchronous (Set);
+
 end RCI;
 @end example
 
-@node Remote Access To Subprogram
-@subsubsection Remote Access To Subprogram
+Of course, if a remote procedure is called on the partition where the
+procedure has been declared, the call is routed locally like a normal
+procedure call.
+
+Pragma All_Calls_Remote forces any call to a subprogram of the RCI
+package to be routed through the communication layer and not only be
+routed locally.
+
+@example
+package RCI is
+
+   pragma Remote_Call_Interface;
+
+   pragma All_Calls_Remote;
+
+   procedure Never_Locally_Routed;
+
+end RCI;
+@end example
 
 @node Remote Access To Class Wide
 @subsubsection Remote Access To Class Wide
+
+The DSA supports the distributed object paradigm through
+remote-access-to-class-wide (RACW) features. Distributed objects are
+somewhat an association of the RPC paradigm with the object-oriented
+approach. On the one hand, this combination enables to access local and
+remote objects with no semantic difference. On the other hand, due to
+the object-based approach, accesses to the distributed object state are
+restricted to operations defined in the interface and this promotes the
+type-safe disciplined communication within a distributed execution
+environment.
+
+To build distributed objects, the user needs three Ada units in which he
+defines :
+
+@enumerate
+@item An abstract type on which all the distributed object types will depend
+@item A remote access type to any derived type of this abstract type
+@item A derived type of this abstract type and
+      possibly aliased objects on this derived type
+@end enumerate
+
+Here is a small example of distributed object declaration:
+
+@example
+package Pure is 
+   
+   pragma Pure;
+
+   type Remote_Object_Abstract_Type is abstract tagged limited private;
+
+   procedure Remote_Dispatching_Procedure
+      (Remote_Object : access Remote_Object_Abstract_Type);
+
+private
+   ...
+end Pure;
+@end example
+
+This package has to be pure. In the following paragraphs, this unit is
+used by several other Ada units and in consequence duplicated. To be
+safely duplicated, this unit has to stateless.
+
+Note that this abstract type is limited private in purpose. This allows
+to have a specific control of all the references to any object of this
+type.
+
+@example
+with Pure; use Pure;
+
+package RCI is
+
+   pragma Remote_Call_Interface;
+
+   type Remote_Access_To_Class_Wide is
+      access all Remote_Object_Abstract_Type'Class;
+
+   procedure Put (Remote_Object : Remote_Access_To_Class_Wide);
+   procedure Get (Remote_Object : out Remote_Access_To_Class_Wide);
+
+end RCI;
+@end example
+
+Only two kinds of access types can be declared in a RCI specification. A
+RACW type is an example of this kind of access type and such an access
+type will be frequently called a "fat pointer". Independantly from the
+RACW type declaration, two remote procedures Put and Get are declared to
+share the distributed objects on different partitions.
+
+@example
+with Pure; use Pure;
+
+package Normal is
+
+   type Remote_Object_Derived_Type is
+      new Remote_Object_Abstract_Type with null record;
+
+   procedure Remote_Dispatching_Procedure
+      (Remote_Object : Remote_Object_Derived_Type);
+
+   Remote_Object : aliased Remote_Object_Derived_Type;
+
+end Normal;
+@end example
+
+In this normal package (not categorized), the abstract type from package
+Pure is derived and its abstract procedure overriden. 
+
+An object of this derived type is declared and aliased in order to get a
+reference on it. This reference will be propagated though package RCI
+Get and Put procedures.
+
+Note that as this package is normal, when this package is explictly
+configured on a partition or implictly configured because of package
+visibility rules, the partition gets its own derivation of type
+Remote_Object_Derived_Type. When package RCI is configured on two
+partitions, Remote_Object_Derived_Type is derived twice differently and
+for instance, the tag of each type is different.
+ 
+@example
+with Pure; use Pure;
+with Normal, RCI;
+
+procedure Partition_Main_Subprogram is
+
+   Another_Remote_Object : RCI.Remote_Access_To_Class_Wide;
+
+begin
+   
+   RCI.Put (Normal.Remote_Object'Access);                -- (1)
+   
+   RCI.Get (Another_Remote_Object);                      -- (2)
+ 
+   Remote_Dispatching_Procedure (Another_Remote_Object); -- (3)
+
+end Partition_Main_Subprogram;
+@end example
+
+In the main subprogram of one of the distributed application partitions,
+line (1) registers package Normal remote object. Let's say that the
+distributed application contains twice such a partition. Two remote
+objects of a different derived type will be registered in package RCI.
+
+In line (2), this same partition gets from package RCI a remote
+object. Note that this remote object can be the remote object that the
+partition has just registered or a remote object from the other
+partition. In other words, this object can reference a local object or a
+remote object.
+
+In line (3), a remote dispatching call is invoked on this remote
+object. Therefore, if the object has been declared in the remote
+partition, the dispatching call will become a remote dispatching
+call. Remote_Dispatching_Procedure will become a remote procedure call
+and the call will be executed on the remote partition.
+
+On other hand, if the object has been declared in the current partition,
+then the dispatching call will be a local dispatching
+call. Remote_Dispatching_Procedure will become a normal call and the
+call will be executed on the current partition.
+
+@node Remote Access To Subprogram
+@subsubsection Remote Access To Subprogram
 
 @page
 
 @node Non-Distributed versus Distributed Applications
 @subsubsection Non-Distributed versus Distributed Applications
 
-A sequential application may have a different behaviour whether it is
+A sequential application may have a different behavior whether it is
 configured to be a distributed program or not. Let's take the following
 example:
 
