@@ -268,7 +268,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   --       Not in Spec       --\n";
   body += "   -----------------------------\n\n";
   
-  body += "   Repository_Id : Corba.String := Corba.To_Corba_String(\"";
+  body += "   Repository_Id : constant Corba.String := Corba.To_Corba_String(\"";
   body += repositoryID();
   body += "\") ;\n";
   body += "   function Get_Repository_Id(Self : in Ref)\n";
