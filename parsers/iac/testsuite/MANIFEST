@@ -85,8 +85,8 @@ test053/tin.idl
 test054/tin.idl
 aif_b01/tin.idl
 aif_p01/tin.idl
-#avt_b01/tin.idl
-#avt_p01/tin.idl
+avt_b01/tin.idl
+avt_p01/tin.idl
 va_f01/tin.idl
 va_f02/tin.idl
 va_t01/tin.idl
@@ -110,10 +110,10 @@ vt_m01/tin.idl
 vt_m02/tin.idl
 vt_o01/tin.idl
 vt_p01/tin.idl
-#vti_avb01/tin.idl
-#vti_avb02/tin.idl
-#vti_si01/tin.idl
-#vti_si02/tin.idl
-#vti_si03/tin.idl
-#vti_vb01/tin.idl
+vti_avb01/tin.idl
+vti_avb02/tin.idl
+vti_si01/tin.idl
+vti_si02/tin.idl
+vti_si03/tin.idl
+vti_vb01/tin.idl
 #corba/orb.idl
