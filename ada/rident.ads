@@ -122,13 +122,13 @@ package Rident is
    --  integer. This is true for all language defined parameters.
 
    type Restriction_Parameter_Id is (
-     Max_Asynchronous_Select_Nesting,         -- (RM D.9(18), H.4(3))
+     Max_Asynchronous_Select_Nesting,         -- (RM D.7(18), H.4(3))
      Max_Entry_Queue_Depth,                   -- GNAT
-     Max_Protected_Entries,                   -- (RM D.9(14))
-     Max_Select_Alternatives,                 -- (RM D.9(12))
-     Max_Storage_At_Blocking,                 -- (RM D.9(17))
-     Max_Task_Entries,                        -- (RM D.9(13), H.4(3))
-     Max_Tasks,                               -- (RM D.9(19), H.4(3))
+     Max_Protected_Entries,                   -- (RM D.7(14))
+     Max_Select_Alternatives,                 -- (RM D.7(12))
+     Max_Storage_At_Blocking,                 -- (RM D.7(17))
+     Max_Task_Entries,                        -- (RM D.7(13), H.4(3))
+     Max_Tasks,                               -- (RM D.7(19), H.4(3))
      Not_A_Restriction_Parameter_Id);
 
 end Rident;

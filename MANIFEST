@@ -316,6 +316,8 @@ Garlic/zlib/zutil.c
 Garlic/zlib/zutil.h
 ada/ali.adb
 ada/ali.ads
+ada/ali-util.adb
+ada/ali-util.ads
 ada/alloc.ads
 ada/binderr.adb
 ada/binderr.ads

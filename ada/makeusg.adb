@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -174,44 +174,58 @@ begin
    --  Line for -aL
 
    Write_Switch_Char;
-   Write_Str ("aLdir  Skip missing library sources if ali in dir");
+   Write_Str ("aLdir    Skip missing library sources if ali in dir");
    Write_Eol;
 
    --  Line for -A
 
    Write_Switch_Char;
-   Write_Str ("Adir   like -aLdir -aIdir");
+   Write_Str ("Adir     like -aLdir -aIdir");
    Write_Eol;
 
    --  Line for -aO switch
 
    Write_Switch_Char;
-   Write_Str ("aOdir  Specify library/object files search path");
+   Write_Str ("aOdir    Specify library/object files search path");
    Write_Eol;
 
    --  Line for -aI switch
 
    Write_Switch_Char;
-   Write_Str ("aIdir  Specify source files search path");
+   Write_Str ("aIdir    Specify source files search path");
    Write_Eol;
 
    --  Line for -I switch
 
    Write_Switch_Char;
-   Write_Str ("Idir   Like -aIdir -aOdir");
+   Write_Str ("Idir     Like -aIdir -aOdir");
    Write_Eol;
 
    --  Line for -I- switch
 
    Write_Switch_Char;
-   Write_Str ("I-     Don't look for sources & library files");
+   Write_Str ("I-       Don't look for sources & library files");
    Write_Str (" in the default directory");
    Write_Eol;
 
    --  Line for -L
 
    Write_Switch_Char;
-   Write_Str ("Ldir   Look for program libraries also in dir");
+   Write_Str ("Ldir     Look for program libraries also in dir");
+   Write_Eol;
+
+   --  Line for -nostdinc
+
+   Write_Switch_Char;
+   Write_Str ("nostdinc Don't look for sources");
+   Write_Str (" in the system default directory");
+   Write_Eol;
+
+   --  Line for -nostdlib
+
+   Write_Switch_Char;
+   Write_Str ("nostdlib Don't look for library files");
+   Write_Str (" in the system default directory");
    Write_Eol;
    Write_Eol;
 

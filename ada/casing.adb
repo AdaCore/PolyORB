@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -66,6 +66,7 @@ package body Casing is
 
       while Ptr <= Name_Len loop
          if Name_Buffer (Ptr) = Ascii.ESC
+           or else Name_Buffer (Ptr) = '['
            or else (Upper_Half_Encoding
                      and then Name_Buffer (Ptr) in Upper_Half_Character)
          then

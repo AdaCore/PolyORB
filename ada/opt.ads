@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                            --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -44,7 +44,7 @@ with System.WCh_Con; use System.WCh_Con;
 
 package Opt is
 
-   Ada_Bind_File : Boolean := False;
+   Ada_Bind_File : Boolean := True;
    --  GNATBIND
    --  Set True if binder file to be generated in Ada rather than C
 
@@ -85,7 +85,10 @@ package Opt is
 
    Bind_Alternate_Main_Name : Boolean := False;
    --  GNATBIND
-   --  Set to True if main should be called gnat_main.
+   --  Set to True if main should be called Alternate_Main_Name.all
+
+   Alternate_Main_Name : String_Ptr;
+   --  Set to non null when Bind_Alternate_Main_Name is True
 
    Brief_Output : Boolean := False;
    --  GNAT, GNATBIND
@@ -126,6 +129,10 @@ package Opt is
    Compile_Only : Boolean := False;
    --  GNATMAKE
    --  Set to True to skip bind and link step.
+
+   Config_File : Boolean := True;
+   --  GNAT
+   --  Set to False to inhibit reading and processing of gnat.adc file
 
    subtype Debug_Level_Value is Nat range 0 .. 3;
    Debugger_Level : Debug_Level_Value := 0;
@@ -180,6 +187,13 @@ package Opt is
    --  GNAT
    --  Set to True to generate full elaboration warnings (-gnatwl)
 
+   Exception_Tracebacks : Boolean := False;
+   --  GNATBIND
+   --  Set to True to store tracebacks in exception occurrences (-E)
+
+   Extensions_Allowed : Boolean := False;
+   --  GNAT
+
    Force_Compilations : Boolean := False;
    --  GNATMAKE
    --  Set to force recompilations even when the objects are up-to-date.
@@ -189,12 +203,11 @@ package Opt is
    --  Set True to generate full source listing with embedded errors
 
    Float_Format : Character := ' ';
-   --  GNAT, GNATBIND
+   --  GNAT
    --  A non-blank value indicates that a Float_Format pragma has been
    --  processed, in which case this variable is set to 'I' for IEEE or
    --  to 'V' for VAX. The setting of 'V' is only possible on OpenVMS
-   --  versions of GNAT. In the binder, a non-blank value indicates that
-   --  at least one unit has an F line indicating the use of the pragma.
+   --  versions of GNAT.
 
    Float_Format_Long : Character := ' ';
    --  GNAT
@@ -289,11 +302,10 @@ package Opt is
    --  Set true by -gnatR switch to list representation information
 
    Locking_Policy : Character := ' ';
-   --  GNAT, GNATBIND
+   --  GNAT
    --  Set to ' ' for the default case (no locking policy specified). Reset to
    --  first character (upper case) of locking policy name if a valid pragma
-   --  Locking_Policy is encountered. In the binder, this is set to a non-blank
-   --  value if any unit specifies a policy.
+   --  Locking_Policy is encountered.
 
    Look_In_Primary_Dir : Boolean := True;
    --  GNAT, GNATBIND, GNATMAKE
@@ -334,11 +346,11 @@ package Opt is
    --  subprogram requested.
 
    Normalize_Scalars : Boolean := False;
-   --  GNAT, GNATBIND
-   --  For GNAT, set True if a pragma Normalize_Scalars applies to the current
-   --  unit. For GNATBIND, set True if Normalize_Scalars applies to any unit.
+   --  GNAT
+   --  Set True if a pragma Normalize_Scalars applies to the current
 
    No_Run_Time : Boolean := False;
+   --  GNAT
    --  Set True if a valid pragma No_Run_Time is processed
 
    type Operating_Mode_Type is (Check_Syntax, Check_Semantics, Generate_Code);
@@ -383,11 +395,10 @@ package Opt is
    --  pragma applies to the extended main unit.
 
    Queuing_Policy : Character := ' ';
-   --  GNAT, GNATBIND
+   --  GNAT
    --  Set to ' ' for the default case (no queuing policy specified). Reset to
    --  Reset to first character (upper case) of locking policy name if a valid
-   --  Queuing_Policy pragma is encountered. In the binder, this is set to a
-   --  non-blank value if any unit specifies a policy.
+   --  Queuing_Policy pragma is encountered.
 
    Quiet_Output : Boolean := False;
    --  GNATMAKE
@@ -442,11 +453,10 @@ package Opt is
    --  used if no -gnatT switch appears.
 
    Task_Dispatching_Policy : Character := ' ';
-   --  GNAT, GNATBIND
+   --  GNAT
    --  Set to ' ' for the default case (no task dispatching policy specified).
    --  Reset to first character (upper case) of task dispatching policy name
-   --  if a valid Task_Dispatching_Policy pragma is encountered. In the binder,
-   --  this is set to a non-blank value if any unit specifies a policy.
+   --  if a valid Task_Dispatching_Policy pragma is encountered.
 
    Tasking_Used : Boolean := False;
    --  Set True if any tasking construct is encountered. Used to activate the

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -37,15 +37,6 @@ with Table;
 with Types;   use Types;
 
 package ALI is
-
-   Zero_Cost_Exceptions : Boolean := False;
-   --  Set to True if zero cost exceptions active for this bind
-
-   No_Object : Boolean := False;
-   --  Set True if No_Object flag encountered in any unit
-
-   No_Normalize_Scalars : Boolean := False;
-   --  Set True if any unit is compiled without Normalize_Scalars
 
    --------------
    -- Id Types --
@@ -297,6 +288,55 @@ package ALI is
      Table_Increment      => 200,
      Table_Name           => "Unit");
 
+   --------------
+   -- Switches --
+   --------------
+
+   --  These switches record status information about ali files that
+   --  have been read, for quick reference without searching tables.
+
+   Float_Format_Specified : Character := ' ';
+   --  Set to blank by Initialize_ALI. Set to appropriate float format
+   --  character (V or I, see Opt.Float_Format) if an an ali file that
+   --  is read contains an F line setting the floating point format.
+
+   Locking_Policy_Specified : Character := ' ';
+   --  Set to blank by Initialize_ALI. Set to the appropriate locking policy
+   --  character if an ali file contains a P line setting the locking policy.
+
+   No_Normalize_Scalars_Specified : Boolean := False;
+   --  Set to False by Initialize_ALI. Set to True if an ali file indicates
+   --  that the file was compiled without normalize scalars.
+
+   No_Object_Specified : Boolean := False;
+   --  Set to False by Initialize_ALI. Set to True if an ali file contains
+   --  the No_Object flag.
+
+   Normalize_Scalars_Specified : Boolean := False;
+   --  Set to False by Initialize_ALI. Set to True if an ali file indicates
+   --  that the file was compiled in Normalize_Scalars mode.
+
+   No_Run_Time_Specified : Boolean := False;
+   --  Set to False by Initialize_ALI, Set to True if an ali file indicates
+   --  tha the file was compiled in No_Run_Time mode.
+
+   Queuing_Policy_Specified : Character := ' ';
+   --  Set to blank by Initialize_ALI. Set to the appropriate queuing policy
+   --  character if an ali file contains a P line setting the queuing policy.
+
+   Task_Dispatching_Policy_Specified : Character := ' ';
+   --  Set to blank by Initialize_ALI. Set to the appropriate task dispatching
+   --  policy character if an ali file contains a P line setting the
+   --  task dispatching policy.
+
+   Unreserve_All_Interrupts_Specified : Boolean := False;
+   --  Set to False by Initialize_ALI. Set to True if an ali file is read that
+   --  has  P line specifying unreserve all interrupts mode.
+
+   Zero_Cost_Exceptions_Specified : Boolean := False;
+   --  Set to False by Initialize_ALI. Set to True if an ali file is read that
+   --  has a P line specifying the generation of zero cost exceptions.
+
    -----------------
    -- Withs Table --
    -----------------
@@ -402,72 +442,6 @@ package ALI is
      Table_Increment      => 200,
      Table_Name           => "Sdep");
 
-   -----------------------
-   -- Source File Table --
-   -----------------------
-
-   --  A source file table entry is built for every source file that is
-   --  in the source dependency table of any of the ALI files that make
-   --  up the current program.
-
-   No_Source_Id : constant Source_Id := Source_Id'First;
-   --  Special value indicating no Source table entry
-
-   First_Source_Entry : constant Source_Id := No_Source_Id + 1;
-   --  Id of first actual entry in table
-
-   type Source_Record is record
-
-      Sfile : File_Name_Type;
-      --  Name of source file
-
-      Stamp : Time_Stamp_Type;
-      --  Time stamp value. If Check_Source_Files is set and the source
-      --  file is located, then Stamp is set from the source file. Otherwise
-      --  Stamp is set from the latest stamp value found in any of the
-      --  ALI files for the current program.
-
-      Source_Found : Boolean;
-      --  This flag is set to True if the corresponding source file was
-      --  located and the Stamp value was set from the actual source file.
-      --  It is always false if Check_Source_Files is not set.
-
-      All_Timestamps_Match : Boolean;
-      --  This flag is set only if all files referencing this source file
-      --  have a matching time stamp, and also, if Source_Found is True,
-      --  then the stamp of the source file also matches. If this flag is
-      --  True, then checksums for this file are never referenced. We only
-      --  use checksums if there are time stamp mismatches.
-
-      All_Checksums_Match : Boolean;
-      --  This flag is set only if all files referencing this source file
-      --  have checksums, and if all these checksums match. If this flag
-      --  is set to True, then the binder will ignore a timestamp mismatch.
-      --  An absent checksum causes this flag to be set False, and a mismatch
-      --  of checksums also causes it to be set False. The checksum of the
-      --  actual source file (if Source_Found is True) is included only if
-      --  All_Timestamps_Match is False (since checksums are only interesting
-      --  if we have time stamp mismatches, and we want to avoid computing the
-      --  checksum of the source file if it is not needed.)
-
-      Checksum : Word;
-      --  If no dependency line has a checksum for this source file (i.e. the
-      --  corresponding entries in the source dependency records all have the
-      --  Checksum_Present flag set False), then this field is undefined. If
-      --  at least one dependency entry has a checksum present, then this
-      --  field contains one of the possible checksum values that has been
-      --  seen. This is used to set All_Checksums_Match properly.
-
-   end record;
-
-   package Source is new Table.Table (
-     Table_Component_Type => Source_Record,
-     Table_Index_Type     => Source_Id,
-     Table_Low_Bound      => First_Source_Entry,
-     Table_Initial        => 1000,
-     Table_Increment      => 200,
-     Table_Name           => "Source");
-
    ----------------------------
    -- Use of Name Table Info --
    ----------------------------
@@ -479,57 +453,31 @@ package ALI is
    --    ALI file name       Info field has ALI_Id of ALI table entry
    --    Source file name    Info field has Source_Id of source table entry
 
-   --------------------------------------------------
-   -- Subprograms for Manipulating ALI Information --
-   --------------------------------------------------
+   --------------------------------------
+   -- Subprograms for Reading ALI File --
+   --------------------------------------
 
    procedure Initialize_ALI;
-   --  Initialize the ALI tables for a new bind
-
-   procedure Read_ALI (Id : ALI_Id);
-   --  Process an ALI file which has been read and scanned by looping
-   --  through all withed units in the ALI file; checking if they have
-   --  been processed; and for each that hasn't, reading, scanning, and
-   --  recursively processing.
+   --  Initialize the ALI tables. Also resets all switch values to defaults.
 
    function Scan_ALI
-     (F    : File_Name_Type;
-      T    : Text_Buffer_Ptr;
-      Err  : Boolean := False)
-      return ALI_Id;
-   --  Given the text of an ALI file, scan and store the information from
-   --  the file, and return the Id of the resulting entry in the ALI table.
-   --  The parameter Err determines the action taken on an incorrectly
-   --  formatted file. If Err is False (the default), then an error message
-   --  is generated, and the program is terminated. If Err is True, then
-   --  no error message is output, and No_ALI_Id is returned.
-
-   procedure Set_Source_Table (A : ALI_Id);
-   --  Build source table entry corresponding to the ALI file whose id is A.
-
-   procedure Set_Source_Table;
-   --  Build the entire source table.
-
-   function Time_Stamp_Mismatch (A : ALI_Id) return File_Name_Type;
-   --  Looks in the Source_Table and checks time stamp mismatches between
-   --  the sources there and the sources in the Sdep section of ali file whose
-   --  id is A. If no time stamp mismatches are found No_File is returned.
-   --  Otherwise return the first file for which there is a mismatch.
-   --  Note that in check source files mode (Check_Source_Files = True), the
-   --  time stamp in the Source_Table should be the actual time stamp of the
-   --  source files. In minimal recompilation mode (Minimal_Recompilation set
-   --  to True, no mismatch is found if the file's timestamp has not changed.
-
-   --------------------------------------------
-   -- Subprograms for manipulating checksums --
-   --------------------------------------------
-
-   function Get_File_Checksum (Fname : Name_Id) return Word;
-   --  Compute checksum for the given file. As far as possible, this circuit
-   --  computes exactly the same value computed by the compiler, but it does
-   --  not matter if it gets it wrong in marginal cases, since the only result
-   --  is to miss some smart recompilation cases, correct functioning is not
-   --  affecte by a mis-computation. Returns an impossible checksum value,
-   --  with the upper bit set, if the file is missing or has an error.
+     (F         : File_Name_Type;
+      T         : Text_Buffer_Ptr;
+      Ignore_ED : Boolean;
+      Err       : Boolean)
+      return      ALI_Id;
+   --  Given the text, T, of an ALI file, F, scan and store the information
+   --  from the file, and return the Id of the resulting entry in the ALI
+   --  table. Switch settings may be modified as described above in the
+   --  switch description settings.
+   --
+   --    Ignore_ED is normally False. If set to True, it indicates that
+   --    all ED (elaboration desirable) indications in the ALI file are
+   --    to be ignored.
+   --
+   --    Err determines the action taken on an incorrectly formatted file.
+   --    If Err is False, then an error message is generated, and the
+   --    program is terminated. If Err is True, then no error message is
+   --    output, and No_ALI_Id is returned.
 
 end ALI;

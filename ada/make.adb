@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with ALI;      use ALI;
+with ALI.Util; use ALI.Util;
 with Csets;
 with Debug;
 with Fname;    use Fname;
@@ -255,7 +256,7 @@ package body Make is
    Output_Flag       : constant String_Access := new String'("-o");
    Ada_Flag_1        : constant String_Access := new String'("-x");
    Ada_Flag_2        : constant String_Access := new String'("ada");
-   GNAT_Flag         : constant String_Access := new String'("-gnatg");
+   GNAT_Flag         : constant String_Access := new String'("-gnatpg");
    Do_Not_Check_Flag : constant String_Access := new String'("-x");
 
    Object_Suffix   : constant String := Get_Object_Suffix.all;
@@ -654,7 +655,7 @@ package body Make is
          end if;
 
       else
-         ALI := Scan_ALI (Lib_File, Text, Err => True);
+         ALI := Scan_ALI (Lib_File, Text, Ignore_ED => False, Err => True);
          Free (Text);
 
          if ALI = No_ALI_Id then
@@ -1280,6 +1281,7 @@ package body Make is
 
       if Initialize_ALI_Data then
          Initialize_ALI;
+         Initialize_ALI_Source;
       end if;
 
       --  The following two flags affect the behavior of ALI.Set_Source_Table.
@@ -1472,7 +1474,8 @@ package body Make is
                --  more to do, otherwise scan the ali file and record it
 
                if Text /= null then
-                  ALI := Scan_ALI (Lib_File, Text);
+                  ALI :=
+                    Scan_ALI (Lib_File, Text, Ignore_ED => False, Err => True);
                   Free (Text);
                   Record_Good_ALI (ALI);
 
@@ -1737,20 +1740,20 @@ package body Make is
       --  The ali file corresponding to Main_Source_File
 
    begin
+      if Hostparm.Java_VM then
+         Gcc := new String'("jgnat");
+         Gnatbind := new String'("jgnatbind");
+         Gnatlink := new String '("jgnatlink");
+      end if;
+
       Make.Initialize;
 
       if Hostparm.Java_VM then
-         Gcc := new String'("jgnat");
 
          --  Do not check for an object file (".o") when compiling to
          --  Java bytecode since ".class" files are generated instead.
 
          Opt.Check_Object_Consistency := False;
-
-         --  ??? temporary hack for JGNAT make since we do not
-         --  have a binder or linker yet.
-
-         Opt.Compile_Only := True;
 
          --  ??? temporary message
 
@@ -1931,8 +1934,10 @@ package body Make is
 
          --  If the objects were up-to-date check if the executable file
          --  is also up-to-date.
+         --  For now always bind and link on the JVM since there is currently
+         --  no simple way to check the up-to-date status of objects
 
-         if First_Compiled_File = No_File then
+         if not Hostparm.Java_VM and then First_Compiled_File = No_File then
             Executable_Stamp    := File_Stamp (Executable);
 
             Executable_Obsolete := Youngest_Obj_Stamp > Executable_Stamp;
@@ -2493,6 +2498,7 @@ package body Make is
 
          elsif Argv (2 .. Argv'Last) = "nostdinc" then
             Opt.No_Stdinc := True;
+            Add_Switch (Argv, Compiler);
             Add_Switch (Argv, Binder);
 
          elsif Argv (2) /= 'j'

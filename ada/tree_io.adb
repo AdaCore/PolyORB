@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -354,6 +354,19 @@ package body Tree_IO is
       end if;
    end Tree_Read_Int;
 
+   -------------------
+   -- Tree_Read_Str --
+   -------------------
+
+   procedure Tree_Read_Str (S : out String_Ptr) is
+      N : Nat;
+
+   begin
+      Tree_Read_Int (N);
+      S := new String (1 .. Natural (N));
+      Tree_Read_Data (S.all (1)'Address, N);
+   end Tree_Read_Str;
+
    -------------------------
    -- Tree_Read_Terminate --
    -------------------------
@@ -593,6 +606,16 @@ package body Tree_IO is
          Write_Byte (N_Bytes (J));
       end loop;
    end Tree_Write_Int;
+
+   --------------------
+   -- Tree_Write_Str --
+   --------------------
+
+   procedure Tree_Write_Str (S : String_Ptr) is
+   begin
+      Tree_Write_Int (S'Length);
+      Tree_Write_Data (S (1)'Address, S'Length);
+   end Tree_Write_Str;
 
    --------------------------
    -- Tree_Write_Terminate --

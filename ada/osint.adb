@@ -649,13 +649,21 @@ package body Osint is
 
    procedure Exit_Program (Exit_Code : Exit_Code_Type) is
    begin
+      --  The program will exit with the following status:
+      --    0 if the object file has been generated (with or without warnings)
+      --    1 if recompilation was not needed (smart recompilation)
+      --    2 if gnat1 has been killed by a signal (detected by GCC)
+      --    3 if no code has been generated (spec)
+      --    4 for a fatal error
+      --    5 if there were errors
+
       case Exit_Code is
          when E_Success    => OS_Exit (0);
          when E_Warnings   => OS_Exit (0);
-         when E_Errors     => OS_Exit (1);
-         when E_No_Code    => OS_Exit (1);
          when E_No_Compile => OS_Exit (1);
-         when E_Fatal      => OS_Exit (2);
+         when E_No_Code    => OS_Exit (3);
+         when E_Fatal      => OS_Exit (4);
+         when E_Errors     => OS_Exit (5);
          when E_Abort      => OS_Abort;
       end case;
    end Exit_Program;
@@ -1136,6 +1144,9 @@ package body Osint is
 
                elsif Next_Argv (1 .. 2) = "-I" then
                   Add_Src_Search_Dir (Next_Argv (3 .. Next_Argv'Last));
+
+               elsif Next_Argv (2 .. Next_Argv'Last) = "nostdinc" then
+                  Opt.No_Stdinc := True;
 
                elsif not Hostparm.Java_VM then
                   Scan_Switches (Next_Argv);

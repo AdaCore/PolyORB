@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -71,6 +71,10 @@ package Tree_IO is
    --  Reads a single integer value. The integer must have been written with
    --  a call to the Tree_Write_Int procedure.
 
+   procedure Tree_Read_Str (S : out String_Ptr);
+   --  Read string, allocate on heap, and return pointer to allocated string
+   --  which always has a lower bound of 1.
+
    procedure Tree_Read_Terminate;
    --  Called after reading all data, checks that the buffer pointers is at
    --  the end of file, raising Tree_Format_Error if not.
@@ -92,6 +96,9 @@ package Tree_IO is
 
    procedure Tree_Write_Int (N : Int);
    --  Writes a single integer value to the current tree file
+
+   procedure Tree_Write_Str (S : String_Ptr);
+   --  Write out string value referenced by S. Low bound must be 1.
 
    procedure Tree_Write_Terminate;
    --  Terminates writing of the file (flushing the buffer), but does not
