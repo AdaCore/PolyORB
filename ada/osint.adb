@@ -1396,7 +1396,7 @@ package body Osint is
 
       --  The last place to look are the defaults
 
-      if not Opt.No_Gnatlib then
+      if not Opt.No_Stdinc then
          Search_Path := String_Access (Update_Path (Include_Dir_Default_Name));
          Get_Next_Dir_In_Path_Init (Search_Path);
          loop
@@ -1404,7 +1404,9 @@ package body Osint is
             exit when Search_Dir = null;
             Add_Search_Dir (Search_Dir, True);
          end loop;
+      end if;
 
+      if not Opt.No_Stdlib then
          Search_Path := String_Access (Update_Path (Object_Dir_Default_Name));
          Get_Next_Dir_In_Path_Init (Search_Path);
          loop
@@ -2157,6 +2159,48 @@ package body Osint is
 
       return Res;
    end Time_From_Last_Bind;
+
+   ---------------------------
+   -- To_Canonical_Dir_List --
+   ---------------------------
+
+   function To_Canonical_Dir_List
+     (Wildcard_Host_Dir : String)
+   return String_Access_List_Access
+   is
+      function To_Canonical_Dir_List_Init (Host_Dir : Address) return Integer;
+      pragma Import (C, To_Canonical_Dir_List_Init,
+                     "to_canonical_dir_list_init");
+
+      function To_Canonical_Dir_List_Next return Address;
+      pragma Import (C, To_Canonical_Dir_List_Next,
+                     "to_canonical_dir_list_next");
+
+      Num_Files : Integer;
+   begin
+
+      --  Do the expansion and say how many there are
+
+      Num_Files := To_Canonical_Dir_List_Init (Wildcard_Host_Dir'Address);
+
+      declare
+         Canonical_Dir_List : String_Access_List (1 .. Num_Files);
+         Canonical_Dir_Addr : Address;
+         Canonical_Dir_Len  : Integer;
+      begin
+
+         --  Retrieve the expanded directoy names and build the list
+
+         for I in 1 .. Num_Files loop
+            Canonical_Dir_Addr := To_Canonical_Dir_List_Next;
+            Canonical_Dir_Len  := C_String_Length (Canonical_Dir_Addr);
+            Canonical_Dir_List (I) := To_Path_String_Access
+                  (Canonical_Dir_Addr, Canonical_Dir_Len);
+         end loop;
+
+         return new String_Access_List'(Canonical_Dir_List);
+      end;
+   end To_Canonical_Dir_List;
 
    ---------------------------
    -- To_Canonical_Dir_Spec --

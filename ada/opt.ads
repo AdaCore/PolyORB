@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                            --
 --                                                                          --
---          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -320,9 +320,13 @@ package Opt is
    --  GNATMAKE
    --  Set to True if minimal recompilation mode requested.
 
-   No_Gnatlib : Boolean := False;
+   No_Stdlib : Boolean := False;
    --  GNATMAKE
-   --  Set to True if no default search dirs added to search list.
+   --  Set to True if no default library search dirs added to search list.
+
+   No_Stdinc : Boolean := False;
+   --  GNATMAKE
+   --  Set to True if no default source search dirs added to search list.
 
    No_Main_Subprogram : Boolean := False;
    --  GNATMAKE, GNATBIND

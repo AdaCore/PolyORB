@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -47,14 +47,14 @@ pragma Pure (Hostparm);
    --  ??? The following should really be moved to a Target package
 
    Java_VM : constant Boolean := False;
-   --  Set true when compiling the GNAT-for-Java toolset (compiler, make, etc)
+   --  Set true when compiling the JGNAT tool chain (compiler, gnatmake, etc)
 
    OpenVMS : constant Boolean := False;
    --  ??? WARNING this flag is really used both as a HOST flag (e.g. see
    --  Osint) and a target flag, so it should really be split into two
    --  separate flags, Hostparm.OpenVMS and Target.OpenVMS. Perhaps it is
    --  not worth bothering since there are no cross compilers with VMS as a
-   --  host, unless we want to have GNAT-for-Java on VMS.
+   --  host, unless we want to have JGNAT on VMS.
    --
    --  Set true for compilers for OpenVMS systems. This is really a target
    --  flag, which should be sorted out some time??? For now we have no cross

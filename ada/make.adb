@@ -1747,7 +1747,7 @@ package body Make is
 
          Opt.Check_Object_Consistency := False;
 
-         --  ??? temporary hack for GNAT-for-Java make since we do not
+         --  ??? temporary hack for JGNAT make since we do not
          --  have a binder or linker yet.
 
          Opt.Compile_Only := True;
@@ -2487,9 +2487,13 @@ package body Make is
             Opt.Check_Object_Consistency := False;
             Opt.Compile_Only             := True;
 
-         elsif Argv (2 .. Argv'Last) = "nognatlib" then
-            Opt.No_Gnatlib := True;
-            Add_Switch (Argv, Linker);
+         elsif Argv (2 .. Argv'Last) = "nostdlib" then
+            Opt.No_Stdlib := True;
+            Add_Switch (Argv, Binder);
+
+         elsif Argv (2 .. Argv'Last) = "nostdinc" then
+            Opt.No_Stdinc := True;
+            Add_Switch (Argv, Binder);
 
          elsif Argv (2) /= 'j'
            and then Argv (2) /= 'd'

@@ -49,31 +49,46 @@ package Rident is
 
       --  The following cases are checked for consistency in the binder
 
+      Boolean_Entry_Barriers,                  -- GNAT (Ravenscar)
       No_Abort_Statements,                     -- (RM D.7(5), H.4(3))
       No_Access_Subprograms,                   -- (RM H.4(17))
       No_Allocators,                           -- (RM H.4(7))
       No_Asynchronous_Control,                 -- (RM D.9(10))
-      No_Complex_Barriers,                     -- GNAT (Ravenscar)
+      No_Calendar,                             -- GNAT
       No_Delay,                                -- (RM H.4(21))
       No_Dispatch,                             -- (RM H.4(19))
+      No_Dynamic_Interrupts,                   -- GNAT
       No_Dynamic_Priorities,                   -- (RM D.9(9))
+      No_Enumeration_Maps,                     -- GNAT
+      No_Exception_Handlers,                   -- GNAT
       No_Exceptions,                           -- (RM H.4(12))
       No_Fixed_Point,                          -- (RM H.4(15))
       No_Floating_Point,                       -- (RM H.4(14))
       No_IO,                                   -- (RM H.4(20))
       No_Implicit_Heap_Allocations,            -- (RM D.8(8), H.4(3))
       No_Local_Allocators,                     -- (RM H.4(8))
+      No_Local_Protected_Objects,              -- GNAT
       No_Nested_Finalization,                  -- (RM D.7(4))
+      No_Protected_Type_Allocators,            -- GNAT
       No_Protected_Types,                      -- (RM H.4(5))
       No_Recursion,                            -- (RM H.4(22))
       No_Reentrancy,                           -- (RM H.4(23))
+      No_Relative_Delay,                       -- GNAT
+      No_Requeue,                              -- GNAT
       No_Select_Statements,                    -- GNAT (Ravenscar)
+      No_Standard_Storage_Pools,               -- GNAT
+      No_Streams,                              -- GNAT
       No_Task_Allocators,                      -- (RM D.7(7))
+      No_Task_Attributes,                      -- GNAT
       No_Task_Hierarchy,                       -- (RM D.7(3), H.4(3))
+      No_Task_Termination,                     -- GNAT
       No_Terminate_Alternatives,               -- (RM D.7(6))
       No_Unchecked_Access,                     -- (RM H.4(18))
       No_Unchecked_Conversion,                 -- (RM H.4(16))
       No_Unchecked_Deallocation,               -- (RM H.4(9))
+      No_Wide_Characters,                      -- GNAT
+      Static_Priorities,                       -- GNAT
+      Static_Storage_Size,                     -- GNAT
 
       --  The following cases do not require partition-wide checks
 
@@ -94,7 +109,7 @@ package Rident is
    --    Corresponding restriction is violated
 
    subtype Partition_Restrictions is
-     Restriction_Id range No_Abort_Statements .. No_Unchecked_Deallocation;
+     Restriction_Id range Boolean_Entry_Barriers .. Static_Storage_Size;
 
    --  The following enumeration type defines the set of restriction
    --  parameter identifiers taking a parameter that are implemented in
@@ -108,6 +123,7 @@ package Rident is
 
    type Restriction_Parameter_Id is (
      Max_Asynchronous_Select_Nesting,         -- (RM D.9(18), H.4(3))
+     Max_Entry_Queue_Depth,                   -- GNAT
      Max_Protected_Entries,                   -- (RM D.9(14))
      Max_Select_Alternatives,                 -- (RM D.9(12))
      Max_Storage_At_Blocking,                 -- (RM D.9(17))

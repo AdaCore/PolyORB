@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -191,6 +191,21 @@ package Osint is
    --  otherwise returns the number of minutes
    --  till the last bind. The computation does not try to be completely
    --  accurate and in particular does not take leap years into account.
+
+   type String_Access_List is array (Positive range <>) of String_Access;
+   --  Deferenced type used to return a list of directory specs in
+   --  To_Canonical_Dir_List.
+
+   type String_Access_List_Access is access all String_Access_List;
+   --  Type used to return a String_Access_List  without dragging in secondary
+   --  stack.
+
+   function To_Canonical_Dir_List
+     (Wildcard_Host_Dir : String)
+   return String_Access_List_Access;
+   --  Expand a wildcard host syntax directory specification (e.g. on a
+   --  VMS host, any directory spec that contains: "*", or "%", or "...")
+   --  and return a list of valid Unix syntax directory specs.
 
    function To_Canonical_Dir_Spec
      (Host_Dir     : String;
