@@ -55,20 +55,21 @@ package body Idl_Fe.Types is
 
    procedure Add_Definition_To_Storage
      (Scope      : in Node_Id;
-      Definition : in Identifier_Definition_Acc);
+      Definition : in Identifier_Definition_Acc;
+      Is_Inheritable : in Boolean);
    --  Add the definition to Scope storage table.
-   --  It is done at the end of the scope parsing (called by pop_scope)
 
    procedure Add_Identifier_Definition
      (Scope      : Node_Id;
-      Definition : in Identifier_Definition_Acc);
+      Definition : in Identifier_Definition_Acc;
+      Is_Inheritable : Boolean);
    --  Add an identifier definition to a scope.
 
    function Find_Inherited_Identifier_Definition
      (Name : String;
       Loc  : Errors.Location)
      return Identifier_Definition_Acc;
-   --  Find the identifier definition in the inherited interface.
+   --  Find the identifier definition in inherited interfaces.
    --  If this identifier is not defined, returns a null pointer.
 
    --------------------------------------
@@ -533,7 +534,8 @@ package body Idl_Fe.Types is
 
    procedure Add_Identifier_Definition
      (Scope : Node_Id;
-      Definition : in Identifier_Definition_Acc)
+      Definition : in Identifier_Definition_Acc;
+      Is_Inheritable : Boolean)
    is
       List : Identifier_Definition_List;
    begin
@@ -544,7 +546,7 @@ package body Idl_Fe.Types is
         (Definition => Definition,
          Next => Identifier_List (Scope));
       Set_Identifier_List (Scope, List);
-      Add_Definition_To_Storage (Scope, Definition);
+      Add_Definition_To_Storage (Scope, Definition, Is_Inheritable);
       pragma Debug (O2 ("Add_Identifier_Definition : end"));
    end Add_Identifier_Definition;
 
@@ -738,13 +740,10 @@ package body Idl_Fe.Types is
       return Res;
    end Hash;
 
-   -------------------------------------
-   --  scope handling types  methods  --
-   -------------------------------------
+   -------------------------
+   -- Add_Int_Val_Forward --
+   -------------------------
 
-   ---------------------------
-   --  Add_Int_Val_Forward  --
-   ---------------------------
 
    procedure Add_Int_Val_Forward
      (Node : in Node_Id)
@@ -757,9 +756,10 @@ package body Idl_Fe.Types is
         (Get_Root_Scope, UF);
    end Add_Int_Val_Forward;
 
-   ------------------------------
-   --  Add_Int_Val_Definition  --
-   ------------------------------
+   ----------------------------
+   -- Add_Int_Val_Definition --
+   ----------------------------
+
    procedure Add_Int_Val_Definition
      (Node : in Node_Id)
    is
@@ -771,9 +771,9 @@ package body Idl_Fe.Types is
         (Get_Root_Scope, UF);
    end Add_Int_Val_Definition;
 
-   ----------------------
-   --  Get_Root_Scope  --
-   ----------------------
+   --------------------
+   -- Get_Root_Scope --
+   --------------------
 
    function Get_Root_Scope
      return Node_Id is
@@ -781,9 +781,9 @@ package body Idl_Fe.Types is
       return Root_Scope.Scope;
    end Get_Root_Scope;
 
-   -------------------------
-   --  Get_Current_Scope  --
-   -------------------------
+   -----------------------
+   -- Get_Current_Scope --
+   -----------------------
 
    function Get_Current_Scope
      return Node_Id is
@@ -802,9 +802,11 @@ package body Idl_Fe.Types is
         := Current_Scope;
    begin
       while Scope /= null
-        and then not Is_Gen_Scope (Scope.Scope) loop
+        and then not Is_Gen_Scope (Scope.Scope)
+      loop
          Scope := Scope.Parent;
       end loop;
+
       if Scope /= null then
          return Scope.Scope;
       else
@@ -877,15 +879,15 @@ package body Idl_Fe.Types is
 
       procedure Reenter_Definition_List
         (Definition_List : Identifier_Definition_List);
-      --  Enter all identifiers in Definition_List into
-      --  the global Id_Table and Hash_Table, in reverse
-      --  order.
+      --  Enter all identifiers in Definition_List into the
+      --  global Id_Table and Hash_Table, in reverse order.
 
       procedure Reenter_Definition_List
         (Definition_List : Identifier_Definition_List) is
       begin
+
          --  Definitions must be re-added in the order they
-         --  were first created, i. e. stating at the tail
+         --  were first created, i. e. starting at the tail
          --  of Definition_List.
 
          if Definition_List = null then
@@ -896,18 +898,23 @@ package body Idl_Fe.Types is
 
          Reenter_Definition_List (Definition_List.Next);
 
-         --  first find a place for this identifier in the table
+         --  Find a place for this identifier in the table...
+
          Create_Identifier_Index
            (Definition_List.Definition.Name.all,
             Hash_Table,
             Id_Table,
             Index);
-         --  set its fields previous_definition and id that were
-         --  not used in the scope table
+
+         --  Set its fields previous_definition and id that were
+         --  not used in the scope table...
+
          Definition_List.Definition.Previous_Definition :=
            Id_Table.Table (Index).Definition;
          Definition_List.Definition.Id := Index;
-         --  And finally add it to the scope
+
+         --  And finally add the identifier to the scope
+
          Id_Table.Table (Index).Definition := Definition_List.Definition;
          pragma Debug (O2 ("Reenter_Definition_List: leave"));
       end Reenter_Definition_List;
@@ -930,8 +937,10 @@ package body Idl_Fe.Types is
 
       pragma Debug (O ("Push_Scope : putting the old definition " &
                        "in the id_table."));
+
       --  Add all definition of the new scope into the hash table,
-      --  in case there are some. Useful when a scoped is reopened.
+      --  in case there are some. Used when a scoped is reopened.
+
       Reenter_Definition_List (Identifier_List (Scope));
       pragma Debug (O2 ("Push_Scope : end"));
    end Push_Scope;
@@ -953,12 +962,16 @@ package body Idl_Fe.Types is
       pragma Debug (O2 ("Pop_Scope : enter"));
       --  Remove all definition of scope from the hash table, and
       --  replace them by the previous one.
-      --  Add these definition to the identifier_table of the current_scope
+
+      --  Add these definition to the identifier_table of the Current_Scope
+
       Definition_List := Identifier_List (Current_Scope.Scope);
       while Definition_List /= null loop
          pragma Debug (O ("Pop_Scope: beginning of loop "));
          Old_Definition := Definition_List.Definition;
-         --  remove the identifier from the id_table
+
+         --  Remove the identifier from the Id_Table
+
          Id_Table.Table (Definition_List.Definition.Id).Definition :=
            Definition_List.Definition.Previous_Definition;
          pragma Debug (O ("Pop_Scope: test the presence of" &
@@ -1221,10 +1234,14 @@ package body Idl_Fe.Types is
          Table.Table (Previous).Next := Uniq_Id (Result);
       end if;
 
-      --  Add an entry in INDEX.
-      Table.Table (Result) := (Definition => null,
-                              Next => Nil_Uniq_Id);
+      --  Add an entry for Index, using default values
+
       Index := Result;
+      Table.Table (Result) :=
+        (Definition     => null,
+         Is_Inheritable => True,
+         Next           => Nil_Uniq_Id);
+
       pragma Debug (O2 ("Create_Identifier_Index : end"));
       return;
    end Create_Identifier_Index;
@@ -1335,7 +1352,8 @@ package body Idl_Fe.Types is
    function Add_Identifier
      (Node  : Node_Id;
       Name  : String;
-      Scope : Node_Id := No_Node)
+      Scope : Node_Id := No_Node;
+      Is_Inheritable : Boolean := True)
      return Boolean
    is
       Definition : Identifier_Definition_Acc;
@@ -1372,7 +1390,7 @@ package body Idl_Fe.Types is
 
       pragma Debug (O ("Add_Identifier: "
                        & "adding definition to the current scope"));
-      Add_Identifier_Definition (Scop, Definition);
+      Add_Identifier_Definition (Scop, Definition, Is_Inheritable);
 
       pragma Debug (O ("Add_Identifier: puting the definition in its node"));
       Set_Definition (Node, Definition);
@@ -1388,7 +1406,8 @@ package body Idl_Fe.Types is
 
    function Find_Identifier_In_Storage
      (Scope : Node_Id;
-      Name : String)
+      Name : String;
+      Inheritable_Only : Boolean := False)
      return Identifier_Definition_Acc
    is
 
@@ -1419,7 +1438,11 @@ package body Idl_Fe.Types is
    begin
       pragma Debug (O2 ("Find_Identifier_In_Storage : enter"));
       Index := Stored_Identifier_Index (Scope, Name);
-      if Index /= Nil_Uniq_Id then
+      if Index /= Nil_Uniq_Id
+        and then (Identifier_Table (Scope).Content_Table.Table
+                  (Index).Is_Inheritable
+                  or else not Inheritable_Only)
+      then
          pragma Debug (O2 ("Find_Identifier_In_Storage : end"));
          return Identifier_Table (Scope).
            Content_Table.Table (Index).Definition;
@@ -1456,7 +1479,8 @@ package body Idl_Fe.Types is
 
    procedure Add_Definition_To_Storage
      (Scope      : in Node_Id;
-      Definition : in Identifier_Definition_Acc)
+      Definition : in Identifier_Definition_Acc;
+      Is_Inheritable : in Boolean)
    is
       Index : Uniq_Id;
    begin
@@ -1472,6 +1496,8 @@ package body Idl_Fe.Types is
                      Table (Index).Definition = null);
       Identifier_Table (Scope).Content_Table.
         Table (Index).Definition := Definition;
+      Identifier_Table (Scope).Content_Table.
+        Table (Index).Is_Inheritable := Is_Inheritable;
       pragma Debug (O2 ("Add_Definition_To_Storage : end"));
    end Add_Definition_To_Storage;
 
@@ -1579,7 +1605,7 @@ package body Idl_Fe.Types is
          pragma Debug (O ("Find_Identifier_In_Inheritance: " &
                           Node_Kind'Image (Kind (Node))));
          Definition := Find_Identifier_In_Storage
-           (Value (Node), Name);
+           (Value (Node), Name, Inheritable_Only => True);
          if Definition /= null then
             Append_Node (List, Definition.Node);
          else

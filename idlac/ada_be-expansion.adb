@@ -207,10 +207,13 @@ package body Ada_Be.Expansion is
    procedure Add_Identifier_With_Renaming
      (Node       : Node_Id;
       Identifier : String;
-      Scope      : Node_Id := No_Node);
+      Scope      : Node_Id := No_Node;
+      Is_Inheritable : Boolean := True);
    --  Assign Identifier to Node in Scope (or current scope if No_Node),
    --  possibly appending a numeric prefix if a conflict
-   --  would otherwise be introduced.
+   --  would otherwise be introduced. If Is_Inheritable is False, then
+   --  this identifier will not be considered as conflicting when this scope
+   --  is inherited by another.
 
    procedure Insert_Before_Current
      (Node : Node_Id);
@@ -295,11 +298,12 @@ package body Ada_Be.Expansion is
                if Is_Gen_Scope (Node) then
                   Push_Scope (Node);
                   Add_Identifier_With_Renaming
-                    (RID_Name_Node, "Repository_Id");
+                    (RID_Name_Node, "Repository_Id", Is_Inheritable => False);
                   Pop_Scope;
                else
                   Add_Identifier_With_Renaming
-                    (RID_Name_Node, Name (Node) & "_Repository_Id");
+                    (RID_Name_Node, Name (Node) & "_Repository_Id",
+                     Is_Inheritable => False);
                end if;
             end;
          end if;
@@ -1669,16 +1673,18 @@ package body Ada_Be.Expansion is
    procedure Add_Identifier_With_Renaming
      (Node       : Node_Id;
       Identifier : String;
-      Scope      : Node_Id := No_Node)
+      Scope      : Node_Id := No_Node;
+      Is_Inheritable : Boolean := True)
    is
       Suffix : Integer := 1;
    begin
       pragma Debug (O ("Add_Identifier_With_Renaming: trying to add "
                        & Identifier));
 
-      if not Add_Identifier (Node, Identifier, Scope) then
+      if not Add_Identifier (Node, Identifier, Scope, Is_Inheritable) then
          while not Add_Identifier
-           (Node, Identifier & "_" & Img (Suffix), Scope) loop
+           (Node, Identifier & "_" & Img (Suffix), Scope, Is_Inheritable)
+         loop
             Suffix := Suffix + 1;
          end loop;
       end if;
