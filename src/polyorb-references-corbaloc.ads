@@ -47,7 +47,7 @@ package PolyORB.References.Corbaloc is
 
    subtype Corbaloc_Type is PolyORB.References.Ref;
 
-   type String_Array is array (Natural range <>) of Types.String;
+   type String_Array is array (Integer range <>) of Types.String;
 
    -------------------------------------
    -- Object reference <-> Corbaloc --
@@ -69,14 +69,9 @@ package PolyORB.References.Corbaloc is
      return Types.String;
    --  Return the corbaloc string for the asked profile
 
-   function Object_To_Strings
-     (Corbaloc : Corbaloc_Type)
-     return String_Array;
-   --  Return a string array with all corbaloc for this ref
-
-   function String_To_Object
-     (Str : Types.String)
-     return Corbaloc_Type;
+   function Object_To_Strings (Corbaloc : Corbaloc_Type) return String_Array;
+   --  Return an array of strings containing one corbaloc for each
+   --  profile of this ref that supports them.
 
    ---------------------
    -- Profile Factory --
@@ -97,7 +92,10 @@ package PolyORB.References.Corbaloc is
       String_To_Profile_Body : in String_To_Profile_Body_Type);
    --  Register a corbaloc implem from a protocol personality
 
-   Corbaloc_Prefix : constant Types.String
-     := PolyORB.Types.To_PolyORB_String ("corbaloc:");
+private
+
+   Corbaloc_Prefix : constant String := "corbaloc:";
+
+   function String_To_Object (Str : String) return Corbaloc_Type;
 
 end PolyORB.References.Corbaloc;

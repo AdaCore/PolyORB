@@ -42,7 +42,6 @@ with PolyORB.Log;
 with PolyORB.Representations.CDR;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
---  with PolyORB.Utils.Strings;
 
 package body PolyORB.References.IOR is
 
@@ -171,7 +170,7 @@ package body PolyORB.References.IOR is
 
    procedure Marshall_IOR
      (Buffer : access Buffer_Type;
-      Value  : in IOR_Type)
+      Value  : in PolyORB.References.Ref)
    is
       use PolyORB.Types;
       use Profile_Seqs;
@@ -230,12 +229,12 @@ package body PolyORB.References.IOR is
 
    function Unmarshall_IOR
      (Buffer : access Buffer_Type)
-     return  IOR_Type
+     return  PolyORB.References.Ref
    is
       use PolyORB.Types;
       use Profile_Seqs;
 
-      Result     : IOR_Type;
+      Result     : PolyORB.References.Ref;
 
       PolyORB_Type_Id : constant Types.String
         := Types.String (Types.String'(Unmarshall (Buffer)));
@@ -278,7 +277,7 @@ package body PolyORB.References.IOR is
    -- Object_To_Opaque --
    ----------------------
 
-   function Object_To_Opaque (IOR : IOR_Type)
+   function Object_To_Opaque (IOR : PolyORB.References.Ref)
      return Stream_Element_Array
    is
       Buf : Buffer_Access := new Buffer_Type;
@@ -300,7 +299,7 @@ package body PolyORB.References.IOR is
 
    function Opaque_To_Object
      (Opaque : access Ada.Streams.Stream_Element_Array)
-     return IOR_Type
+     return PolyORB.References.Ref
    is
       Buf : aliased Buffer_Type;
    begin
@@ -312,38 +311,31 @@ package body PolyORB.References.IOR is
    -- Object_To_String --
    ----------------------
 
-   function Object_To_String
-     (IOR : IOR_Type)
-     return Types.String
+   function Object_To_String (IOR : PolyORB.References.Ref) return String
    is
       use PolyORB.Types;
    begin
-      return To_PolyORB_String (IOR_Prefix)
-        & To_String (Object_To_Opaque (IOR));
+      return IOR_Prefix & To_String (Object_To_Opaque (IOR));
    end Object_To_String;
 
    ----------------------
    -- String_To_Object --
    ----------------------
 
-   function String_To_Object
-     (Str : Types.String)
-     return IOR_Type
+   function String_To_Object (Str : String) return PolyORB.References.Ref
    is
       use PolyORB.Types;
       use PolyORB.Buffers;
       use PolyORB.Utils.Strings;
 
-      S : constant String := To_Standard_String (Str);
-
    begin
       pragma Debug (O ("Try to decode IOR"));
-      if Has_Prefix (S, IOR_Prefix) then
+      if Has_Prefix (Str, IOR_Prefix) then
          pragma Debug (O ("IOR Header ok"));
          declare
             Octets : aliased Stream_Element_Array
               := To_Stream_Element_Array
-              (S (S'First + IOR_Prefix'Length .. S'Last));
+              (Str (Str'First + IOR_Prefix'Length .. Str'Last));
          begin
             return Opaque_To_Object (Octets'Access);
          end;
@@ -375,7 +367,7 @@ package body PolyORB.References.IOR is
 
    procedure Initialize is
    begin
-      Register (Types.To_PolyORB_String (IOR_Prefix), String_To_Object'Access);
+      Register_String_To_Object (IOR_Prefix, String_To_Object'Access);
    end Initialize;
 
    use PolyORB.Initialization;

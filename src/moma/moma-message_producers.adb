@@ -44,7 +44,6 @@ with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
 with PolyORB.References;
-with PolyORB.References.IOR;
 with PolyORB.Requests;
 with PolyORB.Types;
 
@@ -151,26 +150,32 @@ package body MOMA.Message_Producers is
       use PolyORB.Annotations;
       use PolyORB.Call_Back;
       use PolyORB.References;
-      use PolyORB.References.IOR;
       use PolyORB.Types;
 
       Producer : MOMA.Message_Producers.Message_Producer;
 
-      ORB_Object_IOR      : constant IOR_Type := String_To_Object (ORB_Object);
-      Dest_Ref_Object_IOR : constant IOR_Type := String_To_Object (Mesg_Pool);
-
-      Type_Id_S : MOMA.Types.String :=
-        To_MOMA_String (Type_Id_Of (ORB_Object_IOR));
+      ORB_Object_IOR      : PolyORB.References.Ref;
+      Dest_Ref_Object_IOR : PolyORB.References.Ref;
 
    begin
-      if Type_Id_S = MOMA_Type_Id then
-         raise Program_Error;
-      end if;
+      String_To_Object
+        (MOMA.Types.To_Standard_String (ORB_Object), ORB_Object_IOR);
+      String_To_Object
+        (MOMA.Types.To_Standard_String (Mesg_Pool), Dest_Ref_Object_IOR);
 
-      Set_Ref (Producer, ORB_Object_IOR);
-      Set_Type_Id_Of (Producer, Type_Id_S);
-      Set_CBH (Producer, new PolyORB.Call_Back.Call_Back_Handler);
-      --  XXX should free this memory sometime, somewhere ...
+      declare
+         Type_Id_S : constant String := Type_Id_Of (ORB_Object_IOR);
+      begin
+
+         if Type_Id_S = MOMA_Type_Id then
+            raise Program_Error;
+         end if;
+
+         Set_Ref (Producer, ORB_Object_IOR);
+         Set_Type_Id_Of (Producer, To_PolyORB_String (Type_Id_S));
+         Set_CBH (Producer, new PolyORB.Call_Back.Call_Back_Handler);
+         --  XXX should free this memory sometime, somewhere ...
+      end;
 
       Attach_Handler_To_CB
         (Call_Back_Handler (Get_CBH (Producer).all),

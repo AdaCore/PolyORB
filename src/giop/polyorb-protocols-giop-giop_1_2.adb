@@ -49,6 +49,7 @@ with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
 with PolyORB.ORB.Interface;
 with PolyORB.References.Binding;
+with PolyORB.References.IOR;
 with PolyORB.Representations.CDR;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;

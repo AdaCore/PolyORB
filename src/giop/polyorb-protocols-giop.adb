@@ -46,7 +46,6 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Configuration;
 with PolyORB.Utils.Strings;
 with PolyORB.ORB;
-with PolyORB.References.IOR;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
 with PolyORB.References;
@@ -717,9 +716,9 @@ package body PolyORB.Protocols.GIOP is
    is
       use PolyORB.Binding_Data;
       use PolyORB.References;
-      use PolyORB.References.IOR;
 
-      New_Ref    : IOR.IOR_Type := Representations.CDR.Unmarshall (Buffer);
+      New_Ref    : constant PolyORB.References.Ref
+        := Representations.CDR.Unmarshall (Buffer);
       Prof_Array : constant PolyORB.References.Profile_Array
         := Profiles_Of (New_Ref);
 

@@ -33,7 +33,6 @@
 
 with PolyORB.Objects;
 with PolyORB.References;
-with PolyORB.References.IOR;
 with PolyORB.Protocols.GIOP.Common;
 pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 
@@ -159,7 +158,7 @@ private
 
    type IOR_Addressing_Info is record
       Selected_Profile_Index : Types.Unsigned_Long;
-      IOR                    : PolyORB.References.IOR.IOR_Type;
+      IOR                    : PolyORB.References.Ref;
    end record;
    type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
 

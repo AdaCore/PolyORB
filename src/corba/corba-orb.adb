@@ -437,7 +437,7 @@ package body CORBA.ORB is
    is
       use PolyORB.References.IOR;
    begin
-      return CORBA.String
+      return To_CORBA_String
         (Object_To_String
          (CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
    end Object_To_String;
@@ -470,7 +470,7 @@ package body CORBA.ORB is
 
          My_Ref : Ref;
       begin
-         String_To_Object (PolyORB.Types.String (From), My_Ref);
+         String_To_Object (To_Standard_String (From), My_Ref);
          CORBA.Object.Set (To, Entity_Of (My_Ref));
       end;
 

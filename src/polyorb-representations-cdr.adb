@@ -1667,14 +1667,7 @@ package body PolyORB.Representations.CDR is
 
 --         --  4. Call the interface marshalling function
 --      else
-      declare
-         use PolyORB.References;
-         use PolyORB.References.IOR;
-         IOR : IOR_Type;
-      begin
-         Set (IOR, PolyORB.References.Entity_Of (Data));
-         Marshall_IOR (Buffer, IOR);
-      end;
+      References.IOR.Marshall_IOR (Buffer, References.Ref'(Data));
 --      end if;
    end Marshall;
 
@@ -2587,7 +2580,7 @@ package body PolyORB.Representations.CDR is
    is
       use PolyORB.References;
       use PolyORB.References.IOR;
-      IOR : constant IOR_Type := Unmarshall_IOR (Buffer);
+      IOR : constant Ref := Unmarshall_IOR (Buffer);
    begin
       PolyORB.References.Set (Data, Entity_Of (IOR));
    end Unmarshall;

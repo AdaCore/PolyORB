@@ -60,7 +60,6 @@ with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.POA_Types;
 with PolyORB.References;
-with PolyORB.References.IOR;
 with PolyORB.Servants;
 with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.Helper;
@@ -198,14 +197,13 @@ package body System.PolyORB_Interface is
    --------------------
 
    function Naming_Context return PSNNC.Ref is
+      R : PolyORB.References.Ref;
    begin
       if PSNNC.Is_Nil (Naming_Context_Cache) then
-         PSNNC.Set
-           (Naming_Context_Cache,
-            PolyORB.References.Entity_Of
-            (PolyORB.References.IOR.String_To_Object
-             (PolyORB.Types.To_PolyORB_String
-              (PolyORB.Configuration.Get_Conf ("dsa", "naming_ior")))));
+         PolyORB.References.String_To_Object
+           (PolyORB.Configuration.Get_Conf ("dsa", "naming_ior"),
+            R);
+         PSNNC.Set (Naming_Context_Cache, Entity_Of (R));
       end if;
 
       return Naming_Context_Cache;
