@@ -876,10 +876,9 @@ package body Ada_Be.Idl2Ada is
             PL (Skel_Body, "Broca.Exceptions.Raise_Bad_Operation;");
             DI (Skel_Body);
             PL (Skel_Body, "end GIOP_Dispatch;");
-            NL (Skel_Body);
-            DI (Skel_Body);
-            PL (Skel_Body, "begin");
-            II (Skel_Body);
+
+            Divert (Skel_Body, Elaboration);
+
             PL (Skel_Body, "PortableServer.Register_Skeleton");
             PL (Skel_Body, "  (" & Stubs_Name
                 & "." & T_Repository_Id &",");
@@ -892,18 +891,6 @@ package body Ada_Be.Idl2Ada is
 
             null;
       end case;
-
-      NL (Stubs_Spec);
-      NL (Stubs_Body);
-      NL (Helper_Spec);
-      NL (Helper_Body);
-      NL (Stream_Spec);
-      NL (Stream_Body);
-      NL (Skel_Spec);
-      --  Skel body ends with elaboration code:
-      --  no new-line required.
-      NL (Impl_Spec);
-      NL (Impl_Body);
 
       if Implement then
          Generate (Impl_Spec, False, To_Stdout);
