@@ -45,8 +45,18 @@ package Corba is
    type Octet is new Interfaces.Unsigned_8;
    type String is new Ada.Strings.Unbounded.Unbounded_String;
 
+   -- And now all the pointers to those types :
 
-
+   type Boolean_Ptr is access all Boolean ;
+   type Short Ptr is access all Short ;
+   type Long_Ptr is access all Long ;
+   type Unsigned_Short_Ptr is access all Unsigned_Short ;
+   type Unsigned_Long_Ptr is access all Unsigned_Long ;
+   type Float_Ptr is access all Float ;
+   type Double_Ptr is access all Double ;
+   type Char_Ptr is access all Char ;
+   type Octet_Ptr is access all Octet ;
+   type String_Ptr is access all String ;
 
 
    -----------------------------------------------------------
