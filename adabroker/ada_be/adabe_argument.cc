@@ -1,28 +1,3 @@
-/*************************************************************************************************
-***                              ADA BACK-END COMPILER                                         ***
-***                             file:  adabe_argument.cc                                       ***
-***                                                                                            ***
-***      This file provides the implementation of class adabe_argument  declared in adabe.h    ***
-***   (L 420). This class is the correspondant of the Sun's Front-End class AST_Argument.      ***
-***   It provides produce functions for each generated file, a constructor and two little      ***
-***   functions : dump_name and marshall_name whose job is to print the name of the types.     ***
-***                                                                                            ***
-***                                                                                            ***
-***   Copyright 1999                                                                           ***
-***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
-***                                                                                            ***
-***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
-***   General Public License, as published by the Free Software Foundation.                    ***
-***                                                                                            ***
-***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
-***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
-***  PURPOSE.                                                                                  ***
-***                                                                                            ***
-***  See the GNU General Public License for more details.                                      ***
-***                                                                                            ***
-***                                                                                            ***
-*************************************************************************************************/
-
 #include <adabe.h>
 
 ////////////////////////////////////////////////////////////////////////
@@ -321,9 +296,9 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
       marshall += "            Marshall(";
       marshall += get_ada_local_name ();
       marshall += ", Orls) ;\n";
-      align_size += "            Mesg_Size := Align_Size(" ;
+      align_size += "            Size := Align_Size(" ;
       align_size += get_ada_local_name() ;
-      align_size += ", Mesg_Size) ;\n" ;
+      align_size += ", Size) ;\n" ;
     }      
 }
 

@@ -327,7 +327,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   body += "            Result : ";
   body += type_name;
   body += " ;\n";
-  body += "            Mesg_Size : CORBA.Unsigned_Long ;\n";
+  body += "            Size : CORBA.Unsigned_Long ;\n";
   body += "         begin\n";
 
   body += "            -- change state\n";
@@ -341,11 +341,11 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   body += "(Self) ;\n";
 
   body += "            -- compute the size of the replied message\n";
-  body += "            Mesg_Size := AdaBroker.GIOP_S.Reply_Header_Size ;\n";
-  body += "            Mesg_Size := Align_Size (Result, Mesg_Size) ;\n";
+  body += "            Size := AdaBroker.GIOP_S.Reply_Header_Size ;\n";
+  body += "            Size := Align_Size (Result, Size) ;\n";
 
   body += "            -- Initialisation of the reply\n";
-  body += "            AdaBroker.GIOP_S.Initialize_Reply (Orls, AdaBroker.GIOP.NO_EXCEPTION, Mesg_Size) ;\n";
+  body += "            AdaBroker.GIOP_S.Initialize_Reply (Orls, AdaBroker.GIOP.NO_EXCEPTION, Size) ;\n";
 
   body += "            -- Marshall the arguments\n";
   body += "            Marshall (Result, Orls) ;\n";
@@ -367,7 +367,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += "            Mesg : ";
       body += type_name;
       body += " ;\n";
-      body += "            Mesg_Size : CORBA.Unsigned_Long ;\n";
+      body += "            Size : CORBA.Unsigned_Long ;\n";
       body += "         begin\n";
       
       body += "            -- unmarshalls arguments\n";
@@ -384,9 +384,9 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += "(Self,Mesg) ;\n";
       
       body += "            -- compute the size of the replied message\n";
-      body += "            Mesg_Size := AdaBroker.GIOP_S.Reply_Header_Size ;\n";
+      body += "            Size := AdaBroker.GIOP_S.Reply_Header_Size ;\n";
       body += "            -- Initialisation of the reply\n";
-      body += "            AdaBroker.GIOP_S.Initialize_Reply (Orls, AdaBroker.GIOP.NO_EXCEPTION, Mesg_Size) ;\n";
+      body += "            AdaBroker.GIOP_S.Initialize_Reply (Orls, AdaBroker.GIOP.NO_EXCEPTION, Size) ;\n";
       body += "            -- inform the orb\n";
       body += "            AdaBroker.GIOP_S.Reply_Completed (Orls) ;\n";
       
