@@ -70,6 +70,7 @@ package PolyORB.ORB.Thread_Pool is
 
    procedure Idle
      (P : access Thread_Pool_Policy;
+      This_Task :        PolyORB.Task_Info.Task_Info;
       ORB : ORB_Access);
 
    procedure Queue_Request_To_Handler

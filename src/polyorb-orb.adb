@@ -543,7 +543,7 @@ package body PolyORB.ORB is
             --  re-assert it before returning.
 
             Set_Status_Idle (This_Task, ORB.Idle_Tasks);
-            Idle (ORB.Tasking_Policy, ORB_Access (ORB));
+            Idle (ORB.Tasking_Policy, This_Task, ORB_Access (ORB));
             Set_Status_Running (This_Task);
 
          end if;

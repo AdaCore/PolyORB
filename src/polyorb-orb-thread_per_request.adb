@@ -168,10 +168,12 @@ package body PolyORB.ORB.Thread_Per_Request is
 
    procedure Idle
      (P : access Thread_Per_Request_Policy;
+      This_Task :        PolyORB.Task_Info.Task_Info;
       ORB : ORB_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
+      pragma Unreferenced (This_Task);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
 

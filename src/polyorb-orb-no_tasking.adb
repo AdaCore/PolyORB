@@ -134,10 +134,14 @@ package body PolyORB.ORB.No_Tasking is
    -- Idle --
    ----------
 
-   procedure Idle (P : access No_Tasking; ORB : ORB_Access) is
+   procedure Idle
+     (P         : access No_Tasking;
+      This_Task :        PolyORB.Task_Info.Task_Info;
+      ORB       :        ORB_Access) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
+      pragma Unreferenced (This_Task);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
       pragma Debug (O ("No_Tasking: dead lock detected."));

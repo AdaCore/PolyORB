@@ -172,11 +172,14 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Idle
      (P   : access Thread_Pool_Policy;
-      ORB :         ORB_Access)
+      This_Task :        PolyORB.Task_Info.Task_Info;
+      ORB :        ORB_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
+
+      package PTI renames PolyORB.Task_Info;
 
    begin
       pragma Debug (O ("Thread "
@@ -186,7 +189,7 @@ package body PolyORB.ORB.Thread_Pool is
       --  Precondition: ORB_Lock is held.
 
       ORB.Idle_Counter := ORB.Idle_Counter + 1;
-      PTCV.Wait (ORB.Idle_Tasks, ORB.ORB_Lock);
+      PTCV.Wait (PTI.Condition (This_Task), ORB.ORB_Lock);
       ORB.Idle_Counter := ORB.Idle_Counter - 1;
 
       --  Post condition: ORB_Lock is held.
