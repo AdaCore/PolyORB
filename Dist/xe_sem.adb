@@ -55,19 +55,16 @@ package body XE_Sem is
    --  When a partition attribute has not been assigned, apply the
    --  default partition attribute.
 
-   procedure Assign_Partition_Tasking (Partition : Partition_Id);
-   --  Assign partition tasking based on its configured units. Assign
-   --  termination policy at the same time.
+   procedure Assign_Unit_Tasking (ALI : ALI_Id);
+   --  Assign PCS tasking for a RCI unit.
 
-   procedure Assign_Tasking_From_Unit_Categorization (ALI : ALI_Id);
-   --  Assign tasking when unit is RCI, RACW, pure or preelaborated.
+   procedure Assign_Partition_Termination (Partition : Partition_Id);
+   --  Assign termination policy based on tasking policy.
 
-   procedure Assign_Tasking_From_Unit_Dependencies
-     (ALI     : ALI_Id;
-      Tasking : in out Character);
-   --  Assign tasking when it is required by dependencies. If the use
-   --  of tasking has not been analyzed for a dependency, then push it
-   --  in the stack to investigate whether it requires tasking or not.
+   procedure Update_Partition_Tasking
+     (ALI : ALI_Id; Partition : Partition_Id);
+   --  Update partition tasking with ALI tasking as well as all its
+   --  withed and collocated units.
 
    procedure Detect_Configured_Channel_Duplication
      (Channel : Channel_Id;
@@ -132,10 +129,9 @@ package body XE_Sem is
 
    procedure Analyze is
       A  : ALI_Id;
-      F  : File_Name_Type;
       CU : Conf_Unit_Id;
       OK : Boolean := True;
-      T  : Character;
+      P  : Partition_Id;
 
    begin
       --  Add units configured on the partition type to each
@@ -194,7 +190,6 @@ package body XE_Sem is
 
       for J in ALIs.First .. ALIs.Last loop
          Set_ALI_Id (ALIs.Table (J).Uname, J);
-         Set_Tasking (J, '?');
       end loop;
 
       if not Quiet_Mode then
@@ -299,66 +294,31 @@ package body XE_Sem is
       --  from the PCS. Check whether the partition is candidate for a
       --  local termination.
 
-      Partitions.Table (Main_Partition).Tasking := 'P';
+      for J in ALIs.First .. ALIs.Last loop
+         Set_Partition_Id (ALIs.Table (J).Uname, No_Partition_Id);
+         Assign_Unit_Tasking (J);
+      end loop;
+
       for J in Conf_Units.First .. Conf_Units.Last loop
-         Set_Partition_Id
-           (Conf_Units.Table (J).Name,
-            Conf_Units.Table (J).Partition);
+         A := Conf_Units.Table (J).My_ALI;
+         P := Conf_Units.Table (J).Partition;
+         Set_Partition_Id (Conf_Units.Table (J).Name, P);
 
          if To_Build (J) then
-            if Debug_Mode then
-               Message ("[tasking] append", Conf_Units.Table (J).Name);
-            end if;
-            A := Conf_Units.Table (J).My_ALI;
-            Files.Append (ALIs.Table (A).Afile);
+            Update_Partition_Tasking (A, P);
          end if;
       end loop;
-
-      while Files.First <= Files.Last loop
-         F := Files.Table (Files.Last);
-         if Debug_Mode then
-            Message ("[tasking] analyze", F);
-         end if;
-         A := Get_ALI_Id (F);
-
-         Assign_Tasking_From_Unit_Categorization (A);
-
-         --  The use of tasking is still unknown. Investigate into the
-         --  dependencies as long as they are collocated.
-
-         if Get_Tasking (A) = '?' then
-            T := 'N';
-
-            if Debug_Mode then
-               Message ("[tasking] analyze", F, "deps");
-            end if;
-
-            Assign_Tasking_From_Unit_Dependencies (A, T);
-
-            --  The use of tasking has been fully analyzed.
-
-            if T /= '?' then
-               if Debug_Mode then
-                  Message ("[tasking]", ALIs.Table (A).Uname, "tasking " & T);
-               end if;
-
-               Set_Tasking (A, T);
-               Files.Decrement_Last;
-            end if;
-
-         else
-            Files.Decrement_Last;
-         end if;
-      end loop;
+      Partitions.Table (Main_Partition).Tasking := 'P';
 
       if Debug_Mode then
+         Message ("configure partition termination");
          Message ("find partition stub-only units");
          Message ("update partition most recent stamp");
       end if;
 
       for J in Partitions.First + 1 .. Partitions.Last loop
          if Partitions.Table (J).To_Build then
-            Assign_Partition_Tasking (J);
+            Assign_Partition_Termination (J);
             Find_Stubs_And_Stamps_From_Closure (J);
          end if;
       end loop;
@@ -453,62 +413,35 @@ package body XE_Sem is
       end if;
    end Apply_Default_Partition_Attributes;
 
-   ------------------------------
-   -- Assign_Partition_Tasking --
-   ------------------------------
+   ----------------------------------
+   -- Assign_Partition_Termination --
+   ----------------------------------
 
-   procedure Assign_Partition_Tasking (Partition : Partition_Id) is
+   procedure Assign_Partition_Termination (Partition : Partition_Id) is
       Current : Partition_Type renames Partitions.Table (Partition);
-      Tasking : Character;
-      Unit    : Conf_Unit_Id;
 
    begin
-      Tasking := Current.Tasking;
-      if Tasking /= '?' then
-         return;
-      end if;
-      Tasking := 'N';
-
-      --  Append all the source dependencies of units which are
-      --  assigned to partition.
-
-      Unit := Current.First_Unit;
-      while Unit /= No_Conf_Unit_Id loop
-         case Get_Tasking (Conf_Units.Table (Unit).My_ALI) is
-            when 'P' =>
-               Tasking := 'P';
-
-            when 'U' =>
-               if Tasking /= 'P' then
-                  Tasking := 'U';
-               end if;
-
-            when others =>
-               null;
-         end case;
-         Unit := Conf_Units.Table (Unit).Next_Unit;
-      end loop;
-      Current.Tasking := Tasking;
-
       if Debug_Mode then
-         Message ("partition", Current.Name, "has tasking " & Tasking);
+         Message ("partition", Current.Name, "has tasking " & Current.Tasking);
       end if;
 
-      if Current.Termination = No_Termination and then Tasking /= 'P' then
+      if Current.Termination = No_Termination
+        and then Current.Tasking /= 'P'
+      then
          Current.Termination := Local_Termination;
 
          if Debug_Mode then
             Message ("local termination forced for", Current.Name);
          end if;
       end if;
-   end Assign_Partition_Tasking;
+   end Assign_Partition_Termination;
 
-   ---------------------------------------------
-   -- Assign_Tasking_From_Unit_Categorization --
-   ---------------------------------------------
+   -------------------------
+   -- Assign_Unit_Tasking --
+   -------------------------
 
-   procedure Assign_Tasking_From_Unit_Categorization (ALI : ALI_Id) is
-      N : constant Unit_Name_Type := ALIs.Table (ALI).Uname;
+   procedure Assign_Unit_Tasking (ALI : ALI_Id) is
+      T : Character := Get_Tasking (ALI);
 
    begin
       for J in ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit loop
@@ -519,107 +452,21 @@ package body XE_Sem is
          if Units.Table (J).RCI
            or else Units.Table (J).Has_RACW
          then
-            if Debug_Mode then
-               Message ("[tasking]", N, "requires tasking P");
-            end if;
-            Set_Tasking (ALI, 'P');
-            exit;
-
-         elsif Units.Table (J).Pure
-           or else Units.Table (J).Preelaborated
-         then
-            if Debug_Mode then
-               Message ("[tasking]", N, "requires tasking N");
-            end if;
-            Set_Tasking (ALI, 'N');
+            T := 'P';
             exit;
          end if;
       end loop;
-   end Assign_Tasking_From_Unit_Categorization;
 
-   -------------------------------------------
-   -- Assign_Tasking_From_Unit_Dependencies --
-   -------------------------------------------
+      if T = '?' then
+         T := 'N';
+      end if;
+      Set_Tasking (ALI, T);
 
-   procedure Assign_Tasking_From_Unit_Dependencies
-     (ALI     : ALI_Id;
-      Tasking : in out Character)
-   is
-      N : constant Unit_Name_Type := ALIs.Table (ALI).Uname;
-      A : ALI_Id;
-      U : Unit_Id;
-
-   begin
-      for J in ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit loop
-         for K in Units.Table (J).First_With .. Units.Table (J).Last_With loop
-            if Present (Withs.Table (K).Afile) then
-               A := Get_ALI_Id (Withs.Table (K).Afile);
-
-               --  First discard predefined units since they do not bring
-               --  tasking with them.
-
-               if Is_Predefined_File (Withs.Table (K).Afile) then
-                  null;
-
-               elsif A /= No_ALI_Id then
-                  U := ALIs.Table (A).Last_Unit;
-
-                  --  This unit may not be collocated with the current
-                  --  unit or it cannot drag any tasking.
-
-                  if Units.Table (U).RCI
-                    or else Units.Table (U).Preelaborated
-                    or else Units.Table (U).Pure
-                  then
-                     null;
-
-                  --  This unit has not been yet analyzed. Keep the current
-                  --  unit in the stack and push this new one.
-
-                  elsif Get_Tasking (Units.Table (U).My_ALI) = '?' then
-                     if Debug_Mode then
-                        Message ("[tasking]", N, "postponed");
-                     end if;
-
-                     Tasking := '?';
-                     Files.Append (Withs.Table (K).Afile);
-
-                     if Debug_Mode then
-                        Message ("[tasking] append", Withs.Table (K).Uname);
-                     end if;
-
-                  --  There are other units to analyze before making any
-                  --  conclusion.
-
-                  elsif Tasking = '?' then
-                     null;
-
-                  --  Declare the use of tasking if the withed unit uses
-                  --  tasking.
-
-                  elsif Get_Tasking (Units.Table (U).My_ALI) = 'U'
-                    or else Get_Tasking (Units.Table (U).My_ALI) = 'P'
-                  then
-                     if Tasking /= 'P' then
-                        Tasking := Get_Tasking (Units.Table (U).My_ALI);
-                        if Debug_Mode then
-                           if Tasking = 'U' then
-                              Message ("[tasking]", N, "requires tasking U");
-
-                           else
-                              Message ("[tasking]", N, "requires tasking P");
-                           end if;
-                        end if;
-
-                     elsif Debug_Mode then
-                        Message ("[tasking]", N, "still requires tasking P");
-                     end if;
-                  end if;
-               end if;
-            end if;
-         end loop;
-      end loop;
-   end Assign_Tasking_From_Unit_Dependencies;
+      if Debug_Mode then
+         Message ("unit", ALIs.Table (ALI).Uname,
+                  "has tasking " & Get_Tasking (ALI));
+      end if;
+   end Assign_Unit_Tasking;
 
    -------------------------------------------
    -- Detect_Configured_Channel_Duplication --
@@ -998,5 +845,113 @@ package body XE_Sem is
          end if;
       end loop;
    end Find_Stubs_And_Stamps_From_Closure;
+
+   ------------------------------
+   -- Update_Partition_Tasking --
+   ------------------------------
+
+   procedure Update_Partition_Tasking
+     (ALI       : ALI_Id;
+      Partition : Partition_Id)
+   is
+      A : ALI_Id;
+      F : File_Name_Type;
+      N : Unit_Name_Type;
+      U : Unit_Id;
+      T : Character renames Partitions.Table (Partition).Tasking;
+
+   begin
+      if Debug_Mode then
+         Message ("update partition", Partitions.Table (Partition).Name,
+                  "tasking " & T);
+      end if;
+
+      Files.Append (ALIs.Table (ALI).Afile);
+      while Files.First <= Files.Last loop
+         F := Files.Table (Files.Last);
+         Files.Decrement_Last;
+         A := Get_ALI_Id (F);
+
+         if Debug_Mode then
+            Message ("pop unit", ALIs.Table (A).Uname);
+         end if;
+
+         --  Update partition tasking to unit tasking
+
+         if T = 'P' then
+            null;
+
+         elsif T = 'U' then
+            if ALIs.Table (A).Tasking = 'P' then
+               if Debug_Mode then
+                  Message ("update tasking from " &
+                           T & " to " & ALIs.Table (A).Tasking);
+               end if;
+
+               T := ALIs.Table (A).Tasking;
+            end if;
+
+         else
+            if T /= ALIs.Table (A).Tasking then
+               if Debug_Mode then
+                  Message ("update tasking from " &
+                           T & " to " & ALIs.Table (A).Tasking);
+               end if;
+
+               T := ALIs.Table (A).Tasking;
+            end if;
+         end if;
+
+         --  When needed, push into the collocated units stack the withed units
+
+         for J in
+           ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
+         loop
+            for K in
+              Units.Table (J).First_With .. Units.Table (J).Last_With
+            loop
+               F := Withs.Table (K).Afile;
+               if Present (F) then
+                  A := Get_ALI_Id (F);
+
+                  --  Discard predefined units since they do not bring
+                  --  tasking with them.
+
+                  if Is_Predefined_File (F) then
+                     null;
+
+                  elsif A /= No_ALI_Id then
+                     U := ALIs.Table (A).Last_Unit;
+                     N := ALIs.Table (A).Uname;
+
+                     --  Discard unit that has already been assigned
+                     --  to this partition.
+
+                     if Get_Partition_Id (N) = Partition then
+                        null;
+
+                     --  Discard this unit as it may not be collocated
+
+                     elsif Units.Table (U).RCI
+                       or else Units.Table (U).Shared_Passive
+                     then
+                        null;
+
+                     --  Continue investigation later on
+
+                     else
+                        if Debug_Mode then
+                           Message ("push unit", N);
+                        end if;
+
+                        Set_Partition_Id (N, Partition);
+                        Files.Append (F);
+                     end if;
+                  end if;
+               end if;
+            end loop;
+         end loop;
+      end loop;
+   end Update_Partition_Tasking;
 
 end XE_Sem;
