@@ -42,7 +42,6 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
-   use PolyORB.Calendar;
    use PolyORB.Log;
    use PolyORB.Task_Info;
    use PolyORB.Tasking.Condition_Variables;
@@ -658,8 +657,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
       Create (OC.Monitoring_Task_CV);
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;
       OC.Monitoring_Task_Job_Queue := PolyORB.Jobs.Create_Queue;
-
-      OC.Next_Polling_Scheduled := Create;
 
       if Polling_Interval = 0 then
          OC.Polling_Interval := PolyORB.Constants.Forever;

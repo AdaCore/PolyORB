@@ -44,7 +44,6 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB_Controller.Basic is
 
-   use PolyORB.Calendar;
    use PolyORB.Log;
    use PolyORB.Task_Info;
    use PolyORB.Tasking.Condition_Variables;
@@ -617,8 +616,6 @@ package body PolyORB.ORB_Controller.Basic is
       Create (OC.ORB_Lock);
       Create (OC.Polling_Completed);
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;
-
-      OC.Next_Polling_Scheduled := Create;
 
       if Polling_Interval = 0 then
          OC.Polling_Interval := PolyORB.Constants.Forever;

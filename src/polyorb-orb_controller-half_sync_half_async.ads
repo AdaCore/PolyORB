@@ -42,7 +42,6 @@
 --  Under this implementation, a dedicated task monitors AES, other
 --  tasks process requests.
 
-with PolyORB.Calendar;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
@@ -167,7 +166,6 @@ private
 
       Polling_Interval : Duration;
       Polling_Timeout  : Duration;
-      Next_Polling_Scheduled : PolyORB.Calendar.Time_Type_Access;
       Counter : Natural := 0;
 
    end record;
