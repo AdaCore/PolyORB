@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.60 $
+--                            $Revision: 1.61 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -41,7 +41,6 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 
 with AdaBroker.OmniORB;        use AdaBroker.OmniORB;
---  with AdaBroker.OmniRopeAndKey; use AdaBroker.OmniRopeAndKey;
 
 with AdaBroker.Debug;
 pragma Elaborate_All (AdaBroker.Debug);
@@ -112,7 +111,7 @@ package body CORBA.Object is
          return False;
       end if;
 
-      return AdaBroker.OmniORB.Is_Equivalent (Self.OmniObj.all, Other.OmniObj);
+      return Is_Equivalent (Self.OmniObj.all, Other.OmniObj);
    end Is_Equivalent;
 
    ----------

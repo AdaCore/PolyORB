@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.NVList;
+
 package CORBA.Context is
 
    type Object is limited private;
@@ -49,7 +51,7 @@ package CORBA.Context is
    procedure Get_Values
      (Self        : in     Object;
       Start_Scope : in     Identifier;
-      This_Object : in     Boolean := TRUE;
+      This_Object : in     Boolean := True;
       Prop_Name   : in     Identifier;
       Values      :    out CORBA.NVList.Object);
 
@@ -64,9 +66,12 @@ package CORBA.Context is
 
    procedure Delete
      (Self              : in Object;
-      Delete_Descendant : in Boolean := FALSE);
+      Delete_Descendant : in Boolean := False);
 
 private
-   -- implementation defined
+
+   --  implementation defined
+   --  Dummy declaration to compile unit.
+   type Object is new Integer;
 
 end CORBA.Context;

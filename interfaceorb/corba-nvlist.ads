@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -47,14 +47,18 @@ package CORBA.NVList is
      (Self : in out Object;
       Item : in     NamedValue);
 
-   -- free and free_memory Are unneeded
+   --  free and free_memory are unneeded
 
    procedure Get_Count
      (Self : Object;
       Count : out CORBA.Long);
 
+   Null_Object : constant Object;
+
 private
 
-   -- implemantation defined
+   --  To be fixed
+   type Object is new Integer;
+   Null_Object : constant Object := 0;
 
 end CORBA.NVList;

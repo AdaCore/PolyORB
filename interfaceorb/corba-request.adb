@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---         O N L Y   D E F I N E S   A   R O P E   T Y P E .   I T          --
+--                        C O R B A . R E Q U E S T                         --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.1 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,18 +33,65 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package only defines a Rope type. It is not wrapped around the C
---  type since it is never used in AdaBroker but just taken from a C
---  function and given to another one.
+package body CORBA.Request is
 
-with System;
+   -------------
+   -- Add_Arg --
+   -------------
 
-package AdaBroker.Rope is
+   procedure Add_Arg
+     (Self : in out Object;
+      Arg  : in     NamedValue)
+   is
+   begin
+      null;
+   end Add_Arg;
 
-   type Object is new System.Address;
-   --  Corresponds to C class Rope (see rope.h) This object is never used
-   --  in Ada (just taken from a C function and given to another one) so it
-   --  is not right implemented.  We just keep the system Address of the
-   --  object.
+   ------------
+   -- Invoke --
+   ------------
 
-end AdaBroker.Rope;
+   procedure Invoke
+     (Self         : in out Object;
+      Invoke_Flags : in     Flags)
+   is
+   begin
+      null;
+   end Invoke;
+
+   ------------
+   -- Delete --
+   ------------
+
+   procedure Delete
+     (Self : in out Object)
+   is
+   begin
+      null;
+   end Delete;
+
+   ----------
+   -- Send --
+   ----------
+
+   procedure Send
+     (Self         : in out Object;
+      Invoke_Flags : in     Flags)
+   is
+   begin
+      null;
+   end Send;
+
+   ------------------
+   -- Get_Response --
+   ------------------
+
+   procedure Get_Response
+     (Self           : in out Object;
+      Response_Flags : in     Flags)
+   is
+   begin
+      null;
+   end Get_Response;
+
+end CORBA.Request;

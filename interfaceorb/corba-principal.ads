@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -37,12 +37,17 @@ package CORBA.Principal is
 
    type Object is private;
 
-   function To_Any(From : in Object) return Any;
-   function From_Any(From : in Any ) return Object;
+   function To_Any (From : in Object) return Any;
+   function From_Any (From : in Any) return Object;
 
-   function Is_Principal(Item : Any) return Boolean;
+   function Is_Principal (Item : Any) return Boolean;
 
-   -- other implementation dependant operations
+   --  other implementation dependant operations
+
+private
+
+   --  Dummy declaration to compile unit.
+   type Object is new Integer;
 
 end CORBA.Principal;
 

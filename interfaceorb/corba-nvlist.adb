@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---         O N L Y   D E F I N E S   A   R O P E   T Y P E .   I T          --
+--                         C O R B A . N V L I S T                          --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.1 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,18 +33,44 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package only defines a Rope type. It is not wrapped around the C
---  type since it is never used in AdaBroker but just taken from a C
---  function and given to another one.
+package body CORBA.NVList is
 
-with System;
+   --------------
+   -- Add_Item --
+   --------------
 
-package AdaBroker.Rope is
+   procedure Add_Item
+     (Self       : in out Object;
+      Item_Name  : in     Identifier;
+      Item       : in     Any;
+      Item_Flags : in     Flags)
+   is
+   begin
+      null;
+   end Add_Item;
 
-   type Object is new System.Address;
-   --  Corresponds to C class Rope (see rope.h) This object is never used
-   --  in Ada (just taken from a C function and given to another one) so it
-   --  is not right implemented.  We just keep the system Address of the
-   --  object.
+   --------------
+   -- Add_Item --
+   --------------
 
-end AdaBroker.Rope;
+   procedure Add_Item
+     (Self : in out Object;
+      Item : in     NamedValue)
+   is
+   begin
+      null;
+   end Add_Item;
+
+   ---------------
+   -- Get_Count --
+   ---------------
+
+   procedure Get_Count
+     (Self : Object;
+      Count : out CORBA.Long)
+   is
+   begin
+      Count := 0;
+   end Get_Count;
+
+end CORBA.NVList;

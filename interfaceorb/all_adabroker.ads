@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -38,10 +38,15 @@ with AdaBroker.Debug;
 with AdaBroker.Constants;
 with CORBA.BOA;
 with CORBA.Command_Line;
+with CORBA.Context;
+with CORBA.Environment;
 with CORBA.Exceptions;
 with CORBA.Forward;
+with CORBA.NVList;
 with CORBA.Object;
 with CORBA.ORB;
+with CORBA.Principal;
+with CORBA.Request;
 with CORBA.Sequences.Bounded;
 with CORBA.Sequences.Unbounded;
 with CORBA.Sequences;
@@ -67,10 +72,15 @@ pragma Warnings (Off, AdaBroker.Debug);
 pragma Warnings (Off, AdaBroker.Constants);
 pragma Warnings (Off, CORBA.BOA);
 pragma Warnings (Off, CORBA.Command_Line);
+pragma Warnings (Off, CORBA.Context);
 pragma Warnings (Off, CORBA.Exceptions);
+pragma Warnings (Off, CORBA.Environment);
 pragma Warnings (Off, CORBA.Forward);
 pragma Warnings (Off, CORBA.Object);
+pragma Warnings (Off, CORBA.NVList);
 pragma Warnings (Off, CORBA.ORB);
+pragma Warnings (Off, CORBA.Principal);
+pragma Warnings (Off, CORBA.Request);
 pragma Warnings (Off, CORBA.Sequences.Bounded);
 pragma Warnings (Off, CORBA.Sequences.Unbounded);
 pragma Warnings (Off, CORBA.Sequences);

@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---         O N L Y   D E F I N E S   A   R O P E   T Y P E .   I T          --
+--                        C O R B A . C O N T E X T                         --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.1 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,18 +33,81 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package only defines a Rope type. It is not wrapped around the C
---  type since it is never used in AdaBroker but just taken from a C
---  function and given to another one.
+with CORBA.NVList; use CORBA.NVList;
 
-with System;
+package body CORBA.Context is
 
-package AdaBroker.Rope is
+   procedure Set_One_Value
+     (Self      : in out Object;
+      Prop_Name : in    Identifier;
+      Value     : in    CORBA.String)
+   is
+   begin
+      null;
+   end Set_One_Value;
 
-   type Object is new System.Address;
-   --  Corresponds to C class Rope (see rope.h) This object is never used
-   --  in Ada (just taken from a C function and given to another one) so it
-   --  is not right implemented.  We just keep the system Address of the
-   --  object.
+   ----------------
+   -- Set_Values --
+   ----------------
 
-end AdaBroker.Rope;
+   procedure Set_Values
+     (Self      : in out Object;
+      Values    : in     CORBA.NVList.Object)
+   is
+   begin
+      null;
+   end Set_Values;
+
+   ----------------
+   -- Get_Values --
+   ----------------
+
+   procedure Get_Values
+     (Self        : in     Object;
+      Start_Scope : in     Identifier;
+      This_Object : in     Boolean := True;
+      Prop_Name   : in     Identifier;
+      Values      :    out CORBA.NVList.Object)
+   is
+   begin
+      Values := Null_Object;
+   end Get_Values;
+
+   -------------------
+   -- Delete_Values --
+   -------------------
+
+   procedure Delete_Values
+     (Self      : in out Object;
+      Prop_Name : in     Identifier)
+   is
+   begin
+      null;
+   end Delete_Values;
+
+   ------------------
+   -- Create_Child --
+   ------------------
+
+   procedure Create_Child
+     (Self      : in out Object;
+      Ctx_Name  : in     Identifier;
+      Child_Ctx :    out Object)
+   is
+   begin
+      Child_Ctx := 0;
+   end Create_Child;
+
+   ------------
+   -- Delete --
+   ------------
+
+   procedure Delete
+     (Self              : in Object;
+      Delete_Descendant : in Boolean := False)
+   is
+   begin
+      null;
+   end Delete;
+
+end CORBA.Context;

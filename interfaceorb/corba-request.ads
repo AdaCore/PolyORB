@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -57,6 +57,9 @@ package CORBA.Request is
       Response_Flags : in     Flags);
 
 private
-   -- implementation defined
+
+   --  Implementation defined
+   --  Dummy declaration to compile unit.
+   type Object is new Integer;
 
 end CORBA.Request;
