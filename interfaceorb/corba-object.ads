@@ -45,6 +45,7 @@
 
 
 with Ada.Finalization ;
+with Ada.Unchecked_Deallocation ;
 
 with Omniobject ;
 with NetBufferedStream, MemBufferedStream ;
@@ -64,8 +65,9 @@ package Corba.Object is
    --------------------------------------------------
 
    type Ref is tagged private ;
-   type Ref_Ptr is access all Ref'Class ;
+   type Ref_Ptr is access all Ref ;
    type Constant_Ref_Ptr is  access constant Corba.Object.Ref'Class ;
+   procedure Free(Self : in out Ref_Ptr) ;
 
    -- constant Nil Ref
    Nil_Ref : aliased constant Ref ;
@@ -282,7 +284,6 @@ private
       Dynamic_Type : Constant_Ref_Ptr := null ;
    end record ;
 
-
    --------------------------------------------------
    ---          controlling functions             ---
    --------------------------------------------------
@@ -296,6 +297,8 @@ private
 
    procedure Finalize (Self: in out Ref);
    -- release th underlying omniobject
+
+   procedure Private_Free is new Ada.Unchecked_Deallocation(Ref, Ref_Ptr) ;
 
 
    Nil_Ref :  aliased constant Ref := (Ada.Finalization.Controlled

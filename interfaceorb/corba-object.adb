@@ -229,6 +229,14 @@ package body Corba.Object is
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
 
+   -- Free
+   -------
+   procedure Free(Self : in out Ref_Ptr) is
+   begin
+      Private_Free(Self) ;
+   end;
+
+
    -- Get_Repository_Id
    --------------------
    function Get_Repository_Id(Self : in Ref) return Corba.String is
