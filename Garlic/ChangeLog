@@ -1,3 +1,24 @@
+Fri Feb  7 11:35:42 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.sh: Added O_RDONLY and O_WRONLY to the list of
+	  constants.
+
+	* s-garrem.adb: Avoid using dup2() because of a bug in Linux
+	  threads library handling of this call along with non-overloaded
+	  functions: MIT pthreads library use an internal file table which
+	  is mapped on the process file table. When dup2() is used, the
+	  pthreads library doesn't really call the dup2 system call but
+	  use its mapping table to replace calls to the new descriptor by
+	  calls to the old one; before this, it closes the new descriptor
+	  if it was already opened to preserve dup2() semantics. When
+	  another system call such as getsockname() is used and is not
+	  overloaded by the pthreads library, then the file descriptor
+	  passed to the kernel is the one seen by the application, that is
+	  the one assigned by the threads library, which do *NOT*
+	  correspond (because of the close() performed to simulate dup2())
+	  to the one assigned by the kernel itself. This causes such
+	  operations to fail with EBADF (bad file descriptor).
+
 Thu Feb  6 17:51:34 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* s-parint.adb: More comments. Suppress

@@ -63,12 +63,17 @@ package body System.Garlic.Remote is
       Dev_Null_Name : C.Strings.chars_ptr :=
         C.Strings.New_String ("/dev/null");
    begin
-      Dev_Null := C_Open (Dev_Null_Name, O_Rdwr);
-      C.Strings.Free (Dev_Null_Name);
       Dummy_P := C_Setsid;
-      Dummy   := C_Dup2 (Dev_Null, 0);
-      Dummy   := C_Dup2 (Dev_Null, 1);
-      Dummy   := C_Dup2 (Dev_Null, 2);
+      Dummy := C_Close (0);
+      Dev_Null := C_Open (Dev_Null_Name, O_Rdonly);
+      pragma Assert (Dev_Null = 0);
+      Dummy := C_Close (1);
+      Dev_Null := C_Open (Dev_Null_Name, O_Wronly);
+      pragma Assert (Dev_Null = 1);
+      Dummy := C_Close (2);
+      Dev_Null := C_Open (Dev_Null_Name, O_Wronly);
+      pragma Assert (Dev_Null = 2);
+      C.Strings.Free (Dev_Null_Name);
    end Detach;
 
    ----------------------
