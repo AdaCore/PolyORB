@@ -1,3 +1,10 @@
+2000-05-11  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* README (Introduction): Add a special note to indicate that the
+	machine name should never be associated to address 127.0.0.1;
+	this is unfortunately the case on some Linux distributions
+	(see 7703-007).
+
 2000-04-21  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* MANIFEST: Add new files from Garlic concerning data storages for 

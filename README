@@ -76,6 +76,16 @@ how to use GLADE (user_guide.txt) and some more hints on installation
 possibilities (install_guide.txt) . Directory "Examples" contains
 some examples on how to program a distributed application in Ada 95.
 
+If you have a problem making your partitions connect with each other,
+please check that:
+
+  - You can use rsh from any machine involved in the distributed
+    application to any other.
+
+  - Your /etc/hosts file (on Unix systems) does not associate your
+    machine name with the 127.0.0.1 address; be aware that some systems
+    come misconfigured by default.
+
 What does it run on.
 --------------------
 
