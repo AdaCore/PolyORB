@@ -42,6 +42,7 @@ ADA_SPECS_WITH_BODY = \
 	   corba-abstractbase.ads \
 	   corba-impl.ads \
 	   corba-value-forward.ads \
+	   corba-value.ads \
 	   portableserver-adapteractivator-impl.ads \
 	   portableserver-adapteractivator.ads \
 	   portableserver-current.ads \
@@ -63,7 +64,6 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	   corba-sequences.ads \
 	   corba-sequences-bounded.ads \
 	   corba-sequences-unbounded.ads \
-	   corba-value.ads \
 	   portableserver-servantactivator-impl.ads \
 	   portableserver-servantlocator-impl.ads \
 	   portableserver-servantmanager.ads \
@@ -127,7 +127,7 @@ broca-object.lo:broca-buffers.ads broca-exceptions.ads broca-iop.ads broca-objec
 broca-opaque-chunk_pools.lo:broca-opaque-chunk_pools.adb broca-opaque-chunk_pools.ads broca-opaque.ads broca.ads 
 broca-opaque.lo:broca-opaque.ads broca.ads 
 broca-orb.lo:broca-buffers.ads broca-debug.adb broca-debug.ads broca-exceptions.ads broca-iiop.ads broca-iop.ads broca-locks.ads broca-object.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-orb.adb broca-orb.ads broca-poa.ads broca-refs.ads broca-repository.ads broca-sequences.ads broca.ads corba-abstractbase.ads corba-context.ads corba-forward.ads corba-impl.ads corba-nvlist.ads corba-object.ads corba-orb.ads corba-request.ads corba-sequences-unbounded.ads corba-sequences.ads corba.ads portableserver-adapteractivator.ads portableserver-servantmanager.ads portableserver.ads sequences-unbounded.adb sequences-unbounded.ads sequences.ads 
-broca-poa.lo:broca-buffers.ads broca-cdr.ads broca-debug.adb broca-debug.ads broca-exceptions.ads broca-iop.ads broca-locks.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-poa.adb broca-poa.ads broca-refs.ads broca-sequences.ads broca-server.ads broca-stream.ads broca.ads corba-abstractbase.ads corba-context.ads corba-forward.ads corba-impl.ads corba-nvlist.ads corba-object.ads corba-request.ads corba-sequences-unbounded.ads corba-sequences.ads corba.ads portableserver-adapteractivator.ads portableserver-servantmanager.ads portableserver.ads sequences-unbounded.ads sequences.ads 
+broca-poa.lo:broca-buffers.ads broca-cdr.ads broca-debug.adb broca-debug.ads broca-exceptions.ads broca-iop.ads broca-locks.ads broca-object.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-poa.adb broca-poa.ads broca-refs.ads broca-sequences.ads broca-server.ads broca-stream.ads broca.ads corba-abstractbase.ads corba-context.ads corba-forward.ads corba-impl.ads corba-nvlist.ads corba-object.ads corba-request.ads corba-sequences-unbounded.ads corba-sequences.ads corba.ads portableserver-adapteractivator.ads portableserver-servantmanager.ads portableserver.ads sequences-unbounded.ads sequences.ads 
 broca-policy.lo:broca-buffers.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-policy.adb broca-policy.ads broca-refs.ads broca.ads corba.ads sequences-unbounded.ads sequences.ads 
 broca-protected_objects.lo:broca-protected_objects.adb broca-protected_objects.ads broca-soft_links.ads broca.ads 
 broca-refs.lo:broca-buffers.ads broca-debug.adb broca-debug.ads broca-locks.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-refs.adb broca-refs.ads broca.ads 
@@ -155,7 +155,7 @@ corba-sequences-bounded.lo:corba-sequences-bounded.ads corba-sequences.ads corba
 corba-sequences-unbounded.lo:corba-sequences-unbounded.ads corba-sequences.ads corba.ads sequences-unbounded.adb sequences-unbounded.ads sequences.ads 
 corba-sequences.lo:corba-sequences.ads corba.ads sequences-unbounded.ads sequences.ads 
 corba-value-forward.lo:broca-buffers.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-refs.ads broca.ads corba-abstractbase.ads corba-impl.ads corba-value-forward.adb corba-value-forward.ads corba-value.ads corba.ads sequences-unbounded.ads sequences.ads 
-corba-value.lo:broca-buffers.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-refs.ads broca.ads corba-abstractbase.ads corba-impl.ads corba-value.ads corba.ads sequences-unbounded.ads sequences.ads 
+corba-value.lo:broca-buffers.ads broca-exceptions.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-refs.ads broca-value-operation_store.ads broca-value-value_skel.ads broca-value.ads broca.ads corba-abstractbase.ads corba-impl.ads corba-value.adb corba-value.ads corba.ads sequences-unbounded.ads sequences.ads 
 corba.lo:broca-buffers.ads broca-configuration.ads broca-debug.adb broca-debug.ads broca-exceptions.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca.ads corba.adb corba.ads sequences-unbounded.adb sequences-unbounded.ads sequences.ads 
 portableserver-adapteractivator-impl.lo:broca-buffers.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-refs.ads broca.ads corba-abstractbase.ads corba-context.ads corba-forward.ads corba-impl.ads corba-nvlist.ads corba-object.ads corba-request.ads corba-sequences-unbounded.ads corba-sequences.ads corba.ads portableserver-adapteractivator-impl.adb portableserver-adapteractivator-impl.ads portableserver-adapteractivator.ads portableserver.ads sequences-unbounded.ads sequences.ads 
 portableserver-adapteractivator.lo:broca-buffers.ads broca-opaque-chunk_pools.ads broca-opaque.ads broca-refs.ads broca.ads corba-abstractbase.ads corba-context.ads corba-forward.ads corba-impl.ads corba-nvlist.ads corba-object.ads corba-request.ads corba-sequences-unbounded.ads corba-sequences.ads corba.ads portableserver-adapteractivator-impl.ads portableserver-adapteractivator.adb portableserver-adapteractivator.ads portableserver.ads sequences-unbounded.ads sequences.ads 
