@@ -1108,7 +1108,7 @@ package body Droopi.Any is
    begin
       case TypeCode.Parameter_Count (A.The_Type) is
          when 0 =>
-            return "<Any value>";
+            return "<No parameter>";
          when others =>
             case TypeCode.Kind (A.The_Type) is
                when Tk_Short =>
@@ -1140,7 +1140,7 @@ package body Droopi.Any is
                when Tk_Ulonglong =>
                   return Unsigned_Long_Long'Image (From_Any (A));
                when others =>
-                  return "<Any value>";
+                  return "<No standard type>";
             end case;
       end case;
    end Image;

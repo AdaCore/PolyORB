@@ -41,7 +41,7 @@ package body Droopi.Test_Object is
       return S;
    end echoString;
 
-   function Echo_Integer
+   function echoInteger
      (O : My_Object;
       I : Types.Long)
      return Types.Long is
@@ -49,7 +49,7 @@ package body Droopi.Test_Object is
 --  pragma Debug (O ("Echo_Integer is being executed with argument"
 --                   & Integer'Image (I)));
       return I;
-   end Echo_Integer;
+   end echoInteger;
 
    --------------------------------------------------------------
    -- "Middleware glue" that should be generated automatically --
@@ -75,23 +75,21 @@ package body Droopi.Test_Object is
                   echoString_Arg : Types.String :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 1).Argument);
-                  --  Result : Types.String_Ptr;
                begin
                   Req.Result.Argument := To_Any
                     (echoString (Obj.all, echoString_Arg));
+                  pragma Debug (O ("Result: " & Image (Req.Result)));
                end;
-            elsif Req.all.Operation = "Echo_Integer" then
---                declare
---                   Echo_Integer_Arg : Types.Short :=
---                     From_Any (NV_Sequence.Element_Of
---                               (Args_Sequence.all, 1).Argument);
---                   Result : Types.Long_Ptr;
---                begin
---                   Result := new Long'(Echo_Integer
---                                       (Obj.all,
---                                        Echo_Integer_Arg));
---                end;
-               raise Not_Implemented;
+            elsif Req.all.Operation = "echoInteger" then
+               declare
+                  echoInteger_Arg : Types.Long :=
+                    From_Any (NV_Sequence.Element_Of
+                              (Args_Sequence.all, 1).Argument);
+               begin
+                  Req.Result.Argument := To_Any
+                    (echoInteger (Obj.all, echoInteger_Arg));
+                  pragma Debug (O ("Result: " & Image (Req.Result)));
+               end;
             else
                raise Droopi.Components.Unhandled_Message;
             end if;
@@ -127,7 +125,7 @@ package body Droopi.Test_Object is
                    (Name => To_Droopi_String ("S"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
-      elsif Method = "Echo_Integer" then
+      elsif Method = "echoInteger" then
          Add_Item (Result, (Name => To_Droopi_String ("I"),
                             Argument => Get_Empty_Any (TypeCode.TC_Long),
                             Arg_Modes => ARG_IN));
@@ -147,7 +145,7 @@ package body Droopi.Test_Object is
       pragma Debug (O ("Result profile for " & Method & " requested."));
       if Method = "echoString" then
          return Get_Empty_Any (TypeCode.TC_String);
-      elsif Method = "Echo_Integer" then
+      elsif Method = "echoInteger" then
          return Get_Empty_Any (TypeCode.TC_Long);
       else
          raise Program_Error;

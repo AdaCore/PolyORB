@@ -17,7 +17,7 @@ package Droopi.Test_Object is
       S : Types.String)
      return Types.String;
 
-   function Echo_Integer
+   function echoInteger
      (O : My_Object;
       I : Types.Long)
      return Types.Long;
