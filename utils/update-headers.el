@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#17 $
+;;; $Id: //droopi/main/utils/update-headers.el#18 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -117,6 +117,7 @@
 	       (string-match "^portableinterceptor" (buffer-name))
 	       (string-match "^portableserver" (buffer-name))
 	       (string-match "^rtcorba" (buffer-name))	   
+	       (string-match "^rtcosscheduling" (buffer-name))	   
 	       (string-match "^rtportableserver" (buffer-name)))
 	   spec)
       (insert (header-omg))))
