@@ -21,8 +21,9 @@ package body System.Garlic.Filters.Double is
    is
       pragma Unreferenced (Filter);
       pragma Unreferenced (Params);
-      R : constant Stream_Element_Access  := To_Stream_Element_Access (Stream);
-      D : Stream_Element_Access  := new Stream_Element_Array'(R.all & R.all);
+      R : constant Stream_Element_Access := To_Stream_Element_Access (Stream);
+      D : constant Stream_Element_Access :=
+        new Stream_Element_Array'(R.all & R.all);
    begin
       for I in R'Range loop
          D (D'First + (I - D'First) * 2)     := Stream_Element'First;
@@ -46,7 +47,8 @@ package body System.Garlic.Filters.Double is
       pragma Unreferenced (Params);
       F : constant Stream_Element_Offset := Stream'First + Offset;
       L : constant Stream_Element_Offset := Stream'Last;
-      R : Stream_Element_Access := new Stream_Element_Array'(Stream (F .. L));
+      R : constant Stream_Element_Access :=
+        new Stream_Element_Array'(Stream (F .. L));
    begin
       for I in R'Range loop
          R ((I - R'First) / 2 + R'First) := R (I);

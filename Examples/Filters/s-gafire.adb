@@ -21,7 +21,8 @@ package body System.Garlic.Filters.Reversing is
    is
       pragma Unreferenced (Filter);
       pragma Unreferenced (Params);
-      Result  : Stream_Element_Access  := To_Stream_Element_Access (Stream);
+      Result : constant Stream_Element_Access :=
+        To_Stream_Element_Access (Stream);
    begin
       for I in Result'Range loop
          Result (I) := Stream_Element'Last - Result (I);
@@ -44,7 +45,8 @@ package body System.Garlic.Filters.Reversing is
       pragma Unreferenced (Params);
       F : constant Stream_Element_Offset := Stream'First + Offset;
       L : constant Stream_Element_Offset := Stream'Last;
-      R : Stream_Element_Access := new Stream_Element_Array'(Stream (F .. L));
+      R : constant Stream_Element_Access :=
+        new Stream_Element_Array'(Stream (F .. L));
    begin
       for I in R'Range loop
          R (I) := Stream_Element'Last - R (I);
