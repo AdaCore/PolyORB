@@ -1,3 +1,8 @@
+1999-12-01  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* config.sdefault: Update to new sdefault specification. Fix
+ 	7201-001.
+
 1999-10-09  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Remove occurrences of -gnaty* and -gnatg when
