@@ -486,11 +486,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
    ----------------------------
 
    function Map_Members_Definition (Members : List_Id) return List_Id is
-      Components  : List_Id;
-      Member      : Node_Id;
-      Declarator  : Node_Id;
-      Member_Type : Node_Id;
-
+      Components            : List_Id;
+      Member                : Node_Id;
+      Declarator            : Node_Id;
+      Member_Type           : Node_Id;
+      Component_Declaration : Node_Id;
    begin
       Components := New_List (K_Component_List);
       Member := First_Entity (Members);
@@ -498,11 +498,12 @@ package body Backend.BE_Ada.IDL_To_Ada is
          Declarator := First_Entity (Declarators (Member));
          Member_Type := Type_Spec (Member);
          while Present (Declarator) loop
+            Component_Declaration := Make_Component_Declaration
+              (Map_Defining_Identifier (FEN.Identifier (Declarator)),
+               Map_Declarator_Type_Designator (Member_Type, Declarator));
+            Bind_FE_To_Stub (Identifier (Declarator), Component_Declaration);
             Append_Node_To_List
-              (Make_Component_Declaration
-               (Map_Defining_Identifier (FEN.Identifier (Declarator)),
-                Map_Declarator_Type_Designator (Member_Type, Declarator)),
-               Components);
+              (Component_Declaration, Components);
             Declarator := Next_Entity (Declarator);
          end loop;
          Member := Next_Entity (Member);
