@@ -15,13 +15,13 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_Object,
       RU_CORBA_Object_Helper,
       RU_CORBA_TypeCode,
-      RU_CORBA_TypeCode_Internals,
       RU_PolyORB,
       RU_PolyORB_Any,
       RU_PolyORB_Any_NVList,
       RU_PolyORB_Requests,
       RU_PolyORB_Types,
-      RU_Standard);
+      RU_Standard,
+      RU_PortableServer);
 
    --  Runtime Entities
 
@@ -77,7 +77,8 @@ package Backend.BE_Ada.Runtime is
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
-      RE_String_2);                 --  Standard.String
+      RE_String_2,                  --  Standard.String
+      RE_Servant_Base);             --  PortableServer.Servant_Base
 
    RE_Unit_Table : array (RE_Id) of RU_Id
 
@@ -132,7 +133,8 @@ package Backend.BE_Ada.Runtime is
          RE_Request_Access        => RU_PolyORB_Requests,
          RE_Identifier            => RU_PolyORB_Types,
          RE_To_PolyORB_String     => RU_PolyORB_Types,
-         RE_String_2              => RU_Standard);
+         RE_String_2              => RU_Standard,
+         RE_Servant_Base          => RU_PortableServer);
 
    function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
 

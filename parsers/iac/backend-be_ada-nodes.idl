@@ -189,6 +189,8 @@ module Backend::BE_Ada::Nodes {
     Node_Id   Expression; 
   };
 
+  interface Null_Statement : Node_Id {};
+
   /***************/
   /* Other nodes */
   /***************/
@@ -207,7 +209,14 @@ module Backend::BE_Ada::Nodes {
   /* Type nodes */
   /**************/
 
+  interface Access_Type_Definition : Node_Id {
+    boolean      Is_All; 
+    boolean      Is_Constant; 
+    Node_Id      Subtype_Indication;
+  };  
+
   interface Derived_Type_Definition : Definition {
+    boolean      Is_Private_Extention; 
     boolean      Is_Abstract_Type;
     Node_Id      Subtype_Indication;
     Node_Id      Record_Extension_Part; 

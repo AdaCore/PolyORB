@@ -9,6 +9,7 @@ with Values;  use Values;
 
 package body Backend.BE_Ada.Generator is
 
+   procedure Generate_Access_Type_Definition (N : Node_Id);
    procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_Assignment_Statement (N : Node_Id);
    procedure Generate_Case_Statement (N : Node_Id);
@@ -25,6 +26,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
    procedure Generate_If_Statement (N : Node_Id);
    procedure Generate_Literal (N : Node_Id);
+   procedure Generate_Null_Statement;
    procedure Generate_Object_Declaration (N : Node_Id);
    procedure Generate_Package_Declaration (N : Node_Id);
    procedure Generate_Package_Implementation (N : Node_Id);
@@ -53,6 +55,9 @@ package body Backend.BE_Ada.Generator is
    procedure Generate (N : Node_Id) is
    begin
       case Kind (N) is
+         when K_Access_Type_Definition =>
+            Generate_Access_Type_Definition (N);
+
          when K_Array_Type_Definition =>
             Generate_Array_Type_Definition (N);
 
@@ -100,6 +105,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Literal =>
             Generate_Literal (N);
+
+         when K_Null_Statement =>
+            Generate_Null_Statement;
 
          when K_Object_Declaration =>
             Generate_Object_Declaration (N);
@@ -150,6 +158,25 @@ package body Backend.BE_Ada.Generator is
             null;
       end case;
    end Generate;
+
+   -------------------------------------
+   -- Generate_Access_Type_Definition --
+   -------------------------------------
+
+   procedure Generate_Access_Type_Definition (N : Node_Id) is
+   begin
+      Write (Tok_Access);
+      Write_Space;
+      if Is_All (N) then
+         Write (Tok_All);
+         Write_Space;
+      end if;
+      if Is_Constant (N) then
+         Write (Tok_Constant);
+         Write_Space;
+      end if;
+      Generate (Subtype_Indication (N));
+   end Generate_Access_Type_Definition;
 
    ------------------------------------
    -- Generate_Array_Type_Definition --
@@ -313,12 +340,19 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_New);
       Write_Space;
       Generate (Subtype_Indication (N));
-      R := Record_Extension_Part (N);
-      if Present (R) then
+      if Is_Private_Extention (N) then
          Write_Space;
          Write (Tok_With);
          Write_Space;
-         Generate (Record_Extension_Part (N));
+         Write (Tok_Private);
+      else
+         R := Record_Extension_Part (N);
+         if Present (R) then
+            Write_Space;
+            Write (Tok_With);
+            Write_Space;
+            Generate (Record_Extension_Part (N));
+         end if;
       end if;
    end Generate_Derived_Type_Definition;
 
@@ -634,6 +668,15 @@ package body Backend.BE_Ada.Generator is
       Write_Eol;
    end Generate_Package_Implementation;
 
+   -----------------------------
+   -- Generate_Null_Statement --
+   -----------------------------
+
+   procedure Generate_Null_Statement is
+   begin
+      Write (Tok_Null);
+   end Generate_Null_Statement;
+
    ------------------------------------
    -- Generate_Package_Specification --
    ------------------------------------
@@ -710,19 +753,21 @@ package body Backend.BE_Ada.Generator is
       Write_Str (Name_Buffer (1 .. Name_Len));
       Write_Space;
       Write  (Tok_Colon);
-      Write_Space;
-      case Parameter_Mode (N) is
-         when Mode_In =>
-            Write (Tok_In);
+      if Kind (Parameter_Type (N)) /= K_Access_Type_Definition then
+         Write_Space;
+         case Parameter_Mode (N) is
+            when Mode_In =>
+               Write (Tok_In);
 
-         when Mode_Out =>
-            Write (Tok_Out);
+            when Mode_Out =>
+               Write (Tok_Out);
 
-         when Mode_Inout =>
-            Write (Tok_In);
-            Write_Space;
-            Write (Tok_Out);
-      end case;
+            when Mode_Inout =>
+               Write (Tok_In);
+               Write_Space;
+               Write (Tok_Out);
+         end case;
+      end if;
       Write_Space;
       Generate (Parameter_Type (N));
    end Generate_Parameter;

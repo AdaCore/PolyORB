@@ -370,6 +370,25 @@ package body Backend.BE_Ada.Nutils is
       return C;
    end Length;
 
+   ---------------------------------
+   -- Make_Access_Type_Definition --
+   ---------------------------------
+
+   function Make_Access_Type_Definition
+     (Subtype_Indication : Node_Id;
+      Is_All             : Boolean := False;
+      Is_Constant        : Boolean := False)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Access_Type_Definition);
+      Set_Subtype_Indication (N, Subtype_Indication);
+      Set_Is_All (N, Is_All);
+      Set_Is_Constant (N, Is_Constant);
+      return N;
+   end Make_Access_Type_Definition;
+
    --------------------------------
    -- Make_Array_Type_Definition --
    --------------------------------
@@ -509,8 +528,9 @@ package body Backend.BE_Ada.Nutils is
 
    function Make_Derived_Type_Definition
      (Subtype_Indication    : Node_Id;
-      Record_Extension_Part : Node_Id;
-      Is_Abstract_Type      : Boolean := False)
+      Record_Extension_Part : Node_Id := No_Node;
+      Is_Abstract_Type      : Boolean := False;
+      Is_Private_Extention  : Boolean := False)
      return Node_Id
    is
       N : Node_Id;
@@ -518,6 +538,7 @@ package body Backend.BE_Ada.Nutils is
    begin
       N := New_Node (K_Derived_Type_Definition);
       Set_Is_Abstract_Type (N, Is_Abstract_Type);
+      Set_Is_Private_Extention (N, Is_Private_Extention);
       Set_Subtype_Indication (N, Subtype_Indication);
       Set_Record_Extension_Part (N, Record_Extension_Part);
       return N;

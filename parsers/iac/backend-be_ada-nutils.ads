@@ -213,7 +213,9 @@ package Backend.BE_Ada.Nutils is
    AN : array (Attribute_Id) of Name_Id;
 
    type Type_Id is
-     (T_Ref);
+     (T_Ref,
+      T_Object,
+      T_Object_Ptr);
 
    TN : array (Type_Id) of Name_Id;
 
@@ -267,6 +269,12 @@ package Backend.BE_Ada.Nutils is
       Witheded   : Boolean := True)
      return Node_Id;
 
+   function Make_Access_Type_Definition
+     (Subtype_Indication : Node_Id;
+      Is_All             : Boolean := False;
+      Is_Constant        : Boolean := False)
+     return Node_Id;
+
    function Make_Array_Type_Definition
      (Range_Constraints    : List_Id;
       Component_Definition : Node_Id)
@@ -306,8 +314,9 @@ package Backend.BE_Ada.Nutils is
 
    function Make_Derived_Type_Definition
      (Subtype_Indication    : Node_Id;
-      Record_Extension_Part : Node_Id;
-      Is_Abstract_Type      : Boolean := False)
+      Record_Extension_Part : Node_Id := No_Node;
+      Is_Abstract_Type      : Boolean := False;
+      Is_Private_Extention  : Boolean := False)
      return Node_Id;
 
    function Make_Enumeration_Type_Definition

@@ -24,7 +24,7 @@ package body Backend.BE_Ada is
 
    Print_Ada_Tree : Boolean := False;
    Print_IDL_Tree : Boolean := False;
-   Build_Impls    : constant Boolean := False;
+   Build_Impls    : constant Boolean := True;
 
    package BEN renames Backend.BE_Ada.Nodes;
 
@@ -119,19 +119,13 @@ package body Backend.BE_Ada is
 
    procedure Visit (E : Node_Id) is
    begin
-      Set_Main_Spec;
       Stubs.Package_Spec.Visit (E);
-      Set_Helper_Spec;
       Helpers.Package_Spec.Visit (E);
       Skels.Package_Spec.Visit (E);
-      Set_Main_Body;
       Stubs.Package_Body.Visit (E);
-      Set_Helper_Body;
       Helpers.Package_Body.Visit (E);
       if Build_Impls then
-         Set_Impl_Spec;
          Impls.Package_Spec.Visit (E);
-         Set_Impl_Body;
          Impls.Package_Body.Visit (E);
       end if;
    end Visit;

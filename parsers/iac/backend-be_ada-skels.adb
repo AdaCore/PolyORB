@@ -1,5 +1,3 @@
-with Types;   use Types;
-
 with Frontend.Nodes;  use Frontend.Nodes;
 
 with Backend.BE_Ada.Nodes;  use Backend.BE_Ada.Nodes;

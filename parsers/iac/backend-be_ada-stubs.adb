@@ -108,7 +108,7 @@ package body Backend.BE_Ada.Stubs is
             N := Map_Accessor_Declaration
               (Accessor => Getter, Attribute => A);
             Append_Node_To_List (N, Visible_Part (Current_Package));
-
+            Bind_FE_To_Stub (Identifier (A), N);
             --  Set_Main_Body;
             --  D := Marshaller_Declarations (N);
             --  S := Marshaller_Body (N, D);
@@ -382,15 +382,7 @@ package body Backend.BE_Ada.Stubs is
          Subp_Spec := Make_Subprogram_Specification
            (Map_Defining_Identifier (E), Profile, Returns);
          Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
-
-         --  Add subprogram to main implementation
-
-         --  Set_Main_Body;
-         --  Declarative_Part := Marshaller_Declarations (Subp_Spec);
-         --  Body_Part := Marshaller_Body (Subp_Spec, Declarative_Part);
-         --  Subp_Body := Make_Subprogram_Implementation
-         --    (Subp_Spec, Declarative_Part, Body_Part);
-         --  Append_Node_To_List (Subp_Body, Statements (Current_Package));
+         Bind_FE_To_Stub (Identifier (E), Subp_Spec);
       end Visit_Operation_Declaration;
 
       -------------------------
