@@ -1,3 +1,7 @@
+2000-10-05  Laurent Pautet  <pautet@arlequin>
+
+	* s-gartas.adb, s-gastha.adb: Free only non-null entities (8203-003).
+
 2000-09-21  Laurent Pautet  <pautet@arlequin>
 
 	* s-gastds.adb, s-gastds.ads: implementation of distributed shared

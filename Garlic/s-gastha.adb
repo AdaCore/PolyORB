@@ -154,7 +154,9 @@ package body System.Garlic.Storage_Handling is
    procedure Finalize (Pool : in out Garlic_Storage_Pool) is
    begin
       for I in 1 .. Max_Objects loop
-         free (Pool.Addresses (I));
+         if Pool.Addresses (I) /= Null_Address then
+            free (Pool.Addresses (I));
+         end if;
       end loop;
       if Pool.Ready then
          Soft_Links.Destroy (Pool.Mutex);
