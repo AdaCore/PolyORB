@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with all_exceptions.Skel;
 pragma Warnings (Off, all_exceptions.Skel);
 
