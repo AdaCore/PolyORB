@@ -3,7 +3,7 @@
 #endif
 
 if ENABLE_SOAP
-SOAP_DIR= idlac 
+SOAP_DIR= gnatprfh 
 endif
 
 if ENABLE_CORBA
