@@ -53,8 +53,9 @@ procedure Client is
    IOR : CORBA.String;
    MyAll_Exceptions : all_exceptions.Ref;
    Ok : Boolean;
+
 begin
-   New_Test ("CORBA Types");
+   New_Test ("CORBA Exceptions");
 
    CORBA.ORB.Initialize ("ORB");
 
