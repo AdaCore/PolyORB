@@ -220,7 +220,7 @@
 
 	* xe.ads, xe.adb, xe_stubs.adb, xe_back.adb, xe_back.ads,
 	xe_stdcnf.adb: Add pragma Priority_Policy to choose between
-	CLient_Propagated and Server_Decalred priority policy. Add
+	Client_Propagated and Server_Declared priority policy. Add
 	partition attribute priority to set anonymous tasks priority.
 
 	* all: Update copyright.
