@@ -73,7 +73,7 @@ package body PolyORB.Protocols.GIOP.IIOP is
          F,
          Default_Locate_Then_Request,
          "giop",
-         "polyorb.protocols.giop");
+         "polyorb.protocols.iiop.giop");
    end Initialize;
 
    use PolyORB.Initialization;
