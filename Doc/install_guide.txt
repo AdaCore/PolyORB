@@ -72,6 +72,7 @@ Major Configuration options:
   --enable-debug          Turn on debugging options
   --without-launching     Don't include launching facilities
   --with-protocols        Enumerate protocol list
+  --with-filters          Enumerate filter list
   --with-platform=letter  Select another platform's specific files (cross)
   --with-extra-libs=libs  Add extra libraries when building a program
   --srcdir=path           Enable building with Vpaths
