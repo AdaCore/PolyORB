@@ -96,6 +96,10 @@ package PortableServer is
    --  Servant_Base type and default implementations of the primitve
    --  operations on Servant_Base that meet the required semantics.
 
+   procedure Invoke
+     (Self    : access Servant_Base;
+      Request : in     CORBA.ServerRequest.Object_Ptr);
+
    --  XXX What is the status of these commented spec ?
 
    --  FIXME: how to implement this ?
@@ -351,9 +355,5 @@ private
 
    type Servant_Base is
      abstract new DynamicImplementation with null record;
-
-   procedure Invoke
-     (Self    : access Servant_Base;
-      Request : in     CORBA.ServerRequest.Object_Ptr);
 
 end PortableServer;
