@@ -33,7 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Calendar; use Ada.Calendar;
 with Ada.Unchecked_Deallocation;
+
 with System.Garlic.Types; use System.Garlic.Types;
 
 package body System.Garlic.Soft_Links is
@@ -155,8 +157,10 @@ package body System.Garlic.Soft_Links is
      renames P_List_Tasks.Call;
 
    Get_Task_Priority : Return_Natural_Function;
-
    Set_Task_Priority : Natural_Parameter_Procedure;
+
+   Get_Task_Stamp    : Return_Float_Function;
+   Set_Task_Stamp    : Float_Parameter_Procedure;
 
    procedure Free is
       new Ada.Unchecked_Deallocation
@@ -295,6 +299,15 @@ package body System.Garlic.Soft_Links is
       return Get_Task_Priority.all;
    end Get_Priority;
 
+   ---------------
+   -- Get_Stamp --
+   ---------------
+
+   function Get_Stamp return Float is
+   begin
+      return Get_Task_Stamp.all;
+   end Get_Stamp;
+
    -----------------------------
    -- Independent_Task_Count --
    -----------------------------
@@ -387,6 +400,17 @@ package body System.Garlic.Soft_Links is
       Get_Task_Priority := F;
    end Register_Get_Priority;
 
+   ------------------------
+   -- Register_Get_Stamp --
+   ------------------------
+
+   procedure Register_Get_Stamp
+     (F : in Return_Float_Function)
+   is
+   begin
+      Get_Task_Stamp := F;
+   end Register_Get_Stamp;
+
    -------------------------------------
    -- Register_Independent_Task_Count --
    -------------------------------------
@@ -429,6 +453,17 @@ package body System.Garlic.Soft_Links is
       Set_Task_Priority := P;
    end Register_Set_Priority;
 
+   ------------------------
+   -- Register_Set_Stamp --
+   ------------------------
+
+   procedure Register_Set_Stamp
+     (P : in Float_Parameter_Procedure)
+   is
+   begin
+      Set_Task_Stamp := P;
+   end Register_Set_Stamp;
+
    ----------------------------------------
    -- Register_Watcher_Creation_Function --
    ----------------------------------------
@@ -448,6 +483,44 @@ package body System.Garlic.Soft_Links is
    begin
       Set_Task_Priority (P);
    end Set_Priority;
+
+   ---------------
+   -- Set_Stamp --
+   ---------------
+
+   procedure Set_Stamp (S : in Float) is
+   begin
+      Set_Task_Stamp (S);
+   end Set_Stamp;
+
+   -----------------
+   -- Stamp_Image --
+   -----------------
+
+   function Stamp_Image (M : String) return String is
+      S : Float := Get_Stamp;
+      N : Integer;
+      A : String (1 .. 10) := (others => ' ');
+      R : String (1 .. 10) := (others => ' ');
+
+   begin
+      N := Integer (S * 1_000.0);
+      for I in reverse A'Range loop
+         A (I) := Hex ((N mod 10) + 1);
+         N := N / 10;
+         exit when N = 0;
+      end loop;
+      N := Integer ((Float (Seconds (Clock)) - S) * 1_000.0);
+      if N < 0 then
+         N := 0;
+      end if;
+      for I in reverse R'Range loop
+         R (I) := Hex ((N mod 10) + 1);
+         N := N  / 10;
+         exit when N = 0;
+      end loop;
+      return A & ASCII.HT & R & "ms" & ASCII.HT & M;
+   end Stamp_Image;
 
    ------------
    -- Update --

@@ -33,7 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Calendar;
 with Ada.Dynamic_Priorities;
+with Ada.Task_Attributes;
 
 with System;                     use System;
 with System.Garlic.Debug;        use System.Garlic.Debug;
@@ -57,6 +59,12 @@ package body System.Garlic.Tasking is
 
    use Ada.Task_Identification;
    use type System.Tasking.Task_ID;
+
+   No_Stamp : constant Stamp_Type := 0.0;
+
+   package Stamp_Task_Attributes is
+      new Ada.Task_Attributes (Stamp_Type, No_Stamp);
+   use Stamp_Task_Attributes;
 
    Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
    --  The environment task. Self will be set to it at elaboration time.
@@ -100,12 +108,13 @@ package body System.Garlic.Tasking is
          if Count = 0 or else Lock'Caller = Owner then
             Count := Count + 1;
             Owner := Lock'Caller;
-            pragma Debug (D ("Locked by " & Image (Owner) & ", count is now " &
-                             Count'Img));
+            pragma Debug (D ("Locked by " & Image (Owner) &
+                             ", count is now " & Count'Img));
          else
-            pragma Debug (D ("Contention in lock, locker is " &
-                             Image (Owner) & ", waiting is " &
-                             Image (Lock'Caller) & ", count is" & Count'Img));
+            pragma Debug (D ("Contention in lock" &
+                             ", locker is " & Image (Owner) &
+                             ", waiting is " & Image (Lock'Caller) &
+                             ", count is" & Count'Img));
             pragma Assert (not Is_Terminated (Owner));
             requeue Contention with abort;
          end if;
@@ -120,8 +129,8 @@ package body System.Garlic.Tasking is
          pragma Assert (Unlock'Caller = Owner);
          pragma Assert (Count > 0);
          Count := Count - 1;
-         pragma Debug (D ("Unlocked by " & Image (Owner) & ", count is now " &
-                          Count'Img));
+         pragma Debug (D ("Unlocked by " & Image (Owner) &
+                          ", count is now " & Count'Img));
       end Unlock;
 
    end Clever_Lock;
@@ -242,6 +251,15 @@ package body System.Garlic.Tasking is
       return Natural (Ada.Dynamic_Priorities.Get_Priority);
    end Get_Priority;
 
+   --------------------
+   -- Get_Task_Stamp --
+   --------------------
+
+   function Get_Task_Stamp return Stamp_Type is
+   begin
+      return Value;
+   end Get_Task_Stamp;
+
    ----------------------------
    -- Independent_Task_Count --
    ----------------------------
@@ -269,6 +287,8 @@ package body System.Garlic.Tasking is
       Register_List_Tasks (List_Tasks'Access);
       Register_Get_Priority (Get_Priority'Access);
       Register_Set_Priority (Set_Priority'Access);
+      Register_Get_Stamp (Get_Task_Stamp'Access);
+      Register_Set_Stamp (Set_Task_Stamp'Access);
    end Initialize;
 
    -------------------------
@@ -371,6 +391,19 @@ package body System.Garlic.Tasking is
    begin
       Ada.Dynamic_Priorities.Set_Priority (Any_Priority (P));
    end Set_Priority;
+
+   --------------------
+   -- Set_Task_Stamp --
+   --------------------
+
+   procedure Set_Task_Stamp (S : in Float) is
+      X : Stamp_Type := S;
+   begin
+      if S = No_Stamp and then Value = No_Stamp then
+         X := Stamp_Type (Ada.Calendar.Seconds (Ada.Calendar.Clock));
+      end if;
+      Set_Value (X);
+   end Set_Task_Stamp;
 
    ------------
    -- Update --

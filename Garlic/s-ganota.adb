@@ -151,6 +151,15 @@ package body System.Garlic.No_Tasking is
       return Natural (System.Default_Priority);
    end Get_Priority;
 
+   --------------------
+   -- Get_Task_Stamp --
+   --------------------
+
+   function Get_Task_Stamp return Stamp_Type is
+   begin
+      return No_Stamp;
+   end Get_Task_Stamp;
+
    ----------------------------
    -- Independent_Task_Count --
    ----------------------------
@@ -176,6 +185,8 @@ package body System.Garlic.No_Tasking is
       Register_Independent_Task_Count (Independent_Task_Count'Access);
       Register_Get_Priority (Get_Priority'Access);
       Register_Set_Priority (Set_Priority'Access);
+      Register_Get_Stamp (Get_Task_Stamp'Access);
+      Register_Set_Stamp (Set_Task_Stamp'Access);
    end Initialize;
 
    -------------------------
@@ -232,6 +243,15 @@ package body System.Garlic.No_Tasking is
    begin
       null;
    end Set_Priority;
+
+   --------------------
+   -- Set_Task_Stamp --
+   --------------------
+
+   procedure Set_Task_Stamp (S : in Float) is
+   begin
+      null;
+   end Set_Task_Stamp;
 
    ------------
    -- Update --
