@@ -301,6 +301,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    begin
       pragma Assert (Reply_Type in User_Exception .. System_Exception);
 
+      ------------------
+      -- Reply header --
+      ------------------
+
       --  Request id
       Marshall (Buffer, Request_Id);
 
@@ -309,6 +313,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Service context
       Marshall_Service_Context_List (Buffer);
+
+      ----------------
+      -- Reply body --
+      ----------------
+
+      Pad_Align (Buffer, 8);
+      --  In GIOP 1.2, all reply bodies are aligned on 8 bytes.
 
       --  Occurrence
       Marshall (Buffer, Any.TypeCode.Id (Any.Get_Type (Occurrence)));

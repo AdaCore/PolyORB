@@ -1684,6 +1684,11 @@ package body PolyORB.Protocols.GIOP is
                (Req => Current_Req.Req));
 
          when User_Exception =>
+
+            if Ses.Minor_Version >= 2 then
+               Align_Position (Ses.Buffer_In, 8);
+            end if;
+
             declare
                RepositoryId : constant PolyORB.Types.String
                  := Unmarshall (Ses.Buffer_In);
@@ -1713,6 +1718,18 @@ package body PolyORB.Protocols.GIOP is
                   (Req => Current_Req.Req));
             end;
 
+         when System_Exception =>
+            if Ses.Minor_Version >= 2 then
+               Align_Position (Ses.Buffer_In, 8);
+            end if;
+
+            Unmarshall_System_Exception_To_Any
+              (Ses.Buffer_In, Current_Req.Req.Exception_Info);
+            Emit_No_Reply
+              (Component_Access (ORB),
+               Objects.Interface.Executed_Request'
+               (Req => Current_Req.Req));
+
          when Needs_Addressing_Mode =>
 --             Current_Req.Req.Exception_Info
 --               := To_Any (Not_Implemented);
@@ -1722,14 +1739,6 @@ package body PolyORB.Protocols.GIOP is
 --                Objects.Interface.Executed_Request'
 --                (Req => Current_Req.Req));
             raise Not_Implemented;
-
-         when System_Exception =>
-            Unmarshall_System_Exception_To_Any
-              (Ses.Buffer_In, Current_Req.Req.Exception_Info);
-            Emit_No_Reply
-              (Component_Access (ORB),
-               Objects.Interface.Executed_Request'
-               (Req => Current_Req.Req));
 
          when Location_Forward | Location_Forward_Perm =>
 
