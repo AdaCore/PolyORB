@@ -2589,6 +2589,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "Marshall");
                PL (CU, "  (Buffer,");
                PL (CU, "   CORBA.Unsigned_Long'(0));");
+               DI (CU);
                PL (CU, "end if;");
                DI (CU);
                PL (CU, "end Marshall;");
