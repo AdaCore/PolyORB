@@ -34,13 +34,14 @@ package body Backend.BE_Ada.Expand is
          when K_Package_Declaration =>
             P := Parent (N);
             FE := FE_Node (IDL_Unit (X));
-            if No (P) then
-               return No_Node;
-            end if;
 
          when others =>
             raise Program_Error;
       end case;
+      if No (P) then
+               return No_Node;
+      end if;
+
       if No (FE) then
          raise Program_Error;
       end if;

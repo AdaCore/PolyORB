@@ -233,6 +233,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Enumeration_Type (E : Node_Id) is
          N : Node_Id;
       begin
+         Set_Helper_Spec;
          N := TypeCode_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -283,7 +284,6 @@ package body Backend.BE_Ada.Helpers is
          D : Node_Id;
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
-         Set_Helper_Spec;
 
          D := First_Entity (Definitions (E));
          while Present (D) loop
@@ -316,6 +316,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Structure_Type (E : Node_Id) is
          N : Node_Id;
       begin
+         Set_Helper_Spec;
          N := TypeCode_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -335,6 +336,7 @@ package body Backend.BE_Ada.Helpers is
          D : Node_Id;
          N : Node_Id;
       begin
+         Set_Helper_Spec;
          L := Declarators (E);
          D := First_Entity (L);
          while Present (D) loop
@@ -357,6 +359,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Union_Type (E : Node_Id) is
          N : Node_Id;
       begin
+         Set_Helper_Spec;
          N := TypeCode_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -990,6 +993,7 @@ package body Backend.BE_Ada.Helpers is
 
       procedure Visit_Enumeration_Type (E : Node_Id) is
       begin
+         Set_Helper_Body;
          Append_Node_To_List
            (From_Any_Body (E), Statements (Current_Package));
          Append_Node_To_List
@@ -1032,7 +1036,6 @@ package body Backend.BE_Ada.Helpers is
       begin
          D := Stub_Node (BE_Node (Identifier (E)));
          Push_Entity (D);
-         Set_Helper_Body;
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);
@@ -1063,6 +1066,7 @@ package body Backend.BE_Ada.Helpers is
 
       procedure Visit_Structure_Type (E : Node_Id) is
       begin
+         Set_Helper_Body;
          Append_Node_To_List
            (From_Any_Body (E), Statements (Current_Package));
          Append_Node_To_List
@@ -1077,6 +1081,7 @@ package body Backend.BE_Ada.Helpers is
          L : List_Id;
          D : Node_Id;
       begin
+         Set_Helper_Body;
          L := Declarators (E);
          D := First_Entity (L);
          while Present (D) loop
@@ -1094,6 +1099,7 @@ package body Backend.BE_Ada.Helpers is
 
       procedure Visit_Union_Type (E : Node_Id) is
       begin
+         Set_Helper_Body;
          Append_Node_To_List
            (From_Any_Body (E), Statements (Current_Package));
          Append_Node_To_List

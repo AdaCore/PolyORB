@@ -51,6 +51,7 @@ package body Backend.BE_Ada.Impls is
          Parameter  : Node_Id;
          Parameters : List_Id;
       begin
+         Set_Impl_Spec;
          A := First_Entity (Declarators (E));
          while Present (A) loop
             Set_Impl_Spec;
@@ -174,7 +175,7 @@ package body Backend.BE_Ada.Impls is
 
       begin
          Stub := Stub_Node (BE_Node (Identifier (E)));
-
+         Set_Impl_Spec;
          Profile := New_List (K_Parameter_Profile);
 
          --  Create a dispatching parameter

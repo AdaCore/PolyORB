@@ -136,6 +136,7 @@ package body Backend.BE_Ada.Runtime is
       Special_Name (RE_TC_Alias, "TypeCode.TC_Alias");
       Special_Name (RE_TC_Enum, "TypeCode.TC_Enum");
       Special_Name (RE_TC_Struct, "TypeCode.TC_Struct");
+      Special_Name (RE_TC_Array, "TypeCode.TC_Array");
       Special_Name (RE_Object, "TypeCode.Object");
       Special_Name (RE_To_CORBA_Object, "TypeCode.Internals.To_CORBA_Object");
    end Initialize;

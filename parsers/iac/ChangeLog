@@ -1,5 +1,15 @@
 2004-07-30  souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-idl_to_ada.adb: Modified Map_Designator to
+	designate library entities. 
+
+	* Add tests. 
+
+	* backend-be_ada-runtime.adb: Correcte the parent unit of TC_Array
+	designator. 
+
+2004-07-30  Saber Souli  <souli@neraka.enst.fr>
+
 	* backend-be_ada-generator.adb: Generate access type definitions. 
 
 	* backend-be_ada-impls.adb: Finished Implementations specs. 

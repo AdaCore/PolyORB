@@ -6,7 +6,8 @@ with Frontend.Nodes;            use Frontend.Nodes;
 
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
+--  with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.IDL_To_Ada is
 
@@ -130,6 +131,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
          end if;
          if X = Y then
             return True;
+         elsif FEN.Kind (Scope_Entity (Identifier (Y))) = K_Specification then
+            return False;
          else
             return Is_N_Parent_Of_M (X, Scope_Entity (Identifier (Y)));
          end if;
@@ -262,7 +265,20 @@ package body Backend.BE_Ada.IDL_To_Ada is
          Set_FE_Node (N, R);
          P := Scope_Entity (Identifier (R));
          if Present (P) then
-            Set_Parent_Unit_Name (N, Map_Designator (P, False));
+            if Kind (P) = K_Specification
+              and then Witheded then
+               R := New_Node (K_Designator);
+               Set_Defining_Identifier
+                 (R,
+                  Copy_Node
+                  (Defining_Identifier
+                   (Main_Package
+                     (Stub_Node (BE_Node (Identifier (P)))))));
+               Set_FE_Node (R, P);
+               Set_Parent_Unit_Name (N, R);
+            else
+               Set_Parent_Unit_Name (N, Map_Designator (P, False));
+            end if;
          end if;
 
       elsif K in FEN.K_Float .. FEN.K_Value_Base then

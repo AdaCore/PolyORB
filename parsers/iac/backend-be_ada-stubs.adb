@@ -304,6 +304,8 @@ package body Backend.BE_Ada.Stubs is
          Append_Node_To_List (S, Packages (Current_Entity));
          Push_Entity (S);
          Set_Main_Spec;
+         Append_Node_To_List
+           (Map_Repository_Declaration (E), Visible_Part (Current_Package));
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);
