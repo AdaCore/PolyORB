@@ -74,6 +74,10 @@ package System.PolyORB_Interface is
       Args : in out PolyORB.Any.NVList.Ref)
      renames PolyORB.Requests.Arguments;
 
+   procedure Request_Set_Out
+     (R : PolyORB.Requests.Request_Access)
+     renames PolyORB.Requests.Set_Out_Args;
+
 --       function FA_AD (Item : PolyORB.Any.Any) return X;
 --       function FA_AS (Item : PolyORB.Any.Any) return X;
    function FA_B (Item : PolyORB.Any.Any) return Boolean;
@@ -222,6 +226,9 @@ package System.PolyORB_Interface is
    subtype Executed_Request is
      PolyORB.Objects.Interface.Executed_Request;
 
+   function Caseless_String_Eq (S1, S2 : String) return Boolean;
+   --  Case-less equality of S1 and S2.
+
 private
 
    pragma Inline
@@ -230,5 +237,7 @@ private
 
       TA_B, TA_C, TA_F, TA_I, TA_LF, TA_LI, TA_LLF, TA_LLI,
       TA_SF, TA_SI, TA_SSI, TA_WC, TA_String);
+
+   pragma Inline (Caseless_String_Eq);
 
 end System.PolyORB_Interface;

@@ -292,4 +292,19 @@ package body PolyORB.Requests is
       end if;
    end Set_Result;
 
+   procedure Set_Out_Args (Self : Request_Access) is
+   begin
+      Pump_Up_Arguments
+        (Dst_Args => Self.Args, Src_Args => Self.Out_Args,
+         Direction => PolyORB.Any.ARG_OUT,
+         Ignore_Src_Mode => False);
+      --  Copy back inout and out arguments from Out_Args
+      --  to Args, so the requestor finds them where
+      --  it expects.
+
+      --  XXX If a method has IN and OUT args and R.Args
+      --  contains only the IN arguments (and no empty
+      --  Any's for the OUT ones) what happens?
+   end Set_Out_Args;
+
 end PolyORB.Requests;

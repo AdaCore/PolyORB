@@ -1025,6 +1025,7 @@ package Rtsfind is
 
      RE_To_PolyORB_String,               -- System.PolyORB_Interface
      RE_To_Standard_String,              -- System.PolyORB_Interface
+     RE_Caseless_String_Eq,              -- System.PolyORB_Interface
      RE_TypeCode,                        -- System.PolyORB_Interface
      RE_Any,                             -- System.PolyORB_Interface
      RE_Mode_In,                         -- System.PolyORB_Interface
@@ -1040,11 +1041,13 @@ package Rtsfind is
      RE_Request_Create,                  -- System.PolyORB_Interface
      RE_Request_Invoke,                  -- System.PolyORB_Interface
      RE_Request_Arguments,               -- System.PolyORB_Interface
+     RE_Request_Set_Out,                 -- System.PolyORB_Interface
      RE_Nil_Exc_List,                    -- System.PolyORB_Interface
      RE_Servant,                         -- System.PolyORB_Interface
      RE_Message,                         -- System.PolyORB_Interface
      RE_Null_Message,                    -- System.PolyORB_Interface
      RE_Execute_Request,                 -- System.PolyORB_Interface
+     RE_Executed_Request,                -- System.PolyORB_Interface
      RE_Copy_Any_Value,                  -- System.PolyORB_Interface
      RE_Set_Result,                      -- System.PolyORB_Interface
      RE_Register_Receiving_Stub,         -- System.PolyORB_Interface
@@ -2028,6 +2031,7 @@ package Rtsfind is
 
      RE_To_PolyORB_String                => System_PolyORB_Interface,
      RE_To_Standard_String               => System_PolyORB_Interface,
+     RE_Caseless_String_Eq               => System_PolyORB_Interface,
      RE_TypeCode                         => System_PolyORB_Interface,
      RE_Any                              => System_PolyORB_Interface,
      RE_Mode_In                          => System_PolyORB_Interface,
@@ -2043,11 +2047,13 @@ package Rtsfind is
      RE_Request_Create                   => System_PolyORB_Interface,
      RE_Request_Invoke                   => System_PolyORB_Interface,
      RE_Request_Arguments                => System_PolyORB_Interface,
+     RE_Request_Set_Out                  => System_PolyORB_Interface,
      RE_Nil_Exc_List                     => System_PolyORB_Interface,
      RE_Servant                          => System_PolyORB_Interface,
      RE_Message                          => System_PolyORB_Interface,
      RE_Null_Message                     => System_PolyORB_Interface,
      RE_Execute_Request                  => System_PolyORB_Interface,
+     RE_Executed_Request                 => System_PolyORB_Interface,
      RE_Copy_Any_Value                   => System_PolyORB_Interface,
      RE_Set_Result                       => System_PolyORB_Interface,
      RE_Register_Receiving_Stub          => System_PolyORB_Interface,

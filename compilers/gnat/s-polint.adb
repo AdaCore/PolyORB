@@ -1,3 +1,5 @@
+with Ada.Characters.Handling;
+
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Setup;
@@ -43,6 +45,27 @@ package body System.PolyORB_Interface is
    procedure Initialize;
    --  Initialization procedure to be called during the
    --  global PolyORB initialization.
+
+   ------------------------
+   -- Caseless_String_Eq --
+   ------------------------
+
+   function Caseless_String_Eq (S1, S2 : String) return Boolean
+   is
+      use Ada.Characters.Handling;
+   begin
+      if S1'Length /= S2'Length then
+         return False;
+      end if;
+
+      for I in S1'Range loop
+         if To_Lower (S1 (I)) /= To_Lower (S2 (I - S1'First + S2'First)) then
+            return False;
+         end if;
+      end loop;
+
+      return True;
+   end Caseless_String_Eq;
 
    --------------
    -- From_Any --

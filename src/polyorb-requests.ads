@@ -201,6 +201,10 @@ package PolyORB.Requests is
       Val  : Any.Any);
    --  Set the value of Self's result to Val.
 
+   procedure Set_Out_Args (Self : Request_Access);
+   --  Copy back the values of out and inout arguments
+   --  from Out_Args to Args.
+
    procedure Destroy_Request is new Ada.Unchecked_Deallocation
      (Request, Request_Access);
 

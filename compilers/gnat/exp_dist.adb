@@ -1777,8 +1777,6 @@ package body Exp_Dist is
       Current_Subprogram_Number : Int := 0;
       Current_Stubs             : Node_Id;
 
-      Actuals : List_Id;
-
       Dummy_Register_Name : Name_Id;
       Dummy_Register_Spec : Node_Id;
       Dummy_Register_Decl : Node_Id;
@@ -1941,7 +1939,6 @@ package body Exp_Dist is
 
             --  Actuals :=
             --    New_List (New_Occurrence_Of (Stream_Parameter, Loc));
-            Actuals := New_List (New_Occurrence_Of (Request, Loc));
 
             if Nkind (Specification (Current_Declaration))
                 = N_Function_Specification
@@ -1970,24 +1967,56 @@ package body Exp_Dist is
 --                        Parameter_Associations =>
 --                          Actuals))));
 
-            Get_Name_String (Chars (
-              Defining_Unit_Name (Specification (Current_Declaration))));
-            Append_To (Pkg_RPC_Receiver_Cases,
-              Make_If_Statement (Loc,
-                Make_Function_Call (Loc,
-                  Name =>
-                    New_Occurrence_Of (Standard_Op_Eq, Loc),
-                  Parameter_Associations => New_List (
-                    New_Occurrence_Of (Subp_Id, Loc),
-                    Make_String_Literal (Loc,
-                      Strval => String_From_Name_Buffer))),
-                Then_Statements => New_List (
-                  Make_Procedure_Call_Statement (Loc,
+            declare
+               Case_Stmts : List_Id;
+            begin
+               Case_Stmts := New_List (
+                 Make_Procedure_Call_Statement (Loc,
                     Name                   =>
                       New_Occurrence_Of (
                         Defining_Entity (Current_Stubs), Loc),
                     Parameter_Associations =>
-                      Actuals))));
+                      New_List (New_Occurrence_Of (Request, Loc))));
+
+               if Nkind (Specification (Current_Declaration))
+                   = N_Function_Specification
+                 or else
+                   not Is_Asynchronous (
+                     Defining_Entity (Specification (Current_Declaration)))
+               then
+                  Append_To (Case_Stmts,
+                    Make_Return_Statement (Loc,
+                      Expression =>
+                        Make_Qualified_Expression (Loc,
+                          Subtype_Mark =>
+                            New_Occurrence_Of (RTE (RE_Executed_Request), Loc),
+                          Expression =>
+                            Make_Aggregate (Loc,
+                              Component_Associations => New_List (
+                                Make_Component_Association (Loc,
+                                  Choices => New_List (
+                                    Make_Identifier (Loc, Name_Req)),
+                                  Expression =>
+                                    New_Occurrence_Of (Request, Loc)))))));
+               end if;
+
+               Get_Name_String (Chars (
+                 Defining_Unit_Name (Specification (
+                   Current_Declaration))));
+
+               Append_To (Pkg_RPC_Receiver_Cases,
+                 Make_If_Statement (Loc,
+                   Condition =>
+                     Make_Function_Call (Loc,
+                       Name =>
+                         New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
+                       Parameter_Associations => New_List (
+                         New_Occurrence_Of (Subp_Id, Loc),
+                         Make_String_Literal (Loc,
+                           Strval => String_From_Name_Buffer))),
+                   Then_Statements =>
+                     Case_Stmts));
+            end;
 
             Current_Subprogram_Number := Current_Subprogram_Number + 1;
          end if;
@@ -3484,6 +3513,9 @@ package body Exp_Dist is
                 Parameter_Associations => New_List (
                   New_Occurrence_Of (Request_Parameter, Loc),
                   Build_To_Any_Call (New_Occurrence_Of (Result, Loc)))));
+
+            --  A DSA function does not have out or inout arguments.
+
          end;
 
          Append_To (Statements,
@@ -3513,6 +3545,13 @@ package body Exp_Dist is
 --                    New_Occurrence_Of (Dynamic_Async, Loc))));
 --           end if;
 --  XXX TBD!
+
+         Append_To (After_Statements,
+           Make_Procedure_Call_Statement (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_Request_Set_Out), Loc),
+             Parameter_Associations => New_List (
+               New_Occurrence_Of (Request_Parameter, Loc))));
 
          Append_To (Statements,
            Make_Procedure_Call_Statement (Loc,
