@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#19 $
+--  $Id: //droopi/main/src/corba/corba.ads#20 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -600,22 +600,24 @@ package CORBA is
    --  Gets an element in an any agregate
    --  returns an any made of the typecode Tc and the value read in
    --  the aggregate
-   function Get_Aggregate_Element (Value : Any;
-                                   Tc : CORBA.TypeCode.Object;
-                                   Index : CORBA.Unsigned_Long)
-                                   return Any;
+   function Get_Aggregate_Element
+     (Value : Any;
+      Tc    : CORBA.TypeCode.Object;
+      Index : CORBA.Unsigned_Long)
+      return Any;
 
    --  returns an empty any aggregate
    --  puts its type to Tc
-   function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object)
-                                     return Any;
+   function Get_Empty_Any_Aggregate
+     (Tc : CORBA.TypeCode.Object)
+      return Any;
 
    -----------------
    --  NamedValue --
    -----------------
 
-   --  type Flags is new CORBA.Unsigned_Long;
-   subtype Flags is PolyORB.Any.Flags;
+   type Flags is new CORBA.Unsigned_Long;
+   --  subtype Flags is PolyORB.Any.Flags;
 
    ARG_IN :        constant Flags;
    ARG_OUT :       constant Flags;
@@ -678,9 +680,9 @@ private
    -- Named_Value --
    -----------------
 
-   ARG_IN :        constant Flags := PolyORB.Any.ARG_IN;
-   ARG_OUT :       constant Flags := PolyORB.Any.ARG_OUT;
-   ARG_INOUT :     constant Flags := PolyORB.Any.ARG_INOUT;
-   IN_COPY_VALUE : constant Flags := PolyORB.Any.IN_COPY_VALUE;
+   ARG_IN :        constant Flags := Flags (PolyORB.Any.ARG_IN);
+   ARG_OUT :       constant Flags := Flags (PolyORB.Any.ARG_OUT);
+   ARG_INOUT :     constant Flags := Flags (PolyORB.Any.ARG_INOUT);
+   IN_COPY_VALUE : constant Flags := Flags (PolyORB.Any.IN_COPY_VALUE);
 
 end CORBA;

@@ -44,7 +44,7 @@ package body CORBA.NVList is
       PolyORB.Any.NVList.Add_Item
         (To_PolyORB_Ref (Self),
          PolyORB.Types.Identifier (Item_Name),
-         Item, Item_Flags);
+         Item, PolyORB.Any.Flags (Item_Flags));
    end Add_Item;
 
    procedure Add_Item

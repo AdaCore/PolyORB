@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#8 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#9 $
 
 with Ada.Unchecked_Conversion;
 
@@ -490,14 +490,15 @@ package body PolyORB.CORBA_P.Exceptions is
          --  This is a system exception.
 
          declare
+            Index : constant CORBA.Unsigned_Long := 1;
             Minor : constant CORBA.Unsigned_Long
               := From_Any
               (Get_Aggregate_Element
-               (Occurrence, TC_Unsigned_Long, 1));
+               (Occurrence, TC_Unsigned_Long, Index));
             Completed : constant CORBA.Completion_Status
               := From_Any
               (Get_Aggregate_Element
-               (Occurrence, TC_Completion_Status, 1));
+               (Occurrence, TC_Completion_Status, Index));
          begin
             Raise_System_Exception
               (System_Id,

@@ -55,6 +55,8 @@ package PolyORB.Requests is
    subtype Operation_Id is String;
    --  XXX or Types.Identifier??
 
+   type Flags is new Types.Unsigned_Long;
+
    ------------------------------------------
    -- Synchronisation of request execution --
    ------------------------------------------
@@ -134,7 +136,8 @@ package PolyORB.Requests is
       --  raised during execution of this request.
 
       --  Ctxt_List  : CORBA.ContextList.Ref;
-      --  Req_Flags  : CORBA.Flags;
+
+      Req_Flags : Flags;
 
       Completed : aliased Boolean := False;
       Requesting_Task : aliased Task_Info.Task_Info_Access;
@@ -178,13 +181,13 @@ package PolyORB.Requests is
         := Any.ExceptionList.Nil_Ref;
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access;
-      Req_Flags : in     PolyORB.Any.Flags := 0;
+      Req_Flags : in     Flags := 0;
       Deferred_Arguments_Session : in Components.Component_Access := null
      );
 
    procedure Invoke
      (Self         : Request_Access;
-      Invoke_Flags : PolyORB.Any.Flags := 0);
+      Invoke_Flags : Flags := 0);
    --  Run Self.
 
    procedure Arguments

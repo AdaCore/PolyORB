@@ -60,15 +60,10 @@ package body PolyORB.Requests is
         := Any.ExceptionList.Nil_Ref;
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access;
-      Req_Flags : in     PolyORB.Any.Flags := 0;
+      Req_Flags : in     Flags := 0;
       Deferred_Arguments_Session : in Components.Component_Access := null
      )
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Req_Flags);
-      pragma Warnings (On);
-      --  XXX for now Invoke does only synchronous requests,
-      --  so we do not pass Req_Flags through.
       Res : constant Request_Access := new Request;
    begin
       Res.Target    := Target;
@@ -78,13 +73,14 @@ package body PolyORB.Requests is
       Res.Result    := Result;
       Res.Result.Arg_Modes := Any.ARG_OUT;
       Res.Exc_List  := Exc_List;
+      Res.Req_Flags := Req_Flags;
 
       Req := Res;
    end Create_Request;
 
    procedure Invoke
      (Self         : Request_Access;
-      Invoke_Flags : PolyORB.Any.Flags := 0)
+      Invoke_Flags : Flags := 0)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Invoke_Flags);

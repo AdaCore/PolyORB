@@ -118,7 +118,7 @@ package body CORBA.Test_Object is
                Add_Item (Args,
                          (Name => To_PolyORB_String ("S"),
                           Argument => Get_Empty_Any (TypeCode.TC_String),
-                          Arg_Modes => ARG_IN));
+                          Arg_Modes => PolyORB.Any.ARG_IN));
                Arguments (Req, Args);
 
                declare
@@ -136,7 +136,7 @@ package body CORBA.Test_Object is
             elsif Req.all.Operation = "echoInteger" then
                Add_Item (Args, (Name => To_PolyORB_String ("I"),
                                 Argument => Get_Empty_Any (TypeCode.TC_Long),
-                                Arg_Modes => ARG_IN));
+                                Arg_Modes => PolyORB.Any.ARG_IN));
                Arguments (Req, Args);
                declare
                   use PolyORB.Any.NVList.Internals;
