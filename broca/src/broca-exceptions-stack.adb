@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with System.Storage_Elements;
+--  with System.Storage_Elements;
 
 with Broca.Debug;
 with Broca.Soft_Links; use Broca.Soft_Links;
@@ -116,8 +116,8 @@ package body Broca.Exceptions.Stack is
       end if;
 
       while Current /= null loop
-         O ("At " & System.Storage_Elements.To_Integer
-            (Current.all'Address)'Img & ":");
+         --  O ("At " & System.Storage_Elements.To_Integer
+         --     (Current.all'Address)'Img & ":");
          O ("  " & Image (Current.Id));
          Current := Current.Next;
       end loop;
