@@ -11,4 +11,4 @@ sleep 6
 produce "running test 3" in pls
 sleep 6
 produce "running test 4" in pls
-
+quit

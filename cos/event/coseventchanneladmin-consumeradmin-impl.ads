@@ -40,9 +40,7 @@ with PortableServer;
 
 package CosEventChannelAdmin.ConsumerAdmin.Impl is
 
-   type Object is
-     new PortableServer.Servant_Base with private;
-
+   type Object is new PortableServer.Servant_Base with private;
    type Object_Ptr is access all Object'Class;
 
    function Obtain_Push_Supplier
@@ -59,7 +57,7 @@ package CosEventChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any);
+      Data : in     CORBA.Any);
 
    function Create
      (Channel : CosEventChannelAdmin.EventChannel.Impl.Object_Ptr)
@@ -70,9 +68,8 @@ private
    type Consumer_Admin_Record;
    type Consumer_Admin_Access is access all Consumer_Admin_Record;
 
-   type Object is new PortableServer.Servant_Base with
-      record
-         X : Consumer_Admin_Access;
-      end record;
+   type Object is new PortableServer.Servant_Base with record
+      X : Consumer_Admin_Access;
+   end record;
 
 end CosEventChannelAdmin.ConsumerAdmin.Impl;

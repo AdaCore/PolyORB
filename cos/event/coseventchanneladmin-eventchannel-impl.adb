@@ -31,6 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
+
+with PortableServer;
+
 with CosEventChannelAdmin.SupplierAdmin;
 with CosEventChannelAdmin.SupplierAdmin.Impl;
 
@@ -48,44 +53,30 @@ pragma Elaborate (CosEventChannelAdmin.EventChannel.Skel);
 pragma Warnings (Off, CosEventChannelAdmin.EventChannel.Skel);
 
 with PolyORB.CORBA_P.Server_Tools;
-
-with PortableServer; use PortableServer;
-
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
 with PolyORB.Log;
 
 package body CosEventChannelAdmin.EventChannel.Impl is
 
-   use  PolyORB.CORBA_P.Server_Tools;
+   use PortableServer;
+   use PolyORB.CORBA_P.Server_Tools;
 
-   -----------
-   -- Debug --
-   -----------
-
-   use  PolyORB.Log;
-
+   use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("eventchannel");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   -------------
-   -- Channel --
-   -------------
-
-   type Event_Channel_Record is
-      record
-         This            : Object_Ptr;
-         Consumer        : ConsumerAdmin.Impl.Object_Ptr;
-         Supplier        : SupplierAdmin.Impl.Object_Ptr;
-      end record;
+   type Event_Channel_Record is record
+      This            : Object_Ptr;
+      Consumer        : ConsumerAdmin.Impl.Object_Ptr;
+      Supplier        : SupplierAdmin.Impl.Object_Ptr;
+   end record;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Object_Ptr
+   function Create
+     return Object_Ptr
    is
       Channel : Object_Ptr;
       My_Ref  : EventChannel.Ref;
@@ -155,7 +146,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any) is
+      Data : in     CORBA.Any) is
    begin
       ConsumerAdmin.Impl.Post (Self.X.Consumer, Data);
    end Post;

@@ -42,8 +42,7 @@ package CosEventComm.PushSupplier.Impl is
    --  This implementation is supposed to be application
    --  dependent. This is an example used to test the event service.
 
-   type Object is
-     new PortableServer.Servant_Base with private;
+   type Object is new PortableServer.Servant_Base with private;
 
    type Object_Ptr is access all Object'Class;
 
@@ -56,23 +55,21 @@ package CosEventComm.PushSupplier.Impl is
 
    procedure Connect_Proxy_Push_Consumer
      (Self  : access Object;
-      Proxy : in CosEventChannelAdmin.ProxyPushConsumer.Ref);
+      Proxy : in     CosEventChannelAdmin.ProxyPushConsumer.Ref);
 
    function Create return Object_Ptr;
 
    procedure Push
      (Self : access Object;
-      Data : in CORBA.Any);
+      Data : in     CORBA.Any);
 
 private
 
    type Push_Supplier_Record;
    type Push_Supplier_Access is access Push_Supplier_Record;
 
-   type Object is
-     new PortableServer.Servant_Base with
-      record
-         X : Push_Supplier_Access;
-      end record;
+   type Object is new PortableServer.Servant_Base with record
+      X : Push_Supplier_Access;
+   end record;
 
 end CosEventComm.PushSupplier.Impl;

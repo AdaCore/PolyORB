@@ -47,7 +47,7 @@ package CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
    procedure Connect_Pull_Supplier
      (Self          : access Object;
-      Pull_Supplier : in CosEventComm.PullSupplier.Ref);
+      Pull_Supplier : in     CosEventComm.PullSupplier.Ref);
 
    ------------------
    -- PullConsumer --
@@ -69,9 +69,8 @@ private
    type Proxy_Pull_Consumer_Record;
    type Proxy_Pull_Consumer_Access is access all Proxy_Pull_Consumer_Record;
 
-   type Object is new PortableServer.Servant_Base with
-      record
-         X : Proxy_Pull_Consumer_Access;
-      end record;
+   type Object is new PortableServer.Servant_Base with record
+      X : Proxy_Pull_Consumer_Access;
+   end record;
 
 end CosEventChannelAdmin.ProxyPullConsumer.Impl;

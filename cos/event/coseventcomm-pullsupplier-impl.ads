@@ -42,8 +42,7 @@ package CosEventComm.PullSupplier.Impl is
    --  This implementation is supposed to be application
    --  dependent. This is an example used to test the event service.
 
-   type Object is
-     new PortableServer.Servant_Base with private;
+   type Object is new PortableServer.Servant_Base with private;
 
    type Object_Ptr is access all Object'Class;
 
@@ -58,8 +57,8 @@ package CosEventComm.PullSupplier.Impl is
 
    procedure Try_Pull
      (Self      : access Object;
-      Has_Event : out CORBA.Boolean;
-      Returns   : out CORBA.Any);
+      Has_Event : out    CORBA.Boolean;
+      Returns   : out    CORBA.Any);
    --  Call by proxy to try yo pull an event
 
    ------------------------
@@ -68,7 +67,7 @@ package CosEventComm.PullSupplier.Impl is
 
    procedure Connect_Proxy_Pull_Consumer
      (Self  : access Object;
-      Proxy : in CosEventChannelAdmin.ProxyPullConsumer.Ref);
+      Proxy : in     CosEventChannelAdmin.ProxyPullConsumer.Ref);
    --  Call by application to connect object with proxy
 
    function Create return Object_Ptr;
@@ -76,7 +75,7 @@ package CosEventComm.PullSupplier.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in CORBA.Any);
+      Data : in     CORBA.Any);
    --  Call by application to produce an event
 
 private
@@ -84,10 +83,8 @@ private
    type Pull_Supplier_Record;
    type Pull_Supplier_Access is access Pull_Supplier_Record;
 
-   type Object is
-     new PortableServer.Servant_Base with
-      record
-         X : Pull_Supplier_Access;
-      end record;
+   type Object is new PortableServer.Servant_Base with record
+      X : Pull_Supplier_Access;
+   end record;
 
 end CosEventComm.PullSupplier.Impl;

@@ -38,8 +38,7 @@ with PortableServer;
 
 package CosEventChannelAdmin.SupplierAdmin.Impl is
 
-   type Object is
-     new PortableServer.Servant_Base with private;
+   type Object is new PortableServer.Servant_Base with private;
 
    type Object_Ptr is access all Object'Class;
 
@@ -61,17 +60,15 @@ package CosEventChannelAdmin.SupplierAdmin.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any);
+      Data : in     CORBA.Any);
 
 private
 
    type Supplier_Admin_Record;
    type Supplier_Admin_Access is access all Supplier_Admin_Record;
 
-   type Object is
-     new PortableServer.Servant_Base with
-      record
-         X : Supplier_Admin_Access;
-      end record;
+   type Object is new PortableServer.Servant_Base with record
+      X : Supplier_Admin_Access;
+   end record;
 
 end CosEventChannelAdmin.SupplierAdmin.Impl;

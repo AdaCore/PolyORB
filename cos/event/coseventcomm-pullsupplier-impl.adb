@@ -31,9 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
+
+with PortableServer;
 
 with CosEventComm.PullSupplier.Helper;
 pragma Elaborate (CosEventComm.PullSupplier.Helper);
@@ -43,35 +44,54 @@ with CosEventComm.PullSupplier.Skel;
 pragma Elaborate (CosEventComm.PullSupplier.Skel);
 pragma Warnings (Off, CosEventComm.PullSupplier.Skel);
 
-with CosEventChannelAdmin; use CosEventChannelAdmin;
-
 with CosEventChannelAdmin.ProxyPullConsumer;
 
-with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
+with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Tasking.Semaphores;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Log;
-with PolyORB.Tasking.Semaphores; use PolyORB.Tasking.Semaphores;
-
-with PortableServer; use PortableServer;
-
 
 package body CosEventComm.PullSupplier.Impl is
 
+   use CosEventChannelAdmin;
 
+   use PortableServer;
 
-   use  PolyORB.Log;
+   use PolyORB.CORBA_P.Server_Tools;
+   use PolyORB.Tasking.Semaphores;
+   use PolyORB.Tasking.Mutexes;
+
+   use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("pullsupplier");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Pull_Supplier_Record is
-      record
-         This    : Object_Ptr;
-         Peer    : ProxyPullConsumer.Ref;
-         Empty   : Boolean;
-         Event   : CORBA.Any;
-         Semaphore : Semaphore_Access;
-      end record;
+   type Pull_Supplier_Record is record
+      This    : Object_Ptr;
+      Peer    : ProxyPullConsumer.Ref;
+      Empty   : Boolean;
+      Event   : CORBA.Any;
+      Semaphore : Semaphore_Access;
+   end record;
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization;
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that the Mutexes are initialized
+
+   T_Initialized : Boolean := False;
+   Self_Mutex : Mutex_Access;
+
+   procedure Ensure_Initialization is
+   begin
+      if not T_Initialized then
+         Create (Self_Mutex);
+         T_Initialized := True;
+      end if;
+   end Ensure_Initialization;
 
    ---------------------------------
    -- Connect_Proxy_Pull_Consumer --
@@ -79,20 +99,22 @@ package body CosEventComm.PullSupplier.Impl is
 
    procedure Connect_Proxy_Pull_Consumer
      (Self  : access Object;
-      Proxy : in CosEventChannelAdmin.ProxyPullConsumer.Ref)
+      Proxy : in     CosEventChannelAdmin.ProxyPullConsumer.Ref)
    is
       My_Ref : PullSupplier.Ref;
 
    begin
       pragma Debug (O ("connect proxy pull supplier to pull consumer"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       if not ProxyPullConsumer.Is_Nil (Self.X.Peer) then
-         Leave_Critical_Section;
+         Leave (Self_Mutex);
          raise AlreadyConnected;
       end if;
       Self.X.Peer := Proxy;
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
 
       Servant_To_Reference (Servant (Self.X.This), My_Ref);
       ProxyPullConsumer.connect_pull_supplier (Proxy, My_Ref);
@@ -102,7 +124,8 @@ package body CosEventComm.PullSupplier.Impl is
    -- Create --
    ------------
 
-   function Create return Object_Ptr
+   function Create
+     return Object_Ptr
    is
       Supplier : Object_Ptr;
       My_Ref   : PullSupplier.Ref;
@@ -115,7 +138,9 @@ package body CosEventComm.PullSupplier.Impl is
       Supplier.X.This  := Supplier;
       Supplier.X.Empty := True;
       Create (Supplier.X.Semaphore);
+
       Initiate_Servant (Servant (Supplier), My_Ref);
+
       return Supplier;
    end Create;
 
@@ -132,11 +157,14 @@ package body CosEventComm.PullSupplier.Impl is
    begin
       pragma Debug (O ("disconnect pull supplier"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
+      Leave (Self_Mutex);
+
       V (Self.X.Semaphore);
-      Leave_Critical_Section;
 
       if not ProxyPullConsumer.Is_Nil (Peer) then
          ProxyPullConsumer.disconnect_pull_consumer (Peer);
@@ -154,23 +182,27 @@ package body CosEventComm.PullSupplier.Impl is
       Event   : CORBA.Any;
 
    begin
+
+      Ensure_Initialization;
+
       loop
          pragma Debug (O ("attempt to pull new data from pull supplier"));
+         P (Self.X.Semaphore);
 
-         Enter_Critical_Section;
+         Enter (Self_Mutex);
          if ProxyPullConsumer.Is_Nil (Self.X.Peer) then
-            Leave_Critical_Section;
+            Leave (Self_Mutex);
             raise Disconnected;
          end if;
 
          if not Self.X.Empty then
             Event := Self.X.Event;
             Self.X.Empty := True;
-            Leave_Critical_Section;
+            Leave (Self_Mutex);
             exit;
          end if;
-         Leave_Critical_Section;
-         P (Self.X.Semaphore);
+
+         Leave (Self_Mutex);
       end loop;
 
       pragma Debug (O ("succeed to pull new data from pull supplier"));
@@ -184,16 +216,18 @@ package body CosEventComm.PullSupplier.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in CORBA.Any) is
-
+      Data : in     CORBA.Any) is
    begin
       pragma Debug (O ("push new data to pull supplier"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Self.X.Empty := False;
       Self.X.Event := Data;
+      Leave (Self_Mutex);
+
       V (Self.X.Semaphore);
-      Leave_Critical_Section;
    end Push;
 
    --------------
@@ -202,26 +236,27 @@ package body CosEventComm.PullSupplier.Impl is
 
    procedure Try_Pull
      (Self      : access Object;
-      Has_Event : out CORBA.Boolean;
-      Returns   : out CORBA.Any) is
+      Has_Event : out    CORBA.Boolean;
+      Returns   : out    CORBA.Any) is
    begin
       pragma Debug (O ("try to pull new data from pull supplier"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       if ProxyPullConsumer.Is_Nil (Self.X.Peer) then
-         Leave_Critical_Section;
+         Leave (Self_Mutex);
          raise Disconnected;
       end if;
 
-      if Self.X.Empty then
-         Has_Event := False;
+      Has_Event := not Self.X.Empty;
 
-      else
-         Has_Event := True;
+      if Has_Event then
          Returns := Self.X.Event;
          Self.X.Empty := True;
       end if;
-      Leave_Critical_Section;
+
+      Leave (Self_Mutex);
    end Try_Pull;
 
 end CosEventComm.PullSupplier.Impl;

@@ -37,8 +37,7 @@ with CosEventChannelAdmin.ConsumerAdmin.Impl;
 
 package CosEventChannelAdmin.ProxyPushSupplier.Impl is
 
-   type Object is
-     new PortableServer.Servant_Base with private;
+   type Object is new PortableServer.Servant_Base with private;
 
    type Object_Ptr is access all Object'Class;
 
@@ -55,7 +54,7 @@ package CosEventChannelAdmin.ProxyPushSupplier.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any);
+      Data : in     CORBA.Any);
 
    function Create
      (Admin : CosEventChannelAdmin.ConsumerAdmin.Impl.Object_Ptr)
@@ -66,10 +65,8 @@ private
    type Proxy_Push_Supplier_Record;
    type Proxy_Push_Supplier_Access is access Proxy_Push_Supplier_Record;
 
-   type Object is
-     new PortableServer.Servant_Base with
-      record
-         X : Proxy_Push_Supplier_Access;
-      end record;
+   type Object is new PortableServer.Servant_Base with record
+      X : Proxy_Push_Supplier_Access;
+   end record;
 
 end CosEventChannelAdmin.ProxyPushSupplier.Impl;

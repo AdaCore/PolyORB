@@ -31,9 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
 
-with CosEventChannelAdmin; use CosEventChannelAdmin;
+with PortableServer;
+
+with CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPushSupplier;
 
@@ -45,33 +48,52 @@ with CosEventComm.PushConsumer.Skel;
 pragma Elaborate (CosEventComm.PushConsumer.Skel);
 pragma Warnings (Off, CosEventComm.PushConsumer.Skel);
 
-with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
+with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Semaphores;
 with PolyORB.Log;
-with PolyORB.Tasking.Semaphores; use PolyORB.Tasking.Semaphores;
-
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with PortableServer; use PortableServer;
-
 
 package body CosEventComm.PushConsumer.Impl is
 
+   use PortableServer;
+
+   use CosEventChannelAdmin;
+
+   use PolyORB.CORBA_P.Server_Tools;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("pushconsumer");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Push_Consumer_Record is
-      record
-         This    : Object_Ptr;
-         Peer    : ProxyPushSupplier.Ref;
-         Empty   : Boolean;
-         Event   : CORBA.Any;
-         Semaphore : Semaphore_Access;
-      end record;
+   type Push_Consumer_Record is record
+      This    : Object_Ptr;
+      Peer    : ProxyPushSupplier.Ref;
+      Empty   : Boolean;
+      Event   : CORBA.Any;
+      Semaphore : Semaphore_Access;
+   end record;
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization;
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that the Mutexes are initialized
+
+   T_Initialized : Boolean := False;
+   Self_Mutex : Mutex_Access;
+
+   procedure Ensure_Initialization is
+   begin
+      if not T_Initialized then
+         Create (Self_Mutex);
+         T_Initialized := True;
+      end if;
+   end Ensure_Initialization;
 
    ---------------------------------
    -- Connect_Proxy_Push_Supplier --
@@ -79,20 +101,22 @@ package body CosEventComm.PushConsumer.Impl is
 
    procedure Connect_Proxy_Push_Supplier
      (Self  : access Object;
-      Proxy : in CosEventChannelAdmin.ProxyPushSupplier.Ref)
+      Proxy : in     CosEventChannelAdmin.ProxyPushSupplier.Ref)
    is
       My_Ref : PushConsumer.Ref;
 
    begin
       pragma Debug (O ("connect proxy push consumer to push supplier"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       if not ProxyPushSupplier.Is_Nil (Self.X.Peer) then
-         Leave_Critical_Section;
+         Leave (Self_Mutex);
          raise AlreadyConnected;
       end if;
       Self.X.Peer := Proxy;
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
 
       Servant_To_Reference (Servant (Self.X.This), My_Ref);
       ProxyPushSupplier.connect_push_consumer (Proxy, My_Ref);
@@ -102,7 +126,8 @@ package body CosEventComm.PushConsumer.Impl is
    -- Create --
    ------------
 
-   function Create return Object_Ptr
+   function Create
+     return Object_Ptr
    is
       Consumer : Object_Ptr;
       My_Ref   : PushConsumer.Ref;
@@ -132,11 +157,14 @@ package body CosEventComm.PushConsumer.Impl is
    begin
       pragma Debug (O ("disconnect push consumer"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
+      Leave (Self_Mutex);
+
       V (Self.X.Semaphore);
-      Leave_Critical_Section;
 
       if not ProxyPushSupplier.Is_Nil (Peer) then
          ProxyPushSupplier.disconnect_push_supplier (Peer);
@@ -148,28 +176,32 @@ package body CosEventComm.PushConsumer.Impl is
    ----------
 
    function Pull
-     (Self : access Object) return CORBA.Any
+     (Self : access Object)
+     return CORBA.Any
    is
       Event   : CORBA.Any;
 
    begin
+      Ensure_Initialization;
+
       loop
          pragma Debug (O ("attempt to pull new data from push consumer"));
+         P (Self.X.Semaphore);
 
-         Enter_Critical_Section;
+         Enter (Self_Mutex);
          if ProxyPushSupplier.Is_Nil (Self.X.Peer) then
-            Leave_Critical_Section;
+            Leave (Self_Mutex);
             raise Disconnected;
          end if;
 
          if not Self.X.Empty then
             Self.X.Empty := True;
             Event := Self.X.Event;
-            Leave_Critical_Section;
+            Leave (Self_Mutex);
             exit;
          end if;
-         Leave_Critical_Section;
-         P (Self.X.Semaphore);
+
+         Leave (Self_Mutex);
       end loop;
       pragma Debug (O ("succeed to pull new data from push consumer"));
 
@@ -182,15 +214,17 @@ package body CosEventComm.PushConsumer.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in CORBA.Any) is
+      Data : in     CORBA.Any) is
    begin
       pragma Debug (O ("push new data to push consumer"));
+      Ensure_Initialization;
 
-      Enter_Critical_Section;
+      Enter (Self_Mutex);
       Self.X.Empty := False;
       Self.X.Event := Data;
+      Leave (Self_Mutex);
+
       V (Self.X.Semaphore);
-      Leave_Critical_Section;
    end Push;
 
    --------------
@@ -199,26 +233,28 @@ package body CosEventComm.PushConsumer.Impl is
 
    procedure Try_Pull
      (Self : access Object;
-      Done : out CORBA.Boolean;
-      Data : out CORBA.Any) is
+      Done : out    CORBA.Boolean;
+      Data : out    CORBA.Any) is
    begin
       pragma Debug (O ("try to pull new data from push consumer"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
+
       if ProxyPushSupplier.Is_Nil (Self.X.Peer) then
-         Leave_Critical_Section;
+         Leave (Self_Mutex);
          raise Disconnected;
       end if;
 
-      if Self.X.Empty then
-         Done := False;
+      Done := not Self.X.Empty;
 
-      else
-         Done := True;
+      if Done then
          Self.X.Empty := True;
          Data := Self.X.Event;
       end if;
-      Leave_Critical_Section;
+
+      Leave (Self_Mutex);
    end Try_Pull;
 
 end CosEventComm.PushConsumer.Impl;

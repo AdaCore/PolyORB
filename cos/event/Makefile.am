@@ -2,20 +2,20 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
-#COS_GNATMAKE_FLAGS = -I$(srcdir) \
-#	-I../naming \
-#	-I$(srcdir)/../naming \
-#	-I$(COS_ROOT)/event \
-#	-I$(COS_ROOT)/naming \
-#	-I../../src \
-#	-I$(srcdir)/../../src
-   
-COS_GNATMAKE_FLAGS=-I../../idls/cos/naming \
-    -I../naming \
-    -I../../idls/cos/event    
-# le fichier que l'on veut générer
-# pour l'instant il s'agit d'un fichier qui fait des tests
-PROGS=test_event
+corba_exe=test_event
+
+COS_GNATMAKE_FLAGS = \
+	-I$(srcdir) \
+	-I../naming \
+	-I$(srcdir)/../naming \
+	-I$(COS_ROOT)/event \
+	-I$(COS_ROOT)/naming \
+	-I../../src \
+	-I$(srcdir)/../../src \
+	-I../../idls/cos/naming \
+	-I../../idls/cos/event
+
+PROGS=@APPLI_EXES@
 
 FORCE= force
 

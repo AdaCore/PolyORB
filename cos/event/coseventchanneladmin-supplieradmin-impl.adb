@@ -31,7 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosEventChannelAdmin; use CosEventChannelAdmin;
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
+
+with CORBA.Sequences.Unbounded;
+
+with PortableServer;
 
 with CosEventChannelAdmin.EventChannel.Impl;
 
@@ -51,23 +56,20 @@ with CosEventChannelAdmin.SupplierAdmin.Skel;
 pragma Elaborate (CosEventChannelAdmin.SupplierAdmin.Skel);
 pragma Warnings (Off, CosEventChannelAdmin.SupplierAdmin.Skel);
 
-with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
-
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with CORBA.Sequences.Unbounded;
-
-with PortableServer; use PortableServer;
-
+with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Log;
 
 package body CosEventChannelAdmin.SupplierAdmin.Impl is
 
+   use CosEventChannelAdmin;
+   use PortableServer;
+
+   use PolyORB.CORBA_P.Server_Tools;
+   use PolyORB.Tasking.Mutexes;
 
    use PolyORB.Log;
-   package L is new PolyORB.Log.Facility_Log ("consumeradmin");
+   package L is new PolyORB.Log.Facility_Log ("supplieradmin");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -77,13 +79,31 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
    package PushConsumers is
       new CORBA.Sequences.Unbounded (ProxyPushConsumer.Impl.Object_Ptr);
 
-   type Supplier_Admin_Record is
-      record
-         This    : Object_Ptr;
-         Channel : EventChannel.Impl.Object_Ptr;
-         Pushs   : PushConsumers.Sequence;
-         Pulls   : PullConsumers.Sequence;
-      end record;
+   type Supplier_Admin_Record is record
+      This    : Object_Ptr;
+      Channel : EventChannel.Impl.Object_Ptr;
+      Pushs   : PushConsumers.Sequence;
+      Pulls   : PullConsumers.Sequence;
+   end record;
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization;
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that the Mutexes are initialized
+
+   T_Initialized : Boolean := False;
+   Self_Mutex : Mutex_Access;
+
+   procedure Ensure_Initialization is
+   begin
+      if not T_Initialized then
+         Create (Self_Mutex);
+         T_Initialized := True;
+      end if;
+   end Ensure_Initialization;
 
    ------------
    -- Create --
@@ -98,11 +118,13 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
    begin
       pragma Debug (O ("create supplier admin"));
 
-      Supplier        := new Object;
-      Supplier.X      := new Supplier_Admin_Record;
+      Supplier           := new Object;
+      Supplier.X         := new Supplier_Admin_Record;
       Supplier.X.This    := Supplier;
       Supplier.X.Channel := Channel;
+
       Initiate_Servant (Servant (Supplier), My_Ref);
+
       return Supplier;
    end Create;
 
@@ -120,11 +142,15 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
    begin
       pragma Debug (O ("obtain proxy pull consumer from supplier admin"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Consumer := ProxyPullConsumer.Impl.Create (Self.X.This);
       PullConsumers.Append (Self.X.Pulls, Consumer);
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
+
       Servant_To_Reference (Servant (Consumer), Its_Ref);
+
       return Its_Ref;
    end Obtain_Pull_Consumer;
 
@@ -142,11 +168,15 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
    begin
       pragma Debug (O ("obtain proxy push consumer from supplier admin"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Consumer := ProxyPushConsumer.Impl.Create (Self.X.This);
       PushConsumers.Append (Self.X.Pushs, Consumer);
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
+
       Servant_To_Reference (Servant (Consumer), Its_Ref);
+
       return Its_Ref;
    end Obtain_Push_Consumer;
 
@@ -156,7 +186,7 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any) is
+      Data : in     CORBA.Any) is
    begin
       pragma Debug (O ("post new data from supplier admin to channel"));
 
