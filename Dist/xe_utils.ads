@@ -93,6 +93,7 @@ package XE_Utils is
    --  Concatenate several names and insert a directory separator between them.
 
    procedure Change_Dir (To : in Types.File_Name_Type);
+   --  Changes the working directory of the current execution environment
 
    procedure Compilation_Error (File : Types.File_Name_Type);
    --  Write standard error message when GNAT cannot compile File
@@ -117,6 +118,11 @@ package XE_Utils is
 
    procedure Create_Dir
      (To : in Types.File_Name_Type);
+   --  Create a directory whose pathname is given in To. This
+   --  function create all the subdirectories (separated by a
+   --  Directory_Separator) one by one and then create the final
+   --  directory. So it is not required that the path to the directory
+   --  to be created exist when calling Create_Dir.
 
    procedure Delete
      (File : in Types.File_Name_Type);
@@ -160,6 +166,7 @@ package XE_Utils is
    --  Return a string that approx. follows GNAT style.
 
    procedure Initialize;
+   --  Must be called before any other calls in this package
 
    function Is_Directory    (File : Types.File_Name_Type) return Boolean;
    function Is_Regular_File (File : Types.File_Name_Type) return Boolean;
@@ -186,6 +193,9 @@ package XE_Utils is
       S3 : in String        := "";
       S4 : in Types.Name_Id := Types.No_Name;
       S5 : in String        := "");
+   --  Display a message to the standard output. The message is the
+   --  concatenation of S1 to S5. Parameters with default values are not
+   --  displayed.
 
    procedure Source_File_Error (Uname : Types.Unit_Name_Type);
    --  Write standard error message when we cannot find a source file
