@@ -33,14 +33,9 @@
 --  $Id$
 
 with Ada.Streams;
-with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 
 with PolyORB.Buffers;
 with PolyORB.Components;
-
-with PolyORB.Types; use PolyORB.Types;
-
-
 
 package PolyORB.Filters.HTTP is
 
@@ -56,10 +51,6 @@ package PolyORB.Filters.HTTP is
    --  Raised when unexpected data is received by this filter.
 
 private
-
-   Char_Length : constant Ada.Streams.Stream_Element_Offset := 1;
-
-   Str_CRLF : constant Types.String := To_PolyORB_String (CR & LF & CR & LF);
 
    type HTTP_Filter_Factory is new Factory with null record;
 

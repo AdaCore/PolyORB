@@ -35,6 +35,7 @@
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Opaque;
 
 package body PolyORB.Filters.HTTP is
 
@@ -72,7 +73,7 @@ package body PolyORB.Filters.HTTP is
 
             if DEM.Max = 0 then
                F.Expected_Size_Fixed := False;
-               F.Data_Expected := Char_Length;
+               F.Data_Expected := 1;
             else
                F.Expected_Size_Fixed := True;
                F.Data_Expected := DEM.Max;
@@ -125,35 +126,46 @@ package body PolyORB.Filters.HTTP is
             if F.In_Buf = null then
                raise Unexpected_Data;
             else
+               pragma Debug
+                 (O ("Data received, checking for end of headers."));
+
                if Length (F.In_Buf) >= 4 then
                   declare
-                     Octets_List  :
-                        Stream_Element_Array :=
-                           To_Stream_Element_Array (F.In_Buf);
-                     Str : Types.String;
+                     Last_Four_Bytes : PolyORB.Opaque.Opaque_Pointer;
+                     CRLF_CRLF : constant Stream_Element_Array
+                       := (Stream_Element (Character'Pos (ASCII.CR)),
+                           Stream_Element (Character'Pos (ASCII.LF)),
+                           Stream_Element (Character'Pos (ASCII.CR)),
+                           Stream_Element (Character'Pos (ASCII.LF)));
                   begin
-                     for I in Octets_List'Last - 3 .. Octets_List'Last loop
-                           Append (Str, Character'Val
-                               (Natural (Octets_List (I))));
-                     end loop;
-                     if Str = Str_CRLF then
+                     pragma Debug
+                       (O ("Extracting last 4 bytes of buffer at position"
+                           & Stream_Element_Offset'Image
+                           (CDR_Position (F.In_Buf))));
+                     Extract_Data
+                       (F.In_Buf, Last_Four_Bytes, 4,
+                        Use_Current => False,
+                        At_Position => CDR_Position (F.In_Buf) - 4);
+                     pragma Debug (O ("done."));
+                     if Last_Four_Bytes.Zone
+                       (Last_Four_Bytes.Offset .. Last_Four_Bytes.Offset + 3)
+                       = CRLF_CRLF
+                     then
                         F.In_Buf := null;
+                        pragma Debug (O ("Found end of headers!"));
                         return Emit
                           (F.Upper,
                            Data_Indication'(Root_Data_Unit with null record));
-                     else
-                        Emit_No_Reply
-                          (F.Lower,
-                           Data_Expected'
-                          (Max => F.Data_Expected, In_Buf => F.In_Buf));
                      end if;
                   end;
-               else
-                  Emit_No_Reply
-                   (F.Lower,
-                    Data_Expected'
-                    (Max => F.Data_Expected, In_Buf => F.In_Buf));
                end if;
+
+               pragma Debug (O ("End of headers not seen yet."));
+               Emit_No_Reply
+                 (F.Lower,
+                  Data_Expected'
+                  (Max => F.Data_Expected, In_Buf => F.In_Buf));
+
             end if;
          end if;
 
