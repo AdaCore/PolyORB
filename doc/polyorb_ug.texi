@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#44 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#45 $
 
 @include version.texi
 
@@ -635,6 +635,13 @@ PolyORB will be compiled with GNAT build host's configuration,
 including run-time library. You may override this setting using
 @code{ADA_INCLUDE_PATH} and @code{ADA_OBJECTS_PATH} environment
 variables. See GNAT User's Guide for more details.
+
+You can add specific compilation options to GNAT using the
+@code{EXTRA_GNATMAKE_FLAGS} variable:
+
+@smallexample
+  % EXTRA_GNATMAKE_FLAGS=''-largs -foo'' ./configure [options]
+@end smallexample
 
 NOTE: Developers building PolyORB from the version control repository
 who need to rebuild the configure and Makefile.in files should use the

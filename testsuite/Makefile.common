@@ -36,7 +36,8 @@ GNATMAKE_FLAGS = \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	$(POLYORB_LIBS) $(XMLADA_LIBS) 
+	$(POLYORB_LIBS) $(XMLADA_LIBS) \
+	-margs $(EXTRA_GNATMAKE_FLAGS)
 
 # Due to a bug in Automake 1.4, this line must not be splitted.
 

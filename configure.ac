@@ -329,6 +329,14 @@ AC_SUBST(BARGS)
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 ##########################################
+# Extra parameters provided by the user, 
+# used by gnatmake
+##########################################
+
+EXTRA_GNATMAKE_FLAGS=$EXTRA_GNATMAKE_FLAGS
+AC_SUBST(EXTRA_GNATMAKE_FLAGS)
+
+##########################################
 # We change $host in order to force the generation of a libtool for the
 # target, and not for the host.
 # XXX if someone knows a clean way to do that, be my guest...
