@@ -2,19 +2,20 @@ with Ada.Finalization;
 with Broca.Buffers;
 
 package Broca.Refs is
-   --  REF_TYPE is the base type of all objects that can be referenced.
-   --  It contains a COUNTER, which is the number of references to this object,
-   --  and is automatically destroyed when the counter reachs 0.
-   --  It is not abstract, because used for instanciate
-   --   system.Address_to_access_conversions.
+
    type Ref_Type is new Ada.Finalization.Limited_Controlled with
      private;
+   --  Ref_Type is the base type of all objects that can be
+   --  referenced. It contains a Counter, which is the number of
+   --  references to this object, and is automatically destroyed when
+   --  the counter reachs 0.  It is not abstract, because used for
+   --  instanciate System.Address_To_Access_Conversions.
 
-   --  Disable counter of references.  This is used for object derived from
-   --  Ref_type by the user (eg: servant, AdapterActivator...).
-   --  Must be called just after creation, when COUNTER is -1 (otherwise,
-   --  CORBA.internal is raised).
    procedure Disable_Usage (Obj : in out Ref_Type);
+   --  Disable Counter of references. This is used for object derived
+   --  from Ref_type by the user (eg: servant, AdapterActivator...).
+   --  Must be called just after creation, when Counter is -1
+   --  (otherwise, CORBA.internal is raised).
 
    procedure Compute_New_Size
      (Buffer : in out Broca.Buffers.Buffer_Descriptor;
