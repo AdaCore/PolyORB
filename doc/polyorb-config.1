@@ -4,8 +4,7 @@
 polyorb-config - script to get information about the installed version of PolyORB.
 
 .SH SYNOPSIS
-.B polyorb-config [--prefix] [--version|-v] [--config] [--libs]
-[--cflags] [--idls] [--help]
+.B polyorb-config [--prefix[=DIR]] [--exec-prefix[=DIR]] [--version|-v] [--config] [--libs] [--cflags] [--idls] [--help]
 
 .SH DESCRIPTION
 \fIpolyorb-config\fP is a tool that is used to determine the compiler and linker flags that should be used to compile and link programs that use \fIPolyORB\fP.
@@ -15,8 +14,13 @@ polyorb-config - script to get information about the installed version of PolyOR
 \fIpolyorb-config\fP accepts the following options:
 
 .TP 8
-.B  \-\-prefix
-Print \fIPolyORB\fP's installation prefix.
+.B  \-\-prefix[=DIR]
+ Output the directory in which PolyORB architecture-independent files
+are installed, or set this directory to DIR.
+
+.TP 8
+.B  \-\-exec\-prefix[=DIR]
+ Output the directory in which PolyORB architecture-dependent files are installed, or set this directory to DIR.
 .TP 8
 .B  \-\-version
 Print the currently installed version of \fIPolyORB\fP on the standard output.
