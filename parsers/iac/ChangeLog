@@ -1,14 +1,19 @@
-<<<<<<< .mine
+
 2004-06-28  Saber Souli   <souli@enst.fr>
+
 	* backend-be_ada.adb: Declare PolyORB and CORBA objects. Generate
 	marshaller declaration code. Use Copy_Designator in object
-	declaration in order to auto insert packages used in the withed list. 
-	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads: generate
-	functions call. 
-	* backend-be_ada-generator.adb : generate functions call, and
-	subprograms body. 
+	declaration in order to auto insert packages used in the withed
+	list. Generate Marshaller Body (not Completed yet). Generate If
+	statements. Add Bind_FE_To_BE a subprogram that cross link FE node
+	with the correspanding BE node.    
 	
-=======
+	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads: generate
+	functions call. Generate If statement. 
+	
+	* backend-be_ada-generator.adb : generate functions call, and
+	subprograms body. generate if statements.  
+
 2004-06-28  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* scopes.adb, values.adb, backend-be_ada-generator.adb,
@@ -29,7 +34,6 @@
 
 	* Makefile: Check that subprograms are still sorted.
 
->>>>>>> .r6603
 2004-06-26  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-generator.adb: Generate object declaration and in
