@@ -412,4 +412,3 @@ support/missing
 support/mkdep
 support/mkinstalldirs
 support/reconfig
-utils/make_distrib
