@@ -1,3 +1,11 @@
+Tue Sep 10 10:21:53 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: Added s-stratt.adb and s-stratt.o to the list of
+	  installed files.
+
+	* s-garthi.ads: Added an (ugly) use type clause for
+	  Interfaces.C.int.
+
 Fri Sep  6 17:52:46 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garter.adb: Added spec for Get_Active_Task_Count.

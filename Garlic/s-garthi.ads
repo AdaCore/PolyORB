@@ -11,6 +11,10 @@ package System.Garlic.Thin is
    package C renames Interfaces.C;
    package Strings renames C.Strings;
 
+   use type C.int;
+   --  This is an ugly hack to be able to declare the Failure constant
+   --  below.
+
    Success : constant C.int :=  0;
    Failure : constant C.int := -1;
 

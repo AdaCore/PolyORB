@@ -37,7 +37,8 @@ s-garuti.o\
 s-gtplsp.o\
 s-parint.o\
 s-partyp.o\
-s-rpc.o
+s-rpc.o\
+s-stratt.o
 
 SOURCES = \
 ${srcdir}/rci_info.ads ${srcdir}/rci_info.adb \
@@ -62,7 +63,8 @@ ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
 ${srcdir}/s-gtplsp.ads                        \
 ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
 ${srcdir}/s-partyp.ads                        \
-${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb
+${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
+${srcdir}/s-stratt.adb
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads
 
