@@ -270,6 +270,7 @@ package body PolyORB.Configuration is
    begin
       pragma Debug (O (K & "=" & Value));
       if P /= null then
+         Variables.Unregister (K);
          Free (P);
       end if;
       Variables.Register (K, +Value);
