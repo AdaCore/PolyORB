@@ -19,7 +19,7 @@ with Ada.Unchecked_Deallocation ;
 
 
 
-package Echo is 
+package Echo is
 
    -----------------------------
    --         The Spec        --
@@ -65,3 +65,16 @@ package Echo is
 private
    Nil_Ref : aliased constant Ref := ( Corba.Object.Nil_Ref with null record) ;
 end Echo ;
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -654,7 +654,7 @@ package body NetBufferedStream is
       Tmp := Tmp + 4 ;
       -- size of the string itself
       return Tmp + (N * (Corba.Length (A) + 1)) ;
-      -- + 1 is for the null character (the strings ar marshalled in C style)
+      -- + 1 is for the null character (the strings are marshalled in C style)
    end ;
 
 

@@ -463,12 +463,14 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
     body += get_ada_local_name() + "_Proxy ;\n";
     body += "                                       Giop_Client : in out Giop_C.Object) is\n";
     body += unmarshall_decls;
-    if (is_function()) {
-    // get the type of the result
-    AST_Decl *b = return_type();
-    result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition); 
-    body += "      Result : " + result_name + " ;\n";
-    }
+    if (is_function())
+      {
+	// get the type of the result
+	AST_Decl *b = return_type();
+	result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition); 
+	dynamic_cast<adabe_name *>(b)->is_marshal_imported(with);
+	body += "      Result : " + result_name + " ;\n";
+      }
     body += "   begin\n";
     body += unmarshall;
     if (is_function()) {
@@ -519,7 +521,6 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   string full_name = get_ada_full_name();
   string pack_name = full_name.substr(0,full_name.find_last_of('.')) ;
   string result_name = "";
-  string full_result_name = "";
   string in_decls = "";
   string unmarshall = "";
   string call_args = "";
@@ -543,16 +544,17 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   body += "\" then\n";
   body += "         declare\n";
   body += in_decls;
-  if (is_function()) {
-    // get the type of the result
-    AST_Decl *b = return_type();
-    adabe_name *e = dynamic_cast<adabe_name *>(b);
-    result_name = e->dump_name(with, private_definition);
-    full_result_name = e->get_ada_full_name ();
-    body += "            Result : ";
-    body += full_result_name;
-    body += " ;\n";
-  }
+  if (is_function())
+    {
+      // get the type of the result
+      AST_Decl *b = return_type();
+      adabe_name *e = dynamic_cast<adabe_name *>(b);
+      result_name = e->dump_name(with, private_definition);
+      e->is_marshal_imported(with);
+      body += "            Result : ";
+      body += result_name;
+      body += " ;\n";
+    }
 
   if ((!no_out) || (is_function()))
     body += "            Mesg_Size : Corba.Unsigned_Long ;\n";

@@ -277,6 +277,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   AST_Decl *d = field_type();
   adabe_name *e = dynamic_cast<adabe_name *>(d);
   string type_name = e->dump_name(with, private_definition);
+  e->is_marshal_imported(with);
   string full_type_name = e->get_ada_local_name ();
   string name = get_ada_local_name ();
   string full_name = get_ada_full_name ();
