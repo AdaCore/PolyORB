@@ -180,7 +180,18 @@ package System.PolyORB_Interface is
 
    --  RPC receiver objets are PolyORB components
 
-   subtype Component is PolyORB.Components.Component;
+   type Message_Handler_Access is access
+     function (M : PolyORB.Components.Message'Class)
+               return PolyORB.Components.Message'Class;
+
+   type Component is new PolyORB.Components.Component with record
+      Handler : Message_Handler_Access;
+   end record;
+   function Handle_Message
+     (Self : access Component;
+      Msg  : PolyORB.Components.Message'Class)
+      return PolyORB.Components.Message'Class;
+
    subtype Message is PolyORB.Components.Message;
    subtype Null_Message is PolyORB.Components.Null_Message;
    subtype Execute_Request is

@@ -1,5 +1,19 @@
 package body System.PolyORB_Interface is
 
+   --------------------
+   -- Handle_Message --
+   --------------------
+
+   function Handle_Message
+     (Self : access Component;
+      Msg  : PolyORB.Components.Message'Class)
+      return PolyORB.Components.Message'Class
+   is
+   begin
+      pragma Assert (Self.Handler /= null);
+      return Self.Handler.all (Msg);
+   end Handle_Message;
+
    ---------------
    -- TA_String --
    ---------------

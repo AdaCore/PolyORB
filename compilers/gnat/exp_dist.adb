@@ -1744,12 +1744,10 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Pkg_Spec);
 
-      Self_Parameter    : Node_Id;
       Message_Parameter : Node_Id;
 
       Pkg_RPC_Receiver             : Node_Id;
-      Pkg_RPC_Receiver_Type        : Node_Id;
-      Pkg_RPC_Receiver_Proc        : Entity_Id;
+      Pkg_RPC_Receiver_Object      : Node_Id;
       Pkg_RPC_Receiver_Spec        : Node_Id;
       Pkg_RPC_Receiver_Formals     : List_Id;
       Pkg_RPC_Receiver_Outer_Decls : List_Id;
@@ -1757,7 +1755,6 @@ package body Exp_Dist is
       Pkg_RPC_Receiver_Outer_Stmts : List_Id;
       Pkg_RPC_Receiver_Stmts  : List_Id;
       Pkg_RPC_Receiver_Cases       : constant List_Id := New_List;
-      Pkg_RPC_Receiver_Body        : Node_Id;
       --  A Pkg_RPC_Receiver is built to decode the request
 
       Message_Tick_Class : constant Node_Id
@@ -1810,31 +1807,12 @@ package body Exp_Dist is
         Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
       Null_Message :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('N'));
-      Self_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
       Message_Parameter :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('M'));
       Pkg_RPC_Receiver :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+        Make_Defining_Identifier (Loc, New_Internal_Name ('H'));
 
-      --  The RPC receiver (skeleton object) type
-
-      Pkg_RPC_Receiver_Type :=
-        Make_Full_Type_Declaration (Loc,
-          Defining_Identifier =>
-            Pkg_RPC_Receiver,
-          Type_Definition =>
-            Make_Derived_Type_Definition (Loc,
-              Subtype_Indication =>
-                New_Occurrence_Of (RTE (RE_Component), Loc),
-              Record_Extension_Part =>
-                Make_Record_Definition (Loc,
-                  Component_List => Empty,
-                  Null_Present => True)));
       --  The RPC receiver subprogram
-
-      Pkg_RPC_Receiver_Proc :=
-        Make_Defining_Identifier (Loc, Name_Handle_Message);
 
 --        --  The parameters of the package RPC receiver are made of two
 --        --  streams, an input one and an output one.
@@ -1855,12 +1833,6 @@ package body Exp_Dist is
 
       Pkg_RPC_Receiver_Formals := New_List (
         Make_Parameter_Specification (Loc,
-          Defining_Identifier => Self_Parameter,
-          Parameter_Type =>
-            Make_Access_Definition (Loc,
-              Subtype_Mark =>
-                New_Occurrence_Of (Pkg_RPC_Receiver, Loc))),
-        Make_Parameter_Specification (Loc,
           Defining_Identifier => Message_Parameter,
           Parameter_Type      => Message_Tick_Class));
 
@@ -1871,7 +1843,7 @@ package body Exp_Dist is
 
       Pkg_RPC_Receiver_Spec :=
         Make_Function_Specification (Loc,
-          Defining_Unit_Name       => Pkg_RPC_Receiver_Proc,
+          Defining_Unit_Name       => Pkg_RPC_Receiver,
           Parameter_Specifications => Pkg_RPC_Receiver_Formals,
           Subtype_Mark             => Message_Tick_Class);
 
@@ -2057,18 +2029,41 @@ package body Exp_Dist is
           Expression =>
             New_Occurrence_Of (Null_Message, Loc)));
 
-      Pkg_RPC_Receiver_Body :=
+      Append_To (Decls,
         Make_Subprogram_Body (Loc,
           Specification              => Pkg_RPC_Receiver_Spec,
           Declarations               => Pkg_RPC_Receiver_Outer_Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => Pkg_RPC_Receiver_Outer_Stmts));
+              Statements => Pkg_RPC_Receiver_Outer_Stmts)));
+      Analyze (Last (Decls));
 
-      Append_To (Decls, Pkg_RPC_Receiver_Type);
-      Analyze (Pkg_RPC_Receiver_Type);
-      Append_To (Decls, Pkg_RPC_Receiver_Body);
-      Analyze (Pkg_RPC_Receiver_Body);
+      Pkg_RPC_Receiver_Object :=
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Make_Defining_Identifier (Loc, New_Internal_Name ('R')),
+          Aliased_Present     => True,
+          Object_Definition   =>
+            New_Occurrence_Of (RTE (RE_Component), Loc));
+      Append_To (Decls, Pkg_RPC_Receiver_Object);
+      Analyze (Last (Decls));
+
+      Append_To (Decls,
+        Make_Assignment_Statement (Loc,
+          Name =>
+            Make_Selected_Component (Loc,
+              Prefix =>
+                New_Occurrence_Of (
+                  Defining_Identifier (Pkg_RPC_Receiver_Object), Loc),
+              Selector_Name =>
+                Make_Identifier (Loc, Name_Handler)),
+          Expression =>
+            Make_Attribute_Reference (Loc,
+              Prefix          =>
+                New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
+              Attribute_Name  => Name_Access)));
+      Analyze (Last (Decls));
+
 
 --        --  Construction of the dummy package used to register the package
 --        --  receiving stubs on the nameserver.
