@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#33 $
+--  $Id: //droopi/main/src/corba/corba.ads#34 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -645,6 +645,9 @@ package CORBA is
    VTM_CUSTOM      : constant ValueModifier;
    VTM_ABSTRACT    : constant ValueModifier;
    VTM_TRUNCATABLE : constant ValueModifier;
+
+   --  Implementation Note: see CORBA.Repository_Root for a discussion
+   --  of the issue with the declaration of the Visibility type.
 
    subtype Visibility is PolyORB.Any.Visibility;
 

@@ -280,7 +280,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       name : in CORBA.Identifier;
       version : in CORBA.Repository_Root.VersionSpec;
       IDL_type : in CORBA.Repository_Root.IDLType.Ref;
-      IDL_access : in CORBA.Repository_Root.Visibility)
+      IDL_access : in CORBA.Visibility)
      return CORBA.Repository_Root.ValueMemberDef.Ref
    is
       Nil_Ref : CORBA.Repository_Root.ValueMemberDef.Ref;

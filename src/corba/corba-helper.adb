@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.adb#5 $
+--  $Id: //droopi/main/src/corba/corba-helper.adb#6 $
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
@@ -143,6 +143,43 @@ package body CORBA.Helper is
       return Result;
    end To_Any;
 
+   -------------------
+   -- TC_Visibility --
+   -------------------
+
+   TC_Visibility_Cache : CORBA.TypeCode.Object;
+
+   function TC_Visibility return CORBA.TypeCode.Object is
+   begin
+      return TC_Visibility_Cache;
+   end TC_Visibility;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Item : in CORBA.Any)
+      return CORBA.Visibility
+   is
+      Result : constant CORBA.Short := CORBA.From_Any (Item);
+   begin
+      return CORBA.Visibility (Result);
+   end From_Any;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Item : in CORBA.Visibility)
+      return CORBA.Any
+   is
+      Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
+   begin
+      CORBA.Set_Type (Result, TC_Visibility);
+      return Result;
+   end To_Any;
+
    ----------------
    -- Initialize --
    ----------------
@@ -180,6 +217,22 @@ package body CORBA.Helper is
       TC_RepositoryId_Cache := Build_TC_Alias_String ("RepositoryId");
       TC_Identifier_Cache := Build_TC_Alias_String ("Identifier");
       TC_ScopedName_Cache := Build_TC_Alias_String ("ScopedName");
+
+      declare
+         Name : CORBA.String := CORBA.To_CORBA_String ("Visibility");
+         Id   : CORBA.String
+           := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Visibility:1.0");
+      begin
+         TC_Visibility_Cache :=
+           TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);
+
+         TypeCode.Internals.Add_Parameter
+           (TC_Visibility_Cache, CORBA.To_Any (Name));
+         TypeCode.Internals.Add_Parameter
+           (TC_Visibility_Cache, CORBA.To_Any (Id));
+         TypeCode.Internals.Add_Parameter
+           (TC_Visibility_Cache, CORBA.To_Any (CORBA.TC_Short));
+      end;
    end Initialize;
 
    use PolyORB.Initialization;
