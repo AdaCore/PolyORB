@@ -498,6 +498,14 @@ package body Broca.Inet_Server is
       end if;
       pragma Debug (O ("Socket created"));
 
+      declare
+         One    : aliased Integer := 1;
+         Result : int;
+      begin
+         Result :=
+           C_Setsockopt (Sock, Sol_Socket, So_Reuseaddr, One'Address, 4);
+      end;
+
       --  Find an address for this host.
       Get_Host_Address;
       pragma Debug (O ("Got the host address"));
