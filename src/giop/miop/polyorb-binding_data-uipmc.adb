@@ -138,9 +138,8 @@ package body PolyORB.Binding_Data.UIPMC is
       Sock        : Socket_Type;
       Remote_Addr : constant Sock_Addr_Type := Profile.Address;
       TTL         : constant Natural
-        := Natural (Get_Conf
-                    ("miop", "polyorb.miop.ttl",
-                     Default_TTL));
+        := Natural (Get_Conf ("miop", "polyorb.miop.ttl", Default_TTL));
+
       TE          : constant Transport.Transport_Endpoint_Access
         := new Socket_Out_Endpoint;
       Pro         : aliased UIPMC_Protocol;
@@ -151,8 +150,7 @@ package body PolyORB.Binding_Data.UIPMC is
 
       Filter : Filters.Filter_Access;
 
-      TProf : UIPMC_Profile_Type
-        renames UIPMC_Profile_Type (Prof.all);
+      TProf : UIPMC_Profile_Type renames UIPMC_Profile_Type (Prof.all);
 
    begin
       pragma Debug (O ("Bind UIPMC profile: enter"));
@@ -191,8 +189,7 @@ package body PolyORB.Binding_Data.UIPMC is
       pragma Debug (O ("Adjusted local copy of profile"));
 
       declare
-         C : Component
-           renames Component (Upper (Filter).all);
+         C : Component renames Component (Upper (Filter).all);
       begin
          pragma Debug (O ("Bind UIPMC profile: leave"));
          return C'Access;
@@ -279,25 +276,29 @@ package body PolyORB.Binding_Data.UIPMC is
       Get_Group_Object_Id (GS, Oid_Access, Error);
 
       if Found (Error)
-        or else Oid /= Oid_Access.all then
+        or else Oid /= Oid_Access.all
+      then
          Free (Oid_Access);
          return null;
       end if;
 
       declare
-         Result : constant Profile_Access
-           := new UIPMC_Profile_Type;
+         Result : constant Profile_Access := new UIPMC_Profile_Type;
 
          TResult : UIPMC_Profile_Type
            renames UIPMC_Profile_Type (Result.all);
-         TC_G_I     : TC_Group_Info_Access := new TC_Group_Info;
+         TC_G_I : TC_Group_Info_Access := new TC_Group_Info;
 
       begin
          TResult.Object_Id := Oid_Access;
          TResult.Address := PF.Address;
          TResult.Components := Null_Tagged_Component_List;
+
          TC_G_I.G_I := To_Group_Info (Oid_Access);
          TResult.G_I := TC_G_I.G_I'Access;
+
+         --  Add specific tagged component of type Tag_Group
+
          Add (TResult.Components,
               Tagged_Component_Access (TC_G_I));
          return Result;
@@ -339,22 +340,27 @@ package body PolyORB.Binding_Data.UIPMC is
       pragma Debug (O ("Marshall_UIPMC_Profile_body: enter"));
 
       --  A TAG_UIPMC Profile Body is an encapsulation.
+
       Start_Encapsulation (Profile_Body);
 
       --  Version
+
       Marshall (Profile_Body, UIPMC_Version_Major);
       Marshall (Profile_Body, UIPMC_Version_Minor);
 
       --  Marshalling of a Socket
+
       Marshall_Socket (Profile_Body, UIPMC_Profile.Address);
 
       pragma Debug (O ("  Address = "
                        & Sockets.Image (UIPMC_Profile.Address)));
 
-      --  Marshall the tagged components.
+      --  Marshall tagged components.
+
       Marshall_Tagged_Component (Profile_Body, UIPMC_Profile.Components);
 
       --  Marshall the Profile_Body into IOR.
+
       Marshall (Buf, Encapsulate (Profile_Body));
       Release (Profile_Body);
 
@@ -389,6 +395,7 @@ package body PolyORB.Binding_Data.UIPMC is
       if Temp /= UIPMC_Version_Major then
          raise MIOP_Error;
       end if;
+
       Temp := Unmarshall (Profile_Buffer);
       if Temp /= UIPMC_Version_Minor then
          --  XXX for TAO compatibility, minor version is not check
@@ -402,8 +409,7 @@ package body PolyORB.Binding_Data.UIPMC is
 
       pragma Debug (O ("  Address = " & Sockets.Image (TResult.Address)));
 
-      TResult.Components :=
-        Unmarshall_Tagged_Component (Profile_Buffer);
+      TResult.Components := Unmarshall_Tagged_Component (Profile_Buffer);
 
       Temp_Ref := Get_Component (TResult.Components, Tag_Group);
       if Temp_Ref = null then
@@ -417,7 +423,6 @@ package body PolyORB.Binding_Data.UIPMC is
       Release (Profile_Buffer);
 
       pragma Debug (O ("Unmarshall_UIPMC_Profile_body: leave"));
-
       return Result;
    end Unmarshall_UIPMC_Profile_Body;
 
@@ -442,22 +447,25 @@ package body PolyORB.Binding_Data.UIPMC is
         := Get_Component (UIPMC_Profile.Components, Tag_Group);
    begin
       pragma Debug (O ("UIPMC Profile to corbaloc"));
+
       if TC_G_I = null then
          return To_PolyORB_String ("");
       end if;
+
       declare
-         S : constant String :=
-           To_String (TC_Group_Info_Access (TC_G_I));
+         S : constant String := To_String (TC_Group_Info_Access (TC_G_I));
+
       begin
          if S = "" then
             return To_PolyORB_String ("");
          end if;
+
          return UIPMC_Corbaloc_Prefix & To_PolyORB_String
-           (Trimmed_Image (Integer (UIPMC_Version_Major)) & "." &
-            Trimmed_Image (Integer (UIPMC_Version_Minor)) & "@" &
-            S & "/" &
-            Image (UIPMC_Profile.Address.Addr) & ":" &
-            Trimmed_Image (Integer (UIPMC_Profile.Address.Port)));
+           (Trimmed_Image (Integer (UIPMC_Version_Major)) & "."
+            & Trimmed_Image (Integer (UIPMC_Version_Minor)) & "@"
+            & S & "/"
+            & Image (UIPMC_Profile.Address.Addr) & ":"
+            & Trimmed_Image (Integer (UIPMC_Profile.Address.Port)));
       end;
    end Profile_To_Corbaloc;
 
@@ -475,7 +483,7 @@ package body PolyORB.Binding_Data.UIPMC is
       use PolyORB.Utils;
       use PolyORB.Utils.Sockets;
 
-      Len    : constant Integer := Length (UIPMC_Corbaloc_Prefix);
+      Len : constant Integer := Length (UIPMC_Corbaloc_Prefix);
    begin
       if Length (Str) > Len
         and then To_String (Str) (1 .. Len) = UIPMC_Corbaloc_Prefix then
@@ -495,8 +503,10 @@ package body PolyORB.Binding_Data.UIPMC is
             if Index2 = S'Last + 1 then
                return null;
             end if;
+
             if Types.Octet'Value (S (Index .. Index2 - 1))
-              /= UIPMC_Version_Major then
+              /= UIPMC_Version_Major
+            then
                return null;
             end if;
             Index := Index2 + 1;
@@ -505,8 +515,10 @@ package body PolyORB.Binding_Data.UIPMC is
             if Index2 = S'Last + 1 then
                return null;
             end if;
+
             if Types.Octet'Value (S (Index .. Index2 - 1))
-              /= UIPMC_Version_Minor then
+              /= UIPMC_Version_Minor
+            then
                return null;
             end if;
             Index := Index2 + 1;
@@ -515,12 +527,14 @@ package body PolyORB.Binding_Data.UIPMC is
             if Index2 = S'Last + 1 then
                return null;
             end if;
+
             Temp_Ref := From_String (S (Index .. Index2 - 1));
             if Temp_Ref = null then
                Destroy_Profile (Result);
                return null;
             end if;
             pragma Debug (O ("Group Info : " & Image (Temp_Ref.G_I)));
+
             TResult.G_I := Temp_Ref.G_I'Access;
             TResult.Components := Null_Tagged_Component_List;
             Add (TResult.Components, Tagged_Component_Access (Temp_Ref));
@@ -536,8 +550,8 @@ package body PolyORB.Binding_Data.UIPMC is
             Index := Index2 + 1;
 
             pragma Debug (O ("Port = " & S (Index .. S'Last)));
-            TResult.Address.Port :=
-              PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
+            TResult.Address.Port
+              := PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
 
             TResult.Object_Id := To_Object_Id (TResult.G_I.all);
 
