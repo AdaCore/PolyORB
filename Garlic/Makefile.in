@@ -330,7 +330,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 			${CP} -p $$i ${GARLIC}/; \
 		fi; \
 	done
-	ar cq ${GARLIC}/libgarlic.a ${OBJECTS}
+	${AR} cq ${GARLIC}/libgarlic.a ${OBJECTS}
 	chmod a+r ${GARLIC}/*
 	chmod a-w ${GARLIC}/*
 
