@@ -49,6 +49,10 @@ if [ -f Utils/VERSION.INFO ]; then
   . Utils/VERSION.INFO
   rm -f Utils/VERSION.INFO
 fi
+if [ -f ${prev}/Utils/normalize.pl ]; then
+    echo Recentering keywords
+    find . -type f -print | xargs ${prev}/Utils/normalize.pl
+fi
 echo Doing the necessary date modifications
 find . -name configure.in -exec touch {} \;
 sleep 1
