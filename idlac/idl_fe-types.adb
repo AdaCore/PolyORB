@@ -726,11 +726,11 @@ package body Idl_Fe.Types is
      (Node : in Node_Id)
    is
       UF : Node_List
-        := Unimplemented_Forwards (Current_Scope.Scope);
+        := Unimplemented_Forwards (Get_Root_Scope);
    begin
       Append_Node (UF, Node);
       Set_Unimplemented_Forwards
-        (Current_Scope.Scope, UF);
+        (Get_Root_Scope, UF);
    end Add_Int_Val_Forward;
 
    ------------------------------
@@ -740,11 +740,11 @@ package body Idl_Fe.Types is
      (Node : in Node_Id)
    is
       UF : Node_List
-        := Unimplemented_Forwards (Current_Scope.Scope);
+        := Unimplemented_Forwards (Get_Root_Scope);
    begin
       Remove_Node (UF, Node);
       Set_Unimplemented_Forwards
-        (Current_Scope.Scope, UF);
+        (Get_Root_Scope, UF);
    end Add_Int_Val_Definition;
 
    ----------------------
@@ -968,10 +968,9 @@ package body Idl_Fe.Types is
       --  Test if all forward definitions were implemented
       if False
         or else Kind (Old_Scope.Scope) = K_Repository
-        or else Kind (Old_Scope.Scope) = K_Module
       then
          Init (Forward_Defs,
-               Unimplemented_Forwards (Old_Scope.Scope));
+               Unimplemented_Forwards (Get_Root_Scope));
 
          while not Is_End (Forward_Defs) loop
             Get_Next_Node (Forward_Defs, Forward_Def);
@@ -988,13 +987,12 @@ package body Idl_Fe.Types is
 
       --  Free the forward definition list
 
-      if Kind (Old_Scope.Scope) = K_Repository
-        or else Kind (Old_Scope.Scope) = K_Module then
+      if Kind (Old_Scope.Scope) = K_Repository then
          declare
             UF : Node_List
-              := Unimplemented_Forwards (Old_Scope.Scope);
+              := Unimplemented_Forwards (Get_Root_Scope);
          begin
-            Set_Unimplemented_Forwards (Old_Scope.Scope, Nil_List);
+            Set_Unimplemented_Forwards (Get_Root_Scope, Nil_List);
             Free (UF);
          end;
       end if;
