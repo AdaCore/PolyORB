@@ -39,6 +39,7 @@ with Ada.Streams.Stream_IO;
 with GNAT.OS_Lib;
 
 with System.Global_Locks;
+with System.Garlic.Exceptions;
 with System.Garlic.Soft_Links;
 
 package System.Garlic.Storages.Dfs is
@@ -57,17 +58,20 @@ package System.Garlic.Storages.Dfs is
    procedure Create_Storage
      (Master   : in out DFS_Data_Type;
       Location : in  String;
-      Storage  : out Shared_Data_Access);
+      Storage  : out Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type);
 
    procedure Create_Package
      (Storage  : in out DFS_Data_Type;
       Pkg_Name : in     String;
-      Pkg_Data : out    Shared_Data_Access);
+      Pkg_Data : out    Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type);
 
    procedure Create_Variable
      (Pkg_Data : in out DFS_Data_Type;
       Var_Name : in     String;
-      Var_Data : out    Shared_Data_Access);
+      Var_Data : out    Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type);
 
    procedure Initialize;
 

@@ -33,7 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Storages; use System.Garlic.Storages;
+with System.Garlic.Exceptions; use System.Garlic.Exceptions;
+with System.Garlic.Storages;   use System.Garlic.Storages;
 
 package body System.Shared_Storage is
 
@@ -58,9 +59,13 @@ package body System.Shared_Storage is
    is
       VS : Shared_Data_Access;
       Ok : Boolean;
+      E  : aliased Error_Type;
 
    begin
-      VS := Lookup_Variable (Var);
+      Lookup_Variable (Var, VS, E);
+      if Found (E) then
+         Raise_Communication_Error (Content (E'Access));
+      end if;
       Initiate_Request (VS, Lock, Ok);
    end Shared_Var_Lock;
 
@@ -72,9 +77,13 @@ package body System.Shared_Storage is
    is
       VS : Shared_Data_Access;
       Ok : Boolean;
+      E  : aliased Error_Type;
 
    begin
-      VS := Lookup_Variable (Var);
+      Lookup_Variable (Var, VS, E);
+      if Found (E) then
+         Raise_Communication_Error (Content (E'Access));
+      end if;
       Initiate_Request (VS, Read, Ok);
       if Ok then
          return SIO.Stream_Access (VS);
@@ -90,9 +99,13 @@ package body System.Shared_Storage is
    procedure Shared_Var_Unlock (Var : in String)
    is
       VS : Shared_Data_Access;
+      E  : aliased Error_Type;
 
    begin
-      VS := Lookup_Variable (Var);
+      Lookup_Variable (Var, VS, E);
+      if Found (E) then
+         Raise_Communication_Error (Content (E'Access));
+      end if;
       Complete_Request (VS);
    end Shared_Var_Unlock;
 
@@ -104,9 +117,13 @@ package body System.Shared_Storage is
    is
       VS : Shared_Data_Access;
       Ok : Boolean;
+      E  : aliased Error_Type;
 
    begin
-      VS := Lookup_Variable (Var);
+      Lookup_Variable (Var, VS, E);
+      if Found (E) then
+         Raise_Communication_Error (Content (E'Access));
+      end if;
       Initiate_Request (VS, Write, Ok);
       return SIO.Stream_Access (VS);
    end Shared_Var_WOpen;

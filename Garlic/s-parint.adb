@@ -419,6 +419,7 @@ package body System.Partition_Interface is
    is
       N : String       := Name;
       V : Version_Type := Version_Type (Version);
+      E : aliased Error_Type;
 
    begin
       To_Lower (N);
@@ -426,7 +427,10 @@ package body System.Partition_Interface is
       pragma Debug (D ("Register local shared passive unit " & N));
 
       Register_Unit (Self_PID, N, 0, V);
-      Register_Package (N, Self_PID);
+      Register_Package (N, Self_PID, E);
+      if Found (E) then
+         Raise_Communication_Error (E'Access);
+      end if;
    end Register_Passive_Package;
 
    ---------------------------------------------------
@@ -468,7 +472,10 @@ package body System.Partition_Interface is
          Raise_Communication_Error (Error'Access);
       end if;
 
-      Register_Partition (Partition_ID (Partition), Location);
+      Register_Partition (Partition_ID (Partition), Location, Error);
+      if Found (Error) then
+         Raise_Communication_Error (Error'Access);
+      end if;
    end Register_Passive_Partition;
 
    -----------------------------
@@ -544,9 +551,10 @@ package body System.Partition_Interface is
    procedure Run
      (Main : in Main_Subprogram_Type := null)
    is
-      Caller : Caller_List := Callers;
-      Dummy  : Caller_List;
-      Error  : aliased Error_Type;
+      Caller   : Caller_List := Callers;
+      Dummy    : Caller_List;
+      Error    : aliased Error_Type;
+      Pkg_Data : Shared_Data_Access;
 
    begin
       SG.Heart.Complete_Elaboration;
@@ -581,13 +589,12 @@ package body System.Partition_Interface is
          --  For shared passive units, check that their storage support
          --  has been correctly setup.
 
-         if not Caller.RCI
-           and then Lookup_Package (Caller.Name.all) = null
-         then
-            Ada.Exceptions.Raise_Exception
-              (Program_Error'Identity,
-               "No shared support available for """ &
-               Caller.Name.all & """");
+         if not Caller.RCI then
+            Lookup_Package (Caller.Name.all, Pkg_Data, Error);
+            if Found (Error)  then
+               Ada.Exceptions.Raise_Exception
+                 (Program_Error'Identity, Content (Error'Access));
+            end if;
          end if;
 
          Destroy (Caller.Version);

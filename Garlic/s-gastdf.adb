@@ -48,6 +48,7 @@ pragma Elaborate (System.Garlic.Debug);
 with System.Garlic.Physical_Location;
 use  System.Garlic.Physical_Location;
 
+with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 
@@ -124,8 +125,10 @@ package body System.Garlic.Storages.Dfs is
    procedure Create_Package
      (Storage  : in out DFS_Data_Type;
       Pkg_Name : in     String;
-      Pkg_Data : out    Shared_Data_Access)
+      Pkg_Data : out    Shared_Data_Access;
+      Error    : in out Error_Type)
    is
+      pragma Unreferenced (Error);
       Result : DFS_Data_Access;
 
    begin
@@ -145,8 +148,10 @@ package body System.Garlic.Storages.Dfs is
    procedure Create_Storage
      (Master   : in out DFS_Data_Type;
       Location : in     String;
-      Storage  : out    Shared_Data_Access)
+      Storage  : out    Shared_Data_Access;
+      Error    : in out Error_Type)
    is
+      pragma Unreferenced (Error);
       pragma Unreferenced (Master);
 
       Result   : DFS_Data_Access;
@@ -176,8 +181,10 @@ package body System.Garlic.Storages.Dfs is
    procedure Create_Variable
      (Pkg_Data : in out DFS_Data_Type;
       Var_Name : in     String;
-      Var_Data : out    Shared_Data_Access)
+      Var_Data : out    Shared_Data_Access;
+      Error    : in out Error_Type)
    is
+      pragma Unreferenced (Error);
       Var : DFS_Data_Access := new DFS_Data_Type;
 
    begin

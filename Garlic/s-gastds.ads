@@ -37,6 +37,7 @@ with Ada.Streams;
 
 with GNAT.Strings;
 
+with System.Garlic.Exceptions;
 with System.Garlic.Streams;
 with System.Garlic.Soft_Links;
 with System.Garlic.Types;
@@ -50,17 +51,20 @@ package System.Garlic.Storages.Dsm is
    procedure Create_Storage
      (Master   : in out DSM_Data_Type;
       Location : in     String;
-      Storage  : out    Shared_Data_Access);
+      Storage  : out    Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type);
 
    procedure Create_Package
      (Storage  : in out DSM_Data_Type;
       Pkg_Name : in     String;
-      Pkg_Data : out    Shared_Data_Access);
+      Pkg_Data : out    Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type);
 
    procedure Create_Variable
      (Pkg_Data : in out DSM_Data_Type;
       Var_Name : in     String;
-      Var_Data : out    Shared_Data_Access);
+      Var_Data : out    Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type);
 
    procedure Initialize;
 

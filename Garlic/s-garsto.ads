@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+with System.Garlic.Exceptions;
 with System.Garlic.Types;
 
 package System.Garlic.Storages is
@@ -52,7 +53,8 @@ package System.Garlic.Storages is
    procedure Create_Storage
      (Master   : in out Shared_Data_Type;
       Location : in     String;
-      Storage  : out    Shared_Data_Access) is abstract;
+      Storage  : out    Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type) is abstract;
    --  Provide the Master factory with a location and return another
    --  Storage factory initialized with the data from the location
    --  location. This factory is supposed to be used into the
@@ -61,7 +63,8 @@ package System.Garlic.Storages is
    procedure Create_Package
      (Storage  : in out Shared_Data_Type;
       Pkg_Name : in     String;
-      Pkg_Data : out    Shared_Data_Access) is abstract;
+      Pkg_Data : out    Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type) is abstract;
    --  Return a Pkg_Data factory which is supposed to be used in the
    --  Create_Variable routine. This intermediate layer between
    --  Create_Storage and Create_Variable is used to configure a
@@ -70,7 +73,8 @@ package System.Garlic.Storages is
    procedure Create_Variable
      (Pkg_Data : in out Shared_Data_Type;
       Var_Name : in     String;
-      Var_Data : out    Shared_Data_Access) is abstract;
+      Var_Data : out    Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type) is abstract;
    --  Return a stream to use when any read or write operation is
    --  performed.
 
@@ -105,36 +109,41 @@ package System.Garlic.Storages is
 
    --  General services
 
-   function  Lookup_Variable
-     (Var_Name : in String)
-     return Shared_Data_Access;
+   procedure Lookup_Variable
+     (Var_Name : String;
+      Var_Data : out Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type);
 
-   function  Lookup_Package
-     (Pkg_Name : in String)
-     return Shared_Data_Access;
+   procedure Lookup_Package
+     (Pkg_Name : String;
+      Pkg_Data : out Shared_Data_Access;
+      Error    : in out Exceptions.Error_Type);
 
-   function  Lookup_Storage
-     (Storage_Name : in String)
-     return Shared_Data_Access;
+   procedure Lookup_Storage
+     (Storage_Name : String;
+      Storage_Data : out Shared_Data_Access;
+      Error        : in out Exceptions.Error_Type);
 
    procedure Register_Storage
-     (Storage_Name : in String;
-      Storage_Data : in Shared_Data_Access);
+     (Storage_Name : String;
+      Storage_Data : Shared_Data_Access);
    --  Register a factory for a storage. This factory is used to
    --  produce another factory each time a shared passive package is
    --  registered. Multiple registrations are ignored. Call it at
    --  elaboration time.
 
    procedure Register_Package
-     (Pkg_Name  : in String;
-      Partition : in Types.Partition_ID);
+     (Pkg_Name  : String;
+      Partition : Types.Partition_ID;
+      Error     : in out Exceptions.Error_Type);
    --  Register a shared passive package on a partition and create a
    --  factory to produce shared variables later on. Multiple
    --  registrations are ignored. Call it at elaboration time.
 
    procedure Register_Partition
-     (Partition : in Types.Partition_ID;
-      Location  : in String);
+     (Partition : Types.Partition_ID;
+      Location  : String;
+      Error     : in out Exceptions.Error_Type);
    --  Register a partition and its storage location (support and
    --  data). If the partition has already been registered, ignored
    --  this request. If not, create the factory to produce shared

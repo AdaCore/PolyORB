@@ -196,13 +196,13 @@ package body System.Garlic.Storages.Dsm is
    --------------------
 
    procedure Create_Package
-     (Storage  : in  out DSM_Data_Type;
-      Pkg_Name : in      String;
-      Pkg_Data : out     Shared_Data_Access)
+     (Storage  : in out DSM_Data_Type;
+      Pkg_Name : in     String;
+      Pkg_Data : out    Shared_Data_Access;
+      Error    : in out Error_Type)
    is
       pragma Unreferenced (Storage);
 
-      Error  : aliased Error_Type;
       Active : Boolean;
       Pkg    : DSM_Data_Access;
 
@@ -214,19 +214,23 @@ package body System.Garlic.Storages.Dsm is
 
       Get_Partition (Get_Unit_Id (Pkg_Name), Pkg.Owner, Error);
       if Found (Error) then
-         Raise_Communication_Error (Content (Error'Access));
+         Shutdown (Pkg.all);
+         return;
       end if;
 
       Get_Is_Active_Partition (Pkg.Owner, Active, Error);
       if Found (Error) then
-         Raise_Communication_Error (Content (Error'Access));
+         Shutdown (Pkg.all);
+         return;
 
       --  As this support runs a DSM algorithm, a variable can be
       --  configured on a passive partition.
 
       elsif not Active then
-         Raise_Communication_Error
-           ("no dsm storage support allowed on a passive partition");
+         Shutdown (Pkg.all);
+         Throw (Error,
+                "no dsm storage support allowed on a passive partition");
+         return;
       end if;
 
       --  If the variable is configured on this partition, it owns the
@@ -252,9 +256,11 @@ package body System.Garlic.Storages.Dsm is
    procedure Create_Storage
      (Master   : in out DSM_Data_Type;
       Location : in     String;
-      Storage  : out    Shared_Data_Access)
+      Storage  : out    Shared_Data_Access;
+      Error    : in out Error_Type)
    is
       pragma Unreferenced (Master);
+      pragma Unreferenced (Error);
 
       Result   : DSM_Data_Access;
 
@@ -276,8 +282,10 @@ package body System.Garlic.Storages.Dsm is
    procedure Create_Variable
      (Pkg_Data : in out DSM_Data_Type;
       Var_Name : in     String;
-      Var_Data : out    Shared_Data_Access)
+      Var_Data : out    Shared_Data_Access;
+      Error    : in out Error_Type)
    is
+      pragma Unreferenced (Error);
       Var : DSM_Data_Access;
 
    begin
@@ -779,7 +787,8 @@ package body System.Garlic.Storages.Dsm is
                   exit;
                end if;
 
-               Var_Data := DSM_Data_Access (Lookup_Variable (Name.all));
+               Lookup_Variable
+                 (Name.all, Shared_Data_Access (Var_Data), Error);
 
                --  Can we handle this request ?
 
