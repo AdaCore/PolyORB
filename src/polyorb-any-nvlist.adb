@@ -33,7 +33,6 @@
 --  $Id$
 
 with Ada.Strings.Unbounded;
-with Ada.Tags;
 
 with PolyORB.Log;
 
@@ -57,8 +56,10 @@ package body PolyORB.Any.NVList is
    is
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
-      pragma Debug (O ("Add_Item (4 params) : Item type is "
-                       & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
+      --  pragma Debug (O ("Add_Item (4 params) : Item type is "
+      --    & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
+      --  Item may be an empty any, in which case Get_Value (Item) is
+      --  a null pointer.
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
                        & Positive'Image (Get_Counter (Item))));
 

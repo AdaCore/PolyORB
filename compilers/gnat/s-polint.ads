@@ -32,6 +32,11 @@ package System.PolyORB_Interface is
 
    subtype Object_Ref is PolyORB.References.Ref;
 
+   function Get_Empty_Any
+     (Tc : PolyORB.Any.TypeCode.Object)
+      return PolyORB.Any.Any
+     renames PolyORB.Any.Get_Empty_Any;
+
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
      renames PolyORB.Any.NVList.Create;
@@ -60,9 +65,14 @@ package System.PolyORB_Interface is
      ) renames PolyORB.Requests.Create_Request;
 
    procedure Request_Invoke
-     (R : PolyORB.Requests.Request_Access;
-     Invoke_Flags : PolyORB.Any.Flags := 0)
+     (R            : PolyORB.Requests.Request_Access;
+      Invoke_Flags : PolyORB.Any.Flags               := 0)
      renames PolyORB.Requests.Invoke;
+
+   procedure Request_Arguments
+     (R    :        PolyORB.Requests.Request_Access;
+      Args : in out PolyORB.Any.NVList.Ref)
+     renames PolyORB.Requests.Arguments;
 
 --       function FA_AD (Item : PolyORB.Any.Any) return X;
 --       function FA_AS (Item : PolyORB.Any.Any) return X;

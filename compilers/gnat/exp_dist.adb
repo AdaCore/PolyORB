@@ -2434,6 +2434,8 @@ package body Exp_Dist is
                                       Defining_Identifier (
                                         Current_Parameter), Loc);
 
+               Expr : Node_Id;
+
             begin
 --                if In_Present (Current_Parameter)
 --                  or else not Out_Present (Current_Parameter)
@@ -2454,6 +2456,22 @@ package body Exp_Dist is
 --                           Defining_Identifier (Current_Parameter), Loc))));
 --                end if;
 
+               if In_Present (Current_Parameter)
+                 or else not Out_Present (Current_Parameter)
+                 or else not Constrained
+               then
+                  --  The parameter has an input value, or is
+                  --  constrained at runtime by an input value.
+
+                  Expr := Build_To_Any_Call (Actual_Parameter);
+               else
+                  Expr := Make_Function_Call (Loc,
+                    Name =>
+                      New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
+                    Parameter_Associations => New_List (
+                      Build_TypeCode_Call (Loc, Etyp)));
+               end if;
+
                Append_To (Decls,
                  Make_Object_Declaration (Loc,
                    Defining_Identifier =>
@@ -2462,7 +2480,7 @@ package body Exp_Dist is
                    Object_Definition   =>
                      New_Occurrence_Of (RTE (RE_Any), Loc),
                    Expression          =>
-                     Build_To_Any_Call (Actual_Parameter)));
+                     Expr));
 
                Append_To (Statements,
                  Add_Parameter_To_NVList (Loc,
@@ -3181,17 +3199,6 @@ package body Exp_Dist is
             Expr        : Node_Id := Empty;
 
          begin
-            Any := Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
-            Append_To (Outer_Decls,
-              Make_Object_Declaration (Loc,
-                Defining_Identifier =>
-                  Any,
-                Object_Definition   =>
-                  New_Occurrence_Of (RTE (RE_Any), Loc)));
-
-            Object := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
-            Set_Ekind (Object, E_Variable);
-
             if
               Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type)
             then
@@ -3204,6 +3211,23 @@ package body Exp_Dist is
                Etyp := Etype (Parameter_Type (Current_Parameter));
             end if;
             --  XXX To be fixed for PolyORB
+
+            Any := Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+            Append_To (Outer_Decls,
+              Make_Object_Declaration (Loc,
+                Defining_Identifier =>
+                  Any,
+                Object_Definition   =>
+                  New_Occurrence_Of (RTE (RE_Any), Loc),
+                Expression =>
+                  Make_Function_Call (Loc,
+                    Name =>
+                      New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
+                    Parameter_Associations => New_List (
+                      Build_TypeCode_Call (Loc, Etyp)))));
+
+            Object := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+            Set_Ekind (Object, E_Variable);
 
             Constrained :=
               Is_Constrained (Etyp) or else Is_Elementary_Type (Etyp);
@@ -3414,7 +3438,13 @@ package body Exp_Dist is
          Next (Current_Parameter);
       end loop;
 
-      --  Append the formal statements list at the end of regular statements
+      Append_To (Outer_Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Request_Arguments), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Request_Parameter, Loc),
+            New_Occurrence_Of (Arguments, Loc))));
 
       Append_List_To (Statements, Extra_Formal_Statements);
 

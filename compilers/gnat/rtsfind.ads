@@ -1032,12 +1032,14 @@ package Rtsfind is
      RE_Mode_Inout,                      -- System.PolyORB_Interface
      RE_NamedValue,                      -- System.PolyORB_Interface
      RE_Object_Ref,                      -- System.PolyORB_Interface
+     RE_Get_Empty_Any,                   -- System.PolyORB_Interface
      RE_NVList_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Create,                   -- System.PolyORB_Interface
      RE_NVList_Add_Item,                 -- System.PolyORB_Interface
      RE_Request_Access,                  -- System.PolyORB_Interface
      RE_Request_Create,                  -- System.PolyORB_Interface
      RE_Request_Invoke,                  -- System.PolyORB_Interface
+     RE_Request_Arguments,               -- System.PolyORB_Interface
      RE_Nil_Exc_List,                    -- System.PolyORB_Interface
      RE_Servant,                         -- System.PolyORB_Interface
      RE_Message,                         -- System.PolyORB_Interface
@@ -2033,12 +2035,14 @@ package Rtsfind is
      RE_Mode_Inout                       => System_PolyORB_Interface,
      RE_NamedValue                       => System_PolyORB_Interface,
      RE_Object_Ref                       => System_PolyORB_Interface,
+     RE_Get_Empty_Any                    => System_PolyORB_Interface,
      RE_NVList_Ref                       => System_PolyORB_Interface,
      RE_NVList_Create                    => System_PolyORB_Interface,
      RE_NVList_Add_Item                  => System_PolyORB_Interface,
      RE_Request_Access                   => System_PolyORB_Interface,
      RE_Request_Create                   => System_PolyORB_Interface,
      RE_Request_Invoke                   => System_PolyORB_Interface,
+     RE_Request_Arguments                => System_PolyORB_Interface,
      RE_Nil_Exc_List                     => System_PolyORB_Interface,
      RE_Servant                          => System_PolyORB_Interface,
      RE_Message                          => System_PolyORB_Interface,

@@ -3,8 +3,8 @@ with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
-
 with PolyORB.References;
+with PolyORB.References.IOR;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
@@ -16,6 +16,7 @@ with PolyORB.Utils.Strings.Lists;
 
 with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Config.Minimum;
+with PolyORB.POA_Manager;
 
 package body System.PolyORB_Interface is
 
@@ -136,6 +137,7 @@ package body System.PolyORB_Interface is
    is
       use PolyORB;
       use type PolyORB.POA.Obj_Adapter_Access;
+
       use Receiving_Stub_Lists;
 
       It : Iterator;
@@ -153,6 +155,10 @@ package body System.PolyORB_Interface is
       ORB.Set_Object_Adapter
         (Setup.The_ORB, Obj_Adapters.Obj_Adapter_Access (Root_POA_Object));
       --  Link object adapter with ORB.
+
+      POA_Manager.Activate
+        (POA_Manager.POAManager_Access
+           (POA_Manager.Entity_Of (Root_POA_Object.POA_Manager)));
 
       pragma Debug (O ("Initializing DSA library units"));
       It := First (All_Receiving_Stubs);
@@ -176,6 +182,10 @@ package body System.PolyORB_Interface is
                Ref);
             pragma Debug
               (O ("Done, ref is: " & PolyORB.References.Image (Ref)));
+            pragma Debug
+              (O ("Done, ref is: "
+                    & PolyORB.Types.To_Standard_String
+                    (PolyORB.References.IOR.Object_To_String (Ref))));
             --  XXX register ref with naming service so it
             --  can be located by other partitions.
 

@@ -48,7 +48,7 @@ pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
 
 procedure DynClient is
    Sent_Msg : CORBA.String := To_CORBA_String ("Hello Dynamic World");
-   Operation_Name : CORBA.Identifier := To_CORBA_String ("echoString");
+   Operation_Name : CORBA.Identifier := To_CORBA_String ("echostring");
    Arg_Name : CORBA.Identifier := To_CORBA_String ("Mesg");
    myecho : CORBA.Object.Ref;
    Request : CORBA.Request.Object;
