@@ -53,9 +53,8 @@ Features :
   AdaBroker/Examples provides several examples of the available features.
 
 - This release has been successfully tested on Solaris. It has been
-  reported to work on Linux (RedHat and Debian).
-
-- Ada Tasking has been tested only on Solaris.
+  reported to work on Linux (RedHat and Debian) with a home-built
+  Ada and C++ compiler based on EGCS 1.1.1 and GNAT 3.11p.
 
 - If you need to debug AdaBroker, you can create a file adabroker.opt in
   your current directory. This file should contain lines with package
@@ -76,7 +75,8 @@ files in the directory AdaBroker.orig, and use the following command:
   diff --recursive --context AdaBroker.orig AdaBroker > patch_file
 
 and send us the patch_file via E-mail at the address 
-adabroker-bugs@adabroker.eu.org
+
+          adabroker-bugs@adabroker.eu.org
 
 If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
