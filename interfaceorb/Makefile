@@ -52,7 +52,7 @@ omniropeandkey.o omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o \
 omniobject.o giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o \
 Ada_netBufferedStream.o netbufferedstream.o corba-object.o corba-boa.o \
 membufferedstream.o iop.o proxyObjectFactory_C2Ada.o omni_C2Ada.o \
-Ada_exceptions.o exceptions.o corba-exceptions.o
+Ada_exceptions.o exceptions.o corba-exceptions.o \
 omni.o 
 
 
@@ -147,7 +147,7 @@ corba-exceptions.o : corba-exceptions.ads corba-exceptions.adb
 # compilation of files that do not depend on C++
 ################################################
 adaonly: corba.ali corba-object.ali giop_s.ali giop.ali omni.ali \
-netbufferedstream.ali corba-command_line.ali
+netbufferedstream.ali corba-command_line.ali corba-dynamic_type.ali
 
 .SUFFIXES: .adb .ali
 
@@ -167,6 +167,8 @@ omni.ali: omni.ads omni.adb
 netbufferedstream.ali: netbufferedstream.ads netbufferedstream.adb
 
 membufferedstream.ali: membufferedstream.ads membufferedstream.adb
+
+corba-dynamic_type.ali: corba.ali corba-object.ali
 
 ##############################################################
 clean :
