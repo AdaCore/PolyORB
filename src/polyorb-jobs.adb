@@ -57,29 +57,37 @@ package body PolyORB.Jobs is
    is
       use Job_Queues;
 
-      It     : Iterator := First (Q.Contents);
       Result : Job_Access;
    begin
       if Is_Empty (Q) then
          return null;
       end if;
 
+      --  If no selector is provided, extract the first element
+
       if Selector = null then
          Extract_First (Q.Contents, Result);
          return Result;
       end if;
 
-      while not Last (It) loop
-         if Selector (Job_Access (Value (It).all)) then
-            Result := Job_Access (Value (It).all);
-            Remove (Q.Contents, It);
-            return Result;
-         end if;
+      --  else return the first selected element
 
-         Next (It);
-      end loop;
+      declare
+         It     : Iterator := First (Q.Contents);
 
-      return null;
+      begin
+         while not Last (It) loop
+            if Selector (Job_Access (Value (It).all)) then
+               Result := Job_Access (Value (It).all);
+               Remove (Q.Contents, It);
+               return Result;
+            end if;
+
+            Next (It);
+         end loop;
+
+         return null;
+      end;
    end Fetch_Job;
 
    ----------
