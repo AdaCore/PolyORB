@@ -1,3 +1,4 @@
 polyorb-protected_objects.adb
-polyorb-full_tasking-threads.adb
-polyorb-full_tasking-monitors.adb
+polyorb-tasking-profiles-full_tasking-threads.adb
+polyorb-tasking-profiles-full_tasking-mutexes.adb
+polyorb-tasking-profiles-full_tasking-condition_variables.adb

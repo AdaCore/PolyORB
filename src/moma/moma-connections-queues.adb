@@ -38,7 +38,7 @@ package body MOMA.Connections.Queues is
    --  Create_Consumer Function --
    -------------------------------
 
-   function Create_Consumer (Queue : Destinations.Queues.Queue;
+   function Create_Consumer (Queue : Destinations.Queue;
                              Message_Selector : String)
                             return Message_Consumers.Queues.Queue is
    begin

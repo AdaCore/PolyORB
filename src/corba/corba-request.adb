@@ -43,6 +43,10 @@ with CORBA.Object;
 
 package body CORBA.Request is
 
+   --------------------
+   -- Create_Request --
+   --------------------
+
    procedure Create_Request
      (Self      : in     CORBA.AbstractBase.Ref;
       Ctx       : in     CORBA.Context.Ref;
@@ -100,6 +104,10 @@ package body CORBA.Request is
          Req_Flags => PolyORB.Requests.Flags (Req_Flags));
    end Create_Request;
 
+   ------------
+   -- Invoke --
+   ------------
+
    procedure Invoke
      (Self         : in out Object;
       Invoke_Flags : in     Flags  := 0)
@@ -116,10 +124,18 @@ package body CORBA.Request is
       end if;
    end Invoke;
 
+   ------------
+   -- Delete --
+   ------------
+
    procedure Delete (Self : in out Object) is
    begin
       PolyORB.Requests.Destroy_Request (Self.The_Request);
    end Delete;
+
+   ------------------------
+   -- To_PolyORB_Request --
+   ------------------------
 
    function To_PolyORB_Request
      (Request : Object)
@@ -127,6 +143,10 @@ package body CORBA.Request is
    begin
       return Request.The_Request;
    end To_PolyORB_Request;
+
+   --------------
+   -- Finalize --
+   --------------
 
    procedure Finalize (X : in out Object) is
    begin

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#23 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#24 $
 
 with Ada.Exceptions;
 
@@ -47,7 +47,7 @@ with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Servants;
 
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 
 --  with PortableServer.ServantManager.Impl;
 --  with PortableServer.ServantActivator.Impl;
@@ -80,7 +80,7 @@ package body PortableServer.POA is
       use Ada.Exceptions;
    begin
       if Exception_Identity (From) /= AdapterAlreadyExists'Identity then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
       To := AdapterAlreadyExists_Members'
         (CORBA.IDL_Exception_Members with null record);
@@ -92,7 +92,7 @@ package body PortableServer.POA is
       use Ada.Exceptions;
    begin
       if Exception_Identity (From) /= AdapterNonExistent'Identity then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
       To := AdapterNonExistent_Members'
         (CORBA.IDL_Exception_Members with null record);
@@ -102,7 +102,7 @@ package body PortableServer.POA is
    begin
       if CORBA.Object.Entity_Of (Self).all
         not in PolyORB.POA.Obj_Adapter'Class then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
       return Create_Ref (CORBA.Object.Entity_Of (Self));
    end To_Ref;
@@ -122,7 +122,7 @@ package body PortableServer.POA is
 
    begin
       if Res = null or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
 
       declare
@@ -132,7 +132,7 @@ package body PortableServer.POA is
            := PolyORB.POA.Obj_Adapter_Access (Res);
       begin
          if Is_Nil (The_POA.POA_Manager) then
-            PolyORB.CORBA_P.Exceptions.Raise_Object_Not_Exist;
+            PolyORB.Exceptions.Raise_Object_Not_Exist;
          end if;
 
          return The_POA;
@@ -218,7 +218,7 @@ package body PortableServer.POA is
 --          (POA.Servant_Policy = NON_RETAIN
 --           and then Servant_Manager.all not in PSSL.Impl.Object'Class))
 --       then
---          PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+--          PolyORB.Exceptions.Raise_Bad_Param;
 --       end if;
 
 --       POA.Servant_Manager := Imgr;
@@ -290,7 +290,7 @@ package body PortableServer.POA is
          (Ap = IMPLICIT_ACTIVATION
           and then (Ip /= SYSTEM_ID or else Sp /= RETAIN))
       then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
 
 --       begin

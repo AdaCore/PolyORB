@@ -1,4 +1,4 @@
-with MOMA.Destinations.Topics;
+with MOMA.Destinations;
 with MOMA.Messages;
 with MOMA.Types;
 
@@ -6,7 +6,7 @@ package MOMA.Message_Producers.Topics is
 
    type Topic is new Message_Producer with null record;
 
-   function Get_Topic return MOMA.Destinations.Topics.Topic;
+   function Get_Topic return MOMA.Destinations.Destination;
 
    procedure Publish (Message : MOMA.Messages.Message'Class);
 

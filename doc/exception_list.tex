@@ -1,0 +1,62 @@
+\documentclass[a4paper,10pt]{article}
+
+\title{System Exceptions}
+\author{}
+
+\usepackage{array}
+
+\begin{document}
+\maketitle
+
+List of all CORBA system exceptions (not POA related) in CORBA 2.6
+specifications, chap 4.\\
+
+\begin{center}
+\begin {tabular}{|l|l|c|c|c|}
+\hline
+\textbf{Exception Name}&\textbf{Implemented}&\textbf{Used}\\
+\hline
+\hline
+UNKNOWN.                   & Yes. & Yes.(1)\\
+BAD\_PARAM.                & Yes. & Yes.   \\
+NO\_MEMORY.                & No.  &        \\
+IMP\_LIMIT.                & Yes. & Yes (1)\\
+COMM\_FAILURE.             & Yes. & No.    \\
+INV\_OBJREF.               & Yes. & Yes.(idlac)    \\
+NO\_PERMISSION.            & No.  &        \\
+INTERNAL.                  & Yes. & No.    \\
+MARSHAL.                   & Yes. & No.    \\
+INITIALIZE. .              & No.  &        \\
+NO\_IMPLEMENT.             & Yes. & No.    \\
+BAD\_TYPECODE.             & Yes. & Yes.(idlac)    \\
+BAD\_OPERATION.            & Yes. & Yes.   \\
+NO\_RESOURCES.             & No.  &        \\
+NO\_RESPONSE.              & No.  &        \\
+PERSIST\_STORE.            & No.  &        \\
+BAD\_INV\_ORDER.           & Yes. & No.    \\
+TRANSIENT.                 & Yes. & No.    \\
+FREE\_MEM.                 & No.  &        \\
+INV\_IDENT.                & No.  &        \\
+INV\_FLAG.                 & No.  &        \\
+INTF\_REPOS.               & No.  &        \\
+BAD\_CONTEXT.              & No.  &        \\
+OBJ\_ADAPTER.              & Yes. & No.    \\
+DATA\_CONVERSION.          & No.  &        \\
+OBJECT\_NOT\_EXIST.        & Yes. & Yes.   \\
+TRANSACTION\_REQUIRED.     & No.  &        \\
+TRANSACTION\_ROLLEDBACK.   & No.  &        \\
+INVALID\_TRANSACTION.      & No.  &        \\
+INV\_POLICY.               & No.  &        \\
+CODESET\_INCOMPATIBLE.     & No.  &        \\
+REBIND.                    & No.  &        \\
+TIMEOUT.                   & No.  &        \\
+TRANSACTION\_UNAVAILBLE.   & No.  &        \\
+TRANSACTION\_MODE.         & No.  &        \\
+BAD\_QOS.                  & No.  &        \\
+\hline
+\end{tabular}
+\end{center}
+\begin{enumerate}
+\item Should be widely used.
+\end{enumerate}
+\end{document}

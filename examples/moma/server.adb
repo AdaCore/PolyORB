@@ -34,8 +34,9 @@
 
 --  $Id$
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;
 
+with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
@@ -46,14 +47,16 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with MOMA.Configuration.Server;
 with MOMA.Types;
-with PolyORB.MOMA_P.Tools;
 
 procedure Server is
+
+   use Ada.Text_IO;
+
+   use PolyORB.Minimal_Servant.Tools;
 
    use MOMA.Configuration;
    use MOMA.Configuration.Server;
    use MOMA.Types;
-   use PolyORB.MOMA_P.Tools;
 
    MOMA_Ref : PolyORB.References.Ref;
    Pool_1   : Message_Pool;

@@ -36,7 +36,7 @@ with CORBA.Repository_Root.ValueDef;
 with CORBA.Repository_Root.StructDef;
 with CORBA.Repository_Root.UnionDef;
 
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
@@ -117,7 +117,7 @@ package body CORBA.Repository_Root.Contained.Impl is
            Dk_All        |
            Dk_Typedef    |
            Dk_None       =>
-            PolyORB.CORBA_P.Exceptions.Raise_Internal;
+            PolyORB.Exceptions.Raise_Internal;
             return Result;
          when
            Dk_Interface  =>
@@ -365,7 +365,7 @@ package body CORBA.Repository_Root.Contained.Impl is
            Dk_Fixed      |
            Dk_All        |
            Dk_None       =>
-            PolyORB.CORBA_P.Exceptions.Raise_Internal;
+            PolyORB.Exceptions.Raise_Internal;
             return null;
          when
            --  inherited types
@@ -443,7 +443,7 @@ package body CORBA.Repository_Root.Contained.Impl is
           To)) then
          Self.Id := To;
       else
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param(2);
+         PolyORB.Exceptions.Raise_Bad_Param(2);
       end if;
    end set_id;
 
@@ -475,7 +475,7 @@ package body CORBA.Repository_Root.Contained.Impl is
       then
          Self.Name := To;
       else
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param(1);
+         PolyORB.Exceptions.Raise_Bad_Param(1);
       end if;
    end set_name;
 
@@ -597,7 +597,7 @@ package body CORBA.Repository_Root.Contained.Impl is
            Dk_Fixed      |
            Dk_All        |
            Dk_None       =>
-            PolyORB.CORBA_P.Exceptions.Raise_Internal;
+            PolyORB.Exceptions.Raise_Internal;
             return Result;
          when
            --  child objects
@@ -679,7 +679,7 @@ package body CORBA.Repository_Root.Contained.Impl is
       end if;
       -- It must be in the same Repository
       if Rep1 /= Rep2 then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param (Minor => 4);
+         PolyORB.Exceptions.Raise_Bad_Param (Minor => 4);
          Not_Allowed := True;
       else
 
@@ -786,7 +786,7 @@ package body CORBA.Repository_Root.Contained.Impl is
    begin
       --  Should not begin with ::
       if Head (Search, 2) = "::" then
-         PolyORB.CORBA_P.Exceptions.Raise_Internal;
+         PolyORB.Exceptions.Raise_Internal;
       end if;
 
       --  Calculate the Index of "::"

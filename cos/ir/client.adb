@@ -44,8 +44,8 @@ with CORBA.Repository_Root.ModuleDef;
 
 with PolyORB.CORBA_P.Naming_Tools;
 
-with PolyORB.Setup.CORBA_Client;
-pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
+with PolyORB.Setup.Client;
+pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure Client is
 

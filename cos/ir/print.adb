@@ -48,9 +48,9 @@ use PolyORB.Types;
 with PolyORB.Any;
 use PolyORB.Any;
 
-with PolyORB.Setup.CORBA_Client;
-pragma Elaborate_All (PolyORB.Setup.CORBA_Client);
-pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
+with PolyORB.Setup.Client;
+pragma Elaborate_All (PolyORB.Setup.Client);
+pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure Print is
 

@@ -39,7 +39,7 @@ with PolyORB.Soft_Links;
 with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Watchers;
-with PolyORB.Tasking.Monitors;
+with PolyORB.Tasking.Advanced_Mutexes;
 
 package PolyORB.Tasking.Soft_Links is
 
@@ -131,11 +131,11 @@ private
    use PolyORB.Tasking.Threads;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Watchers;
-   use PolyORB.Tasking.Monitors;
+   use PolyORB.Tasking.Advanced_Mutexes;
 
    type Tasking_Mutex_Type is new PS.Mutex_Type
      with record
-        M : Monitor_Access;
+        M : Mutex_Access;
      end record;
 
    type Tasking_Watcher_Type is new PS.Watcher_Type

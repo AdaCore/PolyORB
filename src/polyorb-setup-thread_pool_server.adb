@@ -37,18 +37,18 @@
 
 with PolyORB.Initialization;
 with PolyORB.ORB.Thread_Pool;
-with PolyORB.Tasking.Full_Tasking_Profile;
+with PolyORB.Profiles.Full_Tasking;
 with PolyORB.Tasking.Soft_Links;
 with PolyORB.Setup.Server;
 
 pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
-pragma Elaborate_All (PolyORB.Tasking.Full_Tasking_Profile);
+pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
 pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 pragma Elaborate_All (PolyORB.Setup.Server);
 
 pragma Warnings (Off, PolyORB.Initialization);
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
-pragma Warnings (Off, PolyORB.Tasking.Full_Tasking_Profile);
+pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
 pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
 pragma Warnings (Off, PolyORB.Setup.Server);
 

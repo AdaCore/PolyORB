@@ -142,7 +142,7 @@ package body Ada_Be.Idl2Ada.Skel is
             if not Abst (Node) then
                --  No skel or impl packages are generated for
                --  abstract interfaces.
-               Add_With (CU, "PolyORB.CORBA_P.Exceptions");
+               Add_With (CU, "PolyORB.Exceptions");
                Add_With (CU, "PortableServer",
                          Use_It => False,
                          Elab_Control => Elaborate_All);
@@ -344,7 +344,7 @@ package body Ada_Be.Idl2Ada.Skel is
       NL (CU);
       PL (CU, "else");
       II (CU);
-      PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Bad_Operation;");
+      PL (CU, "PolyORB.Exceptions.Raise_Bad_Operation;");
       DI (CU);
       PL (CU, "end if;");
       DI (CU);
@@ -627,10 +627,11 @@ package body Ada_Be.Idl2Ada.Skel is
                end;
                PL (CU, ");");
 
+               DI (CU);
+               PL (CU, "exception");
+               II (CU);
+
                if Raise_Something then
-                  DI (CU);
-                  PL (CU, "exception");
-                  II (CU);
 
                   declare
                      It : Node_Iterator;
@@ -673,25 +674,19 @@ package body Ada_Be.Idl2Ada.Skel is
                   end;
                end if;
 
---                PL (CU, "when others =>");
---                II (CU);
---                PL (CU, "declare");
---                II (CU);
---                PL (CU, "use CORBA;");
---                PL (CU, "Members : constant Unknown_Members");
---                PL (CU, "  := (Minor => 1, Completed => Completed_Maybe);");
---                DI (CU);
---                PL (CU, "begin");
---                II (CU);
---                PL (CU, "CORBA.ServerRequest.Set_Exception");
---                PL (CU, "  (Request,");
---                II (CU);
---                PL (CU, "CORBA.To_Any (Members));");
---                DI (CU);
---                PL (CU, "return;");
---                DI (CU);
---                PL (CU, "end;");
---                DI (CU);
+               PL (CU, "when E : others =>");
+               II (CU);
+               PL (CU, "begin");
+               II (CU);
+               PL (CU, "CORBA.ServerRequest.Set_Exception");
+               PL (CU, "  (Request,");
+               II (CU);
+               PL (CU, "PolyORB.Exceptions.System_Exception_To_Any (E));");
+               DI (CU);
+               PL (CU, "return;");
+               DI (CU);
+               PL (CU, "end;");
+               DI (CU);
 
                DI (CU);
                PL (CU, "end;");

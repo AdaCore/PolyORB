@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#11 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#13 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
@@ -61,9 +61,15 @@ package body PolyORB.Smart_Pointers is
    procedure Finalize is
    begin
       Destroy (Counter_Lock);
+   exception
+      when E : others =>
+         pragma Debug (O ("Finalize: caught "
+                          & Ada.Exceptions.Exception_Information (E)));
+         raise;
    end Finalize;
 
-   procedure Free is new Ada.Unchecked_Deallocation (Entity'Class, Entity_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Non_Controlled_Entity'Class, Entity_Ptr);
 
    function Img (I : Integer) return String;
    function Img (I : Integer) return String
@@ -119,11 +125,20 @@ package body PolyORB.Smart_Pointers is
       if Obj.Counter = 0 then
          pragma Debug
            (O ("Dec_Usage: deallocating."));
+         if Obj.all not in Entity'Class then
+            --  This entity is not controlled: finalize it
+            --  ourselves.
+            Finalize (Obj.all);
+         end if;
          Free (Obj);
       end if;
 
       pragma Debug (O ("Leaving Dec_Usage"));
    end Dec_Usage;
+
+   ---------
+   -- Set --
+   ---------
 
    procedure Set
      (The_Ref : in out Ref;
@@ -137,6 +152,50 @@ package body PolyORB.Smart_Pointers is
 
       pragma Debug (O ("Set: leave."));
    end Set;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (X : in out Entity_Controller) is
+   begin
+      Initialize (X.E.all);
+   end Initialize;
+
+   procedure Initialize (X : in out Entity) is
+      pragma Warnings (Off);
+      pragma Unreferenced (X);
+      pragma Warnings (On);
+   begin
+      null;
+   end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (X : in out Entity_Controller) is
+   begin
+      Finalize (X.E.all);
+   exception
+      when E : others =>
+         pragma Debug (O ("Finalize: caught "
+                          & Ada.Exceptions.Exception_Information (E)));
+         raise;
+   end Finalize;
+
+   procedure Finalize (X : in out Non_Controlled_Entity) is
+      pragma Warnings (Off);
+      pragma Unreferenced (X);
+      pragma Warnings (On);
+   begin
+      null;
+   exception
+      when E : others =>
+         pragma Debug (O ("Finalize: caught "
+                          & Ada.Exceptions.Exception_Information (E)));
+         raise;
+   end Finalize;
 
    ----------------
    -- Initialize --

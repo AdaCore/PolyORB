@@ -30,9 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#4 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#5 $
 
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 with PolyORB.POA_Manager;
 with PolyORB.Smart_Pointers;
 
@@ -47,7 +47,7 @@ package body PortableServer.POAManager is
       use Ada.Exceptions;
    begin
       if Exception_Identity (From) /= AdapterInactive'Identity then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
       To := AdapterInactive_Members'
         (CORBA.IDL_Exception_Members with null record);
@@ -68,7 +68,7 @@ package body PortableServer.POAManager is
    begin
       if Is_Nil (Self)
         or else Res.all not in PolyORB.POA_Manager.POAManager'Class then
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
 
       if Get_State (POAManager_Access (Res).all) = INACTIVE then

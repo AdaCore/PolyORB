@@ -8,13 +8,15 @@ Items still requiring attention
 
 * Fix memory leaks (to be checked with Debug_Pools disabled!)
 
-* Factor out common code between different versions of
-  PolyORB.Binding_Data.*. Possibly create a notion of
+* Extend Transport framework with a new abstract class
   Transport_Access_Point_Name with a bind() primitive operation
-  that returns a Transport_Endpoint. Integrate that as a
-  Binding_Object_Fragment_Factory (extension of the notion
-  of Filter_Factory to fragments of binding objects that are
-  not filter).
+  that returns a Transport_Endpoint.
+
+* Factor out common code between different versions of
+  PolyORB.Binding_Data.*. Incorporate Transport_Access_Point_Name
+  usage as a Binding_Object_Fragment_Factory (extension of the
+  notion of Filter_Factory to fragments of binding objects that
+  are not filter). Think Netgraph.
 
 * Exception support: separate personality-specific (CORBA)
   code from generic code. Check proper implementation of

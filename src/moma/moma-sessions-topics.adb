@@ -5,7 +5,7 @@ package body MOMA.Sessions.Topics is
    -------------------------------
 
    function Create_Durable_Subscriber
-     (Topic : MOMA.Destinations.Topics.Topic;
+     (Topic : MOMA.Destinations.Destination;
       Name : String)
       return MOMA.Message_Consumers.Topics.Topic
    is
@@ -20,7 +20,7 @@ package body MOMA.Sessions.Topics is
    -------------------------------
 
    function Create_Durable_Subscriber
-     (Topic : MOMA.Destinations.Topics.Topic;
+     (Topic : MOMA.Destinations.Destination;
       Name : String;
       Message_Selector : String;
       No_Local : Boolean)
@@ -39,7 +39,7 @@ package body MOMA.Sessions.Topics is
    ----------------------
 
    function Create_Publisher
-     (Topic : MOMA.Destinations.Topics.Topic)
+     (Topic : MOMA.Destinations.Destination)
       return MOMA.Message_Producers.Topics.Topic
    is
    begin
@@ -53,7 +53,7 @@ package body MOMA.Sessions.Topics is
    -----------------------
 
    function Create_Subscriber
-     (Topic : MOMA.Destinations.Topics.Topic;
+     (Topic : MOMA.Destinations.Destination;
       Name : String)
       return MOMA.Message_Producers.Topics.Topic
    is
@@ -68,7 +68,7 @@ package body MOMA.Sessions.Topics is
    -----------------------
 
    function Create_Subscriber
-     (Topic : MOMA.Destinations.Topics.Topic;
+     (Topic : MOMA.Destinations.Destination;
       Name : String;
       Message_Selector : String;
       No_Local : Boolean)

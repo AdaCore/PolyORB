@@ -10,7 +10,7 @@ with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.IRObject.Impl;
 
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
@@ -119,7 +119,7 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
       then
          Self.Value := To;
       else
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param (2);
+         PolyORB.Exceptions.Raise_Bad_Param (2);
       end if;
    end set_value;
 

@@ -2,6 +2,10 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
+corba_exe=server client print
+
+PROGS= @APPLI_EXES@ @SERVICE_EXES@
+
 COS_DIRS=../../idls/cos/naming
 COS_GNATMAKE_FLAGS=-I../../idls/cos/naming -I$(srcdir)/../naming
 
@@ -194,23 +198,10 @@ GEN= \
   corba-repository_root-wstringdef.ads \
   corba-repository_root.ads
 
-if ENABLE_IR
-PROGS=	server client print
-endif
-
 $(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
 	$(IDLAC) $(srcdir)/ir.idl
 	$(SH) $(srcdir)/typecode.sh $(SED) $(RM) $(GEN)
 
-CLEANFILES=	*.o *.ali
-DISTCLEANFILES=	client server print ${GEN}
+DISTCLEANFILES += ${GEN}
 
-server: server.adb ${IMPL} ${GEN} force
-	${GNATMAKE} $@ ${GNATMAKE_FLAGS}
-
-client: client.adb ${IMPL} ${GEN} force
-	${GNATMAKE} $@ ${GNATMAKE_FLAGS} 
-
-print: print.adb ${IMPL} ${GEN} force
-	${GNATMAKE} $@ ${GNATMAKE_FLAGS} 
 

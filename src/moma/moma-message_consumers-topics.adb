@@ -3,7 +3,7 @@ package body MOMA.Message_Consumers.Topics is
    -------------------------
    --  Get_Topic Function --
    -------------------------
-   function Get_Topic return MOMA.Destinations.Topics.Topic is
+   function Get_Topic return MOMA.Destinations.Destination is
    begin
       pragma Warnings (Off);
       return Get_Topic;

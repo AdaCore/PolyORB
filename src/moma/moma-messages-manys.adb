@@ -69,7 +69,8 @@ package body MOMA.Messages.MAnys is
       Result : MAny;
    begin
       Set_Type (Result, Any_M);
-      --  XXX should initialize other fields as well ???
+      Set_Default_Message_Header (Result);
+
       return Result;
    end Create_Any_Message;
 

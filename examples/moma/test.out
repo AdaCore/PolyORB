@@ -1,0 +1,13 @@
+Initilisation...............................................: PASSED
+Testing Any Message ........................................: FAILED
+Testing Byte/Boolean Message ...............................: PASSED
+Testing Byte/Byte Message ..................................: PASSED
+Testing Byte/Char Message ..................................: PASSED
+Testing Byte/Double Message ................................: PASSED
+Testing Byte/Float Message .................................: PASSED
+Testing Byte/Short Message .................................: PASSED
+Testing Byte/Long Message ..................................: PASSED
+Testing Byte/Unsigned_Long Message .........................: PASSED
+Testing Byte/Unsigned_Short Message ........................: PASSED
+Testing Map Message ........................................: FAILED
+Testing Text Message .......................................: PASSED

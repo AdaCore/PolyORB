@@ -1,43 +1,48 @@
-IDLAC = $(EXAMPLES_ROOT)/../compilers/idlac/idlac
-LINKER = $(EXAMPLES_ROOT)/../support/linker
+IDLAC = $(top_builddir)/compilers/idlac/idlac
+LINKER = $(top_builddir)/support/linker
+
+corba_lib=-I$(EXAMPLES_ROOT)/../src/corba/libpolyorb-corba.la
+giop_lib=-I$(EXAMPLES_ROOT)/../src/giop/libpolyorb-giop.la
+moma_lib=-I$(EXAMPLES_ROOT)/../src/moma/libpolyorb-moma.la
+soap_lib=-I$(EXAMPLES_ROOT)/../src/soap/libpolyorb-soap.la
+srp_lib=-I$(EXAMPLES_ROOT)/../src/srp/libpolyorb-srp.la
+
+POLYORB_LIBS = -I$(EXAMPLES_ROOT)/../src/libpolyorb.la @PROTO_LIBS@ @APPLI_LIBS@
+
+corba_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../src/corba -I$(EXAMPLES_ROOT)/../src/corba
+giop_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../src/giop -I$(EXAMPLES_ROOT)/../src/giop
+moma_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../src/moma -I$(EXAMPLES_ROOT)/../src/moma
+soap_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../src/soap -I$(EXAMPLES_ROOT)/../src/soap
+srp_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../src/srp -I$(EXAMPLES_ROOT)/../src/srp
+
+naming_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming -I$(EXAMPLES_ROOT)/../cos/naming \
+           -I$(EXAMPLES_ROOT)/../idls/cos/naming
+
+ir_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/ir -I$(EXAMPLES_ROOT)/../cos/ir
+
+POLYORB_INCS = -I$(srcdir) -I$(srcdir)/$(EXAMPLES_ROOT)/../src -I$(EXAMPLES_ROOT)/../src \
+               $(naming_inc) @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@
 
 GNATMAKE_FLAGS = \
-	-I$(srcdir) \
 	-I$(srcdir)/$(EXAMPLES_ROOT) \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/generic \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/../src \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/corba \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/moma \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/soap \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/srp \
-	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
+	-I$(srcdir)/$(EXAMPLES_ROOT)/common \
 	-I$(EXAMPLES_ROOT) \
-	-I$(EXAMPLES_ROOT)/generic \
-	-I$(EXAMPLES_ROOT)/../src \
-	-I$(EXAMPLES_ROOT)/../src/corba \
-	-I$(EXAMPLES_ROOT)/../src/moma \
-	-I$(EXAMPLES_ROOT)/../src/soap \
-	-I$(EXAMPLES_ROOT)/../src/srp \
-	-I$(EXAMPLES_ROOT)/../cos/naming \
-	-I$(EXAMPLES_ROOT)/../idls/cos/naming \
-	$(XMLADA_INCLUDE) \
+	-I$(EXAMPLES_ROOT)/common \
+	$(POLYORB_INCS) \
+	$(XMLADA_INCS) \
 	-m \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
 	$(POLYORB_LIBS) $(XMLADA_LIBS) 
 
-#	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
-#	-I$(EXAMPLES_ROOT)/../cos/naming \
-#	-I$(EXAMPLES_ROOT)/../idls/cos/naming
-
 # Due to a bug in Automake 1.4, this line must not be splitted.
 
 CLEANFILES = b~*.* *.o *.ali $(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb $(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb $(EXAMPLE).ads $(EXAMPLE).adb $(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb $(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb $(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb $(EXAMPLE)-delegate.ads $(EXAMPLE)-delegate.adb $(EXAMPLE)-ir_info.adb $(EXAMPLE)-ir_info.ads $(EXAMPLE)_idl_file-ir_info.adb $(EXAMPLE)_idl_file-ir_info.ads
 
-DISTCLEANFILES = client server $(EXTRA)
+DISTCLEANFILES = @APPLI_EXES@ @SERVICE_EXES@
 
-all-local: err client server $(EXTRA)
+all-local:  @APPLI_EXES@ @SERVICE_EXES@
 
 SUFFIXES = .idl .ads .adb
 
@@ -47,16 +52,12 @@ SUFFIXES = .idl .ads .adb
 .idl.adb:
 	$(IDLAC) $(IDLAC_FLAGS) $<
 
-client server $(EXTRA): force $(EXAMPLE).ads
-	$(GNATMAKE) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
+@APPLI_EXES@ @SERVICE_EXES@: force $(EXAMPLE).ads
+	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
 
-force: src $(COS)
+force: src
 
 src:
-	cd $(EXAMPLES_ROOT)/../src && $(MAKE)
-
-cos:
-	cd $(EXAMPLES_ROOT)/../cos/naming && $(MAKE)
-
-err:
-	$(ERR)
+	cd $(top_builddir)/compilers && $(MAKE)
+	cd $(top_builddir)/cos && $(MAKE)
+	cd $(top_builddir)/src && $(MAKE)

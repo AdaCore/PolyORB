@@ -75,11 +75,14 @@ procedure Client is
    use MOMA.Connection_Factories.Queues;
    use MOMA.Sessions.Queues;
    use MOMA.Connections;
+   use MOMA.Destinations;
    use MOMA.Message_Producers.Queues;
    use MOMA.Message_Consumers.Queues;
    use MOMA.Messages;
    use MOMA.Types;
+
    use PolyORB.Types;
+
    use Report;
 
    MOMA_Queue         : MOMA.Connections.Queues.Queue;
@@ -106,6 +109,7 @@ procedure Client is
 
       MAny_Message_Sent : MOMA.Messages.MAnys.MAny;
       MAny_Message_Rcvd : MOMA.Messages.MAnys.MAny;
+
    begin
       --  Create new Any Message
       MAny_Message_Sent := Create_Any_Message;

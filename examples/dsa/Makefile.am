@@ -3,29 +3,27 @@ EXAMPLE = dsa-dummy
 
 GNAT_SRC=$(srcdir)/../../compilers/gnat
 
-ERR = $(error PolyORB not configured to generate DSA applications !)
-
-if ENABLE_DSA
-   ERR=  
-endif
+corba_exe=
+dsa_exe=client server
+moma_exe=
 
 EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(GNAT_SRC) -gnatD
 server_FLAGS=	-Aserver.stubs
 client_FLAGS=	-Aclient.stubs
 
 s-polint.ali: $(GNAT_SRC)/s-polint.ads $(GNAT_SRC)/s-polint.adb
-	$(GNATMAKE) -a -gnatg -c $(GNAT_SRC)/s-polint.adb $(GNATMAKE_FLAGS) -cargs -o s-polint.o
+	$(GNATMAKE_FOR_TARGET) -a -gnatg -c $(GNAT_SRC)/s-polint.adb $(GNATMAKE_FLAGS) -cargs -o s-polint.o
 
 rt.ali rt.o: rt.ads s-polint.ali
-	$(GNATMAKE) -c $(srcdir)/rt.ads $(GNATMAKE_FLAGS)
-	
+	$(GNATMAKE_FOR_TARGET) -c $(srcdir)/rt.ads $(GNATMAKE_FLAGS)
+
 server.stubs/rci.ali: $(srcdir)/rci.ads $(srcdir)/rci.adb rt.ali s-polint.ali
 	@-mkdir server.stubs
-	$(GNATMAKE) -c $(srcdir)/rci.adb $(server_FLAGS) $(GNATMAKE_FLAGS) -cargs -gnatzr -o server.stubs/rci.o
+	$(GNATMAKE_FOR_TARGET) -c $(srcdir)/rci.adb $(server_FLAGS) $(GNATMAKE_FLAGS) -cargs -gnatzr -o server.stubs/rci.o
 
 client.stubs/rci.ali: $(srcdir)/rci.ads rt.ali s-polint.ali
 	@-mkdir client.stubs
-	$(GNATMAKE) -c $(srcdir)/rci.ads $(client_FLAGS) $(GNATMAKE_FLAGS) -cargs -gnatzc -o client.stubs/rci.o
+	$(GNATMAKE_FOR_TARGET) -c $(srcdir)/rci.ads $(client_FLAGS) $(GNATMAKE_FLAGS) -cargs -gnatzc -o client.stubs/rci.o
 
 clean: clean-stubs
 clean-stubs:

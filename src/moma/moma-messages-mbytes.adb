@@ -50,7 +50,8 @@ package body MOMA.Messages.MBytes is
       Result : MByte;
    begin
       Set_Type (Result, Byte_M);
-      --  XXX should initialize other fields as well ???
+      Set_Default_Message_Header (Result);
+
       return Result;
    end Create_Byte_Message;
 

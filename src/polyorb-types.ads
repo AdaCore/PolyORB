@@ -57,7 +57,6 @@ package PolyORB.Types is
    subtype Wchar              is Standard.Wide_Character;
    type    Octet              is new Interfaces.Unsigned_8;
    subtype Boolean            is Standard.Boolean;
-
    type    String         is
      new Ada.Strings.Unbounded.Unbounded_String;
    type    Wide_String    is
@@ -132,13 +131,15 @@ package PolyORB.Types is
      (Source : Wide_String)
      return Standard.Wide_String;
 
-   type Identifier is new PolyORB.Types.String;
+   type Identifier   is new PolyORB.Types.String;
    type RepositoryId is new PolyORB.Types.String;
-   type ScopedName is new PolyORB.Types.String;
+   type ScopedName   is new PolyORB.Types.String;
 
    ------------------------------------------
    -- Synchronisation of request execution --
    ------------------------------------------
+   --  XXX Do we really need this type ?
+   --  Should be already managed in PolyORB.Any ...
 
    --  This type is declared here because it must be visible
    --  in the specs of Requests and References.

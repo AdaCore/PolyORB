@@ -2,10 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . T A S K I N G . M U T E X E S               --
+--              P O L Y O R B - T A S K I N G - M U T E X E S               --
 --                                                                          --
 --                                 S p e c                                  --
-
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -31,104 +30,87 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides mutual exclusion objects (mutexes).
+--  Implementation of a POSIX-like mutexes
+
+--  A complete implementation of this package is provided for all
+--  tasking profiles.
 
 --  $Id$
-
-with PolyORB.Tasking.Monitors;
-with PolyORB.Tasking.Threads;
 
 package PolyORB.Tasking.Mutexes is
 
    pragma Preelaborate;
 
-   type Adv_Mutex_Type is limited private;
-   --  This is a classical mutual exclusion object except that when a
-   --  task try to Enter a mutex several times without leaving it
-   --  first, it is not blocked and can continue. Leave keeps track of
-   --  the number of times Enter has been successful, and must be called
-   --  the number of times that Enter has been called to free the lock.
+   -------------
+   -- Mutexes --
+   -------------
 
-   --  Example :
-   --
-   --  Enter (My_Mutex);
-   --  --  Enter the first critical section.
-   --
-   --  Enter (My_Mutex);
-   --  --  Enter the second critical section.
-   --
-   --  Do_Some_Stuff;
-   --
-   --  Leave (My_Mutex);
-   --  --  Leave the second critical section and keep the lock.
-   --
-   --  Enter (My_Mutex);
-   --  --  Reenter the second critical section.
-   --
-   --  Leave (My_Mutex);
-   --  --  Leave the second critical section.
-   --
-   --  Leave (My_Mutex);
-   --  --  Leave the first critical section and free the lock.
+   type Mutex_Type is abstract tagged limited private;
+   type Mutex_Access is access all Mutex_Type'Class;
+   --  Mutual exclusion locks (mutexes)  prevent  multiple  threads
+   --  from  simultaneously  executing  critical  sections  of code
+   --  which access shared data (that is, mutexes are used to seri-
+   --  alize  the  execution of threads).
 
-   type Adv_Mutex_Access is access all Adv_Mutex_Type;
+   procedure Enter (M : in out Mutex_Type)
+      is abstract;
+   --  A call to Enter locks the mutex object referenced by mp. If
+   --  the mutex is already locked, the calling thread blocks until the
+   --  mutex is freed; this will return with the mutex object
+   --  referenced by mp in the locked state with the calling thread as
+   --  its owner. If the current owner of a mutex tries to relock the
+   --  mutex, it will result in deadlock.
 
-   procedure Enter (M : in out Adv_Mutex_Type);
-   --  If the lock is free, or if the current task has it, get the
-   --  lock and continue, entering a new critical section; else, wait
-   --  until it is free.
+   procedure Leave (M : in out Mutex_Type)
+      is abstract;
+   --  Leave is called by the owner of the mutex object referenced by
+   --  mp to release it. The mutex must be locked and the calling
+   --  thread must be the one that last locked the mutex (the owner).
+   --  If there are threads blocked on the mutex object referenced by
+   --  mp when Leave is called, the mp is freed, and the scheduling
+   --  policy will determine which thread gets the mutex. If the
+   --  calling thread is not the owner of the lock, the behavior of the
+   --  program is undefined.
 
-   procedure Leave (M : in out Adv_Mutex_Type);
-   --  The current tasks exit of the current critical section. If it is
-   --  the first critical section opened by the task, free the lock.
+   ---------------------
+   -- Mutex_Factory --
+   ---------------------
 
-   procedure Create (M : in out Adv_Mutex_Type);
-   --  Create an advanced mutex.  The object must have been allocated
-   --  by the client of this package.
+   type Mutex_Factory_Type is abstract tagged limited null record;
+   --  This type is a factory for the mutex type.
+   --  A subclass of this factory exists for every tasking profile:
+   --  Full Tasking, Ravenscar and No Tasking.
+   --  This type provides functionalities for creating mutexes
+   --  corresponding with the chosen tasking profile.
 
-   procedure Destroy (M : in out Adv_Mutex_Type);
-   --  Destroy the advanced mutex.  The deallocation, if needed, after
-   --  "Destroy" and is the responsability of the client of this
-   --  package.
+   type Mutex_Factory_Access is access all Mutex_Factory_Type'Class;
+
+   function Create
+     (MF   : access Mutex_Factory_Type;
+      Name : String := "")
+     return Mutex_Access
+      is abstract;
+   --  Create a new mutex, or get a preallocated one.
+   --  Name will be used to get the configuration of this
+   --  mutex from the configuration module.
+
+   procedure Destroy
+     (MF : in out Mutex_Factory_Type;
+      M  : in out Mutex_Access)
+     is abstract;
+   --  Destroy M, or just release it if it was preallocated.
+
+   function Get_Mutex_Factory
+     return Mutex_Factory_Access;
+   pragma Inline (Get_Mutex_Factory);
+   --  Get the Mutex_Factory object registered in this package.
+
+   procedure Register_Mutex_Factory
+     (MF : Mutex_Factory_Access);
+   --  Register the factory corresponding to the chosen tasking profile.
 
 private
-   use PolyORB.Tasking.Monitors;
 
-   type Adv_Mutex_Condition_Type is new Condition_Type with record
-      Passing : Boolean := False;
-   end record;
-   --  Type of the Conditions used by the algorithm of Enter/Leave.
-   --  Simple boolean condition.
-
-   procedure Evaluate (C : in out Adv_Mutex_Condition_Type;
-                       B : out Boolean);
-   --  Return the value of the internal boolean.
-
-   type Adv_Mutex_Type is record
-      Empty   : Boolean;
-      pragma Atomic (Empty);
-      --  If no theres is no owner for this Mutex, True. else, False.
-
-      Current : Threads.Thread_Id_Access;
-      pragma Atomic (Current);
-      --  Identity of the thread owning the mutex.
-
-      Level     : Natural;
-      pragma Atomic (Level);
-      --  Number of time the Thread owning the Id enter the mutex
-      --  minus the number of calls to Leave.
-
-      M        : Monitors.Monitor_Access;
-      --  The monitors used for the synchronisation in the watcher.
-
-      Await_Count           : Integer := 0;
-      --  Number of tasks waiting on Enter.
-
-
-
-      Passing_Condition     : aliased Adv_Mutex_Condition_Type;
-      --  Conditions used by the algorithm
-
-   end record;
+   type Mutex_Type is abstract tagged limited null record;
 
 end PolyORB.Tasking.Mutexes;

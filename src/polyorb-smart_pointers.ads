@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.ads#6 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.ads#7 $
 
 with Ada.Finalization;
 
@@ -48,15 +48,24 @@ package PolyORB.Smart_Pointers is
    -- Entity --
    ------------
 
-   type Entity is abstract
-     new Ada.Finalization.Limited_Controlled
-     with private;
+   type Non_Controlled_Entity is abstract tagged limited private;
+   procedure Finalize (X : in out Non_Controlled_Entity);
    --  Entity is the base type of all objects that can be
    --  referenced. It contains a Counter, which is the number of
    --  references to this object, and is automatically destroyed when
-   --  the counter reaches 0.
+   --  the counter reaches 0. Before the entity is destroyed,
+   --  the Finalize operation is called. NOTE however that
+   --  Non_Controlled_Entity is *not* a controlled type: Finalize
+   --  is *only* called when an Entity is destroyed as a result
+   --  of its reference counter dropping to 0.
 
-   type Entity_Ptr is access all Entity'Class;
+   type Entity_Ptr is access all Non_Controlled_Entity'Class;
+
+   type Entity is abstract new Non_Controlled_Entity with private;
+   procedure Initialize (X : in out Entity);
+   --  An entity that is a controlled object. Contrary to
+   --  Non_Controlled_Entity, the Finalize operation is called
+   --  whenever the entity is finalized.
 
    ---------
    -- Ref --
@@ -99,11 +108,20 @@ package PolyORB.Smart_Pointers is
 
 private
 
-   type Entity is abstract
-     new Ada.Finalization.Limited_Controlled with
-      record
-         Counter : Integer := 0;
-      end record;
+   type Non_Controlled_Entity is abstract tagged limited record
+      Counter : Integer := 0;
+   end record;
+
+   type Entity_Controller (E : access Entity'Class)
+      is new Ada.Finalization.Limited_Controlled
+     with null record;
+
+   procedure Initialize (X : in out Entity_Controller);
+   procedure Finalize (X : in out Entity_Controller);
+
+   type Entity is abstract new Non_Controlled_Entity with record
+      Controller : Entity_Controller (Entity'Access);
+   end record;
 
    type Ref is new Ada.Finalization.Controlled with
       record

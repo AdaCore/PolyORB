@@ -2,18 +2,18 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
-if ENABLE_IR
-FORCE_IR=		force-ir
-IR_AB_NAMES=		ir_ab_names
-IR_GNATMAKE_FLAGS=	-I../ir -I$(srcdir)/../ir
-endif
-FORCE=	force $(FORCE_IR)
+corba_exe=ab_names test_naming test_naming_corba
+ir_exe=ir_ab_names
+ir_dir=../ir
 
-PROGS= ab_names test_naming $(IR_AB_NAMES)
+PROGS= po_names test_naming_generic @APPLI_EXES@ @SERVICE_EXES@
+
+FORCE=	force
+
 TOOLS=	polyorb-corba_p-naming_tools.adb
 EXTRA=	$(TOOLS:.adb=.ali)
 
-COS_DIRS=../../idls/cos/naming
+COS_DIRS=../../idls/cos/naming @SERVICE_DIRS@
 COS_GNATMAKE_FLAGS=-I../../idls/cos/naming
 
 COS_IMPL=\
@@ -27,6 +27,12 @@ IDL=$(srcdir)/File.idl
 GEN=\
 file-helper.adb \
 file-helper.ads \
+file-ir_info.adb \
+file-ir_info.ads \
+file_idl_file-helper.adb \
+file_idl_file-helper.ads \
+file_idl_file-ir_info.adb \
+file_idl_file-ir_info.ads \
 file-skel.adb \
 file-skel.ads \
 file-stream.adb \
@@ -45,15 +51,6 @@ $(GEN): stamp-gen
 stamp-gen: $(IDL) $(IDLAC)
 	$(IDLAC) $(IDL)
 	touch stamp-gen
-
-ab_names test_naming: $(FORCE) $(GEN)
-	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
-
-ir_ab_names: $(FORCE) $(GEN)
-	$(GNATMAKE) $@ $(IR_GNATMAKE_FLAGS) $(GNATMAKE_FLAGS)
-	
-force-ir:
-	cd ../ir && $(MAKE)
 
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin

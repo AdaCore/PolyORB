@@ -57,7 +57,7 @@ package body MOMA.Message_Consumers.Queues is
    -- Get_Queue Function --
    ------------------------
 
-   function Get_Queue return MOMA.Destinations.Queues.Queue is
+   function Get_Queue return MOMA.Destinations.Queue is
    begin
       pragma Warnings (Off);
       return Get_Queue;
