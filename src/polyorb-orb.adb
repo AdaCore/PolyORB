@@ -95,12 +95,13 @@ package body PolyORB.ORB is
      return Jobs.Job_Access
    is
       TRJ : Request_Job renames Request_Job (RJ.all);
-      NJ : constant Job_Access := new Request_Job;
+      NJ  : constant Job_Access := new Request_Job;
       TNJ : Request_Job renames Request_Job (NJ.all);
    begin
       TNJ.ORB       := TRJ.ORB;
       TNJ.Requestor := TRJ.Requestor;
       TNJ.Request   := TRJ.Request;
+
       return NJ;
    end Duplicate_Request_Job;
 
@@ -120,6 +121,10 @@ package body PolyORB.ORB is
    --  Delete AES from the set of asynchronous event sources
    --  monitored by ORB. AES is destroyed.
    --  The caller must not hold the ORB lock.
+
+   ---------
+   -- Run --
+   ---------
 
    procedure Run
      (AEH : access AES_Event_Handler) is
@@ -388,7 +393,7 @@ package body PolyORB.ORB is
       Exit_Condition :        Exit_Condition_T := (null, null);
       May_Poll       :        Boolean := False)
    is
-      use Task_Info;
+      use PolyORB.Task_Info;
 
       Task_Kind_For_Exit_Condition : constant array (Boolean)
         of Task_Kind := (True => Permanent, False => Transient);
@@ -430,6 +435,8 @@ package body PolyORB.ORB is
          end if;
       end Cleanup;
 
+      --  The ORB Main loop begins here
+
    begin
       Enter (ORB.ORB_Lock);
       Set_Id (This_Task);
@@ -464,6 +471,9 @@ package body PolyORB.ORB is
            and then not ORB.Polling
            and then Monitor_Lists.Length (ORB.Monitors) > 0
          then
+            --  This task will block on event sources, waiting for
+            --  incoming events.
+
             declare
                use Monitor_Lists;
 
@@ -505,14 +515,23 @@ package body PolyORB.ORB is
                         Events : AES_Array
                           := Check_Sources (Monitor, Timeout);
                      begin
+
+                        Enter (ORB.ORB_Lock);
+
                         pragma Debug
                           (O ("Run: task " & Image (Current_Task)
                               & " returned from Check_Sources."));
-                        Enter (ORB.ORB_Lock);
-                        Broadcast (ORB.Polling_Completed);
 
                         ORB.Polling := False;
                         ORB.Selector := null;
+
+                        if ORB.Source_Deleted then
+                           --  Another task is about to destroy an
+                           --  asynchronous event source, allow it to
+                           --  complete AES destruction.
+
+                           Broadcast (ORB.Polling_Completed);
+                        end if;
 
                         exit Main_Loop when Exit_Now;
 
@@ -911,6 +930,10 @@ package body PolyORB.ORB is
       Unregister_Source (AES);
 
       if ORB.Polling then
+         --  If one task currently running the ORB main loop is
+         --  blocked, on event sources we must force it to stop now so
+         --  that we can safely destroy the AES.
+
          ORB.Source_Deleted := True;
          pragma Assert (ORB.Selector /= null);
          Abort_Check_Sources (ORB.Selector.all);

@@ -70,34 +70,27 @@ package PolyORB.ORB is
    -- Abstract tasking policy type --
    ----------------------------------
 
-   --  A tasking policy is a set of associations between
-   --  certain events and the resources used to process them.
-   --  These associations take the form of subprograms
-   --  that take the event as input, create a job for
-   --  its processing, and either create a new task for
-   --  the execution of this job, or schedule it for execution
-   --  by a general-purpose ORB task.
+   --  A tasking policy defines a set of associations between the
+   --  reception of certain messages or the detection of events on the
+   --  ORB_Type component defined above and the resources used to
+   --  process them. Each association is embodied in a specific
+   --  subprogram. This subprogram may do all kinds of actions to
+   --  handle the message: job, task creation or schedule it for
+   --  execution by a general-purpose ORB task.
 
    type Tasking_Policy_Type is abstract tagged limited private;
+
    type Tasking_Policy_Access is access all Tasking_Policy_Type'Class;
-
-   ----------------------------------------
-   -- Utility routines for jobs handling --
-   ----------------------------------------
-
-   function Duplicate_Request_Job
-     (RJ : access PJ.Job'Class)
-     return PJ.Job_Access;
-   --  Create a copy of RJ, a Request_Job, so it can be stored
-   --  for later execution.
 
    ---------------------
    -- A server object --
    ---------------------
 
-   type ORB_Type
-     (Tasking_Policy : access Tasking_Policy_Type'Class)
+   --  XXX this is not a server object !!!
+
+   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
       is new PolyORB.Components.Component with private;
+
    type ORB_Access is access all ORB_Type;
 
    -------------------------------
@@ -114,26 +107,29 @@ package PolyORB.ORB is
 
    procedure Handle_New_Server_Connection
      (P   : access Tasking_Policy_Type;
-      ORB : ORB_Access;
-      C   : Active_Connection) is abstract;
+      ORB :        ORB_Access;
+      C   :        Active_Connection)
+      is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on server side.
 
    procedure Handle_Close_Server_Connection
      (P   : access Tasking_Policy_Type;
-      TE  :        PT.Transport_Endpoint_Access) is abstract;
+      TE  :        PT.Transport_Endpoint_Access)
+      is abstract;
    --  Do necessary processing when a connection is closed
 
    procedure Handle_New_Client_Connection
      (P   : access Tasking_Policy_Type;
-      ORB : ORB_Access;
-      C   : Active_Connection) is abstract;
+      ORB :        ORB_Access;
+      C   :        Active_Connection)
+      is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on client side.
 
    procedure Handle_Request_Execution
      (P   : access Tasking_Policy_Type;
-      ORB : ORB_Access;
+      ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
       is abstract;
    --  Create the necessary processing resources for the execution
@@ -154,8 +150,9 @@ package PolyORB.ORB is
 
    procedure Queue_Request_To_Handler
      (P   : access Tasking_Policy_Type;
-      ORB : ORB_Access;
-      Msg : PolyORB.Components.Message'Class) is abstract;
+      ORB :        ORB_Access;
+      Msg :        PolyORB.Components.Message'Class)
+      is abstract;
    --  Assign the handling of a Request (i.e. an upcall to
    --  an application object) to the appropriate task.
    --  XXX It looks like this is implemented in exactly identical terms
@@ -167,6 +164,7 @@ package PolyORB.ORB is
    ------------------------------
 
    type Boolean_Access is access all Boolean;
+
    type Task_Info_Access_Access is
      access all PolyORB.Task_Info.Task_Info_Access;
 
@@ -206,19 +204,19 @@ package PolyORB.ORB is
    --  pending.
 
    procedure Perform_Work (ORB : access ORB_Type);
-   --  Perform one elementary ORB action and return.
+   --  Perform one ORB job and return.
 
    procedure Shutdown
      (ORB                 : access ORB_Type;
-      Wait_For_Completion : Boolean := True);
-   --  Shut down ORB. If Wait_For_Completion is True, do
+      Wait_For_Completion :        Boolean := True);
+   --  Shutdown ORB. If Wait_For_Completion is True, do
    --  not return before the shutdown is completed.
 
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
-      TAP   : PT.Transport_Access_Point_Access;
-      Chain : PF.Factory_Access;
-      PF    : PBD.Profile_Factory_Access);
+      TAP   :        PT.Transport_Access_Point_Access;
+      Chain :        PF.Factory_Access;
+      PF    :        PBD.Profile_Factory_Access);
    --  Register a newly-created transport access point with
    --  ORB. When a connection is received on TAP, a filter
    --  chain is instanciated using Chain, and associated
@@ -243,7 +241,7 @@ package PolyORB.ORB is
 
    procedure Set_Object_Adapter
      (ORB : access ORB_Type;
-      OA  : Obj_Adapters.Obj_Adapter_Access);
+      OA  :        Obj_Adapters.Obj_Adapter_Access);
    --  Associate object adapter (OA) with ORB.
    --  Objects registered with OA become visible through
    --  ORB for external request invocation.
@@ -263,8 +261,18 @@ package PolyORB.ORB is
 
    function Handle_Message
      (ORB : access ORB_Type;
-      Msg : PolyORB.Components.Message'Class)
+      Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
+
+   ----------------------------------------
+   -- Utility routines for jobs handling --
+   ----------------------------------------
+
+   function Duplicate_Request_Job
+     (RJ : access PJ.Job'Class)
+     return PJ.Job_Access;
+   --  Create a copy of RJ, a Request_Job, so it can be stored
+   --  for later execution.
 
 private
 
@@ -301,6 +309,8 @@ private
       AES : PAE.Asynch_Ev_Source_Access;
    end record;
 
+   type AES_Event_Handler_Access is access AES_Event_Handler'Class;
+
    procedure Run (AEH : access AES_Event_Handler);
    --  Call Handle_Event.
 
@@ -317,8 +327,6 @@ private
    --  In this implementation of the Reactor pattern, the
    --  association between an event source and its event
    --  handler is made using an Annotation on the event source.
-
-   type AES_Event_Handler_Access is access AES_Event_Handler'Class;
 
    type AES_Note is new Annotations.Note with record
       Handler : AES_Event_Handler_Access;
@@ -337,6 +345,10 @@ private
    package TAP_Lists is new PolyORB.Utils.Chained_Lists
      (PT.Transport_Access_Point_Access, PT."=");
    subtype TAP_List is TAP_Lists.List;
+
+   ---------------------
+   -- A server object --
+   ---------------------
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
    is new PolyORB.Components.Component with record

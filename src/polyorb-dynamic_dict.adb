@@ -91,7 +91,7 @@ package body PolyORB.Dynamic_Dict is
    end Lookup;
 
    function Lookup
-     (K : String;
+     (K       : String;
       Default : Value)
      return Value is
    begin

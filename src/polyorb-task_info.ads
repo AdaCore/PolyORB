@@ -33,7 +33,7 @@
 
 --  Information about running ORB tasks.
 
---  This packages is used to store and retrieve information
+--  This package is used to store and retrieve information
 --  concerning the status of tasks that execute ORB functions.
 
 --  $Id$
@@ -45,6 +45,8 @@ with PolyORB.Tasking.Condition_Variables;
 package PolyORB.Task_Info is
 
    pragma Elaborate_Body;
+
+   package PTCV renames PolyORB.Tasking.Condition_Variables;
 
    type Task_Kind is (Permanent, Transient);
    --  A Permanent task executes ORB.Run indefinitely.
@@ -60,7 +62,7 @@ package PolyORB.Task_Info is
    --  another task to request ORB action.
 
    type Task_Info (Kind : Task_Kind) is limited private;
-   --  Task Info hold information on tasks that run ORB.Run
+   --  Task Info holds information on tasks that run ORB.Run
 
    type Task_Info_Access is access all Task_Info;
 
@@ -70,13 +72,13 @@ package PolyORB.Task_Info is
 
    procedure Set_Status_Blocked
      (TI       : in out Task_Info;
-      Selector : Asynch_Ev.Asynch_Ev_Monitor_Access);
+      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access);
    pragma Inline (Set_Status_Blocked);
    --  The task refereed by TI will be blocked on 'Selector'
 
    procedure Set_Status_Idle
      (TI        : in out Task_Info;
-      Condition : PolyORB.Tasking.Condition_Variables.Condition_Access);
+      Condition :        PTCV.Condition_Access);
    pragma Inline (Set_Status_Idle);
    --  The task refereed by TI will go Idle;
    --  signaling condition variable 'Condition' will awake it.
@@ -98,7 +100,7 @@ package PolyORB.Task_Info is
    --  Return Selector the Task referred by TI is blocked on
 
    function Condition (TI : Task_Info)
-     return PolyORB.Tasking.Condition_Variables.Condition_Access;
+     return PTCV.Condition_Access;
    pragma Inline (Condition);
    --  Return Condition Variable the Task referred by TI is blocked on
 
