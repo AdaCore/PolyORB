@@ -38,6 +38,8 @@ with CORBA;
 
 with PolyORB.CORBA_P.Names;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Objects.Interface;
