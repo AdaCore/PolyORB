@@ -399,6 +399,8 @@ ada/opt.adb
 ada/opt.ads
 ada/osint.adb
 ada/osint.ads
+ada/osint-m.adb
+ada/osint-m.ads
 ada/output.adb
 ada/output.ads
 ada/prj-attr.adb
