@@ -142,18 +142,34 @@ procedure Client_Call_Back is
    procedure P_Handler1 (
       MOMA_Handler : access Message_Handler;
       Message : MOMA.Messages.Message'Class);
+   pragma Warnings (Off);
+   pragma Unreferenced (P_Handler1);
+   pragma Warnings (On);
 
    procedure P_Handler1 (
       MOMA_Handler : access Message_Handler;
-      Message : MOMA.Messages.Message'Class) is
+      Message : MOMA.Messages.Message'Class)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (MOMA_Handler);
+      pragma Warnings (On);
+
    begin
       Put_Line ("Handling Message " &
          MOMA.Types.Byte'Image (Get_Byte_Value (Message)));
    end P_Handler1;
 
    procedure P_Notifier1 (MOMA_Handler : access Message_Handler);
+   pragma Warnings (Off);
+   pragma Unreferenced (P_Notifier1);
+   pragma Warnings (On);
 
-   procedure P_Notifier1 (MOMA_Handler : access Message_Handler) is
+   procedure P_Notifier1 (MOMA_Handler : access Message_Handler)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (MOMA_Handler);
+      pragma Warnings (On);
+
    begin
       Put_Line ("Notifying Message");
    end P_Notifier1;
