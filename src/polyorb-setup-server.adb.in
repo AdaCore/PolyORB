@@ -36,6 +36,10 @@
 --  The user must take care of also setting up a tasking runtime and a
 --  ORB tasking policy.
 
+with PolyORB.Parameters.File;
+pragma Warnings (Off, PolyORB.Parameters.File);
+pragma Elaborate_All (PolyORB.Parameters.File);
+
 @PROTO_SERVER_WITHS@
 
 package body PolyORB.Setup.Server is
