@@ -99,8 +99,8 @@ package Corba.Object is
    --                         Initial_Offset : in Corba.Unsigned_Long)
    --  return Corba.Unsigned_Long ;
 
-   --procedure Marshal_Object_Reference(The_Ref : in Ref ;
-   --                                   S : in out NetBufferedStream) ;
+   procedure Marshal_Object_Reference(The_Ref : in Ref ;
+                                      S : in out NetBufferedStream.Object) ;
 
    --function Unmarshal_Object_Reference(S : in out NetBufferedStream)
    --  return Ref ;

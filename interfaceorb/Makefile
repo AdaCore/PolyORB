@@ -1,35 +1,50 @@
-# Ce makefile permet de compiler les fichiers cc, hh, ads et adb
-# generes par Adabroker.
-# Il s'agit d'une version perso, experimentale
 
-# compilateurs ada et c++
-GNATGCC = gnatgcc
-GCC = g++
 
-#preprocesseur gnat
-GNATPREP = gnatprep
+###################################################################
+##                    compilers                                  ##
+###################################################################
+##                                                               ##
 
-# flag de compilation
+# Ada compiler
+# as for now, it only works with gnat
+ADA_COMP = gnatgcc
+
+# Ada preprocessor
+ADA_PREP = gnatprep
+
+# C++ compiler
+CPP_COMP = g++
+
+# compilation flag
 DO_NOT_LINK = -c
 
-# emplacements des librairies c++ de omniORB
-ORB_LIBS = -I /home/Seb/Projet/omniORB_2.7.0/include/
-ORB_LIBS += -I /home/Seb/Projet/omniORB_2.7.0/src/lib/omniORB2/
-ORB_LIBS += -I /home/Seb/Projet/omniORB_2.7.0/src/lib/omniORB2/orbcore/
+##                                                               ##
+###################################################################
 
-# variables a definir pour la compilation
-CORBA_FLAGS = -D __x86__ -D __linux__ -D __OSVERSION__=2
-OMNI_ORB_FLAGS =
-# -D USE_omniORB_logStream -D _OMNIORB2_LIBRARY
 
-FLAGS = $(CORBA_FLAGS) $(OMNI_ORB_FLAGS)
+###################################################################
+##              Dependance on omniORB
+###################################################################
+##                                                               ##
 
-# liste des librairies c++ a compiler
-CC_LIBS_NAME = omniObject_C2Ada Ada_OmniObject Ada_Rope
+# write here a path to omniORB :
+OMNIORB_PATH = ../omniORB_2.7.0
 
-# liste des librairies Ada a compiler
-ADA_LIBS_NAME =
-ADA_LIBS_NAME_NO_ADB = rope
+# the following flags are system-dependant,
+# they must be set to compile a program which uses omiORB
+# see omniORB's user's guide chapter one for information
+
+#linux
+OMNIORB_SYSDEP_FLAGS = -D __x86__ -D __linux__ -D __OSVERSION__=2
+
+# paths to omniORB's libraries
+OMNIORB_LIBS = -I $(OMNIORB_PATH)/include/
+OMNIORB_LIBS += -I $(OMNIORB_PATH)/src/lib/omniORB2/
+OMNIORB_LIBS += -I $(OMNIORB_PATH)/src/lib/omniORB2/orbcore/
+
+##                                                               ##
+###################################################################
+
 
 
 all : sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o omniropeandkey.o \
@@ -37,61 +52,61 @@ omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o omniobject.o \
 giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o Ada_netBufferedStream.o \
 netbufferedstream.o corba-boa.o
 
-clean :
-	rm *.ali *.o 
 
 sys_dep.o : sys_dep_before_preprocessor.ads sys_dep_before_preprocessor.adb
-	$(GNATPREP) sys_dep_before_preprocessor.ads sys_dep.ads def_file -u
-	$(GNATPREP) sys_dep_before_preprocessor.adb sys_dep.adb def_file -u
-	$(GNATGCC) $(DO_NOT_LINK) sys_dep.adb
+	$(ADA_PREP) sys_dep_before_preprocessor.ads sys_dep.ads def_file -u
+	$(ADA_PREP) sys_dep_before_preprocessor.adb sys_dep.adb def_file -u
+	$(ADA_COMP) $(DO_NOT_LINK) sys_dep.adb
 
 Ada_Rope.o : Ada_Rope.cc Ada_Rope.hh
-	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) Ada_Rope.cc
+	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Rope.cc
 
 rope.o : rope.ads
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) rope.ads
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) rope.ads
 
 Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
-	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) Ada_OmniRopeAndKey.cc
+	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_OmniRopeAndKey.cc
 
 omniropeandkey.o : omniropeandkey.ads omniropeandkey.adb
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) omniropeandkey.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniropeandkey.adb
 
 omniobjectmanager.o : omniobjectmanager.ads omniobjectmanager.adb
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) omniobjectmanager.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniobjectmanager.adb
 
 omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
-	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) omniObject_C2Ada.cc
+	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniObject_C2Ada.cc
 
 Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc
-	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) Ada_OmniObject.cc
+	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_OmniObject.cc
 
 omniobject.o : omniobject.ads omniobject.adb
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) omniobject.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniobject.adb
 
 giop.o : giop.ads giop.adb
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) giop.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) giop.adb
 
 Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc
-	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) Ada_Giop_s.cc
+	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Giop_s.cc
 
 giop_s.o : giop_s.ads giop_s.adb
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) giop_s.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) giop_s.adb
 
 Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc
-	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) Ada_Giop_c.cc
+	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Giop_c.cc
 
 giop_c.o : giop_c.ads giop_c.adb
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) giop_c.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) giop_c.adb
+
+
 
 Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
-	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) Ada_netBufferedStream.cc
+	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_netBufferedStream.cc
 
 netbufferedstream.o : netbufferedstream.ads netbufferedstream.adb
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) netbufferedstream.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) netbufferedstream.adb
 
 corba-boa.o : corba-boa.ads corba-boa.adb
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) corba-boa.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-boa.adb
 
 
 ################################################
@@ -103,7 +118,7 @@ bufferedstream.ali netbufferedstream.ali
 .SUFFIXES: .adb .ali
 
 .adb.ali:
-	$(GNATGCC) $(DO_NOT_LINK) $<
+	$(ADA_COMP) $(DO_NOT_LINK) $<
 
 corba.ali: corba.ads corba.adb
 
@@ -115,11 +130,13 @@ giop.ali: giop.ads
 
 omni.ali: omni.ads omni.adb
 
-bufferedstream.ali: bufferedstream.ads bufferedstream.adb
-
 netbufferedstream.ali: netbufferedstream.ads netbufferedstream.adb
 
 membufferedstream.ali: membufferedstream.ads membufferedstream.adb
 
+
+##############################################################
+clean :
+	rm *.ali *.o 
 
 

@@ -160,6 +160,16 @@ package body Corba.Object is
     ---        omniORB specific                    ---
     --------------------------------------------------
 
+    -- Marshal_Object_Reference
+    ---------------------------
+    procedure Marshal_Object_Reference(The_Ref : in Ref ;
+                                       S : in out NetBufferedStream.Object) is
+       Tmp : Ref'Class := Ref ;
+    begin
+
+    end ;
+
+
 
     -- Marshal_Obj_Ref
     ------------------
