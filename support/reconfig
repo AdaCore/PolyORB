@@ -7,5 +7,5 @@ automake
 (cd src/soap && \
  for s in polyorb-http_headers.ads polyorb-http_methods.ads
  do
-   gen_keywords $s
+   sh gen_keywords $s
  done)
