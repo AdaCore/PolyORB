@@ -98,7 +98,6 @@ private
    type Server_Interceptor_Note is new PolyORB.Annotations.Note with record
       Profile             : PolyORB.Binding_Data.Profile_Access;
       Last_Interceptor    : Natural;
-      Forward_Request     : Boolean;
       Exception_Info      : PolyORB.Any.Any;
       Intermediate_Called : Boolean;
    end record;

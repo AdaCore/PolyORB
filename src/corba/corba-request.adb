@@ -37,13 +37,23 @@
 
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
+
+with PolyORB.Initialization;
 with PolyORB.Requests;
+with PolyORB.References;
+with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
 
 with CORBA.Context;
 with CORBA.NVList;
 with CORBA.Object;
 
 package body CORBA.Request is
+
+   procedure Default_Invoke
+     (Request : in PolyORB.Requests.Request_Access;
+      Flags   : in PolyORB.Requests.Flags);
+   --  Default request invocation subprogram
 
    --------------------
    -- Create_Request --
@@ -106,6 +116,69 @@ package body CORBA.Request is
          Req_Flags => PolyORB.Requests.Flags (Req_Flags));
    end Create_Request;
 
+   --------------------
+   -- Default_Invoke --
+   --------------------
+
+   procedure Default_Invoke
+     (Request : in PolyORB.Requests.Request_Access;
+      Flags   : in PolyORB.Requests.Flags)
+   is
+      use type PolyORB.Any.TypeCode.Object;
+      use type PolyORB.Requests.Request_Access;
+
+      Cur_Req : PolyORB.Requests.Request_Access := Request;
+
+   begin
+      loop
+         PolyORB.Requests.Invoke (Cur_Req, Flags);
+
+         exit when PolyORB.Any.Is_Empty (Cur_Req.Exception_Info)
+           or else PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
+                     /= PolyORB.Exceptions.TC_ForwardRequest;
+
+         --  Prepare request for new target
+
+         declare
+            Members : constant PolyORB.Exceptions.ForwardRequest_Members
+              := PolyORB.Exceptions.From_Any (Cur_Req.Exception_Info);
+            Ref     : PolyORB.References.Ref;
+            Aux_Req : PolyORB.Requests.Request_Access;
+         begin
+            PolyORB.References.Set
+              (Ref,
+               PolyORB.Smart_Pointers.Entity_Of (Members.Forward_Reference));
+
+            PolyORB.Requests.Create_Request
+              (Target    => Ref,
+               Operation => PolyORB.Types.To_String (Request.Operation),
+               Arg_List  => Request.Args,
+               Result    => Request.Result,
+               Exc_List  => Request.Exc_List,
+               Req       => Aux_Req,
+               Req_Flags => Request.Req_Flags);
+
+            if Cur_Req /= Request then
+               PolyORB.Requests.Destroy_Request (Cur_Req);
+            end if;
+
+            Cur_Req := Aux_Req;
+         end;
+      end loop;
+
+      if Cur_Req /= Request then
+         --  Auxiliary request allocated, copy request results from it to
+         --  original request and destroy auxiliary request.
+
+         Request.Args           := Cur_Req.Args;
+         Request.Out_Args       := Cur_Req.Out_Args;
+         Request.Result         := Cur_Req.Result;
+         Request.Exception_Info := Cur_Req.Exception_Info;
+
+         PolyORB.Requests.Destroy_Request (Cur_Req);
+      end if;
+   end Default_Invoke;
+
    ------------
    -- Invoke --
    ------------
@@ -161,5 +234,29 @@ package body CORBA.Request is
       PolyORB.Requests.Destroy_Request (X.The_Request);
    end Finalize;
 
-end CORBA.Request;
+   ----------------
+   -- Initialize --
+   ----------------
 
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
+        := Default_Invoke'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"corba.request",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
+end CORBA.Request;

@@ -53,7 +53,7 @@ package PolyORB.CORBA_P.Interceptors_Hooks is
      (Self           : in PolyORB.Requests.Request_Access;
       From_Agruments : in Boolean);
 
-   Client_Invoke : Client_Invoke_Handler := PolyORB.Requests.Invoke'Access;
+   Client_Invoke : Client_Invoke_Handler := null;
 
    Server_Invoke : Server_Invoke_Handler := null;
    --  Server side hook initialized in PortableServer module.

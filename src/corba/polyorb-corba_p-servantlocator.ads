@@ -36,6 +36,7 @@
 
 with PortableServer.ServantLocator;
 
+with PolyORB.Exceptions;
 with PolyORB.POA_Types;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
@@ -61,7 +62,8 @@ package PolyORB.CORBA_P.ServantLocator is
       Adapter    : access PPT.Obj_Adapter'Class;
       Operation  : in     PolyORB.Types.Identifier;
       The_Cookie :    out PPT.Cookie;
-      Returns    :    out PolyORB.Servants.Servant_Access);
+      Returns    :    out PolyORB.Servants.Servant_Access;
+      Error      : in out PolyORB.Exceptions.Error_Container);
 
    procedure Postinvoke
      (Self        : access CORBA_ServantLocator;

@@ -36,6 +36,7 @@
 
 with PortableServer.ServantActivator;
 
+with PolyORB.Exceptions;
 with PolyORB.POA_Types;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
@@ -54,11 +55,12 @@ package PolyORB.CORBA_P.ServantActivator is
      (Self : CORBA_ServantActivator)
      return PortableServer.ServantActivator.Ref'Class;
 
-   function Incarnate
+   procedure Incarnate
      (Self    : access CORBA_ServantActivator;
       Oid     : in     PPT.Object_Id;
-      Adapter : access PPT.Obj_Adapter'Class)
-     return PolyORB.Servants.Servant_Access;
+      Adapter : access PPT.Obj_Adapter'Class;
+      Returns :    out PolyORB.Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
    procedure Etherealize
      (Self                  : access CORBA_ServantActivator;

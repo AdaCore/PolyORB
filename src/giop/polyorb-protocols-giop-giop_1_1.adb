@@ -436,6 +436,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       pragma Warnings (Off);
       Obj          : constant Stream_Element_Array :=  Unmarshall (Buffer);
       pragma Warnings (On);
+      Target       : References.Ref;
       Result       : Locate_Reply_Type;
    begin
       Result := Object_Here;
@@ -443,7 +444,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  XXX need to be implemented
 
       Ctx.Message_Type := Locate_Reply;
-      Common_Locate_Reply (Sess'Access, Request_Id, Result);
+      Common_Locate_Reply (Sess'Access, Request_Id, Result, Target);
       Expect_GIOP_Header (Sess'Access);
    end Process_Locate_Request;
 

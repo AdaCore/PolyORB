@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Buffers;
+with PolyORB.References;
 with PolyORB.Types;
 
 package PolyORB.Protocols.GIOP.Common is
@@ -72,7 +73,7 @@ package PolyORB.Protocols.GIOP.Common is
      (No_Exception,
       User_Exception,
       System_Exception,
-      Location_Forward,         -- not implemented
+      Location_Forward,
       Location_Forward_Perm,    -- 1.2 specific, but not implemented
       Needs_Addressing_Mode);   -- 1.2 specific, but not implemented
 
@@ -97,7 +98,7 @@ package PolyORB.Protocols.GIOP.Common is
    type Locate_Reply_Type is
      (Unknown_Object,
       Object_Here,
-      Object_Forward,             --  not implemented
+      Object_Forward,
       Object_Forward_Perm,        --  not implemented, GIOP 1.2 only
       Loc_System_Exception,       --  not implemented, GIOP 1.2 only
       Loc_Need_Addressing_Mode);  --  not implemented, GIOP 1.2 only
@@ -111,9 +112,10 @@ package PolyORB.Protocols.GIOP.Common is
      return Locate_Reply_Type;
 
    procedure Common_Locate_Reply
-     (Sess       : access GIOP_Session;
-      Request_Id :        Types.Unsigned_Long;
-      Loc_Type   :        Locate_Reply_Type);
+     (Sess        : access GIOP_Session;
+      Request_Id  :        Types.Unsigned_Long;
+      Loc_Type    :        Locate_Reply_Type;
+      Forward_Ref :        References.Ref);
 
    procedure Common_Process_Locate_Reply
      (Sess       : access GIOP_Session;

@@ -41,7 +41,6 @@ with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.References;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
 
@@ -651,38 +650,6 @@ package body PolyORB.Protocols.GIOP is
       Unmarshall_To_Any (Buffer, Info);
    end Unmarshall_System_Exception_To_Any;
 
-   --------------------
-   -- Select_Profile --
-   --------------------
-
-   function Select_Profile
-     (Buffer  : access Buffer_Type)
-     return PolyORB.Binding_Data.Profile_Access
-   is
-      use PolyORB.Binding_Data;
-      use PolyORB.References;
-
-      New_Ref    : constant PolyORB.References.Ref
-        := Representations.CDR.Unmarshall (Buffer);
-      Prof_Array : constant PolyORB.References.Profile_Array
-        := Profiles_Of (New_Ref);
-
-   begin
-
-      --  XXX This looks incorrect and dangerous:
-      --  as soon as we exit the scope of this function,
-      --  New_Ref will be finalized, and its profiles will
-      --  be free'd, so the returned pointer will become invalid.
-
-      for J in Prof_Array'Range loop
-         if Get_Profile_Tag (Prof_Array (J).all) = Tag_Internet_IOP then
-            return Prof_Array (J);
-         end if;
-      end loop;
-
-      return null;
-   end Select_Profile;
-
    --  Version management
 
    ----------------------------------
@@ -790,6 +757,38 @@ package body PolyORB.Protocols.GIOP is
 
       Success := False;
    end Get_Pending_Request_By_Locate;
+
+   --------------------------------------
+   -- Remove_Pending_Request_By_Locate --
+   --------------------------------------
+
+   procedure Remove_Pending_Request_By_Locate
+     (Sess    : access GIOP_Session;
+      Id      : in     Types.Unsigned_Long;
+      Success :    out Boolean)
+   is
+      use Pend_Req_List;
+
+      It  : Iterator := First (Sess.Pending_Reqs);
+      PRA : Pending_Request_Access;
+
+   begin
+      pragma Debug (O ("Removing pending request with locate id"
+                       & Types.Unsigned_Long'Image (Id)));
+
+      while not Last (It) loop
+         if Pending_Request_Access (Value (It).all).Locate_Req_Id = Id then
+            PRA := Pending_Request_Access (Value (It).all);
+            Remove (Sess.Pending_Reqs, It);
+            Free (PRA);
+            Success := True;
+            return;
+         end if;
+         Next (It);
+      end loop;
+
+      Success := False;
+   end Remove_Pending_Request_By_Locate;
 
    -------------------------
    -- Add_Pending_Request --

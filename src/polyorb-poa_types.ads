@@ -251,12 +251,15 @@ package PolyORB.POA_Types is
 
    type ServantActivator_Access is access all ServantActivator'Class;
 
-   function Incarnate
+   procedure Incarnate
      (Self    : access ServantActivator;
       Oid     : in     Object_Id;
-      Adapter : access Obj_Adapter'Class)
-     return PolyORB.Servants.Servant_Access
+      Adapter : access Obj_Adapter'Class;
+      Returns :    out PolyORB.Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
+   --  The Error argument used only for processing location forwarding, thus
+   --  the only valid Error.Kind is ForwardRequest_E.
 
    procedure Etherealize
      (Self                  : access ServantActivator;
@@ -287,8 +290,11 @@ package PolyORB.POA_Types is
       Adapter    : access Obj_Adapter'Class;
       Operation  : in     PolyORB.Types.Identifier;
       The_Cookie :    out Cookie;
-      Returns    :    out PolyORB.Servants.Servant_Access)
-     is abstract;
+      Returns    :    out PolyORB.Servants.Servant_Access;
+      Error      : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+   --  The Error argument used only for processing location forwarding, thus
+   --  the only valid Error.Kind is ForwardRequest_E.
 
    procedure Postinvoke
      (Self        : access ServantLocator;

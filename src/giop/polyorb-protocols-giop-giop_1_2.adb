@@ -810,6 +810,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Check if object is on this node
 
       declare
+         use PolyORB.Exceptions;
+
          ORB  : constant PolyORB.ORB.ORB_Access
            := PolyORB.ORB.ORB_Access (S.Server);
 
@@ -827,9 +829,19 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Error);
 
          if PolyORB.Exceptions.Found (Error) then
-            PolyORB.Exceptions.Catch (Error);
+            if Error.Kind = ForwardRequest_E then
+               Result := Object_Forward;
+               Set
+                 (Target,
+                  PolyORB.Smart_Pointers.Entity_Of
+                    (ForwardRequest_Members
+                       (Error.Member.all).Forward_Reference));
 
-            Result := Unknown_Object;
+            else
+               Result := Unknown_Object;
+            end if;
+
+            PolyORB.Exceptions.Catch (Error);
 
          else
             Result := Object_Here;
@@ -845,7 +857,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Ctx.Fragmented := False;
       Ctx.Message_Type := Locate_Reply;
-      Common_Locate_Reply (Sess'Access, Request_Id, Result);
+      Common_Locate_Reply (Sess'Access, Request_Id, Result, Target);
       Expect_GIOP_Header (Sess'Access);
    end Process_Locate_Request;
 

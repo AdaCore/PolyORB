@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
+with CORBA.Object;
 
 package body PolyORB.CORBA_P.ServantLocator is
 
@@ -77,7 +78,8 @@ package body PolyORB.CORBA_P.ServantLocator is
       Adapter    : access PPT.Obj_Adapter'Class;
       Operation  : in     PolyORB.Types.Identifier;
       The_Cookie :    out PPT.Cookie;
-      Returns    :    out PolyORB.Servants.Servant_Access)
+      Returns    :    out PolyORB.Servants.Servant_Access;
+      Error      : in out PolyORB.Exceptions.Error_Container)
    is
       CORBA_POA     : PortableServer.POA_Forward.Ref;
 
@@ -92,13 +94,31 @@ package body PolyORB.CORBA_P.ServantLocator is
         (CORBA_POA,
          PolyORB.Smart_Pointers.Entity_Ptr (Adapter));
 
-      PortableServer.ServantLocator.Preinvoke
-        (Locator,
-         PortableServer.ObjectId (Oid),
-         CORBA_POA,
-         CORBA.Identifier (Operation),
-         PortableServer.ServantLocator.Cookie (The_Cookie),
-         CORBA_Servant);
+      begin
+         PortableServer.ServantLocator.Preinvoke
+           (Locator,
+            PortableServer.ObjectId (Oid),
+            CORBA_POA,
+            CORBA.Identifier (Operation),
+            PortableServer.ServantLocator.Cookie (The_Cookie),
+            CORBA_Servant);
+      exception
+         when E : PortableServer.ForwardRequest =>
+            declare
+               Members : PortableServer.ForwardRequest_Members;
+
+            begin
+               PortableServer.Get_Members (E, Members);
+
+               Error.Kind := PolyORB.Exceptions.ForwardRequest_E;
+               Error.Member :=
+                 new PolyORB.Exceptions.ForwardRequest_Members'
+                 (Forward_Reference =>
+                    PolyORB.Smart_Pointers.Ref
+                  (CORBA.Object.To_PolyORB_Ref
+                   (Members.Forward_Reference)));
+            end;
+      end;
 
       Returns := PolyORB.Servants.Servant_Access
         (PortableServer.To_PolyORB_Servant (CORBA_Servant));

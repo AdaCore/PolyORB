@@ -1550,11 +1550,20 @@ package body PolyORB.POA.Basic_POA is
                Objects.Object_Id_Access (Id),
                Oid);
 
-            Servant := Incarnate
+            Incarnate
               (Activator'Access,
                Oid.all,
-               Basic_OA);
+               Basic_OA,
+               Servant,
+               Error);
             Free (Oid);
+
+            if Found (Error) then
+               pragma Assert (Error.Kind = ForwardRequest_E);
+
+               return;
+            end if;
+
          end;
       end if;
 

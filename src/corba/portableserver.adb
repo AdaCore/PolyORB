@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,11 +41,13 @@ with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Exceptions;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Servants.Interface;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 package body PortableServer is
 
@@ -553,7 +555,29 @@ package body PortableServer is
          (CORBA.Unsigned_Long (RequestProcessingPolicyValue'Pos (Item))));
       return Result;
    end To_Any;
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
+        := Default_Invoke'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
 
 begin
-   PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke := Default_Invoke'Access;
+   Register_Module
+     (Module_Info'
+      (Name      => +"portablserver",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PortableServer;

@@ -58,6 +58,7 @@ with Ada.Unchecked_Deallocation;
 with GNAT.Source_Info;
 
 with PolyORB.Any;
+with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
 package PolyORB.Exceptions is
@@ -150,6 +151,22 @@ package PolyORB.Exceptions is
       Index : PolyORB.Types.Short;
    end record;
 
+   --  ForwardRequest_Members
+
+   type ForwardRequest_Members is new Exception_Members with record
+      Forward_Reference : PolyORB.Smart_Pointers.Ref;
+   end record;
+
+   function To_Any
+     (Item : ForwardRequest_Members)
+      return PolyORB.Any.Any;
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+      return ForwardRequest_Members;
+
+   function TC_ForwardRequest return PolyORB.Any.TypeCode.Object;
+
    ------------------
    -- Exception Id --
    ------------------
@@ -219,6 +236,11 @@ package PolyORB.Exceptions is
       Transaction_Unavailable_E,  --  no transaction
       Transaction_Mode_E,         --  invalid transaction mode
       Bad_Qos_E,                  --  bad quality of service
+
+      --  Special case for processing PortableServer's and
+      --  PortableInterceptor's ForwardRequest exception.
+
+      ForwardRequest_E,
 
       --  One to one mapping of POA exceptions.
 

@@ -32,14 +32,14 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Any.ExceptionList;
-with PolyORB.Binding_Objects;
 with PolyORB.Buffers;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
+with PolyORB.References.IOR;
+with PolyORB.Representations.CDR;
 with PolyORB.Servants.Interface;
 with PolyORB.Smart_Pointers;
-with PolyORB.Representations.CDR;
 
 package body PolyORB.Protocols.GIOP.Common is
 
@@ -143,8 +143,10 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.Any;
       use PolyORB.Buffers;
       use PolyORB.Components;
+      use PolyORB.Exceptions;
       use PolyORB.Representations.CDR;
       use PolyORB.Types;
+      use type PolyORB.Any.TypeCode.Object;
 
       Buffer_Out      : Buffer_Access := new Buffer_Type;
       Header_Buffer   : Buffer_Access := new Buffer_Type;
@@ -157,6 +159,7 @@ package body PolyORB.Protocols.GIOP.Common is
       CORBA_Occurence : PolyORB.Any.Any;
       Data_Alignment  : Stream_Element_Offset :=
         Sess.Implem.Data_Alignment;
+
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
                      (Sess.Implem.Version = GIOP_Version'(1, 1)) or
@@ -171,26 +174,33 @@ package body PolyORB.Protocols.GIOP.Common is
          pragma Debug (O ("Sending reply, Status : " & Reply_Status'Img));
 
       else
-         declare
-            Except_Id_2 : constant String :=
-              To_Standard_String
-              (TypeCode.Id (Get_Type (Request.Exception_Info)));
-         begin
-            if PolyORB.GIOP_P.Exceptions.Is_System_Exception
-              (Except_Id_2) then
-               Reply_Status := System_Exception;
-            else
-               Reply_Status := User_Exception;
-            end if;
-
-            Except_Id := To_PolyORB_String (Except_Id_2);
-
+         if Get_Type (Request.Exception_Info) = TC_ForwardRequest then
+            Reply_Status := Location_Forward;
             pragma Debug (O ("Sending reply, Status : " & Reply_Status'Img));
-            pragma Debug (O ("Exception ID : " & Except_Id_2));
-         end;
+
+         else
+            declare
+               Except_Id_2 : constant String :=
+                 To_Standard_String
+                 (TypeCode.Id (Get_Type (Request.Exception_Info)));
+            begin
+               if PolyORB.GIOP_P.Exceptions.Is_System_Exception
+                 (Except_Id_2) then
+                  Reply_Status := System_Exception;
+               else
+                  Reply_Status := User_Exception;
+               end if;
+
+               Except_Id := To_PolyORB_String (Except_Id_2);
+
+               pragma Debug
+                 (O ("Sending reply, Status : " & Reply_Status'Img));
+               pragma Debug (O ("Exception ID : " & Except_Id_2));
+            end;
+         end if;
       end if;
 
-      --  Set parameter for header request marsahlling
+      --  Set parameter for header request marshalling
 
       Request_Id_Ptr.all := Request_Id;
       Reply_Stat_Ptr.all := Reply_Status;
@@ -236,6 +246,19 @@ package body PolyORB.Protocols.GIOP.Common is
                PolyORB.Any.ARG_OUT,
                Data_Alignment);
 
+         when Location_Forward =>
+            declare
+               Member : constant ForwardRequest_Members
+                 := From_Any (Request.Exception_Info);
+               Ref    : References.Ref;
+            begin
+               References.Set
+                 (Ref, Smart_Pointers.Entity_Of (Member.Forward_Reference));
+
+               Pad_Align (Buffer_Out, Sess.Implem.Data_Alignment);
+               Marshall (Buffer_Out, Ref);
+            end;
+
          when others =>
             raise Not_Implemented;
       end case;
@@ -265,14 +288,18 @@ package body PolyORB.Protocols.GIOP.Common is
    -------------------------
 
    procedure Common_Locate_Reply
-     (Sess       : access GIOP_Session;
-      Request_Id :        Types.Unsigned_Long;
-      Loc_Type   :        Locate_Reply_Type)
+     (Sess        : access GIOP_Session;
+      Request_Id  :        Types.Unsigned_Long;
+      Loc_Type    :        Locate_Reply_Type;
+      Forward_Ref :        References.Ref)
    is
       use PolyORB.Components;
       use PolyORB.Types;
 
-      Buffer  : Buffer_Access := new Buffer_Type;
+      Buffer        : Buffer_Access := new Buffer_Type;
+      Header_Buffer : Buffer_Access := new Buffer_Type;
+      Header_Space  : constant Reservation :=
+        Reserve (Buffer, GIOP_Header_Size);
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
                      (Sess.Implem.Version = GIOP_Version'(1, 1)) or
@@ -283,12 +310,23 @@ package body PolyORB.Protocols.GIOP.Common is
                        & " , type : "
                        & Loc_Type'Img));
 
-      Sess.Ctx.Message_Size := 2 * Types.Unsigned_Long'Size / Types.Octet'Size;
-
-      Marshall_Global_GIOP_Header (Sess, Buffer);
-
       Marshall (Buffer, Request_Id);
       Marshall (Buffer, Loc_Type);
+
+      if Loc_Type = Object_Forward then
+         References.IOR.Marshall_IOR (Buffer, Forward_Ref);
+      end if;
+
+      Sess.Ctx.Message_Size :=
+        Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
+
+      Marshall_Global_GIOP_Header (Sess, Header_Buffer);
+
+      --  Copy Header
+
+      Copy_Data (Header_Buffer.all, Header_Space);
+      Release (Header_Buffer);
+
       Emit_Message (Sess.Implem, Sess, Buffer);
       Release (Buffer);
    end Common_Locate_Reply;
@@ -322,11 +360,55 @@ package body PolyORB.Protocols.GIOP.Common is
                   Send_Request (Sess.Implem, Sess, Req);
                end if;
             end;
-            Expect_GIOP_Header (Sess);
+
+         when Object_Forward =>
+            declare
+               ORB     : constant PolyORB.ORB.ORB_Access
+                 := PolyORB.ORB.ORB_Access (Sess.Server);
+               Req     : Pending_Request_Access;
+               Success : Boolean;
+
+            begin
+               Get_Pending_Request_By_Locate
+                 (Sess,
+                  Request_Id,
+                  Req,
+                  Success);
+
+               if not Success then
+                  raise GIOP_Error;
+               end if;
+
+               declare
+                  Ref : constant References.Ref := Unmarshall (Sess.Buffer_In);
+
+               begin
+                  Req.Req.Exception_Info :=
+                    PolyORB.Exceptions.To_Any
+                    (PolyORB.Exceptions.ForwardRequest_Members'
+                     (Forward_Reference => Smart_Pointers.Ref (Ref)));
+               end;
+
+               Components.Emit_No_Reply
+                 (Components.Component_Access (ORB),
+                  Servants.Interface.Executed_Request'
+                  (Req => Req.Req));
+
+               Remove_Pending_Request_By_Locate
+                 (Sess,
+                  Request_Id,
+                  Success);
+
+               if not Success then
+                  raise GIOP_Error;
+               end if;
+            end;
 
          when others =>
             raise GIOP_Error;
       end case;
+
+      Expect_GIOP_Header (Sess);
    end Common_Process_Locate_Reply;
 
    ----------------------------------
@@ -518,41 +600,22 @@ package body PolyORB.Protocols.GIOP.Common is
                   (Req => Current_Req.Req));
             end;
 
-         when Location_Forward | Location_Forward_Perm =>
+         when Location_Forward =>
+            Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
+
             declare
-               use PolyORB.Binding_Data;
-               use PolyORB.Binding_Objects;
-
-               New_BO   : Smart_Pointers.Ref;
-               Prof     : Profile_Access;
-               Error    : Exceptions.Error_Container;
+               Ref : constant References.Ref := Unmarshall (Sess.Buffer_In);
             begin
-               Prof := Select_Profile (Sess.Buffer_In);
-               --  XXX it is dubious whether the returned profile
-               --  access is valid! Should be checked by using
-               --  a debug pool for GIOP-based profiles.
-
-               Binding_Data.Bind_Profile
-                 (Prof.all, Component_Access (ORB),
-                  New_BO, Error);
-               Release (Sess.Buffer_In);
-               --  XXX New_BO should be recorded as the binding object
-               --  for the original ref!
-
-               if Exceptions.Found (Error) then
-                  Exceptions.Catch (Error);
-                  raise GIOP_Error;
-                  --  XXX is this the proper thing to do?
-                  --  Actually we should set the exception info in the
-                  --  corresponding request, and then emit Executed_Request
-                  --  (as is done in the case of an initial bind failure).
-               end if;
-
-               Current_Req.Target_Profile := Prof;
-               Invoke_Request
-                 (GIOP_Session (Get_Component (New_BO).all)'Access,
-                  Current_Req.Req, Prof);
+               Current_Req.Req.Exception_Info :=
+                 PolyORB.Exceptions.To_Any
+                 (PolyORB.Exceptions.ForwardRequest_Members'
+                  (Forward_Reference => Smart_Pointers.Ref (Ref)));
             end;
+
+            Emit_No_Reply
+              (Component_Access (ORB),
+               Servants.Interface.Executed_Request'
+               (Req => Current_Req.Req));
 
          when others =>
             raise Not_Implemented;
@@ -571,6 +634,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Count   : Types.Unsigned_Long)
    is
       Temp :  Types.Octet;
+
    begin
       for K in 1 .. Count loop
          Temp := Unmarshall (Buf_In);

@@ -43,12 +43,13 @@ pragma Warnings (On);
 --  GNAT internal exception table is used to maintain a list of
 --  all exceptions.
 
-with PolyORB.Any;
+with PolyORB.Any.ObjRef;
 with PolyORB.Exceptions.Stack;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
+with PolyORB.References;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
@@ -59,6 +60,7 @@ package body PolyORB.Exceptions is
    use Ada.Exceptions;
 
    use PolyORB.Any;
+   use PolyORB.Any.ObjRef;
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
@@ -164,6 +166,71 @@ package body PolyORB.Exceptions is
       TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
 
       return Get_Empty_Any_Aggregate (TC);
+   end To_Any;
+
+   -----------------------
+   -- TC_ForwardRequest --
+   -----------------------
+
+   TC_ForwardRequest_Cache : TypeCode.Object;
+
+   function TC_ForwardRequest
+     return PolyORB.Any.TypeCode.Object
+   is
+      TC : TypeCode.Object renames TC_ForwardRequest_Cache;
+
+      Name          : constant PolyORB.Types.String
+        := To_PolyORB_String ("ForwardRequest");
+      Repository_Id : constant PolyORB.Types.String
+        := To_PolyORB_String (PolyORB_Exc_Prefix)
+             & Name & PolyORB_Exc_Version;
+   begin
+      if TypeCode.Parameter_Count (TC) /= 0 then
+         return TC;
+      end if;
+
+      TC := TypeCode.TC_Except;
+
+      TypeCode.Add_Parameter (TC, To_Any (Name));
+      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
+
+      TypeCode.Add_Parameter
+        (TC, To_Any (TC_Object));
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_PolyORB_String ("forward_reference")));
+
+      return TC;
+   end TC_ForwardRequest;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Item : in Any.Any) return ForwardRequest_Members is
+      Index          : Any.Any;
+      Result_Forward : References.Ref;
+   begin
+      Index := Get_Aggregate_Element (Item, TC_Object, 0);
+      Result_Forward := From_Any (Index);
+
+      return (Forward_Reference => Smart_Pointers.Ref (Result_Forward));
+   end From_Any;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Item : ForwardRequest_Members)
+      return PolyORB.Any.Any
+   is
+      Result : Any.Any := Get_Empty_Any_Aggregate (TC_ForwardRequest);
+      Ref    : References.Ref;
+   begin
+      References.Set (Ref, Smart_Pointers.Entity_Of (Item.Forward_Reference));
+      Add_Aggregate_Element (Result, To_Any (Ref));
+
+      return Result;
    end To_Any;
 
    -------------------------------
@@ -557,6 +624,9 @@ package body PolyORB.Exceptions is
       if Error.Kind in ORB_System_Error then
          Result := To_Any (Exception_Name,
                            System_Exception_Members (Error.Member.all));
+
+      elsif Error.Kind = ForwardRequest_E then
+         Result := To_Any (ForwardRequest_Members (Error.Member.all));
 
       elsif Error.Kind in POA_Error then
          Result := To_Any (Exception_Name,

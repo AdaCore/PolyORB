@@ -421,10 +421,6 @@ private
    procedure Cancel_Pending_Request
      (Sess : access GIOP_Session);
 
-   function Select_Profile
-     (Buffer  : access PolyORB.Buffers.Buffer_Type)
-     return PolyORB.Binding_Data.Profile_Access;
-
    --------------------------------
    -- Pending Request management --
    --------------------------------
@@ -456,6 +452,13 @@ private
       Success :    out Boolean);
    --  Retrieve a pending request of Ses by its locate request id.
    --  The request is left on Ses' pending requests list.
+
+   procedure Remove_Pending_Request_By_Locate
+     (Sess    : access GIOP_Session;
+      Id      : in     Types.Unsigned_Long;
+      Success :    out Boolean);
+   --  Remove pending request by locate request id from the list of
+   --  pending requests on Sess.
 
    ---------------------------------
    -- Marshall Unmarshall helpers --

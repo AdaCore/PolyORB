@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
+with CORBA.Object;
 
 package body PolyORB.CORBA_P.ServantActivator is
 
@@ -71,11 +72,12 @@ package body PolyORB.CORBA_P.ServantActivator is
    -- Incarnate --
    ---------------
 
-   function Incarnate
+   procedure Incarnate
      (Self    : access CORBA_ServantActivator;
       Oid     : in     PPT.Object_Id;
-      Adapter : access PPT.Obj_Adapter'Class)
-     return PolyORB.Servants.Servant_Access
+      Adapter : access PPT.Obj_Adapter'Class;
+      Returns :    out PolyORB.Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
    is
       use type PortableServer.Servant;
 
@@ -92,15 +94,33 @@ package body PolyORB.CORBA_P.ServantActivator is
         (CORBA_POA,
          PolyORB.Smart_Pointers.Entity_Ptr (Adapter));
 
-      CORBA_Servant := PortableServer.ServantActivator.Incarnate
-        (Activator,
-         PortableServer.ObjectId (Oid),
-         CORBA_POA);
+      begin
+         CORBA_Servant := PortableServer.ServantActivator.Incarnate
+           (Activator,
+            PortableServer.ObjectId (Oid),
+            CORBA_POA);
+      exception
+         when E : PortableServer.ForwardRequest =>
+            declare
+               Members : PortableServer.ForwardRequest_Members;
+
+            begin
+               PortableServer.Get_Members (E, Members);
+
+               Error.Kind := PolyORB.Exceptions.ForwardRequest_E;
+               Error.Member :=
+                 new PolyORB.Exceptions.ForwardRequest_Members'
+                 (Forward_Reference =>
+                    PolyORB.Smart_Pointers.Ref
+                  (CORBA.Object.To_PolyORB_Ref
+                   (Members.Forward_Reference)));
+            end;
+      end;
 
       if CORBA_Servant = null then
-         return null;
+         Returns := null;
       else
-         return PolyORB.Servants.Servant_Access
+         Returns := PolyORB.Servants.Servant_Access
            (PortableServer.To_PolyORB_Servant (CORBA_Servant));
       end if;
    end Incarnate;

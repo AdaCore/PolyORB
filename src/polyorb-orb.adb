@@ -873,8 +873,8 @@ package body PolyORB.ORB is
                pragma Debug (O ("Run_Request: Got an error when binding: "
                                 & Error_Id'Image (Error.Kind)));
 
-               --  Any error caught at this level implies a
-               --  problem within the object adapter. We bounce the
+               --  Any error except ForwardLocation_E caught at this level
+               --  implies a problem within the object adapter. We bounce the
                --  exception to the user for further processing.
 
                J.Request.Exception_Info
