@@ -108,7 +108,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    procedure Invoke_Request
      (S   : access SOAP_Session;
       R   : Requests.Request_Access;
-      Oid : access Objects.Object_Id)
+      Pro : access Binding_Data.Profile_Type'Class)
    is
       P : SOAP.Message.Payload.Object;
    begin
@@ -129,7 +129,8 @@ package body PolyORB.Protocols.SOAP_Pr is
         (Lower (S),
          Filters.AWS_Interface.AWS_Request_Out'
          (Request_Method => HTTP_Methods.POST,
-          Relative_URI => Oid_To_URI (Oid),
+          Relative_URI => Oid_To_URI
+          (Binding_Data.Get_Object_Key (Pro.all)),
           Data => Types.String
           (Ada.Strings.Unbounded.Unbounded_String'
            (SOAP.Message.XML.Image (P))),

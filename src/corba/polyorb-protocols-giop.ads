@@ -213,7 +213,7 @@ package PolyORB.Protocols.GIOP is
    procedure Invoke_Request
      (S   : access GIOP_Session;
       R   : Requests.Request_Access;
-      Oid : access Objects.Object_Id);
+      Pro : access Binding_Data.Profile_Type'Class);
 
    procedure Abort_Request (S : access GIOP_Session;
                  R : Requests.Request_Access);

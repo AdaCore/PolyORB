@@ -55,7 +55,8 @@ package PolyORB.Protocols.Echo is
    procedure Invoke_Request
      (S : access Echo_Session;
       R : Request_Access;
-      O : access Objects.Object_Id);
+      P : access Binding_Data.Profile_Type'Class);
+
    procedure Abort_Request (S : access Echo_Session; R : Request_Access);
    --  These are just for show and do nothing.
 

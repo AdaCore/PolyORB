@@ -34,8 +34,8 @@
 
 --  $Id$
 
+with PolyORB.Binding_Data;
 with PolyORB.Components;
-with PolyORB.Objects;
 with PolyORB.ORB;
 
 package PolyORB.References.Binding is
@@ -46,7 +46,7 @@ package PolyORB.References.Binding is
      (R         : Ref;
       Local_ORB : ORB.ORB_Access;
       Servant   : out Components.Component_Access;
-      Oid       : out Objects.Object_Id_Access);
+      Pro       : out Binding_Data.Profile_Access);
    --  Bind R to a servant, and return that servant (or a surrogate
    --  thereof) and the object id corresponding to the profile of R
    --  that was used.

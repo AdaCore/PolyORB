@@ -98,7 +98,7 @@ package body PolyORB.Protocols.SRP is
    procedure Invoke_Request
      (S : access SRP_Session;
       R :  Requests.Request_Access;
-      O : access Objects.Object_Id)
+      P : access Binding_Data.Profile_Type'Class)
    is
    begin
       null;

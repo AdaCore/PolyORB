@@ -37,11 +37,11 @@
 with Ada.Streams;
 
 with PolyORB.Any.NVList;
+with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Filters; use PolyORB.Filters;
 with PolyORB.Requests; use PolyORB.Requests;
 with PolyORB.Soft_Links; use PolyORB.Soft_Links;
-with PolyORB.Objects;
 with PolyORB.ORB.Interface;
 
 package PolyORB.Protocols is
@@ -98,7 +98,7 @@ package PolyORB.Protocols is
    procedure Invoke_Request
      (S : access Session;
       R : Requests.Request_Access;
-      O : access Objects.Object_Id)
+      P : access Binding_Data.Profile_Type'Class)
       is abstract;
    --  Send a method invocation message for request R on session S.
 

@@ -637,13 +637,13 @@ package body PolyORB.ORB is
 
       declare
          Surrogate : Components.Component_Access;
-         Oid : Objects.Object_Id_Access;
+         Pro : PolyORB.Binding_Data.Profile_Access;
       begin
          pragma Debug (O ("Executing: "
                            & Requests.Image (J.Request.all)));
 
          References.Binding.Bind
-           (J.Request.Target, J.ORB, Surrogate, Oid);
+           (J.Request.Target, J.ORB, Surrogate, Pro);
 
          --  Setup_Environment (Oid);
          --  XXX for 'Current'
@@ -653,7 +653,7 @@ package body PolyORB.ORB is
               := Emit (Surrogate,
                        Objects.Interface.Execute_Request'
                        (Req => J.Request,
-                        Oid => Oid));
+                        Pro => Pro));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);

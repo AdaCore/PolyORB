@@ -1468,7 +1468,7 @@ package body PolyORB.Protocols.GIOP is
                Invoke_Request
                  (GIOP_Session (New_Ses.all)'Access,
                   Current_Req.Req,
-                  Binding_Data.Get_Object_Key (Prof.all));
+                  Prof);
             end;
 
          when Needs_Addressing_Mode =>
@@ -1544,7 +1544,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Invoke_Request
      (S   : access GIOP_Session;
       R   : Requests.Request_Access;
-      Oid : access Objects.Object_Id)
+      Pro : access Binding_Data.Profile_Type'Class)
    is
       use Buffers;
       use Binding_Data.IIOP;
@@ -1814,8 +1814,7 @@ package body PolyORB.Protocols.GIOP is
                            Invoke_Request
                              (S,
                               Current_Req.Req,
-                              Binding_Data.Get_Object_Key
-                              (Current_Req.Target_Profile.all));
+                              Current_Req.Target_Profile);
                         end;
 
                      when Unknown_Object =>
@@ -1855,8 +1854,7 @@ package body PolyORB.Protocols.GIOP is
                            Invoke_Request
                              (GIOP_Session (New_Ses.all)'Access,
                               Current_Req.Req,
-                              Binding_Data.Get_Object_Key
-                              (Current_Req.Target_Profile.all));
+                              Current_Req.Target_Profile);
                         end;
 
                      when Loc_Needs_Addressing_Mode =>

@@ -58,7 +58,7 @@ package body PolyORB.References.Binding is
      (R         : Ref;
       Local_ORB : ORB.ORB_Access;
       Servant   : out Components.Component_Access;
-      Oid       : out Objects.Object_Id_Access)
+      Pro       : out Binding_Data.Profile_Access)
    is
    begin
       pragma Debug (O ("Bind: enter"));
@@ -109,14 +109,12 @@ package body PolyORB.References.Binding is
          declare
             P : Profile_Access
               renames Profiles (Best_Profile_Index);
-            POid : constant Objects.Object_Id_Access
-              := PolyORB.Binding_Data.Get_Object_Key (P.all);
          begin
             pragma Debug (O ("Found profile: "
                              & Ada.Tags.External_Tag (P'Tag)));
             null;
 
-            Oid := POid;
+            Pro := P;
             if P.all in Local_Profile_Type
               or else Is_Profile_Local (Local_ORB, P) then
                --  Easy case: local profile.

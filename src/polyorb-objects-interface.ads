@@ -34,15 +34,15 @@
 
 --  $Id$
 
+with PolyORB.Binding_Data;
 with PolyORB.Components;
-with PolyORB.Objects;
 with PolyORB.Requests;
 
 package PolyORB.Objects.Interface is
 
    type Execute_Request is new Components.Message with record
       Req : Requests.Request_Access;
-      Oid : Objects.Object_Id_Access;
+      Pro : PolyORB.Binding_Data.Profile_Access;
    end record;
    --  Request the receiving Servant to execute Req. Oid is
    --  the object Id that was determined to be associated with

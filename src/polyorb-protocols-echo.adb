@@ -92,7 +92,7 @@ package body PolyORB.Protocols.Echo is
    procedure Invoke_Request
      (S : access Echo_Session;
       R : Request_Access;
-      O : access Objects.Object_Id) is
+      P : access Binding_Data.Profile_Type'Class) is
    begin
       null;
    end Invoke_Request;
