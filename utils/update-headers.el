@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#9 $
+;;; $Id: //droopi/main/utils/update-headers.el#10 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -18,6 +18,13 @@
   "Update headers."
   (interactive)
   (let (name spec)
+
+    ; compute base copyright year
+   (goto-char (point-min))
+   (if (re-search-forward "^--         Copyright (C) \\([0-9]+\\)-\\(.*\\)" nil t)
+       (setq base_date (buffer-substring (match-beginning 1) (match-end 1)))
+       (setq base_date "")
+     )
 
     ; delette previous header box, if any.
     (goto-char (point-min))
@@ -69,7 +76,7 @@
     (beginning-of-line)
     (let ((beg (point)))
       (next-line 1) (delete-region beg (point)))
-    (insert (center-ada (copyright-date)))
+    (insert (center-ada (copyright-date base_date)))
 
     ; add secondary header file if necessary.
     (goto-char (point-min))
@@ -241,11 +248,10 @@ YYYYY
 ;; copyright-date: format Copyright year line
 ;;
 
-(defun copyright-date ()
+(defun copyright-date (first)
   (let* (
 	 (copyright-logo "Copyright (C) ")
 	 (fsf-logo " Free Software Foundation, Inc.")
-	 (first (first-rev-date))
 	 (last  (last-rev-date))
 	 )
 
@@ -256,7 +262,7 @@ YYYYY
       ;; else, build copyright year, taking into account first and last begin equal
       (if (string-equal first last)
 	  (concat copyright-logo last fsf-logo)
-	(concat copyright-logo first  "-" last fsf-logo))
+	(concat copyright-logo first "-" last fsf-logo))
       )
     )
   )
