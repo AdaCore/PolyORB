@@ -3834,7 +3834,7 @@ package body Einfo is
       Set_Uint13 (Id, UI_From_Int (V));
    end Init_RM_Size;
 
-   procedure Init_Size (ID : E; V : Int) is
+   procedure Init_Size (Id : E; V : Int) is
    begin
       Set_Uint12 (Id, UI_From_Int (V));
       Set_Uint13 (Id, UI_From_Int (V));
