@@ -33,7 +33,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#12 $
+--  $Id$
 
 
 with PolyORB.Utils.Chained_Lists;
@@ -101,7 +101,7 @@ private
         Metadata : aliased Chunk_Metadata;
          --  Metadata associated by a client to this chunk.
 
-        Data     : Zone_Access;
+        Data     : aliased Ada.Streams.Stream_Element_Array (1 .. Size);
          --  The storage space of the chunk.
      end record;
 

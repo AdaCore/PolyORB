@@ -33,7 +33,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#13 $
+--  $Id$
 
 with Ada.Unchecked_Deallocation;
 with System;
@@ -42,32 +42,6 @@ package body PolyORB.Opaque.Chunk_Pools is
 
    use Ada.Streams;
    use Chunk_Lists;
-
-   procedure Allocate_Chunk (X : in out Chunk);
-   --  Initialize data for the chunk.
-   procedure Deallocate_Chunk (X : in out Chunk);
-   --  Free the memory allocated for the chunk.
-
-   --------------------
-   -- Allocate_Chunk --
-   --------------------
-
-   procedure Allocate_Chunk (X : in out Chunk) is
-   begin
-      if X.Data = null then
-         X.Data := new Ada.Streams.Stream_Element_Array (1 .. X.Size);
-      end if;
-      pragma Assert (X.Data /= null);
-   end Allocate_Chunk;
-
-   ----------------------
-   -- Deallocate_Chunk --
-   ----------------------
-
-   procedure Deallocate_Chunk (X : in out Chunk) is
-   begin
-      Free (X.Data);
-   end Deallocate_Chunk;
 
    --------------
    -- Allocate --
@@ -89,14 +63,12 @@ package body PolyORB.Opaque.Chunk_Pools is
       end if;
 
       if Allocation_Size = Default_Chunk_Size
-        and then not Pool.Prealloc_Used then
+        and then not Pool.Prealloc_Used
+      then
          New_Chunk := Pool.Prealloc'Access;
-         Allocate_Chunk (New_Chunk.all);
          Pool.Prealloc_Used := True;
       else
          New_Chunk := new Chunk (Size => Allocation_Size);
-         Allocate_Chunk (New_Chunk.all);
-         New_Chunk.Data.all := (others => 176);
          New_Chunk.Metadata := Null_Metadata;
       end if;
 
@@ -135,7 +107,6 @@ package body PolyORB.Opaque.Chunk_Pools is
             use type System.Address;
             This : Chunk_Access renames Value (It).all;
          begin
-            Deallocate_Chunk (This.all);
             if This.all'Address /= Pool.Prealloc'Address then
                Free (This);
             end if;
