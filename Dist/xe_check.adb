@@ -56,7 +56,69 @@ package body XE_Check is
       PID  : PID_Type;
       Ali  : ALI_Id;
 
+      Compiled  : Name_Id;
+      Obj       : Name_Id;
+      Args      : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
+      Main      : Boolean;
+      Full_Name : File_Name_Type;
+      Stamp     : Time_Stamp_Type;
+      Internal  : Boolean;
+
+      procedure Recompile (Name : File_Name_Type);
+      procedure Recompile (Name : File_Name_Type) is
+      begin
+         if not Already_Loaded (Name) then
+
+            --  Taken from Gnatmake.
+
+            Look_For_Full_File_Name :
+            begin
+               Full_Name := Get_File_Name (Name & Body_Suffix);
+               if Full_Source_Name (Full_Name) = No_File then
+                  Full_Name := Get_File_Name (Name & Spec_Suffix);
+                  if Full_Source_Name (Full_Name) = No_File then
+                     Osint.Write_Program_Name;
+                     Write_Str (": """);
+                     Write_Name (Name);
+                     Write_Str (""" cannot be found");
+                     Write_Eol;
+                     Exit_Program (E_Fatal);
+                  end if;
+               end if;
+               Internal := Is_Predefined_File_Name (Full_Name);
+            end Look_For_Full_File_Name;
+
+            --  Taken from Gnatmake.
+
+            Compile_Sources
+              (Main_Source           => Full_Name,
+               Args                  => Args,
+               First_Compiled_File   => Compiled,
+               Most_Recent_Obj_File  => Obj,
+               Most_Recent_Obj_Stamp => Stamp,
+               Main_Unit             => Main,
+               Check_Internal_Files  => Internal,
+               Dont_Execute          => False,
+               Force_Compilations    => Opt.Force_Compilations and
+               not Internal,
+               Initialize_Ali_Data   => False,
+               Max_Process           => 1);
+
+            --  Use later on to avoid unnecessary bind + link phases.
+
+            if Compiled = No_File then
+               Maybe_Most_Recent_Stamp (Stamp);
+            end if;
+
+         end if;
+      end Recompile;
+
+
    begin
+
+      --  Set future Ada names to null. Compile (or load) all Ada units and
+      --  check later on that these are not already used.
+      Set_Name_Table_Info (Configuration, 0);
 
       --  Recompile the non-distributed application.
 
@@ -64,94 +126,43 @@ package body XE_Check is
 
          Maybe_Most_Recent_Stamp (Source_File_Stamp (Configuration_File));
 
-         declare
-            Compiled : Name_Id;
-            Obj      : Name_Id;
-            Args     : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
-            Main     : Boolean;
-            Full_Name,
-            Name     : File_Name_Type;
-            Stamp    : Time_Stamp_Type;
-            Internal : Boolean;
-         begin
-            Display_Commands (Verbose_Mode or Building_Script);
-            for Switch in Gcc_Switches.First .. Gcc_Switches.Last loop
-               Args (Switch) := Gcc_Switches.Table (Switch);
-            end loop;
-
-            --  Recompile all the configured units to check that
-            --  they are present. It is also a way to load the ali files
-            --  in the ALIs table.
-
-            for CUID in CUnit.First .. CUnit.Last loop
-               Name := CUnit.Table (CUID).CUname;
-
-               if not Already_Loaded (Name) then
-
-                  --  Taken from Gnatmake.
-
-                  Look_For_Full_File_Name :
-                  begin
-                     Full_Name := Get_File_Name (Name & Body_Suffix);
-                     if Full_Source_Name (Full_Name) = No_File then
-                        Full_Name := Get_File_Name (Name & Spec_Suffix);
-                        if Full_Source_Name (Full_Name) = No_File then
-                           Osint.Write_Program_Name;
-                           Write_Str (": """);
-                           Write_Name (Name);
-                           Write_Str (""" cannot be found");
-                           Write_Eol;
-                           Exit_Program (E_Fatal);
-                        end if;
-                     end if;
-                     Internal := Is_Predefined_File_Name (Full_Name);
-                  end Look_For_Full_File_Name;
-
-                  --  Taken from Gnatmake.
-
-                  Compile_Sources
-                    (Main_Source           => Full_Name,
-                     Args                  => Args,
-                     First_Compiled_File   => Compiled,
-                     Most_Recent_Obj_File  => Obj,
-                     Most_Recent_Obj_Stamp => Stamp,
-                     Main_Unit             => Main,
-                     Check_Internal_Files  => Internal,
-                     Dont_Execute          => False,
-                     Force_Compilations    => Opt.Force_Compilations and
-                     not Internal,
-                     Initialize_Ali_Data   => False,
-                     Max_Process           => 1);
-
-                  --  Use later on to avoid unnecessary bind + link phases.
-
-                  if Compiled = No_File then
-                     Maybe_Most_Recent_Stamp (Stamp);
-                  end if;
-
-               end if;
-
-            end loop;
-         end;
-      else
-
-         --  We except ali files to be present. Load them.
-
-         for U in CUnit.First .. CUnit.Last loop
-            Load_All_Units (CUnit.Table (U).CUname);
+         Display_Commands (Verbose_Mode or Building_Script);
+         for Switch in Gcc_Switches.First .. Gcc_Switches.Last loop
+            Args (Switch) := Gcc_Switches.Table (Switch);
          end loop;
 
       end if;
 
-      declare
-         Node : XE.Node_Id;
-      begin
-         First_Configuration_Declaration (Configuration_Node, Node);
-         while Node /= Null_Node loop
-            Set_Name_Table_Info (Get_Node_Name (Node), 0);
-            Next_Configuration_Declaration (Node);
-         end loop;
-      end;
+      for U in CUnit.First .. CUnit.Last loop
+
+         if No_Recompilation then
+            --  We except ali files to be present. Load them.
+            Load_All_Units (CUnit.Table (U).CUname);
+
+         else
+            --  Recompile all the configured units to check that
+            --  they are present. It is also a way to load the ali files
+            --  in the ALIs table.
+            Recompile (CUnit.Table (U).CUname);
+
+         end if;
+
+      end loop;
+
+      for H in Hosts.First .. Hosts.Last loop
+         if not Hosts.Table (H).Static and then
+            Hosts.Table (H).Import = Ada_Import then
+
+            if No_Recompilation then
+               Load_All_Units (Hosts.Table (H).External);
+
+            else
+               Recompile (Hosts.Table (H).External);
+
+            end if;
+
+         end if;
+      end loop;
 
       --  Set configured unit name key to No_Ali_Id.       (1)
 
@@ -169,28 +180,24 @@ package body XE_Check is
          Set_ALI_Id (Name_Find, Unit.Table (U).My_ALI);
       end loop;
 
-      declare
-         Node : XE.Node_Id;
-      begin
-         First_Configuration_Declaration (Configuration_Node, Node);
-         while Node /= Null_Node loop
-            if Get_Name_Table_Info (Get_Node_Name (Node)) /= 0 then
-               Write_Program_Name;
-               Write_Str  (": """);
-               Write_Name (Get_Node_Name (Node));
-               Write_Str  (""" conflicts with application ada unit");
-               Write_Eol;
-               raise Parsing_Error;
-            end if;
-            Next_Configuration_Declaration (Node);
-         end loop;
-      end;
-
       --  Set partition name key to Null_PID.              (4)
 
       for P in Partitions.First .. Partitions.Last loop
          Set_PID (Partitions.Table (P).Name, Null_PID);
       end loop;
+
+      --  GNATDIST needs some Ada unit names to build the partition
+      --  main subprogram, for instance. We check these names are not
+      --  already used.
+
+      if Get_Name_Table_Info (Configuration) /= 0 then
+         Write_Program_Name;
+         Write_Str  (": configuration name """);
+         Write_Name (Configuration);
+         Write_Str  (""" conflicts with an Ada unit name");
+         Write_Eol;
+         raise Parsing_Error;
+      end if;
 
       if not Quiet_Output then
          Write_Program_Name;
