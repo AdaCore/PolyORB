@@ -15,11 +15,6 @@
 # The VERSION.INFO file will be used to substitute some variables in files
 # such as README, etc.
 #
-# Also, the Dist/glade_version.txt file will be filled with version
-# information that will be useful in case of bug reports. With prcs, only
-# the project version needs to be stored, while with CVS all the revision
-# information needs to be stored.
-#
 # The file MANIFEST contains the list of files to be included in this
 # archive, one file per line.
 #
@@ -56,30 +51,6 @@ else
   cd ${tmp}
   cvs -d ${root} co ${kk} -r ${tag} -d ${dir} ${name}
   cd ${dir}
-fi
-if [ -f Dist/glade_version.txt ]; then
-  echo "Completing glade_version.txt with useful information"
-  sed -e '/\[DEVELOPMENT VERSION\]/,$d' < Dist/glade_version.txt > GVT
-  rm -f Dist/glade_version.txt && mv GVT Dist/glade_version.txt
-  echo "[GLADE VERSION INFORMATION -- BEGIN]" >> Dist/glade_version.txt
-  echo "GLADE @glade_version@ for GNAT @gnat_version@" \
-    >> Dist/glade_version.txt
-  echo "Built by `whoami` on `hostname` (`date`)" >> Dist/glade_version.txt
-  echo "Tag: $tag" >> Dist/glade_version.txt
-  echo >> Dist/glade_version.txt
-  if $prcs; then
-    echo "PRCS information:" >> Dist/glade_version.txt
-    echo "   \$ProjectHeader$" >> Dist/glade_version.txt
-    prcs rekey *.prj Dist/glade_version.txt
-  else
-    echo "CVS root: `cat CVS/Root`" >> Dist/glade_version.txt
-    echo "CVS repository: `cat CVS/Repository`" >> Dist/glade_version.txt
-    echo "CVS information:" >> Dist/glade_version.txt
-    find . -type f -print | xargs grep "\$Revision$" >> Dist/glade_version.txt
-  fi
-  echo "[GLADE VERSION INFORMATION -- END]" >> Dist/glade_version.txt
-else
-  echo "WARNING: unable to locate glade_version.txt in directory Dist"
 fi
 if [ -f Utils/VERSION.INFO ]; then
   echo "Sourcing version file, then deleting it"
