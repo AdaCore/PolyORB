@@ -1,30 +1,5 @@
-/*************************************************************************************************
-***                       Interface File between the Front End and The Back End                ***
-***                               file:  cfe_interface.cc                                      ***
-***                                                                                            ***
-***      This file is the interface between the front end and the back end.                    ***
-***   It contains all the procedure from the back end called at the initialization.            ***
-***   It contains also the parser for the flags.                                               ***
-***                                                                                            ***
-***   Copyright 1999                                                                           ***
-***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
-***                                                                                            ***
-***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
-***   General Public License, as published by the Free Software Foundation.                    ***
-***                                                                                            ***
-***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
-***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
-***  PURPOSE.                                                                                  ***
-***                                                                                            ***
-***  See the GNU General Public License for more details.                                      ***
-***                                                                                            ***
-***                                                                                            ***
-*************************************************************************************************/
-
-
 #include <idl.hh>
 #include <idl_extern.hh>
-// #include <o2be.h>
 #include <adabe.h>  
 
 #ifdef HAS_pch
@@ -45,7 +20,8 @@
 
 #if defined(__WIN32__) || defined(__VMS) && __VMS_VER < 60200000
 
-// Win32 and VMS don't have an implementation of getopt() - supply a getopt() for this program:
+// Win32 and VMS don't have an implementation of getopt() - supply a
+// getopt() for this program:
 
 char* optarg;
 int optind = 1;
@@ -101,19 +77,10 @@ getopt(int num_args, char* const* args, const char* optstring)
 #endif
 
 
-// o2be_root* o2be_global::myself = NULL;
-// char* o2be_global::pd_hdrsuffix = DEFAULT_IDL_HDR_SUFFIX;
-// char* o2be_global::pd_skelsuffix = DEFAULT_IDL_SKEL_SUFFIX;
-// char* o2be_global::pd_dynskelsuffix = DEFAULT_IDL_DYNSKEL_SUFFIX;
-// size_t o2be_global::pd_suffixlen = DEFAULT_IDL_SUFFIXLEN;
-// int o2be_global::pd_fflag = 0;
-// int o2be_global::pd_aflag = 0;
-// int o2be_global::pd_qflag = 0;
-// int o2be_global::pd_mflag = 1;
-
 adabe_name* adabe_global::pd_adabe_current_file = NULL;
 adabe_root* adabe_global::myself = NULL; 
-bool adabe_global::pd_impl_flags = false;
+bool adabe_global::pd_impl_flag = false;
+unsigned long adabe_global::pd_debug_flag = 0;
 
 
 //
@@ -204,17 +171,21 @@ usage()
   std::cerr << GTDEVEL(" -Idir\t\t\tincludes dir in search path for preprocessor\n");
   std::cerr << GTDEVEL(" -Uname\t\t\tundefines name for preprocessor\n");
   std::cerr << GTDEVEL(" -V\t\t\tprints version info then exits\n");
-  //  std::cerr << GTDEVEL(" -a\t\t\tgenerates code required by type any\n");
-  // std::cerr << GTDEVEL(" -h suffix\t\tspecify suffix for the generated header file(s)\n");
+  std::cerr << GTDEVEL(" -a\t\t\tgenerates code required by type any\n");
+// std::cerr << GTDEVEL(" -h suffix\t\tspecify suffix for the
+// generated header file(s)\n");
   std::cerr << GTDEVEL(" -i\t\t\tgenerates empty stubs for the server side (*-impl files)\n");
-  //  std::cerr << GTDEVEL(" -l\t\t\tgenerates code required by LifeCycle service\n");
+// std::cerr << GTDEVEL(" -l\t\t\tgenerates code required by LifeCycle
+// service\n");
   std::cerr << GTDEVEL(" -m\t\t\tallow modules to be reopened\n");
-  //  std::cerr << GTDEVEL(" -s suffix\t\tspecify suffix for the generated stub file(s)\n");
-  //  std::cerr << GTDEVEL(" -t\t\t\tgenerate 'tie' implementation skeleton\n");
+// std::cerr << GTDEVEL(" -s suffix\t\tspecify suffix for the
+// generated stub file(s)\n");
+// std::cerr << GTDEVEL(" -t\t\t\tgenerate 'tie' implementation skeleton\n");
   std::cerr << GTDEVEL(" -u\t\t\tprints usage message and exits\n");
-  std::cerr << GTDEVEL(" -v\t\t\ttraces compilation stages\n");
+  std::cerr << GTDEVEL(" -vname\t\t\ttraces compilation of entity name\n");
   std::cerr << GTDEVEL(" -w\t\t\tsuppresses IDL compiler warning messages\n");
-  //  std::cerr << GTDEVEL(" -bback_end\t\tcauses specified back end to be used\n");
+// std::cerr << GTDEVEL(" -bback_end\t\tcauses specified back end to
+// be used\n");
 
   return;
 }
@@ -238,11 +209,6 @@ BE_parse_args(int argc, char **argv)
   char *buffer;
 
 
-  //#ifdef __WIN32__
-  //  o2be_global::set_skelsuffix("SK.cpp");
-  //  o2be_global::set_dynskelsuffix("DynSK.cpp");
-  //#endif
-
 #ifdef HAS_Cplusplus_Namespace
   // Enable reopen module by default
   idl_global->set_compile_flags(idl_global->compile_flags() |
@@ -251,7 +217,7 @@ BE_parse_args(int argc, char **argv)
 
   DRV_cpp_init();
   idl_global->set_prog_name(argv[0]);
-  while ((c = getopt(argc,argv,"D:EI:U:Vuvwmi" /*atlb:*/)) != EOF)
+  while ((c = getopt(argc,argv,"D:EI:U:Vuv:wmi" /*atlb:*/)) != EOF)
   // add "b:" if you want to select your back-end
     { 
       switch (c) 
@@ -271,71 +237,101 @@ BE_parse_args(int argc, char **argv)
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
 					IDL_CF_VERSION);
 	  return;
-	  /*
-	    case 'h':
-	    o2be_global::set_hdrsuffix(optarg);
-	    break;
-	    */
-	  /*	case 's':
-		{
-		o2be_global::set_skelsuffix(optarg);
-		char* s = new char[strlen(optarg) + strlen("Dyn") + 1];
-		strcpy(s, "Dyn");
-		strcat(s, optarg);
-		o2be_global::set_dynskelsuffix(s);
-		delete[] s;
-		}
-		break;
-		*/
+	/*
+	  case 'h':
+	  o2be_global::set_hdrsuffix(optarg);
+	  break;
+	*/
+	/*
+	  case 's':
+	  {
+	  o2be_global::set_skelsuffix(optarg);
+	  char* s = new char[strlen(optarg) + strlen("Dyn") + 1];
+	  strcpy(s, "Dyn");
+	  strcat(s, optarg);
+	  o2be_global::set_dynskelsuffix(s);
+	  delete[] s;
+	  }
+	  break;
+	*/
 	case 'u':
 	  usage();
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
 					IDL_CF_ONLY_USAGE);
 	  return;
 	case 'v':
-	  idl_global->set_compile_flags(idl_global->compile_flags() |
-					IDL_CF_INFORMATIVE);
+          if (strcmp(optarg,"argument")==0) 
+	    adabe_global::set_debug_flag (D_ARGUMENT);
+	  else if (strcmp(optarg,"attribute")==0)
+	    adabe_global::set_debug_flag (D_ATTRIBUTE);
+	  else if (strcmp(optarg,"constant")==0) 
+	    adabe_global::set_debug_flag (D_CONSTANT);
+          else if (strcmp(optarg,"enum")==0) 
+	    adabe_global::set_debug_flag (D_ENUM);
+          else if (strcmp(optarg,"exception")==0) 
+	    adabe_global::set_debug_flag (D_EXCEPTION);
+          else if (strcmp(optarg,"field")==0) 
+	    adabe_global::set_debug_flag (D_FIELD);
+          else if (strcmp(optarg,"interface")==0) 
+	    adabe_global::set_debug_flag (D_INTERFACE);
+          else if (strcmp(optarg,"forward")==0) 
+	    adabe_global::set_debug_flag (D_FORWARD);
+          else if (strcmp(optarg,"module")==0) 
+	    adabe_global::set_debug_flag (D_MODULE);
+          else if (strcmp(optarg,"operation")==0) 
+	    adabe_global::set_debug_flag (D_OPERATION);
+          else if (strcmp(optarg,"sequence")==0) 
+	    adabe_global::set_debug_flag (D_SEQUENCE);
+          else if (strcmp(optarg,"struct")==0) 
+	    adabe_global::set_debug_flag (D_STRUCT);
+          else if (strcmp(optarg,"typedef")==0) 
+	    adabe_global::set_debug_flag (D_TYPEDEF);
+	  else if (strcmp(optarg,"union")==0) 
+	    adabe_global::set_debug_flag (D_UNION);
 	  break;
+
 	case 'w':
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
 					IDL_CF_NOWARNINGS);
 	  break;
-	  /*
-	    case 'l':
-	    // XXX -Life cycle compiler flag
-	    idl_global->set_compile_flags(idl_global->compile_flags() |
-	    IDL_CF_LIFECYCLE);
-	    break;
-	    
-	    case 'a':
-	    idl_global->set_compile_flags(idl_global->compile_flags() |
-	    IDL_CF_ANY);
-	    break;
-	    */
+	/*
+	  case 'l':
+	  // XXX -Life cycle compiler flag
+	  idl_global->set_compile_flags(idl_global->compile_flags() |
+	  IDL_CF_LIFECYCLE);
+	  break;
+	  
+	  case 'a':
+	  idl_global->set_compile_flags(idl_global->compile_flags() |
+	  IDL_CF_ANY);
+	  break;
+	*/
 	  
 	case 'm':
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
 					IDL_CF_REOPENMODULE);
 	  break;
-	  /*
-	    case 't':
-	    idl_global->set_compile_flags(idl_global->compile_flags() |
-	    IDL_BE_GENERATE_TIE);
-	    break;
-	    */
-	  /*	case 'b':                   
-		if ((strcmp(optarg,"ada")==0)||(strcmp(optarg,"c")==0))  idl_global->set_be(optarg);
-		else exit(99) ;
-		be_defined = 1;   
-		break;
-		*/
+	/*
+	  case 't':
+	  idl_global->set_compile_flags(idl_global->compile_flags() |
+	  IDL_BE_GENERATE_TIE);
+	  break;
+	*/
+	/*
+        case 'b':                   
+          if ((strcmp(optarg,"ada")==0)||(strcmp(optarg,"c")==0))
+	  idl_global->set_be(optarg);
+	  else exit(99) ;
+	  be_defined = 1;   
+	  break;
+	*/
 	case '?':
 	  usage();
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
 					IDL_CF_ONLY_USAGE);
 	  return;
 	case 'i':
-	  adabe_global::set_impl_flags(true);
+	  adabe_global::set_impl_flag (true);
 	  break;
 	}
     }

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.7 $
+//                            $Revision: 1.8 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -32,9 +32,10 @@
 //--------------------------------------------------------------------------//
 #include <adabe.h>
 
-////////////////////////////////////////////////////////////////////////
-////////////////      constructor    ///////////////////////////////////
-////////////////////////////////////////////////////////////////////////
+//--------------------------------//
+// adabe_argument::adabe_argument //
+//--------------------------------//
+
 adabe_argument::adabe_argument (AST_Argument::Direction   d,
 				AST_Type                * ft,
 				UTL_ScopedName          * n,
@@ -47,9 +48,10 @@ adabe_argument::adabe_argument (AST_Argument::Direction   d,
 }
 
 
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_ads     ///////////////////////////////////
-////////////////////////////////////////////////////////////////////////
+//-----------------------------//
+// adabe_argument::produce_ads //
+//-----------------------------//
+
 void
 adabe_argument::produce_ads (dep_list & with,
 			     string   & body,
@@ -57,8 +59,8 @@ adabe_argument::produce_ads (dep_list & with,
   // Produce code for the .ads file. Produce actually for this
   // argument the code needed in a function declaration.
 {
-  //  Name of this argument
   compute_ada_name ();
+  D (D_ARGUMENT, "produce spec for argument " + get_ada_local_name ());
 
   // add the name of the argument to the body
   body += get_ada_local_name () + " : ";
@@ -86,9 +88,10 @@ adabe_argument::produce_ads (dep_list & with,
 }
 
 
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_ads     ///////////////////////////////////
-////////////////////////////////////////////////////////////////////////
+//-----------------------------//
+// adabe_argument::produce_adb //
+//-----------------------------//
+
 void
 adabe_argument::produce_adb (dep_list & with,
 			     bool     & no_out,
@@ -120,6 +123,9 @@ adabe_argument::produce_adb (dep_list & with,
   //      of the Get_Result function corresponding to the operation
   //    - result_decls contains the code to put in the get_result function
 {
+  compute_ada_name ();
+  D (D_ARGUMENT, "produce body for argument " + get_ada_local_name ());
+  
   // get the direction of the argument (in, out or inout)
   AST_Argument::Direction dir = direction ();
 
@@ -168,13 +174,15 @@ adabe_argument::produce_adb (dep_list & with,
   if ((direction () == AST_Argument::dir_IN) ||
       (direction () == AST_Argument::dir_INOUT)) {
     if (marshal_pkg != "")
-      marshall_size += "         --  Marshalling function from " + marshal_pkg + "\n";
+      marshall_size += "         --  Marshalling function from "
+	+ marshal_pkg + "\n";
     marshall_size += "         Compute_New_Size (Handler.Buffer, ";
     marshall_size += get_ada_local_name ();
     marshall_size += ");\n";
 
     if (marshal_pkg != "")
-      marshall += "         --  Marshalling function from " + marshal_pkg + "\n";
+      marshall += "         --  Marshalling function from "
+	+ marshal_pkg + "\n";
     marshall += "         Marshall (Handler.Buffer, ";
     marshall += get_ada_local_name ();
     marshall += ");\n";
@@ -186,16 +194,18 @@ adabe_argument::produce_adb (dep_list & with,
     // (we already call it right above)
     // dynamic_cast<adabe_name *>(d)->is_marshal_imported (with);
     if (marshal_pkg != "")
-      unmarshall += "            --  Marshalling function from " + marshal_pkg + "\n";
+      unmarshall += "            --  Marshalling function from "
+	+ marshal_pkg + "\n";
     unmarshall += "            Unmarshall (handler.Buffer, ";
     unmarshall += get_ada_local_name ();
     unmarshall += ");\n";
   }
 }
 
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_skel_adb     //////////////////////////////
-////////////////////////////////////////////////////////////////////////
+//----------------------------------//
+// adabe_argument::produce_skel_adb //
+//----------------------------------//
+
 void
 adabe_argument::produce_skel_adb (dep_list & with,
 				  string   & in_decls,
@@ -206,12 +216,14 @@ adabe_argument::produce_skel_adb (dep_list & with,
 				  string   & marshall,
 				  string   & align_size)
 {
+  compute_ada_name ();
+  D (D_ARGUMENT, "produce skel body for argument " + get_ada_local_name ());
+
   string previous = "";
   AST_Decl *d = field_type ();
   adabe_name *e = dynamic_cast<adabe_name *>(d);
   string type_name = e->dump_name (with, previous);
   string marshal_pkg = e->new_is_marshal_imported (with);
-  // e->is_marshal_imported (with);
 
   in_decls += "            ";
   in_decls += get_ada_local_name ();
@@ -224,7 +236,8 @@ adabe_argument::produce_skel_adb (dep_list & with,
     {
       no_in = false;
       if (marshal_pkg != "")
-        unmarshall += "            --  Marshalling function from " + marshal_pkg + "\n";
+        unmarshall += "            --  Marshalling function from "
+	  + marshal_pkg + "\n";
       unmarshall += "            Unmarshall (Stream, ";
       unmarshall += get_ada_local_name ();
       unmarshall += ");\n";
@@ -238,22 +251,19 @@ adabe_argument::produce_skel_adb (dep_list & with,
     {
       no_out = false;
       if (marshal_pkg != "")
-        marshall += "            --  Marshalling function from " + marshal_pkg + "\n";
+        marshall += "            --  Marshalling function from "
+	  + marshal_pkg + "\n";
       marshall += "            Marshall (Stream, ";
       marshall += get_ada_local_name ();
       marshall += ");\n";
       if (marshal_pkg != "")
-        align_size += "            --  Marshalling function from " + marshal_pkg + "\n";
+        align_size += "            --  Marshalling function from "
+ + marshal_pkg + "\n";
       align_size += "            Size := Compute_New_Size (Stream, ";
       align_size += get_ada_local_name ();
       align_size += ");\n";
     }      
 }
 
-
-
-////////////////////////////////////////////////////////////////////////
-////////////////     miscellaneous           ///////////////////////////
-////////////////////////////////////////////////////////////////////////
 IMPL_NARROW_METHODS1 (adabe_argument, AST_Argument)
 IMPL_NARROW_FROM_DECL (adabe_argument)

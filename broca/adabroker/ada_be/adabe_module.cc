@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.12 $
+//                            $Revision: 1.13 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -54,9 +54,8 @@ adabe_module::produce_ads (dep_list & withlist,
 			   string   & maincode,
 			   string   & prologue)
 {
-  // Before doing anything compute the ada name (of what ???).
-  
   compute_ada_name (); 
+  D (D_MODULE, "produce module spec for " + get_ada_full_name ());
 
   withlist.add ("CORBA");
   withlist.add ("Broca");
@@ -156,37 +155,44 @@ adabe_module::produce_ads (dep_list & withlist,
   maincode += "end " + get_ada_full_name () + ";";
 }
 
+//---------------------------//
+// adabe_module::produce_adb //
+//---------------------------//
+
 void
 adabe_module::produce_adb (dep_list & withlist,
 			   string   & maincode,
 			   string   & prologue)
 {
-   UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
-   
-   while (!iterator.is_done ())
-     {
-       adabe_global::set_adabe_current_file (this);
-
-       AST_Decl *d = iterator.item ();
-
-       switch (d->node_type ())
-	 {
-	 case AST_Decl::NT_array:
-	 case AST_Decl::NT_interface_fwd:
-	 case AST_Decl::NT_pre_defined:
-	 case AST_Decl::NT_const:
-	 case AST_Decl::NT_except:
-	 case AST_Decl::NT_union:
-	 case AST_Decl::NT_struct:
-	 case AST_Decl::NT_enum:
-	 case AST_Decl::NT_typedef:
-	   break;
-	   
-	 case AST_Decl::NT_module:
+  compute_ada_name ();
+  D (D_MODULE, "produce module body for " + get_ada_full_name ());
+  
+  UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
+  
+  while (!iterator.is_done ())
+    {
+      adabe_global::set_adabe_current_file (this);
+      
+      AST_Decl *d = iterator.item ();
+      
+      switch (d->node_type ())
+	{
+	case AST_Decl::NT_array:
+	case AST_Decl::NT_interface_fwd:
+	case AST_Decl::NT_pre_defined:
+	case AST_Decl::NT_const:
+	case AST_Decl::NT_except:
+	case AST_Decl::NT_union:
+	case AST_Decl::NT_struct:
+	case AST_Decl::NT_enum:
+	case AST_Decl::NT_typedef:
+	  break;
+	  
+	case AST_Decl::NT_module:
 	  {
 	    adabe_module *module =
 	      adabe_module::narrow_from_decl (d);
-
+	    
 	    string module_prologue = "";
 	    string module_maincode = "";
 	    dep_list module_withlist;
@@ -242,6 +248,9 @@ adabe_module::produce_skel_ads (dep_list & withlist,
 				string   & maincode,
 				string   & prologuedefinition)
 {
+  compute_ada_name ();
+  D (D_MODULE, "produce module skel spec for " + get_ada_full_name ());
+  
   UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
 
   while (!iterator.is_done ())
@@ -317,6 +326,9 @@ adabe_module::produce_skel_adb (dep_list & withlist,
 				string   & maincode,
 				string   & prologue)
 {
+  compute_ada_name ();
+  D (D_MODULE, "produce module skel body for " + get_ada_full_name ());
+  
    UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
 
    while (!iterator.is_done ())
@@ -398,6 +410,9 @@ adabe_module::produce_stream_ads (dep_list & withlist,
 				  string   & maincode,
 				  string   & prologue)
 {
+  compute_ada_name ();
+  D (D_MODULE, "produce module stream spec for " + get_ada_full_name ());
+  
   bool first = true;
 
   maincode += "use type CORBA.Unsigned_Long; \n";
@@ -508,6 +523,9 @@ adabe_module::produce_stream_adb (dep_list & withlist,
 				  string   & maincode,
 				  string   & prologue)
 {
+  compute_ada_name ();
+  D (D_MODULE, "produce module stream body for " + get_ada_full_name ());
+  
   bool first = true;
 
   UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -32,9 +32,10 @@
 //--------------------------------------------------------------------------//
 #include <adabe.h>
 
-////////////////////////////////////////////////////////////////////////
-////////////////      constructor    ///////////////////////////////////
-////////////////////////////////////////////////////////////////////////
+//----------------------------------//
+// adabe_attribute::adabe_attribute //
+//----------------------------------//
+
 adabe_attribute::adabe_attribute (idl_bool ro,
 				  AST_Type *ft,
 				  UTL_ScopedName *n,
@@ -47,14 +48,18 @@ adabe_attribute::adabe_attribute (idl_bool ro,
   // there's nothing specific to be done
 }
 
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_ads     ///////////////////////////////////
-////////////////////////////////////////////////////////////////////////
+//------------------------------//
+// adabe_attribute::produce_ads //
+//------------------------------//
+
 void
 adabe_attribute::produce_ads (dep_list & with,
 			      string   & body,
 			      string   & previous)
 {
+  compute_ada_name ();
+  D (D_ATTRIBUTE, "produce spec for attribute " + get_ada_local_name ());
+
   // Function to read attribute.
   body += "   function Get_" + get_ada_local_name () +"\n";
   body += "     (Self : in Ref)\n";
@@ -74,14 +79,18 @@ adabe_attribute::produce_ads (dep_list & with,
     }
 }
 
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_adb     ///////////////////////////////////
-////////////////////////////////////////////////////////////////////////
+//------------------------------//
+// adabe_attribute::produce_adb //
+//------------------------------//
+
 void
 adabe_attribute::produce_adb (dep_list & with,
 			      string   & body,
 			      string   & previous)
 {
+  compute_ada_name ();
+  D (D_ATTRIBUTE, "produce body for attribute " + get_ada_local_name ());
+
   with.add ("AdaBroker.OmniProxyCallWrapper");
 
   // To get an attribute.
@@ -93,7 +102,8 @@ adabe_attribute::produce_adb (dep_list & with,
   body += name + "\n   is\n";
 
   string name_of_the_package =
-    dynamic_cast<adabe_name *>(ScopeAsDecl (defined_in ()))->get_ada_full_name ();
+    dynamic_cast<adabe_name *>
+    (ScopeAsDecl (defined_in ()))->get_ada_full_name ();
   body += "      Operation : " + name_of_the_package;
   body += ".Proxy.Get_" + get_ada_local_name () + "_Proxy;\n";
   body += "   begin \n";
@@ -122,14 +132,18 @@ adabe_attribute::produce_adb (dep_list & with,
     }
 }
 
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_skel_ads     //////////////////////////////
-////////////////////////////////////////////////////////////////////////
+//-----------------------------------//
+// adabe_attribute::produce_skel_ads //
+//-----------------------------------//
+
 void
 adabe_attribute::produce_skel_ads (dep_list & with,
 				   string   & body,
 				   string   & previous)
 {
+  compute_ada_name ();
+  D (D_ATTRIBUTE, "produce skel spec for attribute " + get_ada_local_name ());
+
   // To get an attribute (server).
   body += "   function Get_" + get_ada_local_name () +"\n";
   body += "     (Self : access Object)\n";
@@ -150,14 +164,18 @@ adabe_attribute::produce_skel_ads (dep_list & with,
   
 }
 
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_skel_adb     //////////////////////////////
-////////////////////////////////////////////////////////////////////////
+//-----------------------------------//
+// adabe_attribute::produce_skel_adb //
+//-----------------------------------//
+
 void
 adabe_attribute::produce_skel_adb (dep_list & with,
 				   string   & body,
 				   string   & previous)
 {
+  compute_ada_name ();
+  D (D_ATTRIBUTE, "produce skel body for attribute " + get_ada_local_name ());
+
   body += "   function Get_" + get_ada_local_name () + "\n";
   body += "     (Self : access Object)\n";
   body += "      return ";
@@ -181,9 +199,6 @@ adabe_attribute::produce_skel_adb (dep_list & with,
     } 
 }
 
-////////////////////////////////////////////////////////////////////////
-////////////////     miscellaneous           ///////////////////////////
-////////////////////////////////////////////////////////////////////////
 IMPL_NARROW_METHODS1 (adabe_attribute, AST_Attribute)
 IMPL_NARROW_FROM_DECL (adabe_attribute)
 IMPL_NARROW_FROM_SCOPE (adabe_attribute)

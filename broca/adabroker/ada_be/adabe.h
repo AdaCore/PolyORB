@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.7 $
+//                            $Revision: 1.8 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -36,8 +36,10 @@
 #include <idl.hh>
 #include <idl_extern.hh>
 #include <string>
-#include "debug.h"
 #include "adabe_types.h"
+#include "debug.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 // Defined in adabe_misc.cc
 void gen_marshalling_declarations (string &body, const string type_name);
@@ -51,6 +53,8 @@ char * lower (const char * s);
 
 string spaces (int n, char d);
 // Return a string of n identical d chars used for indentation
+
+void D (unsigned long flag, string message);
 
 class adabe_string_list
 {
@@ -613,11 +617,13 @@ class adabe_global {
 private:
   static adabe_root* myself;
   static adabe_name* pd_adabe_current_file;
-  static bool pd_impl_flags;
+  static unsigned long pd_debug_flag;
+  static bool pd_impl_flag;
   // should we produce the implementation files? (true == yes)
   
 public :
-  static void set_adabe_current_file(adabe_name *new_file) { pd_adabe_current_file = new_file; };
+  static void set_adabe_current_file(adabe_name *new_file)
+  { pd_adabe_current_file = new_file; };
   // to set the current file which is produced 
 
   static void set_root(adabe_root *v) { myself = v; };
@@ -629,10 +635,18 @@ public :
   static adabe_name *adabe_current_file() { return pd_adabe_current_file; };
   // which file is the current file which is produced ?
 
-  static bool impl_flags() { return pd_impl_flags; };
+  static bool impl_flag () { return pd_impl_flag; };
   // to produce the implementation files if true
 
-  static void set_impl_flags(bool set_impl) { pd_impl_flags = set_impl; };
+  static void set_impl_flag (bool set_impl) { pd_impl_flag = set_impl; };
+  // to set this flags at the parsing (produce the impl?)
+  
+  static bool debug_flag (unsigned long flag)
+    { return pd_debug_flag & flag; };
+  // to produce the implementation files if true
+
+  static void set_debug_flag (unsigned long flag)
+    { pd_debug_flag = pd_debug_flag | flag; };
   // to set this flags at the parsing (produce the impl?)
   
 };

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.8 $
+//                            $Revision: 1.9 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -35,6 +35,7 @@
 ////////////////////////////////////////////////////////////////////////
 ////////////////      constructor    ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
+
 adabe_interface::adabe_interface (UTL_ScopedName *n,
 				  AST_Interface **ih,
 				  long nih,
@@ -59,7 +60,6 @@ adabe_interface::adabe_interface (UTL_ScopedName *n,
 ////////////////////////////////////////////////////////////////////////
 ////////////////     produce_ads     ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-
 
 void
 adabe_interface::produce_ads (dep_list &with,

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -30,11 +30,20 @@
 //                     (email: broker@inf.enst.fr)                          //
 //                                                                          //
 //--------------------------------------------------------------------------//
-//#define DEBUG_CFE
-//#define DEBUG_ROOT
-//#define DEBUG_INTERFACE
-//#define DEBUG_NAME
-//#define DEBUG_OPERATION
-//#define DEBUG_STRING
-//#define DEBUG_EXCEPTION
-//#define DEBUG_UNION_BRANCH
+
+#define D_ARGUMENT      0x1
+#define D_ARRAY         0x2
+#define D_ATTRIBUTE     0x4
+#define D_CONSTANT      0x8
+#define D_ENUM          0x10
+#define D_EXCEPTION     0x20
+#define D_FIELD         0x40
+#define D_INTERFACE     0x80
+#define D_FORWARD       0x100
+#define D_MODULE        0x200
+#define D_OPERATION     0x400
+#define D_SEQUENCE      0x800
+#define D_STRUCT        0x1000
+#define D_TYPEDEF       0x2000
+#define D_UNION         0x4000
+

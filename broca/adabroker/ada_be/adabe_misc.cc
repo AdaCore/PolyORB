@@ -1,5 +1,5 @@
 //  Misc function for ada back-end.
-#include "adabe_types.h"
+#include "adabe.h"
 
 #include <idl.hh>
 #include <string>
@@ -76,4 +76,8 @@ void produce_file (string name, source_type type, string code) {
   file << code;
   file.close ();
 }
-    
+
+void D (unsigned long flag, string message) {
+  if (adabe_global::debug_flag (flag)) 
+    std::cerr << message << std::endl;
+}
