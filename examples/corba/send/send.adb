@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
 
-with Ada.Command_Line; use Ada.Command_Line;
-with Ada.Text_IO;      use Ada.Text_IO;
+with Ada.Command_Line;
+with Ada.Text_IO;
+
 with CORBA.ORB;
 
 with Test.Printer;
@@ -42,13 +44,23 @@ with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure Send is
+
+   use Ada.Command_Line;
+   use Ada.Text_IO;
+
    Howmany : Integer := 1;
+
    type Send_Type is (Long, String, EchoString, EchoLong);
    T : Send_Type := String;
+
    K : Integer;
    Tempo : Integer;
+
 begin
    CORBA.ORB.Initialize ("ORB");
+
+   --  Parse command line
+
    if Argument_Count < 1 then
       Put_Line ("usage : ./send <IOR> [number of calls] "
                 & "[time between calls] [type]");
@@ -90,35 +102,41 @@ begin
 --          & "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
 --          & "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggga";
       myprint : Test.Printer.Ref;
+
    begin
       CORBA.ORB.String_To_Object
         (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), myprint);
 
-      --  checking if it worked
+      --  Check reference is correct
+
       if Test.Printer.Is_Nil (myprint) then
          Put_Line ("main : cannot invoke on a nil reference");
          return;
       end if;
 
-      --  sending message
+      --  Send message
+
       Put_Line ("Mode : " & T'Img);
+
       while Howmany > 0 loop
          case T is
             when String =>
                Test.Printer.printString
                  (myprint,
                   CORBA.To_CORBA_String (Howmany'Img & " " & Sent_Msg));
+
             when EchoString =>
                declare
                   use CORBA;
                   Str : constant CORBA.String
-                    := To_CORBA_String
-                    (Howmany'Img & " " & Sent_Msg);
+                    := To_CORBA_String (Howmany'Img & " " & Sent_Msg);
+
                begin
                   if Str /= Test.Printer.echoString (myprint, Str) then
                      Put_Line ("Bad return value");
                   end if;
                end;
+
             when EchoLong =>
                declare
                   use CORBA;
@@ -129,16 +147,21 @@ begin
                      Put_Line ("Bad return value");
                   end if;
                end;
+
             when Long =>
                Test.Printer.printLong (myprint, CORBA.Long (Howmany));
          end case;
+
          Howmany := Howmany - 1;
+
          K := 0;
-         for I in 1 .. Tempo loop
+         for J in 1 .. Tempo loop
             K := K + 1;
          end loop;
          pragma Assert (K = Tempo);
+
       end loop;
+
    exception
       when E : CORBA.Transient =>
          declare
