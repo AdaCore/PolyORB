@@ -46,6 +46,8 @@ with PolyORB.HTTP_Headers;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Opaque;
+with PolyORB.Protocols;
+--  For exception Protocol_Error.
 with PolyORB.Utils;
 with PolyORB.Utils.Text_Buffers;
 
@@ -63,6 +65,8 @@ package body PolyORB.Filters.HTTP is
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters.http");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   Protocol_Error : exception renames Protocols.Protocol_Error;
 
    -----------------------------------------
    -- Declaration of internal subprograms --
@@ -583,7 +587,7 @@ package body PolyORB.Filters.HTTP is
                      F.State := Chunk_Size;
                   end if;
                elsif F.Content_Length > 0 then
-                  F.Transfer_Length := F.Content_Length;
+                  F.Transfer_Length := F.Content_Length + 2;
                   F.State := Entity;
 --             elsif Media-Type is multipart/byteranges
 --                ... use that to determine the transfer-length
@@ -770,12 +774,13 @@ package body PolyORB.Filters.HTTP is
 
       F.Status := To_HTTP_Status_Code
         (Natural'Value (S (Status_Pos .. Space - 1)));
-
       --  The remainder of the line is the response-phrase
       --  and is ignored.
 
+      F.State := Header;
+
       pragma Debug (O ("Parsed status-line:"));
-      pragma Debug (O (Image (F.Version) & F.Status'Img
+      pragma Debug (O (Image (F.Version) & " " & F.Status'Img
                        & S (Space .. S'Last)));
    end Parse_Status_Line;
 

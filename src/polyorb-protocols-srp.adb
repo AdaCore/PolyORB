@@ -30,7 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Ada.Exceptions;
 --  $Id$
 
 with Ada.Streams; use Ada.Streams;
@@ -96,21 +95,25 @@ package body PolyORB.Protocols.SRP is
       null;
    end Connect;
 
-   procedure Invoke_Request (S : access SRP_Session;
-             R :  Requests.Request_Access)
+   procedure Invoke_Request
+     (S : access SRP_Session;
+      R :  Requests.Request_Access;
+      O : access Objects.Object_Id)
    is
    begin
       null;
    end Invoke_Request;
 
-   procedure Abort_Request (S : access SRP_Session;
-             R :  Requests.Request_Access)
+   procedure Abort_Request
+     (S : access SRP_Session;
+      R :  Requests.Request_Access)
    is
    begin
       null;
    end Abort_Request;
 
    procedure Request_Received (S : access SRP_Session);
+
    procedure Request_Received (S : access SRP_Session)
    is
       use Binding_Data.Local;

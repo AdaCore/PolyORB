@@ -76,11 +76,12 @@ package body SOAP.Message.Response.Error is
 
       --  Set Faultcode and Faultstring
 
-      P := P
-        & NamedValue'(To_PolyORB_String ("faultcode"),
-                      To_Any (To_PolyORB_String (String (Faultcode))), ARG_IN)
-        & NamedValue'(To_PolyORB_String ("faultstring"),
-                      To_Any (To_PolyORB_String (Faultstring)), ARG_IN);
+      P :=  +NamedValue'
+        (To_PolyORB_String ("faultcode"),
+         To_Any (To_PolyORB_String (String (Faultcode))), ARG_IN)
+        & NamedValue'
+        (To_PolyORB_String ("faultstring"),
+         To_Any (To_PolyORB_String (Faultstring)), ARG_IN);
 
       --  Set parameters for this error object
 

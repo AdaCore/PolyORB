@@ -51,7 +51,8 @@ package PolyORB.Protocols.SOAP_Pr is
 
    procedure Invoke_Request
      (S   : access SOAP_Session;
-      R   : Requests.Request_Access);
+      R   : Requests.Request_Access;
+      Oid : access Objects.Object_Id);
 
    procedure Abort_Request
      (S : access SOAP_Session;

@@ -52,7 +52,10 @@ package PolyORB.Protocols.Echo is
 
    type Echo_Session is new Session with private;
 
-   procedure Invoke_Request (S : access Echo_Session; R : Request_Access);
+   procedure Invoke_Request
+     (S : access Echo_Session;
+      R : Request_Access;
+      O : access Objects.Object_Id);
    procedure Abort_Request (S : access Echo_Session; R : Request_Access);
    --  These are just for show and do nothing.
 

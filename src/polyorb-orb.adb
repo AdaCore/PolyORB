@@ -652,7 +652,8 @@ package body PolyORB.ORB is
             Result : constant Components.Message'class
               := Emit (Surrogate,
                        Objects.Interface.Execute_Request'
-                       (Req => J.Request));
+                       (Req => J.Request,
+                        Oid => Oid));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);

@@ -107,7 +107,8 @@ package body PolyORB.Protocols is
       elsif S in Execute_Request then
          Invoke_Request
            (Session_Access (Sess),
-            Execute_Request (S).Req);
+            Execute_Request (S).Req,
+            Execute_Request (S).Oid);
       elsif S in Executed_Request then
          declare
             Var_Req : Request_Access

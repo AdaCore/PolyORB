@@ -53,8 +53,6 @@ package PolyORB.Filters.HTTP is
      (Fact   : access HTTP_Filter_Factory;
       Filt   : out Filter_Access);
 
-   Protocol_Error : exception;
-
    type HTTP_Status_Code is
      (S_Unknown,
 

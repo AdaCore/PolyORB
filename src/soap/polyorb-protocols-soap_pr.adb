@@ -43,6 +43,8 @@ with SOAP.Message.Response;
 with SOAP.Parameters;
 
 with PolyORB.Annotations;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Filters.AWS_Interface;
@@ -51,6 +53,7 @@ with PolyORB.HTTP_Methods;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects;
+with PolyORB.Objects.Interface;
 with PolyORB.References;
 with PolyORB.Utils.Text_Buffers;
 
@@ -69,6 +72,27 @@ package body PolyORB.Protocols.SOAP_Pr is
       SOAP_Req : SOAP.Message.Payload.Object;
    end record;
 
+   --------------------------
+   -- Internal subprograms --
+   --------------------------
+
+   --  Simple Oid <-> URI translation (to be removed -- the object
+   --  adapter should be queried instead) (NO not so simple. There
+   --  is no object adapter on the client side!) (but on the other
+   --  end the SOAP profile could directly contain an URI, and
+   --  Get_Object_Key be changed instead.)
+   --  For now use /<hexdigits> as URI.
+
+   function URI_To_Oid (URI : Types.String)
+     return Objects.Object_Id;
+
+   function Oid_To_URI (Oid : access Objects.Object_Id)
+     return Types.String;
+
+   --------------------
+   -- Implementation --
+   --------------------
+
    procedure Create
      (Proto   : access SOAP_Protocol;
       Session : out Filter_Access)
@@ -83,7 +107,8 @@ package body PolyORB.Protocols.SOAP_Pr is
 
    procedure Invoke_Request
      (S   : access SOAP_Session;
-      R   : Requests.Request_Access)
+      R   : Requests.Request_Access;
+      Oid : access Objects.Object_Id)
    is
       P : SOAP.Message.Payload.Object;
    begin
@@ -104,10 +129,10 @@ package body PolyORB.Protocols.SOAP_Pr is
         (Lower (S),
          Filters.AWS_Interface.AWS_Request_Out'
          (Request_Method => HTTP_Methods.POST,
-          Relative_URI => Types.To_PolyORB_String (""),
-            --  XXX To_URI (""),
-          Data => Types.String (Ada.Strings.Unbounded.Unbounded_String'
-                                (SOAP.Message.XML.Image (P))),
+          Relative_URI => Oid_To_URI (Oid),
+          Data => Types.String
+          (Ada.Strings.Unbounded.Unbounded_String'
+           (SOAP.Message.XML.Image (P))),
           SOAP_Action => Types.String (R.Operation)));
    end Invoke_Request;
 
@@ -173,22 +198,117 @@ package body PolyORB.Protocols.SOAP_Pr is
    end Send_Reply;
 
    function URI_To_Oid (URI : Types.String)
-     return Objects.Object_Id;
-
-   function URI_To_Oid (URI : Types.String)
      return Objects.Object_Id
    is
       S : constant String := Types.To_Standard_String (URI);
    begin
       return Objects.To_Oid (S (S'First + 1 .. S'Last));
-      --  For now use /<hexdigits> as URI.
    end URI_To_Oid;
+
+   function Oid_To_URI (Oid : access Objects.Object_Id)
+     return Types.String
+   is
+   begin
+      return Types.To_PolyORB_String
+        ("/" & Objects.To_String (Oid.all));
+   end Oid_To_URI;
+
+   procedure Process_Reply
+     (S : access SOAP_Session;
+      Entity : String);
+
+   procedure Process_Reply
+     (S : access SOAP_Session;
+      Entity : String)
+   is
+      use PolyORB.Any;
+      use PolyORB.Any.NVList;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Sequence;
+
+      M : constant Standard.SOAP.Message.Response.Object'Class
+        := Standard.SOAP.Message.XML.Load_Response (Entity);
+      Return_Args : constant Any.NVList.Ref
+        := Any.NVList.Ref (Message.Parameters (M));
+
+      R : constant Requests.Request_Access := S.Pending_Rq;
+
+      Args : constant NV_Sequence_Access
+        := List_Of (R.Args);
+
+      P_Arg_Index : Integer := 1;
+      --  Index in Return_Args (protocol layer arguments)
+   begin
+      if R = null then
+         raise Protocol_Error;
+         --  Received a reply with no pending request.
+      end if;
+
+      --  XXX BAD BAD this subprogram does not take into account
+      --  the case where a FAULT or EXCEPTION has been received
+      --  instead of a normal reply!!
+
+      S.Pending_Rq := null;
+      declare
+         Result_Any : Any.Any
+           := Element_Of (List_Of (Return_Args).all, 1).Argument;
+      begin
+         Copy_Any_Value (R.Result.Argument, Result_Any);
+      end;
+      Delete (List_Of (Return_Args).all, 1, 1);
+      --  XXX assumes that method result is arg #1.
+
+      --  XXX The following nice and fine loop is ripped
+      --  from PolyORB.Requests.Arguments and adapted for this case.
+      --  It should be factored out!
+
+      for A_Arg_Index in 1 .. Get_Count (R.Args) loop
+         --  Index in Args (application layer arguments)
+         declare
+            A_Arg : NamedValue
+              := Element_Of (Args.all, Integer (A_Arg_Index));
+         begin
+            if A_Arg.Arg_Modes = ARG_OUT
+              or else A_Arg.Arg_Modes = ARG_INOUT
+            then
+               --  Application says it wants this arg as
+               --  input: take it from P_Args.
+
+               Copy_Any_Value
+                 (A_Arg.Argument,
+                  Element_Of
+                  (List_Of (Return_Args).all, P_Arg_Index).Argument);
+               --  These MUST be type-compatible!
+
+               P_Arg_Index := P_Arg_Index + 1;
+            else
+               --  An ARG_IN argument
+
+               if P_Arg_Index <= Integer (Get_Count (Return_Args))
+                 and then Element_Of (List_Of (Return_Args).all,
+                                      P_Arg_Index).Arg_Modes
+                 = ARG_IN
+               then
+                  --  present: skip it.
+                  P_Arg_Index := P_Arg_Index + 1;
+               end if;
+            end if;
+         end;
+      end loop;
+
+      Components.Emit_No_Reply
+        (S.Server,
+         Objects.Interface.Executed_Request'(Req => R));
+
+   end Process_Reply;
 
    procedure Handle_Data_Indication
      (S : access SOAP_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count)
    is
       Entity : String (1 .. Integer (Data_Amount));
+      --  XXX BAD BAD should be a Types.String so as not to
+      --  overflow the stack.
    begin
       Utils.Text_Buffers.Unmarshall_String (S.In_Buf, Entity);
       pragma Debug (O ("SOAP entity received: " & Entity));
@@ -243,15 +363,7 @@ package body PolyORB.Protocols.SOAP_Pr is
                 Requestor => Components.Component_Access (S)));
          end;
       else
-         declare
-            M : constant Standard.SOAP.Message.Response.Object'Class
-              := Standard.SOAP.Message.XML.Load_Response (Entity);
-         begin
-            pragma Warnings (Off, M);
-            --  XXX not referenced.
-            --  Process_Reply (To_Reply (M));
-            raise Not_Implemented;
-         end;
+         Process_Reply (S, Entity);
       end if;
    end Handle_Data_Indication;
 
@@ -261,6 +373,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    begin
       S.Role := Server;
       Expect_Data (S, S.In_Buf, 0);
+      --  Buffer used to receive request from the client.
    end Handle_Connect_Indication;
 
    procedure Handle_Connect_Confirmation
@@ -268,6 +381,8 @@ package body PolyORB.Protocols.SOAP_Pr is
    is
    begin
       S.Role := Client;
+      Expect_Data (S, S.In_Buf, 0);
+      --  Buffer used to receive reply from the server.
    end Handle_Connect_Confirmation;
 
    procedure Handle_Disconnect

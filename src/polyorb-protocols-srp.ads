@@ -70,7 +70,10 @@ package PolyORB.Protocols.SRP is
    type SRP_Session is new Session with private;
 
    procedure Connect (S : access SRP_Session);
-   procedure Invoke_Request (S : access SRP_Session; R : Request_Access);
+   procedure Invoke_Request
+     (S : access SRP_Session;
+      R : Request_Access;
+      O : access Objects.Object_Id);
    procedure Abort_Request (S : access SRP_Session; R :  Request_Access);
    --  Do nothing.
 

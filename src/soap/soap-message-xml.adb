@@ -242,6 +242,7 @@ package body SOAP.Message.XML is
 
       Doc := Get_Tree (Reader);
 
+      SOAP.Parameters.Create (S.Parameters);
       Parse_Document (Doc, S);
 
       Free (Doc);

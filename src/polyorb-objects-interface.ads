@@ -35,14 +35,18 @@
 --  $Id$
 
 with PolyORB.Components;
+with PolyORB.Objects;
 with PolyORB.Requests;
 
 package PolyORB.Objects.Interface is
 
    type Execute_Request is new Components.Message with record
       Req : Requests.Request_Access;
+      Oid : Objects.Object_Id_Access;
    end record;
-   --  Request the receiving Servant to execute Req.
+   --  Request the receiving Servant to execute Req. Oid is
+   --  the object Id that was determined to be associated with
+   --  the receiving surrogate of the object.
    --  The expected reply is Executed_Request. Null_Message
    --  can also be returned if the request was not processed
    --  immediately.

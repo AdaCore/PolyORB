@@ -543,8 +543,8 @@ package body PolyORB.Protocols.GIOP is
 
             declare
                Oid : constant Object_Id_Access
-                 := (Binding_Data.IIOP.Get_Object_Key
-                     (IIOP_Profile_Type (Pend_Req.Target_Profile.all)));
+                 := Binding_Data.Get_Object_Key
+                 (Pend_Req.Target_Profile.all);
             begin
                GIOP.GIOP_1_2.Marshall_Request_Message
                  (Ses.Buffer_Out,
@@ -1465,8 +1465,10 @@ package body PolyORB.Protocols.GIOP is
 
                Store_Request (Ses, Current_Req.Req, Prof, Current_Req);
 
-               Invoke_Request (GIOP_Session (New_Ses.all)'Access,
-                                   Current_Req.Req);
+               Invoke_Request
+                 (GIOP_Session (New_Ses.all)'Access,
+                  Current_Req.Req,
+                  Binding_Data.Get_Object_Key (Prof.all));
             end;
 
          when Needs_Addressing_Mode =>
@@ -1541,7 +1543,8 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Invoke_Request
      (S   : access GIOP_Session;
-      R   : Requests.Request_Access)
+      R   : Requests.Request_Access;
+      Oid : access Objects.Object_Id)
    is
       use Buffers;
       use Binding_Data.IIOP;
@@ -1808,7 +1811,11 @@ package body PolyORB.Protocols.GIOP is
                               raise GIOP_Error;
                            end if;
 
-                           Invoke_Request (S, Current_Req.Req);
+                           Invoke_Request
+                             (S,
+                              Current_Req.Req,
+                              Binding_Data.Get_Object_Key
+                              (Current_Req.Target_Profile.all));
                         end;
 
                      when Unknown_Object =>
@@ -1845,8 +1852,11 @@ package body PolyORB.Protocols.GIOP is
                            --  Release the previous session buffers
                            Release (S.Buffer_In);
                            Release (S.Buffer_Out);
-                           Invoke_Request (GIOP_Session (New_Ses.all)'Access,
-                                           Current_Req.Req);
+                           Invoke_Request
+                             (GIOP_Session (New_Ses.all)'Access,
+                              Current_Req.Req,
+                              Binding_Data.Get_Object_Key
+                              (Current_Req.Target_Profile.all));
                         end;
 
                      when Loc_Needs_Addressing_Mode =>

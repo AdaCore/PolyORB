@@ -41,6 +41,7 @@ with PolyORB.Components;
 with PolyORB.Filters; use PolyORB.Filters;
 with PolyORB.Requests; use PolyORB.Requests;
 with PolyORB.Soft_Links; use PolyORB.Soft_Links;
+with PolyORB.Objects;
 with PolyORB.ORB.Interface;
 
 package PolyORB.Protocols is
@@ -94,11 +95,16 @@ package PolyORB.Protocols is
    -- Protocol primitives (interface to upper layers) --
    -----------------------------------------------------
 
-   procedure Invoke_Request (S : access Session; R :  Request_Access)
+   procedure Invoke_Request
+     (S : access Session;
+      R : Requests.Request_Access;
+      O : access Objects.Object_Id)
       is abstract;
    --  Send a method invocation message for request R on session S.
 
-   procedure Abort_Request (S : access Session; R :  Request_Access)
+   procedure Abort_Request
+     (S : access Session;
+      R :  Request_Access)
       is abstract;
    --  Abort pending invocation of R.
 
@@ -144,6 +150,8 @@ package PolyORB.Protocols is
       S : Components.Message'Class)
      return Components.Message'Class;
    --  Demultiplex Messages to the above specialized operations.
+
+   Protocol_Error : exception;
 
 private
 
