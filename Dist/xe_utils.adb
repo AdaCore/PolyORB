@@ -648,8 +648,8 @@ package body XE_Utils is
       I_Current_Dir := new String'("-I.");
       L_Current_Dir := new String'("-L.");
 
-      Name_Len := 22;
-      Name_Buffer (1 .. 22) := "-Idsa/private/caller";
+      Name_Len := 20;
+      Name_Buffer (1 .. 20) := "-Idsa/private/caller";
       Name_Buffer (6)  := Directory_Separator;
       Name_Buffer (14) := Directory_Separator;
       I_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
@@ -753,6 +753,10 @@ package body XE_Utils is
 
       Info := Get_Name_Table_Info (Name_Find);
       if Info /= 0 then
+         if Debug_Mode then
+            Message ("unit ", U,
+                     " => source ", Unit.Table (Unit_Id (Info)).Sfile);
+         end if;
          return Unit.Table (Unit_Id (Info)).Sfile;
       else
          --  If Info /= 0, then this unit is already in table Unit. Info
@@ -761,10 +765,14 @@ package body XE_Utils is
          Name_Buffer (Name_Len) := 's';
          Info := Get_Name_Table_Info (Name_Find);
          if Info /= 0 then
+            if Debug_Mode then
+               Message ("unit ", U,
+                        " => source ", Unit.Table (Unit_Id (Info)).Sfile);
+            end if;
             return Unit.Table (Unit_Id (Info)).Sfile;
          end if;
 
-         --  Find a regular
+         --  Find a regular source file.
          File := File_Name_Of_Body (U);
          if Full_Source_Name (File) = No_File then
             File := File_Name_Of_Spec (U);
@@ -772,6 +780,9 @@ package body XE_Utils is
                Message ("no source file for unit """, U, """");
                Exit_Program (E_Fatal);
             end if;
+         end if;
+         if Debug_Mode then
+            Message ("unit ", U, " => source ", File);
          end if;
          return File;
       end if;
@@ -1020,10 +1031,19 @@ package body XE_Utils is
       Write_Program_Name;
       Write_Str (": ");
       Write_Name (Newer);
-      Write_File_Stamp (Newer);
-      Write_Str (" > ");
+      if Debug_Mode then
+         Write_File_Stamp (Newer);
+      end if;
+      Write_Eol;
+      Write_Program_Name;
+      Write_Str (":    is more recent than");
+      Write_Eol;
+      Write_Program_Name;
+      Write_Str (": ");
       Write_Name (Older);
-      Write_File_Stamp (Older);
+      if Debug_Mode then
+         Write_File_Stamp (Older);
+      end if;
       Write_Eol;
    end Write_Stamp_Comparison;
 

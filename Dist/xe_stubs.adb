@@ -127,9 +127,6 @@ package body XE_Stubs is
       for CUID in CUnit.First .. CUnit.Last loop
          if Unit.Table (CUnit.Table (CUID).My_Unit).RCI
            and then not Unit.Table (CUnit.Table (CUID).My_Unit).Is_Generic then
-            if Verbose_Mode then
-               Message ("building ", CUnit.Table (CUID).CUname, " stubs");
-            end if;
             Create_Stub (CUnit.Table (CUID).My_ALI);
          end if;
       end loop;
@@ -634,7 +631,17 @@ package body XE_Stubs is
       Write_Eol (FD);
       Write_Str (FD, Stamp (Partitions.Table (PID).Executable_File));
       Write_Eol (FD);
+      Write_Str (FD, Stamp (Partitions.Table (PID).Most_Recent));
+      Write_Eol (FD);
       Close     (FD);
+      if Debug_Mode then
+         Message ("save C => ", No_Name,
+                  Stamp (Configuration_File));
+         Message ("save E => ", No_Name,
+                  Stamp (Partitions.Table (PID).Executable_File));
+         Message ("save O => ", No_Name,
+                  Stamp (Partitions.Table (PID).Most_Recent));
+      end if;
    end Create_Stamp_File;
 
    -----------------
@@ -679,7 +686,7 @@ package body XE_Stubs is
          end case;
       end loop;
 
-      Full_ALI_File   := ALIs.Table (A).Ofile_Full_Name;
+      Full_ALI_File   := Full_Lib_File_Name (ALIs.Table (A).Afile);
       ALI_File        := ALIs.Table (A).Afile;
 
       Receiver_ALI    := Dir (Receiver_Dir, ALI_File);
@@ -985,6 +992,7 @@ package body XE_Stubs is
         renames Partitions.Table (PID).Executable_File;
       Most_Recent : File_Name_Type
         renames Partitions.Table (PID).Most_Recent;
+      Partition   : Name_Id renames Partitions.Table (PID).Name;
       Stamp_File  : File_Name_Type;
 
       Ptr         : Source_Ptr;
@@ -993,17 +1001,22 @@ package body XE_Stubs is
       Exec_Stamp2 : Time_Stamp_Type;
       Conf_Stamp1 : Time_Stamp_Type;
       Conf_Stamp2 : Time_Stamp_Type;
+      Obj_Stamp1  : Time_Stamp_Type;
+      Obj_Stamp2  : Time_Stamp_Type;
 
    begin
+      if Verbose_Mode then
+         Message ("check stamps for ", Partition);
+      end if;
 
       --  Check that executable exists and is up to date vs new object files.
       if not Is_Regular_File (Executable) then
-         if Verbose_Mode then
+         if Debug_Mode then
             Write_Missing_File (Executable);
          end if;
          return True;
       elsif Stamp (Most_Recent) > Stamp (Executable) then
-         if Verbose_Mode then
+         if Debug_Mode then
             Write_Stamp_Comparison (Most_Recent, Executable);
          end if;
          return True;
@@ -1013,7 +1026,7 @@ package body XE_Stubs is
       Stamp_File :=
         Dir (Partitions.Table (PID).Partition_Dir, Build_Stamp_File);
       if not Is_Regular_File (Stamp_File) then
-         if Verbose_Mode then
+         if Debug_Mode then
             Write_Missing_File (Stamp_File);
          end if;
          return True;
@@ -1033,15 +1046,15 @@ package body XE_Stubs is
          Ptr := Ptr + 1;
       end loop;
       Conf_Stamp2 := Source_File_Stamp (Configuration_File);
-      if Verbose_Mode then
-         Message ("Stamp of conf. file is ", No_Name, String (Conf_Stamp1));
-         Message ("Stamp of stamp file is ", No_Name, String (Conf_Stamp2));
+      if Debug_Mode then
+         Message ("load C => ", No_Name, String (Conf_Stamp1));
+         Message ("find C => ", No_Name, String (Conf_Stamp2));
       end if;
 
       --  Compare this file stamp with the current executable file stamp.
       if Conf_Stamp1 /= Conf_Stamp2 then
          if Verbose_Mode then
-            Message ("Configuration file is obsolete");
+            Message ("configuration file modified for partition ", Partition);
          end if;
          return True;
       end if;
@@ -1061,15 +1074,43 @@ package body XE_Stubs is
          Ptr := Ptr + 1;
       end loop;
       Exec_Stamp2 := Source_File_Stamp (Executable);
-      if Verbose_Mode then
-         Message ("Stamp of exec. file is ", No_Name, String (Exec_Stamp1));
-         Message ("Stamp of stamp file is ", No_Name, String (Exec_Stamp2));
+      if Debug_Mode then
+         Message ("load E => ", No_Name, String (Exec_Stamp1));
+         Message ("read E => ", No_Name, String (Exec_Stamp2));
       end if;
 
       --  Compare this file stamp with the current configuration file stamp.
       if Exec_Stamp1 /= Exec_Stamp2 then
          if Verbose_Mode then
-            Message ("Executable file is obsolete");
+            Message ("executable file modified for partition ", Partition);
+         end if;
+         return True;
+      end if;
+
+      --  Load new line.
+      if Buffer (Ptr) /= Ascii.LF then
+         return True;
+      end if;
+      Ptr := Ptr + 1;
+
+      --  Load most recent object file stamp.
+      for I in Obj_Stamp1'Range loop
+         if Buffer (Ptr) not in '0' .. '9' then
+            return True;
+         end if;
+         Obj_Stamp1 (I) := Buffer (Ptr);
+         Ptr := Ptr + 1;
+      end loop;
+      Obj_Stamp2 := Source_File_Stamp (Most_Recent);
+      if Debug_Mode then
+         Message ("load O => ", No_Name, String (Obj_Stamp1));
+         Message ("find O => ", No_Name, String (Obj_Stamp2));
+      end if;
+
+      --  Compare this object stamp with the current object file stamp.
+      if Obj_Stamp1 /= Obj_Stamp2 then
+         if Verbose_Mode then
+            Message ("most recent object modified for partition ", Partition);
          end if;
          return True;
       end if;

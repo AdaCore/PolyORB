@@ -73,26 +73,154 @@ package body XE_Check is
       Compiled    : Name_Id;
       Args        : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
       Main        : Boolean;
-      Dummy       : File_Name_Type;
 
-      procedure Recompile
-        (Unit        : in Name_Id;
-         Most_Recent : out File_Name_Type);
+      function Find_Most_Recent_Object
+        (Afile : in File_Name_Type)
+         return File_Name_Type;
+      --  Load ali in ali table and recursively load dependencies. Skip
+      --  loading for an internal library or an already loaded library.
+      --  Return most recent object file from this dependency list.
 
-      procedure Recompile
-        (Unit        : in Name_Id;
-         Most_Recent : out File_Name_Type) is
+      function Most_Recent_Object
+        (Uname : in Name_Id)
+         return File_Name_Type;
+      --  Load ali of this unit in ali table and recursively load
+      --  dependencies. Don't load an already loaded library. Return most
+      --  recent object file from this dependency list.
+
+      procedure Recompile (Unit : in Name_Id);
+
+      -----------------------------
+      -- Find_Most_Recent_Object --
+      -----------------------------
+
+      function Find_Most_Recent_Object
+        (Afile : in File_Name_Type)
+         return File_Name_Type is
+         A        : ALI_Id;
+         File     : File_Name_Type;
+         Text     : Text_Buffer_Ptr;
+
+      begin
+         if Debug_Mode then
+            Message ("scan ", Afile);
+         end if;
+
+         if Is_Internal_File_Name (Afile) then
+            if Debug_Mode then
+               Message ("... skip ", Afile, " internal library");
+            end if;
+            return Afile;
+         end if;
+
+         A := Get_ALI_Id (Afile);
+         if A /= No_ALI_Id then
+            if Debug_Mode then
+               Message ("... skip ", Afile, " already loaded");
+            end if;
+            return ALIs.Table (A).Ofile_Full_Name;
+         end if;
+
+         if Debug_Mode then
+            Message ("load ", Afile);
+         end if;
+
+         Text := Read_Library_Info (Afile);
+         A    := Scan_ALI (Afile, Text);
+         ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (Afile);
+
+         for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
+            for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
+               if Withs.Table (W).Afile /= No_File then
+                  File := Find_Most_Recent_Object (Withs.Table (W).Afile);
+                  if File /= No_File and then
+                    Stamp (File) > Stamp (ALIs.Table (A).Ofile_Full_Name) then
+                     ALIs.Table (A).Ofile_Full_Name := File;
+                  end if;
+               end if;
+            end loop;
+         end loop;
+         return ALIs.Table (A).Ofile_Full_Name;
+      end Find_Most_Recent_Object;
+
+      ------------------------
+      -- Most_Recent_Object --
+      ------------------------
+
+      function Most_Recent_Object
+        (Uname : in Name_Id)
+         return File_Name_Type is
+         A    : ALI_Id;
+         Lib  : Name_Id;
+         File : File_Name_Type;
+         Text : Text_Buffer_Ptr;
+
+      begin
+         if Debug_Mode then
+            Message ("scan ", Uname);
+         end if;
+
+         Lib  := Lib_File_Name (Find_Source (Uname));
+
+         A := Get_ALI_Id (Lib);
+         if A /= No_ALI_Id then
+            if Debug_Mode then
+               Message ("... skip ", Lib, " already loaded");
+            end if;
+            return ALIs.Table (A).Ofile_Full_Name;
+         end if;
+
+         if Debug_Mode then
+            Message ("load ", Uname);
+         end if;
+
+         Text := Read_Library_Info (Lib);
+         A    := Scan_ALI (Lib, Text);
+         ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (Lib);
+
+         if Is_Internal_File_Name (Lib) then
+            if Debug_Mode then
+               Message ("... skip ", Lib, " internal library");
+            end if;
+            return ALIs.Table (A).Ofile_Full_Name;
+         end if;
+
+         for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
+            for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
+               if Withs.Table (W).Afile /= No_File then
+                  File := Find_Most_Recent_Object (Withs.Table (W).Afile);
+                  if File /= No_File and then
+                    Stamp (File) > Stamp (ALIs.Table (A).Ofile_Full_Name) then
+                     ALIs.Table (A).Ofile_Full_Name := File;
+                  end if;
+               end if;
+            end loop;
+         end loop;
+         return ALIs.Table (A).Ofile_Full_Name;
+      end Most_Recent_Object;
+
+      ---------------
+      -- Recompile --
+      ---------------
+
+      procedure Recompile (Unit : in Name_Id) is
          File_Name     : Name_Id;
          Missing_Alis  : Boolean;
          Object        : Name_Id;
          Stamp         : Time_Stamp_Type;
          Lib_File      : Name_Id;
-         Full_Lib_File : Name_Id;
-         Text          : Text_Buffer_Ptr;
-         ALI           : ALI_Id;
 
       begin
          File_Name := Find_Source (Unit);
+         Lib_File  := Lib_File_Name (File_Name);
+
+         if Get_ALI_Id (Lib_File) /= No_ALI_Id then
+            return;
+         end if;
+
+         if Verbose_Mode then
+            Message ("recompile ", Unit);
+         end if;
 
          Compile_Sources
            (Main_Source           => File_Name,
@@ -108,28 +236,6 @@ package body XE_Check is
             In_Place_Mode         => Opt.In_Place_Mode,
             Initialize_Ali_Data   => False,
             Max_Process           => Opt.Maximum_Processes);
-
-         if Compiled /= No_File then
-            Most_Recent := Object_File_Name (Compiled);
-
-         elsif Object /= No_File then
-            Most_Recent := Object;
-
-         else
-            --  This file has to be explicitly loaded. If the library is a
-            --  readonly or internal library, it won't be loaded by gnatmake
-            --  but we need to load this library in the ALI table. We
-            --  assume that this unit has been correctly compiled, and
-            --  that its ALI file is up to date (most recent).
-
-            Lib_File := Lib_File_Name (File_Name);
-            Full_Lib_File := Full_Lib_File_Name (Lib_File);
-            if Full_Lib_File /= No_File then
-               Text := Read_Library_Info (Lib_File);
-               ALI := Scan_ALI (Lib_File, Text);
-               Most_Recent := Full_Lib_File;
-            end if;
-         end if;
 
          if Building_Script then
             Write_Compile_Command (File_Name);
@@ -186,21 +292,50 @@ package body XE_Check is
       --  and the next units will be allowed to have special naming.
 
       Main_Subprogram := Get_Main_Subprogram (Main_Partition);
-      Recompile (Main_Subprogram, Dummy);
+      Recompile (Main_Subprogram);
       for U in CUnit.First .. CUnit.Last loop
-         Recompile (CUnit.Table (U).CUname, CUnit.Table (U).Most_Recent);
+         Recompile (CUnit.Table (U).CUname);
       end loop;
 
-      if Debug_Mode then
-         Message ("load external configured units");
-      end if;
+      --  These units have to be explicitly loaded. If the library is a
+      --  readonly or internal library, it won't be loaded by gnatmake but
+      --  we need to load this library in the ALI table. Moreover, when
+      --  gnatmake is invoked several times, it won't realize that some
+      --  units are already loaded. For this reason, we can't use Recompile
+      --  to load the ALI files. Moreover, when an ALI file is incorrect,
+      --  the wrong ALI file is kept in the ALI table. So, we choose to
+      --  recompile everything, to free the tables and then to reload
+      --  everything.
 
-      for H in Hosts.First .. Hosts.Last loop
-
-         if not Hosts.Table (H).Static and then
-            Hosts.Table (H).Import = Ada_Import then
-            Recompile (Hosts.Table (H).External, Hosts.Table (H).Most_Recent);
+      for A in ALIs.First .. ALIs.Last loop
+         Set_Name_Table_Info (ALIs.Table (A).Afile, 0);
+         if Debug_Mode then
+            Message ("reset ", ALIs.Table (A).Afile);
          end if;
+      end loop;
+
+      for U in Unit.First .. Unit.Last loop
+         Set_Name_Table_Info (Unit.Table (U).Uname, 0);
+         if Debug_Mode then
+            Message ("reset ", Unit.Table (U).Uname);
+         end if;
+      end loop;
+
+      ALIs.Init;
+      Unit.Init;
+      Withs.Init;
+      Sdep.Init;
+      Source.Init;
+
+      declare
+         Dummy : File_Name_Type;
+      begin
+         Dummy := Most_Recent_Object (Main_Subprogram);
+      end;
+
+      for U in CUnit.First .. CUnit.Last loop
+         CUnit.Table (U).Most_Recent :=
+           Most_Recent_Object (CUnit.Table (U).CUname);
       end loop;
 
       --  Set configured unit name key to No_Ali_Id.       (1)
@@ -271,7 +406,7 @@ package body XE_Check is
                      ALIs.Table (Ali).Last_Unit loop
 
                if Unit.Table (I).Is_Generic then
-                  Message ("Generic unit """, U_To_N (Unit.Table (I).Uname),
+                  Message ("generic unit """, U_To_N (Unit.Table (I).Uname),
                            """ cannot be assigned to a partition");
                   Inconsistent := True;
 
@@ -344,10 +479,11 @@ package body XE_Check is
       begin
          for U in CUnit.First .. CUnit.Last loop
 
-            --  Update most_recent stamp of the partition on which this
+            --  Update most recent stamp of the partition on which this
             --  unit is configured.
             Most_Recent_Stamp
-              (CUnit.Table (U).Partition, CUnit.Table (U).Most_Recent);
+              (CUnit.Table (U).Partition,
+               ALIs.Table (CUnit.Table (U).My_ALI).Ofile_Full_Name);
 
             --  This check applies to a RCI package.
             if Unit.Table (CUnit.Table (U).My_Unit).RCI then

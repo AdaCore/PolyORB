@@ -111,7 +111,7 @@ package body XE_Back is
       end Update_Channel_Partition;
 
    begin
-      if Verbose_Mode then
+      if Debug_Mode then
          Message ("add partition ", Partition,
                   " to channel ", Channels.Table (To).Name);
       end if;
@@ -138,7 +138,7 @@ package body XE_Back is
          return;
       end if;
 
-      if Verbose_Mode then
+      if Debug_Mode then
          Message ("configuring unit ", CU,
                   " on partition ", Partitions.Table (To).Name);
       end if;
@@ -193,6 +193,8 @@ package body XE_Back is
 
    procedure Back is
       Node : XE.Node_Id;
+      HID  : HID_Type;
+
    begin
 
       First_Configuration_Declaration (Configuration_Node, Node);
@@ -212,6 +214,15 @@ package body XE_Back is
 
          end if;
          Next_Configuration_Declaration (Node);
+      end loop;
+
+      for P in Partitions.First .. Partitions.Last loop
+         HID := Partitions.Table (P).Host;
+         if HID /= Null_HID
+           and then not Hosts.Table (HID).Static
+           and then Hosts.Table (HID).Import = Ada_Import then
+            Add_Conf_Unit (Hosts.Table (HID).External, P);
+         end if;
       end loop;
 
       if Main_Partition = Null_PID then
@@ -375,7 +386,7 @@ package body XE_Back is
       CID  : out CID_Type) is
       Channel : CID_Type;
    begin
-      if Verbose_Mode then
+      if Debug_Mode then
          Message ("create channel ", Name);
       end if;
 
@@ -400,7 +411,7 @@ package body XE_Back is
       HID  : out HID_Type) is
       Host : HID_Type;
    begin
-      if Verbose_Mode then
+      if Debug_Mode then
          Message ("create host ", Name);
       end if;
 
@@ -426,7 +437,7 @@ package body XE_Back is
       PID  : out PID_Type) is
       Partition : PID_Type;
    begin
-      if Verbose_Mode then
+      if Debug_Mode then
          Message ("create partition ", Name);
       end if;
 
@@ -844,12 +855,27 @@ package body XE_Back is
 
    procedure Most_Recent_Stamp (P : in PID_Type; F : in File_Name_Type) is
       Most_Recent : File_Name_Type;
+      Has_Changed : Boolean := False;
    begin
       Most_Recent := Partitions.Table (P).Most_Recent;
       if Most_Recent = No_Name then
          Partitions.Table (P).Most_Recent := F;
+         Has_Changed := True;
       elsif Stamp (F) > Stamp (Most_Recent) then
          Partitions.Table (P).Most_Recent := F;
+         Has_Changed := True;
+      end if;
+      if Debug_Mode and Has_Changed then
+         Write_Program_Name;
+         Write_Str  (": ");
+         Write_Name (Partitions.Table (P).Name);
+         Write_Str  ("'s most recent stamp is ");
+         Write_Str  (Stamp (Partitions.Table (P).Most_Recent));
+         Write_Eol;
+         Write_Program_Name;
+         Write_Str  (":    with file ");
+         Write_Name (Partitions.Table (P).Most_Recent);
+         Write_Eol;
       end if;
    end Most_Recent_Stamp;
 

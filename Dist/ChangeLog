@@ -1,3 +1,24 @@
+1998-03-30  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_check.adb: Two major problems have been detected. First,
+ 	gnatmake has two problems. First, it doesn't detect when an ali
+ 	has already been loaded. Second, when an obsolete ali is loaded,
+ 	it is not replaced by the good one that has just been
+ 	compiled. Second, file stamp comparisons are completly wrong
+ 	because of the new implementation (x = y iff |x - y| <=
+ 	2). Compile_Sources gets confused because of this. For all these
+ 	reasons, we don't use file stamp comparisons from osint. To load
+ 	the ali files in the ali table, we recompile everything using
+ 	Compile_Sources, we reset all the tables and then we reload
+ 	everything. During reload, we compute the most recent file from
+ 	which a unit depend. For this, we use Ofile_Full_Name from
+	ALIs_Record to store the more recent file.
+	
+	* xe_stubs.adb: Move some verbose messages into debug
+	messages. Don't use Ofile_Full_Name anymore in Create_Stub.
+
+	* xe_back.adb: Move some verbose messages into debug messages.
+
 1998-03-24  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_stubs.adb: Call Establish_RPC_Receiver from partition.adb
