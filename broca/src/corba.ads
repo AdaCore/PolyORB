@@ -942,7 +942,7 @@ private
       end record;
    type Content_Any_Ptr is access all Content_Any;
 
-   --  for complex types that could be defined in Idl
+   --  a list of any
    type Content_Cell;
    type Content_List is access all Content_Cell;
    type Content_Cell is record
@@ -950,11 +950,59 @@ private
       Next : Content_List := null;
    end record;
 
+   --  for complex types that could be defined in Idl, descendants of
+   --  content_agregat will be used.
+   --  complex types include Struct, Union, Enum, Sequence,
+   --  Array, Except, Fixed, Value, Valuebox, Abstract_Interface.
+   --  Here is the way the content_list is used in each case :
+   --     - for Struct, Except : the elements are the values of each
+   --  field in the order of the declaration
+   --     - for Union : the value of the switch element comes
+   --  first. Then come all the values of the corresponding fields
+   --     - for Enum : an unsigned_long corresponding to the position
+   --  of the value in the declaration is the only element
+   --     - for Sequence, Array : all the elements of the sequence
+   --  or array, one by one
+   --     - for Fixed : FIXME
+   --     - for Value : FIXME
+   --     - for Valuebox : FIXME
+   --     - for Abstract_Interface : FIXME
    type Content_Agregat is new Content with
       record
          Value : Content_List := null;
       end record;
    type Content_Agregat_Ptr is access all Content_Agregat;
+
+   type Content_Struct is new Content_Agregat with null record;
+   type Content_Struct_Ptr is access all Content_Struct;
+
+   type Content_Except is new Content_Agregat with null record;
+   type Content_Except_Ptr is access all Content_Except;
+
+   type Content_Union is new Content_Agregat with null record;
+   type Content_Union_Ptr is access all Content_Union;
+
+   type Content_Enum is new Content_Agregat with null record;
+   type Content_Enum_Ptr is access all Content_Enum;
+
+   type Content_Sequence is new Content_Agregat with null record;
+   type Content_Sequence_Ptr is access all Content_Sequence;
+
+   type Content_Array is new Content_Agregat with null record;
+   type Content_Array_Ptr is access all Content_Array;
+
+   type Content_Fixed is new Content_Agregat with null record;
+   type Content_Fixed_Ptr is access all Content_Fixed;
+
+   type Content_Value is new Content_Agregat with null record;
+   type Content_Value_Ptr is access all Content_Value;
+
+   type Content_Valuebox is new Content_Agregat with null record;
+   type Content_Valuebox_Ptr is access all Content_Valuebox;
+
+   type Content_Abstract_Interface is new Content_Agregat with null record;
+   type Content_Abstract_Interface_Ptr is
+      access all Content_Abstract_Interface;
 
    function Agregate_Count
      (Cl : in Content_List)

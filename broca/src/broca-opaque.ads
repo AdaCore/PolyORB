@@ -60,6 +60,6 @@ package Broca.Opaque is
    procedure Free is
       new Ada.Unchecked_Deallocation (Octet_Array, Octet_Array_Ptr);
 
-   subtype Alignment_Type is Index_Type range 1 .. 8;
+   subtype Alignment_Type is Index_Type range 1 .. 16;
 
 end Broca.Opaque;
