@@ -1,3 +1,14 @@
+2001-01-25  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* isthrbio.adb: Improve configuration program to detect
+	automatically thread library with process blocking io.
+
+	* s-gaplsp.ads.in: Add new configured constant
+	Process_Blocking_IO.
+
+	* s-gaprtc.adb: Pass Process_Blocking_IO to
+	GNAT.Sockets.Initialize.
+
 2001-01-24  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-ganota.adb, s-gaphlo.adb, s-garpar.adb, s-gartra.adb,

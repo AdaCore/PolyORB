@@ -1,3 +1,8 @@
+2001-01-25  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* configure.in, configure: Add flag to force simulating thread
+	blocking io. Configure s-gaplsp.ads with this flag.
+
 2001-01-24  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* configure.in: Remove configuration of remaining GARLIC sockets
