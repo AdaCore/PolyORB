@@ -2738,9 +2738,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Put (CU, "  (");
       II (CU);
 
-      PL (CU, "Element_TC =>" & ASCII.LF
-          & "  " & Ada_Full_TC_Name
-          (Sequence_Type (Sequence (Node))) & ",");
       PL (CU, "Element_To_Any =>" & ASCII.LF
           & "  " & Ada_Helper_Name
           (Sequence_Type (Sequence (Node))) & ".To_Any,");
@@ -2760,7 +2757,9 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Divert (CU, Deferred_Initialization);
       NL (CU);
-      PL (CU, Seq_Helper_Name & ".Initialize;");
+      PL (CU, Seq_Helper_Name & ".Initialize ("
+          & Ada_Full_TC_Name
+          (Sequence_Type (Sequence (Node))) & ");");
       PL (CU, Ada_TC_Name (Node) & " := "
           & Seq_Helper_Name & ".Sequence_TC;");
       Divert (CU, Visible_Declarations);

@@ -110,8 +110,7 @@ package body System.PolyORB_Interface is
      new PolyORB.Sequences.Unbounded (PolyORB.Types.Octet);
 
    package Octet_Sequences_Helper is new Octet_Sequences.Helper
-     (Element_TC       => PolyORB.Any.TC_Octet,
-      Element_From_Any => PolyORB.Any.From_Any,
+     (Element_From_Any => PolyORB.Any.From_Any,
       Element_To_Any   => PolyORB.Any.To_Any);
 
    --------------------------------------------------------------
@@ -1089,6 +1088,8 @@ package body System.PolyORB_Interface is
 
    begin
       PTM.Create (Critical_Section);
+
+      Octet_Sequences_Helper.Initialize (PolyORB.Any.TC_Octet);
 
       pragma Assert (Root_POA_Object = null);
       pragma Debug (O ("Initializing default POA configuration..."));

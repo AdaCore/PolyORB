@@ -39,8 +39,6 @@ with PolyORB.Any;
 
 generic
 
-   Element_TC : PolyORB.Any.TypeCode.Object;
-
    with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
    with function Element_To_Any   (Item : Element) return PolyORB.Any.Any;
 
@@ -51,6 +49,6 @@ package PolyORB.Sequences.Unbounded.Helper is
 
    function Sequence_TC return PolyORB.Any.TypeCode.Object;
 
-   procedure Initialize;
+   procedure Initialize (Element_TC : PolyORB.Any.TypeCode.Object);
 
 end PolyORB.Sequences.Unbounded.Helper;

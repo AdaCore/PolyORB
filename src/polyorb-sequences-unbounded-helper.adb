@@ -41,7 +41,7 @@ package body PolyORB.Sequences.Unbounded.Helper is
 
    use PolyORB.Any;
 
-   The_Sequence_TC : PolyORB.Any.TypeCode.Object;
+   The_Element_TC, The_Sequence_TC : Any.TypeCode.Object;
    Initialized : Boolean := False;
 
    function From_Any (Item : Any.Any) return Sequence is
@@ -56,18 +56,19 @@ package body PolyORB.Sequences.Unbounded.Helper is
       for J in Result.Content'First .. Result.Content'First + Len - 1 loop
          Result.Content (J) := Element_From_Any
            (Get_Aggregate_Element
-            (Item, Element_TC,
+            (Item, The_Element_TC,
              Types.Unsigned_Long (1 + J - Result.Content'First)));
       end loop;
       return Result;
    end From_Any;
 
-   procedure Initialize is
+   procedure Initialize (Element_TC : Any.TypeCode.Object) is
    begin
       if Initialized then
          return;
       end if;
 
+      The_Element_TC  := Element_TC;
       The_Sequence_TC := TypeCode.TC_Sequence;
 
       TypeCode.Add_Parameter
@@ -75,7 +76,7 @@ package body PolyORB.Sequences.Unbounded.Helper is
       --  Unbounded sequence : bound is 0.
 
       TypeCode.Add_Parameter
-        (The_Sequence_TC, To_Any (Element_TC));
+        (The_Sequence_TC, To_Any (The_Element_TC));
       --  Element type.
 
       Initialized := True;
