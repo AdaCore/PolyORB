@@ -8169,15 +8169,21 @@ package body Idl_Fe.Parser is
             end if;
          when C_LongLong =>
             if Full then
+               pragma Warnings (Off);
+               --  Condition is always false.
                if N.Integer_Value < Idl_LongLong_Min
                  or else N.Integer_Value > Idl_LongLong_Max then
                   Integer_Precision_Exceeded;
                end if;
+               pragma Warnings (On);
             else
+               pragma Warnings (Off);
+               --  Condition is always false.
                if N.Integer_Value < Idl_LongLong_Min
                  or else N.Integer_Value > Idl_ULongLong_Max then
                   Integer_Precision_Exceeded;
                end if;
+               pragma Warnings (Off);
             end if;
          when C_UShort =>
             if Full then
