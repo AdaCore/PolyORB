@@ -260,15 +260,6 @@ procedure Mknodes is
          return Table (N).Loc;
       end Loc;
 
-      -----------------
-      -- Next_Entity --
-      -----------------
-
-      function Next_Entity (N : Node_Id) return Node_Id is
-      begin
-         return Table (N).Next_Entity;
-      end Next_Entity;
-
       --------------
       -- New_Node --
       --------------
@@ -284,6 +275,15 @@ procedure Mknodes is
 
          return Node;
       end New_Node;
+
+      -----------------
+      -- Next_Entity --
+      -----------------
+
+      function Next_Entity (N : Node_Id) return Node_Id is
+      begin
+         return Table (N).Next_Entity;
+      end Next_Entity;
 
       ------------------
       -- Scope_Entity --

@@ -587,36 +587,6 @@ package body Analyzer is
       procedure No_Exception_Member_Of_Local_Type
         (X : Node_Id; I : Node_Id);
 
-      ------------------------------------------
-      -- No_Operation_Parameter_Of_Local_Type --
-      ------------------------------------------
-
-      procedure No_Operation_Parameter_Of_Local_Type
-        (T : Node_Id; I : Node_Id)
-      is
-         PT : Node_Id := T;
-         TK : Node_Kind;
-
-      begin
-         if Present (PT) and then Kind (PT) = K_Scoped_Name then
-            PT := Reference (PT);
-         end if;
-         if No (PT) then
-            return;
-         end if;
-         TK := Kind (PT);
-         if (TK = K_Forward_Interface_Declaration
-             or else TK = K_Forward_Interface_Declaration)
-           and then Is_A_Local_Type (PT)
-         then
-            Error_Loc (1)  := Loc (T);
-            Error_Name (1) := IDL_Name (Identifier (T));
-            Error_Name (1) := IDL_Name (Identifier (I));
-            DE ("local interface#cannot appear as parameter " &
-                "in unconstrained interface#");
-         end if;
-      end No_Operation_Parameter_Of_Local_Type;
-
       ---------------------------------------
       -- No_Exception_Member_Of_Local_Type --
       ---------------------------------------
@@ -660,6 +630,36 @@ package body Analyzer is
             EM := Next_Entity (EM);
          end loop;
       end No_Exception_Member_Of_Local_Type;
+
+      ------------------------------------------
+      -- No_Operation_Parameter_Of_Local_Type --
+      ------------------------------------------
+
+      procedure No_Operation_Parameter_Of_Local_Type
+        (T : Node_Id; I : Node_Id)
+      is
+         PT : Node_Id := T;
+         TK : Node_Kind;
+
+      begin
+         if Present (PT) and then Kind (PT) = K_Scoped_Name then
+            PT := Reference (PT);
+         end if;
+         if No (PT) then
+            return;
+         end if;
+         TK := Kind (PT);
+         if (TK = K_Forward_Interface_Declaration
+             or else TK = K_Forward_Interface_Declaration)
+           and then Is_A_Local_Type (PT)
+         then
+            Error_Loc (1)  := Loc (T);
+            Error_Name (1) := IDL_Name (Identifier (T));
+            Error_Name (1) := IDL_Name (Identifier (I));
+            DE ("local interface#cannot appear as parameter " &
+                "in unconstrained interface#");
+         end if;
+      end No_Operation_Parameter_Of_Local_Type;
 
       Interface     : constant Node_Id := Current_Scope;
       Is_Local      : constant Boolean := Is_A_Local_Type (Interface);

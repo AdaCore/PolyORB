@@ -351,14 +351,15 @@ all-local: $(PROG)
 %.ada:%.idl mknodes
 	@-./mknodes $< >$@
 	gnatchop -w $@
+	$(GNATMAKE) -m -gnata $(includes) $*.adb\
+		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 mknodes : force 
-	$(GNATMAKE) -m -gnata $(includes) $@\
+	$(GNATMAKE) -m -gnata -gnatyo $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-	@testsuite/header-sort
-	$(GNATMAKE) -m -gnata $(includes) $@\
+	$(GNATMAKE) -m -gnata -gnatyo $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 tests: $(PROG)
