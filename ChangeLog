@@ -1,3 +1,7 @@
+1998-02-18  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Remove s-gafino.ad[bs]. No longer needed.
+
 1998-02-18  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Do not test for Errno anymore since it is

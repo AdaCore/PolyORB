@@ -145,8 +145,6 @@ Garlic/constants.sh
 Garlic/s-gafizi.adb
 Garlic/s-ganobl.adb
 Garlic/rfc1832.txt
-Garlic/s-gafino.adb
-Garlic/s-gafino.ads
 Garlic/s-ganobl.ads
 Garlic/s-gafizi.ads
 Garlic/s-ganata.adb
