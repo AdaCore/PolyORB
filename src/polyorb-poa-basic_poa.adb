@@ -91,13 +91,6 @@ package body PolyORB.POA.Basic_POA is
      (OA    :        Basic_Obj_Adapter_Access;
       Error : in out PolyORB.Exceptions.Error_Container);
 
-   procedure Register_Child
-     (Self  : access Basic_Obj_Adapter;
-      Child :        Basic_Obj_Adapter_Access);
-   --  Add a child to the current POA.
-   --  This procedure should be called from a point that protects the
-   --  Self's Children List.
-
    procedure Destroy_Policies
      (OA : in out Basic_Obj_Adapter);
    pragma Warnings (Off);
@@ -373,36 +366,6 @@ package body PolyORB.POA.Basic_POA is
       pragma Debug (O ("Check compatibilities between policies: leave"));
    end Check_Policies_Compatibility;
 
-   --------------------
-   -- Register_Child --
-   --------------------
-
-   procedure Register_Child
-     (Self  : access Basic_Obj_Adapter;
-      Child :        Basic_Obj_Adapter_Access)
-   is
-      use PolyORB.POA_Types.POA_HTables;
-      use PolyORB.Smart_Pointers;
-
-      Ref : Obj_Adapter_Ref;
-
-   begin
-      pragma Debug (O (To_Standard_String (Self.Name)
-                       & " registers child "
-                       & To_Standard_String (Child.Name)));
-
-      if Self.Children = null then
-         Self.Children := new POATable;
-         Initialize (Self.Children.all);
-      end if;
-
-      Set (Ref, Entity_Ptr (Child));
-
-      Insert (Self.Children.all,
-              To_Standard_String (Child.Name),
-              Ref);
-   end Register_Child;
-
    ----------------------
    -- Destroy_Policies --
    ----------------------
@@ -554,7 +517,7 @@ package body PolyORB.POA.Basic_POA is
       use PolyORB.POA_Types.POA_HTables;
 
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
-      Ref : Obj_Adapter_Ref;
+      Ref : PolyORB.POA_Types.Obj_Adapter_Ref;
 
    begin
       pragma Debug (O ("Creating POA: " & To_String (Adapter_Name)));
@@ -618,7 +581,17 @@ package body PolyORB.POA.Basic_POA is
 
       --  Register new obj_adapter as a sibling of the current POA.
 
-      Register_Child (Self, New_Obj_Adapter);
+      if Self.Children = null then
+         Self.Children := new POATable;
+         Initialize (Self.Children.all);
+      end if;
+
+      Set (Ref, Smart_Pointers.Entity_Ptr (New_Obj_Adapter));
+
+      Insert (Self.Children.all,
+              To_Standard_String (New_Obj_Adapter.Name),
+              Ref);
+
       Leave (Self.Children_Lock);
 
       --  Construct POA Absolute name.
@@ -656,9 +629,11 @@ package body PolyORB.POA.Basic_POA is
 
       --  Insert POA into Global_POATable
 
-      pragma Debug (O ("Insert POA into Global_POATable"));
-
-      Set (Ref, PolyORB.Smart_Pointers.Entity_Ptr (New_Obj_Adapter));
+      pragma Debug
+        (O ("Insert "
+            & POA_Path_Separator
+            & To_Standard_String (New_Obj_Adapter.Absolute_Address)
+            & " into Global_POATable"));
 
       Insert (Global_POATable,
               POA_Path_Separator
@@ -690,14 +665,19 @@ package body PolyORB.POA.Basic_POA is
       --  Remove Self from Global POA Table
 
       pragma Debug (O ("Removing POA from Global POA Table"));
+
       PolyORB.POA_Types.POA_HTables.Delete
         (Global_POATable,
-         To_Standard_String (Self.Absolute_Address));
+         POA_Path_Separator
+         & To_Standard_String (Self.Absolute_Address));
 
       --  Destroy all children
 
       if Self.Children /= null
-        and then not Is_Empty (Self.Children.all) then
+        and then not Is_Empty (Self.Children.all)
+      then
+         pragma Debug (O ("Removing child POAs"));
+
          Enter (Self.Children_Lock);
 
          declare
@@ -1120,8 +1100,6 @@ package body PolyORB.POA.Basic_POA is
                        (Global_POATable,
                         Full_POA_Name,
                         Null_POA_Ref)));
-
-         POA := null;
 
          if POA /= null then
             pragma Debug (O ("Found POA in Global_POATable"));
