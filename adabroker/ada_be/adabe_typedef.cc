@@ -19,7 +19,6 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
 	{
 	case AST_Decl::NT_array:
 	case AST_Decl::NT_string:
-	case AST_Decl::NT_sequence:
 	case AST_Decl::NT_union:
 	  {
 	    adabe_name *c = dynamic_cast<adabe_name *>(b);
@@ -33,8 +32,8 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
 	  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); //virtual method
 	  body += name;
 	  body += " ;\n";
-	  body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
-	  body += "   procedure free is new Unchecked_Deallocation(";
+	  body += "   type " + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
+	  body += "   procedure free is new Ada.Unchecked_Deallocation(";
 	  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";
 	  break;
 	}
@@ -46,7 +45,7 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
       body += name;
       body += ";\n";
       body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
-      body += "   procedure free is new Unchecked_Deallocation(";
+      body += "   procedure free is new Ada.Unchecked_Deallocation(";
       body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";
     }
   set_already_defined ();
@@ -88,7 +87,6 @@ adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previou
 	{
 	case AST_Decl::NT_array:
 	case AST_Decl::NT_string:
-	case AST_Decl::NT_sequence:
 	case AST_Decl::NT_union:
 	  {
 	    string arg2 = "";
@@ -131,7 +129,6 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
 	{
 	case AST_Decl::NT_array:
 	case AST_Decl::NT_string:
-	case AST_Decl::NT_sequence:
 	case AST_Decl::NT_union:
 	  {
 	    adabe_name *c = dynamic_cast<adabe_name *>(b);

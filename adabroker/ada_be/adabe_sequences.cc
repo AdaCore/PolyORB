@@ -70,29 +70,26 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   adabe_base_type =  dynamic_cast<adabe_name *> (base_type());
   string type_name =  adabe_base_type->dump_name(with, previous);
   string short_type_name = type_name.substr(type_name.find_last_of('.') + 1) ;
-
   if (short_type_name == "Sequence") 
     {
       short_type_name = type_name.substr(type_name.find_first_of('_') + 1) ;
       short_type_name = short_type_name.substr(0,short_type_name.length()-9);
     }
-  if (get_ada_local_name () == "")
-    set_ada_local_name("IDL_SEQUENCE_" + short_type_name);
-  
-  body += "   type " + get_ada_local_name () +"_Array is ";
+  set_ada_local_name("IDL_SEQUENCE_" + short_type_name + ".Sequence");
+  body += "   type IDL_SEQUENCE_" + short_type_name +"_Array is ";
   if (bounded)
     body += "array (1.." + seq_size_st + ") of " + type_name +" ;\n";
   else 
     body += "array (Integer range <>) of " + type_name +" ;\n";
   body += "\n";
-  body += "   package " + get_ada_local_name () +" is new\n";
+  body += "   package IDL_SEQUENCE_" + short_type_name + " is new\n";
   body += "      Corba.Sequences." + is_bounded;
   if (bounded) {
     body += "(" + type_name + ", ";
     body += seq_size_st + ");\n";
-  } else
+  }
+  else
     body += "(" + type_name +");\n";
-  
   set_already_defined();
 }
 void
@@ -183,9 +180,9 @@ adabe_sequence::dump_name(dep_list& with, string &previous)
 	  produce_ads(with, tmp, previous);
 	  previous += tmp;
 	}
-      return (get_ada_local_name() + ".Sequence");
+      return (get_ada_local_name());
     }
-  return (get_ada_local_name() + ".Sequence");	   
+  return (get_ada_local_name());	   
 }
 
 string
@@ -199,9 +196,9 @@ adabe_sequence::marshal_name(dep_list& with, string &previous)
 	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
-      return (get_ada_local_name() + ".Sequence");
+      return (get_ada_local_name());
     }
-  return (get_ada_local_name() + ".Sequence");	   
+  return (get_ada_local_name());	   
 }
 
 IMPL_NARROW_METHODS1(adabe_sequence, AST_Sequence)
@@ -214,3 +211,5 @@ adabe_sequence::adabe_sequence(AST_Expression *v, AST_Type *t)
     adabe_name(AST_Decl::NT_sequence,new UTL_ScopedName(new Identifier("sequence",1,0,I_FALSE),NULL),NULL)
 {
 }
+
+
