@@ -22,8 +22,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-INSTALL for Glade @glade_version@.
------------------------
+NOTE: THIS FILE APPLIES ONLY TO GLADE @glade_version@. IF YOU HAVE ANY
+      OTHER VERSION OF GLADE, PLEASE GET THE APPROPRIATE INSTALL FILE.
+
+INSTALL for GLADE
+-----------------
 
 You can find general information about GLADE in README and in
 Doc/user_guide.txt. Here are simple steps for building GLADE
