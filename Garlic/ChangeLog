@@ -1,5 +1,9 @@
 2001-03-08  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-garstr.ads, s-garstr.adb: Do not use storage pools anymore as the
+	interaction with soft-links and the elaboration order causes
+	some problems.
+
 	* Makefile.am: Update dependencies.
 
 	* s-gasoli.ads: Make lock structures limited and pass them in-out
