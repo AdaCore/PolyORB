@@ -1,19 +1,33 @@
 #! /bin/sh
 
+# This outputs elapsed = f(nmax)
+
+# params
+
+# nmax
+# ethr
+# siz
+
+case "x$1" in
+  x|xnmax) param=nmax ;;
+  xethr|xsiz) param=$1 ;;
+  *) echo "bad param"; exit 1 ;;
+esac
+
 tr '=' ' ' | awk '
+  BEGIN { param = "'"$param"'" }
   /^nmax/ { nmax=$2 }
   /^moy/  { moy=$2 }
   /^siz/  { siz=$2 }
   /^coun/ { cnt=$2 }
-  /^serverp_thr/ { sthr=$2 }
   /^evolutedp_thr/ { ethr=$2 }
-  /^ect/  { 
-     if (sthr == 0) sthr = 4;
+  /^ect/  { ect = $2;
      if (ethr == 0) ethr = 4;
-     if (sthr == ethr) {
-       thr = sprintf ("%d", sthr);
-     } else {
-       thr = sprintf ("%ds+%de", sthr, ethr)
-     }
-     f = sprintf ("data_%diter_%sthr_%dbytes", cnt, thr, siz);
-     printf "%.12g %.12g %.12g\n", nmax, moy, $2 >> f }'
+     fn = sprintf ("data_%diter", cnt);
+     if (param != "nmax")
+       fn = (fn sprintf ("_%dcli", nmax));
+     if (param != "ethr")
+       fn = (fn sprintf ("_%dthr", ethr));
+     if (param != "siz")
+       fn = (fn sprintf ("_%dbytes", siz));
+     printf "%.12g %.12g %.12g\n", '"$param"', moy, ect >> fn }'
