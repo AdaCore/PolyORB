@@ -208,8 +208,8 @@ package body Droopi.No_Tasking is
       Register_Mutex_Creation_Function (Create'Access);
       Register_Adv_Mutex_Creation_Function (Create'Access);
       Register_Task_Identification
-        (Get_Current_Task'Access,
-         Get_Null_Task'Access);
+        (Task_Id_Function'(Get_Current_Task'Access),
+         Task_Id_Function'(Get_Null_Task'Access));
    end Initialize;
 
    -----------
