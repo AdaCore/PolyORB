@@ -274,7 +274,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          when Queue_Request_Job =>
             pragma Debug (O1 (Boolean'Image (O.RS = null)));
 
-
             if O.RS = null
               or else not PRS.Try_Queue_Request_Job
               (O.RS, E.Request_Job, E.Target)
@@ -704,7 +703,8 @@ begin
       (Name      => +"orb_controller.half_sync_half_async",
        Conflicts => +"orb.no_tasking",
        Depends   => +"tasking.condition_variables"
-       & "tasking.mutexes",
+       & "tasking.mutexes"
+       & "request_scheduler?",
        Provides  => +"orb_controller",
        Implicit  => False,
        Init      => Initialize'Access));

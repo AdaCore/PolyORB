@@ -706,7 +706,8 @@ begin
       (Name      => +"orb_controller.leader_followers",
        Conflicts => +"orb.no_tasking",
        Depends   => +"tasking.condition_variables"
-       &"tasking.mutexes",
+       &"tasking.mutexes"
+       & "request_scheduler?",
        Provides  => +"orb_controller",
        Implicit  => False,
        Init      => Initialize'Access));

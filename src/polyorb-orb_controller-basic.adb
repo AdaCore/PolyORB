@@ -663,7 +663,8 @@ begin
       (Name      => +"orb_controller.basic",
        Conflicts => Empty,
        Depends   => +"tasking.condition_variables"
-       & "tasking.mutexes",
+       & "tasking.mutexes"
+       & "request_scheduler?",
        Provides  => +"orb_controller",
        Implicit  => False,
        Init      => Initialize'Access));
