@@ -111,7 +111,9 @@ package Broca.Buffers is
    --  constraint on the lifespan of the resulting buffer.
    --  It is the caller's responsibility to call Release
    --  on the returned Buffer_Access to free the associated
-   --  resources.
+   --  resources. The initial and current CDR positions of the
+   --  new buffers are set to the initial CDR position of the
+   --  source.
 
    procedure Release
      (A_Buffer : in out Buffer_Access);
