@@ -401,6 +401,14 @@ package body XE_Stdcnf is
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
+      Declare_Type_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("allow_light_pcs"),
+         Attr_Type_Node => Boolean_Type_Node,
+         Attribute_Kind => Attribute_Allow_Light_PCS,
+         Attribute_Sloc => Null_Location,
+         Attribute_Node => Attribute_Node);
+
       --  type Channel (standard)
 
       Declare_Type

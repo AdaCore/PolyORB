@@ -300,6 +300,7 @@ package body XE_Stubs is
             --  Check whether the partition should have a local termination
             if Get_Termination (P) = Unknown_Termination
               and then not Get_RCI_Or_RACW (P)
+              and then Get_Allow_Light_PCS (P) /= Bfalse
               and then Main_Partition /= P
             then
                if Verbose_Mode then
@@ -426,7 +427,8 @@ package body XE_Stubs is
       Create_File (File, Elaboration);
 
       Pure_Client := not Get_RCI_Or_RACW (PID)
-        and then Main_Partition /= PID;
+        and then Main_Partition /= PID
+        and then Get_Allow_Light_PCS (PID) /= Bfalse;
 
       Light_PCS := Pure_Client
         and then not Get_Tasking (PID);
@@ -931,6 +933,7 @@ package body XE_Stubs is
       Location := Get_Protocol (PID);
 
       Light_PCS := Main_Partition /= PID
+        and then Get_Allow_Light_PCS (PID) /= Bfalse
         and then not Get_RCI_Or_RACW (PID)
         and then not Get_Tasking (PID);
 

@@ -1,3 +1,12 @@
+2002-10-14  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe.ads, xe_ack.adb, xe_back.ads, xe_stdcnf.adb, xe_stubs.adb:
+	Add new attribute Allow_Light_PCS which is intended to prevent
+	GLADE from configuring with a light PCS. For instance, using DSM
+	storage support does not work with a light PCS, but this cannot be
+	automatically determined at configuration time. By forcing
+	Allow_Light_PCS to false, we prevent this optimization. Fix B930-014.
+  
 2002-07-25  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe_lead.adb: In starter shell mode, use first the main partition

@@ -224,7 +224,7 @@ package body XE_Back is
    begin
       Get_Name_String (Unit);
       Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := '%';
+      Name_Buffer (Name_Len) := '%'; --  %
       Name_Len := Name_Len + 1;
       Name_Buffer (Name_Len) := 'b';
 
@@ -558,6 +558,7 @@ package body XE_Back is
          F_Net_Location  => Null_LID,
          L_Net_Location  => Null_LID,
          Mem_Location    => Null_LID,
+         Allow_Light_PCS => Bunknown,
          To_Build        => True,
          Most_Recent     => No_File,
          Global_Checksum => 0);
@@ -791,6 +792,22 @@ package body XE_Back is
    begin
       return Partitions.Table (P).RCI_Or_RACW;
    end Get_RCI_Or_RACW;
+
+   -------------------------
+   -- Get_Allow_Light_PCS --
+   -------------------------
+
+   function Get_Allow_Light_PCS (P : PID_Type) return Boolean_Type is
+      Allow_Light_PCS : Boolean_Type;
+
+   begin
+      Allow_Light_PCS := Partitions.Table (P).Allow_Light_PCS;
+      if Allow_Light_PCS = Bunknown then
+         Allow_Light_PCS
+           := Partitions.Table (Default_Partition).Allow_Light_PCS;
+      end if;
+      return Allow_Light_PCS;
+   end Get_Allow_Light_PCS;
 
    -------------------------
    -- Get_Main_Subprogram --
@@ -1253,6 +1270,17 @@ package body XE_Back is
       Set_Name_Table_Info (N, Int (H));
    end Set_HID;
 
+   -------------------------
+   -- Set_Allow_Light_PCS --
+   -------------------------
+
+   procedure Set_Allow_Light_PCS
+     (P : in PID_Type;
+      B : in XE.Boolean_Type) is
+   begin
+      Partitions.Table (P).Allow_Light_PCS := B;
+   end Set_Allow_Light_PCS;
+
    ---------------------
    -- Set_RCI_Or_RACW --
    ---------------------
@@ -1474,6 +1502,21 @@ package body XE_Back is
                  (PID, Boolean_Type (Get_Scalar_Value (Attr_Item)));
             else
                Write_Attr_Init_Error ("passive");
+            end if;
+
+         when Attribute_Allow_Light_PCS =>
+
+            if Get_Variable_Type (Attr_Item) /= Boolean_Type_Node then
+               Write_Attr_Kind_Error ("allow_light_pcs", "of boolean type");
+            end if;
+
+            --  Check that it has not already been assigned.
+
+            if Partitions.Table (PID).Allow_Light_PCS = Bunknown then
+               Set_Allow_Light_PCS
+                 (PID, Boolean_Type (Get_Scalar_Value (Attr_Item)));
+            else
+               Write_Attr_Init_Error ("allow_light_pcs");
             end if;
 
          when Attribute_Reconnection =>
@@ -1986,6 +2029,7 @@ package body XE_Back is
       C : Command_Line_Type;
       T : Task_Pool_Type;
       U : CUID_Type;
+      B : Boolean_Type;
 
    begin
       Write_Str  ("Partition ");
@@ -2098,6 +2142,13 @@ package body XE_Back is
                L := Locations.Table (L).Next;
             end loop;
          end;
+      end if;
+
+      B := Get_Allow_Light_PCS (PID);
+      if B = Bfalse then
+         Write_Field (1, "Light PCS");
+         Write_Str ("false");
+         Write_Eol;
       end if;
 
       if Partitions.Table (PID).First_Unit /= Null_CUID then

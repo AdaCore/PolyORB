@@ -186,6 +186,7 @@ package XE_Back is
       RCI_Or_RACW     : Boolean;
       Use_Tasking     : Boolean;
       Passive         : XE.Boolean_Type;
+      Allow_Light_PCS : XE.Boolean_Type;
       Priority        : Priority_Type;
       Executable_File : Types.File_Name_Type;
       Partition_Dir   : Types.File_Name_Type;
@@ -346,6 +347,9 @@ package XE_Back is
    function Get_Internal_Dir   (P : PID_Type) return Types.File_Name_Type;
    --  Look for partition_dir into partitions. If null, return default.
 
+   function Get_Allow_Light_PCS (P : PID_Type) return XE.Boolean_Type;
+   --  Return true when a partition has a light PCS.
+
    function Get_Passive         (P : PID_Type) return XE.Boolean_Type;
    --  Return true when a partition is passive.
 
@@ -414,6 +418,9 @@ package XE_Back is
 
    procedure Set_HID
      (N : in Types.Name_Id; H : in HID_Type);
+
+   procedure Set_Allow_Light_PCS
+     (P : in PID_Type; B : in XE.Boolean_Type);
 
    procedure Set_Passive
      (P : in PID_Type; B : in XE.Boolean_Type);

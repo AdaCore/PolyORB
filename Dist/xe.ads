@@ -76,7 +76,7 @@ package XE is
 
    -- Attribute_Type --
 
-   type Attribute_Type is new Types.Int range 200 .. 214;
+   type Attribute_Type is new Types.Int range 200 .. 215;
 
    Attribute_Unknown       : constant Attribute_Type := 200;
    Attribute_Host          : constant Attribute_Type := 201;
@@ -93,6 +93,7 @@ package XE is
    Attribute_Storage       : constant Attribute_Type := 212;
    Attribute_Passive       : constant Attribute_Type := 213;
    Attribute_Priority      : constant Attribute_Type := 214;
+   Attribute_Allow_Light_PCS     : constant Attribute_Type := 215;
 
 
    -- Pragma_Type --
