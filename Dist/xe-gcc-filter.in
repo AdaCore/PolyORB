@@ -14,9 +14,8 @@ s/register_server_elaboration/register_receiving_stub/g
 " ${NAME}  | ${AWK} '
 BEGIN {wait = 0; skipline = 0}
 /^package body/{
-  print "with rci_info;"
   print $0;
-  print "   package RCI_Cache is new RCI_Info (\""$3"\");";
+  print "   package RCI_Cache is new System.Partition_Interface.RCI_Info (\""$3"\");";
   next}
 /protected body when_elaborated is/{skipline = 1; next}
 /protected when_elaborated is/{skipline = 1; next}

@@ -1,6 +1,7 @@
 Thu Dec 19 13:46:57 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe-gcc-filter.in: Changed bogus test.
+	Changed RCI_Info into System.Partition_Interface.RCI_Info.
 
 Mon Dec 16 16:45:08 1996  Laurent Pautet  <pautet@scapin.enst.fr>
 
