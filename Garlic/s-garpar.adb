@@ -473,7 +473,7 @@ package body System.Garlic.Partitions is
             --  This is step 4.
 
             if Self_PID = Null_PID then
-               if not Options.Mirror_Excepted
+               if not Options.Mirror_Expected
                  or else N_Boot_Mirrors > 1
                then
                   Self_PID := Request.Partition;

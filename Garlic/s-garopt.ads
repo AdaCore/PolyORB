@@ -50,7 +50,7 @@ package System.Garlic.Options is
    Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
 
    Has_Light_PCS   : Boolean;
-   Mirror_Excepted : Boolean;
+   Mirror_Expected : Boolean;
    Self_Location   : Utils.String_Access;
    Boot_Location   : Utils.String_Access;
    Is_Boot_Mirror  : Boolean;
@@ -97,7 +97,7 @@ package System.Garlic.Options is
 
    procedure Set_Trace_File_Name (Name : in String);
 
-   procedure Set_Mirror_Excepted (Default : in Boolean);
+   procedure Set_Mirror_Expected (Default : in Boolean);
 
 end System.Garlic.Options;
 

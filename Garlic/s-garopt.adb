@@ -71,7 +71,7 @@ package body System.Garlic.Options is
       Execution_Mode  := Normal_Mode;
       Connection_Hits := 128;
       Detach          := False;
-      Mirror_Excepted := False;
+      Mirror_Expected := False;
       Has_Light_PCS   := not Has_RCI_Pkg_Or_RACW_Var;
       Is_Boot_Mirror  := False;
       Is_Boot_Server  := False;
@@ -132,7 +132,7 @@ package body System.Garlic.Options is
 
       EV := GNAT.OS_Lib.Getenv ("MIRROR_EXPECTED");
       if EV.all /= "" then
-         Set_Mirror_Excepted (True);
+         Set_Mirror_Expected (True);
       end if;
       Free (EV);
 
@@ -162,6 +162,12 @@ package body System.Garlic.Options is
             pragma Debug (D ("--boot_mirror available on command line"));
 
             Set_Boot_Mirror (True);
+
+         elsif Argument (Index) = "--mirror_expected" then
+
+            pragma Debug (D ("mirror_expected-- available on command line"));
+
+            Set_Mirror_Expected (True);
 
          elsif Argument (Index) = "--self_location" then
 
@@ -331,13 +337,13 @@ package body System.Garlic.Options is
    end Set_Light_PCS;
 
    -------------------------
-   -- Set_Mirror_Excepted --
+   -- Set_Mirror_Expected --
    -------------------------
 
-   procedure Set_Mirror_Excepted (Default : in Boolean) is
+   procedure Set_Mirror_Expected (Default : in Boolean) is
    begin
-      Mirror_Excepted := Default;
-   end Set_Mirror_Excepted;
+      Mirror_Expected := Default;
+   end Set_Mirror_Expected;
 
    ------------------
    -- Set_Nolaunch --

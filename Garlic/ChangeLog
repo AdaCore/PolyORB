@@ -1,3 +1,11 @@
+1999-06-18  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-stratt.adb: Use a short short unsigned to marshall a boolean.
+
+1999-06-16  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garpar.adb, s-garopt.adb: Typo (Excepted -> Expected)
+
 1999-06-02  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gardeb.adb, s-gaplsp.ads.in: Sanity directory is now an
