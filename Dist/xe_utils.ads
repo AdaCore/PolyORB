@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -139,6 +139,8 @@ package XE_Utils is
 
    procedure Delete
      (File : in Types.File_Name_Type);
+   --   Delete File, fail silently if the file does not exists but raise
+   --   Fatal Error if it file exists and cannot be deleted.
 
    function Dir
      (D1 : Types.File_Name_Type;
@@ -239,8 +241,6 @@ package XE_Utils is
    --  Strip %[bs] from U.
 
    function System_Tasking_Child (N : Types.Name_Id) return Boolean;
-
-   procedure Unlink_File (File : in Types.File_Name_Type);
 
    procedure Message
      (S1 : in String        := "";
