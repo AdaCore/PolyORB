@@ -80,8 +80,7 @@ package System.Garlic.Remote is
    procedure Full_Launch
      (Launcher        : in String;
       Host            : in String;
-      Executable_Name : in String;
-      Boot_Server     : in String);
+      Executable_Name : in String);
    --  Launch the given partition with the correct parameters on the
    --  command line.
 

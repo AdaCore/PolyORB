@@ -37,9 +37,6 @@ with Ada.Unchecked_Deallocation;
 
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Filters;           use System.Garlic.Filters;
-pragma Warnings (Off);
-with System.Garlic.Linker_Options;
-pragma Warnings (On);
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
 with System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
@@ -50,6 +47,10 @@ with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Utils;
 with System.RPC.Initialization;
 with System.Standard_Library;
+
+pragma Warnings (Off);
+with System.Garlic.Linker_Options;
+pragma Warnings (On);
 
 package body System.Garlic.Heart is
 
@@ -229,6 +230,11 @@ package body System.Garlic.Heart is
    Partition_Error_Notification : RPC_Error_Notifier_Type;
    --  Call this procedure when a partition dies
 
+   procedure Partition_RPC_Receiver
+     (Params : access Params_Stream_Type;
+      Result : access Params_Stream_Type);
+   --  Global RPC receiver
+
    --------------------------
    -- Add_New_Partition_ID --
    --------------------------
@@ -263,6 +269,8 @@ package body System.Garlic.Heart is
 
    procedure Elaboration_Is_Terminated is
    begin
+      System.RPC.Establish_RPC_Receiver
+        (Local_Partition, Partition_RPC_Receiver'Access);
       pragma Debug
         (D (D_Elaborate, "Signaling that elaboration is terminated"));
       Elaboration_Barrier.Signal_All (Permanent => True);
@@ -843,6 +851,19 @@ package body System.Garlic.Heart is
       end Queue;
 
    end Partition_Map_Type;
+
+   ----------------------------
+   -- Partition_RPC_Receiver --
+   ----------------------------
+
+   procedure Partition_RPC_Receiver
+     (Params : access Params_Stream_Type;
+      Result : access Params_Stream_Type) is
+      Receiver : RPC_Receiver;
+   begin
+      RPC_Receiver'Read (Params, Receiver);
+      Receiver (Params, Result);
+   end Partition_RPC_Receiver;
 
    -------------
    -- Receive --

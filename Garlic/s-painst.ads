@@ -2,7 +2,7 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                S Y S T E M . G A R L I C . O P T I O N S                 --
+--      S Y S T E M . P A R T I T I O N _ I N T E R F A C E . M A I N       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -33,51 +33,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Heart;
-with GNAT.OS_Lib;
+package System.Partition_Interface.Startup is
 
-package System.Garlic.Options is
+   type Main_Subprogram_Type is access procedure;
 
-   --  This package needs comments ???
+   procedure Check (Unit : in String; Version : in String);
+   --  Use by the main subprogram to check that a remote receiver
+   --  unit has has the same version than the caller's one.
 
-   Task_Pool_Low_Bound  : Positive := 1;
-   Task_Pool_High_Bound : Positive := 5;
-   Task_Pool_Max_Bound  : Positive range 1 .. 512 := 512;
-   --  This one must match the definition of Max_Tasks from s-rpcpoo.adb
+   procedure Launch
+     (Rsh_Command  : in String;
+      Name_Is_Host : in Boolean;
+      General_Name : in String;
+      Command_Line : in String);
+   --  Part_Or_Host is either a partition name or a host name depending
+   --  on Name_Is_Host.
 
-   Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
+   procedure Run (Main : in Main_Subprogram_Type);
+   --  Run the main subprogram.
 
-   Boot_Server     : GNAT.OS_Lib.String_Access;
-   Connection_Hits : Natural;
-   Detach          : Boolean;
-   Is_Slave        : Boolean;
-   Nolaunch        : Boolean;
-   Termination     : Heart.Termination_Type;
-   Partition_Name  : GNAT.OS_Lib.String_Access;
-   Execution_Mode  : Heart.Execution_Mode_Type;
-   Trace_File_Name : GNAT.OS_Lib.String_Access;
-
-   procedure Initialize;
-
-   procedure Set_Boot_Server (Default : in String);
-
-   procedure Set_Connection_Hits (Default : in Natural);
-
-   procedure Set_Detach   (Default : in Boolean);
-
-   procedure Set_Execution_Mode (Default : in Heart.Execution_Mode_Type);
-
-   procedure Set_Is_Slave (Default : in Boolean);
-
-   procedure Set_Nolaunch (Default : in Boolean);
-
-   procedure Set_Partition_Name (Name : in String);
-
-   procedure Set_Task_Pool_Bounds (Low, High, Max : in Positive);
-
-   procedure Set_Termination (Default : in Heart.Termination_Type);
-
-   procedure Set_Trace_File_Name (Name : in String);
-
-end System.Garlic.Options;
-
+end System.Partition_Interface.Startup;

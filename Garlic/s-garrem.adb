@@ -36,14 +36,15 @@
 with GNAT.IO;
 with Interfaces.C.Strings;
 with System.Garlic.Constants;         use System.Garlic.Constants;
+with System.Garlic.Heart;             use System.Garlic.Heart;
 with System.Garlic.Naming;            use System.Garlic.Naming;
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
 with System.Garlic.Thin;              use System.Garlic.Thin;
-with System.RPC;
+with System.RPC;                      use System.RPC;
 
 package body System.Garlic.Remote is
 
-   use Interfaces.C, System.RPC;
+   use Interfaces.C;
    --  Shortcuts
 
    Current_Launcher : Launcher_Type := Rsh_Launcher'Access;
@@ -106,12 +107,11 @@ package body System.Garlic.Remote is
    procedure Full_Launch
      (Launcher        : in String;
       Host            : in String;
-      Executable_Name : in String;
-      Boot_Server     : in String)
+      Executable_Name : in String)
    is
       Full_Command : constant String :=
         Executable_Name & " " & "--detach --slave --boot_server " &
-        Boot_Server & " &";
+        Get_Boot_Server & " &";
    begin
       Launch (Launcher, Host, Full_Command);
    end Full_Launch;

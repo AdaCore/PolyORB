@@ -142,6 +142,7 @@ s-garter.o\
 s-gartyp.o\
 s-garuni.o\
 s-garuti.o\
+s-painst.o\
 s-parint.o\
 s-rpc.o\
 s-rpcini.o\
@@ -179,6 +180,7 @@ ${srcdir}/s-garuni.ads ${srcdir}/s-garuni.adb \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
 ${srcdir}/s-gastha.ads ${srcdir}/s-gastha.adb \
 ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
+${srcdir}/s-painst.ads ${srcdir}/s-painst.adb \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
 ${srcdir}/s-rpcini.ads ${srcdir}/s-rpcini.adb \
 ${srcdir}/s-rpcpoo.ads ${srcdir}/s-rpcpoo.adb \

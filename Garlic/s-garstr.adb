@@ -116,6 +116,7 @@ package body System.Garlic.Streams is
       Total   : Stream_Element_Count := 0;
    begin
       loop
+         Current.Last := 0;
          System.RPC.Read (Params.all, Current.Content, Current.Last);
          Total := Total + Current.Last;
          exit when Current.Last < Node_Size;

@@ -258,6 +258,17 @@ package body System.Garlic.Options is
       Set_Trace_File_Name (Name & ".ptf");
    end Set_Partition_Name;
 
+   --------------------------
+   -- Set_Task_Pool_Bounds --
+   --------------------------
+
+   procedure Set_Task_Pool_Bounds (Low, High, Max : in Positive) is
+   begin
+      Task_Pool_Low_Bound  := Low;
+      Task_Pool_High_Bound := High;
+      Task_Pool_Max_Bound  := Max;
+   end Set_Task_Pool_Bounds;
+
    ---------------------
    -- Set_Termination --
    ---------------------

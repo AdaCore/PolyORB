@@ -76,11 +76,6 @@ package body System.Partition_Interface is
       Params    : access Params_Stream_Type);
    --  Global message receiver
 
-   procedure Partition_RPC_Receiver
-     (Params : access Params_Stream_Type;
-      Result : access Params_Stream_Type);
-   --  Global RPC receiver
-
    procedure Send
      (Partition : in Partition_ID;
       Request   : in Request_Type;
@@ -231,19 +226,6 @@ package body System.Partition_Interface is
    begin
       null;
    end Invalidate_Receiving_Stub;
-
-   ----------------------------
-   -- Partition_RPC_Receiver --
-   ----------------------------
-
-   procedure Partition_RPC_Receiver
-     (Params : access Params_Stream_Type;
-      Result : access Params_Stream_Type) is
-      Receiver : RPC_Receiver;
-   begin
-      RPC_Receiver'Read (Params, Receiver);
-      Receiver (Params, Result);
-   end Partition_RPC_Receiver;
 
    -------------
    -- Process --
@@ -500,5 +482,4 @@ package body System.Partition_Interface is
 
 begin
    Receive (Name_Service, Public_Message_Receiver'Access);
-   Establish_RPC_Receiver (Local_Partition, Partition_RPC_Receiver'Access);
 end System.Partition_Interface;

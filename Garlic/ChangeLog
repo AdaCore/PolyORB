@@ -1,3 +1,20 @@
+1998-03-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-painst.adb, s-painst.ads: New package that contains few
+ 	subprograms used in the partition main subprogram.
+
+	* s-garopt.adb, s-garopt.adb: Add Set_Task_Pool_Bounds. Used in
+ 	s-garela.
+
+	* Makefile.am, Makefile.in: Add s-painst.ad[bs].
+
+	* s-parint.adb: Move Partition_RPC_Receiver from
+	Partition_Interface to Garlic.Head. Change needed for an ACVC.
+
+	* s-garrem.adb, s-garrem.adb: Remove a parameter in
+ 	Full_Launch. This parameter was always a call to the same function 
+	(get_boot_server).
+
 1998-03-09  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb: Surround with of System.Garlic.Linker_Options with 
