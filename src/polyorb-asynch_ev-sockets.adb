@@ -109,8 +109,12 @@ package body PolyORB.Asynch_Ev.Sockets is
       use Source_Lists;
 
    begin
+      pragma Debug (O ("Unregister_Source: enter"));
       Clear (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
       Source_Lists.Remove (AEM.Sources, AES);
+      pragma Debug (O ("Unregister_Source: Sources'Length:="
+                       & Integer'Image (Source_Lists.Length (AEM.Sources))));
+      pragma Debug (O ("Unregister_Source: leave"));
    end Unregister_Source;
 
    -------------------
