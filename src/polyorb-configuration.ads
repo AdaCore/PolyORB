@@ -91,4 +91,11 @@ package PolyORB.Configuration is
    --    or is "off" or "disable" or "false" or empty.
    --  Constraint_Error is raised if the value is set to anything else.
 
+   function Get_Conf (Section, Key : String; Default : Integer := 0)
+     return Integer;
+   --  Return the value of the global variable Key or Default if this
+   --  variable is not defined, interpreting the value as the decimal
+   --  representation of an integer number.
+   --  Constraint_Error is raised if the value is set to anything else.
+
 end PolyORB.Configuration;

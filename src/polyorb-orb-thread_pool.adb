@@ -35,6 +35,7 @@
 with Ada.Exceptions;
 
 with PolyORB.Components;
+with PolyORB.Configuration;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters.Interface;
@@ -241,6 +242,10 @@ package body PolyORB.ORB.Thread_Pool is
    -- Initialize --
    ----------------
 
+   Initialized : Boolean := False;
+   Default_Threads : constant := 4;
+   Default_Queue_Size : constant := 10;
+
    procedure Initialize
      (Number_Of_Threads : Positive;
       Queue_Size        : Positive)
@@ -248,6 +253,11 @@ package body PolyORB.ORB.Thread_Pool is
       Dummy_Task : Pool_Thread_Access;
    begin
       pragma Debug (O ("Initialize : enter"));
+      if Initialized then
+         pragma Debug (O ("Thread_Pool: already initialized!"));
+         return;
+      end if;
+      Initialized := True;
       The_Thread_Pool := new Thread_Array (1 .. Number_Of_Threads);
 
       Request_Queue.Create (The_Request_Queue, Queue_Size);
@@ -258,11 +268,17 @@ package body PolyORB.ORB.Thread_Pool is
       end loop;
    end Initialize;
 
-   procedure Initialize;
-   procedure Initialize is
+   procedure Auto_Initialize;
+
+   procedure Auto_Initialize is
+      use PolyORB.Configuration;
    begin
       Setup.The_Tasking_Policy := new Thread_Pool_Policy;
-   end Initialize;
+
+      Initialize
+        (Get_Conf ("tasking", "polyorb.orb.thread_pool.threads", 4),
+         Get_Conf ("tasking", "polyorb.orb.thread_pool.queue_size", 10));
+   end Auto_Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -275,5 +291,5 @@ begin
        Conflicts => +"no_tasking",
        Depends => +"soft_links",
        Provides => +"orb.tasking_policy",
-       Init => Initialize'Access));
+       Init => Auto_Initialize'Access));
 end PolyORB.ORB.Thread_Pool;

@@ -54,7 +54,6 @@ with File.Helper;
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 with PolyORB.CORBA_P.Server_Tools;
 
-with PolyORB.ORB.Thread_Pool;
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
@@ -328,7 +327,6 @@ procedure Test_Naming is
 
 begin
    CORBA.ORB.Initialize ("ORB");
-   PolyORB.ORB.Thread_Pool.Initialize (4, 10);
    PolyORB.CORBA_P.Server_Tools.Initiate_Server
      (Start_New_Task => True);
    begin

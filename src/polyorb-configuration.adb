@@ -224,6 +224,13 @@ package body PolyORB.Configuration is
       return To_Boolean (Get_Conf (Section, Key, Default_Value (Default)));
    end Get_Conf;
 
+   function Get_Conf (Section, Key : String; Default : Integer := 0)
+     return Integer
+   is
+   begin
+      return Integer'Value (Get_Conf (Section, Key, Integer'Image (Default)));
+   end Get_Conf;
+
    -------------
    -- Get_Env --
    -------------

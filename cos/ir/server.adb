@@ -41,8 +41,6 @@ with CosNaming.NamingContext;
 with PolyORB.CORBA_P.Naming_Tools;
 with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
 
---  with PolyORB.ORB.Thread_Pool;
---  with PolyORB.Setup.Thread_Pool_Server;
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
