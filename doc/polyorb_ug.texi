@@ -47,10 +47,16 @@
 @c  6. DO NOT use @cartouche for examples that are longer than around 10 lines.
 @c     This command inhibits page breaks, so long examples in a @cartouche can
 @c     lead to large, ugly patches of empty space on a page.
+@c  
+@c  7. To add an entry to the bibliography, you must:
+@c     * add it to polyorb_ug.bib
+@c     * add a '\nocite{<name>}' to polyorb_ug_ref.tex
+@c     This will generate the correct polyorb_ug_ref.texi file
+@c     You may then cite the correct reference.
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#2 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#3 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -66,8 +72,7 @@
 
 @title PolyORB User's Guide
 @subtitle Version @value{VERSION}
-@subtitle Document revision level @value{EDITION}
-@subtitle Date: @value{UPDATED}
+@subtitle @value{UPDATED}
 @author XXXX
 
 @page
@@ -99,6 +104,12 @@ unmodified in any copy.
 
 @menu
 * Introduction to PolyORB::
+* Installation::
+* Overview of PolyORB personalities::
+* Building an application with PolyORB::
+* CORBA::
+* References::
+* Index::
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -113,6 +124,8 @@ unmodified in any copy.
 @chapter Introduction to PolyORB
 @cindex PolyORB
 @c -------------------------------------------------------------------
+
+@c XXX check consistency with ANNOUNCE file
 
 
 @section Distributed applications and middleware
@@ -132,16 +145,22 @@ A number of different standards exist for creating object-oriented
 distributed applications. These standards define two subsystems that
 enable interaction between application partitions:
 
-    * the API seen by the developer's applicative objects;
+@itemize @bullet
+@item the API seen by the developer's applicative objects;
 
-    * the protocol used by the middleware environment to interact with
-      other nodes in the distributed application.
+@item the protocol used by the middleware environment to interact with 
+other nodes in the distributed application.
 
-Middleware implementations also offer programming guidelines as well as
-development tools to ease the construction of large heterogeneous
-distributed systems. Many issues typical to distributed programming may
-still arise: application architectural choice, configuration
-or deployment. Since there is no "one size fits all" architecture,
+
+@end itemize
+
+
+@noindent
+Middleware implementations also offer programming guidelines as well
+as development tools to ease the construction of large heterogeneous
+distributed systems. Many issues typical to distributed programming
+may still arise: application architectural choice, configuration or
+deployment. Since there is no "one size fits all" architecture,
 choosing the adequate distribution middleware in its most appropriate
 configuration is a key design point that dramatically impacts the
 design and performance of an application.
@@ -159,6 +178,8 @@ Remote Method Invocation (RMI), the Distributed System Annex of Ada
 
 @section PolyORB: a generic middleware with an instance per distribution model
 
+
+@noindent
 Typical middleware implementations for one platform support only one
 set of such interfaces, pre-defined configuration capabilities and
 cannot interoperate with other platforms. In addition to traditional
@@ -194,5 +215,428 @@ environments.
 @i{Note: PolyORB is the project formerly known as DROOPI, a Distributed
 Reusable Object-Oriented Polymorphic Infrastructure}
 
+@c -------------------------------------------------------------------
+@node Installation
+@chapter Installation
+@c -------------------------------------------------------------------
+
+
+@c XXX check consistency with INSTALL file
+
+
+@section Supported Platforms
+
+
+@noindent
+PolyORB has been compiled and successfully tested on the following platforms:
+
+@itemize @bullet
+@item FreeBSD
+@item HP-UX
+@item Linux
+@item Solaris
+@item Windows
+@end itemize
+
+@noindent
+
+@section Build requirements
+
+@noindent
+Ada 95 compiler: GNAT 3.15a (or the public release 3.15p) or later.
+
+Optional: XmlAda (@url{http://libre.act-europe.fr/xmlada/}) if you want to
+build the SOAP protocol personality.
+
+Note: per construction, the macro 'configure' used to find your GNAT
+compiler looks first to the executables 'gnatgcc', then 'adagcc' and
+finally to 'gcc' to find out which Ada compiler to use. You should be
+very careful with your path and executables if you have multiple GNAT
+versions installed. See below explanations on the ADA environment
+variable if you need to override the default guess.
+
+
+@section Build instructions
+
+@noindent
+To compile and install PolyORB, execute:
+
+
+@smallexample
+  % ./configure [some options]
+  % make              (or gmake if your make is not GNU make)
+  % make install      (ditto)
+@end smallexample
+
+@noindent
+This will install files in standard locations.  If you want to choose
+another prefix than @file{/usr/local}, give configure a
+@option{--prefix=whereveryouwant} argument.
+
+Note: at this time, you MUST use GNU make to compile this software.
+
+Available options for the 'configure' script include:
+
+@itemize @bullet
+
+@item  @option{--with-appli-perso="..."}: application personalities to build
+      
+      Available personalities: AWS, CORBA, DSA, MOMA
+      
+      e.g.   @option{--with-appli-perso="corba moma"} to build both the CORBA 
+             and MOMA personnalities
+
+@item  @option{--with-proto-perso="..."}: personalities to build
+      
+      Available personalities: GIOP, SOAP, SRP
+      
+      e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP 
+             and SOAP personnalities
+
+@item  @option{--with-services="..."}: CORBA COS services to build
+      
+      Available services: event, ir, naming, time
+      
+      e.g.  @option{--with-services="event naming"} to build only
+      COS Event and COS Naming.	
+
+By default, only the CORBA and GIOP personalities are built, no CORBA
+Services are built.
+
+@item  @option{--enable-shared}: build shared libraries.
+
+@item  @option{--enable-debug}:  enable debugging information generation 
+and supplementary runtime checks.
+
+
+@end itemize
+@noindent
+The following environment variables can be used to override configure's
+guess at what compilers to use:
+
+@itemize
+
+@item  @code{CC}:  the C compiler
+@item  @code{ADA}: the Ada 95 compiler
+
+
+@end itemize
+@noindent
+For example, if you have two versions of GNAT installed and available
+in your @code{PATH}, and configure picks the wrong one, you can
+indicate what compiler should be used with the following syntax:
+
+@code{ADA=/path/to/good/compiler/gcc ./configure [options]}
+
+NOTE: Developers building PolyORB from the version control repository
+who need to rebuild the configure and Makefile.in files should
+use the script support/reconfig for this purpose.
+
+
+@section Platform notes
+
+@noindent
+Solaris 2.8:
+
+@itemize @bullet
+
+@item /usr/bin/sed and /usr/ucb/sed will silently chop long
+    lines, and /usr/xpg4/bin/sed will enter an endless loop while
+    processing PolyORB files.
+    GNU sed is required to configure and build PolyORB.
+
+@item /usr/ucb/tr does not handle control character escape sequences: it
+    cannot be used to recompute dependencies ('make depend');
+    /usr/bin/tr or /usr/xpg4/bin/tr must be used.
+
+
+@end itemize
+@noindent
+@c -------------------------------------------------------------------
+@node Overview of PolyORB personalities
+@chapter Overview of PolyORB personalities
+@c -------------------------------------------------------------------
+
+@noindent
+This section provides a brief overview of existing personalities.
+
+@section Application personalities
+
+@subsection CORBA
+
+@noindent
+CORBA is OMG specification of a Distributed Object Computing (DOC)
+distribution model (@cite{[OMG02]}). It is now a well-known and
+well-established specification, used in a wide range of industrial
+applications.
+
+PolyORB provides a CORBA-compliant implementation based on mapping of
+the IDL language version 1.2 described in @cite{[OMG01]} and CORBA
+core specifications.
+
+@subsection Distributed System Annex of Ada (DSA)
+
+@noindent
+The Distributed System Annex of Ada (DSA) @cite{[ISO95]} is a normative
+specification part of the language. It describes remote invocation
+schemes applied to most language constructs.
+
+
+@subsection Message Oriented Middleware for Ada (MOMA)
+
+@noindent
+MOMA (Message Oriented Middleware for Ada) provides message passing
+mechanisms. It is an Ada adaptation of Sun's Java Message Service
+(JMS) @cite{[SUN99]}, a standardized API for common message passing
+models.
+
+@subsection Ada Web Server (AWS)
+
+@noindent
+The Web Server personality provides the same API as the Ada Web Server
+project (AWS) @cite{[Obr03]}. It allows for the implementation of web
+services, web server applications, or classical web pages. AWS-based
+servers allow the programmer to directly interact with incoming or
+outgoing @code{HTTP} and @code{SOAP} requests.
+
+@section Protocol personalities
+
+
+@subsection GIOP
+
+
+@noindent
+GIOP is the transport layer of the CORBA specifications. GIOP is a
+generic protocol. This personality implements GIOP versions from 1.0
+to 1.2 along with the CDR representation scheme to map data types
+between the neutral core layer and CDR streams. It also provides the
+following dedicated instances:
+
+@itemize @bullet
+@item IIOP supports synchronous request semantics over TCP/IP,
+
+@item MIOP instantiation of GIOP enables group communication over IP multicast,
+
+@item DIOP relies on UDP/IP communications to transmit one-way requests only.
+@end itemize
+
+@subsection SOAP
+
+@noindent
+The SOAP protocol @cite{[W3C03]} enables the exchange of structured
+and typed information between peers. It is a self-describing XML
+document @cite{[W3C03]} that defines both its data and
+semantics. Basically, SOAP with @code{HTTP} bindings is used as a
+communication protocol for Web Services.
+
+@c -------------------------------------------------------------------
+@node Building an application with PolyORB
+@chapter Building an application with PolyORB
+@c -------------------------------------------------------------------
+
+@section Static configuration
+
+@subsection Tasking run-times
+
+@subsection Middleware tasking policies
+
+@subsection Object Adapter
+
+@subsection Linking protocol personalities to executable
+
+@subsection Sample files
+
+@section Dynamic configuration
+
+@subsection Using configuration file
+
+@subsection Activating/Deactivating protocol personalities
+
+@section Activating debug information
+
+@section @command{polyorb-config}
+
+
+@noindent
+@command{polyorb-config} returns path and library information on
+PolyORB's installation.
+
+
+@smallexample
+
+@c  XXX check consistency with corresponding man page
+
+NAME
+       polyorb-config  - script to get information about the installed version
+       of PolyORB.
+
+SYNOPSIS
+       polyorb-config [--prefix] [--version|-v] [--config] [--libs] [--cflags]
+       [--help]
+
+DESCRIPTION
+       polyorb-config  is  a  tool  that is used to determine the compiler and
+       linker flags that should be used to compile and link programs that  use
+       PolyORB.
+
+OPTIONS
+       polyorb-config accepts the following options:
+
+       --prefix
+               Print PolyORB's installation prefix.
+
+       --version
+               Print  the  currently installed version of PolyORB on the stan-
+               dard output.
+
+       --config
+               Print the configuration of the currently installed  version  of
+               PolyORB on the standard output.
+
+       --libs  Print  the  linker  flags  that are necessary to link a PolyORB
+               program.
+
+       --cflags
+               Print the compiler flags that are necessary to compile a  Poly-
+               ORB program.
+
+       --help  Print help message.
+
+
+@end smallexample 
+
+@c -------------------------------------------------------------------
+@node CORBA
+@chapter CORBA
+@c -------------------------------------------------------------------
+
+@section Installing CORBA application personality
+
+@noindent
+Ensure PolyORB has been configured and then compiled with CORBA
+application personality. @xref{Building an application with PolyORB}
+for more details on how to check installed personalities.
+
+To enable the configuration of the CORBA application personality,
+@pxref{Installation}.
+
+@section Usage of @command{idlac}
+@cindex @command{idlac}
+
+@noindent
+@command{idlac} is PolyORB's IDL-to-Ada 95 compiler.
+
+
+@smallexample
+
+@c  XXX check consistency with corresponding man page
+
+NAME
+       idlac - PolyORB's IDL-to-Ada compiler
+
+SYNOPSIS
+       idlac [-E] [-d] [-i] [-k] [-p] [-q] [-noir] idl_file [-cppargs ...]
+
+DESCRIPTION
+       idlac is an IDL-to-Ada compiler, compliant with version 1.2 of the "Ada
+       Language Mapping Specification" produced by the OMG.
+
+OPTIONS
+       idlac accepts the following options:
+
+       -E      Preprocess only.
+
+       -d      Generate delegation package.
+
+       -i      Generate implementation template.
+
+       -k      Keep temporary files.
+
+       -p      Produce source on standard output.
+
+       -q      Be quiet.
+
+       -noir   Don't generate code for interface repository.
+
+       -cppargs ARGS
+               Pass ARGS to the C++ preprocessor.
+
+       -I dir  Shortcut for -cppargs -I dir.
+
+
+@end smallexample
+
+@noindent
+@command{idlac} creates several files :
+
+
+@itemize @bullet
+
+@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain 
+  the mapping for user defined types (client and server side).
+
+@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} : 
+  these files are to be filled by the user. They contain the
+  implementation of the server. They are generated only if the -i flag
+  is specified.
+
+@item @code{myinterface.ads}, @code{myinterface.adb} : these files
+  contain the client stubs for the interface.
+
+@item @code{myinterface-skel.ads}, @code{myinterface-skel.adb} : these files
+  contain the server-side skeletons for the interface.
+
+@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these 
+  files contain subprograms to marshal data into CORBA Any containers.
+
+
+@end itemize
+
+@section Using CORBA Naming Service
+
+@subsection @command{ab_names}
+@cindex @command{ab_names}
+
+@noindent
+@command{ab_names} is an implementation of CORBA CosNaming service built
+on top of PolyORB.
+
+@command{ab_names} is a stand alone server. When launched, it returns
+its @code{IOR} that can then be used by other CORBA applications. In
+compliance with @command{corbaloc} default port, @command{ab_names}
+listens on the standard port @code{2809/tcp}.
+
+@section Building a simple CORBA application with PolyORB
+
+@section PolyORB's specific APIs
+
+
+@noindent
+PolyORB defines two packages to help the quick and easy developpment
+of simple CORBA programs.
+
+@subsection @code{PolyORB.CORBA_P.Naming_Tools}
+
+@subsection @code{PolyORB.CORBA_P.Server_Tools}
+
+@c -------------------------------------------------------------------
+@node References
+@appendix References
+@c -------------------------------------------------------------------
+
+@enumerate
+
+@include polyorb_ug_ref.texi
+
+@end enumerate
+
+@c -------------------------------------------------------------------
+@node Index
+@unnumbered Index
+@c -------------------------------------------------------------------
+
+@printindex cp
+
 @contents
+
 @bye
