@@ -176,6 +176,8 @@ package System.PolyORB_Interface is
 
    function TC_String return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_String;
+   function TC_Void return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.TC_Void;
 
    function TC_Alias return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Alias;
@@ -235,6 +237,9 @@ package System.PolyORB_Interface is
       function Get_RCI_Package_Ref
         return PolyORB.References.Ref;
    end RCI_Info;
+
+   Result_Name : constant PolyORB.Types.Identifier
+     := PolyORB.Types.To_PolyORB_String ("Result");
 
 private
 

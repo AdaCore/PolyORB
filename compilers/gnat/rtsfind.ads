@@ -1031,6 +1031,7 @@ package Rtsfind is
      RE_Mode_Out,                        -- System.PolyORB_Interface
      RE_Mode_Inout,                      -- System.PolyORB_Interface
      RE_NamedValue,                      -- System.PolyORB_Interface
+     RE_Result_Name,                     -- System.PolyORB_Interface
      RE_Object_Ref,                      -- System.PolyORB_Interface
      RE_Get_Empty_Any,                   -- System.PolyORB_Interface
      RE_NVList_Ref,                      -- System.PolyORB_Interface
@@ -1116,6 +1117,7 @@ package Rtsfind is
      RE_TC_SSU,                          -- System.PolyORB_Interface
      RE_TC_SU,                           -- System.PolyORB_Interface
      RE_TC_U,                            -- System.PolyORB_Interface
+     RE_TC_Void,                         -- System.PolyORB_Interface
      RE_TC_WC,                           -- System.PolyORB_Interface
      RE_TC_String,                       -- System.PolyORB_Interface,
 
@@ -2037,6 +2039,7 @@ package Rtsfind is
      RE_Mode_Out                         => System_PolyORB_Interface,
      RE_Mode_Inout                       => System_PolyORB_Interface,
      RE_NamedValue                       => System_PolyORB_Interface,
+     RE_Result_Name                      => System_PolyORB_Interface,
      RE_Object_Ref                       => System_PolyORB_Interface,
      RE_Get_Empty_Any                    => System_PolyORB_Interface,
      RE_NVList_Ref                       => System_PolyORB_Interface,
@@ -2122,6 +2125,7 @@ package Rtsfind is
      RE_TC_SSU                           => System_PolyORB_Interface,
      RE_TC_SU                            => System_PolyORB_Interface,
      RE_TC_U                             => System_PolyORB_Interface,
+     RE_TC_Void                          => System_PolyORB_Interface,
      RE_TC_WC                            => System_PolyORB_Interface,
      RE_TC_String                        => System_PolyORB_Interface,
 

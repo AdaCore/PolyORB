@@ -2298,7 +2298,7 @@ package body Exp_Dist is
    procedure Build_General_Calling_Stubs
      (Decls                     : List_Id;
       Statements                : List_Id;
-      Target_Object             : Entity_Id;
+      Target_Object             : Node_Id;
       Subprogram_Id             : Node_Id;
       Asynchronous              : Node_Id   := Empty;
       Is_Known_Asynchronous     : Boolean   := False;
@@ -2309,9 +2309,6 @@ package body Exp_Dist is
       Nod                       : Node_Id)
    is
       Loc : constant Source_Ptr := Sloc (Nod);
-
-      Target_Parameter : Node_Id;
-      --  The reference that designates the target of a remote call.
 
       Arguments : Node_Id;
       --  Name of the named values list used to transmit parameters
@@ -2326,6 +2323,10 @@ package body Exp_Dist is
       Result : Node_Id;
       --  Name of the result named value (in non-APC cases) which get the
       --  result of the remote subprogram.
+
+      Result_TC : Node_Id;
+      --  Typecode expression for the result of the request (void
+      --  typecode for procedures).
 
       Exception_Return : Node_Id;
       --  Name of the parameter which will hold the exception sent by the
@@ -2376,16 +2377,6 @@ package body Exp_Dist is
           Object_Definition   =>
               New_Occurrence_Of (RTE (RE_Request_Access), Loc)));
 
-      Target_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('T'));
-
-      Append_To (Decls,
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Target_Parameter,
-          Aliased_Present     => False,
-          Object_Definition   =>
-              New_Occurrence_Of (RTE (RE_Object_Ref), Loc)));
-
       if not Is_Known_Asynchronous then
 --           Result_Parameter :=
 --             Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
@@ -2405,14 +2396,43 @@ package body Exp_Dist is
 --  XXX unnecessary with PolyORB (result NV is modified in place.)
 
          Result :=
-           Make_Defining_Identifier (Loc, New_Internal_Name ('N'));
+           Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+
+         if Is_Function then
+            Result_TC := Build_TypeCode_Call (Loc,
+              Etype (Subtype_Mark (Spec)));
+         else
+            Result_TC := New_Occurrence_Of (RTE (RE_TC_Void), Loc);
+         end if;
 
          Append_To (Decls,
            Make_Object_Declaration (Loc,
              Defining_Identifier => Result,
              Aliased_Present     => False,
              Object_Definition   =>
-               New_Occurrence_Of (RTE (RE_NamedValue), Loc)));
+               New_Occurrence_Of (RTE (RE_NamedValue), Loc),
+             Expression =>
+               Make_Aggregate (Loc,
+                 Component_Associations => New_List (
+                   Make_Component_Association (Loc,
+                     Choices => New_List (
+                       Make_Identifier (Loc, Name_Name)),
+                     Expression =>
+                       New_Occurrence_Of (RTE (RE_Result_Name), Loc)),
+                   Make_Component_Association (Loc,
+                     Choices => New_List (
+                       Make_Identifier (Loc, Name_Argument)),
+                     Expression =>
+                       Make_Function_Call (Loc,
+                         Name =>
+                           New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
+                         Parameter_Associations => New_List (
+                           Result_TC))),
+                   Make_Component_Association (Loc,
+                     Choices => New_List (
+                       Make_Identifier (Loc, Name_Arg_Modes)),
+                     Expression =>
+                       Make_Integer_Literal (Loc, 0))))));
 
          Exception_Return :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('E'));
@@ -2617,7 +2637,7 @@ package body Exp_Dist is
           Name =>
             New_Occurrence_Of (RTE (RE_Request_Create), Loc),
           Parameter_Associations => New_List (
-            New_Occurrence_Of (Target_Parameter, Loc),
+            Target_Object,
             Subp_Id,
             New_Occurrence_Of (Arguments, Loc),
             New_Occurrence_Of (Result, Loc),

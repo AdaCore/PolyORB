@@ -374,7 +374,7 @@ begin
      (Module_Info'
       (Name => +"dsa",
        Conflicts => Empty,
-       Depends => +"orb" & "access_points" & "initial_references",
+       Depends => +"orb" & "initial_references",
        Provides => Empty,
        Init => Initialize'Access));
 end System.PolyORB_Interface;
