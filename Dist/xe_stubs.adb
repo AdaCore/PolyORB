@@ -128,6 +128,9 @@ package body XE_Stubs is
    --  Check various file stamps to decide whether the partition
    --  executable should be regenerated.
 
+   Strip_Flag : constant String_Access := new String'("-s");
+   --  Option to strip an executable at link time
+
    -----------
    -- Build --
    -----------
@@ -560,14 +563,22 @@ package body XE_Stubs is
          (Include, I_Caller_Dir, I_Current_Dir)
          );
 
-      Execute_Link
-        (Dir (Directory, Partition_Main_File & ALI_Suffix),
-         Partitions.Table (PID).Executable_File,
-         (Library, L_Caller_Dir, L_Current_Dir)
-         );
-
       if Optimization_Mode then
-         Execute_Strip (Partitions.Table (PID).Executable_File);
+
+         Execute_Link
+           (Dir (Directory, Partition_Main_File & ALI_Suffix),
+            Partitions.Table (PID).Executable_File,
+            (Library, L_Caller_Dir, L_Current_Dir, Strip_Flag)
+            );
+
+      else
+
+         Execute_Link
+           (Dir (Directory, Partition_Main_File & ALI_Suffix),
+            Partitions.Table (PID).Executable_File,
+            (Library, L_Caller_Dir, L_Current_Dir)
+            );
+
       end if;
 
       Free (Include);

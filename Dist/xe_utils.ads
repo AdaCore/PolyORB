@@ -147,10 +147,6 @@ package XE_Utils is
       Fatal : in Boolean := True);
    --  Execute gnatlink and add gnatdist flags
 
-   procedure Execute_Strip
-      (Executable : in Types.File_Name_Type);
-   --  Strip executable
-
    function Find_Source
      (Uname : Types.Unit_Name_Type;
       Fatal : Boolean := False)

@@ -61,7 +61,6 @@ package body XE_Utils is
    Gnatbind       : String_Access;
    Gnatlink       : String_Access;
    Gnatmake       : String_Access;
-   Strip          : String_Access;
 
    Up_To_Low : constant := Character'Pos ('A') - Character'Pos ('a');
 
@@ -553,21 +552,6 @@ package body XE_Utils is
 
    end Execute_Link;
 
-   -------------------
-   -- Execute_Strip --
-   -------------------
-
-   procedure Execute_Strip
-     (Executable : in File_Name_Type)
-   is
-      File : Argument_List (1 .. 1);
-   begin
-      Get_Name_String (Executable);
-      File (1) := new String'(Name_Buffer (1 .. Name_Len));
-      Execute (Strip, File);
-      Free (File (1));
-   end Execute_Strip;
-
    ----------------
    -- GNAT_Style --
    ----------------
@@ -654,7 +638,6 @@ package body XE_Utils is
       Gnatbind        := Locate ("gnatbind");
       Gnatlink        := Locate ("gnatlink");
       Gnatmake        := Locate ("gnatmake");
-      Strip           := Locate ("strip");
 
       ALI_Suffix     := Str_To_Id (".ali");
       ADS_Suffix     := Str_To_Id (".ads");
