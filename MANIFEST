@@ -610,6 +610,8 @@ src/corba/portableinterceptor/portableinterceptor.adb
 src/corba/portableinterceptor/portableinterceptor.ads
 src/corba/portableserver-adapteractivator.adb
 src/corba/portableserver-adapteractivator.ads
+src/corba/portableserver-current-helper.adb
+src/corba/portableserver-current-helper.ads
 src/corba/portableserver-current.adb
 src/corba/portableserver-current.ads
 src/corba/portableserver-idassignmentpolicy.adb
