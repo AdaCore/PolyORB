@@ -1,3 +1,18 @@
+Fri Oct 24 17:49:16 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* xe_utils.ads: Add a procedure Free (to deallocate a
+ 	string_access variable). Add Configuration parameter in procedure
+ 	Produce_Partition_Executable (compilation, binding and linking are
+ 	executed in current directory and no longer in
+ 	dsa/<conf>/<part>). Add Object parameter in Compile_RCI_Receiver
+ 	and Compile_RCI_Caller for same reason.
+
+	* xe_utils.adb: Add -x ada systematically. Add -o <object>
+ 	systematically to save object file in place. Compile, bind and
+ 	link in current directory to honor gnat.adc.
+
+	* xe_stubs.adb: Use previous changes and honor gnat.adc.
+
 Thu Oct 23 09:58:06 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* xe_stubs.adb: Bad command order. Fix a problem with 0003-G00.

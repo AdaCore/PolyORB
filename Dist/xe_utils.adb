@@ -54,7 +54,7 @@ package body XE_Utils is
 
    EOL : constant String (1 .. 1) := (others => Ascii.LF);
 
-   Output_Option         : constant String_Access := new String'("-o");
+   Output_Flag           : constant String_Access := new String' ("-o");
    Preserve              : constant String_Access := new String' ("-p");
    Symbolic              : constant String_Access := new String' ("-s");
    Force                 : constant String_Access := new String' ("-f");
@@ -65,6 +65,9 @@ package body XE_Utils is
    Receiver_Compile_Flag : constant String_Access := new String' ("-gnatzR");
    Caller_Compile_Flag   : constant String_Access := new String' ("-gnatzC");
    GNATLib_Compile_Flag  : constant String_Access := new String' ("-gnatg");
+
+   Special_File_Flag     : constant String_Access := new String' ("-x");
+   Ada_File_Flag         : constant String_Access := new String' ("ada");
 
    I_GARLIC_Dir          : String_Access;
    L_GARLIC_Dir          : String_Access;
@@ -125,8 +128,9 @@ package body XE_Utils is
    --  Execute gnatbind and add gnatdist flags
 
    procedure Execute_Gcc
-     (File : in File_Name_Type;
-      Args : in Argument_List);
+     (File   : in File_Name_Type;
+      Object : in File_Name_Type;
+      Args   : in Argument_List);
    --  Execute gcc and add gnatdist compilation flags
 
    procedure Execute_Link
@@ -191,12 +195,12 @@ package body XE_Utils is
    -- Compile_RCI_Caller --
    ------------------------
 
-   procedure Compile_RCI_Caller (Source : in File_Name_Type) is
+   procedure Compile_RCI_Caller (Source, Object : in File_Name_Type) is
    begin
       Execute_Gcc
         (Source,
+         Object,
          (Caller_Compile_Flag,
-          I_Original_Dir,
           I_GARLIC_Dir)
          );
    end Compile_RCI_Caller;
@@ -205,12 +209,12 @@ package body XE_Utils is
    -- Compile_RCI_Receiver --
    --------------------------
 
-   procedure Compile_RCI_Receiver (Source : in File_Name_Type) is
+   procedure Compile_RCI_Receiver (Source, Object : in File_Name_Type) is
    begin
       Execute_Gcc
         (Source,
+         Object,
          (Receiver_Compile_Flag,
-          I_Original_Dir,
           I_GARLIC_Dir)
          );
    end Compile_RCI_Receiver;
@@ -415,28 +419,43 @@ package body XE_Utils is
    -----------------
 
    procedure Execute_Gcc
-     (File : in File_Name_Type;
-      Args : in Argument_List) is
+     (File   : in File_Name_Type;
+      Object : in File_Name_Type;
+      Args   : in Argument_List) is
 
       Length      : constant Natural
-        := Gcc_Switches.Last - Gcc_Switches.First + 1 + Args'Length + 2;
+        := Gcc_Switches.Last - Gcc_Switches.First + 6 + Args'Length + 2;
+
+      File_Name   : String_Access;
+      Object_Name : String_Access;
 
       Gcc_Flags   : Argument_List (1 .. Length);
-
-      File_Name   : String (1 .. Strlen (File));
 
       N_Gcc_Flags : Natural range 0 .. Length := 0;
 
    begin
 
       N_Gcc_Flags := N_Gcc_Flags + 1;
-      Gcc_Flags (N_Gcc_Flags) := Compile_Flag;
-
-      Get_Name_String (File);
-      File_Name := Name_Buffer (1 .. Name_Len);
+      Gcc_Flags (N_Gcc_Flags) := Special_File_Flag;
 
       N_Gcc_Flags := N_Gcc_Flags + 1;
-      Gcc_Flags (N_Gcc_Flags) := new String'(File_Name);
+      Gcc_Flags (N_Gcc_Flags) := Ada_File_Flag;
+
+      N_Gcc_Flags := N_Gcc_Flags + 1;
+      Gcc_Flags (N_Gcc_Flags) := Compile_Flag;
+
+      N_Gcc_Flags := N_Gcc_Flags + 1;
+      Get_Name_String (File);
+      File_Name := new String'(Name_Buffer (1 .. Name_Len));
+      Gcc_Flags (N_Gcc_Flags) := File_Name;
+
+      N_Gcc_Flags := N_Gcc_Flags + 1;
+      Gcc_Flags (N_Gcc_Flags) := Output_Flag;
+
+      N_Gcc_Flags := N_Gcc_Flags + 1;
+      Get_Name_String (Object);
+      Object_Name := new String'(Name_Buffer (1 .. Name_Len));
+      Gcc_Flags (N_Gcc_Flags) := Object_Name;
 
       for I in Args'Range loop
          N_Gcc_Flags := N_Gcc_Flags + 1;
@@ -448,7 +467,13 @@ package body XE_Utils is
          Gcc_Flags (N_Gcc_Flags) := Gcc_Switches.Table (I);
       end loop;
 
+      N_Gcc_Flags := N_Gcc_Flags + 1;
+      Gcc_Flags (N_Gcc_Flags) := I_Current_Dir;
+
       Execute (Gcc, Gcc_Flags);
+
+      Free (File_Name);
+      Free (Object_Name);
 
    end Execute_Gcc;
 
@@ -482,7 +507,7 @@ package body XE_Utils is
       Get_Name_String (Exec);
       Exec_Name := Name_Buffer (1 .. Name_Len);
       N_Link_Flags := N_Link_Flags + 1;
-      Link_Flags (N_Link_Flags) := Output_Option;
+      Link_Flags (N_Link_Flags) := Output_Flag;
       N_Link_Flags := N_Link_Flags + 1;
       Link_Flags (N_Link_Flags) := new String'(Exec_Name);
 
@@ -521,12 +546,16 @@ package body XE_Utils is
       Flags  : in Argument_List) is
       N : Natural := 1;
       L : constant Natural
-        := Gcc_Switches.Last - Gcc_Switches.First + 5 + Flags'Length;
+        := Gcc_Switches.Last - Gcc_Switches.First + 7 + Flags'Length;
       A : Argument_List (1 .. L);
    begin
       A (N) := Target;
       N := N + 1;
       A (N) := Gcc;
+      N := N + 1;
+      A (N) := Special_File_Flag;
+      N := N + 1;
+      A (N) := Ada_File_Flag;
       N := N + 1;
       A (N) := Compile_Flag;
       N := N + 1;
@@ -816,24 +845,49 @@ package body XE_Utils is
 
    procedure Produce_Partition_Executable
      (Partition     : in Name_Id;
+      Configuration : in Name_Id;
       Executable    : in File_Name_Type) is
 
       FD : File_Descriptor;
 
+      D1 : File_Name_Type;
+      D2 : File_Name_Type;
+
+      I1 : String_Access;
+      I2 : String_Access;
+
+      L1 : String_Access;
+      L2 : String_Access;
+
    begin
+      
+      D1 := DSA_Dir &
+            Dir_Sep_Id & Configuration &
+            Dir_Sep_Id & Partition;
+      Get_Name_String (Inc_Path_Flag & D1);
+      I1 := new String'(Name_Buffer (1 .. Name_Len));
+      Get_Name_String (Lib_Path_Flag & D1);
+      L1 := new String'(Name_Buffer (1 .. Name_Len));
+
+      D2 := DSA_Dir &
+            Dir_Sep_Id & Private_Id &
+            Dir_Sep_Id & Caller_Id;
+      Get_Name_String (Inc_Path_Flag & D2);
+      I2 := new String'(Name_Buffer (1 .. Name_Len));
+      Get_Name_String (Lib_Path_Flag & D2);
+      L2 := new String'(Name_Buffer (1 .. Name_Len));
 
       Execute_Gcc
-        (Elaboration_File & ADB_Suffix,
+        (D1 & Dir_Sep_Id & Elaboration_File & ADB_Suffix,
+         D1 & Dir_Sep_Id & Elaboration_File & Obj_Suffix,
          (GNATLib_Compile_Flag,
-          I_Original_Dir,
           I_GARLIC_Dir)
          );
 
       Execute_Gcc
-        (Partition_Main_File & ADB_Suffix,
-         (I_Current_Dir,
-          I_Caller_Dir,
-          I_Original_Dir)
+        (D1 & Dir_Sep_Id & Partition_Main_File & ADB_Suffix,
+         D1 & Dir_Sep_Id & Partition_Main_File & Obj_Suffix,
+         (I1, I2, I_Current_Dir)
          );
 
       --  I_Garlic_Dir is not included here because it was added by the
@@ -841,22 +895,22 @@ package body XE_Utils is
 
 
       Execute_Bind
-        (Partition_Main_File & ALI_Suffix,
-         (I_Current_Dir,
-          I_Caller_Dir,
-          I_Original_Dir)
-            );
-
-      Execute_Link
-        (Partition_Main_File & ALI_Suffix,
-         Executable,
-         (L_Current_Dir,
-          L_Caller_Dir,
-          L_Original_Dir,
-          L_GARLIC_Dir)
+        (D1 & Dir_Sep_Id & Partition_Main_File & ALI_Suffix,
+         (I1, I2, I_Current_Dir)
          );
 
-      Create (FD, Build_Stamp_File);
+      Execute_Link
+        (D1 & Dir_Sep_Id & Partition_Main_File & ALI_Suffix,
+         Executable,
+         (L1, L2, L_Current_Dir)
+         );
+
+      Free (I1);
+      Free (I2);
+      Free (L1);
+      Free (L2);
+
+      Create (FD, D1 & Dir_Sep_Id & Build_Stamp_File);
       Close  (FD);
 
    end Produce_Partition_Executable;

@@ -52,11 +52,11 @@ package body XE_Stubs is
    --  Generates the partition ada main subprogram (generation
    --  of Ada code, compilation, bind and link).
 
-   procedure Build_Stub (Base_Name : in File_Name_Type;
-                         Spec_Only : in Boolean);
+   procedure Build_Stub (A : in ALI_Id);
    --  Create the caller stub and the receiver stub for a RCI unit.
 
-   procedure Copy_Stub (Source_Dir, Target_Dir, Base_Name : in File_Name_Type);
+   procedure Copy_Stub
+     (Source_Dir, Target_Dir : in File_Name_Type; A : in ALI_Id);
    --  Copy all the stub files (base_name.*) from a source directory to
    --  a target directory. The suffixes used are .adb .o .ali.
 
@@ -116,20 +116,17 @@ package body XE_Stubs is
          Create_Dir (Receiver_Dir);
       end if;
 
-      --  At this point, everything is performed in dsa/<dir>. We update
-      --  all the relative paths (-I and -L).
+--       for S in Gcc_Switches.First .. Gcc_Switches.Last loop
+--          Update_Switch (Gcc_Switches.Table (S));
+--       end loop;
 
-      for S in Gcc_Switches.First .. Gcc_Switches.Last loop
-         Update_Switch (Gcc_Switches.Table (S));
-      end loop;
+--       for S in Linker_Switches.First .. Linker_Switches.Last loop
+--          Update_Switch (Linker_Switches.Table (S));
+--       end loop;
 
-      for S in Linker_Switches.First .. Linker_Switches.Last loop
-         Update_Switch (Linker_Switches.Table (S));
-      end loop;
-
-      for S in Binder_Switches.First .. Binder_Switches.Last loop
-         Update_Switch (Binder_Switches.Table (S));
-      end loop;
+--       for S in Binder_Switches.First .. Binder_Switches.Last loop
+--          Update_Switch (Binder_Switches.Table (S));
+--       end loop;
 
       --  Generate all the stubs (bodies, objects and alis). At this level,
       --  we ensure that all conf. units are ada units.
@@ -138,9 +135,7 @@ package body XE_Stubs is
             if Verbose_Mode then
                Message ("building ", CUnit.Table (CUID).CUname, " stubs");
             end if;
-            Build_Stub
-              (Get_Unit_Sfile (CUnit.Table (CUID).My_Unit),
-               Unit.Table (CUnit.Table (CUID).My_Unit).Utype = Is_Spec_Only);
+            Build_Stub (CUnit.Table (CUID).My_ALI);
          end if;
       end loop;
 
@@ -183,7 +178,7 @@ package body XE_Stubs is
                      Copy_Stub
                        (Receiver_Dir,
                         Directory,
-                        Unit.Table (U).Sfile);
+                        Unit.Table (U).My_ALI);
 
                      Most_Recent_Stamp
                        (PID, Directory & Dir_Sep_Id &
@@ -289,20 +284,11 @@ package body XE_Stubs is
          return;
       end if;
 
-      Change_Dir (Directory);
-
       if not Quiet_Output then
          Message ("building partition ", Part_Name);
       end if;
 
-      --  Is it a relative storage directory ?
-      if Is_Relative_Dir (Executable) then
-         Exec_File := Original_Dir & Dir_Sep_Id & Executable;
-      end if;
-
-      Produce_Partition_Executable (Part_Name, Exec_File);
-
-      Change_Dir (Original_Dir);
+      Produce_Partition_Executable (Part_Name, Configuration, Exec_File);
 
    end Build_Partition;
 
@@ -310,15 +296,14 @@ package body XE_Stubs is
    -- Build_Stub --
    ----------------
 
-   procedure Build_Stub (Base_Name : in File_Name_Type;
-                         Spec_Only : in Boolean) is
+   procedure Build_Stub (A : in ALI_Id) is
 
       Obsolete        : Boolean := False;
       Full_RCI_Spec   : File_Name_Type;
       Full_RCI_Body   : File_Name_Type;
       Full_ALI_File   : File_Name_Type;
-      RCI_Spec        : File_Name_Type;
-      RCI_Body        : File_Name_Type;
+      RCI_Spec        : File_Name_Type := No_File;
+      RCI_Body        : File_Name_Type := No_File;
       Caller_Body     : File_Name_Type;
       Caller_Object   : File_Name_Type;
       Caller_ALI      : File_Name_Type;
@@ -328,17 +313,27 @@ package body XE_Stubs is
 
    begin
 
-      RCI_Spec        := Base_Name & ADS_Suffix;
-      RCI_Body        := Base_Name & ADB_Suffix;
+      for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
+         case Unit.Table (U).Utype is
+            when Is_Spec =>
+               RCI_Spec := Unit.Table (U).Sfile;
+            when Is_Spec_Only =>
+               RCI_Spec := Unit.Table (U).Sfile;
+            when Is_Body =>
+               RCI_Body := Unit.Table (U).Sfile;
+            when Is_Body_Only =>
+               raise Program_Error;
+         end case;
+      end loop;
       Full_RCI_Spec   := Full_Source_Name (RCI_Spec);
       Full_RCI_Body   := Full_Source_Name (RCI_Body);
-      Caller_Body     := Caller_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
-      Receiver_Body   := Receiver_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
-      Caller_Object   := Caller_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
-      Receiver_Object := Receiver_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
-      Caller_ALI      := Caller_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
-      Receiver_ALI    := Receiver_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
-      Full_ALI_File   := Base_Name & ALI_Suffix;
+      Caller_Body     := Caller_Dir & Dir_Sep_Id & RCI_Body;
+      Receiver_Body   := Receiver_Dir & Dir_Sep_Id & RCI_Body;
+      Caller_Object   := Strip_Suffix (Caller_Body) & Obj_Suffix;
+      Receiver_Object := Strip_Suffix (Receiver_Body) & Obj_Suffix;
+      Caller_ALI      := Strip_Suffix (Caller_Body) & ALI_Suffix;
+      Receiver_ALI    := Strip_Suffix (Receiver_Body) & ALI_Suffix;
+      Full_ALI_File   := ALIs.Table (A).Ofile_Full_Name;
 
       --  Do we need to regenerate the caller stub and its ali.
       if not Obsolete and then not Is_Regular_File (Caller_Body) then
@@ -390,19 +385,11 @@ package body XE_Stubs is
             Message ("building ", Caller_Body, " from ", Full_RCI_Spec);
          end if;
 
-         Change_Dir (Caller_Dir);
-         Expand_And_Compile_RCI_Caller
-           (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Spec);
-         Compile_RCI_Caller (RCI_Body);
-         Change_Dir (Original_Dir);
+         Expand_And_Compile_RCI_Caller (Caller_Body, Full_RCI_Spec);
+         Compile_RCI_Caller (Caller_Body, Caller_Object);
 
       elsif not Quiet_Output then
          Message ("   ", Caller_Body, " caller stub is up to date");
-      end if;
-
-      --  If no RCI body is available, use RCI spec.
-      if Spec_Only then
-         Full_RCI_Body := Full_RCI_Spec;
       end if;
 
       --  Do we need to generate the receiver stub and its ali.
@@ -454,11 +441,8 @@ package body XE_Stubs is
             Message ("building ", Receiver_Body, " from ", Full_RCI_Body);
          end if;
 
-         Change_Dir (Receiver_Dir);
-         Expand_And_Compile_RCI_Receiver
-           (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Body);
-         Compile_RCI_Receiver (RCI_Body);
-         Change_Dir (Original_Dir);
+         Expand_And_Compile_RCI_Receiver (Receiver_Body, Full_RCI_Body);
+         Compile_RCI_Receiver (Receiver_Body, Receiver_Object);
 
       elsif not Quiet_Output then
          Message ("   ", Receiver_Body, " receiver stub is up to date");
@@ -471,22 +455,27 @@ package body XE_Stubs is
    ---------------
 
    procedure Copy_Stub
-     (Source_Dir, Target_Dir, Base_Name : in File_Name_Type) is
-      Name    : File_Name_Type
-        := Strip_Suffix (Base_Name);
-      ALI_Src : File_Name_Type
-        := Source_Dir & Dir_Sep_Id & Name & ALI_Suffix;
-      ALI_Tgt : File_Name_Type
-        := Target_Dir & Dir_Sep_Id & Name & ALI_Suffix;
-      Obj_Src : File_Name_Type
-        :=  Source_Dir & Dir_Sep_Id & Name & Obj_Suffix;
-      Obj_Tgt : File_Name_Type
-        := Target_Dir & Dir_Sep_Id & Name & Obj_Suffix;
-      ADB_Src : File_Name_Type
-        := Source_Dir & Dir_Sep_Id & Name & ADB_Suffix;
-      ADB_Tgt : File_Name_Type
-        := Target_Dir & Dir_Sep_Id & Name & ADB_Suffix;
+     (Source_Dir, Target_Dir : in File_Name_Type; A : in ALI_Id) is
+
+      ALI_Src, ALI_Tgt, Obj_Src, Obj_Tgt, ADB_Src, ADB_Tgt : File_Name_Type;
+
    begin
+
+      for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
+         case Unit.Table (U).Utype is
+            when Is_Body =>
+               ADB_Src := Source_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
+               ADB_Tgt := Target_Dir & Dir_Sep_Id & Unit.Table (U).Sfile;
+            when others =>
+               null;
+         end case;
+      end loop;
+
+      ALI_Src := Strip_Suffix (ADB_Src) & ALI_Suffix;
+      ALI_Tgt := Strip_Suffix (ADB_Tgt) & ALI_Suffix;
+
+      Obj_Src := Strip_Suffix (ADB_Src) & Obj_Suffix;
+      Obj_Tgt := Strip_Suffix (ADB_Tgt) & Obj_Suffix;
 
       --  Copy the stubs from source directory to the target directory.
 

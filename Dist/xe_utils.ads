@@ -26,6 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Unchecked_Deallocation;
 with ALI;
 with GNAT.OS_Lib;
 with Opt;
@@ -62,8 +63,12 @@ package XE_Utils is
    None       : constant Main_Program_Type := ALI.None;
    No_Unit_Id : constant Unit_Id           := ALI.No_Unit_Id;
 
-   Is_Body      : constant Unit_Type       := ALI.Is_Body;
+   Is_Spec      : constant Unit_Type       := ALI.Is_Spec;
    Is_Spec_Only : constant Unit_Type       := ALI.Is_Spec_Only;
+   Is_Body      : constant Unit_Type       := ALI.Is_Body;
+   Is_Body_Only : constant Unit_Type       := ALI.Is_Body_Only;
+
+   procedure Free is new Unchecked_Deallocation (String, String_Access);
 
    package Unit  renames ALI.Unit;
    package ALIs  renames ALI.ALIs;
@@ -141,11 +146,11 @@ package XE_Utils is
    procedure Close (FD : File_Descriptor) renames GNAT.Os_Lib.Close;
 
    procedure Compile_RCI_Caller
-     (Source    : in File_Name_Type);
+     (Source, Object : in File_Name_Type);
    --  Compile the caller stubs (-gnatzC).
 
    procedure Compile_RCI_Receiver
-     (Source    : in File_Name_Type);
+     (Source, Object : in File_Name_Type);
    --  Compile the receiver stubs (-gnatzR).
 
    procedure Copy_With_File_Stamp
@@ -192,6 +197,7 @@ package XE_Utils is
 
    procedure Produce_Partition_Executable
      (Partition     : in Name_Id;
+      Configuration : in Name_Id;
       Executable    : in File_Name_Type);
    --  Generates the partition ada main subprogram (compilation, bind and
    --  link).
