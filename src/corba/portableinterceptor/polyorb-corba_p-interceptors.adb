@@ -35,6 +35,8 @@ with CORBA.Object;
 with PolyORB.Any;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
+with PolyORB.CORBA_P.Interceptors_Slots;
+with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Chained_Lists;
@@ -50,6 +52,10 @@ with PortableInterceptor.ServerRequestInfo.Impl;
 with PortableInterceptor.ServerRequestInterceptor;
 
 package body PolyORB.CORBA_P.Interceptors is
+
+   use PolyORB.Annotations;
+   use PolyORB.CORBA_P.Interceptors_Slots;
+   use PolyORB.Tasking.Threads.Annotations;
 
    --  Client Interceptors
 
@@ -402,12 +408,24 @@ package body PolyORB.CORBA_P.Interceptors is
          new Call_Client_Request_Interceptor_Operation
               (PortableInterceptor.ClientRequestInterceptor.Receive_Other);
 
+      TSC            : Slots_Note;
       Index          : Natural := Length (All_Client_Interceptors);
       Exception_Info : PolyORB.Any.Any;
       Forward        : Boolean := False;
 
    begin
-      --  First, call Send_Request on all interceptors.
+      --  Getting thread scope slots information (allocating thread scope
+      --  slots if it is not allocated), and make "logical copy" and place it
+      --  in the request.
+      Get_Note (Get_Current_Thread_Notepad.all, TSC, Invalid_Slots_Note);
+
+      if not Is_Allocated (TSC) then
+         Allocate_Slots (TSC);
+      end if;
+
+      Set_Note (Self.Notepad, TSC);
+
+      --  Call Send_Request on all interceptors.
 
       for J in 0 .. Index - 1 loop
          Call_Send_Request
@@ -431,6 +449,10 @@ package body PolyORB.CORBA_P.Interceptors is
 
       if Index = Length (All_Client_Interceptors) then
          PolyORB.Requests.Invoke (Self, Flags);
+
+         --  Restore request scope slots, because it may be changed during
+         --  invokation.
+         Set_Note (Self.Notepad, TSC);
       end if;
 
       for J in reverse 0 .. Index - 1 loop
@@ -475,6 +497,9 @@ package body PolyORB.CORBA_P.Interceptors is
             end if;
          end if;
       end loop;
+
+      --  Restoring thread scope slots.
+      Set_Note (Get_Current_Thread_Notepad.all, TSC);
 
       if Forward then
          --  Reinvocation. Extract object reference from ForwardRequest
@@ -684,6 +709,7 @@ package body PolyORB.CORBA_P.Interceptors is
       procedure Call_Send_Other is
          new Call_Server_Request_Interceptor_Operation (PISRI.Send_Other);
 
+      RSC             : Slots_Note;
       Empty_Any       : PolyORB.Any.Any;
       Skip_Invocation : Boolean := False;
       Note            : Server_Interceptor_Note
@@ -693,6 +719,10 @@ package body PolyORB.CORBA_P.Interceptors is
               Exception_Info      => Empty_Any,
               Intermediate_Called => False);
    begin
+      --  Allocating thread request scope slots. Storing it in the request.
+      Allocate_Slots (RSC);
+      Set_Note (Request.Notepad, RSC);
+
       for J in 0 .. Note.Last_Interceptor - 1 loop
          Call_Receive_Request_Service_Contexts
            (Element (All_Server_Interceptors, J).all,
@@ -712,7 +742,15 @@ package body PolyORB.CORBA_P.Interceptors is
          end if;
       end loop;
 
-      PolyORB.Annotations.Set_Note (Request.Notepad, Note);
+      --  Copy ing request scope slots to thread scope slots
+
+      Get_Note (Request.Notepad, RSC);
+      Set_Note (Get_Current_Thread_Notepad.all, RSC);
+
+      --  Saving in request information for calling intermediate
+      --  interception point.
+
+      Set_Note (Request.Notepad, Note);
 
       if not Skip_Invocation then
          PortableServer.Invoke
@@ -721,14 +759,21 @@ package body PolyORB.CORBA_P.Interceptors is
          --  Redispatch
       end if;
 
-      PolyORB.Annotations.Get_Note (Request.Notepad, Note);
+      Get_Note (Request.Notepad, Note);
 
       if not PolyORB.Any.Is_Empty (Note.Exception_Info) then
-         --  If a system exception or ForwardRequest exception will be raised
-         --  in Receive_Request interception point then replace Request
-         --  exception information, because it may be replaced in skeleton.
+         --  If a system exception or ForwardRequest exception will be
+         --  raised in Receive_Request interception point then replace
+         --  Request exception information, because it may be replaced
+         --  in skeleton.
          Request.Exception_Info := Note.Exception_Info;
       end if;
+
+      --  Retrieve thread scope slots and copy it back to request
+      --  scope slots.
+
+      Get_Note (Get_Current_Thread_Notepad.all, RSC);
+      Set_Note (Request.Notepad, RSC);
 
       for J in reverse 0 .. Note.Last_Interceptor - 1 loop
          if not PolyORB.Any.Is_Empty (Request.Exception_Info) then

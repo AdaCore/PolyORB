@@ -518,6 +518,8 @@ src/corba/portableinterceptor/Makefile.in
 src/corba/portableinterceptor/dynamic.ads
 src/corba/portableinterceptor/polyorb-corba_p-interceptors.adb
 src/corba/portableinterceptor/polyorb-corba_p-interceptors.ads
+src/corba/portableinterceptor/polyorb-corba_p-interceptors_slots.adb
+src/corba/portableinterceptor/polyorb-corba_p-interceptors_slots.ads
 src/corba/portableinterceptor/portableinterceptor-clientrequestinfo-impl.adb
 src/corba/portableinterceptor/portableinterceptor-clientrequestinfo-impl.ads
 src/corba/portableinterceptor/portableinterceptor-clientrequestinfo.adb
@@ -526,6 +528,12 @@ src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor-impl.
 src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor-impl.ads
 src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor.adb
 src/corba/portableinterceptor/portableinterceptor-clientrequestinterceptor.ads
+src/corba/portableinterceptor/portableinterceptor-current-helper.adb
+src/corba/portableinterceptor/portableinterceptor-current-helper.ads
+src/corba/portableinterceptor/portableinterceptor-current-impl.adb
+src/corba/portableinterceptor/portableinterceptor-current-impl.ads
+src/corba/portableinterceptor/portableinterceptor-current.adb
+src/corba/portableinterceptor/portableinterceptor-current.ads
 src/corba/portableinterceptor/portableinterceptor-helper.adb
 src/corba/portableinterceptor/portableinterceptor-helper.ads
 src/corba/portableinterceptor/portableinterceptor-interceptor-impl.adb

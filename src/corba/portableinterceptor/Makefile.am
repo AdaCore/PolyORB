@@ -6,11 +6,15 @@ alidir = $(includedir)/polyorb/corba/portableinterceptor
 
 ADA_SPECS_WITH_BODY = \
 	polyorb-corba_p-interceptors.ads \
+	polyorb-corba_p-interceptors_slots.ads \
 	portableinterceptor.ads \
 	portableinterceptor-clientrequestinfo.ads \
 	portableinterceptor-clientrequestinfo-impl.ads \
 	portableinterceptor-clientrequestinterceptor.ads \
 	portableinterceptor-clientrequestinterceptor-impl.ads \
+	portableinterceptor-current.ads \
+	portableinterceptor-current-helper.ads \
+	portableinterceptor-current-impl.ads \
 	portableinterceptor-helper.ads \
 	portableinterceptor-interceptor.ads \
 	portableinterceptor-interceptor-impl.ads \

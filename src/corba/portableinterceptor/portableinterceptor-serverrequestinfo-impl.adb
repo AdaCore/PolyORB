@@ -34,9 +34,13 @@
 with CORBA;
 with PortableInterceptor.RequestInfo;
 
-with PolyORB.CORBA_P.Interceptors; use PolyORB.CORBA_P.Interceptors;
+with PolyORB.Annotations;
+with PolyORB.CORBA_P.Interceptors;
+with PolyORB.CORBA_P.Interceptors_Slots;
 
 package body PortableInterceptor.ServerRequestInfo.Impl is
+
+   use PolyORB.CORBA_P.Interceptors;
 
 --   -------------------------------
 --   -- Add_Reply_Service_Context --
@@ -366,8 +370,14 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       Id   : in     PortableInterceptor.SlotId;
       Data : in     CORBA.Any)
    is
+      use PolyORB.Annotations;
+      use PolyORB.CORBA_P.Interceptors_Slots;
+
+      Note : Slots_Note;
    begin
-      raise PolyORB.Not_Implemented;
+      Get_Note (Self.Request.Notepad, Note, Invalid_Slots_Note);
+      Set_Slot (Note, Id, Data);
+      Set_Note (Self.Request.Notepad, Note);
    end Set_Slot;
 
    -----------------

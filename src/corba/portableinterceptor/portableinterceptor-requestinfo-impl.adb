@@ -34,8 +34,10 @@
 with CORBA.Object;
 with CORBA.Repository_Root;
 
+with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
+with PolyORB.CORBA_P.Interceptors_Slots;
 
 package body PortableInterceptor.RequestInfo.Impl is
 
@@ -242,13 +244,14 @@ package body PortableInterceptor.RequestInfo.Impl is
       Id   : in     SlotId)
       return CORBA.Any
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Id);
+      use PolyORB.Annotations;
+      use PolyORB.CORBA_P.Interceptors_Slots;
 
-      Result : CORBA.Any;
+      Note : Slots_Note;
    begin
-      raise PolyORB.Not_Implemented;
-      return Result;
+      Get_Note (Self.Request.Notepad, Note, Invalid_Slots_Note);
+
+      return Get_Slot (Note, Id);
    end Get_Slot;
 
    ----------
