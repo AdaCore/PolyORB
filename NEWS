@@ -10,6 +10,12 @@ New Functionnalities
     "localhost"), then rsh is not used any more and partitions are
     launched using system().
 
+  * Light PCS
+    If a partition does not contain any RCI body and does not have the 
+    possibility of defining local RACW entities, then no anonymous
+    task is ever started, in order to avoid creating tasks which will
+    never be used.
+
 Changes since GLADE 1.02
 ========================
 
