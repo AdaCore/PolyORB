@@ -2,7 +2,6 @@ with GNAT.Table;
 with GNAT.Bubble_Sort;
 
 with Errors;    use Errors;
-with Flags;     use Flags;
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Scopes;    use Scopes;
@@ -239,6 +238,10 @@ package body Analyzer is
 
    begin
       T := Type_Spec (E);
+      if No (T) then
+         return;
+      end if;
+
       Analyze (T);
 
       --  Resolve base type of T. Types of constant declaration are
@@ -246,6 +249,10 @@ package body Analyzer is
       --  floating point types, fixed point types.
 
       T := Resolve_Type (T);
+      if No (T) then
+         return;
+      end if;
+
       K := Kind (T);
       if K /= K_Fixed_Point_Type
         and then K not in K_Float .. K_Octet
@@ -414,6 +421,7 @@ package body Analyzer is
          E : Node_Id;
          N : Node_Id;
          K : Node_Kind;
+
       begin
          N := Scoped_Identifiers (P);
          while Present (N) loop
@@ -699,12 +707,15 @@ package body Analyzer is
                if Present (C) then
                   Set_Reference (E, C);
                   Check_Identifier (N, Identifier (C));
+
+               else
+                  Error_Loc (1)  := Loc (N);
+                  Error_Name (1) := IDL_Name (N);
+                  Error_Name (2) := IDL_Name (Identifier (P));
+                  DE ("#not declared in#");
                end if;
 
             else
-               if D_Analyzer then
-                  W_Full_Tree;
-               end if;
                N := Identifier (P);
                Error_Loc  (1) := Loc (N);
                Error_Name (1) := Name (N);

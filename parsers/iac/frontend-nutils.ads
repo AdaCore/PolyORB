@@ -58,10 +58,10 @@ package Frontend.Nutils is
    --  Return a scoped name
 
    function Make_Identifier
-     (Loc      : Location;
-      IDL_Name : Name_Id;
-      Node     : Node_Id;
-      Scope_Entity    : Node_Id)
+     (Loc          : Location;
+      IDL_Name     : Name_Id;
+      Node         : Node_Id;
+      Scope_Entity : Node_Id)
      return Node_Id;
    --  return identifier
 

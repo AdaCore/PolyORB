@@ -48,6 +48,7 @@ package body Scopes is
       S : constant Node_Id := Current_Scope;
       C : constant Node_Id := Node_In_Current_Scope (N);
       H : Node_Id;
+
    begin
       if Present (C) then
          H := Identifier (C);

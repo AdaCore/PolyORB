@@ -349,16 +349,6 @@ package body Lexer is
       Preprocessor : String_Access;
 
    begin
-      --  Use default CPP options:
-      --  -E           only preprocess
-      --  -C           do not discard comments
-      --  -x c++       use c++ preprocessor semantic
-      --  Add_CPP_Flag ("-E");
-      --  Add_CPP_Flag ("-C");
-      --  Add_CPP_Flag ("-x");
-      --  Add_CPP_Flag ("c++");
-      --  Add_CPP_Flag ("-ansi");
-
       Add_CPP_Flag (Get_Name_String (Source));
 
       Create_Temp_File (Tmp_FDesc, Tmp_FName);
@@ -408,6 +398,10 @@ package body Lexer is
 
       Token_Location := Locations.No_Location;
       Set_New_Location (Token_Location, Source, 1);
+
+   exception when others =>
+      Make_Cleanup;
+      raise;
    end Preprocess;
 
    -------------
@@ -556,6 +550,10 @@ package body Lexer is
       New_Token (T_Identifier, "<identifier>");
       New_Token (T_Pragma, "<pragma>");
       New_Token (T_EOF, "<end of file>");
+
+   exception when others =>
+      Make_Cleanup;
+      raise;
    end Process;
 
    ------------------

@@ -79,6 +79,7 @@ begin
 
    --  The "cppargs" section is processed in Lexer.Preprocess.
    --  Preprocessor step
+
    Lexer.Preprocess (Main_Source, Preprocessed_File);
 
    if Preprocess_Only then
@@ -87,9 +88,11 @@ begin
    end if;
 
    --  Lexer step
+
    Lexer.Process (Preprocessed_File, Main_Source);
 
    --  Parser step
+
    Parser.Process (IDL_Spec);
 
    Analyze (IDL_Spec);

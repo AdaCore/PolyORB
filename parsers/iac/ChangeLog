@@ -1,15 +1,20 @@
 2004-06-29  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* scopes.adb: Minor reformating.
+
 	* backend-be_ada-generator.adb: Add a missing space between
 	defining_identifier and colon.
 
 	* backend-be_ada-nutils.adb: Add one to Token_Type'Pos in order to
 	have a positive value. Fix an incorrect redirection to backend tree.
 
-	* iac.adb: Comments.
+	* iac.adb: Comments. Minor reformating.
+
+	* lexer.adb: Cleanup on error.
 
 	* analyzer.adb: Analyze expanded constant declaration coming from
-	enumerator in order to compute its value.
+	enumerator in order to compute its value. Output an error when we
+	cannot resolve a scoped name.
 
 	* backend-be_ada.adb: Read constant value and not constant
 	expression value.
