@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -59,7 +59,7 @@ package PolyORB.References.IOR is
    function Unmarshall_Profile
      (Buffer : access Buffer_Type)
      return Binding_Data.Profile_Access;
-   --  return null if failed
+   --  Return null if failed
 
    procedure Marshall_IOR
      (Buffer : access Buffer_Type;

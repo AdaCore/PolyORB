@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                P O L Y O R B . R E F E R E N C E S . U R I               --
+--               P O L Y O R B . R E F E R E N C E S . U R I                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with PolyORB.Types;
 with PolyORB.Binding_Data;
 
@@ -43,7 +45,7 @@ package PolyORB.References.URI is
    function String_To_Profile
      (Str : Types.String)
      return Binding_Data.Profile_Access;
-   --  returns null if it failed
+   --  Returns null if it failed
 
    subtype URI_Type is PolyORB.References.Ref;
 

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . R E F E R E N C E S . C O R B A L O C         --
+--          P O L Y O R B . R E F E R E N C E S . C O R B A L O C           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,20 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings;
-with Ada.Strings.Unbounded;
+--  $Id$
 
 with PolyORB.Binding_Data;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.Types;
-with PolyORB.Utils;
-with PolyORB.Utils.Strings;
 
 package body PolyORB.References.Corbaloc is
-
-   use Ada.Strings.Unbounded;
 
    use PolyORB.Binding_Data;
    use PolyORB.Log;
@@ -69,29 +65,34 @@ package body PolyORB.References.Corbaloc is
    Callbacks : Profile_Record_Seq.Sequence;
 
    Null_String : constant Types.String
-     := Types.String (Null_Unbounded_String);
+     := PolyORB.Types.To_PolyORB_String ("");
 
    type Tag_Array is array (Natural range <>) of Profile_Tag;
 
-   procedure Get_Corbaloc_List
-     (Corbaloc      :        Corbaloc_Type;
-      Corbaloc_List :    out String_Array;
-      Tag_List      :    out Tag_Array;
-      N             :    out Natural);
+   -----------------------
+   -- Get_Corbaloc_List --
+   -----------------------
 
    procedure Get_Corbaloc_List
-     (Corbaloc      :        Corbaloc_Type;
-      Corbaloc_List :    out String_Array;
-      Tag_List      :    out Tag_Array;
-      N             :    out Natural)
+     (Corbaloc      :     Corbaloc_Type;
+      Corbaloc_List : out String_Array;
+      Tag_List      : out Tag_Array;
+      N             : out Natural);
+   --  Return the list of all corbaloc found in Corbaloc
+
+   procedure Get_Corbaloc_List
+     (Corbaloc      :     Corbaloc_Type;
+      Corbaloc_List : out String_Array;
+      Tag_List      : out Tag_Array;
+      N             : out Natural)
    is
       use PolyORB.Types;
 
-      Profs    : constant Profile_Array
-        := Profiles_Of (Corbaloc);
+      Profs : constant Profile_Array := Profiles_Of (Corbaloc);
       Str : Types.String;
    begin
       N := 0;
+
       for J in Profs'Range loop
          Str := Profile_To_String (Profs (J));
          if Length (Str) /= 0 then
@@ -100,7 +101,8 @@ package body PolyORB.References.Corbaloc is
             Tag_List (N) := Get_Profile_Tag (Profs (J).all);
          end if;
       end loop;
-      pragma Debug (O ("Profile found :" & N'Img));
+
+      pragma Debug (O ("Profile found :" & Natural'Image (N)));
    end Get_Corbaloc_List;
 
    -----------------------
@@ -112,18 +114,18 @@ package body PolyORB.References.Corbaloc is
      return Types.String
    is
       use PolyORB.Types;
+
+      T : Profile_Tag;
    begin
       pragma Assert (P /= null);
       pragma Debug (O ("Profile to string with tag:"
-                       & Get_Profile_Tag (P.all)'Img));
+                       & Profile_Tag'Image (Get_Profile_Tag (P.all))));
+
+      T := Get_Profile_Tag (P.all);
 
       for J in 1 .. Length (Callbacks) loop
          declare
-            T : constant Profile_Tag
-              := Get_Profile_Tag (P.all);
-
-            Info : constant Profile_Record
-              := Element_Of (Callbacks, J);
+            Info : constant Profile_Record := Element_Of (Callbacks, J);
          begin
             if T = Info.Tag then
                declare
@@ -141,6 +143,7 @@ package body PolyORB.References.Corbaloc is
             end if;
          end;
       end loop;
+
       pragma Debug (O ("Profile not ok"));
       return Null_String;
    end Profile_To_String;
@@ -154,8 +157,11 @@ package body PolyORB.References.Corbaloc is
      return Binding_Data.Profile_Access
    is
       use PolyORB.Types;
+
    begin
-      pragma Debug (O (To_Standard_String (Str)));
+      pragma Debug (O ("String_To_Profile: enter with "
+                       & To_Standard_String (Str)));
+
       for J in 1 .. Length (Callbacks) loop
          declare
             Ident : Types.String
@@ -165,11 +171,12 @@ package body PolyORB.References.Corbaloc is
               and then To_String (Str) (1 .. Length (Ident)) = Ident then
                pragma Debug
                  (O ("Try to unmarshall profile with profile factory tag "
-                     & Element_Of (Callbacks, J).Tag'Img));
+                     & Profile_Tag'Image (Element_Of (Callbacks, J).Tag)));
                return Element_Of (Callbacks, J).String_To_Profile_Body (Str);
             end if;
          end;
       end loop;
+
       pragma Debug (O ("Profile not found for : "
                        & To_Standard_String (Str)));
       return null;
@@ -181,8 +188,7 @@ package body PolyORB.References.Corbaloc is
 
    function Object_To_String_With_Best_Profile
      (Corbaloc : Corbaloc_Type)
-     return Types.String
-   is
+     return Types.String is
    begin
       pragma Debug (O ("Create corbaloc with best profile: Enter"));
 
@@ -196,13 +202,13 @@ package body PolyORB.References.Corbaloc is
             N : Natural;
             TL : Tag_Array (1 .. Length (Callbacks));
             SL : String_Array (1 .. Length (Callbacks));
-            Profs    : constant Profile_Array
-              := Profiles_Of (Corbaloc);
+            Profs : constant Profile_Array := Profiles_Of (Corbaloc);
             Best_Preference : Profile_Preference := Profile_Preference'First;
             Best_Profile_Index : Integer := 0;
             Str : Types.String := To_PolyORB_String (Corbaloc_Prefix);
          begin
             Get_Corbaloc_List (Corbaloc, SL, TL, N);
+
             for J in Profs'Range loop
                declare
                   P : constant Profile_Preference
@@ -218,9 +224,11 @@ package body PolyORB.References.Corbaloc is
                   end if;
                end;
             end loop;
+
             if Best_Profile_Index > 0 then
                Append (Str, SL (Best_Profile_Index));
             end if;
+
             pragma Debug (O ("Create corbaloc with best profile: Leave"));
             return Str;
          end;
@@ -238,8 +246,7 @@ package body PolyORB.References.Corbaloc is
    is
       use PolyORB.Types;
 
-      Profs    : constant Profile_Array
-        := Profiles_Of (Corbaloc);
+      Profs : constant Profile_Array := Profiles_Of (Corbaloc);
       Str : Types.String;
    begin
       for J in Profs'Range loop
@@ -285,12 +292,10 @@ package body PolyORB.References.Corbaloc is
            (To_PolyORB_String
             (Str (Corbaloc_Prefix'Length + 1 .. Str'Last)));
          if Pro /= null then
-            Create_Reference
-              ((1 => Pro),
-               "",
-               References.Ref (Result));
+            Create_Reference ((1 => Pro), "", References.Ref (Result));
          end if;
       end if;
+
       pragma Debug (O ("Try to decode Corbaloc: leave "));
       return Result;
    end String_To_Object;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . R E F E R E N C E S . C O R B A L O C         --
+--          P O L Y O R B . R E F E R E N C E S . C O R B A L O C           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with PolyORB.Binding_Data;
 with PolyORB.Types;
 
@@ -43,7 +45,7 @@ package PolyORB.References.Corbaloc is
    function String_To_Profile
      (Str : Types.String)
      return Binding_Data.Profile_Access;
-   --  return null if failed
+   --  Return null if failed
 
    subtype Corbaloc_Type is PolyORB.References.Ref;
 
@@ -90,7 +92,7 @@ package PolyORB.References.Corbaloc is
       Proto_Ident            : in Types.String;
       Profile_To_String_Body : in Profile_To_String_Body_Type;
       String_To_Profile_Body : in String_To_Profile_Body_Type);
-   --  Register a corbaloc implem from a protocol personality
+   --  Register a corbaloc <-> profile mapping
 
 private
 

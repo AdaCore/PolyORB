@@ -81,18 +81,19 @@ package body PolyORB.References.IOR is
       Success :    out Boolean)
    is
       use PolyORB.Types;
+
+      T : Profile_Tag;
    begin
-      Success := False;
       pragma Assert (P /= null);
       pragma Debug (O ("Marshall profile with tag :"
-                       & Get_Profile_Tag (P.all)'Img));
+                       & Profile_Tag'Image (Get_Profile_Tag (P.all))));
+
+      Success := False;
+      T := Get_Profile_Tag (P.all);
+
       for J in 1 .. Length (Callbacks) loop
          declare
-            T : constant Profile_Tag
-              := Get_Profile_Tag (P.all);
-
-            Info : constant Profile_Record
-              := Element_Of (Callbacks, J);
+            Info : constant Profile_Record := Element_Of (Callbacks, J);
          begin
             pragma Debug
               (O ("... with callback" & Integer'Image (J)
@@ -100,12 +101,10 @@ package body PolyORB.References.IOR is
                   & Profile_Tag'Image (Info.Tag)));
 
             if T = Info.Tag then
-               Marshall
-                 (Buffer, Types.Unsigned_Long
-                  (T));
-               Element_Of (Callbacks, J).Marshall_Profile_Body
-                 (Buffer, P);
+               Marshall (Buffer, Types.Unsigned_Long (T));
+               Element_Of (Callbacks, J).Marshall_Profile_Body (Buffer, P);
                Success := True;
+
                return;
             end if;
          end;
@@ -127,11 +126,13 @@ package body PolyORB.References.IOR is
       Known    : Boolean := False;
       Prof     : Profile_Access;
    begin
-      pragma Debug (O ("Considering profile with tag" & Tag'Img));
+      pragma Debug (O ("Considering profile with tag"
+                       & Profile_Tag'Image (Tag)));
 
       for J in 1 .. Length (Callbacks) loop
          pragma Debug
-           (O ("... with callback" & Integer'Image (J)
+           (O ("... with callback"
+               & Integer'Image (J)
                & " whose tag is "
                & Profile_Tag'Image (Element_Of (Callbacks, J).Tag)));
 
@@ -148,11 +149,11 @@ package body PolyORB.References.IOR is
          --  No callback matches this tag.
          declare
             pragma Debug (O ("Profile with tag"
-                             & Tag'Img
+                             & Profile_Tag'Image (Tag)
                              & " not found"));
+
             pragma Warnings (Off);
-            Discarded_Body : constant Encapsulation
-              := Unmarshall (Buffer);
+            Discarded_Body : constant Encapsulation := Unmarshall (Buffer);
             --  Consider the profile body as an encapsulation
             --  (our best bet).
             pragma Unreferenced (Discarded_Body);
@@ -179,41 +180,46 @@ package body PolyORB.References.IOR is
       pragma Debug (O ("Marshall IOR: Enter"));
 
       if Is_Nil (Value) then
-         Marshall
-           (Buffer, PolyORB.Types.String'(To_PolyORB_String ("")));
+         Marshall (Buffer, PolyORB.Types.String'(To_PolyORB_String ("")));
          Marshall (Buffer, Types.Unsigned_Long'(0));
-         pragma Debug (O ("IOR Empty"));
+         pragma Debug (O ("Empty IOR"));
+
       else
          Marshall
-           (Buffer, PolyORB.Types.String'
-            (To_PolyORB_String (Type_Id_Of (Value))));
+           (Buffer,
+            PolyORB.Types.String'(To_PolyORB_String (Type_Id_Of (Value))));
+
          Pad_Align (Buffer, 4);
+
          declare
-            Profs    : constant Profile_Array
-              := Profiles_Of (Value);
-            Counter  : Types.Unsigned_Long := 0;
+            Profs     : constant Profile_Array := Profiles_Of (Value);
+            Counter   : Types.Unsigned_Long := 0;
             Count_Buf : Buffer_Access := new Buffer_Type;
-            Reserv   : Reservation;
-            Success  : Boolean;
+            Reserv    : Reservation;
+            Success   : Boolean;
          begin
             Set_Initial_Position (Count_Buf, CDR_Position (Buffer));
             Reserv := Reserve (Buffer, Counter'Size / Types.Octet'Size);
             pragma Debug (O (Type_Id_Of (Value)));
+
             for Profile_Index in Profs'Range loop
                pragma Assert (Profs (Profile_Index) /= null);
                Marshall_Profile (Buffer, Profs (Profile_Index), Success);
+
                if Success then
                   Counter := Counter + 1;
                else
                   pragma Debug (O ("Profile with tag"
-                                   & Get_Profile_Tag
-                                   (Profs (Profile_Index).all)'Img
+                                   & Profile_Tag'Image
+                                   (Get_Profile_Tag
+                                    (Profs (Profile_Index).all))
                                    & " not found"));
                   null;
                end if;
             end loop;
 
-            pragma Debug (O (Counter'Img & " profile(s)"));
+            pragma Debug (O (Types.Unsigned_Long'Image (Counter)
+                             & " profile(s)"));
 
             Marshall (Count_Buf, Counter);
             Copy_Data (Count_Buf.all, Reserv);
