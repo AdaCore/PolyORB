@@ -46,6 +46,6 @@ package System.Garlic.OS_Lib is
 
 private
 
-   pragma Import (C, C_Errno, "@CERRNO@");
+   pragma Import (C, C_Errno, "__get_errno");
 
 end System.Garlic.OS_Lib;
