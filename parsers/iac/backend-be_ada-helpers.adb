@@ -736,7 +736,7 @@ package body Backend.BE_Ada.Helpers is
 
          N := Make_Component_Association
            (Selector_Name  =>
-              Make_Defining_Identifier (PN (P_Implecit)),
+              Make_Defining_Identifier (PN (P_Implicit)),
             Expression          =>
               RE (RE_False));
          Append_Node_To_List (N, Aggregates);
