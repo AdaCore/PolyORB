@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Unchecked_Deallocation;
 with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings;
 
@@ -42,6 +43,8 @@ with Sockets.Constants; use Sockets.Constants;
 
 with CORBA; use CORBA;
 pragma Elaborate_All (CORBA);
+
+with Sequences.Unbounded;
 
 with Broca.Buffers;     use Broca.Buffers;
 with Broca.Environment; use Broca.Environment;
@@ -64,9 +67,6 @@ package body Broca.Inet_Server is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.inet_server");
    procedure O is new Broca.Debug.Output (Flag);
-
-   --  The number of simultaneously open streams.
-   Simultaneous_Streams : Positive := 10;
 
    My_Addr : In_Addr;
    IIOP_Host : CORBA.String;
@@ -172,20 +172,45 @@ package body Broca.Inet_Server is
 
    type Boolean_Array is array (Natural range <>) of Boolean;
 
-   subtype Pollfd_Array_Index is Integer range 0 .. Simultaneous_Streams;
+   type Pollfd_Array_Access is access Pollfd_Array;
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Pollfd_Array, Pollfd_Array_Access);
 
    type Job_Kind is (No_Event, Fd_Event);
-   type Job (Kind : Job_Kind := No_Event;
-             Pollfd_Array_Size : Pollfd_Array_Index := 0)
+   type Job (Kind : Job_Kind := No_Event)
    is record
       case Kind is
          when No_Event =>
-            Poll_Set : aliased Pollfd_Array (1 .. Pollfd_Array_Size);
+            Poll_Set : Pollfd_Array_Access;
          when Fd_Event =>
             Fd : Interfaces.C.int := -1;
             Stream : Stream_Ptr := null;
       end case;
    end record;
+
+   -------------------------------------------------------
+   -- Be very afraid, for here comes one of AdaBroker's --
+   -- arcane monsters: the Infamous Jumbo Protected.    --
+   -- Not for the faint of heart.                       --
+   -------------------------------------------------------
+
+   --  No user-serviceable parts under this point.
+   --  Shock hazard.
+
+   type Fd_Kind is (Internal, Listening, Stream);
+   type Fd_Info (Kind : Fd_Kind := Internal) is record
+      PFd : Pollfd;
+      case Kind is
+         when Internal =>
+            null;
+         when Listening =>
+            null;
+         when Stream =>
+            Fd_Stream : Stream_Ptr;
+      end case;
+   end record;
+
+   package Fd_Info_Seqs is new Standard.Sequences.Unbounded (Fd_Info);
 
    protected Lock is
 
@@ -197,7 +222,7 @@ package body Broca.Inet_Server is
       --  then locked until Unlock is called.
 
       procedure Set_Pending_Jobs
-        (Returned_Poll_Set : Pollfd_Array);
+        (Returned_Poll_Set : Pollfd_Array_Access);
       --  Set new pending jobs.
 
       procedure Insert_Listening (Sock : Interfaces.C.int);
@@ -232,14 +257,7 @@ package body Broca.Inet_Server is
 
       Locked : Boolean := False;
 
-      Polls        : Pollfd_Array (1 .. Simultaneous_Streams) :=
-        (others => (Fd => Failure, Events => 0, Revents => 0));
-      Streams      : Stream_Ptr_Array (3 .. Simultaneous_Streams) :=
-        (others => null);
-      Is_Listening : Boolean_Array (1 .. Simultaneous_Streams) :=
-        (others => False);
-
-      Nbr_Fd : Integer;
+      Polls : Fd_Info_Seqs.Sequence;
       Fd_Pos : Integer;
       --  These variables must be accessed under mutual exclusion
       --  Polls represents current tasks-to-perform.
@@ -248,15 +266,18 @@ package body Broca.Inet_Server is
 
    end Lock;
 
+   use Fd_Info_Seqs;
+
    protected body Lock is
 
       procedure Initialize (Signal_Fd_Read   : Interfaces.C.int)
       is
       begin
-         Polls (1).Fd      := Signal_Fd_Read;
-         Polls (1).Events  := Pollin;
-         Polls (1).Revents := 0;
-         Nbr_Fd := 1;
+         Append (Polls, Fd_Info'
+                 (Kind      => Internal,
+                  PFd => (Fd      => Signal_Fd_Read,
+                          Events  => Pollin,
+                          Revents => 0)));
          Fd_Pos := 1;
          Locked := False;
       end Initialize;
@@ -271,11 +292,11 @@ package body Broca.Inet_Server is
             pragma Debug (O ("Current_Fd_Pos = " & Current_Fd_Pos'Img));
 
             --  Exit if there is work to perform
-            exit when Polls (Current_Fd_Pos).Revents >= Pollin;
+            exit when Element_Of (Polls, Current_Fd_Pos).PFd.Revents >= Pollin;
 
             --  Go to the next descriptor
             Current_Fd_Pos := Current_Fd_Pos + 1;
-            if Current_Fd_Pos > Nbr_Fd then
+            if Current_Fd_Pos > Length (Polls) then
                Current_Fd_Pos := 1;
             end if;
 
@@ -283,29 +304,38 @@ package body Broca.Inet_Server is
             --  caller to wait for an external event.
             if Current_Fd_Pos = Fd_Pos then
                A_Job := (Kind => No_Event,
-                         Pollfd_Array_Size => Nbr_Fd,
-                         Poll_Set => Polls (1 .. Nbr_Fd));
+                         Poll_Set => new Pollfd_Array'
+                         (1 .. Length (Polls) => (Failure, 0, 0)));
+               for I in A_Job.Poll_Set'Range loop
+                  A_Job.Poll_Set (I) := Element_Of (Polls, I).PFd;
+               end loop;
+
                pragma Debug (O ("Get_Job_And_Lock: leave (no event)"));
                return;
             end if;
          end loop;
 
-         Polls (Current_Fd_Pos).Revents := 0;
          --  Clear pending events.
 
-         A_Job := (Kind => Fd_Event,
-                   Pollfd_Array_Size => 0,
-                   Fd => Polls (Current_Fd_Pos).Fd,
-                   Stream => null);
-         --  Prepare job structure for calling task.
+         declare
+            E : Fd_Info := Element_Of (Polls, Current_Fd_Pos);
+         begin
+            E.PFd.Revents := 0;
+            Replace_Element (Polls, Current_Fd_Pos, E);
 
-         if Current_Fd_Pos in Streams'First .. Nbr_Fd then
-            A_Job.Stream := Streams (Current_Fd_Pos);
-         end if;
+            A_Job := (Kind => Fd_Event,
+                      Fd => E.PFd.Fd,
+                      Stream => null);
+            --  Prepare job structure for calling task.
+
+            if E.Kind = Stream then
+               A_Job.Stream := E.Fd_Stream;
+            end if;
+         end;
 
          --  Go to the next descriptor
          Fd_Pos := Current_Fd_Pos + 1;
-         if Fd_Pos > Nbr_Fd then
+         if Fd_Pos > Length (Polls) then
             Fd_Pos := 1;
          end if;
 
@@ -313,70 +343,96 @@ package body Broca.Inet_Server is
       end Get_Job_And_Lock;
 
       procedure Set_Pending_Jobs
-        (Returned_Poll_Set : Pollfd_Array) is
+        (Returned_Poll_Set : Pollfd_Array_Access)
+      is
+         Len : constant Integer := Length (Polls);
+         Polls_I : Integer := Returned_Poll_Set'First;
       begin
          for I in Returned_Poll_Set'Range loop
-            if Returned_Poll_Set (I).Events = 0 then
-               --  Ignoring events on this fd.
-               Polls (I).Revents := 0;
-            else
-               Polls (I).Revents := Returned_Poll_Set (I).Revents;
-            end if;
+
+            exit when Polls_I > Len;
+            --  Obsolete fds at the end of Returned_Poll_Set.
+
+            declare
+               E : Fd_Info := Element_Of (Polls, Polls_I);
+            begin
+               if E.PFd.Fd = Returned_Poll_Set (I).Fd then
+                  if Returned_Poll_Set (I).Events = 0 then
+                     --  Ignoring events on this fd.
+                     E.PFd.Revents := 0;
+                  else
+                     E.PFd.Revents := Returned_Poll_Set (I).Revents;
+                  end if;
+
+                  Replace_Element (Polls, Polls_I, E);
+                  Polls_I := Polls_I + 1;
+               else
+                  --  Ignore this returned event entry because
+                  --  we cannot find the corresponding Fd in Polls
+                  --  (the poll set has changed).
+                  null;
+               end if;
+            end;
          end loop;
          Fd_Pos := 1;
       end Set_Pending_Jobs;
 
       procedure Insert_Descriptor (Sock : Interfaces.C.int) is
       begin
-         pragma Assert (Nbr_Fd < Polls'Last);
-
-         Nbr_Fd := Nbr_Fd + 1;
-         Polls (Nbr_Fd).Fd := Sock;
-         Polls (Nbr_Fd).Events := Pollin;
-         Polls (Nbr_Fd).Revents := 0;
-         Streams (Nbr_Fd) := Broca.Stream.Create_Fd_Stream (Sock);
-         Is_Listening (Nbr_Fd) := False;
+         Append (Polls, Fd_Info'
+                 (Kind => Stream,
+                  PFd => (Fd => Sock,
+                          Events => Pollin,
+                          Revents => 0),
+                  Fd_Stream => Broca.Stream.Create_Fd_Stream (Sock)));
          Fd_Pos := 2;
       end Insert_Descriptor;
 
       procedure Insert_Listening (Sock : Interfaces.C.int) is
       begin
-         pragma Assert (Nbr_Fd < Polls'Last);
-
-         Nbr_Fd := Nbr_Fd + 1;
-         Polls (Nbr_Fd).Fd      := Sock;
-         Polls (Nbr_Fd).Events  := Pollin;
-         Polls (Nbr_Fd).Revents := 0;
-         Is_Listening (Nbr_Fd)  := True;
+         Append (Polls, Fd_Info'
+                 (Kind => Listening,
+                  PFd => (Fd => Sock,
+                          Events => Pollin,
+                          Revents => 0)));
+         Fd_Pos := 2;
       end Insert_Listening;
 
-      function Is_Listening_Socket (Sock : Interfaces.C.int) return Boolean is
+      function Is_Listening_Socket (Sock : Interfaces.C.int) return Boolean
+      is
+         Poll_Info : constant Element_Array := To_Element_Array (Polls);
       begin
-         for I in Polls'Range loop
-            if Polls (I).Fd = Sock then
-               return Is_Listening (I);
+         for I in Poll_Info'Range loop
+            if Poll_Info (I).PFd.Fd = Sock then
+               return (Poll_Info (I).Kind = Listening);
             end if;
          end loop;
          return False;
       end Is_Listening_Socket;
 
-      procedure Clear_Events (Sock : Interfaces.C.int) is
+      procedure Clear_Events (Sock : Interfaces.C.int)
+      is
+         Poll_Info : Element_Array := To_Element_Array (Polls);
       begin
-         for I in Polls'Range loop
-            if Polls (I).Fd = Sock then
-               Polls (I).Revents := 0;
+         for I in Poll_Info'Range loop
+            if Poll_Info (I).PFd.Fd = Sock then
+               Poll_Info (I).PFd.Revents := 0;
+               Replace_Element (Polls, I, Poll_Info (I));
                return;
             end if;
          end loop;
       end Clear_Events;
 
-      procedure Mask_Descriptor (Fd : Interfaces.C.int) is
+      procedure Mask_Descriptor (Fd : Interfaces.C.int)
+      is
+         Poll_Info : Element_Array := To_Element_Array (Polls);
       begin
          pragma Assert (Locked);
 
-         for I in Polls'Range loop
-            if Polls (I).Fd = Fd then
-               Polls (I).Events := 0;
+         for I in Poll_Info'Range loop
+            if Poll_Info (I).PFd.Fd = Fd then
+               Poll_Info (I).PFd.Events := 0;
+               Replace_Element (Polls, I, Poll_Info (I));
                return;
             end if;
          end loop;
@@ -389,14 +445,16 @@ package body Broca.Inet_Server is
          Locked := False;
       end Unlock;
 
-      procedure Unmask_Descriptor (Fd : Interfaces.C.int) is
+      procedure Unmask_Descriptor (Fd : Interfaces.C.int)
+      is
+         Poll_Info : Element_Array := To_Element_Array (Polls);
       begin
-         for I in Polls'Range loop
-            if Polls (I).Fd = Fd then
-               pragma Assert (Polls (I).Events = 0);
+         for I in Poll_Info'Range loop
+            if Poll_Info (I).PFd.Fd = Fd then
+               pragma Assert (Poll_Info (I).PFd.Events = 0);
 
-               Polls (I).Events := Pollin;
-
+               Poll_Info (I).PFd.Events := Pollin;
+               Replace_Element (Polls, I, Poll_Info (I));
                return;
             end if;
          end loop;
@@ -404,28 +462,24 @@ package body Broca.Inet_Server is
          pragma Assert (False);
       end Unmask_Descriptor;
 
-      procedure Delete_Descriptor (Fd : Interfaces.C.int) is
+      procedure Delete_Descriptor (Fd : Interfaces.C.int)
+      is
+         Poll_Info : Element_Array := To_Element_Array (Polls);
       begin
-         for I in Polls'Range loop
-            if Polls (I).Fd = Fd then
+         for I in Poll_Info'Range loop
+            if Poll_Info (I).PFd.Fd = Fd then
                pragma Debug (O ("In Delete_Descriptor: I = " & I'Img));
-               pragma Assert (Polls (I).Events = 0);
+               pragma Assert (Poll_Info (I).PFd.Events = 0);
                --  A descriptor can be deleted only when
                --  masked.
 
                --  FIXME: remove suspended requests.
-               Broca.Stream.Free (Streams (I));
-               Streams (I) := Streams (Nbr_Fd);
-               Streams (Nbr_Fd) := null;
-               Polls (I) := Polls (Nbr_Fd);
+               pragma Assert (Poll_Info (I).Kind = Stream);
+               Broca.Stream.Free (Poll_Info (I).Fd_Stream);
+               Delete (Polls, I, I);
 
-               Nbr_Fd := Nbr_Fd - 1;
-               if Fd_Pos > Nbr_Fd then
+               if Fd_Pos > Length (Polls) then
                   Fd_Pos := 1;
-               end if;
-
-               if Nbr_Fd < Polls'Last then
-                  Polls (1).Events := Pollin;
                end if;
 
                return;
@@ -536,7 +590,10 @@ package body Broca.Inet_Server is
          end loop;
 
          loop
-            Res := C_Poll (A_Job.Poll_Set'Address, A_Job.Poll_Set'Length, -1);
+            Res := C_Poll
+              (A_Job.Poll_Set.all'Address,
+               A_Job.Poll_Set'Length,
+               -1);
             exit when not (Res = -1 and then GNAT.OS_Lib.Errno = Eintr);
          end loop;
 
@@ -559,6 +616,7 @@ package body Broca.Inet_Server is
          end if;
 
          Lock.Set_Pending_Jobs (A_Job.Poll_Set);
+         Free (A_Job.Poll_Set);
          Lock.Unlock;
 
       elsif Lock.Is_Listening_Socket (A_Job.Fd) then
