@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.4 $
+//                            $Revision: 1.5 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -420,89 +420,6 @@ adabe_operation::produce_impl_ads (dep_list & with,
 	  body +=  dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
 	}
       body += ") is abstract;\n\n";
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_skel_adb     //////////////////////////////
-////////////////////////////////////////////////////////////////////////
-void
-adabe_operation::produce_skel_adb (dep_list & with,
-				   string   & body,
-				   string   & previous)
-  // This method produce the impl_adb_file,
-  // with is the dependence-list.
-  // body is th main part of the file.
-  // previous contains the local definition of complexe types.
-{
-
-  // Produce code for a function.
-  if (is_function ())
-    {
-      //  Impl takes an access Object as first parameter (mapping).
-      body += "   function " + get_ada_local_name () + "\n";
-      body += "     (Self : access Object";
-
-      // Check all the nodes (arguments) of the operation scope 
-      UTL_ScopeActiveIterator i (this, UTL_Scope::IK_decls);
-      while (!i.is_done ())
-	{
-	  body += ";\n      ";
-	  AST_Decl *d = i.item ();
-	  if (d->node_type () == AST_Decl::NT_argument)
-	    // impl_ads needs the same production as the ads file
-	    dynamic_cast<adabe_name *>(d)->produce_ads (with, body, previous);
-	  else throw adabe_internal_error
-		 (__FILE__,__LINE__,"Unexpected node in operation");
-	  i.next ();
-	}
-
-      // Dump name of return type and check whether it is imported.
-      body += ")\n      return ";
-      AST_Decl *b = return_type ();
-      body +=  dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
-
-      body += "\n   is\n   begin \n";
-      body += "      -- Insert user code\n";
-      body += "   end " + get_ada_local_name () + ";\n\n";
-    }
-
-  // Produce code not for a function
-  else
-    {
-      // Impl takes an access Object as first parameter (mapping).
-      body += "   procedure " + get_ada_local_name () + "\n";
-      body += "     (Self : access Object";
-
-      // Check all the nodes (arguments) of the operation scope.
-      UTL_ScopeActiveIterator i (this, UTL_Scope::IK_decls);
-      while (!i.is_done ())
-	{
-	  body += ";\n      ";
-	  AST_Decl *d = i.item ();
-	  if (d->node_type () == AST_Decl::NT_argument)
-	    // the impl_ads needs the same production as the ads file  
-	    dynamic_cast<adabe_name *>(d)->produce_ads (with, body, previous);
-	  else throw adabe_internal_error
-		 (__FILE__,__LINE__,"Unexpected node in operation");
-	  i.next ();
-	}
-
-      // If return type is not void, map it an argument (for a
-      // procedure).
-      if (!return_is_void ()) {
-	   AST_Decl *b = return_type ();
-
-	  // Dump type name and add its file to the dep-list if
-	  // imported (in the dump_name).
-           string name =
-	     dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
-	   body += ";\n      Returns : out " + name;
-      }
-      body += ")\n   is\n";
-      body += "   begin \n";
-      body += "      -- Insert user code\n";
-      body += "   end " + get_ada_local_name () + ";\n\n";      
     }
 }
 
@@ -937,7 +854,6 @@ adabe_operation::produce_impl_adb (dep_list & with,
   // Name of the current interface. Use for multiple inheritance.
   string pack_name = adabe_global::adabe_current_file ()->get_ada_full_name ();
 
-  // See adabe_argument.cc in produce_skel_adb for details.
   string result_name = "";
   string in_decls = "";
   string unmarshall = "";

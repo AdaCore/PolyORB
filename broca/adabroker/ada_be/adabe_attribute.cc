@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -352,108 +352,6 @@ adabe_attribute::produce_proxy_adb (dep_list & with,
 }
 
 
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_skel_adb     //////////////////////////////
-////////////////////////////////////////////////////////////////////////
-void
-adabe_attribute::produce_skel_adb (dep_list & with,
-				   string   & body,
-				   string   & private_definition)
-{
-  AST_Decl *d = field_type ();
-  adabe_name *e = dynamic_cast<adabe_name *>(d);
-  string type_name = e->dump_name (with, private_definition);
-  e->is_marshal_imported (with);
-  string name = get_ada_local_name ();
-  string full_name = get_ada_full_name ();
-  string pack_name = full_name.substr (0, full_name.find_last_of ('.'));
-
-  body += "      if Orl_Op = \"_get_" + name + "\" then\n";
-  body += "         declare\n";
-  body += "            Result : " + type_name + ";\n";
-  body += "            Size   : CORBA.Unsigned_Long;\n";
-  body += "         begin\n";
-
-  body += "            -- Change state\n";
-  body += "            AdaBroker.GIOP_S.Request_Received (Orls);\n";
-
-  body += "            -- Call implementation\n";
-  body += "            Result :=\n";
-  body += "               " + pack_name + ".Impl.Get_" + name + "(Self);\n";
-
-  body += "            -- Compute size of reply\n";
-  body += "            Size := AdaBroker.GIOP_S.Reply_Header_Size;\n";
-  body += "            Size := Align_Size (Result, Size);\n";
-
-  body += "            -- Initialize reply\n";
-  body += "            AdaBroker.GIOP_S.Initialize_Reply\n";
-  body += "              (Orls, AdaBroker.GIOP.NO_EXCEPTION, Size);\n";
-
-  body += "            -- Marshall arguments\n";
-  body += "            Marshall (Result, Orls);\n";
-
-  body += "            -- Inform ORB\n";
-  body += "            AdaBroker.GIOP_S.Reply_Completed (Orls);\n";
-
-  body += "            Dispatch_Returns := True;\n";
-  body += "            return;\n";
-  body += "         end;\n";
-  body += "      end if;\n\n";
-
-  if (!readonly ())
-    {
-      body += "      if Orl_Op = \"_set_" + name + "\" then\n";
-      body += "         declare\n";
-      body += "            Mesg : " + type_name + ";\n";
-      body += "            Size : CORBA.Unsigned_Long;\n";
-      body += "         begin\n";
-      
-      body += "            -- Unmarshalls arguments\n";
-      body += "            Unmarshall (Mesg, Orls);\n";
-      
-      body += "            -- Change state\n";
-      body += "            AdaBroker.GIOP_S.Request_Received (Orls);\n";
-      
-      body += "            -- Call implementation\n";
-      body += "            " + pack_name + ".Impl.Set_" + name + "(Self, Mesg);\n";
-      
-      body += "            -- Compute size of reply\n";
-      body += "            Size := AdaBroker.GIOP_S.Reply_Header_Size;\n";
-      body += "            -- Initialize reply\n";
-      body += "            AdaBroker.GIOP_S.Initialize_Reply\n";
-      body += "              (Orls, AdaBroker.GIOP.NO_EXCEPTION, Size);\n";
-      body += "            -- Inform ORB\n";
-      body += "            AdaBroker.GIOP_S.Reply_Completed (Orls);\n";
-      
-      body += "            Dispatch_Returns := True;\n";
-      body += "            return;\n";
-      body += "         end;\n";
-      body += "      end if;\n\n";
-    }
-}
-/*
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_stream_adb     ///////////////////////////
-////////////////////////////////////////////////////////////////////////
-void
-adabe_attribute::produce_stream_adb (dep_list &with, string &body, string &previous)
-{
-  // this function simply add
-  // the marshal function for
-  // the field type 
-  AST_Decl *d = field_type ();
-  adabe_name *e = dynamic_cast<adabe_name *>(d);
-  if (!e->is_marshal_imported (with))
-    {
-      if (!e->is_already_defined ())
-	{
-	  string tmp = "";
-	  e->produce_stream_adb (with, tmp, previous);
-	  previous += tmp;
-	}
-    }
-}
-*/
 ////////////////////////////////////////////////////////////////////////
 ////////////////     miscellaneous           ///////////////////////////
 ////////////////////////////////////////////////////////////////////////

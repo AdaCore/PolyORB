@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -276,7 +276,7 @@ adabe_argument::produce_proxy_adb (dep_list & with,
 
 
 ////////////////////////////////////////////////////////////////////////
-////////////////     produce_skel_adb     //////////////////////////////
+////////////////     produce_impl_adb     //////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
 adabe_argument::produce_impl_adb (dep_list & with,

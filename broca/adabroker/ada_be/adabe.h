@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -153,11 +153,6 @@ public:
   // proxy calls
   // the second string is here not used for previous addition
   // it is used to get only the IN or only the OUT argument of an operation
-  
-  virtual void produce_skel_ads(dep_list&, string&, string&);
-  virtual void produce_skel_adb(dep_list&, string&, string&);
-  // functions used to produce the body and specification for the
-  // package used to select the right function called (dispatch)
   
   virtual void produce_stream_ads(dep_list&, string&, string&);
   virtual void produce_stream_adb(dep_list&, string&, string&);
@@ -491,9 +486,6 @@ public:
   virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
   virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
   virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
-  virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
-  //  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
-
 };
 
 
@@ -515,9 +507,6 @@ public:
   virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
   virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
   virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
-  virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
-  //  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
-
 
 private:
   bool is_function();
@@ -614,8 +603,6 @@ public:
   virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
   virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
   virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
-  virtual void produce_skel_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
   virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
 };
