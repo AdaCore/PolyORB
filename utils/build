@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # Build AdaBroker from a distribution tarball.
-# $Id: //depot/adabroker/release-1/utils/build#1 $
+# $Id: //depot/adabroker/release-1/utils/build#2 $
 
 set -e
 
@@ -12,11 +12,11 @@ then
 fi
 
 : ${GTAR:=gtar}
-: ${BUILD_DIR:=`pwd`/adabroker-build.$$}
+: ${BUILD_DIR:=`pwd`/build-`basename $1 .tar.gz`}
 : ${GMAKE:=gmake}
 
 mkdir $BUILD_DIR || true
-rm -fr $BUILD_DIR/source || true
+rm -fr $BUILD_DIR/source $BUILD_DIR/install || true
 mkdir $BUILD_DIR/source
 
 $GTAR xzCf $BUILD_DIR/source $1
@@ -30,4 +30,5 @@ $GMAKE
 $GMAKE install
 
 date
-echo "Build finished in $BUILD_DIR."
+echo "Build finished in ${BUILD_DIR}."
+
