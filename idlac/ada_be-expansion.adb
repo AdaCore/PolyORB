@@ -216,10 +216,10 @@ package body Ada_Be.Expansion is
             Get_Method : Node_Id := Make_Operation;
             Success : Boolean;
          begin
-            Push_Scope (Get_Method);
             Success := Add_Identifier (Get_Method, "_get_"
                                        & Name (Current_Declarator));
             pragma Assert (Success = True);
+            Push_Scope (Get_Method);
             Set_Is_Oneway (Get_Method, False);
             Set_Operation_Type (Get_Method, A_Type (Node));
             --  parameters
@@ -245,10 +245,10 @@ package body Ada_Be.Expansion is
                Success : Boolean;
                Void_Node : Node_Id := Make_Void;
             begin
-               Push_Scope (Set_Method);
                Success := Add_Identifier (Set_Method, "_set_"
                                           & Name (Current_Declarator));
                pragma Assert (Success = True);
+               Push_Scope (Set_Method);
                Set_Is_Oneway (Set_Method, False);
                Set_Operation_Type (Set_Method, Void_Node);
                --  parameters

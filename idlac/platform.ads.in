@@ -6,6 +6,6 @@ package Platform is
 
 end Platform;
 
--- Local Variables:
--- mode: ada
--- End.
+--  Local Variables:
+--  mode: ada
+--  End.

@@ -7,10 +7,16 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Ada_Be.Identifiers; use Ada_Be.Identifiers;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 with Ada_Be.Temporaries; use Ada_Be.Temporaries;
+with Ada_Be.Debug;
+pragma Elaborate (Ada_Be.Debug);
+
 
 with Utils; use Utils;
 
 package body Ada_Be.Idl2Ada is
+
+   Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.idl2ada");
+   procedure O is new Ada_Be.Debug.Output (Flag);
 
    ---------------
    -- Constants --
@@ -76,8 +82,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Object_Reference_Declaration
      (CU   : in out Compilation_Unit;
-      Node : Node_Id;
-      Full_View : Boolean);
+      Node : Node_Id);
    --  Generate the declaration of an object
    --  reference type.
 
@@ -119,7 +124,7 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;
       Node : Node_Id;
-      Default_Case_Seen : out Boolean);
+      Default_Case_Seen : in out Boolean);
    --  Generate "when" clause for union K_Case Node.
    --  If this K_Case has a "default:" label, then
    --  Default_Case_Seen is set to True, else its
@@ -288,7 +293,7 @@ package body Ada_Be.Idl2Ada is
          when K_Interface =>
 
             Gen_Object_Reference_Declaration
-              (Stubs_Spec, Node, Full_View => False);
+              (Stubs_Spec, Node);
             --  The object reference type.
 
             NL (Skel_Spec);
@@ -317,21 +322,6 @@ package body Ada_Be.Idl2Ada is
               (Stream_Body, Node);
             --  Marshalling subprograms for the object
             --  reference type.
-
-            declare
-               Forward_Node : constant Node_Id
-                 := Forward (Node);
-            begin
-               if Forward_Node /= No_Node then
-                  --  This interface has a forward declaration.
-
-                  NL (Stubs_Spec);
-                  PL (Stubs_Spec, "package Convert_Forward is");
-                  PL (Stubs_Spec, "  new "
-                      & Ada_Full_Name (Forward (Forward_Node))
-                      & "_Forward.Convert (Ref_Type => Ref);");
-               end if;
-            end;
 
             NL (Skel_Body);
             PL (Skel_Body, "type Object_Ptr is access all "
@@ -431,13 +421,20 @@ package body Ada_Be.Idl2Ada is
 
             Gen_To_Ref (Stubs_Spec, Stubs_Body);
 
-            NL (Stubs_Spec);
-            DI (Stubs_Spec);
-            PL (Stubs_Spec, "private");
-            II (Stubs_Spec);
+            declare
+               Forward_Node : constant Node_Id
+                 := Forward (Node);
+            begin
+               if Forward_Node /= No_Node then
+                  --  This interface has a forward declaration.
 
-            Gen_Object_Reference_Declaration
-              (Stubs_Spec, Node, Full_View => True);
+                  NL (Stubs_Spec);
+                  PL (Stubs_Spec, "package Convert_Forward is");
+                  PL (Stubs_Spec, "  new "
+                      & Ada_Full_Name (Forward (Forward_Node))
+                      & "_Forward.Convert (Ref_Type => Ref);");
+               end if;
+            end;
 
             NL (Skel_Body);
             PL (Skel_Body, "Broca.Exceptions.Raise_Bad_Operation;");
@@ -451,6 +448,7 @@ package body Ada_Be.Idl2Ada is
             PL (Skel_Body, "  (" & Stubs_Name & ".Repository_Id,");
             PL (Skel_Body, "   Servant_Is_A'Access,");
             PL (Skel_Body, "   GIOP_Dispatch'Access);");
+
          when others =>
             pragma Assert (False);
             --  This never happens.
@@ -482,8 +480,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Object_Reference_Declaration
      (CU   : in out Compilation_Unit;
-      Node : Node_Id;
-      Full_View : Boolean) is
+      Node : Node_Id) is
    begin
       case Kind (Node) is
 
@@ -492,7 +489,7 @@ package body Ada_Be.Idl2Ada is
             NL (CU);
             if Parents (Node) = Nil_List then
                Add_With (CU, "CORBA.Object");
-               Put (CU, "type Ref is new CORBA.Object.Ref with ");
+               Put (CU, "type Ref is new CORBA.Object.Ref");
             else
                declare
                   First_Parent_Name : constant String
@@ -502,17 +499,11 @@ package body Ada_Be.Idl2Ada is
                   Put (CU,
                        "type Ref is new "
                        & First_Parent_Name
-                       & ".Ref with ");
+                       & ".Ref");
                end;
             end if;
 
-            if Full_View then
-               PL (CU, "null record;");
-            else
-               PL (CU, "private;");
-            end if;
-
-            --  when K_ValueType =>...
+            PL (CU, " with null record;");
 
          when others =>
             raise Program_Error;
@@ -576,7 +567,7 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;
       Node : Node_Id;
-      Default_Case_Seen : out Boolean)
+      Default_Case_Seen : in out Boolean)
    is
       It   : Node_Iterator;
       Label_Node : Node_Id;
@@ -646,6 +637,7 @@ package body Ada_Be.Idl2Ada is
             null;
 
          when K_Forward_Interface =>
+            Add_With (CU, "CORBA.Forward");
             NL (CU);
             PL (CU, "package " & Ada_Name (Forward (Node))
                 & "_Forward is new CORBA.Forward;");
@@ -1050,9 +1042,17 @@ package body Ada_Be.Idl2Ada is
       Add_With (CU, "Broca.GIOP");
 
       declare
+         I_Node : constant Node_Id
+           := Parent_Scope (Node);
+         --  The Interface node that contains
+         --  this operation.
          Is_Function : constant Boolean
            := Kind (Operation_Type (Node)) /= K_Void;
       begin
+         pragma Debug (O ("Node is a " & Kind (Node)'Img));
+         pragma Debug (O ("Its parent scope is a " & Kind (I_Node)'Img));
+         pragma Assert (Kind (I_Node) = K_Interface);
+
          NL (CU);
          PL (CU, "if Operation = """ & Idl_Operation_Id (Node) & """ then");
          II (CU);
@@ -1126,7 +1126,8 @@ package body Ada_Be.Idl2Ada is
          if Is_Function then
             Put (CU, T_Returns & " := ");
          end if;
-         PL (CU, Ada_Name (Node));
+         PL (CU, Ada_Full_Name (I_Node) & Impl_Suffix
+             & "." & Ada_Name (Node));
          PL (CU, "  (Object_Ptr (Obj),");
          II (CU);
          declare
@@ -2157,7 +2158,7 @@ package body Ada_Be.Idl2Ada is
                     K_Forward_Interface |
                     K_Interface         =>
                      Add_With
-                       (CU, Ada_Name (Denoted_Entity));
+                       (CU, Ada_Full_Name (Denoted_Entity));
                      Put (CU, Ada_Type_Name (Node));
 
                   when K_Enumerator =>
@@ -2265,7 +2266,7 @@ package body Ada_Be.Idl2Ada is
    begin
       case NK is
          when K_Interface =>
-            return Ada_Name (Node) & ".Ref";
+            return Ada_Full_Name (Node) & ".Ref";
 
          when
            K_Enum   |
@@ -2278,7 +2279,7 @@ package body Ada_Be.Idl2Ada is
 
          when K_Declarator =>
             --  A type created by a typedef.
-            return Ada_Name (Node);
+            return Ada_Full_Name (Node);
 
          when K_Short =>
             return "CORBA.Short";

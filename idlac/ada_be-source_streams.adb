@@ -1,12 +1,18 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#5 $
+--  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#6 $
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
 with Ada.Text_IO;
 
+with Ada_Be.Debug;
+pragma Elaborate (Ada_Be.Debug);
+
 package body Ada_Be.Source_Streams is
+
+   Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.source_streams");
+   procedure O is new Ada_Be.Debug.Output (Flag);
 
    procedure Set_Empty (Unit : in out Compilation_Unit) is
    begin
@@ -60,7 +66,30 @@ package body Ada_Be.Source_Streams is
       Elab_Control : Elab_Control_Pragma := None)
    is
       Dep_Node : Dependency := Unit.Context_Clause;
+      LU_Name : constant String
+        := Unit.Library_Unit_Name.all;
    begin
+      if Dep = LU_Name then
+         return;
+      end if;
+
+      pragma Debug (O ("Adding depend of " & LU_Name
+                       & " (" & Unit.Kind'Img & ")"
+                       & " upon " & Dep));
+
+      if True
+        and then Unit.Kind = Unit_Spec
+        and then LU_Name'Length + 1 < Dep'Length
+        and then Dep (Dep'First .. Dep'First + LU_Name'Length)
+          = LU_Name & "." then
+         --  All hope abandon he who trieth to make a unit
+         --  depend upon its child.
+         pragma Debug (O ("The declaration of " & LU_Name
+                          & " cannot depend on " & Dep));
+
+         raise Program_Error;
+      end if;
+
       while Dep_Node /= null and then Dep_Node.Library_Unit.all /= Dep loop
          Dep_Node := Dep_Node.Next;
       end loop;
