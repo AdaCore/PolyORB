@@ -62,7 +62,7 @@ begin
       end if;
    end loop;
 
-   Create (File => Outfile, Name => "s-gaproc.adb");
+   Create (File => Outfile, Name => "s-gaprco.adb");
 
    declare
       P : constant String := SGP & "." & Protocol;
