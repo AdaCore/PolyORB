@@ -36,12 +36,14 @@ with Ada.Command_Line;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
 with GNAT.Registry;
+with GNAT.Directory_Operations;
 
 procedure Run_Script is
 
    use Ada.Command_Line;
    use Ada.Text_IO;
    use GNAT.OS_Lib;
+   use GNAT.Directory_Operations;
 
    function All_Arguments return Argument_List;
    --  Return an argument list corresponding to the command line.
@@ -107,7 +109,7 @@ procedure Run_Script is
       return Filename;
    end Cygwin_Resolve;
 
-   Self : constant String := Command_Name;
+   Self : constant String := Format_Pathname (Command_Name, UNIX);
    Script_Last : Integer;
    Script : Ada.Text_IO.File_Type;
 
