@@ -229,7 +229,7 @@ package body PolyORB.ORB is
       use PolyORB.Task_Info;
 
    begin
-      --  ORB.ORB_Lock is held
+      --  Inside the ORB critical section
 
       ORB.Polling := True;
 
@@ -283,7 +283,7 @@ package body PolyORB.ORB is
 
          Notify_Event (ORB.ORB_Controller, End_Of_Check_Sources_E);
 
-         --  ORB.ORB_Lock is held
+         --  Inside ORB critical section
 
       end;
    end Try_Check_Sources;
@@ -342,9 +342,9 @@ package body PolyORB.ORB is
 
             when Idle =>
 
-               --  This task is going idle. We are still holding
-               --  ORB_Lock at this point. The tasking policy
-               --  will release it while we are idle, and
+               --  This task is going idle. We are still inside the
+               --  ORB critical section at this point. The tasking
+               --  policy will release it while we are idle, and
                --  re-assert it before returning.
 
                Idle (ORB.Tasking_Policy, This_Task, ORB_Access (ORB));
@@ -370,7 +370,7 @@ package body PolyORB.ORB is
 
          Set_State_Unscheduled (This_Task);
 
-         --  Condition at end of loop: ORB_Lock is held
+         --  Condition at end of loop: inside the ORB critical section
 
       end loop Main_Loop;
 
@@ -389,8 +389,8 @@ package body PolyORB.ORB is
    exception
       when E : others =>
 
-         --  At this point it is assumed that ORB_Lock is
-         --  not being held by this task.
+         --  At this point it is assumed that we are not in the ORB
+         --  critical section.
 
          O ("ORB.Run got exception:", Error);
          O (Ada.Exceptions.Exception_Information (E), Error);
