@@ -352,8 +352,10 @@ package body Ada_Be.Expansion is
 
                --  Reparent current node.
 
-               Success := Add_Identifier (Current, Name (Current));
-               pragma Assert (Success);
+               if Definition (Current) /= null then
+                  Success := Add_Identifier (Current, Name (Current));
+                  pragma Assert (Success);
+               end if;
 
             elsif Is_Type_Declarator (Current) then
 
@@ -440,7 +442,9 @@ package body Ada_Be.Expansion is
       Inh_It : Node_Iterator;
       I_Node : Node_Id;
    begin
-      pragma Assert (Kind (From) = K_Interface);
+      pragma Assert (False
+        or else Kind (From) = K_Interface
+        or else Kind (From) = K_ValueType);
 
       if Is_In_List (Parents_Seen, From) then
          return;
