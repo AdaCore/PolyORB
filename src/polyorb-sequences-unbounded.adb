@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -63,6 +63,14 @@ package body PolyORB.Sequences.Unbounded is
    --  return Initial_Size + N * Increment_Size where N is the
    --  smallest integer such that Length < Initial_Size + N * Increment_Size.
 
+   function Element_Array_Equal (Left, Right : Element_Array)
+     return Boolean;
+   --  Test two element_arrays are equal.
+
+   -----------------------
+   -- Get_Null_Contents --
+   -----------------------
+
    function Get_Null_Contents return Element_Array_Access
    is
       Null_Element : Element;
@@ -78,8 +86,9 @@ package body PolyORB.Sequences.Unbounded is
       return Null_Contents;
    end Get_Null_Contents;
 
-   function Element_Array_Equal (Left, Right : Element_Array)
-     return Boolean;
+   -------------------------
+   -- Element_Array_Equal --
+   -------------------------
 
    function Element_Array_Equal (Left, Right : Element_Array)
      return Boolean is
@@ -646,6 +655,16 @@ package body PolyORB.Sequences.Unbounded is
       end if;
    end Insert;
 
+   ------------
+   -- Is_Nul --
+   ------------
+
+   function Is_Null (Source : in Sequence)
+                    return Boolean is
+   begin
+      return Source = Null_Sequence;
+   end Is_Null;
+
    -------------------
    -- Null_Sequence --
    -------------------
@@ -880,6 +899,17 @@ package body PolyORB.Sequences.Unbounded is
       Times := ((Length - Initial_Size) / Increment_Size) + 1;
       return Initial_Size + (Increment_Size * Times);
    end Round;
+
+   ---------
+   -- Set --
+   ---------
+
+   procedure Set
+     (Item   : in out Sequence;
+      Source : in Element_Array) is
+   begin
+      Item := To_Sequence (Source);
+   end Set;
 
    -----------
    -- Slice --

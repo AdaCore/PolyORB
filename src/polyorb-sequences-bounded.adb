@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -114,6 +114,18 @@ package body PolyORB.Sequences.Bounded is
       return Result;
 
    end To_Sequence;
+
+   ---------
+   -- Set --
+   ---------
+
+   procedure Set
+     (Item   : in out Sequence;
+      Source : in     Element_Array;
+      Drop   : in     Truncation := Error) is
+   begin
+      Item := To_Sequence (Source, Drop);
+   end Set;
 
    ----------------------
    -- To_Element_Array --
