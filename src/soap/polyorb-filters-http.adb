@@ -328,7 +328,7 @@ package body PolyORB.Filters.HTTP is
       -- Process received data --
       ---------------------------
 
-      Show (F.In_Buf.all);
+      Show (F.In_Buf);
 
       <<Process_Received_Data>>
 

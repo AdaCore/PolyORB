@@ -321,7 +321,7 @@ package body PolyORB.Protocols.SRP is
       pragma Warnings (On);
 
       pragma Debug (O ("Received data on SRP service..."));
-      pragma Debug (Buffers.Show (S.Buffer_In.all));
+      pragma Debug (Buffers.Show (S.Buffer_In));
 
       Request_Received (S);
 
@@ -441,7 +441,7 @@ package body PolyORB.Protocols.SRP is
                                Data       => Value (Value'First)'Address,
                                Endianness => Little_Endian,
                                Initial_CDR_Position => 0);
-            Show (Temp_Buffer);
+            Show (Temp_Buffer'Access);
             Unmarshall (Temp_Buffer'Access, Temp_Arg.all);
          end;
          Next (It);

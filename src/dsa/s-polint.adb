@@ -298,10 +298,11 @@ package body System.PolyORB_Interface is
       use Octet_Sequences;
 
       S : PolyORB.Opaque.Zone_Access
-        := PolyORB.Buffers.To_Stream_Element_Array (Stream.Buf);
+        := new Stream_Element_Array'(
+             PolyORB.Buffers.To_Stream_Element_Array (Stream.Buf));
 
       subtype OSEA_T is Element_Array (1 .. S'Length);
-      OSEA_Addr : constant System.Address := S (1)'Address;
+      OSEA_Addr : constant System.Address := S (S'First)'Address;
       OSEA : OSEA_T;
       for OSEA'Address use OSEA_Addr;
       pragma Import (Ada, OSEA);

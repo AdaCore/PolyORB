@@ -57,6 +57,17 @@ package body PolyORB.Buffers is
    procedure O2 (Message : in String; Level : Log_Level := Debug)
      renames L2.Output;
 
+   -----------------------
+   -- Local subprograms --
+   -----------------------
+
+   function To_Stream_Element_Array
+     (Buffer   : access Buffer_Type)
+     return Opaque.Zone_Access;
+   --  Dump the contents of Buffer into a Stream_Element_Array,
+   --  and return a pointer to it. The caller must take care of
+   --  deallocating the pointer after use.
+
    ------------------------
    -- General operations --
    ------------------------
@@ -231,10 +242,14 @@ package body PolyORB.Buffers is
 
    function To_Stream_Element_Array
      (Buffer   : access Buffer_Type)
-     return Opaque.Zone_Access is
+     return Opaque.Zone_Access
+   is
+      Result : Opaque.Zone_Access;
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
-      return Iovec_Pools.Dump (Buffer.Contents);
+      Result := new Stream_Element_Array (1 .. Length (Buffer));
+      Iovec_Pools.Dump (Buffer.Contents, To_Opaque_Pointer (Result));
+      return Result;
    end To_Stream_Element_Array;
 
    function To_Stream_Element_Array
@@ -649,7 +664,7 @@ package body PolyORB.Buffers is
       end if;
    end Show;
 
-   procedure Show (Buffer : in Buffer_Type) is
+   procedure Show (Buffer : access Buffer_Type) is
    begin
       pragma Debug (O2 ("Dumping "
                        & Endianness_Type'Image (Buffer.Endianness)
@@ -661,7 +676,8 @@ package body PolyORB.Buffers is
          return;
       end if;
       declare
-         Dumped : Zone_Access := Iovec_Pools.Dump (Buffer.Contents);
+         Dumped : Zone_Access
+           := To_Stream_Element_Array (Buffer);
       begin
          Show (Dumped);
          Free (Dumped);
@@ -798,10 +814,6 @@ package body PolyORB.Buffers is
       procedure Dump (Iovecs : Iovec_Array; Into : Opaque_Pointer);
       --  Dump the content of Iovecs into Into.
 
-      function Dump (Iovecs : Iovec_Array) return Zone_Access;
-      --  Dump the data designated by an Iovec_Array
-      --  into an array of octets.
-
       ----------------------------------
       -- Utility Subprograms (bodies) --
       ----------------------------------
@@ -898,23 +910,6 @@ package body PolyORB.Buffers is
                Offset := Offset + Storage_Offset (L);
             end;
          end loop;
-      end Dump;
-
-      function Dump
-        (Iovecs : Iovec_Array)
-        return Zone_Access
-      is
-         Result : Zone_Access;
-         Length : Stream_Element_Count := 0;
-      begin
-         for J in Iovecs'Range loop
-            Length := Length + Stream_Element_Count (Iovecs (J).Iov_Len);
-         end loop;
-
-         Result := new Stream_Element_Array (1 .. Length);
-         Dump (Iovecs, Opaque_Pointer'(Result (Result'First)'Address));
-
-         return Result;
       end Dump;
 
       -------------------------------------------
@@ -1189,19 +1184,6 @@ package body PolyORB.Buffers is
          pragma Import (Ada, Vecs);
       begin
          Dump (Vecs, Into);
-      end Dump;
-
-      function Dump
-        (Iovec_Pool : in Iovec_Pool_Type)
-        return Zone_Access is
-      begin
-         if Is_Dynamic (Iovec_Pool) then
-            return Dump (Iovec_Pool.Dynamic_Array
-                         (1 .. Iovec_Pool.Last));
-         else
-            return Dump (Iovec_Pool.Prealloc_Array
-                         (1 .. Iovec_Pool.Last));
-         end if;
       end Dump;
 
    end Iovec_Pools;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#23 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#24 $
 
 with Ada.Streams;
 
@@ -153,13 +153,6 @@ package PolyORB.Buffers is
    --  Using this function is dangerous because it may overflow
    --  the stack with the contents of a big buffer. It is therefore
    --  DEPRECATED. Use the following instead.
-
-   function To_Stream_Element_Array
-     (Buffer   : access Buffer_Type)
-     return Opaque.Zone_Access;
-   --  Dump the contents of Buffer into a Stream_Element_Array,
-   --  and return a pointer to it. The caller must take care of
-   --  deallocating the pointer after use.
 
    function Peek
      (Buffer   : access Buffer_Type;
@@ -300,7 +293,7 @@ package PolyORB.Buffers is
    -- Utility subprograms --
    -------------------------
 
-   procedure Show (Buffer : in Buffer_Type);
+   procedure Show (Buffer : access Buffer_Type);
    --  Display the contents of Buffer for debugging purposes.
 
 private
@@ -428,11 +421,8 @@ private
       procedure Dump
         (Iovec_Pool : Iovec_Pool_Type;
          Into       : Opaque.Opaque_Pointer);
-      --  Dump the content of an Iovec_Pool into Into.
-
-      function Dump (Iovec_Pool : Iovec_Pool_Type) return Opaque.Zone_Access;
-      --  Dump the contents of Iovec_Pool into an array of octets. The result
-      --  must be deallocated when not used anymore.
+      --  Dump the content of an Iovec_Pool into the designated
+      --  memory location.
 
       function Peek
         (Iovec_Pool : Iovec_Pool_Type;
