@@ -1,3 +1,8 @@
+2000-03-24  Pascal Obry  <obry@gnat.com>
+
+	* Makefile.in: Do not check for build directory for NT version
+	xe_defs.adb. This was wrong anyway. Fixes 7524-002.
+
 2000-03-15  Pascal Obry <obry@gnat.com>
 
 	* xe_usage.adb: Update copyright notice
