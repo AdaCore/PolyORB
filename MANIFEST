@@ -416,6 +416,8 @@ ada/sfn_scan.adb
 ada/sfn_scan.ads
 ada/sinfo.adb
 ada/sinfo.ads
+ada/sinfo-cn.adb
+ada/sinfo-cn.ads
 ada/sinput-p.adb
 ada/sinput-p.ads
 ada/sinput.adb
