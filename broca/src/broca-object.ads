@@ -32,13 +32,15 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+with CORBA.Impl;
 with Broca.Buffers;
-with Broca.Refs;
+--  with Broca.Refs;
 with Broca.IOP;
 
 package Broca.Object is
 
-   type Object_Type is new Broca.Refs.Ref_Type with
+   --  type Object_Type is new Broca.Refs.Ref_Type with
+   type Object_Type is new CORBA.Impl.Object with
       record
          Type_Id  : CORBA.String;
          Profiles : IOP.Profile_Ptr_Array_Ptr;
