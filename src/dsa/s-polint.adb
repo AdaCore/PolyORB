@@ -726,8 +726,7 @@ package body System.PolyORB_Interface is
             Req       => Request);
 
          PolyORB.Requests.Invoke (Request);
-         PolyORB.Requests.Destroy_Request
-           (Request);
+         PolyORB.Requests.Destroy_Request (Request);
 
          return RPC.Partition_ID (FA_I (Result.Argument));
       end;
@@ -1367,11 +1366,17 @@ package body System.PolyORB_Interface is
    -- Request_Raise_Occurrence --
    ------------------------------
 
-   procedure Request_Raise_Occurrence (R : Request_Access) is
+   procedure Request_Raise_Occurrence (R : in out Request_Access) is
       use Ada.Exceptions;
    begin
-      PolyORB.Exceptions.Default_Raise_From_Any (R.Exception_Info);
-
+      if not Is_Empty (R.Exception_Info) then
+         declare
+            E : constant PolyORB.Any.Any := R.Exception_Info;
+         begin
+            PolyORB.Requests.Destroy_Request (R);
+            PolyORB.Exceptions.Default_Raise_From_Any (E);
+         end;
+      end if;
    end Request_Raise_Occurrence;
 
    ---------------------

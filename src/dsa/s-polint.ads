@@ -553,9 +553,11 @@ package System.PolyORB_Interface is
    --  Request_Flags to use for a request according to whether or not
    --  the call is asynchronous.
 
-   procedure Request_Raise_Occurrence (R : Request_Access);
-   --  If R terminated with an exception, raise that exception,
-   --  otherwise do noting.
+   procedure Request_Raise_Occurrence (R : in out Request_Access);
+   --  If R terminated with an exception, raise that exception.
+   --  In that case, the request is destroyed before raising the
+   --  exception, and this subprogram does not return.
+   --  If no exception occurred, do nothing.
 
 private
 

@@ -2176,8 +2176,12 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "if not Is_Empty (" & T_Request
                    & ".Exception_Info) then");
                II (CU);
+               PL (CU, T_Result & ".Argument := "
+                   & T_Request & ".Exception_Info;");
+               PL (CU, "PolyORB.Requests.Destroy_Request");
+               PL (CU, "  (" & T_Request & ");");
                PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any");
-               PL (CU, "  (" & T_Request & ".Exception_Info);");
+               PL (CU, "  (" & T_Result & ".Argument);");
                DI (CU);
                PL (CU, "end if;");
 
