@@ -105,7 +105,7 @@ proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
     // calls PR_getobj as soon as it gets the result.
     // therefore, we have to create this CORBA::Object_ptr
     // that will never be referenced again, and we do not
-    // not when it can be released.
+    // know when it can be released.
     
 }
 

@@ -1,12 +1,9 @@
 Here are the main points to fit in the AdaBroker project in
 order of increasing importance (in terms of work) :
 
-- The code of the IDL to ADA compiler is not always well commented.
-  Some files have to be better commented.
+- omniowproxycalldesc are not used, we always use omniproxycalldesc.
+  The generated code compiles with warnings. But it works !
 
-- The oneway functions are implemented but not used. It means that the
-  oneway method of omniproycallwrapper is useless.
-  One mmust correct it.
 
 - The naming service example does not use contexts.
   It could be interessant to add them. You will maybe
@@ -53,22 +50,26 @@ order of increasing importance (in terms of work) :
   are used by their value. It would be better to map them as constants
   in the generated Ada code.
 
-- In the invoke method of file proxycallwrapper, the result of a call
+- In the invoke method of file omniproxycallwrapper, the result of a call
   to receive_reply can be No_Exception, User_Exception, System_Exception
   or Location_Forward. This last case was never used and never tested.
   An example must so be done for testing it.
 
-- AdaBroker is not thread safe at the time, even if the code to make it
+- AdaBroker is not thread safe at the moment, even if the code to make it
   thread safe is written. Thre are two files to change : corba-exceptions.adb
   and corba-object.adb. In first case, the protected type Member_List must be
   added, in the second, it is the type Pd_List. Actually, they were added and
   the corresponding code is present in both files in comment. The problem is
   that protected declarations seems to be incompatible with AdaBroker for
   an unknown reason. One must find this reason and correct it.
+  (probably library link)
 
 - There are some memory allocations in AdaBroker but no one throws an
   exception in case of memory lack. In fact, the server may crash in such a
   case. A Corba.No_Memory exception must be thrown in such a case.
+
+- There is a memory leak we could not fix in procyObjectFactory_C2Ada.cc
+  See comments in this file.
 
 - The generated code for align_size functions is not fully optimized. Some
   objects of fixed size are not globaly aligned. for example, the unions are
