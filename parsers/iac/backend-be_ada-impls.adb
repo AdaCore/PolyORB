@@ -121,6 +121,7 @@ package body Backend.BE_Ada.Impls is
             (Subtype_Indication    => RE (RE_Servant_Base),
              Is_Private_Extention => True));
          Set_Corresponding_Node (I, N);
+         Bind_FE_To_Impl (Identifier (E), N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          D := New_Node (K_Designator);
@@ -128,7 +129,7 @@ package body Backend.BE_Ada.Impls is
          N := Make_Full_Type_Declaration
            (Make_Defining_Identifier (TN (T_Object_Ptr)),
             Make_Access_Type_Definition
-            (Make_Type_Attribute (D, A_CLASS),
+            (Make_Type_Attribute (D, A_Class),
              Is_All => True));
          Append_Node_To_List
            (N, Visible_Part (Current_Package));

@@ -41,6 +41,10 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Parent_Unit_Name;
   };
 
+  interface Attribute_Designator : Defining_Identifier {
+    Node_Id    Prefix; 
+  }; 
+
   /*****************/
   /* Package nodes */
   /*****************/

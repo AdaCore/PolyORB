@@ -12,6 +12,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Access_Type_Definition (N : Node_Id);
    procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_Assignment_Statement (N : Node_Id);
+   procedure Generate_Attribute_Designator (N : Node_Id);
    procedure Generate_Block_Statement (N : Node_Id);
    procedure Generate_Case_Statement (N : Node_Id);
    procedure Generate_Component_Association (N : Node_Id);
@@ -66,6 +67,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Assignment_Statement =>
             Generate_Assignment_Statement (N);
+
+         when K_Attribute_Designator =>
+            Generate_Attribute_Designator (N);
 
          when K_Block_Statement =>
             Generate_Block_Statement (N);
@@ -239,6 +243,13 @@ package body Backend.BE_Ada.Generator is
       Generate (Expression (N));
       Decrement_Indentation;
    end Generate_Assignment_Statement;
+
+   procedure Generate_Attribute_Designator (N : Node_Id) is
+   begin
+      Generate (Prefix (N));
+      Write (Tok_Apostrophe);
+      Write_Name (Name (N));
+   end Generate_Attribute_Designator;
 
    ------------------------------
    -- Generate_Block_Statement --
@@ -607,7 +618,6 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_IDL_Unit_Packages (N : Node_Id) is
       P : Node_Id := First_Node (Packages (N));
-
    begin
       while Present (P) loop
          Generate (P);

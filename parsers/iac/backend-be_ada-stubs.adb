@@ -715,9 +715,9 @@ package body Backend.BE_Ada.Stubs is
             Append_Node_To_List (N, P);
 
             if BEN.Parameter_Mode (I) = Mode_Out then
-               N := RE (RE_ARG_IN_1);
-            elsif BEN.Parameter_Mode (I) = Mode_In then
                N := RE (RE_ARG_OUT_1);
+            elsif BEN.Parameter_Mode (I) = Mode_In then
+               N := RE (RE_ARG_IN_1);
             else
                N := RE (RE_ARG_INOUT_1);
             end if;

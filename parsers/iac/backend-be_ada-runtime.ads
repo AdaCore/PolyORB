@@ -40,6 +40,7 @@ package Backend.BE_Ada.Runtime is
    type RE_Id is
      (RE_Ref_0,                     --  Ref
       RE_To_Any_1,                  --  To_Any
+      RE_Boolean_0,                 --  Boolean
       RE_False,                     --  False
       RE_True,                      --  True
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
@@ -141,6 +142,7 @@ package Backend.BE_Ada.Runtime is
                                     --     Exceptions.Raise_From_Any
       RE_Add,                       --  PolyORB.Utils.Strings."+"
       RE_Empty,                     --  PolyORB.Utils.Strings.Lists.Empty
+      RE_Register_Skeleton,         --  PortableServer.Skeleton
       RE_Servant,                   --  PortableServer.Servant
       RE_Servant_Base,              --  PortableServer.Servant_Base
       RE_String_2);                  --  Standard.String
@@ -148,6 +150,7 @@ package Backend.BE_Ada.Runtime is
    RE_Unit_Table : constant array (RE_Id) of RU_Id
      := (RE_Ref_0                   => RU_Null,
          RE_To_Any_1                => RU_Null,
+         RE_Boolean_0               => RU_Null,
          RE_False                   => RU_Null,
          RE_True                    => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
@@ -246,6 +249,7 @@ package Backend.BE_Ada.Runtime is
          RE_To_PolyORB_String       => RU_PolyORB_Types,
          RE_Add                     => RU_PolyORB_Utils_Strings,
          RE_Empty                   => RU_PolyORB_Utils_Strings_Lists,
+         RE_Register_Skeleton       => RU_PortableServer,
          RE_Servant                 => RU_PortableServer,
          RE_Servant_Base            => RU_PortableServer,
          RE_String_2                => RU_Standard);

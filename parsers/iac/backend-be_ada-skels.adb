@@ -3,13 +3,17 @@ with Values; use Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;
 
+
 with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 
---  with Backend.BE_Ada.Debug;     use Backend.BE_Ada.Debug;
+pragma Warnings (off);
+with Backend.BE_Ada.Debug;     use Backend.BE_Ada.Debug;
+with Frontend.Debug;           use Frontend.Debug;
+pragma Warnings (on);
 
 package body Backend.BE_Ada.Skels is
    package FEN renames Frontend.Nodes;
@@ -104,16 +108,54 @@ package body Backend.BE_Ada.Skels is
    package body Package_Body is
 
       Invoke_Elsif_Statements : List_Id;
+      Package_Initializarion       : List_Id;
 
+      function Deferred_Initialization_Body (E : Node_Id) return Node_Id;
       function Gen_Invoke_Part (S : Node_Id) return Node_Id;
       procedure Invoke_Declaration (L : List_Id);
       function Invoke_Spec return Node_Id;
       function Is_A_Invoke_Part return Node_Id;
+      function Servant_Is_A_Body return Node_Id;
+      procedure Skeleton_Initialization (L : List_Id);
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
+      procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
+
+      function Deferred_Initialization_Body (E : Node_Id) return Node_Id is
+         N          : Node_Id;
+         Profile    : constant List_Id := New_List (K_List_Id);
+         Spec       : Node_Id;
+         Statements : constant List_Id := New_List (K_List_Id);
+      begin
+         Spec := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
+            No_List);
+         N := Stub_Node (BE_Node (Identifier (E)));
+         N := Next_Node (N);
+         N := Make_Subprogram_Call
+           (RE (RE_To_CORBA_String),
+            Make_List_Id (Expand_Designator (N)));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Type_Attribute
+           (Make_Designator (SN (S_Servant_Is_A)), A_Access);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Type_Attribute (Make_Designator (SN (S_Invoke)), A_Access);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Subprogram_Call
+           (RE (RE_Register_Skeleton), Profile);
+         Append_Node_To_List (N, Statements);
+
+         N := Make_Subprogram_Implementation
+           (Spec, No_List, Statements);
+
+         return N;
+      end Deferred_Initialization_Body;
 
       ---------------------
       -- Gen_Invoke_Part --
@@ -129,14 +171,27 @@ package body Backend.BE_Ada.Skels is
          Param_Name       : Name_Id;
          New_Name         : Name_Id;
          P                : List_Id;
-      begin
-         Count := Length (Parameter_Profile (S));
+         Inv_Profile      : constant List_Id := New_List (K_List_Id);
+         K                : FEN.Node_Kind := FEN.K_Operation_Declaration;
 
+      begin
+         --  Implementation.Object'Class (Self.All)'Access
+
+         N := Implementation_Package (Current_Entity);
+         N := First_Node
+           (Visible_Part (Package_Specification (N)));
+         N := Expand_Designator (N);
+         N := Make_Type_Attribute (N, A_Class);
+         C := Make_Designator
+           (Designator => PN (P_Self),
+            Is_All     => True);
          N := Make_Subprogram_Call
-           (RE (RE_Arguments),
-            Make_List_Id
-            (Make_Defining_Identifier (VN (V_Argument_List))));
-         Append_Node_To_List (N, Statements);
+           (N, Make_List_Id (C));
+         N := Make_Attribute_Designator
+           (N, A_Access);
+         Append_Node_To_List (N, Inv_Profile);
+
+         Count := Length (Parameter_Profile (S));
 
          if Count > 1 then
             Param := First_Node (Parameter_Profile (S));
@@ -150,6 +205,9 @@ package body Backend.BE_Ada.Skels is
                   Object_Definition   =>
                     Copy_Designator (Parameter_Type (Param)));
                Append_Node_To_List (N, Declarative_Part);
+               Append_Node_To_List
+                 (Make_Defining_Identifier (Param_Name),
+                  Inv_Profile);
                C := Make_Subprogram_Call
                  (Defining_Identifier   => RE (RE_To_CORBA_String),
                   Actual_Parameter_Part =>
@@ -159,7 +217,7 @@ package body Backend.BE_Ada.Skels is
                Append_Node_To_List (Make_Designator (New_Name), P);
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (New_Name),
-                  Constant_Present => False,
+                  Constant_Present => True,
                   Object_Definition => RE (RE_Identifier_0),
                   Expression => C);
                Append_Node_To_List (N, Declarative_Part);
@@ -189,9 +247,9 @@ package body Backend.BE_Ada.Skels is
                Append_Node_To_List (N, Declarative_Part);
 
                if BEN.Parameter_Mode (Param) = Mode_Out then
-                  N := RE (RE_ARG_IN_0);
-               elsif BEN.Parameter_Mode (Param) = Mode_In then
                   N := RE (RE_ARG_OUT_0);
+               elsif BEN.Parameter_Mode (Param) = Mode_In then
+                  N := RE (RE_ARG_IN_0);
                else
                   N := RE (RE_ARG_INOUT_0);
                end if;
@@ -205,6 +263,13 @@ package body Backend.BE_Ada.Skels is
                exit when No (Param);
             end loop;
          end if;
+
+         N := Make_Subprogram_Call
+           (RE (RE_Arguments),
+            Make_List_Id
+            (Make_Defining_Identifier (PN (P_Request)),
+             Make_Defining_Identifier (VN (V_Argument_List))));
+         Append_Node_To_List (N, Statements);
 
          --  Convert from their Any
 
@@ -240,9 +305,21 @@ package body Backend.BE_Ada.Skels is
 
          --  Call Implementation
 
-         if No (N) then
-            raise Program_Error;
+         N :=   Corresponding_Entity (FE_Node (S));
+         C := Impl_Node (BE_Node (FE_Node (S)));
+
+         if Kind (N) /= K_Operation_Declaration then
+            Get_Name_String (BEN.Name (Defining_Identifier (S)));
+            K := K_Attribute_Declaration;
+
+            if Name_Buffer (1) = 'S' then
+               C := Next_Node (C);
+            end if;
          end if;
+
+         C := Make_Subprogram_Call
+           (Expand_Designator (C),
+            Inv_Profile);
 
          if Present (Return_Type (S)) then
             N := Make_Object_Declaration
@@ -251,17 +328,41 @@ package body Backend.BE_Ada.Skels is
                Object_Definition =>
                  Copy_Designator (Return_Type (S)));
             Append_Node_To_List (N, Declarative_Part);
-         else
-            null;
+            C := Make_Assignment_Statement
+              (Make_Defining_Identifier (VN (V_Result)),
+               C);
          end if;
 
-         C := Make_Expression
-           (Make_Defining_Identifier (VN (V_Operation)),
-            Op_Equal,
-            Make_Literal
-            (New_String_Value
-             (Add_Suffix_To_Name
-              ("_", BEN.Name (Defining_Identifier (S))), False)));
+         Append_Node_To_List (C, Statements);
+
+         if Present (Return_Type (S)) then
+            C := Make_Subprogram_Call
+              (RE (RE_To_Any_0),
+               Make_List_Id (Make_Designator (VN (V_Result))));
+            N := Make_Subprogram_Call
+              (RE (RE_Set_Result),
+               Make_List_Id
+               (Make_Designator (PN (P_Request)),
+                C));
+            Append_Node_To_List (N, Statements);
+         end if;
+
+         declare
+            Operation_Name   : Name_Id := BEN.Name (Defining_Identifier (S));
+         begin
+            if K = K_Attribute_Declaration then
+               Operation_Name := Add_Prefix_To_Name ("_", Operation_Name);
+            end if;
+
+            C := Make_Expression
+              (Make_Defining_Identifier (VN (V_Operation)),
+               Op_Equal,
+               Make_Literal
+               (New_String_Value
+                (Operation_Name, False)));
+
+         end;
+
          N := Make_Block_Statement
            (Declarative_Part => Declarative_Part,
             Statements       => Statements);
@@ -358,7 +459,7 @@ package body Backend.BE_Ada.Skels is
          Append_Node_To_List (Make_Designator (New_Name), P);
          N := Make_Object_Declaration
            (Defining_Identifier => Make_Defining_Identifier (New_Name),
-            Constant_Present => False,
+            Constant_Present => True,
             Object_Definition => RE (RE_Identifier_0),
             Expression => C);
          Append_Node_To_List (N, Declarative_Part);
@@ -430,10 +531,111 @@ package body Backend.BE_Ada.Skels is
          N := Make_Block_Statement
            (Declarative_Part => Declarative_Part,
             Statements       => Statements);
-
-
          return N;
       end Is_A_Invoke_Part;
+
+      function Servant_Is_A_Body return Node_Id is
+         Param      : Node_Id;
+         Profile    : constant List_Id := New_List (K_List_Id);
+         Spec       : Node_Id;
+         Statements : constant List_Id := New_List (K_List_Id);
+         N          : Node_Id;
+      begin
+         Param := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Obj)),
+            RE (RE_Servant));
+         Append_Node_To_List (Param, Profile);
+         Spec := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_Servant_Is_A)),
+            Profile,
+            RE (RE_Boolean_0));
+         N := Implementation_Package (Current_Entity);
+         N := First_Node
+           (Visible_Part (Package_Specification (N)));
+         N := Expand_Designator (N);
+         N := Make_Type_Attribute (N, A_Class);
+         N := Make_Expression
+           (Make_Designator
+            (Designator => PN (P_Obj),
+             Is_All     => True),
+            Op_In,
+            N);
+         N := Make_Return_Statement (N);
+         Append_Node_To_List (N, Statements);
+
+         return  Make_Subprogram_Implementation
+           (Spec, No_List, Statements);
+      end Servant_Is_A_Body;
+
+      procedure Skeleton_Initialization (L : List_Id) is
+         N         : Node_Id;
+         V         : Value_Id;
+         Aggregates : List_Id;
+      begin
+         Aggregates := New_List (K_List_Id);
+         N := Defining_Identifier
+           (Package_Declaration (Current_Package));
+         V := New_String_Value
+           (Fully_Qualified_Name (N), False);
+         N := Make_Subprogram_Call
+           (RE (RE_Add),
+            Make_List_Id (Make_Literal (V)));
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Name)),
+            Expression          =>
+              N);
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Conflicts)),
+            Expression          =>
+              RE (RE_Empty));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Depends)),
+            Expression          =>
+              RE (RE_Empty));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Provides)),
+            Expression          =>
+              RE (RE_Empty));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Implicit)),
+            Expression          =>
+              RE (RE_False));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Init)),
+            Expression          =>
+              Make_Type_Attribute
+            (Make_Designator (SN (S_Deferred_Initialization)),
+             A_Access));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Record_Aggregate
+           (Aggregates);
+
+         N := Make_Qualified_Expression
+           (Subtype_Mark => RE (RE_Module_Info),
+            Aggregate    => N);
+
+         N := Make_Subprogram_Call
+           (RE (RE_Register_Module),
+            Make_List_Id (N));
+         Append_Node_To_List (N, L);
+      end Skeleton_Initialization;
 
       -----------
       -- Visit --
@@ -450,6 +652,9 @@ package body Backend.BE_Ada.Skels is
 
             when K_Module =>
                Visit_Module (E);
+
+            when K_Operation_Declaration =>
+               Visit_Operation_Declaration (E);
 
             when K_Specification =>
                Visit_Specification (E);
@@ -504,8 +709,11 @@ package body Backend.BE_Ada.Skels is
       begin
          N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
+
          Set_Skeleton_Body;
+
          Invoke_Elsif_Statements := New_List (K_List_Id);
+         Package_Initializarion  := New_List (K_List_Id);
 
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
@@ -521,6 +729,7 @@ package body Backend.BE_Ada.Skels is
             (Make_Literal (Int0_Val),
              Make_Defining_Identifier (VN (V_Argument_List))));
          Append_Node_To_List (N, Invoke_Statements);
+
          C := Make_Expression
            (Make_Defining_Identifier (VN (V_Operation)),
             Op_Equal,
@@ -529,15 +738,27 @@ package body Backend.BE_Ada.Skels is
              (Add_Prefix_To_Name ("_", SN (S_Is_A)), False)));
          N := Is_A_Invoke_Part;
          Append_Node_To_List (N, Then_Statements);
+
          N := Make_If_Statement
            (C,
             Then_Statements,
             Invoke_Elsif_Statements,
             Else_Statements);
          Append_Node_To_List (N, Invoke_Statements);
+
+         N := Servant_Is_A_Body;
+         Append_Node_To_List (N, Statements (Current_Package));
+
          N := Make_Subprogram_Implementation
            (Spec, D, Invoke_Statements);
          Append_Node_To_List (N, Statements (Current_Package));
+
+         N := Deferred_Initialization_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         Skeleton_Initialization (Package_Initializarion);
+         Set_Package_Initialization (Current_Package, Package_Initializarion);
+
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -556,6 +777,19 @@ package body Backend.BE_Ada.Skels is
          end loop;
          Pop_Entity;
       end Visit_Module;
+
+      ---------------------------------
+      -- Visit_Operation_Declaration --
+      ---------------------------------
+
+      procedure Visit_Operation_Declaration (E : Node_Id) is
+         Spec   : Node_Id;
+         N      : Node_Id;
+      begin
+         Spec := Stub_Node (BE_Node (Identifier (E)));
+         N := Gen_Invoke_Part (Spec);
+         Append_Node_To_List (N, Invoke_Elsif_Statements);
+      end Visit_Operation_Declaration;
 
       -------------------------
       -- Visit_Specification --

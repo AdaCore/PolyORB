@@ -576,6 +576,20 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Assignment_Statement;
 
+   function Make_Attribute_Designator
+     (Prefix    : Node_Id;
+      Attribute : Attribute_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Attribute_Designator);
+      Set_Prefix (N, Prefix);
+      Set_Name
+        (N, AN (Attribute));
+      return N;
+   end Make_Attribute_Designator;
+
    --------------------------
    -- Make_Block_Statement --
    --------------------------

@@ -199,7 +199,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Parameters : List_Id;
       Param_Type : Node_Id;
       Attr_Name  : Name_Id;
-
+      Result     : Node_Id;
    begin
       Parameters := New_List (K_Parameter_Profile);
 
@@ -229,8 +229,13 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Set_Str_To_Name_Buffer ("Set_");
       Name_Buffer (1) := Accessor;
       Get_Name_String_And_Append (Attr_Name);
-      return Make_Subprogram_Specification
+      Result := Make_Subprogram_Specification
         (Make_Defining_Identifier (Name_Find), Parameters, Param_Type);
+
+      --  Link the generated node with the Frontend node
+
+      Link_BE_To_FE (Result, Identifier (Attribute));
+      return Result;
    end Map_Accessor_Declaration;
 
    ------------------------------------

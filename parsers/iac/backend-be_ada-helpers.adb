@@ -93,7 +93,7 @@ package body Backend.BE_Ada.Helpers is
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
             Make_Type_Attribute
-            (Copy_Designator (N), A_CLASS));
+            (Copy_Designator (N), A_Class));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
@@ -387,7 +387,7 @@ package body Backend.BE_Ada.Helpers is
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
             Make_Type_Attribute
-            (Copy_Designator (N), A_CLASS));
+            (Copy_Designator (N), A_Class));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Ref)), Profile,
@@ -706,11 +706,14 @@ package body Backend.BE_Ada.Helpers is
            (Package_Declaration (Current_Package));
          V := New_String_Value
            (Fully_Qualified_Name (N), False);
+         N := Make_Subprogram_Call
+           (RE (RE_Add),
+            Make_List_Id (Make_Literal (V)));
          N := Make_Component_Association
            (Selector_Name  =>
               Make_Defining_Identifier (PN (P_Name)),
             Expression          =>
-              Make_Literal (V));
+              N);
          Append_Node_To_List (N, Aggregates);
 
          N := Make_Component_Association
@@ -1357,7 +1360,7 @@ package body Backend.BE_Ada.Helpers is
               Make_Subprogram_Call
             (RE (RE_Is_Nil),
              Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref)))),
-            Operator   => Op_And_Then,
+            Operator   => Op_Or_Else,
             Right_Expr =>
               Make_Subprogram_Call
             (RE (RE_Is_A),

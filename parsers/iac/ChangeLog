@@ -1,3 +1,21 @@
+2004-08-19  Saber Souli  <souli@loozy.rezel.enst.fr>>
+
+	* backend-be_ada-stubs.adb: Correct a bug. 
+
+	* backend-be_ada-runtime.ads: Add runtimes entities. 
+
+	* backend-be_ada-skels.adb: Generate Deferred_Initilization, and package initialization. 
+
+	* backend-be_ada-idl_to_ada.adb: Modify Map_Accessor : link the generated node with the frontend. 
+
+	* backend-be_ada-nodes.idl: Add Attribute_Designator.  
+
+	* backend-be_ada-nutils.adb: Add Make_Attribute_Designator. Add entities in Opertion_Id, Parameter_Id, Attribute_Id and Subprogram_Id. 
+	
+2004-08-18  Saber Souli  <souli@loozy.rezel.enst.fr>
+
+	* backend-be_ada.adb: Generate implementattion specification before  skels body, because  entities of implementation specs are used in skels body. 
+
 2004-08-18  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-runtime.ads: Add runtimes entities. 

@@ -123,6 +123,7 @@ package Backend.BE_Ada.Nutils is
    type Operator_Type  is
      (Op_Not,             -- not
       Op_And,             -- and
+      Op_In,              -- in
       Op_And_Then,        -- and then
       Op_Or,              -- or
       Op_Or_Else,         -- or else
@@ -167,6 +168,7 @@ package Backend.BE_Ada.Nutils is
       P_Item,
       P_Logical_Type_Id,
       P_Name,
+      P_Obj,
       P_Operation,
       P_Provides,
       P_Repository_Id,
@@ -210,6 +212,7 @@ package Backend.BE_Ada.Nutils is
       S_From_Any,
       S_Invoke,
       S_Is_A,
+      S_Servant_Is_A,
       S_Set,
       S_To_Any,
       S_To_Ref,
@@ -224,7 +227,7 @@ package Backend.BE_Ada.Nutils is
 
    type Attribute_Id is
      (A_Access,
-      A_CLASS,
+      A_Class,
       A_First,
       A_Pos,
       A_Val);
@@ -312,6 +315,11 @@ package Backend.BE_Ada.Nutils is
    function Make_Assignment_Statement
      (Variable_Identifier : Node_Id;
       Expression          : Node_Id)
+     return Node_Id;
+
+   function Make_Attribute_Designator
+     (Prefix    : Node_Id;
+      Attribute : Attribute_Id)
      return Node_Id;
 
    function Make_Block_Statement
