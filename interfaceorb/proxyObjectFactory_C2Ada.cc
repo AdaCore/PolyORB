@@ -73,7 +73,7 @@ proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
 					 CORBA::Boolean release) {
 
 #ifdef DEBUG
-  cerr << "proxyObjectFactory_C2Ada::newProxyObject" << endl ;
+  cerr << "proxyObjectFactory_C2Ada::newProxyObject : " << pd_repoID << endl ;
 #endif
   
   omniObject_C2Ada *omniobj =  new omniObject_C2Ada (pd_repoID,

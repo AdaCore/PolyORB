@@ -79,6 +79,7 @@ package body Corba.Orb is
    begin
 
       pragma Debug(Output(Debug, "--- Corba.Orb.Orb_Init ---"))  ;
+      pragma Debug(Output(Debug, Orb_Name))  ;
 
       C_Orb_Name := Interfaces.C.Strings.New_String(Orb_Name) ;
       -- deallocated 4 lines further
