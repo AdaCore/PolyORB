@@ -1,3 +1,8 @@
+1999-04-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* make_distrib: Touch stamp-h.in and config.h.in as well to
+	prevent build failures.
+
 1999-01-14  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* make_distrib: Pass the directory name to VERSION.INFO if not

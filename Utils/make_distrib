@@ -103,6 +103,9 @@ find . -name Makefile.in -exec touch {} \;
 sleep 1
 find . -name configure -exec touch {} \;
 sleep 1
+find . -name stamp-h.in -exec touch {} \;
+sleep 1
+find . -name config.h.in -exec touch {} \;
 echo Adapting modes
 chmod -R og=u-w .
 flist=""
