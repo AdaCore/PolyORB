@@ -3302,14 +3302,19 @@ package body Ada_Be.Idl2Ada is
    begin
       case NK is
          when K_Interface =>
+            Add_With (CU, "Broca.CDR", Use_It => True);
             Add_With (CU, Ada_Full_Name (Node) & Stream_Suffix,
                       Use_It => True);
 
+         when K_Forward_Interface =>
+            Add_With (CU, "Broca.CDR", Use_It => True);
+            Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
+                      & Stream_Suffix,
+                      Use_It => True);
          when
            K_Enum              |
            K_Union             |
            K_Struct            |
-           K_Forward_Interface |
            K_Sequence_Instance |
            K_String_Instance   =>
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
