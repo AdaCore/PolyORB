@@ -161,13 +161,14 @@ begin
            := To_Duration (Clock - Start);
       begin
          Put_Line ("Elapsed :" & Duration'Image (Elapsed));
-      exception
-         when E : others =>
-            Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
-      delay 5.0;
-      GNAT.OS_Lib.OS_Exit (0);
+   exception
+      when E : others =>
+         Put_Line (Ada.Exceptions.Exception_Information (E));
    end;
+   delay 5.0;
+   GNAT.OS_Lib.OS_Exit (0);
+
 exception
    when Sender_Error =>
       Put_Line ("Invalid nickname");
