@@ -11,16 +11,20 @@ Installation :
   you use another version of omniORB, update the config.mk file in
   AdaBroker/config)
 
-- add AdaBroker/bin to your PATH
+- run 'make export'. It will compile the AdaBroker libraries and
+  adabroker executable. The installation procedure is similar to
+  omniORB installation procedure. For instance, adabroker executable
+  is installed in omniORB_2.7.1/bin/<platform>. Same thing for
+  libraries and ali files (installed in omniORB_2.7.1/lib/<platform>.
 
-- run make in AdaBroker directory. It will compile the AdaBroker
-  libraries, omniidl2 with the ada backend (and the C++ backend), and
-  the examples.
+- go to AdaBroker/Examples and run 'make' to build examples.
+
+- note that AdaBroker works with EGCS only.
 
 Usage :
 -------
 
-   omniidl2 -bada [ -i ] myinterface.idl creates several files :
+  adabroker [ -i ] myinterface.idl creates several files :
 
 - myinterface.ads, myinterface.adb : these files contain the mapping
   for user defined types (client and server side).
@@ -29,13 +33,13 @@ Usage :
   filled by the user. They contain the implementation of the
   server. They are generated only if the -i flag is specified.
 
-- myinterface-proxies.ads, myinterface-proxies.adb : these files
+- myinterface-proxy.ads, myinterface-proxy.adb : these files
   contain utilities to make proxy calls.
 
-- myinterface-skeleton.ads, myinterface-skeleton.adb : these files
+- myinterface-skel.ads, myinterface-skel.adb : these files
   contain utilities for the server-side implementation.
 
-- myinterface-marshal.ads, marshal-marshal.adb : they contain
+- myinterface-stream.ads, myinterface-stream.adb : they contain
   subprograms to marshall types according to the GIOP protocol.
 
 Bug reports:
@@ -48,7 +52,8 @@ files in the directory AdaBroker.orig, and use the following command:
 
   diff --recursive --context AdaBroker.orig AdaBroker > patch_file
 
-and send us the patch_file via E-mail at the address broker@inf.enst.fr.
+and send us the patch_file via E-mail at the address 
+adabroker-bugs@adabroker.eu.org
 
 If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
