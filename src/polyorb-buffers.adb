@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-buffers.adb#6 $
+--  $Id: //droopi/main/src/polyorb-buffers.adb#7 $
 
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
@@ -388,6 +388,8 @@ package body PolyORB.Buffers is
       Data : Opaque_Pointer;
       Last : Stream_Element_Offset;
       Addr : PolyORB.Sockets.Sock_Addr_Type;
+      Saved_CDR_Position : constant Stream_Element_Offset
+        := Buffer.CDR_Position;
    begin
       Allocate_And_Insert_Cooked_Data (Buffer, Max, Data);
       PolyORB.Sockets.Receive_Socket
@@ -397,8 +399,7 @@ package body PolyORB.Buffers is
          From   => Addr);
       Received := Last - Data.Offset + 1;
       Unuse_Allocation (Buffer, Max - Received);
-
-      Buffer.CDR_Position := Buffer.Initial_CDR_Position;
+      Buffer.CDR_Position := Saved_CDR_Position;
    end Receive_Buffer;
 
    -------------------------

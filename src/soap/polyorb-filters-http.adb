@@ -51,7 +51,7 @@ package body PolyORB.Filters.HTTP is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Buffer_Size : constant := 4096;
+   Buffer_Size : constant := 1024;
 
    procedure Process_Line
      (F : access HTTP_Filter;
@@ -102,15 +102,12 @@ package body PolyORB.Filters.HTTP is
 
       elsif S in Data_Indication then
          declare
-            CDRP : constant Stream_Element_Offset
-              := CDR_Position (F.In_Buf);
-
             Data_Received : constant Stream_Element_Count
               := Stream_Element_Count
               (Data_Indication (S).Data_Amount);
             New_Data : PolyORB.Opaque.Opaque_Pointer;
             New_Data_Position : constant Stream_Element_Offset
-              := CDRP + Length (F.In_Buf) - Data_Received;
+              := Length (F.In_Buf) - Data_Received;
          begin
             if F.State = Start_Line or else F.State = Header then
                Extract_Data
@@ -139,15 +136,15 @@ package body PolyORB.Filters.HTTP is
 
                         Process_Line
                           (F, Line_Length =>
-                             New_Data_Position - CDRP
+                             New_Data_Position - CDR_Position (F.In_Buf)
                            + I - New_Data.Offset + 1);
 
                         --  Calculation of the length of the current line:
-                        --  New_Data_Position - CDRP = amount of data received
-                        --    in previous DI messages but not yet processed
-                        --    (constituting the beginning of this line)
-                        --  I - I'First + 1 = amount of data received in this
-                        --    DI, constituting the end of this line.
+                        --  New_Data_Position - CDR_Position = amount of data
+                        --    received  but not yet processed
+                        --    (the beginning of this line)
+                        --  I - I'First + 1 = amount of data now appended
+                        --    (the end of this line).
 
                      when others =>
                         F.CR_Seen := False;
@@ -156,17 +153,19 @@ package body PolyORB.Filters.HTTP is
             end if;
 
             --  XXX if all the available data have been processed,
-            --  should exit here.
+            --  should exit here, and expect more data according to
+            --  the current state (which may have been modified by
+            --  a call to Process_Line).
 
             case F.State is
-               when Start_Line =>
-                  raise Program_Error;
-               when Header =>
-                  --  Check for EOL-EOL in received data.
-                  raise Program_Error;
+               when Start_Line | Header =>
+                  Expect_Data (F, F.In_Buf, Buffer_Size);
                when Entity =>
-                  --  Accumulate until end of entity.
-                  raise Program_Error;
+                  null;
+                  --  XXX what to expect? The full entity?
+                  --  (in which case Expect_Data must be called
+                  --  only the first time we pass here)? A chunk?
+                  --  something else?
             end case;
          end;
       elsif S in Set_Server then
@@ -266,6 +265,14 @@ package body PolyORB.Filters.HTTP is
    pragma Inline (Is_LWS);
    --  True iff C is a linear whitespace character (space or tab).
 
+   procedure Skip_LWS (S : String; First : in out Integer);
+   --  Increment First until it points to a non-LWS position in S
+   --  or equals S'Last + 1.
+
+   procedure Trim_LWS (S : String; Last : in out Integer);
+   --  Decrement Last until it points to a non-LWS position in S
+   --  or equals S'First - 1.
+
    procedure Parse_CSL_Item
      (S     : String;
       Pos   : in out Integer;
@@ -330,6 +337,20 @@ package body PolyORB.Filters.HTTP is
       return C = ' ' or else C = ASCII.HT;
    end Is_LWS;
 
+   procedure Skip_LWS (S : String; First : in out Integer) is
+   begin
+      while First in S'Range and then Is_LWS (S (First)) loop
+         First := First + 1;
+      end loop;
+   end Skip_LWS;
+
+   procedure Trim_LWS (S : String; Last : in out Integer) is
+   begin
+      while Last in S'Range and then Is_LWS (S (Last)) loop
+         Last := Last - 1;
+      end loop;
+   end Trim_LWS;
+
    function Parse_HTTP_Version (S : String) return HTTP_Version
    is
       Version : constant Integer := S'First + HTTP_Slash'Length;
@@ -343,8 +364,8 @@ package body PolyORB.Filters.HTTP is
       if Dot >= S'Last then
          raise Protocol_Error;
       end if;
-      Result.Major := Integer'Value (S (Version .. Dot - 1));
-      Result.Minor := Integer'Value (S (Dot + 1 .. S'Last));
+      Result.Major := Natural'Value (S (Version .. Dot - 1));
+      Result.Minor := Natural'Value (S (Dot + 1 .. S'Last));
       return Result;
    end Parse_HTTP_Version;
 
@@ -373,8 +394,7 @@ package body PolyORB.Filters.HTTP is
 
       Deallocate (F.Request_URI);
       F.Request_URI := new String'(S (URI .. Space - 1));
-      F.Version     := Parse_HTTP_Version (S (Version .. S'Last - 2));
-      --  Last two characters are CR/LF.
+      F.Version     := Parse_HTTP_Version (S (Version .. S'Last));
 
       pragma Debug (O ("Parsed request-line:"));
       pragma Debug
@@ -404,7 +424,18 @@ package body PolyORB.Filters.HTTP is
          raise Protocol_Error;
       end if;
 
+      Pos := Colon + 1;
+      Skip_LWS (S, Pos);
+
       case Header_Kind is
+         when H_Content_Length =>
+            Last := S'Last;
+            Trim_LWS (S, Last);
+            if Pos > Last then
+               raise Protocol_Error;
+            end if;
+            F.Content_Length := Natural'Value (S (Pos .. Last));
+
          when H_Transfer_Encoding =>
             Pos := Colon + 1;
             String_Lists.Deallocate (F.Transfer_Encoding);
@@ -415,6 +446,9 @@ package body PolyORB.Filters.HTTP is
             end loop;
 
          when others =>
+            pragma Debug
+              (O ("Ignoring HTTP header " & Header_Kind'Img & ":"));
+            pragma Debug (O (S));
             null;
             --  Ignore non-recognised headers.
       end case;
@@ -439,7 +473,7 @@ package body PolyORB.Filters.HTTP is
          raise Protocol_Error;
       end if;
 
-      Status := Integer'Value (S (Status_Pos .. Space - 1));
+      Status := Natural'Value (S (Status_Pos .. Space - 1));
       if Status < 100 then
          raise Protocol_Error;
       end if;
@@ -458,8 +492,13 @@ package body PolyORB.Filters.HTTP is
       Line_Length : Stream_Element_Count)
    is
       Data : PolyORB.Opaque.Opaque_Pointer;
-      S : String (1 .. Integer (Line_Length));
+      S : String (1 .. Integer (Line_Length) - 2);
+      --  Ignore last 2 characters (CR/LF).
    begin
+      pragma Debug
+        (O ("Processing line at position "
+            & Stream_Element_Offset'Image
+            (PolyORB.Buffers.CDR_Position (F.In_Buf))));
       PolyORB.Buffers.Extract_Data
         (F.In_Buf, Data, Line_Length, Use_Current => True);
       for I in S'Range loop
@@ -468,9 +507,7 @@ package body PolyORB.Filters.HTTP is
             (Data.Offset + Stream_Element_Offset (I - S'First)));
       end loop;
 
-      pragma Assert (S (S'Last - 1 .. S'Last) = ASCII.CR & ASCII.LF);
-      pragma Debug (O ("HTTP line received:"));
-      pragma Debug (O (S (S'First .. S'Last - 2)));
+      pragma Debug (O ("HTTP line received:" & S));
 
       case F.State is
          when Start_Line =>
@@ -479,9 +516,16 @@ package body PolyORB.Filters.HTTP is
             else
                Parse_Status_Line (F, S);
             end if;
+            F.State := Header;
 
          when Header =>
-            Parse_Header_Line (F, S);
+            if S'Length > 2 then
+               Parse_Header_Line (F, S);
+            else
+               --  End of headers (an empty line).
+               pragma Debug (O ("Headers complete."));
+               F.State := Entity;
+            end if;
 
          when others =>
             raise Program_Error;

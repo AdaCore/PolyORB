@@ -99,9 +99,12 @@ private
       --------------------------------------------
 
       Version : HTTP_Version;
+      Status  : Natural;
+
       Request_Method : PolyORB.HTTP_Methods.Method;
-      Request_URI : String_Ptr;
-      Status : Natural;
+      Request_URI    : String_Ptr;
+
+      Content_Length    : Natural;
       Transfer_Encoding : String_Lists.List;
    end record;
 
