@@ -51,7 +51,8 @@ elif $nocheckout; then
   cd ${dir}
 else
   root=`cat CVS/Root`
-  name=`sed -e "s,${root}/,," < CVS/Repository`
+  trunc_root=`echo ${root} | sed -e 's/^.*://'`
+  name=`sed -e "s,${trunc_root}/,," < CVS/Repository`
   echo Extracting module ${name} from ${root} using tag ${tag}
   cd ${tmp}
   cvs -d ${root} co ${kk} -r ${tag} -d ${dir} ${name}
