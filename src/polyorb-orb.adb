@@ -815,11 +815,12 @@ package body PolyORB.ORB is
       AES : in out Asynch_Ev_Source_Access)
    is
    begin
-      --  XXX It is implicit that Delete_Source has been called after
-      --  an Unregister_Endpoint message has been sent to the ORB, in
-      --  response to a Disconnect_Request on AES. Consequently, AE
-      --  source has already been removed from the corresponding AE
-      --  Monitor.
+
+      --  Delete_Source is called only during the processing of
+      --  an Unregister_Endpoint message by the ORB, in response
+      --  to a Disconnect_Request on AES. Consequently, it is
+      --  safe to assume that AES has already been removed from
+      --  the corresponding AEM.
 
       Enter (ORB.ORB_Lock);
 
@@ -932,7 +933,7 @@ package body PolyORB.ORB is
 
          --  At this point, the server has been contacted, a binding
          --  has been created, a servant manager has been reached.
-         --  We are before sending the request to the target.
+         --  We are about to send the request to the target.
 
          declare
             Profiles : constant Profile_Array
@@ -956,7 +957,9 @@ package body PolyORB.ORB is
          end;
 
          --  Setup_Environment (Oid);
-         --  XXX for 'Current'
+         --  XXX for 'Current' (applicative personality API for access
+         --  to the oid of the current called instance, in the context
+         --  of a servant handling multiple oids.)
 
          declare
             Result : constant Components.Message'Class
@@ -976,7 +979,20 @@ package body PolyORB.ORB is
               (O ("Run_Request: got " & Ada.Tags.External_Tag (Result'Tag)));
 
             if Result not in Null_Message then
-               Emit_No_Reply (J.Requestor, Result);
+               begin
+                  Emit_No_Reply (J.Requestor, Result);
+                  --  XXX issue: if we are on the server side, and the
+                  --  transport layer has detected a disconnection while we
+                  --  were processing the request, the Requestor (Session)
+                  --  object here could have become invalid. For now we hack
+                  --  around this issue in a ugly fashion by catching
+                  --  all exceptions.
+               exception
+                  when E : others =>
+                     O ("Got exception sending Executed_Request."
+                        & Ada.Exceptions.Exception_Information (E), Error);
+               end;
+
             end if;
          end;
          pragma Debug (O ("Run_Request: executed request"));
