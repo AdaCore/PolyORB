@@ -53,6 +53,7 @@ s-gartyp.o\
 s-garuni.o\
 s-garuti.o\
 s-garsto.o\
+s-gastha.o\
 s-gastco.o\
 s-gastdf.o\
 s-gasoli.o\
