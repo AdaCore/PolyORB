@@ -98,11 +98,10 @@ package body Make is
    Q_Front : Natural;
    --  Points to the first valid element in the Q.
 
-   type Q_Record is
-      record
-         File : File_Name_Type;
-         Unit : Unit_Name_Type;
-      end record;
+   type Q_Record is record
+      File : File_Name_Type;
+      Unit : Unit_Name_Type;
+   end record;
    --  File is the name of the file to compile. Unit is for gnatdist
    --  use in order to easily get the unit name of a file to compile
    --  when its name is krunched or declared in gnat.adc.
@@ -156,15 +155,14 @@ package body Make is
 
    procedure List_Depend;
    --  Prints to standard output the list of object dependencies. This list
-   --  can be used directly in a Makefile. For this routine to work
-   --  Compile_Sources must be called before hand. Also because this routine
-   --  uses the ALI files that were originally loaded and scanned by
-   --  Compile_Sources, no additional ALI files should be scanned between the
-   --  call to Compile_Sources and List_Depend.
+   --  can be used directly in a Makefile. A call to Compile_Sources must
+   --  precede the call to List_Depend. Also because this routine uses the
+   --  ALI files that were originally loaded and scanned by Compile_Sources,
+   --  no additional ALI files should be scanned between the two calls (i.e.
+   --  between the call to Compile_Sources and List_Depend.)
 
    procedure Inform (N : Name_Id := No_Name; Msg : String);
    --  Prints out the program name followed by a colon, N and S.
-   --  What is S??? What is Msg???
 
    procedure List_Bad_Compilations;
    --  Prints out the list of all files for which the compilation failed.
@@ -253,12 +251,12 @@ package body Make is
    --  Path for compiler, binder, linker programs, defaulted now for gnatdist.
    --  Changed later if overridden on command line.
 
-   Output_Flag     : constant String_Access := new String'("-o");
-   Comp_Flag       : constant String_Access := new String'("-c");
-   Ada_Flag_1      : constant String_Access := new String'("-x");
-   Ada_Flag_2      : constant String_Access := new String'("ada");
-   GNAT_Flag       : constant String_Access := new String'("-gnatg");
-   Dont_Check_Flag : constant String_Access := new String'("-x");
+   Output_Flag       : constant String_Access := new String'("-o");
+   Comp_Flag         : constant String_Access := new String'("-c");
+   Ada_Flag_1        : constant String_Access := new String'("-x");
+   Ada_Flag_2        : constant String_Access := new String'("ada");
+   GNAT_Flag         : constant String_Access := new String'("-gnatg");
+   Do_Not_Check_Flag : constant String_Access := new String'("-x");
 
    Object_Suffix   : constant String := Get_Object_Suffix.all;
 
@@ -310,12 +308,12 @@ package body Make is
       ALI       : out ALI_Id;
       O_File    : out File_Name_Type;
       O_Stamp   : out Time_Stamp_Type);
-   --  Determines whether the library file Lib_File is up-to-date or not.
-   --  The full name (with path information) of the object file
-   --  corresponding to Lib_File is returned in O_File. Its time stamp is
-   --  saved in O_Stamp. ALI is the ALI_Id corresponding to Lib_File. If
-   --  Lib_File in not up-to-date, then the coresponding source file needs
-   --  to be recompiled. In this case ALI = No_ALI_Id.
+   --  Determines whether the library file Lib_File is up-to-date or not. The
+   --  full name (with path information) of the object file corresponding to
+   --  Lib_File is returned in O_File. Its time stamp is saved in O_Stamp.
+   --  ALI is the ALI_Id corresponding to Lib_File. If Lib_File in not
+   --  up-to-date, then the corresponding source file needs to be recompiled.
+   --  In this case ALI = No_ALI_Id.
 
    procedure Check_Linker_Options
      (E_Stamp : Time_Stamp_Type;
@@ -469,7 +467,7 @@ package body Make is
       --  This has been done already by gnatmake
 
       Bind_Last := Bind_Last + 1;
-      Bind_Args (Bind_Last) := Dont_Check_Flag;
+      Bind_Args (Bind_Last) := Do_Not_Check_Flag;
 
       Get_Name_String (ALI_File);
 
@@ -519,7 +517,6 @@ package body Make is
       --------------------
 
       function First_New_Spec (A : ALI_Id) return File_Name_Type is
-
          Spec_File_Name : File_Name_Type := No_File;
 
          function New_Spec (Uname : Unit_Name_Type) return Boolean;
@@ -728,9 +725,9 @@ package body Make is
    --------------------------
 
    procedure Check_Linker_Options
-     (E_Stamp   : Time_Stamp_Type;
-      O_File    : out File_Name_Type;
-      O_Stamp   : out Time_Stamp_Type)
+     (E_Stamp : Time_Stamp_Type;
+      O_File  : out File_Name_Type;
+      O_Stamp : out Time_Stamp_Type)
    is
       procedure Check_File (File : File_Name_Type);
       --  Update O_File and O_Stamp if the given file is younger than E_Stamp
@@ -742,6 +739,7 @@ package body Make is
 
       procedure Check_File (File : File_Name_Type) is
          Stamp   : Time_Stamp_Type;
+
       begin
          --  Only check if File is not a switch
 
@@ -817,7 +815,7 @@ package body Make is
       Main_Unit             : out Boolean;
       Compilation_Failures  : out Natural;
       Check_Readonly_Files  : Boolean  := False;
-      Dont_Execute          : Boolean  := False;
+      Do_Not_Execute        : Boolean  := False;
       Force_Compilations    : Boolean  := False;
       Keep_Going            : Boolean  := False;
       In_Place_Mode         : Boolean  := False;
@@ -907,7 +905,8 @@ package body Make is
         (Pid   : Process_Id;
          Sfile : File_Name_Type;
          Afile : File_Name_Type;
-         Uname : Unit_Name_Type) is
+         Uname : Unit_Name_Type)
+      is
          OC1 : constant Positive := Outstanding_Compiles + 1;
 
       begin
@@ -930,7 +929,8 @@ package body Make is
         (Sfile  : out File_Name_Type;
          Afile  : out File_Name_Type;
          Uname  : out File_Name_Type;
-         OK     : out Boolean) is
+         OK     : out Boolean)
+      is
          Pid : Process_Id;
 
       begin
@@ -1131,7 +1131,8 @@ package body Make is
       procedure Record_Failure
         (File  : File_Name_Type;
          Unit  : Unit_Name_Type;
-         Found : Boolean := True) is
+         Found : Boolean := True)
+      is
       begin
          Bad_Compilation.Increment_Last;
          Bad_Compilation.Table (Bad_Compilation.Last) := (File, Unit, Found);
@@ -1316,7 +1317,7 @@ package body Make is
                      First_Compiled_File  := Full_Source_File;
                      Most_Recent_Obj_File := No_File;
 
-                     if Dont_Execute then
+                     if Do_Not_Execute then
                         exit Make_Loop;
                      end if;
                   end if;
@@ -1517,7 +1518,8 @@ package body Make is
 
    procedure Extract_From_Q
      (Source_File : out File_Name_Type;
-      Source_Unit : out Unit_Name_Type) is
+      Source_Unit : out Unit_Name_Type)
+   is
       File : constant File_Name_Type := Q.Table (Q_Front).File;
       Unit : constant Unit_Name_Type := Q.Table (Q_Front).Unit;
 
@@ -1541,7 +1543,8 @@ package body Make is
    procedure Extract_Failure
      (File  : out File_Name_Type;
       Unit  : out Unit_Name_Type;
-      Found : out Boolean) is
+      Found : out Boolean)
+   is
    begin
       File  := Bad_Compilation.Table (Bad_Compilation.Last).File;
       Unit  := Bad_Compilation.Table (Bad_Compilation.Last).Unit;
@@ -1594,7 +1597,7 @@ package body Make is
       Opt.Check_Readonly_Files     := False;
       Opt.Check_Object_Consistency := True;
       Opt.Compile_Only             := False;
-      Opt.Dont_Execute             := False;
+      Opt.Do_Not_Execute           := False;
       Opt.Force_Compilations       := False;
       Opt.Quiet_Output             := False;
       Opt.Minimal_Recompilation    := False;
@@ -1639,7 +1642,6 @@ package body Make is
    --------------
 
    procedure Gnatmake is
-
       Main_Source_File : File_Name_Type;
       --  The source file containing the main compilation unit
 
@@ -1676,7 +1678,7 @@ package body Make is
       --  If -l was specified behave as if -n was specified
 
       if Opt.List_Dependencies then
-         Opt.Dont_Execute := True;
+         Opt.Do_Not_Execute := True;
       end if;
 
       --  Note that Osint.Next_Main_Source will always return the (possibly
@@ -1722,7 +1724,6 @@ package body Make is
          Executable          : File_Name_Type := No_File;
          Executable_Stamp    : Time_Stamp_Type;
          Executable_Obsolete : Boolean := True;
-
          --  Executable is the final executable program.
 
       begin
@@ -1761,7 +1762,7 @@ package body Make is
             Main_Unit             => Is_Main_Unit,
             Compilation_Failures  => Compilation_Failures,
             Check_Readonly_Files  => Opt.Check_Readonly_Files,
-            Dont_Execute          => Opt.Dont_Execute,
+            Do_Not_Execute        => Opt.Do_Not_Execute,
             Force_Compilations    => Opt.Force_Compilations,
             In_Place_Mode         => Opt.In_Place_Mode,
             Keep_Going            => Opt.Keep_Going,
@@ -1787,19 +1788,25 @@ package body Make is
          then
             Inform (Msg => "objects up to date.");
 
-         elsif Opt.Dont_Execute and then First_Compiled_File /= No_File then
+         elsif Opt.Do_Not_Execute
+           and then First_Compiled_File /= No_File
+         then
             Write_Name (First_Compiled_File);
             Write_Eol;
          end if;
 
          --  Stop after compile step if any of:
-         --  1) -n (Dont_Execute) specified
-         --  2) -l (List_Dependencies) specified (also sets Dont_Execute
-         --     above, so this is probably superfluous).
-         --  3) -c (Compile_Only) specified
-         --  4) Made unit cannot be a main unit
 
-         if Opt.Dont_Execute
+         --    1) -n (Do_Not_Execute) specified
+
+         --    2) -l (List_Dependencies) specified (also sets Do_Not_Execute
+         --       above, so this is probably superfluous).
+
+         --    3) -c (Compile_Only) specified
+
+         --    4) Made unit cannot be a main unit
+
+         if Opt.Do_Not_Execute
            or Opt.List_Dependencies
            or Opt.Compile_Only
            or not Is_Main_Unit
@@ -1944,7 +1951,8 @@ package body Make is
 
    procedure Insert_Q
      (Source_File : File_Name_Type;
-      Source_Unit : Unit_Name_Type := No_Name) is
+      Source_Unit : Unit_Name_Type := No_Name)
+   is
    begin
       if Debug.Debug_Flag_Q then
          Write_Str ("   Q := Q + [ ");

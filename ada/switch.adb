@@ -400,7 +400,7 @@ package body Switch is
             elsif Program = Binder then
                Bind_Main_Program := False;
             elsif Program = Make then
-               Dont_Execute := True;
+               Do_Not_Execute := True;
             else
                raise Bad_Switch;
             end if;

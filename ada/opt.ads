@@ -153,7 +153,7 @@ package Opt is
    --  This enumeration variable indicates the five states of distribution
    --  annex stub generation/compilation.
 
-   Dont_Execute : Boolean := False;
+   Do_Not_Execute : Boolean := False;
    --  GNATMAKE
    --  Set to True if no actual compilations should be undertaken.
 

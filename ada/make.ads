@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -83,7 +83,7 @@ package Make is
       Main_Unit             : out Boolean;
       Compilation_Failures  : out Natural;
       Check_Readonly_Files  : Boolean  := False;
-      Dont_Execute          : Boolean  := False;
+      Do_Not_Execute        : Boolean  := False;
       Force_Compilations    : Boolean  := False;
       Keep_Going            : Boolean  := False;
       In_Place_Mode         : Boolean  := False;
@@ -111,7 +111,7 @@ package Make is
    --    Most_Recent_Obj_Stamp is the time stamp of Most_Recent_Obj_File.
    --
    --    Main_Unit is set to True if Main_Source can be a main unit.
-   --    If Dont_Execute is False and First_Compiled_File /= No_Name
+   --    If Do_Not_Execute is False and First_Compiled_File /= No_Name
    --    the value of Main_Unit is always False.
    --    Is this used any more??? It is certainly not used by gnatmake???
    --
@@ -122,9 +122,9 @@ package Make is
    --    which library files are read-only. When compiling GNAT predefined
    --    files the "-gnatg" flag is used.
    --
-   --    Dont_Execute set it to True to find out the first source that needs
-   --    to be recompiled, but without recompiling it. This file is saved
-   --    in First_Compiled_File.
+   --    Do_Not_Execute set it to True to find out the first source that
+   --    needs to be recompiled, but without recompiling it. This file is
+   --    saved in First_Compiled_File.
    --
    --    Force_Compilations forces all compilations no matter what but
    --    recompiles read-only files only if Check_Readonly_Files
@@ -235,7 +235,7 @@ package Make is
    --    Maximum_Processes:        Number of processes given by -jnum
    --    Keep_Going:               True  when -k present in command line
    --    List_Dependencies:        True  when -l present in command line
-   --    Dont_Execute:             True  when -n present in command line
+   --    Do_Not_Execute            True  when -n present in command line
    --    Quiet_Output:             True  when -q present in command line
    --    Minimal_Recompilation:    True  when -m present in command line
    --    Verbose_Mode:             True  when -v present in command line
