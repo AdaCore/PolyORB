@@ -8,4 +8,5 @@ for i in `cat MANIFEST`; do \
       n=`expr $n + 1`
    fi
 done
+rm log1 log2
 exit $n
