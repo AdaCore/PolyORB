@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,6 +44,8 @@ with PortableServer.POAManager;
 
 with Echo.Impl;
 
+with PolyORB.CORBA_P.CORBALOC;
+
 --  Setup server node: use no tasking default configuration
 
 with PolyORB.Setup.No_Tasking_Server;
@@ -62,6 +64,7 @@ begin
       Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
 
    begin
+
       --  Retrieve Root POA
 
       Root_POA := PortableServer.POA.To_Ref
@@ -81,6 +84,15 @@ begin
       Ada.Text_IO.Put_Line
         ("'"
          & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref))
+         & "'");
+      Ada.Text_IO.New_Line;
+
+      --  Output corbaloc
+
+      Ada.Text_IO.Put_Line
+        ("'"
+         & CORBA.To_Standard_String
+         (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref))
          & "'");
 
       --  Launch the server
