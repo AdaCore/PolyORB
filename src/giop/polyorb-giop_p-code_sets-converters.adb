@@ -59,10 +59,13 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      new PolyORB.Utils.Chained_Lists (Conversion_Record);
 
    type Info_Record is record
-      Code_Set    : Code_Set_Id;
-      Native      : Converter_Factory;
-      Fallback    : Converter_Factory;
-      Conversions : Conversion_Lists.List;
+      Code_Set             : Code_Set_Id;
+      Native               : Converter_Factory;
+      Fallback             : Converter_Factory;
+      Conversions          : Conversion_Lists.List;
+      Conversion_Code_Sets : Code_Set_Id_List;
+      --  This list containt summary of supported conversion code sets.
+      --  It used for avoid it creation for each processed request.
    end record;
 
    package Info_Lists is new PolyORB.Utils.Chained_Lists (Info_Record);
@@ -78,10 +81,13 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      new PolyORB.Utils.Chained_Lists (Wide_Conversion_Record);
 
    type Wide_Info_Record is record
-      Code_Set    : Code_Set_Id;
-      Native      : Wide_Converter_Factory;
-      Fallback    : Wide_Converter_Factory;
-      Conversions : Wide_Conversion_Lists.List;
+      Code_Set             : Code_Set_Id;
+      Native               : Wide_Converter_Factory;
+      Fallback             : Wide_Converter_Factory;
+      Conversions          : Wide_Conversion_Lists.List;
+      Conversion_Code_Sets : Code_Set_Id_List;
+      --  This list containt summary of supported conversion code sets.
+      --  It used for avoid it creation for each processed request.
    end record;
 
    package Wide_Info_Lists is
@@ -511,7 +517,12 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    is
    begin
       Info_Lists.Append
-        (Info, (Code_Set, Native, Fallback, Conversion_Lists.Empty));
+        (Info,
+         (Code_Set             => Code_Set,
+          Native               => Native,
+          Fallback             => Fallback,
+          Conversions          => Conversion_Lists.Empty,
+          Conversion_Code_Sets => Code_Set_Id_List (Code_Set_Id_Lists.Empty)));
    end Register_Native_Code_Set;
 
    procedure Register_Native_Code_Set
@@ -522,7 +533,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    begin
       Wide_Info_Lists.Append
         (Wide_Info,
-         (Code_Set, Native, Fallback, Wide_Conversion_Lists.Empty));
+         (Code_Set             => Code_Set,
+          Native               => Native,
+          Fallback             => Fallback,
+          Conversions          => Wide_Conversion_Lists.Empty,
+          Conversion_Code_Sets => Code_Set_Id_List (Code_Set_Id_Lists.Empty)));
    end Register_Native_Code_Set;
 
    ----------------------------------
@@ -534,9 +549,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Conversion : in Code_Set_Id;
       Factory    : in Converter_Factory)
    is
+      Info : constant Info_Lists.Element_Access := Find (Native);
+
    begin
-      Conversion_Lists.Append
-        (Find (Native).Conversions, (Conversion, Factory));
+      Conversion_Lists.Append (Info.Conversions, (Conversion, Factory));
+      Append (Info.Conversion_Code_Sets, Conversion);
    end Register_Conversion_Code_Set;
 
    procedure Register_Conversion_Code_Set
@@ -544,9 +561,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Conversion : in Code_Set_Id;
       Factory    : in Wide_Converter_Factory)
    is
+      Info : constant Wide_Info_Lists.Element_Access := Find (Native);
+
    begin
-      Wide_Conversion_Lists.Append
-        (Find (Native).Conversions, (Conversion, Factory));
+      Wide_Conversion_Lists.Append (Info.Conversions, (Conversion, Factory));
+      Append (Info.Conversion_Code_Sets, Conversion);
    end Register_Conversion_Code_Set;
 
    -----------------------
@@ -566,26 +585,16 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (Code_Set : in Code_Set_Id)
       return Code_Set_Id_List
    is
-      use Conversion_Lists;
       use type Info_Lists.Element_Access;
 
-      Result : Code_Set_Id_List;
-      Info   : constant Info_Lists.Element_Access := Find (Code_Set);
+      Info : constant Info_Lists.Element_Access := Find (Code_Set);
 
    begin
       if Info /= null then
-         declare
-            Iter : Iterator := First (Info.Conversions);
-
-         begin
-            while not Last (Iter) loop
-               Append (Result, Value (Iter).Code_Set);
-               Next (Iter);
-            end loop;
-         end;
+         return Info.Conversion_Code_Sets;
+      else
+         return Code_Set_Id_List (Code_Set_Id_Lists.Empty);
       end if;
-
-      return Result;
    end Supported_Char_Conversion_Code_Sets;
 
    ------------------------------------------
@@ -596,25 +605,16 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (Code_Set : in Code_Set_Id)
       return Code_Set_Id_List
    is
-      use Wide_Conversion_Lists;
       use type Wide_Info_Lists.Element_Access;
 
-      Result : Code_Set_Id_List;
-      Info   : constant Wide_Info_Lists.Element_Access := Find (Code_Set);
+      Info : constant Wide_Info_Lists.Element_Access := Find (Code_Set);
 
    begin
       if Info /= null then
-         declare
-            Iter : Iterator := First (Info.Conversions);
-         begin
-            while not Last (Iter) loop
-               Append (Result, Value (Iter).Code_Set);
-               Next (Iter);
-            end loop;
-         end;
+         return Info.Conversion_Code_Sets;
+      else
+         return Code_Set_Id_List (Code_Set_Id_Lists.Empty);
       end if;
-
-      return Result;
    end Supported_Wchar_Conversion_Code_Sets;
 
    ----------------

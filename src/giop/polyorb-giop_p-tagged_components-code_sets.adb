@@ -77,9 +77,9 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
 
    begin
       Aux.For_Char_Data :=
-       (Native_Char_Code_Set, Conversion_Char_Code_Sets);
+       (Native_Char_Code_Set, Duplicate (Conversion_Char_Code_Sets));
       Aux.For_Wchar_Data :=
-       (Native_Wchar_Code_Set, Conversion_Wchar_Code_Sets);
+       (Native_Wchar_Code_Set, Duplicate (Conversion_Wchar_Code_Sets));
 
       return new TC_Code_Sets'(Aux);
    end Fetch_Component;

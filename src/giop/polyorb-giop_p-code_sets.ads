@@ -71,13 +71,13 @@ package PolyORB.GIOP_P.Code_Sets is
 
    function Conversion_Char_Code_Sets return Code_Set_Id_List;
    --  Return conversion code sets, supported for program's native
-   --  code set for Character type except fallback code set Returned
-   --  list must be deallocated by caller.
+   --  code set for Character type except fallback code set.
+   --  Returned list never be deallocated
 
    function Conversion_Wchar_Code_Sets return Code_Set_Id_List;
    --  Return conversion code sets, supported for program's native
-   --  code set for Wide_Character type except fallback code set
-   --  Returned list must be deallocated by caller.
+   --  code set for Wide_Character type except fallback code set.
+   --  Returned list never be deallocated
 
    procedure Negotiate_Code_Set
     (CNCS     : in     Code_Set_Id;
