@@ -55,6 +55,11 @@ package body System.Garlic.Remote is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARREM", "(s-garrem): ");
 
+   procedure D
+     (Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
+
    function Is_Local_Host (Host : String) return Boolean;
    --  Return True if the Host we are trying to contact is the same as the
    --  local host.
@@ -95,8 +100,8 @@ package body System.Garlic.Remote is
    -----------------
 
    procedure Full_Launch
-     (Host        : in String;
-      Command     : in String)
+     (Host        : String;
+      Command     : String)
    is
       Argument : constant String := Get_Boot_Locations;
    begin
@@ -107,9 +112,22 @@ package body System.Garlic.Remote is
          if Command (Command'First .. Command'First + 5) = "`pwd`\" then
             --  remove `pwd` which is not usable under native NT. Just spawn
             --  the process from the current working directory.
+
+            pragma Debug (D ("Enter Spawn: "
+                             & Command (Command'First + 6 .. Command'Last)
+                             & ' ' & Argument));
+
             Spawn (Command (Command'First + 6 .. Command'Last), Argument);
+
+            pragma Debug (D ("Leave Spawn: "
+                             & Command (Command'First + 6 .. Command'Last)
+                             & ' ' & Argument));
          else
+            pragma Debug (D ("Enter Spawn: " & Command  & ' ' & Argument));
+
             Spawn (Command, Argument);
+
+            pragma Debug (D ("Leave Spawn: " & Command  & ' ' & Argument));
          end if;
 
       else
@@ -182,9 +200,9 @@ package body System.Garlic.Remote is
    ----------------------------------
 
    procedure Register_Partition_To_Launch
-     (Name_Is_Host : in Boolean;
-      General_Name : in String;
-      Command_Line : in String)
+     (Name_Is_Host : Boolean;
+      General_Name : String;
+      Command_Line : String)
    is
       P : Partition_List;
 
