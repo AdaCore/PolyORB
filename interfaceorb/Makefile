@@ -14,7 +14,7 @@ ADA_PREP = gnatprep
 GNATMAKE = gnatmake -gnatf $(ADA_DEBUG)
 
 # C++ compiler
-CPP_COMP = g++ -g
+CPP_COMP = g++ -g -Wall -ansi -pedantic
 
 # compilation flag
 DO_NOT_LINK = -c
@@ -45,7 +45,7 @@ OMNIORB_LIBS += -I $(OMNIORB_PATH)/src/lib/omniORB2/orbcore/
 ###################################################################
 
 
-main: Sys_Dep C_files
+main: C_files #Sys_Dep
 	$(GNATMAKE) adabroker.ads
 
 ##########################

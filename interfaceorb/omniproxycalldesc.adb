@@ -100,6 +100,7 @@ package body omniProxyCallDesc is
                                         "Omniproxycalldesc.User_Exception"
                                         & Corba.CRLF
                                         & "Should not be called for a calldesc that can throw exceptions"
+                                        & Corba.CRLF
                                         & "This procedure should have been overloaded") ;
       else
          -- nothing to be done since we do not throw any exception

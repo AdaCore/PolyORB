@@ -54,7 +54,14 @@
 void marshall (IOP::TaggedProfileList* t, Ada_netBufferedStream &s)
 {
 ADABROKER_TRY
-  *t >>= *(s.C_Object) ;
+  // verify that t is not null
+  if (t != NULL)
+    *t >>= *(s.C_Object) ;
+  else
+    // else raise an Ada Exception
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "null TaggedProfileList in Ada_Iop::marshall") ;
 ADABROKER_CATCH
 }
 
@@ -76,7 +83,14 @@ ADABROKER_CATCH
 void marshall (IOP::TaggedProfileList* t, Ada_memBufferedStream &s)
 {
 ADABROKER_TRY
-  *t >>= *(s.C_Object) ;
+  // verify that t is not null
+  if (t != NULL)
+    *t >>= *(s.C_Object) ;
+  else
+    // else raise an Ada Exception
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "null TaggedProfileList in Ada_Iop::marshall") ;
 ADABROKER_CATCH
 }
 
@@ -98,16 +112,36 @@ ADABROKER_CATCH
 size_t NP_alignedSize (IOP::TaggedProfileList* t, size_t initialoffset)
 {
 ADABROKER_TRY
-  return t->NP_alignedSize (initialoffset);
+  // verify that t is not null
+  if (t != NULL)
+    return t->NP_alignedSize (initialoffset);
+  else
+    // else raise an Ada Exception
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "null TaggedProfileList in Ada_Iop::NP_alignedSize") ;
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  size_t default_result = 0;
+  return default_result; 
 }
 
 
 size_t length (IOP::TaggedProfileList* t)
 {
 ADABROKER_TRY
-  return t->length ();
+  // verify that t is not null
+  if (t != NULL)
+    return t->length ();
+  else
+    // else raise an Ada Exception
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "null TaggedProfileList in Ada_Iop::length") ;
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  size_t default_result = 0;
+  return default_result; 
 }
 
 #undef DEBUG

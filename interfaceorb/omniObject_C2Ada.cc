@@ -125,7 +125,8 @@ omniObject_C2Ada::dispatch(GIOP_S &giop_s,
 //-----------------------------
 void*
 omniObject_C2Ada::_widenFromTheMostDerivedIntf(const char* repoId,
-					       _CORBA_Boolean is_cxx_type_id=0) {
+					       _CORBA_Boolean is_cxx_type_id)
+{
 
   cerr << "****************************************************" << endl
        << "** omniObject_C2Ada::_widenFromTheMostDerivedIntf **" << endl 

@@ -106,6 +106,9 @@ ADABROKER_TRY
 				  "Call of Ada_OmniRopeAndKey::rope without initialising object.") ;
   }
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  Rope* default_result = NULL;
+  return default_result; 
 };
 
 
@@ -126,6 +129,9 @@ ADABROKER_TRY
 				  "Call of Ada_OmniRopeAndKey::key without initialising object.") ;
   }
 ADABROKER_CATCH 
+  // never reach here just a default return for dummy compilers.
+  _CORBA_Octet* default_result = NULL;
+  return default_result; 
 };
 
 
@@ -146,6 +152,9 @@ ADABROKER_TRY
 				  "Call of Ada_OmniRopeAndKey::keysize without initialising object.") ;
   }
 ADABROKER_CATCH 
+  // never reach here just a default return for dummy compilers.
+  _CORBA_ULong* default_result = NULL;
+  return default_result; 
 };
 
 
@@ -176,6 +185,9 @@ ADABROKER_TRY
 				  "Call of Ada_OmniRopeAndKey::equals without initialising object.") ;
   }
 ADABROKER_CATCH 
+  // never reach here just a default return for dummy compilers.
+  _CORBA_Boolean default_result = false;
+  return default_result; 
 }
 
 

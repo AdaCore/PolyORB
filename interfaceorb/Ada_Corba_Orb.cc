@@ -52,8 +52,11 @@ CORBA::ORB_ptr
 Ada_ORB_init(int argc, char **argv,const char *orb_identifier)
 {
 ADABROKER_TRY
-    return CORBA::ORB_init(argc, argv, orb_identifier) ;
+  return CORBA::ORB_init(argc, argv, orb_identifier) ;
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  CORBA::ORB_ptr default_return = NULL;
+  return  default_return; 
 }
 
 
@@ -66,6 +69,9 @@ Ada_BOA_init(CORBA::ORB_ptr orb,
 	     const char *boa_identifier)
 {
 ADABROKER_TRY
-    return orb->BOA_init(argc, argv, boa_identifier) ;
+  return orb->BOA_init(argc, argv, boa_identifier) ;
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  CORBA::BOA_ptr default_return = NULL;
+  return  default_return; 
 }

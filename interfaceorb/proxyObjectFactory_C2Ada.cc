@@ -120,7 +120,7 @@ ADABROKER_TRY
   cerr << "createProxyObjectFactory for object : " << repoID << endl ;
 #endif 
 
-  proxyObjectFactory_C2Ada *p = new proxyObjectFactory_C2Ada(repoID) ;
+   new proxyObjectFactory_C2Ada(repoID) ;
   // no memory leak
   // a pointer to this object is kept by the ORB
 ADABROKER_CATCH 

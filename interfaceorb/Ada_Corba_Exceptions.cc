@@ -67,6 +67,9 @@ ADABROKER_TRY
 					      retries,
 					      ex);
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  CORBA::Boolean default_result = false;
+  return default_result;
 };
 
 
@@ -84,6 +87,9 @@ ADABROKER_TRY
 						retries,
 						ex);
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  CORBA::Boolean default_result = false;
+  return default_result; 
 };
 
 
@@ -101,5 +107,8 @@ ADABROKER_TRY
 					   retries,
 					   ex);
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  CORBA::Boolean default_result = false;
+  return default_result; 
 };
 

@@ -412,6 +412,9 @@ ADABROKER_TRY
 				  "Call of Ada_netBufferedStream::isReUsingExistingConnection without initialising object.") ;
   }
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  CORBA::Boolean default_result = false;
+  return default_result; 
 };
 
 

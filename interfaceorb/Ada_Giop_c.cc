@@ -180,6 +180,9 @@ Ada_Giop_c::RequestHeaderSize(const size_t objkeysize,
 ADABROKER_TRY
   return GIOP_C::RequestHeaderSize (objkeysize,opnamesize);
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  size_t default_result = 0;
+  return default_result; 
 }
 
 

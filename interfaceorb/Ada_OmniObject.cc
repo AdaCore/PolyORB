@@ -92,6 +92,9 @@ Ada_OmniObject::Constructor() {
 ADABROKER_TRY
   return new Ada_OmniObject() ;
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  Ada_OmniObject* default_result = NULL;
+  return default_result; 
 }
 
 
@@ -144,7 +147,6 @@ ADABROKER_TRY
   C_Object->PR_IRRepositoryId(repoid) ;
   // updating of Init_OK flag
   Init_Ok = true;
-  return;
 ADABROKER_CATCH
 }
 
@@ -170,7 +172,6 @@ Ada_OmniObject::initProxyObject (const char *repoId,
 				       this);
   // updating of Init_OK flag
   Init_Ok = true;
-  return;
 };
 
 
@@ -208,6 +209,9 @@ ADABROKER_TRY
 				  "Call of Ada_OmniObject::objectDuplicate without initialising object.") ;
   }
 ADABROKER_CATCH 
+  // never reach here just a default return for dummy compilers.
+  Ada_OmniObject* default_result = NULL;
+  return default_result; 
 }
 
 
@@ -266,6 +270,9 @@ ADABROKER_TRY
 				  "Call of Ada_OmniObject::hash without initialising object.") ;
   }
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  _CORBA_ULong default_result = 0;
+  return default_result; 
 }
 
 
@@ -286,20 +293,23 @@ ADABROKER_TRY
 				  "Call of Ada_OmniObject::non_existent without initialising object.") ;
   }
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  bool default_result = false;
+  return default_result; 
 }
 
 
 // setRopeAndKey
 //--------------
 void
-Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
+Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,
+			      _CORBA_Boolean keepIOP)
 {
 ADABROKER_TRY
   if ( (Init_Ok) && (l.assertInit_Ok())) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
     C_Object->setRopeAndKey(*(l.C_Object),keepIOP);
-    return;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -320,7 +330,6 @@ ADABROKER_TRY
     // if Initialisation was made then call the corresponding
     // function on C_Object
     C_Object->resetRopeAndKey();
-    return;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -360,8 +369,6 @@ ADABROKER_TRY
     // if Initialisation was made then call the corresponding
     // function on C_Object
     C_Object->assertObjectExistent();
-
-    return;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -412,7 +419,6 @@ ADABROKER_TRY
     // if Initialisation was made then call the corresponding
     // function on C_Object
     C_Object->PR_IRRepositoryId(repoId);
-    return;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -445,6 +451,9 @@ ADABROKER_TRY
 				  "Call of Ada_OmniObject::getRepositoryIdgetRepositoryId without initialising object.") ;
   }
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  char* default_result = NULL;
+  return default_result; 
 }
  
 
@@ -462,6 +471,9 @@ ADABROKER_TRY
     return adaobj->Ada_OmniObject_Pointer ;
   }
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  Ada_OmniObject* default_result = NULL;
+  return default_result; 
 }
 
 
@@ -482,6 +494,9 @@ ADABROKER_TRY
     }
   }
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  char* default_result = NULL;
+  return default_result; 
 }
 
 
@@ -501,6 +516,9 @@ ADABROKER_TRY
 				  "Call of Ada_OmniObject::getRepositoryId without initialising object.") ;
   }
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  IOP::TaggedProfileList* default_result = NULL;
+  return default_result; 
 }
 
 
@@ -538,6 +556,9 @@ ADABROKER_TRY
     return adaobj->Ada_OmniObject_Pointer ;
   }
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  Ada_OmniObject* default_result = NULL;
+  return default_result; 
 }
 
 

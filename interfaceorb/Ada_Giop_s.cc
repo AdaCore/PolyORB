@@ -154,6 +154,9 @@ ADABROKER_TRY
 #endif 
   return result ;
 ADABROKER_CATCH
+  // never reach here just a default return for dummy compilers.
+  size_t default_result = 0;
+  return default_result; 
 }
 
 #undef DEBUG
