@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -160,7 +160,7 @@ package body System.Garlic.Heart is
          --  any communication error as this is a shutdown.
 
          declare
-            PIDs  : Partition_List := Global_Termination_Partitions;
+            PIDs  : constant Partition_List := Global_Termination_Partitions;
             Error : Error_Type;
          begin
             for I in PIDs'Range loop
@@ -368,7 +368,7 @@ package body System.Garlic.Heart is
       --  stamp.
 
       procedure Reset_Stamp is
-         Stamp : Stamp_Type := Soft_Links.Get_Stamp;
+         Stamp : constant Stamp_Type := Soft_Links.Get_Stamp;
       begin
          if Stamp /= No_Stamp then
             Soft_Links.Set_Stamp (No_Stamp);
@@ -676,7 +676,7 @@ package body System.Garlic.Heart is
       Error  : out Error_Type)
    is
       Params_Copy : Params_Stream_Type (Params.Initial_Size);
-      Boot_Server : Partition_ID := Boot_PID;
+      Boot_Server : constant Partition_ID := Boot_PID;
    begin
       --  Preserve Params because we may have to send it several times
 

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -54,8 +54,9 @@ package body System.Garlic.Network_Utilities is
    function Port_To_Network (Port : unsigned_short)
      return unsigned_short
    is
+      Big_Endian : constant Boolean := Default_Bit_Order = High_Order_First;
    begin
-      if Default_Bit_Order = High_Order_First then
+      if Big_Endian then
 
          --  No conversion needed. On these platforms, htons() defaults
          --  to a null procedure.

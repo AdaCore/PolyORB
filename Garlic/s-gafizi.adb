@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -88,6 +88,7 @@ package body System.Garlic.Filters.Zip is
       target_bytes  : C.long;
       source_bytes  : C.long;
       result        : C.int;
+      pragma Unreferenced (result);
 
       F : constant Stream_Element_Offset := Stream'First + Offset;
       L : constant Stream_Element_Offset := Stream'Last;
@@ -100,6 +101,7 @@ package body System.Garlic.Filters.Zip is
       Target_Buffer := new Stream_Element_Array (1 .. Target_Length);
       if Target_Length > 0 then
          source_bytes := C.long (L - F - 3);
+         --  ??? Is it really OK to ignore the result below
          result := Decompress
            (Target_Buffer (Target_Buffer'First)'Address, target_bytes'Address,
             Stream (F + 4)'Address, source_bytes);
@@ -127,6 +129,7 @@ package body System.Garlic.Filters.Zip is
       Source_Buffer : Stream_Element_Access;
       Target_Buffer : Stream_Element_Access;
       result        : C.int;
+      pragma Unreferenced (result);
       Result_Buffer : Stream_Element_Access;
 
    begin
@@ -141,6 +144,7 @@ package body System.Garlic.Filters.Zip is
       if source_bytes = 0 then
          target_bytes := 0;
       else
+         --  ??? Is it really OK to ignore the result below
          result := Compress
            (Target_Buffer (5)'Address, target_bytes'Address,
             Source_Buffer (Source_Buffer'First)'Address, source_bytes);
