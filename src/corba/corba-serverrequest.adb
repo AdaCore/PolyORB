@@ -34,7 +34,7 @@
 
 --  $Id$
 
-with PolyORB;
+with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Types;
 
@@ -54,12 +54,18 @@ package body CORBA.ServerRequest is
       NV := CORBA.NVList.To_CORBA_Ref (PolyORB_Args);
    end Arguments;
 
-   procedure Set_Result (O : access Object; Val : Any) is
+   procedure Set_Result (O : access Object; Val : Any)
+   is
+      use PolyORB.Any;
    begin
-      O.Result :=
-        (Name      => PolyORB.Types.To_PolyORB_String ("result"),
-         Argument  => Val,
-         Arg_Modes => ARG_OUT);
+      if TypeCode.Kind (Get_Type (O.Result.Argument)) = Tk_Void then
+         O.Result :=
+           (Name      => PolyORB.Types.To_PolyORB_String ("result"),
+            Argument  => Val,
+            Arg_Modes => ARG_OUT);
+      else
+         PolyORB.Any.Copy_Any_Value (O.Result.Argument, Val);
+      end if;
    end Set_Result;
 
    procedure Set_Exception (O : Object; Val : Any) is
