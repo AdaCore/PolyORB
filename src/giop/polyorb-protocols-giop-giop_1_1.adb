@@ -109,7 +109,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Max : constant Types.Unsigned_Long
         := Types.Unsigned_Long
         (Get_Conf
-         ("giop",
+         (To_Standard_String (Implem.Section),
           Get_Conf_Chain (Implem)
           & ".max_message_size",
           Default_Max_GIOP_Message_Size_1_1));
@@ -792,6 +792,17 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    end Marshall_Locate_Request;
 
    ----------------
+   -- New_Implem --
+   ----------------
+
+   function New_Implem return GIOP_Implem_Access;
+
+   function New_Implem return GIOP_Implem_Access is
+   begin
+      return new GIOP_Implem_1_1;
+   end New_Implem;
+
+   ----------------
    -- Initialize --
    ----------------
 
@@ -799,7 +810,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    procedure Initialize is
    begin
-      Register_GIOP_Version (GIOP_V_1_1, new GIOP_Implem_1_1);
+      Global_Register_GIOP_Version (GIOP_Version'(Major => 1, Minor => 1),
+                                    New_Implem'Access);
    end Initialize;
 
    use PolyORB.Initialization;
