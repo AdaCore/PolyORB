@@ -123,15 +123,6 @@ package MOMA.Message_Producers is
    procedure Set_Ref (Self : in out Message_Producer;
                       Ref  : PolyORB.References.Ref);
 
-   function Get_Destination (Self : Message_Producer)
-                             return MOMA.Destinations.Destination;
-
-   procedure Set_Destination (Self : in out Message_Producer;
-                              Dest : MOMA.Destinations.Destination);
-
-   --  XXX These two functions should not be called from the client.
-   --  Need to hide them ...
-
    function Get_Type_Id_Of (Self : Message_Producer)
                             return MOMA.Types.String;
 
@@ -155,6 +146,14 @@ private
       Ref            : PolyORB.References.Ref;
       CBH            : PolyORB.Call_Back.CBH_Access;
    end record;
+
+   --  Private accessors to Message_Producer internal data.
+
+   function Get_Destination (Self : Message_Producer)
+                             return MOMA.Destinations.Destination;
+
+   procedure Set_Destination (Self : in out Message_Producer;
+                              Dest : MOMA.Destinations.Destination);
 
    pragma Inline (Get_Persistent,
                   Set_Persistent,
