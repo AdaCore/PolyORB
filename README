@@ -92,6 +92,14 @@ Available options for the 'configure' script include:
 
 By default, only the CORBA and GIOP personalities are built.
 
+Platform notes
+--------------
+
+On Solaris 2.8, /usr/bin/sed and /usr/ucb/sed will silently chop long
+lines. You need to use /usr/xpg4/bin/sed or GNU sed to properly
+configure PolyORB: add /usr/xpg4/bin in front of your PATH before running
+configure.
+
 Documentation overview
 ----------------------
 
