@@ -1,3 +1,9 @@
+2004-02-11  Pascal Obry  <obry@gnat.com>
+
+	* xe_check.adb:
+	(Check): Fix obvious typo in generated unit name.
+	Fixes for D211-003.
+
 2003-03-03  Pascal Obry  <obry@gnat.com>
 
 	* xe_build:
