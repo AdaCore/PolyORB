@@ -2,29 +2,60 @@
 
 --  $Id$
 
-with Droopi.Asynchronous_Events;
+with System.Garlic.Sockets;
+
+with Sequences.Unbounded;
+
 with Droopi.Jobs;
 with Droopi.Soft_Links;
 
 package Droopi.ORB is
 
-   pragma Preelaborate;
+   pragma Elaborate_Body;
+
+   package Sk renames System.Garlic.Sockets;
+
+   ---------------------
+   -- A server object --
+   ---------------------
 
    type ORB is limited private;
    type ORB_Access is access all ORB;
 
-   procedure Create (O : out ORB_Access);
-   --  Create a new ORB instance.
+   ------------------------
+   -- A decorated socket --
+   ------------------------
+
+   type Socket_Kind is
+     (Invalid_Sk,
+      Listening_Sk,
+      Communication_Sk);
+
+   type Active_Socket (Kind : Socket_Kind := Invalid_Sk) is record
+      Socket   : Sk.Socket_Type;
+      --  Protocol : Protocol_Access;
+   end record;
+
+   procedure Handle_Event (O : access ORB; AS : Active_Socket);
+   --  Process events that have occurred on active socket AS, managed
+   --  by server O.
+
+   package Sk_Seqs is new Sequences.Unbounded (Active_Socket);
+   subtype Sk_Seq is Sk_Seqs.Sequence;
+
+   ------------------------------
+   -- Server object operations --
+   ------------------------------
+
+   function Create_ORB return ORB_Access;
+   --  Create a new ORB instance and initialize it.
 
    type Exit_Condition_Access is access all Boolean;
-
-   subtype AES_Access is
-     Droopi.Asynchronous_Events.Asynchronous_Event_Source_Access;
 
    procedure Run
      (O              : access ORB;
       Exit_Condition : Exit_Condition_Access := null;
-      Blocker        : AES_Access := null);
+      May_Poll       : Boolean := False);
    --  Execute the ORB until:
    --    - Exit_Condition.all becomes true
    --      (if Exit_Condition /= null), or
@@ -35,8 +66,8 @@ package Droopi.ORB is
    --  to occur in the ORB (such tasks must execute the ORB when
    --  the threading policy is 'no threads').
 
-   --  If Blocker is not null, then this is an ORB task which
-   --  must wait for event on this asynchronous event source.
+   --  If May_Poll, then this task may suspend itself to wait
+   --  for external events.
 
    function Work_Pending (O : access ORB) return Boolean;
    --  Return True if, and only if, some ORB processing is
@@ -63,9 +94,16 @@ private
       Idle_Tasks : Droopi.Soft_Links.Barrier_Access;
       --  Idle ORB task wait on this barrier.
 
-      Polling    : Boolean;
-      --  True if, and only if, an ORB task is blocked
-      --  waiting for an external event.
+      Sockets : Sk_Seq;
+      --  The set of transport endpoints to be monitored
+      --  by ORB tasks.
+
+      Polling : Boolean;
+      --  True if, and only if, one task is blocked waiting
+      --  for external events on Monitored_Sockets.
+
+      Selector : Sk.Selector_Access;
+      --  The selector object used to wait for an external event.
 
    end record;
 
