@@ -78,6 +78,11 @@ begin
               To_Standard_String
               (echoString (Myall_types, To_CORBA_String ("hello"))) = "hello");
       Output ("test enum", echoColor (Myall_types, Blue) = Blue);
+      Output ("test fixed point", False);
+      --  These cause a compiler abort in GNAT 3.12p.
+      --  and then echoMoney (Myall_Types, 6423.50) = 6423.50
+      --  and then echoMoney (Myall_Types, 0.0) = 0.0
+      --  and then echoMoney (Myall_Types, 3.14) = 3.14);
 
       declare
          Test_Struct : constant simple_struct
@@ -85,6 +90,14 @@ begin
       begin
          Output ("test struct",
                  echoStruct (Myall_types, Test_Struct) = Test_Struct);
+      end;
+
+      declare
+         Test_Struct : constant array_struct
+           :=  (A => (0,1,2,3,4,5,6,7,8,9), B => 65533);
+      begin
+         Output ("test array struct",
+                 echoArrayStruct (Myall_types, Test_Struct) = Test_Struct);
       end;
 
       declare
@@ -201,17 +214,17 @@ begin
 --         Is_Equivalent (echo12 (Myall_types, X), X));
 --   end;
 
---        Set_MyColor (Myall_types, Green);
---        Output ("test attribute", Get_MyColor (Myall_types) = Green);
---        declare
---           Counter_First_Value : CORBA.Long
---             := Get_Counter (Myall_types);
---           Counter_Second_Value : CORBA.Long
---             := Get_Counter (Myall_types);
---        begin
---           Output ("test read-only attribute",
---                   Counter_Second_Value = Counter_First_Value + 1);
---        end;
+      set_myColor (Myall_types, Green);
+      Output ("test attribute", get_myColor (Myall_types) = Green);
+      declare
+         Counter_First_Value : CORBA.Long
+           := get_Counter (Myall_types);
+         Counter_Second_Value : CORBA.Long
+           := get_Counter (Myall_types);
+      begin
+         Output ("test read-only attribute",
+                 Counter_Second_Value = Counter_First_Value + 1);
+      end;
 
       exit when One_Shot;
    end loop;

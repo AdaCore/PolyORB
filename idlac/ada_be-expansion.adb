@@ -119,6 +119,10 @@ package body Ada_Be.Expansion is
    --  Expand struct members: for each member,
    --  isolate array declarators, then expand M_Type.
 
+   procedure Expand_Constant
+     (Node : Node_Id);
+   --  Expand the constant's type.
+
    procedure Expand_Union
      (Node : Node_Id);
    procedure Expand_Case
@@ -137,6 +141,10 @@ package body Ada_Be.Expansion is
      (Node : Node_Id);
    --  Replace a bounded string or bounded wide string node
    --  with a reference to a Bounded_String_Instance node.
+
+   procedure Expand_Fixed
+     (Node : Node_Id);
+   --  Expand a fixed-point node.
 
    procedure Expand_Constructed_Type
      (Node : Node_Id;
@@ -232,6 +240,8 @@ package body Ada_Be.Expansion is
 
          when K_Type_Declarator =>
             Expand_Type_Declarator (Node);
+         when K_Const_Dcl =>
+            Expand_Constant (Node);
          when K_Struct =>
             Expand_Struct (Node);
          when K_Member =>
@@ -240,6 +250,8 @@ package body Ada_Be.Expansion is
             Expand_Union (Node);
          when K_Case =>
             Expand_Case (Node);
+         when K_Fixed =>
+            Expand_Fixed (Node);
 
          when K_Sequence =>
             Expand_Sequence (Node);
@@ -806,6 +818,7 @@ package body Ada_Be.Expansion is
       if R_Node /= No_Node then
          Set_T_Type (Node, R_Node);
       end if;
+
       Expand_Node (T_Type (Node));
    end Expand_Type_Declarator;
 
@@ -826,9 +839,16 @@ package body Ada_Be.Expansion is
       if R_Node /= No_Node then
          Set_M_Type (Node, R_Node);
       end if;
+
       Expand_Node (M_Type (Node));
       Expand_Array_Declarators (Node);
    end Expand_Member;
+
+   procedure Expand_Constant
+     (Node : Node_Id) is
+   begin
+      Expand_Node (Constant_Type (Node));
+   end Expand_Constant;
 
    procedure Expand_Union
      (Node : Node_Id)
@@ -853,6 +873,7 @@ package body Ada_Be.Expansion is
       if R_Node /= No_Node then
          Set_Case_Type (Node, R_Node);
       end if;
+
       Expand_Node (Case_Type (Node));
       Expand_Array_Declarator (Case_Decl (Node));
    end Expand_Case;
@@ -864,7 +885,7 @@ package body Ada_Be.Expansion is
         := Node;
       Seq_Ref_Node : Node_Id
         := Make_Scoped_Name;
-      Seq_Inst_Node : Node_Id
+      Seq_Inst_Node : constant Node_Id
         := Make_Sequence_Instance;
    begin
       Add_Identifier_With_Renaming
@@ -930,6 +951,60 @@ package body Ada_Be.Expansion is
          Replace_Node (String_Node, String_Ref_Node);
       end;
    end Expand_String;
+
+   procedure Expand_Fixed
+     (Node : Node_Id)
+   is
+      Fixed_Node : Node_Id
+        := Node;
+      Fixed_Ref_Node : Node_Id
+        := Make_Scoped_Name;
+
+      Identifier : constant String
+        := "Fixed_" & Img (Integer_Value (Digits_Nb (Node)))
+        & "_" & Img (Integer_Value (Scale (Node)));
+
+      Definition : constant Identifier_Definition_Acc
+        := Find_Identifier_Definition (Identifier);
+      Success : Boolean;
+
+   begin
+      pragma Assert (Kind (Node) = K_Fixed);
+
+      Replace_Node (Fixed_Node, Fixed_Ref_Node);
+
+      --  If the identifier already exists in the current scope,
+      --  and resolves to denote a K_Fixed typedef, then it
+      --  is guaranteed that it is a node created by expansion,
+      --  and we can reuse it.
+
+      if Definition = null then
+         declare
+            Typedef_Node : constant Node_Id
+              := Make_Type_Declarator;
+            Declarator_Node : constant Node_Id
+              := Make_Declarator;
+         begin
+            --  FIXME: The Add_Identifier should be performed
+            --    in the Current_Gen_Scope, not in the Current_Scope.
+
+            Success := Add_Identifier (Declarator_Node, Identifier);
+            pragma Assert (Success);
+
+            Set_Value (Fixed_Ref_Node, Declarator_Node);
+
+            Insert_Before_Current (Typedef_Node);
+
+            Set_T_Type (Typedef_Node, Fixed_Node);
+            Set_S_Type (Fixed_Ref_Node, Fixed_Node);
+            Set_Declarators
+              (Typedef_Node, Append_Node (Nil_List, Declarator_Node));
+            Set_Parent (Declarator_Node, Typedef_Node);
+         end;
+      else
+         Set_Value (Fixed_Ref_Node, Definition.Node);
+      end if;
+   end Expand_Fixed;
 
    procedure Expand_Constructed_Type
      (Node : Node_Id;

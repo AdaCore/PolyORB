@@ -111,6 +111,9 @@ package Idl_Fe.Tree.Synthetic is
    function String_Value
      (Node : Node_Id)
      return String;
+   function WString_Value
+     (Node : Node_Id)
+     return Wide_String;
    function Boolean_Value
      (Node : Node_Id)
      return Boolean;

@@ -117,6 +117,11 @@ package all_types.Impl is
       arg  : in simple_struct)
       return simple_struct;
 
+   function echoArrayStruct
+     (Self : access Object;
+      arg  : in array_struct)
+      return array_struct;
+
    function echoUnion
      (Self : access Object;
       arg : in myUnion)
@@ -127,15 +132,20 @@ package all_types.Impl is
       arg : in U_sequence)
      return U_sequence;
 
-   procedure Set_MyColor
+   function echoMoney
+     (Self : access Object;
+      Arg  : in Money)
+     return Money;
+
+   procedure set_MyColor
      (Self : access Object;
       arg : in Color);
 
-   function Get_MyColor
+   function get_myColor
      (Self : access Object)
      return Color;
 
-   function Get_Counter
+   function get_Counter
      (Self : access Object)
      return CORBA.Long;
 
