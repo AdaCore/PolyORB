@@ -1,3 +1,7 @@
+Thu Oct 30 15:52:37 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_check.adb: Pass the value of -jN flag to Compile_Sources.
+
 Wed Oct 29 19:28:51 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* gnatdist.in: Use EXTRA_LIBS from configure.

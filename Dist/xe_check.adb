@@ -108,7 +108,7 @@ package body XE_Check is
                Force_Compilations    => Opt.Force_Compilations,
                In_Place_Mode         => Opt.In_Place_Mode,
                Initialize_Ali_Data   => False,
-               Max_Process           => 1);
+               Max_Process           => Opt.Maximum_Processes);
 
             if Building_Script then
                Write_Compile_Command (File_Name);
