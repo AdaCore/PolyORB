@@ -1,3 +1,8 @@
+1999-01-12  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garuti.adb: Fix unitialized level problem in
+ 	Adv_Mutex_Type. Fixes 0004-G02.
+
 1998-12-29  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gaphlo.ads, s-gaphlo.adb: Remove memory leaks by making

@@ -219,6 +219,7 @@ package body System.Garlic.Utils is
       M := new Adv_Mutex_PO;
       Create (M.Mutex);
       M.Current := Null_Task_Id;
+      M.Level   := 0;
    end Create;
 
    ------------
@@ -299,6 +300,8 @@ package body System.Garlic.Utils is
       pragma Assert (M /= null);
       if M.Current /= Self then
          Enter (M.Mutex);
+         pragma Assert (M.Current = Null_Task_Id);
+         pragma Assert (M.Level   = 0);
          M.Current := Self;
       end if;
       M.Level := M.Level + 1;
