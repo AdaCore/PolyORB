@@ -1,0 +1,6 @@
+module M {
+
+  interface I {
+  };
+  typedef I S2;
+};
