@@ -1116,6 +1116,8 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                if Is_Function then
                   PL (CU, "return Result;");
+               else
+                  PL (CU, "null;");
                end if;
                DI (CU);
                PL (CU, "end " & Ada_Operation_Name (Node) & ";");
@@ -1982,6 +1984,10 @@ package body Ada_Be.Idl2Ada is
                   Member_Node : Node_Id;
                begin
                   Init (It, Members (Node));
+                  if Is_End (It) then
+                     PL (CU, "--  Empty structure.");
+                     PL (CU, "null;");
+                  end if;
                   while not Is_End (It) loop
                      Get_Next_Node (It, Member_Node);
 
@@ -2021,6 +2027,9 @@ package body Ada_Be.Idl2Ada is
                   Member_Node : Node_Id;
                begin
                   Init (It, Members (Node));
+                  if Is_End (It) then
+                     PL (CU, "--  Empty structure.");
+                  end if;
                   while not Is_End (It) loop
                      Get_Next_Node (It, Member_Node);
 
@@ -2289,7 +2298,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "is");
                II (CU);
-               PL (CU, "use " & Ada_Name (Node));
+               PL (CU, "use " & Ada_Name (Node) & ";");
                DI (CU);
             else
                PL (CU, " is");
