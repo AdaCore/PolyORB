@@ -773,8 +773,12 @@ package body Ada_Be.Idl2Ada is
                           (S.IR_Info (Unit_Body), Decl_Node);
                      end if;
                   end if;
-
                end loop;
+
+               if Intf_Repo and then Kind (Node) = K_Module then
+                  IR_Info.Gen_Node_Spec (S.IR_Info (Unit_Spec), Node);
+                  IR_Info.Gen_Node_Body (S.IR_Info (Unit_Body), Node);
+               end if;
             end;
 
          when K_Interface =>
