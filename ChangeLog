@@ -1,3 +1,8 @@
+1998-09-12  Laurent Pautet  <pautet@scapin.enst.fr>
+
+        * configure.in, configure: Fix 5712-G01. Specific naming
+	of a decalpha platform.
+	
 1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* MANIFEST: Add missing Examples/Filters/Makefile.am.
