@@ -86,10 +86,13 @@ package System.Garlic.Types is
    First_Unit_Id : constant Unit_Id := 1_000_000;
    Unit_Id_Increment : constant := 10;
 
+   type Version_Id is mod 2 ** 8;
+   No_Version : constant Version_Id := 0;
+
+   function "<" (L, R : Version_Id) return Boolean;
+
    type Version_Type is new String (1 .. 8);
    Null_Version : constant Version_Type := (others => ' ');
-
-   type Shutdown_Access is access procedure;
 
    --  This package defines basic types that are used throughout Garlic
    --  as well as commonly used deallocation and conversion subprograms.

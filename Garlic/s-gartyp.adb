@@ -33,13 +33,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Debug;
-pragma Elaborate (System.Garlic.Debug);
-pragma Warnings (Off, System.Garlic.Debug);
-
 with Ada.Streams; use Ada.Streams;
 
 package body System.Garlic.Types is
+
+   Version_Id_Window : constant Version_Id := Version_Id'Last / 2;
+
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (L, R : Version_Id) return Boolean is
+   begin
+      return Integer (R - L) < Integer (Version_Id_Window);
+   end "<";
 
    ----------
    -- Read --
@@ -109,5 +116,3 @@ package body System.Garlic.Types is
    end Write;
 
 end System.Garlic.Types;
-
-
