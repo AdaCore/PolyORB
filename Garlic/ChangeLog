@@ -1,3 +1,54 @@
+2001-01-24  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-ganota.adb, s-gaphlo.adb, s-garpar.adb, s-gartra.adb,
+	s-gartyp.adb s-garuni.adb, s-gasoli.adb, s-gastdf.adb,
+	s-gastds.adb, s-rpc.adb, s-rpc.ads, s-rpstio.adb, s-shasto.adb,
+	s-stratt.adb: Sort in alpha order.
+
+	* Makefile.am, Makefile.in, linktest.adb:
+	Remove socket packages configuration and use GNAT.Sockets instead.
+
+	* s-gaprre.adb, s-gaprre.ads, s-garpro.adb, s-garpro.ads: Sort in
+	alpha order. Split the initialization code in two parts: one for
+	initialization and one for task activation in order to prevent any
+	task activities when launching remote partition using
+	system(). Add the new primitive Activate for the given
+	protocol. Change Timeout parameter type from Natural to Duration
+	in Receive.
+
+	* s-gaprtc.adb, s-gaprtc.ads, s-gptcse.adb, s-gptcse.ads: Sort in
+	alpha order. Split the initialization code in two parts: one for
+	initialization and one for task activation in order to prevent any
+	task activities when launching remote partition using
+	system(). Add the new primitive Activate for the given
+	protocol. Change Timeout parameter type from Natural to Duration
+	in Receive. Use GNAT.Sockets instead of GARLIC Sockets (many
+	changes). Use only one quantum value in GARLIC.
+
+	* s-garopt.ads: Increase the connection hits default value to
+	match with the global quantum value.
+
+	* s-garrem.ads: Move procedure Detach in Garlic.Remote. Add
+	procedure Register_Partition_To_Launch to defer launching after
+	the initialization of protocols (this procedure is called during
+	GARLIC elaboration) but before the activation of protocols. Add
+	procedure Launch_Registered_Partitions to launch the partitions
+	registered by the previous procedure.
+
+	* s-garsta.adb: Add step of protocol of activation. Remove Naming
+	and Services elaboration as these pacakges are no longer needed.
+
+	* s-parint.adb, s-parint.ads: Remove all the launching facilities
+	as there are no longer needed at this level because the launching
+	operation are performed in GARLIC elaboration and no longer in the
+	main procedure of the partition. Sort in alpha order.
+
+	* s-rpcser.adb, s-rpcser.ads: Sort in alpha order. Remove
+	background task and preallocate anonymous tasks in elaboration
+	code. Change Storage_Size of 3M to 2M for Linux.
+
+	* split.adb: Use Ada.Text_IO instead of System.IO.
+
 2001-01-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* constants.c: string.h is not needed. sys/param.h and sys/conf.h
