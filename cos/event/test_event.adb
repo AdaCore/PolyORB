@@ -94,8 +94,6 @@ with Menu; use Menu;
 with Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 
-with GNAT.OS_Lib;
-
 procedure Test_Event is
 
    use  PolyORB.Log;
@@ -110,8 +108,9 @@ procedure Test_Event is
       Sleep,
       Connect,
       Consume,
+      TryConsume,
       Produce,
-      Display,
+      AutoDisplay,
       Create);
 
    Syntax_Error : exception;
@@ -123,15 +122,18 @@ procedure Test_Event is
    end M;
 
    Help_Messages : constant array (Command) of String_Access
-     := (Help    => M ("print this message"),
-         Quit    => M ("quit this shell"),
-         Run     => M ("run <file of commands from this language"),
-         Sleep   => M ("sleep <seconds>"),
-         Create  => M ("create <kind> <entity>"),
-         Connect => M ("connect <entity> to <channel>"),
-         Consume => M ("consume in <entity>"),
-         Display => M ("display <pushconsumer>"),
-         Produce => M ("produce <string> in <entity>"));
+     := (Help        => M (ASCII.HT & "print this message"),
+         Quit        => M (ASCII.HT & "quit this shell"),
+         Run         =>
+           M (ASCII.HT & "run <file of commands from this language"),
+         Sleep       => M (ASCII.HT & "sleep <seconds>"),
+         Create      => M (ASCII.HT & "create <kind> <entity>"),
+         Connect     => M (ASCII.HT & "connect <entity> to <channel>"),
+         Consume     => M (ASCII.HT & "consume in <entity>"),
+         TryConsume  => M ("tryconsume in <entity>"),
+         AutoDisplay => M ("autodisplay <pushconsumer>"),
+         Produce     => M
+           (ASCII.HT & "produce <string> in <entity> [<N> times]"));
 
    type Entity_Kind is
      (K_Channel,
@@ -318,6 +320,61 @@ procedure Test_Event is
       return "";
    end Consume_Event;
 
+   -----------------------
+   -- Try_Consume_Event --
+   -----------------------
+   function Try_Consume_Event
+     (Entity : CORBA.Object.Ref;
+      Kind   : Entity_Kind)
+     return String;
+
+   function Try_Consume_Event
+     (Entity : CORBA.Object.Ref;
+      Kind   : Entity_Kind)
+     return String
+   is
+      O : CORBA.Impl.Object_Ptr;
+      A : CORBA.Any;
+      B : CORBA.Boolean;
+   begin
+      case Kind is
+         when K_PullConsumer =>
+            declare
+               C : PullConsumer.Ref;
+
+            begin
+               C := PullConsumer.Helper.To_Ref (Entity);
+               Reference_To_Servant (C, Servant (O));
+               PullConsumer.Impl.Try_Pull
+                 (PullConsumer.Impl.Object_Ptr (O), B, A);
+               if B then
+                  return To_Standard_String (From_Any (A));
+               else
+                  return "Nothing to consume!!!";
+               end if;
+            end;
+
+         when K_PushConsumer =>
+            declare
+               C : PushConsumer.Ref;
+            begin
+               C := PushConsumer.Helper.To_Ref (Entity);
+               Reference_To_Servant (C, Servant (O));
+               PushConsumer.Impl.Try_Pull
+                 (PushConsumer.Impl.Object_Ptr (O), B, A);
+               if B then
+                  return To_Standard_String (From_Any (A));
+               else
+                  return "Nothing to consume!!!";
+               end if;
+            end;
+
+         when others =>
+            null;
+      end case;
+      return "";
+   end Try_Consume_Event;
+
    -------------------
    -- Create_Entity --
    -------------------
@@ -425,12 +482,14 @@ procedure Test_Event is
    procedure Produce_Event
      (Entity : CORBA.Object.Ref;
       Kind   : Entity_Kind;
-      Event  : String_Access);
+      Event  : String_Access;
+      Times  : Natural);
 
    procedure Produce_Event
      (Entity : CORBA.Object.Ref;
       Kind   : Entity_Kind;
-      Event  : String_Access)
+      Event  : String_Access;
+      Times  : Natural)
    is
       O : CORBA.Impl.Object_Ptr;
       A : CORBA.Any := To_Any (To_CORBA_String (Event.all));
@@ -444,7 +503,9 @@ procedure Test_Event is
             begin
                S := PullSupplier.Helper.To_Ref (Entity);
                Reference_To_Servant (S, Servant (O));
-               PullSupplier.Impl.Push (PullSupplier.Impl.Object_Ptr (O), A);
+               for I in 1 .. Times loop
+                  PullSupplier.Impl.Push (PullSupplier.Impl.Object_Ptr (O), A);
+               end loop;
             end;
 
          when K_PushSupplier =>
@@ -454,7 +515,9 @@ procedure Test_Event is
             begin
                S := PushSupplier.Helper.To_Ref (Entity);
                Reference_To_Servant (S, Servant (O));
-               PushSupplier.Impl.Push (PushSupplier.Impl.Object_Ptr (O), A);
+               for I in 1 .. Times loop
+                  PushSupplier.Impl.Push (PushSupplier.Impl.Object_Ptr (O), A);
+               end loop;
             end;
 
          when others =>
@@ -494,7 +557,7 @@ procedure Test_Event is
    begin
       for C in Help_Messages'Range loop
          Ada.Text_IO.Put_Line
-           (C'Img & ASCII.HT & Help_Messages (C).all);
+           (C'Img & ASCII.HT & ASCII.HT & Help_Messages (C).all);
          if C = Create then
             Ada.Text_IO.Put (ASCII.HT & "<kind> in");
             for E in Entity_Kind'Range loop
@@ -559,7 +622,6 @@ begin
                   Usage;
 
                when Quit =>
-                  GNAT.OS_Lib.OS_Exit (1);
                   exit;
 
                when Create =>
@@ -618,16 +680,42 @@ begin
                   Find_Entity (Argument (3), Entity, Kind);
                   Ada.Text_IO.Put_Line (Consume_Event (Entity, Kind));
 
-               when Produce =>
-                  if Argc /= 4 then
+               when TryConsume =>
+                  if Argc /= 3 then
                      raise Syntax_Error;
                   end if;
 
-                  if Argument (3).all /= "in" then
+                  if Argument (2).all /= "in" then
                      raise Syntax_Error;
                   end if;
-                  Find_Entity (Argument (4), Entity, Kind);
-                  Produce_Event (Entity, Kind, Argument (2));
+
+                  Find_Entity (Argument (3), Entity, Kind);
+                  Ada.Text_IO.Put_Line (Try_Consume_Event (Entity, Kind));
+
+               when Produce =>
+                  --  produce <str> in <sup> [<N> times] [with priority <M>]
+                  if Argc /= 4 and Argc /= 6 then
+                     raise Syntax_Error;
+                  end if;
+
+                  declare
+                     N : Natural := 1;
+                  begin
+                     if Argc = 6 then
+                        if Argument (6).all = "times" then
+                           N  := Natural'Value (Argument (5).all);
+                        else
+                           raise Syntax_Error;
+                        end if;
+                     end if;
+
+                     if Argument (3).all /= "in" then
+                        raise Syntax_Error;
+                     end if;
+
+                     Find_Entity (Argument (4), Entity, Kind);
+                     Produce_Event (Entity, Kind, Argument (2), N);
+                  end;
 
                when Run =>
                   if Argc /= 2 then
@@ -647,7 +735,7 @@ begin
                      delay Duration (N);
                   end;
 
-               when Display =>
+               when AutoDisplay =>
                   if Argc /= 2 then
                      raise Syntax_Error;
                   end if;
