@@ -1004,7 +1004,6 @@ package Rtsfind is
      RE_Get_Unique_Remote_Pointer,       -- System.Partition_Interface
      RE_RACW_Stub_Type,                  -- System.Partition_Interface
      RE_RACW_Stub_Type_Access,           -- System.Partition_Interface
-     RE_Raise_Program_Error_For_E_4_18,  -- System.Partition_Interface
      RE_Raise_Program_Error_Unknown_Tag, -- System.Partition_Interface
      RE_Register_Passive_Package,        -- System.Partition_Interface
      RE_Register_Receiving_Stub,         -- System.Partition_Interface
@@ -2074,7 +2073,6 @@ package Rtsfind is
      RE_Get_Unique_Remote_Pointer        => System_Partition_Interface,
      RE_RACW_Stub_Type                   => System_Partition_Interface,
      RE_RACW_Stub_Type_Access            => System_Partition_Interface,
-     RE_Raise_Program_Error_For_E_4_18   => System_Partition_Interface,
      RE_Raise_Program_Error_Unknown_Tag  => System_Partition_Interface,
      RE_Register_Passive_Package         => System_Partition_Interface,
      RE_Register_Receiving_Stub          => System_Partition_Interface,

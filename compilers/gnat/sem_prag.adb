@@ -1693,6 +1693,7 @@ package body Sem_Prag is
          Id        : Node_Id;
          E1        : Entity_Id;
          Cname     : Name_Id;
+         Comp_Unit : Unit_Number_Type;
 
          procedure Set_Convention_From_Pragma (E : Entity_Id);
          --  Set convention in entity E, and also flag that the entity has a
@@ -1907,9 +1908,11 @@ package body Sem_Prag is
             end if;
 
          --  For the subprogram case, set proper convention for all homonyms
-         --  in same scope.
+         --  in same scope and the same declarative part, i.e. the same
+         --  compilation unit.
 
          else
+            Comp_Unit := Get_Source_Unit (E);
             Set_Convention_From_Pragma (E);
 
             --  Treat a pragma Import as an implicit body, for GPS use.
@@ -1928,6 +1931,7 @@ package body Sem_Prag is
                --  than one Rep_Item chain, to be fixed later ???
 
                if Comes_From_Source (E1)
+                 and then Comp_Unit = Get_Source_Unit (E1)
                  and then Nkind (Original_Node (Parent (E1))) /=
                    N_Full_Type_Declaration
                then
@@ -3555,7 +3559,16 @@ package body Sem_Prag is
                Set_Is_Public (E);
                Set_Is_Statically_Allocated (E);
 
-               if Warn_On_Export_Import then
+               --  Warn if the corresponding W flag is set and the pragma
+               --  comes from source. The latter may not be true e.g. on
+               --  VMS where we expand export pragmas for exception codes
+               --  associated with imported or exported exceptions. We do
+               --  not want to generate a warning for something that the
+               --  user did not write.
+
+               if Warn_On_Export_Import
+                 and then Comes_From_Source (Arg)
+               then
                   Error_Msg_NE
                     ("?& has been made static as a result of Export", Arg, E);
                   Error_Msg_N
