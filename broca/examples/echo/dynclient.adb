@@ -35,7 +35,7 @@ with CORBA.Context;
 with CORBA.Request;
 with CORBA.NVList;
 with CORBA.ORB;
-with Naming_Tools;
+with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 procedure DynClient is
    Sent_Msg : CORBA.String := To_CORBA_String ("Hello Dynamic World");
@@ -58,9 +58,9 @@ begin
 
    --  getting the CORBA.Object
    if Ada.Command_Line.Argument (1) = "-i" then
-      myecho := Naming_Tools.Locate ("echo");
+      myecho := Locate ("echo");
    else
-      myecho := Naming_Tools.Locate (Ada.Command_Line.Argument (1));
+      myecho := Locate (Ada.Command_Line.Argument (1));
    end if;
 
    --  creating the argument list

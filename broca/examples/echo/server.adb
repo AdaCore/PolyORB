@@ -41,7 +41,7 @@ with Ada.Text_IO;
 
 with PortableServer;
 
-with Naming_Tools;
+with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 procedure Server is
    Ref             : CORBA.Object.Ref;
@@ -79,9 +79,9 @@ begin
          Name : constant String := Get_Argument;
       begin
          if Name = "" then
-            Naming_Tools.Register ("echo", Ref);
+            Register ("echo", Ref);
          else
-            Naming_Tools.Register (Name, Ref);
+            Register (Name, Ref);
          end if;
       end;
    end if;

@@ -46,7 +46,7 @@ with Report;    use Report;
 with All_Types; use All_Types;
 with All_Types.Helper;
 
-with Naming_Tools;
+with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 procedure DynClient is
    Myall_Types : CORBA.Object.Ref;
@@ -1050,9 +1050,9 @@ begin
 
    --  transforms the Ada string into CORBA.String
    if Ada.Command_Line.Argument (1) = "-i" then
-      Myall_types := Naming_Tools.Locate ("all_types");
+      Myall_types := Locate ("all_types");
    else
-      Myall_types := Naming_Tools.Locate (Ada.Command_Line.Argument (1));
+      Myall_types := Locate (Ada.Command_Line.Argument (1));
    end if;
 
    loop

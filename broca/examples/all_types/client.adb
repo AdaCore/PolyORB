@@ -36,7 +36,7 @@ with CORBA.ORB;
 with all_types.Helper; use all_types, all_types.Helper;
 with Report;    use Report;
 
-with Naming_Tools; use Naming_Tools;
+with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 procedure Client is
    Myall_types : all_types.Ref;

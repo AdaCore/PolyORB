@@ -52,10 +52,8 @@ with File;                         use File;
 with File.Impl;
 with File.Helper;
 
-with Naming_Tools;                 use Naming_Tools;
-
+with Broca.Naming_Tools;                 use Broca.Naming_Tools;
 with Broca.Server_Tools;
-with Broca.GIOP;
 
 procedure Test_Naming is
 
@@ -233,7 +231,7 @@ procedure Test_Naming is
      (S   : String;
       Sep : Character := '/')
      return Name
-     renames Naming_Tools.Parse_Name;
+     renames Broca.Naming_Tools.Parse_Name;
 
    ---------------
    -- To_String --
@@ -304,7 +302,7 @@ begin
       Initialize_Option_Scan ('-', False, "");
 
       loop
-         case Getopt ("i n s I: p:") is
+         case Getopt ("i n s I:") is
             when ASCII.Nul =>
                exit;
 
@@ -359,10 +357,6 @@ begin
                      Ada.Text_IO.Put_Line (" error");
                      raise;
                end;
-
-            when 'p' =>
-               Broca.GIOP.Set_Default_Principal
-                 (Ada.Strings.Unbounded.To_Unbounded_String (Parameter));
 
             when others =>
                --  This never happens.

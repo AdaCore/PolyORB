@@ -31,7 +31,7 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;      use Ada.Text_IO;
 with CORBA.ORB;
 with Echo.Helper;
-with Naming_Tools;
+with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 procedure Client is
    Sent_Msg, Rcvd_Msg : CORBA.String;
@@ -46,9 +46,9 @@ begin
 
    --  getting the CORBA.Object
    if Argument (1) = "-i" then
-      myecho := Echo.Helper.To_Ref (Naming_Tools.Locate ("echo"));
+      myecho := Echo.Helper.To_Ref (Locate ("echo"));
    else
-      myecho := Echo.Helper.To_Ref (Naming_Tools.Locate (Argument (1)));
+      myecho := Echo.Helper.To_Ref (Locate (Argument (1)));
    end if;
 
    --  checking if it worked
