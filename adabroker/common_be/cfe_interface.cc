@@ -27,6 +27,10 @@
 
 /*
   $Log: cfe_interface.cc,v $
+  Revision 1.6  1999/03/10 18:50:04  niebel
+  addition of Laurent's work
+  addition of the modified makefile to compile the project
+
   Revision 1.5  1999/03/02 17:28:12  niebel
   The produce_adb is added to this class
 
@@ -191,8 +195,9 @@ int o2be_global::pd_mflag = 1;
 AST_Generator*
 BE_init()
 {
-  if (strcmp(idl_global::be(),"c")==0) AST_Generator *g = new o2be_generator()
-  else if (strcmp(idl_global::be(),"ada")==0) AST_Generator *g = new adabe_generator();
+  AST_Generator *g;
+  if (strcmp(idl_global->be(),"c")==0) g = new o2be_generator();
+  else if (strcmp(idl_global->be(),"ada")==0) g = new adabe_generator();
   return g;/////////////////////////////////////
 }
 
@@ -211,8 +216,9 @@ void
 BE_produce() //////////////////// revoir les catchs a cause des o2be 
 {
   try {
-    if (strcmp(idl_global::be(),"c")==0) o2be_global::root()->produce()//////////////////////////////////
-    else if (strcmp(idl_global::be(),"ada")==0) adabe_global::root()->produce();
+    if (strcmp(idl_global->be(),"c")==0) o2be_global::root()->produce(); 
+    else if (strcmp(idl_global->be(),"ada")==0) adabe_global::root()->produce();
+
   }
   catch (o2be_fe_error &ex) {
     std::cerr << "Error: " << ex.errmsg() << std::endl;
@@ -375,7 +381,7 @@ BE_parse_args(int argc, char **argv)
 	  break;
 
 	case 'b':                    ///////////////////////////////
-       	  if ((strcmp(optarg,"ada")==0)||(strcmp(optarg,"c")==0))  idl_global->set_be(optarg)
+       	  if ((strcmp(optarg,"ada")==0)||(strcmp(optarg,"c")==0))  idl_global->set_be(optarg);
 	  else exit(99) ;
 	  be_defined = 1;   
 	  break;

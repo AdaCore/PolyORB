@@ -2,20 +2,21 @@
 #ifndef _ADABE_CLASSES_H_
 #define _ADABE_CLASSES_H_
 
-#include <strings>
+#include <string>
 #include <idl.hh>
 
 class string_list
 {
  public:
-  string_list();
-  ~string_list();
+  string_list ();
+  ~string_list ();
   // constructor and destructor
   void add (string str);
   // add a string to the list
   bool check (string str);
   // check for the presence of the string in the list, and add it 
-  string produce();
+  string *produce();
+  string *produce(string);
   // dump the content of the list in a string
  private:
   string *list;
@@ -36,7 +37,7 @@ public:
   string get_ada_full_name(void);
   // give the complete ADA name of the AST node
 
-  void compute_ada_names(void);
+  void compute_ada_name(void);
   // determine the ADA local and complete name
   bool is_already_defined();
   void set_already_defined();
@@ -55,6 +56,9 @@ public:
   virtual void produce_marshal_adb(dep_list, string, string){};
   virtual string dump_name(dep_list, string, string){};
 
+  DEF_NARROW_FROM_DECL(adabe_name);
+  DEF_NARROW_FROM_SCOPE(adabe_name);
+
  private:
   adabe_name();
   string pd_ada_local_name;
@@ -65,9 +69,6 @@ public:
 
   bool is_reserved_name(void);
   // determines if the name of the node is an ADA reserved name
-
-  DEF_NARROW_FROM_DECL(adabe_name);
-  DEF_NARROW_FROM_SCOPE(adabe_name);
 };
 
 class adabe_predefined_type : public virtual AST_PredefinedType,
@@ -116,6 +117,7 @@ public:
 
 private:
   adabe_constant();
+  void  write_string_to_ada(string &c_string, string &ada_string);
 
 };
 
@@ -154,7 +156,8 @@ public:
 
   DEF_NARROW_METHODS1(adabe_enum_val, AST_EnumVal);
   DEF_NARROW_FROM_DECL(adabe_enum_val);
-
+  virtual string dump_name(dep_list with,string &String, string &previousdefinition);
+  
 private:
   adabe_enum_val();
 };
@@ -168,6 +171,9 @@ public:
   adabe_string(AST_Expression *v);
   adabe_string(AST_Expression *v, long wide);
 
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual string dump_name(dep_list with,string &String, string &previousdefinition);
+  
   DEF_NARROW_METHODS1(adabe_string, AST_String);
   DEF_NARROW_FROM_DECL(adabe_string);
 
@@ -538,7 +544,7 @@ public:
   virtual void produce_skel_adb(dep_list with,string &String, string &privatedefinition);
   virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
   virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
-
+  virtual string dump_name(dep_list with, string &String, string &previousdefinition);
 private:
   adabe_module();
 
