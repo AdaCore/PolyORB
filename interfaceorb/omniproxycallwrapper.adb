@@ -118,7 +118,9 @@ package body omniProxyCallWrapper is
             -- verify that the underlying omniobject is not null
             if OmniObj_Ptr = null then
                Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
-                                               "null omniobject_ptr found in method invoke (omniProxyCallWrapper L 86)") ;
+                                               "Cannot call subprogram on nil reference !"
+                                               & Corba.CRLF
+                                               & "Check that your object is not nil with Is_Nil") ;
             end if ;
 
             -- verify that the object exists
