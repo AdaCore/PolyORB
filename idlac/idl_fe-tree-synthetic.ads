@@ -8,6 +8,14 @@ package Idl_Fe.Tree.Synthetic is
    -- Synthetic attributes of IDL nodes --
    ---------------------------------------
 
+   function Default_Repository_Id
+     (Node : Node_Id)
+     return String;
+   --  The string of "/"-separated identifiers that makes
+   --  up the default repository id for Node.
+   --  Must be called only by the parser, before the
+   --  tree is expanded.
+
    function Is_Interface_Type
      (Node : Node_Id)
      return Boolean;

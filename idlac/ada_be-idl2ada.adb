@@ -211,11 +211,19 @@ package body Ada_Be.Idl2Ada is
 
    procedure Generate
      (Node : in Node_Id;
-      Implement : Boolean := False) is
+      Implement : Boolean := False)
+   is
+      S_Node : Node_Id;
+      It : Node_Iterator;
    begin
       pragma Assert (Is_Repository (Node));
 
-      Gen_Scope (Node, Implement);
+      Init (It, Contents (Node));
+      while not Is_End (It) loop
+         Get_Next_Node (It, S_Node);
+         Gen_Scope (S_Node, Implement);
+      end loop;
+
    end Generate;
 
    procedure Gen_Scope
@@ -258,7 +266,6 @@ package body Ada_Be.Idl2Ada is
             raise Program_Error;
 
          when
-           K_Repository   |
            K_Ben_Idl_File |
            K_Module       =>
 
@@ -431,7 +438,8 @@ package body Ada_Be.Idl2Ada is
                       Use_It => False,
                       Elab_Control => Elaborate_All);
             NL (Stubs_Spec);
-            PL (Stubs_Spec, "Repository_Id : constant CORBA.RepositoryId");
+            PL (Stubs_Spec, T_Repository_Id
+                & " : constant CORBA.RepositoryId");
             PL (Stubs_Spec, "  := CORBA.To_CORBA_String ("""
                 & Idl_Repository_Id (Node) & """);");
             NL (Stubs_Spec);
@@ -451,7 +459,7 @@ package body Ada_Be.Idl2Ada is
             DI (Stubs_Body);
             PL (Stubs_Body, "begin");
             II (Stubs_Body);
-            PL (Stubs_Body, "return Type_Id = Repository_Id");
+            PL (Stubs_Body, "return Type_Id = " & T_Repository_Id);
             PL (Stubs_Body, "  or else Type_Id =");
             PL (Stubs_Body, "    CORBA.To_CORBA_String");
             PL (Stubs_Body, "      (""IDL:omg.org/CORBA/OBJECT:1.0"")");
@@ -469,7 +477,7 @@ package body Ada_Be.Idl2Ada is
                   Add_With (Stubs_Body, Ada_Full_Name (P_Node));
                   PL (Stubs_Body, "  or else Type_Id = "
                       & Ada_Full_Name (P_Node)
-                      & ".Repository_Id");
+                      & "." & T_Repository_Id);
                end loop;
                Free (Parents);
             end;
@@ -504,7 +512,8 @@ package body Ada_Be.Idl2Ada is
             PL (Skel_Body, "begin");
             II (Skel_Body);
             PL (Skel_Body, "PortableServer.Register_Skeleton");
-            PL (Skel_Body, "  (" & Stubs_Name & ".Repository_Id,");
+            PL (Skel_Body, "  (" & Stubs_Name
+                & "." & T_Repository_Id &",");
             PL (Skel_Body, "   Servant_Is_A'Access,");
             PL (Skel_Body, "   GIOP_Dispatch'Access);");
 
@@ -738,8 +747,13 @@ package body Ada_Be.Idl2Ada is
          when K_Exception =>
 
             Add_With (CU, "Ada.Exceptions");
+            Add_With (CU, "CORBA");
             NL (CU);
             PL (CU, Ada_Name (Node) & " : exception;");
+            PL (CU, Ada_Name (Node) & "_" & T_Repository_Id
+                & " : constant CORBA.Repository_Id");
+            PL (CU, "  := CORBA.To_CORBA_String ("""
+                & Idl_Repository_Id (Node) & """);");
             NL (CU);
             PL (CU, "procedure Get_Members");
             PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
@@ -1224,6 +1238,7 @@ package body Ada_Be.Idl2Ada is
                --  Each R_Node is a scoped_name
                --  that denotes an exception.
 
+               Add_With_Entity (CU, E_Node);
                NL (CU);
                II (CU);
                PL (CU, "when E : " & Ada_Full_Name (E_Node)
@@ -1232,9 +1247,6 @@ package body Ada_Be.Idl2Ada is
 
                PL (CU, "declare");
                II (CU);
-               PL (CU, "Repository_Id : constant CORBA.String");
-               PL (CU, "  := CORBA.To_CORBA_String ("""
-                   & Idl_Repository_Id (E_Node) & """);");
                PL (CU, T_Members & " : "
                    & Ada_Type_Name (Members_Type (E_Node))
                    & ";");
@@ -1261,7 +1273,10 @@ package body Ada_Be.Idl2Ada is
 
                NL (CU);
                PL (CU, "--  Marshall exception");
-               PL (CU, "Marshall (Reply_Buffer, Repository_Id);");
+               PL (CU, "Marshall");
+               PL (CU, "  (Reply_Buffer,");
+               PL (CU, "   " & Ada_Full_Name (E_Node)
+                   & "_" & T_Repository_Id & ");");
                Add_With_Stream (CU, Members_Type (E_Node));
                PL (CU, "Marshall (Reply_Buffer, " & T_Members & ");");
                PL (CU, "return;");
@@ -1534,16 +1549,17 @@ package body Ada_Be.Idl2Ada is
                      --  Each R_Node is a scoped name
                      --  that denotes an exception.
 
+                     Add_With_Entity (CU, E_Node);
+
                      if First then
                         Add_With (CU, "Broca.Exceptions");
 
                         PL (CU, "declare");
                         II (CU);
                         PL (CU,
-                            T_Exception_Repo_Id & " : constant String");
-                        PL (CU, "  := CORBA.To_Standard_String");
-                        PL (CU, "  (Unmarshall (" & T_Handler &
-                            ".Buffer'Access));");
+                            T_Exception_Repo_Id & " : constant CORBA.String");
+                        PL (CU, "  := Unmarshall (" & T_Handler &
+                            ".Buffer'Access);");
                         DI (CU);
                         PL (CU, "begin");
                         II (CU);
@@ -1552,9 +1568,10 @@ package body Ada_Be.Idl2Ada is
                      end if;
 
                      NL (CU);
-                     PL (CU, "if " & T_Exception_Repo_Id);
-                     PL (CU, "  = """
-                         & Idl_Repository_Id (E_Node) & """ then");
+                     PL (CU, "if CORBA.""="" ("
+                         & T_Exception_Repo_Id & ",");
+                     PL (CU, "  " & Ada_Full_Name (E_Node)
+                         & "_" & T_Repository_Id & " then");
                      II (CU);
                      PL (CU, "declare");
                      II (CU);
@@ -2547,6 +2564,7 @@ package body Ada_Be.Idl2Ada is
            K_Struct            |
            K_Declarator        |
            K_Forward_Interface |
+           K_Exception         |
            K_Sequence_Instance |
            K_String_Instance   =>
             Add_With_Entity (CU, Parent_Scope (Node));
@@ -2648,7 +2666,7 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, "Broca.CDR",
                       Use_It => True);
 
-           when K_Object             =>
+         when K_Object =>
             Add_With (CU, "Broca.CDR.Refs",
                       Use_It => True);
 
@@ -2734,7 +2752,8 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Body, "begin");
       II (Stubs_Body);
       PL (Stubs_Body, "Result := Unchecked_To_Ref (The_Ref);");
-      PL (Stubs_Body, "if Is_A (Result, Repository_Id) then");
+      PL (Stubs_Body, "if Is_A (Result, "
+          & T_Repository_Id & ") then");
       II (Stubs_Body);
       PL (Stubs_Body, "return Result;");
       DI (Stubs_Body);

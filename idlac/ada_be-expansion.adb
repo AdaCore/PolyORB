@@ -303,9 +303,29 @@ package body Ada_Be.Expansion is
 
             Append_Node_To_Contents (Idl_File_Node, Current);
             if Is_Named (Current) then
+
                --  Reparent current node.
+
                Success := Add_Identifier (Current, Name (Current));
                pragma Assert (Success);
+
+            elsif Is_Type_Declarator (Current) then
+
+               --  Reparent all declarators of current node.
+
+               declare
+                  Dcl_It : Node_Iterator;
+                  Dcl_Node : Node_Id;
+               begin
+                  Init (Dcl_It, Declarators (Current));
+                  while not Is_End (Dcl_It) loop
+                     Get_Next_Node (Dcl_It, Dcl_Node);
+                     Success := Add_Identifier
+                       (Dcl_Node, Name (Dcl_Node));
+                     pragma Assert (Success);
+                  end loop;
+               end;
+
             end if;
          end;
       end loop;

@@ -34,6 +34,9 @@ Named
 Scope <-- Named
   Identifier_List : Identifier_Definition_List
   Identifier_Table : Storage
+  Current_Prefix : Node_Id
+  --  The current Repository Id prefix for the scope.
+  --  This attribute is used only during parse.
 
 Forward <-- Scope
   Unimplemented_Forwards : Node_List
