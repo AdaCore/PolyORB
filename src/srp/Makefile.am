@@ -47,8 +47,7 @@ SUFFIXES = .adb .ads .lo .ali .c
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
-	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(DESTDIR)$(alidir)
-	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
+	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 depend-local: all
 	$(srcdir)/../../support/mkdep -I$(srcdir)/.. $(srcdir)
