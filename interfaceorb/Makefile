@@ -45,7 +45,7 @@ OMNIORB_LIBS += -I $(OMNIORB_PATH)/src/lib/omniORB2/orbcore/
 ###################################################################
 
 
-main: C_files Sys_Dep
+main: Sys_Dep C_files
 	$(GNATMAKE) adabroker.ads
 
 ##########################
@@ -106,6 +106,7 @@ Ada_exceptions.hh
 #######################################
 
 Sys_Dep : Ada_Sys_Dep sys_dep.adb
+	./Ada_Sys_Dep
 
 Ada_Sys_Dep : Ada_Sys_Dep.cc
 	$(CPP_COMP) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Sys_Dep.cc \
