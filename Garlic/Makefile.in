@@ -219,7 +219,7 @@ $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaprco.adb s-galiop.ads\
 	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads\
-	inlining inline* gnatlib/* constants_nodef ${TCP_PLATFORM_SOURCE}\
+	inlining gnatlib/* constants_nodef ${TCP_PLATFORM_SOURCE}\
 	linktest
 
 DISTCLEANFILES = config.h
@@ -383,31 +383,25 @@ install-dirs-local:
 	${mkinstalldirs} ${GARLIC}
 
 inlining: all-local
-	-@if test ! -f inline; then\
-	   echo 'with Text_IO; use Text_IO;'  >inline.adb;\
-	   echo 'procedure Inline is'        >>inline.adb;\
-	   echo 'begin Put_Line ("a"); end;' >>inline.adb;\
-	   ${GNATMAKE} -q -I. inline.adb;\
-	   if test -f inline; then\
-	      echo no >inlining;\
-	   else\
-	      touch inline;\
-	      ${RM} inlining;\
-	   fi;\
-	fi;
-	@if test ! -f inlining; then\
-	   echo "Run-time compiled with inlining flags: yes";\
-	else\
-	   echo "Run-time compiled with inlining flags:" `cat inlining`;\
-	fi;
 	@if test ! -f inlining; then\
 	   mkdir gnatlib >/dev/null 2>&1;\
 	   gnatlibdir=`${srcdir}/../Dist/config.sdefault pathtolib`;\
 	   for o in `cd $$gnatlibdir && echo *.ali`; do\
-	     grep s-stratt $$gnatlibdir/$$o /dev/null;\
+	     grep s-stratt.adb $$gnatlibdir/$$o /dev/null;\
 	   done | ${SED} 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' > gnatlib/tocheck;\
+	   for i in ${OBJECTS}; do\
+	      cat gnatlib/tocheck > gnatlib/tocheck.tmp;\
+	      grep -v $$i gnatlib/tocheck.tmp > gnatlib/tocheck;\
+	   done;\
+	   if test ! -f gnatlib/tocheck; then\
+	      echo no > inlining;\
+	   else\
+	      echo go > inlining;\
+	   fi;\
+	fi
+	@if test `cat inlining` = "go"; then\
 	   for o in `cat gnatlib/tocheck`; do\
-	      if [ ! -f $$o -a ! -f gnatlib/$$o ]; then\
+	      if [ ! -f gnatlib/$$o ]; then\
 	          s=`gnatls -a -s $$o`;\
 	          echo\
                     "${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s"\
@@ -422,9 +416,7 @@ inlining: all-local
 	          fi;\
 	      fi;\
 	   done;\
-	   if test -f gnatlib/tocheck; then\
-	      echo yes >inlining;\
-	   fi;\
+	   echo yes > inlining;\
 	fi
 
 linktest: ${srcdir}/linktest.adb ${OBJECTS}

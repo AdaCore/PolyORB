@@ -1,3 +1,8 @@
+1998-07-15  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Fix a bug concerning inlined gnatlib
+ 	regeneration introduced by new linktest.
+
 1998-07-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb: Add debugging information.
