@@ -21,8 +21,7 @@ CXXSRCS       = \
 	adabe_field.cc\
 	adabe_predefined_type.cc\
 	adabe_interface_fwd.cc\
-	adabe_generator.cc \
-	adabe_misc.cc
+	adabe_generator.cc
 
 
 OBJS         = \
@@ -50,6 +49,7 @@ OBJS         = \
 	adabe_interface_fwd.o\
 	adabe_generator.o \
 	adabe_misc.o
+
 
 DIR_CPPFLAGS = -I. -I../include $(patsubst %,-I%/../include,$(VPATH)) -I../omniORB2_be
 
