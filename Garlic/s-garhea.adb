@@ -253,9 +253,12 @@ package body System.Garlic.Heart is
       end if;
 
       --  Record the current packet content in the trace file if needed
+      --  except for All_Call_Remote (Protocol = null).
 
-      if Options.Execution_Mode = Trace_Mode then
-         Trace_Data (PID, Filtered, Offset);
+      if Options.Execution_Mode = Trace_Mode
+        and then Protocol /= null
+      then
+         Trace_Received_Data (PID, Filtered, Offset);
       end if;
 
       --  When the partition id is unknown, allocate a new one

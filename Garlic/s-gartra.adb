@@ -53,8 +53,8 @@ package body System.Garlic.Trace is
    Trace_File : File_Type;
    --  File containing the traces
 
-   Trace_Time : Time;
-   --  Date of the last trace
+   Trace_Start : Time;
+   --  Date of the first trace
 
    ----------------
    -- Initialize --
@@ -66,7 +66,8 @@ package body System.Garlic.Trace is
         (D ("Initializing trace / replay in mode " & Execution_Mode'Img));
 
       if Execution_Mode = Trace_Mode then
-         Trace_Time := Clock;
+         Trace_Start := Clock;
+
          pragma Debug (D ("Creating trace file " & Trace_File_Name.all));
             Create (Trace_File, Out_File, Trace_File_Name.all);
       end if;
@@ -76,10 +77,12 @@ package body System.Garlic.Trace is
    -- Read --
    ----------
 
-   procedure Read (S : access Root_Stream_Type'Class;
-                   T : out Trace_Type)
+   procedure Read
+     (S : access Root_Stream_Type'Class;
+      T : out Trace_Type)
    is
       Count : Stream_Element_Count;
+
    begin
       Duration'Read (S, T.Time);
       Stream_Element_Count'Read (S, Count);
@@ -104,26 +107,24 @@ package body System.Garlic.Trace is
       end if;
    end Shutdown;
 
-   ----------------
-   -- Trace_Data --
-   ----------------
+   -------------------------
+   -- Trace_Received_Data --
+   -------------------------
 
-   procedure Trace_Data
+   procedure Trace_Received_Data
      (Partition : in Types.Partition_ID;
       Filtered  : access Ada.Streams.Stream_Element_Array;
       Offset    : in  Ada.Streams.Stream_Element_Count)
    is
       Trace : Trace_Type;
-      Date  : Time;
       First : constant Stream_Element_Count := Filtered'First + Offset;
       Last  : constant Stream_Element_Count := Filtered'Last;
+
    begin
       --  Compute the period between the arrival of this message and
       --  the arrival of the previous message.
 
-      Date := Clock;
-      Trace.Time := Date - Trace_Time;
-      Trace_Time := Date;
+      Trace.Time := Clock - Trace_Start;
 
       Trace.Data     := new Stream_Element_Array (First .. Last);
       Trace.Data.all := Filtered (First .. Last);
@@ -135,28 +136,15 @@ package body System.Garlic.Trace is
 
       Trace_Type'Output (Stream (Trace_File), Trace);
       Free (Trace.Data);
-   end Trace_Data;
-
-   ------------------------
-   -- Trace_Partition_ID --
-   ------------------------
-
-   procedure Trace_Partition_ID (Partition : in Types.Partition_ID) is
-   begin
-      --  The partition ID is the first thing written to the
-      --  trace file (not for the boot partition though).
-      --  We can be sure of this since the partition has to have
-      --  an ID before any message reception can take place.
-
-      Types.Partition_ID'Write (Stream (Trace_File), Partition);
-   end Trace_Partition_ID;
+   end Trace_Received_Data;
 
    -----------
    -- Write --
    -----------
 
-   procedure Write (S : access Root_Stream_Type'Class;
-                    T : in Trace_Type)
+   procedure Write
+     (S : access Root_Stream_Type'Class;
+      T : in Trace_Type)
    is
    begin
       pragma Assert (T.Data /= null);
@@ -169,7 +157,6 @@ package body System.Garlic.Trace is
    end Write;
 
 end System.Garlic.Trace;
-
 
 
 

@@ -34,6 +34,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams.Stream_IO;           use Ada.Streams.Stream_IO;
+with Ada.Calendar;                    use Ada.Calendar;
+
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Exceptions;        use System.Garlic.Exceptions;
 with System.Garlic.Heart;             use System.Garlic.Heart;
@@ -58,6 +60,8 @@ package body System.Garlic.Protocols.Replay is
    Trace_File : File_Type;
    --  Where to read the traces
 
+   Trace_Start : Time;
+
    task type Engine_Type;
    type Engine_Type_Access is access Engine_Type;
    Engine : Engine_Type_Access;
@@ -71,7 +75,8 @@ package body System.Garlic.Protocols.Replay is
 
    procedure Activate
      (Protocol : access Replay_Protocol;
-      Error    : in out Error_Type) is
+      Error    : in out Error_Type)
+   is
    begin
       if Options.Execution_Mode = Replay_Mode
         and then Engine = null
@@ -91,7 +96,9 @@ package body System.Garlic.Protocols.Replay is
       if Self_Reference /= null then
          return null;
       end if;
+
       Self_Reference := new Replay_Protocol;
+
       return Self_Reference;
    end Create;
 
@@ -104,8 +111,11 @@ package body System.Garlic.Protocols.Replay is
       Code  : Any_Opcode;
       Data  : Stream_Element_Access;
       Error : Error_Type;
+
    begin
       pragma Debug (D ("Replay engine started"));
+
+      Trace_Start := Clock;
 
       while not End_Of_File (Trace_File) loop
 
@@ -124,13 +134,14 @@ package body System.Garlic.Protocols.Replay is
             --  during the recorded execution.
 
             pragma Debug (D ("Replay network latency" & Trace.Time'Img));
-            delay Trace.Time;
+            delay until Trace_Start + Trace.Time;
 
             --  Deliver message
 
             Analyze_Stream
               (PID, Self_Reference, Code, Data, Trace.Data, 0, Error);
             Free (Trace.Data);
+
             exit when Found (Error);
 
             Process_Stream (PID, Code, Data, Error);
@@ -161,12 +172,15 @@ package body System.Garlic.Protocols.Replay is
      return String_Array_Access
    is
       Result : String_Array_Access;
+
    begin
       if Options.Execution_Mode /= Replay_Mode then
          return null;
       end if;
+
       Result := new String_Array (1 .. 1);
       Result (1) := new String'(Trace_File_Name.all);
+
       return Result;
    end Get_Data;
 
@@ -190,7 +204,8 @@ package body System.Garlic.Protocols.Replay is
       Self_Data : in String;
       Required  : in Boolean;
       Performed : out Boolean;
-      Error     : in out Error_Type) is
+      Error     : in out Error_Type)
+   is
    begin
       Performed := False;
    end Initialize;
@@ -215,7 +230,8 @@ package body System.Garlic.Protocols.Replay is
      (Protocol  : access Replay_Protocol;
       Partition : in Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array;
-      Error     : in out Error_Type) is
+      Error     : in out Error_Type)
+   is
    begin
       pragma Debug
          (D ("Send (but do nothing)" & Data'Length'Img & " bytes"));

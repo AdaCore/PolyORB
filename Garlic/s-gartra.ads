@@ -43,15 +43,12 @@ package System.Garlic.Trace is
    --  Initialize trace / replay stuff. In trace mode, create the trace
    --  file. Read partition id and force it.
 
-   procedure Trace_Data
+   procedure Trace_Received_Data
      (Partition : in Types.Partition_ID;
       Filtered  : access Ada.Streams.Stream_Element_Array;
       Offset    : in  Ada.Streams.Stream_Element_Count);
    --  Trace the message Data (and the time that has passed since the
    --  previous recording) and record it in the partition trace file.
-
-   procedure Trace_Partition_ID (Partition : in Types.Partition_ID);
-   --  Save the partition ID to the trace file
 
    procedure Shutdown;
    --  Close trace file in trace mode
