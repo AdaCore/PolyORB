@@ -43,7 +43,6 @@ with System.Garlic.Priorities;
 with System.Garlic.Soft_Links;
 with System.Garlic.TCP;
 pragma Elaborate (System.Garlic.TCP);
-with System.Garlic.TCP.Operations;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
 
 package body System.Garlic.Non_Blocking is

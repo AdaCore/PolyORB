@@ -1,3 +1,7 @@
+1999-08-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-ganobl.adb: Remove useless with clause.
+
 1999-08-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garter.adb: Change use of global critical section into use of
