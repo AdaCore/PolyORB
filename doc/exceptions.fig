@@ -1,0 +1,20 @@
+#FIG 3.2
+Landscape
+Center
+Metric
+A4      
+100.00
+Single
+-2
+1200 2
+6 675 2925 11025 5850
+4 0 0 0 0 0 18 0.0000 4 210 1695 675 3150 Deux solutions:\001
+4 0 0 0 0 0 18 0.0000 4 240 3195 1125 3600 Pour les exceptions syst\350mes:\001
+4 0 0 0 0 0 18 0.0000 4 240 9255 1125 4050 le body (compos\351 d'une valeur enti\350re et d'une \351num\351ration) est cod\351 dans le message\001
+4 0 0 0 0 0 18 0.0000 4 240 6165 1125 5175 Pour les exceptions utilisateurs (non encore impl\351ment\351):\001
+4 0 0 0 0 0 18 0.0000 4 240 9840 1125 5625 Le message contient un index dans une table o\371 sont sauv\351s les body.  Solution tr\350s bancale.\001
+-6
+4 0 0 0 0 0 18 0.0000 4 240 8280 675 2025 En CORBA: couple identificateur - body, ou le body est un type quelconque.\001
+4 0 0 0 0 0 18 0.0000 4 240 7950 675 2475 En Ada: couple identificateur - message (cha\356ne d'au plus 200 caract\350res)\001
+4 0 0 0 0 0 24 0.0000 4 315 2385 4050 675 Point technique:\001
+4 0 0 0 0 0 24 0.0000 4 315 4560 3150 1350 Les exceptions et leur mapping\001

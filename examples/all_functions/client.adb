@@ -1,8 +1,9 @@
 with Ada.Command_Line;
 with Ada.Text_IO;
+
 with CORBA; use CORBA;
 with CORBA.ORB;
-with CORBA.Object;
+
 with All_Functions; use All_Functions;
 with Report; use Report;
 
@@ -18,9 +19,17 @@ begin
       return;
    end if;
 
-   ORB.Init ("omniORB2");
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-   ORB.String_To_Object (IOR, MyObj);
+   --  transforms the Ada string into CORBA.String
+   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)) ;
+
+   --  getting the CORBA.Object
+   CORBA.ORB.String_To_Object (IOR, MyObj);
+
+   --  checking if it worked
+   if All_Functions.Is_Nil (MyObj) then
+      Ada.Text_IO.Put_Line ("main : cannot invoke on a nil reference");
+      return;
+   end if;
 
    Output ("test not nil reference", not Is_Nil (MyObj));
 
@@ -190,19 +199,29 @@ begin
 
    begin
       Oneway_Void_Proc (MyObj);
-      Ok := True;
-   exception when others =>
-      Ok := False;
-   end;
-   Output ("test void one way procedure", Ok);
+      delay 1.0;
+      Ok := Oneway_Checker (MyObj) = 1;
+      if Ok then
+         delay 5.0;
+         Ok := Oneway_Checker (Myobj) = 2;
+      end if;
+    exception when others =>
+       Ok := False;
+    end;
+    Output ("test void one way procedure", Ok);
 
-   begin
-      Oneway_In_Proc (MyObj, 1, 2, 3);
-      Ok := True;
-   exception when others =>
-      Ok := False;
-   end;
-   Output ("test in param one way procedure", Ok);
+    begin
+       Oneway_In_Proc (MyObj, 10, 20);
+       delay 1.0;
+       Ok := Oneway_Checker (Myobj) = 10;
+       if Ok then
+          delay 5.0;
+          Ok := Oneway_Checker (MyObj) = 20;
+       end if;
+    exception when others =>
+       Ok := False;
+    end;
+    Output ("test in param one way procedure", Ok);
 
 end Client;
 

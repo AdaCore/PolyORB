@@ -69,29 +69,10 @@ package body Ada_Be.Expansion is
    --  then copy inherited methods and attributes
    --  from ancestors.
 
-   procedure Expand_ValueType
-     (Node : in Node_Id);
-   --  First expand all subnodes,
-   --  then copy inherited methods and attributes
-   --  from ancestors and supported interfaces
-
    procedure Expand_Attribute
      (Node : in Node_Id);
    --  Expand an attribute into the corresponding _get_
    --  and _set_ operations.
-
-   procedure Expand_State_Member
-     (Node : in Node_Id);
-   --  Expand a State_Member into the corresponding _get_
-   --  and _set_ operations.
-
-   procedure Expand_Attribute_And_State_Member
-     (Node : in Node_Id;
-      The_Type : in Node_Id;
-      Declarators : in Node_List;
-      Is_Readable : in Boolean;
-      Is_Writable : in Boolean);
-   --  code factorization for the 2 preceding operations
 
    procedure Expand_Operation
      (Node : Node_Id);
@@ -226,10 +207,6 @@ package body Ada_Be.Expansion is
             Expand_Exception (Node);
          when K_Ben_Idl_File =>
             Expand_Ben_Idl_File (Node);
-         when K_ValueType =>
-            Expand_ValueType (Node);
-         when K_State_Member =>
-            Expand_State_Member (Node);
 
          when K_Type_Declarator =>
             Expand_Type_Declarator (Node);
@@ -514,113 +491,26 @@ package body Ada_Be.Expansion is
    end Expand_Interface;
 
    -----------------------
-   --  Expand_ValueType --
-   -----------------------
-   procedure Expand_ValueType (Node : in Node_Id) is
-      Export_List : Node_List;
-      It : Node_Iterator;
-      I_Node : Node_Id;
-      First : Boolean := True;
-      Parents_Seen : Node_List := Nil_List;
-      Interfaces_Seen : Node_List := Nil_List;
-   begin
-      pragma Assert (Kind (Node) = K_ValueType);
-      Push_Scope (Node);
-
-      --  First expand the interface's exports
-      --  (eg, attributes are expanded into operations.)
-      Export_List := Contents (Node);
-      Expand_Node_List (Export_List, True);
-
-      --  copy all the parents' operations
-      Init (It, Parents (Node));
-      while not Is_End (It) loop
-         Get_Next_Node (It, I_Node);
-
-         Recursive_Copy_Operations
-           (Into => Export_List,
-            Parent => Node,
-            From => Value (I_Node),
-            Implicit_Inherited => First,
-            Parents_Seen => Parents_Seen);
-
-         First := False;
-      end loop;
-
-      --  copy all the supported interfaces' operations
-      Init (It, Supports (Node));
-      while not Is_End (It) loop
-         Get_Next_Node (It, I_Node);
-
-         Recursive_Copy_Operations
-           (Into => Export_List,
-            Parent => Node,
-            From => Value (I_Node),
-            Implicit_Inherited => False,
-            Parents_Seen => Interfaces_Seen);
-
-         First := False;
-      end loop;
-
-      Set_Contents (Node, Export_List);
-
-      Pop_Scope;
-   end Expand_ValueType;
-
-   -----------------------
    --  Expand_Attribute --
    -----------------------
 
-   procedure Expand_Attribute (Node : in Node_Id) is
-   begin
-      pragma Assert (Kind (Node) = K_Attribute);
-      Expand_Attribute_And_State_Member
-        (Node,
-         A_Type (Node),
-         Declarators (Node),
-         Is_Readable => True,
-         Is_Writable => not Is_Readonly (Node));
-   end Expand_Attribute;
-
-   --------------------------
-   --  Expand_State_Member --
-   --------------------------
-
-   procedure Expand_State_Member (Node : in Node_Id) is
-   begin
-      pragma Assert (Kind (Node) = K_State_Member);
-      Expand_Attribute_And_State_Member
-        (Node,
-         State_Type (Node),
-         State_Declarators (Node),
-         Is_Readable => Is_Public (Node),
-         Is_Writable => Is_Public (Node));
-   end Expand_State_Member;
-
-   ----------------------------------------
-   --  Expand_Attribute_And_State_Member --
-   ----------------------------------------
-
-   procedure Expand_Attribute_And_State_Member
-     (Node : in Node_Id;
-      The_Type : in Node_Id;
-      Declarators : in Node_List;
-      Is_Readable : in Boolean;
-      Is_Writable : in Boolean)
+   procedure Expand_Attribute
+     (Node : in Node_Id)
    is
-      Exports_List : Node_List := Nil_List;
+      Exports_List : Node_List
+        := Nil_List;
       --  The exports list of the interface
       --  containing these attributes, wherein we insert
       --  _get_Attribute and _set_Attribute operations.
 
-      Position : Node_Id := Node;
+      Position : Node_Id
+        := Node;
       Iterator : Node_Iterator;
       Current_Declarator : Node_Id;
    begin
-      pragma Assert (Kind (Node) = K_Attribute
-                     or Kind (Node) = K_State_Member);
+      pragma Assert (Kind (Node) = K_Attribute);
 
-      Init (Iterator, Declarators);
+      Init (Iterator, Declarators (Node));
 
       while not Is_End (Iterator) loop
 
@@ -634,37 +524,37 @@ package body Ada_Be.Expansion is
          pragma Debug (O ("Expanding attribute declarator "
                           & Ada_Name (Current_Declarator)));
 
-         if Is_Readable then
-            --  create the get_method
-            declare
-               Get_Method : constant Node_Id
-                 := Make_Operation;
-               Success : Boolean;
-            begin
-               Success := Add_Identifier
-                 (Get_Method, "_get_"
-                  & Ada_Name (Current_Declarator));
-               pragma Assert (Success);
-               Push_Scope (Get_Method);
-               Set_Is_Oneway (Get_Method, False);
-               Set_Operation_Type (Get_Method, The_Type);
-               --  parameters
-               Set_Parameters (Get_Method, Nil_List);
-               Set_Raises (Get_Method, Nil_List);
-               Set_Contexts (Get_Method, Nil_List);
-               Set_Original_Node (Get_Method, Node);
+         --  create the get_method
+         declare
+            Get_Method : constant Node_Id
+              := Make_Operation;
+            Success : Boolean;
+         begin
+            Success := Add_Identifier
+              (Get_Method, "_get_"
+               & Ada_Name (Current_Declarator));
+            pragma Assert (Success);
+            Push_Scope (Get_Method);
+            Set_Is_Oneway (Get_Method, False);
+            Set_Operation_Type (Get_Method, A_Type (Node));
+            --  parameters
+            Set_Parameters (Get_Method, Nil_List);
+            Set_Raises (Get_Method, Nil_List);
+            Set_Contexts (Get_Method, Nil_List);
 
-               Insert_After
-                 (List => Exports_List,
-                  Node => Get_Method,
-                  After => Position);
-               Position := Get_Method;
-               Pop_Scope;
-            end;
-         end if;
+            --  add the node to the node list
+            --  Append_Node_To_Contents (New_Node, Get_Method);
+            Insert_After
+              (List => Exports_List,
+               Node => Get_Method,
+               After => Position);
+            Position := Get_Method;
+            Pop_Scope;
+         end;
+
 
          --  create the Set method
-         if Is_Writable then
+         if not Is_Readonly (Node) then
             declare
                Set_Method : constant Node_Id
                  := Make_Operation;
@@ -687,7 +577,7 @@ package body Ada_Be.Expansion is
                begin
                   --  new value parameter
                   Set_Mode (Param, Mode_In);
-                  Set_Param_Type (Param, The_Type);
+                  Set_Param_Type (Param, A_Type (Node));
                   Success := Add_Identifier (Decl, "To");
                   pragma Assert (Success = True);
                   Set_Array_Bounds (Decl, Nil_List);
@@ -699,7 +589,6 @@ package body Ada_Be.Expansion is
                end;
                Set_Raises (Set_Method, Nil_List);
                Set_Contexts (Set_Method, Nil_List);
-               Set_Original_Node (Set_Method, Node);
 
                --  add the node to the node list
                Insert_After
@@ -711,7 +600,7 @@ package body Ada_Be.Expansion is
             end;
          end if;
       end loop;
-   end Expand_Attribute_And_State_Member;
+   end Expand_Attribute;
 
    procedure Expand_Operation
      (Node : in Node_Id) is
@@ -1109,8 +998,6 @@ package body Ada_Be.Expansion is
    -----------------------------------------
    --          private utilities          --
    -----------------------------------------
-
-
 
    -----------------------
    --  Expand_Node_List --
