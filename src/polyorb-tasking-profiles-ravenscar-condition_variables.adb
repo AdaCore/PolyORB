@@ -230,7 +230,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       procedure Signal
         (Someone_Is_Waiting : out Boolean;
          To_Free            : out Ravenscar_Thread_Id) is
-         Former_First : Extended_Thread_Index := First;
+         Former_First : constant Extended_Thread_Index := First;
       begin
          Someone_Is_Waiting := First /= Null_Thread_Index;
 
