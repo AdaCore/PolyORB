@@ -87,8 +87,8 @@ GNATMAKE     = gnatmake
 
 PLATFORM           = @PLATFORM_SPECIFIC@
 
-TCP_PLATFORM       = 2${PLATFORM}gtplsp.ads
-CONSTANTS_PLATFORM = ${srcdir}/2${PLATFORM}garcon.ads
+TCP_PLATFORM       = 5${PLATFORM}gtplsp.ads
+CONSTANTS_PLATFORM = ${srcdir}/5${PLATFORM}garcon.ads
 
 EXTRA_LIBS = @EXTRA_LIBS@
 

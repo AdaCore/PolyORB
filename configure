@@ -1455,7 +1455,7 @@ fi
 if test "$TCP_INCLUDED" = ""; then
   echo $ac_n "checking thread-blocking I/O""... $ac_c" 1>&6
 echo "configure:1458: checking thread-blocking I/O" >&5
-    if grep Non_Blocking $srcdir/Garlic/2${PLATFORM_SPECIFIC}gtplsp.ads \
+    if grep Non_Blocking $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.ads \
       > /dev/null 2>&1; then
 	echo "$ac_t""no" 1>&6
 	PROTOCOLSOURCES="${PROTOCOLSOURCES} \$(NOBLTCPSOURCES)"

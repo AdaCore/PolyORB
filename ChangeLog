@@ -1,3 +1,9 @@
+1998-03-24  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Change 2<letter>* into 5<letter>*.
+
+	* MANIFEST: Likewise.
+
 1998-03-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in, configure: Add some platform configurations.

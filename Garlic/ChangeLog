@@ -1,3 +1,9 @@
+1998-03-24  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: Change 2<letter>* into 5<letter>*.
+
+	* 2<letter>*: renamed into 5<letter>*.
+
 1998-03-23  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-rpc.ads: Add comments.
