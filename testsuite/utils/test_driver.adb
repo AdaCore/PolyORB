@@ -54,6 +54,7 @@ procedure Test_Driver is
 
    use GNAT.Command_Line;
    use GNAT.Directory_Operations;
+   use GNAT.Expect;
    use GNAT.OS_Lib;
    use GNAT.Regpat;
 
@@ -110,6 +111,9 @@ procedure Test_Driver is
 
    procedure Run_All_Scenarios (Directory_Name : String);
    --  Run all scenarios from 'Directory_Name' directory.
+
+   procedure Scan_Command_Line;
+   --  Analyze arguments.
 
    procedure Usage;
    --  Print usage information.
@@ -173,9 +177,14 @@ procedure Test_Driver is
          when Local =>
             declare
                Command_S : constant String := Get_Conf (Section, "command");
+               Config_S : constant String := Get_Conf (Section, "config");
             begin
                Result.Exe_To_Run (1).Command
                  := To_Unbounded_String (Command_S);
+
+               Result.Exe_To_Run (1).Conf
+                 := To_Unbounded_String (Config_S);
+
             end;
 
          when Client_Server =>
@@ -187,18 +196,30 @@ procedure Test_Driver is
                Client_S : constant String :=
                  Get_Conf (Client_Section, "command");
 
+               Client_Config_S : constant String :=
+                 Get_Conf (Client_Section, "config_file");
+
                Server_Section : constant String
                  := "server " & Scenario & "_"
                  & Test_Id (Test_Id'First + 1 .. Test_Id'Last);
 
                Server_S : constant String :=
                  Get_Conf (Server_Section, "command");
+
+               Server_Config_S : constant String :=
+                 Get_Conf (Server_Section, "config_file");
             begin
                Result.Exe_To_Run (1).Command
                  := To_Unbounded_String (Server_S);
 
+               Result.Exe_To_Run (1).Conf
+                 := To_Unbounded_String (Server_Config_S);
+
                Result.Exe_To_Run (2).Command
                  := To_Unbounded_String (Client_S);
+
+               Result.Exe_To_Run (2).Conf
+                 := To_Unbounded_String (Client_Config_S);
 
             end;
       end case;
@@ -211,7 +232,6 @@ procedure Test_Driver is
 
    procedure Launch_Test (Test_To_Run : Test_Case)
    is
-      use GNAT.Expect;
 
       Null_Argument_List : constant Argument_List := (1 => new String'(""));
 
@@ -235,6 +255,7 @@ procedure Test_Driver is
       begin
          --  Launch Test.
          Put_Line ("Running: " & Command);
+
          Non_Blocking_Spawn (Fd, Command, Null_Argument_List);
 
          --  Redirect Output.
@@ -284,17 +305,23 @@ procedure Test_Driver is
 
       begin
          --  Launch Server.
+         Put_Line (Get_Current_Dir);
+
          Put_Line ("Running server: " & Server_Command);
+
+         Put_Line ("Setting environment: "
+                   & To_String (Test_To_Run.Exe_To_Run (1).Conf));
+         Setenv ("POLYORB_CONF", To_String (Test_To_Run.Exe_To_Run (1).Conf));
          Non_Blocking_Spawn (Fd_Server, Server_Command, Null_Argument_List);
 
          --  Match Server IOR.
          Add_Filter (Fd_Server, Trace_Filter'Access, Output);
-         Expect (Fd_Server, Result, "IOR:(.*)", Match, -1);
+         Expect (Fd_Server, Result, "IOR:([a-z0-9]*)", Match, -1);
          case Result is
             when 1 =>
                IOR_String := To_Unbounded_String
                  (Expect_Out (Fd_Server)
-                  (Match (0).First .. Match (0).Last - 1));
+                  (Match (0).First .. Match (0).Last));
 
             when others =>
                raise Program_Error;
@@ -304,10 +331,15 @@ procedure Test_Driver is
          --  Launch Client.
          New_Line;
          Put_Line ("Running client: " & Client_Command);
+         Put_Line (Get_Current_Dir);
          declare
             Client_Argument_List : constant Argument_List
               := (1 => new String'(To_String (IOR_String)));
          begin
+            Put_Line ("Setting environment: "
+                   & To_String (Test_To_Run.Exe_To_Run (2).Conf));
+            Setenv ("POLYORB_CONF",
+                    To_String (Test_To_Run.Exe_To_Run (2).Conf));
             Non_Blocking_Spawn (Fd_Client,
                                 Client_Command,
                                 Client_Argument_List);
@@ -328,7 +360,7 @@ procedure Test_Driver is
                   Put_Line ("==> Time Out ! <==");
 
                when others =>
-                  null;
+                  Put_Line ("==> Process Terminated <==");
 
             end case;
 
@@ -449,45 +481,65 @@ procedure Test_Driver is
       New_Line;
       Put_Line ("Usage: test_driver -scenario scenario_file|full directory,");
       Put_Line ("  -scenario scenario_file : plays scenario_file,");
-      Put_Line ("  -full                   : plays all scenarios" &
-                "in directory.");
+      Put_Line ("  -full     directory     : plays all scenarios" &
+                " in directory.");
       New_Line;
    end Usage;
+
+   -----------------------
+   -- Scan_Command_Line --
+   -----------------------
+
+   procedure Scan_Command_Line
+   is
+      Arguments_Ok : Boolean := False;
+      --  Flag to indicate that the arguments are correc.t
+
+   begin
+      loop
+         case Getopt ("scenario: full:") is
+            when ASCII.NUL =>
+               exit;
+
+            when 's' =>
+               if Full_Switch = "scenario" then
+                  Arguments_Ok := True;
+                  Run_Scenario (Parameter);
+               end if;
+
+            when 'f' =>
+               if Full_Switch = "full" then
+                  Arguments_Ok := True;
+                  Run_All_Scenarios (Parameter);
+               end if;
+
+            when others =>
+               raise Program_Error;
+         end case;
+      end loop;
+
+      if not Arguments_Ok then
+         Usage;
+      end if;
+
+   exception
+      when Invalid_Switch =>
+         Put_Line ("Invalid Switch " & Full_Switch);
+         Usage;
+
+      when Invalid_Parameter =>
+         Put_Line ("No parameter for " & Full_Switch);
+         Usage;
+
+   end Scan_Command_Line;
 
    --  Main procedure begins here.
 
 begin
    Put_Line ("Test driver launched.");
-
-   loop
-      case Getopt ("scenario: full:") is
-         when ASCII.NUL =>
-            exit;
-
-         when 's' =>
-            if Full_Switch = "scenario" then
-               Run_Scenario (Parameter);
-            end if;
-
-         when 'f' =>
-            if Full_Switch = "full" then
-               Run_All_Scenarios (Parameter);
-            end if;
-
-         when others =>
-            raise Program_Error;
-      end case;
-   end loop;
+   Scan_Command_Line;
 
 exception
-   when Invalid_Switch =>
-      Put_Line ("Invalid Switch " & Full_Switch);
-      Usage;
-
-   when Invalid_Parameter =>
-      Put_Line ("No parameter for " & Full_Switch);
-      Usage;
-
    when E : others =>
       Put_Line ("==> Internal Error <==");
       Put_Line (" Got exception: "
