@@ -328,15 +328,22 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   }
 
   private_definition += "   type " + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
-  private_definition += fields;
+  if ((fields == "")&&(!is_function())) {
+    private_definition += "      null ;\n" ;
+  } else {
+    private_definition += fields;
+  }
   if (is_function())
     {
       private_definition += "      Private_Result : ";
       private_definition += result_name + "_Ptr := null;\n";
     }
   private_definition += "   end record; \n";
-  private_definition += "   procedure Finalize(Self : in out "
-    + get_ada_local_name() + "_Proxy) ;\n\n";
+  if (!((fields == "")&&(!is_function()))) {
+    private_definition += "   procedure Finalize(Self : in out "
+      + get_ada_local_name() + "_Proxy) ;\n";
+  }
+  private_definition += "\n" ;
 }
 
 void
@@ -450,17 +457,17 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
     body += "   end ;\n\n\n";
   }
 
-  body += "   -- Finalize\n" ;
-  body += "   -----------\n" ;
-  body += "   procedure Finalize(Self : in out " + name + ") is\n";
-  body += "   begin\n";
-  body += finalize;
-  if (is_function()) {
-    body += "      Free(Self.Result) ;\n";
-  } else if (no_in && no_out) {
-    body += "      null ;\n";
+  if ( (!no_in) || (!no_out) || (is_function())) {
+    body += "   -- Finalize\n" ;
+    body += "   -----------\n" ;
+    body += "   procedure Finalize(Self : in out " + name + ") is\n";
+    body += "   begin\n";
+    body += finalize;
+    if (is_function()) {
+      body += "      Free(Self.Result) ;\n";
+    } 
+    body += "   end ;\n\n\n";
   }
-  body += "   end ;\n\n\n";
 }
 
 void

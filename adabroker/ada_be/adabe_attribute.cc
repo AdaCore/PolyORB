@@ -125,14 +125,14 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
   body += "   type Get_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private;\n\n";
   body += "   procedure Init(Self : in out Get_" + get_ada_local_name() + "_Proxy) ;\n\n";
   body += "   function Operation(Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
-  body += "                      return CORBA.String ;\n\n" ;
+  body += "                      return Corba.String ;\n\n" ;
   body += "   procedure Unmarshal_Returned_Values(Self : in out Get_" + get_ada_local_name() + "_Proxy ;\n";
   body += "                                       Giop_Client : in Giop_C.Object);\n\n";
   body += "   function Get_Result (Self : in Get_" + get_ada_local_name() + "_Proxy )\n";
   body += "                        return " +  name + "; \n\n\n";
 
   private_definition += "   type Get_" + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
-  private_definition += "      Result : " + name + "_Ptr := null;\n";
+  private_definition += "      Private_Result : " + name + "_Ptr := null;\n";
   private_definition += "   end record ;\n";
   private_definition += "   procedure Finalize (Self : in out Get_" + get_ada_local_name() + "_Proxy) ;\n\n";
   
@@ -145,7 +145,7 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
       body += "   procedure Init(Self : in out Set_" + get_ada_local_name() + "_Proxy ;\n";
       body += "                  Arg : in " + name + ") ;\n\n";
       body += "   function Operation(Self : in Set_" + get_ada_local_name() + "_Proxy)\n";
-      body += "                      return CORBA.String ;\n\n" ;
+      body += "                      return Corba.String ;\n\n" ;
       body += "   function Align_Size(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
       body += "                       Size_In : in Corba.Unsigned_Long)\n";
       body += "                       return Corba.Unsigned_Long ;\n\n";
@@ -179,7 +179,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
   body += "   -- Operation\n" ;
   body += "   ------------\n" ;
   body += "   function Operation(Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
-  body += "                      return CORBA.String is\n";
+  body += "                      return Corba.String is\n";
   body += "   begin\n";
   body += "      return Corba.To_Corba_String(\"get_" + get_ada_local_name() + "\") ;\n";
   body += "   end ;\n\n\n";
@@ -190,14 +190,14 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
   body += "      Result : " + name + " ;\n";
   body += "   begin\n";
   body += "      Unmarshall(Result, Giop_client) ;\n";
-  body += "      Self.Result := new " + name + "'(Result) ;\n";
+  body += "      Self.Private_Result := new " + name + "'(Result) ;\n";
   body += "   end ;\n\n\n" ;
   body += "   -- Get_Result\n" ;
   body += "   -------------\n" ;
   body += "   function Get_Result (Self : in Get_" + get_ada_local_name() + "_Proxy )\n";
   body += "                        return " +  name + " is\n";
   body += "   begin\n";
-  body += "      return Self.Result.all ;\n";
+  body += "      return Self.Private_Result.all ;\n";
   body += "   end ;\n\n\n";
   body += "   -- Finalize\n" ;
   body += "   -----------\n" ;
@@ -222,7 +222,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
       body += "   -- Operation\n" ;
       body += "   ------------\n" ;
       body += "   function Operation(Self : in Set_" + get_ada_local_name() + "_Proxy) is\n";
-      body += "                      return CORBA.String is\n";
+      body += "                      return Corba.String is\n";
       body += "   begin\n";
       body += "      return Corba.To_Corba_String(\"set_" + get_ada_local_name() + "\") ;\n";
       body += "   end ;\n\n\n";
