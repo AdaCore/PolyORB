@@ -1,3 +1,0 @@
-#undef PACKAGE
-#undef VERSION
-
