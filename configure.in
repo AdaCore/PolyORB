@@ -244,7 +244,7 @@ AC_SUBST(EXTRA_LIBS)
 # Output
 #
 AC_OUTPUT([Makefile
-           Dist/Makefile Dist/gnatdist
+           Dist/Makefile
            Garlic/Makefile Garlic/s-gaplsp.ads
            Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config

@@ -1,3 +1,10 @@
+1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure, configure.in: Remove substitution in
+	gnatdist.in. gnatdist.in script is not used anymore.
+
+	* MANIFEST: Remove gnatdist.in.
+
 1998-02-18  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* MANIFEST: Remove s-gafino.ad[bs]. No longer needed.
