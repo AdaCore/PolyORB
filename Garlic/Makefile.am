@@ -61,6 +61,7 @@ s-garfil.o\
 s-gargro.o\
 s-garhea.o\
 s-garlic.o\
+s-gardfs.o\
 s-garopt.o\
 s-garpar.o\
 s-garpri.o\
@@ -76,12 +77,15 @@ s-garter.o\
 s-gartyp.o\
 s-garuni.o\
 s-garuti.o\
+s-garsto.o\
 s-gasoli.o\
+s-gastco.o\
 s-gatcop.o\
 s-parint.o\
 s-rpc.o\
 s-rpcpoo.o\
 s-rpstio.o\
+s-shamem.o\
 s-stratt.o
 
 COMMONSOURCES = \
@@ -94,6 +98,7 @@ $(srcdir)/s-gaprco.ads           s-gaprco.adb \
 $(srcdir)/s-gaprob.ads $(srcdir)/s-gaprob.adb \
           s-garcon.ads                        \
 $(srcdir)/s-gardeb.ads $(srcdir)/s-gardeb.adb \
+$(srcdir)/s-gardfs.ads $(srcdir)/s-gardfs.adb \
 $(srcdir)/s-garfil.ads $(srcdir)/s-garfil.adb \
 $(srcdir)/s-gargro.ads $(srcdir)/s-gargro.adb \
 $(srcdir)/s-garhea.ads $(srcdir)/s-garhea.adb \
@@ -116,13 +121,16 @@ $(srcdir)/s-garter.ads $(srcdir)/s-garter.adb \
 $(srcdir)/s-gartyp.ads                        \
 $(srcdir)/s-garuni.ads $(srcdir)/s-garuni.adb \
 $(srcdir)/s-garuti.ads $(srcdir)/s-garuti.adb \
+$(srcdir)/s-garsto.ads $(srcdir)/s-garsto.adb \
 $(srcdir)/s-gasoli.ads $(srcdir)/s-gasoli.adb \
+$(srcdir)/s-gastco.ads $(srcdir)/s-gastco.adb \
 $(srcdir)/s-gastha.ads $(srcdir)/s-gastha.adb \
           s-gatcop.ads                        \
 $(srcdir)/s-parint.ads $(srcdir)/s-parint.adb \
 $(srcdir)/s-rpc.ads    $(srcdir)/s-rpc.adb    \
 $(srcdir)/s-rpcpoo.ads $(srcdir)/s-rpcpoo.adb \
 $(srcdir)/s-rpstio.ads $(srcdir)/s-rpstio.adb \
+$(srcdir)/s-shamem.ads $(srcdir)/s-shamem.adb \
 $(srcdir)/s-stratt.adb
 
 @FILTERSMAKEFILE@
@@ -306,7 +314,10 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	  if test -f $$pathtolib$$lib; then \
 	    $(CP)  $$pathtolib$$lib $(GARLIC)/$$lib;\
 	    chmod u+w $(GARLIC)/$$lib;\
-	    $(AR) d $(GARLIC)/$$lib s-stratt.o s-rpc.o s-parint.o 2>/dev/null;\
+	    $(AR) d $(GARLIC)/$$lib s-stratt.o \
+	                            s-rpc.o \
+	                            s-shamem.o \
+	                            s-parint.o 2>/dev/null;\
 	    if test `cat inlining` = "yes"; then\
 	      (cd gnatlib;\
 	       for o in `cat rebuild`; do \
@@ -324,7 +335,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	  (cd gnatlib;\
 	   $(CP) $(CP_PRESERVE) `$(SED) 's/\.o/.ali/g' rebuild` $(GARLIC));\
 	fi
-	for i in $(GARLIC) $(SOURCES)\
+	for i in $(SOURCES)\
 		`echo $(OBJECTS) | $(SED) -e 's/\.o/.ali/g'`; do\
 		if test -f $$i; then\
 			$(CP) $(CP_PRESERVE) $$i $(GARLIC)/;\
@@ -350,13 +361,13 @@ depend: $(SOURCES)
 ###
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 b~isthrbio.o: b~isthrbio.ads b~isthrbio.adb
-isthrbio.o: isthrbio.adb s-garlic.ads s-gtplsp.ads s-garthi.ads
-linktest.o: linktest.adb s-garlic.ads s-gardeb.ads s-ganobl.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-garter.ads s-garthi.ads s-gartyp.ads s-garuti.ads s-parint.ads s-rpc.ads
+isthrbio.o: isthrbio.adb s-garlic.ads s-garcon.ads s-gtplsp.ads s-garthi.ads
+linktest.o: linktest.adb s-garlic.ads s-gardeb.ads s-ganobl.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-garter.ads s-gartyp.ads s-garuti.ads s-parint.ads s-rpc.ads
 s-gafizi.o: s-garlic.ads s-gardeb.ads s-garfil.ads s-gafizi.ads s-gafizi.adb s-garhea.ads s-garpro.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuti.ads
 s-galiop.o: s-garlic.ads s-galiop.ads
-s-galite.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-galite.ads s-galite.adb s-garpro.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuti.ads
+s-galite.o: s-garlic.ads s-galite.ads s-galite.adb
 s-ganata.o: s-garlic.ads s-gardeb.ads s-ganata.ads s-ganata.adb s-gasoli.ads s-gartab.ads s-gartab.adb s-garuti.ads
-s-ganeut.o: s-garlic.ads s-gardeb.ads s-ganeut.ads s-ganeut.adb s-garthi.ads
+s-ganeut.o: s-garlic.ads s-gardeb.ads s-ganeut.ads s-ganeut.adb
 s-ganobl.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-ganobl.ads s-ganobl.adb s-garpri.ads s-gasoli.ads s-garthi.ads s-garuti.ads
 s-gaphlo.o: s-garlic.ads s-gardeb.ads s-gaphlo.ads s-gaphlo.adb s-garpro.ads s-gartyp.ads s-garuti.ads
 s-gaplsp.o: s-garlic.ads s-gaplsp.ads
@@ -364,7 +375,8 @@ s-gaprco.o: s-garlic.ads s-garpro.ads s-gaprco.ads s-gaprco.adb s-garrep.ads s-g
 s-gaprob.o: s-garlic.ads s-gardeb.ads s-gaprob.ads s-gaprob.adb s-gasoli.ads s-garuti.ads
 s-garcon.o: s-garlic.ads s-garcon.ads
 s-gardeb.o: s-garlic.ads s-gardeb.ads s-gardeb.adb
-s-garela.o: s-garlic.ads s-garela.ads s-garela.adb s-garopt.ads s-gartyp.ads s-garuti.ads
+s-gardfs.o: s-garlic.ads s-gardeb.ads s-gardfs.ads s-gardfs.adb s-garsto.ads s-gartyp.ads
+s-garela.o: s-garlic.ads s-gardfs.ads s-garela.ads s-garela.adb s-garopt.ads s-garsto.ads s-gartyp.ads s-garuti.ads
 s-garexc.o: s-garlic.ads s-gardeb.ads s-garexc.ads s-garexc.adb
 s-garfil.o: s-garlic.ads s-gardeb.ads s-garfil.ads s-garfil.adb s-garhea.ads s-ganata.ads s-garpar.ads s-gaphlo.ads s-garpro.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-gartab.ads s-gartab.adb s-gartyp.ads s-garuti.ads
 s-gargro.o: s-garlic.ads s-gardeb.ads s-gargro.ads s-gargro.adb s-garhea.ads s-ganata.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpro.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuti.ads
@@ -378,22 +390,23 @@ s-garpro.o: s-garlic.ads s-garpro.ads s-garpro.adb s-gartyp.ads s-garuti.ads
 s-garrem.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-ganata.ads s-garnam.ads s-garpar.ads s-gaphlo.ads s-gaplsp.ads s-garpro.ads s-garrem.ads s-garrem.adb s-gasoli.ads s-gastha.ads s-garstr.ads s-garthi.ads s-gartyp.ads s-garuti.ads
 s-garrep.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-garrep.ads s-garrep.adb s-gasoli.ads s-gastha.ads s-garstr.ads s-gartra.ads s-gartyp.ads s-garuti.ads
 s-garser.o: s-garlic.ads s-garopt.ads s-gaprob.ads s-garrem.ads s-garser.ads s-garser.adb s-gasoli.ads s-gartyp.ads s-garuti.ads
-s-garssl.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garnam.ads s-ganeut.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-gasoli.ads s-garssl.ads s-garssl.adb s-gastha.ads s-garstr.ads s-gartab.ads s-gartab.adb s-gatcop.ads s-gtplsp.ads s-garthi.ads s-gartyp.ads s-garuti.ads
-s-garsta.o: s-garlic.ads s-gardeb.ads s-garela.ads s-garfil.ads s-gargro.ads s-garhea.ads s-ganata.ads s-garnam.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpro.ads s-gaprco.ads s-garser.ads s-gasoli.ads s-garsta.ads s-garsta.adb s-gastha.ads s-garstr.ads s-garter.ads s-garthi.ads s-gartra.ads s-gartyp.ads s-garuni.ads s-garuti.ads
-s-garstr.o: s-garlic.ads s-gardeb.ads s-garser.ads s-gasoli.ads s-gastha.ads s-gastha.adb s-garstr.ads s-garstr.adb s-garuti.ads
+s-garsta.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garela.ads s-garexc.ads s-garfil.ads s-gargro.ads s-garhea.ads s-ganata.ads s-garnam.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpro.ads s-gaprco.ads s-garser.ads s-gasoli.ads s-garsta.ads s-garsta.adb s-gastha.ads s-garstr.ads s-garter.ads s-garthi.ads s-gartra.ads s-gartyp.ads s-garuni.ads s-garuti.ads
+s-garstr.o: s-garlic.ads s-gardeb.ads s-gasoli.ads s-gastha.ads s-gastha.adb s-garstr.ads s-garstr.adb s-garuti.ads
 s-gartab.o: s-garlic.ads s-gardeb.ads s-ganata.ads s-gasoli.ads s-gartab.ads s-gartab.adb s-garuti.ads
 s-gartcp.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garnam.ads s-ganeut.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-gartab.ads s-gartab.adb s-gartcp.ads s-gartcp.adb s-gatcop.ads s-gtplsp.ads s-garthi.ads s-gartyp.ads s-garuti.ads
 s-garter.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpro.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-garter.ads s-garter.adb s-gartyp.ads s-garuti.ads
-s-garthi.o: s-garlic.ads s-gardeb.ads s-garthi.ads s-garthi.adb
+s-garthi.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garthi.ads s-garthi.adb
 s-gartra.o: s-garlic.ads s-gardeb.ads s-garopt.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-gartra.ads s-gartra.adb s-gartyp.ads s-garuti.ads
 s-gartyp.o: s-garlic.ads s-gartyp.ads
 s-garuni.o: s-garlic.ads s-gardeb.ads s-gargro.ads s-garhea.ads s-ganata.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpro.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-gartab.ads s-gartab.adb s-gartyp.ads s-garuni.ads s-garuni.adb s-garuti.ads
 s-garuti.o: s-garlic.ads s-gardeb.ads s-garuti.ads s-garuti.adb
+s-garsto.o: s-garlic.ads s-gardeb.ads s-garsto.ads s-garsto.adb s-gartyp.ads
 s-gasoli.o: s-garlic.ads s-gardeb.ads s-gasoli.ads s-gasoli.adb s-garuti.ads
-s-gatcop.o: s-garlic.ads s-gatcop.ads s-garthi.ads
-s-gtplsp.o: s-garlic.ads s-gtplsp.ads
-s-parint.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpro.ads s-garrem.ads s-gasoli.ads s-garsta.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuni.ads s-garuti.ads s-parint.ads s-parint.adb s-rpc.ads
+s-gatcop.o: s-garlic.ads s-garcon.ads s-gatcop.ads s-garthi.ads
+s-gtplsp.o: s-garlic.ads s-garcon.ads s-gtplsp.ads s-garthi.ads
+s-parint.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpro.ads s-garrem.ads s-garsto.ads s-gasoli.ads s-garsta.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuni.ads s-garuti.ads s-parint.ads s-parint.adb s-rpc.ads
 s-rpc.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-garpro.ads s-gasoli.ads s-garsta.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuni.ads s-garuti.ads s-rpc.ads s-rpc.adb s-rpcpoo.ads s-rpstio.ads
 s-rpcpoo.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-garopt.ads s-garpri.ads s-garpro.ads s-gasoli.ads s-garsta.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuti.ads s-rpc.ads s-rpcpoo.ads s-rpcpoo.adb
 s-rpstio.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garpro.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-gartab.ads s-gartab.adb s-gartyp.ads s-garuti.ads s-rpc.ads s-rpstio.ads s-rpstio.adb
+s-shamem.o: s-garlic.ads s-garsto.ads s-gartyp.ads s-shamem.ads s-shamem.adb
 s-stratt.o: s-stratt.adb
