@@ -26,6 +26,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.OS_Lib;
+
+with Table;
 with Types;
 
 package XE is
@@ -260,6 +263,31 @@ package XE is
    Reconnection_Img    : array (Reconnection_Type) of Types.Name_Id;
    Termination_Img     : array (Termination_Type) of Types.Name_Id;
    Boolean_Img         : array (Boolean_Type) of Types.Name_Id;
+
+   package Compiler_Switches is new Table.Table (
+     Table_Component_Type => GNAT.OS_Lib.String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100,
+     Table_Name           => "XE.Compiler_Switches");
+
+   package Binder_Switches is new Table.Table (
+     Table_Component_Type => GNAT.OS_Lib.String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100,
+     Table_Name           => "XE.Binder_Switches");
+
+   package Linker_Switches is new Table.Table (
+     Table_Component_Type => GNAT.OS_Lib.String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100,
+     Table_Name           => "XE.Linker_Switches");
+
 
    procedure Add_Configuration_Declaration
      (Configuration_Node : in Configuration_Id;
