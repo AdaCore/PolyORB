@@ -9,6 +9,7 @@ with Frontend.Nodes;
 
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
+--  with Backend.BE_Ada.Debug; use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Nutils is
 
@@ -137,7 +138,6 @@ package body Backend.BE_Ada.Nutils is
       P : Node_Id := Parent_Unit_Name (Designator);
 
    begin
-      pragma Assert (Witheded);
       D := Copy_Node (Designator);
       if Present (P) then
          P := Copy_Designator (P, False);
@@ -701,7 +701,8 @@ package body Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Constant_Present    : Boolean := False;
       Object_Definition   : Node_Id;
-      Expression          : Node_Id := No_Node)
+      Expression          : Node_Id := No_Node;
+      Parent              : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -712,6 +713,13 @@ package body Backend.BE_Ada.Nutils is
       Set_Constant_Present (N, Constant_Present);
       Set_Object_Definition (N, Object_Definition);
       Set_Expression (N, Expression);
+
+      if No (Parent) then
+         Set_Parent (N, Current_Package);
+      else
+         Set_Parent (N, Parent);
+      end if;
+
       return N;
    end Make_Object_Declaration;
 

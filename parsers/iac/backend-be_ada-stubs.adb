@@ -4,7 +4,9 @@ with Values;    use Values;
 
 with Frontend.Nutils;
 with Frontend.Nodes;            use Frontend.Nodes;
+--  with Frontend.Debug;
 
+with Backend.BE_Ada.Expand; use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
@@ -23,7 +25,6 @@ package body Backend.BE_Ada.Stubs is
      (Subp_Spec : Node_Id; Local_Variables : List_Id) return List_Id;
    function Marshaller_Declarations
      (Subp_Spec : Node_Id) return List_Id;
-   pragma Unreferenced (Marshaller_Declarations, Marshaller_Body);
 
    package body Package_Spec is
 
@@ -101,31 +102,27 @@ package body Backend.BE_Ada.Stubs is
          while Present (A) loop
             Set_Main_Spec;
 
+            --  Insert repository declaration
+
             Append_Node_To_List
               (Map_Repository_Declaration (A),
                Visible_Part (Current_Package));
+
+            --  Insert getter specification
 
             N := Map_Accessor_Declaration
               (Accessor => Getter, Attribute => A);
             Append_Node_To_List (N, Visible_Part (Current_Package));
             Bind_FE_To_Stub (Identifier (A), N);
-            --  Set_Main_Body;
-            --  D := Marshaller_Declarations (N);
-            --  S := Marshaller_Body (N, D);
-            --  P := Make_Subprogram_Implementation (N, D, S);
-            --  Append_Node_To_List (P, Statements (Current_Package));
 
             if not Is_Readonly (E) then
                Set_Main_Spec;
+
+               --  Insert setter specification
+
                N := Map_Accessor_Declaration
                  (Accessor => Setter, Attribute => A);
                Append_Node_To_List (N, Visible_Part (Current_Package));
-
-               --  Set_Main_Body;
-               --  D := Marshaller_Declarations (N);
-               --  S := Marshaller_Body (N, D);
-               --  P := Make_Subprogram_Implementation (N, D, S);
-               --  Append_Node_To_List (P, Statements (Current_Package));
             end if;
 
             A := Next_Entity (A);
@@ -246,7 +243,8 @@ package body Backend.BE_Ada.Stubs is
          if FEU.Is_Empty (L) then
             N := RE (RE_Ref_2);
          else
-            N := Map_Designator (First_Entity (L));
+            N := Expand_Designator
+              (Stub_Node (BE_Node (Identifier (First_Entity (L)))));
          end if;
          I := Make_Defining_Identifier (TN (T_Ref));
          N :=
@@ -496,19 +494,20 @@ package body Backend.BE_Ada.Stubs is
 
    package body Package_Body is
 
+      procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
+      procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
-      pragma Unreferenced (Visit_Specification);
+
       -----------
       -- Visit --
       -----------
 
       procedure Visit (E : Node_Id) is
-
       begin
          case FEN.Kind (E) is
             when K_Specification =>
-               null;
+               Visit_Specification (E);
 
             when K_Constant_Declaration =>
                null;
@@ -523,7 +522,7 @@ package body Backend.BE_Ada.Stubs is
                Visit_Interface_Declaration (E);
 
             when K_Operation_Declaration =>
-               null;
+               Visit_Operation_Declaration (E);
 
             when K_Structure_Type =>
                null;
@@ -532,7 +531,7 @@ package body Backend.BE_Ada.Stubs is
                null;
 
             when K_Attribute_Declaration =>
-               null;
+               Visit_Attribute_Declaration (E);
 
             when K_Type_Declaration =>
                null;
@@ -545,24 +544,89 @@ package body Backend.BE_Ada.Stubs is
          end case;
       end Visit;
 
+      ---------------------------------
+      -- Visit_Attribute_Declaration --
+      ---------------------------------
+
+      procedure Visit_Attribute_Declaration (E : Node_Id) is
+         N : Node_Id;
+         A : Node_Id;
+         S : Node_Id;
+         D : List_Id;
+         B : List_Id;
+      begin
+         A := First_Entity (Declarators (E));
+         while Present (A) loop
+            Set_Main_Body;
+            S := Stub_Node (BE_Node (Identifier (A)));
+            D := Marshaller_Declarations (S);
+            B := Marshaller_Body (S, No_List);
+            N := Make_Subprogram_Implementation
+              (Specification => S,
+               Declarations => D,
+               Statements => B);
+            Append_Node_To_List (N, Statements (Current_Package));
+
+            if not Is_Readonly (E) then
+               Set_Main_Body;
+               S := Next_Node (S);
+               D := Marshaller_Declarations (S);
+               B := Marshaller_Body (S, No_List);
+               N := Make_Subprogram_Implementation
+                 (Specification => S,
+                  Declarations => D,
+                  Statements => B);
+               Append_Node_To_List (N, Statements (Current_Package));
+            end if;
+
+            A := Next_Entity (A);
+         end loop;
+      end Visit_Attribute_Declaration;
+
       ---------------------
       -- Visit_Interface --
       ---------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
+         N : Node_Id;
+      begin
+         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
+         Set_Helper_Body;
+         N := First_Entity (Interface_Body (E));
+         while Present (N) loop
+            Visit (N);
+            N := Next_Entity (N);
+         end loop;
+         Pop_Entity;
+      end Visit_Interface_Declaration;
+
+
+      ---------------------------------
+      -- Visit_Operation_Declaration --
+      ---------------------------------
+
+      procedure Visit_Operation_Declaration (E : Node_Id) is
          pragma Unreferenced (E);
       begin
          null;
-      end Visit_Interface_Declaration;
+      end Visit_Operation_Declaration;
 
       -------------------------
       -- Visit_Specification --
       -------------------------
 
       procedure Visit_Specification (E : Node_Id) is
-         pragma Unreferenced (E);
+         Definition : Node_Id;
+
       begin
-         null;
+         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+         Definition := First_Entity (Definitions (E));
+         while Present (Definition) loop
+            Visit (Definition);
+            Definition := Next_Entity (Definition);
+         end loop;
+         Pop_Entity;
       end Visit_Specification;
 
    end Package_Body;
@@ -576,7 +640,6 @@ package body Backend.BE_Ada.Stubs is
       Local_Variables : List_Id)
       return            List_Id
    is
-      pragma Unreferenced (Local_Variables);
       Statements    : List_Id;
       N             : Node_Id;
       C             : Node_Id;
@@ -586,7 +649,7 @@ package body Backend.BE_Ada.Stubs is
       Return_T      : Node_Id;
       I             : Node_Id;
       Param         : Node_Id;
-
+      pragma Unreferenced (Local_Variables);
    begin
       Return_T := Return_Type (Subp_Spec);
       Statements := New_List (BEN.K_List_Id);
@@ -622,56 +685,47 @@ package body Backend.BE_Ada.Stubs is
         (Make_Defining_Identifier (VN (V_Argument_List)), P);
       Set_Actual_Parameter_Part (C, P);
       Append_Node_To_List (C, Statements);
-
       Count := Length (Parameter_Profile (Subp_Spec));
+
       if Count > 1 then
          null; --  Add variables to the parameter list
       end if;
 
       --  Set result type (maybe void)
       --  --  PolyORB.Types.Identifier (Result_Name)
+
       C := Make_Subprogram_Call
         (Defining_Identifier   => RE (RE_Identifier),
          Actual_Parameter_Part =>
            Make_List_Id (Make_Defining_Identifier (VN (V_Result_Name))));
 
       --  -- Name => PolyORB.Types.Identifier (Result_Name)
+
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
          Expression    => C);
       P := Make_List_Id (N);
 
-      Set_Str_To_Name_Buffer ("TC_");
-      if No (Return_T)
-      or else FEN.Kind
-        (FE_Node (Defining_Identifier (Return_T))) = FEN.K_Void
-      then
+      if No (Return_T) then
          I := RE (RE_Get_Empty_Any_1);
          Param := RE (RE_TC_Void);
       elsif Is_Base_Type
-        (FE_Node (Defining_Identifier (Return_T)))
+        (FE_Node (Return_T))
       then
-         --  Get_Name_String_And_Append
-         --  (BEN.Name (Defining_Identifier (Return_T)));
-         --  Param := Expand_Designator
-         --  (Identifier => Make_Defining_Identifier (Name_Find),
-         --   Unit_Name => RU (RU_CORBA));
-         --  I := RE (RE_Get_Empty_Any_0);
-         null;
+         Param := Base_Type_TC (FEN.Kind (FE_Node (Return_T)));
+         I := RE (RE_Get_Empty_Any_0);
       else
-         Get_Name_String_And_Append
-           (BEN.Name (Defining_Identifier (Return_T)));
-         --  Param := Expand_Designator
-         --  (Identifier => Make_Defining_Identifier (Name_Find),
-         --   Unit_Name =>
-         --     Qualified_Designator
-         --   (Defining_Identifier ((Helper_Package (Current_Entity)))));
+         Param := Identifier (FE_Node (Return_T));
+         Param := Helper_Node
+           (BE_Node (Identifier
+                     (Reference (Corresponding_Entity (Param)))));
+         Param := Expand_Designator (Param);
          I := RE (RE_Get_Empty_Any_0);
       end if;
+
       C := Make_Subprogram_Call
         (Defining_Identifier  => I,
          Actual_Parameter_Part => Make_List_Id (Param));
-
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
          Expression    => C);
@@ -685,8 +739,52 @@ package body Backend.BE_Ada.Stubs is
       N := Make_Record_Aggregate (P);
 
       N := Make_Assignment_Statement
-        (Variable_Identifier => Make_Defining_Identifier (VN (V_Result_Name)),
+        (Variable_Identifier =>
+           Make_Defining_Identifier (VN (V_Result_Name)),
          Expression => N);
+      Append_Node_To_List (N, Statements);
+
+      N := Make_Subprogram_Call
+        (RE (RE_Ref_2),
+         Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
+      N := Make_Subprogram_Call
+        (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
+      N := Make_Component_Association
+        (Selector_Name => Make_Defining_Identifier (PN (P_Target)),
+         Expression    => N);
+      P := Make_List_Id (N);
+      N := Make_Component_Association
+        (Selector_Name => Make_Defining_Identifier (PN (P_Operation)),
+         Expression    => Make_Defining_Identifier (VN (V_Operation_Name)));
+      Append_Node_To_List (N, P);
+      N := Make_Component_Association
+        (Selector_Name => Make_Defining_Identifier (PN (P_Arg_List)),
+         Expression    => Make_Defining_Identifier (VN (V_Argument_List)));
+      Append_Node_To_List (N, P);
+      N := Make_Component_Association
+        (Selector_Name => Make_Defining_Identifier (PN (P_Result)),
+         Expression    => Make_Defining_Identifier (VN (V_Result_Name)));
+      Append_Node_To_List (N, P);
+      N := Make_Component_Association
+        (Selector_Name => Make_Defining_Identifier (PN (P_Req)),
+         Expression    => Make_Defining_Identifier (VN (V_Request)));
+      Append_Node_To_List (N, P);
+
+      N := Make_Subprogram_Call
+        (RE (RE_Create_Request),
+         P);
+      Append_Node_To_List (N, Statements);
+
+      --  ???
+
+      N := Make_Subprogram_Call
+        (RE (RE_Flags),
+         Make_List_Id (Make_Literal (Int0_Val)));
+      N := Make_Subprogram_Call
+        (RE (RE_Client_Invoke),
+         Make_List_Id
+         (Make_Defining_Identifier (VN (V_Request)),
+          N));
       Append_Node_To_List (N, Statements);
 
       return Statements;
@@ -710,6 +808,7 @@ package body Backend.BE_Ada.Stubs is
       L := New_List (BEN.K_List_Id);
 
       --  Arg_List_U declaration.
+
       N := Make_Object_Declaration
         (Defining_Identifier =>
            Make_Defining_Identifier (VN (V_Argument_List)),
@@ -722,10 +821,12 @@ package body Backend.BE_Ada.Stubs is
       I := First_Node (P);
       I := Next_Node (I);
       while Present (I) loop
+
          --  Arg_Name_U_X declaration
          --  Arg_Name_U_X : PolyORB.Types.Identifier
          --    := PolyORB.Types.To_PolyORB_String ("X")
          --  ** where X is the parameter name.
+
          X := BEN.Name (Defining_Identifier (I));
          C := Make_Subprogram_Call
            (Defining_Identifier   => RE (RE_To_PolyORB_String),
@@ -746,24 +847,30 @@ package body Backend.BE_Ada.Stubs is
          --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
          --  ** where X is the parameter name.
          --  ** where Y is the fully qualified current package Name.
-         if FEN.Kind
-           (BEN.FE_Node (Defining_Identifier (Parameter_Type (I))))
-           in FEN.K_Float .. FEN.K_Value_Base
-         then
+
+         if Is_Base_Type (BEN.FE_Node (Parameter_Type (I))) then
+
             if BEN.Parameter_Mode (I) = Mode_Out then
                D := RE (RE_Get_Empty_Any_0);
             else
                D := RE (RE_To_Any_0);
             end if;
+
          else
+
             if BEN.Parameter_Mode (I) = Mode_Out then
                D := RE (RE_Get_Empty_Any_1);
+               Set_Parent_Unit_Name
+                 (D, Defining_Identifier (Helper_Package (Current_Entity)));
             else
-               D := RE (RE_To_Any_1);
+               D := Identifier (FE_Node (Parameter_Type (I)));
+               D := Helper_Node
+                 (BE_Node (Identifier (Reference (Corresponding_Entity (D)))));
+               D := Expand_Designator (Next_Node (Next_Node (D)));
             end if;
-            Set_Parent_Unit_Name
-              (D, Defining_Identifier (Helper_Package (Current_Entity)));
+
          end if;
+
          C :=  Make_Subprogram_Call
            (Defining_Identifier   => D,
             Actual_Parameter_Part =>

@@ -20,6 +20,8 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB_Any_NVList,
       RU_PolyORB_Requests,
       RU_PolyORB_Types,
+      RU_PolyORB_CORBA_P,
+      RU_PolyORB_CORBA_P_Interceptors_Hooks,
       RU_Standard,
       RU_PortableServer);
 
@@ -48,11 +50,27 @@ package Backend.BE_Ada.Runtime is
       RE_String_1,                  --  CORBA.String
       RE_Wide_String,               --  CORBA.Wide_String
       RE_Boolean,                   --  CORBA.Boolean
-      RE_Octet,                     --  CORBA.Boolean
+      RE_Octet,                     --  CORBA.Octet
+      RE_TC_Float,                  --  CORBA.TC_Float
+      RE_TC_Double,                 --  CORBA.TC_Double
+      RE_TC_Long_Double,            --  CORBA.TC_Long_Double
+      RE_TC_Short,                  --  CORBA.TC_Short
+      RE_TC_Long,                   --  CORBA.TC_Long
+      RE_TC_Long_Long,              --  CORBA.TC_Long_Long
+      RE_TC_Unsigned_Short,         --  CORBA.TC_Unsigned_Short
+      RE_TC_Unsigned_Long,          --  CORBA.TC_Unsigned_Long
+      RE_TC_Unsigned_Long_Long,     --  CORBA.TC_Unsigned_Long_Long
+      RE_TC_Char,                   --  CORBA.TC_Char
+      RE_TC_WChar,                  --  CORBA.TC_WChar
+      RE_TC_String,                 --  CORBA.TC_String
+      RE_TC_Wide_String,            --  CORBA.TC_Wide_String
+      RE_TC_Boolean,                --  CORBA.TC_Boolean
+      RE_TC_Octet,                  --  CORBA.TC_Octet
       RE_IDL_Exception_Members,     --  CORBA.IDL_Exception_Members
       RE_Object_Is_Nil,             --  CORBA.Object_Is_Nil
       RE_Raise_Inv_Objref,          --  CORBA.Raise_Inv_Objref
       RE_Raise_Bad_Param,           --  CORBA.Raise_Bad_Param
+      RE_To_PolyORB_Ref,            --  CORBA.To_PolyORB_Ref
       RE_To_CORBA_String,           --  CORBA.To_CORBA_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
       RE_Set_Type,                  --  CORBA.Set_Type
@@ -65,7 +83,7 @@ package Backend.BE_Ada.Runtime is
       RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
       RE_From_Any,                  --  CORBA.Object.Helper.From_Any
       RE_Object,                    --  CORBA.TypeCode.Object
-      RE_To_CORBA_Object,        -- CORBA.TypeCode.Internals.To_CORBA_Object
+      RE_To_CORBA_Object,           -- CORBA.TypeCode.Internals.To_CORBA_Object
       RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
@@ -75,8 +93,11 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Struct,                 --  PolyORB.Any.TypeCode.TC_Struct
       RE_TC_Array,                  --  PolyORB.Any.TypeCode.TC_Array
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
+      RE_Create_Request,            --  PolyORB.Requests.Create_Request
+      RE_Flags,                     --  PolyORB.Requests.Flags
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
+      RE_Client_Invoke,    --  PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
       RE_String_2,                  --  Standard.String
       RE_Servant_Base);             --  PortableServer.Servant_Base
 
@@ -105,11 +126,27 @@ package Backend.BE_Ada.Runtime is
          RE_Wide_String           => RU_CORBA,
          RE_Boolean               => RU_CORBA,
          RE_Octet                 => RU_CORBA,
+         RE_TC_Float              => RU_CORBA,
+         RE_TC_Double             => RU_CORBA,
+         RE_TC_Long_Double        => RU_CORBA,
+         RE_TC_Short              => RU_CORBA,
+         RE_TC_Long               => RU_CORBA,
+         RE_TC_Long_Long          => RU_CORBA,
+         RE_TC_Unsigned_Short     => RU_CORBA,
+         RE_TC_Unsigned_Long      => RU_CORBA,
+         RE_TC_Unsigned_Long_Long => RU_CORBA,
+         RE_TC_Char               => RU_CORBA,
+         RE_TC_WChar              => RU_CORBA,
+         RE_TC_String             => RU_CORBA,
+         RE_TC_Wide_String        => RU_CORBA,
+         RE_TC_Boolean            => RU_CORBA,
+         RE_TC_Octet              => RU_CORBA,
          RE_IDL_Exception_Members => RU_CORBA,
          RE_Object_Is_Nil         => RU_CORBA,
          RE_To_CORBA_String       => RU_CORBA,
          RE_Raise_Inv_Objref      => RU_CORBA,
          RE_Raise_Bad_Param       => RU_CORBA,
+         RE_To_PolyORB_Ref        => RU_CORBA,
          RE_Ref_1                 => RU_CORBA_AbstractBase,
          RE_Set_Type              => RU_CORBA,
          RE_Get_Empty_Any_Aggregate => RU_CORBA,
@@ -131,10 +168,14 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Struct             => RU_PolyORB_Any,
          RE_TC_Array              => RU_PolyORB_Any,
          RE_Request_Access        => RU_PolyORB_Requests,
+         RE_Create_Request        => RU_PolyORB_Requests,
+         RE_Flags                 => RU_PolyORB_Requests,
          RE_Identifier            => RU_PolyORB_Types,
          RE_To_PolyORB_String     => RU_PolyORB_Types,
+         RE_Client_Invoke         => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_String_2              => RU_Standard,
          RE_Servant_Base          => RU_PortableServer);
+
 
    function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
 
@@ -144,5 +185,4 @@ package Backend.BE_Ada.Runtime is
    --  Return a designator for entity Id
    function RU (Id : RU_Id) return Node_Id;
    --  Return a node for Unit id.
-
 end Backend.BE_Ada.Runtime;

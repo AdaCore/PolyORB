@@ -2,10 +2,10 @@ with Namet;     use Namet;
 with Types;     use Types;
 with Values;    use Values;
 
-with Frontend.Nodes;            use Frontend.Nodes;
+with Frontend.Nodes;             use Frontend.Nodes;
 
-with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
+with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 --  with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
 
@@ -13,8 +13,33 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
    Setter : constant Character := 'S';
 
-   package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
+
+   function Base_Type_TC
+     (K : FEN.Node_Kind)
+     return Node_Id
+   is
+   begin
+      case K is
+         when FEN.K_Float               => return RE (RE_TC_Float);
+         when FEN.K_Double              => return RE (RE_TC_Double);
+         when FEN.K_Long_Double         => return RE (RE_TC_Long_Double);
+         when FEN.K_Short               => return RE (RE_TC_Short);
+         when FEN.K_Long                => return RE (RE_TC_Long);
+         when FEN.K_Long_Long           => return RE (RE_TC_Long_Long);
+         when FEN.K_Unsigned_Short      => return RE (RE_TC_Unsigned_Short);
+         when FEN.K_Unsigned_Long       => return RE (RE_TC_Unsigned_Long);
+         when FEN.K_Unsigned_Long_Long  => return RE
+            (RE_TC_Unsigned_Long_Long);
+         when FEN.K_Char                => return RE (RE_TC_Char);
+         when FEN.K_Wide_Char           => return RE (RE_TC_WChar);
+         when FEN.K_String              => return RE (RE_TC_String);
+         when FEN.K_Wide_String         => return RE (RE_TC_Wide_String);
+         when FEN.K_Boolean             => return RE (RE_TC_Boolean);
+         when others                    =>
+            raise Program_Error;
+      end case;
+   end Base_Type_TC;
 
    ---------------------
    -- Bind_FE_To_Impl --
@@ -174,6 +199,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       Param_Type := Map_Designator
         (Type_Spec (Declaration (Attribute)));
+      Set_FE_Node (Param_Type, Type_Spec (Declaration (Attribute)));
 
       --  For the setter subprogram, add the second parameter To.
 
@@ -266,7 +292,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
       R : Node_Id;
 
    begin
-      pragma Assert (Witheded);
       K := FEN.Kind (Entity);
 
       if K = FEN.K_Scoped_Name then

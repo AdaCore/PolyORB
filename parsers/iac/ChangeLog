@@ -1,5 +1,28 @@
 2004-08-03  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-runtime.ads: Added values to RU_Id and RE_Id to
+	handle new runtime entities used in stub's body generation.  
+
+	* backend-be_ada-idl_to_ada.adb: Added Base_Type_TC functions which
+	returns the TypeCode of a given base type. Removed pragma assert
+	from Map_Designator.  
+
+	* backend-be_ada.adb: Changed -h switch to -s. Removed -b and -h
+	usage. 
+
+	* backend-be_ada-nutils.ads: Added values to Parameter_Type, to
+	handle parameters needed in stubs body generation. 
+
+	* backend-be_ada-expand.adb: Removed pragma Assert. Generate
+	designator to Object_Declaration nodes. 
+
+	* backend-be_ada-nutils.adb: Linked Object_Declaration nodes to its
+	parents. 
+
+	* backend-be_ada-stubs.adb: Generate stubs body (not completed yet). 
+
+2004-08-03  Saber Souli  <souli@neraka.enst.fr>
+
 	* testsuite/Makefile.ada (stubs): Renamed souches to stubs. Minor
 	reformatting.
 	

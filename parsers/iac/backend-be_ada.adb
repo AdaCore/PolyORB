@@ -107,8 +107,6 @@ package body Backend.BE_Ada is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
       Write_Str (Hdr);
-      Write_Str ("-b       Generate only bodies");
-      Write_Str ("-h       Generate only headers");
       Write_Str ("-i       Generate Implementation files");
       Write_Str ("-t       Dump Ada tree");
       Write_Eol;

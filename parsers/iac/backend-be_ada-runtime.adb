@@ -147,7 +147,6 @@ package body Backend.BE_Ada.Runtime is
 
    function RE (Id : RE_Id; Witheded : Boolean := True) return Node_Id is
    begin
-      pragma Assert (Witheded);
       if Witheded then
          return Copy_Designator (RED (Id));
       else
