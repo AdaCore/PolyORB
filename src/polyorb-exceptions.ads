@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . E X C E P T I O N S            --
+--                   P O L Y O R B . E X C E P T I O N S                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Exceptions management.
+--  Exceptions management subsystem.
+
+--  XXX explain use of system exceptions ...
 
 --  Description:
 --  Exceptions_Members are handled differently according to the type
@@ -66,15 +68,28 @@ package PolyORB.Exceptions is
 
    subtype Exception_Occurrence is Ada.Exceptions.Exception_Occurrence;
 
-   PolyORB_Exc_NameSpace : constant String;
-   PolyORB_Root          : constant String;
-   PolyORB_Prefix        : constant String;
-   PolyORB_Exc_Version   : constant PolyORB.Types.String;
-   --  PolyORB exceptions namespace and version.
+   --  An exception Id has the following form:
+   --  NameSpace:Root'Separator' .. Version
 
-   -----------------------------------------
-   --  Declarations for user exceptions.  --
-   -----------------------------------------
+   PolyORB_Exc_NameSpace : constant String;
+   --  PolyORB exceptions namespace.
+
+   PolyORB_Root          : constant String;
+   --  PolyORB exceptions root.
+
+   PolyORB_Separator     : constant String;
+   --  PolyORB exceptions separator.
+
+   PolyORB_Prefix        : constant String;
+   --  Concantenation of PolyORB_Exc_NameSpace, PolyORB_Root and
+   --  PolyORB_Separator.
+
+   PolyORB_Exc_Version   : constant PolyORB.Types.String;
+   --  PolyORB exceptions version.
+
+   ---------------------
+   -- User exceptions --
+   ---------------------
 
    procedure User_Get_Members
      (Occurrence : in  Ada.Exceptions.Exception_Occurrence;
@@ -91,19 +106,18 @@ package PolyORB.Exceptions is
    pragma No_Return (User_Raise_Exception);
    --  Raise a user exception
 
-   -------------------------------------------
-   --  Declarations for system exceptions.  --
-   -------------------------------------------
+   -----------------------
+   -- System exceptions --
+   -----------------------
 
    function Occurrence_To_Name
      (Occurrence : Ada.Exceptions.Exception_Occurrence)
       return PolyORB.Types.RepositoryId;
 
-   type System_Exception_Members is new Exception_Members with
-      record
-         Minor     : PolyORB.Types.Unsigned_Long;
-         Completed : Completion_Status;
-      end record;
+   type System_Exception_Members is new Exception_Members with record
+      Minor     : PolyORB.Types.Unsigned_Long;
+      Completed : Completion_Status;
+   end record;
    --  Member type for System exceptions.
 
    procedure Get_Members
@@ -441,8 +455,9 @@ package PolyORB.Exceptions is
      return Exception_Info;
    --  Return Exception_Info associated to 'For_Exception'.
 
-   function Is_System_Exception (Name : String)
-                                 return Boolean;
+   function Is_System_Exception
+     (Name : String)
+     return Boolean;
 
    function Get_ExcepId_By_RepositoryId
      (RepoId  : Standard.String)
@@ -461,9 +476,10 @@ package PolyORB.Exceptions is
 private
 
    PolyORB_Exc_NameSpace : constant String := "INTERNAL:";
-   PolyORB_Root          : constant String := "POLYORB/";
+   PolyORB_Root          : constant String := "POLYORB";
+   PolyORB_Separator     : constant String := "/";
    PolyORB_Prefix        : constant String
-     := PolyORB_Exc_NameSpace & PolyORB_Root;
+     := PolyORB_Exc_NameSpace & PolyORB_Root & "/";
    PolyORB_Exc_Version   : constant PolyORB.Types.String
      := PolyORB.Types.To_PolyORB_String (":1.0");
 

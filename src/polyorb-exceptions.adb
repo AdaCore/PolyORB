@@ -108,10 +108,12 @@ package body PolyORB.Exceptions is
       Raiser : in Raise_From_Any_Procedure)
    is
       use Exception_Lists;
+
    begin
       pragma Debug
         (O ("Registering exception: "
             & Types.To_Standard_String (TypeCode.Id (TC))));
+
       Enter (All_Exceptions_Lock);
       Append (All_Exceptions, (TC => TC, Raiser => Raiser));
       Leave (All_Exceptions_Lock);
@@ -193,6 +195,7 @@ package body PolyORB.Exceptions is
    begin
       pragma Debug
         (O ("Looking up einfo for " & To_Standard_String (For_Exception)));
+
       Enter (All_Exceptions_Lock);
       It := First (All_Exceptions);
 
@@ -223,13 +226,9 @@ package body PolyORB.Exceptions is
       return Ada.Exceptions.Exception_Id
    is
 
-      use PolyORB.Utils;
-
       function To_Exception_Id is new Ada.Unchecked_Conversion
         (System.Standard_Library.Exception_Data_Ptr,
          Ada.Exceptions.Exception_Id);
-
-      --  A repository ID is of the form 'MODEL:X/Y/Z:VERSION'
 
       Internal_Name : Standard.String  := Exception_Name (RepoId);
    begin
@@ -246,8 +245,7 @@ package body PolyORB.Exceptions is
       end loop;
 
       return To_Exception_Id
-        (System.Exception_Table.Internal_Exception
-           (Internal_Name));
+        (System.Exception_Table.Internal_Exception (Internal_Name));
 
    end Get_ExcepId_By_RepositoryId;
 
@@ -262,6 +260,7 @@ package body PolyORB.Exceptions is
       Result : constant Boolean := Name'Length > Length
         and then Name (Name'First .. Name'First + Length)
         = PolyORB_Prefix;
+
    begin
       pragma Debug (O (Name & " is a system exception ? "
                        & Boolean'Image (Result)));
@@ -290,10 +289,11 @@ package body PolyORB.Exceptions is
 
       --  Unmarshall minor.
       Val := 0;
-      for I in Str'First .. Str'Last - 1 loop
-         Val := Val * 256 + Character'Pos (Str (I));
+      for J in Str'First .. Str'Last - 1 loop
+         Val := Val * 256 + Character'Pos (Str (J));
       end loop;
       To.Minor := Val;
+
    exception
       when Constraint_Error =>
          Raise_Bad_Param;
@@ -314,6 +314,7 @@ package body PolyORB.Exceptions is
             Name (J) := '/';
          end if;
       end loop;
+
       return PolyORB.Types.To_PolyORB_String (Name);
    end Occurrence_To_Name;
 
@@ -336,8 +337,9 @@ package body PolyORB.Exceptions is
 
       Str (5) := Character'Val (Completion_Status'Pos (Excp_Memb.Completed));
       Val := Excp_Memb.Minor;
-      for I in 1 .. 4 loop
-         Str (I) := Character'Val (Val / 2 ** 24);
+
+      for J in 1 .. 4 loop
+         Str (J) := Character'Val (Val / 2 ** 24);
          Val := (Val mod 2 ** 24) * 256;
       end loop;
 
@@ -588,7 +590,8 @@ package body PolyORB.Exceptions is
    -- Raise_From_Any --
    --------------------
 
-   procedure Default_Raise_From_Any (Occurrence : Any.Any) is
+   procedure Default_Raise_From_Any (Occurrence : Any.Any)
+   is
       use PolyORB.Any;
    begin
       if not Is_Empty (Occurrence) then
@@ -649,8 +652,9 @@ package body PolyORB.Exceptions is
    -- From_Any --
    --------------
 
-   function From_Any (Item : PolyORB.Any.Any)
-                      return Completion_Status is
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return Completion_Status is
    begin
       return Completion_Status'Val
         (Unsigned_Long'
@@ -666,18 +670,25 @@ package body PolyORB.Exceptions is
      (Name : Standard.String)
      return Any.TypeCode.Object
    is
-      TC : TypeCode.Object := TypeCode.TC_Except;
+      TC    : TypeCode.Object := TypeCode.TC_Except;
+      Shift : Natural := 0;
 
+      Repository_Id : PolyORB.Types.String;
    begin
       --  Name
-      TypeCode.Add_Parameter (TC,
-                              To_Any (To_PolyORB_String (Name)));
+      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
+
+      if Name (Name'First .. Name'First + PolyORB_Root'Length - 1)
+        = PolyORB_Root then
+         Shift := PolyORB_Root'Length + 1;
+      end if;
 
       --  RepositoryId : 'INTERNAL:<Name>:1.0'
-      TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String (PolyORB_Prefix)
-             & To_PolyORB_String (Name)
-             & PolyORB_Exc_Version));
+      Repository_Id := To_PolyORB_String (PolyORB_Prefix)
+        & To_PolyORB_String (Name (Name'First + Shift .. Name'Last))
+        & PolyORB_Exc_Version;
+
+      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
 
       --  Component 'minor'
       TypeCode.Add_Parameter
@@ -690,6 +701,9 @@ package body PolyORB.Exceptions is
         (TC, To_Any (TC_Completion_Status));
       TypeCode.Add_Parameter
         (TC, To_Any (To_PolyORB_String ("completed")));
+
+      pragma Debug (O ("Built Exception TypeCode for: "
+                       & To_Standard_String (Repository_Id)));
 
       return TC;
    end System_Exception_TypeCode;
@@ -708,9 +722,10 @@ package body PolyORB.Exceptions is
       Result  : Any.Any;
 
    begin
-      pragma Debug (O ("To_Any: "& Exception_Name (E)));
-      pragma Debug (O (Exception_Message (E)));
-      pragma Debug (O (Exception_Information (E)));
+      pragma Debug (O ("To_Any: enter."));
+      pragma Debug (O ("Exception_Name: " & Exception_Name (E)));
+      pragma Debug (O ("Exception_Message: " & Exception_Message (E)));
+      pragma Debug (O ("Exception_Information: " & Exception_Information (E)));
 
       begin
          Name := Occurrence_To_Name (E);
@@ -728,6 +743,7 @@ package body PolyORB.Exceptions is
       Add_Aggregate_Element (Result, To_Any (Members.Minor));
       Add_Aggregate_Element (Result, To_Any (Members.Completed));
 
+      pragma Debug (O ("To_Any: leave"));
       return Result;
    end System_Exception_To_Any;
 
@@ -747,7 +763,7 @@ package body PolyORB.Exceptions is
    use PolyORB.Utils.Strings;
 
 begin
-      Register_Module
+   Register_Module
      (Module_Info'
       (Name => +"exceptions",
        Conflicts => Empty,
