@@ -1,0 +1,50 @@
+
+\documentclass[a4paper,10pt]{article}
+
+\title{POA Policies}
+\author{Nicolas Roche}
+
+%\usepackage[T1]{fontenc}
+%\usepackage[french]{babel}
+%\usepackage[dvips]{graphicx}
+\usepackage{array}
+
+\begin{document}
+\maketitle
+\begin{center}
+\begin {tabular}{|l|l|c|c|c|}
+\hline
+\textbf{Policy Type}&\textbf{Policy Name}&
+\textbf{Min. CORBA}&\textbf{PolyORB}&\textbf{Default}(2)\\
+\hline
+\hline
+Thread             &ORB Control               &X&X&X\\
+                   &Single Thread             & & & \\
+	           &Main Thread               & & & \\
+\hline
+LifeSpan           &Transient                 &X&X(1)&X\\
+		   &Persistant                &X&X(1)& \\
+\hline
+ObjecId Uniqueness &Unique Id                 &X&X(1)&X\\
+	           &Multiple Id               &X&X(1)& \\
+\hline
+Id Assignment      &System Id                 &X&X(1)&X\\
+	           &User Id                   &X&X(1)& \\
+\hline
+Servant Retention  &Retain                    &X&X(1)&X\\
+	           &Non Retain                & &X(1)& \\
+\hline
+Request Processing &Use Active Object Map Only&X&X(1)&X\\
+	           &Use Default Servant       & &X(1)& \\
+	           &Use Servant Manager       & & & \\
+\hline
+Implicit Activation&Implicit Activation       & & & \\
+	           &No Implicit Activation    &X&X(1)&X\\
+\hline
+\end{tabular}
+\begin{enumerate}
+\item \textit{Implemented but maybe not tested}
+\item \textit{Default POA policies as defined by CORBA}
+\end{enumerate}
+\end{center}
+\end{document}
