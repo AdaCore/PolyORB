@@ -307,7 +307,7 @@ package body omniProxyCallWrapper is
                         Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
                      end if ;
                      Retries := Retries + 1 ;
-                     if Omni_Call_Transient_Exception_Handler
+                     if not Omni_Call_Transient_Exception_Handler
                        (OmniObj_Ptr.all,Retries,Member.Minor, Member.Completed) then
                         declare
                            Member2 : Corba.Transient_Members := (Member.Minor,
@@ -319,7 +319,7 @@ package body omniProxyCallWrapper is
                      end if ;
                   else
                      Retries := Retries + 1 ;
-                     if Omni_Comm_Failure_Exception_Handler
+                     if not Omni_Comm_Failure_Exception_Handler
                        (OmniObj_Ptr.all,Retries,Member.Minor,Member.Completed) then
                         Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
                                                      Member) ;
@@ -333,7 +333,7 @@ package body omniProxyCallWrapper is
                   Member : Corba.Transient_Members ;
                begin
                   Retries := Retries + 1 ;
-                  if Omni_Call_Transient_Exception_Handler
+                  if not Omni_Call_Transient_Exception_Handler
                     (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                      Corba.Raise_Corba_Exception (Corba.Transient'Identity,
                                                   Member) ;
@@ -350,7 +350,7 @@ package body omniProxyCallWrapper is
                      -- of the object according to IOP profile.
                      Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
                      Retries := Retries + 1 ;
-                     if Omni_Call_Transient_Exception_Handler
+                     if not Omni_Call_Transient_Exception_Handler
                        (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                         declare
                            Member2 : Corba.Transient_Members := (Member.Minor,
@@ -362,7 +362,7 @@ package body omniProxyCallWrapper is
                      end if ;
                   else
                      Retries := Retries + 1 ;
-                     if Omni_System_Exception_Handler
+                     if not Omni_System_Exception_Handler
                        (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                         Corba.Raise_Corba_Exception (Corba.Object_Not_Exist'Identity,
                                                      Member) ;
@@ -400,7 +400,7 @@ package body omniProxyCallWrapper is
                   Member : Corba.Inv_Objref_Members ;
                begin
                   Retries := Retries + 1 ;
-                  if Omni_System_Exception_Handler
+                  if not Omni_System_Exception_Handler
                     (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
 
                      pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : "
@@ -520,7 +520,7 @@ package body omniProxyCallWrapper is
                         Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
                      end if ;
                      Retries := Retries + 1 ;
-                     if Omni_Call_Transient_Exception_Handler
+                     if not Omni_Call_Transient_Exception_Handler
                        (OmniObj_Ptr.all,Retries,Member.Minor, Member.Completed) then
                         declare
                            Member2 : Corba.Transient_Members := (Member.Minor,
@@ -532,7 +532,7 @@ package body omniProxyCallWrapper is
                      end if ;
                   else
                      Retries := Retries + 1 ;
-                     if Omni_Comm_Failure_Exception_Handler
+                     if not Omni_Comm_Failure_Exception_Handler
                        (OmniObj_Ptr.all,Retries,Member.Minor,Member.Completed) then
                         Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
                                                      Member) ;
@@ -545,7 +545,7 @@ package body omniProxyCallWrapper is
                   Member : Corba.Transient_Members ;
                begin
                   Retries := Retries + 1 ;
-                  if Omni_Call_Transient_Exception_Handler
+                  if not Omni_Call_Transient_Exception_Handler
                     (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                      Corba.Raise_Corba_Exception (Corba.Transient'Identity,
                                                   Member) ;
@@ -580,7 +580,7 @@ package body omniProxyCallWrapper is
                   Member : Corba.Inv_Objref_Members ;
                begin
                   Retries := Retries + 1 ;
-                  if Omni_System_Exception_Handler
+                  if not Omni_System_Exception_Handler
                     (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                      Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
                                                   Member) ;
