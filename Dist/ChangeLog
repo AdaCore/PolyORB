@@ -1,3 +1,7 @@
+2002-05-28  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe_utils.adb: Fix style.
+
 2002-05-11  Pascal Obry  <p.obry@wanadoo.fr>
 
 	* xe_sysdep.ads, xe_sysdep-nt.adb, xe_sysdep-std.adb: Force_Remove
