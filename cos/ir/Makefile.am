@@ -39,6 +39,7 @@ IMPL_SPECS_WITH_BODY= \
   corba-repository_root-stringdef-impl.ads \
   corba-repository_root-structdef-impl.ads \
   corba-repository_root-typedefdef-impl.ads \
+  corba-repository_root-valueboxdef-impl.ads \
   corba-repository_root-valuedef-impl.ads \
   corba-repository_root-valuememberdef-impl.ads \
   corba-repository_root-uniondef-impl.ads \
@@ -167,7 +168,9 @@ DISTCLEANFILES += $(GEN) $(GEN_BODIES)
 
 ADA_SPECS_WITH_BODY = \
 	$(IMPL_SPECS_WITH_BODY) \
-	$(GEN_SPECS_WITH_BODY)
+	$(GEN_SPECS_WITH_BODY) \
+	corba-orb-typecode.ads \
+	polyorb-corba_p-ir_tools.ads
 
 ADA_SPECS_NO_BODY = \
 	$(GEN_SPECS_NO_BODY)
