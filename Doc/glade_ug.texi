@@ -30,7 +30,7 @@ to the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 @end titlepage
 
 @ifinfo
-@node Top, About This Guide
+@node Top, About This Guide, (dir), (dir)
 @top GLADE User Guide
 
 GLADE is the GNAT implementation of Distributed Systems Annex.
@@ -99,15 +99,6 @@ some form of message-passing abstraction.
 
 @node Using OS Network Services, Using a Middleware Environment, Introduction to Distributed Systems, Introduction to Distributed Systems
 @section Using OS Network Services
-
-@example
-@b{procedure} P @b{is}
-   V : Integer;
-@b{begin}
-   V := V + 1;
-@b{end} P;
-@end example
-
 
 There are several programming techniques for developing distributed
 applications. These applications have traditionally been developed using
@@ -231,7 +222,7 @@ no code to wrap.  The language and its run-time system take care of
 every issue that would divert the programmer's attention from the
 application domain.
 
-@node  The Distributed Systems Annex, Getting Started With GLADE, Introduction to Distributed Systems, Top
+@node The Distributed Systems Annex, Getting Started With GLADE, Introduction to Distributed Systems, Top
 @chapter The Distributed Systems Annex
 
 The basic idea of the Distributed Systems Annex (DSA) is to allow a user
@@ -293,17 +284,18 @@ sections.
 
 
 @menu
-* Architecture of A Distributed Ada95 Application::  
+* Architecture of a Distributed Ada95 Application::  
 * Categorization Pragmas::      
 * Pragma Remote_Call_Interface::  
 * Pragma Remote_Types::         
 * Pragma Shared_Passive::       
 * Overview of Pragma Pure::     
 * More About Categorization Pragmas::  
+* Marshalling and Unmarshalling Operations::  
 * Most Features in One Example::  
 @end menu
 
-@node Architecture of A Distributed Ada95 Application, Categorization Pragmas, The Distributed Systems Annex, The Distributed Systems Annex
+@node Architecture of a Distributed Ada95 Application, Categorization Pragmas, The Distributed Systems Annex, The Distributed Systems Annex
 @section Architecture of a Distributed Ada95 Application
 
 A distributed system is an interconnection of one or more processing
@@ -367,7 +359,7 @@ remote call.
  
 @image{xe-arch.fig}
 
-@node Categorization Pragmas, Pragma Remote_Call_Interface, Architecture of A Distributed Ada95 Application, The Distributed Systems Annex
+@node Categorization Pragmas, Pragma Remote_Call_Interface, Architecture of a Distributed Ada95 Application, The Distributed Systems Annex
 @section Categorization Pragmas
 
 Library units can be categorized according to the role they play in a
@@ -404,8 +396,8 @@ are not allowed in the following Ada library units.
 @menu
 * Overview of Pragma Remote_Call_Interface::  
 * Regular Remote Subprograms (RCI)::  
-* Remote Access To Subprograms (RAS)::  
-* Remote Access To Class Wide Types (RACW)::  
+* Remote Access to Subprograms (RAS)::  
+* Remote Access to Class Wide Types (RACW)::  
 * Summary on Pragma Remote_Call_Interface::  
 @end menu
 
@@ -429,7 +421,7 @@ remote address describes for instance the host on which the entity has
 been created; the local address describes the classical local memory
 address.
 
-@node Regular Remote Subprograms (RCI), Remote Access To Subprograms (RAS), Overview of Pragma Remote_Call_Interface, Pragma Remote_Call_Interface
+@node Regular Remote Subprograms (RCI), Remote Access to Subprograms (RAS), Overview of Pragma Remote_Call_Interface, Pragma Remote_Call_Interface
 @subsection Regular Remote Subprograms (RCI)
 
 In the following example, a RCIBank offers several remote services:
@@ -442,7 +434,7 @@ the body of this package.
 @include rcibank.ads.texi
 @include rciclient.adb.texi
 
-@node Remote Access To Subprograms (RAS), Remote Access To Class Wide Types (RACW), Regular Remote Subprograms (RCI), Pragma Remote_Call_Interface
+@node Remote Access to Subprograms (RAS), Remote Access to Class Wide Types (RACW), Regular Remote Subprograms (RCI), Pragma Remote_Call_Interface
 @subsection Remote Access to Subprograms (RAS)
 
 In the following example, several mirroring banks offer their
@@ -471,7 +463,7 @@ type.
 @include bankclient.adb.texi
 
 
-@node Remote Access To Class Wide Types (RACW), Summary on Pragma Remote_Call_Interface, Remote Access To Subprograms (RAS), Pragma Remote_Call_Interface
+@node Remote Access to Class Wide Types (RACW), Summary on Pragma Remote_Call_Interface, Remote Access to Subprograms (RAS), Pragma Remote_Call_Interface
 @subsection Remote Access to Class Wide Types (RACW)
 
 A bank client is now connected to a bank through a terminal. The bank
@@ -488,7 +480,7 @@ to it.
 
 @include racwbank.ads.texi
 
-@node Summary on Pragma Remote_Call_Interface,  , Remote Access To Class Wide Types (RACW), Pragma Remote_Call_Interface
+@node Summary on Pragma Remote_Call_Interface,  , Remote Access to Class Wide Types (RACW), Pragma Remote_Call_Interface
 @subsection Summary on Pragma Remote_Call_Interface
 
 Remote call interface units:
@@ -666,26 +658,39 @@ type. It is particularly useful to define types, constants and
 subprograms shared by several categorized packages. Remember that normal
 packages cannot be withed in categorized package declarations.
 
-@node More About Categorization Pragmas, Most Features in One Example, Overview of Pragma Pure, The Distributed Systems Annex
+@node More About Categorization Pragmas, Marshalling and Unmarshalling Operations, Overview of Pragma Pure, The Distributed Systems Annex
 @section More About Categorization Pragmas
 
 
 
 @menu
 * Variables::                   
+* RPC Failures::                
+* Exceptions::                  
 * Pragma Asynchronous::         
 * Pragma All_Calls_Remote::     
 * Generic Categorized Units  ::  
 * Categorization Unit Dependencies::  
 @end menu
 
-@node Variables, Pragma Asynchronous, More About Categorization Pragmas, More About Categorization Pragmas
-@subsection Variables, Non-Remote Access Types, RPC Failures and Exceptions
+@node Variables and Non-Remote Access Types, , More About Categorization Pragmas, More About Categorization Pragmas
+@subsection Variables and Non-Remote Access Types
 
 In RT or RCI package declarations, variables are forbidden and general
 access types are allowed as long as their marshaling subprograms are
-provided. Calls are made at most one time: they are made exactly one
-time or they fail with an exception.  Any exception raised in a remote
+provided (see section @ref{Transmitting Dynamic Structure}).. 
+
+@node RPC Failures, , Variables and Non-Remote Access Types, More About Categorization Pragmas
+@subsection RPC Failures
+
+Calls are made at most one time: they are made exactly one time or they
+fail with an exception. When an communication error occurs,
+@t{System.RPC.Communication_Error} is raised.
+
+@node
+@subsection Exceptions
+
+Any exception raised in a remote
 method or subprogram call is propagated back to the caller. Exceptions
 semantics are preserved in the regular Ada way.
 
@@ -710,7 +715,7 @@ program. Of course, the exception message is also preserved.
   
 @c XXXX Schema Sam exceptions
 
-@node Pragma Asynchronous, Pragma All_Calls_Remote, Variables, More About Categorization Pragmas
+@node Pragma Asynchronous, Pragma All_Calls_Remote, Exceptions, More About Categorization Pragmas
 @subsection Pragma Asynchronous
 
 A pragma Asynchronous allows statically and dynamically bound remote
@@ -816,7 +821,60 @@ general rule, RCI > RT > SP > Pure. That means that a
 Remote_Types package can make visible in its specification only
 Remote_Types, Shared_Passive and Pure units.
 
-@node Most Features in One Example,  , More About Categorization Pragmas, The Distributed Systems Annex
+@node Marshalling and Unmarshalling Operations, Most Features in One Example, More About Categorization Pragmas, The Distributed Systems Annex
+@section Marshalling and Unmarshalling Operations
+
+The PCS marshalls and unmarshalls users data into a stream of type
+@t{System.RPC.Params_Stream_Type}:
+
+@smallexample
+@b{type} Params_Stream_Type
+  (Initial_Size : Ada.Streams.Stream_Element_Count) @b{is new}
+    Ada.Streams.Root_Stream_Type @b{with private};
+@end smallexample
+
+This type is a container for the data to be transmitted between
+partitions. Its root is @t{Root_Stream_Type}, which defines the basic
+stream type and two abstract operations, @t{Write} and @t{Read}. Its
+purpose is to add / remove objects of type @t{Stream_Element_Array}
+which are array of bytes representing a particular data.
+
+Streams are read and written using four attributes:
+
+@itemize @bullet
+
+@item Write: write an element into a stream, valid only for constrained
+types
+
+@item Read: read a constrained element from a stream
+
+@item Output: same as Write, but write bounds and discriminants as well
+if needed
+
+@item Input: same as Read, but read bounds and discriminants from
+  the stream (the Input attribute denotes a function)
+@end itemize
+
+An Ada compiler provides default 'Read and 'Write operations. But it is
+up to the compiler to provide default 'Read and 'Write to ensure proper
+operation between heterogeneous architectures (see @ref{Heterogeneous
+Systems}).
+
+The user can overload these operations except for predefined
+types. Overloading with a textual version provides the user with a way
+to debug its application (even outside of the Distributed Systems
+Annex).
+
+@include new_integers.ads.texi
+@include new_integers.adb.texi
+
+The language forces the user to provide read and write opertions for non
+remote access types. Transmitting an access value by dumping its content
+into astream makes no sense when it is going to be transmitted to
+another partition (different memory spaces). To transmit non remote
+access types see section @ref{Transmitting Dynamic Structure}.
+ 
+@node Most Features in One Example,  , Marshalling and Unmarshalling Operations, The Distributed Systems Annex
 @section Most Features in One Example
 
 The example shown on the following figure highlights most of
@@ -874,7 +932,7 @@ RCI package (see sample above). Any instantiation defines a new factory
 (see sample above). To be RCI, this instantiation has to be categorized
 once again.
 
-@node  Getting Started With GLADE, DSA and CORBA, The Distributed Systems Annex, Top
+@node Getting Started With GLADE, DSA and CORBA, The Distributed Systems Annex, Top
 @chapter Getting Started With GLADE
 
 This chapter describes the usual ways of using GLADE to compile Ada
@@ -883,19 +941,19 @@ distributed programs.
 
 
 @menu
-* Introduction To GLADE::       
+* Introduction to GLADE::       
 * How to Configure a Distributed Application with Gnatdist::  
 * Gnatdist Command Line Options::  
 * Gnatdist Behind the Scenes::  
 * The Configuration Language::  
 * Tracing Facilities::          
 * Remote Shell Notes::          
-* Warnings::                    
 * Filtering::                   
 * Trace/Replay Debugging::      
+* Glade File Hierarchy::        
 @end menu
 
-@node Introduction To GLADE, How to Configure a Distributed Application with Gnatdist, Getting Started With GLADE, Getting Started With GLADE
+@node Introduction to GLADE, How to Configure a Distributed Application with Gnatdist, Getting Started With GLADE, Getting Started With GLADE
 @section Introduction to GLADE
 
 An Ada 95 distributed application comprises a number of partitions
@@ -922,7 +980,7 @@ and builds several executables, one for each partition. It also takes
 care of launching the different partitions (default) and to pass
 arguments specific to each partition.
 
-@node How to Configure a Distributed Application with Gnatdist, Gnatdist Command Line Options, Introduction To GLADE, Getting Started With GLADE
+@node How to Configure a Distributed Application with Gnatdist, Gnatdist Command Line Options, Introduction to GLADE, Getting Started With GLADE
 @section How to Configure a Distributed Application with Gnatdist
 
 @itemize @bullet
@@ -1019,16 +1077,16 @@ will evolve, so will this configuration language.
 @menu
 * Configuration Declaration::   
 * Partition Declaration::       
-* Partition main procedure::    
-* Physical nodes::              
+* Partition Main Procedure::    
+* Physical Nodes::              
 * Boot Server::                 
-* Executable location::         
+* Executable Location::         
 * Partition Termination::       
 * Partition Reconnection::      
 * Channel Declaration::         
 * Channel and Partition Filter::  
 * Version Consistency::         
-* An example with most of the configuration language features::  
+* An Example with Most of the Configuration Language Features::  
 @end menu
 
 @node Configuration Declaration, Partition Declaration, The Configuration Language, The Configuration Language
@@ -1049,7 +1107,7 @@ CONFIGURATION_UNIT ::=
    end [IDENTIFIER];
 @end smallexample
 
-@node Partition Declaration, Partition main procedure, Configuration Declaration, The Configuration Language
+@node Partition Declaration, Partition Main Procedure, Configuration Declaration, The Configuration Language
 @subsection Partition Declaration
 
 In the declarative part, the user declares his partitions and can change
@@ -1096,7 +1154,7 @@ As gnatdist generates full Ada code in order to build the different
 executables, all the Ada keywords have been reserved even if they are
 not used in the configuration language.
 
-@node Partition main procedure, Physical nodes, Partition Declaration, The Configuration Language
+@node Partition Main Procedure, Physical Nodes, Partition Declaration, The Configuration Language
 @subsection Partition Main Procedure
 
 Basically, the distributed system annex helps a user in building a
@@ -1143,7 +1201,7 @@ type Method_Type is (Ada, Shell, None);
 pragma Starter (Method => Method_Type);
 @end smallexample
 
-@node Physical nodes, Boot Server, Partition main procedure, The Configuration Language
+@node Physical Nodes, Boot Server, Partition Main Procedure, The Configuration Language
 @subsection Physical Nodes
 
 Logical nodes (or partitions) can be mapped onto physical
@@ -1180,7 +1238,7 @@ This function is called before launching the partition. Therefore, in
 case of load balancing, the function can return the most appropriate
 host from among a set of hosts.
 
-@node Boot Server, Executable location, Physical nodes, The Configuration Language
+@node Boot Server, Executable Location, Physical Nodes, The Configuration Language
 @subsection Boot Server
 
 @smallexample
@@ -1188,7 +1246,7 @@ PRAGMA ::=
    pragma Boot_Server (Protocol_Name => String, Protocol_Data => String);
 @end smallexample
 
-@node Executable location, Partition Termination, Boot Server, The Configuration Language
+@node Executable Location, Partition Termination, Boot Server, The Configuration Language
 @subsection Executable Location
 
 There are several other attributes that can be applied to a
@@ -1207,7 +1265,7 @@ REPRESENTATION_CLAUSE ::=
    for IDENTIFIER'Storage_Dir use STRING_LITERAL;
 @end smallexample
 
-@node Partition Termination, Partition Reconnection, Executable location, The Configuration Language
+@node Partition Termination, Partition Reconnection, Executable Location, The Configuration Language
 @subsection Partition Termination
 
 @smallexample
@@ -1253,14 +1311,14 @@ REPRESENTATION_CLAUSE ::=
  | for Partition'Filter use STRING_LITERAL;
 @end smallexample
 
-@node Version Consistency, An example with most of the configuration language features, Channel and Partition Filter, The Configuration Language
+@node Version Consistency, An Example with Most of the Configuration Language Features, Channel and Partition Filter, The Configuration Language
 @subsection Version Consistency
 
 @smallexample
 pragma Version (True | False);
 @end smallexample
 
-@node An example with most of the configuration language features,  , Version Consistency, The Configuration Language
+@node An Example with Most of the Configuration Language Features,  , Version Consistency, The Configuration Language
 @subsection An Example with Most of the Configuration Language Features
 
 Every keyword and construct defined in the configuration language have
@@ -1426,7 +1484,7 @@ S_RPC=true;    export S_RPC
 S_PARINT=true; export S_PARINT
 @end smallexample
 
-@node Remote Shell Notes, Warnings, Tracing Facilities, Getting Started With GLADE
+@node Remote Shell Notes, Filtering, Tracing Facilities, Getting Started With GLADE
 @section Remote Shell Notes
 
 To start a partition, the main partition executable executes a remote
@@ -1475,16 +1533,7 @@ kill MAIN_PART.
 
 @end itemize
 
-@node Warnings, Filtering, Remote Shell Notes, Getting Started With GLADE
-@section Warnings
-
-All GLADE intermediate files (object files, etc) are stored under a
-common directory named "dsa". You may remove this whole directory and
-its content when you do not intend to rebuild your distributed
-applications.
-
-
-@node Filtering, Trace/Replay Debugging, Warnings, Getting Started With GLADE
+@node Filtering, Trace/Replay Debugging, Remote Shell Notes, Getting Started With GLADE
 @section Filtering
 
 GLADE contains a transparent extensible filtering mechanism allowing the
@@ -1498,14 +1547,36 @@ transformations. Instead, users can write their own data transformations and
 hook them into GLADE so that they are automatically and transparently applied
 depending on the configuration of the distributed application.
 
-
-
 @menu
-* Configuring filtering::       
+* Heterogeneous Systems::       
+* Configuring Filtering::       
 * Implementing Your Own Filters::  
 @end menu
 
-@node Configuring filtering, Implementing Your Own Filters, Filtering, Filtering
+@node Heterogeneous Systems, Configuring Filtering, Filtering, Filtering
+@subsection Heterogeneous Systems
+
+The GNAT environment provides default attributes except for non remote
+access types (see section @ref{Transmitting Dynamic Structure} and
+@ref{}). The implementation of the default attributes of predefined
+types can be found in @t{System.Stream_Attributes}.
+
+The GLADE installation overloads the GNAT default marshalling and
+unmarshalling subprograms by its own subprograms which format data
+according to a @i{XDR}-like protocol. Therefore, any GLADE application
+will work in an heterogeous environment.
+
+If the user wants to keep working with the GNAT default attributes for
+performance purposes or to use another protocol to marshall and
+unmarshall predefined types, he can replace @t{s-stratt.adb} by his own
+implementation.
+
+@menu
+* Configuring Filtering::       
+* Implementing Your Own Filters::  
+@end menu
+
+@node Configuring Filtering, Implementing Your Own Filters, Heterogeneous Systems, Filtering
 @subsection Configuring Filtering
 
 As a default, no filtering is performed by GLADE. As a default, the
@@ -1583,7 +1654,7 @@ Gnatdist takes care of consistency checking of a filter definition. By
 default, no filtering is done. Filtering is only active if specified
 explicitly in the configuration file.
  
-@node Implementing Your Own Filters,  , Configuring filtering, Filtering
+@node Implementing Your Own Filters,  , Configuring Filtering, Filtering
 @subsection Implementing Your Own Filters
 
 As has been briefly mentioned above, a filter with a name "NAME" must be
@@ -1601,7 +1672,7 @@ distribution. You might also want to look at the example in the
 'Filtering' directory of the GLADE distribution.
 
 
-@node Trace/Replay Debugging,  , Filtering, Getting Started With GLADE
+@node Trace/Replay Debugging, Glade File Hierarchy, Filtering, Getting Started With GLADE
 @section Trace/Replay Debugging
 
 GLADE has a facility for trace/replay based debugging. If trace mode
@@ -1670,7 +1741,13 @@ expected.
 @c Language-defined exceptions propagate well through different
 @c partitions.
 
+@node Glade File Hierarchy,  , Trace/Replay Debugging, Getting Started With GLADE
+@section Glade File Hierarchy
 
+All GLADE intermediate files (object files, etc) are stored under a
+common directory named "dsa". You may remove this whole directory and
+its content when you do not intend to rebuild your distributed
+applications.
 
 @node DSA and CORBA,  , Getting Started With GLADE, Top
 @appendix DSA and CORBA
@@ -1682,7 +1759,7 @@ expected.
 * Interface Definition Language::  
 * Network Communication Subsystem::  
 * Distributed Application Development::  
-* Some elements of comparison::  
+* Some Elements of Comparison::  
 @end menu
 
 @node CORBA Architecture, Interface Definition Language, DSA and CORBA, DSA and CORBA
@@ -1935,7 +2012,7 @@ caller written in Ada? Note that an implementation may provide more
 information in the CORBA exception message, such as the @t{C++} or Ada
 exception name.
 
-@node Distributed Application Development, Some elements of comparison, Network Communication Subsystem, DSA and CORBA
+@node Distributed Application Development, Some Elements of Comparison, Network Communication Subsystem, DSA and CORBA
 @section Distributed Application Development
 
 
@@ -2008,7 +2085,7 @@ define four models to exchange events and data.
 @c   the services available in CORBA: CosNaming, CosEvents,
 @c   ...}
 
-@node Some elements of comparison,  , Distributed Application Development, DSA and CORBA
+@node Some Elements of Comparison,  , Distributed Application Development, DSA and CORBA
 @section Some Elements of Comparison
 
 CORBA provides an outstanding and very popular framework. The IDL syntax

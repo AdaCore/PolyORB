@@ -481,3 +481,39 @@ private
    type Remote_Object is abstract tagged limited null record;
 
 end Pure;
+package body New_Integers is
+
+   procedure Read
+     (S : access Root_Stream_Type'Class;
+      V : out New_Integer)
+   is
+      B : String := String'Input (S);
+   begin
+      V := New_Integer'Value (B);
+   end Read;
+   
+   procedure Write
+     (S : access Root_Stream_Type'Class;
+      V : in New_Integer)
+   is
+   begin
+      String'Output (S, New_Integer'Image (V));
+   end Write;
+
+end New_Integers;
+with Ada.Streams; use Ada.Streams;
+package New_Integers is
+
+   type New_Integer is new Integer;
+
+   procedure Read
+     (S : access Root_Stream_Type'Class;
+      V : out New_Integer);
+   procedure Write
+     (S : access Root_Stream_Type'Class;
+      V : in New_Integer);
+
+   for New_Integer'Read  use Read;
+   for New_Integer'Write use Write;
+
+end New_Integers;
