@@ -14,6 +14,8 @@ package Droopi.References is
    --  An object reference of any kind.
 
    function Is_Nil (R : Ref) return Boolean;
+   --  True iff R is a Nil reference, i.e. a reference that
+   --  does not designate any object.
 
    function Image (R : Ref) return String;
    --  For debugging purposes.
@@ -29,7 +31,10 @@ private
          when True =>
             null;
          when False =>
-           Profiles : Profile_Seq;
+            Profiles : Profile_Seq;
+            --  The collection of tagged profiles that designate
+            --  transport access points where this object can be
+            --  contacted, together with the object ids to be used.
       end case;
    end record;
 

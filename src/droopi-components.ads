@@ -13,6 +13,8 @@ package Droopi.Components is
    -------------------------------------
 
    type Message is abstract tagged null record;
+   --  The root type for all messages that can be exchanged
+   --  between components.
 
    type Null_Message is new Message with private;
 
@@ -28,6 +30,9 @@ package Droopi.Components is
       is abstract;
    --  Called when component C is to receive message M.
    --  Return True if M has been handled, false otherwise.
+   --  Each component type overloads this primitive, and
+   --  thus defines its behaviour in terms of replies to
+   --  a set of external stimuli (messages).
 
    procedure Connect
      (Port : out Component_Access;
