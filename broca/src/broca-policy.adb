@@ -35,7 +35,7 @@ package body Broca.Policy is
 
    function Get_Policy_Type
      (Self : Policy_Object_Type)
-     return CORBA.Policytype is
+     return CORBA.PolicyType is
    begin
       return Self.Policy;
    end Get_Policy_Type;

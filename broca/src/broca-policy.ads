@@ -38,14 +38,14 @@ package Broca.Policy is
 
    type Policy_Object_Type is abstract new Broca.Refs.Ref_Type with
      record
-        Policy : CORBA.Policytype;
+        Policy : CORBA.PolicyType;
      end record;
 
    type Policy_Object_Ptr is access all Policy_Object_Type'Class;
 
    function Get_Policy_Type
      (Self : Policy_Object_Type)
-     return CORBA.Policytype;
+     return CORBA.PolicyType;
 
    function Copy
      (Self : Policy_Object_Type)
