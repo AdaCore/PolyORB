@@ -14,7 +14,7 @@ ac_default_prefix=/usr/local
 ac_help="$ac_help
   --enable-debug          Turn on debugging options"
 ac_help="$ac_help
-  --with-launching        Don't include launching facilities"
+  --without-launching     Don't include launching facilities"
 ac_help="$ac_help
   --with-protocols        Enumerate protocol list"
 ac_help="$ac_help

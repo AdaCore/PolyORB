@@ -35,7 +35,7 @@ AC_SUBST(GNATFLAGS)
 # Include or not launching facilities
 #
 AC_ARG_WITH(launching,
-[  --with-launching        Don't include launching facilities],
+[  --without-launching     Don't include launching facilities],
 [
   AC_MSG_CHECKING([for launching facilities])
   case ${withval} in
