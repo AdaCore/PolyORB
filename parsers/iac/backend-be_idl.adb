@@ -378,9 +378,9 @@ package body Backend.BE_IDL is
       Generate (Identifier (E));
    end Generate_Enumerator;
 
-   -----------------------------------
+   ------------------------------------
    -- Generate_Exception_Declaration --
-   -----------------------------------
+   ------------------------------------
 
    procedure Generate_Exception_Declaration (E : Node_Id) is
       C : Node_Id;
@@ -427,9 +427,9 @@ package body Backend.BE_IDL is
       end if;
    end Generate_Expression;
 
-   ------------------------------
+   -------------------------------
    -- Generate_Fixed_Point_Type --
-   ------------------------------
+   -------------------------------
 
    procedure Generate_Fixed_Point_Type (E : Node_Id) is
    begin
@@ -441,9 +441,9 @@ package body Backend.BE_IDL is
       Write (T_Greater);
    end Generate_Fixed_Point_Type;
 
-   -------------------------------------------
+   --------------------------------------------
    -- Generate_Forward_Interface_Declaration --
-   -------------------------------------------
+   --------------------------------------------
 
    procedure Generate_Forward_Interface_Declaration (E : Node_Id) is
    begin
@@ -452,9 +452,9 @@ package body Backend.BE_IDL is
       Generate (Identifier (E));
    end Generate_Forward_Interface_Declaration;
 
-   ------------------------------------
+   -------------------------------------
    -- Generate_Forward_Structure_Type --
-   ------------------------------------
+   -------------------------------------
 
    procedure Generate_Forward_Structure_Type (E : Node_Id) is
    begin
@@ -463,9 +463,9 @@ package body Backend.BE_IDL is
       Generate (Identifier (E));
    end Generate_Forward_Structure_Type;
 
-   --------------------------------
+   ---------------------------------
    -- Generate_Forward_Union_Type --
-   --------------------------------
+   ---------------------------------
 
    procedure Generate_Forward_Union_Type (E : Node_Id) is
    begin
@@ -483,9 +483,9 @@ package body Backend.BE_IDL is
       Write_Name (IDL_Name (E));
    end Generate_Identifier;
 
-   -------------------------------------
+   --------------------------------------
    -- Generate_Initializer_Declaration --
-   -------------------------------------
+   --------------------------------------
 
    procedure Generate_Initializer_Declaration (E : Node_Id) is
    begin
@@ -494,9 +494,9 @@ package body Backend.BE_IDL is
       Generate_Operation_Declaration (E);
    end Generate_Initializer_Declaration;
 
-   -----------------------------------
+   ------------------------------------
    -- Generate_Interface_Declaration --
-   -----------------------------------
+   ------------------------------------
 
    procedure Generate_Interface_Declaration (E : Node_Id) is
       F : Node_Id := No_Node;
@@ -745,6 +745,7 @@ package body Backend.BE_IDL is
          V := Value (R);
          if Value (V).K = K_Enumerator then
             Generate_Reference_Name (Identifier (R));
+
          else
             Generate (V);
          end if;
