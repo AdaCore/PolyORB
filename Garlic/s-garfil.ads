@@ -43,6 +43,8 @@ with System.Garlic.Heart;
 
 package System.Garlic.Filters is
 
+   pragma Elaborate_Body;
+
    function Filter_Outgoing
       (To_Partition : in     System.RPC.Partition_ID;
        Operation    : in     System.Garlic.Heart.Opcode;

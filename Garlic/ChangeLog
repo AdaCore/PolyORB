@@ -1,3 +1,8 @@
+Fri Mar  7 14:14:46 1997  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-garfil.ads: Add pragma Elaborate_Body to please GNAT with its
+ 	new elaboration checks.
+
 Wed Mar  5 14:53:58 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-garhea.ads: Add a new opcode User_Message.
