@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#36 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#37 $
 
 @include version.texi
 
@@ -1721,6 +1721,10 @@ PolyORB follows the CORBA specifications.
 In some occasions, the specifications lack feature that may be
 useful. We add an @code{Implementation Notes} tag in the package
 specification to detail the additions we made to the standard.
+
+Besides, PolyORB follows some of the recommendations derived from the
+OMG Issues for Ada 2003 Revision Task Force mailing list (see
+@url{http://www.omg.org/issues/ada-rtf.html} for more information).
 
 @c -------------------------------------------------------------------
 @node Mapping of exceptions
