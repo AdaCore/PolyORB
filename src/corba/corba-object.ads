@@ -77,11 +77,6 @@ package CORBA.Object is
    --       (Self : Ref)
    --       return CORBA.DomainManager.DomainManagerList;
 
-   function To_CORBA_Object
-     (O : in Droopi.Objects.Object_Id)
-     return Ref;
-   --  XXX What does this do?
-
    function To_Droopi_Object
      (R : in Ref)
      return Droopi.Objects.Object_Id;

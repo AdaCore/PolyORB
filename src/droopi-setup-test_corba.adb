@@ -7,8 +7,13 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with CORBA;
 with CORBA.Test_Object; use CORBA.Test_Object;
+
 with CORBA.ServerRequest;
 pragma Warnings (Off, CORBA.ServerRequest);
+--  XXX Not used for now.
+
+with PortableServer;
+pragma Warnings (Off, PortableServer);
 --  XXX Not used for now.
 
 with Droopi.POA_Types;

@@ -1,10 +1,44 @@
 #! /bin/sh
 
-eval 'file=${'$#'}'
+setgcc () {
+  for a in adagcc gnatgcc
+  do
+    if f=`which $a` && [ -x "$f" ]
+    then
+      ADAGCC="$a"
+      return
+    fi
+  done
+  ADAGCC=gcc
+}
 
-ADAGCC=`(which adagcc || which gnatgcc || echo gcc) 2> /dev/null`
+setfile () {
+  while [ "$#" -gt 1 ]
+  do
+    shift
+  done
+  file="$1"
+}
 
-echo -n "Compiling $file"
+setecho () {
+  if [ -x /usr/ucb/echo ]
+  then
+    echo=/usr/ucb/echo
+  else
+    echo=echo
+  fi
+}
+
+if [ ! -x "$ADAGCC" ]
+then
+  setgcc
+fi
+setfile "$@"
+setecho
+
+########## Start processing.
+
+$echo -n "Compiling $file"
 
 case $file in
   droopi-orb-thread_pool.adb|droopi-protected_objects.adb)

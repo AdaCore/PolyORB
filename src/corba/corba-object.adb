@@ -164,25 +164,26 @@ package body CORBA.Object is
 --       null;
 --    end Set_Policy_Overrides;
 
-   ---------------------
-   -- To_CORBA_Object --
-   ---------------------
+   --  XXX remove
+--    ---------------------
+--    -- To_CORBA_Object --
+--    ---------------------
 
-   function To_CORBA_Object
-     (O : in Droopi.Objects.Object_Id)
-     return Ref
-   is
-      Result : Ref;
-      Internal : Internal_Object_Access;
-   begin
-      Internal := new Internal_Object;
-      Internal.The_Object := new Droopi.Objects.Object_Id'(O);
+--    function To_CORBA_Object
+--      (O : in Droopi.Objects.Object_Id)
+--      return Ref
+--    is
+--       Result : Ref;
+--       Internal : Internal_Object_Access;
+--    begin
+--       Internal := new Internal_Object;
+--       Internal.The_Object := new Droopi.Objects.Object_Id'(O);
 
-      Droopi.Smart_Pointers.Set
-        (Droopi.Smart_Pointers.Ref (Result),
-         Entity_Ptr (Internal));
-      return Result;
-   end To_CORBA_Object;
+--       Droopi.Smart_Pointers.Set
+--         (Droopi.Smart_Pointers.Ref (Result),
+--          Entity_Ptr (Internal));
+--       return Result;
+--    end To_CORBA_Object;
 
    ----------------------
    -- To_Droopi_Object --

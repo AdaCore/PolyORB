@@ -31,23 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Droopi.Objects;
+
 with CORBA;
 with CORBA.Object;
 with CORBA.Impl;
 with CORBA.Forward;
 pragma Elaborate_All (CORBA.Forward);
+with CORBA.ServerRequest;
 
 package PortableServer is
+
+   pragma Elaborate_Body;
 
    package POA_Forward is new CORBA.Forward;
 
    type Servant_Base is new CORBA.Impl.Object with private;
-
    type DynamicImplementation is new Servant_Base with private;
 
    procedure Invoke
      (Self : DynamicImplementation;
-      Request : ServerRequest_Ptr);
+      Request : CORBA.ServerRequest.Object);
 
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
@@ -78,7 +82,8 @@ package PortableServer is
    --       return Boolean;
 
 --    package IDL_SEQUENCE_Octet renames Broca.Sequences.Octet_Sequences;
---    type ObjectId is new IDL_SEQUENCE_Octet.Sequence;
+   --    type ObjectId is new IDL_SEQUENCE_Octet.Sequence;
+
    type ObjectId is new Droopi.Objects.Object_Id;
 
    ------------------------------
@@ -202,5 +207,6 @@ package PortableServer is
 private
 
    type Servant_Base is new CORBA.Impl.Object with null record;
+   type DynamicImplementation is new Servant_Base with null record;
 
 end PortableServer;
