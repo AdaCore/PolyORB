@@ -2067,7 +2067,7 @@ package body Broca.CDR is
       end if;
       Broca.Refs.Marshall
         (Buffer,
-         Broca.Refs.Ref_Type'Class (Data.Ptr.all));
+         Broca.Refs.Entity'Class (Data.Ptr.all));
    end Marshall;
 
    -----------------

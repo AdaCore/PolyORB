@@ -54,9 +54,8 @@ package CORBA.Object is
    --  type REF must be able to reference an internal object (see
    --  resolve_initial_references).
    --
-   --  To allow such a behavior, a reference is in fact an access to a tagged
-   --  type, ref_type, defined in broca.object.
-   --  type Ref is new Broca.Refs.Ref with private;
+   --  To allow such a behavior, a reference is in fact an access to tagged
+   --  type Entity, defined in broca.object.
 
    --  CORBA 2.3
    type Ref is new CORBA.AbstractBase.Ref with private;

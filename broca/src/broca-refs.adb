@@ -34,7 +34,6 @@
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 with Broca.Locks;
-with Broca.Exceptions;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -48,20 +47,7 @@ package body Broca.Refs is
 
    Counter_Global_Lock : Broca.Locks.Mutex_Type;
 
-   procedure Free is new Ada.Unchecked_Deallocation (Ref_Type'Class, Ref_Ptr);
-
-   -------------------
-   -- Disable_Usage --
-   -------------------
-
-   procedure Disable_Usage (Obj : in out Ref_Type) is
-   begin
-      if Obj.Counter /= 0 then
-         Broca.Exceptions.Raise_Internal (100);
-      else
-         Obj.Counter := -1;
-      end if;
-   end Disable_Usage;
+   procedure Free is new Ada.Unchecked_Deallocation (Entity'Class, Ref_Ptr);
 
    ---------------
    -- Inc_Usage --
@@ -69,11 +55,12 @@ package body Broca.Refs is
 
    procedure Inc_Usage (Obj : in Ref_Ptr) is
    begin
-      if Obj.Counter /= -1 then
-         Counter_Global_Lock.Lock;
-         Obj.Counter := Obj.Counter + 1;
-         Counter_Global_Lock.Unlock;
-      end if;
+      pragma Assert (Obj.Counter /= -1);
+
+      Counter_Global_Lock.Lock;
+      Obj.Counter := Obj.Counter + 1;
+      Counter_Global_Lock.Unlock;
+
    end Inc_Usage;
 
    ---------------
@@ -82,21 +69,19 @@ package body Broca.Refs is
 
    procedure Dec_Usage (Obj : in out Ref_Ptr) is
    begin
-      if Obj.Counter /= -1 then
-         Counter_Global_Lock.Lock;
-         Obj.Counter := Obj.Counter - 1;
-         Counter_Global_Lock.Unlock;
+      pragma Assert (Obj.Counter /= -1);
 
-         if Obj.Counter = 0 then
-            pragma Debug
-              (O ("dec_usage: deallocate " &
-                  Ada.Tags.External_Tag (Obj.all'Tag)));
-            Free (Obj);
-         end if;
-      else
-         pragma Debug (O ("dec_usage: Counter = -1"));
-         null;
+      Counter_Global_Lock.Lock;
+      Obj.Counter := Obj.Counter - 1;
+      Counter_Global_Lock.Unlock;
+
+      if Obj.Counter = 0 then
+         pragma Debug
+           (O ("dec_usage: deallocate " &
+               Ada.Tags.External_Tag (Obj.all'Tag)));
+         Free (Obj);
       end if;
+
    end Dec_Usage;
 
    ----------------
@@ -136,9 +121,9 @@ package body Broca.Refs is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Value  : in Ref_Type) is
+      Value  : in Entity) is
    begin
-      Broca.Exceptions.Raise_Marshal;
+      raise Program_Error;
    end Marshall;
 
    ----------------
@@ -147,7 +132,7 @@ package body Broca.Refs is
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Value  : out Ref_Type) is
+      Value  : out Entity) is
    begin
       raise Program_Error;
    end Unmarshall;

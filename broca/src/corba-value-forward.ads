@@ -36,15 +36,15 @@ package CORBA.Value.Forward is
    type Value_Ref is new CORBA.Value.Base with null record;
 
    generic
-      type Ref_Type is new CORBA.Value.Base with private;
+      type Entity is new CORBA.Value.Base with private;
    package Convert is
       function From_Forward (The_Forward : in Value_Ref)
-                             return Ref_Type;
+                             return Entity;
       function To_Ref (The_Forward : in Value_Ref)
-                       return Ref_Type
+                       return Entity
         renames From_Forward;
 
-      function To_Forward (The_Ref : in Ref_Type)
+      function To_Forward (The_Ref : in Entity)
                            return Value_Ref;
    end Convert;
 

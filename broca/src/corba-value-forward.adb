@@ -5,8 +5,8 @@ package body CORBA.Value.Forward is
       -------------------
       --  From_Forward --
       -------------------
-      function From_Forward (The_Forward : in Value_Ref) return Ref_Type is
-         Result : Ref_Type;
+      function From_Forward (The_Forward : in Value_Ref) return Entity is
+         Result : Entity;
       begin
          Result.Ptr := The_Forward.Ptr;
          return Result;
@@ -15,7 +15,7 @@ package body CORBA.Value.Forward is
       -----------------
       --  To_Forward --
       -----------------
-      function To_Forward (The_Ref : in Ref_Type) return Value_Ref is
+      function To_Forward (The_Ref : in Entity) return Value_Ref is
          Result : Value_Ref;
       begin
          Result.Ptr := The_Ref.Ptr;

@@ -75,9 +75,9 @@ package Broca.POA is
    --  Add (register) or remove (unregister) a POA to be controled by the
    --  POAManager.
    procedure Register (Self : in out POAManager_Object;
-                       A_Poa : POA_Object_Ptr) is abstract;
+                       A_POA : POA_Object_Ptr) is abstract;
    procedure Unregister (Self : in out POAManager_Object;
-                         A_Poa : POA_Object_Ptr) is abstract;
+                         A_POA : POA_Object_Ptr) is abstract;
 
    --  9.3.2
    --  A POA Manager encapsulates the processing state of the POAs it is
@@ -110,7 +110,6 @@ package Broca.POA is
 
    --  An internal seleton is the internal object for an object implementation.
 
-   --  type Internal_Skeleton is new Broca.Refs.Ref_Type with
    type Internal_Skeleton is new CORBA.Impl.Object with
       record
          P_Servant : PortableServer.Servant;
@@ -137,7 +136,7 @@ package Broca.POA is
    type Object_Key_Ptr is access Broca.Buffers.Encapsulation;
 
    type Skeleton is new CORBA.Impl.Object with
-   --  type Skeleton is new Broca.Refs.Ref_Type with
+   --  type Skeleton is new Broca.Refs.Entity with
       record
          Type_Id    : CORBA.RepositoryId;
          Object_Key : Object_Key_Ptr;
@@ -179,11 +178,11 @@ package Broca.POA is
    All_POAs_Lock : Broca.Locks.Rw_Lock_Type;
 
    type POA_Index_Type is new Natural;
-   Bad_Poa_Index : constant POA_Index_Type := 0;
+   Bad_POA_Index : constant POA_Index_Type := 0;
    Root_POA_Index : constant POA_Index_Type := 1;
 
-   --  type Poa_Object is abstract new Broca.Refs.Ref_Type with
-   type Poa_Object is abstract new CORBA.Impl.Object with
+   --  type POA_Object is abstract new Broca.Refs.Entity with
+   type POA_Object is abstract new CORBA.Impl.Object with
       record
          --  A queue during creation by a poa activator adapter.
          Creation_Lock : Broca.Locks.Bcast_Lock_Type;

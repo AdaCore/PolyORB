@@ -44,7 +44,7 @@ package CORBA.Impl is
    --  Counter : Integer := 0;
    --  end record;
 
-   type Object is new Broca.Refs.Ref_Type with null record;
+   type Object is new Broca.Refs.Entity with null record;
    type Object_Ptr is access all Object'Class;
 
    --  procedure Initialize (This : in out Object);

@@ -4,8 +4,8 @@ with CORBA.ORB;
 with PortableServer.POA;
 with PortableServer.POAManager;
 
-with Broca.Rootpoa;
-pragma Elaborate (Broca.Rootpoa);
+with Broca.RootPOA;
+pragma Elaborate (Broca.RootPOA);
 pragma Elaborate_All (PortableServer.POA);
 
 package body Broca.Basic_Startup is

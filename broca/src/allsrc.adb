@@ -33,8 +33,8 @@
 
 with Broca;
 pragma Warnings (Off, Broca);
-with Broca.Rootpoa;
-pragma Warnings (Off, Broca.Rootpoa);
+with Broca.RootPOA;
+pragma Warnings (Off, Broca.RootPOA);
 
 procedure Allsrc is
 begin

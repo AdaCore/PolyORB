@@ -41,7 +41,7 @@ with CORBA.Impl;
 
 package Broca.Object is
 
-   --  type Object_Type is new Broca.Refs.Ref_Type with
+   --  type Object_Type is new Broca.Refs.Entity with
    type Object_Type is new CORBA.Impl.Object with
       record
          Type_Id  : CORBA.String;

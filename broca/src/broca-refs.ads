@@ -36,33 +36,23 @@ with Broca.Buffers;
 
 package Broca.Refs is
 
-   type Ref_Type is tagged limited private;
-   --  Ref_Type is the base type of all objects that can be
+   pragma Elaborate_Body;
+
+   type Entity is abstract tagged limited private;
+   --  Entity is the base type of all objects that can be
    --  referenced. It contains a Counter, which is the number of
    --  references to this object, and is automatically destroyed when
-   --  the counter reachs 0.  It is not abstract, because used for
-   --  instanciate System.Address_To_Access_Conversions.
+   --  the counter reaches 0.
 
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
-      Value  : in Ref_Type);
+      Value  : in Entity);
 
    procedure Unmarshall
      (Buffer : access Broca.Buffers.Buffer_Type;
-      Value  : out Ref_Type);
+      Value  : out Entity);
 
-   procedure Disable_Usage (Obj : in out Ref_Type);
-   --  Disable Counter of references. This is used for object derived
-   --  from Ref_type by the user (eg: servant, AdapterActivator...).
-   --  Must be called just after creation, when Counter is -1
-   --  (otherwise, CORBA.internal is raised).
-
-   type Ref_Ptr is access all Ref_Type'Class;
-
-   --  Handle the usage counter, unless Obj is null or the counter is
-   --  disabled.
-   procedure Inc_Usage (Obj : in Ref_Ptr);
-   procedure Dec_Usage (Obj : in out Ref_Ptr);
+   type Ref_Ptr is access all Entity'Class;
 
    type Ref is new Ada.Finalization.Controlled with private;
    --  The base type of all references. Inside CORBA (and Broca), this
@@ -70,19 +60,21 @@ package Broca.Refs is
    --  field, which designate the referenced object.
 
    function Get (Self : Ref) return Ref_Ptr;
-   --  Get inner Ref_Type object
+   --  Get inner Entity object
 
    procedure Set (Self : in out Ref; Referenced : Ref_Ptr);
    --  Set the object (can destroyed the previous one, if it was the only
    --  reference).
 
+   --  Handle the usage counter, unless Obj is null or the counter is
+   --  disabled.
+   procedure Inc_Usage (Obj : in Ref_Ptr);
+   procedure Dec_Usage (Obj : in out Ref_Ptr);
+
 private
 
-   --   type Ref_Type is new Ada.Finalization.Limited_Controlled with
-   type Ref_Type is tagged limited
+   type Entity is abstract tagged limited
       record
-         --  COUNTER is used to count the number of references, unless
-         --  COUNTER is -1 (caused by disable_usage).
          Counter : Integer := 0;
       end record;
 

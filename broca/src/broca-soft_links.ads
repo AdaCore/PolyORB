@@ -1,6 +1,6 @@
 package Broca.Soft_Links is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    --  This package allows soft links to be defined and later called if they
    --  have been installed. The purpose of this is to be able not to register
