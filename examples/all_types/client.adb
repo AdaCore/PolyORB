@@ -85,7 +85,7 @@ begin
    end if ;
 
    -- transforms the Ada string into Corba.String
-   IOR := Corba.To_Corba_String(Ada.Command_Line.Argument(1)) ;
+   IOR := Corba.To_Corba_String(Ada.Command_Line.Argument(1))  ;
 
    -- getting the Corba.Object
    Corba.Orb.String_To_Object(IOR, MyAll_Types) ;
@@ -221,7 +221,7 @@ begin
 
    -- string
    declare
-      Arg : Corba.String := Corba.To_Corba_String("Hello world");
+      Arg : Corba.String := Corba.To_Corba_String(Standard.String'("Hello world"));
    begin
    Put_Line ("####### Test of String #######") ;
    Put_Line("I sent : " & Corba.To_Standard_String(Arg)) ;
@@ -318,7 +318,7 @@ begin
 
    -- unbounded strings
    declare
-      Str,Str2 : U_String := U_String(Corba.To_Corba_String("Hello Adabroker !!!")) ;
+      Str,Str2 : U_String := U_String(Corba.To_Corba_String(Standard.String'("Hello Adabroker !!!"))) ;
    begin
       Put_Line ("####### Test of unbounded strings #######") ;
       Put_Line ("I send the unbounded string " &
@@ -477,14 +477,14 @@ begin
 
    -- arrays (3)
    declare
-      S1 : Corba.string := Corba.To_Corba_String("case1") ;
-      S2 : Corba.string := Corba.To_Corba_String("case2") ;
-      S3 : Corba.string := Corba.To_Corba_String("case3") ;
-      S4 : Corba.string := Corba.To_Corba_String("case4") ;
-      S5 : Corba.string := Corba.To_Corba_String("case5") ;
-      S6 : Corba.string := Corba.To_Corba_String("case6") ;
-      S7 : Corba.string := Corba.To_Corba_String("case7") ;
-      S8 : Corba.string := Corba.To_Corba_String("case8") ;
+      S1 : Corba.string := Corba.To_Corba_String(Standard.String'("case1")) ;
+      S2 : Corba.string := Corba.To_Corba_String(Standard.String'("case2")) ;
+      S3 : Corba.string := Corba.To_Corba_String(Standard.String'("case3")) ;
+      S4 : Corba.string := Corba.To_Corba_String(Standard.String'("case4")) ;
+      S5 : Corba.string := Corba.To_Corba_String(Standard.String'("case5")) ;
+      S6 : Corba.string := Corba.To_Corba_String(Standard.String'("case6")) ;
+      S7 : Corba.string := Corba.To_Corba_String(Standard.String'("case7")) ;
+      S8 : Corba.string := Corba.To_Corba_String(Standard.String'("case8")) ;
       Ar1 : cube := (((S1, S2), (S3, S4)), ((S5, S6), (S7, S8))) ;
       Ar2 : cube ;
 
@@ -526,8 +526,10 @@ begin
       Put_Line ("I received the array :");
       Put (Ar2) ;
    end ;
+
    Put_Line ("") ;
    Put_Line ("") ;
+
    -- all_types.ref
    declare
       all1 : All_Types.Ref ;
@@ -541,24 +543,25 @@ begin
       Put_Line ("");
       Put_Line ("I send the All_types.Ref :") ;
       Put_Line (Corba.To_Standard_String(Corba.Orb.Object_To_String(Myall_types))) ;
---      all1 := Echo11 (MyAll_Types, Myall_Types) ;
+      all1 := Echo11 (MyAll_Types, Myall_Types) ;
       Put_Line ("I receive the object : ") ;
---      Put_Line (Corba.To_Standard_String(Corba.Orb.Object_To_String(all1))) ;
+      Put_Line (Corba.To_Standard_String(Corba.Orb.Object_To_String(all1))) ;
       Put ("Now, the value of this attribute is ") ;
---      Ex2 := Get_N_Attribute (all1) ;
---      Put(Ex2) ;
+      Ex2 := Get_N_Attribute (all1) ;
+      Put(Ex2) ;
    end ;
 
    Put_Line ("") ;
    Put_Line ("") ;
+
    -- object.ref
    declare
       O,O1 : Corba.Object.Ref ;
    begin
       Put_Line ("####### Test of Corba.Object.Ref #######") ;
       Put_Line ("I send the Corba.Object ") ;
---      O1 := To_Ref(Myall_Types);
---      O := Echo12 (MyAll_Types, O1) ;
+      O1 := To_Ref(Myall_Types);
+      O := Echo12 (MyAll_Types, O1) ;
       Put_Line ("I received the Corba.Object ") ;
    end ;
 
@@ -566,3 +569,5 @@ begin
    Put_Line ("") ;
 
 end Client ;
+
+
