@@ -46,6 +46,9 @@ package body XE_Parse is
 
    Fatal_Error    : Boolean := True;
 
+   procedure Print_Node (Node : in Node_Id);
+   --  Print only this node.
+
    procedure Write_Conflict_Error
      (SLOC  : in Location_Type;
       Name  : in Name_Id);
@@ -81,6 +84,9 @@ package body XE_Parse is
    begin
       Search_Declaration (Declaration_Name, Node);
       if Node /= Null_Node then
+         if Debug_Mode then
+            Print_Node (Node);
+         end if;
          Write_Conflict_Error (Declaration_Sloc, Declaration_Name);
       end if;
    end Check_Not_Declared;
@@ -1560,8 +1566,6 @@ package body XE_Parse is
    procedure Print
    is
       Node : Node_Id;
-      X, Y : Int;
-      C    : Character;
    begin
       if not Debug_Mode then
          return;
@@ -1574,45 +1578,7 @@ package body XE_Parse is
       Write_Eol;
       First_Configuration_Declaration (Configuration_Node, Node);
       while Node /= Null_Node loop
-         if Is_Variable (Node) then
-            C := 'V';
-            Write_Str ("variable <");
-         elsif Is_Type (Node) then
-            C := 'T';
-            Write_Str ("type <");
-         elsif Is_Subprogram (Node) then
-            C := 'S';
-            Write_Str ("subprogram <");
-         elsif Is_Statement (Node) then
-            C := 'I';
-            Write_Str ("invoke <");
-         elsif Is_Configuration (Node) then
-            C := 'C';
-            Write_Str ("configuration <");
-         end if;
-         Write_Name (Get_Node_Name (Node));
-         Write_Str  ("> (");
-         Write_Int  (Int (Node));
-         Write_Str  (" at ");
-         Get_Node_SLOC (Node, X, Y);
-         Write_Int  (X);
-         Write_Str  (":");
-         Write_Int  (Y);
-         Write_Str  (")");
-         Write_Eol;
-         case C is
-            when 'V' =>
-               Print_Variable (Variable_Id (Node), 1);
-            when 'T' =>
-               Print_Type (Type_Id (Node), 1);
-            when 'S' =>
-               Print_Subprogram (Subprogram_Id (Node), 1);
-            when 'I' =>
-               Print_Statement (Statement_Id (Node), 1);
-            when others =>
-               null;
-         end case;
-         Write_Eol;
+         Print_Node (Node);
          Next_Configuration_Declaration (Node);
       end loop;
       Write_Eol;
@@ -1643,6 +1609,57 @@ package body XE_Parse is
       end if;
       Write_Eol;
    end Print_Component;
+
+   ----------------
+   -- Print_Node --
+   ----------------
+
+   procedure Print_Node
+     (Node : in Node_Id)
+   is
+      X, Y : Int;
+      C    : Character;
+   begin
+      if Is_Variable (Node) then
+         C := 'V';
+         Write_Str ("variable <");
+      elsif Is_Type (Node) then
+         C := 'T';
+         Write_Str ("type <");
+      elsif Is_Subprogram (Node) then
+         C := 'S';
+         Write_Str ("subprogram <");
+      elsif Is_Statement (Node) then
+         C := 'I';
+         Write_Str ("invoke <");
+      elsif Is_Configuration (Node) then
+         C := 'C';
+         Write_Str ("configuration <");
+      end if;
+      Write_Name (Get_Node_Name (Node));
+      Write_Str  ("> (");
+      Write_Int  (Int (Node));
+      Write_Str  (" at ");
+      Get_Node_SLOC (Node, X, Y);
+      Write_Int  (X);
+      Write_Str  (":");
+      Write_Int  (Y);
+      Write_Str  (")");
+      Write_Eol;
+      case C is
+         when 'V' =>
+            Print_Variable (Variable_Id (Node), 1);
+         when 'T' =>
+            Print_Type (Type_Id (Node), 1);
+         when 'S' =>
+            Print_Subprogram (Subprogram_Id (Node), 1);
+         when 'I' =>
+            Print_Statement (Statement_Id (Node), 1);
+         when others =>
+            null;
+      end case;
+      Write_Eol;
+   end Print_Node;
 
    ---------------------
    -- Print_Parameter --
@@ -2424,7 +2441,9 @@ package body XE_Parse is
       Mesg2 : in String  := "";
       Name2 : in Name_Id := No_Name) is
    begin
-      if Fatal_Error then
+      if Fatal_Error
+        or else Debug_Mode
+      then
          Write_Location (SLOC);
          if Mesg1 /= "" then
             Write_Str (Mesg1);
