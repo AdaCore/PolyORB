@@ -60,6 +60,7 @@ package body Droopi.Binding_Data.Test is
       TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), S);
       Create (P'Access, Filters.Filter_Access (Session));
+      --  XXXXX: should connect Session and TE
    end Bind_Profile;
 
    function Get_Profile_Tag
