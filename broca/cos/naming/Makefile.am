@@ -8,8 +8,8 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 	-I$(srcdir)/../../adasockets/src \
 	-g -O2 -m -gnata
 
-IDL_1=File
-IDL_2=CosNaming
+IDL_1=$(srcdir)/File.idl
+IDL_2=$(srcdir)/CosNaming.idl
 
 ADA_1=file
 ADA_2=cosnaming
@@ -51,11 +51,11 @@ all-local: test_naming
 
 SUFFIXES = .idl .ads .adb
 
-$(GEN_1): $(IDL_1).idl $(IDLAC)
-	$(IDLAC) $(IDL_1).idl
+$(GEN_1): $(IDL_1) $(IDLAC)
+	$(IDLAC) $(IDL_1)
 
-$(GEN_2): $(IDL_2).idl $(IDLAC)
-	$(IDLAC) $(IDL_2).idl
+$(GEN_2): $(IDL_2) $(IDLAC)
+	$(IDLAC) $(IDL_2)
 
 $(IDLAC): force
 	cd ../../idlac && $(MAKE) idlac
