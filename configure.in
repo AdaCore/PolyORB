@@ -467,9 +467,8 @@ ${RM} ${PROTO_SERVER_WITHS}
 # Some files need to be copied verbatim from the source tree to the
 # build directory (only necessary when source dir != build dir).
 #
-# XXX Should we add src/soap/gnat.adc ?
 
-for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc 
+for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc src/giop/gnat.adc src/giop/iiop/gnat.adc src/soap/gnat.adc src/srp/gnat.adc 
 do
   if test ! -f "$a"
   then
