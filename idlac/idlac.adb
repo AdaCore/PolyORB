@@ -53,6 +53,7 @@ procedure Idlac is
       Put_Line (Current_Error, "Usage: " & Command_Name
                 & " [-i] [-k] idl_file [-cppargs ...]");
       Put_Line (Current_Error, "  -E    Preprocess only.");
+      Put_Line (Current_Error, "  -d    Generate delegation package.");
       Put_Line (Current_Error, "  -i    Generate implementation template.");
       Put_Line (Current_Error, "  -k    Keep temporary files.");
       Put_Line (Current_Error, "  -p    Produce source on standard output.");
@@ -72,7 +73,7 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: i k p q") is
+         case Getopt ("E I: d i k p q") is
             when ASCII.Nul => exit;
 
             when 'E' =>
@@ -82,13 +83,14 @@ begin
                Idl_Fe.Lexer.Add_Argument ("-I");
                Idl_Fe.Lexer.Add_Argument (Parameter);
 
+            when 'd' =>
+               Generate_Delegate := True;
+
             when 'i' =>
-               Generate_Impl_Template
-                 := True;
+               Generate_Impl_Template := True;
 
             when 'k' =>
-               Keep_Temporary_Files
-                 := True;
+               Keep_Temporary_Files := True;
 
             when 'p' =>
                To_Stdout := True;
