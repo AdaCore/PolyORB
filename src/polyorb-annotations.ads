@@ -37,7 +37,7 @@
 
 --  $Id$
 
-with PolyORB.Sequences.Unbounded;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Annotations is
 
@@ -68,10 +68,9 @@ private
    type Note is abstract tagged null record;
    type Note_Access is access all Note'Class;
 
-   package Note_Seqs is new PolyORB.Sequences.Unbounded (Note_Access);
-   subtype Note_Seq is Note_Seqs.Sequence;
+   package Note_Lists is new PolyORB.Utils.Chained_Lists (Note_Access);
 
-   type Notepad is new Note_Seqs.Sequence;
+   type Notepad is new Note_Lists.List;
    --  Cannot be declared as "type Notepad is new Note_Seq;"
    --  because this would be a derivation of a partial view
    --  whose full view is tagged within its immediate scope,
