@@ -1,3 +1,51 @@
+2000-04-20  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* Makefile.am, Makefile.in: Add s-shamem files to the GNAT files
+ 	to replace. Fix typo.
+
+	* s-garhea.adb: Resume env. task when the partition cannot get its
+ 	partition id to activate shutdown and raise an exception in env
+ 	task. Add the storage data location to the boot data sent by a
+ 	partition to the boot server.
+
+	* s-gaplsp.ads.in: Define support name and specific data for
+ 	default storage.
+
+	* s-garopt.adb, s-garopt.ads: Add new option data_location and its
+ 	accessors (flag and env var). Minor reformatting.
+
+	* s-garpar.adb, s-garpar.ads: Add Mem_Locations to Partition_Info
+ 	which defines its data storage location and replace All_Locations
+ 	with Net_Locations. Update partition output. Define Mem_Locations
+ 	accessors. Improve pid allocation and validation to deal with
+ 	passive partitions which cannot register themselves.  Its clients
+ 	are in charge of doing the job and the name of this partition is
+ 	supposed to be unique to resolve pid allocation conflits. Resume
+ 	env task when the pid allocation proceess fails (return null
+ 	pid). Add Register_Passive_Partition to send a boot info on a
+ 	passive partition to boot server. Add code to handle passive
+ 	partition registration for a boot mirror and reorganize
+ 	accordingly. Fix the computation of the list of partitions that
+ 	take part into the global termination (because of passive
+ 	partition). Rename Send_Boot_Request into
+ 	Send_Partition_Definition and use this procedure to register a
+ 	passive partition.
+
+	* s-garuni.adb, s-garuni.ads: Improve unit registration to allow
+ 	active partition to register shared passive units configured on
+ 	passive partitions. Register units of the current partition and
+ 	the passive partitions. Add the partition id when a unit is
+ 	registered as it is possible to register units for other
+	partitions (passive partitions).
+  	
+	* s-parint.adb, s-parint.ads: Add two procedures to register
+	passive partitions and units configured on passive partitions.
+	
+	* s-garsta.adb: Configure System.Garlic.Storages.
+	
+	* s-gaphlo.adb, s-garexc.adb, s-garrep.adb, s-gartcp.adb,
+ 	s-garter.adb, s-garuti.ads: Minor reformatting.
+
 2000-03-28  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* 5hgarcon.ads: New file, part of fix for 7524-016.
