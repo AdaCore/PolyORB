@@ -225,7 +225,6 @@ AC_SUBST(GNATMAKE)
 # Output
 #
 AC_OUTPUT([Makefile
-           Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile Garlic/s-gaprco.adb Garlic/s-garser.adb
            Garlic/s-gaosli.ads
            Examples/check-config

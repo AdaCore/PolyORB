@@ -1,6 +1,7 @@
 	* README: Move a paragraph (concerning T.Wolf) from user_guide.txt
  	to README.
-	* configure.in: Modified for automake 1.1n.
+
+Tue Apr  1 15:32:11 1997  Samuel Tardieu  <sam@zaphod.enst.fr>
 
 	* README: Fixed a bogus WWW address and add the address of ACT
  	Europe GLADE page.
