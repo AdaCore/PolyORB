@@ -206,9 +206,11 @@ package Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.NamedValue);
 
-   procedure Unmarshall
+   function Unmarshall
      (Buffer : access Buffer_Type;
-      Data : in out CORBA.NamedValue);
+      Name : CORBA.Identifier;
+      Flags : CORBA.Flags)
+      return CORBA.NamedValue;
 
    procedure Marshall
      (Buffer : access Buffer_Type;

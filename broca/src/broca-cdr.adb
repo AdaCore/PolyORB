@@ -628,11 +628,18 @@ package body Broca.CDR is
       return CORBA.To_Any (CORBA.Short (0));
    end Unmarshall;
 
-   procedure Unmarshall
+   function Unmarshall
      (Buffer : access Buffer_Type;
-      Data : in out CORBA.NamedValue) is
+      Name : CORBA.Identifier;
+      Flags : CORBA.Flags)
+      return CORBA.NamedValue
+   is
+      Result : NamedValue;
    begin
-      Data.Argument := Unmarshall (Buffer);
+      Result.Name := Name;
+      Result.Argument := Unmarshall (Buffer);
+      Result.Arg_Modes := Flags;
+      return Result;
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
