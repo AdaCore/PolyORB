@@ -1,3 +1,7 @@
+1998-08-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* 5wgtplsp.ads: Fix typo in unit name.
+
 1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garrem.adb: Do not add -n inconditionnally onto the launcher

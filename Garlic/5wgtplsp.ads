@@ -60,4 +60,4 @@ private
      WSAStartup (WS_Version, WSAData_Dummy'Address);
    pragma Assert (Interfaces.C."=" (Return_Value, 0));
 
-end System.Garlic.TCP.Platform_Specific;
+end System.Garlic.TCP_Platform_Specific;
