@@ -3,14 +3,36 @@ TODO for PolyORB
 
 $Id$
 
+DSA implementation (CA22-003)
+------------------
+
+* DSA: When taking 'Access on a local RCI subprogram, have
+  only 1 instance of the relay object for the whole partition.
+  (cf. tardieu99 4.6.2)
+
+* Ada 95 DSA personality:
+  -> Asynchronous (5910, partial)
+  -> RACW 'Read/'Write
+  -> From_Any and To_Any for tagged records and variant records
+  -> map system exceptions to System.RPC.Communication_Error.
+
+* Ability to specify boot server location by hostname and port number
+
+* Make the process of locating the name server transparent
+
+* filters
+
+* termination
+
+* reconnect
+
+* version checking
+
 Items still requiring attention
 -------------------------------
 
 * Review initialization of the object adapter attached to ORB, to
   enable setup of POA proxies during modules' initialization.
-
-* Add a flag to Register_Module to enable selective initialization of
-  a module.
 
 * Suppress Set_CDR_Position from buffer interface, which is needed
   by the MIOP personality to fragment buffers from UDP sockets.
@@ -18,10 +40,6 @@ Items still requiring attention
 * Establish a configurable connection cache so requests to
   the same object made though different references can share
   the same binding object.
-
-* DSA: When taking 'Access on a local RCI subprogram, have
-  only 1 instance of the relay object for the whole partition.
-  (cf. tardieu99 4.6.2)
 
 * Give a look at the ac_prog_cc_for_build from
   http://ac-archive.sourceforge.net/ to clean up configure script when
@@ -77,13 +95,6 @@ Items still requiring attention
   code from generic code. Check proper implementation of
   DSA exceptions. Document mapping between both models.
 
-* Ada 95 DSA personality:
-  -> Asynchronous (5910, partial)
-  -> RACW 'Read/'Write
-  -> From_Any and To_Any for tagged records and variant records.
-  -> map system exceptions to System.RPC.Communication_Error.
-  -> map user exceptions to appropriate Exception_Occurrences.
-   
 * Bind-time configuration tool (to help the user generate a configuration
   package suited to his needs.)
 
@@ -130,9 +141,6 @@ Items still requiring attention
 * CSTA protocol (for telephony applications.)
 
 * Alternative implementations of transport endpoints:
-
-  -> A mechanism for use of non-connected message passing
-     protocols (eg UDP, email).
    
   -> A mechanism for optional implementation of reliable
      message delivery over a non-reliable message delivery
@@ -196,3 +204,13 @@ Items processed
   send out any INOUT or OUT argument with the reply.
 
 * Make idlac compilable under -gnaty.
+
+* DSA: support for user exceptions
+
+* Add a flag to Register_Module to enable selective initialization of
+  a module.
+
+* Alternative implementations of transport endpoints:
+
+  -> A mechanism for use of non-connected message passing
+     protocols (UDP)
