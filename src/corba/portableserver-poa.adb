@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#45 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#46 $
 
 with Ada.Exceptions;
 
@@ -55,7 +55,7 @@ with PolyORB.References.Binding;
 with PolyORB.Servants;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
-with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -390,7 +390,7 @@ package body PortableServer.POA is
 
       if POA.Children /= null
         and then not Is_Empty (POA.Children.all) then
-         PolyORB.Tasking.Rw_Locks.Lock_R (POA.Children_Lock);
+         PolyORB.Tasking.Mutexes.Enter (POA.Children_Lock);
 
          pragma Debug (O ("Iterate over existing children"));
          declare
@@ -405,7 +405,7 @@ package body PortableServer.POA is
             end loop;
          end;
 
-         PolyORB.Tasking.Rw_Locks.Unlock_R (POA.Children_Lock);
+         PolyORB.Tasking.Mutexes.Leave (POA.Children_Lock);
       end if;
 
       pragma Debug (O ("Get_The_Children: end"));

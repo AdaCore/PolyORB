@@ -61,7 +61,7 @@ package body PolyORB.POA.Basic_POA is
    use PolyORB.POA_Manager.Basic_Manager;
    use PolyORB.POA_Policies;
    use PolyORB.POA_Types;
-   use PolyORB.Tasking.Rw_Locks;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
 
    package L is new Log.Facility_Log ("polyorb.poa.basic_poa");
@@ -194,7 +194,7 @@ package body PolyORB.POA.Basic_POA is
       Policies_Array : constant Element_Array := To_Element_Array (Policies);
       A_Policy : Policy_Access;
    begin
-      Lock_W (OA.POA_Lock);
+      Enter (OA.POA_Lock);
 
       for J in Policies_Array'Range loop
          A_Policy := Policies_Array (J);
@@ -281,7 +281,7 @@ package body PolyORB.POA.Basic_POA is
          end if;
       end loop;
 
-      Unlock_W (OA.POA_Lock);
+      Leave (OA.POA_Lock);
    end Set_Policies;
 
    -----------------------------
@@ -324,7 +324,7 @@ package body PolyORB.POA.Basic_POA is
 
    begin
       pragma Debug (O ("Check compatibilities between policies: enter"));
-      Lock_R (OA.POA_Lock);
+      Enter (OA.POA_Lock);
 
       OA_Policies (1) := Policy_Access (OA.Thread_Policy);
       OA_Policies (2) := Policy_Access (OA.Lifespan_Policy);
@@ -369,7 +369,7 @@ package body PolyORB.POA.Basic_POA is
          OA_Policies,
          Error);
 
-      Unlock_R (OA.POA_Lock);
+      Leave (OA.POA_Lock);
       pragma Debug (O ("Check compatibilities between policies: leave"));
    end Check_Policies_Compatibility;
 
@@ -556,12 +556,10 @@ package body PolyORB.POA.Basic_POA is
 
       --  Look if there is already a child with this name
 
+      Enter (Self.Children_Lock);
+
       if Self.Children /= null then
          pragma Debug (O ("Check if a POA with the same name exists."));
-
-         Lock_W (Self.Children_Lock);
-         --  Write Lock here: content of children has to be the same when
-         --  we add the new child.
 
          if Lookup (Self.Children.all,
                     To_Standard_String (Adapter_Name), null) /= null then
@@ -569,7 +567,7 @@ package body PolyORB.POA.Basic_POA is
                    AdapterAlreadyExists_E,
                    Null_Members'(Null_Member));
 
-            Unlock_W (Self.Children_Lock);
+            Leave (Self.Children_Lock);
             return;
          end if;
       end if;
@@ -601,12 +599,8 @@ package body PolyORB.POA.Basic_POA is
 
       --  Register new obj_adapter as a sibling of the current POA.
 
-      if not Is_Set_W (Self.Children_Lock) then
-         Lock_W (Self.Children_Lock);
-      end if;
-
       Register_Child (Self, New_Obj_Adapter);
-      Unlock_W (Self.Children_Lock);
+      Leave (Self.Children_Lock);
 
       --  Construct POA Absolute name.
 
@@ -682,7 +676,7 @@ package body PolyORB.POA.Basic_POA is
 
       if Self.Children /= null
         and then not Is_Empty (Self.Children.all) then
-         Lock_W (Self.Children_Lock);
+         Enter (Self.Children_Lock);
 
          declare
             It : Iterator := First (Self.Children.all);
@@ -704,12 +698,12 @@ package body PolyORB.POA.Basic_POA is
             Finalize (Self.Children.all);
             Free (Self.Children);
 
-            Unlock_W (Self.Children_Lock);
+            Leave (Self.Children_Lock);
 
          exception
             when others =>
                pragma Debug (O ("Got exception when destroying Child POA"));
-               Unlock_W (Self.Children_Lock);
+               Leave (Self.Children_Lock);
                raise;
          end;
       end if;
@@ -1206,8 +1200,8 @@ package body PolyORB.POA.Basic_POA is
      (From : in     Basic_Obj_Adapter;
       To   : access Basic_Obj_Adapter) is
    begin
-      Lock_R (From.POA_Lock);
-      Lock_W (To.POA_Lock);
+      Enter (From.POA_Lock);
+      Enter (To.POA_Lock);
 
       To.Name                       := From.Name;
       To.POA_Manager                := From.POA_Manager;
@@ -1226,8 +1220,8 @@ package body PolyORB.POA.Basic_POA is
       To.Children_Lock              := From.Children_Lock;
       To.Map_Lock                   := From.Map_Lock;
 
-      Unlock_R (From.POA_Lock);
-      Unlock_W (To.POA_Lock);
+      Leave (From.POA_Lock);
+      Leave (To.POA_Lock);
    end Copy_Obj_Adapter;
 
    ------------------------
@@ -1479,7 +1473,7 @@ package body PolyORB.POA.Basic_POA is
 
       Basic_OA := Basic_Obj_Adapter_Access (Obj_OA);
 
-      Lock_R (Basic_OA.POA_Lock);
+      Enter (Basic_OA.POA_Lock);
 
       --  Check POA Manager state.
 
@@ -1493,6 +1487,7 @@ package body PolyORB.POA.Basic_POA is
                       Transient_E,
                       System_Exception_Members'(Minor => 0,
                                                 Completed => Completed_No));
+               Leave (Basic_OA.POA_Lock);
                return;
 
             when HOLDING =>
@@ -1501,6 +1496,7 @@ package body PolyORB.POA.Basic_POA is
                   (POA_Manager_Of (Basic_OA),
                    POA_Types.Obj_Adapter_Access (Basic_OA)));
                Servants.Set_Thread_Policy (Servant, Basic_OA.Thread_Policy);
+               Leave (Basic_OA.POA_Lock);
                return;
 
             when others =>
@@ -1520,7 +1516,7 @@ package body PolyORB.POA.Basic_POA is
                      Servant,
                      Error);
 
-      Unlock_R (Basic_OA.POA_Lock);
+      Leave (Basic_OA.POA_Lock);
 
       if Found (Error) then
          return;

@@ -40,7 +40,7 @@ with PolyORB.Exceptions;
 with PolyORB.POA_Types;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Servants.Interface;
-with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Tasking.Mutexes;
 
 package PolyORB.POA_Manager.Basic_Manager is
 
@@ -133,13 +133,13 @@ private
       --  XXX bad name.
       --  Number of POA managed by the POA Manager.
 
-      State_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+      State_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Lock the state.
 
-      Count_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+      Count_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Lock on the usage counter.
 
-      POAs_Lock       : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+      POAs_Lock       : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Lock on the sequence of managed POAs.
 
       PM_Hold_Servant : Hold_Servant_Access := null;
@@ -148,7 +148,7 @@ private
       Held_Requests : Requests_Queue;
       --  List of requests held by the POAManager.
 
-      Queue_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+      Queue_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Lock on the queue of pending requests.
    end record;
 
