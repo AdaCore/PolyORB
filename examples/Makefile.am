@@ -9,7 +9,9 @@ TESTS=  polyorb-test-no_tasking \
 
 CLEANFILES=	*.o *.ali
 
-all: $(TESTS)
+all: orb $(TESTS)
+
+all-local: $(TESTS)
 
 $(TESTS): force
 	$(GNATMAKE) \
@@ -29,7 +31,9 @@ $(TESTS): force
 	../src/soap/libpolyorb-soap.la \
 	$(XMLADA_LIBS)
 
-force:
+orb:	force
 	(cd ../src && $(MAKE) all)
+
+force:
 
 clean:
