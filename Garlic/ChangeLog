@@ -1,3 +1,9 @@
+Tue Jan 28 16:11:53 1997  Laurent Pautet <pautet@inf.enst.fr>
+
+	* s-parint.ads: Change Unit_Name_Access definition in order to
+	workaround a bug in GNAT 3.09.
+	
+
 Wed Jan 22 17:32:39 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* constants.sh: Use the current build directory instead of /tmp as
