@@ -28,7 +28,7 @@ package Echo is
 
 
    --------------------------------------------------
-   ----              not in  spec                ----
+   ----    not in  spec omniORB specific         ----
    --------------------------------------------------
 
    type OmniProxyCallDesc_Echo is new OmniProxyCallDesc with private ;
@@ -44,6 +44,15 @@ package Echo is
                                        Giop_Client: in out Giop_C) ;
 
    function Result (Self : in Object) return CORBA.String;
+
+   --------------------------------------------------
+   ----    not in  spec AdaBroker specific       ----
+   --------------------------------------------------
+
+   procedure AdaBroker_Cast_To_Parent(Real_Object: in Ref;
+                                      Result: out Corba.Object'Class) ;
+
+
 
 private
 

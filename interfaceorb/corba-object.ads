@@ -40,10 +40,16 @@ package Corba.Object is
    -- wrapper around omniObject* CORBA::Object::PR_getobj()
    -- in corbaObject.cc L128
 
+   --------------------------------------------------
+   ---        AdaBroker  specific                 ---
+   --------------------------------------------------
+   function Get_Dynamic_Object() return Ref'Class ;
 
 
 private
 
-
+   type Ref is tagged record
+      Dynamic_Object : access Ref'Class := Ref'Access ;
+      end record ;
 
 end Corba.Object ;

@@ -17,11 +17,19 @@ package body Echo is
    ----                spec                      ----
    --------------------------------------------------
 
-   function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref is
+   -- To_Ref
+   ---------
+   function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref is
+      Real_Object : Corba.Object'Class ;
+      Result : Ref ;
    begin
-      -- cf to_ref.txt
+      Real_Object := Get_Dynamic_Object(The_Ref) ;
+      AdaBroker_Cast_To_Parent(Real_Object,Result) ;
+      return Result;
    end ;
 
+   -- EchoString
+   -------------
    function EchoString(Self: in Ref; message: in Corba.String)
                        return Corba.String is
 
