@@ -1,5 +1,10 @@
 2004-08-10  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-nutils.ads: Correct selector name from P_Implecit
+	to P_Implicit. 
+
+2004-08-10  Saber Souli  <souli@neraka.enst.fr>
+
 	* backend-be_ada-runtime.ads: Apply gnat style coding. Add runtime entities.
 
 	* backend-be_ada-generator.adb: Generate Qualified_Expression. 

@@ -162,7 +162,7 @@ package Backend.BE_Ada.Nutils is
       P_Depends,
       P_Exception_Info,
       P_From,
-      P_Implecit,
+      P_Implicit,
       P_Init,
       P_Item,
       P_Logical_Type_Id,
