@@ -23,10 +23,12 @@ all-local: client server $(EXTRA)
 
 SUFFIXES = .idl .ads .adb
 
-.idl.ads: $(IDLAC)
+$(EXAMPLE).ads: $(EXAMPLE).idl $(IDLAC)
+
+.idl.ads:
 	$(IDLAC) $<
 
-.idl.adb: $(IDLAC)
+.idl.adb:
 	$(IDLAC) $<
 
 $(IDLAC): force
