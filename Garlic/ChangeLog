@@ -1,3 +1,9 @@
+Wed Jun  4 18:00:57 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gafizi.adb: Replaced pragma Elaborate by pragma Elaborate_All
+	  since it makes no sense to elaborate only one of the needed
+	  packages.
+
 Thu May 29 17:30:14 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-rpcpoo.adb: Do not start handling a request until elaboration

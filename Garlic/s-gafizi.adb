@@ -38,7 +38,7 @@
 -- Federal Institute of Technology in Lausanne (EPFL).                      --
 
 with System.Garlic.Filters;
-pragma Elaborate (System.Garlic.Filters);
+pragma Elaborate_All (System.Garlic.Filters);
 
 with System.Garlic.Debug;
 with System.Garlic.Utils;
