@@ -571,6 +571,15 @@ package body System.Garlic.Partitions is
       end if;
    end Invalidate_Partition;
 
+   -------------
+   -- Is_Dead --
+   -------------
+
+   function Is_Dead (Partition : Partition_ID) return Boolean is
+   begin
+      return Partitions.Get_Component (Partition) .Status = Dead;
+   end Is_Dead;
+
    -----------
    -- Merge --
    -----------

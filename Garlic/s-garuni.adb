@@ -145,23 +145,41 @@ package body System.Garlic.Units is
       for PID in List'Range loop
          if List (PID) then
 
-            --  Send the whole table even if the request was on a specific
-            --  unit.
+            if Is_Dead (PID) then
 
-            declare
-               Reply : aliased Params_Stream_Type (0);
-               Error : Error_Type;
-            begin
-               pragma Debug (D ("Handling pending request for partition " &
-                                Partition_ID'Image (PID)));
-               Request_Type'Output (Reply'Access, Push_Units);
-               Write_Units         (Reply'Access);
-               Send (PID, Unit_Name_Service, Reply'Access, Error);
-               Deallocate (Reply);
-               Catch (Error);
-            end;
+               --  The partition is dead in the meantime. Do nothing as
+               --  it is already marked as dead.
+
+               pragma Debug (D ("Skipping pending request for dead " &
+                                "partition" & Partition_ID'Image (PID)));
+               null;
+
+            else
+               --  Send the whole table even if the request was on a specific
+               --  unit.
+
+               declare
+                  Reply : aliased Params_Stream_Type (0);
+                  Error : Error_Type;
+               begin
+                  pragma Debug (D ("Handling pending request for partition " &
+                                   Partition_ID'Image (PID)));
+                  Request_Type'Output (Reply'Access, Push_Units);
+                  Write_Units         (Reply'Access);
+                  Send (PID, Unit_Name_Service, Reply'Access, Error);
+                  Deallocate (Reply);
+                  Catch (Error);
+                  pragma Debug (D ("Request for partition" &
+                                   Partition_ID'Image (PID) & " handled"));
+               end;
+            end if;
          end if;
       end loop;
+   exception
+      when Error : others =>
+         pragma Debug (D ("Exception raised in Answer_Pending_Requests: " &
+                          Ada.Exceptions.Exception_Information (Error)));
+         raise;
    end Answer_Pending_Requests;
 
    --------------------

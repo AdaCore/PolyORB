@@ -186,6 +186,9 @@ package System.Garlic.Partitions is
    --  (not a slave). Send to boot mirrors group the invalidation request
    --  or to boot server if the current partition is not a boot mirror.
 
+   function Is_Dead (Partition : Types.Partition_ID) return Boolean;
+   --  Return True if Partition's status is Dead
+
    function N_Boot_Mirrors return Natural;
    --  Number of boot mirrors in the partition info table
 

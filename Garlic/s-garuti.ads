@@ -90,7 +90,7 @@ package System.Garlic.Utils is
 
    procedure Wait (B : in Barrier_Type);
    pragma Inline (Wait);
-   --  Wait on barrier.
+   --  Wait on barrier
 
    type Mutex_Type is limited private;
 

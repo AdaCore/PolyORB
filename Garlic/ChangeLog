@@ -1,3 +1,14 @@
+1999-02-17  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garuni.adb: Do not try to send a reply to a pending request to 
+	a dead partition as it will cause a lockup in the runtime.
+
+	* s-garpar.ads, s-garpar.adb: (Is_Dead): New function that tests
+	if a partition is known as being dead.
+
+	* s-gargro.adb: Barrier has been replaced by a mutex (Group_Mutex) 
+	as its only purpose is to provide non-reentrant mutual exclusion.
+
 1999-02-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* constants.c, config.h.in: Use string.h if present, needed on

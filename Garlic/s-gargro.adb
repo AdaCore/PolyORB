@@ -52,7 +52,7 @@ package body System.Garlic.Group is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   Barrier : Barrier_Type;
+   Group_Mutex : Mutex_Type;
 
    procedure Handle_Request
      (Partition : in Partition_ID;
@@ -74,7 +74,7 @@ package body System.Garlic.Group is
       Params : access Streams.Params_Stream_Type)
    is
    begin
-      Wait (Barrier);
+      Enter (Group_Mutex);
       pragma Debug (D ("Broadcast facility is locked"));
       Insert (Params.all);
       Partition_ID'Write (Params, Self_PID);
@@ -116,7 +116,7 @@ package body System.Garlic.Group is
       if Inner_PID = Self_PID then
          if Empty (Reply) then
             pragma Debug (D ("Broadcast facility is unlocked"));
-            Signal (Barrier);
+            Leave (Group_Mutex);
 
          else
             pragma Debug (D ("Continue broacast for a second time"));
@@ -146,9 +146,8 @@ package body System.Garlic.Group is
 
    procedure Initialize is
    begin
-      Create (Barrier);
+      Create (Group_Mutex);
       Register_Handler (Group_Service, Handle_Request'Access);
-      Signal (Barrier);
    end Initialize;
 
    -------------------
