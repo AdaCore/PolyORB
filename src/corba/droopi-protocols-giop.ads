@@ -114,7 +114,7 @@ package Droopi.Protocols.GIOP is
       Loc_System_Exception,
       Loc_Needs_Addressing_Mode);
 
-   type Pending_Request is limited private;
+   type Pending_Request is private;
 
 
 
@@ -401,19 +401,18 @@ package Droopi.Protocols.GIOP is
 
    GIOP_Error : exception;
 
+   --  for debugging purposes
+   function Ret_Id (Pend : Pending_Request)
+     return Types.Unsigned_Long;
+
+
 private
 
-
-   type Pending_Request (Role : ORB.Endpoint_Role := Client) is
+   type Pending_Request is
      record
        Req             : Requests.Request_Access;
        Request_Id      : Types.Unsigned_Long := 0;
-       case Role is
-           when Client =>
-             Target_Profile  : Binding_Data.Profile_Access;
-           when Server =>
-             null;
-       end case;
+       Target_Profile  : Binding_Data.Profile_Access;
      end record;
 
    package Req_Seq is new Sequences.Unbounded (Pending_Request);

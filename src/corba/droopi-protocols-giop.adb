@@ -1033,9 +1033,11 @@ package body Droopi.Protocols.GIOP is
    is
       use Req_Seq;
    begin
+      Set_Note (R.Notepad, Request_Note'(Annotations.Note with
+                                          Id => Current_Request_Id));
       Pending := Pending_Request'(Req => R,
                        Request_Id => Current_Request_Id,
-                       Role => Server);
+                       Target_Profile => null);
       Append (Ses.Pending_Rq, Pending);
       Current_Request_Id := Current_Request_Id + 1;
    end Store_Request;
@@ -1050,9 +1052,10 @@ package body Droopi.Protocols.GIOP is
    is
       use Req_Seq;
    begin
+      Set_Note (R.Notepad, Request_Note'(Annotations.Note with
+                                          Id => Current_Request_Id));
       Pending  := Pending_Request'(Req => R,
                       Request_Id => Current_Request_Id,
-                      Role => Client,
                       Target_Profile => Profile);
       Append (Ses.Pending_Rq, Pending);
       Current_Request_Id := Current_Request_Id + 1;
@@ -1395,6 +1398,7 @@ package body Droopi.Protocols.GIOP is
       Fragment_Next  : Boolean := False;
       Current_Req    : aliased Pending_Request;
 
+
    begin
 
       if S.Role  = Server then
@@ -1421,6 +1425,7 @@ package body Droopi.Protocols.GIOP is
                Locate_Request_Message (S, Current_Req'Access,
                         Obj, Fragment_Next);
                S.Nbr_Tries := S.Nbr_Tries + 1;
+               pragma Debug (O ("Locate Request Message"));
             end;
          else
             pragma Debug (O ("Number of tries exceeded"));
@@ -1507,21 +1512,26 @@ package body Droopi.Protocols.GIOP is
       use Req_Seq;
       Fragment_Next : Boolean := False;
       Current_Req : aliased Pending_Request;
+      --   Pending_Request'(Req => null,
+      --   Request_Id => 0, Role => Server);
       Pending_Note  : Request_Note;
       Current_Note  : Request_Note;
 
    begin
 
-      if S.Role  = Server then
+      if S.Role  = Client then
          raise GIOP_Error;
       end if;
 
       Get_Note (R.Notepad, Current_Note);
 
+      pragma Debug (O ("Notepad" &
+      Types.Unsigned_Long'Image (Current_Note.Id)));
+
       for I in 1 .. Length (S.Pending_Rq) loop
-         Get_Note (Element_Of (S.Pending_Rq, I).Req.Notepad, Pending_Note);
+         Current_Req := Element_Of (S.Pending_Rq, I);
+         Get_Note (Current_Req.Req.Notepad, Pending_Note);
          if Pending_Note.Id = Current_Note.Id then
-            Current_Req := Element_Of (S.Pending_Rq, I);
             Delete (S.Pending_Rq, I, 1);
             exit;
          end if;
@@ -1748,6 +1758,15 @@ package body Droopi.Protocols.GIOP is
    begin
       return (Bit_Field and (2 ** Bit_Order)) /= 0;
    end Is_Set;
+
+   function Ret_Id
+      (Pend : Pending_Request)
+     return Types.Unsigned_Long
+   is
+   begin
+      return Pend.Request_Id;
+   end Ret_Id;
+
 
 end Droopi.Protocols.GIOP;
 
