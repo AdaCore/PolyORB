@@ -95,6 +95,7 @@ package PolyORB.HTTP_Headers is
       H_Content_Type,         --  >> "Content-Type"
       H_Expires,              --  >> "Expires"
       H_Last_Modified,        --  >> "Last-Modified"
+      H_SOAPAction,           --  >> "SOAPAction"
       Extension_Header
 
       --  </ENUM>

@@ -57,29 +57,6 @@ package PolyORB.Filters.HTTP is
 
    Protocol_Error : exception;
 
-private
-
-   type HTTP_Version is record
-     Major : Natural;
-     Minor : Natural;
-   end record;
-
-   -------------------------------------
-   -- Terminals of the message syntax --
-   -------------------------------------
-
-   CRLF             : constant String := ASCII.CR & ASCII.LF;
-
-   HTTP_Slash       : constant String := "HTTP/";
-   --  in HTTP-Version
-
-   Encoding_Chunked  : constant String := "chunked";
-   Encoding_Identity : constant String := "identity";
-   --  in transfer-coding
-
-   Default_HTTP_Version : constant HTTP_Version
-     := (Major => 1, Minor => 1);
-
    type HTTP_Status_Code is
      (S_Unknown,
 
@@ -199,6 +176,29 @@ private
      range S_400_Bad_Request .. S_4xx_Other_Client_Error;
    subtype Server_Error_Status_Code is HTTP_Status_Code
      range S_500_Internal_Server_Error .. S_5xx_Other_Server_Error;
+
+private
+
+   type HTTP_Version is record
+     Major : Natural;
+     Minor : Natural;
+   end record;
+
+   -------------------------------------
+   -- Terminals of the message syntax --
+   -------------------------------------
+
+   CRLF             : constant String := ASCII.CR & ASCII.LF;
+
+   HTTP_Slash       : constant String := "HTTP/";
+   --  in HTTP-Version
+
+   Encoding_Chunked  : constant String := "chunked";
+   Encoding_Identity : constant String := "identity";
+   --  in transfer-coding
+
+   Default_HTTP_Version : constant HTTP_Version
+     := (Major => 1, Minor => 1);
 
    -----------
    -- Types --
