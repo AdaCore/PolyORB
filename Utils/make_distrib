@@ -24,22 +24,23 @@ prev=`pwd`
 tmp=/tmp/t$$
 mkdir ${tmp}
 cd ${tmp}
-cvs -d ${root} co ${kk} -r to_be_released -d ${dir} ${name}
+cvs -d ${root} co ${kk} -r ${tag} -d ${dir} ${name}
 cd ${dir}
-find . \( -name CVS -prune \) -o -type f -print | xargs cvs update ${kk} -r ${tag}
 if [ -f Utils/VERSION.INFO ]; then
   echo "Sourcing version file, then deleting it"
   . Utils/VERSION.INFO
   rm -f Utils/VERSION.INFO
 fi
-find . -name CVS -type d -exec rm -rf {} \;
-find . -type d -print | xargs rmdir 2>/dev/null
 find . -name aclocal.m4 -exec touch {} \;
 find . -name Makefile.in -exec touch {} \;
 find . -name configure -exec touch {} \;
 chmod -R og=u-w .
+flist=""
+for i in `cat MANIFEST`; do
+  flist="${flist} ${dir}/${i}"
+done
 cd ..
-tar cvf ${dir}.tar ${dir}
+tar cvf ${dir}.tar ${flist}
 gzip --best ${dir}.tar
 mv ${dir}.tar.gz ${prev}
 cd ${prev}
