@@ -92,7 +92,8 @@ package body Exp_Dist is
       Is_Known_Non_Asynchronous : in Boolean := False;
       Is_Function               : in Boolean;
       Spec                      : in Node_Id;
-      Object_Type               : in Entity_Id := Empty;
+      Stub_Type                 : in Entity_Id := Empty;
+      RACW_Type                 : in Entity_Id := Empty;
       Nod                       : in Node_Id);
    --  Build calling stubs for general purpose. The parameters are:
    --    Decls             : a place to put declarations
@@ -118,6 +119,7 @@ package body Exp_Dist is
       Asynchronous             : Boolean;
       Dynamically_Asynchronous : Boolean   := False;
       Stub_Type                : Entity_Id := Empty;
+      RACW_Type                : Entity_Id := Empty;
       Locator                  : Entity_Id := Empty;
       New_Name                 : Name_Id   := No_Name)
       return                     Node_Id;
@@ -275,11 +277,14 @@ package body Exp_Dist is
       NVList      : Entity_Id;
       Parameter   : Entity_Id;
       Constrained : Boolean;
+      RACW_Ctrl   : Boolean := False;
       Any         : Entity_Id)
       return Node_Id;
    --  Return a call to Add_Item to add the Any corresponding
    --  to the designated formal Parameter (with the indicated
-   --  Constrained status) to NVList.
+   --  Constrained status) to NVList. RACW_Ctrl must be set to
+   --  True for controlling formals of distributed object primitive
+   --  operations.
 
    type Stub_Structure is record
       Stub_Type            : Entity_Id;
@@ -518,10 +523,12 @@ package body Exp_Dist is
       NVList      : Entity_Id;
       Parameter   : Entity_Id;
       Constrained : Boolean;
+      RACW_Ctrl   : Boolean := False;
       Any         : Entity_Id)
       return Node_Id
    is
       Parameter_Name_String : String_Id;
+      Parameter_Mode : Node_Id;
    begin
       if Nkind (Parameter) = N_Defining_Identifier then
          Get_Name_String (Chars (Parameter));
@@ -530,6 +537,14 @@ package body Exp_Dist is
                                   (Parameter)));
       end if;
       Parameter_Name_String := String_From_Name_Buffer;
+
+      if RACW_Ctrl then
+         Parameter_Mode := New_Occurrence_Of
+           (RTE (RE_Mode_In), Loc);
+      else
+         Parameter_Mode := Parameter_Passing_Mode (Loc,
+           Parameter, Constrained);
+      end if;
 
       return
         Make_Procedure_Call_Statement (Loc,
@@ -546,8 +561,7 @@ package body Exp_Dist is
                 Make_String_Literal (Loc,
                   Strval => Parameter_Name_String))),
             New_Occurrence_Of (Any, Loc),
-            Parameter_Passing_Mode (Loc,
-              Parameter, Constrained)));
+            Parameter_Mode));
    end Add_Parameter_To_NVList;
 
    -----------------------
@@ -887,8 +901,7 @@ package body Exp_Dist is
       RPC_Receiver_Request           : Entity_Id;
       RPC_Receiver_Subp_Id           : Entity_Id;
 
-      RPC_Receiver_OLD_Subp_Id       : Entity_Id;
-      --  XXX TO BE REMOVED (placeholder, need an int.)
+      Subp_Val : Node_Id;
 
       Current_Primitive_Elmt   : Elmt_Id;
       Current_Primitive        : Entity_Id;
@@ -920,16 +933,6 @@ package body Exp_Dist is
         Subp_Id      => RPC_Receiver_Subp_Id,
         Stmts        => RPC_Receiver_Statements,
         Decl         => RPC_Receiver_Decl);
-
-      RPC_Receiver_OLD_Subp_Id := Make_Defining_Identifier (Loc,
-        New_Internal_Name ('S'));
-
-      Append_To (Declarations (RPC_Receiver_Decl),
-        Make_Object_Declaration (Loc,
-          Defining_Identifier =>
-            RPC_Receiver_OLD_Subp_Id,
-          Object_Definition =>
-            New_Occurrence_Of (Standard_Integer, Loc)));
 
       if Present (Primitive_Operations (Designated_Type)) then
 
@@ -985,7 +988,8 @@ package body Exp_Dist is
                     Subp_Id                  => Current_Primitive_Number,
                     Asynchronous             => Possibly_Asynchronous,
                     Dynamically_Asynchronous => Possibly_Asynchronous,
-                    Stub_Type                => Stub_Elements.Stub_Type);
+                    Stub_Type                => Stub_Elements.Stub_Type,
+                    RACW_Type                => Stub_Elements.RACW_Type);
                Append_To (Decls, Current_Primitive_Body);
 
                --  Analyzing the body here would cause the Stub type to be
@@ -1011,12 +1015,35 @@ package body Exp_Dist is
 
                --  Add a case alternative to the receiver
 
-               Append_To (RPC_Receiver_Case_Alternatives,
-                 Make_Case_Statement_Alternative (Loc,
-                   Discrete_Choices => New_List (
-                     Make_Integer_Literal (Loc, Current_Primitive_Number)),
+--                 Append_To (RPC_Receiver_Case_Alternatives,
+--                   Make_Case_Statement_Alternative (Loc,
+--                     Discrete_Choices => New_List (
+--                       Make_Integer_Literal (Loc, Current_Primitive_Number)),
 
-                   Statements       => New_List (
+--                     Statements       => New_List (
+--                       Make_Procedure_Call_Statement (Loc,
+--                         Name                   =>
+--                           New_Occurrence_Of (Current_Receiver, Loc),
+--                         Parameter_Associations => New_List (
+--                           New_Occurrence_Of (
+--                             RPC_Receiver_Request, Loc))))));
+
+               Get_Name_String (Chars (
+                 Defining_Unit_Name (Current_Primitive_Spec)));
+
+               Subp_Val := Make_String_Literal (Loc,
+                 Strval => String_From_Name_Buffer);
+
+               Append_To (RPC_Receiver_Case_Alternatives,
+                 Make_Implicit_If_Statement (Designated_Type,
+                   Condition =>
+                     Make_Function_Call (Loc,
+                       Name =>
+                         New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
+                       Parameter_Associations => New_List (
+                         New_Occurrence_Of (RPC_Receiver_Subp_Id, Loc),
+                         Subp_Val)),
+                   Then_Statements => New_List (
                      Make_Procedure_Call_Statement (Loc,
                        Name                   =>
                          New_Occurrence_Of (Current_Receiver, Loc),
@@ -1035,17 +1062,19 @@ package body Exp_Dist is
 
       --  Build the case statement and the heart of the subprogram
 
-      Append_To (RPC_Receiver_Case_Alternatives,
-        Make_Case_Statement_Alternative (Loc,
-          Discrete_Choices => New_List (Make_Others_Choice (Loc)),
-          Statements       => New_List (Make_Null_Statement (Loc))));
+--        Append_To (RPC_Receiver_Case_Alternatives,
+--          Make_Case_Statement_Alternative (Loc,
+--            Discrete_Choices => New_List (Make_Others_Choice (Loc)),
+--            Statements       => New_List (Make_Null_Statement (Loc))));
 
-      Append_To (RPC_Receiver_Statements,
-        Make_Case_Statement (Loc,
-          Expression   =>
-            New_Occurrence_Of (RPC_Receiver_OLD_Subp_Id, Loc),
-          Alternatives => RPC_Receiver_Case_Alternatives));
-      --  XXX TBD (RACW subp-ids-dispatch)
+--        Append_To (RPC_Receiver_Statements,
+--          Make_Case_Statement (Loc,
+--            Expression   =>
+--              New_Occurrence_Of (RPC_Receiver_OLD_Subp_Id, Loc),
+--            Alternatives => RPC_Receiver_Case_Alternatives));
+
+      Append_List_To (RPC_Receiver_Statements,
+        RPC_Receiver_Case_Alternatives);
 
       Append_To (Decls, RPC_Receiver_Decl);
 --        Append_To (Decls,
@@ -2388,7 +2417,8 @@ package body Exp_Dist is
       Is_Known_Non_Asynchronous : Boolean   := False;
       Is_Function               : Boolean;
       Spec                      : Node_Id;
-      Object_Type               : Entity_Id := Empty;
+      Stub_Type                 : Entity_Id := Empty;
+      RACW_Type                 : Entity_Id := Empty;
       Nod                       : Node_Id)
    is
       Loc : constant Source_Ptr := Sloc (Nod);
@@ -2428,6 +2458,20 @@ package body Exp_Dist is
       Extra_Formal_Statements : constant List_Id := New_List;
       --  List of statements for extra formal parameters. It will appear after
       --  the regular statements for writing out parameters.
+
+      After_Statements : constant List_Id := New_List;
+      --  Statements to be executed after call returns (to assign
+      --  in out or out parameter values).
+
+      Etyp : Entity_Id;
+      --  The type of the formal parameter being processed.
+
+      Is_Controlling_Formal         : Boolean;
+      Is_First_Controlling_Formal   : Boolean;
+      First_Controlling_Formal_Seen : Boolean := False;
+      --  Controlling formal parameters of distributed object
+      --  primitives require special handling, and the first
+      --  such parameter needs even more.
 
    begin
       --  The general form of a calling stub for a given subprogram is:
@@ -2541,29 +2585,34 @@ package body Exp_Dist is
 
       while Current_Parameter /= Empty loop
 
-         if Is_RACW_Controlling_Formal (Current_Parameter, Object_Type) then
+         if Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type) then
+            Is_Controlling_Formal := True;
+            Is_First_Controlling_Formal :=
+              not First_Controlling_Formal_Seen;
+            First_Controlling_Formal_Seen := True;
+         else
+            Is_Controlling_Formal := False;
+            Is_First_Controlling_Formal := False;
+         end if;
 
-            --  In the case of a controlling formal argument, we marshall
-            --  its addr field rather than the local stub.
+         if Is_Controlling_Formal then
 
---              Append_To (Statements,
---                 Pack_Node_Into_Stream (Loc,
---                   Stream => Stream_Parameter,
---                   Object =>
---                     Make_Selected_Component (Loc,
---                       Prefix        =>
---                         New_Occurrence_Of (
---                           Defining_Identifier (Current_Parameter), Loc),
---                       Selector_Name =>
---                         Make_Identifier (Loc, Name_Addr)),
---                   Etyp   => RTE (RE_Unsigned_64)));
-            null;
+            --  In the case of a controlling formal argument, we send
+            --  its reference.
+
+            Etyp := RACW_Type;
 
          else
-            declare
-               Etyp : constant Entity_Id :=
-                        Etype (Parameter_Type (Current_Parameter));
+            Etyp := Etype (Parameter_Type (Current_Parameter));
+         end if;
 
+         --  The first controlling formal parameter is treated
+         --  specially: it is used to set the target object of
+         --  the call.
+
+         if not Is_First_Controlling_Formal then
+
+            declare
                Constrained : constant Boolean :=
                                Is_Constrained (Etyp)
                                  or else Is_Elementary_Type (Etyp);
@@ -2580,6 +2629,9 @@ package body Exp_Dist is
                Expr : Node_Id;
 
             begin
+               Etyp := Etype (Parameter_Type (Current_Parameter));
+               Set_Etype (Actual_Parameter, Etyp);
+
 --                if In_Present (Current_Parameter)
 --                  or else not Out_Present (Current_Parameter)
 --                  or else not Constrained
@@ -2602,9 +2654,12 @@ package body Exp_Dist is
                if In_Present (Current_Parameter)
                  or else not Out_Present (Current_Parameter)
                  or else not Constrained
+                 or else Is_Controlling_Formal
                then
-                  --  The parameter has an input value, or is
-                  --  constrained at runtime by an input value.
+                  --  The parameter has an input value, is constrained
+                  --  at runtime by an input value, or is a controlling
+                  --  formal parameter (always passed as a reference)
+                  --  other than the first one.
 
                   Expr := Build_To_Any_Call (Actual_Parameter, Decls);
                else
@@ -2632,6 +2687,40 @@ package body Exp_Dist is
                    Constrained => Constrained,
                    Any         => Any));
 
+               if Out_Present (Current_Parameter)
+                 and then not Is_Controlling_Formal
+               then
+                  Append_To (After_Statements,
+--                      Make_Attribute_Reference (Loc,
+--                        Prefix         =>
+--                          New_Occurrence_Of (
+--                            Etype (Parameter_Type (Current_Parameter)), Loc),
+
+--                        Attribute_Name => Name_Read,
+
+--                        Expressions    => New_List (
+--                          Make_Attribute_Reference (Loc,
+--                            Prefix         =>
+--                              New_Occurrence_Of (Result_Parameter, Loc),
+--                            Attribute_Name =>
+--                              Name_Access),
+--                          New_Occurrence_Of (
+--                            Defining_Identifier (Current_Parameter), Loc)))
+                    Make_Assignment_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (
+                          Defining_Identifier (Current_Parameter), Loc),
+                        Expression =>
+                          Build_From_Any_Call (
+                            Etype (Parameter_Type (Current_Parameter)),
+                            Make_Selected_Component (Loc,
+                              Prefix =>
+                                New_Occurrence_Of (Result, Loc),
+                              Selector_Name =>
+                                Make_Identifier (Loc, Name_Argument)),
+                            Decls)));
+
+               end if;
             end;
          end if;
 
@@ -2816,58 +2905,11 @@ package body Exp_Dist is
                         Selector_Name =>
                           Make_Identifier (Loc, Name_Argument)),
                       Decls))));
-
-         else
-            --  Loop around parameters and assign out (or in out) parameters.
-            --  In the case of RACW, controlling arguments cannot possibly
-            --  have changed since they are remote, so we do not read them
-            --  from the stream.
-
-            Current_Parameter :=
-              First (Ordered_Parameters_List);
-
-            while Current_Parameter /= Empty loop
-
-               if Out_Present (Current_Parameter)
-                 and then
-                   Etype (Parameter_Type (Current_Parameter)) /= Object_Type
-               then
-                  Append_To (Non_Asynchronous_Statements,
---                      Make_Attribute_Reference (Loc,
---                        Prefix         =>
---                          New_Occurrence_Of (
---                            Etype (Parameter_Type (Current_Parameter)), Loc),
-
---                        Attribute_Name => Name_Read,
-
---                        Expressions    => New_List (
---                          Make_Attribute_Reference (Loc,
---                            Prefix         =>
---                              New_Occurrence_Of (Result_Parameter, Loc),
---                            Attribute_Name =>
---                              Name_Access),
---                          New_Occurrence_Of (
---                            Defining_Identifier (Current_Parameter), Loc)))
-                    Make_Assignment_Statement (Loc,
-                      Name =>
-                        New_Occurrence_Of (
-                          Defining_Identifier (Current_Parameter), Loc),
-                        Expression =>
-                          Build_From_Any_Call (
-                            Etype (Parameter_Type (Current_Parameter)),
-                            Make_Selected_Component (Loc,
-                              Prefix =>
-                                New_Occurrence_Of (Result, Loc),
-                              Selector_Name =>
-                                Make_Identifier (Loc, Name_Argument)),
-                            Decls)));
-
-               end if;
-
-               Next (Current_Parameter);
-            end loop;
          end if;
       end if;
+
+      Append_List_To (Non_Asynchronous_Statements,
+        After_Statements);
 
       if Is_Known_Asynchronous then
          Append_List_To (Statements, Asynchronous_Statements);
@@ -3143,6 +3185,7 @@ package body Exp_Dist is
       Asynchronous             : Boolean;
       Dynamically_Asynchronous : Boolean   := False;
       Stub_Type                : Entity_Id := Empty;
+      RACW_Type                : Entity_Id := Empty;
       Locator                  : Entity_Id := Empty;
       New_Name                 : Name_Id   := No_Name)
       return                     Node_Id
@@ -3374,7 +3417,8 @@ package body Exp_Dist is
          Is_Function           => Nkind (Spec_To_Use) =
                                     N_Function_Specification,
          Spec                  => Spec_To_Use,
-         Object_Type           => Stub_Type,
+         Stub_Type             => Stub_Type,
+         RACW_Type             => RACW_Type,
          Nod                   => Vis_Decl);
 
       RCI_Calling_Stubs_Table.Set
@@ -3440,6 +3484,8 @@ package body Exp_Dist is
 
       Parameter_List : constant List_Id := New_List;
       --  List of parameters to be passed to the subprogram.
+
+      First_Controlling_Formal_Seen : Boolean := False;
 
       Current_Parameter : Node_Id;
 
@@ -3531,50 +3577,106 @@ package body Exp_Dist is
             Any         : Entity_Id;
             Object      : Entity_Id;
             Expr        : Node_Id := Empty;
-         begin
-            if
-              Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type)
-            then
-               --  We have a controlling formal parameter. Read its address
-               --  rather than a real object. The address is in Unsigned_64
-               --  form.
 
-               Etyp := RTE (RE_Unsigned_64);
+            Is_Controlling_Formal : constant Boolean
+              := Is_RACW_Controlling_Formal
+                   (Current_Parameter, Stub_Type);
+
+            Is_First_Controlling_Formal : Boolean := False;
+         begin
+            if Is_Controlling_Formal then
+
+               --  Controlling formals in distributed object primitive
+               --  operations are handled specially:
+               --    - the first controlling formal is used as the
+               --      target of the call;
+               --    - the remaining controlling formals are transmitted
+               --      as RACWs.
+
+               Etyp := RACW_Type;
+               Is_First_Controlling_Formal :=
+                 not First_Controlling_Formal_Seen;
+               First_Controlling_Formal_Seen := True;
             else
                Etyp := Etype (Parameter_Type (Current_Parameter));
             end if;
-            --  XXX TBD (RACW skel) rewrite for PolyORB
-            --  In PolyORB, the first controlling formal is implicit
-            --  (it is the target of the remote call).
 
-            Any := Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
-            Append_To (Outer_Decls,
-              Make_Object_Declaration (Loc,
-                Defining_Identifier =>
-                  Any,
-                Object_Definition   =>
-                  New_Occurrence_Of (RTE (RE_Any), Loc),
-                Expression =>
-                  Make_Function_Call (Loc,
-                    Name =>
-                      New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
-                    Parameter_Associations => New_List (
-                      Build_TypeCode_Call (Loc, Etyp, Outer_Decls)))));
+            Constrained :=
+              Is_Constrained (Etyp)
+              or else Is_Elementary_Type (Etyp);
+
+            if not Is_First_Controlling_Formal then
+               Any := Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+               Append_To (Outer_Decls,
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier =>
+                     Any,
+                   Object_Definition   =>
+                     New_Occurrence_Of (RTE (RE_Any), Loc),
+                   Expression =>
+                     Make_Function_Call (Loc,
+                       Name =>
+                         New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
+                       Parameter_Associations => New_List (
+                         Build_TypeCode_Call (Loc, Etyp, Outer_Decls)))));
+
+               Append_To (Outer_Statements,
+                 Add_Parameter_To_NVList (Loc,
+                   Parameter   => Current_Parameter,
+                   NVList      => Arguments,
+                   Constrained => Constrained,
+                   Any         => Any));
+            end if;
 
             Object := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
             Set_Ekind (Object, E_Variable);
 
-            Constrained :=
-              Is_Constrained (Etyp) or else Is_Elementary_Type (Etyp);
+            if Is_First_Controlling_Formal then
+               declare
+                  Addr : constant Entity_Id :=
+                    Make_Defining_Identifier (Loc,
+                      New_Internal_Name ('A'));
+                  Is_Local : constant Entity_Id :=
+                    Make_Defining_Identifier (Loc,
+                      New_Internal_Name ('L'));
+               begin
 
-            Append_To (Outer_Statements,
-              Add_Parameter_To_NVList (Loc,
-                Parameter   => Current_Parameter,
-                NVList      => Arguments,
-                Constrained => Constrained,
-                Any         => Any));
+                  --  Special case: obtain the first controlling
+                  --  formal from the target of the remote call,
+                  --  instead of the argument list.
 
-            if In_Present (Current_Parameter)
+                  Append_To (Outer_Decls,
+                    Make_Object_Declaration (Loc,
+                      Defining_Identifier =>
+                        Addr,
+                      Object_Definition =>
+                        New_Occurrence_Of (RTE (RE_Address), Loc)));
+                  Append_To (Outer_Decls,
+                    Make_Object_Declaration (Loc,
+                      Defining_Identifier =>
+                        Is_Local,
+                      Object_Definition =>
+                        New_Occurrence_Of (Standard_Boolean, Loc)));
+                  Append_To (Outer_Statements,
+                    Make_Procedure_Call_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (
+                          RTE (RE_Get_Local_Address), Loc),
+                      Parameter_Associations => New_List (
+                        Make_Selected_Component (Loc,
+                          Prefix =>
+                            New_Occurrence_Of (
+                              Request_Parameter, Loc),
+                          Selector_Name =>
+                            Make_Identifier (Loc, Name_Target)),
+                        New_Occurrence_Of (Is_Local, Loc),
+                        New_Occurrence_Of (Addr, Loc))));
+
+                  Expr := Unchecked_Convert_To (RACW_Type,
+                    New_Occurrence_Of (Addr, Loc));
+               end;
+
+            elsif In_Present (Current_Parameter)
                or else not Out_Present (Current_Parameter)
                or else not Constrained
             then
@@ -3639,9 +3741,7 @@ package body Exp_Dist is
             --  changed.
 
             if Out_Present (Current_Parameter)
-              and then
-                Etype (Parameter_Type (Current_Parameter)) /= Stub_Type
-            then
+              and then not Is_Controlling_Formal then
 --                 Append_To (After_Statements,
 --                   Make_Attribute_Reference (Loc,
 --                     Prefix         => New_Occurrence_Of (Etyp, Loc),
@@ -3661,11 +3761,12 @@ package body Exp_Dist is
                        Decls))));
             end if;
 
-            if
-              Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type)
-            then
-               --  XXX For PolyORB: TO BE REIMPLEMENTED! TBD!
-               --  RACW skel
+            --  For RACW controlling formals, the Etyp of Object
+            --  is always an RACW, even if the parameter is not
+            --  of an anonymous access type. In such case, we
+            --  need to dereference it at call time.
+
+            if Is_Controlling_Formal then
 
                if Nkind (Parameter_Type (Current_Parameter)) /=
                  N_Access_Definition
@@ -4062,25 +4163,22 @@ package body Exp_Dist is
 --        New_Name    : Name_Id   := No_Name)
 --        return        Node_Id
 --     is
---        Map : Elist_Id := No_Elist;
---        New_Spec : Node_Id;
+--        Map : constant Elist_Id := New_Elmt_List;
 --     begin
 --        if Object_Type /= Empty then
 --           pragma Assert (Stub_Type /= Empty);
-
---           Map := New_Elmt_List;
 --           Append_Elmt (Node => Object_Type, To => Map);
 --           Append_Elmt (Node => Stub_Type,   To => Map);
 --        end if;
-
---        New_Spec := New_Copy_Tree (Spec, Map, Loc);
+--  
 --        if New_Name /= No_Name then
---           Replace (
---             Defining_Unit_Name (New_Spec),
---             Make_Defining_Identifier (Loc,
---               New_Name));
+--           Append_Elmt (Node => Defining_Unit_Name (Spec), To => Map);
+--           Append_Elmt (
+--             Node => Make_Defining_Identifier (Loc, New_Name),
+--             To   => Map);
 --        end if;
---        return New_Spec;
+--  
+--        return Copy_Tree_Redefining_Entities (Spec, Map, Loc);
 --     end Copy_Specification;
 
    ---------------------------

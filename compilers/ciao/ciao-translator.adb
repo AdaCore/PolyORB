@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#22 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#23 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -968,12 +968,13 @@ package body CIAO.Translator is
 
                   State.Current_Node := Old_Current_Node;
 
-                  if Trait_Kind (Element) = An_Access_Definition_Trait then
+                  if State.Unit_Category /= Remote_Call_Interface
+                    and then Is_Controlling_Formal (Element)
+                  then
                      Mode := Mode_In;
-                     --  An access formal parameter of a remote
-                     --  subprogram is always a controlling formal,
-                     --  and therefore it is a remote object reference
-                     --  that is passed by value.
+                     --  A controlling formal of a distributed object
+                     --  primitive is always passed as a remote object
+                     --  reference that is passed by value, with mode IN.
                   else
                      case Mode_Kind (Element) is
                         when Not_A_Mode     =>   --  An unexpected element
