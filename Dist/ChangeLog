@@ -1,3 +1,11 @@
+1999-07-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stdcnf.adb: Change Link_Name into External_Name for pragma
+ 	Import.
+
+	* xe_check.adb: Update Get_File_Name usage. We do not have
+	subunits.
+	
 1999-05-20  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_stubs.adb: Simulate --nolaunch on the command line when the

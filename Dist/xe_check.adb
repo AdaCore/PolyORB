@@ -595,7 +595,7 @@ package body XE_Check is
 
       --  Any withed unit has to be checked
       for W in Units.Table (R).First_With .. Units.Table (R).Last_With loop
-         Source := Get_File_Name (Withs.Table (W).Uname);
+         Source := Get_File_Name (Withs.Table (W).Uname, Subunit => False);
          Push (Withs.Table (W).Uname, False);
       end loop;
 

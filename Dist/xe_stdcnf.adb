@@ -385,7 +385,7 @@ package body XE_Stdcnf is
          Pragma_Starter_Node);
 
       Declare_Subprogram_Parameter
-        (Str_To_Id ("method"),
+        (Str_To_Id ("convention"),
          Convention_Type_Node,
          Pragma_Starter_Node,
          Null_Location,
@@ -393,9 +393,9 @@ package body XE_Stdcnf is
 
       --  pragma Import ... or
       --  procedure pragma__import
-      --    (convention : convention__type;
-      --     entity     : procedure;
-      --     link_name  : string);
+      --    (convention    : convention__type;
+      --     entity        : procedure;
+      --     external_name : string);
 
       Declare_Subprogram
         (Pragma_Prefix & "import",
@@ -419,7 +419,7 @@ package body XE_Stdcnf is
          Parameter_Node);
 
       Declare_Subprogram_Parameter
-        (Str_To_Id ("link_name"),
+        (Str_To_Id ("external_name"),
          String_Type_Node,
          Pragma_Import_Node,
          Null_Location,
