@@ -1,3 +1,8 @@
+2002-10-25  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-gasoli.ads: Force initialization of GNAT run-time before
+	initialization of GLADE PCS. Fix B930-014.
+
 2002-10-19  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-parint.adb, s-garsto.adb, s-garsto.ads, s-gastdf.adb,
