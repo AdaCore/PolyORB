@@ -11,11 +11,12 @@
 
 
 with Ada.Streams;                use Ada.Streams;
---   with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 
 with Sequences.Unbounded;
 
 with Droopi.Any;
+with Droopi.Annotations;
 with Droopi.Any.NVList;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Opaque;
@@ -55,17 +56,19 @@ package body Droopi.Protocols.GIOP is
    use Droopi.Representations.CDR;
    use Droopi.Transport;
    use Droopi.Types;
+   use Droopi.Annotations;
 
    package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Pend_Req : Pending_Request;
-   --  XXX Why is this a global variable???
-   --  XXX How is concurrent access safety implemented?
 
    Current_Request_Id : Types.Unsigned_Long := 1;
-   --  XXX Why is this a global variable???
+
+   type Request_Note is new Note with record
+     Id : Types.Unsigned_Long;
+   end record;
+
 
    MsgType_To_Octet :
      constant array (Msg_Type'Range) of Types.Octet
@@ -160,12 +163,6 @@ package body Droopi.Protocols.GIOP is
       Show (S.Buffer_In.all);
 
    end To_Buffer;
-
-
-
-
-
-
 
 
    --------------------------------
@@ -402,9 +399,15 @@ package body Droopi.Protocols.GIOP is
       --  Message size
       Message_Size := Unmarshall (Buffer);
 
+      Put_Line ("Size: " &
+      Types.Unsigned_Long'Image (Message_Size));
+
       --  Everything allright
       Ses.Major_Version := Message_Major_Version;
       Ses.Minor_Version := Message_Minor_Version;
+
+      Put_Line ("Major:" & Version'Image (Ses.Major_Version));
+      Put_Line ("Major:" & Version'Image (Ses.Minor_Version));
 
       Success := True;
       Release_Contents (Buffer.all);
@@ -449,12 +452,14 @@ package body Droopi.Protocols.GIOP is
    ---------------------
 
    procedure Request_Message
-     (Ses               : access GIOP_Session;
-      Response_Expected : in Boolean;
-      Fragment_Next     : out Boolean)
+     (Ses                    : access GIOP_Session;
+      Pend_Req               : access Pending_Request;
+      Response_Expected      : in Boolean;
+      Fragment_Next          : out Boolean)
    is
       use Internals;
       use Internals.NV_Sequence;
+      use Droopi.Objects;
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Sync          : Sync_Scope;
       Arg           : Any.NamedValue;
@@ -481,28 +486,33 @@ package body Droopi.Protocols.GIOP is
                To_Standard_String (Pend_Req.Req.Operation));
 
          when Ver2 =>
-            declare
-               Key : Objects.Object_Id_Access := null;
-            begin
-               if Response_Expected then
-                  Sync := WITH_TARGET;
-               else
-                  Sync := NONE;
-               end if;
 
-               Key.all := Binding_Data.IIOP.Get_Object_Key
-                 (IIOP_Profile_Type (Pend_Req.Target_Profile.all));
+                  if Response_Expected then
+                     Sync := WITH_TARGET;
+                  else
+                     Sync := NONE;
+                  end if;
 
-               GIOP.GIOP_1_2.Marshall_Request_Message
-                 (Ses.Buffer_Out,
-                  Pend_Req.Request_Id,
-                  Target_Address'
-                  (Address_Type => Key_Addr,
-                   Object_Key   => Key),
-                  Sync,
-                  To_Standard_String (Pend_Req.Req.Operation));
-            end;
+                  pragma Debug  (O (Image (IIOP_Profile_Type
+                     (Pend_Req.Target_Profile.all))));
+
+                  declare
+                     Key : aliased Object_Id :=  Binding_Data.IIOP.
+                       Get_Object_Key
+                       (IIOP_Profile_Type (Pend_Req.Target_Profile.all));
+                  begin
+
+                     GIOP.GIOP_1_2.Marshall_Request_Message
+                       (Ses.Buffer_Out,
+                        Pend_Req.Request_Id,
+                        Target_Address'
+                        (Address_Type => Key_Addr,
+                         Object_Key   => Key'Unchecked_Access),
+                         Sync,
+                        To_Standard_String (Pend_Req.Req.Operation));
+                  end;
       end case;
+
 
       --  Marshall the request's Body not yet implemented
       List :=  List_Of (Pend_Req.Req.Args);
@@ -537,6 +547,8 @@ package body Droopi.Protocols.GIOP is
       Prepend (Header_Buffer.all, Ses.Buffer_Out);
       Release (Header_Buffer);
 
+      Show (Ses.Buffer_Out.all);
+
    end Request_Message;
 
    ------------------------
@@ -546,7 +558,8 @@ package body Droopi.Protocols.GIOP is
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
-      Request_Id    : in Types.Unsigned_Long;
+      Pend_Req      : access Pending_Request;
+      --   Request_Id    : in Types.Unsigned_Long;
       Fragment_Next : out Boolean)
 
    is
@@ -562,15 +575,15 @@ package body Droopi.Protocols.GIOP is
       case Ses.Minor_Version is
          when Ver0 =>
             GIOP.GIOP_1_0.Marshall_No_Exception
-              (Ses.Buffer_Out, Request_Id);
+              (Ses.Buffer_Out, Pend_Req.Request_Id);
 
          when Ver1 =>
             GIOP.GIOP_1_1.Marshall_No_Exception
-              (Ses.Buffer_Out, Request_Id);
+              (Ses.Buffer_Out, Pend_Req.Request_Id);
 
          when Ver2 =>
             GIOP.GIOP_1_2.Marshall_No_Exception
-              (Ses.Buffer_Out, Request_Id);
+              (Ses.Buffer_Out, Pend_Req.Request_Id);
       end case;
 
       --  Marshall the reply Body
@@ -615,6 +628,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Exception_Reply
      (Ses             : access GIOP_Session;
+      Pend_Req        : access Pending_Request;
       Exception_Type  : in Reply_Status_Type;
       Occurence       : in CORBA.Exception_Occurrence;
       Fragment_Next   : out Boolean)
@@ -679,7 +693,7 @@ package body Droopi.Protocols.GIOP is
       Prepend (Header_Buffer.all, Ses.Buffer_Out);
       Release (Header_Buffer);
 
-   end  Exception_Reply;
+   end Exception_Reply;
 
    -------------------------------------------------------
    --  Location Forward
@@ -687,6 +701,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Location_Forward_Reply
      (Ses             : access GIOP_Session;
+      Pend_Req        : access Pending_Request;
       Forward_Ref     : in Droopi.References.IOR.IOR_Type;
       Fragment_Next   : out Boolean)
 
@@ -762,6 +777,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Need_Addressing_Mode_Message
      (Ses             : access GIOP_Session;
+      Pend_Req        : access Pending_Request;
       Address_Type    : in Addressing_Disposition)
 
    is
@@ -795,7 +811,8 @@ package body Droopi.Protocols.GIOP is
    ----------------------------
 
    procedure Cancel_Request_Message
-     (Ses             : access GIOP_Session)
+     (Ses             : access GIOP_Session;
+      Pend_Req        : access Pending_Request)
    is
       Header_Buffer :  Buffer_Access := new Buffer_Type;
 
@@ -848,6 +865,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Locate_Request_Message
      (Ses             : access GIOP_Session;
+      Pend_Req        : access Pending_Request;
       Object_Key      : in Objects.Object_Id_Access;
       Fragment_Next   : out Boolean)
    is
@@ -914,6 +932,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Locate_Reply_Message
      (Ses             : access GIOP_Session;
+      Pend_Req        : access Pending_Request;
       Locate_Status   : in Locate_Status_Type)
    is
       Header_Buffer :  Buffer_Access := new Buffer_Type;
@@ -989,19 +1008,54 @@ package body Droopi.Protocols.GIOP is
       return Prof_Temp;
    end Select_Profile;
 
+
+   -------------------
+   -- Store Profile --
+   -------------------
+
+   procedure Store_Profile
+     (Ses      :  access GIOP_Session;
+      Profile  :  Profile_Access)
+   is
+   begin
+      Ses.Current_Profile := Profile;
+   end Store_Profile;
+
+
    -------------------
    -- Store_Request --
    -------------------
 
    procedure Store_Request
-     (R       :  Requests.Request_Access;
-      Profile : Profile_Access)
+     (Ses      :  access GIOP_Session;
+      R        :  Requests.Request_Access;
+      Pending  :  out Pending_Request)
    is
+      use Req_Seq;
    begin
-      Pend_Req.Req := R;
-      Pend_Req.Request_Id := Current_Request_Id;
+      Pending := Pending_Request'(Req => R,
+                       Request_Id => Current_Request_Id,
+                       Role => Server);
+      Append (Ses.Pending_Rq, Pending);
       Current_Request_Id := Current_Request_Id + 1;
-      Pend_Req.Target_Profile := Profile;
+   end Store_Request;
+
+
+
+   procedure Store_Request
+     (Ses     :  access GIOP_Session;
+      R       :  Requests.Request_Access;
+      Profile :  Profile_Access;
+      Pending :  out Pending_Request)
+   is
+      use Req_Seq;
+   begin
+      Pending  := Pending_Request'(Req => R,
+                      Request_Id => Current_Request_Id,
+                      Role => Client,
+                      Target_Profile => Profile);
+      Append (Ses.Pending_Rq, Pending);
+      Current_Request_Id := Current_Request_Id + 1;
    end Store_Request;
 
    ----------------------
@@ -1019,6 +1073,7 @@ package body Droopi.Protocols.GIOP is
       use References;
 
       use Droopi.Objects;
+
 
       Request_Id        :  Types.Unsigned_Long;
       Response_Expected :  Boolean;
@@ -1077,7 +1132,7 @@ package body Droopi.Protocols.GIOP is
          To_Standard_String (Operation.all));
 
       --  Unmarshalling of arguments
-      List :=  List_Of (Pend_Req.Req.Args);
+      List :=  List_Of (Args);
       for I in 1 .. Get_Count (Args) loop
          Temp_Arg :=  NV_Sequence.Element_Of (List.all, Positive (I));
          Unmarshall (Ses.Buffer_In, Temp_Arg);
@@ -1111,6 +1166,17 @@ package body Droopi.Protocols.GIOP is
          Result    => Result,
          Req       => Req);
 
+
+      --  Add an annotation to the request in order to identify it
+      Set_Note (Req.Notepad, Request_Note'(Annotations.Note with
+                                          Id => Request_Id));
+
+      declare
+         Pend : Pending_Request;
+      begin
+         Store_Request (Ses, Req, Pend);
+      end;
+
       Emit_No_Reply
         (Component_Access (ORB),
          Queue_Request'
@@ -1118,8 +1184,6 @@ package body Droopi.Protocols.GIOP is
           Requestor => Component_Access (Ses),
           Requesting_Task => null));
 
-      Pend_Req.Req := Req;
-      Pend_Req.Request_Id := Request_Id;
    end Request_Received;
 
 
@@ -1130,9 +1194,11 @@ package body Droopi.Protocols.GIOP is
    procedure Reply_Received (Ses : access GIOP_Session) is
       use References.IOR;
       use Binding_Data.IIOP;
+      use Req_Seq;
       Reply_Status  : Reply_Status_Type;
       --  Result : Any.NamedValue;
-      Request_Id : Types.Unsigned_Long;
+      Request_Id  : Types.Unsigned_Long;
+      Current_Req : Pending_Request;
 
       --  Req    : Request_Access := null;
       --  Args   : Types.NVList.Ref;
@@ -1140,8 +1206,6 @@ package body Droopi.Protocols.GIOP is
       --    := new IIOP_Profile_Type;
       --  Target : References.Ref;
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
-
-
 
    begin
 
@@ -1155,7 +1219,6 @@ package body Droopi.Protocols.GIOP is
               Reply_Status = Needs_Addressing_Mode then
                raise GIOP_Error;
             end if;
-
 
          when Ver1 =>
             GIOP.GIOP_1_1.Unmarshall_Reply_Message
@@ -1176,27 +1239,34 @@ package body Droopi.Protocols.GIOP is
                Reply_Status);
       end case;
 
-      if Request_Id /= Pend_Req.Request_Id then
+      for I in 1 .. Length (Ses.Pending_Rq) loop
+         if Element_Of (Ses.Pending_Rq, I).Request_Id =
+            Request_Id then
+            Current_Req := Element_Of (Ses.Pending_Rq, I);
+            Delete (Ses.Pending_Rq, I, 1);
+            exit;
+         end if;
          raise GIOP_Error;
-      end if;
+      end loop;
+
 
       case Reply_Status is
 
          when No_Exception =>
 
-            Pend_Req.Req.Result :=
+            Current_Req.Req.Result :=
               (Name     => To_Droopi_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
                (Object_Adapter (ORB),
                 Get_Object_Key
-                (IIOP_Profile_Type (Pend_Req.Target_Profile.all)),
-                To_Standard_String (Pend_Req.Req.Operation)),
+                (IIOP_Profile_Type (Current_Req.Target_Profile.all)),
+                 To_Standard_String (Current_Req.Req.Operation)),
                Arg_Modes => Any.ARG_OUT);
 
-            Unmarshall (Ses.Buffer_In, Pend_Req.Req.Result);
+            Unmarshall (Ses.Buffer_In, Current_Req.Req.Result);
             Emit_No_Reply
               (Component_Access (ORB),
-               Queue_Request'(Request   => Pend_Req.Req,
+               Queue_Request'(Request   => Current_Req.Req,
                               Requestor => Component_Access (Ses),
                               Requesting_Task => null));
 
@@ -1212,10 +1282,12 @@ package body Droopi.Protocols.GIOP is
             declare
                TE      : Transport_Endpoint_Access;
                New_Ses : Session_Access;
+               Prof    : Profile_Access;
+
             begin
-               Pend_Req.Target_Profile := Select_Profile (Ses.Buffer_In);
+               Prof := Select_Profile (Ses.Buffer_In);
                Binding_Data.IIOP.Bind_Profile
-                 (IIOP_Profile_Type (Pend_Req.Target_Profile.all),
+                 (IIOP_Profile_Type (Prof.all),
                   TE,
                   Component_Access (New_Ses));
 
@@ -1223,9 +1295,10 @@ package body Droopi.Protocols.GIOP is
                Release (Ses.Buffer_In);
                Release (Ses.Buffer_Out);
 
-               Pend_Req.Request_Id := Current_Request_Id;
-               Current_Request_Id := Current_Request_Id + 1;
-               Invoke_Request (New_Ses, Pend_Req.Req.all);
+               Store_Request (Ses, Current_Req.Req, Prof, Current_Req);
+
+               Invoke_Request (GIOP_Session (New_Ses.all)'Access,
+                                   Current_Req.Req);
             end;
 
          when Needs_Addressing_Mode =>
@@ -1311,14 +1384,16 @@ package body Droopi.Protocols.GIOP is
 
    procedure Invoke_Request
      (S   : access GIOP_Session;
-      R   : Requests.Request)
+      R   : Requests.Request_Access)
    is
       use Buffers;
       use Binding_Data.IIOP;
       use Droopi.Filters.Interface;
       use Droopi.Objects;
+      use Droopi.Requests;
 
       Fragment_Next  : Boolean := False;
+      Current_Req    : aliased Pending_Request;
 
    begin
 
@@ -1327,6 +1402,7 @@ package body Droopi.Protocols.GIOP is
       end if;
 
       Release_Contents (S.Buffer_Out.all);
+      Store_Request (S, R, S.Current_Profile, Current_Req);
 
       --  fragmentation not yet implemented
       --  Message_Size:= Length (Buf1);
@@ -1338,10 +1414,12 @@ package body Droopi.Protocols.GIOP is
       if S.Object_Found = False then
          if  S.Nbr_Tries <= Max_Nb_Tries then
             declare
-               Oid : Object_Id := Get_Object_Key (Pend_Req.Target_Profile.all);
+               Oid : Object_Id := Get_Object_Key
+                   (Current_Req.Target_Profile.all);
                Obj : Object_Id_Access := new Object_Id'(Oid);
             begin
-               Locate_Request_Message (S, Obj, Fragment_Next);
+               Locate_Request_Message (S, Current_Req'Access,
+                        Obj, Fragment_Next);
                S.Nbr_Tries := S.Nbr_Tries + 1;
             end;
          else
@@ -1350,7 +1428,7 @@ package body Droopi.Protocols.GIOP is
             return;
          end if;
       else
-         Request_Message (S, True, Fragment_Next);
+         Request_Message (S, Current_Req'Access, True, Fragment_Next);
          S.Object_Found := True;
          S.Nbr_Tries := 0;
       end if;
@@ -1372,21 +1450,42 @@ package body Droopi.Protocols.GIOP is
 
    procedure Abort_Request
      (S : access GIOP_Session;
-      R :  Requests.Request)
+      R : Requests.Request_Access)
    is
       use Droopi.Filters.Interface;
+      use Req_Seq;
+      Current_Req : aliased Pending_Request;
+      Pending_Note  : Request_Note;
+      Current_Note  : Request_Note;
+      --   Pos : Natural;
 
    begin
+
       if S.Role  = Server then
          raise GIOP_Error;
       end if;
 
+      Get_Note (R.Notepad, Current_Note);
+
+      for I in 1 .. Length (S.Pending_Rq) loop
+         Get_Note (Element_Of (S.Pending_Rq, I).Req.Notepad, Pending_Note);
+         if Pending_Note.Id = Current_Note.Id then
+            Current_Req := Element_Of (S.Pending_Rq, I);
+            Delete (S.Pending_Rq, I, 1);
+            exit;
+         end if;
+         raise GIOP_Error;
+      end loop;
+
       Release_Contents (S.Buffer_Out.all);
-      Cancel_Request_Message (S);
+      Cancel_Request_Message (S, Current_Req'Access);
 
       --  Sending the message
       --  Sending the data to lower layers
       Emit_No_Reply (Lower (S), Data_Out' (Out_Buf => S.Buffer_Out));
+
+      --  Delete the request from the session's sequence of pending requests
+      --  Delete (S.Pending_Rq, Pos, 1);
 
       --  Expecting data
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
@@ -1400,26 +1499,44 @@ package body Droopi.Protocols.GIOP is
    --------------------------------------
 
    procedure Send_Reply (S  : access GIOP_Session;
-                         R   : Requests.Request)
+                         R  : Requests.Request_Access)
    is
       use Buffers;
       use Representations.CDR;
       use Droopi.Filters.Interface;
-
+      use Req_Seq;
       Fragment_Next : Boolean := False;
+      Current_Req : aliased Pending_Request;
+      Pending_Note  : Request_Note;
+      Current_Note  : Request_Note;
 
    begin
-      if S.Role = Client then
+
+      if S.Role  = Server then
          raise GIOP_Error;
       end if;
 
-      --  Pend_Req.Req  := R;
+      Get_Note (R.Notepad, Current_Note);
+
+      for I in 1 .. Length (S.Pending_Rq) loop
+         Get_Note (Element_Of (S.Pending_Rq, I).Req.Notepad, Pending_Note);
+         if Pending_Note.Id = Current_Note.Id then
+            Current_Req := Element_Of (S.Pending_Rq, I);
+            Delete (S.Pending_Rq, I, 1);
+            exit;
+         end if;
+         raise GIOP_Error;
+      end loop;
 
       Release_Contents (S.Buffer_Out.all);
-      No_Exception_Reply (S, Pend_Req.Request_Id, Fragment_Next);
+      No_Exception_Reply (S, Current_Req'Access, Fragment_Next);
+
+      pragma Debug (O ("Sending Reply"));
 
       --  Sending the message
-      Emit_No_Reply (Lower (S), Data_Out' (Out_Buf => S.Buffer_Out));
+      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
+
+      pragma Debug (O ("After Sending Reply"));
 
       --  Expecting data
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
@@ -1454,6 +1571,7 @@ package body Droopi.Protocols.GIOP is
       use ORB;
       use References;
       use References.IOR;
+      use Req_Seq;
       Mess_Type     : Msg_Type;
       Mess_Size     : Types.Unsigned_Long;
       Fragment_Next : Boolean;
@@ -1519,9 +1637,19 @@ package body Droopi.Protocols.GIOP is
                     (S.Buffer_In, Req_Id, Locate_Status);
                   case Locate_Status is
                      when Object_Here =>
-                        S.Object_Found := True;
-                        Invoke_Request (S, Pend_Req.Req.all);
-
+                        declare
+                           Current_Req : Pending_Request;
+                        begin
+                           S.Object_Found := True;
+                           for I in 1 .. Length (S.Pending_Rq) loop
+                              if Element_Of (S.Pending_Rq, I).Request_Id
+                                 = Req_Id then
+                                 Current_Req := Element_Of (S.Pending_Rq, I);
+                              end if;
+                              raise GIOP_Error;
+                           end loop;
+                           Invoke_Request (S, Current_Req.Req);
+                        end;
                      when Unknown_Object =>
                         pragma Debug (O ("Object not found"));
                         Release (S.Buffer_In);
@@ -1530,23 +1658,33 @@ package body Droopi.Protocols.GIOP is
 
                      when Object_Forward | Object_Forward_Perm =>
                         declare
-                           TE      : Transport_Endpoint_Access;
-                           New_Ses : Session_Access;
+                           TE          : Transport_Endpoint_Access;
+                           New_Ses     : Session_Access;
+                           Current_Req : Pending_Request;
                         begin
-                           Pend_Req.Target_Profile  :=
-                             Select_Profile (S.Buffer_In);
+
+                           for I in 1 .. Length (S.Pending_Rq) loop
+                              if Element_Of (S.Pending_Rq, I).Request_Id
+                                 = Req_Id then
+                                 Current_Req := Element_Of (S.Pending_Rq, I);
+                                 Current_Req.Target_Profile :=
+                                    Select_Profile (S.Buffer_In);
+                                 Replace_Element (S.Pending_Rq,
+                                     I, Current_Req);
+                              end if;
+                              raise GIOP_Error;
+                           end loop;
+
                            Binding_Data.IIOP.Bind_Profile
                              (IIOP_Profile_Type
-                              (Pend_Req.Target_Profile.all),
+                              (Current_Req.Target_Profile.all),
                               TE, Component_Access (New_Ses));
 
                            --  Release the previous session buffers
                            Release (S.Buffer_In);
                            Release (S.Buffer_Out);
-
-                           Pend_Req.Request_Id := Current_Request_Id;
-                           Current_Request_Id := Current_Request_Id + 1;
-                           Invoke_Request (New_Ses, Pend_Req.Req.all);
+                           Invoke_Request (GIOP_Session (New_Ses.all)'Access,
+                                           Current_Req.Req);
                         end;
 
                      when Loc_Needs_Addressing_Mode =>

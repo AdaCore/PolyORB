@@ -26,6 +26,11 @@ package body Droopi.Filters is
       return F.Lower;
    end Lower;
 
+   function Upper (F : access Filter) return Component_Access is
+   begin
+      return F.Upper;
+   end Upper;
+
    function Handle_Message
      (F : access Factory;
       Msg : Message'Class)

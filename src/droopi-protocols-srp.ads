@@ -37,11 +37,11 @@ package Droopi.Protocols.SRP is
    type SRP_Session is new Session with private;
 
    procedure Connect (S : access SRP_Session);
-   procedure Invoke_Request (S : access SRP_Session; R : Request);
-   procedure Abort_Request (S : access SRP_Session; R :  Request);
+   procedure Invoke_Request (S : access SRP_Session; R : Request_Access);
+   procedure Abort_Request (S : access SRP_Session; R :  Request_Access);
    --  Do nothing.
 
-   procedure Send_Reply (S : access SRP_Session; R :  Request);
+   procedure Send_Reply (S : access SRP_Session; R :  Request_Access);
    --  Send a reply to the user.
 
    procedure Handle_Connect_Indication (S : access SRP_Session);

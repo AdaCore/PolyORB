@@ -36,6 +36,8 @@ package Droopi.Filters is
    procedure Connect_Lower (F : access Filter; Lower : Component_Access);
    function Lower (F : access Filter) return Component_Access;
 
+   function Upper (F : access Filter) return Component_Access;
+
    --------------------------------------------------------
    -- Filters communicate by exchanging Data_Units,      --
    -- defined in child package Droopi.Filters.Interface. --

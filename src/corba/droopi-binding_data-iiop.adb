@@ -72,7 +72,7 @@ package body Droopi.Binding_Data.IIOP is
    procedure Bind_Profile
      (Profile : IIOP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
-      Filter    : out Components.Component_Access)
+      Filter  : out Components.Component_Access)
    is
       use Droopi.Components;
       use Droopi.Protocols;
@@ -85,6 +85,9 @@ package body Droopi.Binding_Data.IIOP is
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       Pro  : aliased GIOP_Protocol;
       Sli  : aliased Slicer_Factory;
+      Prof : Profile_Access := new IIOP_Profile_Type;
+      TProf : IIOP_Profile_Type
+        renames IIOP_Profile_Type (Prof.all);
 
    begin
 
@@ -97,6 +100,12 @@ package body Droopi.Binding_Data.IIOP is
                         1 => Pro'Unchecked_Access));
 
       Filter := Component_Access (Create_Filter_Chain (Sli'Unchecked_Access));
+
+      TProf.Address := Profile.Address;
+      TProf.Object_Id := Profile.Object_Id;
+
+      Store_Profile (GIOP_Session (Upper (Filter_Access
+             (Filter)).all)'Access, Prof);
 
       --  XXX Session must be an access to the lowest filter in
       --  the stack (=> the Slicer).

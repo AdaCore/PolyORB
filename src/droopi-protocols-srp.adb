@@ -61,13 +61,15 @@ package body Droopi.Protocols.SRP is
       null;
    end Connect;
 
-   procedure Invoke_Request (S : access SRP_Session; R :  Requests.Request)
+   procedure Invoke_Request (S : access SRP_Session;
+             R :  Requests.Request_Access)
    is
    begin
       null;
    end Invoke_Request;
 
-   procedure Abort_Request (S : access SRP_Session; R :  Requests.Request)
+   procedure Abort_Request (S : access SRP_Session;
+             R :  Requests.Request_Access)
    is
    begin
       null;
@@ -167,7 +169,7 @@ package body Droopi.Protocols.SRP is
       raise Not_Implemented;
    end Reply_Received;
 
-   procedure Send_Reply (S : access SRP_Session; R : Request)
+   procedure Send_Reply (S : access SRP_Session; R : Request_Access)
    is
       use Buffers;
       use Droopi.Objects;
@@ -181,7 +183,7 @@ package body Droopi.Protocols.SRP is
       Set_SRP_Method (To_Droopi_String ("Reply"), SRP_Info);
       Set_SRP_Oid (To_Oid ("00000000"), SRP_Info);
       Set_SRP_Arg (To_Droopi_String ("Data"),
-                   To_Any (To_Droopi_String ("200 OK" & Image (R))),
+                   To_Any (To_Droopi_String ("200 OK" & Image (R.all))),
                    SRP_Info);
 
       --  Data := Join (SRP_Info);

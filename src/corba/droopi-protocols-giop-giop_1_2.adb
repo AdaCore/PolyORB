@@ -12,6 +12,8 @@
 
 --  $Id$
 
+with Ada.Text_IO; use Ada.Text_IO;
+
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
 with Droopi.Binding_Data.IIOP;
 with Droopi.Log;
@@ -107,15 +109,23 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
          Marshall (Buffer, Reserved);
       end loop;
 
+
+
       --  Target Address Not yet implemented
       Marshall (Buffer,
                AddressingDisposition_To_Unsigned_Long
                (Target_Ref.Address_Type));
 
+
+
       case Target_Ref.Address_Type is
          when Key_Addr  =>
+            ---  Marshall (Buffer, Stream_Element_Array
+            ---       (Binding_Data.Get_Object_Key
+            ---   (Target_Ref.Profile.all)));
             Marshall (Buffer, Stream_Element_Array
-                   (Binding_Data.Get_Object_Key (Target_Ref.Profile.all)));
+                    (Target_Ref.Object_Key.all));
+            Put_Line ("1.2 : 1");
          when Profile_Addr  =>
             Marshall_IIOP_Profile_Body (Buffer, Target_Ref.Profile);
          when Reference_Addr  =>

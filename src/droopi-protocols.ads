@@ -66,15 +66,15 @@ package Droopi.Protocols is
    -- Protocol primitives (interface to upper layers) --
    -----------------------------------------------------
 
-   procedure Invoke_Request (S : access Session; R : Request)
+   procedure Invoke_Request (S : access Session; R :  Request_Access)
       is abstract;
    --  Send a method invocation message for request R on session S.
 
-   procedure Abort_Request (S : access Session; R : Request)
+   procedure Abort_Request (S : access Session; R :  Request_Access)
       is abstract;
    --  Abort pending invocation of R.
 
-   procedure Send_Reply (S : access Session; R : Request)
+   procedure Send_Reply (S : access Session; R :  Request_Access)
       is abstract;
    --  Send back a reply on S notifying caller of the result
    --  of executing R.

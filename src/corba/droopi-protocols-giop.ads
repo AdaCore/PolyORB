@@ -21,8 +21,9 @@ with Droopi.Requests;
 with Droopi.Objects;
 with Droopi.ORB;
 with Droopi.Types;
-with Droopi.Any;
+--   with Droopi.Any;
 with Droopi.Representations.CDR;
+
 
 with Sequences.Unbounded;
 
@@ -35,7 +36,7 @@ package Droopi.Protocols.GIOP is
    use Droopi.Binding_Data;
    use ORB;
 
-   package Arg_Seq is new Sequences.Unbounded (Any.NamedValue);
+   --    package Arg_Seq is new Sequences.Unbounded (Any.NamedValue);
 
    Message_Header_Size  : constant Stream_Element_Offset;
    Maximum_Message_Size : constant Stream_Element_Offset;
@@ -50,6 +51,7 @@ package Droopi.Protocols.GIOP is
       Character'Pos ('I'),
       Character'Pos ('O'),
       Character'Pos ('P'));
+
 
 
    type GIOP_Session is new Session with private;
@@ -113,6 +115,8 @@ package Droopi.Protocols.GIOP is
       Loc_Needs_Addressing_Mode);
 
    type Pending_Request is limited private;
+
+
 
    --  type Response_Sync(Version :  range 0 .. 1) is
    --  record
@@ -282,51 +286,76 @@ package Droopi.Protocols.GIOP is
 
    procedure Request_Message
      (Ses               : access GIOP_Session;
+      Pend_Req      : access Pending_Request;
       Response_Expected : in Boolean;
       Fragment_Next     : out Boolean);
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
-      Request_Id    : in Types.Unsigned_Long;
+      Pend_Req      : access Pending_Request;
+      --  Request_Id    : in Types.Unsigned_Long;
       Fragment_Next : out Boolean);
 
 
    procedure Exception_Reply
      (Ses             : access GIOP_Session;
+      Pend_Req      : access Pending_Request;
       Exception_Type  : in Reply_Status_Type;
       Occurence       : in CORBA.Exception_Occurrence;
       Fragment_Next   : out Boolean);
 
    procedure Location_Forward_Reply
      (Ses             : access GIOP_Session;
+      Pend_Req      : access Pending_Request;
       Forward_Ref     : in Droopi.References.IOR.IOR_Type;
       Fragment_Next   : out Boolean);
 
    procedure Need_Addressing_Mode_Message
      (Ses             : access GIOP_Session;
+      Pend_Req      : access Pending_Request;
       Address_Type    : in Addressing_Disposition);
 
    procedure Cancel_Request_Message
-     (Ses             : access GIOP_Session);
+     (Ses             : access GIOP_Session;
+      Pend_Req      : access Pending_Request);
 
 
    procedure Locate_Request_Message
      (Ses             : access GIOP_Session;
+      Pend_Req      : access Pending_Request;
       Object_Key      : in Objects.Object_Id_Access;
       Fragment_Next   : out Boolean);
 
 
    procedure Locate_Reply_Message
      (Ses             : access GIOP_Session;
+      Pend_Req      : access Pending_Request;
       Locate_Status   : in Locate_Status_Type);
 
+   ----------------------------
+   --  Store Profile
+   ---------------------------
+
+   procedure Store_Profile
+    (Ses     : access GIOP_Session;
+     Profile : Profile_Access);
 
    -----------------------------
    ----  Store Request
    ----------------------------
+
    procedure Store_Request
-     (R       :  Requests.Request_Access;
-      Profile :  Profile_Access);
+    (Ses     :  access GIOP_Session;
+     R       :  Requests.Request_Access;
+     Pending :  out Pending_Request);
+
+
+   procedure Store_Request
+     (Ses     :  access GIOP_Session;
+      R       :  Requests.Request_Access;
+      Profile :  Profile_Access;
+      Pending :  out Pending_Request);
+
 
    -------------------------------------------
    --  Session procedures
@@ -341,11 +370,14 @@ package Droopi.Protocols.GIOP is
       (S       : access GIOP_Session;
        Role    : ORB.Endpoint_Role);
 
-   procedure Invoke_Request (S : access GIOP_Session; R : Requests.Request);
+   procedure Invoke_Request (S : access GIOP_Session;
+                 R : Requests.Request_Access);
 
-   procedure Abort_Request (S : access GIOP_Session; R :  Requests.Request);
+   procedure Abort_Request (S : access GIOP_Session;
+                 R : Requests.Request_Access);
 
-   procedure Send_Reply (S : access GIOP_Session; R :  Requests.Request);
+   procedure Send_Reply (S : access GIOP_Session;
+                 R : Requests.Request_Access);
 
    procedure Handle_Connect_Indication (S : access GIOP_Session);
 
@@ -367,12 +399,24 @@ package Droopi.Protocols.GIOP is
    ---  Pending requests primitives
    ---------------------------------------
 
-
-
-
    GIOP_Error : exception;
 
 private
+
+
+   type Pending_Request (Role : ORB.Endpoint_Role := Client) is
+     record
+       Req             : Requests.Request_Access;
+       Request_Id      : Types.Unsigned_Long := 0;
+       case Role is
+           when Client =>
+             Target_Profile  : Binding_Data.Profile_Access;
+           when Server =>
+             null;
+       end case;
+     end record;
+
+   package Req_Seq is new Sequences.Unbounded (Pending_Request);
 
    type GIOP_Session is new Session with record
       Major_Version        : Version := Ver1;
@@ -380,6 +424,8 @@ private
       Buffer_Out           : Buffers.Buffer_Access;
       Buffer_In            : Buffers.Buffer_Access;
       Role                 : ORB.Endpoint_Role := Client;
+      Pending_Rq           : Req_Seq.Sequence;
+      Current_Profile      : Profile_Access;
       Object_Found         : Boolean := False;
       Nbr_Tries            : Natural := 0;
       Expect_Header        : Boolean := True;
@@ -387,12 +433,6 @@ private
    end record;
 
    type GIOP_Protocol is new Protocol with null record;
-
-   type Pending_Request is record
-      Req             : Requests.Request_Access;
-      Request_Id      : Types.Unsigned_Long := 0;
-      Target_Profile  : Binding_Data.Profile_Access;
-   end record;
 
    Message_Header_Size : constant Stream_Element_Offset := 12;
 

@@ -20,11 +20,11 @@ package Droopi.Protocols.Echo is
 
    type Echo_Session is new Session with private;
 
-   procedure Invoke_Request (S : access Echo_Session; R : Request);
-   procedure Abort_Request (S : access Echo_Session; R : Request);
+   procedure Invoke_Request (S : access Echo_Session; R : Request_Access);
+   procedure Abort_Request (S : access Echo_Session; R : Request_Access);
    --  These are just for show and do nothing.
 
-   procedure Send_Reply (S : access Echo_Session; R : Request);
+   procedure Send_Reply (S : access Echo_Session; R : Request_Access);
    --  Send a reply to the user.
 
    procedure Handle_Connect_Indication (S : access Echo_Session);

@@ -56,17 +56,17 @@ package body Droopi.Protocols.Echo is
 
    end Create;
 
-   procedure Invoke_Request (S : access Echo_Session; R : Request) is
+   procedure Invoke_Request (S : access Echo_Session; R : Request_Access) is
    begin
       null;
    end Invoke_Request;
 
-   procedure Abort_Request (S : access Echo_Session; R : Request) is
+   procedure Abort_Request (S : access Echo_Session; R : Request_Access) is
    begin
       null;
    end Abort_Request;
 
-   procedure Send_Reply (S : access Echo_Session; R : Request)
+   procedure Send_Reply (S : access Echo_Session; R : Request_Access)
    is
       use Buffers;
       use Representations.Test;
@@ -77,7 +77,7 @@ package body Droopi.Protocols.Echo is
       Release_Contents (B.all);
       Marshall_String (Rep, B, "200 OK" & ASCII.CR & ASCII.LF);
       Marshall_String (Rep, B, "Request: "
-                       & Image (R) & ASCII.CR & ASCII.LF);
+                       & Image (R.all) & ASCII.CR & ASCII.LF);
       Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => B));
    end Send_Reply;
 
