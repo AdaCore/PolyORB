@@ -125,7 +125,7 @@ void adabe_constant::write_string_to_ada(string &c_string, string &output) {
 }
 
 string
-adabe_constant::dump_name(dep_list& with, string &body, string &previous)
+adabe_constant::dump_name(dep_list& with, string &previous)
 {
   if (!is_imported(with))
     {
@@ -140,6 +140,21 @@ adabe_constant::dump_name(dep_list& with, string &body, string &previous)
   return get_ada_full_name();	   
 }
 
+string
+adabe_constant::marshal_name(dep_list& with, string &previous)
+{
+  if (!is_marshal_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_marshal_adb(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}
 IMPL_NARROW_METHODS1(adabe_constant, AST_Constant)
 IMPL_NARROW_FROM_DECL(adabe_constant)
 

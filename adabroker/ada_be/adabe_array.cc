@@ -43,7 +43,7 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
     body +=number;
     body +=")";
   }
-  body+="of\n"+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, body, previous));
+  body+="of\n"+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, previous));
   set_already_defined();
 }
 
@@ -104,10 +104,10 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   body += "   begin\n";
   body += "      return Align_Size (A'First;Initial_Offset; N*A'Length);\n";
   body += "   end Align_Size\n";
-
+  set_already_defined();
 }
 
-string adabe_array::dump_name(dep_list& with,string &body, string &previous) 
+string adabe_array::dump_name(dep_list& with, string &previous) 
 {
   if (!is_imported(with))
     {
@@ -122,5 +122,18 @@ string adabe_array::dump_name(dep_list& with,string &body, string &previous)
   return get_ada_full_name();	   
 }
 
-    
+string adabe_array::marshal_name(dep_list& with, string &previous) 
+{
+  if (!is_marshal_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_marshal_adb(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}    
 

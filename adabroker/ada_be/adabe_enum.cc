@@ -28,7 +28,7 @@ adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
       switch (d->node_type())
 	{
 	case AST_Decl::NT_enum_val:
-	  body+=adabe_enum_val::narrow_from_decl(d)->dump_name(with, body, previous);
+	  body+=adabe_enum_val::narrow_from_decl(d)->dump_name(with, previous);
 	  break;
 	default:
 	  throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope in enumeration type");
@@ -90,11 +90,12 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += "   begin\n";
   body += "      return Align_Size (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A));Initial_Offset;N);";
   body += "   end Align_Size\n";
+  set_already_defined();
 
 }
 
 string
-adabe_enum::dump_name(dep_list& with,string &body, string &previous) 
+adabe_enum::dump_name(dep_list& with, string &previous) 
 {
    if (!is_imported(with))
     {
@@ -102,6 +103,22 @@ adabe_enum::dump_name(dep_list& with,string &body, string &previous)
 	{
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}
+
+string
+adabe_enum::marshal_name(dep_list& with, string &previous) 
+{
+   if (!is_marshal_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
       return get_ada_local_name();

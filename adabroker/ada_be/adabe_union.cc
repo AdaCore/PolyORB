@@ -20,7 +20,7 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
   adabe_name *b = dynamic_cast<adabe_name *>(disc_type());
   b->compute_ada_name();
   string name = get_ada_local_name();
-  body += "(Switch : "  + b->dump_name(with, body, previous);
+  body += "(Switch : "  + b->dump_name(with, previous);
   body += " := " + name + "'first) is record\n";
   body += "      case Switch is\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
@@ -131,7 +131,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
 }
 
 string
-adabe_union::dump_name(dep_list& with, string &body, string &previous)
+adabe_union::dump_name(dep_list& with, string &previous)
 {
   if (!is_imported(with))
     {
@@ -146,6 +146,21 @@ adabe_union::dump_name(dep_list& with, string &body, string &previous)
   return get_ada_full_name();	   
 }
 
+string
+adabe_union::marshal_name(dep_list& with, string &previous)
+{
+  if (!is_marshal_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_marshal_adb(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}
 IMPL_NARROW_METHODS1(adabe_union, AST_Union)
 IMPL_NARROW_FROM_DECL(adabe_union)
 IMPL_NARROW_FROM_SCOPE(adabe_union)

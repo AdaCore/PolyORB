@@ -30,7 +30,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 #ifdef DEBUG_INTERFACE
   cout << "after compute_ada_name of the interface" << endl;
 #endif
-  body += "package " + get_ada_full_name() + " is /n";
+  body += "package " + get_ada_full_name() + " is \n";
   body += "\n   -----------------------------\n";
   body += "   --         The Spec        --\n";
   body += "   -----------------------------\n\n";
@@ -314,7 +314,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   string tmp = "";
   adabe_interface * inher;
   with.add("Corba.Object");
-  body += "package " + get_ada_full_name() + "_impl is /n";
+  body += "package " + get_ada_full_name() + "_impl is \n";
   if (n_inherits() == 0) body += "   type Object is new Corba.Object.Object ";
 
  // forward declarated
@@ -415,7 +415,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
     with.add("Ada.Proxies");
     with.add("Ada.Object");
   */
-  body += "package body" + get_ada_full_name() + " is /n";
+  body += "package body" + get_ada_full_name() + " is \n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -601,6 +601,23 @@ adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previ
   body += "end " + get_ada_full_name() + ".Marshal ;\n";  
 }
 
+string
+adabe_interface::dump_name(dep_list& with, string &previous)
+{
+  if (!is_imported(with))
+    return "Ref";
+  else if (pd_is_forwarded) return (get_ada_full_name()+"_forward.Ref");
+  else return (get_ada_full_name()+".Ref");
+}
+
+string
+adabe_interface::marshal_name(dep_list& with, string &previous)
+{
+  if (!is_imported(with))
+    return "Ref";
+  else if (pd_is_forwarded) return (get_ada_full_name()+"_forward.Ref");
+  else return (get_ada_full_name()+".Ref");
+}
 
 
 IMPL_NARROW_METHODS1(adabe_interface, AST_Interface)

@@ -23,7 +23,7 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   // Writing the header :
 
   adabe_base_type =  dynamic_cast<adabe_name *> (base_type());
-  type_name =  adabe_base_type->dump_name(with, body, previous);
+  type_name =  adabe_base_type->dump_name(with, previous);
     
   body += "type IDL_SEQUENCE_" + type_name +"_Array is\n";
   body += "      array (Integer range <>) of CORBA." + type_name +";\n";
@@ -63,7 +63,7 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   // probleme des sequences imbriquees a traiter...
 }
 string
-adabe_sequence::dump_name(dep_list& with,string &body, string &previous) 
+adabe_sequence::dump_name(dep_list& with, string &previous) 
 {
   if (!is_imported(with))
     {
@@ -71,6 +71,21 @@ adabe_sequence::dump_name(dep_list& with,string &body, string &previous)
 	{
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}
+string
+adabe_sequence::marshal_name(dep_list& with, string &previous) 
+{
+  if (!is_marshal_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
       return get_ada_local_name();

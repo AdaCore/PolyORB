@@ -95,11 +95,16 @@ adabe_name::produce_marshal_adb(dep_list&, string&, string&)
 }
 
 string 
-adabe_name::dump_name(dep_list&, string&, string&)
+adabe_name::dump_name(dep_list&, string&)
 {
   throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
 }
 
+string 
+adabe_name::marshal_name(dep_list&, string&)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
 
 void
 adabe_name::compute_ada_name()
@@ -394,6 +399,33 @@ adabe_name::is_imported (dep_list& with)
       //    }
 }
 
+bool
+adabe_name::is_marshal_imported (dep_list& with)
+{
+  if (this == adabe_global::adabe_current_file()) 
+    return 0;
+  AST_Decl::NodeType NT = node_type();
+  if (NT == AST_Decl::NT_interface)
+    {
+      bool temp = true;
+      temp = with.check (get_ada_full_name()+".marshal"); 
+      if (!temp) with.add (get_ada_full_name()+".marshal");
+      return temp;
+    }
+  if (NT == AST_Decl::NT_module)
+    {
+      bool temp = true;
+      temp = with.check (get_ada_full_name()+".marshal");
+      if (!temp) with.add (get_ada_full_name()+".marshal");
+      return temp;
+    }
+  //  if  ((NT == AST_Decl::NT_root)
+  //       || (NT ==  AST_Decl::NT_except)
+  //       || (NT ==  AST_Decl::NT_struct)
+  //       || (NT ==  AST_Decl::NT_union))	
+  return (dynamic_cast<adabe_name *>(defined_in()))->is_marshal_imported (with); 
+      //    }
+}
 
 ostream& operator<<(ostream &s, AST_Decl::NodeType x)
 {

@@ -130,10 +130,11 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
   body += marshall;
   body += unmarshall;
   body += align_size;
+  set_already_defined();
 }
 
 string
-adabe_structure::dump_name(dep_list& with, string &body, string &previous)
+adabe_structure::dump_name(dep_list& with, string &previous)
 {
   if (!is_imported(with))
     {
@@ -147,7 +148,22 @@ adabe_structure::dump_name(dep_list& with, string &body, string &previous)
     }
   return get_ada_full_name();	   
 }
-  
+
+string
+adabe_structure::marshal_name(dep_list& with, string &previous)
+{
+  if (!is_marshal_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_marshal_adb(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}  
 IMPL_NARROW_METHODS1(adabe_structure, AST_Structure)
 IMPL_NARROW_FROM_DECL(adabe_structure)
 IMPL_NARROW_FROM_SCOPE(adabe_structure)

@@ -14,7 +14,7 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
   compute_ada_name();
   body += "   type " + get_ada_local_name() + " is new ";
   AST_Decl *b = base_type();
-  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous); //virtual method
+  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); //virtual method
   body += name;
   body += ";\n";
   body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
@@ -37,7 +37,7 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
   INDENTATION(body);
   body += "type" + get_ada_local_name() + "is new ";
   AST_Decl *b  base_type();
-  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, &body, &previous); //virtual method
+  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); //virtual method
   body += name;
   body += ";\n";
   }
@@ -73,7 +73,7 @@ void
 adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   string arg1, arg2 = "";
-  string name = (dynamic_cast<adabe_name *> (base_type()))->dump_name(with, arg1, arg2); 
+  string name = (dynamic_cast<adabe_name *> (base_type()))->marshal_name(with, arg2); 
   
   body += "   function Marshall(A : in ";
   body += get_ada_local_name();
@@ -107,11 +107,12 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
   body += name;
   body += "(A) , Tmp) ;\n";
   body += "   end ;\n\n\n";
+  set_already_defined();
 }
 
 
 string
-adabe_typedef::dump_name(dep_list& with, string &body, string &previous)
+adabe_typedef::dump_name(dep_list& with, string &previous)
 {
   if (!is_imported(with))
     {
@@ -126,6 +127,21 @@ adabe_typedef::dump_name(dep_list& with, string &body, string &previous)
   return get_ada_full_name();	   
 }
 
+string
+adabe_typedef::marshal_name(dep_list& with, string &previous)
+{
+  if (!is_marshal_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_marshal_adb(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}
 IMPL_NARROW_METHODS1(adabe_typedef, AST_Typedef)
 IMPL_NARROW_FROM_DECL(adabe_typedef)
 

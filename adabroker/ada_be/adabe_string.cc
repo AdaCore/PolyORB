@@ -107,7 +107,7 @@ adabe_string::produce_marshal_adb(dep_list& with, string &body, string &previous
 
 
 
-string adabe_string::dump_name (dep_list &with,string &body, string &previous)
+string adabe_string::dump_name (dep_list &with, string &previous)
 {
   cout <<"Valeur de is_imported " <<is_imported(with)<<endl;
   if (!is_imported(with))
@@ -122,4 +122,32 @@ string adabe_string::dump_name (dep_list &with,string &body, string &previous)
     }
   return get_ada_full_name();	   
 }
+
+string adabe_string::marshal_name (dep_list &with, string &previous)
+{
+  if (!is_marshal_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_marshal_adb(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 

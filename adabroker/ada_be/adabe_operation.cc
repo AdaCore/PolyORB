@@ -38,7 +38,7 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
 	}
       body += ") return "; 
       AST_Decl *b = return_type();
-      body += dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous) + ";\n";
+      body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ";\n";
     }
   else
     {
@@ -55,7 +55,7 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
 	}
       body += ", Result : out ";
       AST_Decl *b = return_type();
-      body += dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous) + ");\n";
+      body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ");\n";
     }
 }
 
@@ -86,7 +86,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
 	}
       body += ") return ";
       AST_Decl *b = return_type();
-      string name = dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous);
+      string name = dynamic_cast<adabe_name *>(b)->dump_name(with, previous);
       body += name + "is \n";
       adabe_name  *c = dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()));      
       string name_of_the_package = c->get_ada_local_name();
@@ -125,7 +125,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      string name =   dynamic_cast<adabe_name *>(return_type())->dump_name(with, body, previous);
+      string name =   dynamic_cast<adabe_name *>(return_type())->dump_name(with, previous);
       if (!return_is_void())
 	{	
 	  body += ", Result : out " + name + ") is\n";
@@ -182,7 +182,7 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	}
       body += ") return ";
       AST_Decl *b = return_type();
-      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous) + ";\n";
+      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ";\n";
     }
   else
     {
@@ -199,7 +199,7 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	}
       body += ", Result : out ";
       AST_Decl *b = return_type();
-      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous) + ");\n";
+      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ");\n";
     }
 }
 
@@ -229,7 +229,7 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 	}
       body += ") return ";
       AST_Decl *b = return_type();
-      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous) + ";\n";
+      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ";\n";
       body += "   begin \n\n";
       body += "   end;";
     }
@@ -248,7 +248,7 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 	}
       if (!return_is_void()) {
 	   AST_Decl *b = return_type();
-           string name =   dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous);
+           string name =   dynamic_cast<adabe_name *>(b)->dump_name(with, previous);
 	   body += ", Result : out " + name + ") is\n";
       }
       else   body += ") is \n";
@@ -280,7 +280,7 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   // get the type of the result
   string previous = "";
   AST_Decl *b = return_type();
-  string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous); 
+  string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); 
 
   // produce functions
   body += "   type " + name + "_Proxy is new OmniProxyCallDesc.Object with private ;\n\n";
@@ -342,7 +342,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
 
   // get the type of the result
   AST_Decl *b = return_type();
-  string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, body, private_definition); 
+  string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition); 
 
   // produce functions
   body += "   procedure Init(Self : in out " + get_ada_local_name();

@@ -1,4 +1,3 @@
-// File module.cc
 #include <adabe.h>
 
 adabe_module::adabe_module(UTL_ScopedName *n, UTL_StrList *p)
@@ -673,22 +672,6 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
   if (!first) {
     body += "end " + get_ada_full_name();
   }
-}
-
-string
-adabe_module::dump_name(dep_list& with,string &String, string &previousdefinition)
-{
-  if (!is_imported(with))
-    {
-      if (!is_already_defined())
-	{
-	  string tmp = "";
-	  produce_ads(with, tmp, previousdefinition);
-	  previousdefinition += tmp;
-	}
-      return get_ada_local_name();
-    }
-  return get_ada_full_name();	   
 }
 
 IMPL_NARROW_METHODS3(adabe_module, AST_Module, adabe_name, UTL_Scope);

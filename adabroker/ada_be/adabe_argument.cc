@@ -26,7 +26,7 @@ adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
       break;
     }
   AST_Decl *d = field_type();
-  body +=  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous); // virtual method
+  body +=  dynamic_cast<adabe_name *>(d)->dump_name(with, previous); // virtual method
 }
 
 
@@ -58,7 +58,7 @@ adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_i
 {
   string body, previous = "";
   AST_Decl *d = field_type();
-  string name = (dynamic_cast<adabe_name *>(d))->dump_name(with, body, previous);
+  string name = (dynamic_cast<adabe_name *>(d))->dump_name(with, previous);
   if ((direction() == dir_IN) | (direction() == dir_INOUT)) {
     no_in = false;
     in_decls += " ;\n                  ";
@@ -82,7 +82,7 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
 {
   string body, previous = "";
   AST_Decl *d = field_type();
-  string name =  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
+  string name =  dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   if ((direction() == dir_IN) | (direction() == dir_INOUT)) {
     no_in = false;
     in_decls += " ;\n                  ";

@@ -15,7 +15,7 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
   compute_ada_name();
   body += "   function get_" + get_ada_local_name() +"(Self : in Ref) return "; 
   AST_Decl *d = field_type();
-  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + ";\n";
   if (!readonly())
     {
@@ -31,7 +31,7 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 {
   body += "   function get_" + get_ada_local_name() +"(Self : in Ref) return "; 
   AST_Decl *d = field_type();  
-  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + ";\n";  
   string name_of_the_package = dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()))->get_ada_full_name();
   body += "   Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
@@ -64,7 +64,7 @@ adabe_attribute::produce_impl_ads(dep_list& with, string &body, string &previous
 {
   body += "   function get_" + get_ada_local_name() +"(Self : access Object) return "; 
   AST_Decl *d = field_type();
-  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + ";\n";
   if (!readonly())
     {
@@ -79,7 +79,7 @@ adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous
 {
   body += "   function get_" + get_ada_local_name() +"(Self : access Object) return ";
   AST_Decl *d = field_type();
-  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + ";\n";
   body += "   begin\n\n";
   body += "   end; \n"; 
@@ -97,7 +97,7 @@ void
 adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &private_definition)
 {  
   AST_Decl *d = field_type();
-  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, private_definition);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, private_definition);
   body += "   type get_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private;\n\n";
   body += "   procedure Init(Self : in out get_" + get_ada_local_name() + "_Proxy) ;\n\n";
   body += "   function Operation(Self : in get_" + get_ada_local_name() + "_Proxy)\n";
@@ -139,7 +139,7 @@ void
 adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &private_definition)
 {
   AST_Decl *d = field_type();
-  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, private_definition);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, private_definition);
   body += "   procedure Init(Self : in out get_" + get_ada_local_name() + "_Proxy) is\n";
   body += "   begin\n";
   body += "      Set_User_Exceptions(Self, False) ;\n";

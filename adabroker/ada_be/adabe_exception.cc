@@ -72,7 +72,7 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
 }
 
 string
-adabe_exception::dump_name(dep_list& with,string &body, string &previous) 
+adabe_exception::dump_name(dep_list& with, string &previous) 
 {
     if (!is_imported(with))
     {
@@ -80,6 +80,22 @@ adabe_exception::dump_name(dep_list& with,string &body, string &previous)
 	{
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}
+
+string
+adabe_exception::marshal_name(dep_list& with,string &previous) 
+{
+  if (!is_marshal_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
       return get_ada_local_name();

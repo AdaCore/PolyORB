@@ -18,9 +18,15 @@ adabe_enum_val::adabe_enum_val(unsigned long v, UTL_ScopedName *n, UTL_StrList *
 
 
 string
-adabe_enum_val::dump_name(dep_list& with, string &body, string &previous)
+adabe_enum_val::dump_name(dep_list& with, string &previous)
 {
   compute_ada_name();
   return get_ada_local_name();
 }
 
+string
+adabe_enum_val::marshal_name(dep_list& with, string &previous)
+{
+  compute_ada_name();
+  return get_ada_local_name();
+}

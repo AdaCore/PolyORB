@@ -92,7 +92,9 @@ public:
   // is this name already used in the current scope ?
 
   bool is_imported(dep_list &with);
-  // if the node is imported; 
+  // if the node is imported and include the corresponding file in "with"; 
+  bool is_marshal_imported(dep_list &with);
+  // if the node is imported and include the corresponding marshal file in "with"; 
   
   virtual void produce_ads(dep_list&, string&, string&);  
   virtual void produce_adb(dep_list&, string&, string&);
@@ -123,9 +125,10 @@ public:
   // function used to produce the body and specification for the
   // marshalling functions of the non predefined types
 
-  virtual string dump_name(dep_list&, string&, string&);
+  virtual string dump_name(dep_list&, string&);
+  virtual string marshal_name(dep_list&, string&);
   // this function drops the name in the return string,
-  // and if necessary defines the type in the last ones or
+  // and if necessary defines the type in the last ones (or the marshal function) 
   // add a dependency in the dep_list
   
   DEF_NARROW_FROM_DECL(adabe_name);
@@ -158,7 +161,8 @@ public:
   DEF_NARROW_FROM_DECL(adabe_predefined_type);
 
   virtual void produce_ads (dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
  
 private:
   string get_ada_predefined_type(void);
@@ -180,7 +184,8 @@ public:
   DEF_NARROW_FROM_DECL(adabe_constant);
 
   virtual void produce_ads (dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
   
 private:
   void  write_string_to_ada(string &c_string, string &ada_string);
@@ -201,7 +206,8 @@ public:
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
     
 };
 
@@ -216,7 +222,8 @@ public:
   DEF_NARROW_METHODS1(adabe_enum_val, AST_EnumVal);
   DEF_NARROW_FROM_DECL(adabe_enum_val);
 
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
   
 };
 
@@ -235,7 +242,8 @@ public:
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
   
 };
 
@@ -270,7 +278,8 @@ public:
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
 
 };
 
@@ -307,7 +316,8 @@ public:
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
 };
 
 
@@ -325,7 +335,8 @@ public:
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
 
 };
 
@@ -343,7 +354,8 @@ public:
   virtual void produce_ads (dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
 
 };
 
@@ -362,7 +374,8 @@ public:
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
 };
 
 
@@ -448,7 +461,8 @@ public:
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
 
 };
 
@@ -475,6 +489,8 @@ class adabe_interface : public virtual AST_Interface,
   virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual string dump_name(dep_list &with, string &previous);
+  virtual string marshal_name(dep_list &with, string &previous);
 
  private:
 
@@ -518,7 +534,6 @@ public:
   virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
-  virtual string dump_name(dep_list &with, string &body, string &previous);
 };
 
 
@@ -547,7 +562,7 @@ private:
 
 public:
 
-  static void set_adabe_current_file(adabe_name *new_file) { pd_adabe_current_file = new_file; };
+  static void set_adabe_current_file(adabe_name *new_file) {/* pd_adabe_current_file = new_file;*/ };
  
   static void set_root(adabe_root *v) { myself = v; };
   // set the root from the AST
@@ -555,7 +570,7 @@ public:
   static adabe_root *root() { return myself; };
   
   static adabe_name *adabe_current_file() {
-    return pd_adabe_current_file;
+    /*return pd_adabe_current_file;*/
   };
   
   

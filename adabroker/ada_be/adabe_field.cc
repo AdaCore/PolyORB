@@ -17,7 +17,7 @@ adabe_field::produce_ads(dep_list& with, string &body, string &previous)
 #ifdef DEBUG_FIELD
   cerr << "before the dump name of the field " << endl;
 #endif 
-  body += dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous); 
+  body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous); 
 #ifdef DEBUG_FIELD
   cerr << "after the dump name of the field " << endl;
 #endif 
@@ -49,7 +49,7 @@ void
 adabe_field::produce_marshal_adb(dep_list& with, string &body, string &marshall, string &unmarshall, string &align_size)
 {
   string previous = "";
-  string name = (dynamic_cast<adabe_name *>(field_type()))->dump_name(with, body, previous); 
+  string name = (dynamic_cast<adabe_name *>(field_type()))->marshal_name(with, previous); 
 
   body += previous;
   
