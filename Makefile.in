@@ -1,11 +1,13 @@
-# Makefile.in generated automatically by automake 1.1g from Makefile.am
+# Makefile.in generated automatically by automake 1.0 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy, distribute and modify it.
 
 #
+
 # $Id: Makefile.am,v 1.1 1996/08/12 07:40:54 tardieu Exp $
+
 #
 
 
@@ -41,56 +43,36 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-target_alias = @target_alias@
-build_alias = @build_alias@
-host_triplet = @host@
-target_triplet = @target@
-build_triplet = @build@
-host_alias = @host_alias@
-LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
-LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
-AWK = @AWK@
-CC = @CC@
-VERSION = @VERSION@
-GNATMAKE = @GNATMAKE@
-CERRNO = @CERRNO@
-PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
-PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
-PACKAGE = @PACKAGE@
-EXTRA_LIBS = @EXTRA_LIBS@
-TCP_INCLUDED = @TCP_INCLUDED@
-PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
-GNATFLAGS = @GNATFLAGS@
-GNAT_SOURCE = @GNAT_SOURCE@
-SED = @SED@
-LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
 
 AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = Dist Garlic
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES = 
-DIST_COMMON =  README COPYING ChangeLog INSTALL Makefile.am Makefile.in \
+mkinstalldirs = $(top_srcdir)/mkinstalldirs
+DIST_COMMON = README COPYING ChangeLog INSTALL Makefile.am Makefile.in \
 README TODO config.guess config.sub configure configure.in install-sh \
 mkinstalldirs
 
 
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
+DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
 
 TAR = tar
 default: all
 
 
 $(srcdir)/Makefile.in: Makefile.am configure.in
-	cd $(srcdir) && automake --strictness=foreign Makefile
+	cd $(srcdir) && automake Makefile
 
 # For an explanation of the following Makefile rules, see node
 # `Automatic Remaking' in GNU Autoconf documentation.
-Makefile: $(srcdir)/Makefile.in config.status $(BUILT_SOURCES)
-	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+Makefile: Makefile.in config.status
+	CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
 config.status: configure
-	$(SHELL) ./config.status --recheck
+	./config.status --recheck
 $(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && autoconf
 
@@ -104,12 +86,13 @@ $(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
 @SET_MAKE@
 
 all-recursive install-data-recursive install-exec-recursive \
-installdirs-recursive install-recursive uninstall-recursive  \
+installdirs-recursive install-recursive uninstall-recursive \
 check-recursive installcheck-recursive info-recursive dvi-recursive \
 mostlyclean-recursive clean-recursive distclean-recursive \
 maintainer-clean-recursive:
 	for subdir in $(SUBDIRS); do		\
 	  target=`echo $@ | sed s/-recursive//`; \
+	  echo making $$target in $$subdir;	\
 	  (cd $$subdir && $(MAKE) $$target)	\
 	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
 	done && test -z "$$fail"
@@ -126,7 +109,9 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES) $(CONFIG_HEADER) \
 	tags=; \
 	here=`pwd`; \
 	for subdir in $(SUBDIRS); do \
-	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+	  test -f $$subdir/TAGS && { \
+	    tags="$$tags -i $$here/$$subdir/TAGS"; \
+	  } \
 	done; \
 	test -z "$(ETAGS_ARGS)$(CONFIG_HEADER)$(SOURCES)$(HEADERS)$$tags" \
 	  || etags $(ETAGS_ARGS) $$tags $(CONFIG_HEADER) $(SOURCES) $(HEADERS)
@@ -153,7 +138,6 @@ distcheck: dist
 	cd $(distdir)/=build \
 	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
 	  && $(MAKE) \
-	  && $(MAKE) dvi \
 	  && $(MAKE) check \
 	  && $(MAKE) install \
 	  && $(MAKE) installcheck \
@@ -163,46 +147,42 @@ distcheck: dist
 	echo "$(distdir).tar.gz is ready for distribution"; \
 	echo "========================"
 dist: distdir
-	-chmod -R a+r $(distdir)
+	chmod -R a+r $(distdir)
 	$(TAR) chozf $(distdir).tar.gz $(distdir)
 	rm -rf $(distdir)
-dist-all: distdir
-	-chmod -R a+r $(distdir)
-	$(TAR) chozf $(distdir).tar.gz $(distdir)
-	rm -rf $(distdir)
-distdir: $(DISTFILES)
+distdir: $(DEP_DISTFILES)
 	rm -rf $(distdir)
 	mkdir $(distdir)
-	-chmod 755 $(distdir)
-	here=`pwd`; distdir=`cd $(distdir) && pwd` \
+	chmod 777 $(distdir)
+	distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --strictness=foreign
-	@for file in $(DISTFILES); do \
-	  d=$(srcdir); \
+	  && automake --include-deps --output-dir=$$distdir --strictness=foreign
+	@for file in `cd $(srcdir) && echo $(DISTFILES)`; do \
 	  test -f $(distdir)/$$file \
-	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
-	  || cp -p $$d/$$file $(distdir)/$$file; \
+	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $(srcdir)/$$file $(distdir)/$$file; \
 	done
 	for subdir in $(SUBDIRS); do		\
 	  test -d $(distdir)/$$subdir		\
 	  || mkdir $(distdir)/$$subdir		\
 	  || exit 1;				\
-	  chmod 755 $(distdir)/$$subdir;	\
+	  chmod 777 $(distdir)/$$subdir;	\
 	  (cd $$subdir && $(MAKE) distdir=../$(distdir)/$$subdir distdir) \
 	    || exit 1; \
 	done
 info: info-recursive
+
 dvi: dvi-recursive
-check: all-am
-	$(MAKE) check-recursive
+
+check: check-recursive
+
 installcheck: installcheck-recursive
+
 all-am: Makefile
 
 install-exec: install-exec-recursive
-	$(NORMAL_INSTALL)
 
 install-data: install-data-recursive
-	$(NORMAL_INSTALL)
 
 install: install-recursive
 	@:
@@ -224,8 +204,7 @@ clean-generic:
 
 distclean-generic:
 	rm -f Makefile $(DISTCLEANFILES)
-	rm -f config.cache config.log stamp-h
-	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	rm -f config.cache config.log $(CONFIG_HEADER) stamp-h
 
 maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)

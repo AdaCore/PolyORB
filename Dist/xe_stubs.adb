@@ -371,7 +371,11 @@ procedure XE_Stubs is
 
       Dwrite_Str  (FD, "with System.Garlic.Options;");
       Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "with System.Garlic.Heart;");
+      Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "use System.Garlic.Options;");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "use System.Garlic.Heart;");
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "package body ");
       Dwrite_Name (FD, Elaboration_Full_Name);
@@ -392,11 +396,17 @@ procedure XE_Stubs is
 
       --  The partition should not terminate.
 
-      if Get_Permanent (PID) then
-         Dwrite_Str (FD, "   Set_Permanent (True);");
-      else
-         Dwrite_Str (FD, "   Set_Permanent (False);");
-      end if;
+      case Get_Termination (PID) is
+         when Local_Termination =>
+            Dwrite_Str (FD, "   Set_Termination (Local_Termination);");
+         when Global_Termination =>
+            Dwrite_Str (FD, "   Set_Termination (Global_Termination);");
+         when Deferred_Termination =>
+            Dwrite_Str (FD, "   Set_Termination (Deferred_Termination);");
+         when Unknown_Termination =>
+            null;
+      end case;
+
       Dwrite_Eol (FD);
 
       --  If a protocol has been specified, then use it (with its data
@@ -518,12 +528,13 @@ procedure XE_Stubs is
       Dwrite_Eol (FD);
       Dwrite_Str (FD, "with system.garlic.heart;");
       Dwrite_Eol (FD);
+      Dwrite_Str (FD, "with system.garlic.termination;");
+      Dwrite_Eol (FD);
       Dwrite_Str (FD, "with system.partition_interface;");
       Dwrite_Eol (FD);
       Dwrite_Str (FD, "with ada.exceptions;");
       Dwrite_Eol (FD);
 
-      --  XXXXX: debug.
       Dwrite_Str (FD, "with system.io;");
       Dwrite_Eol (FD);
 
@@ -615,7 +626,7 @@ procedure XE_Stubs is
                Dwrite_Str  (FD, "         (program_error'identity,");
                Dwrite_Eol  (FD);
                Dwrite_Str
-                 (FD, "          ""Versions differ for partition """"");
+                 (FD, "          ""Versions differ for RCI unit """"");
                Dwrite_Name (FD, CUnit.Table (U).CUname);
                Dwrite_Str  (FD, """"""");");
                Dwrite_Eol  (FD);
@@ -657,6 +668,12 @@ procedure XE_Stubs is
             Dwrite_Str  (FD, ";");
             Dwrite_Eol  (FD);
          end if;
+      end if;
+
+      --  When we exit main subprogram, just terminate.
+      if Get_Termination (PID) = Local_Termination then
+         Dwrite_Str  (FD, "   system.garlic.termination.local_termination;");
+         Dwrite_Eol  (FD);
       end if;
 
       Dwrite_Str  (FD, "end ");

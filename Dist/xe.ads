@@ -99,7 +99,7 @@ package XE is
        Attribute_Storage_Dir,    --  (2) Storage directory
        Attribute_Main,           --  (3) Main procedure
        Attribute_Command_Line,   --  (4) Command line
-       Attribute_Permanent       --  (5) Permanent
+       Attribute_Termination     --  (5) Termination
        );
 
    Attr_Wrong : constant Int := 200;
@@ -167,19 +167,20 @@ package XE is
        Pre_Type_Partition,      --  (1)  Partition
        Pre_Type_Channel,        --  (2)  Channel
        Pre_Type_Boolean,        --  (3)  Boolean
-       Pre_Type_String,         --  (4)  String
-       Pre_Type_Starter,        --  (5)  Type__Starter
-       Pre_Type_Entity,         --  (6)  Type__Entity
-       Pre_Type_Convention,     --  (7)  Type__Convention
-       Pre_Type_Ada_Unit,       --  (8)  Type__Ada_Unit
-       Pre_Type_Subprogram,     --  (9)  Type__Subprogram
-       Pre_Type_Function,       --  (10) Type__*_Function
-       Pre_Type_Procedure       --  (11) Type__*_Procedure
+       Pre_Type_Integer,        --  (4)  Integer
+       Pre_Type_String,         --  (5)  String
+       Pre_Type_Starter,        --  (6)  Type__Starter
+       Pre_Type_Entity,         --  (7)  Type__Entity
+       Pre_Type_Convention,     --  (8)  Type__Convention
+       Pre_Type_Ada_Unit,       --  (9)  Type__Ada_Unit
+       Pre_Type_Subprogram,     --  (10) Type__Subprogram
+       Pre_Type_Function,       --  (11) Type__*_Function
+       Pre_Type_Procedure       --  (12) Type__*_Procedure
        );
 
    Pre_Type_Wrong : constant Int := 400;
    Pre_Type_First : constant Int := Pre_Type_Wrong + 1;
-   Pre_Type_Last  : constant Int := Pre_Type_Wrong + 11;
+   Pre_Type_Last  : constant Int := Pre_Type_Wrong + 12;
    --  Should match Predefined_Type length
 
    type Pre_Type_Id is new Int range Pre_Type_Wrong .. Pre_Type_Last;
@@ -190,6 +191,17 @@ package XE is
 
    function Convert (Item : in Predefined_Type) return Int;
    function Convert (Item : in Int) return Predefined_Type;
+
+   -----------------
+   -- Termination --
+   -----------------
+
+   type Termination_Type is new Int range 500 .. 503;
+
+   Unknown_Termination  : constant Termination_Type := 500;
+   Local_Termination    : constant Termination_Type := 501;
+   Global_Termination   : constant Termination_Type := 502;
+   Deferred_Termination : constant Termination_Type := 503;
 
    -------------
    -- Node_Id --
@@ -221,6 +233,7 @@ package XE is
    Partition_Type_Node      : Type_Id;
    Channel_Type_Node        : Type_Id;
    Boolean_Type_Node        : Type_Id;
+   Integer_Type_Node        : Type_Id;
    String_Type_Node         : Type_Id;
    Starter_Type_Node        : Type_Id;
    Convention_Type_Node     : Type_Id;
@@ -614,14 +627,12 @@ package XE is
    subtype Storage_Dir_Name_Type is Name_Id;
    No_Storage_Dir    : constant Storage_Dir_Name_Type := No_Name;
 
-   type Permanent_Type is (Yes, No, Unknown);
-
    --  Default values
    Default_Main          : Main_Subprogram_Type  := No_Main_Subprogram;
    Default_Host          : Host_Id               := Null_Host;
    Default_Storage_Dir   : Storage_Dir_Name_Type := No_Storage_Dir;
    Default_Command_Line  : Command_Line_Type     := No_Command_Line;
-   Default_Permanent     : Permanent_Type        := Unknown;
+   Default_Termination   : Termination_Type      := Unknown_Termination;
 
    type Partition_Type is record
       Name            : Partition_Name_Type;
@@ -629,7 +640,7 @@ package XE is
       Storage_Dir     : Storage_Dir_Name_Type;
       Command_Line    : Command_Line_Type;
       Main_Subprogram : Unit_Name_Type;
-      Permanent       : Permanent_Type;
+      Termination     : Termination_Type;
       First_Unit      : CUID_Type;
       Last_Unit       : CUID_Type;
       To_Build        : Boolean;
@@ -707,7 +718,7 @@ package XE is
    function Get_Command_Line    (P : in PID_Type) return Command_Line_Type;
    function Get_Main_Subprogram (P : in PID_Type) return Main_Subprogram_Type;
    function Get_Storage_Dir     (P : in PID_Type) return Storage_Dir_Name_Type;
-   function Get_Permanent       (P : in PID_Type) return Boolean;
+   function Get_Termination     (P : in PID_Type) return Termination_Type;
    function Get_Unit_Sfile      (U : in Unit_Id)  return File_Name_Type;
 
    procedure Update_Partition_Stamp (P : in PID_Type; F : in File_Name_Type);

@@ -230,11 +230,29 @@ package body System.Garlic.Termination is
    procedure Initialize is
       Dummy : Termination_Service_Access;
    begin
-      if Is_Boot_Partition and then not Options.Get_Permanent then
+      if Is_Boot_Partition and then
+        Options.Get_Termination /= Deferred_Termination then
          Dummy := new Termination_Service;
       end if;
       Receive (Shutdown_Synchronization, Receive_Message'Access);
    end Initialize;
+
+   -----------------------
+   -- Local_Termination --
+   -----------------------
+
+   procedure Local_Termination is
+      Count : Natural;
+   begin
+      loop
+         Count := Get_Active_Task_Count;
+         pragma Debug (D (D_Debug, "Count =" & Natural'Image (Count)));
+         exit when Count = 1;
+         delay Time_Between_Checks;
+      end loop;
+      pragma Debug (D (D_Debug, "Local termination detected"));
+      Heart.Soft_Shutdown;
+   end Local_Termination;
 
    ---------------------
    -- Receive_Message --
@@ -283,7 +301,7 @@ package body System.Garlic.Termination is
                                 "Active task count is" &
                                 Natural'Image (Get_Active_Task_Count)));
                if OK and then Get_Active_Task_Count = 1 and then
-                 not Options.Get_Permanent then
+                 Options.Get_Termination /= Deferred_Termination then
                   Termination_Code'Write (Answer'Access, Positive_Ack);
                else
                   Termination_Code'Write (Answer'Access, Negative_Ack);

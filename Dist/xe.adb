@@ -226,7 +226,7 @@ package body XE is
       Partitions.Table (Partition).Storage_Dir     := No_Storage_Dir;
       Partitions.Table (Partition).Command_Line    := No_Command_Line;
       Partitions.Table (Partition).Main_Subprogram := No_Name;
-      Partitions.Table (Partition).Permanent       := Unknown;
+      Partitions.Table (Partition).Termination     := Unknown_Termination;
       Partitions.Table (Partition).First_Unit      := Null_CUID;
       Partitions.Table (Partition).Last_Unit       := Null_CUID;
       Partitions.Table (Partition).To_Build        := True;
@@ -1563,7 +1563,7 @@ package body XE is
 
             Main := Get_Main_Subprogram (P);
             if Main /= No_Main_Subprogram then
-               Write_Str ("   Main     : ");
+               Write_Str ("   Main        : ");
                Write_Name (Main);
                Write_Eol;
             end if;
@@ -1574,7 +1574,7 @@ package body XE is
             end if;
 
             if Host /= Null_Host then
-               Write_Str ("   Host     : ");
+               Write_Str ("   Host        : ");
                if Hosts.Table (Host).Static then
                   Write_Name (Hosts.Table (Host).Name);
                else
@@ -1594,25 +1594,35 @@ package body XE is
 
             Storage_Dir := Get_Storage_Dir (P);
             if Storage_Dir /= No_Storage_Dir then
-               Write_Str ("   Storage  : ");
+               Write_Str ("   Storage     : ");
                Write_Name (Storage_Dir);
                Write_Eol;
             end if;
 
             Command_Line := Get_Command_Line (P);
             if Command_Line /= No_Command_Line then
-               Write_Str ("   Command  : ");
+               Write_Str ("   Command     : ");
                Write_Name (Command_Line);
                Write_Eol;
             end if;
 
-            if Get_Permanent (P) then
-               Write_Str ("   Permanent: yes");
+            if Get_Termination (P) /= Unknown_Termination then
+               Write_Str ("   Termination : ");
+               case Get_Termination (P) is
+                  when Local_Termination =>
+                     Write_Str ("local");
+                  when Global_Termination =>
+                     Write_Str ("global");
+                  when Deferred_Termination =>
+                     Write_Str ("deferred");
+                  when Unknown_Termination =>
+                     null;
+               end case;
                Write_Eol;
             end if;
 
             if I.First_Unit /= Null_CUID then
-               Write_Str ("   Units    : ");
+               Write_Str ("   Units       : ");
                Write_Eol;
                U := I.First_Unit;
                while U /= Null_CUID loop
@@ -1803,26 +1813,16 @@ package body XE is
 
    end Get_Main_Subprogram;
 
-   -------------------
-   -- Get_Permanent --
-   -------------------
+   ---------------------
+   -- Get_Termination --
+   ---------------------
 
-   function Get_Permanent
+   function Get_Termination
      (P : in PID_Type)
-      return Boolean is
-      Permanent : Permanent_Type := Partitions.Table (P).Permanent;
+      return Termination_Type is
    begin
-
-      if Permanent = Unknown then
-         Permanent := Default_Permanent;
-      end if;
-      if Permanent = Unknown then
-         Permanent := No;
-      end if;
-
-      return Permanent = Yes;
-
-   end Get_Permanent;
+      return Partitions.Table (P).Termination;
+   end Get_Termination;
 
    --------------------
    -- Get_Unit_Sfile --

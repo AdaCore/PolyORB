@@ -37,6 +37,7 @@ with Ada.Command_Line;         use Ada.Command_Line;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.OS_Lib;     use System.Garlic.OS_Lib;
 with System.Garlic.Thin;       use System.Garlic.Thin;
+with System.Garlic.Heart;      use System.Garlic.Heart;
 
 package body System.Garlic.Options is
 
@@ -56,7 +57,7 @@ package body System.Garlic.Options is
    Detach_Default          : Boolean := False;
    Is_Slave_Default        : Boolean := False;
    Nolaunch_Default        : Boolean := False;
-   Permanent_Default       : Boolean := False;
+   Termination_Default     : Termination_Type := Global_Termination;
 
    ---------------------
    -- Get_Boot_Server --
@@ -139,24 +140,51 @@ package body System.Garlic.Options is
       return Is_Slave_Default;
    end Get_Is_Slave;
 
-   -------------------
-   -- Get_Permanent --
-   -------------------
+   ---------------------
+   -- Get_Termination --
+   ---------------------
 
-   function Get_Permanent return Boolean is
-   begin
-      for Index in 1 .. Argument_Count loop
-         if Argument (Index) = "--permanent" then
+   function Get_Termination return Termination_Type is
+
+      Termination : Termination_Type;
+
+      function Value (S : String) return Termination_Type;
+      function Value (S : String) return Termination_Type is
+      begin
+         if S = "local" then
             pragma Debug (D (D_Debug,
-                             "--permanent available on command line"));
-            return True;
+                             "local termination is selected"));
+            return Local_Termination;
+         elsif S = "global" then
+            pragma Debug (D (D_Debug,
+                             "global termination is selected"));
+            return Global_Termination;
+         elsif S = "deferred" then
+            pragma Debug (D (D_Debug,
+                             "deferred termination is selected"));
+            return Deferred_Termination;
+         else
+            return Unknown_Termination;
+         end if;
+      end Value;
+
+   begin
+      for Index in 1 .. Argument_Count - 1 loop
+         if Argument (Index) = "--terminate" then
+            pragma Debug (D (D_Debug,
+                             "--terminate available on command line"));
+            Termination := Value (Argument (Index + 1));
+            if Termination /= Unknown_Termination then
+               return Termination;
+            end if;
          end if;
       end loop;
-      if Getenv ("PERMANENT") /= "" then
-         return True;
+      Termination := Value (Getenv ("TERMINATE"));
+      if Termination /= Unknown_Termination then
+         return Termination;
       end if;
-      return Permanent_Default;
-   end Get_Permanent;
+      return Termination_Default;
+   end Get_Termination;
 
    ------------------
    -- Get_Nolaunch --
@@ -222,12 +250,12 @@ package body System.Garlic.Options is
    end Set_Nolaunch;
 
    -------------------
-   -- Set_Permanent --
+   -- Set_Termination --
    -------------------
 
-   procedure Set_Permanent (Default : in Boolean) is
+   procedure Set_Termination (Default : in Termination_Type) is
    begin
-      Permanent_Default := Default;
-   end Set_Permanent;
+      Termination_Default := Default;
+   end Set_Termination;
 
 end System.Garlic.Options;

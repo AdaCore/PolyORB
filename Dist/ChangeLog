@@ -1,3 +1,13 @@
+Thu Feb 13 15:21:57 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe_stubs.adb, xe_back.adb, xe_parse.adb, xe.ads, xe.adb: Move
+ 	Permanent into Termination. Three modes are allowed : Local (Don't
+ 	bother with other partitions), Global (Default), Deferred (Same as
+ 	Global but at the end, do not terminate).
+
+	* xe_stubs.adb: When Local_Termination, once we exit the main
+ 	subprogram
+
 Thu Feb 13 11:42:17 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe.adb: Recognize '/' as well as the system's default separator.

@@ -70,4 +70,8 @@ package System.Garlic.Termination is
    --  Some activity has been detected. This means that the current
    --  shutdown procedure (if any) must be terminated.
 
+   procedure Local_Termination;
+   --  Terminate when Garlic tasks and the environment task are the only
+   --  active tasks. Don't bother with other partitions.
+
 end System.Garlic.Termination;

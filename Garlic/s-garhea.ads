@@ -74,6 +74,13 @@ package System.Garlic.Heart is
                           Never_Shutdown_On_Partition_Error);
    --  Three ways of terminating Garlic.
 
+   type Termination_Type is (Unknown_Termination,
+                             Local_Termination,
+                             Global_Termination,
+                             Deferred_Termination);
+   --  XXXXX : Three ways of terminating a partition. Should be
+   --  synchronized with the type above.
+
    procedure Set_Policy
      (Reconnection : Reconnection_Type := Immediately;
       Shutdown     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error);

@@ -1643,6 +1643,49 @@ package body XE_Parse is
          Type_Sloc    => Null_Location,
          Type_Node    => String_Type_Node);
 
+      --  type integer (standard)
+
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Str_To_Id ("integer"),
+         Type_Kind    => Pre_Type_Integer,
+         Structure    => False,
+         Type_Sloc    => Null_Location,
+         Type_Node    => Integer_Type_Node);
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("local"),
+         Integer_Type_Node,
+         Unique,
+         Null_Location,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, Int (Local_Termination));
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("global"),
+         Integer_Type_Node,
+         Unique,
+         Null_Location,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, Int (Global_Termination));
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("deferred"),
+         Integer_Type_Node,
+         Unique,
+         Null_Location,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, Int (Deferred_Termination));
+
       --  type type__host_function (standard)
       --     function F (...: String) return String;
 
@@ -1730,9 +1773,9 @@ package body XE_Parse is
 
       Declare_Attribute
         (Type_Node      => Partition_Type_Node,
-         Attribute_Name => Str_To_Id ("permanent"),
-         Attr_Type_Node => Boolean_Type_Node,
-         Attribute_Kind => Attribute_Permanent,
+         Attribute_Name => Str_To_Id ("termination"),
+         Attr_Type_Node => Integer_Type_Node,
+         Attribute_Kind => Attribute_Termination,
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
@@ -1918,7 +1961,7 @@ package body XE_Parse is
 
       --  pragma boot_server ... or
       --  procedure pragma__starter
-      --    (method : starter__type);
+      --    (check : starter__type);
 
       Declare_Subprogram
         (Pragma_Prefix & Str_To_Id ("version"),

@@ -471,14 +471,15 @@ package body XE_Back is
                raise Parsing_Error;
             end if;
 
-         when Attribute_Permanent =>
+         when Attribute_Termination =>
 
             --  Only booleans are allowed.
 
-            if Get_Variable_Type (Attribute_Item) /= Boolean_Type_Node then
+            if Get_Variable_Type (Attribute_Item) /= Integer_Type_Node then
                Write_SLOC (Node_Id (Attribute_Item));
                Write_Name (Partitions.Table (Partition).Name);
-               Write_Str  ("'s permanent attribute must be of boolean type");
+               Write_Str  ("'s termination attribute must be ");
+               Write_Str  ("of termination type");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -487,23 +488,18 @@ package body XE_Back is
             --  that this has not already been done.
 
             if Partition = Null_PID and then
-              Default_Permanent = Unknown then
-               if Convert (Get_Variable_Mark (Attribute_Item)) = True then
-                  Default_Permanent := Yes;
-               else
-                  Default_Permanent := No;
-               end if;
+              Default_Termination = Unknown_Termination then
+               Default_Termination :=
+                 Termination_Type (Get_Variable_Mark (Attribute_Item));
 
             --  Apply to one partition. Check that it has not already
             --  been done.
 
             elsif Partition /= Null_PID and then
-              Partitions.Table (Partition).Permanent = Unknown then
-               if Convert (Get_Variable_Mark (Attribute_Item)) = True then
-                  Partitions.Table (Partition).Permanent := Yes;
-               else
-                  Partitions.Table (Partition).Permanent := No;
-               end if;
+              Partitions.Table (Partition).Termination = Unknown_Termination
+            then
+               Partitions.Table (Partition).Termination :=
+                 Termination_Type (Get_Variable_Mark (Attribute_Item));
 
             else
                Write_SLOC (Node_Id (Attribute_Item));
@@ -512,7 +508,7 @@ package body XE_Back is
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
-               Write_Str ("'s command_line attribute has been assigned twice");
+               Write_Str ("'s termination attribute has been assigned twice");
                Write_Eol;
                raise Parsing_Error;
             end if;

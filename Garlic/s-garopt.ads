@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Heart;
+
 package System.Garlic.Options is
 
    function Get_Boot_Server return String;
@@ -57,9 +59,9 @@ package System.Garlic.Options is
    --  Return True if --slave is present on the command line arg or if
    --  a SLAVE environment variable with a non empty value is present.
 
-   function Get_Permanent return Boolean;
-   --  Return True if --permanent is present on the command line or if
-   --  a PERMANENT environment variable with a non empty value is present.
+   function Get_Termination return Heart.Termination_Type;
+   --  Return value next to --termination on the command line or if a
+   --  TERMINATION environment variable is present.
 
    procedure Set_Boot_Server (Default : in String);
 
@@ -71,7 +73,7 @@ package System.Garlic.Options is
 
    procedure Set_Is_Slave (Default : in Boolean);
 
-   procedure Set_Permanent (Default : in Boolean);
+   procedure Set_Termination (Default : in Heart.Termination_Type);
 
 end System.Garlic.Options;
 
