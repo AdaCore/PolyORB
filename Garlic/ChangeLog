@@ -1,3 +1,7 @@
+1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* isthrbio.adb: Use GNAT style and add copyright information.
+
 1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am (inlining): Look for lines beginning by D when
