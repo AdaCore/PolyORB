@@ -34,7 +34,6 @@
 --  Errors management subsystem
 
 with Ada.Unchecked_Deallocation;
-with GNAT.Source_Info;
 
 with PolyORB.Any;
 with PolyORB.Smart_Pointers;
@@ -246,8 +245,7 @@ package PolyORB.Errors is
    procedure Throw
      (Error  : in out Error_Container;
       Kind   : in     Error_Id;
-      Member : in     Exception_Members'Class;
-      Where  : in     String := GNAT.Source_Info.Source_Location);
+      Member : in     Exception_Members'Class);
    --  Generates an error whith Kind and Member information.
 
    procedure Catch (Error : in out Error_Container);
