@@ -943,6 +943,8 @@ testsuite/corba/portableserver/echo-impl.ads
 testsuite/corba/portableserver/Makefile.am
 testsuite/corba/portableserver/Makefile.in
 testsuite/corba/portableserver/test000.adb
+testsuite/corba/portableserver/test_adapteractivator.adb
+testsuite/corba/portableserver/test_adapteractivator.ads
 testsuite/corba/portableserver/test_job.adb
 testsuite/corba/portableserver/test_job.ads
 testsuite/core/Makefile.am
