@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#26 $
+--  $Id: //droopi/main/src/polyorb-any.ads#27 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -364,6 +364,7 @@ package PolyORB.Any is
          Kind        : TCKind   := Tk_Void;
          Parameters  : Cell_Ptr := null;
          Is_Volatile : Boolean  := False;
+         Is_Destroyed : Boolean := False;
       end record;
 
       ---------------------------
@@ -422,42 +423,74 @@ package PolyORB.Any is
       --      number and the second the scale.
 
       --  The most current typecodes
-      PTC_Null               : constant Object := (Tk_Null, null, False);
-      PTC_Void               : constant Object := (Tk_Void, null, False);
-      PTC_Short              : constant Object := (Tk_Short, null, False);
-      PTC_Long               : constant Object := (Tk_Long, null, False);
-      PTC_Long_Long          : constant Object := (Tk_Longlong, null, False);
-      PTC_Unsigned_Short     : constant Object := (Tk_Ushort, null, False);
-      PTC_Unsigned_Long      : constant Object := (Tk_Ulong, null, False);
-      PTC_Unsigned_Long_Long : constant Object := (Tk_Ulonglong, null, False);
-      PTC_Float              : constant Object := (Tk_Float, null, False);
-      PTC_Double             : constant Object := (Tk_Double, null, False);
-      PTC_Long_Double        : constant Object := (Tk_Longdouble, null, False);
-      PTC_Boolean            : constant Object := (Tk_Boolean, null, False);
-      PTC_Char               : constant Object := (Tk_Char, null, False);
-      PTC_Wchar              : constant Object := (Tk_Widechar, null, False);
-      PTC_Octet              : constant Object := (Tk_Octet, null, False);
-      PTC_Any                : constant Object := (Tk_Any, null, False);
-      PTC_TypeCode           : constant Object := (Tk_TypeCode, null, False);
+      PTC_Null               : constant Object
+        := (Tk_Null, null, False, False);
+      PTC_Void               : constant Object
+        := (Tk_Void, null, False, False);
+      PTC_Short              : constant Object
+        := (Tk_Short, null, False, False);
+      PTC_Long               : constant Object
+        := (Tk_Long, null, False, False);
+      PTC_Long_Long          : constant Object
+        := (Tk_Longlong, null, False, False);
+      PTC_Unsigned_Short     : constant Object
+        := (Tk_Ushort, null, False, False);
+      PTC_Unsigned_Long      : constant Object
+        := (Tk_Ulong, null, False, False);
+      PTC_Unsigned_Long_Long : constant Object
+        := (Tk_Ulonglong, null, False, False);
+      PTC_Float              : constant Object
+        := (Tk_Float, null, False, False);
+      PTC_Double             : constant Object
+        := (Tk_Double, null, False, False);
+      PTC_Long_Double        : constant Object
+        := (Tk_Longdouble, null, False, False);
+      PTC_Boolean            : constant Object
+        := (Tk_Boolean, null, False, False);
+      PTC_Char               : constant Object
+        := (Tk_Char, null, False, False);
+      PTC_Wchar              : constant Object
+        := (Tk_Widechar, null, False, False);
+      PTC_Octet              : constant Object
+        := (Tk_Octet, null, False, False);
+      PTC_Any                : constant Object
+        := (Tk_Any, null, False, False);
+      PTC_TypeCode           : constant Object
+        := (Tk_TypeCode, null, False, False);
 
-      PTC_String             : constant Object := (Tk_String, null, False);
-      PTC_Wide_String        : constant Object := (Tk_Wstring, null, False);
+      PTC_String             : constant Object
+        := (Tk_String, null, False, False);
+      PTC_Wide_String        : constant Object
+        := (Tk_Wstring, null, False, False);
 
-      PTC_Principal          : constant Object := (Tk_Principal, null, False);
-      PTC_Struct             : constant Object := (Tk_Struct, null, False);
-      PTC_Union              : constant Object := (Tk_Union, null, False);
-      PTC_Enum               : constant Object := (Tk_Enum, null, False);
-      PTC_Alias              : constant Object := (Tk_Alias, null, False);
-      PTC_Except             : constant Object := (Tk_Except, null, False);
-      PTC_Object             : constant Object := (Tk_Objref, null, False);
-      PTC_Fixed              : constant Object := (Tk_Fixed, null, False);
-      PTC_Sequence           : constant Object := (Tk_Sequence, null, False);
-      PTC_Array              : constant Object := (Tk_Array, null, False);
-      PTC_Value              : constant Object := (Tk_Value, null, False);
-      PTC_Valuebox           : constant Object := (Tk_Valuebox, null, False);
-      PTC_Native             : constant Object := (Tk_Native, null, False);
+      PTC_Principal          : constant Object
+        := (Tk_Principal, null, False, False);
+      PTC_Struct             : constant Object
+        := (Tk_Struct, null, False, False);
+      PTC_Union              : constant Object
+        := (Tk_Union, null, False, False);
+      PTC_Enum               : constant Object
+        := (Tk_Enum, null, False, False);
+      PTC_Alias              : constant Object
+        := (Tk_Alias, null, False, False);
+      PTC_Except             : constant Object
+        := (Tk_Except, null, False, False);
+      PTC_Object             : constant Object
+        := (Tk_Objref, null, False, False);
+      PTC_Fixed              : constant Object
+        := (Tk_Fixed, null, False, False);
+      PTC_Sequence           : constant Object
+        := (Tk_Sequence, null, False, False);
+      PTC_Array              : constant Object
+        := (Tk_Array, null, False, False);
+      PTC_Value              : constant Object
+        := (Tk_Value, null, False, False);
+      PTC_Valuebox           : constant Object
+        := (Tk_Valuebox, null, False, False);
+      PTC_Native             : constant Object
+        := (Tk_Native, null, False, False);
       PTC_Abstract_Interface : constant Object
-        := (Tk_Abstract_Interface, null, False);
+        := (Tk_Abstract_Interface, null, False, False);
 
    end TypeCode;
 
@@ -763,6 +796,10 @@ private
       Any_Lock     : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
       --  Lock to guarantee consistent concurrent access
       --  to Ref_Counter.
+
+      Is_Finalized : Boolean := False;
+      --  Set to True in Finalize, used to detect double
+      --  finalization.
    end record;
 
    --  Some methods to deal with the Any fields.

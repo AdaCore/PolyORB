@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#47 $
+--  $Id: //droopi/main/src/polyorb-any.adb#48 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1089,6 +1089,13 @@ package body PolyORB.Any is
 
       begin
          pragma Debug (O2 ("Destroy_TypeCode: enter"));
+
+         if Self.Is_Destroyed then
+            pragma Debug (O2 ("Destroy_TypeCode: already destroyed!"));
+            return;
+         end if;
+
+         Self.Is_Destroyed := True;
 
          if Self.Is_Volatile then
             Deallocate_Cells (C_Ptr);
@@ -3120,7 +3127,13 @@ package body PolyORB.Any is
    procedure Finalize (Object : in out Any) is
    begin
       pragma Debug (O2 ("Finalize: enter, Object = "
-                        & System.Address_Image (Object'Address)));
+                          & System.Address_Image (Object'Address)));
+      if Object.Is_Finalized then
+         pragma Debug (O2 ("Finalize: already finalized!"));
+         return;
+      end if;
+      Object.Is_Finalized := True;
+
       Dec_Usage (Object);
       pragma Debug (O2 ("Finalize: end"));
    exception

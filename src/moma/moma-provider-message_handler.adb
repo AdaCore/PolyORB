@@ -305,15 +305,15 @@ package body MOMA.Provider.Message_Handler is
    -- Template_Handler --
    ----------------------
 
-   procedure Template_Handler (
-      Message_Queue : MOMA.Message_Consumers.Queues.Queue;
+   procedure Template_Handler
+     (Message_Queue : MOMA.Message_Consumers.Queues.Queue;
       Message : MOMA.Messages.Message'Class)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Message_Queue);
       pragma Unreferenced (Message);
       pragma Warnings (On);
+   begin
 
       pragma Debug (O ("Message_Handler is handling message"));
       null;
@@ -323,13 +323,13 @@ package body MOMA.Provider.Message_Handler is
    -- Template_Notifier --
    -----------------------
 
-   procedure Template_Notifier (
-      Message_Queue : MOMA.Message_Consumers.Queues.Queue)
+   procedure Template_Notifier
+     (Message_Queue : MOMA.Message_Consumers.Queues.Queue)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Message_Queue);
       pragma Warnings (On);
+   begin
 
       pragma Debug (O ("Message_Handler is being notified of a message"));
       null;
