@@ -728,7 +728,7 @@ package body System.Garlic.Tcp is
       Performed := False;
 
       if Self_Data /= null
-        and then Self_Data.all /= ""
+        and then Self_Data'Length /= 0
       then
          --  When there is a self location to bind on, check that this
          --  location concerns the current host. Otherwise, there is a
@@ -939,7 +939,7 @@ package body System.Garlic.Tcp is
       Enter (Partition);
       Info := Outgoings.Get_Component (Partition);
       if Info.Socket = Failure then
-         Get_Location (Partition, Location, Error);
+         Get_Net_Location (Partition, Location, Error);
          if Found (Error) then
             Leave (Partition);
             return;
@@ -1063,7 +1063,7 @@ package body System.Garlic.Tcp is
          Boot_Info : Socket_Info := Outgoings.Get_Component (Boot_PID);
       begin
          if Boot_Data /= null
-           and then Boot_Data.all /= ""
+           and then Boot_Data'Length /= 0
          then
             Boot_Info.Location := Split_Data (Boot_Data.all);
          end if;
@@ -1200,7 +1200,7 @@ package body System.Garlic.Tcp is
    is
       Result : Host_Location;
    begin
-      if Data = "" then
+      if Data'Length = 0 then
          return Result;
       end if;
       for I in Data'Range loop

@@ -228,6 +228,7 @@ package body System.Garlic.Termination is
       Flip_Flop  : Boolean := False;
       Deadline   : Time;
       Neighbours : Natural;
+
    begin
       pragma Debug (D ("Global termination"));
 
@@ -281,6 +282,8 @@ package body System.Garlic.Termination is
 
                pragma Debug
                  (D ("Starting round" & Stamp_Type'Image (Current_Stamp)));
+
+               pragma Debug (Dump_Task_Table);
 
                --  Send a wave. If we have no neighbour, then we can
                --  safely terminate
@@ -359,6 +362,8 @@ package body System.Garlic.Termination is
 
                pragma Debug
                  (D ("New round" & Current_Stamp'Img & Current_Father'Img));
+
+               pragma Debug (Dump_Task_Table);
 
                --  If we have no neighbour, then we can answer the
                --  father right now.
@@ -498,6 +503,7 @@ package body System.Garlic.Termination is
       Message_Copy : aliased Params_Stream_Type (0);
       Error        : Error_Type;
       Partition    : Partition_ID;
+
    begin
       Stamp_Type'Write (Message'Access, Current_Stamp);
       Control_Type'Write (Message'Access, Perform_Shutdown);
@@ -522,6 +528,7 @@ package body System.Garlic.Termination is
       Error        : Error_Type;
       Partition    : Partition_ID;
       N_Neighbours : Natural;
+
    begin
       Stamp_Type'Write (Message'Access, Current_Stamp);
       Control_Type'Write (Message'Access, Query);

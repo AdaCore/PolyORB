@@ -54,7 +54,7 @@ package body System.Garlic.Exceptions is
 
    procedure Raise_Communication_Error (Msg : in String := "") is
    begin
-      if Msg = "" then
+      if Msg'Length = 0 then
          Raise_With_Errno (Communication_Error'Identity);
       else
          Raise_Exception (Communication_Error'Identity, Msg);

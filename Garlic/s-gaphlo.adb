@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -187,7 +187,7 @@ package body System.Garlic.Physical_Location is
                return (Controlled with
                        Protocol => Lookup_Protocol (L (L'First ..
                                                        Look_For_Colon - 1)),
-                       Data     => new String'(""));
+                       Data     => new String'(Null_String));
             end if;
             if Look_For_Colon + 2 > L'Last or else
               L (Look_For_Colon + 1 .. Look_For_Colon + 2) /= "//" then
@@ -201,7 +201,7 @@ package body System.Garlic.Physical_Location is
       end loop;
       return (Controlled with
               Protocol => Lookup_Protocol (L),
-              Data     => new String'(""));
+              Data     => new String'(Null_String));
    end To_Location;
 
    -----------------

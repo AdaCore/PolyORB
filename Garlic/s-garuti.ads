@@ -37,7 +37,7 @@ package System.Garlic.Utils is
 
    pragma Elaborate_Body;
 
-   type String_Access is access String;
+   type String_Access is access all String;
    type String_Array is array (Natural range <>) of String_Access;
    type String_Array_Access is access String_Array;
    Location_Separator : constant Character := ' ';
@@ -56,6 +56,8 @@ package System.Garlic.Utils is
 
    function Unquote      (S : String) return String;
    --  If S is quoted, return the content.
+
+   Null_String : constant String := "";
 
    function String_To_Access (S : String) return String_Access;
    function Access_To_String (S : String_Access) return String;

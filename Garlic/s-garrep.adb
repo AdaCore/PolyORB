@@ -226,7 +226,7 @@ package body System.Garlic.Replay is
       end if;
 
       if Boot_Data /= null
-        and then Boot_Data.all /= ""
+        and then Boot_Data'Length /= 0
       then
          Set_Trace_File_Name (Boot_Data.all);
       end if;
