@@ -1,6 +1,9 @@
 with System.Garlic.Loopback;
 pragma Elaborate_All (System.Garlic.Loopback);
 
+with System.Garlic.TCP;
+pragma Elaborate_All (System.Garlic.TCP);
+
 package body System.Garlic.Protocols.Config is
 
    --  This package should be created during GARLIC installation.
@@ -31,6 +34,7 @@ package body System.Garlic.Protocols.Config is
    procedure Create is
    begin
       Register (System.Garlic.Loopback.Create);
+      Register (System.Garlic.TCP.Create);
    end Create;
 
 end System.Garlic.Protocols.Config;
