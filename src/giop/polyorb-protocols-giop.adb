@@ -1497,9 +1497,10 @@ package body PolyORB.Protocols.GIOP is
 
       Reply_Status  : Reply_Status_Type;
       Request_Id    : Types.Unsigned_Long;
-      Current_Req   : Pending_Request;
-      N  : Request_Note;
-      ORB : constant ORB_Access := ORB_Access (Ses.Server);
+      Current_Req   : Pending_Request := null;
+      N             : Request_Note;
+      ORB           : constant ORB_Access
+        := ORB_Access (Ses.Server);
 
    begin
       case Ses.Minor_Version is
@@ -1537,15 +1538,23 @@ package body PolyORB.Protocols.GIOP is
             raise GIOP_Error;
       end case;
 
-      for I in 1 .. Length (Ses.Pending_Rq) loop
-         Current_Req := Element_Of (Ses.Pending_Rq, I);
-         Get_Note (Current_Req.Req.Notepad, N);
-         if N.Id  = Request_Id then
-            Delete (Ses.Pending_Rq, I, 1);
-            exit;
+      declare
+         Pending_Reqs : constant Pend_Req_Seq.Element_Array
+           := Pend_Req_Seq.To_Element_Array (Ses.Pending_Rq);
+      begin
+         for J in Pending_Reqs'Range loop
+            Get_Note (Pending_Reqs (J).Req.Notepad, N);
+            if N.Id  = Request_Id then
+               Delete (Ses.Pending_Rq, J, 1);
+               Current_Req := Pending_Reqs (J);
+               exit;
+            end if;
+         end loop;
+
+         if Current_Req = null then
+            raise GIOP_Error;
          end if;
-         raise GIOP_Error;
-      end loop;
+      end;
 
       pragma Debug (O ("Received reply with status "
                        & Reply_Status_Type'Image (Reply_Status)));
