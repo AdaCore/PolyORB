@@ -1,22 +1,16 @@
+with Echo.Skel;
 with CORBA;
-with PortableServer;
-with Broca.Types;
+
 package Echo.Impl is
+   --  My own implementation of echo object.
+   --  This is simply used to define the operations.
 
-   type Object is abstract new PortableServer.Servant_Base
-     with null record;
+   type Object is new Echo.Skel.Object with null record;
 
-   function echoString
-     (Self : access Object;
-      Mesg : in CORBA.String)
-      return CORBA.String is abstract;
+   type Object_Acc is access Object;
 
 private
-   function Get_Type_Id (Obj : Object) return CORBA.RepositoryId;
-   procedure Giop_Dispatch
-     (Obj : access Object;
-      Operation : String;
-      Request_Id : CORBA.Unsigned_Long;
-      Reponse_Expected : CORBA.Boolean;
-      Stream : in out Broca.Types.Buffer_Descriptor);
+   function EchoString (Self : access Object; Mesg : in CORBA.String)
+                        return CORBA.String;
+
 end Echo.Impl;
