@@ -39,7 +39,11 @@ package all_exceptions.Impl is
    procedure No_Initialisation_Error_exception_test(Self : access Object ) ;
    procedure C_Out_Of_Range_exception_test(Self : access Object ) ;
    procedure Dummy_User_exception_test(Self : access Object ) ;
-
+   procedure Object_Not_Exist_exception_test(Self : access Object ) ;
+   procedure Transaction_Required_exception_test(Self : access Object ) ;
+   procedure Transaction_Rolledback_exception_test(Self : access Object ) ;
+   procedure Invalid_Transaction_exception_test(Self : access Object ) ;
+   procedure Wrong_Transaction_exception_test(Self : access Object ) ;
 
 
 private

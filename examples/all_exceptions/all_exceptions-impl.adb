@@ -298,6 +298,56 @@ package body all_exceptions.Impl is
       raise Corba.Dummy_User;
    end;
 
+   -- Object_Not_Exist
+   -------------------------------
+   procedure Object_Not_Exist_exception_test(Self : access Object ) is
+      Member : Corba.Object_Not_Exist_Members ;
+   begin
+      Member := ( Minor => 25 , Completed => Corba.Completed_Yes);
+      Corba.Raise_Corba_Exception ( Object_Not_Exist'Identity, Member);
+   end;
+
+
+   --  Transaction_Required exception
+   -------------------------------
+   procedure Transaction_Required_exception_test(Self : access Object ) is
+      Member : Corba.Transaction_Required_Members ;
+   begin
+      Member := ( Minor => 26 , Completed => Corba.Completed_Yes);
+      Corba.Raise_Corba_Exception ( Transaction_Required'Identity, Member);
+   end;
+
+
+   -- Transaction_Rolledback exception
+   -------------------------------
+   procedure Transaction_Rolledback_exception_test(Self : access Object ) is
+      Member : Corba.Transaction_Rolledback_Members ;
+   begin
+      Member := ( Minor => 27 , Completed => Corba.Completed_Yes);
+      Corba.Raise_Corba_Exception ( Transaction_Rolledback'Identity, Member);
+   end;
+
+
+    -- Invalid_Transaction exception
+   -------------------------------
+  procedure Invalid_Transaction_exception_test(Self : access Object ) is
+      Member : Corba.Invalid_Transaction_Members ;
+   begin
+      Member := ( Minor => 28 , Completed => Corba.Completed_Yes);
+      Corba.Raise_Corba_Exception ( Invalid_Transaction'Identity, Member);
+   end;
+
+
+   -- Wrong_Transaction exception
+   -------------------------------
+   procedure Wrong_Transaction_exception_test(Self : access Object ) is
+      Member : Corba.Wrong_Transaction_Members ;
+   begin
+      Member := ( Minor => 29 , Completed => Corba.Completed_Yes);
+      Corba.Raise_Corba_Exception ( Wrong_Transaction'Identity, Member);
+   end;
+
+
 
 
 

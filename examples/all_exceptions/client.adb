@@ -575,6 +575,92 @@ begin
       when E : Dummy_User =>
          Put_Line ("A Dummy_User  exception has just been catched !!!") ;
    end ;
+   Put_Line ("") ;
+   Put_Line ("") ;
+
+   -- Object_Not_Exist
+   declare
+      Member : Object_Not_Exist_members ;
+   begin
+      Put_Line ("####### Test of Object_Not_Exist #######") ;
+      Put_Line ("I call Object_Not_Exist_exception_test") ;
+      Object_Not_Exist_Exception_Test(MyAll_Exceptions);
+   exception
+      when E : Object_Not_Exist =>
+         Put_Line ("A Object_Not_Exist exception has just been catched !!!") ;
+         Corba.Get_Members (E ,Member) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+   end ;
+   Put_Line ("") ;
+   Put_Line ("") ;
+
+   --  Transaction_Required exception
+   declare
+      Member : Transaction_Required_members ;
+   begin
+      Put_Line ("####### Test of Transaction_Required #######") ;
+      Put_Line ("I call Transaction_Required_exception_test") ;
+      Transaction_Required_Exception_Test(MyAll_Exceptions);
+   exception
+      when E : Transaction_Required =>
+         Put_Line ("A Transaction_Required exception has just been catched !!!") ;
+         Corba.Get_Members (E ,Member) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+   end ;
+   Put_Line ("") ;
+   Put_Line ("") ;
+
+   -- Transaction_Rolledback exception
+   declare
+      Member : Transaction_Rolledback_members ;
+   begin
+      Put_Line ("####### Test of Transaction_Rolledback #######") ;
+      Put_Line ("I call Transaction_Rolledback_exception_test") ;
+      Transaction_Rolledback_Exception_Test(MyAll_Exceptions);
+   exception
+      when E : Transaction_Rolledback =>
+         Put_Line ("A Transaction_Rolledback exception has just been catched !!!") ;
+         Corba.Get_Members (E ,Member) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+   end ;
+   Put_Line ("") ;
+   Put_Line ("") ;
+
+   -- Invalid_Transaction exception
+   declare
+      Member : Invalid_Transaction_members ;
+   begin
+      Put_Line ("####### Test of Invalid_Transaction #######") ;
+      Put_Line ("I call Invalid_Transaction_exception_test") ;
+--      Invalid_Transaction_Exception_Test(MyAll_Exceptions);
+   exception
+      when E : Invalid_Transaction =>
+         Put_Line ("A Invalid_Transaction exception has just been catched !!!") ;
+         Corba.Get_Members (E ,Member) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+   end ;
+   Put_Line ("") ;
+   Put_Line ("") ;
+
+   -- Wrong_Transaction exception
+   declare
+      Member : Wrong_Transaction_members ;
+   begin
+      Put_Line ("####### Test of Wrong_Transaction #######") ;
+      Put_Line ("I call Wrong_Transaction_exception_test") ;
+      Wrong_Transaction_Exception_Test(MyAll_Exceptions);
+   exception
+      when E : Wrong_Transaction =>
+         Put_Line ("A Wrong_Transaction exception has just been catched !!!") ;
+         Corba.Get_Members (E ,Member) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member.Minor)) ;
+   end ;
+
 
 end Client ;
 

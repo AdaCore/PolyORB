@@ -59,6 +59,17 @@ interface all_exceptions {
   void C_Out_Of_Range_exception_test ();
 
   void Dummy_User_exception_test ();
+
+  void Object_Not_Exist_exception_test ();
+  
+  void Transaction_Required_exception_test ();
+  
+  void Transaction_Rolledback_exception_test ();
+  
+  void Invalid_Transaction_exception_test ();
+  
+  void Wrong_Transaction_exception_test ();
+
 };
 
 
