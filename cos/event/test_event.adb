@@ -30,7 +30,6 @@
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
 with CosNaming; use CosNaming;
 
 with CosNaming.NamingContext;
@@ -68,6 +67,14 @@ with CosEventComm.PullConsumer.Impl;
 with CosEventComm.PullSupplier.Impl;
 with CosEventComm.PushConsumer.Impl;
 with CosEventComm.PushSupplier.Impl;
+
+--  with PolyORB.Setup.No_Tasking_Server;
+--  pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
+--  pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+
+with PolyORB.Setup.Thread_Pool_Server;
+pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
+pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 with CORBA;
 with CORBA.Object;
@@ -466,8 +473,8 @@ procedure Test_Event is
 begin
 
    CORBA.ORB.Initialize ("ORB");
-
-   Initiate_Server;
+   pragma Debug (O ("ORB Initialized"));
+   Initiate_Server (True);
    pragma Debug (O ("Initiate_Server completed"));
 
    if Count ("enter naming IOR [otherwise create one]: ") = 0 then
