@@ -588,38 +588,48 @@ les divers environnements de répartition existants~:
   \end{description}
 \end{description}
 
-The previously listed services are sufficient to provide the core 
-functionalities of a distribution intergiciel.  They are built atop the 
-operating system communication facilities and provide distributed 
-object-oriented abstractions.
+Les services listés précédemment suffisent pour créer une application
+répartie orientée objets de base. Ils sont construits à partir des
+fonctionnalités de communication et de gestion de ressources du
+système d'exploitation, et fournissent les abstractions de base
+des objets répartis.
 
-However, applications often require support for more sophisticated 
-functions related to distribution.  These functions include:
+Cependant, le déploiement d'une application répartie complète
+nécessite des services plus sophistiqués, liés aux problèmes de
+déploiement spécifiques à la répartition. Des exemples de tels
+services sont~:
 \begin{description}
 
 \item[Nommage]\mbox{}
 
   \begin{description}
   \item[Définition]
-  The Naming service allows object references to be associated with symbolic
-  names, and nodes to query the service for any reference associated with
-  a name.
+  Le service de nommage (annuaire) permet d'associer des noms symboliques à des
+  références d'objets. Un n{\oe}ud qui cherche à contacter un objet peut
+  alors interroger le service en fournissant le nom de l'objet, et retrouver
+  la référence associée.
 
   \item[Discussion]
-  This service lets applications determine the references of any object they
-  need at run-time.  It is essential when an application has to adapt to
-  environment modifications, to changes in technology or to the evolution
-  of user requirements. They allow developers to avoid using hard-coded
-  object references, and thus make the entire distributed application
-  reconfigurable.
+  Ce service permet aux applications de déterminer les références des
+  objets qu'elles doivent contacter seulement à l'exécution. Il est essentiel
+  pour toute application qui doit pouvoir s'adapter à des modifications de
+  son environnement ou de sa configuration. Il permet aussi à l'application
+  de suivre des changements technologique, ou des évolutions des besoins
+  des utilisateurs. Il autorise enfin les développeurs à ne pas utiliser
+  des références enregistrées directement dans le code de l'application,
+  ce qui permet de rendre celle-ci portable et configurable.
 \ifexamples
-  \item[Exemple] \dsa{} has an implicit naming service: all nodes can
-  invoke operations defined by units categorized as \emph{Remote Call
-  Interfaces}. The runtime takes care of locating on which node the
-  named unit resides. This service is also used to prevent multiple
-  declarations of unique entities like RCI units or to check remote
-  unit versions. For these reasons, the naming service has to be an
-  internal entity of the \glade{} communication system.
+  \item[Exemple]
+  L'annexe des systèmes répartis d'\ada{} a un service de nommage
+  implicite~: chaque n{\oe}ud sait faire appel aux sous-programmes
+  déclarés par les unités ayant la catégorie \emph{Remote Call
+  Interfaces}. L'exécutif de répartition se charge de localiser
+  le n{\oe}uds sur lequel chacune de ces unités réside.
+
+  Dans \glade{}, l'exécutif assure également que chaque nom ne correspond bien
+  qu'à une seule instance d'une unité, à chaque instant, et
+  que clients et serveurs utilisent bien la même version de la
+  spéciication de l'unité.
 \fi
   \end{description}
 
@@ -627,43 +637,62 @@ functions related to distribution.  These functions include:
 
   \begin{description}
 
-  \item[Définition] A synchronization service may be provided to
-  synchronize the operation of nodes executing actions in parallel.
+  \item[Définition]
+  Un service de synchronisation peut être mis en {\oe}uvre pour
+  coordonner les actions de différents n{\oe}uds travaillant
+  en parallèle.
 
   \item[Discussion]
-  The operation of the concurrent, independent processes that participate
-  in a distributed application must be coordinated; most notably, care must
-  be taken that concurrent access to shared resources occurs only in
-  an orderly, consistent way.  Distribution platforms may help addressing
-  this issue by providing specialized concurrency support services, such
-  as distributed mutual exclusion~\cite{naimi96:mutex}.
+  Une application répartie contient plusieurs calculateurs indépendants,
+  qui effectuent leurs traitements en parallèle. Ces traitements
+  peuvent nécessiter qu'à certains instants, les différents n{\oe}uds
+  soient coordonnés. En particulier, si des accès concurrents à une
+  ressource partagée doivent avoir lieu, ils doivent être effectués
+  d'une façon ordonnée et cohérente.
+
+  Les plates-formes de répartition peuvent donc implémenter des services
+  de synchronisation pour assister les applications. Par exemple, un
+  mécanisme d'exclusion mutuelle répartie tel que celui décrit
+  par~\cite{naimi96:mutex} peut être offert.
   \end{description}
 
 \item[Référentiel des interfaces]\mbox{}
 
   \begin{description}
   \item[Définition]
-  An application may need to invoke operations on objects whose interface
-  was not known when the application was created. For this invocation to be
-  performed correctly, a description of the interface must be available.
-  The purpose of Interface Repository Services is to propagate such
-  information: they distribute service descriptions to interested nodes.
-
+  Une application peut avoir besoin d'appeler des méthodes d'un
+  objet dont l'interface exacte n'était pas connue au moment de
+  la création de l'application. Pour qu'un tel appel puisse avoir
+  lieu, une description de l'interface (comportant la liste des
+  méthodes, le nombre et les types de leurs paramètres) doit
+  être disponible. L'objet du référentiel des interfaces est
+  de collecter et diffuser cette information~: il constitue une
+  base de données de descritpions d'interfaces accessible
+  aux clients intéressés.
+  
   \item[Propriétés]
-  The abstractions manipulated by the Interface Repository service must
-  reflect the platform's service model.
+  Les objets manipulés par le référentiel des interfaces doivent
+  permettre de décrire les abstractions du modèle de répartition
+  utilisé par la plate-forme choisie.
 
-  A dynamic invocation mechanism is necessary to use the information provided 
-  by an interface repository.  This facility enables nodes to invoke 
-  dynamically discovered methods.  A dynamic invocation interface reifies the 
-  process of creating a remote method invocation request.  After the request 
-  object is constructed, it can be processed like any ordinary method 
-  invocation on a remote object; the receiving object cannot distinguish 
-  dynamically-constructed requests from statically-created ones.
+  Un mécanisme d'appel dynamique doit être disponible pour permettre
+  à un client d'effectuer un appel de méthode, à partir des informations
+  qu'il a obtenues du référentiel d'interfaces.
+
+  L'appel dynamique permet à un n{\oe}ud de faire exécuter des méthodes
+  découvertes par interrogation du référentiel d'interfaces. Pour
+  ce faire, le processus de création et d'émission d'une requête
+  d'appel de méthode à distance doit être rendu explicitement
+  manipulable par l'application (réifié). Une fois qu'un objet
+  représentant une requête est construit, il peut être confié
+  à l'exécutif pour qu'il soit traité comme tout appel de méthode
+  à distance ordinaire (statique)~; l'objet destinataire ne peut
+  distinguer un appel construit dynamiquement d'un appel statique.
 \ifexamples
-  \item[Example]
-  CORBA defines an Interface Repository ORB service and an associated Dynamic
-  Invocation Interface.
+  \item[Exemple]
+  CORBA offre un service normalisé de référentiel d'interfaces
+  (\emph{CORBA Interface Repository}) et une interface d'appel
+  dynamique (\emph{DII}, \emph{Dynamic Invocation Interface}).
 \fi
   \end{description}
  
@@ -671,29 +700,28 @@ functions related to distribution.  These functions include:
 
   \begin{description}
   \item[Définition]
-  A distributed application consists of a set of computing nodes that
-  cooperate to reach a goal. If, at some point in time, all nodes agree that
-  this goal has been reached, they may decide to globally terminate
-  processing and perform an orderly shutdown.  A Termination service can be
-  implemented to establish this decision.
+  Si, à un moment donné, tous les n{\oe}uds d'une application
+  répartie considèrent que leur objectif est atteint, ils peuvent
+  décider d'une terminaison globale de l'application, et effectuer
+  un arrêt ordonné. Un service de terminaison peut être proposé
+  pour établir la décision globale de terminaison. 
 
   \item[Propriétés]
-  Such a service must determine a consensus among participating nodes on
-  whether to end the application. 
-  The Termination service provides a support for applications to make this
-  decision. Implementation of this service requires specific support from
-  the ORB in addition to the low-level services listed above. Specifically,
-  the implementation of the Termination service needs some way to inspect
-  the state of the ORB's internal threads of control.
+  Le service de terminaison doit déterminer un consensus au sein
+  des n{\oe}uds participants. Son implémentation nécessite une
+  coopération du noyau de répartition, en plus des services de
+  base évoqués précédemment. En particulier, l'intergiciel doit
+  exposer des informations sur l'état de ses fils d'exécution
+  internes, et sur les messages en transit dans le réseau.
 \ifexamples
-  \item[Example] \glade{} provides a global termination algorithm for
-  \dsa{}. If all nodes have terminated their own work, and no message
-  is in transit in the communication network, it can be proven that no
-  new computing work can happen~\cite{mattern87:termination}. In that case,
-  global termination can be decided.
+  \item[Exemple] \glade{} implémente un algorithme de terminaison
+  globale. Si tous les n{\oe}uds ont terminé leurs traitements locaux,
+  et qu'aucun message n'est en transit dans le réseau de communication,
+  on monte~\cite{mattern87:termination} que l'état de l'application
+  ne peut évoluer. Dans ce cas, la terminaison globale peut être décidée.
 
-  The user can select for each partition a local or global termination
-  policy~\cite{glade:ug}.
+  L'utilisateur peut choisir, pour chaque n{\oe}ud, s'il participe
+  ou non au processus de terminaison globale~\cite{glade:ug}.
 \fi
   \end{description}
 
@@ -701,31 +729,41 @@ functions related to distribution.  These functions include:
 
   \begin{description}
 
-  \item[Définition] Nodes in a distributed application may want to
-  share part of their data.  A shared data service provides shared
-  storage transparently for the application developer: distributed
-  shared data appears just as normal local data; the distribution
-  runtime takes care of propagating the effects of data access between
-  nodes.
+  \item[Définition]  Un service de données partagées permet aux
+  n{\oe}uds participant à une application répartie de disposer d'un
+  espace de stockage commun, permettant aux différents objets
+  constituant l'application d'échanger
+  des informations de manière transparente, simplement en
+  accédant à cet espace commun. En effet, les données partagées
+  apparaissent à l'utilisateur comme s'il s'agissait de données
+  stockées localement. L'exécutif assure la distribution des
+  données, et propage les effets de chaque accès d'un n{\oe}ud
+  à l'autre.
 
   \item[Propriétés]
-  A shared storage service must provide all nodes with a consistent view
-  of the shared variables. Several models of consistency can be defined.
+  Une vue cohérente de l'espace partagé doit être présentée aux
+  utilisateurs. Plusieurs modèles de cohérences peuvent être
+  définis.
 
   \item[Rationale]
-  This service provides developers with a very straightforward way
-  to define a set of globally available data.
+  Ce service offre aux développeurs d'applications un moyen très
+  simple et flexible pour définir un ensemble de données globalement
+  disponibles.
 \ifexamples
-  \item[Example] \dsa{} offers \emph{Shared Passive} data: library
-  units containing only variables, which can be accessed consistently
-  from any node in a distributed application. \glade{} provides
-  several shared data supports like file or DVSM~\cite{lihudak}.
+  \item[Exemple] L'annexe des systèmes répartis d'\ada{} permet
+  la déclaration d'unités ayant la catégorie~\emph{Shared Passive}.
+  Il s'agit d'unités contenant uniquement des variables (aucun code
+  exécutable), au contenu desquelles chaque n{\oe}ud peut accéder.
+  \glade{} implémente cette fonctionnalité, et peut pour ce faire
+  utiliser de multiples supports tels qu'un système de fichiers
+  partagés comme NFS~\cite{rfc1813} ou un mécanisme de mémoire virtuelle
+  partagée répartie cohérente~\cite{lihudak}.
 \fi
   \end{description}
 
 \end{description}
 
-\subsection{Example}
+\subsection{Exemple}
 
 Let us suppose that we have a very simple object with a single method \emph{echo}
 taking a string argument, and sending that string back to the caller.
