@@ -78,32 +78,32 @@ package body Corba.Exceptions is
    -- Actually, the string is the image of ID_Number that is incremented
    -- each time an exception is raised.
 
---   protected Member_List is
---      procedure Put (V : in Idl_Exception_Members'Class ;
---                     ID_V : in Standard.String) ;
---      procedure Get (From : in Ada.Exceptions.Exception_Occurrence ;
---                     Result : out Idl_Exception_Members'Class) ;
---   private
+   protected Member_List is
+      procedure Put (V : in Idl_Exception_Members'Class ;
+                     ID_V : in Standard.String) ;
+      procedure Get (From : in Ada.Exceptions.Exception_Occurrence ;
+                     Result : out Idl_Exception_Members'Class) ;
+   private
       List : Cell_Ptr := null ;
---   end Member_List;
+   end Member_List;
    -- list of members
    -- The list is declared protected to avoid conflict between several
    -- threads.
 
---      protected Toto is
---         procedure Fume ;
---      private
---         Moi : Integer ;
---      end Toto ;
---
---      protected body Toto is
---
---         procedure Fume is
---         begin
---            Moi := 10 ;
---         end ;
---
---      end Toto ;
+   protected Toto is
+      procedure Fume ;
+   private
+      Moi : Integer ;
+   end Toto ;
+
+   protected body Toto is
+
+      procedure Fume is
+         begin
+            Moi := 10 ;
+         end ;
+
+   end Toto ;
 
 
    -- Free : free the memory
@@ -111,7 +111,7 @@ package body Corba.Exceptions is
    procedure Free is new Ada.Unchecked_Deallocation(Cell, Cell_Ptr) ;
 
 
---   protected body Member_List is
+   protected body Member_List is
 
       -- Put : add a member to the list
       ---------------------------------
@@ -133,7 +133,8 @@ package body Corba.Exceptions is
       ------------------------------------
       procedure Get (From : in Ada.Exceptions.Exception_Occurrence ;
                      Result : out Idl_Exception_Members'Class) is
-         Temp, Old_Temp : Cell_Ptr ;
+         Temp : Cell_Ptr := List ;
+         Old_Temp : Cell_Ptr := null ;
          -- pointers on the cell which is beeing process and on the previous cell
          ID : Standard.String := Ada.Exceptions.Exception_Message (From) ;
          -- reference of the searched member
@@ -148,8 +149,6 @@ package body Corba.Exceptions is
                                             & Ada.Exceptions.Exception_Name (From)
                                             & " not found.") ;
          else
-            Old_Temp := null ;
-            Temp := List ;
             loop
                if Temp.all.ID = ID
                then
@@ -194,15 +193,14 @@ package body Corba.Exceptions is
          end if ;
       end ;
 
---   end Member_List ;
+   end Member_List ;
 
    -- Get_Members
    --------------
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
                           To : out Idl_Exception_Members'Class) is
    begin
---      Member_List.
-      Get (From, To) ;
+      Member_List.Get (From, To) ;
    end ;
 
 
@@ -213,8 +211,7 @@ package body Corba.Exceptions is
       ID : Standard.String := ID_Num'Image(ID_Number) ;
    begin
       -- stores the member object
---      Member_List.
-      Put (Excp_Memb,ID) ;
+      Member_List.Put (Excp_Memb,ID) ;
       -- raises the Ada exception with the ID String as message
       Ada.Exceptions.Raise_Exception (Excp,ID) ;
    end ;
