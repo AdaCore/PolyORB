@@ -11,6 +11,7 @@
 with Ada.Streams;   use Ada.Streams;
 
 with CORBA;
+--  For Exception_Occurrence.
 
 with Droopi.Buffers;
 with Droopi.Binding_Data;
@@ -21,6 +22,8 @@ with Droopi.Objects;
 with Droopi.ORB;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
+with Droopi.Types;
+with Droopi.Any;
 
 with Sequences.Unbounded;
 
@@ -33,7 +36,7 @@ package Droopi.Protocols.GIOP is
    use Droopi.Binding_Data;
    use ORB;
 
-   package Arg_Seq is new Sequences.Unbounded (CORBA.NamedValue);
+   package Arg_Seq is new Sequences.Unbounded (Any.NamedValue);
 
    package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -64,7 +67,7 @@ package Droopi.Protocols.GIOP is
    type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
 
    type IOR_Addressing_Info is record
-      Selected_Profile_Index : CORBA.Unsigned_Long;
+      Selected_Profile_Index : Types.Unsigned_Long;
       IOR                    : References.IOR.IOR_Type;
    end record;
 
@@ -123,7 +126,7 @@ package Droopi.Protocols.GIOP is
    --  record
    --    case Version is
    --      when 0 =>
-   --         Response_Expected : CORBA.Boolean;
+   --         Response_Expected : Types.Boolean;
    --      when 1 | 2 =>
    --         Sync_Type         : SyncScope;
    --    end case;
@@ -163,14 +166,14 @@ package Droopi.Protocols.GIOP is
 
 
    AddressingDisposition_To_Unsigned_Long :
-     constant array (Addressing_Disposition'Range) of CORBA.Unsigned_Long
+     constant array (Addressing_Disposition'Range) of Types.Unsigned_Long
      := (Key_Addr => 0,
          Profile_Addr => 1,
          Reference_Addr => 2);
 
 
    Unsigned_Long_To_AddressingDisposition :
-     constant array (CORBA.Unsigned_Long range 0 .. 2)
+     constant array (Types.Unsigned_Long range 0 .. 2)
      of Addressing_Disposition
      := (0 => Key_Addr,
          1 => Profile_Addr,
@@ -178,14 +181,14 @@ package Droopi.Protocols.GIOP is
 
 
    Version_To_Unsigned_Long :
-     constant array (Version'Range) of CORBA.Unsigned_Long
+     constant array (Version'Range) of Types.Unsigned_Long
      := (Ver0  => 0,
          Ver1  => 1,
          Ver2  => 2);
 
 
    Unsigned_Long_To_Version :
-     constant array (CORBA.Unsigned_Long range 0 .. 2) of Version
+     constant array (Types.Unsigned_Long range 0 .. 2) of Version
      := (0 => Ver0,
          1 => Ver1,
          2 => Ver2);
@@ -238,29 +241,29 @@ package Droopi.Protocols.GIOP is
 
    --  procedure Marshall_Exception
    --   (Buffer           : access Buffers.Buffer_Type;
-   --    Request_Id       : in CORBA.Unsigned_Long;
+   --    Request_Id       : in Types.Unsigned_Long;
    --    Exception_Type   : in Reply_Status_Type;
-   --    Occurence        : in CORBA.Exception_Occurrence);
+   --    Occurence        : in Types.Exception_Occurrence);
 
 
    --  procedure Marshall_Location_Forward
    --   (Buffer           : access Buffers.Buffer_Type;
-   --    Request_Id       : in  CORBA.Unsigned_Long;
+   --    Request_Id       : in  Types.Unsigned_Long;
    --    Forward_Ref      : in  Droopi.References.Ref);
 
 
    procedure Marshall_Cancel_Request
      (Buffer           : access Buffers.Buffer_Type;
-      Request_Id       : in CORBA.Unsigned_Long);
+      Request_Id       : in Types.Unsigned_Long);
 
    procedure Marshall_Locate_Request
      (Buffer           : access Buffers.Buffer_Type;
-      Request_Id       : in CORBA.Unsigned_Long;
+      Request_Id       : in Types.Unsigned_Long;
       Object_Key       : in Objects.Object_Id_Access);
 
    procedure Marshall_Locate_Reply
      (Buffer         : access Buffers.Buffer_Type;
-      Request_Id     : in CORBA.Unsigned_Long;
+      Request_Id     : in Types.Unsigned_Long;
       Locate_Status  : in Locate_Status_Type);
 
    -----------------------------------
@@ -270,13 +273,13 @@ package Droopi.Protocols.GIOP is
    procedure Unmarshall_GIOP_Header
      (Ses                   : access GIOP_Session;
       Message_Type          : out Msg_Type;
-      Message_Size          : out CORBA.Unsigned_Long;
-      Fragment_Next         : out CORBA.Boolean;
+      Message_Size          : out Types.Unsigned_Long;
+      Fragment_Next         : out Types.Boolean;
       Success               : out Boolean);
 
    procedure Unmarshall_Locate_Reply
      (Buffer        : access Buffers.Buffer_Type;
-      Request_Id    : out CORBA.Unsigned_Long;
+      Request_Id    : out Types.Unsigned_Long;
       Locate_Status : out Locate_Status_Type);
 
 
@@ -292,7 +295,7 @@ package Droopi.Protocols.GIOP is
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
-      Request_Id    : in CORBA.Unsigned_Long;
+      Request_Id    : in Types.Unsigned_Long;
       Fragment_Next : out Boolean);
 
 
@@ -389,7 +392,7 @@ private
 
    type Pending_Request is record
       Req             : Requests.Request_Access;
-      Request_Id      : CORBA.Unsigned_Long := 0;
+      Request_Id      : Types.Unsigned_Long := 0;
       Target_Profile  : Binding_Data.Profile_Access;
    end record;
 

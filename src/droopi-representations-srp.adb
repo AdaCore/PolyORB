@@ -2,10 +2,10 @@ with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Conversion;
 
-with CORBA;
-
+with Droopi.Any;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
+with Droopi.Types;
 with Droopi.Utils;
 with Droopi.Utils.SRP; use Droopi.Utils.SRP;
 
@@ -261,7 +261,7 @@ package body Droopi.Representations.SRP is
          Current_Arg := Current_Arg.all.Next;
       end loop;
 
-      return CORBA.To_Standard_String (CORBA.From_Any (Join (Split_URL)));
+      return Types.To_Standard_String (Any.From_Any (Join (Split_URL)));
    end Encode_URL;
 
    ----------------
@@ -315,15 +315,15 @@ package body Droopi.Representations.SRP is
    procedure Marshall_From_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : CORBA.Any)
+      Data   : Any.Any)
    is
-      URL : CORBA.String := CORBA.From_Any (Data);
+      URL : Types.String := Any.From_Any (Data);
       Coded_URL : String_Ptr;
    begin
       --  ??? For now we don't use the Base64 coding
       --  Coded_URL :=
       --       new String'(Base64_Encode (CORBA.To_Standard_String (URL)));
-      Coded_URL := new String'(Encode_URL (CORBA.To_Standard_String (URL)));
+      Coded_URL := new String'(Encode_URL (Types.To_Standard_String (URL)));
       pragma Debug (O ("Coded URL : " & Coded_URL.all));
 
       for I in Coded_URL.all'Range loop
@@ -341,7 +341,7 @@ package body Droopi.Representations.SRP is
    procedure Unmarshall_To_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out CORBA.Any)
+      Data   : in out Any.Any)
    is
       Encoded_URL : String_Ptr;
       Decoded_URL : String_Ptr;
@@ -349,8 +349,8 @@ package body Droopi.Representations.SRP is
       --  raise Not_Implemented;
       Encoded_URL := new String'(Unmarshall_String (R, Buffer));
       Decoded_URL := new String'(Decode_URL (Encoded_URL.all));
-      Data := CORBA.To_Any
-        (CORBA.To_CORBA_String (Decode_URL (Decoded_URL.all)));
+      Data := Any.To_Any
+        (Types.To_Droopi_String (Decode_URL (Decoded_URL.all)));
    end Unmarshall_To_Any;
 
    -------------------
@@ -433,9 +433,9 @@ package body Droopi.Representations.SRP is
 
    function Unmarshall_To_Any
      (R      : Rep_SRP;
-      Buffer : access Buffers.Buffer_Type) return CORBA.Any
+      Buffer : access Buffers.Buffer_Type) return Any.Any
    is
-      Data : CORBA.Any;
+      Data : Any.Any;
    begin
       Unmarshall_To_Any (R, Buffer, Data);
       return Data;
@@ -451,13 +451,14 @@ package body Droopi.Representations.SRP is
       Buffer  : access Buffers.Buffer_Type;
       SRP_Info : Split_SRP)
    is
-      use CORBA;
+      use Any;
+
       Local_SRP_Info : Split_SRP := SRP_Info;
       Coded_URL : String_Ptr;
    begin
       Encode_URL (Local_SRP_Info);
       Coded_URL :=
-        new String'(To_Standard_String (From_Any (Join (Local_SRP_Info))));
+        new String'(Types.To_Standard_String (From_Any (Join (Local_SRP_Info))));
       pragma Debug (O ("Coded URL : " & Coded_URL.all));
 
       for I in Coded_URL.all'Range loop

@@ -2,11 +2,9 @@
 
 --  $Id$
 
-with CORBA;
-
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Sockets;
-
+with Droopi.Types;
 
 package Droopi.Binding_Data.IIOP is
 
@@ -76,8 +74,7 @@ private
       Address : Sockets.Sock_Addr_Type;
    end record;
 
-   IIOP_Major_Version : constant CORBA.Octet := 1;
-
-   IIOP_Minor_Version : constant CORBA.Octet := 2;
+   IIOP_Major_Version : constant Types.Octet := 1;
+   IIOP_Minor_Version : constant Types.Octet := 2;
 
 end Droopi.Binding_Data.IIOP;

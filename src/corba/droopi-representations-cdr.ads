@@ -11,6 +11,8 @@ with Ada.Streams; use Ada.Streams;
 with CORBA;
 
 with Droopi.Buffers; use Droopi.Buffers;
+with Droopi.Any;
+with Droopi.Types;
 
 package Droopi.Representations.CDR is
 
@@ -53,133 +55,133 @@ package Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Octet);
+      Data   : access Droopi.Types.Octet);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Octet);
+      Data   : in Droopi.Types.Octet);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Octet;
+     return Droopi.Types.Octet;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Char);
+      Data   : access Droopi.Types.Char);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Char);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Char;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.Wchar);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Wchar);
+      Data   : in Droopi.Types.Char);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Wchar;
+     return Droopi.Types.Char;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Boolean);
+      Data   : access Droopi.Types.Wchar);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Boolean);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Boolean;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.Unsigned_Short);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Unsigned_Short);
+      Data   : in Droopi.Types.Wchar);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Unsigned_Short;
+     return Droopi.Types.Wchar;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Unsigned_Long);
+      Data   : access Droopi.Types.Boolean);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Unsigned_Long);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Unsigned_Long;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.Unsigned_Long_Long);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Unsigned_Long_Long);
+      Data   : in Droopi.Types.Boolean);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Unsigned_Long_Long;
+     return Droopi.Types.Boolean;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Short);
+      Data   : access Droopi.Types.Unsigned_Short);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Short);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Short;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.Long);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Long);
+      Data   : in Droopi.Types.Unsigned_Short);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Long;
+     return Droopi.Types.Unsigned_Short;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Long_Long);
+      Data   : access Droopi.Types.Unsigned_Long);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Long_Long);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Long_Long;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.Float);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Float);
+      Data   : in Droopi.Types.Unsigned_Long);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Float;
+     return Droopi.Types.Unsigned_Long;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Double);
+      Data   : access Droopi.Types.Unsigned_Long_Long);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Double);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Double;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.Long_Double);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Long_Double);
+      Data   : in Droopi.Types.Unsigned_Long_Long);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Long_Double;
+     return Droopi.Types.Unsigned_Long_Long;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Types.Short);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Droopi.Types.Short);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Droopi.Types.Short;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Types.Long);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Droopi.Types.Long);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Droopi.Types.Long;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Types.Long_Long);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Droopi.Types.Long_Long);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Droopi.Types.Long_Long;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Types.Float);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Droopi.Types.Float);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Droopi.Types.Float;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Types.Double);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Droopi.Types.Double);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Droopi.Types.Double;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Types.Long_Double);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Droopi.Types.Long_Double);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Droopi.Types.Long_Double;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -193,134 +195,134 @@ package Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.String);
+      Data   : access Droopi.Types.String);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.String);
+      Data   : in Droopi.Types.String);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.String;
+     return Droopi.Types.String;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Wide_String);
+      Data   : access Droopi.Types.Wide_String);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Wide_String);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Wide_String;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.Identifier);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Identifier);
+      Data   : in Droopi.Types.Wide_String);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Identifier;
+     return Droopi.Types.Wide_String;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.ScopedName);
+      Data   : access Droopi.Types.Identifier);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.ScopedName);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.ScopedName;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.RepositoryId);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.RepositoryId);
+      Data   : in Droopi.Types.Identifier);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.RepositoryId;
+     return Droopi.Types.Identifier;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.ValueModifier);
+      Data   : access Droopi.Types.ScopedName);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.ValueModifier);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.ValueModifier;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.Visibility);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Visibility);
+      Data   : in Droopi.Types.ScopedName);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Visibility;
+     return Droopi.Types.ScopedName;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Any);
+      Data   : access Droopi.Types.RepositoryId);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Any);
+      Data   : in Droopi.Types.RepositoryId);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Any;
+     return Droopi.Types.RepositoryId;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Any.ValueModifier);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Droopi.Any.ValueModifier);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Droopi.Any.ValueModifier;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Any.Visibility);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Droopi.Any.Visibility);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Droopi.Any.Visibility;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Any.Any);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Droopi.Any.Any);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Droopi.Any.Any;
 
    --  The next three marshall or unmarshall the value of the any and
    --  not the any type itself.
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.Any);
+      Data   : access Droopi.Any.Any);
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Any);
+      Data   : in Droopi.Any.Any);
 
    --  This procedure unmarshalls an Any in Result.
    --  If Result already has a value, then its memory location
    --  will be reused. Otherwise, a new location will be created
    procedure Unmarshall_To_Any (Buffer : access Buffer_Type;
-                                Result : in out CORBA.Any);
+                                Result : in out Droopi.Any.Any);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.TypeCode.Object);
+      Data   : access Droopi.Any.TypeCode.Object);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.TypeCode.Object);
+      Data   : in Droopi.Any.TypeCode.Object);
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.TypeCode.Object;
+     return Droopi.Any.TypeCode.Object;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access CORBA.NamedValue);
+      Data   : access Droopi.Any.NamedValue);
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.NamedValue);
+      Data   : in Droopi.Any.NamedValue);
 
    procedure Unmarshall (Buffer : access Buffer_Type;
-                         NV : in out CORBA.NamedValue);
+                         NV : in out Droopi.Any.NamedValue);
 
    --  Marshalling and unmashalling of object references
    --  (but not valuetypes)
 
 --   procedure Marshall
 --     (Buffer : access Buffer_Type;
---      Data   : in CORBA.AbstractBase.Ref'Class);
+--      Data   : in Droopi.Types.AbstractBase.Ref'Class);
 
 --   procedure Unmarshall
 --     (Buffer : access Buffer_Type;
---      Data : in out CORBA.AbstractBase.Ref'Class);
+--      Data : in out Droopi.Types.AbstractBase.Ref'Class);
 
 --   function Unmarshall
 --     (Buffer : access Buffer_Type)
---     return CORBA.Object.Ref;
+--     return Droopi.Types.Object.Ref;
 
    --  Marshalling and unmarshalling of system exceptions
 

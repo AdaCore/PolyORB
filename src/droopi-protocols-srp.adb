@@ -2,8 +2,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with Ada.Exceptions;
 
-with CORBA;
-with CORBA.NVList;
+with Droopi.Any;
+with Droopi.Any.NVList;
 
 with Droopi.Binding_Data.Local;
 with Droopi.Buffers;
@@ -21,6 +21,7 @@ with Droopi.Requests; use Droopi.Requests;
 
 with Droopi.Representations.SRP; use Droopi.Representations.SRP;
 with Droopi.Utils.SRP; use Droopi.Utils.SRP;
+with Droopi.Types;
 
 package body Droopi.Protocols.SRP is
 
@@ -30,6 +31,7 @@ package body Droopi.Protocols.SRP is
    use Droopi.Log;
    use Droopi.ORB;
    use Droopi.ORB.Interface;
+   use Droopi.Types;
 
    package L is new Droopi.Log.Facility_Log ("droopi.protocols.srp");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -75,7 +77,6 @@ package body Droopi.Protocols.SRP is
       --  CRLF : constant String := ASCII.CR & ASCII.LF;
       SRP_Info : Split_SRP;
       B : Buffer_Access renames S.Out_Buffer;
-      --  Data : CORBA.Any;
    begin
       Release_Contents (B.all);
       Set_SRP_Method ("Reply", SRP_Info);
@@ -140,8 +141,7 @@ package body Droopi.Protocols.SRP is
 
    procedure Handle_Data_Indication (S : access SRP_Session)
    is
-      use CORBA;
-      use CORBA.NVList;
+      use Any.NVList;
 
       use Binding_Data.Local;
       use Objects;
@@ -156,8 +156,8 @@ package body Droopi.Protocols.SRP is
          --    := Split (Unmarshall_String (Rep.all, S.Buffer));
 
          --  Argv : Split_SRP
-         --    := Split (CORBA.To_Standard_String
-         --         (CORBA.From_Any (Unmarshall_To_Any (Rep.all, S.Buffer))));
+         --    := Split (Any.To_Standard_String
+         --         (Any.From_Any (Unmarshall_To_Any (Rep.all, S.Buffer))));
 
          Argv : Split_SRP
            := Split (Unmarshall_To_Any (Rep.all, S.Buffer));
@@ -169,8 +169,8 @@ package body Droopi.Protocols.SRP is
          Current    : Arg_Info_Ptr := Args_Array;
 
          Req : Request_Access := null;
-         Args   : CORBA.NVList.Ref;
-         Result : CORBA.NamedValue;
+         Args   : Any.NVList.Ref;
+         Result : Any.NamedValue;
 
          Target_Profile : Binding_Data.Profile_Access
            := new Local_Profile_Type;
@@ -193,7 +193,8 @@ package body Droopi.Protocols.SRP is
                   Pointer : Arg_Info_Ptr := Current;
                begin
                   while Pointer /= null loop
-                     Put_Line (Pointer.Name.all & " = " & Pointer.Value.all);
+                     Put_Line
+                       (Pointer.Name.all & " = " & Pointer.Value.all);
                      Pointer := Pointer.Next;
                   end loop;
                end Print_Val;
@@ -212,23 +213,25 @@ package body Droopi.Protocols.SRP is
             --    (Object_Adapter (ORB).all, Oid, Method);
 
             --  Stores the arguments in a NVList before creating the request
-            CORBA.NVList.Create (Args);
+            Any.NVList.Create (Args);
             declare
-               Simple_Arg : CORBA.NamedValue;
-               Arg_Any : CORBA.Any;
+               use Droopi.Any;
+               Simple_Arg : Any.NamedValue;
+               Arg_Any : Any.Any;
             begin
                while Current /= null loop
-                  Arg_Any := To_Any (To_CORBA_String (Current.Value.all));
-                  Simple_Arg := (Name => To_CORBA_String (Current.Name.all),
-                                 Argument => Arg_Any,
-                                 Arg_Modes => CORBA.ARG_IN);
-                  CORBA.NVList.Add_Item (Args, Simple_Arg);
+                  Arg_Any := To_Any (To_Droopi_String (Current.Value.all));
+                  Simple_Arg
+                    := (Name      => To_Droopi_String (Current.Name.all),
+                        Argument  => Arg_Any,
+                        Arg_Modes => Any.ARG_IN);
+                  Any.NVList.Add_Item (Args, Simple_Arg);
                   Current := Current.Next;
                end loop;
             end;
 
             Result :=
-              (Name     => To_CORBA_String ("Result"),
+              (Name     => To_Droopi_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
                (Object_Adapter (ORB).all, Oid, Method),
                Arg_Modes => 0);

@@ -1752,6 +1752,8 @@ package body Droopi.Any is
                           & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
          raise TypeCode.Bad_TypeCode;
       end if;
+      pragma Debug (O ("Container type is "
+                       & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
       return Content_String_Ptr (Get_Value (Item)).Value.all;
    end From_Any;
 

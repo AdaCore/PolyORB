@@ -4,7 +4,6 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with CORBA;
 with Droopi.CORBA_P.Exceptions;
 
 with Droopi.Transport.Sockets;
@@ -16,7 +15,7 @@ with Droopi.Filters.Slicers;
 with Droopi.Sockets;
 with Droopi.Objects;
 with Droopi.References.IOR;
---  The IIOP protocol is defined upon TCP/IP.
+with Droopi.Types;
 
 package body Droopi.Binding_Data.IIOP is
 
@@ -26,6 +25,7 @@ package body Droopi.Binding_Data.IIOP is
    use Droopi.Transport.Sockets;
    use Droopi.Sockets;
    use Droopi.References.IOR;
+   use Droopi.Types;
 
    procedure Marshall_Socket
         (Buffer   : access Buffer_Type;
@@ -173,8 +173,8 @@ package body Droopi.Binding_Data.IIOP is
       Start_Encapsulation (Profile_Body);
 
       --  Version
-      Marshall (Profile_Body, CORBA.Octet (IIOP_Major_Version));
-      Marshall (Profile_Body, CORBA.Octet (IIOP_Minor_Version));
+      Marshall (Profile_Body, Types.Octet (IIOP_Major_Version));
+      Marshall (Profile_Body, Types.Octet (IIOP_Minor_Version));
 
       --  Marshalling of a Socket
       Marshall_Socket (Profile_Body, IIOP_Profile.Address);
@@ -199,16 +199,15 @@ package body Droopi.Binding_Data.IIOP is
      return Profile_Access
 
    is
-      use CORBA;
       use Droopi.CORBA_P.Exceptions;
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
-      Major_Version  : CORBA.Octet;
-      Minor_Version  : CORBA.Octet;
+      Major_Version  : Types.Octet;
+      Minor_Version  : Types.Octet;
       --  Length         : CORBA.Long;
       Result         : Profile_Access := new IIOP_Profile_Type;
       TResult        : IIOP_Profile_Type
-                       renames IIOP_Profile_Type (Result.all);
+        renames IIOP_Profile_Type (Result.all);
 
 
    begin
@@ -217,8 +216,7 @@ package body Droopi.Binding_Data.IIOP is
       Major_Version  := Unmarshall (Profile_Buffer);
       Minor_Version  := Unmarshall (Profile_Buffer);
 
-
-      if Major_Version /=  IIOP_Major_Version
+      if Major_Version /= IIOP_Major_Version
         or else Minor_Version > IIOP_Minor_Version
       then
          Release (Profile_Buffer);
@@ -255,15 +253,14 @@ package body Droopi.Binding_Data.IIOP is
         Sock     : Sockets.Sock_Addr_Type)
 
    is
-      use CORBA;
-      Str  : CORBA.String := To_CORBA_String (Image (Sock.Addr));
+      Str  : Types.String := To_Droopi_String (Image (Sock.Addr));
    begin
 
       --  Marshalling of the Host as a string
       Marshall (Buffer, Str);
 
       --  Marshalling of the port
-      Marshall (Buffer, CORBA.Unsigned_Short (Sock.Port));
+      Marshall (Buffer, Types.Unsigned_Short (Sock.Port));
 
    end Marshall_Socket;
 
@@ -273,9 +270,8 @@ package body Droopi.Binding_Data.IIOP is
      Sock     : out Sockets.Sock_Addr_Type)
 
    is
-      use CORBA;
-      Str  : CORBA.String := Unmarshall (Buffer);
-      Port : CORBA.Unsigned_Short;
+      Str  : Types.String := Unmarshall (Buffer);
+      Port : Types.Unsigned_Short;
    begin
 
       --  Unmarshalling of the Host

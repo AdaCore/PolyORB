@@ -4,8 +4,7 @@
 
 with Ada.Streams;
 
-with CORBA;
-
+with Droopi.Any;
 with Droopi.Buffers;
 with Droopi.Opaque;
 
@@ -23,13 +22,13 @@ package Droopi.Representations is
    procedure Marshall_From_Any
      (R      : Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : CORBA.Any)
+      Data   : Any.Any)
      is abstract;
 
    procedure Unmarshall_To_Any
      (R      : Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out CORBA.Any)
+      Data   : in out Any.Any)
      is abstract;
 
 private

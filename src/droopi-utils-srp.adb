@@ -1,9 +1,12 @@
+--  Utilities for the Simple Request Protocol.
+
+--  $Id$
+
 with Ada.Strings.Unbounded;
 
-with CORBA;
---  with Droopi.Types; use Droopi.Types;
-
 with GNAT.Regpat;
+
+with Droopi.Types;
 
 package body Droopi.Utils.SRP is
 
@@ -122,21 +125,21 @@ package body Droopi.Utils.SRP is
    -- Split --
    -----------
 
-   function Split (Data : CORBA.Any) return Split_SRP
+   function Split (Data : Any.Any) return Split_SRP
    is
    begin
-      return Split (CORBA.To_Standard_String
-                    (CORBA.From_Any (Data)));
+      return Split
+        (Types.To_Standard_String
+         (Any.From_Any (Data)));
    end Split;
 
    ----------
    -- Join --
    ----------
 
-   function Join (Data : Split_SRP) return CORBA.Any
+   function Join (Data : Split_SRP) return Any.Any
    is
       use Ada.Strings.Unbounded;
-      use CORBA;
       URL : Unbounded_String;
       Current_Arg : Arg_Info_Ptr := Data.Args;
    begin
@@ -149,7 +152,7 @@ package body Droopi.Utils.SRP is
          end if;
          Current_Arg := Current_Arg.Next;
       end loop;
-      return To_Any (CORBA.To_CORBA_String (To_String (URL)));
+      return Any.To_Any (Types.To_Droopi_String (To_String (URL)));
    end Join;
 
 end Droopi.Utils.SRP;

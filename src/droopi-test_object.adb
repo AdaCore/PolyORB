@@ -2,9 +2,8 @@
 
 --  $Id$
 
-with CORBA;
---  For Anys and TypeCodes.
-with CORBA.NVList;
+with Droopi.Any;
+with Droopi.Any.NVList;
 
 with Droopi.Components;
 with Droopi.Log;
@@ -14,6 +13,7 @@ with Droopi.Obj_Adapters;
 with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects.Interface;
 with Droopi.Requests;
+with Droopi.Types;
 
 package body Droopi.Test_Object is
 
@@ -70,30 +70,31 @@ package body Droopi.Test_Object is
 
    function Get_Parameter_Profile
      (Method : Requests.Operation_Id)
-     return CORBA.NVList.Ref;
+     return Any.NVList.Ref;
 
    function Get_Result_Profile
      (Method : Requests.Operation_Id)
-     return CORBA.Any;
+     return Any.Any;
 
    function Get_Parameter_Profile
      (Method : Requests.Operation_Id)
-     return CORBA.NVList.Ref
+     return Any.NVList.Ref
    is
-      use CORBA;
-      use CORBA.NVList;
+      use Any;
+      use Any.NVList;
+      use Types;
 
-      Result : CORBA.NVList.Ref;
+      Result : Any.NVList.Ref;
    begin
-      CORBA.NVList.Create (Result);
+      Any.NVList.Create (Result);
       pragma Debug (O ("Parameter profile for " & Method & " requested."));
       if Method = "Echo_String" then
          Add_Item (Result,
-                   (Name => To_CORBA_String ("S"),
+                   (Name => To_Droopi_String ("S"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
       elsif Method = "Echo_Integer" then
-         Add_Item (Result, (Name => To_CORBA_String ("I"),
+         Add_Item (Result, (Name => To_Droopi_String ("I"),
                             Argument => Get_Empty_Any (TypeCode.TC_Long),
                             Arg_Modes => ARG_IN));
       else
@@ -104,9 +105,9 @@ package body Droopi.Test_Object is
 
    function Get_Result_Profile
      (Method : Requests.Operation_Id)
-     return CORBA.Any
+     return Any.Any
    is
-      use CORBA;
+      use Any;
 
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));

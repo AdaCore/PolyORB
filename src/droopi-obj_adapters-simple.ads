@@ -33,11 +33,11 @@ package Droopi.Obj_Adapters.Simple is
 
    type Parameter_Profile_Description is
      access function (Method : Requests.Operation_Id)
-     return CORBA.NVList.Ref;
+     return Any.NVList.Ref;
 
    type Result_Profile_Description is
      access function (Method : Requests.Operation_Id)
-     return CORBA.Any;
+     return Any.Any;
 
    type Interface_Description is record
       PP_Desc : Parameter_Profile_Description;
@@ -53,13 +53,13 @@ package Droopi.Obj_Adapters.Simple is
      (OA     : Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
-     return CORBA.NVList.Ref;
+     return Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
-     return CORBA.Any;
+     return Any.Any;
 
    function Find_Servant
      (OA : access Simple_Obj_Adapter;

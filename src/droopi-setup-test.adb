@@ -7,10 +7,10 @@ with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 
 with CORBA;
---  For To_CORBA_String, used in References.IOR.
-with CORBA.NVList;
---  In order to create a request
+--  For To_Standard_String (display of stringified IOR).
 
+with Droopi.Any;
+with Droopi.Any.NVList;
 with Droopi.Filters;
 with Droopi.Filters.Slicers;
 with Droopi.Log;
@@ -40,6 +40,7 @@ with Droopi.Smart_Pointers;
 with Droopi.Sockets;
 with Droopi.Test_Object;
 with Droopi.Transport.Sockets;
+with Droopi.Types;
 
 procedure Droopi.Setup.Test
 is
@@ -275,27 +276,32 @@ begin
          ---------------------------------------
 
          declare
-            use CORBA.NVList;
+            use Droopi.Any;
+            use Droopi.Any.NVList;
             use Droopi.Components;
             use Droopi.ORB.Interface;
             use Droopi.Requests;
+            use Droopi.Types;
+
             Req : Request_Access;
-            Args : CORBA.NVList.Ref;
-            Result : CORBA.NamedValue;
+            Args : Any.NVList.Ref;
+            Result : Any.NamedValue;
 
          begin
             Create (Args);
-            Add_Item (Args,
-                      CORBA.To_CORBA_String ("Echo_String"),
-                      CORBA.To_Any (CORBA.To_CORBA_String ("Test")),
-                      CORBA.ARG_IN);
+            Add_Item
+              (Args,
+               To_Droopi_String ("Echo_String"),
+               To_Any (To_Droopi_String ("Test")),
+               ARG_IN);
 
             Put ("Creating servant request...  ");
-            Create_Request (My_Ref,
-                            "Echo_String",
-                            Args,
-                            Result,
-                            Req);
+            Create_Request
+              (My_Ref,
+               "Echo_String",
+               Args,
+               Result,
+               Req);
             Put_Line ("Done...");
 
             Emit_No_Reply

@@ -19,7 +19,6 @@ with Sequences.Unbounded;
 with Droopi.Binding_Data;
 with Droopi.Types;
 
-
 package body Droopi.References.IOR is
 
    use Droopi.Log;
@@ -45,18 +44,14 @@ package body Droopi.References.IOR is
      (Buffer : access Buffer_Type;
       Value  : in IOR_Type)
    is
-      use CORBA;
       use Droopi.Types;
       use Profile_Seqs;
       Profs  : Profile_Array := Profiles_Of (Value.Ref);
       Counter  : Integer := 0;
 
    begin
-
-
-
-      Marshall (Buffer, Value.Type_Id);
-      Marshall (Buffer, CORBA.Unsigned_Long (Length (Callbacks)));
+      Marshall (Buffer, Types.String (Value.Type_Id));
+      Marshall (Buffer, Types.Unsigned_Long (Length (Callbacks)));
 
       pragma Debug (O ("Marshall Profile : Enter"));
 
@@ -64,7 +59,7 @@ package body Droopi.References.IOR is
          for I in 1 .. Length (Callbacks) loop
             if Element_Of (Callbacks, I).Tag =
                Get_Profile_Tag (Profs (N).all) then
-               Marshall (Buffer, CORBA.Unsigned_Long (Get_Profile_Tag
+               Marshall (Buffer, Types.Unsigned_Long (Get_Profile_Tag
                          (Profs (N).all)));
 
                Element_Of (Callbacks, I).
@@ -90,11 +85,11 @@ package body Droopi.References.IOR is
       use Droopi.Types;
       use CORBA;
       use Profile_Seqs;
-      N_Profiles : CORBA.Unsigned_Long;
+      N_Profiles : Types.Unsigned_Long;
       Result     : IOR_Type;
    begin
 
-      Result.Type_Id := Unmarshall (Buffer);
+      Result.Type_Id := CORBA.String (Types.String'(Unmarshall (Buffer)));
       N_Profiles     := Unmarshall (Buffer);
 
       declare
@@ -108,7 +103,7 @@ package body Droopi.References.IOR is
 
             for N in Profs'Range loop
                declare
-                  Temp_Tag : CORBA.Unsigned_Long := Unmarshall (Buffer);
+                  Temp_Tag : Types.Unsigned_Long := Unmarshall (Buffer);
                   Tag      : constant Profile_Tag :=
                                  Profile_Tag (Temp_Tag);
                begin
@@ -155,7 +150,7 @@ package body Droopi.References.IOR is
       begin
          pragma Debug (O ("Object to string : Leave"));
          Release (Buf);
-         return To_CORBA_String (S);
+         return CORBA.To_CORBA_String (S);
       end;
 
    end Object_To_String;
@@ -174,8 +169,9 @@ package body Droopi.References.IOR is
       use Droopi.Buffers;
       Buf     : Buffer_Access := new Buffer_Type;
       IOR     : IOR_Type;
-      S       : String := To_Standard_String (Str);
-      Length  : Natural := S'Length;
+      S       : constant String
+        := CORBA.To_Standard_String (Str);
+      Length  : constant Natural := S'Length;
 
    begin
 
@@ -186,14 +182,13 @@ package body Droopi.References.IOR is
       end if;
 
       declare
-            Octets : aliased Encapsulation  :=
-                      Encapsulation (To_Stream_Element_Array (S
-                                    (S'First + 4 .. S'Last)));
+         Octets : aliased Encapsulation
+           := Encapsulation
+           (To_Stream_Element_Array (S (S'First + 4 .. S'Last)));
       begin
-
-            Decapsulate (Octets'Access, Buf);
-            IOR := Unmarshall (Buf);
-            return IOR;
+         Decapsulate (Octets'Access, Buf);
+         IOR := Unmarshall (Buf);
+         return IOR;
       end;
 
    end String_To_Object;

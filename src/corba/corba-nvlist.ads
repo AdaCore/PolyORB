@@ -2,14 +2,12 @@
 
 with CORBA.AbstractBase;
 pragma Elaborate_All (CORBA.AbstractBase);
-with CORBA.Impl;
 
-with Sequences.Unbounded;
-pragma Elaborate_All (Sequences.Unbounded);
+with Droopi.Any.NVList;
 
 package CORBA.NVList is
 
-   type Ref is new CORBA.AbstractBase.Ref with null record;
+   type Ref is new CORBA.AbstractBase.Ref with private;
 
    procedure Add_Item
      (Self       :    Ref;
@@ -34,41 +32,19 @@ package CORBA.NVList is
    -- The following is specific to DROOPI --
    -----------------------------------------
 
-   procedure Create (NVList : out Ref);
-   --  Create a new NVList object and return a reference to it.
-
-   function Image (NVList : Ref) return Standard.String;
-   --  For debugging purposes.
-
-   package Internals is
-
-      --  The actual implementation of an NVList:
-      --  a sequence of NamedValues.
-
-      package NV_Sequence is new Sequences.Unbounded (CORBA.NamedValue);
-      type NV_Sequence_Access is access all NV_Sequence.Sequence;
-
-      function List_Of (NVList : Ref) return NV_Sequence_Access;
-
-   end Internals;
+   procedure Create (Self : out Ref);
+   function To_Droopi_Ref (Self : Ref) return Droopi.Any.NVList.Ref;
 
 private
 
-   package NV_Sequence renames Internals.NV_Sequence;
-
-   type Object is new CORBA.Impl.Object with record
-      List : aliased NV_Sequence.Sequence
-        := NV_Sequence.Null_Sequence;
+   type Ref is new CORBA.AbstractBase.Ref with record
+      Self : Droopi.Any.NVList.Ref;
    end record;
-   type Object_Ptr is access all Object;
 
-   procedure Finalize (Obj : in out Object);
-
-
-   function Create_Object return Object_Ptr;
-   --  Create a new and empty Object
-
-   Nil_Ref : constant Ref
-     := (CORBA.AbstractBase.Ref with null record);
+   pragma Inline (Add_Item);
+   pragma Inline (Get_Count);
+   pragma Inline (Free);
+   pragma Inline (To_Droopi_Ref);
+   pragma Inline (Create);
 
 end CORBA.NVList;

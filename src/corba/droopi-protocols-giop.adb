@@ -14,15 +14,21 @@ with Ada.Streams;                use Ada.Streams;
 
 with Sequences.Unbounded;
 
-with CORBA;
-with CORBA.NVList;               use CORBA.NVList;
+with Droopi.Any;
+with Droopi.Any.NVList;
 
-with Droopi.Obj_Adapters;
-with Droopi.Opaque;              use Droopi.Opaque;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
 with Droopi.Binding_Data.IIOP;
 with Droopi.Binding_Data.Local;
+with Droopi.Components;
+with Droopi.Filters;
+with Droopi.Filters.Interface;
+with Droopi.Obj_Adapters;
+with Droopi.Objects;
+with Droopi.Opaque;              use Droopi.Opaque;
+with Droopi.ORB;
+with Droopi.ORB.Interface;
 with Droopi.Protocols;           use Droopi.Protocols;
 with Droopi.Protocols.GIOP.GIOP_1_0;
 with Droopi.Protocols.GIOP.GIOP_1_1;
@@ -31,33 +37,31 @@ with Droopi.References;
 with Droopi.References.IOR;
 with Droopi.Representations;     use Droopi.Representations;
 with Droopi.Representations.CDR;
-with Droopi.Transport;
-with Droopi.ORB;
-with Droopi.ORB.Interface;
-with Droopi.Objects;
 with Droopi.Requests;
-with Droopi.Components;
-with Droopi.Filters;
-with Droopi.Filters.Interface;
-
+with Droopi.Transport;
+with Droopi.Types;
 
 package body Droopi.Protocols.GIOP is
 
-   use Droopi.Components;
-   use Droopi.Requests;
-   use ORB;
-   use Droopi.ORB.Interface;
-   use Droopi.Transport;
-   use Droopi.Representations.CDR;
+   use Droopi.Any.NVList;
    use Droopi.Binding_Data.IIOP;
-
+   use Droopi.Components;
+   use Droopi.ORB;
+   use Droopi.ORB.Interface;
+   use Droopi.Requests;
+   use Droopi.Representations.CDR;
+   use Droopi.Transport;
+   use Droopi.Types;
 
    Pend_Req : Pending_Request;
+   --  XXX Why is this a global variable???
+   --  XXX How is concurrent access safety implemented?
 
-   Current_Request_Id : CORBA.Unsigned_Long := 1;
+   Current_Request_Id : Types.Unsigned_Long := 1;
+   --  XXX Why is this a global variable???
 
    MsgType_To_Octet :
-     constant array (Msg_Type'Range) of CORBA.Octet
+     constant array (Msg_Type'Range) of Types.Octet
      := (Request          => 0,
          Reply            => 1,
          Cancel_Request   => 2,
@@ -68,7 +72,7 @@ package body Droopi.Protocols.GIOP is
          Fragment         => 7);
 
    ReplyStatusType_To_Unsigned_Long :
-     constant array (Reply_Status_Type'Range) of CORBA.Unsigned_Long
+     constant array (Reply_Status_Type'Range) of Types.Unsigned_Long
      := (No_Exception     => 0,
          User_Exception   => 1,
          System_Exception => 2,
@@ -77,7 +81,7 @@ package body Droopi.Protocols.GIOP is
          Needs_Addressing_Mode => 5);
 
    LocateStatusType_To_Unsigned_Long :
-     constant array (Locate_Status_Type'Range) of CORBA.Unsigned_Long
+     constant array (Locate_Status_Type'Range) of Types.Unsigned_Long
      := (Unknown_Object => 0,
          Object_Here    => 1,
          Object_Forward => 2,
@@ -86,7 +90,7 @@ package body Droopi.Protocols.GIOP is
          Loc_Needs_Addressing_Mode => 5);
 
    Octet_To_MsgType :
-     constant array (CORBA.Octet range 0 .. 7) of Msg_Type
+     constant array (Types.Octet range 0 .. 7) of Msg_Type
      := (0 => Request,
          1 => Reply,
          2 => Cancel_Request,
@@ -97,7 +101,7 @@ package body Droopi.Protocols.GIOP is
          7 => Fragment);
 
    Unsigned_Long_To_ReplyStatusType :
-     constant array (CORBA.Unsigned_Long range 0 .. 5) of Reply_Status_Type
+     constant array (Types.Unsigned_Long range 0 .. 5) of Reply_Status_Type
      := (0 => No_Exception,
          1 => User_Exception,
          2 => System_Exception,
@@ -106,7 +110,7 @@ package body Droopi.Protocols.GIOP is
          5 => Needs_Addressing_Mode);
 
    Unsigned_Long_To_LocateStatusType :
-     constant array (CORBA.Unsigned_Long range 0 .. 5) of Locate_Status_Type
+     constant array (Types.Unsigned_Long range 0 .. 5) of Locate_Status_Type
      := (0 => Unknown_Object,
          1 => Object_Here,
          2 => Object_Forward,
@@ -196,7 +200,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Unmarshall_Locate_Request
      (Buffer        : access Buffer_Type;
-      Request_Id    : out CORBA.Unsigned_Long;
+      Request_Id    : out Types.Unsigned_Long;
       Object_Key    : out Objects.Object_Id);
 
    procedure Request_Received
@@ -216,7 +220,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Marshall_Cancel_Request
      (Buffer     : access Buffer_Type;
-      Request_Id : in CORBA.Unsigned_Long) is
+      Request_Id : in Types.Unsigned_Long) is
    begin
 
       --  Request id
@@ -230,7 +234,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Marshall_Locate_Request
      (Buffer           : access Buffer_Type;
-      Request_Id       : in CORBA.Unsigned_Long;
+      Request_Id       : in Types.Unsigned_Long;
       Object_Key       : in Objects.Object_Id_Access)
    is
       use Representations.CDR;
@@ -250,7 +254,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure  Marshall_Locate_Reply
      (Buffer         : access Buffer_Type;
-      Request_Id     : in CORBA.Unsigned_Long;
+      Request_Id     : in Types.Unsigned_Long;
       Locate_Status  : in Locate_Status_Type) is
    begin
 
@@ -269,12 +273,10 @@ package body Droopi.Protocols.GIOP is
    procedure Unmarshall_GIOP_Header
      (Ses                   : access GIOP_Session;
       Message_Type          : out Msg_Type;
-      Message_Size          : out CORBA.Unsigned_Long;
-      Fragment_Next         : out CORBA.Boolean;
+      Message_Size          : out Types.Unsigned_Long;
+      Fragment_Next         : out Types.Boolean;
       Success               : out Boolean)
    is
-
-      use CORBA;
 
       Stream_Header          : Encapsulation := Encapsulate (Ses.Buffer_In);
       Zone_Address           : Zone_Access :=
@@ -286,15 +288,15 @@ package body Droopi.Protocols.GIOP is
       Message_Minor_Version  : Version;
       Message_Endianness     : Endianness_Type;
       Endianness             : Endianness_Type;
-      Flags                  : CORBA.Octet;
+      Flags                  : Types.Octet;
 
 
    begin
 
       Success := False;
 
-      if CORBA.Boolean'Val
-           (CORBA.Octet (Stream_Header
+      if Types.Boolean'Val
+           (Types.Octet (Stream_Header
                          (Stream_Header'First
                           + Byte_Order_Offset)) and 1) then
          Message_Endianness := Little_Endian;
@@ -311,7 +313,7 @@ package body Droopi.Protocols.GIOP is
       for I in Message_Magic'Range loop
 
          Message_Magic (I) := Stream_Element
-           (CORBA.Octet'(Unmarshall (Message_Header)));
+           (Types.Octet'(Unmarshall (Message_Header)));
 
       end loop;
 
@@ -366,7 +368,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Unmarshall_Locate_Request
      (Buffer        : access Buffer_Type;
-      Request_Id    : out CORBA.Unsigned_Long;
+      Request_Id    : out Types.Unsigned_Long;
       Object_Key    : out Objects.Object_Id) is
    begin
       --  Request id
@@ -383,7 +385,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Unmarshall_Locate_Reply
      (Buffer        : access Buffer_Type;
-      Request_Id    : out CORBA.Unsigned_Long;
+      Request_Id    : out Types.Unsigned_Long;
       Locate_Status : out Locate_Status_Type) is
    begin
       --  Request id
@@ -406,7 +408,7 @@ package body Droopi.Protocols.GIOP is
       use Internals.NV_Sequence;
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Sync          : Sync_Scope;
-      Arg           : CORBA.NamedValue;
+      Arg           : Any.NamedValue;
       List          : NV_Sequence_Access;
 
    begin
@@ -421,13 +423,13 @@ package body Droopi.Protocols.GIOP is
             GIOP.GIOP_1_0.Marshall_Request_Message
               (Ses.Buffer_Out, Pend_Req.Request_Id,
                Pend_Req.Target_Profile, Response_Expected,
-               Pend_Req.Req.Operation.all);
+               To_Standard_String (Pend_Req.Req.Operation));
 
          when Ver1 =>
             GIOP.GIOP_1_1.Marshall_Request_Message
               (Ses.Buffer_Out, Pend_Req.Request_Id,
                Pend_Req.Target_Profile, Response_Expected,
-               Pend_Req.Req.Operation.all);
+               To_Standard_String (Pend_Req.Req.Operation));
 
          when Ver2 =>
             declare
@@ -449,7 +451,7 @@ package body Droopi.Protocols.GIOP is
                   (Address_Type => Key_Addr,
                    Object_Key   => Key),
                   Sync,
-                  Pend_Req.Req.Operation.all);
+                  To_Standard_String (Pend_Req.Req.Operation));
             end;
       end case;
 
@@ -495,7 +497,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
-      Request_Id    : in CORBA.Unsigned_Long;
+      Request_Id    : in Types.Unsigned_Long;
       Fragment_Next : out Boolean)
 
    is
@@ -946,7 +948,6 @@ package body Droopi.Protocols.GIOP is
      (R       :  Requests.Request_Access;
       Profile : Profile_Access)
    is
-      use CORBA;
    begin
       Pend_Req.Req := R;
       Pend_Req.Request_Id := Current_Request_Id;
@@ -961,7 +962,6 @@ package body Droopi.Protocols.GIOP is
    procedure Request_Received
      (Ses : access GIOP_Session)
    is
-      use CORBA;
       use Binding_Data.IIOP;
       use Binding_Data.Local;
       use Internals;
@@ -971,21 +971,21 @@ package body Droopi.Protocols.GIOP is
 
       use Droopi.Objects;
 
-      Request_Id        :  CORBA.Unsigned_Long;
+      Request_Id        :  Types.Unsigned_Long;
       Response_Expected :  Boolean;
       Object_Key        :  Objects.Object_Id_Access := null;
-      Operation         :  CORBA.String_Ptr := null;
+      Operation         :  Types.String_Ptr := null;
 
 
       Req    : Request_Access := null;
-      Args   : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
+      Args   : Any.NVList.Ref;
+      Result : Any.NamedValue;
 
       Target_Profile : Binding_Data.Profile_Access := new Local_Profile_Type;
       Target : References.Ref;
       Target_Ref  : Target_Address_Access := null;
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
-      Temp_Arg : CORBA.NamedValue;
+      Temp_Arg : Any.NamedValue;
       List     : NV_Sequence_Access;
 
    begin
@@ -1035,7 +1035,7 @@ package body Droopi.Protocols.GIOP is
          NV_Sequence.Replace_Element (List.all, Positive (I), Temp_Arg);
       end loop;
 
-      Result := (Name     => To_CORBA_String ("Result"),
+      Result := (Name     => To_Droopi_String ("Result"),
                  Argument => Obj_Adapters.Get_Empty_Result
                  (Object_Adapter (ORB).all,
                   Object_Key.all,
@@ -1079,15 +1079,14 @@ package body Droopi.Protocols.GIOP is
    --------------------------------
 
    procedure Reply_Received (Ses : access GIOP_Session) is
-      use CORBA;
       use References.IOR;
       use Binding_Data.IIOP;
       Reply_Status  : Reply_Status_Type;
-      --  Result : CORBA.NamedValue;
-      Request_Id : CORBA.Unsigned_Long;
+      --  Result : Any.NamedValue;
+      Request_Id : Types.Unsigned_Long;
 
       --  Req    : Request_Access := null;
-      --  Args   : CORBA.NVList.Ref;
+      --  Args   : Types.NVList.Ref;
       --  Target_Profile : Binding_Data.Profile_Access
       --    := new IIOP_Profile_Type;
       --  Target : References.Ref;
@@ -1137,12 +1136,13 @@ package body Droopi.Protocols.GIOP is
          when No_Exception =>
 
             Pend_Req.Req.Result :=
-              (Name     => To_CORBA_String ("Result"),
+              (Name     => To_Droopi_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
                (Object_Adapter (ORB).all,
                 Get_Object_Key
                 (IIOP_Profile_Type (Pend_Req.Target_Profile.all)),
-                Pend_Req.Req.Operation.all), Arg_Modes => ARG_OUT);
+                To_Standard_String (Pend_Req.Req.Operation)),
+               Arg_Modes => Any.ARG_OUT);
 
             Unmarshall (Ses.Buffer_In, Pend_Req.Req.Result);
             Emit_No_Reply
@@ -1194,7 +1194,7 @@ package body Droopi.Protocols.GIOP is
      (Ses : access GIOP_Session)
    is
       --      Reply_Status  : Reply_Status_Type;
-      Request_Id    : CORBA.Unsigned_Long;
+      Request_Id    : Types.Unsigned_Long;
       Object_Key    : Objects.Object_Id_Access := null;
       Target_Ref    : Target_Address_Access := null;
    begin
@@ -1399,15 +1399,13 @@ package body Droopi.Protocols.GIOP is
 
    procedure Handle_Data_Indication (S : access GIOP_Session)
    is
-      use CORBA;
-
       use Binding_Data.IIOP;
       use Objects;
       use ORB;
       use References;
       use References.IOR;
       Mess_Type     : Msg_Type;
-      Mess_Size     : CORBA.Unsigned_Long;
+      Mess_Size     : Types.Unsigned_Long;
       Fragment_Next : Boolean;
       Success       : Boolean;
 
@@ -1464,7 +1462,7 @@ package body Droopi.Protocols.GIOP is
             when Locate_Reply =>
                if S.Role = Client  then
                   declare
-                     Req_Id        : CORBA.Unsigned_Long;
+                     Req_Id        : Types.Unsigned_Long;
                      Locate_Status : Locate_Status_Type;
                   begin
                      Unmarshall_Locate_Reply

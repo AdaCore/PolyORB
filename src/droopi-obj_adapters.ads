@@ -3,8 +3,8 @@
 
 --  $Id$
 
-with CORBA;
-with CORBA.NVList;
+with Droopi.Any;
+with Droopi.Any.NVList;
 
 with Droopi.Objects; use Droopi.Objects;
 with Droopi.Requests;
@@ -51,7 +51,7 @@ package Droopi.Obj_Adapters is
      (OA     : Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
-     return CORBA.NVList.Ref is abstract;
+     return Any.NVList.Ref is abstract;
    --  Return the paramter profile of the given method, so the
    --  protocol layer can unmarshall the message into a Request object.
 
@@ -59,7 +59,7 @@ package Droopi.Obj_Adapters is
      (OA     : Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
-     return CORBA.Any is abstract;
+     return Any.Any is abstract;
    --  Return the result profile of the given method.
 
    function Find_Servant

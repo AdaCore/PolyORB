@@ -3,9 +3,9 @@
 --  $Id$
 
 with Ada.Exceptions;
+with Ada.Unchecked_Deallocation;
 
-with CORBA;
-with CORBA.NVList;
+with Droopi.Any.NVList;
 
 with Droopi.Binding_Data.Local;
 with Droopi.Buffers;
@@ -22,6 +22,7 @@ with Droopi.References;
 with Droopi.Requests; use Droopi.Requests;
 
 with Droopi.Representations.Test; use Droopi.Representations.Test;
+with Droopi.Types; use Droopi.Types;
 
 package body Droopi.Protocols.Echo is
 
@@ -114,6 +115,7 @@ package body Droopi.Protocols.Echo is
       --  No setup is necessary for newly-created client connections.
    end Handle_Connect_Confirmation;
 
+   type String_Ptr is access all Standard.String;
    type String_Array is array (Integer range <>) of String_Ptr;
 
    function Split (S : String) return String_Array;
@@ -141,7 +143,11 @@ package body Droopi.Protocols.Echo is
    end Split;
 
    procedure Free (SA : in out String_Array);
-   procedure Free (SA : in out String_Array) is
+
+   procedure Free (SA : in out String_Array)
+   is
+      procedure Free is
+         new Ada.Unchecked_Deallocation (Standard.String, String_Ptr);
    begin
       for I in SA'Range loop
          Free (SA (I));
@@ -150,9 +156,6 @@ package body Droopi.Protocols.Echo is
 
    procedure Handle_Data_Indication (S : access Echo_Session)
    is
-      use CORBA;
-      use CORBA.NVList;
-
       use Binding_Data.Local;
       use Objects;
       use References;
@@ -170,8 +173,8 @@ package body Droopi.Protocols.Echo is
          Arg_String : constant String := Argv (3).all;
 
          Req : Request_Access := null;
-         Args   : CORBA.NVList.Ref;
-         Result : CORBA.NamedValue;
+         Args   : Any.NVList.Ref;
+         Result : Any.NamedValue;
 
          Target_Profile : Binding_Data.Profile_Access
            := new Local_Profile_Type;
@@ -191,7 +194,7 @@ package body Droopi.Protocols.Echo is
             Args   := Obj_Adapters.Get_Empty_Arg_List
               (Object_Adapter (ORB).all, Oid, Method);
             Result :=
-              (Name     => To_CORBA_String ("Result"),
+              (Name     => To_Droopi_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
                (Object_Adapter (ORB).all, Oid, Method),
                Arg_Modes => 0);

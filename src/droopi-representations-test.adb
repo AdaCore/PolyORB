@@ -7,7 +7,7 @@ package body Droopi.Representations.Test is
    procedure Marshall_From_Any
      (R      : Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : CORBA.Any) is
+      Data   : Any.Any) is
    begin
       raise Not_Implemented;
    end Marshall_From_Any;
@@ -15,7 +15,7 @@ package body Droopi.Representations.Test is
    procedure Unmarshall_To_Any
      (R      : Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out CORBA.Any) is
+      Data   : in out Any.Any) is
    begin
       raise Not_Implemented;
    end Unmarshall_To_Any;

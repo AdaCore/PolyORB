@@ -19,6 +19,7 @@ with CORBA;
 with Droopi.Buffers;
 with Droopi.References;
 with Droopi.References.IOR;
+with Droopi.Types;
 
 package Droopi.Protocols.GIOP.GIOP_1_2 is
 
@@ -38,7 +39,7 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 
    procedure Marshall_Request_Message
      (Buffer             : access Buffers.Buffer_Type;
-      Request_Id         : in CORBA.Unsigned_Long;
+      Request_Id         : in Types.Unsigned_Long;
       Target_Ref         : in Target_Address;
       Sync_Type          : in Sync_Scope;
       Operation          : in Requests.Operation_Id);
@@ -46,37 +47,37 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 
    procedure Marshall_No_Exception
     (Buffer      : access Buffers.Buffer_Type;
-     Request_Id  : in CORBA.Unsigned_Long);
+     Request_Id  : in Types.Unsigned_Long);
 
 
    procedure Marshall_Exception
     (Buffer      : access Buffers.Buffer_Type;
-     Request_Id  : CORBA.Unsigned_Long;
+     Request_Id  : Types.Unsigned_Long;
      Reply_Type  : in Reply_Status_Type;
      Occurence   : in CORBA.Exception_Occurrence);
 
 
    procedure Marshall_Location_Forward
     (Buffer        : access Buffers.Buffer_Type;
-     Request_Id    : CORBA.Unsigned_Long;
+     Request_Id    : Types.Unsigned_Long;
      Reply_Type    : in Reply_Status_Type;
      Target_Ref    : in  Droopi.References.IOR.IOR_Type);
 
    procedure Marshall_Needs_Addressing_Mode
     (Buffer              : access Buffers.Buffer_Type;
-     Request_Id          : in CORBA.Unsigned_Long;
+     Request_Id          : in Types.Unsigned_Long;
      Address_Type        : in Addressing_Disposition);
 
 
    procedure Marshall_Locate_Request
     (Buffer            : access Buffers.Buffer_Type;
-     Request_Id        : in CORBA.Unsigned_Long;
+     Request_Id        : in Types.Unsigned_Long;
      Target_Ref        : in Target_Address);
 
 
    procedure Marshall_Fragment
     (Buffer   : access Buffers.Buffer_Type;
-     Request_Id   : in CORBA.Unsigned_Long);
+     Request_Id   : in Types.Unsigned_Long);
 
    -------------------------------------
    --  Unmarshall procedures
@@ -84,19 +85,19 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 
    procedure Unmarshall_Request_Message
      (Buffer            : access Buffers.Buffer_Type;
-      Request_Id        : out CORBA.Unsigned_Long;
+      Request_Id        : out Types.Unsigned_Long;
       Response_Expected : out Boolean;
       Target_Ref        : out Target_Address;
-      Operation         : out CORBA.String);
+      Operation         : out Types.String);
 
    procedure Unmarshall_Reply_Message
       (Buffer       : access Buffers.Buffer_Type;
-       Request_Id   : out CORBA.Unsigned_Long;
+       Request_Id   : out Types.Unsigned_Long;
        Reply_Status : out Reply_Status_Type);
 
    procedure Unmarshall_Locate_Request
      (Buffer        : access Buffers.Buffer_Type;
-      Request_Id    : out CORBA.Unsigned_Long;
+      Request_Id    : out Types.Unsigned_Long;
       Target_Ref    : out Target_Address);
 
 private
@@ -108,9 +109,9 @@ private
            6 => Sending_Context_Run_Time, 7 => Invocation_Policies,
            8 => Forwarded_Identity, 9 => Unknown_Exception_Info);
 
-   Major_Version : constant CORBA.Octet
+   Major_Version : constant Types.Octet
      := 1;
-   Minor_Version : constant CORBA.Octet
+   Minor_Version : constant Types.Octet
      := 2;
 
 end Droopi.Protocols.GIOP.GIOP_1_2;

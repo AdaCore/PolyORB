@@ -3,12 +3,13 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
-with CORBA;
-with CORBA.NVList;
 
 with Droopi.Annotations;
+with Droopi.Any;
+with Droopi.Any.NVList;
 with Droopi.References;
 with Droopi.Task_Info;
+with Droopi.Types;
 
 package Droopi.Requests is
 
@@ -18,10 +19,10 @@ package Droopi.Requests is
    -- Request --
    -------------
 
-   type String_Ptr is access String;
-   procedure Free is new Ada.Unchecked_Deallocation
-     (String, String_Ptr);
-   --  XXX DUMMY
+--    type String_Ptr is access String;
+--    procedure Free is new Ada.Unchecked_Deallocation
+--      (String, String_Ptr);
+--    --  XXX DUMMY
 
    subtype Operation_Id is String;
    --  XXX DUMMY VERSION of Operation_Id
@@ -29,9 +30,9 @@ package Droopi.Requests is
    type Request is limited record
       --  Ctx        : CORBA.Context.Ref;
       Target    : References.Ref;
-      Operation : String_Ptr;
-      Args      : CORBA.NVList.Ref;
-      Result    : CORBA.NamedValue;
+      Operation : Types.Identifier;
+      Args      : Any.NVList.Ref;
+      Result    : Any.NamedValue;
       --  Exc_List   : CORBA.ExceptionList.Ref;
       --  Ctxt_List  : CORBA.ContextList.Ref;
       --  Req_Flags  : CORBA.Flags;
@@ -48,16 +49,16 @@ package Droopi.Requests is
       --  May or may not be local!
       --  Ctx       : in     CORBA.Context.Ref;
       Operation : in     Operation_Id;
-      Arg_List  : in     CORBA.NVList.Ref;
-      Result    : in out CORBA.NamedValue;
+      Arg_List  : in     Any.NVList.Ref;
+      Result    : in out Any.NamedValue;
       --  Exc_List  : in     ExceptionList.Ref;
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access
       --  Req_Flags : in     Flags
      );
 
-   procedure Destroy_Request
-     (Req : in out Request_Access);
+   procedure Destroy_Request is new Ada.Unchecked_Deallocation
+     (Request, Request_Access);
 
    function Image (Req : Request) return String;
    --  For debugging purposes.

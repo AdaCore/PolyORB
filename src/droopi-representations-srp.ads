@@ -50,12 +50,12 @@ package Droopi.Representations.SRP is
    procedure Marshall_From_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : CORBA.Any);
+      Data   : Any.Any);
 
    procedure Unmarshall_To_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out CORBA.Any);
+      Data   : in out Any.Any);
 
    --  The following methods are specific to Rep_SRP and are
    --  here only to facilitate testing of other parts of the ORB.
@@ -84,7 +84,7 @@ package Droopi.Representations.SRP is
 
    function Unmarshall_To_Any
      (R      : Rep_SRP;
-      Buffer : access Buffers.Buffer_Type) return CORBA.Any;
+      Buffer : access Buffers.Buffer_Type) return Any.Any;
 
    --  Temporary procedure. Should be replaces by Marshall_From_Any when
    --  we will be able to [un]marshall Split_SRP [from] to Any

@@ -155,10 +155,10 @@ package body Droopi.Obj_Adapters.Simple is
      (OA     : Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
-     return CORBA.NVList.Ref
+     return Any.NVList.Ref
    is
       Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid));
-      Result : CORBA.NVList.Ref;
+      Result : Any.NVList.Ref;
    begin
       Enter (OA.Lock);
 
@@ -186,10 +186,10 @@ package body Droopi.Obj_Adapters.Simple is
      (OA     : Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
-     return CORBA.Any
+     return Any.Any
    is
       Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid));
-      Result : CORBA.Any;
+      Result : Any.Any;
    begin
       Enter (OA.Lock);
 

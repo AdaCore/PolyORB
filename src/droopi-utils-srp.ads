@@ -1,6 +1,10 @@
+--  Utilities for the Simple Request Protocol.
+
+--  $Id$
+
 with Ada.Unchecked_Deallocation;
 
-with CORBA;
+with Droopi.Any;
 with Droopi.Objects; use Droopi.Objects;
 --  with Droopi.Types; use Droopi.Types;
 
@@ -37,11 +41,11 @@ package Droopi.Utils.SRP is
    --  Split the incoming string in according to the SRP protocol
    function Split (S : String) return Split_SRP;
 
-   --  Same as above, but takes a CORBA.Any as an input parameter
-   function Split (Data : CORBA.Any) return Split_SRP;
+   --  Same as above, but takes an Any.Any as an input parameter
+   function Split (Data : Any.Any) return Split_SRP;
 
    --  Does just the reverse of Split
-   function Join (Data : Split_SRP) return CORBA.Any;
+   function Join (Data : Split_SRP) return Any.Any;
 
    procedure Free_Arg_Info is new Ada.Unchecked_Deallocation
      (Arg_Info, Arg_Info_Ptr);

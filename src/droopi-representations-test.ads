@@ -17,12 +17,12 @@ package Droopi.Representations.Test is
    procedure Marshall_From_Any
      (R      : Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : CORBA.Any);
+      Data   : Any.Any);
 
    procedure Unmarshall_To_Any
      (R      : Rep_Test;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out CORBA.Any);
+      Data   : in out Any.Any);
 
    --  The following methods are specific to Rep_Test and are
    --  here only to facilitate testing of other parts of the ORB.
