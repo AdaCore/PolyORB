@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#13 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#14 $
 
 with Ada.Finalization;
 
@@ -65,6 +65,17 @@ package Droopi.Binding_Data is
    --  The Transport_Endpoint at the bottom of the transport stack
    --  and the Filter just above (ie the base of the protocol stack).
 
+   function Get_Binding_Object
+     (Profile : Profile_Type)
+     return Components.Component_Access;
+   --  Return the binding object associated with Profile, if
+   --  it is already bound. Otherwise, return null.
+
+   procedure Set_Binding_Object
+     (Profile : in out Profile_Type;
+      BO      :        Components.Component_Access);
+   --  Set the binding object associated with Profile to be BO.
+
    function Get_Profile_Tag
      (Profile : Profile_Type)
      return Profile_Tag
@@ -126,8 +137,16 @@ private
    Preference_Default : constant Profile_Preference
      := (Profile_Preference'First + Profile_Preference'Last) / 2;
 
-   type Profile_Type is abstract
-     new Ada.Finalization.Limited_Controlled with null record;
+   type Profile_Type is
+     abstract new Ada.Finalization.Limited_Controlled with record
+      Binding_Object : Components.Component_Access := null;
+      --  A profile is part of a surrogate for an object.
+      --  When the surrogate is free, it is not linked
+      --  to a binding object, and this component is null.
+      --  When the profile (and thus the surrogate) is bound,
+      --  this component denotes the associated binding object
+      --  on the local ORB (= the Session).
+     end record;
 
    type Profile_Factory is abstract tagged limited null record;
 

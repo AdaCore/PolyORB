@@ -590,7 +590,9 @@ package body Droopi.ORB is
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);
             --  XXX Unbind must Release_Servant.
-
+            --  XXX Actually cannot unbind here: if the binding
+            --    object is destroyed that early, we won't
+            --    have the opportunity to receive a reply...
             if not (Result in Null_Message) then
                --  An answer was synchronously provided by the
                --  servant:

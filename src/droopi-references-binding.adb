@@ -103,10 +103,21 @@ package body Droopi.References.Binding is
                   use Droopi.Components;
                   use Droopi.Filters;
 
+                  Binding_Object : Components.Component_Access;
                   New_TE      : Transport.Transport_Endpoint_Access;
                   New_Filter  : Filter_Access;
                   FU : Filter_Access;
                begin
+                  pragma Debug (O ("Binding profile"));
+                  Binding_Object := Binding_Data.Get_Binding_Object (P.all);
+
+                  if Binding_Object /= null then
+                     pragma Debug (O ("Using existing binding object"));
+                     return Binding_Object;
+                  end if;
+
+                  pragma Debug (O ("Creating new binding object"));
+
                   Droopi.Binding_Data.Bind_Profile
                     (P.all, New_TE, Component_Access (New_Filter));
                   ORB.Register_Endpoint
@@ -118,6 +129,8 @@ package body Droopi.References.Binding is
                      New_Filter := FU;
                   end loop;
 
+                  Set_Binding_Object
+                    (P.all, Components.Component_Access (New_Filter));
                   return Components.Component_Access (New_Filter);
                   --  The Session itself acts as a remote surrogate
                   --  of the designated object.

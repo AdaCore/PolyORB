@@ -15,4 +15,18 @@ package body Droopi.Binding_Data is
       Free (P);
    end Destroy_Profile;
 
+   function Get_Binding_Object
+     (Profile : Profile_Type)
+     return Components.Component_Access is
+   begin
+      return Profile.Binding_Object;
+   end Get_Binding_Object;
+
+   procedure Set_Binding_Object
+     (Profile : in out Profile_Type;
+      BO      :        Components.Component_Access) is
+   begin
+      Profile.Binding_Object := BO;
+   end Set_Binding_Object;
+
 end Droopi.Binding_Data;
