@@ -49,6 +49,89 @@ package body PolyORB.CORBA_P.Policy_Management is
 
    Policy_Registry : array (CORBA.PolicyType range 1 .. 60) of Policy_Info;
 
+   --------------------------
+   -- Add_Policy_Overrides --
+   --------------------------
+
+   procedure Add_Policy_Overrides
+     (To       : in out Policy_List;
+      Policies : in     CORBA.Policy.PolicyList;
+      Level    : in     Policy_Override_Level)
+   is
+      use CORBA.Policy.IDL_Sequence_Policy;
+
+      The_Type : CORBA.PolicyType;
+      Defined  : array (Policy_List'Range) of Boolean := (others => False);
+
+   begin
+      for J in 1 .. Length (Policies) loop
+         The_Type := CORBA.Policy.Get_Policy_Type (Element_Of (Policies, J));
+
+         if Defined (The_Type) then
+            CORBA.Raise_Bad_Param
+              (CORBA.System_Exception_Members'
+               (Minor     => 30,
+                Completed => CORBA.Completed_No));
+         else
+            Defined (The_Type) := True;
+         end if;
+
+         case Level is
+            when POA_Level =>
+               if not Is_POA_Policy (The_Type) then
+                  CORBA.Raise_No_Permission (CORBA.Default_Sys_Member);
+               end if;
+
+            when ORB_Level =>
+               if not Is_ORB_Policy (The_Type) then
+                  CORBA.Raise_No_Permission (CORBA.Default_Sys_Member);
+               end if;
+
+            when Thread_Level =>
+               if not Is_Thread_Policy (The_Type) then
+                  CORBA.Raise_No_Permission (CORBA.Default_Sys_Member);
+               end if;
+
+            when Reference_Level =>
+               if not Is_Reference_Policy (The_Type) then
+                  CORBA.Raise_No_Permission (CORBA.Default_Sys_Member);
+               end if;
+
+         end case;
+
+         To (The_Type) := Element_Of (Policies, J);
+      end loop;
+   end Add_Policy_Overrides;
+
+   -------------------------
+   -- Check_Compatibility --
+   -------------------------
+
+   procedure Check_Compatibility
+     (Policies : in     Policy_List;
+      Indexes  :    out CORBA.Short)
+   is
+      use type CORBA.Short;
+
+   begin
+      Indexes := 0;
+
+      for J in Policies'Range loop
+         if not CORBA.Policy.Is_Null (Policies (J))
+           and then Policy_Registry (J).Compatibility_Check /= null
+         then
+            Policy_Registry (J).Compatibility_Check
+              (Policies (J),
+               Policies,
+               CORBA.Unsigned_Short (Indexes));
+
+            if Indexes /= 0 then
+               return;
+            end if;
+         end if;
+      end loop;
+   end Check_Compatibility;
+
    ------------------------
    -- Get_Policy_Factory --
    ------------------------
@@ -62,6 +145,39 @@ package body PolyORB.CORBA_P.Policy_Management is
 
       return Policy_Registry (The_Type).Factory;
    end Get_Policy_Factory;
+
+   --------------------------
+   -- Get_Policy_Overrides --
+   --------------------------
+
+   function Get_Policy_Overrides
+     (From : in Policy_List;
+      TS   : in CORBA.Policy.PolicyTypeSeq)
+     return CORBA.Policy.PolicyList
+   is
+      use CORBA.Policy.IDL_Sequence_Policy;
+      use CORBA.Policy.IDL_Sequence_PolicyType;
+
+      Result : CORBA.Policy.PolicyList;
+
+   begin
+      if Length (TS) = 0 then
+         for J in From'Range loop
+            if not CORBA.Policy.Is_Null (From (J)) then
+               Append (Result, From (J));
+            end if;
+         end loop;
+
+      else
+         for J in 1 .. Length (TS) loop
+            if not CORBA.Policy.Is_Null (From (Element_Of (TS, J))) then
+               Append (Result, From (Element_Of (TS, J)));
+            end if;
+         end loop;
+      end if;
+
+      return Result;
+   end Get_Policy_Overrides;
 
    -------------------
    -- Is_ORB_Policy --

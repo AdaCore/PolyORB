@@ -44,9 +44,13 @@ package PolyORB.CORBA_P.Policy_Management is
       Overrides : Policy_List;
    end record;
 
-   Empty_Note : constant Policy_Manager_Note;
+   Empty_Policy_Manager_Note : constant Policy_Manager_Note;
 
    Null_Policy : CORBA.Policy.Ref;
+
+   type Policy_Override_Level is
+     (POA_Level, ORB_Level, Thread_Level, Reference_Level);
+   --  Level of policy overrides
 
    type Policy_Factory is
      access function
@@ -84,13 +88,40 @@ package PolyORB.CORBA_P.Policy_Management is
      return Boolean;
    --  Return True iff The_Type is an object reference policy
 
+   procedure Add_Policy_Overrides
+     (To       : in out Policy_List;
+      Policies : in     CORBA.Policy.PolicyList;
+      Level    : in     Policy_Override_Level);
+   --  Add policy overrides to exists policies.
+   --  Raise BAD_PARAM with Minor code 30 iff Policies contents two
+   --  policies of the same type.
+   --  Raise NO_PERMISSION system exception iff policy override is not
+   --  allowed at given level.
+
+   function Get_Policy_Overrides
+     (From : in Policy_List;
+      TS   : in CORBA.Policy.PolicyTypeSeq)
+     return CORBA.Policy.PolicyList;
+   --  Return the list of overriden policies for requested policy
+   --  types. Return all overriden policies if policy type sequence
+   --  is empty. If there is no overriden policies then return empty list.
+
+   procedure Check_Compatibility
+     (Policies : in     Policy_List;
+      Indexes  :    out CORBA.Short);
+   --  Check compatibility of policies, defined in Policies list.
+   --  If the incompatibility check failed then Indexes contain the
+   --  index of the first incompatible policy.
+   --  XXX After the implementation of CORBA::InvalidPolicies exception,
+   --  Indexes will be a sequence of incompatible policies indexes.
+
    type Compatibility_Check_Proc is
       access procedure
         (The_Policy : in     CORBA.Policy.Ref;
          Policies   : in     Policy_List;
          Indexes    :    out CORBA.Unsigned_Short);
    --  XXX Indexes type must be replaced by sequence<unsigned short> after
-   --  implementation of CORBA.InvalidPolicies exception done.
+   --  the implementation of CORBA.InvalidPolicies exception is done.
 
    type Reconciliation_Proc is
       access procedure
@@ -130,7 +161,7 @@ package PolyORB.CORBA_P.Policy_Management is
 
 private
 
-   Empty_Note : constant Policy_Manager_Note
+   Empty_Policy_Manager_Note : constant Policy_Manager_Note
      := (Annotations.Note with Overrides => (others => Null_Policy));
 
 end PolyORB.CORBA_P.Policy_Management;
