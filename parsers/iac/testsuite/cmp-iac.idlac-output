@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+$filename = @ARGV[1]; 
+$output = 'iac -ada $filename > iac.out'; 
+$output = 'idlac -p $filename > idlac.out'; 
+ 
+open (IAC,"iac.out") || die "Erreur d'ouverture de iac.out" ;
+open (IDLAC, "idlac.out") || die "Erreur d'ouverture de idlac.out";
+@Tab1 = <IAC>;
+@Tab2 = <IDLAC>;
+$LastTab1 = $#Tab1; 
+$LastTab2 = $#Tab2; 
+$i2 = 0; 
+for ($i1=0; $i1 <= $LastTab1;$i1++)
+{
+  
+  while ((@Tab1[$i1] ne @Tab2[$i2]) and ($i2<= $LastTab2))  
+  {
+      $i2++;
+  } 
+  if ($i2> $LastTab2) 
+  {
+      die ("iac: @Tab[$i1]"); 
+  }
+}
+
+
+
+
+
+
+
+
+

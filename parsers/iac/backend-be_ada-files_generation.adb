@@ -133,7 +133,7 @@ package body Backend.BE_Ada.FILES_Generation is
          Generate_Argument (N);
          N := Next_Node (N);
          if Present (N) then
-            Write_Str ("; ");
+            Write_Str (";");
             W_Small_Indents;
          end if;
       end loop;
@@ -212,7 +212,6 @@ package body Backend.BE_Ada.FILES_Generation is
       if Enumerators_List = No_List then
          return;  -- problem not fixed
       end if;
-      W_Small_Indents;
       N_Small_Indents := N_Small_Indents + 1;
       Write_Str ("(");
       D := First_Node (Enumerators_List);
@@ -220,7 +219,7 @@ package body Backend.BE_Ada.FILES_Generation is
          Generate_Identifier (D);
          D := Next_Node (D);
          if D /= No_Node then
-            Write_Str (", ");
+            Write_Str (",");
             W_Small_Indents;
          end if;
       end loop;
@@ -288,12 +287,13 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Package_Body (E : Node_Id) is
       pragma Unreferenced (E);
    begin
-      W_Indents;
-      Write_Line ("package body "
-                  & Full_Package_Name (Current_Package) & " is");
-      W_Indents;
-      Write_Line ("end "
-                  & Full_Package_Name (Current_Package) & ";");
+      null;
+      --  W_Indents;
+      --  Write_Line ("package body "
+      --             & Full_Package_Name (Current_Package) & " is");
+      --  W_Indents;
+      --  Write_Line ("end "
+      --            & Full_Package_Name (Current_Package) & ";");
    end Generate_Package_Body;
 
 
@@ -334,6 +334,14 @@ package body Backend.BE_Ada.FILES_Generation is
       Type_Identifier := Identifier (E);
       Type_Spec_Node := Type_Spec (E);
       Write_Type_Declaration (Type_Identifier);
+      --   This code is juste added to make code
+      --   generated identical to idlac output
+      Set_Str_To_Name_Buffer ("Ref");
+      if Name (Type_Identifier) /= Name_Find then
+         W_Small_Indents;
+      else
+         Write_Str (" ");
+      end if;
       Generate_Type_Spec (Type_Spec_Node);
       Write_Line (";");
    end Generate_Type_Declaration;
@@ -384,7 +392,7 @@ package body Backend.BE_Ada.FILES_Generation is
    begin
       W_Indents;
       Write_Str ("function "
-                 & Get_Name_String (Name (Identifier (E))) & " ");
+                 & Get_Name_String (Name (Identifier (E))));
    end Write_Function_Spec_Header;
 
    ----------------------------------
@@ -394,7 +402,7 @@ package body Backend.BE_Ada.FILES_Generation is
    begin
       W_Indents;
       Write_Str ("procedure "
-                 & Get_Name_String (Name (Identifier (E))) & " ");
+                 & Get_Name_String (Name (Identifier (E))));
    end Write_Procedure_Spec_Header;
 
    ----------------------------
@@ -403,6 +411,6 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Write_Type_Declaration  (E : Node_Id) is
    begin
       W_Indents;
-      Write_Str ("type " & Get_Name_String (Name (E)) & " is ");
+      Write_Str ("type " & Get_Name_String (Name (E)) & " is");
    end Write_Type_Declaration;
 end Backend.BE_Ada.FILES_Generation;

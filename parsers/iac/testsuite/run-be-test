@@ -1,0 +1,13 @@
+#!/bin/sh
+
+iac -ada $1 > iac.out 2>/dev/null
+idlac -p $1 > idlac.out 2>/dev/null
+
+./cmp-iac.idlac-output
+
+if [ $? != 0 ]; then
+echo "Failed"
+fi;
+rm -f iac.out idlac.out GN*
+
+
