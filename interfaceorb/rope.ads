@@ -46,30 +46,14 @@
 -----------------------------------------------------------------------
 
 
-with Interfaces.CPP ;
+with System ;
 
 package Rope is
 
-   type Object is tagged record
-      Table : Interfaces.CPP.Vtable_Ptr ;
-   end record ;
-   pragma CPP_Class (Object);
-   pragma CPP_Vtable (Object,Table,1);
-   -- this type is both a C and an Ada class
-   -- it is wrapped around Ada_Rope
-   -- (see Ada_Rope.hh)
-
-
-   type Object_Ptr is access all Object ;
-   -- type pointer on type Object
-
-
-private
-
-   function Constructor return Object'Class;
-   pragma CPP_Constructor (Constructor);
-   pragma Import (CPP,Constructor,"__8Ada_Rope");
-   -- default constructor of the C class.
-   -- Actually, this constructor does nothing.
+   type Object is new System.Address ;
+   -- corresponds to C class Rope (see rope.h)
+   -- This object is never used in Ada (just taken from a C function
+   -- and given to another one) so it is not right implemented.
+   -- We just keep the system Address of the object.
 
 end Rope ;

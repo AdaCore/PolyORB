@@ -81,16 +81,14 @@ package body OmniRopeAndKey is
                    R : in Rope.Object ;
                    K : in Corba.Octet ;
                    Ksize : in Corba.Unsigned_Long) is
-      C_R : System.Address ;
       C_K : System.Address ;
       C_Ksize : Interfaces.C.Unsigned_Long ;
    begin
       -- transforms the arguments in a C type ...
-      C_R := R'Address ;
       C_K := K'Address ;
       C_Ksize := Ada_To_C_Unsigned_Long(Ksize) ;
       -- ... and calls the C procedure
-      C_Init (Self,C_R,C_K,C_Ksize) ;
+      C_Init (Self,System.Address (R),C_K,C_Ksize) ;
    end;
 
 
@@ -113,13 +111,6 @@ package body OmniRopeAndKey is
    end;
 
 
-   -- Address_To_Rope
-   ------------------
-   package Address_To_Rope is
-     new System.Address_To_Access_Conversions (Rope.Object) ;
-   -- needed to interface System.Address and Rope.Object
-
-
    -- C_Get_Rope
    -------------
    function C_Get_Rope (Self : in Object'Class) return System.Address ;
@@ -133,14 +124,9 @@ package body OmniRopeAndKey is
    -----------
    function Get_Rope (Self : in Object'Class)
                       return Rope.Object is
-      C_Result : System.Address ;
-      Ada_Result_Ptr : Address_To_Rope.Object_Pointer ;
    begin
-      -- calls the C function ...
-      C_Result := C_Get_Rope (Self) ;
-      -- ... and transforms the result in Ada type
-      Ada_Result_Ptr := Address_To_Rope.To_Pointer (C_Result) ;
-      return Ada_Result_Ptr.All ;
+      -- just calls the C function
+      return Rope.Object (C_Get_Rope (Self)) ;
    end;
 
 

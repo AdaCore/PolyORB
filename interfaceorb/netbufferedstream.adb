@@ -91,22 +91,20 @@ package body NetBufferedStream is
    -- Init
    -------
    procedure Init (Self : in Object'Class ;
-                   r : in Rope.Object ;
+                   R : in Rope.Object ;
                    Rdlock : in Corba.Boolean ;
                    WrLock : in Corba.Boolean ;
                    Bufsize : in Corba.Unsigned_Long) is
-      C_R : System.Address ;
       C_RdLock : Sys_Dep.C_Boolean ;
       C_WrLock : Sys_Dep.C_Boolean ;
       C_Bufsize : Interfaces.C.Unsigned_Long ;
    begin
       -- transforms the arguments into a C type ...
-      C_R := R'Address ;
       C_RdLock := Sys_Dep.Boolean_Ada_To_C (RdLock) ;
       C_WrLock := Sys_Dep.Boolean_Ada_To_C (WrLock) ;
       C_Bufsize := Ada_To_C_Unsigned_Long (Bufsize) ;
       -- ... and calls the C procedure
-      C_Init (Self, C_R, C_RdLock, C_WrLock, C_Bufsize) ;
+      C_Init (Self, System.Address (R), C_RdLock, C_WrLock, C_Bufsize) ;
    end ;
 
 

@@ -41,12 +41,9 @@ package body Giop_C is
    -------
    procedure Init (Self : in Object'Class ;
                    R : in Rope.Object) is
-      C_R : System.Address ;
    begin
-      -- transforms the arguments into a C type ...
-      C_R := R'Address ;
-      -- ... and calls the C procedure
-      C_Init (Self, C_R) ;
+      -- just calls the C procedure
+      C_Init (Self, System.Address (R)) ;
    end;
 
 

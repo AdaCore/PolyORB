@@ -57,7 +57,7 @@ main: C_files Ada_adb_files Ada_ads_files Sys_Dep
 C_files : \
 Ada_exceptions.o Ada_Giop_c.o Ada_Giop_s.o Ada_memBufferedStream.o \
 Ada_netBufferedStream.o Ada_OmniObject.o Ada_OmniRopeAndKey.o \
-Ada_Rope.o omniObject_C2Ada.o proxyObjectFactory_C2Ada.o  
+omniObject_C2Ada.o proxyObjectFactory_C2Ada.o  
 
 .SUFFIXES: .cc .o
 
@@ -75,8 +75,6 @@ Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
 Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc
 
 Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
-
-Ada_Rope.o : Ada_Rope.cc Ada_Rope.hh
 
 omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
 

@@ -66,7 +66,7 @@ package Exceptions is
    pragma Export (Cpp,
                   C_Raise_Ada_UNKNOWN_Exception,
                   "Raise_Ada_UNKNOWN_Exception__FUlQ25CORBA16CompletionStatus");
-  -- Wrapped around C function Raise_Ada_UNKNOWN_Exception
+   -- Wrapped around C function Raise_Ada_UNKNOWN_Exception
    -- declared in Ada_exceptions.hh
    -- Called by C code.
    -- Handles in Ada a Corba exception that was raised in C.
