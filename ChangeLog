@@ -1,3 +1,14 @@
+1999-11-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Split BOOT_SERVER default value into
+ 	two default values, DEFPROTOCOLNAME and DEFPROTOCOLDATA because
+ 	the default protocol name can be used independantly from the
+ 	default protocol data. Fix a bug in the computation of the default
+ 	protocol - a list of protocol was assigned and not the first
+ 	element of the list. 
+
+	* MANIFEST: Add Garlic/s-garthi.adb.
+
 1999-09-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in, configure: Add a flag to force zlib installation.

@@ -152,11 +152,12 @@ AC_ARG_WITH(protocols,
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
-  DEFAULTPROTOCOL="";
+  DEFPROTOCOLNAME="";
+  DEFPROTOCOLDATA="";
   TCP_INCLUDED="--  ";
   for P in ${withval}; do
-     if test -z "${DEFAULTPROTOCOL}"; then
-       DEFAULTPROTOCOL=${withval};
+     if test -z "${DEFPROTOCOLNAME}"; then
+       DEFPROTOCOLNAME=${P};
      fi
      case ${P} in
      TCP|tcp) 
@@ -164,7 +165,7 @@ AC_ARG_WITH(protocols,
         PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(TCPSOURCES)";
         PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(TCPOBJECTS)";
         TCP_INCLUDED="";;
-     no)
+     none)
         LIST="none";
         ;;
       *) 
@@ -179,7 +180,8 @@ AC_MSG_CHECKING([default protocols])
 PROTOCOLSSOURCES="\$(TCPSOURCES)";
 PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
-DEFAULTPROTOCOL="tcp";
+DEFPROTOCOLNAME="tcp";
+DEFPROTOCOLDATA="";
 AC_MSG_RESULT([tcp])
 ])
 if test -z "$TCP_INCLUDED"; then
@@ -236,19 +238,21 @@ AC_ARG_WITH(boot-server,
 [  --with-boot-server=url  Default boot server (url=<protocol>:<data>)],
 [
 AC_MSG_CHECKING([for default boot server address])
-BOOT_SERVER=${withval}
-AC_MSG_RESULT([${BOOT_SERVER}])
+DEFPROTOCOLNAME=`echo ${withval} | ${SED} 's,^\(.*\)://.*$,\1,'`
+DEFPROTOCOLDATA=`echo ${withval} | ${SED} 's,^.*://\(.*\)$,\1,'`
+AC_MSG_RESULT([${DEFPROTOCOLNAME}://${DEFPROTOCOLDATA}])
 ],
 [
-if test "${DEFAULTPROTOCOL}" = "tcp"; then
+if test -z "${TCP_INCLUDED}"; then
   AC_MSG_CHECKING([for default boot server address])
-  BOOT_SERVER=`echo 000$$ | ${SED} 's,^.*\(...\)$,tcp://localhost:5\1,'`
-  AC_MSG_RESULT([${BOOT_SERVER}])
+  DEFPROTOCOLDATA=`echo 000$$ | ${SED} 's,^.*\(...\)$,localhost:5\1,'`
+  AC_MSG_RESULT([${DEFPROTOCOLNAME}://${DEFPROTOCOLDATA}])
 else
   BOOT_SERVER=""
 fi
 ])
-AC_SUBST(BOOT_SERVER)
+AC_SUBST(DEFPROTOCOLNAME)
+AC_SUBST(DEFPROTOCOLDATA)
 #
 # Filter list
 #
