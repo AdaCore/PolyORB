@@ -30,7 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides...
+--  This package provides fonctions to use the package
+--  polyorb-utils-htables.ads with a generic type. An Item
+--  is associated with each elements (when hashing a key
+--  this Item will be returned by the function lookup
 
 --  $Id$
 
