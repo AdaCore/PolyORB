@@ -23,12 +23,12 @@ package Corba.Object is
 
    -- proxy objects are references to implementations
    type Ref is tagged private ;
-   type Ref_Ptr is access all Ref ;
+   type Ref_Ptr is access all Ref'Class ;
    Nil_Ref : constant Ref ;
 
    -- objects are real implementations of the object
    type Object is tagged private ;
-   type Object_Ptr is access all Object ;
+   type Object_Ptr is access all Object'Class ;
 
    --I boolean is_nil();
    function Is_Nil(Self: in Ref'Class) return Boolean;
@@ -52,6 +52,8 @@ package Corba.Object is
                  return Corba.Boolean ;
   -- returns true if this object is of this Logical_Type_Id
    -- or one of its descendants
+   function Is_A(Logical_Type_Id : in Corba.String)
+                 return Corba.Boolean ;
 
    function Non_Existent(Self : in Ref) return Corba.Boolean ;
 
@@ -71,6 +73,7 @@ package Corba.Object is
    --------------------------------------------------
    function Get_Dynamic_Type(Self: in Ref) return Ref'Class ;
 
+   Repository_Id : Corba.String := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
    function Get_Repository_Id(Self : in Ref) return Corba.String ;
 
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;

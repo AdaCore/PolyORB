@@ -44,7 +44,15 @@ package body Corba.Object is
                  Logical_Type_Id : in Corba.String)
                  return Corba.Boolean is
     begin
-       return (Get_Repository_Id(Self) = Logical_Type_Id) ;
+       return (Repository_Id = Logical_Type_Id) ;
+    end ;
+
+    -- Is_A
+    -------
+    function Is_A(Logical_Type_Id : in Corba.String)
+                  return Corba.Boolean is
+    begin
+       return (Repository_Id = Logical_Type_Id) ;
     end ;
 
 
@@ -116,7 +124,7 @@ package body Corba.Object is
    --------------------
    function Get_Repository_Id(Self : in Ref) return Corba.String is
    begin
-      return Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
+      return Repository_Id ;
    end ;
 
    --  Get_Dynamic_Type

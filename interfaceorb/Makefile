@@ -44,8 +44,10 @@ OMNIORB_LIBS += -I $(OMNIORB_PATH)/src/lib/omniORB2/orbcore/
 ###################################################################
 
 
+main: c2ada adaonly
 
-all : sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o omniropeandkey.o \
+
+c2ada : sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o omniropeandkey.o \
 omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o omniobject.o \
 giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o Ada_netBufferedStream.o \
 netbufferedstream.o corba-object.o corba-boa.o membufferedstream.o iop.o
