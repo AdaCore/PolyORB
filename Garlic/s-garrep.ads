@@ -36,6 +36,7 @@
 with Ada.Streams;
 with System.Garlic.Protocols;
 with System.Garlic.Types;
+with System.Garlic.Utils;
 
 package System.Garlic.Replay is
 
@@ -48,10 +49,10 @@ package System.Garlic.Replay is
 
    function Get_Name (P : access Replay_Protocol) return String;
 
-   procedure Set_Boot_Data
-     (Protocol         : access Replay_Protocol;
-      Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String  := "");
+   procedure Initialize
+     (Protocol : access Replay_Protocol;
+      Default  : in Utils.String_Access := null;
+      Bootmode : in Boolean := False);
 
    procedure Send
       (Protocol  : access Replay_Protocol;

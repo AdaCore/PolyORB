@@ -36,9 +36,11 @@
 with System.Garlic.Debug;         use System.Garlic.Debug;
 with System.Garlic.Heart;         use System.Garlic.Heart;
 with System.Garlic.Options;
+with System.Garlic.Partitions;    use System.Garlic.Partitions;
 with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
 with System.Garlic.Streams;       use System.Garlic.Streams;
 with System.Garlic.Types;         use System.Garlic.Types;
+
 with System.Task_Primitives.Operations;
 with System.Tasking.Debug;    use System.Tasking, System.Tasking.Debug;
 with System.Tasking.Utilities;    use System.Tasking, System.Tasking.Utilities;
@@ -54,6 +56,9 @@ package body System.Garlic.Termination is
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
+
+   package Partitions renames System.Garlic.Partitions.Partitions;
+   use Partitions;
 
    procedure Add_Non_Terminating_Task;
    --  Let Garlic know that a task is not going to terminate and that
@@ -229,17 +234,20 @@ package body System.Garlic.Termination is
       Count  : Natural               := 0;
       Last   : constant Partition_ID := Last_Allocated_PID;
    begin
-      for Partition in Boot_PID + 1 .. Last loop
-         if Termination_Policy (Partition) /= Local_Termination then
+      for PID in Valid_Partition_ID'First .. Last loop
+         if Partitions.Table (PID).Allocated
+           and then Termination_Policy (PID) /= Local_Termination
+           and then PID /= Self_PID
+         then
             declare
                Params : aliased Params_Stream_Type (0);
             begin
                pragma Debug
                  (D (D_Debug,
-                     "Sending shutdown query to partition" & Partition'Img));
+                     "Sending shutdown query to partition" & PID'Img));
                Termination_Code'Write (Params'Access, Set_Stamp);
                Stamp'Write (Params'Access, Id);
-               Send (Partition, Shutdown_Service, Params'Access);
+               Send (PID, Shutdown_Service, Params'Access);
                Count := Count + 1;
             exception
                when Communication_Error => null;
@@ -248,14 +256,17 @@ package body System.Garlic.Termination is
       end loop;
       pragma Debug (D (D_Debug, "Sent" & Count'Img & " messages"));
       Termination_Watcher.Messages_Sent (Count);
-      for Partition in Boot_PID + 1 .. Last loop
-         if Termination_Policy (Partition) /= Local_Termination then
+      for PID in Valid_Partition_ID'First .. Last loop
+         if Partitions.Table (PID).Allocated
+           and then Termination_Policy (PID) /= Local_Termination
+           and then PID /= Self_PID
+         then
             declare
                Params : aliased Params_Stream_Type (0);
             begin
                Termination_Code'Write (Params'Access, Check_Stamp);
                Stamp'Write (Params'Access, Id);
-               Send (Partition, Shutdown_Service, Params'Access);
+               Send (PID, Shutdown_Service, Params'Access);
             exception
                when Communication_Error => null;
             end;
@@ -391,7 +402,7 @@ package body System.Garlic.Termination is
       --  This partition is involved in the global termination algorithm.
       --  But only the main partition will have something to do.
 
-      if Get_My_Partition_ID /= Boot_PID then
+      if not Options.Boot_Partition then
          return;
       end if;
 
@@ -433,13 +444,17 @@ package body System.Garlic.Termination is
                --  termination is local. If this is the case, that means
                --  that these partitions have not terminated yet.
 
-               for Partition in Boot_PID + 1 .. Last_Allocated_PID loop
-                  if Blocking_Partition (Partition) then
-                     pragma Debug (D (D_Debug,
-                                      "Partition" & Partition'Img &
-                                      " has not terminated"));
-                     Ready := False;
-                     exit;
+               for PID in Valid_Partition_ID'First .. Last_Allocated_PID loop
+                  if Partitions.Table (PID).Allocated
+                    and then PID /= Self_PID
+                  then
+                     if Blocking_Partition (PID) then
+                        pragma Debug (D (D_Debug,
+                                         "Partition" & PID'Img &
+                                         " has not terminated"));
+                        Ready := False;
+                        exit;
+                     end if;
                   end if;
                end loop;
 

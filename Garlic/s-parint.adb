@@ -91,10 +91,6 @@ package body System.Partition_Interface is
       Params    : access Params_Stream_Type);
    --  Global message receiver
 
-   Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
-   Get_Unit_Request : constant Request_Type :=
-     (Get_Unit, Local_Partition, 0, null, null);
-
    type Hash_Index is range 0 .. 100;
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
 
@@ -222,7 +218,7 @@ package body System.Partition_Interface is
       To_Lower (N);
       U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
-      Process (U, Get_Unit_Request);
+      Process (U, (Get_Unit, Self_PID,  0, null, null));
       return RPC.Partition_ID (Units.Get_Component (U).Partition);
    end Get_Active_Partition_ID;
 
@@ -240,7 +236,7 @@ package body System.Partition_Interface is
       To_Lower (N);
       U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Version"));
-      Process (U, Get_Unit_Request);
+      Process (U, (Get_Unit, Self_PID, 0, null, null));
       return Units.Get_Component (U).Version.all;
    end Get_Active_Version;
 
@@ -251,8 +247,20 @@ package body System.Partition_Interface is
    function Get_Local_Partition_ID
      return RPC.Partition_ID is
    begin
-      return RPC.Partition_ID (Local_Partition);
+      return RPC.Partition_ID (Self_PID);
    end Get_Local_Partition_ID;
+
+   ------------------------
+   -- Get_Partition_Name --
+   ------------------------
+
+   function Get_Partition_Name
+     (Partition : Integer)
+     return String is
+   begin
+      return System.Garlic.Heart.Name
+        (System.Garlic.Types.Partition_ID (Partition));
+   end Get_Partition_Name;
 
    ------------------------------
    -- Get_Passive_Partition_ID --
@@ -280,7 +288,7 @@ package body System.Partition_Interface is
       U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
 
-      Process (U, Get_Unit_Request);
+      Process (U, (Get_Unit, Self_PID, 0, null, null));
       return Units.Get_Component (U).Receiver;
    end Get_RCI_Package_Receiver;
 
@@ -414,7 +422,7 @@ package body System.Partition_Interface is
       Uindex  : Unit_Id;
       Request : Request_Type
         := (Set_Unit,
-            Local_Partition,
+            Self_PID,
             Interfaces.Unsigned_64 (System.Address'(Convert (Receiver))),
             new String'(Version),
             null);
@@ -427,10 +435,10 @@ package body System.Partition_Interface is
       Process (Uindex, Request);
 
       pragma Debug (D (D_Debug, "Request Get_Unit"));
-      Process (Uindex, Get_Unit_Request);
+      Process (Uindex, (Get_Unit, Self_PID, 0, null, null));
 
       pragma Debug (D (D_Debug, "Verify Set_Unit"));
-      if Units.Get_Component (Uindex).Partition /= Local_Partition then
+      if Units.Get_Component (Uindex).Partition /= Self_PID then
          Soft_Shutdown;
          Ada.Exceptions.Raise_Exception
            (Program_Error'Identity,
@@ -449,7 +457,7 @@ package body System.Partition_Interface is
       Uname   : Unit_Id;
 
       Request : constant Request_Type
-        := (Get_Unit, Local_Partition, 0, null, Cache);
+        := (Get_Unit, Self_PID, 0, null, Cache);
 
       -----------------------------
       -- Get_Active_Partition_ID --
@@ -530,7 +538,7 @@ package body System.Partition_Interface is
 
       pragma Debug (D (D_Debug, "Establish RPC Receiver"));
       System.RPC.Establish_RPC_Receiver
-        (System.RPC.Partition_ID (Local_Partition), null);
+        (System.RPC.Partition_ID (Self_PID), null);
 
       while Caller /= null loop
          pragma Debug (D (D_Debug, "Check " & Caller.Name.all &

@@ -43,6 +43,7 @@ with System.Garlic.Protocols;         use System.Garlic.Protocols;
 with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Types;             use System.Garlic.Types;
+with System.Garlic.Utils;             use System.Garlic.Utils;
 
 package body System.Garlic.Replay is
 
@@ -140,6 +141,39 @@ package body System.Garlic.Replay is
       return "replay";
    end Get_Name;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Protocol : access Replay_Protocol;
+      Default  : in Utils.String_Access := null;
+      Bootmode : in Boolean := False)
+   is
+      Engine    : Engine_Type_Access;
+   begin
+      --  Replay protocol is always loaded because its activation
+      --  is determined at run-time. It should be activated here when
+      --  we are sure that the boot server is replay.
+
+      if Options.Execution_Mode = Replay_Mode then
+
+         --  Boot data provides a way to give an alternate trace file name
+
+         if Default /= null  then
+            Set_Trace_File_Name (Default.all);
+         end if;
+
+         Open (Trace_File, In_File, Trace_File_Name.all);
+
+         --  We create an unnamed task on which we keep no reference
+
+         Engine := new Engine_Type;
+
+      end if;
+
+   end Initialize;
+
    ----------
    -- Send --
    ----------
@@ -157,39 +191,6 @@ package body System.Garlic.Replay is
 
       null;
    end Send;
-
-   -------------------
-   -- Set_Boot_Data --
-   -------------------
-
-   procedure Set_Boot_Data
-     (Protocol         : access Replay_Protocol;
-      Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String  := "")
-   is
-      Engine    : Engine_Type_Access;
-   begin
-      --  Replay protocol is always loaded because its activation
-      --  is determined at run-time. It should be activated here when
-      --  we are sure that the boot server is replay.
-
-      if Options.Execution_Mode = Replay_Mode then
-
-         --  Boot data provides a way to give an alternate trace file name
-
-         if Boot_Data /= ""  then
-            Set_Trace_File_Name (Boot_Data);
-         end if;
-
-         Open (Trace_File, In_File, Trace_File_Name.all);
-
-         --  We create an unnamed task on which we keep no reference
-
-         Engine := new Engine_Type;
-
-      end if;
-
-   end Set_Boot_Data;
 
    --------------
    -- Shutdown --

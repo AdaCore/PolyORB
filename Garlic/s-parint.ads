@@ -76,6 +76,11 @@ package System.Partition_Interface is
    function Get_Local_Partition_ID return RPC.Partition_ID;
    --  Return the Partition_ID of the current partition
 
+   function Get_Partition_Name
+     (Partition : Integer)
+     return String;
+   --  Return the name of the partition
+
    function Get_Passive_Partition_ID
      (Name : Unit_Name)
      return System.RPC.Partition_ID;

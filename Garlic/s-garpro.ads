@@ -35,6 +35,7 @@
 
 with Ada.Streams;
 with System.Garlic.Types;
+with System.Garlic.Utils;
 
 package System.Garlic.Protocols is
 
@@ -55,14 +56,15 @@ package System.Garlic.Protocols is
      is abstract;
    --  Return a string containing the name of the protocol
 
-   procedure Set_Boot_Data
-     (Protocol         : access Protocol_Type;
-      Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String  := "")
+   procedure Initialize
+     (Protocol : access Protocol_Type;
+      Default  : in Utils.String_Access := null;
+      Bootmode : in Boolean := False)
      is abstract;
-   --  Set the boot data. This will be called as Set_Boot_Data (Protocol)
-   --  if we are not the boot protocol. You should be prepared to deal with
-   --  incomplete data if you are the master.
+   --  Initialize protocol. When Default is null, initialize with internal
+   --  default data. When Bootmode is true, initialize this protocol as a
+   --  boot protocol. Note that this procedure can be called again to reset
+   --  the protocol in a normal mode once the partition has booted.
 
    function Get_Info (P : access Protocol_Type) return String;
    --  Return a string which holds enough information to be usable by

@@ -87,14 +87,15 @@ package body System.Garlic.TCP is
 
    type Socket_Type is record
       Location : Host_Location;
-      Socket   : C.int;
-      Defined  : Boolean := False;
+      Socket   : C.int   := Failure;
       Locked   : Boolean := False;
    end record;
 
-   Socket_Table : array (Boot_PID .. Last_PID) of Socket_Type;
-   Socket_Table_Mutex   : Mutex_Access := Create;
+   Socket_Table : array (Valid_Partition_ID) of Socket_Type;
+   Socket_Table_Mutex   : Mutex_Access   := Create;
    Socket_Table_Watcher : Watcher_Access := Create;
+
+   Self : Socket_Type;
 
    type Banner_Kind is (Junk_Banner, Data_Banner, Quit_Banner);
    --  Various headers that can be performed on a communication link
@@ -151,7 +152,7 @@ package body System.Garlic.TCP is
    --  sent.
 
    Data_Stream : aliased Stream_Element_Array
-     :=  (1 .. Banner_Size => Banner_Kind'Pos (Data_Banner));
+     := (1 .. Banner_Size => Banner_Kind'Pos (Data_Banner));
 
    Quit_Stream : aliased Stream_Element_Array
      := (1 .. Banner_Size => Banner_Kind'Pos (Quit_Banner));
@@ -165,12 +166,15 @@ package body System.Garlic.TCP is
 
    task type Connection_Handler
      (Peer : C.int;
-      PID  : Partition_ID) is
+      PID  : Partition_ID)
+   is
       pragma Priority (Priorities.RPC_Priority);
    end Connection_Handler;
    type Connection_Handler_Access is
       access Connection_Handler;
    --  Handle incoming connection
+
+   TCP_Boot_PID : Partition_ID := Null_PID;
 
    --------------------
    -- Accept_Handler --
@@ -178,12 +182,13 @@ package body System.Garlic.TCP is
 
    task body Accept_Handler is
    begin
+      Do_Listen;
+
       --  Infinite loop on C_Accept
 
       Accept_Loop :
       loop
          declare
-            Self    : Socket_Type renames Socket_Table (Last_PID);
             Sin     : Sockaddr_In_Access := new Sockaddr_In;
             Length  : aliased C.int := Sin.all'Size / 8;
             Peer    : C.int;
@@ -278,7 +283,6 @@ package body System.Garlic.TCP is
    ---------------
 
    procedure Do_Listen is
-      Self  : Socket_Type renames Socket_Table (Last_PID);
       Port  : C.unsigned_short renames Self.Location.Port;
       Sin   : Sockaddr_In_Access := new Sockaddr_In;
       Check : Sockaddr_In_Access := new Sockaddr_In;
@@ -286,12 +290,10 @@ package body System.Garlic.TCP is
       Code  : C.int;
       One   : aliased C.int := 1;
    begin
-      Enter (Last_PID);
       Self.Socket := C_Socket (Af_Inet, Sock_Stream, 0);
       if Self.Socket = Failure then
          Free (Sin);
          Free (Check);
-         Leave (Last_PID);
          Raise_Communication_Error;
       end if;
 
@@ -304,12 +306,10 @@ package body System.Garlic.TCP is
       if Code = Failure then
          Free (Sin);
          Free (Check);
-         Leave (Last_PID);
          Raise_Communication_Error;
       end if;
 
       if C_Listen (Self.Socket, 15) = Failure then
-         Leave (Last_PID);
          Raise_Communication_Error;
       end if;
 
@@ -326,8 +326,6 @@ package body System.Garlic.TCP is
       end if;
 
       Free (Check);
-      Self.Defined := True;
-      Leave (Last_PID);
 
       pragma Debug (D (D_Communication, "Listen on port" & Port'Img));
    end Do_Listen;
@@ -339,12 +337,13 @@ package body System.Garlic.TCP is
    procedure Enter (PID : Partition_ID) is
       Version : Version_Id;
    begin
+      pragma Debug (D (D_Debug, "Try to lock partition" & PID'Img));
       loop
          Enter (Socket_Table_Mutex);
          if not Socket_Table (PID).Locked then
             Socket_Table (PID).Locked := True;
-            pragma Debug (D (D_Debug, "Enter lock of partition" & PID'Img));
             Leave (Socket_Table_Mutex);
+            pragma Debug (D (D_Debug, "Succeed to lock partition" & PID'Img));
             exit;
          end if;
          pragma Debug (D (D_Debug, "Postpone lock of partition" & PID'Img));
@@ -359,7 +358,7 @@ package body System.Garlic.TCP is
    --------------
 
    function Get_Info (P : access TCP_Protocol) return String is
-      Location : Host_Location renames Socket_Table (Last_PID).Location;
+      Location : Host_Location renames Self.Location;
       Port     : constant String := Location.Port'Img;
    begin
       if Can_Have_A_Light_Runtime then
@@ -377,9 +376,9 @@ package body System.Garlic.TCP is
       return "tcp";
    end Get_Name;
 
-   ---------------------------------
+   ------------------------
    -- Connection_Handler --
-   ---------------------------------
+   ------------------------
 
    task body Connection_Handler is
       Unknown    : Boolean := (PID = Null_PID);
@@ -393,7 +392,7 @@ package body System.Garlic.TCP is
       pragma Debug (D (D_Communication, "New communication task started"));
 
       loop
-         if Partition /= Null_PID then
+         if not Unknown then
             pragma Debug (D (D_Debug, "Reading header"));
 
             Add_Non_Terminating_Task;
@@ -435,9 +434,8 @@ package body System.Garlic.TCP is
               (D (D_Communication, "Task handling partition" & Partition'Img));
 
             Enter (Partition);
-            if not Socket_Table (Partition).Defined then
+            if Socket_Table (Partition).Socket = Failure then
                Socket_Table (Partition).Socket  := Peer;
-               Socket_Table (Partition).Defined := True;
             end if;
             Leave (Partition);
             Unknown := False;
@@ -459,6 +457,12 @@ package body System.Garlic.TCP is
          --  occurred. In the case, the entry will be freed, except if we
          --  are terminating since this is not worth freeing anything.
 
+         declare
+            Dummy : C.int;
+         begin
+            Dummy := Net.C_Close (Peer);
+         end;
+
          if Partition /= Null_PID
            and then not Shutdown_In_Progress
          then
@@ -467,16 +471,10 @@ package body System.Garlic.TCP is
             --  it is likely that Partition_Map is already deallocated.
 
             Enter (Partition);
-            Socket_Table (Partition).Defined := False;
+            Socket_Table (Partition).Socket := Failure;
             Leave (Partition);
 
          end if;
-
-         declare
-            Dummy : C.int;
-         begin
-            Dummy := Net.C_Close (Peer);
-         end;
 
          --  Signal to the heart that we got an error on this partition
 
@@ -506,6 +504,65 @@ package body System.Garlic.TCP is
             Dummy := Net.C_Close (Peer);
          end;
    end Connection_Handler;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Protocol : access TCP_Protocol;
+      Default  : in Utils.String_Access := null;
+      Bootmode : in Boolean := False)
+   is
+      Boot : Socket_Type renames Socket_Table (Boot_PID);
+   begin
+      --  Is it the first time we initialize this protocol?
+
+      if TCP_Boot_PID = Null_PID then
+         Self.Location := Split_Data (Host_Name);
+      end if;
+
+      --  In boot mode, we have to use the default to connect to the boot
+      --  partition. In another mode, we can use this default to bind the
+      --  local connection.
+
+      if Bootmode then
+         if Default /= null then
+            Boot.Location := Split_Data (Default.all);
+         end if;
+
+         --  If this partition is the lead partition, then the bootmode is
+         --  a normal mode. The default should be also used for the local
+         --  connection.
+
+         if Options.Boot_Partition then
+            Self.Location.Port := Boot.Location.Port;
+         end if;
+      end if;
+
+      --  If this is the first time we initialize the protocol, start the
+      --  Accept_Handler.
+
+      if TCP_Boot_PID = Null_PID then
+         TCP_Boot_PID := Boot_PID;
+         if not Can_Have_A_Light_Runtime then
+            pragma Debug (D (D_Debug, "Starting an acceptor task"));
+            Acceptor := new Accept_Handler;
+         else
+            pragma Debug (D (D_Debug, "No acceptor task, light runtime"));
+            null;
+         end if;
+
+         --  If this is not the first time we initialize, check that
+         --  Boot_PID is kept unmodified. If not, move its data in the
+         --  right slot.
+
+      elsif TCP_Boot_PID /= Boot_PID then
+         Boot := Socket_Table (TCP_Boot_PID);
+         Socket_Table (TCP_Boot_PID).Socket := Failure;
+         TCP_Boot_PID := Boot_PID;
+      end if;
+   end Initialize;
 
    -----------
    -- Leave --
@@ -629,8 +686,8 @@ package body System.Garlic.TCP is
       Count : Stream_Element_Count;
    begin
       Enter (Partition);
-      if not Peer.Defined then
-         Peer.Location := Split_Data (Get_Data (Location (Partition)));
+      if Peer.Socket = Failure then
+         Peer.Location := Split_Data (Get_Data (Location (Partition)).all);
 
          pragma Debug
            (D (D_Communication,
@@ -647,10 +704,7 @@ package body System.Garlic.TCP is
                   "Trying to connect to partition" & Partition'Img));
 
             Peer.Socket  := Do_Connect (Peer.Location);
-            if Peer.Socket /= Failure then
-               Peer.Defined := True;
-               exit;
-            end if;
+            exit when Peer.Socket /= Failure;
 
             delay 2.0;
             Hits := Hits - 1;
@@ -705,39 +759,6 @@ package body System.Garlic.TCP is
       Leave (Partition);
    end Send;
 
-   -------------------
-   -- Set_Boot_Data --
-   -------------------
-
-   procedure Set_Boot_Data
-     (Protocol         : access TCP_Protocol;
-      Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String := "")
-   is
-      Self : Socket_Type renames Socket_Table (Last_PID);
-      Boot : Socket_Type renames Socket_Table (Boot_PID);
-   begin
-      Enter (Last_PID);
-      Enter (Boot_PID);
-      Self.Location := Split_Data (Host_Name);
-      if Is_Boot_Protocol then
-         Boot.Location := Split_Data (Boot_Data);
-         if Options.Boot_Partition then
-            Self.Location.Port := Boot.Location.Port;
-         end if;
-      end if;
-      Leave (Last_PID);
-      Leave (Boot_PID);
-      if not Can_Have_A_Light_Runtime then
-         pragma Debug (D (D_Debug, "Starting an acceptor task"));
-         Do_Listen;
-         Acceptor := new Accept_Handler;
-      else
-         pragma Debug (D (D_Debug, "No acceptor task, light runtime"));
-         null;
-      end if;
-   end Set_Boot_Data;
-
    --------------
    -- Shutdown --
    --------------
@@ -754,8 +775,8 @@ package body System.Garlic.TCP is
 
       Enter (Socket_Table_Mutex);
 
-      for P in Boot_PID .. Last_PID - 1 loop
-         if Socket_Table (P).Defined then
+      for P in Socket_Table'Range loop
+         if Socket_Table (P).Socket /= Failure then
             Peer := Socket_Table (P).Socket;
             begin
                Physical_Send (Peer, Quit_Stream'Access, Quit_Stream'First);
@@ -775,7 +796,6 @@ package body System.Garlic.TCP is
 
       declare
          Back : C.int;
-         Self : Socket_Type renames Socket_Table (Last_PID);
       begin
          for I in 1 .. 5 loop
             pragma Debug (D (D_Debug, "Connect to signal termination"));

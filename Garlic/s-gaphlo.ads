@@ -35,6 +35,7 @@
 
 with System.Garlic.Protocols;
 with System.Garlic.Types;
+with System.Garlic.Utils;
 
 package System.Garlic.Physical_Location is
 
@@ -92,7 +93,7 @@ package System.Garlic.Physical_Location is
 
    function Get_Data
      (L : Location_Type)
-     return String;
+     return Utils.String_Access;
    --  Return the additionnal data (used by protocols).
 
    function To_Location

@@ -270,6 +270,15 @@ package body System.Garlic.Table is
          Leave_Critical_Section;
       end Set_Name;
 
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update is
+      begin
+         Update (Watcher);
+      end Update;
+
       -----------
       -- Valid --
       -----------

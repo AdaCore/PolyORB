@@ -120,14 +120,6 @@ package System.Garlic.Heart is
    -- Local partition --
    ---------------------
 
-   procedure Set_Self_Location
-     (Location : in System.Garlic.Physical_Location.Location_Type);
-   --  Set my coordinates
-
-   function Get_Self_Location
-     return System.Garlic.Physical_Location.Location_Type;
-   --  Get my coordinates
-
    function Get_My_Partition_ID return Types.Partition_ID;
    --  Return the Partition_ID of the running partition. If the
    --  Partition_ID isn't known yet the function will block until

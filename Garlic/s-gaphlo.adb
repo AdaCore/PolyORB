@@ -86,10 +86,10 @@ package body System.Garlic.Physical_Location is
 
    function Get_Data
      (L : Location_Type)
-     return String
+     return String_Access
    is
    begin
-      return L.Data.all;
+      return L.Data;
    end Get_Data;
 
    -------------------
@@ -279,7 +279,7 @@ package body System.Garlic.Physical_Location is
 
    function To_String (L : Location_Type) return String is
    begin
-      return Get_Name (Get_Protocol (L)) & "://" & Get_Data (L);
+      return Get_Name (Get_Protocol (L)) & "://" & Get_Data (L).all;
    end To_String;
 
    --------------------------

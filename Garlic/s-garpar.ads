@@ -7,14 +7,19 @@ with System.Garlic.Physical_Location;
 private package System.Garlic.Partitions is
 
    type Partition_Info is record
-      Allocated    : Boolean;
       Location     : Physical_Location.Location_Type;
       Protocol     : Protocols.Protocol_Access;
       Logical_Name : Utils.String_Access;
       Termination  : Types.Termination_Type;
       Reconnection : Types.Reconnection_Type;
       Status       : Types.Status_Type;
+      pragma Atomic (Status);
+      Allocated    : Boolean;
    end record;
+
+   --  WARNING: Status must be the last modified field to ensure
+   --  that partition info is consistent.
+
    --    Allocated    : true when this slot is not empty
    --    Location     : partition physical location
    --    Protocol     : cache for location protocol
@@ -50,8 +55,8 @@ private package System.Garlic.Partitions is
    package Partitions is new System.Garlic.Table.Complex
      (Index_Type     => Types.Partition_ID,
       Null_Index     => Types.Null_PID,
-      First_Index    => Types.Boot_PID,
-      Initial_Size   => Natural (Types.Last_PID),
+      First_Index    => Types.Valid_Partition_ID'First,
+      Initial_Size   => Natural (Types.Valid_Partition_ID'Last),
       Increment_Size => 0,
       Component_Type => Partition_Info,
       Null_Component => Null_Partition);

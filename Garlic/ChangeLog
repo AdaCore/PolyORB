@@ -1,3 +1,56 @@
+1998-09-22  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garhea.adb, s-garhea.ads: Boot_PID is no longer a
+ 	constant. This is a very important to remove the point of failure
+ 	of GLADE. Boot_PID is now "randomly" computed. At boot time,
+ 	Boot_PID is Last_PID because we need a PID to use the low-level
+ 	layers of Garlic. A normal partition sends its info to the boot
+ 	partition. The boot partition sends its info back with the normal
+ 	partition PID. When the normal partition receives this request, it 
+	will be able to retrieve the boot partition PID, its own PID amd
+	its own info. Then, the normal partition asks for the boot
+	partition info. When the normal partition receives this info, the
+	boot protocol is re-initialized in normal mode and the startup can 
+	complete. Remove Set_Self_Location and Get_Self_Location (were not 
+	used). Be careful that a partition info status should be the last
+	field to be updated if we want to use Partitions.Table as a cache.
+	
+	* s-garpar.ads: Change table index (no longer depend on
+	Boot_PID). Set Partition_Info Status field as atomic.
+
+	* s-garpro.ads: Change Set_Boot_Data into Initialize. This
+	procedure initialize a protocol with default values to use and
+	also sets the protocol either in boot mode or in normal mode. This 
+	procedure can be called again to reset the protocol in normal mode 
+	once the partition has booted.
+
+	* s-gartcp.adb: Declare a table in Valid_Partition_ID (do not
+ 	start from Boot_PID). Preserve Boot_PID between two
+ 	initializations because it can be reset when the protocol is the
+ 	boot protocol. Change this protocol because of Garlic.Protocols
+ 	changes.
+
+	* s-garrep.ads, s-garrep.adb: Change this protocol because of
+	Garlic.Protocols changes.
+
+	* s-garsta.adb: Change protocol initialization because of
+	Garlic.Protocols changes.
+	
+	* s-gartab.ads, s-gartab.adb: Add new procedure Update to signal
+	an update of the table.
+
+	* s-gaphlo.ads, s-gaphlo.adb: Modify signature of Get_Data.
+
+	* s-parint.ads, s-parint.adb: Add new procedure Get_Partition_Name 
+	which returns the name of a given partition.
+
+	* s-gartyp.ads: Boot_PID is no longer a constant. Define
+ 	Valid_Partition_ID.
+
+	* s-garter.adb: Do not start termination detection from Boot_PID to
+ 	Last_Allocated_PID as Boot_PID is no longer the first PID to be
+ 	allocated.
+
 1998-09-18  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garfil.adb, s-garhea.adb, s-garhea.ads, s-garpar.ads,

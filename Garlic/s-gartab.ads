@@ -92,6 +92,9 @@ package System.Garlic.Table is
       --  Set component name of index N to S. When N is not allocated, allocate
       --  it. Raise Constraint_Error when N is not in range of current table.
 
+      procedure Update;
+      --  Modify version
+
    end Complex;
 
    generic

@@ -45,10 +45,11 @@ package System.Garlic.Types is
 
    Null_PID : constant Partition_ID := Partition_ID'First;
    Last_PID : constant Partition_ID := Partition_ID'Last;
-   Boot_PID : constant Partition_ID := Partition_ID'Succ (Null_PID);
+
+   Boot_PID : Partition_ID := Last_PID;
    Self_PID : Partition_ID := Null_PID;
 
-   subtype Valid_Partition_ID is Partition_ID range Boot_PID .. Last_PID;
+   subtype Valid_Partition_ID is Partition_ID range Null_PID + 1 .. Last_PID;
    --  A partition whose ID fits in Valid_Partition_ID is a real partition
 
    type Shutdown_Access is access procedure;

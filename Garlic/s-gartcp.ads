@@ -36,6 +36,7 @@
 with Ada.Streams;
 with System.Garlic.Protocols;
 with System.Garlic.Types;
+with System.Garlic.Utils;
 
 package System.Garlic.TCP is
 
@@ -47,12 +48,12 @@ package System.Garlic.TCP is
 
    function Get_Name (P : access TCP_Protocol) return String;
 
-   procedure Set_Boot_Data
-     (Protocol         : access TCP_Protocol;
-      Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String  := "");
-
    function Get_Info (P : access TCP_Protocol) return String;
+
+   procedure Initialize
+     (Protocol : access TCP_Protocol;
+      Default  : in Utils.String_Access := null;
+      Bootmode : in Boolean := False);
 
    procedure Send
      (Protocol  : access TCP_Protocol;
