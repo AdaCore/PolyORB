@@ -2,7 +2,7 @@
 
 EDIT_CONFIGURE_IN=false
 NAWK=`which nawk 2> /dev/null`
-if [ -x "${NAWK} ]; then
+if [ -x "${NAWK}" ]; then
   : nawk found
 else
   NAWK=awk
