@@ -370,19 +370,19 @@ package body System.RPC.Pool is
             Free_Tasks.Queue (Self, Queued);
             if not Queued then
                pragma Debug (D ("Too many tasks, queuing refused"));
-               Free (Self);
                exit;
             end if;
          end;
       end loop;
       pragma Debug (D ("Anonymous task finishing"));
 
+      Free (Self);
    exception
       when E : others =>
          pragma Warnings (Off, E);
          pragma Debug (D ("Error in anonymous task " &
                           "(exception " & Exception_Name (E) & ")"));
-         null;
+         Free (Self);
 
    end Anonymous_Task;
 
