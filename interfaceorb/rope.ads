@@ -2,8 +2,8 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----     This package is wrapped around the C class rope           ----
-----   declared in rope.h.                                         ----
+----     This package is wrapped around the C class Ada_Rope       ----
+----   declared in Ada_Rope.hh.                                    ----
 ----     It provides an empty rope type with a single function :   ----
 ----   Null_Rope which return a null rope.                         ----
 ----                                                               ----
@@ -26,7 +26,7 @@ package Rope is
 
    pragma CPP_Class (Object);
    pragma CPP_Vtable (Object,Table,1);
-   -- This object is wrapped around Rope (see Rope.h)
+   -- This object is wrapped around Ada_Rope (see Ada_Rope.hh)
 
    type Object_Ptr is access all Object ;
    -- just to give a name to pointers on Object

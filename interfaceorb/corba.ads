@@ -167,6 +167,10 @@ package Corba is
     -- raised when there is an error
     -- in the AdaBroker runtime
 
+    No_Initialisation_Error : exception ;
+    -- raised when a C object is used before being initialised
+    -- via an Ada Init function
+
     procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
                                     Excp_Memb: in Idl_Exception_Members'class) ;
     -- raises the corresponding exception

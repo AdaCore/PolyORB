@@ -33,7 +33,7 @@ private:
   // Pointer on the underlining Rope object
 
   bool Init_Ok;
-  // This flag tells if an init function was called or not
+  // This flag tells whether an init function was called or not
   
   void raise_ada_exception (const char *msg);
   // this function allows C code to raise Ada exception

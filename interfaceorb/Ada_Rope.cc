@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 ////                                                                    ////
-////     This class is as well a C class as an Ada Class (see           ////
+////     This class is both a C class and an Ada Class (see             ////
 ////     omniObject.ads). It is wrapped around Rope in order to         ////
 ////     the presence of non default constructors.                      ////
 ////     So, it provides the same functions Rope except that cons-      ////
