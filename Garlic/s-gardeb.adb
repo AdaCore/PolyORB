@@ -172,7 +172,7 @@ package body System.Garlic.Debug is
       if Value = null or else Value.all = "" then
          return Not_Debugging;
       end if;
-      if Current < Max_Debugs then
+      if Current >= Max_Debugs then
          GNAT.IO.Put_Line ("Increase Max_Debugs'value in s-gardeb.adb");
          raise Program_Error;
       end if;

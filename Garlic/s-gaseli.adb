@@ -43,7 +43,7 @@ with System.Garlic.Utils; use System.Garlic.Utils;
 package body System.Garlic.Serial_Line is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("SERIAL", "(s-gaseli): ");
+     Debug_Initialize ("S_GASELI", "(s-gaseli): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

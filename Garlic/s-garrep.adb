@@ -53,7 +53,7 @@ package body System.Garlic.Replay is
    use type Types.Partition_ID;
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("GARREP", "(s-garrep): ");
+     Debug_Initialize ("S_GARREP", "(s-garrep): ");
 
    procedure D
      (Level   : in Debug_Level;

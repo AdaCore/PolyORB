@@ -67,7 +67,7 @@ package body System.Garlic.TCP is
    --      C->R : <Length (Stream_Element_Count)> <Packet>
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("TCP", "(s-gartcp): ");
+     Debug_Initialize ("S_GARTCP", "(s-gartcp): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;

@@ -1,7 +1,11 @@
 1998-08-03  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* DALL, UNDALL, DALL.rc, UNDALL.rc, DALL.el, UNDALL.el: Update due 
+	to last changes.
+	
 	* s-gardeb.adb: Fix a warning. In fact, gnat is over pessimistic.
-
+	Fix a wrong comparison.
+	
 	* s-gaplsp.ads.in: Add a new variable RTS_Sanity_Directory which
 	is used when --with-sanity=dir is activated.
 
