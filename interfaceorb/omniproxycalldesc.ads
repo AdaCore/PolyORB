@@ -19,10 +19,9 @@ package omniProxyCallDesc is
    -- all the following funcitions correspond
    -- to omniORB's OmniProxyCallDesc
    -- In proxyCall.h L33
-   procedure Init (Self : in out Object ;
+   procedure Init (Self : in out Object'Class ;
                    Operator : in String ;
-                   Message : in String
-                  );
+                   Has_Exceptions : Corba.boolean);
 
    function AlignedSize(Size_In: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long is abstract ;
@@ -42,7 +41,10 @@ package omniProxyCallDesc is
 
 private
 
-   type Object is abstract tagged limited null record ;
+   type Object is abstract tagged limited record
+      Pd_Has_User_Exception : Corba.Boolean ;
+      Pd_Operation : Standard.String ;
+   end record ;
 
 end omniproxyCallDesc ;
 

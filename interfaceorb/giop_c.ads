@@ -21,6 +21,8 @@ package Giop_C is
    -- wrapper around GIOP_C::GIOP_C(Rope *r)
    -- in giopClient.cc L54
 
+
+
    procedure Put_Char_Array (Self: in Object ;
                                B: in Corba.String ;
                                Size: in Integer ;
@@ -45,7 +47,7 @@ package Giop_C is
    --                                               CORBA::Boolean startMTU)
    -- in nbufferedStream.cc L 121
 
-   function RequestHeaderSize (Objkeysize : in Integer ;
+   function Request_Header_Size (Objkeysize : in Integer ;
                               Opnamesize : in Integer ) return Integer ;
    -- wrapper around   static size_t RequestHeaderSize(const size_t objkeysize,
    --                                                  const size_t opnamesize);

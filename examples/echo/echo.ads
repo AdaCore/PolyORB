@@ -33,6 +33,10 @@ package Echo is
 
    type OmniProxyCallDesc_Echo is new OmniProxyCallDesc.Object with private ;
 
+   procedure Init(Self: in out OmniProxyCallDesc_Echo ;
+                  Operation : Standard.String ;
+                  Arg : Standard.String ) ;
+
    function AlignedSize(Self: in OmniProxyCallDesc_Echo;
                           Size_In: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long ;
@@ -43,7 +47,7 @@ package Echo is
    procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo;
                                        Giop_Client: in out Giop_C.Object) ;
 
-   function Result (Self : in Ref) return CORBA.String;
+   function Result (Self : in OmniProxyCallDesc_Echo) return CORBA.String;
 
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
@@ -57,7 +61,7 @@ package Echo is
 private
 
    type OmniProxyCallDesc_Echo is new OmniProxyCallDesc.Object with record
-      Arg : Corba.String ;
+      Arg_Msg : Corba.String ;
       Private_Result : Corba.String ;
    end record ;
 

@@ -10,7 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-
+with Corba ;
 
 package Omni is
 
@@ -24,7 +24,9 @@ package Omni is
    -- In Internal.h L 162
 
 
-   -- function Align_To()  ;
+   function Align_To(P: in Corba.Unsigned_Long ;
+                     Align : in Alignment_T)
+                     return Corba.Unsigned_Long ;
    -- wrapper around   static inline ptr_arith_t align_to(
    --                     ptr_arith_t p,
    --                     alignment_t align)

@@ -43,7 +43,7 @@ package Echo.Impl is
 
 private
 
-   type Object is new Corba.Object.Ref with null record;
+   type Object is new Corba.Implementation_Defined.Object with null record;
 
 
 End Echo.Impl ;

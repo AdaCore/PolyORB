@@ -11,6 +11,7 @@
 -----------------------------------------------------------------------
 
 with Omniobject, NetBufferedStream, MemBufferedStream ;
+with Ada.Finalization ;
 
 package Corba.Object is
 
@@ -101,15 +102,25 @@ package Corba.Object is
 
 private
 
-   type Internal_Object ;
+   type Ref is new Ada.Finalization.Controlled with null record ;
 
-   type Dynamic_Type(Ptr : access Internal_Object'Class) is limited null record ;
 
-   type Internal_Object is tagged limited record
-      Dynamic_Object : Dynamic_Type(Internal_Object'Access) ;
-   end record ;
 
-   type Ref is access all Internal_Object'Class ;
+   -------------------------------------------------------------------
+   -- ancienne methode compliquee sans les types controlled
+   --
+   --   type Internal_Object ;
+   --   type Internal_Object_Access is access all Internal_Object'Class ;
+   --
+   --   type Dynamic_Type(Ptr : access Internal_Object'Class) is limited null record ;
+   --
+   --   type Internal_Object is tagged limited record
+   --      Dynamic_Object : Dynamic_Type(Internal_Object'Access) ;
+   --   end record ;
+   --
+   --   type Ref is tagged record
+   --      Internal_Corba_Object : Internal_Object_Access ;
+   --   end record ;
 
    end Corba.Object ;
 

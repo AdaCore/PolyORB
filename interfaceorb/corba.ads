@@ -145,8 +145,11 @@ package Corba is
 
     function To_Standard_String(S: in Corba.String) return Standard.String ;
 
+    function Length(Str : in Corba.String) return Integer ;
 
-
+    Not_Implemented_Yet : exception ;
+    -- thos exception is raised in each function
+    -- which has not been implemented yet
 
 
    -----------------------------------------------------------

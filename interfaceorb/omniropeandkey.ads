@@ -32,7 +32,7 @@ package OmniRopeAndKey is
    -- wrapper around   inline Rope* rope() const { return pd_r; }
    -- in omniInternal.h L 248
 
-   function KeySize (Self : in Object) return CORBA.Unsigned_Long ;
+   function Key_Size (Self : in Object) return CORBA.Unsigned_Long ;
    -- wrapper around inline _CORBA_ULong  keysize() const { return pd_keysize; }
    -- in omniInternal.h L 259
 

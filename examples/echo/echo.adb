@@ -10,8 +10,9 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Corba, Corba.Object, BufferedStream ;
-with Omniproxycalldesc, Omniproxycallwrapper ;
+with BufferedStream ;
+with Omniproxycallwrapper ;
+with Omni ;
 
 package body Echo is
 
@@ -53,9 +54,11 @@ package body Echo is
    function AlignedSize(Self: in OmniProxyCallDesc_Echo;
                         Size_In: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long is
+      Msg_Size : Corba.Unsigned_Long ;
    begin
-      MsgSize := Omni.Align_To(MsgSize,Omni.ALIGN_4) + 5 + Arg'Length;
-      return Size_In;
+      Msg_Size := Omni.Align_To(Size_In,Omni.ALIGN_4)
+        + 5 + Corab.Length(Self.Arg);
+      return Msg_Size ;
    end;
 
    -- MarshalArguments
@@ -64,10 +67,10 @@ package body Echo is
                               Giop_Client: in out Giop_C.Object ) is
       Len : CORBA.Unsigned_Long;
    begin
-      Len := Arg'Length + 1;
+      Len := Self.Arg'Length + 1;
       BufferedStream.Marshall(Len,Giop_Client);
       if (Len > 1) then
-         BufferedStream.Put_Char_Array (Giop_Client,Arg,Len);
+         Giop_C.Put_Char_Array (Giop_Client,Self.Arg,Len);
       else
          BufferedStream.Marshall(Nul,Giop_Client);
       end if;
