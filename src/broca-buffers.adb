@@ -151,10 +151,12 @@ package body Broca.Buffers is
       Set_Initial_Position (Into, Buffer.Initial_CDR_Position);
 
       Allocate_And_Insert_Cooked_Data
-        (Buffer,
+        (Into,
          Octets'Length,
          Copy_Address);
       To_Pointer (Copy_Address).all := Octets;
+
+      Into.CDR_Position := Buffer.Initial_CDR_Position;
 
       return Into;
    end Copy;
