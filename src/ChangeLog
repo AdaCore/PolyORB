@@ -1,3 +1,11 @@
+2001-02-09  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* Droopi.Protocols.Echo: Now creates a Request object when
+	data is received.
+	* corba/*: Parts of imported AdaBroker source code, adapted
+	for use within Droopi, which will constitute all aspects of the
+	CORBA personality.
+
 2001-02-01  Thomas Quinot  <quinot@inf.enst.fr>
 
 	* Droopi.Protocols.Echo: Echoes.
@@ -47,4 +55,3 @@
 	policy depends on ORB, because the policy needs to create a task that
 	executes the ORB => risk of circular dependency between ORB and
 	Tasking_Policies.
-
