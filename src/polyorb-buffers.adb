@@ -442,12 +442,13 @@ package body PolyORB.Buffers is
       Addr : PolyORB.Sockets.Sock_Addr_Type;
       Saved_CDR_Position : constant Stream_Element_Offset
         := Buffer.CDR_Position;
-      subtype Z_Type is Stream_Element_Array (0 .. Max - 1);
    begin
       Allocate_And_Insert_Cooked_Data (Buffer, Max, Data);
       declare
-         Z : Z_Type;
-         for Z'Address use Data;
+         Z_Addr : constant System.Address := Data;
+         Z : Stream_Element_Array (0 .. Max - 1);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
       begin
          PolyORB.Sockets.Receive_Socket
            (Socket => Socket,
@@ -688,10 +689,19 @@ package body PolyORB.Buffers is
             declare
                L : constant Stream_Element_Offset
                  := Stream_Element_Offset (Iovecs (I).Iov_Len);
+
+               S_Addr : constant System.Address
+                 := Iovecs (I).Iov_Base;
                S : Stream_Element_Array (0 .. L - 1);
-               for S'Address use Iovecs (I).Iov_Base;
+               for S'Address use S_Addr;
+               pragma Import (Ada, S);
+
+               D_Addr : constant System.Address
+                 := Into + Offset;
                D : Stream_Element_Array (0 .. L - 1);
-               for D'Address use Into + Offset;
+               for D'Address use D_Addr;
+               pragma Import (Ada, D);
+
             begin
                D := S;
                Offset := Offset + Storage_Offset (L);
@@ -818,12 +828,12 @@ package body PolyORB.Buffers is
 
          while Remainder > 0 loop
             declare
-               P : constant Opaque_Pointer := Vecs (Index).Iov_Base;
-               L : constant Storage_Offset := Vecs (Index).Iov_Len;
-               subtype Z_Type is Stream_Element_Array
-                 (0 .. Stream_Element_Offset (L - 1));
-               Z : Z_Type;
-               for Z'Address use P;
+               Z_Addr : constant Opaque_Pointer := Vecs (Index).Iov_Base;
+               Z : Stream_Element_Array
+                 (0 .. Stream_Element_Offset (Vecs (Index).Iov_Len - 1));
+               for Z'Address use Z_Addr;
+               pragma Import (Ada, Z);
+
                Count : Storage_Offset;
             begin
 
