@@ -619,12 +619,12 @@ package body PolyORB.POA.Basic_POA is
    function Create_Object_Identification
      (Self : access Basic_Obj_Adapter;
       Hint :        Object_Id_Access := null)
-     return Object_Id_Access is
+     return Unmarshalled_Oid is
    begin
-      return U_Oid_To_Oid (Assign_Object_Identifier
+      return Assign_Object_Identifier
         (Self.Id_Assignment_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
-         Hint));
+         Hint);
    end Create_Object_Identification;
 
    ---------------------
@@ -637,7 +637,7 @@ package body PolyORB.POA.Basic_POA is
       Hint      :        Object_Id_Access := null)
      return Object_Id
    is
-      Allocated_Oid : Object_Id_Access
+      Allocated_Oid : constant Unmarshalled_Oid
         := Create_Object_Identification (Self, Hint);
       --  Must be free'd when the object is deactivated.
    begin
@@ -646,7 +646,16 @@ package body PolyORB.POA.Basic_POA is
          POA_Types.Obj_Adapter_Access (Self),
          P_Servant, Allocated_Oid);
 
-      return Allocated_Oid.all;
+      declare
+         A_Oid : Object_Id_Access := U_Oid_To_Oid (Allocated_Oid);
+         Oid : constant Object_Id := A_Oid.all;
+      begin
+         Free (A_Oid);
+         return Oid;
+         --  XXX yuk yuk:
+         --    a number of Oid copies;
+         --    excessive stack allocation.
+      end;
    exception
       when Invalid_Policy =>
          --  Deallocate_Object_Identification (Self, Allocated_Oid);
@@ -720,11 +729,18 @@ package body PolyORB.POA.Basic_POA is
    is
       Servant : Servant_Access;
       A_Oid : aliased Object_Id := Oid;
+      U_Oid : constant Unmarshalled_Oid
+        := Oid_To_U_Oid (A_Oid'Access);
    begin
+      Ensure_Lifespan
+        (Self.Lifespan_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         U_Oid);
+
       Servant := Id_To_Servant
         (Self.Request_Processing_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
-         A_Oid'Access);
+         U_Oid);
       return Servant;
    end Id_To_Servant;
 

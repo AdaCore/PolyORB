@@ -122,7 +122,7 @@ package PolyORB.POA is
    function Create_Object_Identification
      (Self : access Obj_Adapter;
       Hint :        Object_Id_Access := null)
-     return Object_Id_Access
+     return Unmarshalled_Oid
       is abstract;
    --  Reserve a complete object identifier, possibly using
    --  the given Hint (if not null) for the construction of

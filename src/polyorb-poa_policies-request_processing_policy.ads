@@ -49,9 +49,9 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    --  with the given Object_Id.
 
    function Id_To_Servant
-     (Self :        RequestProcessingPolicy;
-      OA   :        PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid  : access Object_Id)
+     (Self  : RequestProcessingPolicy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid)
      return Servant_Access
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:

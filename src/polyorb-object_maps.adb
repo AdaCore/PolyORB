@@ -106,8 +106,8 @@ package body PolyORB.Object_Maps is
    ---------------------
 
    function Is_Object_Id_In
-     (O_Map : in     Object_Map;
-      Item  : access PolyORB.POA_Types.Unmarshalled_Oid)
+     (O_Map : in Object_Map;
+      Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
      return Boolean
    is
    begin
@@ -119,15 +119,15 @@ package body PolyORB.Object_Maps is
    ---------------
 
    function Get_By_Id
-     (O_Map : in     Object_Map;
-      Item  : access PolyORB.POA_Types.Unmarshalled_Oid)
+     (O_Map : in Object_Map;
+      Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
       for I in Elts'Range loop
          if not Is_Null (Elts (I))
-           and then Elts (I).Oid.all = Item.all
+           and then Elts (I).Oid.all = Item
          then
             return Elts (I);
          end if;
@@ -178,22 +178,22 @@ package body PolyORB.Object_Maps is
    -- Remove --
    ------------
 
-   function Remove
+   function Remove_By_Id
      (O_Map : access Object_Map;
-      Item  : access PolyORB.POA_Types.Unmarshalled_Oid)
+      Item  : in     PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
       for I in Elts'Range loop
          if not Is_Null (Elts (I))
-           and then Elts (I).Oid.all = Item.all
+           and then Elts (I).Oid.all = Item
          then
             return Remove_By_Index (O_Map, I);
          end if;
       end loop;
       return null;
-   end Remove;
+   end Remove_By_Id;
 
    ---------------------
    -- Remove_By_Index --

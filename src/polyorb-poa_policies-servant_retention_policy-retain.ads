@@ -49,7 +49,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
      (Self      : Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access;
-      Oid       : Object_Id_Access);
+      U_Oid     : Unmarshalled_Oid);
 
    procedure Forget_Servant_Association
      (Self  : Retain_Policy;

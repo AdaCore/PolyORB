@@ -132,6 +132,10 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       else
 
          --  XXX possible memory leak, to investigate.
+         --  XXX If the servant retention policy is NON_RETAIN,
+         --   should we not get rid of the active object map
+         --   altogether? But in that case how does system id
+         --   attribution cooperate with id_uniqueness_policy?
 
          The_Entry := new Object_Map_Entry;
          Index := Add (POA.Active_Object_Map, The_Entry);
@@ -165,66 +169,5 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          raise PolyORB.POA.Bad_Param;
       end if;
    end Ensure_Oid_Origin;
-
-   ------------------
-   -- Remove_Entry --
-   ------------------
-
-   procedure Remove_Entry
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-   is
-      An_Entry : Object_Map_Entry_Access;
-      Index    : Integer
-        := Integer'Value (To_Standard_String (U_Oid.Id));
-      P_OA     : PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Lock_W (P_OA.Map_Lock);
-      An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
-      if An_Entry = null then
-         raise PolyORB.POA.Object_Not_Active;
-      end if;
-      An_Entry := Object_Maps.Remove_By_Index
-        (P_OA.Active_Object_Map.all'Access, Index);
-      Unlock_W (P_OA.Map_Lock);
-      --  Frees only the Unmarshalled_Oid_Access and the entry.
-      --  The servant has to be freed by the application.
-      Free (An_Entry.Oid);
-      Free (An_Entry);
-   end Remove_Entry;
-
-   -------------------
-   -- Id_To_Servant --
-   -------------------
-
-   function Id_To_Servant
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servant_Access
-   is
-      An_Entry : Object_Map_Entry_Access;
-      Index    : Integer
-        := Integer'Value (To_Standard_String (U_Oid.Id));
-      P_OA     : PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-      Servant  : Servant_Access;
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Lock_R (P_OA.Map_Lock);
-      An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
-      if An_Entry /= null then
-         Servant := An_Entry.Servant;
-      end if;
-      Unlock_R (P_OA.Map_Lock);
-      return Servant;
-   end Id_To_Servant;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

@@ -57,15 +57,4 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
      (Self  : System_Id_Policy;
       U_Oid : Unmarshalled_Oid);
 
-   procedure Remove_Entry
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid);
-
-   function Id_To_Servant
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servant_Access;
-
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

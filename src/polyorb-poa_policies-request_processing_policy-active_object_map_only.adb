@@ -103,9 +103,9 @@ is
    -------------------
 
    function Id_To_Servant
-     (Self :        Active_Map_Only_Policy;
-      OA   :        PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid  : access Object_Id)
+     (Self  : Active_Map_Only_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid)
      return Servant_Access
    is
       use PolyORB.POA_Policies.Servant_Retention_Policy;
@@ -118,8 +118,7 @@ is
 
       Servant := Retained_Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all,
-         OA,
-         Oid_To_U_Oid (Oid));
+         OA, U_Oid);
       --  USE_ACTIVE_OBJECT_MAP_ONLY: only look up the oid in
       --  the object map, do not try to create or locate a servant
       --  on-the-fly or use a default servant.

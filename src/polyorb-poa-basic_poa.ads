@@ -72,7 +72,7 @@ package PolyORB.POA.Basic_POA is
    function Create_Object_Identification
      (Self : access Basic_Obj_Adapter;
       Hint :        Object_Id_Access := null)
-     return Object_Id_Access;
+     return Unmarshalled_Oid;
 
    function Activate_Object
      (Self      : access Basic_Obj_Adapter;

@@ -77,14 +77,14 @@ package PolyORB.Object_Maps is
 
    function Is_Object_Id_In
      (O_Map  : in Object_Map;
-      Item   : access PolyORB.POA_Types.Unmarshalled_Oid)
+      Item   : in PolyORB.POA_Types.Unmarshalled_Oid)
      return Boolean;
    --  Checks if an object_id is already used in the map
    --  (and return True if it is the case)
 
    function Get_By_Id
      (O_Map : in Object_Map;
-      Item  : access PolyORB.POA_Types.Unmarshalled_Oid)
+      Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access;
    --  Given an Object_Id, look up the corresponding map entry.
    --  If not found, returns null.
@@ -104,9 +104,9 @@ package PolyORB.Object_Maps is
    --  Given an index, returns the corrsponding map entry
    --  If Index is out of bounds, returns null.
 
-   function Remove
+   function Remove_By_Id
      (O_Map : access Object_Map;
-      Item  : access PolyORB.POA_Types.Unmarshalled_Oid)
+      Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access;
    --  Given an Object_Id, removes an entry from the map
    --  and returns it . A null value means

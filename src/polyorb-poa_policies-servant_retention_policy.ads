@@ -44,7 +44,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
      (Self      : ServantRetentionPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access;
-      Oid       : Object_Id_Access)
+      U_Oid     : Unmarshalled_Oid)
      is abstract;
 
 
