@@ -52,6 +52,7 @@ adabe_enum::produce_marshal_ads(dep_list with, string &body, string &previous)
   body+=tmp;
 }
 
+
 void 
 adabe_enum::produce_marshal_adb(dep_list with, string &body, string &previous)
 {
@@ -61,10 +62,12 @@ adabe_enum::produce_marshal_adb(dep_list with, string &body, string &previous)
   tmp+= get_ada_local_name();
   tmp+=";S : in out Object'Class) ; \n";
   body+=tmp;
+
 }
 
 string
-adabe_enum::dump_name(dep_list with,string &body, string &previous) {
+adabe_enum::dump_name(dep_list with,string &body, string &previous) 
+{
    if (!is_imported(with))
     {
       if (!is_already_defined())
@@ -77,3 +80,6 @@ adabe_enum::dump_name(dep_list with,string &body, string &previous) {
     }
   return get_ada_full_name();	   
 }
+
+
+

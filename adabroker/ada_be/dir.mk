@@ -6,6 +6,7 @@ CXXSRCS       = \
 		adabe_enum.cc\
 		adabe_enum_val.cc\
 		adabe_exception.cc\
+		adabe_sequences.cc\
 		adabe_string.cc\
 		adabe_constant.cc\
 		adabe_string_list.cc\
@@ -30,6 +31,8 @@ OBJS         = \
 		adabe_array.o\
 		adabe_enum.o\
 		adabe_enum_val.o\
+		adabe_exception.o\
+		adabe_sequences.o\
 		adabe_string.o\
 		adabe_constant.o\
 		adabe_string_list.o\

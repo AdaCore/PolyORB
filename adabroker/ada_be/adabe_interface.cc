@@ -15,6 +15,7 @@ void
 adabe_interface::produce_ads(dep_list with, string &body, string &previous)
 {
   string tmp = "";
+  string corps = "";
   adabe_interface *inher;
   with.add("Corba.Object");
   with.add("Corba");
@@ -24,14 +25,17 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
   body += "   --         The Spec        --\n";
   body += "   -----------------------------\n\n";
 
-  if (n_inherits() == 0) body += "   type Ref is new Corba.Object.Ref with null record;\n";
-
+  if (n_inherits() == 0) 
+    {
+      corps = "Corba.Object";
+      body += "   type Ref is new Corba.Object.Ref with null record;\n";
+    }
  // forward declarated
 
   if (pd_is_forwarded == true)           
     {
       with.add(get_ada_full_name()+"_Forward");
-      tmp += "   package Convert is new " + get_ada_full_name() + "_Forward.Convert(Ref);\n";
+      tmp += "   package Convert is new " + get_ada_full_name() + "_Forward.Convert(Ref) ;\n";
     }
 
   //inheritance
@@ -40,7 +44,8 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
     {
       inher = adabe_interface::narrow_from_decl(inherits()[0]);
       with.add(inher->get_ada_full_name());
-      body += "   type Ref is new " + inher->get_ada_full_name() + ".Ref with null record;\n";
+      corps = inher->get_ada_full_name();
+      body += "   type Ref is new " + corps + ".Ref with null record ;\n";
       tmp += "\n -- inheritance from " + inher->get_ada_full_name();
       tmp += "\n --------------------------------------------------";
       {
@@ -61,7 +66,7 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
 	      case AST_Decl::NT_string:
 	      case AST_Decl::NT_array:	    
 		tmp += "   subtype" +  e->get_ada_local_name();
-		tmp += " is " + e->get_ada_full_name() + ";\n";	      
+		tmp += " is " + e->get_ada_full_name() + " ;\n";	      
 		break;
 	      case AST_Decl::NT_op:
 	      case AST_Decl::NT_attr:
@@ -103,7 +108,7 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
 		      case AST_Decl::NT_string:
 		      case AST_Decl::NT_array:			
 			tmp += "      subtype" +  e->get_ada_local_name();
-			tmp += " is " + e->get_ada_full_name() + ";\n";			
+			tmp += " is " + e->get_ada_full_name() + " ;\n";			
 			break;
 		      case AST_Decl::NT_op:
 		      case AST_Decl::NT_attr:
@@ -122,9 +127,9 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
 	    }
 	}
     }
-  body += "   type Ref_Ptr is access all Ref'Class;\n\n";
-  body += "   Nil_Ref : aliased constant Ref;\n";
-  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'CLASS) return Ref;\n";
+  body += "   type Ref_Ptr is access all Ref'Class ;\n\n";
+  body += "   Nil_Ref : aliased constant Ref ;\n";
+  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'CLASS) return Ref ;\n";
   body += tmp;
   
   // instructions
@@ -147,12 +152,14 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
   body += "   -----------------------------\n\n";
   
   body += "   Repository_Id : Corba.String := Corba.To_Corba_String(";//... repositoryID()
-  body += "   function Get_Repository_Id(Self : in Ref) return Corba.String;\n";
-  body += "   function Is_A(The_Ref : in Ref; Repo_Id : in Corba.String) return Corba.Boolean;\n";
-  body += "   function Is_A(Repo_Id : in Corba.String) return Corba.Boolean;\n";
-  body += "   Get_Nil_Ref(Self : in Ref) return Ref;\n"; 
-  
-  body += "end " + get_ada_full_name() + "\n";    
+  body += "   function Get_Repository_Id(Self : in Ref) return Corba.String ;\n";
+  body += "   function Is_A(The_Ref : in Ref; Repo_Id : in Corba.String) return Corba.Boolean ;\n";
+  body += "   function Is_A(Repo_Id : in Corba.String) return Corba.Boolean ;\n";
+  body += "   Get_Nil_Ref(Self : in Ref) return Ref ;\n"; 
+  body += "\nprivate\n";
+  body += "   Nil_Ref : aliased constant Ref := " + corps;
+  body += "   .Nil_Ref with null record) ;\n";
+  body += "end " + get_ada_full_name() + " ;\n";    
   set_already_defined();
 }
   
@@ -160,11 +167,16 @@ void
 adabe_interface::produce_adb(dep_list with, string &body, string &previous)
 {
   string tmp = "";
+  adabe_interface *inher;
+
   with.add("Ada.Exceptions");
   with.add("Corba.Object");
   body += "use Corba.Object ;\n";
   body += "use type Corba.String ;\n";
   body += "pakage body" + get_ada_full_name() + " is \n";
+  body += "\n   -----------------------------\n";
+  body += "   --         The Spec        --\n";
+  body += "   -----------------------------\n\n";
   body += "   function To_Ref(The_Ref : in Corba.Object.ref'Class) return Ref is\n";
   body += "      Dynamic_Type : Corba.Oject.Ref'Class := Get_Dynamic_Type(The_Ref) ;\n";
   body += "      Result : Ref ;\n";
@@ -173,35 +185,104 @@ adabe_interface::produce_adb(dep_list with, string &body, string &previous)
   body += "      if Is_A(Dynamic_Type, Repo_Id) then\n";
   body += "         return (Corba.Object.Ref(The_Ref) with null record) ;\n"; 
   body += "      end if ;\n\n";
-  body += "      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity, \"Cannot cast \"
-  body +=
-  body +=
-  body +=
+  body += "      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,\n";
+  body += "                                    \"Cannot cast \"\n";
+  body += "                                    & Corba.To_Standard_String(Get_Repository_Id(The_Ref))\n"; 
+  body += "                                    & Corba.CRLF\n";
+  body += "                                    & Corba.To_Standard_String(Repo_Id)) ;\n";
+  body += "   end ;\n"; 
 
-//////////////////////////// a completer /////////////////////////////////////
+  //multiple inheritance definition
 
-
-
-  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
-  while (!i.is_done())
+  for(int i = 1; i < n_inherits(); i++)
     {
-      AST_Decl *d = i.item();
-      switch(d->node_type())
-	{
-	case AST_Decl::NT_attr:
-	case AST_Decl::NT_op:
+      inher = adabe_interface::narrow_from_decl(inherits()[i]);
+      with.add(inher->get_ada_full_name() + ".Proxies");
+      body += "\n -- inheritance from " + inher->get_ada_full_name();
+      body += "\n --------------------------------------------------";
+      {
+	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
+	while (!j.is_done())
 	  {
-	    string tmp1 = "";
-	    string tmp2 = "";
-	    adabe_name::narrow_from_decl(d)->produce_adb(with, tmp1, tmp2);
-	    body += tmp2 + tmp1;
+	    AST_Decl *d = j.item();
+	    adabe_name *e = adabe_name::narrow_from_decl(d);
+	    switch(d->node_type())
+	      {
+	      case AST_Decl::NT_op:
+	      case AST_Decl::NT_attr:
+		{
+		  string tempo1 = "";
+		  string tempo2 = "";
+		  e->produce_adb(with, tempo1, tempo2);
+		  body += tempo2 + tempo1;
+		}
+		break;
+	      default:break;
+	      }
+	    j.next();
 	  }
-	    break;	    
-	default:break;
-	}
-      i.next();
+      }
     }
-  body += "\n end; " + get_ada_full_name() + "\n";
+
+  // the instructions
+  body += "\n --          IDL SPEC                            --\n";
+  body += "\n --------------------------------------------------";
+  {
+    UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+    while (!i.is_done())
+      {
+	AST_Decl *d = i.item();
+	switch(d->node_type())
+	  {
+	  case AST_Decl::NT_attr:
+	  case AST_Decl::NT_op:
+	    {
+	      string tmp1 = "";
+	      string tmp2 = "";
+	      adabe_name::narrow_from_decl(d)->produce_adb(with, tmp1, tmp2);
+	      body += tmp2 + tmp1;
+	    }
+	    break;	    
+	  default:break;
+	  }
+	i.next();
+      }
+  }
+  body += "\n   -----------------------------\n";
+  body += "   --       Not in Spec       --\n";
+  body += "   -----------------------------\n\n";
+  body += "   function Get_Repository_Id(Self : in Ref) return Corba.String is\n";
+  body += "   begin\n";
+  body += "      return Repository_Id ;\n";
+  body += "   end ;\n";    
+  body += "   function Is_A(The_Ref : in Ref\n"; 
+  body += "                 Repo_Id : in Corba.String)\n";
+  body += "                 return Corba.Boolean is\n";
+  body += "   begin\n";
+  body += "      return Is_A(Repo_Id) ;\n";
+  body += "   end ;\n";    
+  body += "   function Is_A(Repo_Id : in Corba.String)\n";
+  body += "                 return Corba.Boolean is\n";
+  body += "   begin\n";
+  body += "      return (Repository_Id = Repo_Id\n";
+  for(int i = 0; i < n_inherits(); i++)
+    {
+      inher = adabe_interface::narrow_from_decl(inherits()[i]);
+      body += "              or ";
+      body += inher->get_ada_full_name();
+      body += ".IS_A(Repo_Id)";
+      if (i != n_inherits()-1) body += "\n";
+    }
+  body += ");\n";
+  body += "   end ;\n";    
+  body += "   Get_Nil_Ref(Self : in Ref) return Ref ;\n"; 
+  body += "   begin\n";
+  body += "      Nil_Ref ;\n";
+  body += "   end ;\n\n";
+  body += "begin\n";
+  body += "   Corba.Object.Register(Repository_Id, Nil_Ref'Access) ;\n";
+  body += "   Corba.Object.Create_Proxy_Object_Factory(Repository_Id) ;\n";   
+  body += "end ; " + get_ada_full_name() + "\n";  
 }
 
 void
@@ -219,7 +300,7 @@ adabe_interface::produce_impl_ads(dep_list with, string &body, string &previous)
   if (pd_is_forwarded == true)           
     {
       with.add(get_ada_full_name() + "_Forward");
-      tmp += "   package Convert is access " + get_ada_full_name() + "_Forward.Convert(Object);\n";
+      tmp += "   package Convert is access " + get_ada_full_name() + "_Forward.Convert(Object) ;\n";
     }
   if (n_inherits() > 0)
     {
@@ -346,7 +427,7 @@ adabe_interface::produce_skel_ads(dep_list with, string &body, string &previous)
   body += "   procedure Adabroker_Dispatch (Self : in out ";
   body += get_ada_full_name();
   body += ".Impl.Object ; Orls : in Giop_S.Object ; Orl_Op : in Corba.String ; Orl_Response_Expected : in Corba.Boolean ; Returns : out Corba.Boolean ); \n";
-  body += "end " + get_ada_full_name() + ".Skeleton ;\n";
+  body += "end " + get_ada_full_name() + ".Skeleton  ;\n";
 }
 
 void

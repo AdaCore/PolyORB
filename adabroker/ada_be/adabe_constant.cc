@@ -7,7 +7,7 @@ adabe_constant::adabe_constant(AST_Expression::ExprType et,
 			 UTL_StrList *p)
 	   : AST_Constant(et, v, n, p),
 	     AST_Decl(AST_Decl::NT_const, n, p),
-	     adabe_name(AST_Decl::NT_const,n,p)
+	     adabe_name()
 {
 }
 

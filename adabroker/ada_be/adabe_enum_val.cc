@@ -1,5 +1,3 @@
-//file adabe_enumval.cc
-
 #include <adabe.h>
 
   
