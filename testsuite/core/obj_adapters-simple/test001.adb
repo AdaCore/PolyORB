@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 0                               --
+--                              T E S T 0 0 1                               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -36,7 +36,8 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
-with PolyORB.Obj_Adapters.Simple;
+with PolyORB.POA.Basic_POA;
+with PolyORB.POA_Config.Minimum;
 with PolyORB.Report;
 
 with PolyORB.Setup.No_Tasking_Server;
@@ -45,16 +46,19 @@ pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 
 with Test_Common;
 
-procedure Test000 is
+procedure Test001 is
 
    use Ada.Text_IO;
    use Ada.Exceptions;
 
-   use PolyORB.Obj_Adapters.Simple;
+   use PolyORB.POA.Basic_POA;
 
 begin
    PolyORB.Initialization.Initialize_World;
-   Test_Common.Test_Simple_OA (new Simple_Obj_Adapter);
+   PolyORB.POA_Config.Set_Configuration
+     (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
+
+   Test_Common.Test_Simple_OA (new Basic_Obj_Adapter);
    PolyORB.Report.End_Report;
 
 exception
@@ -65,4 +69,4 @@ exception
                 & Exception_Message (E));
       PolyORB.Report.Output ("END TESTS", False);
 
-end Test000;
+end Test001;
