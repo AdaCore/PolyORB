@@ -33,10 +33,13 @@
 --  $Id$
 
 with Ada.Real_Time; use Ada.Real_Time;
-with MOMA.Types;
+
 with MOMA.Destinations;
+with MOMA.Types;
+
+with PolyORB.Call_Back;
 with PolyORB.References;
-with PolyORB.Components;
+
 
 package MOMA.Message_Producers is
 
@@ -49,7 +52,7 @@ package MOMA.Message_Producers is
       Destination    : MOMA.Destinations.Destination;
       Type_Id_Of     : MOMA.Types.String;
       Ref            : PolyORB.References.Ref;
-      CBH            : PolyORB.Components.Component_Access;
+      CBH            : PolyORB.Call_Back.CBH_Access;
    end record;
 
    procedure Close;

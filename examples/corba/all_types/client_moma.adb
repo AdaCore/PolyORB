@@ -84,6 +84,7 @@ procedure Client_MOMA is
 
    begin
       --  Create new Text Message
+      Put_Line ("Formatting message.");
       MExecute_Message_Sent := Create_Execute_Message;
       Method_Name := (Name  => To_MOMA_String ("method"),
                       Value => To_Any (To_MOMA_String ("echoString")));
@@ -100,8 +101,11 @@ procedure Client_MOMA is
 
       Set_Parameter (MExecute_Message_Sent, Parameter_Map);
 
+      Put_Line ("Sending message.");
+
       Send (MOMA2ORB_Producer, MExecute_Message_Sent);
-      Put_Line ("Request sent !");
+
+      Put_Line ("Message sent.");
 
    end Test_MExecute;
 
@@ -122,7 +126,6 @@ begin
                                        To_MOMA_String (Argument (2)));
 
    --  Testing MExecute.
-
    Test_MExecute;
 
 end Client_MOMA;

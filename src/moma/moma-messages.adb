@@ -35,6 +35,7 @@
 with MOMA.Destinations;
 with MOMA.Messages.MAnys;
 with MOMA.Messages.MBytes;
+with MOMA.Messages.MExecutes;
 with MOMA.Messages.MMaps;
 with MOMA.Messages.MTexts;
 with MOMA.Types;
@@ -82,6 +83,7 @@ package body MOMA.Messages is
    is
       use MOMA.Messages.MAnys;
       use MOMA.Messages.MBytes;
+      use MOMA.Messages.MExecutes;
       use MOMA.Messages.MMaps;
       use MOMA.Messages.MTexts;
 
@@ -156,6 +158,11 @@ package body MOMA.Messages is
             Rcvd_Message : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
          begin
             Set_Message_Id (Rcvd_Message, Message_Id);
+            Set_Correlation_Id (Rcvd_Message, Correlation_Id);
+            Set_Destination (Rcvd_Message, Destination);
+            Set_Reply_To (Rcvd_Message, Reply_To);
+            Set_Persistent (Rcvd_Message, Is_Persistent);
+            Set_Redelivered (Rcvd_Message, Is_Redelivered);
             Set_Payload (Rcvd_Message, Payload);
             return Rcvd_Message;
          end;
@@ -165,6 +172,11 @@ package body MOMA.Messages is
             Rcvd_Message : MOMA.Messages.MMaps.MMap := Create_Map_Message;
          begin
             Set_Message_Id (Rcvd_Message, Message_Id);
+            Set_Correlation_Id (Rcvd_Message, Correlation_Id);
+            Set_Destination (Rcvd_Message, Destination);
+            Set_Reply_To (Rcvd_Message, Reply_To);
+            Set_Persistent (Rcvd_Message, Is_Persistent);
+            Set_Redelivered (Rcvd_Message, Is_Redelivered);
             Set_Payload (Rcvd_Message, Payload);
             return Rcvd_Message;
          end;
@@ -174,6 +186,26 @@ package body MOMA.Messages is
             Rcvd_Message : MOMA.Messages.MTexts.MText := Create_Text_Message;
          begin
             Set_Message_Id (Rcvd_Message, Message_Id);
+            Set_Correlation_Id (Rcvd_Message, Correlation_Id);
+            Set_Destination (Rcvd_Message, Destination);
+            Set_Reply_To (Rcvd_Message, Reply_To);
+            Set_Persistent (Rcvd_Message, Is_Persistent);
+            Set_Redelivered (Rcvd_Message, Is_Redelivered);
+            Set_Payload (Rcvd_Message, Payload);
+            return Rcvd_Message;
+         end;
+
+      elsif Type_Of_Message = Execute_M then
+         declare
+            Rcvd_Message : MOMA.Messages.MExecutes.MExecute
+              := Create_Execute_Message;
+         begin
+            Set_Message_Id (Rcvd_Message, Message_Id);
+            Set_Correlation_Id (Rcvd_Message, Correlation_Id);
+            Set_Destination (Rcvd_Message, Destination);
+            Set_Reply_To (Rcvd_Message, Reply_To);
+            Set_Persistent (Rcvd_Message, Is_Persistent);
+            Set_Redelivered (Rcvd_Message, Is_Redelivered);
             Set_Payload (Rcvd_Message, Payload);
             return Rcvd_Message;
          end;

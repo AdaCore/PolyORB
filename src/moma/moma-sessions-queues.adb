@@ -41,6 +41,7 @@ with MOMA.Provider.Message_Consumer;
 with MOMA.Provider.Message_Producer;
 with MOMA.Types;
 
+with PolyORB.Annotations;
 with PolyORB.Call_Back;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
@@ -182,9 +183,14 @@ package body MOMA.Sessions.Queues is
                            Mesg_Pool  : MOMA.Types.String)
                            return MOMA.Message_Producers.Queues.Queue
    is
+
+      use MOMA.Types;
+      use MOMA.Message_Producers.Queues;
+
+      use PolyORB.Annotations;
+      use PolyORB.Call_Back;
       use PolyORB.References;
       use PolyORB.References.IOR;
-      use MOMA.Types;
       use PolyORB.Types;
 
       Queue : MOMA.Message_Producers.Queues.Queue;
@@ -200,22 +206,18 @@ package body MOMA.Sessions.Queues is
          raise  Program_Error;
       end if;
 
-      pragma Warnings (Off);
-      pragma Unreferenced (Mesg_Pool);
-      pragma Warnings (On);
-
       Set_Ref (Message_Producer (Queue), ORB_Object_IOR);
       Set_Type_Id_Of (Message_Producer (Queue), Type_Id_S);
       Queue.CBH := new PolyORB.Call_Back.Call_Back_Handler;
       --  XXX should free this memory sometime, somewhere ...
 
-      PolyORB.Call_Back.Attach_Handler_To_CB
-        (PolyORB.Call_Back.Call_Back_Handler (Queue.CBH.all),
+      Attach_Handler_To_CB
+        (Call_Back_Handler (Queue.CBH.all),
          MOMA.Message_Producers.Queues.Response_Handler'Access);
 
-      PolyORB.Call_Back.Attach_Dest_Ref_To_CB
-        (PolyORB.Call_Back.Call_Back_Handler (Queue.CBH.all),
-         Dest_Ref_Object_IOR);
+      Set_Note
+         (Notepad_Of (Queue.CBH).all,
+          CBH_Note'(Note with Dest => Dest_Ref_Object_IOR));
 
       return Queue;
    end Create_Sender;

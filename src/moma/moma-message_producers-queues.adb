@@ -36,14 +36,14 @@ with MOMA.Messages;
 with MOMA.Messages.MExecutes;
 with MOMA.Types;
 
+with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Call_Back;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.References;
 with PolyORB.Types;
-
-with PolyORB.Call_Back;
 
 package body MOMA.Message_Producers.Queues is
 
@@ -144,6 +144,7 @@ package body MOMA.Message_Producers.Queues is
                           Message : MOMA.Messages.Message'Class)
    is
       use PolyORB.Any.TypeCode;
+      use PolyORB.Call_Back;
 
       Request       : PolyORB.Requests.Request_Access;
       Arg_List      : PolyORB.Any.NVList.Ref;
@@ -196,7 +197,7 @@ package body MOMA.Message_Producers.Queues is
 
          if Result_TypeCode /= TypeCode.TC_Void then
             pragma Debug (O ("Non void return parameter."));
-            PolyORB.Call_Back.Attach_Request_To_CB (Request, Self.CBH);
+            Attach_Request_To_CB (Request, Self.CBH);
          end if;
 
          pragma Debug (O ("Invoking : "
@@ -213,85 +214,6 @@ package body MOMA.Message_Producers.Queues is
       end;
 
    end Send_To_ORB;
-
-   ------------------
-   -- Send_Receive --
-   ------------------
-
---     function Send_Receive (Self : MOMA.Connections.Queues.Queue;
---                            Operation_Name : String;
---                            Message : MOMA.Messages.Message'Class)
---                            return MOMA.Messages.Message'Class
---     is
---        Argument_Mesg : PolyORB.Any.Any := Get_Payload (Message);
-
---        Request       : PolyORB.Requests.Request_Access;
---        Arg_List      : PolyORB.Any.NVList.Ref;
---        Result        : PolyORB.Any.NamedValue;
---        Result_Name   : PolyORB.Types.String := To_PolyORB_String ("Result");
---        Result_Any    : PolyORB.Any.Any;
---        TypeCode_Kind : PolyORB.Any.TCKind;
-
---     begin
---        PolyORB.Any.NVList.Create (Arg_List);
-
---        PolyORB.Any.NVList.Add_Item (Arg_List,
---                                     To_PolyORB_String ("Message"),
---                                     Argument_Mesg,
---                                     PolyORB.Any.ARG_IN);
-
---        Result := (Name      => PolyORB.Types.Identifier (Result_Name),
---                   Argument  => Get_Empty_Any (Get_Type (Argument_Mesg)),
---                   Arg_Modes => 0);
-
---        PolyORB.Requests.Create_Request
---          (Target    => Get_Ref (Self),
---           Operation => Operation_Name,
---           Arg_List  => Arg_List,
---           Result    => Result,
---           Req       => Request);
-
---        PolyORB.Requests.Invoke (Request);
-
---        PolyORB.Requests.Destroy_Request (Request);
-
---        Result_Any := Result.Argument;
---        pragma Debug (O ("Received " & PolyORB.Any.Image (Result_Any)));
-
---        TypeCode_Kind := TypeCode.Kind (Get_Type (Result_Any));
---        if TypeCode_Kind = Tk_String then
---           declare
---              Rcvd_Message : MOMA.Messages.MTexts.MText
---                := Create_Text_Message;
---           begin
---              Set_Payload (Rcvd_Message, Result_Any);
---              return Rcvd_Message;
---           end;
-
---        elsif TypeCode_Kind = Tk_Boolean or
---          TypeCode_Kind = Tk_Octet or
---          TypeCode_Kind = Tk_Char or
---          TypeCode_Kind = Tk_Double or
---          TypeCode_Kind = Tk_Float or
---          TypeCode_Kind = Tk_Long or
---          TypeCode_Kind = Tk_Short or
---          TypeCode_Kind = Tk_Ulong or
---          TypeCode_Kind = Tk_Ushort
---        then
---           declare
---              Rcvd_Message : MOMA.Messages.MBytes.MByte
---       := Create_Byte_Message;
---           begin
---              Set_Payload (Rcvd_Message, Result_Any);
---              return Rcvd_Message;
---           end;
---        end if;
-
---        raise Program_Error;
---        --  Should not come to this point.
-
---     end Send_Receive;
-
 
    ----------
    -- Send --
@@ -317,10 +239,13 @@ package body MOMA.Message_Producers.Queues is
    -- Response_Handler --
    ----------------------
 
-   procedure Response_Handler (Req : PolyORB.Requests.Request;
-                               Ref : PolyORB.References.Ref)
+   procedure Response_Handler
+     (Req : PolyORB.Requests.Request;
+      CBH : access PolyORB.Call_Back.Call_Back_Handler)
    is
+      use PolyORB.Annotations;
       use PolyORB.Any;
+      use PolyORB.Call_Back;
 
       Message : MExecute := Create_Execute_Message;
    begin
@@ -331,6 +256,7 @@ package body MOMA.Message_Producers.Queues is
          Method_Name   : Map_Element;
          Return_1      : Map_Element;
          Parameter_Map : Map;
+         Note          : CBH_Note;
       begin
          Method_Name := (Name  => To_MOMA_String ("method"),
                          Value => To_Any
@@ -342,7 +268,8 @@ package body MOMA.Message_Producers.Queues is
          Append (Parameter_Map, Return_1);
          Set_Parameter (Message, Parameter_Map);
 
-         Send_To_MOM (Ref, Message);
+         Get_Note (Notepad_Of (CBH).all, Note);
+         Send_To_MOM (Note.Dest, Message);
       end;
    end Response_Handler;
 

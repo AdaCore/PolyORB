@@ -35,11 +35,18 @@
 with MOMA.Messages;
 with MOMA.Types;
 
+with PolyORB.Annotations;
+with PolyORB.Call_Back;
+with PolyORB.References;
 with PolyORB.Requests;
 
 package MOMA.Message_Producers.Queues is
 
    type Queue is new Message_Producer with null record;
+
+   type CBH_Note is new PolyORB.Annotations.Note with record
+      Dest : PolyORB.References.Ref;
+   end record;
 
    --  function Get_Queue return MOMA.Destinations.Queues.Queue;
 
@@ -52,8 +59,9 @@ package MOMA.Message_Producers.Queues is
                    Priority_Value : MOMA.Types.Priority;
                    TTL            : Time);
 
-   procedure Response_Handler (Req : PolyORB.Requests.Request;
-                               Ref : PolyORB.References.Ref);
+   procedure Response_Handler
+     (Req : PolyORB.Requests.Request;
+      CBH : access PolyORB.Call_Back.Call_Back_Handler);
    --  Call back handler attached to a MOM producer interacting with
    --  a ORB node.
 

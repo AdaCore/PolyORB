@@ -33,24 +33,25 @@
 --  Call back component.
 --
 --  A Call back component act as a request 'bouncer'. It is associated to a
---  call back function that will receive an Executed_Message message in
+--  call back function that will receive the Executed_Message message in
 --  place of the emitter, and will bounce this message to another destination
 --  using its handler.
 
 --  $Id$
 
+with PolyORB.Annotations;
 with PolyORB.Components;
-with PolyORB.References;
 with PolyORB.Requests;
 
 package PolyORB.Call_Back is
 
    use PolyORB.Components;
 
-   type Handler is access procedure (Req : PolyORB.Requests.Request;
-                                     Ref : PolyORB.References.Ref);
-
    type Call_Back_Handler is new PolyORB.Components.Component with private;
+   type CBH_Access is access all Call_Back_Handler'Class;
+
+   type Handler is access procedure (Req : PolyORB.Requests.Request;
+                                     CBH : access Call_Back_Handler);
 
    function Handle_Message
      (CB_Handler : access Call_Back_Handler;
@@ -59,7 +60,7 @@ package PolyORB.Call_Back is
 
    procedure Attach_Request_To_CB
      (Req        : access PolyORB.Requests.Request;
-      CB_Handler :        PolyORB.Components.Component_Access);
+      CB_Handler :        PolyORB.Call_Back.CBH_Access);
    --  Attach a specific request to call back component.
 
    procedure Attach_Handler_To_CB
@@ -67,16 +68,21 @@ package PolyORB.Call_Back is
       CB_Function :        Handler);
    --  Attach a handler to call back component.
 
-   procedure Attach_Dest_Ref_To_CB
-     (CB_Handler : in out PolyORB.Call_Back.Call_Back_Handler;
-      Dest_Ref   :        PolyORB.References.Ref);
-   --  Attach a Destination Reference to call back component.
+   function Notepad_Of
+     (CB_Handler : access PolyORB.Call_Back.Call_Back_Handler)
+     return PolyORB.Annotations.Notepad_Access;
 
 private
 
    type Call_Back_Handler is new PolyORB.Components.Component with record
       CB_Function : Handler;
-      Dest_Ref    : PolyORB.References.Ref;
+      Notepad : aliased Annotations.Notepad;
    end record;
 
+   pragma Inline (Attach_Request_To_CB,
+                  Attach_Handler_To_CB,
+                  Notepad_Of);
+
+
 end PolyORB.Call_Back;
+
