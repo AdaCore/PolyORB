@@ -41,7 +41,7 @@ package Idlac_Flags is
    Keep_Temporary_Files   : Boolean  := False;
    Preprocess_Only        : Boolean  := False;
    To_Stdout              : Boolean  := False;
-   Verbose                : Boolean  := True;
+   Verbose                : Boolean  := False;
    Generate_Delegate      : Boolean  := False;
    Generate_IR            : Boolean  := True;
    Character_Encoding     : Encoding := ISO_Latin_1;

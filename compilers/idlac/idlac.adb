@@ -65,7 +65,8 @@ procedure Idlac is
       Put_Line (Current_Error, "  -i     Generate implementation template.");
       Put_Line (Current_Error, "  -k     Keep temporary files.");
       Put_Line (Current_Error, "  -p     Produce source on standard output.");
-      Put_Line (Current_Error, "  -q     Be quiet.");
+      Put_Line (Current_Error, "  -q     Be quiet (default).");
+      Put_Line (Current_Error, "  -v     Be verbose.");
       Put_Line (Current_Error, "  -noir  Don't generate code for "
                 & "interface repository.");
       Put_Line (Current_Error, "  -gnatW8");
@@ -85,7 +86,7 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: d i k p q noir gnatW8") is
+         case Getopt ("E I: d i k p q v noir gnatW8") is
             when ASCII.Nul => exit;
 
             when 'E' =>
@@ -117,6 +118,9 @@ begin
 
             when 'q' =>
                Verbose := False;
+
+            when 'v' =>
+               Verbose := True;
 
             when 'g' =>
                Character_Encoding := UTF_8;

@@ -4,7 +4,7 @@
 idlac \- PolyORB's IDL-to-Ada compiler
 
 .SH SYNOPSIS
-.B idlac [-E] [-d] [-i] [-k] [-p] [-q] [-noir] idl_file [-cppargs ...]
+.B idlac [-E] [-d] [-i] [-k] [-p] [-q] [-v] [-noir] idl_file [-cppargs ...]
 
 .SH DESCRIPTION
 \fIidlac\fP is an IDL-to-Ada compiler, compliant with version 1.2 of the "Ada Language Mapping Specification" produced by the OMG.
@@ -30,7 +30,10 @@ Keep temporary files.
 Produce source on standard output.
 .TP 8
 .B  \-q
-Be quiet.
+Be quiet (default).
+.TP 8
+.B  \-v
+Be verbose.
 .TP 8
 .B \-noir
 Don't generate code for interface repository.

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,7 +27,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+* PolyORB 1.3 (not released yet)
+================================
+
+idlac is now quiet by default. The '-v' command line flag can be used
+to make it verbose. The '-q' command line flag is now a no-op and will
+be removed in a future release.
+
 * PolyORB 1.2r (released 2004-12-17)
+====================================
 
 This release contains a CORBA-compatible instantiation of the PolyORB
 generic middleware. In addition to the 1.1r release, it includes:
@@ -46,6 +54,7 @@ policies. It implements the No Tasking, Basic, Leader/Followers and
 Half Sync/Half Async design patterns.
 
 * PolyORB 1.1r (released 2004-06-07)
+====================================
 
 This release contains a CORBA-compatible instantiation of the PolyORB
 generic middleware. In addition to the 1.0 release, it includes:
@@ -59,6 +68,7 @@ generic middleware. In addition to the 1.0 release, it includes:
   specialization of GIOP for oneway requests.
 
 * PolyORB 1.0 (released 2003-06-16)
+===================================
 
 This release contains a CORBA-compliant instantiation of the PolyORB
 generic middleware. It includes:
@@ -79,6 +89,7 @@ This release should be considered as a stable implementation of
 CORBA middleware over PolyORB.
 
 * PolyORB 0.1 (released 2001-12-04)
+===================================
 
 This is the first public release of PolyORB code. This release
 contains the personality-neutral middleware core, the CORBA

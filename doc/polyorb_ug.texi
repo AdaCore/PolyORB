@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#52 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#53 $
 
 @include version.texi
 
@@ -1487,7 +1487,7 @@ NAME
        idlac - PolyORB's IDL-to-Ada compiler
 
 SYNOPSIS
-       idlac [-E] [-d] [-i] [-k] [-p] [-q] [-noir] idl_file [-cppargs ...]
+       idlac [-E] [-d] [-i] [-k] [-p] [-q] [-v] [-noir] idl_file [-cppargs ...]
 
 DESCRIPTION
        idlac is an IDL-to-Ada compiler, compliant with version 1.2 of the "Ada
@@ -1506,7 +1506,9 @@ OPTIONS
 
        -p      Produce source on standard output.
 
-       -q      Be quiet.
+       -q      Be quiet (default).
+
+       -v      Be verbose.
 
        -noir   Don't generate code for interface repository.
 
