@@ -37,6 +37,7 @@
 
 with Ada.Streams; use Ada.Streams;
 
+with PolyORB.Binding_Objects;
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Components; use PolyORB.Components;
 with PolyORB.Exceptions;
@@ -54,11 +55,12 @@ package PolyORB.Filters.Interface is
    subtype Data_Unit is Root_Data_Unit'Class;
 
    type Set_Server is new Root_Data_Unit with record
-      Server : Components.Component_Access;
+      Server         : Components.Component_Access;
+      Binding_Object : Binding_Objects.Binding_Object_Access;
    end record;
    --  Direction: from lower to upper.
    --  Semantics: inform stacks participants of the ORB
-   --  component they are working for.
+   --  components they are working for.
 
    type Set_Target_Object is new Root_Data_Unit with record
       Target : PolyORB.Types.String;

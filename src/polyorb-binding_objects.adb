@@ -78,14 +78,25 @@ package body PolyORB.Binding_Objects is
    -- Get_Component --
    -------------------
 
-   function Get_Component
-     (X : Smart_Pointers.Ref)
+   function Get_Component (X : Smart_Pointers.Ref)
       return Components.Component_Access
    is
    begin
       return Components.Component_Access
         (Binding_Object_Access (Smart_Pointers.Entity_Of (X)).Top);
    end Get_Component;
+
+   ------------------
+   -- Get_Endpoint --
+   ------------------
+
+   function Get_Endpoint (X : Smart_Pointers.Ref)
+      return Transport.Transport_Endpoint_Access
+   is
+   begin
+      return Binding_Object_Access
+        (Smart_Pointers.Entity_Of (X)).Transport_Endpoint;
+   end Get_Endpoint;
 
    --------------------------
    -- Setup_Binding_Object --
@@ -102,17 +113,23 @@ package body PolyORB.Binding_Objects is
       Bottom : Filters.Filter_Access;
    begin
       BO  := new Binding_Object;
+      Smart_Pointers.Set (BO_Ref, Smart_Pointers.Entity_Ptr (BO));
+
+      BO.Transport_Endpoint := TE;
       Filters.Create_Filter_Chain
         (FFC,
          Bottom => Bottom,
          Top    => BO.Top);
-      ORB.Register_Endpoint
+
+      Transport.Connect_Upper
+        (TE, Components.Component_Access (Bottom));
+      Filters.Connect_Lower
+        (Bottom, Components.Component_Access (TE));
+
+      ORB.Register_Binding_Object
         (The_ORB,
-         TE,
-         Bottom,
+         BO_Ref,
          Role);
-      BO.Transport_Endpoint := TE;
-      Smart_Pointers.Set (BO_Ref, Smart_Pointers.Entity_Ptr (BO));
    end Setup_Binding_Object;
 
 end PolyORB.Binding_Objects;

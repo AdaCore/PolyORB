@@ -41,6 +41,7 @@ with Ada.Tags;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
+with PolyORB.Binding_Objects;
 with PolyORB.Constants;
 with PolyORB.Exceptions;
 with PolyORB.Filters;
@@ -83,10 +84,6 @@ package body PolyORB.ORB is
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
-   ---------------------------------------
-   -- Tasking policy generic operations --
-   ---------------------------------------
 
    ---------------------------
    -- Duplicate_Request_Job --
@@ -175,8 +172,10 @@ package body PolyORB.ORB is
    --  Precondition: This function must be called from within ORB
    --  critical section.
    --  Postcondition: On exit, we reenter ORB critical section
-   --  Note: task running this function may exit ORB critical section
-   --  to perform on item.
+   --  If a job has actually been executed, True is returned, and
+   --  the critical section was exited during this execution.
+   --  If no job was available, False is returned, and the critical
+   --  section has not been exited.
 
    function Try_Perform_Work
      (ORB : access ORB_Type;
@@ -223,7 +222,7 @@ package body PolyORB.ORB is
    procedure Try_Check_Sources
      (ORB       : access ORB_Type;
       This_Task : in out Task_Info.Task_Info);
-   --  Check ORB's AES for any incoming event.
+   --  Check ORB's AESs for any incoming event.
    --  Precondition: This function must be called from within ORB
    --  critical section.
    --  Postcondition: On exit, we reenter ORB critical section
@@ -462,7 +461,7 @@ package body PolyORB.ORB is
    exception
       when E : others =>
 
-         --  XXX at this point it is assumed that ORB_Lock is
+         --  At this point it is assumed that ORB_Lock is
          --  not being held by this task.
 
          O ("ORB.Run got exception:", Error);
@@ -644,34 +643,33 @@ package body PolyORB.ORB is
       end;
    end Is_Profile_Local;
 
-   -----------------------
-   -- Register_Endpoint --
-   -----------------------
+   -----------------------------
+   -- Register_Binding_Object --
+   -----------------------------
 
-   procedure Register_Endpoint
-     (ORB          : access ORB_Type;
-      TE           :        PT.Transport_Endpoint_Access;
-      Filter_Stack :        PF.Filter_Access;
-      Role         :        Endpoint_Role)
+   procedure Register_Binding_Object
+     (ORB  : access ORB_Type;
+      BO   :        Smart_Pointers.Ref;
+      Role :        Endpoint_Role)
    is
+      TE      : constant Transport.Transport_Endpoint_Access
+        := Binding_Objects.Get_Endpoint (BO);
       New_AES    : constant Asynch_Ev_Source_Access
         := Create_Event_Source (TE);
       --  New_AES is null for output-only endpoints
 
-      A_Note     : AES_Note;
-      ORB_Acc    : constant ORB_Access := ORB_Access (ORB);
-
+      A_Note  : AES_Note;
+      ORB_Acc : constant ORB_Access := ORB_Access (ORB);
    begin
-      pragma Debug (O ("Register_Endpoint: enter"));
-
-      Connect_Upper (TE, Component_Access (Filter_Stack));
-      Connect_Lower (Filter_Stack, Component_Access (TE));
-      --  Connect filter to transport.
+      pragma Debug (O ("Register_Binding_Object: enter"));
 
       Emit_No_Reply
         (Component_Access (TE),
          Filters.Interface.Set_Server'
-         (Server => Component_Access (ORB)));
+         (Server         => Component_Access (ORB),
+          Binding_Object =>
+            Binding_Objects.Binding_Object_Access
+          (Smart_Pointers.Entity_Of (BO))));
 
       if New_AES /= null then
          --  This is not a write only Endpoint.
@@ -713,8 +711,8 @@ package body PolyORB.ORB is
                Active_Connection'(AES => New_AES, TE => TE));
       end case;
 
-      pragma Debug (O ("Register_Endpoint: leave"));
-   end Register_Endpoint;
+      pragma Debug (O ("Register_Binding_Object: leave"));
+   end Register_Binding_Object;
 
    ------------------------
    -- Set_Object_Adapter --

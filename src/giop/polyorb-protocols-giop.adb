@@ -321,11 +321,6 @@ package body PolyORB.Protocols.GIOP is
          Release (Sess.Buffer_In);
       end if;
 
-      if Sess.Implem /= null then
-         Finalize_Session (Sess.Implem, Sess);
-         Sess.Implem := null;
-      end if;
-
       Sess.State := Not_Initialized;
    end Handle_Disconnect;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -208,12 +208,16 @@ package body PolyORB.Protocols.SRP is
       References.Create_Reference ((1 => Target_Profile), "", Target);
 
       --  Create a Request
-      Create_Request (Target    => Target,
-                      Operation => To_Standard_String (S.SRP_Info.Method.all),
-                      Arg_List  => Args,
-                      Result    => Result,
-                      Deferred_Arguments_Session => Deferred_Arguments_Session,
-                      Req       => Req);
+      Create_Request
+        (Target    => Target,
+         Operation => To_Standard_String (S.SRP_Info.Method.all),
+         Arg_List  => Args,
+         Result    => Result,
+         Deferred_Arguments_Session => Deferred_Arguments_Session,
+         Req       => Req,
+         Dependent_Binding_Object =>
+           Smart_Pointers.Entity_Ptr
+         (S.Dependent_Binding_Object));
 
       --  Queue the request for execution
       Queue_Request_To_Handler

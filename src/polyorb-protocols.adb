@@ -113,6 +113,8 @@ package body PolyORB.Protocols is
 
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
+         Sess.Dependent_Binding_Object
+           := Set_Server (S).Binding_Object;
 
       elsif S in Execute_Request then
          declare

@@ -48,6 +48,7 @@ with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Scheduler;
+with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
@@ -229,11 +230,10 @@ package PolyORB.ORB is
 
    type Endpoint_Role is (Client, Server);
 
-   procedure Register_Endpoint
-     (ORB          : access ORB_Type;
-      TE           :        PT.Transport_Endpoint_Access;
-      Filter_Stack :        PF.Filter_Access;
-      Role         :        Endpoint_Role);
+   procedure Register_Binding_Object
+     (ORB  : access ORB_Type;
+      BO   :        Smart_Pointers.Ref;
+      Role :        Endpoint_Role);
    --  Register a newly-created transport endpoint with ORB.
    --  A filter chain is instanciated using Chain, and associated
    --  with TE.

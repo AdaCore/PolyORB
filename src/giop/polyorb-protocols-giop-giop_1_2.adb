@@ -41,7 +41,6 @@ with PolyORB.Exceptions;
 with PolyORB.Filters;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
@@ -502,7 +501,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Result    => Result,
          Deferred_Arguments_Session => Def_Args,
          Req       => Req,
-         Req_Flags => Req_Flags);
+         Req_Flags => Req_Flags,
+         Dependent_Binding_Object =>
+           Smart_Pointers.Entity_Ptr
+         (S.Dependent_Binding_Object));
 
       Set_Note
         (Req.Notepad,

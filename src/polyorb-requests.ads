@@ -41,6 +41,7 @@ with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.References;
+with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
 with PolyORB.Exceptions;
 with PolyORB.Types;
@@ -107,7 +108,10 @@ package PolyORB.Requests is
    type Request is limited record
       --  Ctx        : CORBA.Context.Ref;
       Target    : References.Ref;
+      --  A ref designating the target object.
+
       Operation : Types.Identifier;
+      --  The name of the method to be invoked.
 
       Args_Ident : Arguments_Identification := Ident_By_Position;
       --  To optimize the handling of Args, we can provide a hint
@@ -177,6 +181,16 @@ package PolyORB.Requests is
       --  Component requesting request execution. The response, if
       --  any, will be redirected to this component.
 
+      Dependent_Binding_Object : Smart_Pointers.Ref;
+      --  A reference to the binding object from which a server-side
+      --  request was created. Used to prevent said BO from being
+      --  destroyed will the request is still being processed
+      --  by the application layer.
+
+      --  XXX study feasibility & cost of merging Dependent_Binding_Object
+      --  with Requestor? Maybe by making all components
+      --  Non_Controlled_Entities?
+
       Notepad : Annotations.Notepad;
       --  Request objects are manipulated by both the
       --  Application layer (which creates them on the client
@@ -203,20 +217,21 @@ package PolyORB.Requests is
    type Request_Access is access all Request;
 
    procedure Create_Request
-     (Target    : in     References.Ref;
-      --  May or may not be local!
-      --  Ctx       : in     CORBA.Context.Ref;
-      Operation : in     String;
-      Arg_List  : in     Any.NVList.Ref;
-      Result    : in out Any.NamedValue;
-      Exc_List  : in     Any.ExceptionList.Ref
+     (Target                     : in     References.Ref;
+      Operation                  : in     String;
+      Arg_List                   : in     Any.NVList.Ref;
+      Result                     : in out Any.NamedValue;
+      Exc_List                   : in     Any.ExceptionList.Ref
         := Any.ExceptionList.Nil_Ref;
-      --  Ctxt_List : in     ContextList.Ref;
-      Req       :    out Request_Access;
-      Req_Flags : in     Flags := 0;
-      Deferred_Arguments_Session : in Components.Component_Access := null;
-      Identification : in Arguments_Identification := Ident_By_Position
-     );
+      Req                        :    out Request_Access;
+      Req_Flags                  : in     Flags
+        := 0;
+      Deferred_Arguments_Session : in     Components.Component_Access
+        := null;
+      Identification             : in     Arguments_Identification
+        := Ident_By_Position;
+      Dependent_Binding_Object   : in     Smart_Pointers.Entity_Ptr
+        := null);
 
    procedure Invoke
      (Self         : Request_Access;

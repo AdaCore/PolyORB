@@ -93,41 +93,46 @@ package body PolyORB.Requests is
    --------------------
 
    procedure Create_Request
-     (Target    : in     References.Ref;
-      --  May or may not be local!
-      --  Ctx       : in     Any.Context.Ref;
-      Operation : in     String;
-      Arg_List  : in     Any.NVList.Ref;
-      Result    : in out Any.NamedValue;
-      Exc_List  : in     Any.ExceptionList.Ref
+     (Target                     : in     References.Ref;
+      Operation                  : in     String;
+      Arg_List                   : in     Any.NVList.Ref;
+      Result                     : in out Any.NamedValue;
+      Exc_List                   : in     Any.ExceptionList.Ref
         := Any.ExceptionList.Nil_Ref;
-      --  Ctxt_List : in     ContextList.Ref;
-      Req       :    out Request_Access;
-      Req_Flags : in     Flags := 0;
-      Deferred_Arguments_Session : in Components.Component_Access := null;
-      Identification : in Arguments_Identification := Ident_By_Position
-     )
+      Req                        :    out Request_Access;
+      Req_Flags                  : in     Flags
+        := 0;
+      Deferred_Arguments_Session : in     Components.Component_Access
+        := null;
+      Identification             : in     Arguments_Identification
+        := Ident_By_Position;
+      Dependent_Binding_Object   : in     Smart_Pointers.Entity_Ptr
+        := null)
    is
-      Res : constant Request_Access := new Request;
+      use type Smart_Pointers.Entity_Ptr;
    begin
       pragma Debug (O ("Creating request"));
 
-      Res.Target     := Target;
-      Res.Operation  := To_PolyORB_String (Operation);
-      Res.Args       := Arg_List;
-      Res.Deferred_Arguments_Session := Deferred_Arguments_Session;
-      Res.Result     := Result;
-      Res.Result.Arg_Modes := Any.ARG_OUT;
-      Res.Exc_List   := Exc_List;
-      Res.Args_Ident := Identification;
+      Req := new Request;
+      Req.Target     := Target;
+      Req.Operation  := To_PolyORB_String (Operation);
+      Req.Args       := Arg_List;
+      Req.Deferred_Arguments_Session := Deferred_Arguments_Session;
+      Req.Result     := Result;
+      Req.Result.Arg_Modes := Any.ARG_OUT;
+      Req.Exc_List   := Exc_List;
+      Req.Args_Ident := Identification;
 
       if Req_Flags = 0 then
-         Res.Req_Flags := Default_Flags;
+         Req.Req_Flags := Default_Flags;
       else
-         Res.Req_Flags := Req_Flags;
+         Req.Req_Flags := Req_Flags;
       end if;
 
-      Req := Res;
+      if Dependent_Binding_Object /= null then
+         Smart_Pointers.Set
+           (Req.Dependent_Binding_Object, Dependent_Binding_Object);
+      end if;
    end Create_Request;
 
    ---------------------

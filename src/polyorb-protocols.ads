@@ -39,6 +39,7 @@ with Ada.Streams;
 
 with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
+with PolyORB.Binding_Objects;
 with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Requests;
@@ -157,6 +158,13 @@ private
 
    type Session is abstract new Filters.Filter with record
       Server : Components.Component_Access;
+      --  The ORB instance
+
+      Dependent_Binding_Object : Binding_Objects.Binding_Object_Access;
+      --  The enclosing binding object, if this session is on server side
+      --  (used to keep the BO referenced and prevent it from being destroyed
+      --  while the request is being processed).
+
       N      : PolyORB.Annotations.Notepad_Access := null;
    end record;
 

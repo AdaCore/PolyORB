@@ -60,6 +60,7 @@ with PolyORB.Objects;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
 with PolyORB.Servants.Interface;
+with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.SOAP_Pr is
@@ -364,7 +365,10 @@ package body PolyORB.Protocols.SOAP_Pr is
                Arg_List  => Args,
                Result    => Result,
                Deferred_Arguments_Session => null,
-               Req       => Req);
+               Req       => Req,
+               Dependent_Binding_Object =>
+                 Smart_Pointers.Entity_Ptr
+               (S.Dependent_Binding_Object));
 
             S.Target := Types.To_PolyORB_String ("");
             S.Entity_Length := Data_Amount;

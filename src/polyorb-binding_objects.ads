@@ -50,11 +50,15 @@ package PolyORB.Binding_Objects is
    --  A protocol session and associated transport and filter stack,
    --  seen globally as a reference-counted entity.
 
-   function Get_Component
-     (X : Smart_Pointers.Ref)
+   function Get_Component (X : Smart_Pointers.Ref)
      return PolyORB.Components.Component_Access;
-   --  Return the top component of the Binding_Object designated
-   --  by reference X.
+   --  Return the top component of the Binding_Object
+   --  designatedby reference X.
+
+   function Get_Endpoint (X : Smart_Pointers.Ref)
+     return PolyORB.Transport.Transport_Endpoint_Access;
+   --  Return the transport endpoint of the Binding_Object
+   --  designated by reference X.
 
    procedure Setup_Binding_Object
      (The_ORB :     ORB.ORB_Access;

@@ -526,7 +526,9 @@ package System.PolyORB_Interface is
       Deferred_Arguments_Session :
         in PolyORB.Components.Component_Access := null;
       Identification : in PolyORB.Requests.Arguments_Identification
-        := PolyORB.Requests.Ident_By_Position
+        := PolyORB.Requests.Ident_By_Position;
+      Dependent_Binding_Object : in PolyORB.Smart_Pointers.Entity_Ptr
+        := null
      ) renames PolyORB.Requests.Create_Request;
 
    procedure Request_Invoke
