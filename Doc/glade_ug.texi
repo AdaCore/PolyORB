@@ -664,7 +664,7 @@ packages cannot be withed in categorized package declarations.
 
 
 @menu
-* Variables::                   
+* Variables and Non-Remote Access Types::  
 * RPC Failures::                
 * Exceptions::                  
 * Pragma Asynchronous::         
@@ -673,7 +673,7 @@ packages cannot be withed in categorized package declarations.
 * Categorization Unit Dependencies::  
 @end menu
 
-@node Variables and Non-Remote Access Types, , More About Categorization Pragmas, More About Categorization Pragmas
+@node Variables and Non-Remote Access Types, RPC Failures, More About Categorization Pragmas, More About Categorization Pragmas
 @subsection Variables and Non-Remote Access Types
 
 In RT or RCI package declarations, variables are forbidden and general
@@ -687,7 +687,7 @@ Calls are made at most one time: they are made exactly one time or they
 fail with an exception. When an communication error occurs,
 @t{System.RPC.Communication_Error} is raised.
 
-@node
+@node Exceptions, Pragma Asynchronous, RPC Failures, More About Categorization Pragmas
 @subsection Exceptions
 
 Any exception raised in a remote
@@ -938,8 +938,6 @@ once again.
 This chapter describes the usual ways of using GLADE to compile Ada
 distributed programs.
 
-
-
 @menu
 * Introduction to GLADE::       
 * How to Configure a Distributed Application with Gnatdist::  
@@ -948,6 +946,7 @@ distributed programs.
 * The Configuration Language::  
 * Tracing Facilities::          
 * Remote Shell Notes::          
+* Heterogeneous Systems::       
 * Filtering::                   
 * Trace/Replay Debugging::      
 * Glade File Hierarchy::        
@@ -1484,7 +1483,7 @@ S_RPC=true;    export S_RPC
 S_PARINT=true; export S_PARINT
 @end smallexample
 
-@node Remote Shell Notes, Filtering, Tracing Facilities, Getting Started With GLADE
+@node Remote Shell Notes, Heterogeneous Systems, Tracing Facilities, Getting Started With GLADE
 @section Remote Shell Notes
 
 To start a partition, the main partition executable executes a remote
@@ -1533,28 +1532,8 @@ kill MAIN_PART.
 
 @end itemize
 
-@node Filtering, Trace/Replay Debugging, Remote Shell Notes, Getting Started With GLADE
-@section Filtering
-
-GLADE contains a transparent extensible filtering mechanism allowing the
-user to define various data transformations to be performed on the arguments
-and return values of remote calls. One possible application would be to
-compress all data before sending it and to decompress it on the receiving
-partition.
-
-With GLADE, it is no longer necessary that the application take care of such
-transformations. Instead, users can write their own data transformations and
-hook them into GLADE so that they are automatically and transparently applied
-depending on the configuration of the distributed application.
-
-@menu
-* Heterogeneous Systems::       
-* Configuring Filtering::       
-* Implementing Your Own Filters::  
-@end menu
-
-@node Heterogeneous Systems, Configuring Filtering, Filtering, Filtering
-@subsection Heterogeneous Systems
+@node Heterogeneous Systems, Filtering, Remote Shell Notes, Getting Started With GLADE
+@section Heterogeneous Systems
 
 The GNAT environment provides default attributes except for non remote
 access types (see section @ref{Transmitting Dynamic Structure} and
@@ -1571,12 +1550,26 @@ performance purposes or to use another protocol to marshall and
 unmarshall predefined types, he can replace @t{s-stratt.adb} by his own
 implementation.
 
+@node Filtering, Trace/Replay Debugging, Heterogeneous Systems, Getting Started With GLADE
+@section Filtering
+
+GLADE contains a transparent extensible filtering mechanism allowing the
+user to define various data transformations to be performed on the arguments
+and return values of remote calls. One possible application would be to
+compress all data before sending it and to decompress it on the receiving
+partition.
+
+With GLADE, it is no longer necessary that the application take care of such
+transformations. Instead, users can write their own data transformations and
+hook them into GLADE so that they are automatically and transparently applied
+depending on the configuration of the distributed application.
+
 @menu
 * Configuring Filtering::       
 * Implementing Your Own Filters::  
 @end menu
 
-@node Configuring Filtering, Implementing Your Own Filters, Heterogeneous Systems, Filtering
+@node Configuring Filtering, Implementing Your Own Filters, Filtering, Filtering
 @subsection Configuring Filtering
 
 As a default, no filtering is performed by GLADE. As a default, the
