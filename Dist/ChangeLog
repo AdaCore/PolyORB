@@ -1,3 +1,7 @@
+Sat Mar  8 16:50:27 1997  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_lead.adb: Use Get_Rsh_Command to build shell script.
+
 Fri Mar  7 18:48:50 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* xe_defs.ads, Makefile.am, Makefile.in: Add function

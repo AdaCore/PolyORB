@@ -31,6 +31,7 @@ with Osint;       use Osint;
 with Output;      use Output;
 with XE;          use XE;
 with XE_Back;     use XE_Back;
+with XE_Defs;     use XE_Defs;
 with XE_Utils;    use XE_Utils;
 
 procedure XE_Lead is
@@ -97,9 +98,10 @@ procedure XE_Lead is
    begin
 
       if Partition /= Main_Partition then
-         Write_Str  (FD, "rsh -n $");
+         Write_Str  (FD, Get_Rsh_Command);
+         Write_Str  (FD, " $");
          Write_Name (FD, Partitions.Table (Partition).Name);
-         Write_Str  (FD, "_HOST """);
+         Write_Str  (FD, "_HOST -n """);
       end if;
 
       Write_Name (FD, Get_Absolute_Exec (Partition));

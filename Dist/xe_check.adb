@@ -91,8 +91,6 @@ package body XE_Check is
                end if;
             end if;
 
-            --  Taken from Gnatmake.
-
             Compile_Sources
               (Main_Source           => File_Name,
                Args                  => Args,
@@ -101,7 +99,7 @@ package body XE_Check is
                Most_Recent_Obj_Stamp => Stamp,
                Main_Unit             => Main,
                Check_Internal_Files  => Check_Internal_Files,
-               Dont_Execute          => False,
+               Dont_Execute          => No_Recompilation,
                Force_Compilations    => Force_Compilations,
                Initialize_Ali_Data   => False,
                Max_Process           => 1);
@@ -145,17 +143,10 @@ package body XE_Check is
 
       for U in CUnit.First .. CUnit.Last loop
 
-         if No_Recompilation then
-            --  We except ali files to be present. Load them.
-            Load_All_Units (CUnit.Table (U).CUname);
-
-         else
-            --  Recompile all the configured units to check that
-            --  they are present. It is also a way to load the ali files
-            --  in the ALIs table.
-            Recompile (CUnit.Table (U).CUname);
-
-         end if;
+         --  Recompile all the configured units to check that
+         --  they are present. It is also a way to load the ali files
+         --  in the ALIs table.
+         Recompile (CUnit.Table (U).CUname);
 
       end loop;
 
@@ -167,15 +158,7 @@ package body XE_Check is
 
          if not Hosts.Table (H).Static and then
             Hosts.Table (H).Import = Ada_Import then
-
-            if No_Recompilation then
-               Load_All_Units (Hosts.Table (H).External);
-
-            else
-               Recompile (Hosts.Table (H).External);
-
-            end if;
-
+            Recompile (Hosts.Table (H).External);
          end if;
       end loop;
 
@@ -240,7 +223,7 @@ package body XE_Check is
             --  This unit is not an ada unit
             --  as no ali file has been found.
 
-            Write_SLOC (CUnit.Table (U).Node);
+            Write_Program_Name;
             Write_Str (": configured unit """);
             Write_Name (CUnit.Table (U).CUname);
             Write_Str (""" is not an Ada unit");
