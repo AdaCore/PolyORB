@@ -39,6 +39,7 @@ with PolyORB.Requests;
 with PolyORB.Types;
 
 with MOMA.Messages;
+with MOMA.Provider.Message_Handler;
 
 package body MOMA.Message_Consumers.Queues is
 
@@ -115,16 +116,6 @@ package body MOMA.Message_Consumers.Queues is
       pragma Warnings (On);
    end Receive;
 
-   function Receive (Self : Queue;
-                     CBH : access PolyORB.Call_Back.Call_Back_Handler)
-                     return MOMA.Messages.Message'Class is
-   begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Receive (Self, CBH);
-      pragma Warnings (On);
-   end Receive;
-
    ---------------------
    -- Receive_No_Wait --
    ---------------------
@@ -137,15 +128,70 @@ package body MOMA.Message_Consumers.Queues is
       pragma Warnings (On);
    end Receive_No_Wait;
 
-   -------------
-   -- Set_CBH --
-   -------------
+   -----------------
+   -- Set_Handler --
+   -----------------
 
-   procedure Set_CBH (Self : Queue;
-                      CBH : access PolyORB.Call_Back.Call_Back_Handler) is
+   procedure Set_Handler (Self : in out Queue;
+                          New_Handler_Procedure : in Handler) is
    begin
+      Self.Handler_Procedure := New_Handler_Procedure;
+      if not Self.Has_Initialized_Message_Handler then
+         Initialize_Message_Handler (Self);
+      end if;
+   end Set_Handler;
+
+   ------------------
+   -- Set_Notifier --
+   ------------------
+
+   procedure Set_Notifier (Self : in out Queue;
+                           New_Notifier_Procedure : in Notifier) is
+   begin
+      Self.Notifier_Procedure := New_Notifier_Procedure;
+      if not Self.Has_Initialized_Message_Handler then
+         Initialize_Message_Handler (Self);
+      end if;
+   end Set_Notifier;
+
+   ------------
+   -- Handle --
+   ------------
+
+   procedure Handle (Self : Queue;
+                     Message : MOMA.Messages.Message'Class) is
+   begin
+      if Self.Handler_Procedure /= null then
+         Self.Handler_Procedure.all (Self, Message);
+      end if;
+   end Handle;
+
+   ------------
+   -- Notify --
+   ------------
+
+   procedure Notify (Self : Queue) is
+   begin
+      if Self.Notifier_Procedure /= null then
+         Self.Notifier_Procedure.all (Self);
+      end if;
+   end Notify;
+
+   --------------------------------
+   -- Initialize_Message_Handler --
+   --------------------------------
+
+   procedure Initialize_Message_Handler (Self : in out Queue) is
+      Message_Handler_Ref : PolyORB.References.Ref;
+   begin
+      Message_Handler_Ref :=
+         MOMA.Provider.Message_Handler.Initialize (Self);
+      Self.Has_Initialized_Message_Handler := True;
       raise PolyORB.Not_Implemented;
-   end Set_CBH;
+      --  XXX Then send the reference encapsulated in a request
+      --  to the actual Message Consumer servant.
+
+   end Initialize_Message_Handler;
 
 end MOMA.Message_Consumers.Queues;
 
