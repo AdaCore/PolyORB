@@ -6,11 +6,12 @@
 
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-condition_variables.adb
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-mutexes.adb
---  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.adb
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads.adb
 --  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads-annotations.adb
+--  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.adb
 --  EXCLUDE: polyorb-setup-tasking-no_tasking.adb
 --  EXCLUDE: polyorb-tasking-profiles-no_tasking-calendar.adb
+--  EXCLUDE: aws-utils.adb
 
 --  We use GNAT-specific pragma Restriction_Warnings to avoid actually
 --  imposing the restrictions of units shared between Ravenscar and
