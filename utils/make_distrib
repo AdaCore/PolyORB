@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#2 $
+# $Id: //droopi/main/utils/make_distrib#3 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -49,17 +49,15 @@ esac
 tag=$1
 dir=$2
 prev=`pwd`
-tmp=${TMPDIR-/tmp}/t$$
-mkdir ${tmp}
+tmp=${TMPDIR-/var/tmp}/make_distrib.$$
+mkdir -p ${tmp}/${dir}
+trap "rm -fr ${tmp}" 0
 if $prcs; then
   name=`echo *.prj | sed -e 's/\.prj//'`
   echo Extracting module ${name} from prcs using tag ${tag}
-  cd ${tmp}
-  mkdir ${dir}
-  cd ${dir}
+  cd ${tmp}/${dir}
   prcs checkout -r${tag} ${name}
 elif $usercurrent; then
-  mkdir $tmp/$dir
   tar cf - . | (cd $tmp/$dir && tar xpBf -)
   cd $tmp/$dir
 elif $nocheckout; then
