@@ -137,7 +137,6 @@ PROG = iac
 
 PROG_FILES = \
 frontend-nodes.ada \
-backend-be_a-nodes.ada \
 backend-be_ada-nodes.ada
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb *~
