@@ -10,9 +10,11 @@ endif
 FORCE=	force $(FORCE_IR)
 
 PROGS= ab_names test_naming $(IR_AB_NAMES)
+TOOLS=	polyorb-corba_p-naming_tools.adb
+EXTRA=	$(TOOLS:.adb=.ali)
 
 COS_DIRS=../../idls/cos/naming
-COS_GNATMAKE_FLAGS=-I../../idls/cos/naming $(IR_GNATMAKE_FLAGS)
+COS_GNATMAKE_FLAGS=-I../../idls/cos/naming
 
 COS_IMPL=\
   cosnaming-bindingiterator-impl.adb \
@@ -41,12 +43,15 @@ CLEANFILES += $(GEN) stamp-gen
 
 $(GEN): stamp-gen
 stamp-gen: $(IDL) $(IDLAC)
-	touch stamp-gen
 	$(IDLAC) $(IDL)
+	touch stamp-gen
 
-$(PROGS): $(FORCE) $(GEN)
+ab_names test_naming: $(FORCE) $(GEN)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
 
+ir_test_naming: $(FORCE) $(GEN)
+	$(GNATMAKE) $@ $(GNATMAKE_FLAGS) $(IR_GNATMAKE_FLAGS)
+	
 force-ir:
 	cd ../ir && $(MAKE)
 

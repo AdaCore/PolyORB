@@ -229,6 +229,13 @@ package System.PolyORB_Interface is
    function Caseless_String_Eq (S1, S2 : String) return Boolean;
    --  Case-less equality of S1 and S2.
 
+   generic
+      Name : String;
+   package RCI_Info is
+      function Get_RCI_Package_Ref
+        return PolyORB.References.Ref;
+   end RCI_Info;
+
 private
 
    pragma Inline

@@ -27,7 +27,7 @@ DISTCLEANFILES = $(PROGS)
 
 SUFFIXES = .idl .ads .adb
 
-all-local:: $(PROGS)
+all-local:: $(PROGS) $(EXTRA)
 
 .idl.ads .idl.adb:
 	$(IDLAC) -I$(srcdir) $<

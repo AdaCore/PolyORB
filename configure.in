@@ -84,6 +84,7 @@ AC_OUTPUT([Makefile
 	   cos/time/Makefile cos/ir/Makefile
 	   examples/Makefile examples/echo/Makefile examples/all_types/Makefile
 	   examples/all_functions/Makefile
+	   examples/dsa/Makefile examples/dsa/server/Makefile foo/Makefile
 	   support/adacompiler support/linker])
 
 # src/polyorb-config

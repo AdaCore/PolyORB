@@ -21,9 +21,9 @@ GNATMAKE_FLAGS = \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	../../src/libpolyorb.la \
-	../../src/corba/libpolyorb-corba.la \
-	../../src/soap/libpolyorb-soap.la \
+	$(EXAMPLES_ROOT)/../src/libpolyorb.la \
+	$(EXAMPLES_ROOT)/../src/corba/libpolyorb-corba.la \
+	$(EXAMPLES_ROOT)/../src/soap/libpolyorb-soap.la \
 	$(XMLADA_LIBS) 
 
 #	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
@@ -40,18 +40,13 @@ all-local: client server $(EXTRA)
 
 SUFFIXES = .idl .ads .adb
 
-$(EXAMPLE).ads: $(EXAMPLE).idl $(IDLAC)
-
 .idl.ads:
 	$(IDLAC) $(IDLAC_FLAGS) $<
 
 .idl.adb:
 	$(IDLAC) $(IDLAC_FLAGS) $<
 
-$(IDLAC): force
-	cd $(EXAMPLES_ROOT)/../compilers/idlac && $(MAKE) idlac
-
-client server $(EXTRA): force $(EXAMPLE).ads
+client server $(EXTRA):: force $(EXAMPLE).ads
 	@chmod +x $(LINKER)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
 

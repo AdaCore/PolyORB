@@ -1,5 +1,10 @@
 with Ada.Characters.Handling;
 
+with CORBA.Object;
+with PolyORB.CORBA_P.Naming_Tools;
+--  XXX while RCI initial refs are managed through the CORBA
+--  naming service.
+
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Setup;
@@ -209,8 +214,18 @@ package body System.PolyORB_Interface is
               (O ("Done, ref is: "
                     & PolyORB.Types.To_Standard_String
                     (PolyORB.References.IOR.Object_To_String (Ref))));
-            --  XXX register ref with naming service so it
-            --  can be located by other partitions.
+
+            declare
+               CRef : CORBA.Object.Ref;
+            begin
+               CORBA.Object.Convert_To_CORBA_Ref (Ref, CRef);
+               PolyORB.CORBA_P.Naming_Tools.Register
+                 (Name => To_Lower (Stub.Name.all) & ".RCI",
+                  Ref => CRef, Rebind => True);
+               --  XXX Using the CORBA naming service is not necessarily
+               --  a good idea. Alternative design: use a Boot_Server
+               --  distributed object dedicated to DSA services.
+            end;
 
             Free (Stub.Name);
             Free (Stub.Version);
@@ -220,6 +235,28 @@ package body System.PolyORB_Interface is
       Deallocate (All_Receiving_Stubs);
       pragma Debug (O ("Done initializing DSA."));
    end Initialize;
+
+   --------------
+   -- RCI_Info --
+   --------------
+
+   package body RCI_Info is
+
+      Ref_Cache : PolyORB.References.Ref;
+
+      function Get_RCI_Package_Ref
+        return PolyORB.References.Ref is
+      begin
+         if PolyORB.References.Is_Nil (Ref_Cache) then
+            Ref_Cache := CORBA.Object.To_PolyORB_Ref
+              (PolyORB.CORBA_P.Naming_Tools.Locate
+               (Ada.Characters.Handling.To_Lower (Name) & ".RCI"));
+         end if;
+
+         return Ref_Cache;
+      end Get_RCI_Package_Ref;
+
+   end RCI_Info;
 
    -----------------------------
    -- Register_Receiving_Stub --
@@ -337,7 +374,7 @@ begin
      (Module_Info'
       (Name => +"dsa",
        Conflicts => Empty,
-       Depends => +"orb" & "access_points",
+       Depends => +"orb" & "access_points" & "initial_references",
        Provides => Empty,
        Init => Initialize'Access));
 end System.PolyORB_Interface;
