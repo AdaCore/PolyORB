@@ -157,18 +157,18 @@ s-gtplsp.o: $(TCP_PLATFORM_SOURCES)
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) \
 		`echo $(TCP_PLATFORM_SOURCES) | $(SED) -e 's/ .*$$//'`
 
-%.o: %.adb
+.adb.o:
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
-%.o: %.ads
-	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
-
-
-%.ali: %.adb
+.ads.o:
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 
-%.ali: %.ads
+.adb.ali:
+	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+
+
+.ads.ali:
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 constants_nodef: $(srcdir)/constants.c config.h
@@ -273,7 +273,7 @@ inlining: all-local
 	          if test $$? = 0; then\
 	             echo $$o >>gnatlib/rebuild;\
 	          else\
-	             $(RM) gnatlib/tocheck;\
+	             $(RM) -f gnatlib/tocheck;\
 	             break;\
 	          fi;\
 	      fi;\
