@@ -1,3 +1,7 @@
+2000-01-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.zip: Typo in zipOBJECTS and zipSOURCES.
+
 2000-01-29  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.zip: Typo in zipLIBOBJS.
