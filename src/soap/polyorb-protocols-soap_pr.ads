@@ -37,6 +37,8 @@ with PolyORB.ORB;
 with PolyORB.Requests;
 with PolyORB.Types;
 
+with SOAP.Message.Payload;
+
 package PolyORB.Protocols.SOAP_Pr is
 
    --  Elaboration: Protocols.SOAP_Pr (spec),
@@ -71,6 +73,10 @@ package PolyORB.Protocols.SOAP_Pr is
      (S : access SOAP_Session;
      Data_Amount : Ada.Streams.Stream_Element_Count);
 
+   procedure Handle_Unmarshall_Arguments
+     (S : access SOAP_Session;
+      Args : in out PolyORB.Any.NVList.Ref);
+
    procedure Handle_Disconnect (S : access SOAP_Session);
 
 private
@@ -79,8 +85,10 @@ private
 
    type SOAP_Session is new Session with record
       In_Buf : PolyORB.Buffers.Buffer_Access;
+      Entity_Length : Ada.Streams.Stream_Element_Count;
       Role   : PolyORB.ORB.Endpoint_Role;
       Target : PolyORB.Types.String;
+      Current_SOAP_Req : SOAP.Message.Payload.Object;
       Pending_Rq : PolyORB.Requests.Request_Access;
    end record;
 

@@ -133,6 +133,7 @@ package body PolyORB.Filters.HTTP is
    end Create;
 
    procedure Clear_Message_State (F : in out HTTP_Filter) is
+      Empty : PolyORB.Types.String;
    begin
       F.Version := Default_HTTP_Version;
       F.Status  := S_Unknown;
@@ -144,7 +145,8 @@ package body PolyORB.Filters.HTTP is
       Deallocate (F.Transfer_Encoding);
       F.Chunked := False;
       F.Transfer_Length := -1;
-      F.Entity := PolyORB.Types.To_PolyORB_String ("");
+      F.Entity := Empty;
+      F.SOAP_Action := Empty;
    end Clear_Message_State;
 
    procedure Initialize (F : in out HTTP_Filter) is
@@ -224,6 +226,8 @@ package body PolyORB.Filters.HTTP is
          Emit_No_Reply (F.Upper, S);
       elsif S in Disconnect_Request then
          return Emit (F.Lower, S);
+      elsif S in AWS_Get_SOAP_Action then
+         return AWS_SOAP_Action'(SOAP_Action => F.SOAP_Action);
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;
@@ -820,6 +824,17 @@ package body PolyORB.Filters.HTTP is
                   --  XXX Respond 501 not implemented per RFC 2616 3.6?
                end if;
             end;
+
+         when H_SOAPAction =>
+            Tok_Last := S'Last;
+            Trim_LWS (S, Tok_Last);
+            if Pos > Tok_Last then
+               raise Protocol_Error;
+            end if;
+            pragma Debug (O ("SOAP action is " & S (Pos .. Tok_Last)));
+            F.SOAP_Action := PolyORB.Types.To_PolyORB_String
+              (S (Pos .. Tok_Last));
+
          when others =>
             pragma Debug
               (O ("Ignoring HTTP header " & Header_Kind'Img & ":"));

@@ -30,6 +30,7 @@ pragma Warnings (Off);
 --  All_Types client.
 
 with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Exceptions;
 with Ada.Text_IO;
 
 with CORBA; use CORBA;
@@ -78,12 +79,26 @@ begin
       Output ("test unsigned_long", echoULong (Myall_types, 123) = 123);
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
       Output ("test double", echoDouble (Myall_types, 3.14) = 3.14);
-      Output ("test char", echoChar (Myall_types, 'A') = 'A');
+      begin
+         Output ("test char", echoChar (Myall_types, 'A') = 'A');
+      exception
+         when E : others =>
+            Output ("test char", False);
+            Ada.Text_IO.Put_Line ("Got exception:");
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
       Output ("test octet", echoOctet (Myall_types, 5) = 5);
       Output ("test string",
               To_Standard_String
               (echoString (Myall_types, To_CORBA_String ("hello"))) = "hello");
-      Output ("test enum", echoColor (Myall_types, Blue) = Blue);
+      begin
+         Output ("test enum", echoColor (Myall_types, Blue) = Blue);
+      exception
+         when E : others =>
+            Output ("test enum", False);
+            Ada.Text_IO.Put_Line ("Got exception:");
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
 
       --  Refs
       declare

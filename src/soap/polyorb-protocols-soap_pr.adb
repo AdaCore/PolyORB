@@ -42,7 +42,6 @@ with SOAP.Message.Payload;
 with SOAP.Message.Response;
 with SOAP.Parameters;
 
-with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
@@ -69,10 +68,6 @@ package body PolyORB.Protocols.SOAP_Pr is
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.soap_pr");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
-   type Request_Note is new Annotations.Note with record
-      SOAP_Req : SOAP.Message.Payload.Object;
-   end record;
 
    --------------------
    -- Implementation --
@@ -148,9 +143,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       (S : access SOAP_Session;
        R : Requests.Request_Access)
    is
-      N : Request_Note;
    begin
-      Annotations.Get_Note (R.Notepad, N);
       declare
          use PolyORB.Any;
          use PolyORB.Any.NVList;
@@ -160,7 +153,7 @@ package body PolyORB.Protocols.SOAP_Pr is
          use SOAP.Parameters;
 
          RO : SOAP.Message.Response.Object
-           := SOAP.Message.Response.From (N.SOAP_Req);
+           := SOAP.Message.Response.From (S.Current_SOAP_Req);
          RP : SOAP.Parameters.List;
 
          Args : constant NV_Sequence_Access
@@ -248,24 +241,44 @@ package body PolyORB.Protocols.SOAP_Pr is
 
    end Process_Reply;
 
+   procedure Handle_Unmarshall_Arguments
+     (S : access SOAP_Session;
+      Args : in out PolyORB.Any.NVList.Ref)
+   is
+      use PolyORB.Any;
+
+      Entity : String (1 .. Integer (S.Entity_Length));
+      XML_Payload : Message.Payload.Object;
+      EArgs : PolyORB.Any.NVList.Ref;
+   begin
+      pragma Assert (Entity'Length > 0);
+      PolyORB.Utils.Text_Buffers.Unmarshall_String
+        (S.In_Buf, Entity);
+      pragma Debug
+        (O ("Getting arguments from XML Entity:" & Entity));
+
+      S.Entity_Length := 0;
+      XML_Payload := Message.XML.Load_Payload (Entity);
+      EArgs := Any.NVList.Ref
+        (Standard.SOAP.Message.Parameters (XML_Payload));
+
+      PolyORB.Requests.Pump_Up_Arguments
+        (Dst_Args => Args, Src_Args => EArgs,
+         Direction => ARG_IN, Ignore_Src_Mode => True);
+      S.Current_SOAP_Req := XML_Payload;
+   end Handle_Unmarshall_Arguments;
+
    procedure Handle_Data_Indication
      (S : access SOAP_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count)
    is
-      Entity : String (1 .. Integer (Data_Amount));
-      --  XXX BAD BAD should be a Types.String so as not to
-      --  overflow the stack.
    begin
-      Utils.Text_Buffers.Unmarshall_String (S.In_Buf, Entity);
-      pragma Debug (O ("SOAP entity received: " & Entity));
       if S.Role = Server then
          declare
             use Ada.Streams;
             use PolyORB.Binding_Data.Local;
             use PolyORB.Types;
 
-            M : constant Message.Payload.Object
-              := Message.XML.Load_Payload (Entity);
             Req : Request_Access;
 
             Result : Any.NamedValue;
@@ -299,6 +312,15 @@ package body PolyORB.Protocols.SOAP_Pr is
 
             The_Oid : Objects.Object_Id_Access := Path_To_Oid (S.Target);
 
+            SOAP_Action_Msg : constant AWS_Interface.AWS_SOAP_Action
+              := AWS_Interface.AWS_SOAP_Action
+              (Components.Emit
+               (Lower (S), AWS_Interface.AWS_Get_SOAP_Action'
+                (null record)));
+
+            Args : Any.NVList.Ref;
+            --  Nil (not initialised).
+
          begin
             Create_Local_Profile
               (The_Oid.all, Local_Profile_Type (Target_Profile.all));
@@ -311,18 +333,15 @@ package body PolyORB.Protocols.SOAP_Pr is
             Result.Name := To_PolyORB_String ("Result");
             Create_Request
               (Target    => Target,
-               Operation => Standard.SOAP.Message.Payload.Procedure_Name (M),
-               Arg_List  => Any.NVList.Ref
-               (Standard.SOAP.Message.Parameters (M)),
+               Operation => To_Standard_String
+               (SOAP_Action_Msg.SOAP_Action),
+               Arg_List  => Args,
                Result    => Result,
-               Deferred_Arguments_Session => null,
+               Deferred_Arguments_Session =>
+                 Components.Component_Access (S),
                Req       => Req);
             S.Target := Types.To_PolyORB_String ("");
-
-            Annotations.Set_Note
-              (Req.Notepad,
-               Request_Note'(Annotations.Note
-                             with SOAP_Req => M));
+            S.Entity_Length := Data_Amount;
 
             PolyORB.ORB.Queue_Request_To_Handler
               (ORB.Tasking_Policy, ORB,
@@ -331,7 +350,15 @@ package body PolyORB.Protocols.SOAP_Pr is
                 Requestor => Components.Component_Access (S)));
          end;
       else
-         Process_Reply (S, Entity);
+         declare
+            Entity : String (1 .. Integer (Data_Amount));
+            --  XXX BAD BAD should be a Types.String so as not to
+            --  overflow the stack.
+         begin
+            Utils.Text_Buffers.Unmarshall_String
+              (S.In_Buf, Entity);
+            Process_Reply (S, Entity);
+         end;
       end if;
    end Handle_Data_Indication;
 
