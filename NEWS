@@ -12,7 +12,7 @@ Changes since GLADE 1.01
   decreasing execution time.
 
 * The 'rsh' command can now be changed at installation time using the
-  --remsh parameter of configure.
+  --with-remsh parameter of configure.
 
 * Upgraded to automake 1.1n. If the user does modifies sensitive files 
   (such as Makefile.am) and does not have automake, then print a
@@ -22,6 +22,8 @@ Changes since GLADE 1.01
   different word sizes.
 
 * Bug fixes for pathological cases in GNATDIST.
+
+* Reorganisation of GNATDIST directory hierarchy.
 
 * Clearer error messages for GNATDIST.
 
