@@ -95,13 +95,6 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
       P                : Parameterless_Procedure)
      return Thread_Access;
 
-   procedure Set_Priority
-     (TF : access Ravenscar_Thread_Factory_Type;
-      T  : Thread_Id;
-      P  : System.Any_Priority);
-   --  This function has no sense in Ravenscar profile,
-   --  It simply raises a Tasking.Tasking_Profile_Error.
-
    function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)
      return Thread_Id;
@@ -110,6 +103,25 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
      (TF : access Ravenscar_Thread_Factory_Type;
       TID : PTT.Thread_Id)
      return String;
+
+   procedure Set_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority);
+   pragma No_Return (Set_Priority);
+   --  Setting priority has no meaning under this profile,
+   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+
+   function Get_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority;
+   --  XXX not (yet) implemented,
+   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+
+   -------------------------------------------------
+   --  Ravenscar specific synchronization objects --
+   -------------------------------------------------
 
    --  The following procedures make access to the
    --  profile-specific synchronisation objects, so it should
@@ -194,9 +206,6 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
    function Get_Thread_Index (T : Thread_Id) return Integer;
    --  Return a different integer for each Thread_Id.
 
-   procedure Initialize;
-   --  Initialize the package.
-
 private
 
    type Ravenscar_Thread_Factory_Type is new Thread_Factory_Type
@@ -215,5 +224,8 @@ private
       --  Run_In_Task, Sync_Id is the Id of the Synchro on which the
       --  corresponding task is waiting.
    end record;
+
+   procedure Initialize;
+   --  Package Initialization procedure.
 
 end PolyORB.Tasking.Profiles.Ravenscar.Threads;

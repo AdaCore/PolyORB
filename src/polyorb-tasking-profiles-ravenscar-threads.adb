@@ -52,9 +52,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Initialized : Boolean := False;
-   --  whether or not the package is initialized.
-
    ---------
    -- Ids --
    ---------
@@ -80,7 +77,8 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --  Paramaters associated to this main task :
 
    Main_Task_Index : constant Integer := Thread_Index_Type'Last;
-   Main_Task_Tid    : Ada.Task_Identification.Task_Id;
+   Main_Task_Tid   : Ada.Task_Identification.Task_Id;
+
    --  XXX These two functions are duplicated from Full_Tasking.
 
    function P_To_A_Task_Id (TID : PTT.Thread_Id)
@@ -198,10 +196,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
          T  : out Thread_Access);
       --  This is the protected section of the Create_Thread procedure.
 
-      procedure Lookup (Tid : Ada.Task_Identification.Task_Id;
-                        Result : out Integer);
+      function Lookup (Tid : Ada.Task_Identification.Task_Id)
+                      return Integer;
       --  Get the Thread_Access associated to the given Task_Id.
-      --  XXX This should be made a function!
 
       procedure Initialize;
       --  Initialisation procedure of Pool_Manager.
@@ -261,9 +258,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Abort_Suspend --
    -------------------
 
-   procedure Abort_Suspend (S : Synchro_Index_Type) is
+   procedure Abort_Suspend
+     (S : Synchro_Index_Type) is
    begin
-      pragma Assert (Initialized);
       pragma Debug (O ("abort suspend on " & Integer'Image (Integer (S))));
 
       Sync_Pool (S).Prepare_Wait (False);
@@ -375,9 +372,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       return A_To_P_Task_Id (Ada.Task_Identification.Current_Task);
    end Get_Current_Thread_Id;
 
-   ----------------------
-   --  Thread_Id_Image --
-   ----------------------
+   ---------------------
+   -- Thread_Id_Image --
+   ---------------------
 
    function Thread_Id_Image
      (TF  : access Ravenscar_Thread_Factory_Type;
@@ -402,39 +399,56 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
      (T : access Ravenscar_Thread_Type)
       return Thread_Id is
    begin
-      pragma Assert (Initialized);
       return T.Id;
    end Get_Thread_Id;
+
+   ------------------
+   -- Set_Priority --
+   ------------------
+
+   procedure Set_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (T);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
+   begin
+      raise Tasking.Tasking_Profile_Error;
+   end Set_Priority;
+
+   ------------------
+   -- Get_Priority --
+   ------------------
+
+   function Get_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (T);
+      pragma Warnings (On);
+   begin
+      raise Tasking.Tasking_Profile_Error;
+
+      return 0;
+   end Get_Priority;
 
    ----------------------
    -- Get_Thread_Index --
    ----------------------
 
-   function Get_Thread_Index (T : Thread_Id)
-                             return Integer is
-      Index : Integer;
+   function Get_Thread_Index
+     (T : Thread_Id)
+     return Integer is
    begin
-      pragma Assert (Initialized);
-      Pool_Manager.Lookup (P_To_A_Task_Id (T), Index);
-      return Index;
+      return Pool_Manager.Lookup (P_To_A_Task_Id (T));
    end Get_Thread_Index;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      pragma Assert (not Initialized);
-      Thread_Index_Manager.Initialize;
-      Synchro_Index_Manager.Initialize (False);
-      Main_Task_Tid := Ada.Task_Identification.Current_Task;
-      Pool_Manager.Initialize;
-      PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
-                                   (The_Thread_Factory));
-      Pool_Manager.Wait_For_Package_Initialization;
-      Initialized := True;
-   end Initialize;
 
    -------------
    -- Stopper --
@@ -501,10 +515,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
         (Id  : Thread_Index_Type;
          Run : Runnable_Access;
          C   : Runnable_Controller_Access;
-         T   : out Thread_Access) is
+         T   : out Thread_Access)
+      is
          Result : Ravenscar_Thread_Access;
+
       begin
          pragma Assert (Package_Initialized);
+
          My_Job_Passing_Arr (Id) := Use_Runnable;
          My_Runnable_Arr (Id) := Run;
          My_Controller_Arr (Id) := C;
@@ -515,9 +532,12 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       procedure Create_Thread
         (Id : Thread_Index_Type;
          P  : Parameterless_Procedure;
-         T  : out Thread_Access) is
+         T  : out Thread_Access)
+      is
          Result : Ravenscar_Thread_Access;
+
       begin
+
          pragma Assert (Package_Initialized);
          My_Job_Passing_Arr (Id) := Use_PP;
          My_PP_Arr (Id) := P;
@@ -529,7 +549,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       -- End_Initialization --
       ------------------------
 
-      procedure End_Initialization (Id : Thread_Index_Type) is
+      procedure End_Initialization
+        (Id : Thread_Index_Type)
+      is
          pragma Warnings (Off);
          pragma Unreferenced (Id);
          pragma Warnings (On);
@@ -557,6 +579,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       begin
          pragma Assert (not Package_Initialized);
          pragma Assert (Current <= Thread_Index_Type'Last);
+
          Idx := Current;
          My_Thread_Arr (Current).Id := A_To_P_Task_Id (Tid);
          My_Task_Id_Arr (Current) := Tid;
@@ -569,18 +592,20 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       -- Pool_Manager.Lookup --
       -------------------------
 
-      procedure Lookup (Tid : Ada.Task_Identification.Task_Id;
-                        Result : out Integer) is
+      function Lookup (Tid : Ada.Task_Identification.Task_Id)
+                      return Integer
+      is
          J : Integer := Thread_Index_Type'First;
          use Ada.Task_Identification;
-         --  Result : Ravenscar_Thread_Access;
+
       begin
          pragma Assert (Package_Initialized);
+
          while My_Task_Id_Arr (J) /= Tid loop
             pragma Assert (J /= Thread_Index_Type'Last);
             J := J + 1;
          end loop;
-         Result := J;
+         return J;
       end Lookup;
 
       --------------------------------------------------
@@ -606,21 +631,23 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       P                : Parameterless_Procedure)
-     return Thread_Access is
+     return Thread_Access
+   is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
       pragma Unreferenced (Default_Priority);
       pragma Warnings (On);
+
       --  XXX The use of names and priorities is not implemented yet.
       Id : Thread_Index_Type;
       T  : Thread_Access;
    begin
-      pragma Assert (Initialized);
       --  The following call should not be executed in a protected
       --  object, because it can be blocking.
       Thread_Index_Manager.Get (Id);
       Pool_Manager.Create_Thread (Id, P, T);
+
       declare
          RT : constant Ravenscar_Thread_Access
            := Ravenscar_Thread_Access (T);
@@ -642,21 +669,23 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Default_Priority : System.Any_Priority := System.Default_Priority;
       R                : Runnable_Access;
       C                : Runnable_Controller_Access)
-     return Thread_Access is
+     return Thread_Access
+   is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
       pragma Unreferenced (Default_Priority);
       pragma Warnings (On);
+
       --  XXX The use of names and priorities is not implemented yet.
       Id : Thread_Index_Type;
       T  : Thread_Access;
    begin
-      pragma Assert (Initialized);
       --  The following call should not be executed in a protected
       --  object, because it can be blocking.
       Thread_Index_Manager.Get (Id);
       Pool_Manager.Create_Thread (Id, R, C, T);
+
       declare
          RT : constant Ravenscar_Thread_Access
            := Ravenscar_Thread_Access (T);
@@ -672,29 +701,12 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       end;
    end Run_In_Task;
 
-   ------------------
-   -- Set_Priority --
-   ------------------
-
-   procedure Set_Priority
-     (TF : access Ravenscar_Thread_Factory_Type;
-      T  : Thread_Id;
-      P  : System.Any_Priority)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Unreferenced (T);
-      pragma Unreferenced (P);
-      pragma Warnings (On);
-   begin
-      raise Tasking.Tasking_Profile_Error;
-   end Set_Priority;
-
    -----------------
    -- Simple_Task --
    -----------------
 
-   task body Simple_Task is
+   task body Simple_Task
+   is
       Index : Integer;
       Tid   : constant Ada.Task_Identification.Task_Id
         := Ada.Task_Identification.Current_Task;
@@ -725,7 +737,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    procedure Resume (S : Synchro_Index_Type) is
    begin
-      pragma Assert (Initialized);
       pragma Debug (O ("Resume on " & Integer'Image (Integer (S))));
       Sync_Pool (S).Signal;
    end Resume;
@@ -737,7 +748,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    procedure Suspend (S : Synchro_Index_Type) is
    begin
       pragma Debug (O ("will suspend: " & Integer'Image (Integer (S))));
+
       Sync_Pool (S).Wait;
+
       pragma Assert (not Sync_Pool (S).Get_Signaled and
                      not Sync_Pool (S).Get_Waiting);
       --  XXX might fail because of a bug in GNAT 3.15a1 ...
@@ -747,6 +760,22 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
       Synchro_Index_Manager.Release (Synchro_Index_Manager.Index_Type (S));
    end Suspend;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Thread_Index_Manager.Initialize;
+      Synchro_Index_Manager.Initialize (False);
+      Main_Task_Tid := Ada.Task_Identification.Current_Task;
+      Pool_Manager.Initialize;
+      PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
+                                   (The_Thread_Factory));
+      Pool_Manager.Wait_For_Package_Initialization;
+
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

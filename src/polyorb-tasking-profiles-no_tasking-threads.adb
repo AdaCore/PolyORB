@@ -69,9 +69,9 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       return PTT.Null_Thread_Id;
    end Get_Thread_Id;
 
-   -----------
-   -- Image --
-   -----------
+   ---------------------
+   -- Thread_Id_Image --
+   ---------------------
 
    function Thread_Id_Image
      (TF  : access No_Tasking_Thread_Factory_Type;
@@ -95,7 +95,8 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       Default_Priority : System.Any_Priority := System.Default_Priority;
       R                : PTT.Runnable_Access;
       C                : PTT.Runnable_Controller_Access)
-     return PTT.Thread_Access is
+     return PTT.Thread_Access
+   is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
@@ -113,7 +114,8 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       P                : PTT.Parameterless_Procedure)
-     return PTT.Thread_Access is
+     return PTT.Thread_Access
+   is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
@@ -131,8 +133,8 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    procedure Set_Priority
      (TF : access No_Tasking_Thread_Factory_Type;
-      T  : PTT.Thread_Id;
-      P  : System.Any_Priority)
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority)
    is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
@@ -140,14 +142,33 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (P);
       pragma Warnings (On);
    begin
-      null;
+      raise Tasking.Tasking_Profile_Error;
    end Set_Priority;
+
+   ------------------
+   -- Get_Priority --
+   ------------------
+
+   function Get_Priority
+     (TF : access No_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (T);
+      pragma Warnings (On);
+   begin
+      raise Tasking.Tasking_Profile_Error;
+
+      return 0;
+   end Get_Priority;
 
    ----------------
    -- Initialize --
    ----------------
 
-   procedure  Initialize;
+   procedure Initialize;
 
    procedure Initialize is
    begin

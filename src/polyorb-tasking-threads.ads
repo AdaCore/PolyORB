@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -95,6 +95,7 @@ package PolyORB.Tasking.Threads is
 
    function To_Address (TID : Thread_Id) return System.Address;
    pragma Inline (To_Address);
+
    function To_Thread_Id (A : System.Address) return Thread_Id;
    pragma Inline (To_Thread_Id);
 
@@ -165,15 +166,6 @@ package PolyORB.Tasking.Threads is
    --  In some profiles, this function ensure that no dynamic allocation
    --  is done.
 
-   procedure Set_Priority
-     (TF : access Thread_Factory_Type;
-      T  : Thread_Id;
-      P  : System.Any_Priority)
-     is abstract;
-   --  This function change the priority of the current task,
-   --  if it is allowed by the profile. If it is not,
-   --  it raises a PolyORB.Tasking.Tasking_Profile_Error.
-
    function Get_Current_Thread_Id
      (TF : access Thread_Factory_Type)
      return Thread_Id
@@ -185,8 +177,8 @@ package PolyORB.Tasking.Threads is
    --  this call will raise a PolyORB.Tasking.Tasking_Error.
 
    function Thread_Id_Image
-     (TF : access Thread_Factory_Type;
-      TID : Thread_Id)
+     (TF  : access Thread_Factory_Type;
+      TID :        Thread_Id)
      return String
      is abstract;
    --  Return a human-readable interpretation of TID.
@@ -203,6 +195,23 @@ package PolyORB.Tasking.Threads is
      (TF : Thread_Factory_Access);
    --  Register the factory corresponding to the chosen tasking profile.
 
+   procedure Set_Priority
+     (TF : access Thread_Factory_Type;
+      T  :        Thread_Id;
+      P  :        System.Any_Priority) is abstract;
+   --  Change the priority of the task 'T'.
+   --  Raise PolyORB.Tasking.Tasking_Profile_Error if it is not
+   --  permitted by tasking profile in use.
+
+   function Get_Priority
+     (TF : access Thread_Factory_Type;
+      T  :        Thread_Id)
+     return System.Any_Priority is abstract;
+   --  Return the priority of the task 'T'.
+   --  Raise PolyORB.Tasking.Tasking_Profile_Error if it is not
+   --  permitted by tasking profile in use.
+
 private
    type Thread_Id is new System.Address;
+
 end PolyORB.Tasking.Threads;
