@@ -67,6 +67,20 @@ Items still requiring attention
 * HTTP as a Protocol (to be used with Minimal_Servant to compose a
   web server).
 
+* Remove SOAP-specific stuff from the HTTP filter
+  (SOAPAction handling), move that to a SOAP/HTTP binding filter,
+  with the following resulting architecture:
+
+       SOAP
+        ^
+        |
+        v
+   SOAP/HTTP binding
+        ^
+        |
+        v
+       HTTP
+
 * CSTA protocol (for telephony applications.)
 
 * Alternative implementations of transport endpoints:
