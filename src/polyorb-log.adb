@@ -59,7 +59,10 @@ package body PolyORB.Log is
          Len : Interfaces.C.int);
       pragma Import (C, C_Write, "write");
    begin
-      C_Write (0, SS (SS'First)'Address, SS'Length);
+      C_Write (2, SS (SS'First)'Address, SS'Length);
+      --  '2' is STDERR, see 'unistd.h' standard include C file
+      --  for more details about standard file descriptors.
+
    end Put_Line;
 
    -------------------
