@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#58 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#59 $
 
 with Ada.Exceptions;
 
@@ -134,22 +134,6 @@ package body PortableServer.POA is
          return The_POA;
       end;
    end To_POA;
-
-   ------------
-   -- To_Ref --
-   ------------
-
-   function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return Ref is
-   begin
-      if CORBA.Object.Entity_Of (Self).all
-        not in PolyORB.POA.Obj_Adapter'Class then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      return Create_Ref (CORBA.Object.Entity_Of (Self));
-   end To_Ref;
 
    ----------------
    -- Create_POA --

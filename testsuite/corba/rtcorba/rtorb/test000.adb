@@ -39,7 +39,7 @@ with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
 
-with PortableServer.POA;
+with PortableServer.POA.Helper;
 with PortableServer.POAManager;
 
 with RTCORBA.RTORB;
@@ -142,7 +142,7 @@ begin
 
       --  Retrieve Root POA
 
-      Root_POA := PortableServer.POA.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

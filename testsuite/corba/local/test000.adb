@@ -36,7 +36,7 @@
 with CORBA.Object;
 with CORBA.ORB;
 
-with PortableServer.POA;
+with PortableServer.POA.Helper;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
@@ -70,7 +70,7 @@ begin
          Output ("Test on uninitialized ref", False);
    end;
 
-   POA := PortableServer.POA.To_Ref
+   POA := PortableServer.POA.Helper.To_Ref
      (CORBA.ORB.Resolve_Initial_References
       (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

@@ -38,7 +38,7 @@ with PolyORB.Setup.Thread_Pool_Server;
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 with PolyORB.Utils.Report;
 
-with PortableServer.POA;
+with PortableServer.POA.Helper;
 with PortableServer.POAManager;
 
 with Test_Globals;
@@ -56,7 +56,7 @@ begin
    CORBA.ORB.Initialize ("ORB");
 
    Root_POA :=
-     PortableServer.POA.To_Ref
+     PortableServer.POA.Helper.To_Ref
       (CORBA.ORB.Resolve_Initial_References
         (CORBA.ORB.To_CORBA_String ("RootPOA")));
    PortableServer.POAManager.Activate

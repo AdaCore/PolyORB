@@ -45,6 +45,7 @@ ADA_SPECS_WITH_BODY = \
 	portableserver-implicitactivationpolicy.ads \
 	portableserver-lifespanpolicy.ads \
 	portableserver-poa.ads \
+	portableserver-poa-helper.ads \
 	portableserver-poa-goa.ads \
 	portableserver-poamanager.ads \
 	portableserver-requestprocessingpolicy.ads \

@@ -36,7 +36,7 @@ with Ada.Text_IO;
 with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ORB;
-with PortableServer.POA;
+with PortableServer.POA.Helper;
 with PortableServer.POAManager;
 
 with PolyORB.Setup.No_Tasking_Server;
@@ -55,7 +55,7 @@ procedure Server is
 begin
    CORBA.ORB.Init (CORBA.ORB.To_CORBA_String ("ORB"), Argv);
 
-   Root_POA := PortableServer.POA.To_Ref
+   Root_POA := PortableServer.POA.Helper.To_Ref
      (CORBA.ORB.Resolve_Initial_References
       (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

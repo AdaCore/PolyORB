@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@
 with CORBA.Object;
 with CORBA.ORB;
 
-with PortableServer.POA;
+with PortableServer.POA.Helper;
 with PortableServer.POAManager;
 
 with PolyORB.Log;
@@ -58,7 +58,7 @@ package body PolyORB.CORBA_P.Server_Tools is
 
    function Get_Root_POA return PortableServer.POA.Ref is
    begin
-      return PortableServer.POA.To_Ref
+      return PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
    end Get_Root_POA;
@@ -69,7 +69,7 @@ package body PolyORB.CORBA_P.Server_Tools is
 
    procedure Initiate_Server (Start_New_Task : Boolean := False) is
       Root_POA : PortableServer.POA.Ref
-        := PortableServer.POA.To_Ref
+        := PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -101,7 +101,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    begin
       pragma Debug (O ("Initiate_Servant : enter"));
 
-      Root_POA := PortableServer.POA.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -126,7 +126,7 @@ package body PolyORB.CORBA_P.Server_Tools is
       Root_POA : PortableServer.POA.Ref;
 
    begin
-      Root_POA := PortableServer.POA.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 

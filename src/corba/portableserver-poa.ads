@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.ads#12 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.ads#13 $
 
 with Ada.Exceptions;
 
@@ -60,10 +60,6 @@ with PolyORB.Exceptions;
 package PortableServer.POA is
 
    type Ref is new CORBA.Object.Ref with null record;
-
-   function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return Ref;
 
    AdapterAlreadyExists : exception;
    AdapterNonExistent   : exception;
@@ -377,5 +373,8 @@ package PortableServer.POA is
    procedure Raise_WrongPolicy
      (Excp_Memb : in WrongPolicy_Members);
    pragma No_Return (Raise_WrongPolicy);
+
+   Repository_Id : constant Standard.String
+     := "IDL:PortableServer/POA:1.0";
 
 end PortableServer.POA;

@@ -2,11 +2,16 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                           T E S T _ M Y P O A                            --
+--            P O R T A B L E S E R V E R . P O A . H E L P E R             --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,82 +36,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Impl;
-with CORBA.ORB;
-with CORBA.Policy;
+--  $Id$
 
-with PortableServer.POA.Helper;
+with CORBA.Object;
 
-with PolyORB.Utils.Report;
+package PortableServer.POA.Helper is
 
-with Echo.Helper;
-with Echo.Impl;
-
-package body Test_MyPOA is
-
-   use CORBA;
-
-   use PolyORB.Utils.Report;
-
-   ------------
-   -- To_Ref --
-   ------------
+   function Unchecked_To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return PortableServer.POA.Ref;
 
    function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return My_POA_Ref
-   is
-      Result : My_POA_Ref;
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return PortableServer.POA.Ref;
 
-   begin
-      Set (Result, CORBA.Object.Entity_Of (Self));
-
-      return Result;
-   end To_Ref;
-
-   ----------------
-   -- Test_MyPOA --
-   ----------------
-
-   procedure Run_Test_MyPOA
-   is
-      MyPOA : My_POA_Ref;
-
-      Root_POA : constant PortableServer.POA.Ref
-        := PortableServer.POA.Helper.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RootPOA")));
-
-      Policies : CORBA.Policy.PolicyList;
-
-      Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
-
-      Obj_Ref : Echo.Ref;
-
-   begin
-      New_Test ("User defined child of POA");
-
-      MyPOA := To_Ref
-        (PortableServer.POA.Create_POA
-         (Root_POA,
-          To_CORBA_String ("My_POA"),
-          PortableServer.POA.Get_The_POAManager (Root_POA),
-          Policies));
-
-      Output ("Attach user defined child of POA", True);
-
-      Obj_Ref := Echo.Helper.To_Ref
-        (PortableServer.POA.Servant_To_Reference
-         (PortableServer.POA.Ref (MyPOA), PortableServer.Servant (Obj)));
-
-      Output ("Attach servant", True);
-
-      Output ("Test invocation on servant",
-              "Hello Ada World !" =
-              To_Standard_String
-              (Echo.echoString
-               (Obj_Ref, To_CORBA_String ("Hello Ada World !"))));
-
-   end Run_Test_MyPOA;
-
-end Test_MyPOA;
+end PortableServer.POA.Helper;

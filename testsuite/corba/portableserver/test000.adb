@@ -51,7 +51,7 @@ with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
 
-with PortableServer.POA;
+with PortableServer.POA.Helper;
 with PortableServer.POAManager;
 
 with Echo.Helper;
@@ -268,7 +268,7 @@ procedure Test000 is
    begin
       New_Test ("RootPOA");
 
-      Root_POA := PortableServer.POA.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -294,7 +294,7 @@ procedure Test000 is
                           (PortableServer.ORB_CTRL_MODEL));
 
       Root_POA : constant PortableServer.POA.Ref :=
-        PortableServer.POA.To_Ref
+        PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -470,7 +470,7 @@ procedure Test000 is
                           (PortableServer.SINGLE_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Ref :=
-        PortableServer.POA.To_Ref
+        PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -549,7 +549,7 @@ procedure Test000 is
                           (PortableServer.MAIN_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Ref :=
-        PortableServer.POA.To_Ref
+        PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -707,7 +707,7 @@ procedure Test000 is
         (Create_Request_Processing_Policy (Rp));
 
       Root_POA : constant PortableServer.POA.Ref :=
-        PortableServer.POA.To_Ref
+        PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -1595,7 +1595,7 @@ procedure Test000 is
       Policies : CORBA.Policy.PolicyList;
 
       Root_POA : constant PortableServer.POA.Ref :=
-        PortableServer.POA.To_Ref
+        PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
@@ -1713,7 +1713,7 @@ procedure Test000 is
       New_Test ("OID");
 
       Root_POA :=
-        PortableServer.POA.To_Ref
+        PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
       PortableServer.POAManager.Activate

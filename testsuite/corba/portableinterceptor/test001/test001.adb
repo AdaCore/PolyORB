@@ -34,7 +34,7 @@
 with CORBA.ORB;
 with PortableInterceptor.ORBInitializer.Register;
 with PortableInterceptor.ORBInitializer.Initialize_All;
-with PortableServer.POA;
+with PortableServer.POA.Helper;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Smart_Pointers;
@@ -76,7 +76,7 @@ begin
    declare
       Root_POA : PortableServer.POA.Ref;
    begin
-      Root_POA := PortableServer.POA.To_Ref
+      Root_POA := PortableServer.POA.Helper.To_Ref
         (CORBA.ORB.Resolve_Initial_References
          (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
