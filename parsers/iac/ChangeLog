@@ -1,5 +1,8 @@
 2004-06-22  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* frontend-nutils.adb, frontend-nutils.ads, backend-be_idl.adb:
+	Define a new converter function for parameters to fix output bug.
+
 	* backend-be_ada*: Merge be_a into be_ada.
 
 	* backend-be_a-generator.adb, backend-be_a-nutils.adb,
