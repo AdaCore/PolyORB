@@ -5,6 +5,8 @@ Fri Mar  7 18:54:11 1997  Laurent Pautet  <pautet@inf.enst.fr>
 	* configure.in: Use ssh when it is available. Modified to match
 	  automake 1.1m.
 
+
+	* configure.in, configure: Add --with-remsh to set the rsh command
  	we use.
 
 Fri Feb 28 15:00:11 1997  Samuel Tardieu  <sam@inf.enst.fr>
