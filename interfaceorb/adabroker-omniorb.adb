@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.13 $
+--                            $Revision: 1.14 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -112,7 +112,7 @@ package body AdaBroker.OmniORB is
       C_Init_Local_Object (Self.OmniObj.all, C_RepoID);
       Strings.Free (C_RepoID);
 
-      pragma Debug (O ("Initialize_Local_Object : enter"));
+      pragma Debug (O ("Initialize_Local_Object : exit"));
    end Initialize_Local_Object;
 
    ------------
@@ -276,8 +276,8 @@ package body AdaBroker.OmniORB is
          return Offset + 12;
 
       else
-         --  Add size of unsigned_long, size of RepoID itself and size
-         --  of profiles.
+         --  Add size of an unsigned_long (for the size of the RepoId),
+	 --  the size of the RepoID itself and the size of profiles.
 
          declare
             use Ada.Strings.Unbounded;
@@ -1243,20 +1243,20 @@ package body AdaBroker.OmniORB is
       return Sysdep.To_Bool (False);
    end C_Is_A;
 
-   ------------------------------
+   ----------------------------------
    -- C_OmniObject_Ptr_Constructor --
-   ------------------------------
+   ----------------------------------
 
    function C_OmniObject_Ptr_Constructor return System.Address;
    pragma Import
      (CPP, C_OmniObject_Ptr_Constructor, "Constructor__14Ada_OmniObject");
-   --  This is a workaround for gnat 3.11p we cannot write toto :
-   --  Object_Ptr := new Object we have to call the C++ constructor to
-   --  create objects this constructor is only used in
-   --  Initialize(ImplObject) it must not be ued otherwise, because
-   --  it creates non-initialized objects which are initialized afrewards
-   --  in Initialize(ImplObject) see Create_Omniobject : another
-   --  way of creatins omniobject.Object
+   --  This is a workaround for gnat 3.11p. We cannot write
+   --  toto : Object_Ptr := new Object, we have to call the
+   --  C++ constructor to create objects. This constructor
+   --  is only used in Initialize(ImplObject) it must not be
+   --  used otherwise, because it creates non-initialized
+   --  objects which are initialized afterwards in Initialize(ImplObject)
+   --  see Create_Omniobject : another way of creatins omniobject.Object
 
    ----------------------------
    -- Object_Ptr_Constructor --
