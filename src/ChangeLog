@@ -1,3 +1,9 @@
+2001-02-15  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* Droopi.Filters: New mechanism for layered message handling
+	system. Removes an ugly abstraction violation whereby
+	Sockets would be visible by Sessions.
+
 2001-02-09  Thomas Quinot  <quinot@inf.enst.fr>
 
 	* Droopi.Protocols.Echo: Now creates a Request object when

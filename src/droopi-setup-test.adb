@@ -4,6 +4,7 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
+with Droopi.Filters;
 with Droopi.Log;
 with Droopi.ORB.Task_Policies;
 with Droopi.No_Tasking;
@@ -25,16 +26,20 @@ begin
    -- Initialize all subsystems --
    -------------------------------
 
+   Put_Line ("@@1");
    Droopi.Log.Initialize;
    --  Logging subsystem. Start this one first so we can debug
    --  problems in others.
 
+   Put_Line ("@@2");
    Droopi.No_Tasking.Initialize;
    --  Setup soft links.
 
+   Put_Line ("@@3");
    Droopi.Refs.Initialize;
    --  Depends on Soft_Links.
 
+   Put_Line ("@@4");
    The_ORB := Droopi.ORB.Create_ORB
      (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
    --  Create ORB singleton.
@@ -73,10 +78,13 @@ begin
 
    Insert_Socket
      (The_ORB, Active_Socket'
-      (Kind => Listening_Sk,
+      (The_ORB => The_ORB,
+       Kind => Listening_Sk,
        Socket => Server,
-       Protocol => Protocols.Protocol_Access'
-       (new Protocols.Echo.Echo_Protocol)));
+       Chain => new Filters.Factory_Chain'
+       (This => new Protocols.Echo.Echo_Protocol,
+        Upper => null)));
+
    --  Register socket with ORB object, associating a protocol
    --  to the transport service access point.
 

@@ -7,13 +7,6 @@ package Droopi.Servers is
    type Server_Type is abstract tagged limited private;
    type Server_Access is access all Server_Type'Class;
 
-   --  XXX remove
-   --  procedure Run
-   --    (Server         : access Server_Type;
-   --     Exit_When : Exit_Condition_Access := null) is abstract;
-   --  Named access type is required for Exit_When because
-   --  we want it to permit null value.
-
    procedure Queue_Request
      (Server : access Server_Type;
       Req    : Requests.Request_Access)

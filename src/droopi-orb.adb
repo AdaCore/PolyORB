@@ -2,15 +2,16 @@
 
 with Ada.Exceptions;
 
+with Droopi.Filters.Sockets;
 with Droopi.Log;
 with Droopi.Soft_Links;
-with Droopi.Channels;
 
 package body Droopi.ORB is
 
+   use Droopi.Filters;
    use Droopi.Jobs;
    use Droopi.Log;
-   use Droopi.Protocols;
+   --  use Droopi.Protocols;
    use Droopi.Requests;
    use Droopi.Sockets;
    use Droopi.Soft_Links;
@@ -87,13 +88,14 @@ package body Droopi.ORB is
 
             declare
                New_AS      : Active_Socket;
-               New_Session : Session_Access;
+               --  New_Session : Session_Access;
                Addr        : Sock_Addr_Type;
             begin
-               New_AS := (Kind     => Communication_Sk,
+               New_AS := (The_ORB  => ORB_Access (ORB),
+                          Kind     => Communication_Sk,
                           Socket   => No_Socket,
-                          Channel  => null,
-                          Protocol => AS.Protocol);
+                          Channel  => null);
+               --  Protocol => AS.Protocol);
 
                Accept_Socket
                  (Server  => AS.Socket,
@@ -106,17 +108,9 @@ package body Droopi.ORB is
                O ("Connection accepted from " & Image (Addr)
                   & " on socket " & Image (New_AS.Socket), Info);
 
-               if New_AS.Protocol /= null then
-                  Create_Session
-                    (New_AS.Protocol,
-                     Server_Access (ORB),
-                     New_AS.Socket,
-                     New_Session,
-                     New_AS.Channel);
-               end if;
-
-               Handle_Connect (New_Session);
-               --  Startup protocol.
+               Filters.Sockets.Create (New_AS);
+               Filters.Create_Filter_Chain
+                 (New_AS.Channel, AS.Chain);
 
                Handle_New_Connection
                  (ORB.Tasking_Policy, ORB_Access (ORB), New_AS);
@@ -139,20 +133,17 @@ package body Droopi.ORB is
             --  since they may depend upon the particular messages
             --  received.
 
-            declare
-               Closed : Boolean;
-               --  Was the underlying transport connection closed?
             begin
-               Channels.Handle_Data (AS.Channel, Closed);
-               if Closed then
+               Filters.Handle_SDU (AS.Channel, SDU'(Kind => Data_Indication));
+            exception
+               when Filters.Sockets.Connection_Closed =>
                   Result := Connection_Closed;
-               end if;
+               when others =>
+                  raise;
             end;
 
          when Invalid_Sk =>
-
-            --  An error condition (AS is not a valid active socket).
-
+            --  Does not happen.
             pragma Assert (False);
             null;
       end case;

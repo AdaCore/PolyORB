@@ -29,11 +29,24 @@ Internal components of the CORBA personality.
 Logging facility. Provides a unified means for other units
 to output debugging, diagnostics and error messages.
 
+./droopi-filters.ads
+
+Layered components that form a protocol stack. Each
+filter transmits SDUs (service data units) from its
+lower layer to its upper layer, and can perform some
+processing on the SDU and its associated data.
+
+The lowest layer is a droopi.filters.sockets.socket_filter,
+which does not receive SDUs from a lower layer but directly
+from the ORB engine.
+
+The uppermost layer is a Session, which does not actually
+transmits SDUs to an upper layer but takes action based on
+received SDUs.
+
 ./droopi-channels.ads
 
-Channels are the objects that convert raw system transport
-entities (sockets, message queues, shared memory segments,
-avian carriers...) into unified message exchange abstractions.
+DEPRECATED.
 
 ./droopi-soft_links.ads
 

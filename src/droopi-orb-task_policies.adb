@@ -2,6 +2,7 @@
 
 package body Droopi.ORB.Task_Policies is
 
+   use Droopi.Filters;
    use Droopi.Sockets;
 
    procedure Handle_New_Connection
@@ -10,6 +11,7 @@ package body Droopi.ORB.Task_Policies is
       AS  : Active_Socket) is
    begin
       Insert_Socket (ORB, AS);
+      Filters.Handle_SDU (AS.Channel, SDU'(Kind => Connect_Indication));
       --  The newly-created channel will be monitored
       --  by general-purpose ORB tasks.
    end Handle_New_Connection;

@@ -14,14 +14,31 @@ package body Droopi.Protocols is
       Free (S);
    end Destroy_Session;
 
-   procedure Signal_Data (SC : access Session_Channel) is
+   procedure Handle_SDU (Sess : access Session; S : SDU) is
    begin
-      Handle_Data (SC.Session);
-   end Signal_Data;
+      case S.Kind is
+         when Connect_Indication =>
+            Handle_Connect (Session_Access (Sess));
+         when Disconnect_Indication =>
+            Handle_Disconnect (Session_Access (Sess));
+         when Data_Indication =>
+            Handle_Data_Indication (Session_Access (Sess));
 
-   procedure Signal_Connection_Closed (SC : access Session_Channel) is
+         when others =>
+            pragma Assert (False);
+            null;
+      end case;
+   end Handle_SDU;
+
+   procedure Expect_Data
+     (S      : access Session;
+      In_Buf : Buffers.Buffer_Access;
+      Max    : Ada.Streams.Stream_Element_Count) is
    begin
-      Handle_Connection_Closed (SC.Session);
-   end Signal_Connection_Closed;
+      Filters.Handle_SDU
+        (Lower (S), SDU'(Kind => Data_Expected,
+                         In_Buf => In_Buf, Max => 1024));
+   end Expect_Data;
+
 
 end Droopi.Protocols;

@@ -10,16 +10,26 @@ Items still requiring attention
 * Unified runtime configuration file
   (modifications to Droopi.Log).
 * Droopi.Buffers: remove mentions of CDR.
-* When a connection is closed, release all associated
-  resources in a top-down fashion.
+* When a connection is closed, release all associated resources.
 * A single-task client configuration.
 * A multi-tasking server configuration.
 * A multi-tasking client configuration.
+
 * A mechanism for use of non-connected message passing
   protocols (eg UDP).
+
 * A mechanism for optional implementation of reliable
   message delivery over a non-reliable message delivery
   protocol (eg UDP with ack/retransmission)
+
+* A mechanism for message exchange not based on sockets
+  (eg SysV IPC).
+  A provision for polling multiple sources of asynchronous
+  events.
+
+* A filter to gather a message of a given size from lower
+  layers before signalling to upper layers (as did the old
+  Channel type).
 
 Items processed
 ---------------

@@ -2,9 +2,9 @@
 
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Soft_Links;  use Droopi.Soft_Links;
-
 package body Droopi.No_Tasking is
+
+   use Droopi.Soft_Links;
 
    ------------
    -- Create --
@@ -171,8 +171,10 @@ package body Droopi.No_Tasking is
 
    procedure Differ (W : in Unprotected_Watcher_Type; V : in Version_Id) is
    begin
-      --  XXX this is wrong.
-      null;
+      if W.X.Version = V then
+         --  Dead lock!
+         raise Program_Error;
+      end if;
    end Differ;
 
    -----------

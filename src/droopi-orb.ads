@@ -4,9 +4,9 @@
 
 with Sequences.Unbounded;
 
-with Droopi.Channels;
+with Droopi.Filters;
 with Droopi.Jobs;
-with Droopi.Protocols;
+--  with Droopi.Protocols;
 with Droopi.Requests;
 with Droopi.Servers;
 with Droopi.Soft_Links;
@@ -49,14 +49,15 @@ package Droopi.ORB is
       Communication_Sk);
 
    type Active_Socket (Kind : Socket_Kind := Invalid_Sk) is record
+      The_ORB  : ORB_Access;
       Socket   : Sockets.Socket_Type;
-      Protocol : Protocols.Protocol_Access;
+      --  Protocol : Protocols.Protocol_Access;
 
       case Kind is
          when Communication_Sk =>
-            --  XXX remove?
-            --  Session  : Protocols.Session_Access;
-            Channel  : Channels.Channel_Access;
+            Channel  : Filters.Filter_Access;
+         when Listening_Sk =>
+            Chain : Filters.Factory_Chain_Access;
          when others =>
             null;
       end case;
@@ -79,7 +80,7 @@ package Droopi.ORB is
       ORB : ORB_Access;
       AS  : Active_Socket) is abstract;
    --  Create the necessary processing resources for newly-created
-   --  communication channel C, and start dialog.
+   --  communication endpoint AS.
 
    procedure Handle_Request
      (P   : access Tasking_Policy_Type;

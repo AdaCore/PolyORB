@@ -12,14 +12,10 @@ package Droopi.Protocols.Echo is
 
    type Echo_Protocol is new Protocol with private;
 
-   procedure Create_Session
+   procedure Create
      (Proto   : access Echo_Protocol;
-      Server  : Servers.Server_Access;
-      Sock    : Sockets.Socket_Type;
-      Session : out Session_Access;
-      Channel : out Channels.Channel_Access);
-
-   --  Echo_Session
+      Lower   : Filter_Access;
+      Session : out Filter_Access);
 
    type Echo_Session is new Session with private;
 
@@ -30,10 +26,10 @@ package Droopi.Protocols.Echo is
    procedure Handle_Connect (S : access Echo_Session);
    --  Send a greeting banner to user.
 
-   procedure Handle_Data (S : access Echo_Session);
+   procedure Handle_Data_Indication (S : access Echo_Session);
    --  Handle data received from user.
 
-   procedure Handle_Connection_Closed (S : access Echo_Session);
+   procedure Handle_Disconnect (S : access Echo_Session);
    --  Handle disconnection from user.
 
 private

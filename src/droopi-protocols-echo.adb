@@ -6,6 +6,7 @@ with Ada.Exceptions;
 
 with Droopi.Buffers;
 with Droopi.Log;
+with Droopi.Servers;
 with Droopi.Requests; use Droopi.Requests;
 
 with Droopi.Representations.Test; use Droopi.Representations.Test;
@@ -20,29 +21,22 @@ package body Droopi.Protocols.Echo is
 
    Rep : constant Rep_Test_Access := new Rep_Test;
 
-   procedure Create_Session
+   procedure Create
      (Proto   : access Echo_Protocol;
-      Server  : Servers.Server_Access;
-      Sock    : Sockets.Socket_Type;
-      Session : out Session_Access;
-      Channel : out Channels.Channel_Access)
+      Lower   : Filter_Access;
+      Session : out Filter_Access)
    is
    begin
 
       --  This should be factored in Droopi.Protocols.
 
       Session := new Echo_Session;
-      Channel := new Session_Channel;
-      Channels.Create (Channel, Sock);
-      Session_Channel (Channel.all).Session := Session;
-      Session.Server  := Server;
-      Session.Channel := Channel;
 
       --  That is Echo-specific. Or is it?
 
       Echo_Session (Session.all).Buffer := new Buffers.Buffer_Type;
 
-   end Create_Session;
+   end Create;
 
    procedure Invoke_Request (S : access Echo_Session; R : Request) is
    begin
@@ -58,7 +52,9 @@ package body Droopi.Protocols.Echo is
    begin
       --  Send_String ("Hello, please type data." & ASCII.LF);
       pragma Debug (O ("Received new connection to echo service..."));
-      Channels.Expect_Data (S.Channel, S.Buffer, 1024, False);
+      Expect_Data (S, S.Buffer, 1024
+                   --  Exact => False
+                   );
    end Handle_Connect;
 
    type String_Array is array (Integer range <>) of String_Ptr;
@@ -95,7 +91,7 @@ package body Droopi.Protocols.Echo is
       end loop;
    end Free;
 
-   procedure Handle_Data (S : access Echo_Session) is
+   procedure Handle_Data_Indication (S : access Echo_Session) is
    begin
       pragma Debug (O ("Received data on echo service..."));
       pragma Debug (Buffers.Show (S.Buffer.all));
@@ -119,7 +115,7 @@ package body Droopi.Protocols.Echo is
 --                 Operation => Argv (1).all,
 --                 Args      => Argv (3).all);
 --
-            Servers.Queue_Request (S.Server, Req);
+            Servers.Queue_Request (Server_Of (S), Req);
          exception
             when E : others =>
                O ("Got exception: "
@@ -128,11 +124,14 @@ package body Droopi.Protocols.Echo is
          Free (Argv);
       end;
 
-      Channels.Expect_Data (S.Channel, S.Buffer, 1024, False);
-      --  Prepare to receive next message.
-   end Handle_Data;
+      Expect_Data (S, S.Buffer, 1024);
+      --  XXX data_Exact => false
 
-   procedure Handle_Connection_Closed (S : access Echo_Session) is
+      --  Prepare to receive next message.
+
+   end Handle_Data_Indication;
+
+   procedure Handle_Disconnect (S : access Echo_Session) is
    begin
       pragma Debug (O ("Received disconnect."));
 
@@ -140,12 +139,7 @@ package body Droopi.Protocols.Echo is
 
       Buffers.Release (S.Buffer);
 
-      --  Destroy channel, remove it from the ORB.
-
-      --  Destroy session.
-
-      null;
-   end Handle_Connection_Closed;
+   end Handle_Disconnect;
 
 end Droopi.Protocols.Echo;
 

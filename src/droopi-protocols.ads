@@ -2,10 +2,11 @@
 
 --  $Id$
 
-with Droopi.Channels;
+with Ada.Streams;
+
+with Droopi.Buffers;
+with Droopi.Filters; use Droopi.Filters;
 with Droopi.Requests; use Droopi.Requests;
-with Droopi.Servers;
-with Droopi.Sockets;
 
 package Droopi.Protocols is
 
@@ -14,22 +15,17 @@ package Droopi.Protocols is
    --  A protocol is a factory of sessions. Each session corresponds
    --  to a connection to a remote protocol entity.
 
-   type Session is abstract tagged limited private;
-   type Session_Access is access all Session'Class;
-
-   type Protocol is abstract tagged limited private;
+   type Protocol is abstract new Filters.Factory with private;
    type Protocol_Access is access all Protocol'Class;
 
-   procedure Create_Session
+   type Session is abstract new Filters.Filter with private;
+   type Session_Access is access all Session'Class;
+
+   procedure Create
      (Proto   : access Protocol;
-      Server  : Servers.Server_Access;
-      Sock    : Sockets.Socket_Type;
-      Session : out Session_Access;
-      Channel : out Channels.Channel_Access)
-     is abstract;
-   --  Create a session for protocol Proto using socket Sock.
-   --  The newly-created Session and the corresponding Channel
-   --  are returned.
+      Lower   : Filter_Access;
+      Session : out Filter_Access) is abstract;
+   --  Create a Session for protocol Proto using filter Lower.
 
    procedure Destroy_Session (S : in out Session_Access);
    --  Destroy the session associated with S, return any associated
@@ -79,31 +75,42 @@ package Droopi.Protocols is
    -- Callback point (interface to lower layers) --
    ------------------------------------------------
 
+   procedure Handle_SDU (Sess : access Session; S : SDU);
+   --  Demultiplex SDUs to specialized operations.
+
    procedure Handle_Connect (S : access Session) is abstract;
    --  Invoked when a new incoming connection has been accepted
    --  as session S.
 
-   procedure Handle_Data (S : access Session) is abstract;
+   procedure Handle_Data_Indication (S : access Session) is abstract;
    --  Invoked when some data arrives for session S.
 
-   procedure Handle_Connection_Closed (S : access Session) is abstract;
+   procedure Handle_Disconnect (S : access Session) is abstract;
    --  Invoked when the underlying connection is closed.
 
 private
 
-   type Protocol is abstract tagged limited null record;
+   type Protocol is abstract new Filters.Factory with null record;
 
-   type Session is abstract tagged limited record
-      Server  : Servers.Server_Access;
-      Channel : Channels.Channel_Access;
-   end record;
+   type Session is abstract new Filters.Filter with null record;
 
-   type Session_Channel is new Channels.Channel with record
-      Session : Session_Access;
-      --  Uplink to the associated session.
-   end record;
+   procedure Expect_Data
+     (S      : access Session;
+      In_Buf : Buffers.Buffer_Access;
+      Max    : Ada.Streams.Stream_Element_Count);
 
-   procedure Signal_Data (SC : access Session_Channel);
-   procedure Signal_Connection_Closed (SC : access Session_Channel);
+   --  XXX remove
+--     with record
+--       Server  : Servers.Server_Access;
+--       Channel : Channels.Channel_Access;
+--     end record;
+
+--     type Session_Channel is new Channels.Channel with record
+--        Session : Session_Access;
+--        --  Uplink to the associated session.
+--     end record;
+--
+--     procedure Signal_Data (SC : access Session_Channel);
+--     procedure Signal_Connection_Closed (SC : access Session_Channel);
 
 end Droopi.Protocols;
