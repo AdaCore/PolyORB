@@ -51,7 +51,7 @@ is
 
    procedure Check_Compatibility
      (Self : Use_Default_Servant_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
    is
    begin
       pragma Warnings (Off);

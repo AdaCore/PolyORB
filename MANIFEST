@@ -687,6 +687,7 @@ src/polyorb-sequences-unbounded-search.ads
 src/polyorb-sequences-unbounded.adb
 src/polyorb-sequences-unbounded.ads
 src/polyorb-sequences.ads
+src/polyorb-servants.adb
 src/polyorb-servants.ads
 src/polyorb-setup-corba_client.adb
 src/polyorb-setup-corba_client.ads

@@ -35,6 +35,7 @@
 --  $Id$
 
 with PolyORB.Components;
+with PolyORB.POA_Policies.Thread_Policy;
 
 package PolyORB.Servants is
 
@@ -50,9 +51,34 @@ package PolyORB.Servants is
       Msg : Components.Message'Class)
       return Components.Message'Class is abstract;
 
+   procedure Set_Thread_Policy
+     (S  : access Servant;
+      TP : POA_Policies.Thread_Policy.ThreadPolicy_Access);
+   --  Set a ThreadPolicy pointer for the servant
+
+   pragma Inline (Set_Thread_Policy);
+
 private
 
    type Servant is abstract new PolyORB.Components.Component
-     with null record;
+     with record
+        TP_Access : POA_Policies.Thread_Policy.ThreadPolicy_Access := null;
+     end record;
+   --  TP_Access is a ThreadPolicy_Access. It is a pointer to the
+   --  ThreadPolicy of the OA that manages the Servant. If the OA is not
+   --  a POA, then this policy will be the ORB_CTRL_MODEL policy. This field
+   --  is needed by PolyORB in order to execute a request on a servant with
+   --  the appropriate Thread Policy. We can notice that only the POAs use
+   --  different thread policies, but as the ORB doesn't know if the OA is
+   --  a POA or not, a generic mechanism is needed.
+   --  1) When a Servant is created, TP_Access is set to null;
+   --  2) When the ORB has to execute a job, it executes PolyORB.Jobs.Run
+   --  3) In Jobs.Run, a surrogate is binded to an object (servant, session,..)
+   --     with the References-Binding.Bind function
+   --  4) If the object is a Servant, its Thread_Policy will be set
+   --  5) Then, after the binding, a message will be sent to the servant
+   --  6) The servant will use TP_Access in order to be executed with
+   --     the appropriate thread policy (POA case) or with the ORB_CTRL_MODEL
+   --     (other cases)
 
 end PolyORB.Servants;

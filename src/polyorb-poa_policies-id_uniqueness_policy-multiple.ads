@@ -39,7 +39,7 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
 
    procedure Check_Compatibility
      (Self : Multiple_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : Multiple_Id_Policy)

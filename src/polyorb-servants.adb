@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             POLYORB.POA_POLICIES.ID_ASSIGNMENT_POLICY.USER               --
+--                      P O L Y O R B . S E R V A N T S                     --
 --                                                                          --
---                                 S p e c                                  --
+--                                 I m p l                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--                Copyright (C) 2001 Free Software Fundation                --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,31 +30,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.POA_Policies.Id_Assignment_Policy.User is
+--  $Id$
 
-   type User_Id_Policy is new IdAssignmentPolicy with null record;
-   type User_Id_Policy_Access is access all User_Id_Policy;
+package body PolyORB.Servants is
 
-   function Create return User_Id_Policy_Access;
+   -----------------------
+   -- Set_Thread_Policy --
+   -----------------------
 
-   procedure Check_Compatibility
-     (Self : User_Id_Policy;
-      Other_Policies   : AllPolicies);
+   procedure Set_Thread_Policy
+     (S  : access Servant;
+      TP : POA_Policies.Thread_Policy.ThreadPolicy_Access)
+   is
+   begin
+      S.TP_Access := TP;
+   end Set_Thread_Policy;
 
-   function Policy_Id
-     (Self : User_Id_Policy)
-     return String;
-
-   function Is_System (Self : User_Id_Policy) return Boolean;
-
-   procedure Ensure_Oid_Origin
-     (Self  : User_Id_Policy;
-      U_Oid : Unmarshalled_Oid);
-
-   function Assign_Object_Identifier
-     (Self : User_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
-      Hint : Object_Id_Access)
-     return Unmarshalled_Oid;
-
-end PolyORB.POA_Policies.Id_Assignment_Policy.User;
+end PolyORB.Servants;

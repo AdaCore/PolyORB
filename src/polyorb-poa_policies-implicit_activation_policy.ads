@@ -44,7 +44,7 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy is
 
    function Implicit_Activate_Servant
      (Self      : ImplicitActivationPolicy;
-      A        : PolyORB.POA_Types.Obj_Adapter_Access;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servants.Servant_Access)
      return Object_Id_Access
       is abstract;

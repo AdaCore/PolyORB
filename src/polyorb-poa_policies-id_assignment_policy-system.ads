@@ -39,7 +39,7 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Check_Compatibility
      (Self : System_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : System_Id_Policy)

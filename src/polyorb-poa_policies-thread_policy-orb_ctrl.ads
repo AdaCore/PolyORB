@@ -39,7 +39,7 @@ package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    procedure Check_Compatibility
      (Self : ORB_Ctrl_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : ORB_Ctrl_Policy)

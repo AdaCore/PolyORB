@@ -47,7 +47,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    procedure Check_Compatibility
      (Self : No_Activation_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
    is
    begin
       pragma Warnings (Off);

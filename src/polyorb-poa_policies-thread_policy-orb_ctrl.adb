@@ -61,7 +61,7 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    procedure Check_Compatibility
      (Self : ORB_Ctrl_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
    is
    begin
       pragma Warnings (Off);

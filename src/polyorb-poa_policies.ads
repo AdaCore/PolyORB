@@ -40,7 +40,6 @@ with PolyORB.Dynamic_Dict;
 with PolyORB.Objects;
 pragma Warnings (Off, PolyORB.Objects);
 --  Required in child units.
-with PolyORB.POA_Types;
 with PolyORB.Sequences.Unbounded;
 
 package PolyORB.POA_Policies is
@@ -54,14 +53,16 @@ package PolyORB.POA_Policies is
    subtype PolicyList is Policy_Sequences.Sequence;
    --  type PolicyList_Access is access all PolicyList;
 
+   type AllPolicies is array (1 .. 7) of Policy_Access;
+
    package Policy_Repository is new PolyORB.Dynamic_Dict
      (Value => PolyORB.POA_Policies.Policy_Access, No_Value => null);
 
    function Policy_Id (Self : Policy) return String is abstract;
 
    procedure Check_Compatibility
-     (Self : Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+     (Self     : Policy;
+      Other_Policies   : AllPolicies)
       is abstract;
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.

@@ -60,7 +60,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Check_Compatibility
      (Self : System_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
    is
    begin
       pragma Warnings (Off);

@@ -40,7 +40,7 @@ package
 
    procedure Check_Compatibility
      (Self : Active_Map_Only_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : Active_Map_Only_Policy)

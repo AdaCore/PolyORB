@@ -330,29 +330,37 @@ package body PolyORB.POA.Basic_POA is
    procedure Check_Policies_Compatibility
      (OA : Basic_Obj_Adapter_Access)
    is
+      OA_Policies : AllPolicies;
    begin
       pragma Debug (O ("Check compatibilities between policies"));
+      OA_Policies (1) := Policy_Access (OA.Thread_Policy);
+      OA_Policies (2) := Policy_Access (OA.Lifespan_Policy);
+      OA_Policies (3) := Policy_Access (OA.Id_Uniqueness_Policy);
+      OA_Policies (4) := Policy_Access (OA.Id_Assignment_Policy);
+      OA_Policies (5) := Policy_Access (OA.Servant_Retention_Policy);
+      OA_Policies (6) := Policy_Access (OA.Request_Processing_Policy);
+      OA_Policies (7) := Policy_Access (OA.Implicit_Activation_Policy);
       Check_Compatibility
         (OA.Thread_Policy.all,
-         POA_Types.Obj_Adapter_Access (OA));
+         OA_Policies);
       Check_Compatibility
         (OA.Lifespan_Policy.all,
-         POA_Types.Obj_Adapter_Access (OA));
+         OA_Policies);
       Check_Compatibility
         (OA.Id_Uniqueness_Policy.all,
-         POA_Types.Obj_Adapter_Access (OA));
+         OA_Policies);
       Check_Compatibility
         (OA.Id_Assignment_Policy.all,
-         POA_Types.Obj_Adapter_Access (OA));
+         OA_Policies);
       Check_Compatibility
         (OA.Servant_Retention_Policy.all,
-         POA_Types.Obj_Adapter_Access (OA));
+         OA_Policies);
       Check_Compatibility
         (OA.Request_Processing_Policy.all,
-         POA_Types.Obj_Adapter_Access (OA));
+         OA_Policies);
       Check_Compatibility
         (OA.Implicit_Activation_Policy.all,
-         POA_Types.Obj_Adapter_Access (OA));
+         OA_Policies);
    end Check_Policies_Compatibility;
 
    --------------------

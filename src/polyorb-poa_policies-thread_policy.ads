@@ -32,8 +32,6 @@
 
 --  $Id$
 
-with PolyORB.POA_Types;
-
 package PolyORB.POA_Policies.Thread_Policy is
 
    type ThreadPolicy is abstract new Policy with null record;
@@ -43,7 +41,7 @@ package PolyORB.POA_Policies.Thread_Policy is
 
    procedure Check_Compatibility
      (Self : ThreadPolicy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
      is abstract;
 
 end PolyORB.POA_Policies.Thread_Policy;

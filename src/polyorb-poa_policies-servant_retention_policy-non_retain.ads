@@ -39,7 +39,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
    procedure Check_Compatibility
      (Self : Non_Retain_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : Non_Retain_Policy)
