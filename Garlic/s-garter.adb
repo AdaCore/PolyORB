@@ -402,12 +402,14 @@ package body System.Garlic.Termination is
 
          pragma Debug (D (D_Debug, "Waiting for some time"));
 
-         select
-            Shutdown_Keeper.Wait;
-            exit Main_Loop;
-         then abort
-            delay Time_Between_Checks;
-         end select;
+         --  The following block may cause an additionnal delay of
+         --  Time_Between_Checks before the shutdown, but it will only
+         --  occur whenever an error has been signaled causing the regular
+         --  shutdown algorithm to be unused.
+
+         exit Main_Loop when Is_Shutdown_In_Progress;
+         delay Time_Between_Checks;
+         exit Main_Loop when Is_Shutdown_In_Progress;
 
          --  If there is only one active task (me!), we can initiate
          --  the algorithm.

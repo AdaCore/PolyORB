@@ -105,17 +105,9 @@ package System.Garlic.Heart is
    --  Shutdown everything after signaling to all known reachable
    --  partitions to shutdown also.
 
-   protected Shutdown_Keeper is
-      entry Wait;
-      procedure Signal;
-      function Is_In_Progress return Boolean;
-   private
-      In_Progress : Boolean := False;
-   end Shutdown_Keeper;
-   --  This protected object may be safely "waited" in asynchronous
-   --  transfer of control blocks. It will be unblocked whenever
-   --  a shutdown has been decided. It prevents requests from being
-   --  blocked upon program logical termination.
+   function Is_Shutdown_In_Progress return Boolean;
+   pragma Inline (Is_Shutdown_In_Progress);
+   --  This function will return True when shutdown is in progress
 
    function Blocking_Partition (Partition : Types.Partition_ID) return Boolean;
    --  Return True if a partition has a local termination but is still
@@ -135,24 +127,6 @@ package System.Garlic.Heart is
    function Location (Partition : Types.Partition_ID)
      return Physical_Location.Location_Type;
    --  Return the location of a partition
-
-   -----------------------
-   -- Execution control --
-   -----------------------
-
-   protected Fatal_Error is
-      entry Occurred
-        (What    : out Ada.Exceptions.Exception_Id;
-         Message : out Utils.String_Access);
-      procedure Signal
-        (What    : in Ada.Exceptions.Exception_Id;
-         Message : in String := "");
-   private
-      Exc : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
-      Msg : Utils.String_Access := null;
-   end Fatal_Error;
-   --  This protected object is a keeper to cancel the main procedure if
-   --  needed.
 
    ---------------------
    -- Local partition --

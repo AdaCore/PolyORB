@@ -94,6 +94,9 @@ package body System.Garlic.Heart is
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
+   Shutdown_In_Progress : Boolean := False;
+   pragma Atomic (Shutdown_In_Progress);
+
    type Public_Data is record
       Location           : Location_Type;
       Name               : Name_Id;
@@ -370,41 +373,6 @@ package body System.Garlic.Heart is
         (D (D_Elaborate, "Signaling that elaboration is terminated"));
       Elaboration_Barrier.Signal_All (Permanent => True);
    end Complete_Elaboration;
-
-   -----------------
-   -- Fatal_Error --
-   -----------------
-
-   protected body Fatal_Error is
-
-      --------------
-      -- Occurred --
-      --------------
-
-      entry Occurred
-        (What    : out Ada.Exceptions.Exception_Id;
-         Message : out String_Access)
-      when Exc /= Ada.Exceptions.Null_Id is
-      begin
-         What    := Exc;
-         Message := new String'(Msg.all);
-      end Occurred;
-
-      ------------
-      -- Signal --
-      ------------
-
-      procedure Signal
-        (What    : in Ada.Exceptions.Exception_Id;
-         Message : in String := "")
-      is
-      begin
-         Free (Msg);
-         Exc := What;
-         Msg := new String'(Message);
-      end Signal;
-
-   end Fatal_Error;
 
    ---------------------
    -- Get_Boot_Server --
@@ -789,6 +757,15 @@ package body System.Garlic.Heart is
    begin
       return Is_Boot;
    end Is_Boot_Partition;
+
+   -----------------------------
+   -- Is_Shutdown_In_Progress --
+   -----------------------------
+
+   function Is_Shutdown_In_Progress return Boolean is
+   begin
+      return Shutdown_In_Progress;
+   end Is_Shutdown_In_Progress;
 
    -----------------------------------
    -- Latest_Allocated_Partition_ID --
@@ -1220,7 +1197,7 @@ package body System.Garlic.Heart is
 
    procedure Shutdown is
    begin
-      Shutdown_Keeper.Signal;
+      Shutdown_In_Progress := True;
       Trace.Shutdown;
       Soft_Links.Termination_Shutdown;
       Physical_Location.Shutdown;
@@ -1232,48 +1209,13 @@ package body System.Garlic.Heart is
       Delete_Termination_Sanity_File;
    end Shutdown;
 
-   ---------------------
-   -- Shutdown_Keeper --
-   ---------------------
-
-   protected body Shutdown_Keeper is
-
-      --------------------
-      -- Is_In_Progress --
-      --------------------
-
-      function Is_In_Progress return Boolean is
-      begin
-         return In_Progress;
-      end Is_In_Progress;
-
-      ------------
-      -- Signal --
-      ------------
-
-      procedure Signal is
-      begin
-         In_Progress := True;
-      end Signal;
-
-      ----------
-      -- Wait --
-      ----------
-
-      entry Wait when In_Progress is
-      begin
-         null;
-      end Wait;
-
-   end Shutdown_Keeper;
-
    -------------------
    -- Soft_Shutdown --
    -------------------
 
    procedure Soft_Shutdown is
    begin
-      Shutdown_Keeper.Signal;
+      Shutdown_In_Progress := True;
       if Is_Boot_Partition then
          for Partition in
            Server_Partition_ID + 1 .. Partition_ID_Allocation.Latest loop

@@ -551,7 +551,7 @@ package body System.Garlic.TCP is
          --  are terminating since this is not worth freeing anything.
 
          if Partition /= Null_Partition_ID
-           and then not Shutdown_Keeper.Is_In_Progress
+           and then not Is_Shutdown_In_Progress
          then
             --  Set the entry in the table correctly only we are not
             --  executing a shutdown operation. If we are, then
@@ -578,7 +578,7 @@ package body System.Garlic.TCP is
               (D (D_Garlic,
                   "Task dying before determining remote Partition_ID"));
             null;
-         elsif not Shutdown_Keeper.Is_In_Progress then
+         elsif not Is_Shutdown_In_Progress then
             pragma Debug
               (D (D_Garlic,
                   "Signaling that partition" & Partition'Img &
@@ -766,129 +766,119 @@ package body System.Garlic.TCP is
    procedure Send
      (Protocol  : access TCP_Protocol;
       Partition : in Partition_ID;
-      Data      : access Stream_Element_Array) is
+      Data      : access Stream_Element_Array)
+   is
       Remote_Data : Host_Data;
       Header_Length : constant Stream_Element_Count :=
         Stream_Element_Count_Length;
       Header        : aliased Params_Stream_Type (Header_Length);
    begin
-      --  The following select-then abort construct is commented out
-      --  since this leads in GNAT 3.09 to bogus runtime locking. This may
-      --  hardly be a problem, except that this may block the termination.
-      --  In the meantime, it has been replaced with a begin-end block ???
-      --  select
-      --    Shutdown_Keeper.Wait;
-      --    raise Communication_Error;
-      --  then abort
-      begin
-         Partition_Map.Lock (Partition);
-         Partition_Map.Get (Partition) (Remote_Data);
-         if Remote_Data.Queried and then not Remote_Data.Known then
-            Partition_Map.Unlock (Partition);
-            declare
-               Temp : Host_Location;
-            begin
-               Temp := Split_Data (Get_Data (Location (Partition)));
-               Partition_Map.Lock (Partition);
-               Remote_Data := Partition_Map.Get_Immediate (Partition);
-               Remote_Data.Location := Temp;
-               Remote_Data.Known := True;
-               Remote_Data.Queried := False;
-               Partition_Map.Set_Locked (Partition, Remote_Data);
-            end;
-         end if;
+      Partition_Map.Lock (Partition);
+      Partition_Map.Get (Partition) (Remote_Data);
+      if Remote_Data.Queried and then not Remote_Data.Known then
+         Partition_Map.Unlock (Partition);
+         declare
+            Temp : Host_Location;
          begin
-            if not Remote_Data.Connected then
+            Temp := Split_Data (Get_Data (Location (Partition)));
+            Partition_Map.Lock (Partition);
+            Remote_Data := Partition_Map.Get_Immediate (Partition);
+            Remote_Data.Location := Temp;
+            Remote_Data.Known := True;
+            Remote_Data.Queried := False;
+            Partition_Map.Set_Locked (Partition, Remote_Data);
+         end;
+      end if;
+      begin
+         if not Remote_Data.Connected then
 
+            pragma Debug
+              (D (D_Communication,
+                  "Willing to connect to " &
+                  Image (Remote_Data.Location.Addr) & " port" &
+                  C.unsigned_short'Image (Remote_Data.Location.Port)));
+
+            declare
+               Retries : Natural := 1;
+            begin
+               if Partition = Get_Boot_Server then
+                  Retries := Options.Connection_Hits;
+               end if;
+               for I in 1 .. Retries loop
+                  begin
+                     pragma Debug
+                       (D (D_Communication,
+                           "Trying to connect to partition" &
+                           Partition'Img));
+                     Remote_Data.FD :=
+                       Establish_Connection (Remote_Data.Location,
+                                             Open_Code);
+                     Remote_Data.Connected := True;
+                     exit;
+                  exception
+                     when Communication_Error =>
+                        if I = Retries then
+                           pragma Debug
+                             (D (D_Communication,
+                                 "Cannot connect to partition" &
+                                 Partition'Img));
+                           Raise_Communication_Error
+                             ("Cannot connect to partition" &
+                              Partition_ID'Image (Partition));
+                        else
+                           delay 2.0;
+                        end if;
+                  end;
+               end loop;
                pragma Debug
                  (D (D_Communication,
-                     "Willing to connect to " &
-                     Image (Remote_Data.Location.Addr) & " port" &
-                     C.unsigned_short'Image (Remote_Data.Location.Port)));
-
-               declare
-                  Retries : Natural := 1;
-               begin
-                  if Partition = Get_Boot_Server then
-                     Retries := Options.Connection_Hits;
-                  end if;
-                  for I in 1 .. Retries loop
-                     begin
-                        pragma Debug
-                          (D (D_Communication,
-                              "Trying to connect to partition" &
-                              Partition'Img));
-                        Remote_Data.FD :=
-                          Establish_Connection (Remote_Data.Location,
-                                                Open_Code);
-                        Remote_Data.Connected := True;
-                        exit;
-                     exception
-                        when Communication_Error =>
-                           if I = Retries then
-                              pragma Debug
-                                (D (D_Communication,
-                                    "Cannot connect to partition" &
-                                    Partition'Img));
-                              Raise_Communication_Error
-                                ("Cannot connect to partition" &
-                                 Partition_ID'Image (Partition));
-                           else
-                              delay 2.0;
-                           end if;
-                     end;
-                  end loop;
-                  pragma Debug
-                    (D (D_Communication,
-                        "Connected to partition" & Partition'Img));
-               end;
-
-               Partition_Map.Set_Locked (Partition, Remote_Data);
-               if Get_My_Partition_ID_Immediately = Null_Partition_ID then
-                  Set_My_Partition_ID (Ask_For_Partition_ID (Remote_Data.FD));
-               else
-                  Send_My_Partition_ID (Remote_Data.FD);
-               end if;
-
-               --  Now create a task to get data on this connection
-
-               declare
-                  NT : Incoming_Connection_Handler_Access;
-               begin
-                  NT := new Incoming_Connection_Handler
-                    (Remote_Data.FD, Receiving => False, Remote => Partition);
-               end;
-
-            end if;
-            declare
-               Offset : constant Stream_Element_Offset :=
-                 Data'First + Unused_Space - Header_Length;
-               Code   : constant Stream_Element_Offset :=
-                 Offset - Operation_Code'Size / 8;
-            begin
-               Stream_Element_Count'Write (Header'Access,
-                                           Data'Length - Unused_Space);
-               Data (Offset .. Offset + Header_Length - 1) :=
-                 To_Stream_Element_Array (Header'Access);
-               Data (Code .. Offset - 1) :=
-                 To_Stream_Element_Array (Data_Code);
-               pragma Debug
-                 (D (D_Debug,
-                     "Sending packet of length" &
-                     Stream_Element_Count'Image (Data'Last - Code + 1) &
-                     " (content of" &
-                     Stream_Element_Count'Image (Data'Length - Unused_Space) &
-                     ")"));
-               Physical_Send (Remote_Data.FD, Data (Code .. Data'Last));
+                     "Connected to partition" & Partition'Img));
             end;
-            Partition_Map.Unlock (Partition);
-         exception
-            when Communication_Error =>
-               pragma Debug (D (D_Debug, "Error detected in Send"));
-               Partition_Map.Unlock (Partition);
-               raise;
+
+            Partition_Map.Set_Locked (Partition, Remote_Data);
+            if Get_My_Partition_ID_Immediately = Null_Partition_ID then
+               Set_My_Partition_ID (Ask_For_Partition_ID (Remote_Data.FD));
+            else
+               Send_My_Partition_ID (Remote_Data.FD);
+            end if;
+
+            --  Now create a task to get data on this connection
+
+            declare
+               NT : Incoming_Connection_Handler_Access;
+            begin
+               NT := new Incoming_Connection_Handler
+                 (Remote_Data.FD, Receiving => False, Remote => Partition);
+            end;
+
+         end if;
+         declare
+            Offset : constant Stream_Element_Offset :=
+              Data'First + Unused_Space - Header_Length;
+            Code   : constant Stream_Element_Offset :=
+              Offset - Operation_Code'Size / 8;
+         begin
+            Stream_Element_Count'Write (Header'Access,
+                                        Data'Length - Unused_Space);
+            Data (Offset .. Offset + Header_Length - 1) :=
+              To_Stream_Element_Array (Header'Access);
+            Data (Code .. Offset - 1) :=
+              To_Stream_Element_Array (Data_Code);
+            pragma Debug
+              (D (D_Debug,
+                  "Sending packet of length" &
+                  Stream_Element_Count'Image (Data'Last - Code + 1) &
+                  " (content of" &
+                  Stream_Element_Count'Image (Data'Length - Unused_Space) &
+                  ")"));
+            Physical_Send (Remote_Data.FD, Data (Code .. Data'Last));
          end;
-      --  Should be end select (see above) ???
+         Partition_Map.Unlock (Partition);
+      exception
+         when Communication_Error =>
+            pragma Debug (D (D_Debug, "Error detected in Send"));
+            Partition_Map.Unlock (Partition);
+            raise;
       end;
    end Send;
 
