@@ -255,6 +255,13 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data : in CORBA.NamedValue) is
+   begin
+      null;
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : in Encapsulation) is
    begin
       Marshall (Buffer, CORBA.Unsigned_Long (Data'Length));
@@ -342,6 +349,13 @@ package body Broca.CDR is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access CORBA.Any) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.NamedValue) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
@@ -453,6 +467,12 @@ package body Broca.CDR is
      return CORBA.Any is
    begin
       return CORBA.To_Any (CORBA.Short (0));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.NamedValue is
+   begin
+      return (CORBA.Null_Identifier, To_Any (CORBA.Short (0)), 0);
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)

@@ -37,7 +37,6 @@ with Ada.Strings.Wide_Unbounded;
 with Interfaces;
 with Sequences.Unbounded;
 pragma Elaborate_All (Sequences.Unbounded);
-with Broca.Buffers;
 
 package CORBA is
 
@@ -756,15 +755,6 @@ package CORBA is
       Argument :  CORBA.Any;
       Arg_Modes : CORBA.Flags;
    end record;
-
-   --  to marshall the argument represented by a NamedValue
-   procedure Marshall
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Data   : NamedValue);
-
-   --  to unmarshall an argument into a NamedValue
-   function Unmarshall (Buffer : access Broca.Buffers.Buffer_Type)
-                        return NamedValue;
 
    ----------------------------
    --  Interface Repository  --
