@@ -1,3 +1,6 @@
+#ifndef __ADA_IOP_H__
+#define __ADA_IOP_H__
+
 #include "Ada_netBufferedStream.hh"
 #include "Ada_memBufferedStream.hh"
 
@@ -30,3 +33,4 @@ size_t length (IOP::TaggedProfileList* t);
 // wrapper around IOP::TaggedProfile function length
 // (see IOP.h)
 
+#endif

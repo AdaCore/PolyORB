@@ -1,5 +1,7 @@
-#include <omniORB2/CORBA.h>
+#ifndef __ADA_EXCEPTIONS_H__
+#define __ADA_EXCEPTIONS_H__
 
+#include <omniORB2/CORBA.h>
 
 ///////////////////////////////////////////
 // handling od corba exception in C code //
@@ -253,3 +255,4 @@ void Raise_Corba_Exception (CORBA::WRONG_TRANSACTION e);
 extern void Raise_Ada_WRONG_TRANSACTION_Exception (CORBA::ULong pd_minor,
                                                    CORBA::CompletionStatus pd_status);
 
+#endif

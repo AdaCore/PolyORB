@@ -1,3 +1,6 @@
+#ifndef __ADA_CORBA_BOA_H__
+#define __ADA_CORBA_BOA_H__
+
 #include <omniORB/CORBA.h>
 
 void impl_shutdown (CORBA::BOA *b);
@@ -15,3 +18,4 @@ void impl_is_ready (CORBA::BOA *b,
 //    void impl_is_ready(ImplementationDef_ptr=0, Boolean NonBlocking=0);
 // (see CORBA.h L 1967)
 
+#endif

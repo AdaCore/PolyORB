@@ -1,4 +1,7 @@
-#include "omniORB2/omniInternal.h"
+#ifndef __ADA_NETBUFFEREDSTREAM_H__
+#define __ADA_NETBUFFEREDSTREAM_H__
+
+#include <omniORB2/omniInternal.h>
 
 class Ada_netBufferedStream {
 
@@ -84,3 +87,5 @@ protected :
   // This field is only used by Ada. It is needed to interface C++ and Ada  
 
 };
+
+#endif

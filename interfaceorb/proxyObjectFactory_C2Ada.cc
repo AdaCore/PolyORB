@@ -1,27 +1,30 @@
 #include "proxyObjectFactory_C2Ada.hh"
 #include "omniObject_C2Ada.hh"
 #include "Ada_exceptions.hh"
-
+#include <iostream>
 
 //------------------------------------//
 // proxyObjectFactory_C2Ada::irRepoID //
 //------------------------------------//
 
-const char*
-proxyObjectFactory_C2Ada::irRepoId() const 
+const char *
+proxyObjectFactory_C2Ada::irRepoId () const 
 { 
+  if (omniORB::traceLevel > 5) cerr << "(ada) ";
   return pd_repoID;
 }
 
 
-// newProxyObject
-//---------------
+//------------------------------------------//
+// proxyObjectFactory_C2Ada::newProxyObject //
+//------------------------------------------//
+
 CORBA::Object_ptr
-proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
-					 CORBA::Octet *key,
-					 size_t keysize,
-					 IOP::TaggedProfileList *profiles,
-					 CORBA::Boolean release) 
+proxyObjectFactory_C2Ada::newProxyObject (Rope                   * r,
+					  CORBA::Octet           * key,
+					  size_t                   keysize,
+					  IOP::TaggedProfileList * profiles,
+					  CORBA::Boolean           release) 
 {
   ADABROKER_TRY
 
@@ -30,14 +33,16 @@ proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
            << pd_repoID
            << endl;
   
-    omniObject_C2Ada *omniobj =  new omniObject_C2Ada 
+    omniObject_C2Ada * omniobj = new omniObject_C2Ada 
       (pd_repoID, r, key, keysize, profiles, release);
+
+    omniobj->set_Ada_OmniObject (new Ada_OmniObject (omniobj, pd_interface));
   
-    omni::objectIsReady(omniobj);
+    omni::objectIsReady (omniobj);
     // Tell ORB this object is ready to use connexions.
     
     CORBA::Object_ptr result = new CORBA::Object();
-    result->PR_setobj(omniobj);
+    result->PR_setobj (omniobj);
 
     return result;
 
@@ -65,8 +70,8 @@ proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
 //--------------------------------//
 
 CORBA::Boolean
-proxyObjectFactory_C2Ada::is_a(const char *base_repoId) const { 
-  return (!strcmp(base_repoId, pd_repoID));
+proxyObjectFactory_C2Ada::is_a (const char * repoId) const { 
+  return (!strcmp (repoId, pd_repoID));
 }
 
 
@@ -74,15 +79,16 @@ proxyObjectFactory_C2Ada::is_a(const char *base_repoId) const {
 // proxyObjectFactory_C2Ada::createProxyObjectFactory //
 //----------------------------------------------------//
 
-void createProxyObjectFactory(const char* repoID) 
+void createProxyObjectFactory (const char * repoID, int interface) 
 {
   ADABROKER_TRY
     
     if (omniORB::traceLevel > 5)
       cerr << "createProxyObjectFactory for object : " << repoID << endl;
 
-    new proxyObjectFactory_C2Ada(repoID);
-    // No memory leak :  a pointer to this object is kept by the ORB
+    proxyObjectFactory_C2Ada * tmp = 
+      new proxyObjectFactory_C2Ada (repoID, interface);
+    // No memory leak :  a pointer to this object is kept by the ORB.
 
   ADABROKER_CATCH 
 }

@@ -1,4 +1,7 @@
-#include "omniORB2/omniInternal.h"
+#ifndef __ADA_MEMBUFFEREDSTREAM_H__
+#define __ADA_MEMBUFFEREDSTREAM_H__
+
+#include <omniORB2/omniInternal.h>
 
 class Ada_memBufferedStream {
 
@@ -74,3 +77,4 @@ private:
 
 };
 
+#endif

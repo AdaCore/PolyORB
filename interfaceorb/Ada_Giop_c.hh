@@ -1,4 +1,7 @@
-#include "omniORB2/omniInternal.h"
+#ifndef __ADA_GIOP_C_H__
+#define __ADA_GIOP_C_H__
+
+#include <omniORB2/omniInternal.h>
 #include "Ada_netBufferedStream.hh"
 
 class Ada_Giop_c : public Ada_netBufferedStream {
@@ -45,4 +48,4 @@ private:
 
 };
 
-
+#endif

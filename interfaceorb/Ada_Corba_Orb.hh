@@ -1,5 +1,7 @@
-#include <omniORB2/CORBA.h>
+#ifndef __ADA_CORBA_ORB_H__
+#define __ADA_CORBA_ORB_H__
 
+#include <omniORB2/CORBA.h>
 
 CORBA::ORB_ptr
 Ada_ORB_init(int           argc,
@@ -25,3 +27,5 @@ Ada_BOA_init(CORBA::ORB_ptr  orb,
 // and is here to handle C++ exceptions
 // it takes a int and not a int& as first paramteter
 // because in Ada, it is an "in" parameter
+
+#endif

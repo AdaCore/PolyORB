@@ -14,7 +14,7 @@
 // Ada_OmniObject::Ada_OmniObject //
 //--------------------------------//
 
-Ada_OmniObject::Ada_OmniObject()
+Ada_OmniObject::Ada_OmniObject ()
 {
   Init_Ok = false;
 };
@@ -23,8 +23,8 @@ Ada_OmniObject::Ada_OmniObject()
 // Ada_OmniObject::Ada_OmniObject //
 //--------------------------------//
 
-Ada_OmniObject::Ada_OmniObject(omniObject_C2Ada* cpp_object,
-			       int               interface)
+Ada_OmniObject::Ada_OmniObject (omniObject_C2Ada * cpp_object,
+				int                interface)
 {
   CPP_Object = cpp_object;
   Interface = interface;
@@ -35,12 +35,12 @@ Ada_OmniObject::Ada_OmniObject(omniObject_C2Ada* cpp_object,
 // Ada_OmniObject::~Ada_OmniObject //
 //---------------------------------//
 
-Ada_OmniObject::~Ada_OmniObject()
+Ada_OmniObject::~Ada_OmniObject ()
 {
   if (Init_Ok) {
     // Do not delete CPP_Object. There might be other references to
     // this object. omniORB's objectRelease is here to handle memory.
-    omni::objectRelease(CPP_Object);
+    omni::objectRelease (CPP_Object);
 
     Init_Ok = false;
 
@@ -56,8 +56,8 @@ Ada_OmniObject::~Ada_OmniObject()
 // Ada_OmniObject:Constructor //
 //----------------------------//
 
-Ada_OmniObject*
-Ada_OmniObject::Constructor() 
+Ada_OmniObject *
+Ada_OmniObject::Constructor () 
 {
   ADABROKER_TRY
 
@@ -67,7 +67,7 @@ Ada_OmniObject::Constructor()
 
     // Never reach this code. Just a default return for dummy
     // compilers.
-    Ada_OmniObject* default_result = NULL;
+    Ada_OmniObject * default_result = NULL;
     return default_result; 
 }
 
@@ -76,7 +76,7 @@ Ada_OmniObject::Constructor()
 //----------------------------//
 
 void
-Ada_OmniObject::Destructor(Ada_OmniObject* o)
+Ada_OmniObject::Destructor (Ada_OmniObject * o)
 {
   ADABROKER_TRY
     
@@ -113,7 +113,7 @@ Ada_OmniObject::Destructor(Ada_OmniObject* o)
 //---------------------------------//
 
 void
-Ada_OmniObject::initLocalObject (const char* repoid)
+Ada_OmniObject::initLocalObject (const char * repoid)
 {
   ADABROKER_TRY
 
@@ -122,7 +122,7 @@ Ada_OmniObject::initLocalObject (const char* repoid)
       CPP_Object = new omniObject_C2Ada (this);
 
       if (omniORB::traceLevel > 5)
-	cout << "initLocalObject : " << *repoid
+	cout << "initLocalObject : " << * repoid
 	     << " correctly initialized" << endl;
 
     } catch (...) {
@@ -133,7 +133,7 @@ Ada_OmniObject::initLocalObject (const char* repoid)
     }
 
   // Set its repository ID.
-  CPP_Object->PR_IRRepositoryId(repoid);
+  CPP_Object->PR_IRRepositoryId (repoid);
 
   // Update Init_OK.
   Init_Ok = true;
@@ -169,8 +169,8 @@ Ada_OmniObject::initProxyObject (const char             * repoId,
 // Ada_OmniObject::objectDuplicate //
 //---------------------------------//
 
-Ada_OmniObject*
-Ada_OmniObject::objectDuplicate(Ada_OmniObject* same)
+Ada_OmniObject *
+Ada_OmniObject::objectDuplicate (Ada_OmniObject * same)
 {
   ADABROKER_TRY
 
@@ -188,9 +188,9 @@ Ada_OmniObject::objectDuplicate(Ada_OmniObject* same)
 	}
 
       // Register a new pointer to this object.
-      omni::objectDuplicate(same->CPP_Object);
+      omni::objectDuplicate (same->CPP_Object);
 
-      return new Ada_OmniObject(same->CPP_Object, same->Interface);
+      return new Ada_OmniObject (same->CPP_Object, same->Interface);
       
     } else {
       
@@ -218,12 +218,12 @@ Ada_OmniObject::objectDuplicate(Ada_OmniObject* same)
 //-------------------------------//
 
 void
-Ada_OmniObject::objectIsReady()
+Ada_OmniObject::objectIsReady ()
 {
   ADABROKER_TRY
 
     if (Init_Ok) {
-      omni::objectIsReady(CPP_Object);
+      omni::objectIsReady (CPP_Object);
 
     } else {
       throw omniORB::fatalException
@@ -240,7 +240,7 @@ Ada_OmniObject::objectIsReady()
 //-----------------------------//
 
 void
-Ada_OmniObject::disposeObject()
+Ada_OmniObject::disposeObject ()
 {
   ADABROKER_TRY
 
@@ -248,7 +248,7 @@ Ada_OmniObject::disposeObject()
       if (omniORB::traceLevel > 5)
 	cerr << "Ada_OmniObject::disposeObject : enter" << endl;
 
-      omni::disposeObject(CPP_Object);
+      omni::disposeObject (CPP_Object);
       
       if (omniORB::traceLevel > 5)
 	cerr << "Ada_OmniObject::disposeObject : C++ dispose" << endl;
@@ -268,7 +268,7 @@ Ada_OmniObject::disposeObject()
 //----------------------//
 
 _CORBA_ULong
-Ada_OmniObject::hash(_CORBA_ULong maximum)
+Ada_OmniObject::hash (_CORBA_ULong maximum)
 {
   ADABROKER_TRY
 
@@ -299,7 +299,7 @@ Ada_OmniObject::hash(_CORBA_ULong maximum)
 //-------------------------------//
 
 _CORBA_Boolean
-Ada_OmniObject::is_equivalent(Ada_OmniObject * other)
+Ada_OmniObject::is_equivalent (Ada_OmniObject * other)
 {
   ADABROKER_TRY
 
@@ -333,13 +333,13 @@ Ada_OmniObject::is_equivalent(Ada_OmniObject * other)
 //------------------------------//
 
 bool
-Ada_OmniObject::non_existent()
+Ada_OmniObject::non_existent ()
 {
   ADABROKER_TRY
 
     if (Init_Ok) {
       CORBA::Object_ptr tmp = new CORBA::Object;
-      tmp->PR_setobj(CPP_Object);
+      tmp->PR_setobj (CPP_Object);
       _CORBA_Boolean result = tmp->_non_existent();
       delete tmp;
       return result;
@@ -362,14 +362,14 @@ Ada_OmniObject::non_existent()
 //------------------------------//
 
 void
-Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,
-			      _CORBA_Boolean keepIOP)
+Ada_OmniObject::setRopeAndKey (const Ada_OmniRopeAndKey & l,
+			       _CORBA_Boolean             keepIOP)
 {
   ADABROKER_TRY
 
     if ( (Init_Ok) && (l.assertInit_Ok())) {
       // If already initialized, call function on CPP_Object.
-      CPP_Object->setRopeAndKey(*(l.CPP_Object),keepIOP);
+      CPP_Object->setRopeAndKey (*(l.CPP_Object), keepIOP);
     } else {
       // Raise an Ada Exception.
       throw omniORB::fatalException
@@ -392,7 +392,7 @@ Ada_OmniObject::resetRopeAndKey ()
 
     if (Init_Ok) {
       // If already initialized, call function on CPP_Object.
-      CPP_Object->resetRopeAndKey();
+      CPP_Object->resetRopeAndKey ();
     } else {
       // Raise an Ada Exception.
       throw omniORB::fatalException
@@ -409,14 +409,14 @@ Ada_OmniObject::resetRopeAndKey ()
 //-------------------------------//
 
 void
-Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey & l,
-			      _CORBA_Boolean     & success)
+Ada_OmniObject::getRopeAndKey (Ada_OmniRopeAndKey & l,
+			       _CORBA_Boolean     & success)
 {
   ADABROKER_TRY
 
-    if ((Init_Ok) && (l.assertInit_Ok())) {
+    if ((Init_Ok) && (l.assertInit_Ok ())) {
       // It already initialized, call function on CPP_Object.
-      success = CPP_Object->getRopeAndKey(*(l.CPP_Object));
+      success = CPP_Object->getRopeAndKey (*(l.CPP_Object));
     } else {
       // Raise an Ada Exception.
       throw omniORB::fatalException
@@ -433,13 +433,13 @@ Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey & l,
 //--------------------------------------//
 
 void
-Ada_OmniObject::assertObjectExistent()
+Ada_OmniObject::assertObjectExistent ()
 {
   ADABROKER_TRY
 
     if (Init_Ok) {
       // If already Initialized, call function on CPP_Object.
-      CPP_Object->assertObjectExistent();
+      CPP_Object->assertObjectExistent ();
     } else {
       // Raise an Ada Exception.
       throw omniORB::fatalException
@@ -456,13 +456,13 @@ Ada_OmniObject::assertObjectExistent()
 //--------------------------//
 
 _CORBA_Boolean
-Ada_OmniObject::is_proxy() 
+Ada_OmniObject::is_proxy () 
 {
   ADABROKER_TRY
 
     if (Init_Ok) {
       // If already initialized, call function on CPP_Object.
-      return CPP_Object->is_proxy();
+      return CPP_Object->is_proxy ();
     } else {
       // Raise an Ada Exception.
       throw omniORB::fatalException
@@ -482,7 +482,7 @@ extern _CORBA_Boolean dispatch(GIOP_S         &,
 			       const char     * operation,
 			       _CORBA_Boolean   response_expected);
 
-extern _CORBA_Boolean Ada_Is_A(const char * repoid);
+extern _CORBA_Boolean Ada_Is_A (const char * repoid);
 // See Ada implementation of OmniObject.
 
 //---------------------------------//
@@ -490,13 +490,13 @@ extern _CORBA_Boolean Ada_Is_A(const char * repoid);
 //---------------------------------//
 
 void
-Ada_OmniObject::setRepositoryID(const char* repoId)
+Ada_OmniObject::setRepositoryID (const char * repoId)
 {
   ADABROKER_TRY
 
     if (Init_Ok) {
       // If already initialized, call function on CPP_Object.
-      CPP_Object->PR_IRRepositoryId(repoId);
+      CPP_Object->PR_IRRepositoryId (repoId);
     } else {
       // Raise an Ada Exception.
       throw omniORB::fatalException
@@ -512,14 +512,14 @@ Ada_OmniObject::setRepositoryID(const char* repoId)
 // Ada_OmniObject::getRepositoryID //
 //---------------------------------//
 
-const char*
-Ada_OmniObject::getRepositoryID() 
+const char *
+Ada_OmniObject::getRepositoryID () 
 {
   ADABROKER_TRY
 
     if (Init_Ok) {
       // If already initialized, call function on CPP_Object.
-      const char *result = CPP_Object->NP_IRRepositoryId();
+      const char * result = CPP_Object->NP_IRRepositoryId ();
 
       if (omniORB::traceLevel > 5)
         cerr << "Ada_OmniObject::getRepositoryID : " << result << endl;
@@ -546,14 +546,14 @@ Ada_OmniObject::getRepositoryID()
 //------------------------------------------------//
 
 Ada_OmniObject*
-Ada_OmniObject::Ada_resolve_initial_references(CORBA::ORB_ptr   theORB,
-					       const char     * identifier)
+Ada_OmniObject::Ada_resolve_initial_references (CORBA::ORB_ptr   theORB,
+					        const char     * identifier)
 {
   ADABROKER_TRY
 
-    CORBA::Object_ptr obj = theORB->resolve_initial_references(identifier);
-    omniObject *omniobj   = obj->PR_getobj();
-    omniObject_C2Ada *adaobj = dynamic_cast<omniObject_C2Ada*>(omniobj);
+    CORBA::Object_ptr obj = theORB->resolve_initial_references (identifier);
+    omniObject * omniobj  = obj->PR_getobj ();
+    omniObject_C2Ada * adaobj = dynamic_cast<omniObject_C2Ada*>(omniobj);
   
     if (adaobj == 0) {
       return 0;
@@ -567,7 +567,7 @@ Ada_OmniObject::Ada_resolve_initial_references(CORBA::ORB_ptr   theORB,
 
     // Never reach this code. Just a default return for dummy
     // compilers.
-    Ada_OmniObject* default_result = NULL;
+    Ada_OmniObject * default_result = NULL;
     return default_result; 
 }
 
@@ -575,13 +575,13 @@ Ada_OmniObject::Ada_resolve_initial_references(CORBA::ORB_ptr   theORB,
 // Ada_OmniObject::string_to_ada_object //
 //--------------------------------------//
 
-Ada_OmniObject*
-Ada_OmniObject::string_to_ada_object(const char *from)
+Ada_OmniObject *
+Ada_OmniObject::string_to_ada_object (const char * from)
 {
   ADABROKER_TRY
 
-    omniObject *objptr = omni::stringToObject(from);
-    omniObject_C2Ada *adaobj = dynamic_cast<omniObject_C2Ada*>(objptr);
+    omniObject * objptr = omni::stringToObject (from);
+    omniObject_C2Ada * adaobj = dynamic_cast<omniObject_C2Ada*>(objptr);
   
     if (adaobj == 0) {
       return 0;
@@ -595,7 +595,7 @@ Ada_OmniObject::string_to_ada_object(const char *from)
 
     // Never reach this code. Just a default return for dummy
     // compilers.
-    Ada_OmniObject* default_result = NULL;
+    Ada_OmniObject * default_result = NULL;
     return default_result; 
 }
 
@@ -603,15 +603,15 @@ Ada_OmniObject::string_to_ada_object(const char *from)
 // Ada_OmniObject::ada_object_to_string //
 //--------------------------------------//
 
-char*
-Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr)
+char *
+Ada_OmniObject::ada_object_to_string (Ada_OmniObject * objptr)
 {
   ADABROKER_TRY
 
     char * result;
   
-    if ( objptr == 0 ) {
-      return omni::objectToString(0);
+    if (objptr == 0) {
+      return omni::objectToString (0);
 
     } else {
       if (objptr->Init_Ok) {
@@ -619,7 +619,7 @@ Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr)
 	if (omniORB::traceLevel > 5)
 	  cerr << "invoke omni::objectToString" << endl;
 
-	result = omni::objectToString(objptr->CPP_Object);
+	result = omni::objectToString (objptr->CPP_Object);
 
 	if (omniORB::traceLevel > 5)
 	  cerr << "invoke omni::objectToString done" << endl;
@@ -644,14 +644,14 @@ Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr)
 // Ada_OmniObject::iopProfiles //
 //-----------------------------//
 
-IOP::TaggedProfileList*
-Ada_OmniObject::iopProfiles() 
+IOP::TaggedProfileList *
+Ada_OmniObject::iopProfiles () 
 {
   ADABROKER_TRY
 
     if (Init_Ok) {
       // If already initialized, call function on CPP_Object.
-      return CPP_Object->iopProfiles();
+      return CPP_Object->iopProfiles ();
     } else {
     // Raise an Ada Exception.
     throw omniORB::fatalException
@@ -664,7 +664,7 @@ Ada_OmniObject::iopProfiles()
 
     // Never reach this code. Just a default return for dummy
     // compilers.
-    IOP::TaggedProfileList* default_result = NULL;
+    IOP::TaggedProfileList * default_result = NULL;
     return default_result; 
 }
 
@@ -672,8 +672,8 @@ Ada_OmniObject::iopProfiles()
 // Ada_OmniObject::getOmniObject //
 //-------------------------------//
 
-omniObject_C2Ada*
-Ada_OmniObject::getOmniObject() 
+omniObject_C2Ada *
+Ada_OmniObject::getOmniObject () 
 {
   ADABROKER_TRY
 
@@ -698,10 +698,10 @@ Ada_OmniObject::getOmniObject()
 // Ada_OmniObject::ada_create_objref //
 //-----------------------------------//
 
-Ada_OmniObject*
-Ada_OmniObject::ada_create_objref(const char             * repoId,
-				  IOP::TaggedProfileList * profiles,
-				  _CORBA_Boolean           release)
+Ada_OmniObject *
+Ada_OmniObject::ada_create_objref (const char             * repoId,
+				   IOP::TaggedProfileList * profiles,
+				   _CORBA_Boolean           release)
 {
   ADABROKER_TRY
     
@@ -710,8 +710,8 @@ Ada_OmniObject::ada_create_objref(const char             * repoId,
 
     // omniORB believes we just want to cast the result into a
     // CORBA::Object_ptr.
-    omniObject *objptr = omni::createObjRef (repoId, 0, profiles, release);
-    omniObject_C2Ada *adaobj = dynamic_cast<omniObject_C2Ada*>(objptr);
+    omniObject * objptr = omni::createObjRef (repoId, 0, profiles, release);
+    omniObject_C2Ada * adaobj = dynamic_cast<omniObject_C2Ada*>(objptr);
     
     if (adaobj == 0) {
       return 0;

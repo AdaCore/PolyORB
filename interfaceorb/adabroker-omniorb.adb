@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.9 $
+--                            $Revision: 1.10 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -1225,14 +1225,16 @@ package body AdaBroker.OmniORB is
 
    function C_Is_A
      (Self   : in OmniObject'Class;
-      Repoid : in Strings.chars_ptr)
+      RepoID : in Strings.chars_ptr)
       return  Sysdep.Bool
    is
       Rep : CORBA.String;
    begin
-      --  Never called, never used
-      Rep := To_CORBA_String (Strings.Value (Repoid));
+      Rep := To_CORBA_String (Strings.Value (RepoID));
+
       return Sysdep.To_Bool (Is_A (Id_To_Ref (Self.Interface).all, Rep));
+   exception when others =>
+      return Sysdep.To_Bool (False);
    end C_Is_A;
 
    ------------------------------

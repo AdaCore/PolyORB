@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -349,7 +349,7 @@ private
 
    function  C_Is_A
      (Self   : in OmniObject'Class;
-      Repoid : in Interfaces.C.Strings.chars_ptr)
+      RepoID : in Interfaces.C.Strings.chars_ptr)
       return  Sysdep.Bool;
 
    pragma Export (CPP, C_Is_A, "Ada_Is_A__14Ada_OmniObjectPCc");

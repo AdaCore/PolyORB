@@ -1,3 +1,6 @@
+#ifndef __ADA_CORBA_EXCEPTIONS_H__
+#define __ADA_CORBA_EXCEPTIONS_H__
+
 #include <omniORB2/CORBA.h>
 #include "Ada_OmniObject.hh"
 
@@ -32,3 +35,5 @@ _omni_callSystemExceptionHandler(Ada_OmniObject*,
 //             				          CORBA::ULong,
 //				                  const CORBA::SystemException&);
 // (see CORBA.h L 2712)
+
+#endif

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.9 $
+--                            $Revision: 1.10 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -64,10 +64,11 @@ package body CORBA.Object.OmniORB is
    Base  : int := 0;
 
    procedure C_Create_Proxy_Object_Factory
-     (Repository : in Strings.chars_ptr);
+     (Repository : in Strings.chars_ptr;
+      Interface  : in int);
 
    pragma Import
-     (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCc");
+     (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCci");
    --  Correspond to void createProxyObjectFactory (const char* repoID) see
    --  proxyObjectFactory_C2Ada.hh
 
@@ -212,6 +213,12 @@ package body CORBA.Object.OmniORB is
       end loop;
 
       if Index > Last then
+         Last := Last + 1;
+         Table (Last) := (new Ref'Class'(The_Ref),
+                          The_Rep,
+                          To_CORBA_String (Expanded_Name (The_Ref'Tag)),
+                          Dispatch);
+
          --  The ORB has to know how to create new proxy objects when
          --  we ask him to do so (out of an IOR for example). It keeps
          --  a global variable which is a list of
@@ -224,13 +231,7 @@ package body CORBA.Object.OmniORB is
          --  Never deallocated because it is stored in a global
          --  variable in omniORB (proxyStubs).
 
-         C_Create_Proxy_Object_Factory (C_RepoID);
-
-         Last := Last + 1;
-         Table (Last) := (new Ref'Class'(The_Ref),
-                          The_Rep,
-                          To_CORBA_String (Expanded_Name (The_Ref'Tag)),
-                          Dispatch);
+         C_Create_Proxy_Object_Factory (C_RepoID, Last);
 
       elsif Table (Index).Dispatch = null then
          Table (Index).Dispatch := Dispatch;
