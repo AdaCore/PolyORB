@@ -22,17 +22,7 @@ package body Backend.BE_Ada.Runtime is
       for U in RU_Id loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));
          Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
-         case U is
-            when RU_CORBA =>
-               null;
-
-            when RU_PolyORB =>
-               Capitalize (Name_Buffer (1 .. 4));
-
-            when others =>
-               Capitalize (Name_Buffer (1 .. Name_Len));
-         end case;
-
+         Capitalize (Name_Buffer (1 .. Name_Len));
          if Name_Buffer (1 .. Name_Len) = "Null" then
             RUD (U) := No_Node;
          else
@@ -40,7 +30,7 @@ package body Backend.BE_Ada.Runtime is
             Length     := 0;
             Identifier := Name_Find;
             Length     := Name_Len;
-            Set_Name_Table_Info (Identifier, RU_Id'Pos (U) + 1);
+            Set_Name_Table_Info (Identifier, RU_Id'Pos (U));
 
             while Name_Len > 0 loop
                if Name_Buffer (Name_Len) = '_' then
@@ -57,7 +47,7 @@ package body Backend.BE_Ada.Runtime is
                Set_Str_To_Name_Buffer
                  (Name_Buffer (Name_Len + 2 .. Length));
                Identifier := Name_Find;
-               Set_Parent_Unit_Name (RUD (U), RUD (RU_Id'Val (Position - 1)));
+               Set_Parent_Unit_Name (RUD (U), RUD (RU_Id'Val (Position)));
             end if;
             Set_Defining_Identifier
               (RUD (U), Make_Defining_Identifier (Identifier));
