@@ -85,9 +85,14 @@ package body Exp_Dist is
    --  PolyORB version, they are identified by name, with a numeric suffix
    --  for homonyms.)
 
+   type Hash_Index is range 0 .. 50;
+
    -----------------------
    -- Local subprograms --
    -----------------------
+
+   function Hash (F : Entity_Id) return Hash_Index;
+   function Hash (F : Name_Id) return Hash_Index;
 
    procedure Add_RAS_Proxy_And_Analyze
      (Decls              :     List_Id;
@@ -109,7 +114,35 @@ package body Exp_Dist is
    --  ACR_Expression is use as the initialization value for
    --  the All_Calls_Remote component.
 
+   type Subprogram_Identifiers is record
+      Str_Identifier : String_Id;
+      Int_Identifier : Int;
+   end record;
+
+   package Subprogram_Identifier_Table is
+      new Simple_HTable (Header_Num => Hash_Index,
+                         Element    => Subprogram_Identifiers,
+                         No_Element => (No_String, 0),
+                         Key        => Entity_Id,
+                         Hash       => Hash,
+                         Equal      => "=");
+   --  Mapping between a remote subprogram and the corresponding
+   --  subprogram identifiers.
+
+   package Overload_Counter_Table is
+      new Simple_HTable (Header_Num => Hash_Index,
+                         Element    => Int,
+                         No_Element => 0,
+                         Key        => Name_Id,
+                         Hash       => Hash,
+                         Equal      => "=");
+   --  Mapping between a subprogram name and an integer that
+   --  counts the number of defining subprogram names with that
+   --  Name_Id encountered so far in a given context (an interface).
+
+   function Get_Subprogram_Ids (Def : Entity_Id) return Subprogram_Identifiers;
    function Get_Subprogram_Id (Def : Entity_Id) return String_Id;
+   function Get_Subprogram_Id (Def : Entity_Id) return Int;
    --  Given a subprogram defined in a RCI package, get its distribution
    --  subprogram identifier in the name buffer (the distribution id
    --  is the non-qualified subprogram name, in the casing used for
@@ -127,6 +160,9 @@ package body Exp_Dist is
    --  Another design would be to allow a representation
    --  clause on subprogram specs:
    --  for Subp'Distribution_Identifier use "fooBar";
+
+   pragma Warnings (Off, Get_Subprogram_Id);
+   --  One homonym only is unreferenced (specific to the GARLIC version)
 
    function Build_Get_Unique_RP_Call
      (Loc       : Source_Ptr;
@@ -340,10 +376,6 @@ package body Exp_Dist is
    Empty_Stub_Structure : constant Stub_Structure :=
      (Empty, Empty, Empty, Empty);
 
-   type Hash_Index is range 0 .. 50;
-   function Hash (F : Entity_Id) return Hash_Index;
-   function Hash (F : Name_Id) return Hash_Index;
-
    package Stubs_Table is
       new Simple_HTable (Header_Num => Hash_Index,
                          Element    => Stub_Structure,
@@ -381,27 +413,6 @@ package body Exp_Dist is
                          Hash       => Hash,
                          Equal      => "=");
    --  Mapping between a RCI subprogram and the corresponding calling stubs
-
-   package Subprogram_Identifier_Table is
-      new Simple_HTable (Header_Num => Hash_Index,
-                         Element    => String_Id,
-                         No_Element => No_String,
-                         Key        => Entity_Id,
-                         Hash       => Hash,
-                         Equal      => "=");
-   --  Mapping between a remote subprogram and the corresponding
-   --  subprogram identifier.
-
-   package Overload_Counter_Table is
-      new Simple_HTable (Header_Num => Hash_Index,
-                         Element    => Int,
-                         No_Element => 0,
-                         Key        => Name_Id,
-                         Hash       => Hash,
-                         Equal      => "=");
-   --  Mapping between a subprogram name and an integer that
-   --  counts the number of defining subprogram names with that
-   --  Name_Id encountered so far in a given context (an interface).
 
    procedure Add_Stub_Type
      (Designated_Type     : Entity_Id;
@@ -488,11 +499,12 @@ package body Exp_Dist is
 
    procedure Assign_Subprogram_Identifier
      (Def :     Entity_Id;
+      Spn :     Int;
       Id  : out String_Id);
    --  Determine the distribution subprogram identifier to
    --  be used for remote subprogram Def, return it in Id and
    --  store it in a hash table for later retrieval by
-   --  Get_Subprogram_Id.
+   --  Get_Subprogram_Id. Spn is the subprogram number.
 
    procedure Reserve_NamingContext_Methods;
    --  Mark the method names for interface NamingContext as
@@ -541,14 +553,6 @@ package body Exp_Dist is
 
    RCI_Cache : Node_Id;
 
---    Output_From_Constrained : constant array (Boolean) of Name_Id :=
---      (False => Name_Output,
---       True  => Name_Write);
-   --  The attribute to choose depending on the fact that the parameter
-   --  is constrained or not. There is no such thing as Input_From_Constrained
-   --  since this require separate mechanisms ('Input is a function while
-   --  'Read is a procedure).
-
    ---------------------------------------
    -- Add_Calling_Stubs_To_Declarations --
    ---------------------------------------
@@ -558,8 +562,6 @@ package body Exp_Dist is
       Decls    : List_Id)
    is
       Current_Subprogram_Number : Int := First_RCI_Subprogram_Id;
-      --  Subprogram id 0 is reserved for calls received from
-      --  remote access-to-subprogram dereferences.
 
       Current_Declaration       : Node_Id;
       Loc                       : constant Source_Ptr := Sloc (Pkg_Spec);
@@ -594,8 +596,8 @@ package body Exp_Dist is
            and then Comes_From_Source (Current_Declaration)
          then
             Assign_Subprogram_Identifier (
-              Defining_Unit_Name (Specification (
-                Current_Declaration)),
+              Defining_Unit_Name (Specification (Current_Declaration)),
+              Current_Subprogram_Number,
               Subp_Str);
 
             Subp_Stubs :=
@@ -1163,6 +1165,7 @@ package body Exp_Dist is
 
                Assign_Subprogram_Identifier (
                  Defining_Unit_Name (Current_Primitive_Spec),
+                 Current_Primitive_Number,
                  Subp_Str);
 
                Current_Primitive_Body :=
@@ -1653,7 +1656,7 @@ package body Exp_Dist is
                   Subtype_Mark =>
                     New_Occurrence_Of (RACW_Type, Loc)))),
           Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
-      --  Dummy 'access RACW' argument, just over overload.
+      --  Dummy 'access RACW' argument, just for overload.
 
       Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
       --  NOTE: The usage occurrences of RACW_Parameter must
@@ -2973,7 +2976,10 @@ package body Exp_Dist is
                --  below must be kept consistent with the declaration
                --  of type RCI_Subp_Info in System.Partition_Interface.
 
-               Assign_Subprogram_Identifier (Subp_Def, Subp_Val);
+               Assign_Subprogram_Identifier (
+                 Subp_Def,
+                 Current_Subprogram_Number,
+                 Subp_Val);
 
                Append_To (Decls,
                  Make_Object_Declaration (Loc,
@@ -3344,6 +3350,7 @@ package body Exp_Dist is
 
    procedure Assign_Subprogram_Identifier
      (Def :     Entity_Id;
+      Spn :     Int;
       Id  : out String_Id)
    is
       N    : constant Name_Id := Chars (Def);
@@ -3367,7 +3374,8 @@ package body Exp_Dist is
       end if;
 
       Id := String_From_Name_Buffer;
-      Subprogram_Identifier_Table.Set (Def, Id);
+      Subprogram_Identifier_Table.Set (Def,
+        Subprogram_Identifiers'(Str_Identifier => Id, Int_Identifier => Spn));
    end Assign_Subprogram_Identifier;
 
    ---------------------------------
@@ -4158,11 +4166,8 @@ package body Exp_Dist is
       ----------------------------
 
       procedure Insert_Partition_Check (Parameter : Node_Id) is
-         Parameter_Entity : constant Entity_Id :=
-                              Defining_Identifier (Parameter);
-
          Condition         : Node_Id;
-
+         pragma Unreferenced (Parameter);
       begin
          --  The expression that will be built is of the form:
          --    if not (Parameter in Stub_Type and then
@@ -5085,7 +5090,8 @@ package body Exp_Dist is
 
          Calling_Stubs := Build_Subprogram_Calling_Stubs
            (Vis_Decl               => Parent (Parent (Called_Subprogram)),
-            Subp_Id                => Build_Subprogram_Id (Called_Subprogram),
+            Subp_Id                =>
+              Build_Subprogram_Id (Loc, Called_Subprogram),
             Asynchronous           => Nkind (N) = N_Procedure_Call_Statement
                                         and then
                                       Is_Asynchronous (Called_Subprogram),
@@ -5148,14 +5154,35 @@ package body Exp_Dist is
    -----------------------
 
    function Get_Subprogram_Id (Def : Entity_Id) return String_Id is
-      Result : String_Id :=
+   begin
+      return Get_Subprogram_Ids (Def).Str_Identifier;
+   end Get_Subprogram_Id;
+
+   -----------------------
+   -- Get_Subprogram_Id --
+   -----------------------
+
+   function Get_Subprogram_Id (Def : Entity_Id) return Int is
+   begin
+      return Get_Subprogram_Ids (Def).Int_Identifier;
+   end Get_Subprogram_Id;
+
+   ------------------------
+   -- Get_Subprogram_Ids --
+   ------------------------
+
+   function Get_Subprogram_Ids
+     (Def : Entity_Id) return Subprogram_Identifiers
+   is
+      Result : Subprogram_Identifiers :=
         Subprogram_Identifier_Table.Get (Def);
 
       Current_Declaration : Node_Id;
       Current_Subp        : Entity_Id;
       Current_Subp_Str    : String_Id;
+      Current_Subp_Number : Int := First_RCI_Subprogram_Id;
    begin
-      if Result = No_String then
+      if Result.Str_Identifier = No_String then
          --  We are looking up this subprogram's identifier
          --  outside of the context of generating calling
          --  or receiving stubs; hence, we are processing
@@ -5180,17 +5207,18 @@ package body Exp_Dist is
                Current_Subp := Defining_Unit_Name (Specification (
                  Current_Declaration));
                Assign_Subprogram_Identifier (
-                 Current_Subp, Current_Subp_Str);
+                 Current_Subp, Current_Subp_Number, Current_Subp_Str);
                if Current_Subp = Def then
-                  Result := Current_Subp_Str;
+                  Result := (Current_Subp_Str, Current_Subp_Number);
                end if;
             end if;
             Next (Current_Declaration);
+            Current_Subp_Number := Current_Subp_Number + 1;
          end loop;
       end if;
-      pragma Assert (Result /= No_String);
+      pragma Assert (Result.Str_Identifier /= No_String);
       return Result;
-   end Get_Subprogram_Id;
+   end Get_Subprogram_Ids;
 
    ----------
    -- Hash --
