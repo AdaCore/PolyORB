@@ -1,8 +1,8 @@
 #include <adabe.h>
 
-IMPL_NARROW_METHODS1(adabe_exception, AST_Exception);
-IMPL_NARROW_FROM_DECL(adabe_exception);
-IMPL_NARROW_FROM_SCOPE(adabe_exception);
+IMPL_NARROW_METHODS1 (adabe_exception, AST_Exception);
+IMPL_NARROW_FROM_DECL (adabe_exception);
+IMPL_NARROW_FROM_SCOPE (adabe_exception);
 
 //////////////////////////////////////////////////////////////////
 //////////////////////// produce_ads /////////////////////////////
@@ -21,16 +21,16 @@ adabe_exception::produce_ads (dep_list & with,
   bool first = true;
     
   // Beginning of the exception declaration.
-  body += "   " + get_ada_local_name() + " : exception;\n";
-  body += "   type " + get_ada_local_name() +"_Members is\n";
+  body += "   " + get_ada_local_name () + " : exception;\n\n";
+  body += "   type " + get_ada_local_name () +"_Members is\n";
   body += "      new CORBA.IDL_Exception_Members with ";
   
   // Map the members of this exception.
-  UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
-  while (!activator.is_done())
+  UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
+  while (!activator.is_done ())
     {
-      AST_Decl *d = activator.item();
-      switch(d->node_type())
+      AST_Decl *d = activator.item ();
+      switch (d->node_type ())
 	{
 	case AST_Decl::NT_field:
 	  {
@@ -51,7 +51,7 @@ adabe_exception::produce_ads (dep_list & with,
 	  throw adabe_internal_error
 	    (__FILE__,__LINE__,"unexpected decl in exception scope");
 	}
-      activator.next();
+      activator.next ();
     } //
   if (first)
     {
@@ -65,16 +65,16 @@ adabe_exception::produce_ads (dep_list & with,
     }
 
   // An exception needs a RepositoryID that designate it.
-  body += "   " + get_ada_local_name();
+  body += "   " + get_ada_local_name ();
   body += "_Repository_Id : CORBA.String\n";
-  body += "      := CORBA.To_CORBA_String(\"";
-  body += repositoryID();
-  body += "\");\n";
+  body += "      := CORBA.To_CORBA_String (\"";
+  body += repositoryID ();
+  body += "\");\n\n";
 
   // We need a function to get the members of an exception.
   body += "   procedure Get_Members\n";
   body += "     (From : in Ada.Exceptions.Exception_Occurrence;\n";
-  body += "      To   : out " + get_ada_local_name() + "_Members);\n\n\n";
+  body += "      To   : out " + get_ada_local_name () + "_Members);\n\n";
 }
 
 //////////////////////////////////////////////////////////////////
@@ -82,18 +82,18 @@ adabe_exception::produce_ads (dep_list & with,
 //////////////////////////////////////////////////////////////////
 
 void
-adabe_exception::produce_adb(dep_list & with,
-			     string   & body,
-			     string   & previous)
+adabe_exception::produce_adb (dep_list & with,
+			      string   & body,
+			      string   & previous)
 {
   // The exception has only one operation to map: Get_Members.
   body += "   procedure Get_Members\n";
   body += "     (From : in Ada.Exceptions.Exception_Occurrence;\n";
-  body += "      To   : out " + get_ada_local_name() + "_Members) is\n";
+  body += "      To   : out " + get_ada_local_name () + "_Members) is\n";
   body += "   begin\n";
-  body += "      To := " + get_ada_local_name() + "_Members\n";
+  body += "      To := " + get_ada_local_name () + "_Members\n";
   body += "         (AdaBroker.Exceptions.Get_Members (From));\n";
-  body += "   end Get_Members;\n\n\n";
+  body += "   end Get_Members;\n\n";
 }
 
 //////////////////////////////////////////////////////////////////
@@ -101,17 +101,17 @@ adabe_exception::produce_adb(dep_list & with,
 //////////////////////////////////////////////////////////////////
 
 void
-adabe_exception::produce_skel_adb(dep_list & with,
-				  string   & body)
+adabe_exception::produce_skel_adb (dep_list & with,
+				   string   & body)
 {
-  UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
-  bool has_member = !activator.is_done();
+  UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
+  bool has_member = !activator.is_done ();
 
   // Full name of the interface.
   string full_name = get_ada_full_name ();
 
   // Name of the package containing the interface.
-  string pack = full_name.substr (0,full_name.find_last_of('.'));
+  string pack = full_name.substr (0, full_name.find_last_of ('.'));
 
   // Add the package in which the exception is defined.
   with.add (pack);
@@ -140,7 +140,7 @@ adabe_exception::produce_skel_adb(dep_list & with,
     body += pack;
     body += ".Get_Members (E, Member);\n";
   }
-  body += "                  -- Compute reply size\n";
+  body += "                  -- Compute size of reply\n";
   body += "                  Size := AdaBroker.GIOP_S.Reply_Header_Size;\n";
   body += "                  Size := Align_Size (RepoID, Size);\n";
   if (has_member) {
@@ -153,7 +153,7 @@ adabe_exception::produce_skel_adb(dep_list & with,
   body += "                     AdaBroker.GIOP.User_Exception,\n";
   body += "                     Size);\n";
 
-  body += "                  -- Marshall the exception\n";
+  body += "                  -- Marshall exception\n";
 
   body += "                  Marshall (RepoID, Orls);\n";
   if (has_member) {
@@ -168,17 +168,17 @@ adabe_exception::produce_skel_adb(dep_list & with,
 }
 
 ////////////////////////////////////////////////////////////////
-//////////////       produce_proxies_adb         ///////////////    
+//////////////       produce_proxy_adb         ///////////////    
 ////////////////////////////////////////////////////////////////
 void
-adabe_exception::produce_proxies_adb(dep_list & with,
+adabe_exception::produce_proxy_adb (dep_list & with,
 				     string   & body)
 {
-  UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
-  bool has_member = !activator.is_done();
+  UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
+  bool has_member = !activator.is_done ();
 
   string full_name = get_ada_full_name ();
-  string pack = full_name.substr (0,full_name.find_last_of('.'));
+  string pack = full_name.substr (0, full_name.find_last_of ('.'));
 
   // Prepare the dispatch of the exception.
   with.add (pack);
@@ -217,32 +217,32 @@ adabe_exception::produce_proxies_adb(dep_list & with,
 ////////////////////////////////////////////////////////////////
 
 void
-adabe_exception::produce_marshal_ads(dep_list & with,
+adabe_exception::produce_stream_ads (dep_list & with,
 				     string   & body,
 				     string   & previous)
 {
-  UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
+  UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
   // We must define marshall, unmarshall and align size only if
   // there's an argument in the scope of the exception.
-  if (!activator.is_done())
+  if (!activator.is_done ())
     {
       body += "   procedure Marshall\n";
       body += "     (A : in ";
-      body += get_ada_local_name();
+      body += get_ada_local_name ();
       body += "_Members;\n";
       body += "      S : in out ";
       body += "AdaBroker.NetBufferedStream.Object'Class);\n\n";
       
       body += "   procedure Unmarshall\n";
       body += "     (A : out ";
-      body += get_ada_local_name();
+      body += get_ada_local_name ();
       body += "_Members;\n";
       body += "      S : in out ";
       body += "AdaBroker.NetBufferedStream.Object'Class);\n\n";
       
       body += "   function Align_Size\n";
       body += "     (A              : in ";
-      body += get_ada_local_name();
+      body += get_ada_local_name ();
       body += "_Members;\n";
       body += "      Initial_Offset : in CORBA.Unsigned_Long;\n";
       body += "      N              : in CORBA.Unsigned_Long := 1)\n";
@@ -255,14 +255,14 @@ adabe_exception::produce_marshal_ads(dep_list & with,
 //////////////       produce_marshall_adb        ///////////////    
 ////////////////////////////////////////////////////////////////
 void
-adabe_exception::produce_marshal_adb(dep_list & with,
+adabe_exception::produce_stream_adb (dep_list & with,
 				     string   & body,
 				     string   & previous)
 {
   // We must define marshall, unmarshall and align size only if
   // there's an argument in the scope of the exception.
-  UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
-  if (!activator.is_done())
+  UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
+  if (!activator.is_done ())
     {
       // local strings used to compute the three different functions.
       string marshall = "";
@@ -272,7 +272,7 @@ adabe_exception::produce_marshal_adb(dep_list & with,
       // declaration of the function marshall.
       marshall += "   procedure Marshall\n";
       marshall += "     (A : in ";
-      marshall += get_ada_local_name();
+      marshall += get_ada_local_name ();
       marshall += "_Members;\n";
       marshall += "      S : in out ";
       marshall += "AdaBroker.NetBufferedStream.Object'Class) is\n";
@@ -281,7 +281,7 @@ adabe_exception::produce_marshal_adb(dep_list & with,
       // Declaration of the function unmarshall.
       unmarshall += "   procedure Unmarshall\n";
       unmarshall += "     (A : out ";
-      unmarshall += get_ada_local_name();
+      unmarshall += get_ada_local_name ();
       unmarshall += "_Members;\n";
       unmarshall += "      S : in out ";
       unmarshall += "AdaBroker.NetBufferedStream.Object'Class) is\n";
@@ -290,7 +290,7 @@ adabe_exception::produce_marshal_adb(dep_list & with,
       // Declaration of the function align_size.
       align_size += "   function Align_Size\n";
       align_size += "     (A              : in ";
-      align_size += get_ada_local_name();
+      align_size += get_ada_local_name ();
       align_size += "_Members;\n";
       align_size += "      Initial_Offset : in CORBA.Unsigned_Long;\n";
       align_size += "      N              : in CORBA.Unsigned_Long := 1)\n";
@@ -300,23 +300,23 @@ adabe_exception::produce_marshal_adb(dep_list & with,
       align_size += "      for I in 1 .. N loop\n";
       
       // We must now call the function over each field in the scope.
-      while (!activator.is_done())
+      while (!activator.is_done ())
 	{
-	  AST_Decl *d = activator.item();
-	  switch(d->node_type())
+	  AST_Decl *d = activator.item ();
+	  switch (d->node_type ())
 	    {
 	    case AST_Decl::NT_field:
 	      {
-		(dynamic_cast<adabe_field *>(d))->produce_marshal_adb
+		(dynamic_cast<adabe_field *>(d))->produce_stream_adb
 		  (with, body, marshall, unmarshall, align_size);
 		break;
 	      }
 	    default:
-	      cerr << d->node_type() << endl;
+	      cerr << d->node_type () << endl;
 	      throw adabe_internal_error
 		(__FILE__,__LINE__,"unexpected decl in exception scope");
 	    }      
-	  activator.next();
+	  activator.next ();
 	}
       marshall += "   end;\n\n";
       unmarshall += "   end;\n\n";
@@ -328,53 +328,53 @@ adabe_exception::produce_marshal_adb(dep_list & with,
       body += unmarshall;
       body += align_size;
     }
-  set_already_defined();
+  set_already_defined ();
 }
 
 string
-adabe_exception::dump_name(dep_list & with,
+adabe_exception::dump_name (dep_list & with,
 			   string   & previous) 
 {
-  if (!is_imported(with))
+  if (!is_imported (with))
     {
-      if (!is_already_defined())
+      if (!is_already_defined ())
 	{
 	  // Has this exception already been defined ?
 	  string tmp = "";
-	  produce_ads(with, tmp, previous);
+	  produce_ads (with, tmp, previous);
 	  previous += tmp;
 	}
       // This exception is defined in this file. Use local name.
-      return get_ada_local_name();
+      return get_ada_local_name ();
     }
   // The exception is defined in another file. Use full name.
-  return get_ada_full_name();	   
+  return get_ada_full_name ();	   
 }
 
 string
-adabe_exception::marshal_name(dep_list& with,string &previous) 
+adabe_exception::marshal_name (dep_list& with, string &previous) 
 {
-  if (!is_marshal_imported(with))
+  if (!is_marshal_imported (with))
     {
-      if (!is_already_defined())
+      if (!is_already_defined ())
 	{
 	  // Has this exception already been defined ?
 	  string tmp = "";
-	  produce_marshal_adb(with, tmp, previous);
+	  produce_stream_adb (with, tmp, previous);
 	  previous += tmp;
 	}
       // This exception is defined in this file. se local name.
-      return get_ada_local_name();
+      return get_ada_local_name ();
     }
   // The exception is defined in another file. Use full name.
-  return get_ada_full_name();	   
+  return get_ada_full_name ();	   
 }
 
-adabe_exception::adabe_exception(UTL_ScopedName *n, UTL_StrList *p)
-  : AST_Decl(AST_Decl::NT_except, n, p),
-    AST_Structure(AST_Decl::NT_except, n, p),
-    UTL_Scope(AST_Decl::NT_except),
-    adabe_name(AST_Decl::NT_except, n, p)
+adabe_exception::adabe_exception (UTL_ScopedName *n, UTL_StrList *p)
+  : AST_Decl (AST_Decl::NT_except, n, p),
+    AST_Structure (AST_Decl::NT_except, n, p),
+    UTL_Scope (AST_Decl::NT_except),
+    adabe_name (AST_Decl::NT_except, n, p)
 {
 }
 

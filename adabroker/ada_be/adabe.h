@@ -1,28 +1,3 @@
-/*************************************************************************************************
-***                              ADA BACK-END COMPILER HEADER                                  ***
-***                               file:  adabe.h                                               ***
-***                                                                                            ***
-***      This file is the single header file of all AdaBroker Back_End.                        ***
-***   It contains all class and type definitions that are implemented in .cc files.            ***
-***   Most of the class defined here are children of classes of the Sun Front-End. The rule    ***
-***   is that a AST_Toto class in the front_end has a correspondant adabe_toto class in the    ***
-***   AdaBroker Back-End.                                                                      ***
-***                                                                                            ***
-***   Copyright 1999                                                                           ***
-***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
-***                                                                                            ***
-***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
-***   General Public License, as published by the Free Software Foundation.                    ***
-***                                                                                            ***
-***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
-***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
-***  PURPOSE.                                                                                  ***
-***                                                                                            ***
-***  See the GNU General Public License for more details.                                      ***
-***                                                                                            ***
-***                                                                                            ***
-*************************************************************************************************/
-
 #ifndef _ADABE_CLASSES_H_
 #define _ADABE_CLASSES_H_
 
@@ -132,8 +107,8 @@ public:
   // functions used to produce the body and specification for the
   
 
-  virtual void produce_proxies_ads(dep_list&, string&, string&);
-  virtual void produce_proxies_adb(dep_list&, string&, string&);
+  virtual void produce_proxy_ads(dep_list&, string&, string&);
+  virtual void produce_proxy_adb(dep_list&, string&, string&);
   // functions used to produce the body and specification for the
   // proxy calls
   // the second string is here not used for previous addition
@@ -144,8 +119,8 @@ public:
   // functions used to produce the body and specification for the
   // package used to select the right function called (dispatch)
   
-  virtual void produce_marshal_ads(dep_list&, string&, string&);
-  virtual void produce_marshal_adb(dep_list&, string&, string&);
+  virtual void produce_stream_ads(dep_list&, string&, string&);
+  virtual void produce_stream_adb(dep_list&, string&, string&);
   // function used to produce the body and specification for the
   // marshalling functions of the non predefined types
 
@@ -235,8 +210,8 @@ public:
   DEF_NARROW_FROM_SCOPE(adabe_enum);
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 
@@ -276,8 +251,8 @@ public:
   DEF_NARROW_FROM_DECL(adabe_string);
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual string local_type (void);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
@@ -296,7 +271,7 @@ public:
   DEF_NARROW_FROM_DECL(adabe_field);
 
   virtual void produce_ads (dep_list &with, string &body, string &previous);
-  void produce_marshal_adb(dep_list& with, string &body, string &marshall, string &unmarshall, string &align_size);
+  void produce_stream_adb(dep_list& with, string &body, string &marshall, string &unmarshall, string &align_size);
 
 };
 
@@ -313,8 +288,8 @@ public:
   DEF_NARROW_FROM_SCOPE(adabe_union);
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 
@@ -341,7 +316,7 @@ public:
 
   void produce_ads(dep_list &with, string &body, string &previous,
 		   AST_ConcreteType* concrete);
-  void produce_marshal_adb(dep_list &with,
+  void produce_stream_adb(dep_list &with,
 			   string &marshall,
 			   string &unmarshall,
 			   string &align_size,
@@ -361,8 +336,8 @@ public:
   DEF_NARROW_FROM_SCOPE(adabe_structure);
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 };
@@ -381,10 +356,10 @@ public:
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual void produce_skel_adb(dep_list &with, string &body);
-  virtual void produce_proxies_adb(dep_list &with, string &body);
+  virtual void produce_proxy_adb(dep_list &with, string &body);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 
@@ -404,8 +379,8 @@ public:
   bool is_compute_name_needed();
   
   virtual void produce_ads (dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual string local_type (void);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
@@ -425,8 +400,8 @@ public:
   DEF_NARROW_FROM_SCOPE(adabe_sequence);
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 };
@@ -444,8 +419,8 @@ public:
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   void produce_adb(dep_list &with, bool &no_out, string space, string &in_decls, string &in_args, string &out_args);
-  void produce_proxies_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields, string &out_args);
-  void produce_proxies_adb(dep_list &with, string &in_decls,
+  void produce_proxy_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields, string &out_args);
+  void produce_proxy_adb(dep_list &with, string &in_decls,
 			   bool &no_in, bool &no_out, string &init,
 			   string &align_size, string &marshall,
 			   string &unmarshall_decls,
@@ -475,10 +450,10 @@ public:
   virtual void produce_adb(dep_list &with, string &body, string &previous);
   virtual void produce_impl_ads(dep_list &with, string &body, string &previous);
   virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_proxies_ads(dep_list &with, string &body, string &private_definition);
-  virtual void produce_proxies_adb(dep_list &with, string &body, string &private_definition);
+  virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
+  virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
-  //  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  //  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
 
 };
 
@@ -499,10 +474,10 @@ public:
   virtual void produce_adb(dep_list &with, string &body, string &previous);
   virtual void produce_impl_ads(dep_list &with, string &body, string &previous);
   virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_proxies_ads(dep_list &with, string &body, string &private_definition);
-  virtual void produce_proxies_adb(dep_list &with, string &body, string &private_definition);
+  virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
+  virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
-  //  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  //  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
 
 
 private:
@@ -525,8 +500,8 @@ public:
   DEF_NARROW_FROM_DECL(adabe_typedef);
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 
@@ -555,12 +530,12 @@ class adabe_interface : public virtual AST_Interface,
   virtual void produce_adb(dep_list &with, string &body, string &previous);
   virtual void produce_impl_ads(dep_list &with, string &body, string &previous);
   virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_proxies_ads(dep_list &with, string &body, string &private_definition);
-  virtual void produce_proxies_adb(dep_list &with, string &body, string &private_definition);
+  virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
+  virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_skel_ads(dep_list &with, string &body, string &previous);
   virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 
@@ -602,12 +577,12 @@ public:
   virtual void produce_adb(dep_list &with, string &body, string &previous);
   virtual void produce_impl_ads(dep_list &with, string &body, string &previous);
   virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_proxies_ads(dep_list &with, string &body, string &private_definition);
-  virtual void produce_proxies_adb(dep_list &with, string &body, string &private_definition);
+  virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
+  virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_skel_ads(dep_list &with, string &body, string &previous);
   virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
-  virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
 };
 
 
