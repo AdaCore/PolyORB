@@ -254,7 +254,6 @@ package body System.RPC is
          raise Constraint_Error;
       end if;
       Any_Priority'Read (Params, Prio);
-      D (D_Debug, "Recv Priority =" & Prio'Img);
       if not Prio'Valid then
          D (D_Debug, "Invalid priority received");
          raise Constraint_Error;
@@ -610,6 +609,13 @@ package body System.RPC is
       end loop;
       Last := Offset - 1;
       Stream.Count := Stream.Count - (Offset - Item'First);
+      if First = null then
+
+         --  Set Current to null to allow further Write to be done.
+
+         Stream.Current := null;
+
+      end if;
    end Read;
 
    ----------------------------
@@ -848,18 +854,15 @@ package body System.RPC is
       Length  : constant Stream_Element_Count := Item'Length;
       Current : Node_Ptr renames Stream.Current;
    begin
-      --  XXXXX
-      D (D_Debug, "processing write attribute");
       if Current = null then
-         if Stream.First.Size = 0 then
+         if Stream.First = null then
 
-            --  This is the first call and the initial size was specified
-            --  as being zero. We do not need to keep this packet, we will
-            --  allocate another (non-empty) one immediately.
+            --  This is the first call (maybe after a full read).
 
-            Free (Stream.First);
             Stream.First :=
-              new Node (Stream_Element_Count'Max (Min_Size, Length));
+              new Node (Stream_Element_Count'Max
+                        (Stream.Initial_Size,
+                         Stream_Element_Count'Max (Min_Size, Length)));
          end if;
          Current := Stream.First;
       end if;
@@ -905,11 +908,6 @@ package body System.RPC is
       Current.Content (Current.Last .. Current.Last + Length - 1) :=
         Item;
       Current.Last := Current.Last + Length;
-
-   --  XXXXX
-   exception when others =>
-      D (D_Exception, "exception raise in Write");
-      raise;
    end Write;
 
 end System.RPC;

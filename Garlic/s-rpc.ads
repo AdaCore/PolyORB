@@ -95,7 +95,7 @@ private
 
    type Params_Stream_Type (Initial_Size : Ada.Streams.Stream_Element_Count) is
      new Ada.Streams.Root_Stream_Type with record
-        First         : Node_Ptr := new Node (Initial_Size);
+        First         : Node_Ptr;
         Current       : Node_Ptr;
         Special_First : Boolean := False;
         Count         : Ada.Streams.Stream_Element_Count := 0;

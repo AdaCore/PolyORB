@@ -1,3 +1,12 @@
+Mon Sep  2 18:03:05 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-stratt.ads: Added.
+
+	* s-rpc.ads: Removed the offending declaration.
+
+	* s-rpc.adb: Allow mixed Read and Write calls. Allocate Node
+	  packets during the first Write call.
+
 Fri Aug 16 12:36:11 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.adb: Added a pragma Elaborate_All for
