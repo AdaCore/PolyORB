@@ -46,13 +46,9 @@ package PolyORB.Servants.Group_Servants is
 
    use PolyORB.Objects;
 
-   --  This package use two exception in polyorb-exceptions :
-   --  NotAGroupObject_E : used by some fucntion when a parameter is not a
+   --  This package use one exception in polyorb-exceptions :
+   --  NotAGroupObject_E : used by some functions when a parameter is not a
    --                      group object or when a group is not found
-
-   Not_Oneway_Request : exception;
-   --  Raised when a two request arrive on a group servant
-   --  XXX need to be removed
 
    ------------------------------
    -- Group servants interface --

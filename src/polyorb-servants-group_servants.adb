@@ -111,7 +111,7 @@ package body PolyORB.Servants.Group_Servants is
                     or else Value (It).Arg_Modes = ARG_INOUT
                   then
                      Leave (Self.Mutex);
-                     raise Not_Oneway_Request;
+                     raise Constraint_Error;
                   end if;
 
                   Next (It);
@@ -271,7 +271,7 @@ package body PolyORB.Servants.Group_Servants is
          Leave (Self.Group_Lock);
          Leave (Self.Mutex);
 
-         raise Not_Oneway_Request;
+         raise Constraint_Error;
       end if;
 
       if Self.State = Wait_Other then
