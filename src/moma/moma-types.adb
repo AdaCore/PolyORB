@@ -104,7 +104,7 @@ package body MOMA.Types is
       Index    : Any := Get_Aggregate_Element (Item,
                                                TC_Unsigned_Long,
                                                Unsigned_Long (0));
-      Position : Unsigned_Long := From_Any (Index);
+      Position : constant Unsigned_Long := From_Any (Index);
    begin
       return Destination_Type'Val (Position);
    end From_Any;
