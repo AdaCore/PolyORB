@@ -1,3 +1,12 @@
+2000-01-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garthi.ads: Simplify C_Open, C_Dup2 and C_Setsid interfaces.
+	Add C_System.
+
+	* s-garrem.adb: Rewrite cleanly most of the functionalities.
+	Remove use of Interfaces.C.Strings, GNAT.OS_Lib and
+	Ada.Unchecked_Deallocation.
+
 2000-01-25  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garrem.adb: Remove some quote on the remote shell command line.
