@@ -1065,24 +1065,15 @@ package body PolyORB.ORB is
       pragma Debug (O ("Handling message of type "
                        & Ada.Tags.External_Tag (Msg'Tag)));
 
-      if Msg in Interface.Queue_Job then
-         Enter (ORB.ORB_Lock);
 
-         Queue_Job (ORB.Job_Queue,
-                    Interface.Queue_Job (Msg).Job);
 
-         Notify_Event (ORB.Scheduling_Policy, Job_Queued_E);
-
-         Leave (ORB.ORB_Lock);
-
-      elsif Msg in Interface.Queue_Request then
+      if Msg in Interface.Queue_Request then
          declare
             QR : Interface.Queue_Request
               renames Interface.Queue_Request (Msg);
             Req : Requests.Request_Access renames QR.Request;
 
-            QJ : constant Interface.Queue_Job := (Job => new Request_Job);
-            J  : Job_Access renames QJ.Job;
+            J  : constant Job_Access := new Request_Job;
          begin
             pragma Debug (O ("Queue_Request: enter"));
 
@@ -1106,8 +1097,12 @@ package body PolyORB.ORB is
 
             Req.Requesting_Component := Request_Job (J.all).Requestor;
 
+            Enter (ORB.ORB_Lock);
+            Queue_Job (ORB.Job_Queue, J);
+            Notify_Event (ORB.Scheduling_Policy, Job_Queued_E);
+            Leave (ORB.ORB_Lock);
+
             pragma Debug (O ("Queue_Request: leave"));
-            return Handle_Message (ORB, QJ);
          end;
 
       elsif Msg in Executed_Request then

@@ -36,18 +36,11 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Jobs;
 with PolyORB.Requests;
 with PolyORB.Transport;
 with PolyORB.Types;
 
 package PolyORB.ORB.Interface is
-
-   type Queue_Job is new Components.Message with record
-      Job : PolyORB.Jobs.Job_Access;
-   end record;
-   --  Queue Job for execution by the receiving ORB.
-   --  No reply (the job will be executed asynchronously).
 
    type Queue_Request is new Components.Message with record
       Request   : Requests.Request_Access;
