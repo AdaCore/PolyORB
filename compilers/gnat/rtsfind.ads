@@ -1008,7 +1008,6 @@ package Rtsfind is
      RE_Raise_Program_Error_For_E_4_18,  -- System.Partition_Interface
      RE_Raise_Program_Error_Unknown_Tag, -- System.Partition_Interface
      RE_Register_Passive_Package,        -- System.Partition_Interface
-     RE_RCI_Info,                        -- System.Partition_Interface
      RE_Subprogram_Id,                   -- System.Partition_Interface
 
      RE_Global_Pool_Object,              -- System.Pool_Global
@@ -1051,6 +1050,7 @@ package Rtsfind is
      RE_Copy_Any_Value,                  -- System.PolyORB_Interface
      RE_Set_Result,                      -- System.PolyORB_Interface
      RE_Register_Receiving_Stub,         -- System.PolyORB_Interface
+     RE_RCI_Info,                        -- System.PolyORB_Interface
 
      RE_FA_AD,                           -- System.PolyORB_Interface
      RE_FA_AS,                           -- System.PolyORB_Interface
@@ -2026,7 +2026,6 @@ package Rtsfind is
      RE_Raise_Program_Error_For_E_4_18   => System_Partition_Interface,
      RE_Raise_Program_Error_Unknown_Tag  => System_Partition_Interface,
      RE_Register_Passive_Package         => System_Partition_Interface,
-     RE_RCI_Info                         => System_Partition_Interface,
      RE_Subprogram_Id                    => System_Partition_Interface,
 
      RE_To_PolyORB_String                => System_PolyORB_Interface,
@@ -2057,6 +2056,7 @@ package Rtsfind is
      RE_Copy_Any_Value                   => System_PolyORB_Interface,
      RE_Set_Result                       => System_PolyORB_Interface,
      RE_Register_Receiving_Stub          => System_PolyORB_Interface,
+     RE_RCI_Info                         => System_PolyORB_Interface,
 
      RE_FA_AD                            => System_PolyORB_Interface,
      RE_FA_AS                            => System_PolyORB_Interface,

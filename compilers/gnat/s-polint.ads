@@ -230,7 +230,7 @@ package System.PolyORB_Interface is
    --  Case-less equality of S1 and S2.
 
    generic
-      Name : String;
+      RCI_Name : String;
    package RCI_Info is
       function Get_RCI_Package_Ref
         return PolyORB.References.Ref;

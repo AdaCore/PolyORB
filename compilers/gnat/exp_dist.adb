@@ -84,8 +84,7 @@ package body Exp_Dist is
    procedure Build_General_Calling_Stubs
      (Decls                     : in List_Id;
       Statements                : in List_Id;
-      Target_Partition          : in Entity_Id;
-      RPC_Receiver              : in Node_Id;
+      Target_Object             : in Node_Id;
       Subprogram_Id             : in Node_Id;
       Asynchronous              : in Node_Id := Empty;
       Is_Known_Asynchronous     : in Boolean := False;
@@ -97,9 +96,7 @@ package body Exp_Dist is
    --  Build calling stubs for general purpose. The parameters are:
    --    Decls             : a place to put declarations
    --    Statements        : a place to put statements
-   --    Target_Partition  : a node containing the target partition that must
-   --                        be a N_Defining_Identifier
-   --    RPC_Receiver      : a node containing the RPC receiver
+   --    Target_Object     : a node containing the target object
    --    Subprogram_Id     : a node containing the subprogram ID
    --    Asynchronous      : True if an APC must be made instead of an RPC.
    --                        The value needs not be supplied if one of the
@@ -1508,8 +1505,7 @@ package body Exp_Dist is
       Pointer : Node_Id;
 
       Converted_Ras    : Node_Id;
-      Target_Partition : Node_Id;
-      RPC_Receiver     : Node_Id;
+      Target_Object    : Node_Id;
       Subprogram_Id    : Node_Id;
       Asynchronous     : Node_Id;
 
@@ -1530,29 +1526,31 @@ package body Exp_Dist is
       Pointer :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
-      Target_Partition :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+--        Target_Partition :=
+--          Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
-      Append_To (Proc_Decls,
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Target_Partition,
-          Constant_Present    => True,
-          Object_Definition   =>
-            New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
-          Expression          =>
-            Unchecked_Convert_To (RTE (RE_Partition_ID),
-              Make_Selected_Component (Loc,
-                Prefix        =>
-                  New_Occurrence_Of (Pointer, Loc),
-                Selector_Name =>
-                  Make_Identifier (Loc, Name_Origin)))));
+--        Append_To (Proc_Decls,
+--          Make_Object_Declaration (Loc,
+--            Defining_Identifier => Target_Partition,
+--            Constant_Present    => True,
+--            Object_Definition   =>
+--              New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
+--            Expression          =>
+--              Unchecked_Convert_To (RTE (RE_Partition_ID),
+--                Make_Selected_Component (Loc,
+--                  Prefix        =>
+--                    New_Occurrence_Of (Pointer, Loc),
+--                  Selector_Name =>
+--                    Make_Identifier (Loc, Name_Origin)))));
 
-      RPC_Receiver :=
-        Make_Selected_Component (Loc,
-          Prefix        =>
-            New_Occurrence_Of (Pointer, Loc),
-          Selector_Name =>
-            Make_Identifier (Loc, Name_Receiver));
+--        RPC_Receiver :=
+--          Make_Selected_Component (Loc,
+--            Prefix        =>
+--              New_Occurrence_Of (Pointer, Loc),
+--            Selector_Name =>
+--              Make_Identifier (Loc, Name_Receiver));
+      Target_Object := Empty;
+      --  XXX TBD rewrite for PolyORB!
 
       Subprogram_Id :=
         Unchecked_Convert_To (RTE (RE_Subprogram_Id),
@@ -1637,8 +1635,7 @@ package body Exp_Dist is
       Build_General_Calling_Stubs
         (Decls                     => Inner_Decls,
          Statements                => Inner_Statements,
-         Target_Partition          => Target_Partition,
-         RPC_Receiver              => RPC_Receiver,
+         Target_Object             => Target_Object,
          Subprogram_Id             => Subprogram_Id,
          Asynchronous              => Asynchronous,
          Is_Known_Non_Asynchronous => Is_Function,
@@ -1692,15 +1689,16 @@ package body Exp_Dist is
                   Right_Opnd =>
                     Make_Integer_Literal (Loc, Uint_0)),
 
-              Right_Opnd =>
-                Make_Op_Eq (Loc,
-                  Left_Opnd  =>
-                    New_Occurrence_Of (Target_Partition, Loc),
-                  Right_Opnd =>
-                    Make_Function_Call (Loc,
-                      New_Occurrence_Of (
-                        RTE (RE_Get_Local_Partition_Id), Loc)))),
-
+              Right_Opnd => New_Occurrence_Of (Standard_False, Loc)),
+--                  Make_Op_Eq (Loc,
+--                    Left_Opnd  =>
+--                      New_Occurrence_Of (Target_Partition, Loc),
+--                    Right_Opnd =>
+--                      Make_Function_Call (Loc,
+--                        New_Occurrence_Of (
+--                          RTE (RE_Get_Local_Partition_Id), Loc)))),
+         --  XXX TBD Rewrite locality condition
+         --  for PolyORB (Is_Local (Target_Object)?)
           Then_Statements =>
             Direct_Statements,
 
@@ -2300,8 +2298,7 @@ package body Exp_Dist is
    procedure Build_General_Calling_Stubs
      (Decls                     : List_Id;
       Statements                : List_Id;
-      Target_Partition          : Entity_Id;
-      RPC_Receiver              : Node_Id;
+      Target_Object             : Entity_Id;
       Subprogram_Id             : Node_Id;
       Asynchronous              : Node_Id   := Empty;
       Is_Known_Asynchronous     : Boolean   := False;
@@ -2901,7 +2898,7 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Vis_Decl);
 
-      Target_Partition : Node_Id;
+      Target_Object : Node_Id;
       --  Contains the name of the target partition
 
       Decls      : constant List_Id := New_List;
@@ -2911,7 +2908,7 @@ package body Exp_Dist is
       --  The specification of the body
 
       Controlling_Parameter : Entity_Id := Empty;
-      RPC_Receiver          : Node_Id;
+      --  RPC_Receiver          : Node_Id;
 
       Asynchronous_Expr : Node_Id := Empty;
 
@@ -2981,8 +2978,8 @@ package body Exp_Dist is
    --  Start of processing for Build_Subprogram_Calling_Stubs
 
    begin
-      Target_Partition :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+--        Target_Partition :=
+--          Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
       Subp_Spec := Copy_Specification (Loc,
         Spec     => Specification (Vis_Decl),
@@ -3028,49 +3025,57 @@ package body Exp_Dist is
       if Stub_Type /= Empty then
          pragma Assert (Controlling_Parameter /= Empty);
 
-         Append_To (Decls,
-           Make_Object_Declaration (Loc,
-             Defining_Identifier => Target_Partition,
-             Constant_Present    => True,
-             Object_Definition   =>
-               New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
+--           Append_To (Decls,
+--             Make_Object_Declaration (Loc,
+--               Defining_Identifier => Target_Partition,
+--               Constant_Present    => True,
+--               Object_Definition   =>
+--                 New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
 
-             Expression          =>
-               Make_Selected_Component (Loc,
-                 Prefix        =>
-                   New_Occurrence_Of (Controlling_Parameter, Loc),
-                 Selector_Name =>
-                   Make_Identifier (Loc, Name_Origin))));
+--               Expression          =>
+--                 Make_Selected_Component (Loc,
+--                   Prefix        =>
+--                     New_Occurrence_Of (Controlling_Parameter, Loc),
+--                   Selector_Name =>
+--                     Make_Identifier (Loc, Name_Origin))));
+--           RPC_Receiver :=
+--             Make_Selected_Component (Loc,
+--               Prefix        =>
+--                 New_Occurrence_Of (Controlling_Parameter, Loc),
+--               Selector_Name =>
+--                 Make_Identifier (Loc, Name_Receiver));
 
-         RPC_Receiver :=
-           Make_Selected_Component (Loc,
-             Prefix        =>
-               New_Occurrence_Of (Controlling_Parameter, Loc),
-             Selector_Name =>
-               Make_Identifier (Loc, Name_Receiver));
-
+         Target_Object := Empty;
+         --  XXX Rewrite for PolyORB (determine target object)
+         --  TBD!
       else
-         Append_To (Decls,
-           Make_Object_Declaration (Loc,
-             Defining_Identifier => Target_Partition,
-             Constant_Present    => True,
-             Object_Definition   =>
-               New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
+--           Append_To (Decls,
+--             Make_Object_Declaration (Loc,
+--               Defining_Identifier => Target_Partition,
+--               Constant_Present    => True,
+--               Object_Definition   =>
+--                 New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
 
-             Expression          =>
-               Make_Function_Call (Loc,
-                 Name => Make_Selected_Component (Loc,
-                   Prefix        =>
-                     Make_Identifier (Loc, Chars (RCI_Locator)),
-                   Selector_Name =>
-                     Make_Identifier (Loc, Name_Get_Active_Partition_ID)))));
+--               Expression          =>
+--                 Make_Function_Call (Loc,
+--                   Name => Make_Selected_Component (Loc,
+--                     Prefix        =>
+--                   Make_Identifier (Loc, Chars (RCI_Locator)),
+--                     Selector_Name =>
+--                   Make_Identifier (Loc, Name_Get_Active_Partition_ID)))));
 
-         RPC_Receiver :=
+--           RPC_Receiver :=
+--             Make_Selected_Component (Loc,
+--               Prefix        =>
+--                 Make_Identifier (Loc, Chars (RCI_Locator)),
+--               Selector_Name =>
+--                 Make_Identifier (Loc, Name_Get_RCI_Package_Receiver));
+         Target_Object :=
            Make_Selected_Component (Loc,
              Prefix        =>
                Make_Identifier (Loc, Chars (RCI_Locator)),
              Selector_Name =>
-               Make_Identifier (Loc, Name_Get_RCI_Package_Receiver));
+               Make_Identifier (Loc, Name_Get_RCI_Package_Ref));
       end if;
 
       if Dynamically_Asynchronous then
@@ -3085,8 +3090,7 @@ package body Exp_Dist is
       Build_General_Calling_Stubs
         (Decls                 => Decls,
          Statements            => Statements,
-         Target_Partition      => Target_Partition,
-         RPC_Receiver          => RPC_Receiver,
+         Target_Object         => Target_Object,
          Subprogram_Id         => Make_Integer_Literal (Loc, Subp_Id),
          Asynchronous          => Asynchronous_Expr,
          Is_Known_Asynchronous => Asynchronous

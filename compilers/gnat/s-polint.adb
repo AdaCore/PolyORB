@@ -27,6 +27,7 @@ with PolyORB.POA_Manager;
 
 package body System.PolyORB_Interface is
 
+   use Ada.Characters.Handling;
    use PolyORB.Any;
    use PolyORB.Log;
    use PolyORB.Utils.Strings;
@@ -57,7 +58,6 @@ package body System.PolyORB_Interface is
 
    function Caseless_String_Eq (S1, S2 : String) return Boolean
    is
-      use Ada.Characters.Handling;
    begin
       if S1'Length /= S2'Length then
          return False;
@@ -250,7 +250,7 @@ package body System.PolyORB_Interface is
          if PolyORB.References.Is_Nil (Ref_Cache) then
             Ref_Cache := CORBA.Object.To_PolyORB_Ref
               (PolyORB.CORBA_P.Naming_Tools.Locate
-               (Ada.Characters.Handling.To_Lower (Name) & ".RCI"));
+               (To_Lower (RCI_Name) & ".RCI"));
          end if;
 
          return Ref_Cache;

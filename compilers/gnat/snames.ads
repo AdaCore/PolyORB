@@ -256,6 +256,7 @@ package Snames is
    Name_Async                          : constant Name_Id := N + 074;
    Name_Get_Active_Partition_ID        : constant Name_Id := N + 075;
    Name_Get_RCI_Package_Receiver       : constant Name_Id := N + 076;
+   Name_Get_RCI_Package_Ref            : constant Name_Id := N + 076;
    Name_Origin                         : constant Name_Id := N + 077;
    Name_Params                         : constant Name_Id := N + 078;
    Name_Partition                      : constant Name_Id := N + 079;
