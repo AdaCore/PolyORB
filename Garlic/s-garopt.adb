@@ -89,67 +89,73 @@ package body System.Garlic.Options is
       EV    : GNAT.OS_Lib.String_Access;
    begin
       EV := GNAT.OS_Lib.Getenv ("BOOT_SERVER");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Boot_Location (Unquote (EV.all));
       end if;
       GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("BOOT_LOCATION");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Boot_Location (Unquote (EV.all));
       end if;
       GNAT.OS_Lib.Free (EV);
 
+      EV := GNAT.OS_Lib.Getenv ("DATA_LOCATION");
+      if EV'Length /= 0 then
+         Set_Data_Location (Unquote (EV.all));
+      end if;
+      GNAT.OS_Lib.Free (EV);
+
       EV := GNAT.OS_Lib.Getenv ("CONNECTION_HITS");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Connection_Hits (Natural'Value (EV.all));
       end if;
       GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("DETACH");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Detach (True);
       end if;
       GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("SELF_LOCATION");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Self_Location (Unquote (EV.all));
       end if;
       GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("BOOT_MIRROR");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Boot_Mirror (True);
       end if;
       GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("NOLAUNCH");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Nolaunch (True);
       end if;
       GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("SLAVE");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Slave (True);
       end if;
       GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("MIRROR_EXPECTED");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Mirror_Expected (True);
       end if;
       GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("RECONNECTION");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Reconnection (Value (EV.all));
       end if;
       GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("TERMINATION");
-      if EV.all /= "" then
+      if EV'Length /= 0 then
          Set_Termination (Value (EV.all));
       end if;
       GNAT.OS_Lib.Free (EV);
@@ -158,7 +164,7 @@ package body System.Garlic.Options is
 
          if Argument (Index) = "--boot_server" then
 
-            pragma Debug (D ("--boot_server available on command line"));
+            pragma Debug (D ("boot_server available on command line"));
 
             Next_Argument (Index);
             Set_Boot_Location (Unquote (Argument (Index)));
@@ -170,15 +176,22 @@ package body System.Garlic.Options is
             Next_Argument (Index);
             Set_Boot_Location (Unquote (Argument (Index)));
 
+         elsif Argument (Index) = "--data_location" then
+
+            pragma Debug (D ("--data_location available on command line"));
+
+            Next_Argument (Index);
+            Set_Data_Location (Unquote (Argument (Index)));
+
          elsif Argument (Index) = "--boot_mirror" then
 
-            pragma Debug (D ("--boot_mirror available on command line"));
+            pragma Debug (D ("boot_mirror available on command line"));
 
             Set_Boot_Mirror (True);
 
          elsif Argument (Index) = "--mirror_expected" then
 
-            pragma Debug (D ("mirror_expected-- available on command line"));
+            pragma Debug (D ("--mirror_expected-- available on command line"));
 
             Set_Mirror_Expected (True);
 
@@ -268,7 +281,7 @@ package body System.Garlic.Options is
 
       if Boot_Location = null then
          if (Is_Boot_Server and then not Nolaunch)
-           or else Default_Protocol_Name = ""
+           or else Default_Protocol_Name'Length = 0
          then
             Set_Boot_Location ("tcp");
          else
@@ -285,6 +298,13 @@ package body System.Garlic.Options is
               := new String_Array'(1 .. 1 =>
                                      new String'(Default_Protocol_Name));
          end if;
+      end if;
+
+      if Data_Location = null then
+         Data_Location
+           := new String_Array'(1 .. 1 =>
+                                  new String'(Default_Storage_Name & "://" &
+                                              Default_Storage_Data));
       end if;
 
       if Is_Boot_Server then
@@ -338,6 +358,16 @@ package body System.Garlic.Options is
    begin
       Connection_Hits := Default;
    end Set_Connection_Hits;
+
+   -----------------------
+   -- Set_Data_Location --
+   -----------------------
+
+   procedure Set_Data_Location (Default : in String) is
+   begin
+      Destroy (Data_Location);
+      Data_Location := Split_String (Default);
+   end Set_Data_Location;
 
    ----------------
    -- Set_Detach --

@@ -56,6 +56,7 @@ package System.Garlic.Options is
    Mirror_Expected : Boolean;
    Self_Location   : Utils.String_Array_Access;
    Boot_Location   : Utils.String_Array_Access;
+   Data_Location   : Utils.String_Array_Access;
    Is_Boot_Mirror  : Boolean;
    Is_Boot_Server  : Boolean;
    Connection_Hits : Natural;
@@ -75,6 +76,8 @@ package System.Garlic.Options is
    procedure Set_Boot_Mirror (Default : in Boolean);
 
    procedure Set_Boot_Location (Default : in String);
+
+   procedure Set_Data_Location (Default : in String);
 
    procedure Set_Connection_Hits (Default : in Natural);
 
