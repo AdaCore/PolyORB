@@ -1,3 +1,13 @@
+Sat Nov 30 20:21:47 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* xe_stubs.adb, xe_utils.ads, xe_utils.adb: Change DSA
+ 	hierarchy. dsa/private contains stubs (as caller and receiver can
+ 	designate a configuration name or a partition
+ 	name). dsa/<configuration>/<partition> contains all the files (or
+ 	links) to build a partition. We should also check that s-garela is
+	up-to-date, it doesn't seem to be done.
+	
+
 Fri Nov 29 16:13:41 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* xe_parse.adb: Incorrect Cut/Paste.

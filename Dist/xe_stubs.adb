@@ -40,6 +40,9 @@ with Unchecked_Deallocation;
 
 procedure XE_Stubs is
 
+   Root_Dir     : String_Access;
+   Root_Dir_Len : Natural;
+
    Separator : Character renames GNAT.Os_Lib.Directory_Separator;
 
    procedure Deallocate is new Unchecked_Deallocation (String, String_Access);
@@ -74,7 +77,7 @@ procedure XE_Stubs is
 
    procedure Update_Switch (S : in out String_Access);
    --  For a given '-I' switch (or equivalent -L -a*), update it
-   --  if it is a relative path and add ../.. at the beginning.
+   --  if it is a relative path and add ../../.. at the beginning.
 
    procedure Dwrite_Str (File   : in File_Descriptor;
                          Line   : in String;
@@ -92,6 +95,9 @@ procedure XE_Stubs is
                          Stdout : in Boolean := Building_Script)
      renames Write_Eol;
    --  Changed default parameter.
+
+   Cache_Dir : Name_Id;
+   --  Where partition files are stored.
 
    ------------------------
    -- Write_Caller_Withs --
@@ -184,9 +190,10 @@ procedure XE_Stubs is
       PName : constant Partition_Name_Type := Partitions.Table (PID).Name;
       UID   : CUID_Type;
       FD    : File_Descriptor;
-      Fname : File_Name_Type := DSA_Dir & Dir_Sep_Id &
-                                PName & Dir_Sep_Id &
-                                Configuration & ADB_Suffix;
+      Cache : Name_Id
+        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & PName;
+      Fname : File_Name_Type := Cache & Dir_Sep_Id & PName & ADB_Suffix;
+
       Host  : Name_Id;
       Main  : Name_Id;
 
@@ -215,8 +222,8 @@ procedure XE_Stubs is
          return;
       end if;
 
-      if not Is_Directory (DSA_Dir & Dir_Sep_Id & PName) then
-         Create_Dir (DSA_Dir & Dir_Sep_Id & PName);
+      if not Is_Directory (Cache) then
+         Create_Dir (Cache);
       end if;
 
       if Building_Script then
@@ -296,7 +303,7 @@ procedure XE_Stubs is
       end if;
 
       Dwrite_Str  (FD, "procedure ");
-      Dwrite_Name (FD, Configuration);
+      Dwrite_Name (FD, PName);
       Dwrite_Str  (FD, " is");
       Dwrite_Eol  (FD);
 
@@ -421,7 +428,7 @@ procedure XE_Stubs is
       end if;
 
       Dwrite_Str  (FD, "end ");
-      Dwrite_Name (FD, Configuration);
+      Dwrite_Name (FD, PName);
       Dwrite_Str  (FD, ";");
       Dwrite_Eol  (FD);
 
@@ -656,9 +663,9 @@ procedure XE_Stubs is
 
          Change_Dir (Caller_Dir);
          Build_RCI_Caller
-           (RCI_Body, G_Parent_Dir & Dir_Sep_Id & Full_RCI_Spec);
+           (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Spec);
          Compile_RCI_Caller (RCI_Body);
-         Change_Dir (G_Parent_Dir);
+         Change_Dir (Original_Dir);
 
       elsif not Quiet_Output then
          Write_Program_Name;
@@ -773,9 +780,9 @@ procedure XE_Stubs is
 
          Change_Dir (Receiver_Dir);
          Build_RCI_Receiver
-           (RCI_Body, G_Parent_Dir & Dir_Sep_Id & Full_RCI_Body);
+           (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Body);
          Compile_RCI_Receiver (RCI_Body);
-         Change_Dir (G_Parent_Dir);
+         Change_Dir (Original_Dir);
 
       elsif not Quiet_Output then
          Write_Program_Name;
@@ -795,15 +802,17 @@ procedure XE_Stubs is
 
       PName : constant Partition_Name_Type := Partitions.Table (PID) .Name;
       FName : constant File_Name_Type      := Elaboration_Name & ADB_Suffix;
+      Cache : Name_Id
+        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & PName;
       FD    : File_Descriptor;
 
    begin
 
-      if not Is_Directory (DSA_Dir & Dir_Sep_Id & PName) then
-         Create_Dir (DSA_Dir & Dir_Sep_Id & PName);
+      if not Is_Directory (Cache) then
+         Create_Dir (Cache);
       end if;
 
-      Change_Dir (DSA_Dir & Dir_Sep_Id & PName);
+      Change_Dir (Cache);
 
       if Building_Script then
          Write_Str  (Standout, "cat >");
@@ -873,7 +882,7 @@ procedure XE_Stubs is
 
       Compile_Regular_File (FName);
 
-      Change_Dir (G_Parent_Dir);
+      Change_Dir (Original_Dir);
 
       Close (FD);
 
@@ -885,14 +894,14 @@ procedure XE_Stubs is
 
       procedure Update (S : in out String_Access; I : Natural) is
 
-         T : String (S'First .. S'Last + 6);
+         T : String (S'First .. S'Last + Root_Dir_Len);
          N : Natural := I - 1;
 
       begin
          T (S'First .. N) := S (S'First .. N);
          N := N + 1;
-         T (N .. N + 5) := "../../";
-         N := N + 6;
+         T (N .. N + Root_Dir_Len) := Root_Dir.all;
+         N := N + Root_Dir_Len;
          T (N .. T'Last) := S (I .. S'Last);
          Deallocate (S);
          S := new String'(T);
@@ -922,6 +931,10 @@ procedure XE_Stubs is
    end Update_Switch;
 
 begin
+
+   Get_Name_String (Original_Dir & Dir_Sep_Id);
+   Root_Dir_Len := Name_Len;
+   Root_Dir := new String'(Name_Buffer (1 .. Root_Dir_Len));
 
    if not Is_Directory (Caller_Dir) then
       Create_Dir (Caller_Dir);
@@ -968,9 +981,11 @@ begin
 
       if Partitions.Table (PID).To_Build then
 
-         if not Is_Directory
-           (DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name) then
-            Create_Dir (DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name);
+         Cache_Dir := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id &
+           Partitions.Table (PID).Name;
+
+         if not Is_Directory (Cache_Dir) then
+            Create_Dir (Cache_Dir);
          end if;
 
          Create_Main_Unit (PID);
@@ -985,12 +1000,11 @@ begin
                if CUnit.Table (UID).Partition = PID then
                   Copy_Stub
                     (Receiver_Dir,
-                     DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name,
+                     Cache_Dir,
                      Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
                else
                   Delete_Stub
-                    (DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name,
-                     Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
+                    (Cache_Dir, Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
                end if;
             end if;
          end loop;
@@ -1013,7 +1027,7 @@ begin
             --  dsa/<partition_name>. We compute relative output.
             if Dir_Name  = No_Storage_Dir then
 
-               Exec_Name := G_Parent_Dir & Dir_Sep_Id & Exec_Name;
+               Exec_Name := Original_Dir & Dir_Sep_Id & Exec_Name;
 
             else
 
@@ -1033,7 +1047,7 @@ begin
                      if not Is_Directory (Dir_Name) then
                         Create_Dir (Dir_Name);
                      end if;
-                     Dir_Name := G_Parent_Dir & Dir_Sep_Id & Dir_Name;
+                     Dir_Name := Original_Dir & Dir_Sep_Id & Dir_Name;
 
                   elsif not Is_Directory (Dir_Name) then
 

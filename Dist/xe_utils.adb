@@ -75,7 +75,6 @@ package body XE_Utils is
    Output_Option  : constant String_Access := new String'("-o");
    XE_Gcc         : constant String_Access := Locate ("xe-gcc");
    Gcc            : constant String_Access := Locate ("gcc");
-   Gnatmake       : constant String_Access := Locate ("gnatmake");
    Mkdir          : constant String_Access := Locate ("mkdir");
    Copy           : constant String_Access := Locate ("cp");
    Link           : constant String_Access := Locate ("ln", False);
@@ -83,6 +82,7 @@ package body XE_Utils is
    Rm             : constant String_Access := Locate ("rm");
    Gnatbind       : constant String_Access := Locate ("gnatbind");
    Gnatlink       : constant String_Access := Locate ("gnatlink");
+   Gnatmake       : constant String_Access := Locate ("gnatmake");
 
    EOL : constant String (1 .. 1) := (others => Ascii.LF);
 
@@ -103,15 +103,23 @@ package body XE_Utils is
    Sem_Only_Flag    : constant String_Access := new String' ("-gnatc");
    --  Workaround : bad object file generated during stub generation
 
-   I_Current_Dir    : constant String_Access := new String' ("-I.");
-   I_Caller_Dir     : constant String_Access := new String' ("-I../caller");
-   I_DSA_Caller_Dir : constant String_Access := new String' ("-Idsa/caller");
-   I_G_Parent_Dir   : constant String_Access := new String' ("-I../..");
+   I_Current_Dir    : constant String_Access
+     := new String' ("-I.");
+   I_Caller_Dir     : constant String_Access
+     := new String' ("-I../../private/caller/");
+   I_DSA_Caller_Dir : constant String_Access
+     := new String' ("-Idsa/private/caller/");
+   I_G_Parent_Dir   : constant String_Access
+     := new String' ("-I../../../");
 
-   L_Current_Dir    : constant String_Access := new String' ("-L.");
-   L_Caller_Dir     : constant String_Access := new String' ("-L../caller");
-   L_DSA_Caller_Dir : constant String_Access := new String' ("-Ldsa/caller");
-   L_G_Parent_Dir   : constant String_Access := new String' ("-L../..");
+   L_Current_Dir    : constant String_Access
+     := new String' ("-L.");
+   L_Caller_Dir     : constant String_Access
+     := new String' ("-L../../private/caller");
+   L_DSA_Caller_Dir : constant String_Access
+     := new String' ("-Ldsa/private/caller");
+   L_G_Parent_Dir   : constant String_Access
+     := new String' ("-L../../../");
 
    No_Args          : constant Argument_List (1 .. 0) := (others => null);
 
@@ -719,15 +727,17 @@ package body XE_Utils is
    ---------------------
 
    procedure Build_Partition (Partition : Name_Id; Exec : File_Name_Type) is
+      Cache_Dir : Name_Id
+        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & Partition;
    begin
-      Change_Dir (DSA_Dir & Dir_Sep_Id & Partition);
+      Change_Dir (Cache_Dir);
 
       if Opt.Force_Compilations or else
-        More_Recent (Configuration & ADB_Suffix,
-                     Configuration & ALI_Suffix) then
+        More_Recent (Partition & ADB_Suffix,
+                     Partition & ALI_Suffix) then
 
          Execute_Gcc
-           (Configuration & ADB_Suffix,
+           (Partition & ADB_Suffix,
             (I_Current_Dir,
              I_Caller_Dir,
              I_G_Parent_Dir)
@@ -743,14 +753,14 @@ package body XE_Utils is
 
 
          Execute_Bind
-           (Configuration & ALI_Suffix,
+           (Partition & ALI_Suffix,
             (I_Current_Dir,
              I_Caller_Dir,
              I_G_Parent_Dir)
             );
 
          Execute_Link
-           (Configuration & ALI_Suffix,
+           (Partition & ALI_Suffix,
             Exec,
             (L_Current_Dir,
              L_Caller_Dir,
@@ -760,7 +770,7 @@ package body XE_Utils is
 
       end if;
 
-      Change_Dir (G_Parent_Dir);
+      Change_Dir (Original_Dir);
 
    end Build_Partition;
 
@@ -879,13 +889,17 @@ package body XE_Utils is
 
       DSA_Dir        := Str_To_Id ("dsa");
 
-      Caller_Dir     := DSA_Dir & Dir_Sep_Id & Str_To_Id ("caller");
-      Receiver_Dir   := DSA_Dir & Dir_Sep_Id & Str_To_Id ("receiver");
+      Caller_Dir     := DSA_Dir & Dir_Sep_Id & Str_To_Id ("private") &
+                       Dir_Sep_Id & Str_To_Id ("caller");
+      Receiver_Dir   := DSA_Dir & Dir_Sep_Id & Str_To_Id ("private") &
+                       Dir_Sep_Id & Str_To_Id ("receiver");
 
       Parent_Dir     := Str_To_Id ("..");
-      G_Parent_Dir   := Parent_Dir & Dir_Sep_Id & Parent_Dir;
+      Original_Dir   := Parent_Dir & Dir_Sep_Id &
+                        Parent_Dir & Dir_Sep_Id &
+                        Parent_Dir;
 
-      PWD_Id         := Str_To_Id ("`pwd`/");
+      PWD_Id         := Str_To_Id ("`pwd`") & Dir_Sep_Id;
 
       Elaboration_Name      := Str_To_Id ("s-garela");
       Elaboration_Full_Name := Str_To_Id ("System.Garlic.Elaboration");

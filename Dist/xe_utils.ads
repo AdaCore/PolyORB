@@ -51,7 +51,7 @@ package XE_Utils is
    Caller_Dir   : Name_Id;
    Receiver_Dir : Name_Id;
    Parent_Dir   : Name_Id;
-   G_Parent_Dir : Name_Id;
+   Original_Dir : Name_Id;
 
    PWD_Id       : Name_Id;
 
