@@ -396,12 +396,18 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type)
      return PolyORB.Types.Unsigned_Short
    is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
+      package FSU is new Fixed_Size_Unmarshall
+        (Size => 2, Alignment => 2);
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (UShort) : enter & end"));
-      return PolyORB.Types.Unsigned_Short (Octets (Octets'First)) * 256 +
-        PolyORB.Types.Unsigned_Short (Octets (Octets'First + 1));
+      if Endianness (Buffer) = Big_Endian then
+         return Types.Unsigned_Short (Z (0)) * 256
+              + Types.Unsigned_Short (Z (1));
+      else
+         return Types.Unsigned_Short (Z (1)) * 256
+              + Types.Unsigned_Short (Z (0));
+      end if;
    end Unmarshall;
 
    function Unmarshall
@@ -417,16 +423,22 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type)
      return PolyORB.Types.Unsigned_Long
    is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
+      package FSU is new Fixed_Size_Unmarshall
+        (Size => 4, Alignment => 4);
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (ULong) : enter & end"));
-      return PolyORB.Types.Unsigned_Long (Octets (Octets'First)) * 256**3
-        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 1)) * 256**2
-        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 2)) * 256
-        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 3));
-      --  Hard-coded expression will be optimized by the compiler
-      --  as shifts+adds.
+      if Endianness (Buffer) = Big_Endian then
+         return Types.Unsigned_Long (Z (0)) * 256**3
+              + Types.Unsigned_Long (Z (1)) * 256**2
+              + Types.Unsigned_Long (Z (2)) * 256
+              + Types.Unsigned_Long (Z (3));
+      else
+         return Types.Unsigned_Long (Z (3)) * 256**3
+              + Types.Unsigned_Long (Z (2)) * 256**2
+              + Types.Unsigned_Long (Z (1)) * 256
+              + Types.Unsigned_Long (Z (0));
+      end if;
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)

@@ -629,12 +629,17 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       return Unsigned_Short
    is
       use type Types.Unsigned_Long;
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 2, Alignment);
+      package FSU is new Fixed_Size_Unmarshall
+        (Size => 2, Alignment => Alignment);
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      return
-        Unsigned_Short (Octets (Octets'First)) * 256
-          + Unsigned_Short (Octets (Octets'First + 1));
+      if Endianness (Buffer) = Big_Endian then
+         return Unsigned_Short (Z (0)) * 256
+              + Unsigned_Short (Z (1));
+      else
+         return Unsigned_Short (Z (1)) * 256
+              + Unsigned_Short (Z (0));
+      end if;
    end Unmarshall;
 
    procedure Unmarshall
