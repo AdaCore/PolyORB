@@ -65,13 +65,14 @@ package body XE_Reg is
 
       --  GCC_ROOT was not defined, look in the registry.
 
-      --  open "HKEY_LOCAL_MACHINE\SOFTWARE\Free Software Foundation" key
+      --  Open "HKEY_LOCAL_MACHINE\SOFTWARE\Free Software Foundation\
+      --          GNAT\<version>" key.
 
       ACT_Key := Open_Key
         (HKEY_LOCAL_MACHINE,
          "SOFTWARE\Ada Core Technologies\GNAT\" & Get_GNAT_Version);
 
-      --  get GCC value
+      --  Get ROOT value
 
       Result := new String'(Query_Value (ACT_Key, "ROOT") & "\lib\garlic");
 
