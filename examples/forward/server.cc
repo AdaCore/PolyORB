@@ -9,6 +9,7 @@ class Egg_i ;
 class Chicken_i ;
 
 Chicken_i *static_chicken ;
+Egg_i *static_egg ;
 
 class Chicken_i : public virtual _sk_Chicken {
 public:
@@ -34,8 +35,8 @@ public:
 
 Egg_ptr
 Chicken_i::lay() {
-  Egg_ptr e = new Egg_i() ;
-  return e ;
+  cerr << "In Chicken_i.lay() !!" << endl ;
+  return static_egg->_this() ;
 }
 
 Chicken_ptr
@@ -54,13 +55,14 @@ main(int argc, char **argv)
 
   static_chicken = new Chicken_i() ;
   static_chicken->_obj_is_ready(boa) ;
-  cerr << "static_chicken is ready to be laid !!" << endl ;
+  cerr << "static_chicken is ready to lay!!" << endl ;
   
-  Egg_i *myegg = new Egg_i();
-  myegg->_obj_is_ready(boa);
+  static_egg = new Egg_i();
+  static_egg->_obj_is_ready(boa);
+  cerr << "static_egg is ready to hatch " << endl ;
 
   {
-    Egg_var myeggRef = myegg->_this();
+    Egg_var myeggRef = static_egg->_this();
     CORBA::String_var p = orb->object_to_string(myeggRef);
     cerr << "Egg : '" << (char*)p << "'" << endl;
   }

@@ -24,6 +24,7 @@ procedure Client is
    My_Chicken : Chicken.Ref ;
    Egg_Ior : Corba.String ;
    Tmp_Chicken : Chicken_Forward.Ref ;
+   Tmp_Egg : Egg_Forward.Ref ;
 begin
    Put_Line("MAIN : Starting client") ;
 
@@ -46,5 +47,18 @@ begin
 
    Put_Line("MAIN : Got the chicken") ;
 
+   Tmp_Egg := Chicken.Lay(My_Chicken) ;
+
+   Put_Line("MAIN : Got the egg_forward !!!!!!!!!!!") ;
+
+   My_Egg := Egg.Convert_Forward.From_Forward(Tmp_Egg) ;
+
+   Put_Line("MAIN : Got the EGG") ;
+
+
+
 end ;
+
+
+
 
