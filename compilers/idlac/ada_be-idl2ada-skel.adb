@@ -587,6 +587,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            if Mode (P_Node) = Mode_In
                              or else Mode (P_Node) = Mode_Inout
                            then
+                              Add_With (CU, Helper_Name);
                               PL (CU, Arg_Name & " :=");
                               Put (CU, "  ");
                               Gen_Forward_Conversion
