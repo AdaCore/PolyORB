@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,6 +54,8 @@ with CosNaming.NamingContext;
 
 --  with PolyORB.CORBA_P.Naming_Tools;
 
+with PolyORB.Utils.Report;
+
 procedure Test_Naming_CORBA is
 
    use CORBA.Object;
@@ -64,9 +66,11 @@ procedure Test_Naming_CORBA is
 
    --  use PolyORB.CORBA_P.Naming_Tools;
 
+   use PolyORB.Utils.Report;
    Root_Context : CosNaming.NamingContext.Ref;
 
 begin
+   New_Test ("CORBA COS Naming");
 
    --  Initialization
 
@@ -79,6 +83,8 @@ begin
 
    CORBA.ORB.String_To_Object
      (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), Root_Context);
+
+   Output ("Retrieve Root_Context", True);
 
    --
    --  Test 1 : bind 1 object, lookup and then destroy
@@ -93,18 +99,27 @@ begin
       bind (Root_Context, Obj_Name,
             CORBA.Object.Ref (Root_Context));
 
+      Output ("Bind Object", True);
+
       Rcvd_Ref := resolve (Root_Context, Obj_Name);
 
+      Output ("Resolve Object", True);
+
       unbind (Root_Context, Obj_Name);
+
+      Output ("Unbind Object", True);
+
       begin
          Rcvd_Ref := resolve (Root_Context, Obj_Name);
+         Output ("Resolve unbound reference raise NotFound", False);
+
       exception
          when CosNaming.NamingContext.NotFound =>
-            null;
+            Output ("Resolve unbound reference raise NotFound", True);
       end;
    end;
 
-
+   End_Report;
 exception
    when E : CORBA.Transient =>
       declare
@@ -115,6 +130,7 @@ exception
          Put (CORBA.Unsigned_Long'Image (Memb.Minor));
          Put (", completion status: ");
          Put_Line (CORBA.Completion_Status'Image (Memb.Completed));
+         End_Report;
       end;
 
 end Test_Naming_CORBA;
