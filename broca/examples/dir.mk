@@ -1,7 +1,11 @@
-SUBDIRS = all_types poa
+SUBDIRS = poa
 
 all::
 	@$(MakeSubdirs)
 
 export::
 	@$(MakeSubdirs)
+
+clean::
+	@$(MakeSubdirs)
+

@@ -39,16 +39,14 @@ endif
 all::
 	@$(MakeSubdirs)
 
-export::
-	@(target=all; $(MakeSubdirs))
-
 prog = $(patsubst %,$(BinPattern),adabroker)
 
-all:: export
+all:: $(prog)
 
-$(prog): $(DRV_OBJS) $(OBJ_LIBS) 
+$(prog): $(DRV_OBJS) $(OBJ_LIBS)
 	@(libs="$(LIBS) $(LIBS)"; $(CXXExecutable))
 
-export:: $(prog)
-	@$(ExportExecutable)
+clean::
+	rm adabroker
+
 

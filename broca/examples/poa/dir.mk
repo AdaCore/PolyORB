@@ -1,25 +1,21 @@
-all:: client serverp
-
-client:: $(CORBA_LIB_DEPEND) stamp-ada
-	$(GNATMAKE) $(BROCA_FLAGS) -i client.adb
-
-serverp:: $(CORBA_LIB_DEPEND) stamp-ada
-	$(GNATMAKE) $(BROCA_FLAGS) -i serverp.adb
-
-
 IDL_INTERFACE = echo
 
-GENERATED_FILES = $(IDL_INTERFACE).ad*
-GENERATED_FILES += $(IDL_INTERFACE)-proxy.ad*
-GENERATED_FILES += $(IDL_INTERFACE)-stream.ad*
-GENERATED_FILES += $(IDL_INTERFACE)-impl.ad*
-GENERATED_FILES += $(IDL_INTERFACE)_idl_file.ad*
-GENERATED_FILES += $(IDL_INTERFACE)_idl_file-stream.ad*
+GENERATED_FILES = $(IDL_INTERFACE).ads
+GENERATED_FILES += $(IDL_INTERFACE)-stream.ads
+GENERATED_FILES += $(IDL_INTERFACE)_idl_file.ads
+GENERATED_FILES += $(IDL_INTERFACE).adb
+
+all:: client serverp
+
+client:: $(CORBA_LIB_DEPEND) $(GENERATED_FILES)
+	$(GNATMAKE) $(BROCA_FLAGS) -i client.adb
+
+serverp:: $(CORBA_LIB_DEPEND) $(GENERATED_FILES)
+	$(GNATMAKE) $(BROCA_FLAGS) -i serverp.adb
 
 clean::
 	-rm -f b_*.c *.o *.ali *~ serverp client $(GENERATED_FILES)
 
-stamp-ada:: $(IDL_INTERFACE).idl
-	@echo Mapping IDL contract...
+$(GENERATED_FILES):: $(IDL_INTERFACE).idl
+	echo Mapping IDL contract...
 	$(ADABROKER) $(IDL_INTERFACE).idl
-	touch stamp-ada
