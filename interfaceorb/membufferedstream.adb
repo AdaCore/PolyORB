@@ -69,7 +69,7 @@ package body MemBufferedStream is
    ---------
    procedure C_Init (Self : in Object'Class ;
                      Bufsize : in Interfaces.C.Unsigned_Long) ;
-   pragma Import (C,C_Init,"Init__21Ada_memBufferedStreamUi") ;
+   pragma Import (CPP,C_Init,"Init__21Ada_memBufferedStreamUi") ;
    -- wrapper around Ada_MemBufferedStream function Init
    -- (see Ada_MemBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -93,7 +93,7 @@ package body MemBufferedStream is
    ---------------
    procedure C_Marshall_1 (A : in Interfaces.C.Char ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_1,
+   pragma Import (CPP,C_Marshall_1,
                   "marshall__21Ada_memBufferedStreamUcR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
@@ -118,7 +118,7 @@ package body MemBufferedStream is
    -----------------
    procedure C_UnMarshall_1 (A : out Interfaces.C.Char ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_1,"unmarshall__21Ada_memBufferedStreamRUcR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_1,"unmarshall__21Ada_memBufferedStreamRUcR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -152,7 +152,7 @@ package body MemBufferedStream is
    ---------------
    procedure C_Marshall_2 (A : in Sys_Dep.C_Boolean ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_2,"marshall__21Ada_memBufferedStreambR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_Marshall_2,"marshall__21Ada_memBufferedStreambR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -176,7 +176,7 @@ package body MemBufferedStream is
    -----------------
    procedure C_UnMarshall_2 (A : out Sys_Dep.C_Boolean ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_2,"unmarshall__21Ada_memBufferedStreamRbR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_2,"unmarshall__21Ada_memBufferedStreamRbR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -211,7 +211,7 @@ package body MemBufferedStream is
    ---------------
    procedure C_Marshall_3 (A : in Interfaces.C.Short ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_3,"marshall__21Ada_memBufferedStreamsR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_Marshall_3,"marshall__21Ada_memBufferedStreamsR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -235,7 +235,7 @@ package body MemBufferedStream is
    -----------------
    procedure C_UnMarshall_3 (A : out Interfaces.C.Short ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_3,"unmarshall__21Ada_memBufferedStreamRsR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_3,"unmarshall__21Ada_memBufferedStreamRsR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -270,7 +270,7 @@ package body MemBufferedStream is
    ---------------
    procedure C_Marshall_4 (A : in Interfaces.C.Unsigned_Short ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_4,"marshall__21Ada_memBufferedStreamUsR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_Marshall_4,"marshall__21Ada_memBufferedStreamUsR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -294,7 +294,7 @@ package body MemBufferedStream is
    -----------------
    procedure C_UnMarshall_4 (A : out Interfaces.C.Unsigned_Short ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_4,"unmarshall__21Ada_memBufferedStreamRUsR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_4,"unmarshall__21Ada_memBufferedStreamRUsR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -331,7 +331,7 @@ package body MemBufferedStream is
    ---------------
    procedure C_Marshall_5 (A : in Interfaces.C.Long ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_5,"marshall__21Ada_memBufferedStreamlR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_Marshall_5,"marshall__21Ada_memBufferedStreamlR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -355,7 +355,7 @@ package body MemBufferedStream is
    -----------------
    procedure C_UnMarshall_5 (A : out Interfaces.C.Long ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_5,"unmarshall__21Ada_memBufferedStreamRlR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_5,"unmarshall__21Ada_memBufferedStreamRlR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -390,7 +390,7 @@ package body MemBufferedStream is
    ---------------
    procedure C_Marshall_6 (A : in Interfaces.C.Unsigned_Long ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_6,"marshall__21Ada_memBufferedStreamUlR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_Marshall_6,"marshall__21Ada_memBufferedStreamUlR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -414,7 +414,7 @@ package body MemBufferedStream is
    -----------------
    procedure C_UnMarshall_6 (A : out Interfaces.C.Unsigned_Long ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_6,"unmarshall__21Ada_memBufferedStreamRUlR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_6,"unmarshall__21Ada_memBufferedStreamRUlR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -449,7 +449,7 @@ package body MemBufferedStream is
    ---------------
    procedure C_Marshall_7 (A : in Interfaces.C.C_Float ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_7,"marshall__21Ada_memBufferedStreamfR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_Marshall_7,"marshall__21Ada_memBufferedStreamfR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -473,7 +473,7 @@ package body MemBufferedStream is
    -----------------
    procedure C_UnMarshall_7 (A : out Interfaces.C.C_Float ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_7,"unmarshall__21Ada_memBufferedStreamRfR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_7,"unmarshall__21Ada_memBufferedStreamRfR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -508,7 +508,7 @@ package body MemBufferedStream is
    ---------------
    procedure C_Marshall_8 (A : in Interfaces.C.Double ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_8,"marshall__21Ada_memBufferedStreamdR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_Marshall_8,"marshall__21Ada_memBufferedStreamdR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -532,7 +532,7 @@ package body MemBufferedStream is
    -----------------
    procedure C_UnMarshall_8 (A : out Interfaces.C.Double ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_8,"unmarshall__21Ada_memBufferedStreamRdR21Ada_memBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_8,"unmarshall__21Ada_memBufferedStreamRdR21Ada_memBufferedStream") ;
    -- wrapper around Ada_memBufferedStream function marshall
    -- (see Ada_memBufferedStream.hh)
    -- name was changed to avoid conflict

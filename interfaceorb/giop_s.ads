@@ -95,7 +95,7 @@ package Giop_S is
 
 
    procedure Reply_Completed (Self : in out Object'Class);
-   pragma Import (C,Reply_Completed,"ReplyCompleted__10Ada_Giop_s") ;
+   pragma Import (CPP,Reply_Completed,"ReplyCompleted__10Ada_Giop_s") ;
    -- wrapper around  Ada_Giop_s procedure InitialiseReply
    -- (see Ada_Giop_s.hh)
    -- it is both a C and an Ada procedure.

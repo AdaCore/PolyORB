@@ -73,7 +73,7 @@ package body NetBufferedStream is
                      RdLock : in Sys_Dep.C_Boolean ;
                      WrLock : in Sys_Dep.C_Boolean ;
                      Bufsize : in Interfaces.C.Unsigned_Long) ;
-   pragma Import (C,C_Init,"__17NetBufferedStreamP4RopebT2Ui") ;
+   pragma Import (CPP,C_Init,"__17NetBufferedStreamP4RopebT2Ui") ;
    -- wrapper around Ada_netBufferedStream function Init
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -104,7 +104,7 @@ package body NetBufferedStream is
    ---------------
    procedure C_Marshall_1 (A : in Interfaces.C.Char ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_1,
+   pragma Import (CPP,C_Marshall_1,
                   "marshall__21Ada_netBufferedStreamUcR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
@@ -129,7 +129,7 @@ package body NetBufferedStream is
    -----------------
    procedure C_UnMarshall_1 (A : out Interfaces.C.Char ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_1,"unmarshall__21Ada_netBufferedStreamRUcR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_1,"unmarshall__21Ada_netBufferedStreamRUcR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -163,7 +163,7 @@ package body NetBufferedStream is
    ---------------
    procedure C_Marshall_2 (A : in Sys_Dep.C_Boolean ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_2,"marshall__21Ada_netBufferedStreambR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_Marshall_2,"marshall__21Ada_netBufferedStreambR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -187,7 +187,7 @@ package body NetBufferedStream is
    -----------------
    procedure C_UnMarshall_2 (A : out Sys_Dep.C_Boolean ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_2,"unmarshall__21Ada_netBufferedStreamRbR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_2,"unmarshall__21Ada_netBufferedStreamRbR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -222,7 +222,7 @@ package body NetBufferedStream is
    ---------------
    procedure C_Marshall_3 (A : in Interfaces.C.Short ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_3,"marshall__21Ada_netBufferedStreamsR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_Marshall_3,"marshall__21Ada_netBufferedStreamsR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -246,7 +246,7 @@ package body NetBufferedStream is
    -----------------
    procedure C_UnMarshall_3 (A : out Interfaces.C.Short ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_3,"unmarshall__21Ada_netBufferedStreamRsR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_3,"unmarshall__21Ada_netBufferedStreamRsR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -281,7 +281,7 @@ package body NetBufferedStream is
    ---------------
    procedure C_Marshall_4 (A : in Interfaces.C.Unsigned_Short ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_4,"marshall__21Ada_netBufferedStreamUsR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_Marshall_4,"marshall__21Ada_netBufferedStreamUsR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -305,7 +305,7 @@ package body NetBufferedStream is
    -----------------
    procedure C_UnMarshall_4 (A : out Interfaces.C.Unsigned_Short ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_4,"unmarshall__21Ada_netBufferedStreamRUsR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_4,"unmarshall__21Ada_netBufferedStreamRUsR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -342,7 +342,7 @@ package body NetBufferedStream is
    ---------------
    procedure C_Marshall_5 (A : in Interfaces.C.Long ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_5,"marshall__21Ada_netBufferedStreamlR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_Marshall_5,"marshall__21Ada_netBufferedStreamlR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -366,7 +366,7 @@ package body NetBufferedStream is
    -----------------
    procedure C_UnMarshall_5 (A : out Interfaces.C.Long ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_5,"unmarshall__21Ada_netBufferedStreamRlR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_5,"unmarshall__21Ada_netBufferedStreamRlR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -401,7 +401,7 @@ package body NetBufferedStream is
    ---------------
    procedure C_Marshall_6 (A : in Interfaces.C.Unsigned_Long ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_6,"marshall__21Ada_netBufferedStreamUlR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_Marshall_6,"marshall__21Ada_netBufferedStreamUlR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -425,7 +425,7 @@ package body NetBufferedStream is
    -----------------
    procedure C_UnMarshall_6 (A : out Interfaces.C.Unsigned_Long ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_6,"unmarshall__21Ada_netBufferedStreamRUlR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_6,"unmarshall__21Ada_netBufferedStreamRUlR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -460,7 +460,7 @@ package body NetBufferedStream is
    ---------------
    procedure C_Marshall_7 (A : in Interfaces.C.C_Float ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_7,"marshall__21Ada_netBufferedStreamfR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_Marshall_7,"marshall__21Ada_netBufferedStreamfR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -484,7 +484,7 @@ package body NetBufferedStream is
    -----------------
    procedure C_UnMarshall_7 (A : out Interfaces.C.C_Float ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_7,"unmarshall__21Ada_netBufferedStreamRfR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_7,"unmarshall__21Ada_netBufferedStreamRfR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -519,7 +519,7 @@ package body NetBufferedStream is
    ---------------
    procedure C_Marshall_8 (A : in Interfaces.C.Double ;
                            S : in out Object'Class) ;
-   pragma Import (C,C_Marshall_8,"marshall__21Ada_netBufferedStreamdR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_Marshall_8,"marshall__21Ada_netBufferedStreamdR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -543,7 +543,7 @@ package body NetBufferedStream is
    -----------------
    procedure C_UnMarshall_8 (A : out Interfaces.C.Double ;
                              S : in out Object'Class) ;
-   pragma Import (C,C_UnMarshall_8,"unmarshall__21Ada_netBufferedStreamRdR21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_UnMarshall_8,"unmarshall__21Ada_netBufferedStreamRdR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -754,7 +754,7 @@ package body NetBufferedStream is
    -----------------------------------
    function C_Is_Reusing_Existing_Connection (Self : in Object'Class)
                                               return Sys_Dep.C_Boolean;
-   pragma Import (C,C_Is_Reusing_Existing_Connection,"isReUsingExistingConnection__21Ada_netBufferedStream") ;
+   pragma Import (CPP,C_Is_Reusing_Existing_Connection,"isReUsingExistingConnection__21Ada_netBufferedStream") ;
    -- wrapper around     _CORBA_Boolean isReUsingExistingConnection() const;
    -- (see rope.h L 395)
    -- called by the Ada equivalent : Is_Reusing_Existing_Connection

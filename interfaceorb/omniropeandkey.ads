@@ -88,7 +88,7 @@ package OmniRopeAndKey is
 
 
    function Get_Key (Self : in Object'Class) return Key.Object;
-   pragma Import (C,Get_Key,"key__18Ada_OmniRopeAndKey") ;
+   pragma Import (CPP,Get_Key,"key__18Ada_OmniRopeAndKey") ;
    -- returns the key attribute of the OmniRopeAndKey object
    -- (see omniInternal.h L250 for more information)
    -- wrapper around  Ada_OmniRopeAndKey function key
@@ -116,7 +116,7 @@ package OmniRopeAndKey is
 private
 
    procedure Init (Self : in out Object'Class) ;
-   pragma Import (C,Init,"Init__18Ada_OmniRopeAndKey") ;
+   pragma Import (CPP,Init,"Init__18Ada_OmniRopeAndKey") ;
    -- Ada constructor of the class.
    -- This function (or the other function Init) must be called
    -- after each declaration of an Object object. If it is not,

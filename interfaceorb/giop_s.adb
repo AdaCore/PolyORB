@@ -78,7 +78,7 @@ package body Giop_S is
    ---------------------
    procedure C_Request_Received (Self : in out Object'Class ;
                                  Skip : in Sys_Dep.C_Boolean) ;
-   pragma Import (C,C_Request_Received,"RequestReceived__10Ada_Giop_sb") ;
+   pragma Import (CPP,C_Request_Received,"RequestReceived__10Ada_Giop_sb") ;
    -- wrapper around  Ada_Giop_s procedure RequestReceived
    -- (see Ada_Giop_s.hh)
    -- called by the Ada equivalent : Request_Received
@@ -102,7 +102,7 @@ package body Giop_S is
    procedure C_Initialize_Reply (Self : in out Object'Class ;
                                  Status : in Interfaces.C.Int ;
                                  MsgSize : in Interfaces.C.Unsigned_Long);
-   pragma Import (C,C_Initialize_Reply,"InitialiseReply__10Ada_Giop_siUi") ;
+   pragma Import (CPP,C_Initialize_Reply,"InitialiseReply__10Ada_Giop_siUi") ;
    -- wrapper around  Ada_Giop_s procedure InitialiseReply
    -- (see Ada_Giop_s.hh)
    -- called by the Ada equivalent : Initialise_Reply

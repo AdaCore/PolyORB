@@ -87,7 +87,7 @@ package body OmniObject is
    ---------
    procedure C_Init_Local_Object (Self : in out Object'Class ;
                                   Repoid : in Interfaces.C.Strings.Chars_Ptr ) ;
-   pragma Import (C,C_Init_Local_Object,"initLocalObject__14Ada_OmniObjectPCc") ;
+   pragma Import (CPP,C_Init_Local_Object,"initLocalObject__14Ada_OmniObjectPCc") ;
    -- wrapper around Ada_OmniObject::initLocalObject
    -- (see Ada_OmniObject.hh)
 
@@ -417,7 +417,7 @@ package body OmniObject is
    -- C_Omniobject_Is_Ready
    ------------------------
    procedure C_Omniobject_Is_Ready(Self : in System.Address) ;
-   pragma Import (C,C_Omniobject_Is_Ready,"objectIsReady__14Ada_OmniObject") ;
+   pragma Import (CPP,C_Omniobject_Is_Ready,"objectIsReady__14Ada_OmniObject") ;
    -- calls Ada_OmniObject::objectIsReady
 
 
@@ -566,7 +566,7 @@ package body OmniObject is
    ----------------------
    function C_Get_Repository_Id(Self : in Object'class)
                                 return Interfaces.C.Strings.Chars_Ptr ;
-   pragma Import (C, C_Get_Repository_Id, "getRepositoryID__14Ada_OmniObject") ;
+   pragma Import (CPP, C_Get_Repository_Id, "getRepositoryID__14Ada_OmniObject") ;
    -- corresponds to Ada_OmniObject::getRepositoryID
 
    -- Get_Repository_Id

@@ -57,7 +57,7 @@ package body OmniRopeAndKey is
    -- C_Get_Rope
    -------------
    function C_Get_Rope (Self : in Object'Class) return System.Address ;
-   pragma Import (C,C_Get_Rope,"rope__18Ada_OmniRopeAndKey") ;
+   pragma Import (CPP,C_Get_Rope,"rope__18Ada_OmniRopeAndKey") ;
    -- wrapper around  Ada_OmniRopeAndKey function rope
    -- (see Ada_OmniRopeAndKey.hh)
    -- called by the Ada equivalent : Get_Rope
@@ -76,7 +76,7 @@ package body OmniRopeAndKey is
    -- C_Key_Size
    -------------
    function C_Key_Size (Self : in Object'Class) return Interfaces.C.Unsigned_Long ;
-   pragma Import (C,C_Key_Size,"keysize__18Ada_OmniRopeAndKey") ;
+   pragma Import (CPP,C_Key_Size,"keysize__18Ada_OmniRopeAndKey") ;
    -- wrapper around  Ada_OmniRopeAndKey function keysize
    -- (see Ada_OmniRopeAndKey.hh)
    -- called by the Ada equivalent : Key_Size
