@@ -1,3 +1,9 @@
+1999-05-03  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am (install-extra-libs): Install directory before
+	installing the libraries, fixes 0004-G08 failure on systems
+	without zlib.
+
 1999-04-15  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* stamp-h.in: This file needs to be present in the distribution to 

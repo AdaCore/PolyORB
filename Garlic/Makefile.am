@@ -290,7 +290,7 @@ linktest: $(srcdir)/linktest.adb $(OBJECTS)
 	   exit 1;\
 	fi
 
-install-extra-libs: $(FILTERSINSTALL) inlining
+install-extra-libs: $(FILTERSINSTALL) inlining install-dirs-local
 
 install-data-local: all-local install-dirs-local install-extra-libs 
 	@if test ! -f inlining; then\
