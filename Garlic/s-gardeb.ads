@@ -68,17 +68,24 @@ package System.Garlic.Debug is
    pragma Inline (Debug_Initialize);
    --  Debug_Initialize is called with two strings. The first one is the name
    --  of the environment variable to look for, the second one is the
-   --  banner to use when printing debugging information
+   --  banner to use when printing debugging information.
 
    procedure Debug_All;
-   --  Force debugging for every module.
+   --  Force debugging for every module
 
    procedure Print_Debug_Info
      (Message : in String;
       Key     : in Debug_Key);
    pragma Inline (Print_Debug_Info);
    --  This procedure prints debugging information if the given flag was
-   --  set in the right environment variable
+   --  set in the right environment variable.
+
+   procedure Print_Debug_Info_Nolock
+     (Message : in String;
+      Key     : in Debug_Key);
+   pragma Inline (Print_Debug_Info_Nolock);
+   --  This procedure has the same effect but do not use the global lock. It
+   --  is used to debug the global lock itself.
 
    function Debug_Mode
      (Key     : Debug_Key)

@@ -195,6 +195,19 @@ package body System.Garlic.Debug is
       end if;
    end Print_Debug_Info;
 
+   -----------------------------
+   -- Print_Debug_Info_Nolock --
+   -----------------------------
+
+   procedure Print_Debug_Info_Nolock
+     (Message : in String;
+      Key     : in Debug_Key) is
+   begin
+      if Debug_Table (Key).Active then
+         GNAT.IO.Put_Line (Debug_Table (Key).Banner.all & Message);
+      end if;
+   end Print_Debug_Info_Nolock;
+
 begin
    Termination_Directory := GNAT.OS_Lib.Getenv ("GLADE_SANITY_DIR");
    if Termination_Directory.all /= "" then
