@@ -182,6 +182,31 @@ package Droopi.CORBA_P.Exceptions is
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
+   procedure Raise_Wrong_Policy
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Bad_TypeCode);
+
+   procedure Raise_Servant_Already_Active
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Bad_TypeCode);
+
+   procedure Raise_Object_Already_Active
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Bad_TypeCode);
+
+   procedure Raise_Servant_Not_Active
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Bad_TypeCode);
+
+   procedure Raise_Object_Not_Active
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Bad_TypeCode);
+
 end Droopi.CORBA_P.Exceptions;
 
 

@@ -235,6 +235,11 @@ package CORBA is
 
    Adapter_Already_Exists : exception;
    Invalid_Policy         : exception;
+   Wrong_Policy           : exception;
+   Servant_Already_Active : exception;
+   Object_Already_Active  : exception;
+   Servant_Not_Active     : exception;
+   Object_Not_Active      : exception;
 
    type Unknown_Members         is new System_Exception_Members
      with null record;

@@ -113,7 +113,17 @@ package body Droopi.CORBA_P.Exceptions is
       (Exc  => CORBA.Adapter_Already_Exists'Identity,
        Name => new String'("CORBA/ADAPTER_ALREADY_EXISTS")),
       (Exc  => CORBA.Invalid_Policy'Identity,
-       Name => new String'("CORBA/INVALID_POLICY")));
+       Name => new String'("CORBA/INVALID_POLICY")),
+      (Exc  => CORBA.Wrong_Policy'Identity,
+       Name => new String'("CORBA/WRONG_POLICY")),
+      (Exc  => CORBA.Servant_Already_Active'Identity,
+       Name => new String'("CORBA/SERVANT_ALREADY_ACTIVE")),
+      (Exc  => CORBA.Object_Already_Active'Identity,
+       Name => new String'("CORBA/OBJECT_ALREADY_ACTIVE")),
+      (Exc  => CORBA.Servant_Not_Active'Identity,
+       Name => new String'("CORBA/SERVANT_NOT_ACTIVE")),
+      (Exc  => CORBA.Servant_Not_Active'Identity,
+       Name => new String'("CORBA/OBJECT_NOT_ACTIVE")));
 
    ----------------------
    -- User_Get_Members --
@@ -376,6 +386,51 @@ package body Droopi.CORBA_P.Exceptions is
         (Invalid_Policy'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Invalid_Policy;
+
+   procedure Raise_Wrong_Policy
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Wrong_Policy'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Wrong_Policy;
+
+   procedure Raise_Servant_Already_Active
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Servant_Already_Active'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Servant_Already_Active;
+
+   procedure Raise_Object_Already_Active
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Object_Already_Active'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Object_Already_Active;
+
+   procedure Raise_Servant_Not_Active
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Servant_Not_Active'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Servant_Not_Active;
+
+   procedure Raise_Object_Not_Active
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Object_Not_Active'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Object_Not_Active;
 
    -----------------------------------------------------
    -- System exceptions                               --
