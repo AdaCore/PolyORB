@@ -1,7 +1,7 @@
 // AdaBroker torture test.
 // This IDL file tests a lot of parser, expander and
 // code generator features.
-// $Id: //depot/adabroker/main/idlac/testsuite/adabroker.torture/torture.idl#9 $
+// $Id$
 
 #define HAVE_BOUNDED_STRINGS
 
@@ -25,7 +25,7 @@ module MyModule {
   typedef Color foo;
 
   // Constants
-  const string aConstantString = "$Id: //depot/adabroker/main/idlac/testsuite/adabroker.torture/torture.idl#9 $" ;
+  const string aConstantString = "$Id$" ;
   const long aConstantLong = 0;
   const long aComputedLong = 1 + 2 * 4 - 5;
   const double Pi = 3.14159265358;

@@ -1,20 +1,21 @@
-with CORBA; use CORBA;
-with CORBA.Orb; use CORBA.Orb;
-with CORBA.Boa; use CORBA.Boa;
+with All_functions.Impl;
+
+with CORBA;
+with CORBA.Object;
+
+with Broca.Server_Tools; use Broca.Server_Tools;
+pragma Elaborate (Broca.Server_Tools);
+
 with Ada.Text_IO;
-with All_Functions;
-with All_Functions.Impl;
 
 procedure Server is
-   Myobj : All_Functions.Impl.Object;
-   IOR : CORBA.String;
+   Ref : CORBA.Object.Ref;
+
 begin
-   ORB.Init ("omniORB2");
-   BOA.Init ("omniORB2_BOA");
-   BOA.Object_Is_Ready (Myobj);
-
-   IOR := ORB.Object_To_String (All_Functions.To_Ref (Myobj));
-   Ada.Text_IO.Put_Line ("'" & To_Standard_String (IOR) & "'");
-
-   Impl_Is_Ready;
+   Initiate_Servant (new All_functions.Impl.Object, Ref);
+   Ada.Text_IO.Put_Line
+     ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
+      "'");
+   Initiate_Server;
 end Server;
+
