@@ -111,7 +111,7 @@ package Idl_Fe.Types is
    type Node_List_Cell;
    type Node_List is access Node_List_Cell;
    type Node_List_Cell is record
-      Car : N_Root_Acc;
+      Car : Node_Id;
       Cdr : Node_List;
    end record;
 
@@ -130,7 +130,7 @@ package Idl_Fe.Types is
    --  Therefore, usual way to use an iterator is:
    --  declare
    --    it: node_iterator;
-   --    node: n_root_acc;
+   --    node: node_id;
    --  begin
    --    init (it, rep.contents);
    --    while not is_end (it) loop

@@ -965,7 +965,7 @@ package body Idl_Fe.Parser is
             return;
          end if;
          --  is the identifier a scope?
-         if Name.all not in N_Scope'Class then
+         if not Is_Scope(Name.all) then
             declare
                Loc : Idl_Fe.Errors.Location;
             begin
@@ -1014,7 +1014,7 @@ package body Idl_Fe.Parser is
          end if;
          Next_Token;
          if Get_Token = T_Colon_Colon then
-            if Name.all not in N_Scope'Class then
+            if not Is_Scope (Name.all) then
                declare
                   Loc : Idl_Fe.Errors.Location;
                begin

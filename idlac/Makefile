@@ -20,7 +20,7 @@ $(TREE_FILES): nodes.txt
 	gnatchop -w idl_fe-tree.ada
 	-rm idl_fe-tree.ada
 
-testparser testlexer testgen gidlac idlac ada_be-expansion testexpansion: force #$(ACCESSOR_FILES) $(CONSTRUCTOR_FILES)
+testparser testlexer testgen gidlac idlac ada_be-expansion testexpansion: force $(TREE_FILES) #$(ACCESSOR_FILES) $(CONSTRUCTOR_FILES)
 	gnatmake $(GNATMAKE_FLAGS) $@
 
 TEST_FILES=\

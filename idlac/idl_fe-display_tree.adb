@@ -4,7 +4,17 @@ with Ada.Characters.Latin_1;
 package body Idl_Fe.Display_Tree is
    Blanks : constant String (1 .. 80) := (others => ' ');
 
-   procedure Disp_Tree (N : N_Root'Class; Indent : Natural; Full : Boolean);
+   function Get_Name (N : Node_Id) return String is
+      S : String_Cacc := Definition (N).Name;
+   begin
+      if S = null then
+         return "*null*";
+      else
+         return S.all;
+      end if;
+   end;
+
+   procedure Disp_Tree (N : Node_Id; Indent : Natural; Full : Boolean);
 
    procedure Disp_Indent (Indent : Natural; S : String := "") is
       N : Natural;
@@ -26,13 +36,13 @@ package body Idl_Fe.Display_Tree is
 
    procedure Disp_List (List : Node_List; Indent : Natural; Full : Boolean) is
       It : Node_Iterator;
-      N : N_Root_Acc;
+      N : Node_Id;
    begin
       Init (It, List);
       while not Is_End (It) loop
          N := Get_Node (It);
-         if N /= null then
-            Disp_Tree (N.all, Indent, Full);
+         if N /= No_Node then
+            Disp_Tree (N, Indent, Full);
          else
             Disp_Indent (Indent, "*null*");
          end if;
@@ -40,118 +50,118 @@ package body Idl_Fe.Display_Tree is
       end loop;
    end Disp_List;
 
-   procedure Disp_Binary (N : N_Binary_Expr'Class;
+   procedure Disp_Binary (N : Node_Id;
                           Indent : Natural;
                           Full : Boolean;
                           Op : String) is
    begin
       Put_Line ("binary operator " & Op & ", value = ");
---                Long_Long_Integer'Image (N.Value.all));
+--                Long_Long_Integer'Image (Value.all (N)));
       Disp_Indent (Indent, "left:");
-      Disp_Tree (N.Left.all, Indent, Full);
+      Disp_Tree (Left (N), Indent, Full);
       Disp_Indent (Indent, "right:");
-      Disp_Tree (N.Right.all, Indent, Full);
+      Disp_Tree (Right (N), Indent, Full);
    end Disp_Binary;
 
-   procedure Disp_Unary (N : N_Unary_Expr'Class;
+   procedure Disp_Unary (N : Node_Id;
                          Indent : Natural;
                          Full : Boolean;
                          Op : String) is
    begin
       Put_Line ("unary operator " & Op & ", value = ");
---                Long_Long_Integer'Image (N.Value.all));
+--                Long_Long_Integer'Image (Value.all (N)));
       Disp_Indent (Indent, "operand:");
-      Disp_Tree (N.Operand.all, Indent, Full);
+      Disp_Tree (Operand (N), Indent, Full);
    end Disp_Unary;
 
    --  Disp tree procedure
-   procedure Disp_Tree (N : N_Root'Class; Indent : Natural; Full : Boolean) is
+   procedure Disp_Tree (N : Node_Id; Indent : Natural; Full : Boolean) is
       N_Indent : Natural := Indent + Offset;
    begin
       Disp_Indent (Indent);
 
-      case Get_Kind (N) is
+      case Kind (N) is
          when K_Scoped_Name =>
             Put_Line
-              ("scoped name: " & Get_Name (N_Scoped_Name (N).Value.all) &
+              ("scoped name: " & Get_Name (Value (N)) &
                " (type : " &
-               Node_Kind'Image (Get_Kind (N_Scoped_Name (N).Value.all)) &
+               Node_Kind'Image (Kind (Value (N))) &
                ")");
 
          when K_Repository =>
             Put_Line ("repository");
-            Disp_List (N_Repository (N).Contents, N_Indent, Full);
+            Disp_List (Contents (N), N_Indent, Full);
 
          when K_Module =>
-            Put_Line ("module " & Get_Name (N_Module (N)));
+            Put_Line ("module " & Get_Name (N));
             Disp_Indent (N_Indent, "content:");
-            Disp_List (N_Module (N).Contents, N_Indent + Offset, Full);
+            Disp_List (Contents (N), N_Indent + Offset, Full);
 
          when K_Interface =>
-            if N_Interface (N).Abst then
+            if Abst (N) then
                Put ("abstract ");
             end if;
-            Put_Line ("interface " & Get_Name (N_Interface (N)));
+            Put_Line ("interface " & Get_Name (N));
             if Full then
-               if N_Interface (N).Parents /= Nil_List then
+               if Parents (N) /= Nil_List then
                   Disp_Indent (N_Indent);
                   Put_Line ("base:");
-                  Disp_List (N_Interface (N).Parents,
+                  Disp_List (Parents (N),
                              N_Indent + Offset,
                              False);
                end if;
             end if;
-            Disp_List (N_Interface (N).Contents, N_Indent, Full);
+            Disp_List (Contents (N), N_Indent, Full);
          when K_Forward_Interface =>
-            if N_Forward_Interface (N).Abst then
+            if Abst (N) then
                Put ("abstract ");
             end if;
-            if N_Forward_Interface (N).Forward /= null then
+            if Forward (N) /= no_node then
                Put_Line ("forward interface "
-                         & Get_Name (N_Forward_Interface (N).Forward.all)
+                         & Get_Name (Forward (N))
                          );
             else
                Put_Line ("forward interface (never declared!!) "
-                         & Get_Name (N_Forward_Interface (N)));
+                         & Get_Name (N));
             end if;
 
          when K_ValueType =>
-            Put_Line ("valuetype " & Get_Name (N_ValueType (N)));
+            Put_Line ("valuetype " & Get_Name (N));
 --             if Full then
---                if N_Interface (N).Parents /= Nil_List then
+--                if Parents (N) /= Nil_List then
 --                   Disp_Indent (N_Indent);
 --                   Put_Line ("base:");
---                   Disp_List (N_Interface (N).Parents, N_Indent, False);
+--                   Disp_List (Parents (N), N_Indent, False);
 --                end if;
---                Disp_List (N_Interface (N).Contents, N_Indent, Full);
+--                Disp_List (Contents (N), N_Indent, Full);
 --             end if;
 
          when K_Forward_ValueType =>
-            if N_Forward_ValueType (N).Forward /= null then
+            if Forward (N) /= no_node then
                Put_Line ("forward interface "
-                         & Get_Name (N_Forward_ValueType (N).Forward.all));
+                         & Get_Name (Forward (N)));
             else
                Put_Line ("forward interface (never declared!!) "
-                         & Get_Name (N_Forward_ValueType (N)));
+                         & Get_Name (N));
             end if;
 
          when K_Boxed_ValueType =>
-            Put_Line ("boxed valuetype " & Get_Name (N_Boxed_ValueType (N)));
-            Disp_Tree (N_Boxed_ValueType (N).Boxed_Type.all,
+            Put_Line ("boxed valuetype " & Get_Name (N));
+            Disp_Tree (Boxed_Type (N),
                        N_Indent + Offset,
                        Full);
 
          when K_State_Member =>
-            if N_State_Member (N).Is_Public then
+            if Is_Public (N) then
                Put ("public");
             else
                Put ("private");
             end if;
             Put_Line (" statemember");
-            Disp_Tree (N_State_Member (N).State_Type.all,
+            Disp_Tree (State_Type (N),
                        N_Indent + Offset,
                        Full);
-            Disp_List (N_State_Member (N).State_Declarators,
+            Disp_List (State_Declarators (N),
                        N_Indent + Offset,
                        Full);
 
@@ -162,42 +172,40 @@ package body Idl_Fe.Display_Tree is
 
 
          when K_Operation =>
-            declare
-               Op : N_Operation renames N_Operation (N);
             begin
                Put ("operation ");
-               if Op.Is_Oneway then
+               if Is_Oneway (N) then
                   Put ("oneway ");
                end if;
-               Put_Line (Get_Name (Op));
+               Put_Line (Get_Name (N));
                Disp_Indent (N_Indent, "type:");
-               Disp_Tree (Op.Operation_Type.all, N_Indent + Offset, Full);
+               Disp_Tree (Operation_Type (N), N_Indent + Offset, Full);
                Disp_Indent (N_Indent, "parameters:");
-               Disp_List (Op.Parameters, N_Indent + Offset, Full);
-               if Op.Raises /= Nil_List then
+               Disp_List (Parameters (N), N_Indent + Offset, Full);
+               if Raises (N) /= Nil_List then
                   Disp_Indent (N_Indent, "raises:");
-                  Disp_List (Op.Raises, N_Indent + Offset, Full);
+                  Disp_List (Raises (N), N_Indent + Offset, Full);
                end if;
-               if Op.Contexts /= Nil_List then
+               if Contexts (N) /= Nil_List then
                   Disp_Indent (N_Indent, "contexts:");
-                  Disp_List (Op.Contexts, N_Indent + Offset, Full);
+                  Disp_List (Contexts (N), N_Indent + Offset, Full);
                end if;
             end;
 
          when K_Attribute =>
             Put ("attribute ");
-            if N_Attribute (N).Is_Readonly then
+            if Is_Readonly (N) then
                Put ("readonly ");
             end if;
             Put_Line ("");
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Attribute (N).A_Type.all, N_Indent + Offset, Full);
+            Disp_Tree (A_Type (N), N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "declarators:");
-            Disp_List (N_Attribute (N).Declarators,
+            Disp_List (Declarators (N),
                        N_Indent + Offset, Full);
 
          when K_Attribute_Declarator =>
-            Put_Line ("declarator " & Get_Name (N_Attribute_Declarator (N)));
+            Put_Line ("declarator " & Get_Name (N));
 
          when K_Void =>
             Put_Line ("void");
@@ -248,24 +256,24 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("any");
 
          when K_String =>
-            if N_String (N).Bound = null then
+            if Bound (N) = no_node then
                Put_Line ("string (unbounded)");
             else
                Put_Line ("string bounds:");
-               Disp_Tree (N_String (N).Bound.all, N_Indent, Full);
+               Disp_Tree (Bound (N), N_Indent, Full);
             end if;
 
          when K_Wide_String =>
-            if N_Wide_String (N).Bound = null then
+            if Bound (N) = no_node then
                Put_Line ("string (unbounded)");
             else
                Put_Line ("string bounds:");
-               Disp_Tree (N_Wide_String (N).Bound.all, N_Indent, Full);
+               Disp_Tree (Bound (N), N_Indent, Full);
             end if;
 
          when K_Param =>
             Put ("param ");
-            case N_Param (N).Mode is
+            case Mode (N) is
                when Mode_In =>
                   Put_Line ("in");
                when Mode_Out =>
@@ -273,95 +281,95 @@ package body Idl_Fe.Display_Tree is
                when Mode_Inout =>
                   Put_Line ("inout");
             end case;
-            Disp_Tree (N_Param (N).Declarator.all, N_Indent, False);
+            Disp_Tree (Declarator (N), N_Indent, False);
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Param (N).Param_Type.all, N_Indent + Offset, False);
+            Disp_Tree (Param_Type (N), N_Indent + Offset, False);
 
          when K_Exception =>
             Put ("exception ");
-            Put_Line (Get_Name (N_Exception (N)));
+            Put_Line (Get_Name (N));
             if Full then
                Disp_Indent (N_Indent, "members:");
-               Disp_List (N_Exception (N).Members, N_Indent + Offset, Full);
+               Disp_List (Members (N), N_Indent + Offset, Full);
             end if;
 
          when K_Member =>
             Put_Line ("member");
             Disp_Indent (N_Indent, "declarator:");
-            Disp_List (N_Member (N).Decl, N_Indent + Offset, Full);
+            Disp_List (Decl (N), N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Member (N).M_Type.all, N_Indent + Offset, Full);
+            Disp_Tree (M_Type (N), N_Indent + Offset, Full);
 
 
          when K_Declarator =>
-            Put_Line ("declarator " & Get_Name (N_Declarator (N)));
-            if N_Declarator (N).Array_Bounds /= Nil_List then
+            Put_Line ("declarator " & Get_Name (N));
+            if Array_Bounds (N) /= Nil_List then
                Disp_Indent (N_Indent, "fixed_array:");
-               Disp_List (N_Declarator (N).Array_Bounds,
+               Disp_List (Array_Bounds (N),
                           N_Indent + Offset, True);
             end if;
 
          when K_Union =>
-            Put_Line ("union " & Get_Name (N_Union (N)));
+            Put_Line ("union " & Get_Name (N));
             if Full then
                Disp_Indent (N_Indent, "switch type:");
-               Disp_Tree (N_Union (N).Switch_Type.all,
+               Disp_Tree (Switch_Type (N),
                           N_Indent + Offset, True);
                Disp_Indent (N_Indent, "cases:");
-               Disp_List (N_Union (N).Cases, N_Indent + Offset, True);
+               Disp_List (Cases (N), N_Indent + Offset, True);
             end if;
 
          when K_Case =>
             Put_Line ("case");
             Disp_Indent (N_Indent, "labels:");
-            Disp_List (N_Case (N).Labels, N_Indent + Offset, Full);
+            Disp_List (Labels (N), N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Case (N).Case_Type.all, N_Indent + Offset, Full);
+            Disp_Tree (Case_Type (N), N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "declarator:");
-            Disp_Tree (N_Case (N).Case_Decl.all, N_Indent + Offset, Full);
+            Disp_Tree (Case_Decl (N), N_Indent + Offset, Full);
 
-         when K_Or =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "or");
+         when K_Or_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "or");
 
-         when K_Xor =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "xor");
+         when K_Xor_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "xor");
 
-         when K_And =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "and");
+         when K_And_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "and");
 
-         when K_Shl =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "shl");
+         when K_Shl_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "shl");
 
-         when K_Shr =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "shr");
+         when K_Shr_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "shr");
 
-         when K_Add =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "add");
+         when K_Add_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "add");
 
-         when K_Sub =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "sub");
+         when K_Sub_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "sub");
 
-         when K_Mul =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "mul");
+         when K_Mul_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "mul");
 
-         when K_Div =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "div");
+         when K_Div_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "div");
 
-         when K_Mod =>
-            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "mod");
+         when K_Mod_Expr =>
+            Disp_Binary (N, N_Indent + Offset, Full, "mod");
 
-         when K_Not =>
-            Disp_Unary (N_Unary_Expr (N), N_Indent + Offset, Full, "not");
+         when K_Not_Expr =>
+            Disp_Unary (N, N_Indent + Offset, Full, "not");
 
-         when K_Neg =>
-            Disp_Unary (N_Unary_Expr (N), N_Indent + Offset, Full, "neg");
+         when K_Neg_Expr =>
+            Disp_Unary (N, N_Indent + Offset, Full, "neg");
 
-         when K_Id =>
-            Disp_Unary (N_Unary_Expr (N), N_Indent + Offset, Full, "id");
+         when K_Id_Expr =>
+            Disp_Unary (N, N_Indent + Offset, Full, "id");
 
          when K_Primary_Expr =>
             Put_Line ("primary expression, value = ");
-            Disp_Tree (N_Primary_Expr (N).Operand.all,
+            Disp_Tree (Operand (N),
                        N_Indent + Offset,
                        Full);
 
@@ -370,20 +378,29 @@ package body Idl_Fe.Display_Tree is
 
          when K_Lit_Boolean =>
             Put_Line ("boolean literal : " &
-                      Boolean'Image (N_Lit_Boolean (N).Value));
+                      Boolean'Image (Bool_Value (N)));
 
          when K_Lit_String =>
-            Put_Line ("string literal : " &
-                      Ada.Characters.Latin_1.Quotation &
-                      N_Lit_String (N).Value.all &
-                      Ada.Characters.Latin_1.Quotation);
+            declare
+               S : String_Cacc;
+            begin
+               S := String_Value (N);
+               Put ("string literal : " &
+                    Ada.Characters.Latin_1.Quotation);
+               if S = null then
+                  Put ("*null*");
+               else
+                  Put (S.all);
+               end if;
+               Put_Line ("" & Ada.Characters.Latin_1.Quotation);
+            end;
 
 --          when K_Lit_Integer =>
---             Put_Line ("integer literal: " & N_Lit_Integer (N).Lit.all);
+--             Put_Line ("integer literal: " & Lit (N));
 
 --          when K_Lit_Floating_Point =>
 --             Put_Line ("floating point: "
---                       & N_Lit_Floating_Point (N).Lit.all);
+--                       & Lit (N));
 
 --          when K_Lit_Fixed_Point =>
 --             raise Errors.Internal_Error;
@@ -401,72 +418,71 @@ package body Idl_Fe.Display_Tree is
 --             raise Errors.Internal_Error;
 
          when K_Struct =>
-            Put_Line ("struct " & Get_Name (N_Struct (N)));
+            Put_Line ("struct " & Get_Name (N));
             if Full then
                Disp_Indent (N_Indent, "members:");
-               Disp_List (N_Struct (N).Members, N_Indent + Offset, True);
+               Disp_List (Members (N), N_Indent + Offset, True);
             end if;
 
          when K_Enum =>
-            Put_Line ("enum " & Get_Name (N_Enum (N)));
+            Put_Line ("enum " & Get_Name (N));
             if Full then
                Disp_Indent (N_Indent, "enumerators:");
-               Disp_List (N_Enum (N).Enumerators, N_Indent + Offset, True);
+               Disp_List (Enumerators (N), N_Indent + Offset, True);
             end if;
 
          when K_ValueBase =>
             Put_Line ("ValueBase");
 
          when K_Enumerator =>
-            Put_Line ("enumerator: " & Get_Name (N_Enumerator (N)));
+            Put_Line ("enumerator: " & Get_Name (N));
 
          when K_Type_Declarator =>
             Put_Line ("type declarator:");
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Type_Declarator (N).T_Type.all,
+            Disp_Tree (T_Type (N),
                        N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "declarators:");
-            Disp_List (N_Type_Declarator (N).Declarators,
+            Disp_List (Declarators (N),
                        N_Indent + Offset, Full);
 
          when K_Sequence =>
             Put_Line ("sequence");
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Sequence (N).Sequence_Type.all,
+            Disp_Tree (Sequence_Type (N),
                        N_Indent + Offset, Full);
-            if N_Sequence (N).Bound /= null then
+            if Bound (N) /= no_node then
                Disp_Indent (N_Indent, "bound:");
-               Disp_Tree (N_Sequence (N).Bound.all,
+               Disp_Tree (Bound (N),
                          N_Indent + Offset, Full);
             end if;
 
          when K_Const_Dcl =>
-            Put_Line ("const " & Get_Name (N_Const_Dcl (N)));
+            Put_Line ("const " & Get_Name (N));
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Const_Dcl (N).Constant_Type.all,
+            Disp_Tree (Constant_Type (N),
                        N_Indent + Offset,
                        Full);
             Disp_Indent (N_Indent, "expr:");
-            Disp_Tree (N_Const_Dcl (N).Expression.all,
+            Disp_Tree (Expression (N),
                        N_Indent + Offset,
                        Full);
 
          when K_Fixed =>
             Put_Line ("fixed");
-            Disp_Tree (N_Fixed (N).Digits_Nb.all, N_Indent + Offset, Full);
-            Disp_Tree (N_Fixed (N).Scale.all, N_Indent + Offset, Full);
+            Disp_Tree (Digits_Nb (N), N_Indent + Offset, Full);
+            Disp_Tree (Scale (N), N_Indent + Offset, Full);
 
          when K_Native =>
             Put_Line ("native:");
-            Disp_Tree (N_Native (N).Declarator.all, N_Indent + Offset, Full);
+            Disp_Tree (Declarator (N), N_Indent + Offset, Full);
 
-         when K_Unknown =>
-            Display (N_Unknown'Class (N), Indent, Full);
-            null;
+         when others =>
+            Put_Line ("not implemented yet");
       end case;
    end Disp_Tree;
 
-   procedure Disp_Tree (Tree : N_Root'Class) is
+   procedure Disp_Tree (Tree : Node_Id) is
    begin
       Disp_Tree (Tree, 0, True);
    end Disp_Tree;

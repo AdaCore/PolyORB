@@ -5,7 +5,7 @@ package Idl_Fe.Display_Tree is
 
    Offset : constant Natural := 2;
 
-   procedure Disp_Tree (Tree : N_Root'Class);
+   procedure Disp_Tree (Tree : Node_Id);
 
    --  display a node list
    procedure Disp_List (List : Node_List; Indent : Natural; Full : Boolean);
@@ -16,13 +16,13 @@ private
    procedure Disp_Indent (Indent : Natural; S : String := "");
 
    --  displays a binary operator
-   procedure Disp_Binary (N : N_Binary_Expr'Class;
+   procedure Disp_Binary (N : Node_Id;
                           Indent : Natural;
                           Full : Boolean;
                           Op : String);
 
    --  displays a unary operator
-   procedure Disp_Unary (N : N_Unary_Expr'Class;
+   procedure Disp_Unary (N : Node_Id;
                          Indent : Natural;
                          Full : Boolean;
                          Op : String);
