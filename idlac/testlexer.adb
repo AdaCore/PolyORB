@@ -1,11 +1,11 @@
 with Ada.Text_IO;
 with GNAT.Command_Line;
-with Tokens; use Tokens;
+with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 
 procedure testlexer is
-   Token : Tokens.Idl_Token;
+   Token : Idl_Fe.Lexer.Idl_Token;
 begin
-   Tokens.Initialize (GNAT.Command_Line.Get_Argument,
+   Idl_Fe.Lexer.Initialize (GNAT.Command_Line.Get_Argument,
                       True,
                       True);
 

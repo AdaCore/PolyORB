@@ -1,14 +1,14 @@
 with GNAT.Command_Line;
-with Tree;
-with Parse;
-with Disp;
+with Idl_Fe.Tree;
+with Idl_Fe.Parser;
+with Idl_Fe.Display_Tree;
 
 procedure testparser is
-   Rep : Tree.N_Repository_Acc;
+   Rep : Idl_Fe.Tree.N_Repository_Acc;
 begin
-   Parse.Initialize (GNAT.Command_Line.Get_Argument,
-                     True,
-                     True);
-   Rep := Parse.Parse_Specification;
-   Disp.Disp_Tree (Rep.all);
+   Idl_Fe.Parser.Initialize (GNAT.Command_Line.Get_Argument,
+                             True,
+                             True);
+   Rep := Idl_Fe.Parser.Parse_Specification;
+   Idl_Fe.Display_Tree.Disp_Tree (Rep.all);
 end testparser;
