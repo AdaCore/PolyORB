@@ -1,4 +1,3 @@
-with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Errors;

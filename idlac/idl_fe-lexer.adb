@@ -825,6 +825,9 @@ package body Idl_Fe.Lexer is
       if Is_Alphabetic_Character (View_Next_Char) then
          Skip_Char;
          return Scan_Identifier;
+
+         --  FIXME: unreachable code below
+         pragma Warnings (Off);
          if Current_Token = T_Identifier then
             Idl_Fe.Errors.Lexer_Error
               ("Invalid identifier name. An identifier cannot begin" &
@@ -835,6 +838,8 @@ package body Idl_Fe.Lexer is
          else
             return T_Identifier;
          end if;
+         pragma Warnings (On);
+
       else
          Idl_Fe.Errors.Lexer_Error ("Invalid character '_'",
                                     Idl_Fe.Errors.Error,

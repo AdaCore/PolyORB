@@ -6,6 +6,9 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers; use Ada_Be.Identifiers;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
+with Ada_Be.Temporaries; use Ada_Be.Temporaries;
+
+with Utils; use Utils;
 
 package body Ada_Be.Idl2Ada is
 
@@ -1347,12 +1350,12 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "is");
                II (CU);
-               PL (CU, "Handler : Broca.GIOP.Request_Handler;");
-               PL (CU, "Send_Request_Result : "
+               PL (CU, T_Handler & " : Broca.GIOP.Request_Handler;");
+               PL (CU, T_Send_Request_Result & " : "
                          & "Broca.GIOP.Send_Request_Result_Type;");
                if Kind (O_Type) /= K_Void then
                   Add_With_Stream (CU, O_Type);
-                  PL (CU, "Returns : " & Ada_Type_Name (O_Type) & ";");
+                  PL (CU, T_Returns & " : " & Ada_Type_Name (O_Type) & ";");
                end if;
                DI (CU);
                PL (CU, "begin");
@@ -1360,9 +1363,9 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "loop");
                II (CU);
                PL (CU, "Broca.GIOP.Send_Request_Marshall");
-               PL (CU, "  (Handler, Broca.Object.Object_Ptr");
+               PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
                PL (CU, "   (Get (Self)), "
-                         & Response_Expected'Img
+                         & Img (Response_Expected)
                          & ", " & O_Name & "_Operation);");
 
                declare
@@ -1386,7 +1389,7 @@ package body Ada_Be.Idl2Ada is
                               First := False;
                            end if;
                            PL
-                             (CU, "Marshall (Handler.Buffer'Access, "
+                             (CU, "Marshall (" & T_Handler & ".Buffer'Access, "
                               & Ada_Name (Declarator (P_Node)) & ");");
                         when others =>
                            null;
@@ -1397,11 +1400,11 @@ package body Ada_Be.Idl2Ada is
 
                NL (CU);
                PL (CU, "Broca.GIOP.Send_Request_Send");
-               PL (CU, "  (Handler, Broca.Object.Object_Ptr");
+               PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
                PL (CU, "   (Get (Self)), "
-                         & Response_Expected'Img
-                         & ", Send_Request_Result);");
-               PL (CU, "case Send_Request_Result is");
+                         & Img (Response_Expected)
+                         & ", " & T_Send_Request_Result & ");");
+               PL (CU, "case " & T_Send_Request_Result & " is");
                II (CU);
                PL (CU, "when Broca.GIOP.Sr_Reply =>");
                II (CU);
@@ -1409,7 +1412,8 @@ package body Ada_Be.Idl2Ada is
                if Kind (O_Type) /= K_Void then
                   NL (CU);
                   PL (CU, "--  Unmarshall return value.");
-                  PL (CU, "Returns := Unmarshall (Handler.Buffer'Access);");
+                  PL (CU, "Returns := Unmarshall (" & T_Handler &
+                      ".Buffer'Access);");
                end if;
 
                declare
@@ -1432,7 +1436,8 @@ package body Ada_Be.Idl2Ada is
                               First := False;
                            end if;
                            PL (CU, Ada_Name (Declarator (P_Node))
-                               & ":= Unmarshall (Handler.Buffer'Access);");
+                               & ":= Unmarshall (" & T_Handler &
+                               ".Buffer'Access);");
                         when others =>
                            null;
                      end case;
@@ -1441,7 +1446,7 @@ package body Ada_Be.Idl2Ada is
                end;
 
                if Kind (O_Type) /= K_Void then
-                  PL (CU, "return Returns;");
+                  PL (CU, "return " & T_Returns & ";");
                else
                   PL (CU, "return;");
                end if;
@@ -1475,9 +1480,10 @@ package body Ada_Be.Idl2Ada is
                         PL (CU, "declare");
                         II (CU);
                         PL (CU,
-                            "Exception_Repository_Id : constant String");
+                            T_Exception_Repo_Id & " : constant String");
                         PL (CU, "  := CORBA.To_Standard_String");
-                        PL (CU, "  (Unmarshall (Handler.Buffer'Access));");
+                        PL (CU, "  (Unmarshall (" & T_Handler &
+                            ".Buffer'Access));");
                         DI (CU);
                         PL (CU, "begin");
                         II (CU);
@@ -1486,24 +1492,25 @@ package body Ada_Be.Idl2Ada is
                      end if;
 
                      NL (CU);
-                     PL (CU, "if Exception_Repository_Id");
+                     PL (CU, "if " & T_Exception_Repo_Id);
                      PL (CU, "  = """
                          & "XXXexcRepIdXXX" & """ then");
                      II (CU);
                      PL (CU, "declare");
                      II (CU);
-                     PL (CU, "Members : constant "
+                     PL (CU, T_Members & " : constant "
                          & Ada_Full_Name (E_Node) & "_Members");
                      --  & Ada_Full_Name (Members_Type (E_Node)));
                      --  XXX Add_With_Stream (Members_Type (E_Node))
-                     PL (CU, "  := Unmarshall (Handler.Buffer'Access);");
+                     PL (CU, "  := Unmarshall (" & T_Handler &
+                         ".Buffer'Access);");
                      DI (CU);
                      PL (CU, "begin");
                      II (CU);
                      PL (CU, "Broca.Exceptions.User_Raise_Exception");
                      PL (CU, "  (" & Ada_Full_Name (E_Node)
                          & "'Identity,");
-                     PL (CU, "   Members);");
+                     PL (CU, "   " & T_Members & ");");
                      DI (CU);
                      PL (CU, "end;");
                      DI (CU);
@@ -1717,6 +1724,25 @@ package body Ada_Be.Idl2Ada is
       Indices_Pos : Natural := Stmt_Template'Last + 1;
       Prefix_End, Suffix_Start : Natural;
 
+      function Identifier (Dimension : Positive) return String;
+      --  Return an identifier that depends on the dimension and on the
+      --  total dimension. If there is only one dimension, "I" will be
+      --  used, "I1", "I2", ..., "In" otherwise.
+
+      ----------------
+      -- Identifier --
+      ----------------
+
+      function Identifier (Dimension : Positive) return String is
+      begin
+         pragma Assert (Dimension <= Array_Dimensions);
+         if Array_Dimensions = 1 then
+            return "I";
+         else
+            return "I" & Img (Dimension);
+         end if;
+      end Identifier;
+
    begin
       for I in Stmt_Template'Range loop
          if Stmt_Template (I) = '%' then
@@ -1744,34 +1770,20 @@ package body Ada_Be.Idl2Ada is
            (Suffix_Start .. Stmt_Template'Last);
       begin
          for Dimen in 1 .. Array_Dimensions loop
-            declare
-               DImg : constant String
-                 := Dimen'Img;
-               D : constant String
-                 := DImg (DImg'First + 1 .. DImg'Last);
-            begin
-               PL
-                 (CU, "for I_" & D
-                  & " in " & Array_Name & "'Range ("
-                  & D & ") loop");
-               II (CU);
-            end;
+            PL
+              (CU, "for " & Identifier (Dimen)
+               & " in " & Array_Name & "'Range ("
+               & Img (Dimen) & ") loop");
+            II (CU);
          end loop;
 
          PL (CU, Stmt_Prefix);
          Put (CU, "  (");
          for Dimen in 1 .. Array_Dimensions loop
-            declare
-               DImg : constant String
-                 := Dimen'Img;
-               D : constant String
-                 := DImg (DImg'First + 1 .. DImg'Last);
-            begin
-               if Dimen /= 1 then
-                  Put (CU, ", ");
-               end if;
-               Put (CU, "I_" & D);
-            end;
+            if Dimen /= 1 then
+               Put (CU, ", ");
+            end if;
+            Put (CU, Identifier (Dimen));
          end loop;
          PL (CU, ")" & Stmt_Suffix);
          for Dimen in 1 .. Array_Dimensions loop
@@ -2210,7 +2222,7 @@ package body Ada_Be.Idl2Ada is
             Put (CU, String_Value (Node).all);
 
          when K_Lit_Boolean =>
-            Put (CU, Bool_Value (Node)'Img);
+            Put (CU, Img (Bool_Value (Node)));
 
          when K_Primary_Expr =>
             Gen_Node_Default (CU, Operand (Node));

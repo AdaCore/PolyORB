@@ -1,6 +1,7 @@
 with Ada.Unchecked_Deallocation;
 with System;
 with GNAT.Case_Util;
+with GNAT.Table;
 with Idl_Fe.Errors;
 with Idl_Fe.Lexer;
 with Idl_Fe.Debug;

@@ -1,0 +1,6 @@
+catch "exec ../idlac $srcdir/adabroker.parser/testparser.idl" rc
+if { $rc == "" } {
+	pass "Parser test";
+} else {
+	fail "Parser test";
+}

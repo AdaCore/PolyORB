@@ -1,7 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 
-with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
+with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
 
 package body Idl_Fe.Display_Tree is
    Blanks : constant String (1 .. 80) := (others => ' ');
