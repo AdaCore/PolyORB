@@ -18,7 +18,6 @@ PLATFORM     = @PLATFORM_SPECIFIC@
 TCP_PLATFORM = 2${PLATFORM}gtplsp.ads
 
 OBJECTS = \
-s-taprop.o\
 s-gaphlo.o\
 s-garcon.o\
 s-gardeb.o\
@@ -42,7 +41,6 @@ s-rpc.o\
 s-stratt.o
 
 SOURCES = \
-${srcdir}/s-taprop.adb \
 ${srcdir}/rci_info.ads ${srcdir}/rci_info.adb \
 ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
 ${srcdir}/s-garcac.ads ${srcdir}/s-garcac.adb \
