@@ -12,33 +12,33 @@ part1.stubs/polyorb-dsa_p-partitions.ali: $(DSA_SRC)/polyorb-dsa_p-partitions.ad
 	$(GNATMAKE_FOR_TARGET) -u $(DSA_SRC)/polyorb-dsa_p-partitions.adb $(GNATMAKE_FLAGS) $(part1_FLAGS) -cargs -gnatzr
 	-mv polyorb-dsa_p-partitions.o polyorb-dsa_p-partitions.ali part1.stubs
 
-part1.stubs/cxe4001_partition_a.ali: $(srcdir)/cxe4001_partition_a.adb polyorb-dsa_p.ali s-polint.ali
+part1.stubs/cxe4002_part_a1.ali: $(srcdir)/cxe4002_part_a1.adb polyorb-dsa_p.ali s-polint.ali
 	@-mkdir part1.stubs
-	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/cxe4001_partition_a.adb $(GNATMAKE_FLAGS) $(part1_FLAGS) -cargs -gnatzr
-	-mv cxe4001_partition_a.o cxe4001_partition_a.ali part1.stubs
+	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/cxe4002_part_a1.adb $(GNATMAKE_FLAGS) $(part1_FLAGS) -cargs -gnatzr
+	-mv cxe4002_part_a1.o cxe4002_part_a1.ali part1.stubs
 
-part1.stubs/cxe4001_partition_b.ali: $(srcdir)/cxe4001_partition_b.ads polyorb-dsa_p.ali s-polint.ali
+part1.stubs/cxe4002_part_a2.ali: $(srcdir)/cxe4002_part_a2.adb polyorb-dsa_p.ali s-polint.ali
 	@-mkdir part1.stubs
-	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/cxe4001_partition_b.ads $(GNATMAKE_FLAGS) $(part1_FLAGS) -cargs -gnatzc
-	-mv cxe4001_partition_b.o cxe4001_partition_b.ali part1.stubs
+	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/cxe4002_part_a2.adb $(GNATMAKE_FLAGS) $(part1_FLAGS) -cargs -gnatzr
+	-mv cxe4002_part_a2.o cxe4002_part_a2.ali part1.stubs
 
 part2.stubs/polyorb-dsa_p-partitions.ali: $(DSA_SRC)/polyorb-dsa_p-partitions.ads polyorb-dsa_p.ali s-polint.ali
 	@-mkdir part2.stubs
 	$(GNATMAKE_FOR_TARGET) -u $(DSA_SRC)/polyorb-dsa_p-partitions.ads $(GNATMAKE_FLAGS) $(part2_FLAGS) -cargs -gnatzc
 	-mv polyorb-dsa_p-partitions.o polyorb-dsa_p-partitions.ali part2.stubs
 
-part2.stubs/cxe4001_partition_a.ali: $(srcdir)/cxe4001_partition_a.ads polyorb-dsa_p.ali s-polint.ali
+part2.stubs/cxe4002_part_a1.ali: $(srcdir)/cxe4002_part_a1.ads polyorb-dsa_p.ali s-polint.ali
 	@-mkdir part2.stubs
-	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/cxe4001_partition_a.ads $(GNATMAKE_FLAGS) $(part2_FLAGS) -cargs -gnatzc
-	-mv cxe4001_partition_a.o cxe4001_partition_a.ali part2.stubs
+	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/cxe4002_part_a1.ads $(GNATMAKE_FLAGS) $(part2_FLAGS) -cargs -gnatzc -gnatD
+	-mv cxe4002_part_a1.o cxe4002_part_a1.ali part2.stubs
 
-part2.stubs/cxe4001_partition_b.ali: $(srcdir)/cxe4001_partition_b.adb polyorb-dsa_p.ali s-polint.ali
+part2.stubs/cxe4002_part_a2.ali: $(srcdir)/cxe4002_part_a2.ads polyorb-dsa_p.ali s-polint.ali
 	@-mkdir part2.stubs
-	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/cxe4001_partition_b.adb $(GNATMAKE_FLAGS) $(part2_FLAGS) -cargs -gnatzr
-	-mv cxe4001_partition_b.o cxe4001_partition_b.ali part2.stubs
+	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/cxe4002_part_a2.ads $(GNATMAKE_FLAGS) $(part2_FLAGS) -cargs -gnatzc
+	-mv cxe4002_part_a2.o cxe4002_part_a2.ali part2.stubs
 
-cxe4001_decl_pure.ali: $(srcdir)/cxe4001_decl_pure.ads
-	$(GNATMAKE_FOR_TARGET) -a -u $(srcdir)/cxe4001_decl_pure.ads $(GNATMAKE_FLAGS)
+cxe4002_common.ali: $(srcdir)/cxe4002_common.ads
+	$(GNATMAKE_FOR_TARGET) -a -u $(srcdir)/cxe4002_common.ads $(GNATMAKE_FLAGS)
 polyorb-dsa_p.ali: $(DSA_SRC)/polyorb-dsa_p.ads $(DSA_SRC)/polyorb-dsa_p.ads
 	$(GNATMAKE_FOR_TARGET) -a -u $(DSA_SRC)/polyorb-dsa_p.ads $(GNATMAKE_FLAGS)
 s-polint.ali: $(DSA_SRC)/s-polint.ads $(DSA_SRC)/s-polint.adb
@@ -46,8 +46,8 @@ s-polint.ali: $(DSA_SRC)/s-polint.ads $(DSA_SRC)/s-polint.adb
 # -gnatg cannot be used as the moment, because s-polint has a dep
 # on generated CosNaming code, which does not support it.
 
-part1: part1.stubs/polyorb-dsa_p-partitions.ali part1.stubs/cxe4001_partition_a.ali part1.stubs/cxe4001_partition_b.ali cxe4001_decl_pure.ali
-part2: part2.stubs/polyorb-dsa_p-partitions.ali part2.stubs/cxe4001_partition_a.ali part2.stubs/cxe4001_partition_b.ali cxe4001_decl_pure.ali
+part1: part1.stubs/polyorb-dsa_p-partitions.ali part1.stubs/cxe4002_part_a1.ali part1.stubs/cxe4002_part_a2.ali cxe4002_common.ali
+part2: part2.stubs/polyorb-dsa_p-partitions.ali part2.stubs/cxe4002_part_a1.ali part2.stubs/cxe4002_part_a2.ali cxe4002_common.ali
 part1 part2: s-polint.ali
 
 clean: clean-stubs
