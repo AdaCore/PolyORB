@@ -188,6 +188,6 @@ package body System.Partition_Interface is
    begin
       return False;
       --  XXX not implemented yet!
-   end if;
+   end Same_Partition;
 
 end System.Partition_Interface;
