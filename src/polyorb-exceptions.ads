@@ -238,8 +238,10 @@ package PolyORB.Exceptions is
       AdapterInactive_E,
 
       --  PolyORB internal errors.
-      Invalid_Object_Id_E
+      Invalid_Object_Id_E,
 
+      --  Group exception
+      NotAGroupObject_E
       );
 
    subtype ORB_System_Error       is Error_Id

@@ -34,7 +34,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#17 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#18 $
 
 with Ada.Finalization;
 
@@ -85,6 +85,16 @@ package PolyORB.Binding_Data is
 
    Preference_Default : constant Profile_Preference;
    --  Default value for profile preference.
+
+   procedure Set_OA
+     (Profile : in out Profile_Type;
+      OA      :        PolyORB.Smart_Pointers.Ref);
+   --  Set the object adapter in which Profile's OID are stored.
+
+   function Get_OA
+     (Profile : Profile_Type)
+     return PolyORB.Smart_Pointers.Ref;
+   --  Get the object adapter in which Profile's OID are stored.
 
    function Get_Object_Key
      (Profile : Profile_Type)
@@ -199,6 +209,7 @@ private
      abstract new Ada.Finalization.Limited_Controlled with record
         Object_Id    : Objects.Object_Id_Access;
         Continuation : PolyORB.Smart_Pointers.Ref;
+        OA           : PolyORB.Smart_Pointers.Ref;
      end record;
 
    type Profile_Factory is abstract tagged limited null record;

@@ -46,9 +46,11 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
+with PolyORB.Obj_Adapters.Group_Object_Adapter;
 with PolyORB.ORB.Interface;
 with PolyORB.References.Binding;
 with PolyORB.Representations.CDR;
+with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.GIOP.GIOP_1_2 is
@@ -945,26 +947,34 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Target Reference
 
-      if Target_Ref.Object_Key /= null then
-         Marshall (Buffer, Key_Addr);
-         Marshall
-           (Buffer,
-            Stream_Element_Array (Target_Ref.Object_Key.all));
+      declare
+         use PolyORB.Smart_Pointers;
+         use PolyORB.Obj_Adapters.Group_Object_Adapter;
+         use PolyORB.Binding_Data;
 
-      else
-         declare
-            use PolyORB.References.IOR;
+      begin
+         if not Is_Nil (Get_OA (R.Target_Profile.all))
+           and then Entity_Of (Get_OA (R.Target_Profile.all)).all
+           in Group_Object_Adapter'Class then
+            declare
+               use PolyORB.References.IOR;
 
-            Success : Boolean;
-         begin
-            Marshall (Buffer, Profile_Addr);
-            Marshall_Profile (Buffer, R.Target_Profile, Success);
-            if not Success then
-               pragma Debug (O ("Incorrect profile"));
-               raise GIOP_Error;
-            end if;
-         end;
-      end if;
+               Success : Boolean;
+            begin
+               Marshall (Buffer, Profile_Addr);
+               Marshall_Profile (Buffer, R.Target_Profile, Success);
+               if not Success then
+                  pragma Debug (O ("Incorrect profile"));
+                  raise GIOP_Error;
+               end if;
+            end;
+         else
+            Marshall (Buffer, Key_Addr);
+            Marshall
+              (Buffer,
+               Stream_Element_Array (Target_Ref.Object_Key.all));
+         end if;
+      end;
 
       --  Operation
 
