@@ -173,6 +173,9 @@ package body PolyORB.Any.NVList is
          begin
             for I in NVs'Range loop
                Ada.Strings.Unbounded.Append (Result, Image (NVs (I)));
+               if I /= NVs'Last then
+                  Ada.Strings.Unbounded.Append (Result, ' ');
+               end if;
             end loop;
 
             return Ada.Strings.Unbounded.To_String (Result);

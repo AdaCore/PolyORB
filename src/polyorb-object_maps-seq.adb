@@ -41,12 +41,13 @@ package body PolyORB.Object_Maps.Seq is
    -- Is_Servant_Equal --
    ----------------------
 
-   function Is_Servant_Equal (Item : in Object_Map_Entry_Access;
-                              To   : in PolyORB.POA_Types.Servant_Access)
-                             return Boolean
+   function Is_Servant_Equal
+     (Item : in Object_Map_Entry_Access;
+      To   : in PolyORB.POA_Types.Servant_Access)
+     return Boolean
    is
    begin
-      return (Item.Servant.all = To.all);
+      return (Item.Servant = To);
    end Is_Servant_Equal;
 
    ------------------------

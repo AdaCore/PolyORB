@@ -58,11 +58,19 @@ package body PolyORB.References is
    function Ref_Info_Of (R : Ref) return Reference_Info_Access is
       E : constant Entity_Ptr := Entity_Of (R);
    begin
-      if E = null or else E.all not in Reference_Info'Class then
-         raise Constraint_Error;
+      if E /= null then
+         if E.all in Reference_Info'Class then
+            return Reference_Info_Access (E);
+         else
+            pragma Debug (O ("Ref_Info_Of: entity is a "
+                             & Ada.Tags.External_Tag (E'Tag)));
+            null;
+         end if;
       else
-         return Reference_Info_Access (E);
+         pragma Debug (O ("Ref_Info_Of: nil ref."));
+         null;
       end if;
+      raise Constraint_Error;
    end Ref_Info_Of;
 
    procedure Create_Reference
