@@ -73,7 +73,7 @@ begin
       Initiate_Servant (PortableServer.Servant (Obj), Ref);
       Initiate_Server (True);
 
-      if Ada.Command_Line.Argument_Count > 1 then
+      if Ada.Command_Line.Argument_Count >= 1 then
          How_Many := Integer'Value (Ada.Command_Line.Argument (1));
 
       else
