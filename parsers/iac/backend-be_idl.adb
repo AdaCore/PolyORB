@@ -513,6 +513,10 @@ package body Backend.BE_IDL is
 
    begin
       Write_Indentation;
+      if Is_Abstract_Interface (E) then
+         Write (T_Abstract);
+         Write_Space;
+      end if;
       Write (T_Interface);
       Write_Space;
       Generate (Identifier (E));

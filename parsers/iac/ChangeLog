@@ -1,7 +1,8 @@
 2004-07-02  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_idl.adb: Generate fully qualified name for
-	enumerators. Fix indentation for elements.
+	enumerators. Fix indentation for elements. Generate abstract
+	interfaces.
 
 	* analyzer.adb: Minor reformatting.
 
