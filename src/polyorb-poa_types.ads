@@ -105,9 +105,6 @@ package PolyORB.POA_Types is
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
    for Unmarshalled_Oid_Access'Storage_Pool use Storage_Pools.Debug_Pool;
 
-   function "=" (Left, Right : in Servant) return Standard.Boolean
-      is abstract;
-
    function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
 
    function Image
