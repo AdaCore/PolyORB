@@ -29,7 +29,8 @@ package Naming_Tools is
       Ref    : in CORBA.Object.Ref;
       Rebind : in Boolean := False);
    --  Register an object by its name by binding or rebinding. A simple name
-   --  must be given, no parsing will be made on the string.
+   --  must be given, no parsing will be made on the string. If Rebind is
+   --  True, then a bind then a rebind will be attempted.
 
    procedure Unregister (Name : in String);
    --  Unregister an object by its name by unbinding it.

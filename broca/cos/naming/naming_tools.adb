@@ -68,11 +68,14 @@ package body Naming_Tools is
       NC.Kind := CosNaming.To_CORBA_String ("");
       NC.Id   := CosNaming.To_CORBA_String (Name);
       Append (N, NC);
-      if Rebind then
-         NamingContext.rebind (RNS, N, Ref);
-      else
-         bind (RNS, N, Ref);
-      end if;
+      bind (RNS, N, Ref);
+   exception
+      when Namingcontext.AlreadyBound =>
+         if Rebind then
+            NamingContext.rebind (RNS, N, Ref);
+         else
+            raise;
+         end if;
    end Register;
 
    ----------------
