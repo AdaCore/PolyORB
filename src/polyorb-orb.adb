@@ -1134,37 +1134,6 @@ package body PolyORB.ORB is
             Leave_ORB_Critical_Section (ORB.ORB_Controller);
          end;
 
-      elsif Msg in Iface.Oid_Translate then
-         declare
-            use PolyORB.Errors;
-
-            URI   : Types.String;
-            Error : Error_Container;
-            Empty : Components.Null_Message;
-         begin
-            Obj_Adapters.Oid_To_Rel_URI
-              (ORB.Obj_Adapter, Iface.Oid_Translate (Msg).Oid,
-               URI, Error);
-            if Found (Error) then
-               Catch (Error);
-               return Empty;
-            end if;
-
-            return Iface.URI_Translate'(Path => URI);
-         end;
-
-      elsif Msg in Iface.URI_Translate then
-         declare
-            Result : constant Iface.Oid_Translate
-              := (Oid => Obj_Adapters.Rel_URI_To_Oid
-                  (ORB.Obj_Adapter,
-                   PolyORB.Types.To_Standard_String
-                   (Iface.URI_Translate (Msg).Path)));
-
-         begin
-            return Result;
-         end;
-
       elsif Msg in Iface.Monitor_Endpoint then
          declare
             TE : constant Transport_Endpoint_Access

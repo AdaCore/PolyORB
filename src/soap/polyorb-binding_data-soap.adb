@@ -36,11 +36,13 @@
 with Ada.Streams;
 
 with PolyORB.Binding_Objects;
+with PolyORB.Errors;
 with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.ORB.Iface;
+with PolyORB.ORB;
+with PolyORB.Obj_Adapters;
 with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
@@ -208,9 +210,11 @@ package body PolyORB.Binding_Data.SOAP is
      return Profile_Access
    is
       use PolyORB.Transport.Connected.Sockets;
+      use PolyORB.Errors;
 
-      Result : constant Profile_Access :=
-        new SOAP_Profile_Type;
+      Error : Error_Container;
+
+      Result : constant Profile_Access := new SOAP_Profile_Type;
 
       TResult : SOAP_Profile_Type
         renames SOAP_Profile_Type (Result.all);
@@ -219,21 +223,18 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := PF.Address;
 
-      declare
-         Oid_Translate : constant ORB.Iface.Oid_Translate :=
-           (PolyORB.Components.Message with Oid => TResult.Object_Id);
+      Obj_Adapters.Oid_To_Rel_URI
+        (PolyORB.ORB.Object_Adapter (Setup.The_ORB),
+         TResult.Object_Id,
+         TResult.URI_Path, Error);
 
-         M : constant PolyORB.Components.Message'Class :=
-           PolyORB.Components.Emit
-           (Port => Components.Component_Access (Setup.The_ORB),
-            Msg  => Oid_Translate);
+      if Found (Error) then
+         Catch (Error);
+         return null;
 
-         TM : ORB.Iface.URI_Translate renames ORB.Iface.URI_Translate (M);
-      begin
-         TResult.URI_Path := TM.Path;
-      end;
-
-      return  Result;
+      else
+         return Result;
+      end if;
    end Create_Profile;
 
    function Create_Profile
@@ -268,19 +269,10 @@ package body PolyORB.Binding_Data.SOAP is
 
          --  Fill Oid from URI for a local profile.
 
-         declare
-            URI_Translate : constant ORB.Iface.URI_Translate :=
-              (PolyORB.Components.Message with Path => TResult.URI_Path);
-
-            M : constant PolyORB.Components.Message'Class :=
-              PolyORB.Components.Emit
-              (Port => Components.Component_Access (Setup.The_ORB),
-               Msg  => URI_Translate);
-
-            TM : ORB.Iface.Oid_Translate renames ORB.Iface.Oid_Translate (M);
-         begin
-            TResult.Object_Id := TM.Oid;
-         end;
+         TResult.Object_Id
+           := PolyORB.Obj_Adapters.Rel_URI_To_Oid
+           (PolyORB.ORB.Object_Adapter (Setup.The_ORB),
+            PolyORB.Types.To_Standard_String (TResult.URI_Path));
       end if;
 
       return Result;

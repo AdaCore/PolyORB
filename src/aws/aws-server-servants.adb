@@ -13,10 +13,11 @@ with PolyORB.Errors;
 with PolyORB.Any.NVList;
 with PolyORB.Requests;
 with PolyORB.Objects;
+with PolyORB.Obj_Adapters;
+with PolyORB.ORB;
 with PolyORB.Servants.Iface;
 with PolyORB.Types;
 with PolyORB.Setup;
-with PolyORB.ORB.Iface;
 with PolyORB.Log;
 with PolyORB.References;
 with PolyORB.Binding_Data;
@@ -100,6 +101,7 @@ package body AWS.Server.Servants is
 
          HTTP_Method : Request_Method;
          Number_Of_Args : Long;
+         URI_Path : PolyORB.Types.String;
 
          The_Oid : PolyORB.Objects.Object_Id_Access;
 --         The_Reference : PolyORB.References.Ref;
@@ -123,24 +125,22 @@ package body AWS.Server.Servants is
             end loop;
          end;
 
+         Obj_Adapters.Oid_To_Rel_URI
+           (PolyORB.ORB.Object_Adapter (Setup.The_ORB),
+            The_Oid,
+            URI_Path,
+            Error);
+
+         if Found (Error) then
+            Catch (Error);
+            return;
+         end if;
+
          declare
             use PolyORB.Types;
             use PolyORB.Any.NVList;
-            use PolyORB.Setup;
-            use PolyORB.ORB.Iface;
 
-            Oid_Translate : constant ORB.Iface.Oid_Translate :=
-              (PolyORB.Components.Message with Oid => The_Oid);
-
-            M : constant PolyORB.Components.Message'Class :=
-              PolyORB.Components.Emit
-              (Port => Components.Component_Access (Setup.The_ORB),
-               Msg  => Oid_Translate);
-
-            TM : ORB.Iface.URI_Translate renames
-              ORB.Iface.URI_Translate (M);
-
-            URI : constant String := To_String (TM.Path);
+            URI : constant String := To_String (URI_Path);
          begin
             Parameters.Set.Reset (P_List);
             pragma Debug

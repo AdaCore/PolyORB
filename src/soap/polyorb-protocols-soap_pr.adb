@@ -56,6 +56,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.ORB.Iface;
+with PolyORB.Obj_Adapters;
 with PolyORB.References;
 with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
@@ -316,16 +317,13 @@ package body PolyORB.Protocols.SOAP_Pr is
             function Path_To_Oid (Path : Types.String)
               return Objects.Object_Id_Access
             is
-               M : constant Components.Message'Class
-                 := Components.Emit
-                 (S.Server, PolyORB.ORB.Iface.URI_Translate'
-                  (Path => Path));
-               TM : PolyORB.ORB.Iface.Oid_Translate
-                 renames PolyORB.ORB.Iface.Oid_Translate (M);
             begin
                pragma Debug
                  (O ("Path_To_Oid: " & To_Standard_String (Path)));
-               return TM.Oid;
+
+               return PolyORB.Obj_Adapters.Rel_URI_To_Oid
+                 (PolyORB.ORB.Object_Adapter (ORB),
+                  PolyORB.Types.To_Standard_String (Path));
             end Path_To_Oid;
 
             The_Oid : Objects.Object_Id_Access := Path_To_Oid (S.Target);
