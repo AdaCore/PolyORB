@@ -433,8 +433,7 @@ package body PolyORB.Binding_Data.SOAP is
                return null;
             end if;
             pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
-            TResult.Address.Addr := String_To_Addr
-              (To_PolyORB_String (S (Index .. Index2 - 1)));
+            TResult.Address.Addr := String_To_Addr (S (Index .. Index2 - 1));
             Index := Index2 + 1;
 
             Index2 := Find (S, Index, '/');

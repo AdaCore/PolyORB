@@ -119,8 +119,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
             return;
          end if;
          pragma Debug (O ("Address = " & S (Index .. Index2)));
-         Address.Addr :=
-           String_To_Addr (To_PolyORB_String (S (Index .. Index2)));
+         Address.Addr := String_To_Addr (S (Index .. Index2));
 
          if Colon < Slash then
             if Colon + 1 < Slash then
