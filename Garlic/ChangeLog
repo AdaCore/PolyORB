@@ -1,3 +1,12 @@
+2001-01-26  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-garrem.ads, 5wgarrem.adb, 5egarrem.adb: Use the remote shell
+	command and options from Platform_Specific and remove command and
+	options parameters in the launching subprograms.
+
+	* s-gaplsp.ads.in: Add Rsh_Command and Rsh_Options as configured
+	variables.
+	
 2001-01-25  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* isthrbio.adb: Improve configuration program to detect
