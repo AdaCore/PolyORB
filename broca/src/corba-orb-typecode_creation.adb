@@ -216,8 +216,12 @@ package body CORBA.ORB.Typecode_Creation is
       Length       : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object is
+      Result : TypeCode.Object;
    begin
-      return TC_Null;
+      Result := TypeCode.TC_Array;
+      TypeCode.Add_Parameter (Result, To_Any (Length));
+      TypeCode.Add_Parameter (Result, To_Any (Element_Type));
+      return Result;
    end Create_Array_Tc;
 
    function Create_Value_Tc
@@ -228,8 +232,26 @@ package body CORBA.ORB.Typecode_Creation is
       Concrete_Base : in CORBA.TypeCode.Object;
       Members       : in CORBA.ValueMemberSeq)
       return CORBA.TypeCode.Object is
+      Result : TypeCode.Object;
    begin
-      return TC_Null;
+      Result := TypeCode.TC_Value;
+      TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      TypeCode.Add_Parameter (Result, To_Any (CORBA.Short (Type_Modifier)));
+      TypeCode.Add_Parameter (Result, To_Any (Concrete_Base));
+      declare
+         Member : ValueMember;
+      begin
+         for I in 0 .. Length (Members) - 1 loop
+            Member := Element_Of (Members, I);
+            TypeCode.Add_Parameter
+              (Result, To_Any (CORBA.Short (Member.IDL_Access)));
+            TypeCode.Add_Parameter (Result, To_Any (Member.IDL_Type));
+            TypeCode.Add_Parameter
+              (Result, To_Any (CORBA.String (Member.Name)));
+         end loop;
+      end;
+      return Result;
    end Create_Value_Tc;
 
    function Create_Value_Box_Tc
@@ -238,8 +260,13 @@ package body CORBA.ORB.Typecode_Creation is
       Name       : in CORBA.Identifier;
       Boxed_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object is
+      Result : TypeCode.Object;
    begin
-      return TC_Null;
+      Result := TypeCode.TC_Valuebox;
+      TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      TypeCode.Add_Parameter (Result, To_Any (Boxed_Type));
+      return Result;
    end Create_Value_Box_Tc;
 
    function Create_Native_Tc
@@ -247,8 +274,12 @@ package body CORBA.ORB.Typecode_Creation is
       Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object is
+      Result : TypeCode.Object;
    begin
-      return TC_Null;
+      Result := TypeCode.TC_Native;
+      TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      return Result;
    end Create_Native_Tc;
 
    function Create_Recursive_Tc
@@ -264,8 +295,12 @@ package body CORBA.ORB.Typecode_Creation is
       Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object is
+      Result : TypeCode.Object;
    begin
-      return TC_Null;
+      Result := TypeCode.TC_Abstract_Interface;
+      TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      return Result;
    end Create_Abstract_Interface_Tc;
 
 end CORBA.ORB.Typecode_Creation;

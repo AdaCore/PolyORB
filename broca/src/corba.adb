@@ -1056,6 +1056,46 @@ package body CORBA is
          return PTC_Sequence;
       end TC_Sequence;
 
+      ----------------
+      --  TC_Array  --
+      ----------------
+      function TC_Array return TypeCode.Object is
+      begin
+         return PTC_Array;
+      end TC_Array;
+
+      ----------------
+      --  TC_Value  --
+      ----------------
+      function TC_Value return TypeCode.Object is
+      begin
+         return PTC_Value;
+      end TC_Value;
+
+      -------------------
+      --  TC_Valuebox  --
+      -------------------
+      function TC_Valuebox return TypeCode.Object is
+      begin
+         return PTC_Valuebox;
+      end TC_Valuebox;
+
+      -----------------
+      --  TC_Native  --
+      -----------------
+      function TC_Native return TypeCode.Object is
+      begin
+         return PTC_Native;
+      end TC_Native;
+
+      -----------------------------
+      --  TC_Abstract_Interface  --
+      -----------------------------
+      function TC_Abstract_Interface return TypeCode.Object is
+      begin
+         return PTC_Abstract_Interface;
+      end TC_Abstract_Interface;
+
       -----------------------
       --  Parameter_Count  --
       -----------------------

@@ -537,6 +537,11 @@ package CORBA is
       function TC_Objref             return TypeCode.Object;
       function TC_Fixed              return TypeCode.Object;
       function TC_Sequence           return TypeCode.Object;
+      function TC_Array              return TypeCode.Object;
+      function TC_Value              return TypeCode.Object;
+      function TC_Valuebox           return TypeCode.Object;
+      function TC_Native             return TypeCode.Object;
+      function TC_Abstract_Interface return TypeCode.Object;
 
       --  returns the number of parameters of Self
       function Parameter_Count (Self : in Object)
@@ -629,6 +634,12 @@ package CORBA is
       PTC_Objref             : constant Object := (Tk_Objref, null);
       PTC_Fixed              : constant Object := (Tk_Fixed, null);
       PTC_Sequence           : constant Object := (Tk_Sequence, null);
+      PTC_Array              : constant Object := (Tk_Array, null);
+      PTC_Value              : constant Object := (Tk_Value, null);
+      PTC_Valuebox           : constant Object := (Tk_Valuebox, null);
+      PTC_Native             : constant Object := (Tk_Native, null);
+      PTC_Abstract_Interface : constant Object
+        := (Tk_Abstract_Interface, null);
 
    end TypeCode;
 
