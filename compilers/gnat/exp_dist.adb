@@ -1992,7 +1992,8 @@ package body Exp_Dist is
 
       function Set_Field
         (Field_Name : Name_Id;
-         Value      : Node_Id) return Node_Id is
+         Value      : Node_Id) return Node_Id
+      is
       begin
          return
            Make_Assignment_Statement (Loc,
@@ -2249,19 +2250,20 @@ package body Exp_Dist is
       RACW_Primitive_Name : Node_Id;
 
       Proc : constant Entity_Id :=
-        Make_Defining_Identifier (Loc,
-          Chars => Make_TSS_Name (RAS_Type, TSS_RAS_Dereference));
-      Proc_Spec : Node_Id;
+               Make_Defining_Identifier (Loc,
+                 Chars => Make_TSS_Name (RAS_Type, TSS_RAS_Dereference));
 
+      Proc_Spec : Node_Id;
       Param_Specs : List_Id;
       Param_Assoc : constant List_Id := New_List;
       Stmts       : constant List_Id := New_List;
 
       RAS_Parameter : constant Entity_Id :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+                        Make_Defining_Identifier (Loc,
+                          Chars => New_Internal_Name ('P'));
 
       Is_Function : constant Boolean :=
-        Nkind (Type_Def) = N_Access_Function_Definition;
+                      Nkind (Type_Def) = N_Access_Function_Definition;
 
       Is_Degenerate : Boolean;
       --  Set to True if the subprogram_specification for this RAS has
@@ -2644,35 +2646,6 @@ package body Exp_Dist is
       Set_Renaming_TSS (RAS_Type, Fnam, Name_uTypeCode);
    end Add_RAS_TypeCode;
 
-   -----------------------
-   -- Add_RAST_Features --
-   -----------------------
-
-   procedure Add_RAST_Features (Vis_Decl : Node_Id) is
-      RAS_Type : constant Entity_Id :=
-        Equivalent_Type (Defining_Identifier (Vis_Decl));
-
-      Spec : constant Node_Id :=
-        Specification (Unit (Enclosing_Lib_Unit_Node (Vis_Decl)));
-      Decls : List_Id := Private_Declarations (Spec);
-
-   begin
-      pragma Assert (No (TSS (RAS_Type, TSS_RAS_Access)));
-
-      Add_RAS_Dereference_TSS (Vis_Decl);
-      Add_RAS_Access_TSS (Vis_Decl);
-
-      if No (Decls) then
-         Decls := Visible_Declarations (Spec);
-      end if;
-
-      Add_RAS_From_Any (RAS_Type, Decls);
-      Add_RAS_TypeCode (RAS_Type, Decls);
-      Add_RAS_To_Any (RAS_Type, Decls);
-      --  To_Any uses TypeCode, and therefore needs to
-      --  be generated last.
-   end Add_RAST_Features;
-
    -------------------------------
    -- Add_RAS_Proxy_And_Analyze --
    -------------------------------
@@ -2871,13 +2844,42 @@ package body Exp_Dist is
 
    end Add_RAS_Proxy_And_Analyze;
 
+   -----------------------
+   -- Add_RAST_Features --
+   -----------------------
+
+   procedure Add_RAST_Features (Vis_Decl : Node_Id) is
+      RAS_Type : constant Entity_Id :=
+        Equivalent_Type (Defining_Identifier (Vis_Decl));
+
+      Spec : constant Node_Id :=
+        Specification (Unit (Enclosing_Lib_Unit_Node (Vis_Decl)));
+      Decls : List_Id := Private_Declarations (Spec);
+
+   begin
+      pragma Assert (No (TSS (RAS_Type, TSS_RAS_Access)));
+
+      Add_RAS_Dereference_TSS (Vis_Decl);
+      Add_RAS_Access_TSS (Vis_Decl);
+
+      if No (Decls) then
+         Decls := Visible_Declarations (Spec);
+      end if;
+
+      Add_RAS_From_Any (RAS_Type, Decls);
+      Add_RAS_TypeCode (RAS_Type, Decls);
+      Add_RAS_To_Any (RAS_Type, Decls);
+      --  To_Any uses TypeCode, and therefore needs to
+      --  be generated last.
+   end Add_RAST_Features;
+
    -----------------------------------------
    -- Add_Receiving_Stubs_To_Declarations --
    -----------------------------------------
 
    procedure Add_Receiving_Stubs_To_Declarations
-     (Pkg_Spec : in Node_Id;
-      Decls    : in List_Id)
+     (Pkg_Spec : Node_Id;
+      Decls    : List_Id)
    is
       Loc : constant Source_Ptr := Sloc (Pkg_Spec);
 
@@ -3221,7 +3223,6 @@ package body Exp_Dist is
             New_Occurrence_Of (Subp_Index, Loc),
           Alternatives => Pkg_RPC_Receiver_Cases));
 
-
       Append_To (Decls,
         Make_Object_Declaration (Loc,
           Defining_Identifier => Subp_Info_Array,
@@ -3236,7 +3237,7 @@ package body Exp_Dist is
                   New_List (
                     Make_Range (Loc,
                       Low_Bound  => Make_Integer_Literal (Loc,
-                        First_RCI_Subprogram_Id),                                             ),
+                        First_RCI_Subprogram_Id),
                       High_Bound =>
                         Make_Integer_Literal (Loc,
                           First_RCI_Subprogram_Id
@@ -3354,9 +3355,9 @@ package body Exp_Dist is
    -------------------
 
    procedure Add_Stub_Type
-     (Designated_Type     : in Entity_Id;
-      RACW_Type           : in Entity_Id;
-      Decls               : in List_Id;
+     (Designated_Type     : Entity_Id;
+      RACW_Type           : Entity_Id;
+      Decls               : List_Id;
       Stub_Type           : out Entity_Id;
       Stub_Type_Access    : out Entity_Id;
       Object_RPC_Receiver : out Entity_Id;
@@ -4280,8 +4281,7 @@ package body Exp_Dist is
       Stub_Type                : Entity_Id := Empty;
       RACW_Type                : Entity_Id := Empty;
       Locator                  : Entity_Id := Empty;
-      New_Name                 : Name_Id   := No_Name)
-      return                     Node_Id
+      New_Name                 : Name_Id   := No_Name) return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (Vis_Decl);
 
@@ -4298,7 +4298,6 @@ package body Exp_Dist is
       --  The specification of the body
 
       Controlling_Parameter : Entity_Id := Empty;
-      --  RPC_Receiver          : Node_Id;
 
       Asynchronous_Expr : Node_Id := Empty;
 
@@ -4306,7 +4305,7 @@ package body Exp_Dist is
 
       Spec_To_Use : Node_Id;
 
-      procedure Insert_Partition_Check (Parameter : in Node_Id);
+      procedure Insert_Partition_Check (Parameter : Node_Id);
       --  Check that the parameter has been elaborated on the same partition
       --  than the controlling parameter (E.4(19)).
 
@@ -4314,10 +4313,11 @@ package body Exp_Dist is
       -- Insert_Partition_Check --
       ----------------------------
 
-      procedure Insert_Partition_Check (Parameter : in Node_Id) is
+      procedure Insert_Partition_Check (Parameter : Node_Id) is
          Parameter_Entity  : constant Entity_Id :=
                                Defining_Identifier (Parameter);
          Condition         : Node_Id;
+
          Designated_Object : Node_Id;
          pragma Warnings (Off, Designated_Object);
          --  Is it really right that this is unreferenced ???
@@ -4329,7 +4329,7 @@ package body Exp_Dist is
          --    then
          --      raise Constraint_Error;
          --    end if;
-         --
+
          --  Condition contains the reversed condition. Also, Parameter is
          --  dereferenced if it is an access type. We do not check that
          --  Parameter is in Stub_Type since such a check has been inserted
@@ -4535,8 +4535,10 @@ package body Exp_Dist is
    -- Build_Subprogram_Id --
    -------------------------
 
-   function Build_Subprogram_Id (Loc : Source_Ptr; E : Entity_Id)
-     return Node_Id is
+   function Build_Subprogram_Id
+     (Loc : Source_Ptr;
+      E : Entity_Id) return Node_Id
+   is
    begin
       return Make_String_Literal (Loc, Get_Subprogram_Identifier (E));
    end Build_Subprogram_Id;
@@ -4551,8 +4553,7 @@ package body Exp_Dist is
       Dynamically_Asynchronous : Boolean   := False;
       Stub_Type                : Entity_Id := Empty;
       RACW_Type                : Entity_Id := Empty;
-      Parent_Primitive         : Entity_Id := Empty)
-      return Node_Id
+      Parent_Primitive         : Entity_Id := Empty) return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (Vis_Decl);
 
@@ -4887,6 +4888,7 @@ package body Exp_Dist is
                           Unchecked_Convert_To (RACW_Type,
                             OK_Convert_To (RTE (RE_Address),
                               New_Occurrence_Of (Object, Loc))))));
+
                else
                   Append_To (Parameter_List,
                     Make_Parameter_Association (Loc,
@@ -4898,6 +4900,7 @@ package body Exp_Dist is
                           OK_Convert_To (RTE (RE_Address),
                             New_Occurrence_Of (Object, Loc)))));
                end if;
+
             else
                Append_To (Parameter_List,
                  Make_Parameter_Association (Loc,
@@ -5149,8 +5152,7 @@ package body Exp_Dist is
       Spec        : Node_Id;
       Object_Type : Entity_Id := Empty;
       Stub_Type   : Entity_Id := Empty;
-      New_Name    : Name_Id   := No_Name)
-      return        Node_Id
+      New_Name    : Name_Id   := No_Name) return Node_Id
    is
       Parameters : List_Id := No_List;
 
@@ -5389,7 +5391,7 @@ package body Exp_Dist is
    -- Expand_Calling_Stubs_Bodies --
    ---------------------------------
 
-   procedure Expand_Calling_Stubs_Bodies (Unit_Node : in Node_Id) is
+   procedure Expand_Calling_Stubs_Bodies (Unit_Node : Node_Id) is
       Spec  : constant Node_Id := Specification (Unit_Node);
       Decls : constant List_Id := Visible_Declarations (Spec);
 
@@ -5404,7 +5406,7 @@ package body Exp_Dist is
    -- Expand_Receiving_Stubs_Bodies --
    -----------------------------------
 
-   procedure Expand_Receiving_Stubs_Bodies (Unit_Node : in Node_Id) is
+   procedure Expand_Receiving_Stubs_Bodies (Unit_Node : Node_Id) is
       Spec  : Node_Id;
       Decls : List_Id;
       Temp  : List_Id;
@@ -5522,8 +5524,7 @@ package body Exp_Dist is
    function Input_With_Tag_Check
      (Loc      : Source_Ptr;
       Var_Type : Entity_Id;
-      Stream   : Entity_Id)
-      return     Node_Id
+      Stream   : Entity_Id) return Node_Id
    is
    begin
       return
@@ -5550,8 +5551,7 @@ package body Exp_Dist is
 
    function Is_RACW_Controlling_Formal
      (Parameter : Node_Id;
-      Stub_Type : Entity_Id)
-      return      Boolean
+      Stub_Type : Entity_Id) return Boolean
    is
       Typ : Entity_Id;
 
@@ -5626,8 +5626,7 @@ package body Exp_Dist is
      (Loc    : Source_Ptr;
       Stream : Node_Id;
       Object : Entity_Id;
-      Etyp   : Entity_Id := Empty)
-      return   Node_Id
+      Etyp   : Entity_Id := Empty) return Node_Id
    is
       Typ : Entity_Id;
 
@@ -5653,8 +5652,7 @@ package body Exp_Dist is
      (Loc    : Source_Ptr;
       Stream : Entity_Id;
       Object : Node_Id;
-      Etyp   : Entity_Id)
-      return   Node_Id
+      Etyp   : Entity_Id) return Node_Id
    is
       Write_Attribute : Name_Id := Name_Write;
 
@@ -5682,8 +5680,7 @@ package body Exp_Dist is
      (Loc    : Source_Ptr;
       Stream : Node_Id;
       Object : Node_Id;
-      Etyp   : Entity_Id)
-      return   Node_Id
+      Etyp   : Entity_Id) return Node_Id
    is
       Write_Attribute : Name_Id := Name_Write;
 
@@ -5749,8 +5746,7 @@ package body Exp_Dist is
 
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
-      Package_Spec : Node_Id)
-      return         Node_Id
+      Package_Spec : Node_Id) return Node_Id
    is
       Inst : Node_Id;
    begin
@@ -5776,7 +5772,7 @@ package body Exp_Dist is
    -----------------------------------------------
 
    procedure Remote_Types_Tagged_Full_View_Encountered
-     (Full_View : in Entity_Id)
+     (Full_View : Entity_Id)
    is
       Stub_Elements : constant Stub_Structure :=
                         Stubs_Table.Get (Full_View);
@@ -5855,6 +5851,7 @@ package body Exp_Dist is
 
    function Underlying_RACW_Type (RAS_Typ : Entity_Id) return Entity_Id is
       Record_Type : Entity_Id;
+
    begin
       if Ekind (RAS_Typ) = E_Record_Type then
          Record_Type := RAS_Typ;
