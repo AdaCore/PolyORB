@@ -14,10 +14,10 @@ CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_exceptions.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Iop.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Boa.o
 
+include ../../InterfaceORB/system_dependant.mk
+
 COMMAND_LINE = -I$(ADABROKER_PATH) \
--largs $(CPP_LINK_FILES) \
--L../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
--lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
+-largs $(CPP_LINK_FILES) $(OMNIORB_LIBS)
 
 main:
 	make -C ../../InterfaceORB main
@@ -29,21 +29,19 @@ clean:
 
 server.o: server.cc
 	/usr/local/egcs/bin/g++ -c -O2  -Wall -Wno-unused -D__OMNIORB2__ \
--D_REENTRANT -I.  -I../../omniORB_2.7.0/include -D__x86__ -D__linux__ \
--D__OSVERSION__=2 -o server.o server.cc
+$(OMNIORB_SYSDEP_FLAGS) -D_REENTRANT -I.  -I../../omniORB_2.7.0/include  -o server.o server.cc
 
-chickenSK.o: chicken.hh chickenSK.cc egg.hh
+chicken_eggSK.o: chicken_egg.hh chicken_eggSK.cc 
 	/usr/local/egcs/bin/g++ -c -O2  -Wall -Wno-unused -D__OMNIORB2__ \
--D_REENTRANT -I.  -I../../omniORB_2.7.0/include -D__x86__ -D__linux__ \
--D__OSVERSION__=2 -o chickenSK.o chickenSK.cc
+$(OMNIORB_SYSDEP_FLAGS) -D_REENTRANT -I.  -I../../omniORB_2.7.0/include  -o chicken_eggSK.o chicken_eggSK.cc
 
-eggSK.o: egg.hh eggSK.cc chicken.hh
-	/usr/local/egcs/bin/g++ -c -O2  -Wall -Wno-unused -D__OMNIORB2__ \
--D_REENTRANT -I.  -I../../omniORB_2.7.0/include -D__x86__ -D__linux__ \
--D__OSVERSION__=2 -o eggSK.o eggSK.cc
-
-server: server.o chickenSK.o eggSK.o
+server: server.o chicken_eggSK.o
 	/usr/local/egcs/bin/g++ -o server -O2 -Wall -Wno-unused \
--Wl,-rpath,../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
--L../../omniORB_2.7.0/lib/i586_linux_2.0_glibc server.o chickenSK.o \
-eggSK.o -lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
+server.o chicken_eggSK.o $(OMNIORB_LIBS)
+
+chicken_egg.hh: chicken_egg.idl
+	omniidl2 chicken_egg.idl
+
+chicken_eggSK.cc : chicken_egg.idl
+	omniidl2 chicken_egg.idl
+

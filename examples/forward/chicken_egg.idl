@@ -1,0 +1,12 @@
+
+interface Chicken ;
+interface Egg ;
+
+interface Chicken {
+  Egg lay() ;
+};
+
+interface Egg {
+  Chicken hatch() ;
+};
+
