@@ -38,8 +38,12 @@ package body Harness is
      ("Result");
    echoULong_Argument_List : PolyORB.Any.NVList.Ref;
 
-   Request_Cache_Tab : array (1..10) of PolyORB.Requests.Request_Access;
-   Request_Cache_Tab_Free : array (1..10) of Boolean
+   Cache_Size : constant := 10;
+
+   Request_Cache_Tab : array (1 .. Cache_Size)
+     of PolyORB.Requests.Request_Access;
+
+   Request_Cache_Tab_Free : array (1 .. Cache_Size) of Boolean
      := (others => True);
 
    --------------------------
@@ -72,7 +76,7 @@ package body Harness is
         := CORBA.To_Any
            (arg);
       Self_Ref_ü : CORBA.Object.Ref :=
-        CORBA.Object.Ref
+         CORBA.Object.Ref
            (Self);
       Request_ü : PolyORB.Requests.Request_Access;
       Result_ü : PolyORB.Any.NamedValue
@@ -113,6 +117,9 @@ package body Harness is
            Request_ü.Exception_Info;
          PolyORB.Requests.Destroy_Request
            (Request_ü);
+         --  XXX Je doute que tu doives faire un Destroy_Request ici ...
+
+
          PolyORB.CORBA_P.Exceptions.Raise_From_Any
            (Result_ü.Argument);
       end if;
@@ -139,7 +146,9 @@ package body Harness is
       I : Natural := 1;
    begin
       --  There is always a free request in the cache.
-      --  A solution with mutex will be developped to handle the concurency problem.
+
+      --  A solution with mutex will be developped to handle the
+      --  concurency problem.
 
       loop
          exit when Request_Cache_Tab_Free (I);
@@ -150,6 +159,9 @@ package body Harness is
       Request_Cache_Tab (I).all.Args := EchoULong_Argument_List;
       Request_Cache_Tab (I).all.Result := Result;
       --  Request_Cache_Tab_Free (I) := False;
+
+      --  XXX tu ne mets jamais a False cette valeur ????????? mais
+      --  c'est du delire ..
 
       --  Set returns values
 
@@ -201,8 +213,7 @@ package body Harness is
            (Argument_U_arg),
          PolyORB.Any.ARG_IN);
 
-
-      for I in 1..10 loop
+      for I in Request_Cache_Tab'Range loop
          PolyORB.Requests.Create_Request
            (Target => PolyORB.References.Nil_Ref,
             Operation => Operation_Name_Ü,
@@ -229,6 +240,8 @@ package body Harness is
         PolyORB.Any.NVList.Internals.Element
         (EchoULong_Argument_List_Ü, 1);
       Element.all.Argument := Argument_U_Arg;
+
+      --  XXX A quoi sert Obj ????? Ou est defini Element ????
 
    end EchoULong_Update_Argument_List;
 
