@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -46,6 +46,8 @@ with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Exceptions;   use System.Garlic.Exceptions;
 with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Options;
+with System.Garlic.Priorities;
+with System.Garlic.Priorities.Mapping;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;
 with System.Garlic.Tasking;
@@ -113,25 +115,25 @@ package body System.RPC.Server is
    type Task_Identifier;
    type Task_Identifier_Access is access Task_Identifier;
 
-   function Create_Anonymous_Task
+   function Create_RPC_Handler
      return Task_Identifier_Access;
 
-   procedure Destroy_Anonymous_Task
+   procedure Destroy_RPC_Handler
      (Identifier : in out Task_Identifier_Access);
 
-   task type Anonymous_Task is
+   task type RPC_Handler is
       entry  Initialize (Identifier : in Task_Identifier_Access);
       entry  Execute;
       entry  Shutdown;
-      pragma Priority (Default_Priority);
+      pragma Priority (System.Priority'Last);
       pragma Storage_Size (2_000_000);
-   end Anonymous_Task;
-   type Anonymous_Task_Access is access Anonymous_Task;
+   end RPC_Handler;
+   type RPC_Handler_Access is access RPC_Handler;
    --  An anonymous task will serve a request. Is the pragma Storage_Size
    --  still needed there ???
 
    type Task_Identifier is record
-      Self   : Anonymous_Task_Access;
+      Self   : RPC_Handler_Access;
       RPC    : RPC_Id;
       PID    : Types.Partition_ID;
       Stop   : System.Garlic.Tasking.Mutex_PO_Access;
@@ -229,7 +231,7 @@ package body System.RPC.Server is
             Idle_Tasks_Count := Idle_Tasks_Count - 1;
 
          elsif Tasks_Pool_Count < Max_Mark then
-            Identifier       := Create_Anonymous_Task;
+            Identifier       := Create_RPC_Handler;
 
          else
             System.Garlic.Soft_Links.Lookup (Tasks_Pool_Watcher, Version);
@@ -264,20 +266,23 @@ package body System.RPC.Server is
       Show_Tasks_Pool;
    end Allocate_Task;
 
-   --------------------
-   -- Anonymous_Task --
-   --------------------
+   -----------------
+   -- RPC_Handler --
+   -----------------
 
-   task body Anonymous_Task is
+   task body RPC_Handler is
       Callee    : Types.Partition_ID;
       Receiver  : Streams.RPC_Receiver;
       Result    : Streams.Params_Stream_Access;
       Cancelled : Boolean;
-      Priority  : Natural;
+      Priority  : Priorities.Global_Priority;
       Self      : Task_Identifier_Access;
       Aborted   : Boolean := False;
 
       use Ada.Exceptions;
+      use System.Garlic.Priorities;
+      use System.Garlic.Priorities.Mapping;
+
    begin
       pragma Debug (D ("Anonymous task starting"));
       select
@@ -289,6 +294,7 @@ package body System.RPC.Server is
       end select;
 
       while Self /= null loop
+
          pragma Debug (D ("Waiting for a job"));
          select
             accept Execute;
@@ -314,8 +320,14 @@ package body System.RPC.Server is
             pragma Debug (D ("Invalid PID received"));
             raise Constraint_Error;
          end if;
-         Natural'Read (Self.Params, Priority);
-         System.Garlic.Soft_Links.Set_Priority (Priority);
+         Global_Priority'Read (Self.Params, Priority);
+         if RPC_Handler_Priority_Policy = Client_Propagated then
+            System.Garlic.Soft_Links.Set_Priority
+              (To_Native_Priority (Priority));
+         else
+            System.Garlic.Soft_Links.Set_Priority
+              (To_Native_Priority (RPC_Handler_Priority));
+         end if;
          When_Established;
 
          select
@@ -380,6 +392,10 @@ package body System.RPC.Server is
          end if;
          pragma Debug (D ("Job finished, queuing"));
 
+         --  Set RPC handler back to its initial priority.
+
+         System.Garlic.Soft_Links.Set_Priority (System.Priority'Last);
+
          --  Recycle anonymous task or destroy depending on the
          --  configuration of the anonymous task pool.
 
@@ -400,7 +416,7 @@ package body System.RPC.Server is
             Idle_Tasks_Count := Idle_Tasks_Count + 1;
 
          else
-            Destroy_Anonymous_Task (Self);
+            Destroy_RPC_Handler (Self);
          end if;
 
          System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);
@@ -411,37 +427,37 @@ package body System.RPC.Server is
          pragma Warnings (Off, E);
          pragma Debug (D ("Error in anonymous task " &
                           "(exception " & Exception_Name (E) & ")"));
-         Destroy_Anonymous_Task (Self);
-   end Anonymous_Task;
+         Destroy_RPC_Handler (Self);
+   end RPC_Handler;
 
-   ---------------------------
-   -- Create_Anonymous_Task --
-   ---------------------------
+   ------------------------
+   -- Create_RPC_Handler --
+   ------------------------
 
-   function Create_Anonymous_Task return Task_Identifier_Access is
+   function Create_RPC_Handler return Task_Identifier_Access is
       Identifier : constant Task_Identifier_Access := new Task_Identifier;
    begin
       Allocated_Tasks  := Allocated_Tasks + 1;
       Tasks_Pool_Count := Tasks_Pool_Count + 1;
-      Identifier.Self  := new Anonymous_Task;
+      Identifier.Self  := new RPC_Handler;
       Identifier.Stop  := new System.Garlic.Tasking.Mutex_PO;
       Identifier.Stop.Enter;
       Identifier.Self.Initialize (Identifier);
       return Identifier;
-   end Create_Anonymous_Task;
+   end Create_RPC_Handler;
 
-   ----------------------------
-   -- Destroy_Anonymous_Task --
-   ----------------------------
+   -------------------------
+   -- Destroy_RPC_Handler --
+   -------------------------
 
-   procedure Destroy_Anonymous_Task
+   procedure Destroy_RPC_Handler
      (Identifier : in out Task_Identifier_Access) is
    begin
       Deallocated_Tasks := Deallocated_Tasks + 1;
       Tasks_Pool_Count  := Tasks_Pool_Count - 1;
       System.Garlic.Tasking.Free (Identifier.Stop);
       Free (Identifier);
-   end Destroy_Anonymous_Task;
+   end Destroy_RPC_Handler;
 
    --------------
    -- Finalize --
@@ -468,7 +484,7 @@ package body System.RPC.Server is
 
       System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
       while Tasks_Pool_Count < Low_Mark loop
-         Identifier       := Create_Anonymous_Task;
+         Identifier       := Create_RPC_Handler;
          Identifier.Next  := Idle_Tasks_Queue;
          Idle_Tasks_Queue := Identifier;
          Idle_Tasks_Count := Idle_Tasks_Count + 1;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -33,11 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;             use Ada.Exceptions;
-with System.Garlic;              use System.Garlic;
-with System.Garlic.Debug;        use System.Garlic.Debug;
-with System.Garlic.Exceptions;   use System.Garlic.Exceptions;
-with System.Garlic.Heart;        use System.Garlic.Heart;
+with Ada.Exceptions;                   use Ada.Exceptions;
+
+with System.Garlic;                    use System.Garlic;
+with System.Garlic.Debug;              use System.Garlic.Debug;
+with System.Garlic.Exceptions;         use System.Garlic.Exceptions;
+with System.Garlic.Heart;              use System.Garlic.Heart;
+with System.Garlic.Priorities;         use System.Garlic.Priorities;
+with System.Garlic.Priorities.Mapping; use System.Garlic.Priorities.Mapping;
 with System.Garlic.Soft_Links;
 
 with System.Garlic.Startup;
@@ -163,12 +166,14 @@ package body System.RPC is
      (Partition : in Partition_ID;
       Params    : access Params_Stream_Type)
    is
-      Header : constant RPC_Header := (Kind => APC_Query);
-      Error  : aliased Error_Type;
+      use System.Garlic.Soft_Links;
+
+      Header   : constant RPC_Header := (Kind => APC_Query);
+      Error    : aliased Error_Type;
    begin
       Insert_RPC_Header (Params.X'Access, Header);
       Types.Partition_ID'Write (Params, Types.Partition_ID (Partition));
-      Natural'Write (Params, System.Garlic.Soft_Links.Get_Priority);
+      Global_Priority'Write (Params, To_Global_Priority (Get_Priority));
       Send (Types.Partition_ID (Partition),
             Remote_Call,
             Params.X'Access,
@@ -190,6 +195,8 @@ package body System.RPC is
       Params     : access Params_Stream_Type;
       Result     : access Params_Stream_Type)
    is
+      use System.Garlic.Soft_Links;
+
       RPC     : RPC_Id;
       Header  : RPC_Header (RPC_Query);
       Stream  : Streams.Stream_Element_Access;
@@ -203,7 +210,7 @@ package body System.RPC is
          Header.RPC := RPC;
          Insert_RPC_Header (Params.X'Access, Header);
          Types.Partition_ID'Write (Params, Types.Partition_ID (Partition));
-         Natural'Write (Params, System.Garlic.Soft_Links.Get_Priority);
+         Global_Priority'Write (Params, To_Global_Priority (Get_Priority));
          Send (Types.Partition_ID (Partition),
                Remote_Call,
                Params.X'Access,
