@@ -4189,12 +4189,26 @@ package body Exp_Dist is
 
               Component_Items => New_List (
                 Make_Component_Declaration (Loc,
-                  Make_Defining_Identifier (Loc,
-                    Name_All_Calls_Remote),
-                  Make_Component_Definition (Loc,
-                    Subtype_Indication =>
+                  Defining_Identifier =>
+                    Make_Defining_Identifier (Loc,
+                      Name_All_Calls_Remote),
+                  Component_Definition =>
+                    Make_Component_Definition (Loc,
+                      Subtype_Indication =>
                       New_Occurrence_Of (Standard_Boolean, Loc)),
-                  ACR_Expression))));
+                  Expression =>
+                    ACR_Expression),
+
+                Make_Component_Declaration (Loc,
+                  Defining_Identifier =>
+                    Make_Defining_Identifier (Loc,
+                      Name_Target),
+                  Component_Definition =>
+                    Make_Component_Definition (Loc,
+                      Subtype_Indication =>
+                        New_Occurrence_Of (RTE (RE_Address), Loc)),
+                  Expression =>
+                    New_Occurrence_Of (RTE (RE_Null_Address), Loc)))));
    end Build_Remote_Subprogram_Proxy_Type;
 
    -----------------------------
