@@ -81,12 +81,15 @@ package Broca.Buffers is
      (Buffer        : in out Buffer_Descriptor;
       Little_Endian : in Boolean);
 
-   function Size_Left (Buffer : Buffer_Descriptor) return  Buffer_Index_Type;
-   function Size      (Buffer : Buffer_Descriptor) return Buffer_Index_Type;
+   function Size_Left (Buffer : Buffer_Descriptor) return Buffer_Index_Type;
+   function Full_Size (Buffer : Buffer_Descriptor) return Buffer_Index_Type;
+   function Size_Used (Buffer : Buffer_Descriptor) return Buffer_Index_Type;
 
    procedure Skip_Bytes
      (Buffer : in out Buffer_Descriptor;
       Size   : in Buffer_Index_Type);
+
+   procedure Show (Buffer : in Buffer_Descriptor);
 
    procedure Write
      (Buffer  : in out Buffer_Descriptor;

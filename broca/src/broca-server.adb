@@ -979,12 +979,13 @@ package body Broca.Server is
       Compute_New_Size (Object_Key, POA);
       Compute_New_Size (Object_Key, Key);
 
-      Length := CORBA.Unsigned_Long (Size (Object_Key) - UL_Size);
+      Length := CORBA.Unsigned_Long (Full_Size (Object_Key) - UL_Size);
 
       Allocate_Buffer (Object_Key);
       Marshall (Object_Key, Length);
       Marshall (Object_Key, POA);
       Append_Buffer (Object_Key, Key);
+      Rewind (Object_Key);
       POA.Link_Lock.Unlock_R;
 
       Allocate_Buffer_And_Clear_Pos (IOR, 0);
@@ -1002,9 +1003,9 @@ package body Broca.Server is
       for N in Server_Id_Type loop
          Server := Server_Table.Get_Server_By_Id (N);
          exit when Server = null;
-         Old_Size := Size (IOR);
+         Old_Size := Full_Size (IOR);
          Marshall_Size_Profile (Server, IOR, Object_Key);
-         if Old_Size /= Size (IOR) then
+         if Old_Size /= Full_Size (IOR) then
             Nbr_Profiles := Nbr_Profiles + 1;
          end if;
       end loop;

@@ -97,7 +97,7 @@ package body Broca.GIOP is
    begin
       Allocate_Buffer (Buffer);
 
-      Message_Size := Size (Buffer) - Message_Header_Size;
+      Message_Size := Full_Size (Buffer) - Message_Header_Size;
       --  1.2.1 The message header.
       --  Magic + Version
       Write (Buffer, Magic);
@@ -211,7 +211,8 @@ package body Broca.GIOP is
       Compute_New_Size (Buffer, UL_Size, UL_Size);
 
       --  IOR
-      Broca.Refs.Compute_New_Size (Buffer, Broca.Refs.Ref (Reference));
+      Broca.Refs.Compute_New_Size
+        (Buffer, Broca.Refs.Ref (Reference));
    end Compute_New_Size;
 
    --------------
@@ -235,7 +236,8 @@ package body Broca.GIOP is
       Marshall (Buffer, Broca.GIOP.Location_Forward);
 
       --  Reference
-      Broca.Refs.Marshall (Buffer, Broca.Refs.Ref (Reference));
+      Broca.Refs.Marshall
+        (Buffer, Broca.Refs.Ref (Reference));
    end Marshall;
 
    -----------------------

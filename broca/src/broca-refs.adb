@@ -2,12 +2,13 @@ with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 with Broca.Locks;
 with Broca.Exceptions;
-with Broca.Buffers; use Broca.Buffers;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Refs is
+
+   use Broca.Buffers;
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.refs");
    procedure O is new Broca.Debug.Output (Flag);

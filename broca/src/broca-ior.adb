@@ -62,7 +62,7 @@ package body Broca.IOR is
      (Buffer : Buffer_Descriptor)
      return CORBA.String
    is
-      Length : Buffer_Index_Type := Size (Buffer);
+      Length : Buffer_Index_Type := Full_Size (Buffer);
       Bytes  : Buffer_Type (0 .. Length - 1);
       IOR    : String (1 .. 4 + Natural (Length) * 2);
       Local  : Buffer_Descriptor := Buffer;

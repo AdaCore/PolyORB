@@ -34,7 +34,7 @@ package body Broca.Stream is
    is
       use Sockets.Thin;
       use Interfaces.C;
-      Length : Buffer_Index_Type := Size (Buffer);
+      Length : Buffer_Index_Type := Full_Size (Buffer);
       Bytes  : Buffer_Type (0 .. Length - 1);
       Result : Interfaces.C.int;
    begin

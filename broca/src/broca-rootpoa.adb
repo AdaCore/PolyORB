@@ -667,8 +667,10 @@ package body Broca.Rootpoa is
          Key := Build_Key_For_ObjectId (Oid);
       end if;
 
+      Broca.Buffers.Rewind (Key);
       Broca.Server.Build_IOR
         (Obj.IOR, Type_Id, Broca.POA.POA_Object_Ptr (Self), Key);
+      Broca.Buffers.Rewind (Obj.IOR);
 
       Broca.Buffers.Destroy (Key);
 

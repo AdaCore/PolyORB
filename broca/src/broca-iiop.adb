@@ -1,4 +1,5 @@
 with Ada.Strings.Unbounded;
+with Text_IO; use Text_IO;
 with CORBA; use CORBA;
 with Broca.Exceptions;
 with Broca.Marshalling; use Broca.Marshalling;
@@ -79,6 +80,10 @@ package body Broca.IIOP is
    is
       IIOP_Profile : Profile_IIOP_Type renames Profile_IIOP_Type (Profile.all);
    begin
+      Put_Line ("From = " & Buffer_Index_Type'Image (From));
+
+      Skip_Bytes (Buffer, From);
+
       --  Endianess
       Compute_New_Size (Buffer, O_Size, O_Size);
 
@@ -94,9 +99,11 @@ package body Broca.IIOP is
       --  Port
       Compute_New_Size (Buffer, US_Size, US_Size);
 
+      Align_Size (Buffer, UL_Size);
+
       Compute_New_Size (Buffer, IIOP_Profile.Object_Key);
 
-      Allocate_Buffer_And_Clear_Pos (Buffer, Size (Buffer));
+      Allocate_Buffer_And_Clear_Pos (Buffer, Full_Size (Buffer));
 
       Marshall (Buffer, Is_Little_Endian);
       Marshall (Buffer, CORBA.Octet'(1));
@@ -272,7 +279,7 @@ package body Broca.IIOP is
    is
       use Sockets.Thin;
       use Interfaces.C;
-      Length : Buffer_Index_Type := Size (Buffer);
+      Length : Buffer_Index_Type := Full_Size (Buffer);
       Bytes  : Buffer_Type (0 .. Length - 1);
       Result : Interfaces.C.int;
    begin

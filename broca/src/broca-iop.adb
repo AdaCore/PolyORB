@@ -1,8 +1,14 @@
 with Broca.Buffers;     use Broca.Buffers;
 with Broca.Marshalling; use Broca.Marshalling;
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 with CORBA;             use CORBA;
 
 package body Broca.IOP is
+
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.iop");
+   procedure O is new Broca.Debug.Output (Flag);
 
    type Profile_Record is
       record
@@ -51,7 +57,9 @@ package body Broca.IOP is
       Profiles : in Profile_Ptr_Array_Ptr)
    is
       Buffers  : array (Profiles'Range) of Buffer_Descriptor;
+      Offsets  : array (Profiles'Range) of Buffer_Index_Type;
    begin
+
       Skip_Bytes          (Buffer, From);
       Compute_New_Size    (Buffer, O_Size, O_Size);
       Compute_New_Size    (Buffer, Type_Id);
@@ -66,22 +74,25 @@ package body Broca.IOP is
          --  Length of profile
          Compute_New_Size    (Buffer, UL_Size, UL_Size);
 
+         Offsets (N) := Size_Used (Buffer);
          Callbacks (Get_Profile_Id (Profiles (N).all)).Encapsulate
-           (Buffers (N), Size (Buffer), Profiles (N));
+           (Buffers (N), Offsets (N), Profiles (N));
 
          --  Skip space for profile
-         Skip_Bytes (Buffer, Size (Buffers (N)));
+         Skip_Bytes (Buffer, Full_Size (Buffers (N)) - Offsets (N));
       end loop;
 
-      Allocate_Buffer_And_Clear_Pos (Buffer, Size (Buffer));
+      Allocate_Buffer_And_Clear_Pos (Buffer, Full_Size (Buffer));
 
       Marshall (Buffer, Is_Little_Endian);
       Marshall (Buffer, Type_Id);
-      Marshall (Buffer, Profiles'Last + 1);
+      Marshall (Buffer, CORBA.Unsigned_Long (Profiles'Length));
 
       for N in Profiles'Range loop
          Rewind        (Buffers (N));
-         Skip_Bytes    (Buffers (N), Size (Buffer));
+         Skip_Bytes    (Buffers (N), Offsets (N));
+         pragma Debug (O ("Dump Buffers (N)"));
+         pragma Debug (Show (Buffers (N)));
          Marshall      (Buffer, Get_Profile_Id (Profiles (N).all));
          Marshall      (Buffer, CORBA.Unsigned_Long (Size_Left (Buffers (N))));
          Append_Buffer (Buffer, Buffers (N));

@@ -60,12 +60,15 @@ package body Broca.Buffers is
 
    procedure Append_Buffer
      (Target : in out Buffer_Descriptor;
-      Source : in Buffer_Descriptor) is
+      Source : in Buffer_Descriptor)
+   is
+      Length : Buffer_Index_Type
+        := Source.Buffer'Last - Source.Pos + 1;
    begin
       Set_Write_Mode (Target, True);
-      Target.Buffer (Target.Pos .. Target.Pos + Source.Pos - 1)
-        := Source.Buffer (0 .. Source.Pos - 1);
-      Target.Pos := Target.Pos + Source.Pos;
+      Target.Buffer (Target.Pos .. Target.Pos + Length - 1)
+        := Source.Buffer (Source.Pos .. Source.Pos + Length - 1);
+      Target.Pos := Target.Pos + Length;
    end Append_Buffer;
 
    ----------------------
@@ -89,7 +92,8 @@ package body Broca.Buffers is
      (Target : in out Buffer_Descriptor;
       Source : in Buffer_Descriptor) is
    begin
-      Target.Pos := Target.Pos + Source.Pos;
+      pragma Assert (Source.Buffer /= null);
+      Target.Pos := Target.Pos + Source.Buffer'Last - Source.Pos + 1;
    end Compute_New_Size;
 
    ----------
@@ -112,9 +116,7 @@ package body Broca.Buffers is
 
    procedure Destroy (Buffer : in out Buffer_Descriptor) is
    begin
-      if Buffer.Buffer /= null then
-         Free (Buffer.Buffer);
-      end if;
+      Free (Buffer.Buffer);
       Buffer.Pos := 0;
    end Destroy;
 
@@ -183,6 +185,20 @@ package body Broca.Buffers is
       end if;
    end Fix_Buffer_Size;
 
+   ---------------
+   -- Full_Size --
+   ---------------
+
+   function Full_Size (Buffer : in Buffer_Descriptor)
+     return Buffer_Index_Type is
+   begin
+      if Buffer.Buffer /= null then
+         return Buffer.Buffer'Last + 1;
+      else
+         return Buffer.Pos;
+      end if;
+   end Full_Size;
+
    -------------------
    -- Get_Endianess --
    -------------------
@@ -243,19 +259,6 @@ package body Broca.Buffers is
       end if;
    end Set_Write_Mode;
 
-   ----------
-   -- Size --
-   ----------
-
-   function Size (Buffer : in Buffer_Descriptor) return Buffer_Index_Type is
-   begin
-      if Buffer.Buffer /= null then
-         return Buffer.Buffer'Last + 1;
-      else
-         return Buffer.Pos;
-      end if;
-   end Size;
-
    ---------------
    -- Size_Left --
    ---------------
@@ -266,6 +269,33 @@ package body Broca.Buffers is
    begin
       return Buffer.Buffer'Last - Buffer.Pos + 1;
    end Size_Left;
+
+   ---------------
+   -- Size_Used --
+   ---------------
+
+   function Size_Used
+     (Buffer : in Buffer_Descriptor)
+      return Buffer_Index_Type is
+   begin
+      return Buffer.Pos;
+   end Size_Used;
+
+   ----------
+   -- Show --
+   ----------
+
+   procedure Show (Buffer : in Buffer_Descriptor) is
+   begin
+      pragma Debug (O ("Pos  =" & Buffer.Pos'Img));
+      if Buffer.Buffer /= null then
+         pragma Debug (O ("Last =" & Buffer.Buffer'Last'Img));
+         Dump (Buffer.Buffer (Buffer.Pos .. Buffer.Buffer'Last));
+      else
+         pragma Debug (O ("Buffer empty"));
+         null;
+      end if;
+   end Show;
 
    ----------------
    -- Skip_Bytes --

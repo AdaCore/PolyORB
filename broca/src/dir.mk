@@ -39,7 +39,7 @@ ADA_FULL = \
 #           portableserver-servantretentionpolicy.ads \
 #           portableserver-threadpolicy.ads
 
-ADA_FLAGS += -gnatg
+ADA_FLAGS += -gnatgao
 
 ADA_IMPLS = $(ADA_FULL:.ads=.adb)
 

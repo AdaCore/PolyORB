@@ -1,7 +1,7 @@
 with CORBA;
 with Broca.Refs;
 with Broca.IOP;
-with Broca.Buffers;
+with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Object is
 
@@ -10,6 +10,18 @@ package Broca.Object is
          Type_Id  : CORBA.String;
          Profiles : IOP.Profile_Ptr_Array_Ptr;
       end record;
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Broca.Object.Object_Type);
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Broca.Object.Object_Type);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out Broca.Object.Object_Type);
 
    type Object_Ptr is access all Object_Type'Class;
 

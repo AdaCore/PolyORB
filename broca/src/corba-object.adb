@@ -1,5 +1,6 @@
 with Broca.IOR;
 with Broca.Buffers; use Broca.Buffers;
+with Broca.Refs; use Broca.Refs;
 
 package body CORBA.Object is
 

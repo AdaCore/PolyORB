@@ -69,6 +69,7 @@ package body Broca.ORB is
 
          Unmarshall (IOR, Nbr_Profiles);
 
+         Obj.Type_Id  := Type_Id;
          Obj.Profiles := new IOP.Profile_Ptr_Array (1 .. Nbr_Profiles);
          for I in 1 .. Nbr_Profiles loop
             Unmarshall (IOR, Tag);
