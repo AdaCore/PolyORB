@@ -561,8 +561,6 @@ package body System.PolyORB_Interface is
                when E : others =>
                   EMsg.Req.Exception_Info
                     := DSA_Exception_To_Any (E);
-                  --  XXX Should map Ada exceptions to Anies
-                  --  correctly!
             end;
 
             <<Request_Completed>>
