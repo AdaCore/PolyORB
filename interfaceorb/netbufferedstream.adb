@@ -150,11 +150,12 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Char ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
    begin
       -- no alignment needed here
-      return Initial_Offset + 1 ;
+      return Initial_Offset + N ;
    end ;
 
 
@@ -207,11 +208,12 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Boolean ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
    begin
       -- no alignment needed here
-      return Initial_Offset + 1 ;
+      return Initial_Offset + N ;
       -- Boolean is marshalled as an unsigned_char
    end ;
 
@@ -265,12 +267,13 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Short ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
       Tmp : Corba.Unsigned_Long ;
    begin
       Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_2) ;
-      return Tmp + 2 ;
+      return Tmp + (2 * N) ;
    end ;
 
 
@@ -323,12 +326,13 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Unsigned_Short ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
       Tmp : Corba.Unsigned_Long ;
    begin
       Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_2) ;
-      return Tmp + 2 ;
+      return Tmp + (2 * N) ;
    end ;
 
 
@@ -383,12 +387,13 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Long ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
       Tmp : Corba.Unsigned_Long ;
    begin
       Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
-      return Tmp + 4 ;
+      return Tmp + (4 * N) ;
    end ;
 
 
@@ -441,12 +446,13 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Unsigned_Long ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
       Tmp : Corba.Unsigned_Long ;
    begin
       Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
-      return Tmp + 4 ;
+      return Tmp + (4 * N) ;
    end ;
 
 
@@ -499,12 +505,13 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Float ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
       Tmp : Corba.Unsigned_Long ;
    begin
       Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
-      return Tmp + 4 ;
+      return Tmp + (4 * N) ;
    end ;
 
 
@@ -557,12 +564,13 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Double ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
       Tmp : Corba.Unsigned_Long ;
    begin
       Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_8) ;
-      return Tmp + 8 ;
+      return Tmp + (8 * N) ;
    end ;
 
 
@@ -690,11 +698,12 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Completion_Status ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
    begin
       -- no alignment needed here
-      return Initial_Offset + 1 ;
+      return Initial_Offset + N ;
       -- a Completion_Status is marshalled as an unsigned_short
    end ;
 
@@ -729,12 +738,13 @@ package body NetBufferedStream is
    -- Align_Size
    -------------
    function Align_Size (A : in Corba.Ex_Body ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
       Tmp : Corba.Unsigned_Long ;
    begin
       Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
-      return Initial_Offset + 5 ;
+      return Initial_Offset + (8 * N) - 3 ;
       -- an Ex_body has two fields : an unsigned_long -> 4 bytes
       --                             and a Completion_Status -> 1 bytes
    end ;

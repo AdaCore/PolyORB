@@ -107,7 +107,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Char ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long;
    -- Compute the size needed to marshall A into S
 
@@ -123,7 +124,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Boolean ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 
@@ -139,7 +141,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Short ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 
@@ -155,7 +158,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Unsigned_Short ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 
@@ -171,7 +175,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Long ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 
@@ -187,7 +192,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Unsigned_Long ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 
@@ -203,7 +209,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Float ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 
@@ -219,7 +226,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Double ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 
@@ -251,7 +259,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Completion_Status ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 
@@ -267,7 +276,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.Ex_Body ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 
