@@ -15,5 +15,6 @@ test in and out param function..............................: PASSED
 test in and inout param function............................: PASSED
 test out and inout param function...........................: PASSED
 test in and out and inout param function....................: PASSED
-test void one way procedure.................................: FAILED
-test in param one way procedure.............................: FAILED
+test void one way procedure.................................: PASSED
+test in param one way procedure.............................: PASSED
+

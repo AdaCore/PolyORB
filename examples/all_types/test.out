@@ -27,4 +27,5 @@ test big multi-dimensional array............................: FAILED
 test attribute..............................................: PASSED
 test read-only attribute....................................: PASSED
 test user exception.........................................: PASSED
-test unknown exception......................................: FAILED
+test unknown exception......................................: PASSED
+
