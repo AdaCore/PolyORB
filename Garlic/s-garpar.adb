@@ -1146,8 +1146,6 @@ package body System.Garlic.Partitions is
       Info := Partitions.Get_Component (Partition);
       Info.Online := Online;
       Partitions.Set_Component (Partition, Info);
-
-      pragma Debug (Dump_Partition_Table);
    end Set_Online;
 
    --------------
