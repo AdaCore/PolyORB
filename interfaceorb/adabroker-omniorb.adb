@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.11 $
+--                            $Revision: 1.12 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -609,7 +609,7 @@ package body AdaBroker.OmniORB is
    begin
       pragma Debug (O ("enter Is_Equivalent"));
       C_Result := C_Is_Equivalent (Self, C_Other);
-      pragma Debug (O ("leave Is_Equivalent " & C_Result'Img));
+      pragma Debug (O ("leave Is_Equivalent " & Sysdep.Image (C_Result)));
       return Sysdep.To_Boolean (C_Result);
    end Is_Equivalent;
 
