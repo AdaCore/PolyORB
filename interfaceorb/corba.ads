@@ -150,19 +150,19 @@ package Corba is
    -----------------------------------------------------------
 
 
-    function _omni_CallTransientExceptionHandler (...) return CORBA::Boolean;
+    function Omni_CallTransientExceptionHandler return CORBA.Boolean;
     -- wrapper around extern CORBA::Boolean
     --                  _omni_callTransientExceptionHandler(omniObject*,
     --                  CORBA::ULong,
     --                  const CORBA::TRANSIENT&);
 
-    function _omni_CallCommFailureExceptionHandler (...) return CORBA::Boolean;
+    function Omni_CallCommFailureExceptionHandler return CORBA.Boolean;
     -- wrapper around extern CORBA::Boolean
     --                  _omni_callCommFailureExceptionHandler(omniObject*,
     --                  CORBA::ULong,
     --                  const CORBA::COMM_FAILURE&);
 
-    function _omni_CallSystemExceptionHandler (...) return CORBA::Boolean;
+    function Omni_CallSystemExceptionHandler return CORBA.Boolean;
     -- wrapper around extern CORBA::Boolean
     --                  _omni_callSystemExceptionHandler(omniObject*,
     --                  CORBA::ULong,
@@ -171,21 +171,27 @@ package Corba is
 
 private
 
-   procedure MarshalObjRef() ;
+   procedure MarshalObjRef(The_Object: Object'Class ;
+                           RepoID : String ;
+                           Nbs : NetBufferedStream.object) ;
    -- wrapper around void CORBA::MarshalObjRef(CORBA::Object_ptr obj,
    --        const char* repoId,
    --        size_t repoIdSize,
    --        NetBufferedStream &s)
    -- defined in objectRef.cc L721
 
-   procedure MarshalObjRef() ;
+   procedure MarshalObjRef(The_Object: Object'Class ;
+                           RepoID : String ;
+                           Mbs : MemBufferedStream.object) ;
    -- wrapper around void CORBA::MarshalObjRef(CORBA::Object_ptr obj,
    --        const char* repoId,
    --        size_t repoIdSize,
    --        MemBufferedStream &s)
    -- defined in objectRef.cc L850
 
-   function UnMarshalObjRef() return CORBA.Object.Ref ;
+   function UnMarshalObjRef(Repoid : String ;
+                            Nbs : NetBufferedStream
+                           ) return CORBA.Object.Ref ;
    -- return ???
    -- wrapper around CORBA::Object_ptr
    --                CORBA::UnMarshalObjRef(
@@ -193,7 +199,9 @@ private
    --                           NetBufferedStream& s)
    -- in objectRef.cc L637
 
-   function UnMarshalObjRef() return CORBA.Object.Ref ;
+   function UnMarshalObjRef(Repoid : String ;
+                            Mbs : MemBufferedStream
+                           ) return CORBA.Object.Ref ;
    -- return ???
    -- wrapper around CORBA::Object_ptr
    --                CORBA::UnMarshalObjRef(
@@ -201,7 +209,10 @@ private
    --                           MemBufferedStream& s)
    -- in objectRef.cc L765
 
-   function AlignedObjRef() return ;
+   function AlignedObjRef(The_Object : Object'Class ;
+                          RepoID : String ;
+                          Initial_Offset : Integer ;
+                         ) return Integer ;
    -- wrapper around size_t
    --                CORBA::AlignedObjRef(CORBA::Object_ptr obj,
    --                const char* repoId,

@@ -5,7 +5,7 @@
 ----                  package omniProxyCallDesc                    ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    :                                                   ----
+----   date    : 02/08/99                                          ----
 ----                                                               ----
 ----                                                               ----
 -----------------------------------------------------------------------
@@ -18,24 +18,25 @@ package omniProxyCallDesc is
    -- all the following funcitions correspond
    -- to omniORB's OmniProxyCallDesc
    -- In proxyCall.h L33
-   procedure Init (Self : in out Object,
-                     ...
+   procedure Init (Self : in out Object ;
+                   Operator : String ;
                   );
 
    function AlignedSize(Size_In: in Corba.Unsigned_Long)
-     return Corba.Unsigned_Long is abstract ;
+                        return Corba.Unsigned_Long is abstract ;
 
-   procedure MarshalArguments (Giop_Client: in out Giop_C) is abstract ;
+   procedure MarshalArguments (Giop_Client: in out Giop_C.Object ) is abstract ;
 
-   procedure UnmarshalReturnedValues (Giop_Client: in out Giop_C) is abstract ;
+   procedure UnmarshalReturnedValues (Giop_Client: in out Giop_C.Object ) is abstract ;
 
-   procedure UserException (Giop_Client : in Giop_C, RepoId : in CORBA::String);
+   procedure UserException (Giop_Client : in Giop_C.Object ;
+                            RepoId : in CORBA.String) ;
 
-   function Has_User_Exceptions (Self : in Object) return CORBA::Boolean;
+   function Has_User_Exceptions (Self : in Object) return CORBA.Boolean ;
 
-   function Operation_Len (Self : in Object) return Size_T;
+   function Operation_Len (Self : in Object) return Integer ;
 
-   function Operation (Self : in Object) return CORBA::String;
+   function Operation (Self : in Object) return CORBA.String;
 
 private
 

@@ -5,7 +5,7 @@
 ----                  package CORBA.Object                         ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    :                                                   ----
+----   date    : 02/08/99                                          ----
 ----                                                               ----
 ----                                                               ----
 -----------------------------------------------------------------------
@@ -32,18 +32,18 @@ package Corba.Object is
    ---        omniORB specific                    ---
    --------------------------------------------------
 
-   procedure PR_Setobj(  ) ;
+   procedure PR_Setobj(The_Object : in OmniObject.Object) ;
    -- wrapper around void CORBA::Object::PR_setobj(omniObject *obj)
    -- in corbaObject.cc L121
 
-   function PR_Getobj(  ) return OmniObject.Object ;
+   function PR_Getobj return OmniObject.Object ;
    -- wrapper around omniObject* CORBA::Object::PR_getobj()
    -- in corbaObject.cc L128
 
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
-   function Get_Dynamic_Object() return Ref'Class ;
+   function Get_Dynamic_Object return Ref'Class ;
 
 
 private
