@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Caching;
 
 private package System.RPC.Util is
 
@@ -52,10 +51,5 @@ private package System.RPC.Util is
    pragma Inline (Deep_Free);
    --  This procedure make sure that unconsumed data has been freed. This
    --  may occur in case of cancellation.
-
-   package Receiver_Map is
-      new System.Garlic.Caching.Cache (Index_Type => Partition_ID,
-                                       Data_Type  => RPC_Receiver,
-                                       Unset      => null);
 
 end System.RPC.Util;

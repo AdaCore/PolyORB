@@ -277,13 +277,7 @@ package body System.RPC.Pool is
             raise Constraint_Error;
          end if;
          Ada.Dynamic_Priorities.Set_Priority (Prio);
-         Receiver := Receiver_Map.Get (Dest);
-         if Receiver = null then
-
-            --  Well, we won't query it, it should be automatically set.
-
-            Receiver := Receiver_Map.Get (Dest);
-         end if;
+         Receiver := Get_RPC_Receiver;
          select
             Task_Manager.Is_Aborted (Partition, Id);
             declare

@@ -36,11 +36,13 @@
 with Ada.Dynamic_Priorities;
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Debug; use System.Garlic.Debug;
-with System.Garlic.Heart; use System.Garlic.Heart;
+with System.Garlic.Debug;        use System.Garlic.Debug;
+with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Termination;
-with System.RPC.Pool;     use System.RPC.Pool;
-with System.RPC.Util;     use System.RPC.Util;
+with System.Garlic.Utils;        use System.Garlic.Utils;
+pragma Elaborate (System.Garlic.Utils);
+with System.RPC.Pool;            use System.RPC.Pool;
+with System.RPC.Util;            use System.RPC.Util;
 with Ada.Exceptions;
 
 package body System.RPC is
@@ -55,6 +57,11 @@ package body System.RPC is
 
    use Ada.Streams;
    --  A lot of shortcuts.
+
+   Current_RPC_Receiver         : RPC_Receiver;
+   pragma Atomic (Current_RPC_Receiver);
+   Current_RPC_Receiver_Barrier : Barrier_Type;
+   --  The current RPC receiver and its associated barrier.
 
    Min_Size : constant Stream_Element_Count := 1024;
    --  No packet below this size will be allowed.
@@ -248,7 +255,8 @@ package body System.RPC is
    begin
       pragma Debug
         (D (D_Debug, "Setting RPC receiver for partition" & Partition'Img));
-      Receiver_Map.Set (Partition, Receiver);
+      Current_RPC_Receiver := Receiver;
+      Current_RPC_Receiver_Barrier.Signal_All (Permanent => True);
       Register_Partition_Error_Notification
         (Partition_Error_Notification'Access);
    end Establish_RPC_Receiver;
@@ -267,6 +275,18 @@ package body System.RPC is
          Result_Watcher.Invalidate (Id);
       end if;
    end Finalize;
+
+   ----------------------
+   -- Get_RPC_Receiver --
+   ----------------------
+
+   function Get_RPC_Receiver return RPC_Receiver is
+   begin
+      if Current_RPC_Receiver = null then
+         Current_RPC_Receiver_Barrier.Wait;
+      end if;
+      return Current_RPC_Receiver;
+   end Get_RPC_Receiver;
 
    ----------------
    -- Initialize --
@@ -575,7 +595,6 @@ package body System.RPC is
    procedure Shutdown is
    begin
       Free (Request_Id_Server);
-      Receiver_Map.Die;
       Free (Result_Watcher);
       Pool.Shutdown;
    end Shutdown;

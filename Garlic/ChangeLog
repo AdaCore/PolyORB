@@ -1,3 +1,21 @@
+Mon Dec  8 20:29:56 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpc.ads: (Get_RPC_Receiver): new private function.
+
+	* s-rpc.adb: (Get_RPC_Receiver): new function.
+	(Current_RPC_Receiver): new atomic variable holding the current
+	RPC receiver.
+	(Current_RPC_Receiver_Barrier): barrier to wait for the RPC
+	receiver to be installed.
+
+	* s-rpcpoo.adb: Use Get_RPC_Receiver instead of Receiver_Map.
+
+	* s-rpcuti.ads: Remove useless Receiver_Map.
+
+	* s-garcac.ads, s-garcac.adb: Obsolete files.
+
+	* Makefile.am: Remove dependencies over s-garcac.*.
+
 Thu Dec  4 16:48:31 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.ads: Remove GNAT 3.09 bug workaround.

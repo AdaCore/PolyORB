@@ -132,5 +132,9 @@ private
    procedure Initialize;
    --  Initialize the runtime of System.RPC.
 
+   function Get_RPC_Receiver return RPC_Receiver;
+   --  Get the currently installed RPC_Receiver. If none has been installed
+   --  yet, it waits until one is.
+
 end System.RPC;
 
