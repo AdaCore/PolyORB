@@ -330,7 +330,7 @@ package body System.Garlic.Units is
       Info : in Unit_Info)
    is
    begin
-      D ("* Unit " & Units.Get_Name (Unit));
+      D ("* Unit " & Units.Get_Name (Unit) & " -" & Unit'Img);
       D ("   Partition    "  & Info.Partition'Img);
       D ("   Receiver     "  & Info.Receiver'Img);
       if Info.Version /= Null_Version then
@@ -863,6 +863,7 @@ package body System.Garlic.Units is
       Receiver  : Unsigned_64;
       Version   : Version_Type;
       Status    : Unit_Status;
+
    begin
       List := Null_Request_List;
 
@@ -871,7 +872,7 @@ package body System.Garlic.Units is
          pragma Debug
            (D ("Read units mapped on partition" & Partition'Img));
 
-         Set_First_Remote_Unit (Partition, Null_Unit_Id);
+         --  Set_First_Remote_Unit (Partition, Null_Unit_Id);
          while Boolean'Input (Stream) loop
             Unit := Units.Get_Index (String'Input (Stream));
             pragma Debug
@@ -1022,6 +1023,10 @@ package body System.Garlic.Units is
          if Info.Status /= Defined
            or else Info.Partition /= Partition
          then
+            pragma Debug (D ("info.status    " & Info.Status'Img));
+            pragma Debug (D ("info.partition"  & Info.Partition'Img));
+            pragma Debug (D ("partition     "  & Partition'Img));
+
             pragma Debug (D ("unit " & List.Name.all &
                              " is already declared"));
             Activate_Shutdown;
@@ -1148,12 +1153,14 @@ package body System.Garlic.Units is
          declare
             Previous_Unit : Unit_Id;
             Previous_Info : Unit_Info;
+
          begin
             Previous_Unit := Get_First_Remote_Unit (Current_Partition);
             if Previous_Unit = Unit then
                Previous_Info := Units.Get_Component (Previous_Unit);
                Set_First_Remote_Unit
                  (Current_Partition, Previous_Info.Next_Unit);
+
             else
                loop
                   Previous_Info := Units.Get_Component (Previous_Unit);
@@ -1233,13 +1240,11 @@ package body System.Garlic.Units is
          Current_Status := Status;
       end if;
 
-      Current_Info.Receiver := Receiver;
-      Current_Info.Version  := Version;
-      Current_Partition     := Partition;
-
       --  Add this unit in the partition unit list
 
-      if Current_Status in Declared .. Invalid then
+      if Current_Status in Declared .. Invalid
+        and then Current_Partition /= Partition
+      then
          pragma Debug
            (D ("Add unit " & Units.Get_Name (Unit) &
                " to partition" & Partition'Img));
@@ -1247,6 +1252,10 @@ package body System.Garlic.Units is
          Current_Info.Next_Unit := Get_First_Remote_Unit (Partition);
          Set_First_Remote_Unit (Partition, Unit);
       end if;
+
+      Current_Info.Receiver  := Receiver;
+      Current_Info.Version   := Version;
+      Current_Info.Partition := Partition;
 
       --  Add pending requests to Pending and mark them as handled
 
