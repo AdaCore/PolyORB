@@ -59,13 +59,13 @@
   Raise_Corba_Exception (e); \
 } catch (CORBA::BAD_PARAM &e) { \
   Raise_Corba_Exception (e); \
+} catch (CORBA::NO_MEMORY &e) { \
+  Raise_Corba_Exception (e); \
 } catch (CORBA::IMP_LIMIT &e) { \
   Raise_Corba_Exception (e); \
 } catch (CORBA::COMM_FAILURE &e) { \
   Raise_Corba_Exception (e); \
 } catch (CORBA::INV_OBJREF &e) { \
-  Raise_Corba_Exception (e); \
-} catch (CORBA::OBJECT_NOT_EXIST &e) { \
   Raise_Corba_Exception (e); \
 } catch (CORBA::NO_PERMISSION &e) { \
   Raise_Corba_Exception (e); \
@@ -105,6 +105,8 @@
   Raise_Corba_Exception (e); \
 } catch (CORBA::DATA_CONVERSION &e) { \
   Raise_Corba_Exception (e); \
+} catch (CORBA::OBJECT_NOT_EXIST &e) { \
+  Raise_Corba_Exception (e); \
 } catch (CORBA::TRANSACTION_REQUIRED &e) { \
   Raise_Corba_Exception (e); \
 } catch (CORBA::TRANSACTION_ROLLEDBACK &e) { \
@@ -112,8 +114,6 @@
 } catch (CORBA::INVALID_TRANSACTION &e) { \
   Raise_Corba_Exception (e); \
 } catch (CORBA::WRONG_TRANSACTION &e) { \
-  Raise_Corba_Exception (e); \
-} catch (omniORB::fatalException &e) { \
   Raise_Corba_Exception (e); \
 } catch (...) { \
   Raise_Ada_FatalException (__FILE__, \
