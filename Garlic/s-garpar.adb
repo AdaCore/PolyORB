@@ -190,11 +190,13 @@ package body System.Garlic.Partitions is
    procedure Read_Partition
      (Stream : access Streams.Params_Stream_Type;
       PID    : in Partition_ID;
-      Info   : in out Partition_Info);
+      Info   : in out Partition_Info;
+      Error  : in out Error_Type);
    --  Unmarshal partition info and update partition table if needed.
 
    procedure Read_Partitions
-     (Stream : access Streams.Params_Stream_Type);
+     (Stream : access Streams.Params_Stream_Type;
+      Error  : in out Error_Type);
    --  Unmarshal partition info table.
 
    procedure Validate_PID
@@ -591,7 +593,11 @@ package body System.Garlic.Partitions is
 
             --  Merge the local table with the one we received.
 
-            Read_Partitions  (Query);
+            Read_Partitions  (Query, Error);
+            if Found (Error) then
+               Partitions.Leave;
+               return;
+            end if;
 
             --  Broadcast to any partition in the group. This is step
             --  8. Except if the current partition has initiated the
@@ -628,7 +634,11 @@ package body System.Garlic.Partitions is
             --  Merge this new partition in the local partition table.
 
             Info := Partitions.Get_Component (Partition);
-            Read_Partition (Query, Partition, Info);
+            Read_Partition (Query, Partition, Info, Error);
+            if Found (Error) then
+               Partitions.Leave;
+               return;
+            end if;
 
             if Options.Is_Boot_Mirror then
 
@@ -664,7 +674,11 @@ package body System.Garlic.Partitions is
 
             --  Merge the local table with the table we received.
 
-            Read_Partitions (Query);
+            Read_Partitions (Query, Error);
+            if Found (Error) then
+               Partitions.Leave;
+               return;
+            end if;
 
             if Self_PID = Null_PID then
 
@@ -757,6 +771,9 @@ package body System.Garlic.Partitions is
       if Booted then
          Set_My_Partition_ID (Error);
       end if;
+
+   exception when others =>
+      Throw (Error, "Data error in Partitions.Handle_Partition_Request");
    end Handle_Partition_Request;
 
    ----------------------------
@@ -1027,7 +1044,8 @@ package body System.Garlic.Partitions is
    procedure Read_Partition
      (Stream : access Params_Stream_Type;
       PID    : in Partition_ID;
-      Info   : in out Partition_Info)
+      Info   : in out Partition_Info;
+      Error  : in out Error_Type)
    is
       Status         : Status_Type       := Status_Type'Input (Stream);
       All_Locations  : String            := String'Input (Stream);
@@ -1097,13 +1115,17 @@ package body System.Garlic.Partitions is
          Info.Status         := Status;
          Partitions.Set_Component (PID, Info);
       end if;
+   exception when others =>
+      Throw (Error, "Data error in Partitions.Read_Partition");
    end Read_Partition;
 
    ---------------------
    -- Read_Partitions --
    ---------------------
 
-   procedure Read_Partitions (Stream : access Params_Stream_Type)
+   procedure Read_Partitions
+     (Stream : access Params_Stream_Type;
+      Error  : in out Error_Type)
    is
       PID     : Partition_ID;
       Info    : Partition_Info;
@@ -1113,12 +1135,17 @@ package body System.Garlic.Partitions is
       while Boolean'Input (Stream) loop
          Partition_ID'Read (Stream, PID);
          Info := Partitions.Get_Component (PID);
-         Read_Partition (Stream, PID, Info);
+         Read_Partition (Stream, PID, Info, Error);
+         if Found (Error) then
+            return;
+         end if;
          if Info.Is_Boot_Mirror then
             Mirrors := Mirrors + 1;
          end if;
       end loop;
       Boot_Mirrors := Mirrors;
+   exception when others =>
+      Throw (Error, "Data error in Partitions.Read_Partitions");
    end Read_Partitions;
 
    -----------------------

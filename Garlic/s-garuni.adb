@@ -225,7 +225,8 @@ package body System.Garlic.Units is
 
    procedure Read_Units
      (Stream : access Params_Stream_Type;
-      List   : out Request_List);
+      List   : out Request_List;
+      Error  : in out Error_Type);
 
    procedure Write_Units
      (Stream : access Params_Stream_Type);
@@ -603,7 +604,11 @@ package body System.Garlic.Units is
 
             --  Merge local unit list with the list we received.
 
-            Read_Units (Query, Pending);
+            Read_Units (Query, Pending, Error);
+            if Found (Error) then
+               Units.Leave;
+               return;
+            end if;
 
             declare
                List  : Request_List := Pending;
@@ -645,7 +650,11 @@ package body System.Garlic.Units is
 
             --  Merge the local unit list with the list we received.
 
-            Read_Units (Query, Pending);
+            Read_Units (Query, Pending, Error);
+            if Found (Error) then
+               Units.Leave;
+               return;
+            end if;
 
             --  If there are new units and if this partition is a boot
             --  mirror, then broadcast the new unit table to the other
@@ -688,6 +697,9 @@ package body System.Garlic.Units is
       if not Empty (To_All'Access) then
          Broadcast (Unit_Name_Service, To_All'Access);
       end if;
+
+   exception when others =>
+      Throw (Error, "Data error in Units.Handle_Request");
    end Handle_Request;
 
    ----------------
@@ -832,7 +844,8 @@ package body System.Garlic.Units is
 
    procedure Read_Units
      (Stream : access Params_Stream_Type;
-      List   : out Request_List)
+      List   : out Request_List;
+      Error  : in out Error_Type)
    is
       Unit      : Unit_Id;
       Partition : Partition_ID;
@@ -863,11 +876,9 @@ package body System.Garlic.Units is
       pragma Debug (D ("Requests from" & Dump_Request_List (List) &
                        " can be answered"));
       pragma Debug (Dump_Unit_Table);
-   exception
-      when Error : others =>
-         pragma Debug (D ("Exception raised in Read_Units: " &
-                          Ada.Exceptions.Exception_Information (Error)));
-         raise;
+
+   exception when others =>
+      Throw (Error, "Data error in Units.Read_Units");
    end Read_Units;
 
    -------------------
