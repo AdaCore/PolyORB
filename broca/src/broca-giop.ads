@@ -1,7 +1,8 @@
 with CORBA;
 with CORBA.Object;
 with Broca.Object;
-with Broca.Buffers; use Broca.Buffers;
+with Broca.Buffers;
+with Broca.IOP;
 
 package Broca.GIOP is
    --  Declare a few constants for GIOP version 1.0.
@@ -36,86 +37,86 @@ package Broca.GIOP is
    No_Context : constant CORBA.Unsigned_Long := 0;
 
    procedure Compute_GIOP_Header_Size
-     (Buffer : in out Buffer_Descriptor);
+     (Buffer : in out Buffers.Buffer_Descriptor);
 
    procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : in out Buffers.Buffer_Descriptor;
       Value  : in MsgType);
 
    procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : in out Buffers.Buffer_Descriptor;
       Value  : in ReplyStatusType);
 
    procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : in out Buffers.Buffer_Descriptor;
       Value  : in LocateStatusType);
 
    procedure Compute_New_Size
-     (Buffer     : in out Buffer_Descriptor;
+     (Buffer     : in out Buffers.Buffer_Descriptor;
       Request_Id : in CORBA.Unsigned_Long;
       Occurence  : in CORBA.Exception_Occurrence);
 
    procedure Compute_New_Size
-     (Buffer     : in out Buffer_Descriptor;
+     (Buffer     : in out Buffers.Buffer_Descriptor;
       Request_Id : in CORBA.Unsigned_Long;
       Reference  : in CORBA.Object.Ref);
 
    procedure Marshall_GIOP_Header
-     (Buffer       : in out Buffer_Descriptor;
+     (Buffer       : in out Buffers.Buffer_Descriptor;
       Message_Type : in MsgType);
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : in out Buffers.Buffer_Descriptor;
       Value  : in MsgType);
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : in out Buffers.Buffer_Descriptor;
       Value  : in ReplyStatusType);
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : in out Buffers.Buffer_Descriptor;
       Value  : in LocateStatusType);
 
    procedure Marshall
-     (Buffer     : in out Buffer_Descriptor;
+     (Buffer     : in out Buffers.Buffer_Descriptor;
       Request_Id : in CORBA.Unsigned_Long;
       Occurence  : in CORBA.Exception_Occurrence);
 
    procedure Marshall
-     (Buffer     : in out Buffer_Descriptor;
+     (Buffer     : in out Buffers.Buffer_Descriptor;
       Request_Id : in CORBA.Unsigned_Long;
       Reference  : in CORBA.Object.Ref);
 
    procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : in out Buffers.Buffer_Descriptor;
       Result : out MsgType);
 
    procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : in out Buffers.Buffer_Descriptor;
       Result : out ReplyStatusType);
 
    procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
+     (Buffer : in out Buffers.Buffer_Descriptor;
       Result : out LocateStatusType);
 
    procedure Unmarshall_GIOP_Header
-     (Buffer       : in out Buffer_Descriptor;
+     (Buffer       : in out Buffers.Buffer_Descriptor;
       Message_Type : out MsgType;
       Message_Size : out CORBA.Unsigned_Long);
 
    type Request_Handler is
       record
-         Buffer : Buffer_Descriptor;
+         Buffer     : Buffers.Buffer_Descriptor;
          Request_Id : CORBA.Unsigned_Long;
-         Profile : Broca.Object.Profile_Ptr;
-         Connection : Broca.Object.Connection_Ptr;
-         Nbr_Tries : Natural := 0;
+         Profile    : IOP.Profile_Ptr;
+         Connection : IOP.Connection_Ptr;
+         Nbr_Tries  : Natural := 0;
       end record;
 
    --  Send a request.
    procedure Send_Request_Size
      (Handler   : in out Request_Handler;
-      Object    : in Broca.Object.Object_Ptr;
+      Target    : in Object.Object_Ptr;
       Operation : in CORBA.Identifier);
 
    procedure Send_Request_Marshall
@@ -131,7 +132,7 @@ package Broca.GIOP is
 
    procedure Send_Request_Send
      (Handler          : in out Request_Handler;
-      Object           : in Broca.Object.Object_Ptr;
+      Target           : in Object.Object_Ptr;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type);
 

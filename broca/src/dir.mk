@@ -45,6 +45,7 @@ ADA_IMPLS = $(ADA_FULL:.ads=.adb)
 
 ADA_SPECS += $(ADA_FULL) \
            broca.ads \
+           broca-iop.ads \
            corba-sequences.ads \
            portableserver-servantactivator-impl.ads \
            portableserver-servantlocator-impl.ads \

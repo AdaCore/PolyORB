@@ -1,9 +1,9 @@
 with Interfaces.C;
 with CORBA;
 with Broca.Sequences;
-with Broca.Object;
-with Broca.Buffers; use Broca.Buffers;
+with Broca.Buffers;
 with Broca.Locks;
+with Broca.IOP;
 with Sockets.Thin;
 with Interfaces.C;
 
@@ -29,7 +29,7 @@ package Broca.IIOP is
          Lock : Broca.Locks.Mutex_Type;
       end record;
 
-   type Profile_IIOP_Type is new Broca.Object.Profile_Type with
+   type Profile_IIOP_Type is new IOP.Profile_Type with
       record
          --  Informations directly taken from the IOR.
          IIOP_Version : Version_Type;
@@ -54,14 +54,16 @@ package Broca.IIOP is
    --  OBJECT via PROFILE.
    function Find_Connection
      (Profile : access Profile_IIOP_Type)
-      return Broca.Object.Connection_Ptr;
+      return IOP.Connection_Ptr;
 
    procedure Create_Profile
-     (Buffer : in out Buffer_Descriptor;
-      Profile : out Broca.Object.Profile_Ptr);
+     (Buffer : in out Buffers.Buffer_Descriptor;
+      Profile : out IOP.Profile_Ptr);
 
 private
-   function Get_Object_Key (Profile : Profile_IIOP_Type)
-                            return Broca.Sequences.Octet_Sequence;
+
+   function Get_Object_Key
+     (Profile : Profile_IIOP_Type)
+     return Broca.Sequences.Octet_Sequence;
 
 end Broca.IIOP;

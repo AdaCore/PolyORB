@@ -4,6 +4,7 @@ with Broca.Exceptions;
 with Broca.Flags;
 with Broca.Sequences;
 with Broca.ORB;
+with Broca.Buffers;      use Broca.Buffers;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -243,7 +244,7 @@ package body Broca.GIOP is
 
    procedure Send_Request_Size
      (Handler   : in out Request_Handler;
-      Object    : in Broca.Object.Object_Ptr;
+      Target    : in Object.Object_Ptr;
       Operation : in CORBA.Identifier)
    is
       use Broca.Marshalling;
@@ -255,8 +256,8 @@ package body Broca.GIOP is
       end if;
 
       --  1. Send a GIOP message.
-      Handler.Profile := Broca.Object.Find_Profile (Object);
-      Handler.Connection := Broca.Object.Find_Connection (Handler.Profile);
+      Handler.Profile := Object.Find_Profile (Target);
+      Handler.Connection := IOP.Find_Connection (Handler.Profile);
 
       Compute_GIOP_Header_Size (Handler.Buffer);
 
@@ -274,7 +275,7 @@ package body Broca.GIOP is
          Length_Size  => UL_Size,
          Element_Size => 1,
          Array_Length => Broca.Sequences.Octet_Sequences.Length
-         (Broca.Object.Get_Object_Key (Handler.Profile.all)));
+         (IOP.Get_Object_Key (Handler.Profile.all)));
 
       --  Operation
       Compute_New_Size (Handler.Buffer, CORBA.String (Operation));
@@ -300,7 +301,7 @@ package body Broca.GIOP is
       Marshall (Handler.Buffer, CORBA.Unsigned_Long (No_Context));
 
       --  Request id
-      Handler.Request_Id := Broca.Object.Get_Request_Id (Handler.Connection);
+      Handler.Request_Id := IOP.Get_Request_Id (Handler.Connection);
       Marshall (Handler.Buffer, Handler.Request_Id);
 
       --  Response expected
@@ -309,7 +310,7 @@ package body Broca.GIOP is
       --  Object key
       Broca.Sequences.Marshall
         (Handler.Buffer,
-         Broca.Object.Get_Object_Key (Handler.Profile.all));
+         IOP.Get_Object_Key (Handler.Profile.all));
 
       --  Operation
       Marshall (Handler.Buffer, CORBA.String (Operation));
@@ -324,7 +325,7 @@ package body Broca.GIOP is
 
    procedure Send_Request_Send
      (Handler          : in out Request_Handler;
-      Object           : in Broca.Object.Object_Ptr;
+      Target           : in Object.Object_Ptr;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type)
    is
@@ -338,10 +339,10 @@ package body Broca.GIOP is
       Tmp : Buffer_Descriptor;
    begin
       --  1.3 Send request.
-      Broca.Object.Send (Handler.Connection, Handler.Buffer);
+      IOP.Send (Handler.Connection, Handler.Buffer);
 
       if not Reponse_Expected then
-         Broca.Object.Release_Connection (Handler.Connection);
+         IOP.Release_Connection (Handler.Connection);
          Result := Sr_No_Reply;
          return;
       end if;
@@ -351,7 +352,7 @@ package body Broca.GIOP is
       Allocate_Buffer_And_Clear_Pos (Handler.Buffer, Message_Header_Size);
 
       pragma Debug (O ("Receive answer ..."));
-      Broca.Object.Receive (Handler.Connection, Handler.Buffer);
+      IOP.Receive (Handler.Connection, Handler.Buffer);
       pragma Debug (O ("Receive answer done"));
 
       Unmarshall_GIOP_Header (Handler.Buffer, Message_Type, Message_Size);
@@ -363,8 +364,8 @@ package body Broca.GIOP is
       Skip_Bytes (Handler.Buffer, Message_Header_Size);
 
       --  1.4.5 Receive the reply header and body.
-      Broca.Object.Receive (Handler.Connection, Handler.Buffer);
-      Broca.Object.Release_Connection (Handler.Connection);
+      IOP.Receive (Handler.Connection, Handler.Buffer);
+      IOP.Release_Connection (Handler.Connection);
 
       --  Service context
       Unmarshall (Handler.Buffer, Service_Context);
@@ -398,8 +399,8 @@ package body Broca.GIOP is
             begin
                Broca.ORB.IOR_To_Object (Handler.Buffer, New_Ref);
                --  FIXME: check type, use a lock ?
-               Object.Profiles :=
-                 Broca.Object.Object_Ptr (CORBA.Object.Get (New_Ref)).Profiles;
+               Target.Profiles :=
+                 Object.Object_Ptr (CORBA.Object.Get (New_Ref)).Profiles;
             end;
             Result := Sr_Forward;
             return;

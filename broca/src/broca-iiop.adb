@@ -2,6 +2,8 @@ with Ada.Strings.Unbounded;
 with CORBA; use CORBA;
 with Broca.Exceptions;
 with Broca.Marshalling;
+with Broca.Buffers;     use Broca.Buffers;
+with Broca.IOP;
 with Broca.Sequences;
 with Sockets.Constants;
 with Sockets.Naming;
@@ -50,7 +52,7 @@ package body Broca.IIOP is
 
    procedure Create_Profile
      (Buffer : in out Buffer_Descriptor;
-      Profile : out Broca.Object.Profile_Ptr)
+      Profile : out IOP.Profile_Ptr)
    is
       use Broca.Marshalling;
 
@@ -159,7 +161,7 @@ package body Broca.IIOP is
       end if;
    end Open_Strand;
 
-   type Strand_Connection_Type is new Broca.Object.Connection_Type with
+   type Strand_Connection_Type is new IOP.Connection_Type with
       record
          Strand : Strand_Ptr;
       end record;
@@ -245,7 +247,7 @@ package body Broca.IIOP is
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE.
    function Find_Connection (Profile : access Profile_IIOP_Type)
-                             return Broca.Object.Connection_Ptr
+                             return IOP.Connection_Ptr
    is
       use Interfaces.C;
       Strand : Strand_Ptr;
@@ -271,7 +273,7 @@ package body Broca.IIOP is
       if Strand.Fd = Sockets.Thin.Failure then
          Open_Strand (Profile, Strand);
       end if;
-      return new Strand_Connection_Type'(Broca.Object.Connection_Type
+      return new Strand_Connection_Type'(IOP.Connection_Type
                                          with Strand => Strand);
    end Find_Connection;
 

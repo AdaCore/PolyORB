@@ -9,6 +9,7 @@ with Broca.Refs;
 with Broca.Object;
 with Broca.Repository;
 with Broca.IIOP;
+with Broca.IOP;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -68,8 +69,7 @@ package body Broca.ORB is
 
          Unmarshall (IOR, Nbr_Profiles);
 
-         Obj.Profiles :=
-          new Broca.Object.Profile_Ptr_Array (1 .. Nbr_Profiles);
+         Obj.Profiles := new IOP.Profile_Ptr_Array (1 .. Nbr_Profiles);
          for I in 1 .. Nbr_Profiles loop
             Unmarshall (IOR, Tag);
             case Tag is
