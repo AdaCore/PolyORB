@@ -354,6 +354,26 @@ begin
             & "'");
          New_Line;
 
+         --  Create reference
+
+--          begin
+--             declare
+--                Obj_Ref2 : constant CORBA.Object.Ref :=
+--                  RTPortableServer.POA.Create_Reference_With_Priority
+--                  (Child_POA_Client,
+--                   CORBA.To_CORBA_String (Echo.Repository_Id),
+--                   7);
+--                pragma Unreferenced (Obj_Ref2);
+--             begin
+--                Output ("Create_Reference_With_Priority raised an exception",
+--                        False);
+--             end;
+--          exception
+--             when PortableServer.POA.WrongPolicy =>
+--                Output ("Create_Reference_With_Priority raised an exception",
+--                        True);
+--          end;
+
          --  Activate servant with priority
 
          begin
@@ -365,34 +385,44 @@ begin
                  (Child_POA_Client,
                   PortableServer.Servant (Obj2),
                   7);
-
+               pragma Unreferenced (Oid);
             begin
-               Output ("Activate_Object_With_Priority did not raise exception",
-                       True);
-
-               --  Call Servant_To_Reference
-
-               Ref_Client := PortableServer.POA.Id_To_Reference
-                 (PortableServer.POA.Ref (Child_POA_Client), Oid);
-
-               --  Output object IOR
-
-               New_Line;
-               Put_Line
-                 ("'"
-                  & CORBA.To_Standard_String
-                  (CORBA.Object.Object_To_String (Ref_Client))
-                  & "'");
-               New_Line;
+               Output ("Activate_Object_With_Priority raised no exception",
+                       False);
 
             end;
 
-            Output ("Activate_Object_With_Priority raised no exception",
-                    False);
          exception
             when PortableServer.POA.WrongPolicy =>
                Output ("Activate_Object_With_Priority raised an exception",
                        True);
+         end;
+
+         --  Activate servant with id & priority
+
+         begin
+            declare
+               Obj2 : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
+
+               Oid : constant PortableServer.ObjectId
+                 := PortableServer.String_To_ObjectId ("dead");
+
+            begin
+               RTPortableServer.POA.Activate_Object_With_Id_And_Priority
+                 (Child_POA_Client,
+                  Oid,
+                  PortableServer.Servant (Obj2),
+                  7);
+
+               Output
+                 ("Activate_Object_With_id_and_Priority raised no exception",
+                  False);
+            end;
+         exception
+            when PortableServer.POA.WrongPolicy =>
+               Output
+                 ("Activate_Object_With_id_and_Priority raised no exception",
+                  True);
          end;
 
          Destroy (PortableServer.POA.Ref (Child_POA_Client), False, False);
