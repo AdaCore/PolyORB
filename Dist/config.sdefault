@@ -5,7 +5,7 @@ S3=`gcc -c -dumpmachine`
 cat >sdefault.adb <<EOF
 package body Sdefault is
    S1 : aliased constant String
-      := "${S1}/adainclude/";
+      := "${S1}/lib/gcc-lib/${S3}/${S2}/adainclude/";
    S2 : aliased constant String
       := "${S1}/lib/gcc-lib/${S3}/${S2}/adalib/";
    S3 : aliased constant String

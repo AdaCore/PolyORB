@@ -8,7 +8,6 @@ GNATSRC = @GNAT_SOURCE@
 GARLIC = ${libdir}/garlic
 GNATFLAGS = -gnatpg @GNATFLAGS@
 EXTRA_LIBS = @EXTRA_LIBS@
-GNATMAKE = @GNATMAKE@
 RSH = @RSH@
 
 bin_SCRIPTS = gnatdist
@@ -17,6 +16,8 @@ libexec_SCRIPTS = xe-gcc
 dist1_DEPENDENCIES = xe_defs.o sdefault.o
 dist1_SOURCES =
 dist1_LDADD =
+
+GNATMAKE = gnatmake -m
 
 CLEANFILES = *.ali gnatdist xe_defs.adb sdefault.adb
 
@@ -55,14 +56,16 @@ sdefault.adb: ${srcdir}/config.sdefault
 sdefault.o: sdefault.adb ${GNATSRC}/sdefault.ads
 	${CC} -c -g -O2 -gnatp -I${GNATSRC} sdefault.adb
 
-gnatdist: Makefile
-	@echo '#!/bin/sh' >gnatdist
-	@echo "PATH=${libexecdir}"':$${PATH}' >> gnatdist
-	@echo "export PATH" >> gnatdist
-	@echo 'if [ $$# = 0 ]; then' >>gnatdist
-	@echo "   dist1" >>gnatdist
-	@echo "else" >>gnatdist
-	@echo '   dist1' -I${GARLIC} '"$$@"' -largs ${EXTRA_LIBS} >> gnatdist
-	@echo "fi" >>gnatdist
-	@chmod 755 gnatdist
-	@echo "gnatdist has been generated"
+#gnatdist: Makefile
+#	@echo '#!/bin/sh' >gnatdist
+#	@echo "PATH=${libexecdir}"':$${PATH}' >> gnatdist
+#	@echo "export PATH" >> gnatdist
+#	@echo 'if [ $$# = 0 ]; then' >>gnatdist
+#	@echo "   dist1" >>gnatdist
+#	@echo "else" >>gnatdist
+#	@echo '   dist1' -I${GARLIC} '"$$@"' \
+#		-largs -L${GARLIC} -R${GARLIC} \
+#		-lgarlic -lgnat ${EXTRA_LIBS} >> gnatdist
+#	@echo "fi" >>gnatdist
+#	@chmod 755 gnatdist
+#	@echo "gnatdist has been generated"

@@ -63,9 +63,6 @@ package XE_Utils is
    Is_Body      : constant Unit_Type       := ALI.Is_Body;
    Is_Spec_Only : constant Unit_Type       := ALI.Is_Spec_Only;
 
-   Check_Internal_Files : Boolean          := Opt.Check_Internal_Files;
-   Force_Compilations   : Boolean          := Opt.Force_Compilations;
-
    package Unit  renames ALI.Unit;
    package ALIs  renames ALI.ALIs;
    package Withs renames ALI.Withs;

@@ -1,0 +1,34 @@
+#! /bin/sh
+#
+# $Id$
+#
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libexecdir=@libexecdir@
+SED=@SED@
+
+GARLIC=${prefix}/lib/garlic
+GREP=grep
+
+PATH=@libexecdir@:${PATH}
+export PATH
+
+if test $# = 0; then
+  dist1
+  exit 0
+fi
+
+if test ! -f ${GARLIC}/libgarlic.so; then
+  cl="$@ -largs ${GARLIC}/libgarlic.a -lgnat"
+else
+  case "$@" in
+      *-static*) \
+	cl=`echo "$@ -largs ${GARLIC}/libgarlic.a -lgnat" | \
+	    sed -e 's/-static//g'`;;
+      *)  \
+     cl="$@ -largs -L${GARLIC} -R${GARLIC} -lgarlic -lgnat";;
+  esac
+fi
+
+eval dist1 -I${GARLIC} -L${GARLIC} $cl

@@ -30,6 +30,7 @@ with Fname;            use Fname;
 with GNAT.Os_Lib;      use GNAT.Os_Lib;
 with Make;             use Make;
 with Namet;            use Namet;
+with Opt;
 with Osint;            use Osint;
 with Output;           use Output;
 with XE;               use XE;
@@ -73,7 +74,8 @@ package body XE_Check is
       procedure Recompile (Unit : Name_Id);
 
       procedure Recompile (Unit : Name_Id) is
-         File_Name : Name_Id;
+         File_Name    : Name_Id;
+         Missing_Alis : Boolean;
       begin
 
          if not Already_Loaded (Unit) then
@@ -98,9 +100,11 @@ package body XE_Check is
                Most_Recent_Obj_File  => Obj,
                Most_Recent_Obj_Stamp => Stamp,
                Main_Unit             => Main,
-               Check_Internal_Files  => Check_Internal_Files,
+               Missing_Alis          => Missing_Alis,
+               Check_Readonly_Files  => Opt.Check_Readonly_Files,
                Dont_Execute          => No_Recompilation,
-               Force_Compilations    => Force_Compilations,
+               Force_Compilations    => Opt.Force_Compilations,
+               In_Place_Mode         => Opt.In_Place_Mode,
                Initialize_Ali_Data   => False,
                Max_Process           => 1);
 

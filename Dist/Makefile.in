@@ -63,6 +63,8 @@ GNAT_SOURCE = @GNAT_SOURCE@
 LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
 LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
+LD = @LD@
+LIBTOOL = @LIBTOOL@
 PACKAGE = @PACKAGE@
 PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
 PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
@@ -80,7 +82,6 @@ GNATSRC = @GNAT_SOURCE@
 GARLIC = ${libdir}/garlic
 GNATFLAGS = -gnatpg @GNATFLAGS@
 EXTRA_LIBS = @EXTRA_LIBS@
-GNATMAKE = @GNATMAKE@
 RSH = @RSH@
 
 bin_SCRIPTS = gnatdist
@@ -90,9 +91,11 @@ dist1_DEPENDENCIES = xe_defs.o sdefault.o
 dist1_SOURCES =
 dist1_LDADD =
 
+GNATMAKE = gnatmake -m
+
 CLEANFILES = *.ali gnatdist xe_defs.adb sdefault.adb
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES =  xe-gcc
+CONFIG_CLEAN_FILES =  gnatdist xe-gcc
 PROGRAMS =  $(libexec_PROGRAMS)
 
 
@@ -104,7 +107,8 @@ dist1_OBJECTS =
 dist1_LDFLAGS = 
 SCRIPTS =  $(bin_SCRIPTS) $(libexec_SCRIPTS)
 
-DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO xe-gcc.in
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO gnatdist.in \
+xe-gcc.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -116,7 +120,7 @@ OBJECTS = $(dist1_OBJECTS)
 default: all
 
 .SUFFIXES:
-.SUFFIXES: .c .o
+.SUFFIXES: .c .o .lo
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --foreign Dist/Makefile
 
@@ -124,6 +128,8 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+gnatdist: $(top_builddir)/config.status gnatdist.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 xe-gcc: $(top_builddir)/config.status xe-gcc.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 
@@ -143,8 +149,8 @@ install-libexecPROGRAMS: $(libexec_PROGRAMS)
 	$(mkinstalldirs) $(libexecdir)
 	@list='$(libexec_PROGRAMS)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo "  $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
-	     $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
+	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
 	  else :; fi; \
 	done
 
@@ -166,6 +172,19 @@ distclean-compile:
 	rm -f *.tab.c
 
 maintainer-clean-compile:
+
+.c.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+mostlyclean-libtool:
+	rm -f *.lo
+
+clean-libtool:
+	rm -rf .libs
+
+distclean-libtool:
+
+maintainer-clean-libtool:
 
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
@@ -277,18 +296,22 @@ maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean:  mostlyclean-libexecPROGRAMS mostlyclean-compile \
-		mostlyclean-tags mostlyclean-generic
+		mostlyclean-libtool mostlyclean-tags \
+		mostlyclean-generic
 
-clean:  clean-libexecPROGRAMS clean-compile clean-tags clean-generic \
-		mostlyclean
+clean:  clean-libexecPROGRAMS clean-compile clean-libtool clean-tags \
+		clean-generic mostlyclean
 
-distclean:  distclean-libexecPROGRAMS distclean-compile distclean-tags \
-		distclean-generic clean
+distclean:  distclean-libexecPROGRAMS distclean-compile \
+		distclean-libtool distclean-tags distclean-generic \
+		clean
 	rm -f config.status
+	rm -f libtool
 
 maintainer-clean:  maintainer-clean-libexecPROGRAMS \
-		maintainer-clean-compile maintainer-clean-tags \
-		maintainer-clean-generic distclean
+		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-tags maintainer-clean-generic \
+		distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -296,12 +319,13 @@ maintainer-clean:  maintainer-clean-libexecPROGRAMS \
 clean-libexecPROGRAMS maintainer-clean-libexecPROGRAMS \
 uninstall-libexecPROGRAMS install-libexecPROGRAMS mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
-uninstall-binSCRIPTS install-binSCRIPTS uninstall-libexecSCRIPTS \
-install-libexecSCRIPTS tags mostlyclean-tags distclean-tags clean-tags \
-maintainer-clean-tags distdir info dvi installcheck install-exec \
-install-data install uninstall all installdirs mostlyclean-generic \
-distclean-generic clean-generic maintainer-clean-generic clean \
-mostlyclean distclean maintainer-clean
+mostlyclean-libtool distclean-libtool clean-libtool \
+maintainer-clean-libtool uninstall-binSCRIPTS install-binSCRIPTS \
+uninstall-libexecSCRIPTS install-libexecSCRIPTS tags mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir info dvi \
+installcheck install-exec install-data install uninstall all \
+installdirs mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 force: 
@@ -339,17 +363,19 @@ sdefault.adb: ${srcdir}/config.sdefault
 sdefault.o: sdefault.adb ${GNATSRC}/sdefault.ads
 	${CC} -c -g -O2 -gnatp -I${GNATSRC} sdefault.adb
 
-gnatdist: Makefile
-	@echo '#!/bin/sh' >gnatdist
-	@echo "PATH=${libexecdir}"':$${PATH}' >> gnatdist
-	@echo "export PATH" >> gnatdist
-	@echo 'if [ $$# = 0 ]; then' >>gnatdist
-	@echo "   dist1" >>gnatdist
-	@echo "else" >>gnatdist
-	@echo '   dist1' -I${GARLIC} '"$$@"' -largs ${EXTRA_LIBS} >> gnatdist
-	@echo "fi" >>gnatdist
-	@chmod 755 gnatdist
-	@echo "gnatdist has been generated"
+#gnatdist: Makefile
+#	@echo '#!/bin/sh' >gnatdist
+#	@echo "PATH=${libexecdir}"':$${PATH}' >> gnatdist
+#	@echo "export PATH" >> gnatdist
+#	@echo 'if [ $$# = 0 ]; then' >>gnatdist
+#	@echo "   dist1" >>gnatdist
+#	@echo "else" >>gnatdist
+#	@echo '   dist1' -I${GARLIC} '"$$@"' \
+#		-largs -L${GARLIC} -R${GARLIC} \
+#		-lgarlic -lgnat ${EXTRA_LIBS} >> gnatdist
+#	@echo "fi" >>gnatdist
+#	@chmod 755 gnatdist
+#	@echo "gnatdist has been generated"
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

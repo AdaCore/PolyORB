@@ -1,3 +1,9 @@
+Tue Aug 12 13:08:02 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* config.sdefault: libgnat.a is now located under adalib.
+
+	* Makefile.am: gnatdist is now generated from gnatdist.in.
+
 Wed Jun  4 19:34:41 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* xe_back.adb: Fix problems in Set_Partition_Attribute due to
