@@ -37,5 +37,7 @@ package XE_Defs is
 
    function Get_Rsh_Command return String;
    function Get_Rsh_Options return String;
+   function Get_Def_Storage_Data return String;
+   function Get_Def_Storage_Name return String;
 
 end XE_Defs;
