@@ -598,6 +598,7 @@ package body PolyORB.Protocols.GIOP is
             --  should not happen.
       end case;
 
+      O ("Marshalling_Argument ;)");
       Marshall_Argument_List
         (Ses, Pend_Req.Req.Args, PolyORB.Any.ARG_IN);
 
@@ -1220,15 +1221,22 @@ package body PolyORB.Protocols.GIOP is
       pragma Assert
         (Direction = ARG_IN or else Direction = ARG_OUT);
 
+      O ("Enter Marshall_Argument_List");
+
       for I in 1 ..  Get_Count (Args) loop
          Arg := NV_Sequence.Element_Of (List.all, Positive (I));
          if False
            or else Arg.Arg_Modes = Direction
            or else Arg.Arg_Modes = ARG_INOUT
          then
-            pragma Debug (O ("Marshalling argument "
-              & Types.To_Standard_String (Arg.Name)
-              & " = " & Image (Arg.Argument)));
+            --  GGG debug
+            --  pragma Debug (O ("Marshalling argument "
+            --    & Types.To_Standard_String (Arg.Name)
+            --    & " = " & Image (Arg.Argument)));
+            O ("Marshalling argument "
+                & Types.To_Standard_String (Arg.Name)
+                & " = " & Image (Arg.Argument));
+
             Marshall (Ses.Buffer_Out, Arg);
          end if;
       end loop;
