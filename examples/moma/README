@@ -7,28 +7,41 @@ This demo displays first possibilities of MOMA.
 
 The server setups one message pool according to data found in
 'destinations.conf'. The only pertinent parameter is 'persistent' that
-determine which persistence is to be used.
+determine whether persistence is to be used or not.
 
 The client sends and receives messages to the message pool created.
-MText and MBytes messages are tested.
+All message types are tested.
 
 To test persistence, you must setup a persistent destination, then
 
-To run the PTP test, without using a naming service :
+I) To run the PTP test, without using a naming service :
 
 - launch the server : ./server, it will output its IOR string.
 - run the client to store messages : ./client stor pool <IOR>
 - kill the server, then re-launch it
 - run the client to retrieve messages : ./client retr pool <IOR>
 
-To run the PTP test, using a naming service :
+or directly, if you do not want to test persistence.
+
+- run the client : ./client full pool <IOR>
+
+II) To run the PTP test, using a naming service :
 
 - launch the server with the IOR string of the Naming Service : 
 ./server IOR:... , it will output its IOR string.
 - run the client to store messages : ./client stor naming <IOR>
 - run the client to retrieve messages : ./client retr naming <IOR>
 
-To run the Pub/Sub test (necessarily without a naming service) :
+or directly, if you do not want to test persistence.
+
+- run the client : ./client full pool <IOR>
+
+III) To run the PTP test, using call-backs :
+
+- launch the server : ./server, it will output its IOR string.
+- run the client  : ./clien_call_back <IOR>
+
+IV) To run the Pub/Sub test (necessarily without a naming service) :
 
 - edit destinations.conf to set persistency to none, as currently all pools
 use the same filenames to store persistent messages
