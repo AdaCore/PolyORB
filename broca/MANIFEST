@@ -1,5 +1,6 @@
 GNUmakefile
 COPYING
+NEWS
 adabroker/ada_be/GNUmakefile
 adabroker/ada_be/adabe.h
 adabroker/ada_be/adabe_argument.cc
