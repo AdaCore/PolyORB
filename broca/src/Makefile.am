@@ -52,7 +52,8 @@ ADA_SPECS_WITH_BODY = \
 	   portableserver-servantmanager-impl.ads \
 	   portableserver.ads \
 	   sequences-bounded.ads \
-	   sequences-unbounded.ads
+	   sequences-unbounded.ads \
+	   sequences-unbounded-search.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	   broca.ads \
