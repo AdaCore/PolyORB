@@ -1,6 +1,13 @@
 with Types; use Types;
 
+with Frontend.Nodes;
+
 package Backend.BE_Ada.IDL_To_Ada is
+   package FEN renames Frontend.Nodes;
+
+   function Base_Type_TC
+     (K : FEN.Node_Kind)
+     return Node_Id;
 
    procedure Bind_FE_To_Impl
      (F : Node_Id;

@@ -21,18 +21,22 @@ package body Backend.BE_Ada.Helpers is
       function From_Any_Spec
         (E : Node_Id)
         return Node_Id;
+
       function To_Any_Spec
         (E : Node_Id)
         return Node_Id;
       --  return an any conversions functions for a given type (E).
+
       function Narrowing_Ref_Spec
         (E : Node_Id)
         return Node_Id;
       --  return windening object reference helper.
+
       function TypeCode_Spec
         (E : Node_Id)
         return Node_Id;
       --  return a TypeCode constant for a given type (E).
+
       function Widening_Ref_Spec
         (E : Node_Id)
         return Node_Id;
@@ -150,6 +154,7 @@ package body Backend.BE_Ada.Helpers is
             when  K_Simple_Declarator =>
                T := Type_Spec
                  (Declaration (E));
+
                if Is_Base_Type (T) then
                   P := RE (RE_TC_Alias);
                elsif Kind (T) = K_Scoped_Name then
@@ -254,7 +259,6 @@ package body Backend.BE_Ada.Helpers is
          N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Spec;
-
          N := Widening_Ref_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -267,7 +271,6 @@ package body Backend.BE_Ada.Helpers is
            (From_Any_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
            (To_Any_Spec (E), Visible_Part (Current_Package));
-
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
@@ -284,7 +287,6 @@ package body Backend.BE_Ada.Helpers is
          D : Node_Id;
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
-
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);
@@ -406,15 +408,18 @@ package body Backend.BE_Ada.Helpers is
       function From_Any_Body
         (E : Node_Id)
         return Node_Id;
+
       function To_Any_Body
         (E : Node_Id)
         return Node_Id;
       --  returns an any conversions functions for a given type
       --  (E) node.
+
       function Narrowing_Ref_Body
         (E : Node_Id)
         return Node_Id;
       --  return windening object reference helper.
+
       function Widening_Ref_Body
         (E : Node_Id)
         return Node_Id;
@@ -609,30 +614,30 @@ package body Backend.BE_Ada.Helpers is
                Loop_Statements := New_List (K_List_Id);
                N := Make_For_Statement
                  (M, Dim, Loop_Statements);
+
                if I > 0 then
                   Append_Node_To_List (N, Enclosing_Statements);
                else
                   Append_Node_To_List (N, S);
                end if;
+
                I := I + 1;
                Dim := Next_Node (Dim);
+
                if No (Dim) then
                   exit;
                end if;
             end loop;
-
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (Helper_Name), L);
             N := Make_Subprogram_Call
               (RE (RE_Add_Aggregate_Element),
                Make_List_Id
                (Make_Defining_Identifier (PN (P_Result)), N));
-
             Append_Node_To_List (N, Loop_Statements);
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
-
             N := Make_Subprogram_Implementation
               (Spec, D, S);
             return N;
@@ -658,7 +663,6 @@ package body Backend.BE_Ada.Helpers is
                Object_Definition => RE (RE_Any),
                Expression => N);
             Append_Node_To_List (N, D);
-
             N := Make_Subprogram_Call
               (Make_Type_Attribute (Map_Designator (E), A_Pos),
                Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
@@ -721,6 +725,7 @@ package body Backend.BE_Ada.Helpers is
          begin
             Spec := Helper_Node (BE_Node (Identifier (E)));
             Spec := Next_Node (Next_Node (Spec));
+
             if Is_Base_Type (Type_Spec (Declaration (E))) then
                N := RE (Convert
                         (FEN.Kind (FEN.Type_Spec (FEN.Declaration (E)))));
@@ -733,12 +738,12 @@ package body Backend.BE_Ada.Helpers is
             else
                raise Program_Error;
             end if;
+
             Helper_Name := BEN.Name
               (Defining_Identifier (Helper_Node (BE_Node (Identifier (E)))));
             N := Make_Subprogram_Call
               (N,
                Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
-
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Result)),
@@ -754,7 +759,6 @@ package body Backend.BE_Ada.Helpers is
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
-
             N := Make_Subprogram_Implementation
               (Spec, D, S);
             return N;
@@ -923,6 +927,7 @@ package body Backend.BE_Ada.Helpers is
          Spec := Next_Node (Spec);  --  Second in the list of helpers
 
          --  Declarative Part
+
          Declarations := New_List (K_List_Id);
          Param := Make_Object_Declaration
            (Defining_Identifier =>

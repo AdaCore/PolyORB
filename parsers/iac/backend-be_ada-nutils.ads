@@ -1,6 +1,8 @@
 with Types;     use Types;
 
-with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
+with Frontend.Nodes;
+with Backend.BE_Ada.Runtime;  use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.Nodes;    use Backend.BE_Ada.Nodes;
 
 package Backend.BE_Ada.Nutils is
 
@@ -162,7 +164,11 @@ package Backend.BE_Ada.Nutils is
       P_Repository_Id,
       P_Default_Sys_Member,
       P_A,
-      P_Logical_Type_Id);
+      P_Logical_Type_Id,
+      P_Target,
+      P_Operation,
+      P_Arg_List,
+      P_Req);
 
    PN : array (Parameter_Id) of Name_Id;
 
@@ -228,6 +234,8 @@ package Backend.BE_Ada.Nutils is
      (P : Node_Id);
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
+
+   function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
 
    procedure Push_Entity (E : Node_Id);
    procedure Pop_Entity;
@@ -365,7 +373,8 @@ package Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Constant_Present    : Boolean := False;
       Object_Definition   : Node_Id;
-      Expression          : Node_Id := No_Node)
+      Expression          : Node_Id := No_Node;
+      Parent              : Node_Id := No_Node)
       return                Node_Id;
 
    function Make_Package_Declaration

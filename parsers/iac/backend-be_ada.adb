@@ -40,7 +40,7 @@ package body Backend.BE_Ada is
    procedure Configure is
    begin
       loop
-         case Getopt ("t i l h b :") is
+         case Getopt ("t i l s b :") is
             when ASCII.NUL =>
                exit;
 
@@ -48,7 +48,7 @@ package body Backend.BE_Ada is
                Generate_Bodies := True;
                Generate_Specs := False;
 
-            when 'h' =>
+            when 's' =>
                Generate_Specs := True;
                Generate_Bodies := False;
 
@@ -75,6 +75,7 @@ package body Backend.BE_Ada is
    begin
       Initialize;
       Visit_Specification (E);
+
       if Print_IDL_Tree then
          Frontend.Debug.W_Node_Id (E);
       end if;
@@ -106,8 +107,6 @@ package body Backend.BE_Ada is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
       Write_Str (Hdr);
-      Write_Str ("-b       Generate only bodies");
-      Write_Str ("-h       Generate only headers");
       Write_Str ("-i       Generate Implementation files");
       Write_Str ("-t       Dump Ada tree");
       Write_Eol;
@@ -124,6 +123,7 @@ package body Backend.BE_Ada is
       Skels.Package_Spec.Visit (E);
       Stubs.Package_Body.Visit (E);
       Helpers.Package_Body.Visit (E);
+
       if Build_Impls then
          Impls.Package_Spec.Visit (E);
          Impls.Package_Body.Visit (E);

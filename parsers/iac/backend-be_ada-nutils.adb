@@ -9,6 +9,7 @@ with Frontend.Nodes;
 
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
+--  with Backend.BE_Ada.Debug; use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Nutils is
 
@@ -124,6 +125,32 @@ package body Backend.BE_Ada.Nutils is
       end loop;
    end Append_Node_To_List;
 
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (K : FEN.Node_Kind) return RE_Id is
+   begin
+      case K is
+         when FEN.K_Float               => return RE_Float;
+         when FEN.K_Double              => return RE_Double;
+         when FEN.K_Long_Double         => return RE_Long_Double;
+         when FEN.K_Short               => return RE_Short;
+         when FEN.K_Long                => return RE_Long;
+         when FEN.K_Long_Long           => return RE_Long_Long;
+         when FEN.K_Unsigned_Short      => return RE_Unsigned_Short;
+         when FEN.K_Unsigned_Long       => return RE_Unsigned_Long;
+         when FEN.K_Unsigned_Long_Long  => return RE_Unsigned_Long_Long;
+         when FEN.K_Char                => return RE_Char;
+         when FEN.K_Wide_Char           => return RE_WChar;
+         when FEN.K_String              => return RE_String_1;
+         when FEN.K_Wide_String         => return RE_Wide_String;
+         when FEN.K_Boolean             => return RE_Boolean;
+         when others                    =>
+            raise Program_Error;
+      end case;
+   end Convert;
+
    ---------------------
    -- Copy_Designator --
    ---------------------
@@ -137,7 +164,6 @@ package body Backend.BE_Ada.Nutils is
       P : Node_Id := Parent_Unit_Name (Designator);
 
    begin
-      pragma Assert (Witheded);
       D := Copy_Node (Designator);
       if Present (P) then
          P := Copy_Designator (P, False);
@@ -701,7 +727,8 @@ package body Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Constant_Present    : Boolean := False;
       Object_Definition   : Node_Id;
-      Expression          : Node_Id := No_Node)
+      Expression          : Node_Id := No_Node;
+      Parent              : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -712,6 +739,13 @@ package body Backend.BE_Ada.Nutils is
       Set_Constant_Present (N, Constant_Present);
       Set_Object_Definition (N, Object_Definition);
       Set_Expression (N, Expression);
+
+      if No (Parent) then
+         Set_Parent (N, Current_Package);
+      else
+         Set_Parent (N, Parent);
+      end if;
+
       return N;
    end Make_Object_Declaration;
 

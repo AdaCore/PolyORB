@@ -20,10 +20,13 @@ package body Backend.BE_Ada.Expand is
       FE : Node_Id;
 
    begin
-      pragma Assert (Witheded);
       case Kind (N) is
          when K_Full_Type_Declaration |
            K_Subprogram_Specification =>
+            P := Parent (X);
+            FE := FE_Node (X);
+
+         when K_Object_Declaration =>
             P := Parent (X);
             FE := FE_Node (X);
 
@@ -39,13 +42,15 @@ package body Backend.BE_Ada.Expand is
          when others =>
             raise Program_Error;
       end case;
+
       if No (P) then
-               return No_Node;
+         return No_Node;
       end if;
 
       if No (FE) then
          raise Program_Error;
       end if;
+
       D := New_Node (K_Designator);
       Set_Defining_Identifier
         (D, Make_Defining_Identifier
@@ -53,13 +58,16 @@ package body Backend.BE_Ada.Expand is
       Set_FE_Node (D, FE);
       Set_Parent_Unit_Name
         (D, Expand_Designator (P, False));
-
       P := Parent_Unit_Name (D);
+
       if Witheded then
+
          if Present (P) then
             Add_With_Package (P);
          end if;
+
       end if;
+
       return D;
    end Expand_Designator;
 

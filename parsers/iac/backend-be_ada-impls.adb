@@ -56,9 +56,11 @@ package body Backend.BE_Ada.Impls is
          while Present (A) loop
             Set_Impl_Spec;
             N := Stub_Node (BE_Node (Identifier (A)));
+
             if No (N) then
                raise Program_Error;
             end if;
+
             Parameters := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
               (Make_Defining_Identifier (PN (P_Self)),
@@ -134,7 +136,6 @@ package body Backend.BE_Ada.Impls is
          Set_Corresponding_Node (I, N);
          Append_Node_To_List
            (N, Private_Part (Current_Package));
-
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
@@ -151,7 +152,6 @@ package body Backend.BE_Ada.Impls is
          D : Node_Id;
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
-
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);
@@ -185,7 +185,6 @@ package body Backend.BE_Ada.Impls is
             Make_Access_Type_Definition
             (Make_Defining_Identifier (TN (T_Object))));
          Append_Node_To_List (Impl_Param, Profile);
-
          Stub_Param := Next_Node (First_Node (Parameter_Profile (Stub)));
          while Present (Stub_Param) loop
             Type_Designator := Copy_Designator (Parameter_Type (Stub_Param));
@@ -199,6 +198,7 @@ package body Backend.BE_Ada.Impls is
          if Present (Return_Type (Stub)) then
             Returns := Copy_Designator (Return_Type (Stub));
          end if;
+
          Set_Impl_Spec;
          Subp_Spec := Make_Subprogram_Specification
            (Copy_Node (Defining_Identifier (Stub)), Profile, Returns);

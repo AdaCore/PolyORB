@@ -2,10 +2,10 @@ with Namet;     use Namet;
 with Types;     use Types;
 with Values;    use Values;
 
-with Frontend.Nodes;            use Frontend.Nodes;
+with Frontend.Nodes;             use Frontend.Nodes;
 
-with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
+with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 --  with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
 
@@ -13,8 +13,33 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
    Setter : constant Character := 'S';
 
-   package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
+
+   function Base_Type_TC
+     (K : FEN.Node_Kind)
+     return Node_Id
+   is
+   begin
+      case K is
+         when FEN.K_Float               => return RE (RE_TC_Float);
+         when FEN.K_Double              => return RE (RE_TC_Double);
+         when FEN.K_Long_Double         => return RE (RE_TC_Long_Double);
+         when FEN.K_Short               => return RE (RE_TC_Short);
+         when FEN.K_Long                => return RE (RE_TC_Long);
+         when FEN.K_Long_Long           => return RE (RE_TC_Long_Long);
+         when FEN.K_Unsigned_Short      => return RE (RE_TC_Unsigned_Short);
+         when FEN.K_Unsigned_Long       => return RE (RE_TC_Unsigned_Long);
+         when FEN.K_Unsigned_Long_Long  => return RE
+            (RE_TC_Unsigned_Long_Long);
+         when FEN.K_Char                => return RE (RE_TC_Char);
+         when FEN.K_Wide_Char           => return RE (RE_TC_WChar);
+         when FEN.K_String              => return RE (RE_TC_String);
+         when FEN.K_Wide_String         => return RE (RE_TC_Wide_String);
+         when FEN.K_Boolean             => return RE (RE_TC_Boolean);
+         when others                    =>
+            raise Program_Error;
+      end case;
+   end Base_Type_TC;
 
    ---------------------
    -- Bind_FE_To_Impl --
@@ -27,9 +52,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       N : Node_Id;
    begin
       N := BE_Node (F);
+
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
       end if;
+
       BEN.Set_Impl_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
@@ -46,9 +73,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       N : Node_Id;
    begin
       N := BE_Node (F);
+
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
       end if;
+
       BEN.Set_Helper_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
@@ -65,9 +94,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       N : Node_Id;
    begin
       N := BE_Node (F);
+
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
       end if;
+
       BEN.Set_Skel_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
@@ -84,9 +115,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
       N : Node_Id;
    begin
       N := BE_Node (F);
+
       if No (N) then
          N := New_Node (BEN.K_BE_Ada);
       end if;
+
       BEN.Set_Stub_Node (N, B);
       FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
@@ -126,9 +159,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
          if FEN.Kind (X) = K_Identifier then
             X := Corresponding_Entity (X);
          end if;
+
          if FEN.Kind (Y) = K_Identifier then
             Y := Corresponding_Entity (Y);
          end if;
+
          if X = Y then
             return True;
          elsif FEN.Kind (Scope_Entity (Identifier (Y))) = K_Specification then
@@ -164,6 +199,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       Param_Type := Map_Designator
         (Type_Spec (Declaration (Attribute)));
+      Set_FE_Node (Param_Type, Type_Spec (Declaration (Attribute)));
 
       --  For the setter subprogram, add the second parameter To.
 
@@ -219,6 +255,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          Set_Defining_Identifier
            (Designator, Make_Defining_Identifier (Decl_Name));
       end if;
+
       return Designator;
    end Map_Declarator_Type_Designator;
 
@@ -235,6 +272,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       if FEN.Kind (Entity) /= FEN.K_Identifier then
          I := FEN.Identifier (Entity);
       end if;
+
       return Make_Defining_Identifier (IDL_Name (I));
    end Map_Defining_Identifier;
 
@@ -254,20 +292,24 @@ package body Backend.BE_Ada.IDL_To_Ada is
       R : Node_Id;
 
    begin
-      pragma Assert (Witheded);
       K := FEN.Kind (Entity);
+
       if K = FEN.K_Scoped_Name then
          R := Reference (Entity);
+
          if Kind (R) = K_Specification then
             return No_Node;
          end if;
+
          N := New_Node (K_Designator);
          Set_Defining_Identifier (N, Map_Defining_Identifier (R));
          Set_FE_Node (N, R);
          P := Scope_Entity (Identifier (R));
+
          if Present (P) then
             if Kind (P) = K_Specification
-              and then Witheded then
+              and then Witheded
+            then
                R := New_Node (K_Designator);
                Set_Defining_Identifier
                  (R,
@@ -281,16 +323,15 @@ package body Backend.BE_Ada.IDL_To_Ada is
                Set_Parent_Unit_Name (N, Map_Designator (P, False));
             end if;
          end if;
-
       elsif K in FEN.K_Float .. FEN.K_Value_Base then
          N := RE (Convert (K));
-
       else
          N := New_Node (K_Designator);
          Set_Defining_Identifier (N, Map_Defining_Identifier (Entity));
-         if K = FEN.K_Interface_Declaration
-           or else K = FEN.K_Module then
 
+         if K = FEN.K_Interface_Declaration
+           or else K = FEN.K_Module
+         then
             P := Scope_Entity (Identifier (Entity));
             Set_FE_Node (N, Entity);
             Set_Parent_Unit_Name (N, Map_Designator (P, False));
@@ -300,11 +341,13 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end if;
 
       P := Parent_Unit_Name (N);
+
       if Witheded then
          if Present (P) then
             Add_With_Package (P);
          end if;
       end if;
+
       return N;
    end Map_Designator;
 
@@ -324,11 +367,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
    begin
       I := FEN.Identifier (Entity);
       Get_Name_String (IDL_Name (I));
+
       if Kind (Entity) = K_Specification then
          Add_Str_To_Name_Buffer ("_IDL_File");
       end if;
+
       N := Make_Defining_Identifier (Name_Find);
       P := FEN.Scope_Entity (I);
+
       if Present (P)
         and then FEN.Kind (P) /= FEN.K_Specification
       then
@@ -336,8 +382,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
             I := FEN.Identifier (P);
             P := FEN.Scope_Entity (I);
          end if;
+
          Set_Parent_Unit_Name (N, Map_Fully_Qualified_Identifier (P));
       end if;
+
       return N;
    end Map_Fully_Qualified_Identifier;
 
@@ -355,10 +403,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
    begin
       P := New_Node (K_IDL_Unit, Identifier (Entity));
-
       L := New_List (K_Packages);
       Set_Packages (P, L);
-
       I := Map_Fully_Qualified_Identifier (Entity);
 
       --  Main package
@@ -487,12 +533,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
       begin
          I := FEN.Identifier (Entity);
          S := Scope_Entity (I);
+
          if Present (S)
            and then FEN.Kind (S) /= FEN.K_Specification
          then
             Get_Repository_String (S);
             Add_Char_To_Name_Buffer ('/');
          end if;
+
          Get_Name_String_And_Append (FEN.IDL_Name (I));
       end Get_Repository_String;
 

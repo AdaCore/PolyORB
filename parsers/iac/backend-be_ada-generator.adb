@@ -167,14 +167,17 @@ package body Backend.BE_Ada.Generator is
    begin
       Write (Tok_Access);
       Write_Space;
+
       if Is_All (N) then
          Write (Tok_All);
          Write_Space;
       end if;
+
       if Is_Constant (N) then
          Write (Tok_Constant);
          Write_Space;
       end if;
+
       Generate (Subtype_Indication (N));
    end Generate_Access_Type_Definition;
 
@@ -247,9 +250,7 @@ package body Backend.BE_Ada.Generator is
          loop
             Write_Str (Values.Image (Value (M)));
             M := Next_Node (M);
-            if No (M) then
-               exit;
-            end if;
+            exit when No (M);
             Write_Space;
             Write (Tok_Vertical_Bar);
             Write_Space;
@@ -301,6 +302,7 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Colon);
       Write_Space;
       Generate (Subtype_Indication (N));
+
       if Present (E) then
          Write_Space;
          Write (Tok_Colon_Equal);
@@ -318,10 +320,12 @@ package body Backend.BE_Ada.Generator is
 
    begin
       P := Parent_Unit_Name (N);
+
       if Present (P) then
          Generate (P);
          Write (Tok_Dot);
       end if;
+
       Write_Name (Name (N));
    end Generate_Defining_Identifier;
 
@@ -337,9 +341,11 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Abstract);
          Write_Space;
       end if;
+
       Write (Tok_New);
       Write_Space;
       Generate (Subtype_Indication (N));
+
       if Is_Private_Extention (N) then
          Write_Space;
          Write (Tok_With);
@@ -347,6 +353,7 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Private);
       else
          R := Record_Extension_Part (N);
+
          if Present (R) then
             Write_Space;
             Write (Tok_With);
@@ -365,10 +372,12 @@ package body Backend.BE_Ada.Generator is
 
    begin
       P := Parent_Unit_Name (N);
+
       if Present (P) then
          Generate (P);
          Write (Tok_Dot);
       end if;
+
       Write_Name (Name (Defining_Identifier (N)));
    end Generate_Designator;
 
@@ -410,11 +419,12 @@ package body Backend.BE_Ada.Generator is
    -------------------------
 
    procedure Generate_Expression (N : Node_Id) is
-      L_Expr  : constant Node_Id := Left_Expr (N);
+      L_Expr  : constant Node_Id     := Left_Expr (N);
       Op      : constant Operator_Id := Operator (N);
-      R_Expr  : constant Node_Id := Right_Expr (N);
+      R_Expr  : constant Node_Id     := Right_Expr (N);
    begin
       Generate (L_Expr);
+
       if Present (R_Expr) then
          Write_Eol;
          Increment_Indentation;
@@ -439,18 +449,15 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write (Tok_In);
       Write_Space;
-
       Write_Str (Values.Image (First (Range_Constraint (N))));
       Write_Space;
       Write (Tok_Dot);
       Write (Tok_Dot);
       Write_Space;
       Write_Str (Values.Image (Last (Range_Constraint (N))));
-
       Write_Space;
       Write (Tok_Loop);
       Write_Eol;
-
       Increment_Indentation;
       Write_Indentation;
       while Present (D) loop
@@ -458,7 +465,6 @@ package body Backend.BE_Ada.Generator is
          D := Next_Node (D);
       end loop;
       Decrement_Indentation;
-
       Write (Tok_Semicolon);
       Write_Eol;
       Write_Indentation;
@@ -479,12 +485,14 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
       Write_Space;
+
       if Present (D) then
          Write (Tok_Left_Paren);
          Generate (D);
          Write (Tok_Right_Paren);
          Write_Space;
       end if;
+
       Write (Tok_Is);
       Write_Eol;
       Increment_Indentation;
@@ -517,7 +525,6 @@ package body Backend.BE_Ada.Generator is
       I : Node_Id;
 
    begin
-
       --  Enter If_Statement
 
       Write (Tok_If);
@@ -583,18 +590,23 @@ package body Backend.BE_Ada.Generator is
    begin
       Name_Buffer (1 .. Var_Name_Len) := (others => ' ');
       Get_Name_String (Name (Defining_Identifier (N)));
+
       if Var_Name_Len > Name_Len then
          Name_Len := Var_Name_Len;
       end if;
+
       Write_Str (Name_Buffer (1 .. Name_Len));
       Write_Space;
       Write (Tok_Colon);
+
       if Constant_Present (N) then
          Write_Space;
          Write (Tok_Constant);
       end if;
+
       Write_Space;
       Generate (Object_Definition (N));
+
       if Present (Expression (N)) then
          Write_Space;
          Write (Tok_Colon_Equal);
@@ -615,6 +627,7 @@ package body Backend.BE_Ada.Generator is
       if Generate_Specs then
          Generate (Package_Specification (N));
       end if;
+
       if Generate_Bodies then
          Generate (Package_Implementation (N));
       end if;
@@ -630,6 +643,7 @@ package body Backend.BE_Ada.Generator is
       if not Is_Generated (N) then
          return;
       end if;
+
       P := First_Node (Withed_Packages (N));
       while Present (P) loop
          Write_Indentation;
@@ -638,7 +652,6 @@ package body Backend.BE_Ada.Generator is
          P := Next_Node (P);
       end loop;
       Write_Eol;
-
       Write_Indentation;
       Write (Tok_Package);
       Write_Space;
@@ -648,7 +661,6 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write (Tok_Is);
       Write_Eol (2);
-
       Increment_Indentation;
       P := First_Node (Statements (N));
       while Present (P) loop
@@ -659,7 +671,6 @@ package body Backend.BE_Ada.Generator is
          P := Next_Node (P);
       end loop;
       Decrement_Indentation;
-
       Write_Indentation;
       Write  (Tok_End);
       Write_Space;
@@ -687,6 +698,7 @@ package body Backend.BE_Ada.Generator is
       if not Is_Generated (N) then
          return;
       end if;
+
       P := First_Node (Withed_Packages (N));
       while Present (P) loop
          Write_Indentation;
@@ -695,7 +707,6 @@ package body Backend.BE_Ada.Generator is
          P := Next_Node (P);
       end loop;
       Write_Eol;
-
       Write_Indentation;
       Write (Tok_Package);
       Write_Space;
@@ -703,7 +714,6 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write (Tok_Is);
       Write_Eol (2);
-
       Increment_Indentation;
       P := First_Node (Visible_Part (N));
       while Present (P) loop
@@ -719,7 +729,6 @@ package body Backend.BE_Ada.Generator is
          Write_Indentation;
          Write (Tok_Private);
          Write_Eol;
-
          Increment_Indentation;
          P := First_Node (Private_Part (N));
          while Present (P) loop
@@ -747,12 +756,15 @@ package body Backend.BE_Ada.Generator is
    begin
       Name_Buffer (1 .. Var_Name_Len) := (others => ' ');
       Get_Name_String (Name (Defining_Identifier (N)));
+
       if Var_Name_Len > Name_Len then
          Name_Len := Var_Name_Len;
       end if;
+
       Write_Str (Name_Buffer (1 .. Name_Len));
       Write_Space;
       Write  (Tok_Colon);
+
       if Kind (Parameter_Type (N)) /= K_Access_Type_Definition then
          Write_Space;
          case Parameter_Mode (N) is
@@ -768,6 +780,7 @@ package body Backend.BE_Ada.Generator is
                Write (Tok_Out);
          end case;
       end if;
+
       Write_Space;
       Generate (Parameter_Type (N));
    end Generate_Parameter;
@@ -780,7 +793,6 @@ package body Backend.BE_Ada.Generator is
       N : Node_Id;
 
    begin
-
       --  If we got there, then L is not empty.
 
       Increment_Indentation;
@@ -819,6 +831,7 @@ package body Backend.BE_Ada.Generator is
    begin
       L := Component_Association_List (N);
       Write (Tok_Left_Paren);
+
       if not Is_Empty (L) then
          M := First_Node (L);
          loop
@@ -829,6 +842,7 @@ package body Backend.BE_Ada.Generator is
             Write_Indentation;
          end loop;
       end if;
+
       Write (Tok_Right_Paren);
    end Generate_Record_Aggregate;
 
@@ -877,15 +891,19 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Abstract);
          Write_Space;
       end if;
+
       if Is_Tagged_Type (N) then
          Write (Tok_Tagged);
          Write_Space;
       end if;
+
       if Is_Limited_Type (N) then
          Write (Tok_Limited);
          Write_Space;
       end if;
+
       R := Record_Definition (N);
+
       if Present (R) then
          Generate (R);
       end if;
@@ -912,6 +930,7 @@ package body Backend.BE_Ada.Generator is
 
    begin
       Generate (Defining_Identifier (N));
+
       if not Is_Empty (L) then
          Write_Eol;
          Increment_Indentation;
@@ -962,8 +981,8 @@ package body Backend.BE_Ada.Generator is
       Write_Indentation;
       Write (Tok_Begin);
       Write_Eol;
-
       Increment_Indentation;
+
       if not Is_Empty (S) then
          M := First_Node (S);
          while Present (M) loop
@@ -977,8 +996,8 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Null);
          Write_Line (Tok_Semicolon);
       end if;
-      Decrement_Indentation;
 
+      Decrement_Indentation;
       Write_Indentation;
       Write (Tok_End);
       Write_Space;
@@ -999,12 +1018,15 @@ package body Backend.BE_Ada.Generator is
       else
          Write (Tok_Procedure);
       end if;
+
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
       Write_Eol;
+
       if not Is_Empty (P) then
          Generate_Parameter_List (P);
       end if;
+
       if Present (T) then
          Write_Eol;
          Increment_Indentation;
@@ -1032,11 +1054,11 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write (Tok_Is);
       Write_Eol;
-
       V := First_Node (Variants (N));
       Increment_Indentation;
       while Present (V) loop
          C := First_Node (Discrete_Choices (V));
+
          if Value (C) = No_Value then
             O := V;
          else
@@ -1047,12 +1069,14 @@ package body Backend.BE_Ada.Generator is
             loop
                Generate (C);
                C := Next_Node (C);
+
                if No (C) then
                   Write_Space;
                   Write (Tok_Arrow);
                   Write_Eol;
                   exit;
                end if;
+
                Write_Eol;
                Write_Indentation (-1);
                Write (Tok_Vertical_Bar);
@@ -1064,6 +1088,7 @@ package body Backend.BE_Ada.Generator is
             Write_Eol;
             Decrement_Indentation;
          end if;
+
          V := Next_Node (V);
       end loop;
 
@@ -1079,11 +1104,13 @@ package body Backend.BE_Ada.Generator is
       Write_Eol;
       Increment_Indentation;
       Write_Indentation;
+
       if Present (O) then
          Generate (Component (O));
       else
          Write (Tok_Null);
       end if;
+
       Write (Tok_Semicolon);
       Write_Eol;
       Decrement_Indentation;
