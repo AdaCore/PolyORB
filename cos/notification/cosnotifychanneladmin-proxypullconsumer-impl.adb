@@ -34,7 +34,7 @@
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
 
-with CosEventChannelAdmin;
+with CosEventChannelAdmin.Helper;
 
 with CosNotifyChannelAdmin.SupplierAdmin.Impl;
 
@@ -50,8 +50,6 @@ pragma Elaborate (CosNotifyChannelAdmin.ProxyPullConsumer.Skel);
 pragma Warnings (Off, CosNotifyChannelAdmin.ProxyPullConsumer.Skel);
 
 with PortableServer;
-
-with PolyORB.Exceptions;
 
 with PolyORB.Log;
 
@@ -201,7 +199,8 @@ package body CosNotifyChannelAdmin.ProxyPullConsumer.Impl is
       Enter (Session_Mutex);
       if not CosEventComm.PullSupplier.Is_Nil (Self.X.Peer) then
          Leave (Session_Mutex);
-         raise CosEventChannelAdmin.AlreadyConnected;
+         CosEventChannelAdmin.Helper.Raise_AlreadyConnected
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
 
       Self.X.Peer := Pull_Supplier;
@@ -472,13 +471,8 @@ package body CosNotifyChannelAdmin.ProxyPullConsumer.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedQoS'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedQoS
+           ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
       SeqLen := Length (QoS);
@@ -613,13 +607,8 @@ package body CosNotifyChannelAdmin.ProxyPullConsumer.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedQoS'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedQoS
+           ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
       Enter (Peer_Mutex);

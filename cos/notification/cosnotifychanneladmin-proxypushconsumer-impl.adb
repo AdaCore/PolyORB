@@ -34,7 +34,7 @@
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
 
-with CosEventChannelAdmin;
+with CosEventChannelAdmin.Helper;
 
 with CosNotification;
 with CosNotification.Helper;
@@ -50,8 +50,6 @@ pragma Elaborate (CosNotifyChannelAdmin.ProxyPushConsumer.Skel);
 pragma Warnings (Off, CosNotifyChannelAdmin.ProxyPushConsumer.Skel);
 
 with PortableServer;
-
-with PolyORB.Exceptions;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Mutexes;
@@ -124,7 +122,8 @@ package body CosNotifyChannelAdmin.ProxyPushConsumer.Impl is
       Enter (Self_Mutex);
       if not CosEventComm.PushSupplier.Is_Nil (Self.X.Peer) then
          Leave (Self_Mutex);
-         raise CosEventChannelAdmin.AlreadyConnected;
+         CosEventChannelAdmin.Helper.Raise_AlreadyConnected
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
 
       Self.X.Peer := Push_Supplier;
@@ -353,13 +352,8 @@ package body CosNotifyChannelAdmin.ProxyPushConsumer.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedQoS'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedQoS
+           ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
       SeqLen := Length (QoS);
@@ -495,13 +489,8 @@ package body CosNotifyChannelAdmin.ProxyPushConsumer.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedQoS'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedQoS
+           ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
       Enter (Self_Mutex);

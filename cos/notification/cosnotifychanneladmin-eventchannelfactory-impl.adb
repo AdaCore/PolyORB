@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              COSNOTIFYCHANNELADMIN.EVENTCHANNELFACTORY.IMPL              --
+--             COSNOTIFYCHANNELADMIN.EVENTCHANNELFACTORY.IMPL               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,6 +43,8 @@ pragma Warnings (Off, CosNotifyChannelAdmin.EventChannelFactory.Helper);
 with CosNotifyChannelAdmin.EventChannelFactory.Skel;
 pragma Elaborate (CosNotifyChannelAdmin.EventChannelFactory.Skel);
 pragma Warnings (Off, CosNotifyChannelAdmin.EventChannelFactory.Skel);
+
+with CosNotifyChannelAdmin.Helper;
 
 with PortableServer;
 
@@ -153,7 +155,7 @@ package body CosNotifyChannelAdmin.EventChannelFactory.Impl is
 
    function Get_Event_Channel
      (Self : access Object;
-      Id   : in ChannelID)
+      Id   : in     ChannelID)
      return CosNotifyChannelAdmin.EventChannel.Ref
    is
       MyChannel : CosNotifyChannelAdmin.EventChannel.Ref;
@@ -167,7 +169,8 @@ package body CosNotifyChannelAdmin.EventChannelFactory.Impl is
       SeqLen := CosNotifyChannelAdmin.ChannelID (Length (Self.X.IDSeq));
 
       if Id > SeqLen then
-         raise ChannelNotFound;
+         CosNotifyChannelAdmin.Helper.Raise_ChannelNotFound
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
 
       MyChannel := EventChannels.Get_Element (Self.X.Channels, Integer (Id));

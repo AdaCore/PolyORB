@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       C O S N O T I F Y C O M M . P U L L S U P P L I E R . I M P L      --
+--      C O S N O T I F Y C O M M . P U L L S U P P L I E R . I M P L       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,17 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
 
-with CosEventChannelAdmin;
+with CosEventChannelAdmin.Helper;
 
+with CosEventComm.Helper;
 with CosEventComm.PullSupplier.Helper;
 
 with CosNotifyComm.PullSupplier.Helper;
@@ -112,7 +113,8 @@ package body CosNotifyComm.PullSupplier.Impl is
       Enter (Self_Mutex);
       if not CosNotifyChannelAdmin.ProxyPullConsumer.Is_Nil (Self.X.Peer) then
          Leave (Self_Mutex);
-         raise CosEventChannelAdmin.AlreadyConnected;
+         CosEventChannelAdmin.Helper.Raise_AlreadyConnected
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
       Self.X.Peer := Proxy;
 
@@ -194,7 +196,8 @@ package body CosNotifyComm.PullSupplier.Impl is
          Enter (Self_Mutex);
          if CosNotifyChannelAdmin.ProxyPullConsumer.Is_Nil (Self.X.Peer) then
             Leave (Self_Mutex);
-            raise CosEventComm.Disconnected;
+            CosEventComm.Helper.Raise_Disconnected
+              ((CORBA.IDL_Exception_Members with null record));
          end if;
 
          if not Self.X.Empty then
@@ -247,7 +250,8 @@ package body CosNotifyComm.PullSupplier.Impl is
       Enter (Self_Mutex);
       if CosNotifyChannelAdmin.ProxyPullConsumer.Is_Nil (Self.X.Peer) then
          Leave (Self_Mutex);
-         raise CosEventComm.Disconnected;
+         CosEventComm.Helper.Raise_Disconnected
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
 
       Has_Event := not Self.X.Empty;

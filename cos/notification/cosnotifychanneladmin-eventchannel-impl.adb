@@ -38,7 +38,6 @@ with CosNotification;
 with CosNotification.Helper;
 
 with CosNotifyChannelAdmin.ConsumerAdmin.Impl;
-with CosNotifyChannelAdmin.SupplierAdmin.Impl;
 
 with CosNotifyChannelAdmin.EventChannel.Helper;
 pragma Elaborate (CosNotifyChannelAdmin.EventChannel.Helper);
@@ -48,9 +47,11 @@ with CosNotifyChannelAdmin.EventChannel.Skel;
 pragma Elaborate (CosNotifyChannelAdmin.EventChannel.Skel);
 pragma Warnings (Off, CosNotifyChannelAdmin.EventChannel.Skel);
 
-with PortableServer;
+with CosNotifyChannelAdmin.Helper;
 
-with PolyORB.Exceptions;
+with CosNotifyChannelAdmin.SupplierAdmin.Impl;
+
+with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Mutexes;
@@ -288,7 +289,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       SeqLen := CosNotifyChannelAdmin.AdminID (Length (Self.X.CIDSeq));
       if Id >= SeqLen then
          Leave (Self_Mutex);
-         raise AdminNotFound;
+         CosNotifyChannelAdmin.Helper.Raise_AdminNotFound
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
 
       --  AdminID of the ConsumerAdmin will always be 1 less than
@@ -323,7 +325,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       SeqLen := CosNotifyChannelAdmin.AdminID (Length (Self.X.SIDSeq));
       if Id >= SeqLen then
          Leave (Self_Mutex);
-         raise AdminNotFound;
+         CosNotifyChannelAdmin.Helper.Raise_AdminNotFound
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
 
       --  AdminID of the SupplierAdmin will always be 1 less than
@@ -535,13 +538,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedQoS'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedQoS
+           ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
       SeqLen := Length (QoS);
@@ -699,13 +697,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedQoS'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedQoS
+           ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
       Enter (Self_Mutex);
@@ -847,13 +840,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedAdmin_Members'(admin_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedAdmin'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedAdmin
+           ((CORBA.IDL_Exception_Members with admin_err => MyErrorSeq));
       end if;
 
       Enter (Self_Mutex);
@@ -1062,13 +1050,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedQoS'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedQoS
+           ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
       --  Parse the passed Admin Sequence to check for
@@ -1115,13 +1098,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedAdmin_Members'(admin_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedAdmin'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedAdmin
+           ((CORBA.IDL_Exception_Members with admin_err => MyErrorSeq));
       end if;
 
       Channel           := new Object;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  COSNOTIFYCOMM.SEQUENCEPUSHSUPPLIER.IMPL                 --
+--                 COSNOTIFYCOMM.SEQUENCEPUSHSUPPLIER.IMPL                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
 
-with CosEventChannelAdmin;
-with CosEventComm;
+with CosEventChannelAdmin.Helper;
+with CosEventComm.Helper;
 
 with CosNotifyChannelAdmin.SequenceProxyPushConsumer;
 
@@ -176,7 +176,8 @@ package body CosNotifyComm.SequencePushSupplier.Impl is
       if not CosNotifyChannelAdmin.SequenceProxyPushConsumer.Is_Nil
       (Self.X.Peer) then
          Leave (Self_Mutex);
-         raise CosEventChannelAdmin.AlreadyConnected;
+         CosEventChannelAdmin.Helper.Raise_AlreadyConnected
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
 
       Self.X.Peer := Proxy;
@@ -208,7 +209,8 @@ package body CosNotifyComm.SequencePushSupplier.Impl is
       Leave (Self_Mutex);
 
       if CosNotifyChannelAdmin.SequenceProxyPushConsumer.Is_Nil (Peer) then
-         raise CosEventComm.Disconnected;
+         CosEventComm.Helper.Raise_Disconnected
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
 
       CosNotifyChannelAdmin.SequenceProxyPushConsumer.push_structured_events

@@ -38,6 +38,7 @@ with CosNotification;
 with CosNotification.Helper;
 
 with CosNotifyChannelAdmin.EventChannel.Impl;
+with CosNotifyChannelAdmin.Helper;
 
 with CosNotifyChannelAdmin.ProxyPushConsumer.Impl;
 with CosNotifyChannelAdmin.ProxyPushConsumer.Helper;
@@ -66,8 +67,6 @@ pragma Elaborate (CosNotifyChannelAdmin.SupplierAdmin.Skel);
 pragma Warnings (Off, CosNotifyChannelAdmin.SupplierAdmin.Skel);
 
 with PortableServer;
-
-with PolyORB.Exceptions;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Mutexes;
@@ -274,7 +273,8 @@ package body CosNotifyChannelAdmin.SupplierAdmin.Impl is
                   (AllProxies.Length (Self.X.AllPxs));
       if Proxy_Id >= SeqLen then
          Leave (Self_Mutex);
-         raise ProxyNotFound;
+         CosNotifyChannelAdmin.Helper.Raise_ProxyNotFound
+           ((CORBA.IDL_Exception_Members with null record));
       end if;
       --  NK How to search an element in Sequence
       --  Here we have to search in two sequences : Pushs and Pulls
@@ -629,13 +629,8 @@ package body CosNotifyChannelAdmin.SupplierAdmin.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedQoS'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedQoS
+           ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
       SeqLen := Length (QoS);
@@ -783,13 +778,8 @@ package body CosNotifyChannelAdmin.SupplierAdmin.Impl is
       end loop;
 
       if Length (MyErrorSeq) > 0 then
-         declare
-            Members : CORBA.IDL_Exception_Members'Class
-                    := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
-         begin
-            PolyORB.Exceptions.User_Raise_Exception
-              (UnsupportedQoS'Identity, Members);
-         end;
+         CosNotification.Helper.Raise_UnsupportedQoS
+           ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
       Enter (Self_Mutex);
