@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -77,6 +77,8 @@ begin
       Mod1 : ModuleDef_Forward.Ref;
       Int1 : InterfaceDef_Forward.Ref;
       Op1 : OperationDef.Ref;
+      pragma Warnings (Off, Op1);
+
       Id : RepositoryId;
       Name : Identifier;
       Version : VersionSpec;
