@@ -376,6 +376,24 @@ package body XE_Back is
       end case;
    end Build_New_Variable;
 
+   ----------------------
+   -- Compute_Checksum --
+   ----------------------
+
+   procedure Compute_Checksum
+     (P : in PID_Type;
+      F : in File_Name_Type) is
+      S : Int;
+   begin
+      S := Get_Name_Table_Info (F);
+      if S = 0 then
+         return;
+      end if;
+      Partitions.Table (P).Global_Checksum :=
+        Partitions.Table (P).Global_Checksum
+        xor Source.Table (Source_Id (S)).Checksum;
+   end Compute_Checksum;
+
    --------------------
    -- Create_Channel --
    --------------------
@@ -460,6 +478,7 @@ package body XE_Back is
       Partitions.Table (Partition).Most_Recent     := No_File;
       Partitions.Table (Partition).Task_Pool       := No_Task_Pool;
       Partitions.Table (Partition).Light_PCS       := True;
+      Partitions.Table (Partition).Global_Checksum := 0;
       PID := Partition;
    end Create_Partition;
 

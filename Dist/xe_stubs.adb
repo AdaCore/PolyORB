@@ -110,7 +110,7 @@ package body XE_Stubs is
    -----------
 
    procedure Build is
-      Afile     : File_Name_Type;
+      ALI       : ALI_Id;
       CUID      : CUID_Type;
       Directory : File_Name_Type;
 
@@ -167,10 +167,11 @@ package body XE_Stubs is
             for U in Unit.First .. Unit.Last loop
 
                if Get_PID (Unit.Table (U).Uname) = PID then
-                  Afile := ALIs.Table (Unit.Table (U).My_ALI).Afile;
+                  ALI := Unit.Table (U).My_ALI;
 
+                  --  Update stubs
                   if not Unit.Table (U).RCI then
-                     Most_Recent_Stamp (PID, Afile);
+                     null;
 
                   elsif Get_PID (U_To_N (Unit.Table (U).Uname)) = PID then
 
@@ -179,19 +180,19 @@ package body XE_Stubs is
                      --  not needed because GNATDIST add the caller directory
                      --  in its include path.
 
-                     Copy_Stub
-                       (Receiver_Dir, Directory, Unit.Table (U).My_ALI);
-                     Most_Recent_Stamp (PID, Dir (Receiver_Dir, Afile));
+                     Copy_Stub (Receiver_Dir, Directory, ALI);
                      Set_Light_PCS (PID, False);
 
                   else
                      Delete_Stub (Directory, Unit.Table (U).Sfile);
-                     Most_Recent_Stamp (PID, Dir (Caller_Dir, Afile));
                      if Unit.Table (U).Has_RACW_Type then
                         Set_Light_PCS (PID, False);
                      end if;
 
                   end if;
+
+                  Most_Recent_Stamp (PID, ALIs.Table (ALI).Afile);
+                  Compute_Checksum  (PID, Unit.Table (U).Sfile);
 
                end if;
 

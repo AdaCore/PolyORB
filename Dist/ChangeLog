@@ -1,3 +1,13 @@
+1998-04-17  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Compute partition checksum. Move code to compute
+	most recent stamp from xe_check.adb to xe_stubs.adb.
+
+	* xe_check.adb: Remove code to compute most recent stamp.
+
+	* xe_back.ads, xe_back.adb: Add checksum component to a partition
+ 	record.
+
 1998-04-05  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_stubs.adb: Skip Ascii.CR to please DOS/Windows.

@@ -168,6 +168,7 @@ package XE_Back is
       Light_PCS       : Boolean;
       Executable_File : Types.File_Name_Type;
       Partition_Dir   : Types.File_Name_Type;
+      Global_Checksum : Types.Word;
    end record;
 
    -- Tables --
@@ -227,6 +228,10 @@ package XE_Back is
    --  to avoid multiple entries in GNAT tables.
 
    procedure Back;
+
+   procedure Compute_Checksum
+     (P : in PID_Type;
+      F : in Types.File_Name_Type);
 
    procedure Create_Channel
      (Name : in  Channel_Name_Type;

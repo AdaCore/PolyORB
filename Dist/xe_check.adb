@@ -74,43 +74,34 @@ package body XE_Check is
       Args        : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
       Main        : Boolean;
 
-      function Find_Most_Recent_Object
-        (Afile : in File_Name_Type)
-         return File_Name_Type;
+      procedure Load_ALIs (Afile : in File_Name_Type);
       --  Load ali in ali table and recursively load dependencies. Skip
       --  loading for an internal library or an already loaded library.
-      --  Return most recent object file from this dependency list.
 
-      function Most_Recent_Object
-        (Uname : in Name_Id)
-         return File_Name_Type;
+      procedure Load_Units (Uname : in Name_Id);
       --  Load ali of this unit in ali table and recursively load
-      --  dependencies. Don't load an already loaded library. Return most
-      --  recent object file from this dependency list.
+      --  dependencies. Don't load an already loaded library.
 
       procedure Recompile (Unit : in Name_Id);
 
-      -----------------------------
-      -- Find_Most_Recent_Object --
-      -----------------------------
+      ---------------
+      -- Load_ALIs --
+      ---------------
 
-      function Find_Most_Recent_Object
-        (Afile : in File_Name_Type)
-         return File_Name_Type is
-         A        : ALI_Id;
-         File     : File_Name_Type;
-         Text     : Text_Buffer_Ptr;
+      procedure Load_ALIs (Afile : in File_Name_Type) is
+         A    : ALI_Id;
+         Text : Text_Buffer_Ptr;
 
       begin
          if Debug_Mode then
-            Message ("scan ", Afile);
+            Message ("load alis of ", Afile);
          end if;
 
          if Is_Internal_File_Name (Afile) then
             if Debug_Mode then
                Message ("... skip ", Afile, " internal library");
             end if;
-            return Afile;
+            return;
          end if;
 
          A := Get_ALI_Id (Afile);
@@ -118,11 +109,7 @@ package body XE_Check is
             if Debug_Mode then
                Message ("... skip ", Afile, " already loaded");
             end if;
-            return ALIs.Table (A).Ofile_Full_Name;
-         end if;
-
-         if Debug_Mode then
-            Message ("load ", Afile);
+            return;
          end if;
 
          Text := Read_Library_Info (Afile);
@@ -132,46 +119,34 @@ package body XE_Check is
          for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
             for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
                if Withs.Table (W).Afile /= No_File then
-                  File := Find_Most_Recent_Object (Withs.Table (W).Afile);
-                  if File /= No_File and then
-                    Stamp (File) > Stamp (ALIs.Table (A).Ofile_Full_Name) then
-                     ALIs.Table (A).Ofile_Full_Name := File;
-                  end if;
+                  Load_ALIs (Withs.Table (W).Afile);
                end if;
             end loop;
          end loop;
-         return ALIs.Table (A).Ofile_Full_Name;
-      end Find_Most_Recent_Object;
+      end Load_ALIs;
 
-      ------------------------
-      -- Most_Recent_Object --
-      ------------------------
+      ----------------
+      -- Load_Units --
+      ----------------
 
-      function Most_Recent_Object
-        (Uname : in Name_Id)
-         return File_Name_Type is
+      procedure Load_Units (Uname : in Name_Id) is
          A    : ALI_Id;
          Lib  : Name_Id;
-         File : File_Name_Type;
          Text : Text_Buffer_Ptr;
 
       begin
          if Debug_Mode then
-            Message ("scan ", Uname);
+            Message ("load alis of ", Uname);
          end if;
 
-         Lib  := Lib_File_Name (Find_Source (Uname));
+         Lib := Lib_File_Name (Find_Source (Uname));
 
          A := Get_ALI_Id (Lib);
          if A /= No_ALI_Id then
             if Debug_Mode then
                Message ("... skip ", Lib, " already loaded");
             end if;
-            return ALIs.Table (A).Ofile_Full_Name;
-         end if;
-
-         if Debug_Mode then
-            Message ("load ", Uname);
+            return;
          end if;
 
          Text := Read_Library_Info (Lib);
@@ -182,22 +157,17 @@ package body XE_Check is
             if Debug_Mode then
                Message ("... skip ", Lib, " internal library");
             end if;
-            return ALIs.Table (A).Ofile_Full_Name;
+            return;
          end if;
 
          for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
             for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
                if Withs.Table (W).Afile /= No_File then
-                  File := Find_Most_Recent_Object (Withs.Table (W).Afile);
-                  if File /= No_File and then
-                    Stamp (File) > Stamp (ALIs.Table (A).Ofile_Full_Name) then
-                     ALIs.Table (A).Ofile_Full_Name := File;
-                  end if;
+                  Load_ALIs (Withs.Table (W).Afile);
                end if;
             end loop;
          end loop;
-         return ALIs.Table (A).Ofile_Full_Name;
-      end Most_Recent_Object;
+      end Load_Units;
 
       ---------------
       -- Recompile --
@@ -327,15 +297,9 @@ package body XE_Check is
       Sdep.Init;
       Source.Init;
 
-      declare
-         Dummy : File_Name_Type;
-      begin
-         Dummy := Most_Recent_Object (Main_Subprogram);
-      end;
-
+      Load_Units (Main_Subprogram);
       for U in CUnit.First .. CUnit.Last loop
-         CUnit.Table (U).Most_Recent :=
-           Most_Recent_Object (CUnit.Table (U).CUname);
+         Load_Units (CUnit.Table (U).CUname);
       end loop;
 
       --  Set configured unit name key to No_Ali_Id.       (1)
