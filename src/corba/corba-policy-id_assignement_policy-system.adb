@@ -80,6 +80,7 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
       New_U_Oid.System_Generated := True;
       New_U_Oid.Persistency_Flag := Get_Time_Stamp (P_OA.Lifespan_Policy.all,
                                                     OA);
+      New_U_Oid.Creator := P_OA.Absolute_Address;
       Unlock_W (P_OA.Map_Lock);
       return U_Oid_To_Oid (New_U_Oid);
    end Activate_Object;

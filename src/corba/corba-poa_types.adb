@@ -31,7 +31,7 @@ package body CORBA.POA_Types is
    function Image (Oid : Object_Id) return String
    is
    begin
-      return To_Corba_String (Droopi.Objects.To_String
+      return To_CORBA_String (Droopi.Objects.To_String
                               (Droopi.Objects.Object_Id (Oid)));
    end Image;
 
@@ -42,14 +42,16 @@ package body CORBA.POA_Types is
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
-      Persistency_Flag : in Time_Stamp)
+      Persistency_Flag : in Time_Stamp;
+      Creator          : in CORBA.String)
      return Unmarshalled_Oid_Access
    is
       U_Oid : Unmarshalled_Oid_Access;
    begin
       U_Oid := new Unmarshalled_Oid'(Name,
                                      System_Generated,
-                                     Persistency_Flag);
+                                     Persistency_Flag,
+                                     Creator);
       return U_Oid;
    end Create_Id;
 
@@ -60,12 +62,13 @@ package body CORBA.POA_Types is
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
-      Persistency_Flag : in Time_Stamp)
+      Persistency_Flag : in Time_Stamp;
+      Creator          : in CORBA.String)
      return Object_Id_Access
    is
       U_Oid : Unmarshalled_Oid_Access;
    begin
-      U_Oid := Create_Id (Name, System_Generated, Persistency_Flag);
+      U_Oid := Create_Id (Name, System_Generated, Persistency_Flag, Creator);
       return U_Oid_To_Oid (U_Oid);
    end Create_Id;
 
@@ -84,17 +87,20 @@ package body CORBA.POA_Types is
       Id               : Droopi.Types.String;
       System_Generated : Droopi.Types.Boolean;
       Persistency_Flag : Droopi.Types.Unsigned_Long;
+      Creator          : Droopi.Types.String;
    begin
 
       Decapsulate (Stream'Access, Buffer'Access);
       Id               := Unmarshall (Buffer'Access);
       System_Generated := Unmarshall (Buffer'Access);
       Persistency_Flag := Unmarshall (Buffer'Access);
+      Creator          := Unmarshall (Buffer'Access);
       Release_Contents (Buffer);
 
       U_Oid := new Unmarshalled_Oid'(CORBA.String (Id),
                                      CORBA.Boolean (System_Generated),
-                                     Time_Stamp (Persistency_Flag));
+                                     Time_Stamp (Persistency_Flag),
+                                     CORBA.String (Creator));
       return U_Oid;
    end Oid_To_U_Oid;
 
@@ -131,6 +137,7 @@ package body CORBA.POA_Types is
       Marshall (Buffer, Droopi.Types.String (U_Oid.Id));
       Marshall (Buffer, Droopi.Types.Boolean (U_Oid.System_Generated));
       Marshall (Buffer, Droopi.Types.Unsigned_Long (U_Oid.Persistency_Flag));
+      Marshall (Buffer, Droopi.Types.String (U_Oid.Creator));
 
       Oid := new Object_Id'(Object_Id (Encapsulate (Buffer)));
       Release (Buffer);

@@ -192,11 +192,11 @@ package body Droopi.Protocols.Echo is
                              & " with args " & Arg_String));
 
             Args   := Obj_Adapters.Get_Empty_Arg_List
-              (Object_Adapter (ORB).all, Oid, Method);
+              (Object_Adapter (ORB), Oid, Method);
             Result :=
               (Name     => To_Droopi_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
-               (Object_Adapter (ORB).all, Oid, Method),
+               (Object_Adapter (ORB), Oid, Method),
                Arg_Modes => 0);
 
             Create_Local_Profile

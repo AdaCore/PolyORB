@@ -107,7 +107,7 @@ package body Droopi.Protocols.SRP is
 
       --  Get the arg profile needed by the method called
       Args := Obj_Adapters.Get_Empty_Arg_List
-        (Object_Adapter (ORB).all,
+        (Object_Adapter (ORB),
          Info_SRP.Oid.all,
          To_Standard_String (Info_SRP.Method.all));
 
@@ -126,7 +126,7 @@ package body Droopi.Protocols.SRP is
       --  appropriate Any.NamedValue for the result
       Result := (Name     => To_Droopi_String ("Result"),
                  Argument =>  Obj_Adapters.Get_Empty_Result
-                   (Object_Adapter (ORB).all, Info_SRP.Oid.all,
+                   (Object_Adapter (ORB), Info_SRP.Oid.all,
                     To_Standard_String (Info_SRP.Method.all)),
                  Arg_Modes => 0);
 

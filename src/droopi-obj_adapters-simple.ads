@@ -13,7 +13,7 @@ package Droopi.Obj_Adapters.Simple is
 
    type Simple_Obj_Adapter is new Obj_Adapter with private;
 
-   procedure Create (OA : out Simple_Obj_Adapter);
+   procedure Create (OA : access Simple_Obj_Adapter);
 
    procedure Destroy (OA : in out Simple_Obj_Adapter);
 
@@ -50,13 +50,13 @@ package Droopi.Obj_Adapters.Simple is
       If_Desc : Interface_Description);
 
    function Get_Empty_Arg_List
-     (OA     : Simple_Obj_Adapter;
+     (OA     : access Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
      return Any.NVList.Ref;
 
    function Get_Empty_Result
-     (OA     : Simple_Obj_Adapter;
+     (OA     : access Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
      return Any.Any;

@@ -14,7 +14,7 @@ package Droopi.Obj_Adapters is
    type Obj_Adapter is abstract tagged limited private;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
-   procedure Create (OA : out Obj_Adapter) is abstract;
+   procedure Create (OA : access Obj_Adapter) is abstract;
    --  Initialize.
 
    procedure Destroy (OA : in out Obj_Adapter) is abstract;
@@ -48,7 +48,7 @@ package Droopi.Obj_Adapters is
    ----------------------------------------------------
 
    function Get_Empty_Arg_List
-     (OA     : Obj_Adapter;
+     (OA     : access Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
      return Any.NVList.Ref is abstract;
@@ -56,7 +56,7 @@ package Droopi.Obj_Adapters is
    --  protocol layer can unmarshall the message into a Request object.
 
    function Get_Empty_Result
-     (OA     : Obj_Adapter;
+     (OA     : access Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
      return Any.Any is abstract;

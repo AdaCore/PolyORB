@@ -52,7 +52,7 @@ package body Droopi.Obj_Adapters.Simple is
 
    --  XXX Replace OA.Lock with a r/w lock???
 
-   procedure Create (OA : out Simple_Obj_Adapter) is
+   procedure Create (OA : access Simple_Obj_Adapter) is
    begin
       Create (OA.Lock);
    end Create;
@@ -152,7 +152,7 @@ package body Droopi.Obj_Adapters.Simple is
    end Set_Interface_Description;
 
    function Get_Empty_Arg_List
-     (OA     : Simple_Obj_Adapter;
+     (OA     : access Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
      return Any.NVList.Ref
@@ -165,7 +165,7 @@ package body Droopi.Obj_Adapters.Simple is
       begin
          declare
             OME : Object_Map_Entry
-              := Find_Entry (OA, Index);
+              := Find_Entry (OA.all, Index);
          begin
             if OME.If_Desc.PP_Desc = null then
                raise Invalid_Method;
@@ -183,7 +183,7 @@ package body Droopi.Obj_Adapters.Simple is
    end Get_Empty_Arg_List;
 
    function Get_Empty_Result
-     (OA     : Simple_Obj_Adapter;
+     (OA     : access Simple_Obj_Adapter;
       Oid    : Object_Id;
       Method : Requests.Operation_Id)
      return Any.Any
@@ -196,7 +196,7 @@ package body Droopi.Obj_Adapters.Simple is
       begin
          declare
             OME : Object_Map_Entry
-              := Find_Entry (OA, Index);
+              := Find_Entry (OA.all, Index);
          begin
             if OME.If_Desc.PP_Desc = null then
                raise Invalid_Method;

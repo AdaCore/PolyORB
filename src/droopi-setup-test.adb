@@ -230,7 +230,7 @@ begin
 
    Put ("Creating object adapter...");
    Obj_Adapter := new Obj_Adapters.Simple.Simple_Obj_Adapter;
-   Obj_Adapters.Create (Obj_Adapter.all);
+   Obj_Adapters.Create (Obj_Adapter);
    --  Create object adapter
 
    Set_Object_Adapter (The_ORB, Obj_Adapter);

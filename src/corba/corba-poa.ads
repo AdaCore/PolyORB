@@ -29,6 +29,7 @@ package CORBA.POA is
          Name                       : CORBA.String;
          POA_Manager                : CORBA.POA_Manager.POAManager_Access;
          Boot_Time                  : Time_Stamp;
+         Absolute_Address           : String;
          Active_Object_Map          : CORBA.Object_Map.Object_Map_Access;
          --  ??? Access?
 
@@ -67,7 +68,7 @@ package CORBA.POA is
 --       Adapter_Name : in CORBA.String;
 --       Activate_It  : in CORBA.Boolean)
 --      return CORBA.POA_Types.Obj_Adapter is abstract;
---    --  Use brothers and children to find a poa given its name
+--    --  Given a POA name, looks for the poa and return it if found
 
 --    procedure Destroy
 --      (Self                : access CORBA.POA_Types.Obj_Adapter;

@@ -15,6 +15,9 @@
 
 with Droopi.Obj_Adapters;
 with Droopi.Objects;         use Droopi.Objects;
+with Droopi.Any;
+with Droopi.Any.NVList;
+with Droopi.Requests;
 with Sequences.Unbounded;
 with Unchecked_Deallocation;
 
@@ -34,7 +37,23 @@ package CORBA.POA_Types is
      with null record;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
-   type Servant is abstract new Droopi.Objects.Servant with null record;
+   type Parameter_Profile_Description is
+     access function (Method : Droopi.Requests.Operation_Id)
+                     return Droopi.Any.NVList.Ref;
+
+   type Result_Profile_Description is
+     access function (Method : Droopi.Requests.Operation_Id)
+                     return Droopi.Any.Any;
+
+   type Interface_Description is record
+      PP_Desc : Parameter_Profile_Description;
+      RP_Desc : Result_Profile_Description;
+   end record;
+
+   type Servant is abstract new Droopi.Objects.Servant with
+      record
+         If_Desc : Interface_Description;
+      end record;
    type Servant_Access is access all Servant'Class;
 
    package POA_Sequences is new Sequences.Unbounded (Obj_Adapter_Access);
@@ -49,6 +68,7 @@ package CORBA.POA_Types is
          Id               : CORBA.String;
          System_Generated : CORBA.Boolean;
          Persistency_Flag : Time_Stamp;
+         Creator          : CORBA.String;
      end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
 
@@ -63,14 +83,16 @@ package CORBA.POA_Types is
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
-      Persistency_Flag : in Time_Stamp)
+      Persistency_Flag : in Time_Stamp;
+      Creator          : in CORBA.String)
      return Unmarshalled_Oid_Access;
    --  Create an Unmarshalled_Oid
 
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
-      Persistency_Flag : in Time_Stamp)
+      Persistency_Flag : in Time_Stamp;
+      Creator          : in CORBA.String)
      return Object_Id_Access;
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
 

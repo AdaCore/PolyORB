@@ -1,6 +1,8 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Real_Time;
 
+with Droopi.Objects;
+
 with Sequences.Unbounded;
 with Sequences.Unbounded.Search;
 with Droopi.Log;
@@ -41,8 +43,9 @@ package body CORBA.POA.Basic_POA is
                                       Policies : Policy.PolicyList_Access);
    procedure Init_With_Default_Policies (OA : Basic_Obj_Adapter_Access);
    procedure Check_Policies_Compatibility (OA : Basic_Obj_Adapter_Access);
-   procedure Register_Child (Self  : access Basic_Obj_Adapter;
-                             Child :        Basic_Obj_Adapter_Access);
+   function Register_Child (Self  : access Basic_Obj_Adapter;
+                            Child :        Basic_Obj_Adapter_Access)
+                           return Positive;
 
    --  Add a child to the current POA
    --  The procedure doesn't take care of locking the list of children!
@@ -236,16 +239,26 @@ package body CORBA.POA.Basic_POA is
    -- Register_Child --
    --------------------
 
-   procedure Register_Child (Self  : access Basic_Obj_Adapter;
-                             Child :        Basic_Obj_Adapter_Access)
+   function Register_Child (Self  : access Basic_Obj_Adapter;
+                            Child :        Basic_Obj_Adapter_Access)
+     return Positive
    is
       use CORBA.POA_Types.POA_Sequences;
    begin
       if (Self.Children = null) then
          Self.Children := new POAList;
-         Append (Sequence (Self.Children.all),
-                 CORBA.POA_Types.Obj_Adapter_Access (Child));
       end if;
+      for I in 1 .. Length (Sequence (Self.Children.all)) loop
+         if Element_Of (Sequence (Self.Children.all), I) = null then
+            Replace_Element (Sequence (Self.Children.all),
+                             I,
+                             CORBA.POA_Types.Obj_Adapter_Access (Child));
+            return I;
+         end if;
+      end loop;
+      Append (Sequence (Self.Children.all),
+              CORBA.POA_Types.Obj_Adapter_Access (Child));
+      return Length (Sequence (Self.Children.all));
    end Register_Child;
 
    ----------------
@@ -262,6 +275,7 @@ package body CORBA.POA.Basic_POA is
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
       Children_Locked : Boolean := False;
       Conf            : POA_Configuration.Minimum.Minimum_Configuration;
+      Index           : Positive;
    begin
       O ("Enter Basic_POA.Create_POA");
       --  ??? Add check code here
@@ -311,14 +325,17 @@ package body CORBA.POA.Basic_POA is
       --  Check compatibilities between policies
       Check_Policies_Compatibility (New_Obj_Adapter);
 
-      --  ??? If error, clean memory
-      --  --> An exception is raised: catch it, free the memoy, raise exception
-
       --  Register new obj_adapter as a sibling of the current POA
       if not Children_Locked then
          Lock_W (Self.Children_Lock);
       end if;
-      Register_Child (Self, New_Obj_Adapter);
+      Index := Register_Child (Self, New_Obj_Adapter);
+      if Length (Self.Absolute_Address) > 0 then
+         New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
+           & To_CORBA_String (".") & Adapter_Name;
+      else
+         New_Obj_Adapter.Absolute_Address := Self.Absolute_Address & Adapter_Name;
+      end if;
       Unlock_W (Self.Children_Lock);
 
       return Obj_Adapter_Access (New_Obj_Adapter);
@@ -367,7 +384,8 @@ package body CORBA.POA.Basic_POA is
       Create (New_Obj_Adapter.Children_Lock);
       Create (New_Obj_Adapter.Map_Lock);
       New_Obj_Adapter.Boot_Time := Get_Boot_Time;
-      New_Obj_Adapter.Name   := To_CORBA_String ("RootPOA");
+      New_Obj_Adapter.Name      := To_CORBA_String ("RootPOA");
+      New_Obj_Adapter.Absolute_Address := To_CORBA_String ("");
 
       --  ??? Use POAManager factory
 
@@ -386,9 +404,12 @@ package body CORBA.POA.Basic_POA is
    -- Create --
    ------------
 
-   procedure Create (OA : out Basic_Obj_Adapter)
+   procedure Create (OA : access Basic_Obj_Adapter)
    is
+      --       Result : Basic_Obj_Adapter_Access
+      --         := Basic_Obj_Adapter_Access (Create_Root_POA);
    begin
+      --       OA := Result.all;
       null;
    end Create;
 
@@ -397,7 +418,7 @@ package body CORBA.POA.Basic_POA is
    --------------------------
 
    function Create_Thread_Policy (Self  : access Basic_Obj_Adapter;
-                                  Value : ThreadPolicyValue)
+                                  Value :        ThreadPolicyValue)
                                  return ThreadPolicy_Access
    is
    begin
@@ -410,7 +431,7 @@ package body CORBA.POA.Basic_POA is
    ----------------------------
 
    function Create_Lifespan_Policy (Self  : access Basic_Obj_Adapter;
-                                    Value : LifespanPolicyValue)
+                                    Value :        LifespanPolicyValue)
                                  return LifespanPolicy_Access
    is
    begin
@@ -424,7 +445,7 @@ package body CORBA.POA.Basic_POA is
 
    function Create_Id_Uniqueness_Policy
      (Self  : access Basic_Obj_Adapter;
-      Value : IdUniquenessPolicyValue)
+      Value :        IdUniquenessPolicyValue)
      return IdUniquenessPolicy_Access
    is
    begin
@@ -466,7 +487,7 @@ package body CORBA.POA.Basic_POA is
 
    function Create_Request_Processing_Policy
      (Self  : access Basic_Obj_Adapter;
-      Value : RequestProcessingPolicyValue)
+      Value :        RequestProcessingPolicyValue)
      return RequestProcessingPolicy_Access
    is
    begin
@@ -480,7 +501,7 @@ package body CORBA.POA.Basic_POA is
 
    function Create_Implicit_Activation_Policy
      (Self  : access Basic_Obj_Adapter;
-      Value : ImplicitActivationPolicyValue)
+      Value :        ImplicitActivationPolicyValue)
      return ImplicitActivationPolicy_Access
    is
    begin
@@ -574,6 +595,45 @@ package body CORBA.POA.Basic_POA is
       return Servant;
    end Id_To_Servant;
 
+   --------------------------
+   -- Find_POA_Recursively --
+   --------------------------
+
+   function Find_POA_Recursively
+     (Self : access Basic_Obj_Adapter;
+      Name : String)
+     return Basic_Obj_Adapter_Access
+   is
+      use CORBA.POA_Types.POA_Sequences;
+      Split_Point      : Natural := Index (Name, ".");
+      Remaining_Name   : String;
+      A_Child_Name     : String;
+      A_Child          : Obj_Adapter_Access;
+      A                : Integer;
+   begin
+      if Split_Point /= 0 then
+         A_Child_Name := Head (Name, Split_Point - 1);
+         Remaining_Name := Tail (Name, Length (Name) - Split_Point);
+      else
+         A_Child_Name := Name;
+      end if;
+      for I in 1 .. Length (Sequence (Self.Children.all)) loop
+         A_Child := Obj_Adapter_Access (Element_Of
+                                        (Sequence (Self.Children.all),
+                                         I));
+         if A_Child.Name = A_Child_Name then
+            if Remaining_Name /= "" then
+               return Find_POA_Recursively
+                 (Basic_Obj_Adapter (A_Child.all)'Access,
+                  Remaining_Name);
+            else
+               return Basic_Obj_Adapter_Access (A_Child);
+            end if;
+         end if;
+      end loop;
+      return null;
+   end Find_POA_Recursively;
+
    ----------------------------------------------------
    --  Procedures and functions not yet implemented  --
    ----------------------------------------------------
@@ -600,7 +660,7 @@ package body CORBA.POA.Basic_POA is
      return Droopi.Objects.Object_Id
    is
    begin
-      return Export (OA, Obj);
+      return Droopi.Objects.Object_Id (Activate_Object (OA, Servant_Access (Obj)));
    end Export;
 
    --------------
@@ -612,7 +672,7 @@ package body CORBA.POA.Basic_POA is
       Id :        Droopi.Objects.Object_Id)
    is
    begin
-      null;
+      Deactivate (OA, Object_Id (Id));
    end Unexport;
 
    ------------------------
@@ -620,12 +680,15 @@ package body CORBA.POA.Basic_POA is
    ------------------------
 
    function Get_Empty_Arg_List
-     (OA     : Basic_Obj_Adapter;
+     (OA     : access Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return Droopi.Any.NVList.Ref
    is
+      S : Servant_Access;
    begin
+--       S := Servant_Access (Find_Servant (OA'Access, Oid));
+--       return S.If_Desc.PP_Desc (Method);
       return Get_Empty_Arg_List (OA, Oid, Method);
    end Get_Empty_Arg_List;
 
@@ -634,7 +697,7 @@ package body CORBA.POA.Basic_POA is
    ----------------------
 
    function Get_Empty_Result
-     (OA     : Basic_Obj_Adapter;
+     (OA     : access Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return Droopi.Any.Any
@@ -652,8 +715,18 @@ package body CORBA.POA.Basic_POA is
       Id :        Droopi.Objects.Object_Id)
      return Droopi.Objects.Servant_Access
    is
+      U_Oid  : Unmarshalled_Oid_Access
+        := Oid_To_U_Oid (Object_Id (Id));
+      The_OA : Basic_Obj_Adapter_Access
+        := Find_POA_Recursively (OA, U_Oid.Creator);
    begin
-      return Find_Servant (OA, Id);
+      if The_OA /= null then
+         return Droopi.Objects.Servant_Access (Id_To_Servant (The_OA.all'Access,
+                                                              Id));
+      else
+         --  ??? raise exception
+         null;
+      end if;
    end Find_Servant;
 
    ---------------------

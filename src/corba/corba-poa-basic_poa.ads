@@ -106,7 +106,7 @@ package CORBA.POA.Basic_POA is
    --------------------------------------------------------
    --  Functions and procedures to interface with Droopi --
    --------------------------------------------------------
-   procedure Create (OA : out Basic_Obj_Adapter);
+   procedure Create (OA : access Basic_Obj_Adapter);
    --  Initialize.
 
    procedure Destroy (OA : in out Basic_Obj_Adapter);
@@ -114,7 +114,7 @@ package CORBA.POA.Basic_POA is
 
    function Export
      (OA  : access Basic_Obj_Adapter;
-      Obj : Droopi.Objects.Servant_Access)
+      Obj :        Droopi.Objects.Servant_Access)
      return Droopi.Objects.Object_Id;
    --  Create an identifier for Obj within OA.
 
@@ -129,15 +129,15 @@ package CORBA.POA.Basic_POA is
    ----------------------------------------------------
 
    function Get_Empty_Arg_List
-     (OA     : Basic_Obj_Adapter;
+     (OA     : access Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return Droopi.Any.NVList.Ref;
-   --  Return the paramter profile of the given method, so the
+   --  Returns the parameter profile of the given method, so the
    --  protocol layer can unmarshall the message into a Request object.
 
    function Get_Empty_Result
-     (OA     : Basic_Obj_Adapter;
+     (OA     : access Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return Droopi.Any.Any;
@@ -165,6 +165,13 @@ package CORBA.POA.Basic_POA is
 
    function Create_Root_POA
      return Obj_Adapter_Access;
+
+   function Find_POA_Recursively
+     (Self : access Basic_Obj_Adapter;
+      Name :        String)
+     return Basic_Obj_Adapter_Access;
+   --  Starting from given POA, looks for the POA in all the descendancy whose
+   --  name is Name. Returns null if not found.
 
    procedure Free is new Ada.Unchecked_Deallocation (Basic_Obj_Adapter,
                                                      Basic_Obj_Adapter_Access);

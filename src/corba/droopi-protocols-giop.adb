@@ -1072,7 +1072,7 @@ package body Droopi.Protocols.GIOP is
       end case;
 
       Args := Obj_Adapters.Get_Empty_Arg_List
-        (Object_Adapter (ORB).all,
+        (Object_Adapter (ORB),
          Object_Key.all,
          To_Standard_String (Operation.all));
 
@@ -1086,7 +1086,7 @@ package body Droopi.Protocols.GIOP is
 
       Result := (Name     => To_Droopi_String ("Result"),
                  Argument => Obj_Adapters.Get_Empty_Result
-                 (Object_Adapter (ORB).all,
+                 (Object_Adapter (ORB),
                   Object_Key.all,
                   To_Standard_String (Operation.all)),
                  Arg_Modes => 0);
@@ -1187,7 +1187,7 @@ package body Droopi.Protocols.GIOP is
             Pend_Req.Req.Result :=
               (Name     => To_Droopi_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
-               (Object_Adapter (ORB).all,
+               (Object_Adapter (ORB),
                 Get_Object_Key
                 (IIOP_Profile_Type (Pend_Req.Target_Profile.all)),
                 To_Standard_String (Pend_Req.Req.Operation)),
