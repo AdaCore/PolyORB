@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.14 $
+//                            $Revision: 1.15 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -534,6 +534,7 @@ adabe_module::produce_stream_adb (dep_list & withlist,
   UTL_ScopeActiveIterator iterator (this, UTL_Scope::IK_decls);
 
   withlist.add ("Broca.Marshalling");
+  withlist.add ("Broca.Refs");
 
   maincode += "package body " + get_ada_full_name () + ".Stream is\n";
 

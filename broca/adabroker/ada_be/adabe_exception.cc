@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.9 $
+//                            $Revision: 1.10 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -228,6 +228,7 @@ adabe_exception::produce_stream_ads (dep_list & with,
 
   with.add (pack);
   with.add ("Broca.Marshalling");
+  with.add ("Broca.Refs");
   with.add ("Broca.Buffers");
 
   UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
@@ -270,6 +271,8 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
 	"      Val : in " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
+	"      use Broca.Marshalling;\n"
+	"      use Broca.Refs;\n"
 	"   begin\n";
 
       // Declaration of the function unmarshall.
@@ -278,6 +281,8 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
 	"      Res : out " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
+	"      use Broca.Marshalling;\n"
+	"      use Broca.Refs;\n"
 	"   begin\n";
 
       // Declaration of the function align_size.
@@ -286,6 +291,8 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
 	"      Val : in " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
+	"      use Broca.Marshalling;\n"
+	"      use Broca.Refs;\n"
 	"   begin\n";
       
       // We must now call the function over each field in the scope.

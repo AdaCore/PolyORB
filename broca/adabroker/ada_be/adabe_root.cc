@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.6 $
+//                            $Revision: 1.7 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -611,6 +611,7 @@ void adabe_root::produce () {
 		    dep_list interface_withlist;
 
 		    interface_withlist.add ("Broca.Marshalling");
+		    interface_withlist.add ("Broca.Refs");
 
 		    interface->produce_stream_adb 
 		      (interface_withlist,
