@@ -64,9 +64,6 @@ Ada_OmniObject::Ada_OmniObject()
 {
   Init_Ok = false;
 
-  Implobj = 0 ;
-  // It should be initialized by Ada, and set to null
-  // but the type is controlled -> problem !!
 };
 
 

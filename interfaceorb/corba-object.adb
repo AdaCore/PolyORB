@@ -546,10 +546,11 @@ package body Corba.Object is
    ---------
    procedure Adjust (Self: in out Ref) is
    begin
-      pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust")) ;
+      pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : entering ...")) ;
       if not Is_Nil(Self) then
          Self.Omniobj := Omniobject.Omniobject_Duplicate(Self.Omniobj) ;
       end if ;
+      pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : exiting ... OK")) ;
    end ;
 
 
