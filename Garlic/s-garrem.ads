@@ -43,9 +43,7 @@ package System.Garlic.Remote is
    --  descriptors.
 
    procedure Full_Launch
-     (Rsh_Command : in String;
-      Host        : in String;
-      Rsh_Options : in String;
+     (Host        : in String;
       Command     : in String);
    --  Launch the given partition with the correct parameters on the
    --  command line.
@@ -54,17 +52,13 @@ package System.Garlic.Remote is
    --  Ask a host name for a partition and return it
 
    procedure Register_Partition_To_Launch
-     (Rsh_Command  : in String;
-      Name_Is_Host : in Boolean;
+     (Name_Is_Host : in Boolean;
       General_Name : in String;
-      Rsh_Options  : in String;
       Command_Line : in String);
    --  General_Name represents the name of the machine or the name of
    --  the partition (depending on the value of
    --  Name_Is_Host). Command_Line holds the extra options that will
-   --  be given on the command line.  Rsh_Command is typically "rsh",
-   --  that will be used to launch the other partition. Rsh_Options is
-   --  an command line argument for Rsh_Command.
+   --  be given on the command line.
 
    procedure Launch_Registered_Partitions;
 

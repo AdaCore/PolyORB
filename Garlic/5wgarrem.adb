@@ -72,9 +72,7 @@ package body System.Garlic.Remote is
    type Partition_List is access Partition_Info;
 
    type Partition_Info is record
-      Rsh_Command  : String_Access;
       Remote_Host  : String_Access;
-      Rsh_Options  : String_Access;
       Command_Line : String_Access;
       Next         : Partition_List;
    end record;
@@ -102,9 +100,7 @@ package body System.Garlic.Remote is
    -----------------
 
    procedure Full_Launch
-     (Rsh_Command : in String;
-      Host        : in String;
-      Rsh_Options : in String;
+     (Host        : in String;
       Command     : in String)
    is
       Argument : constant String := Get_Boot_Locations;
@@ -177,14 +173,10 @@ package body System.Garlic.Remote is
          List := List.Next;
 
          Full_Launch
-           (P.Rsh_Command.all,
-            P.Remote_Host.all,
-            P.Rsh_Options.all,
+           (P.Remote_Host.all,
             P.Command_Line.all);
 
-         Destroy (P.Rsh_Command);
          Destroy (P.Remote_Host);
-         Destroy (P.Rsh_Options);
          Destroy (P.Command_Line);
          Free (P);
       end loop;
@@ -195,18 +187,14 @@ package body System.Garlic.Remote is
    ----------------------------------
 
    procedure Register_Partition_To_Launch
-     (Rsh_Command  : in String;
-      Name_Is_Host : in Boolean;
+     (Name_Is_Host : in Boolean;
       General_Name : in String;
-      Rsh_Options  : in String;
       Command_Line : in String)
    is
       P : Partition_List;
 
    begin
       P := new Partition_Info;
-      P.Rsh_Command  := new String'(Rsh_Command);
-      P.Rsh_Options  := new String'(Rsh_Options);
       P.Command_Line := new String'(Command_Line);
       if Name_Is_Host then
          P.Remote_Host := new String'(General_Name);
