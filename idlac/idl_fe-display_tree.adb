@@ -183,14 +183,17 @@ package body Idl_Fe.Display_Tree is
                end if;
             end;
 
---          when K_Attribute =>
---             Put ("attribute ");
---             if N_Attribute (N).Is_Readonly then
---                Put ("readonly ");
---             end if;
---             Put_Line (Get_Name (N_Attribute (N)));
---             Disp_Indent (N_Indent, "type:");
---             Disp_Tree (N_Attribute (N).A_Type.all, N_Indent, Full);
+         when K_Attribute =>
+            Put ("attribute ");
+            if N_Attribute (N).Is_Readonly then
+               Put ("readonly ");
+            end if;
+            Put_Line ("");
+            Disp_Indent (N_Indent, "type:");
+            Disp_Tree (N_Attribute (N).A_Type.all, N_Indent, Full);
+            Disp_Indent (N_Indent, "declarators:");
+            Disp_List (N_Attribute (N).Declarators,
+                       N_Indent + Offset, Full);
 
          when K_Void =>
             Put_Line ("void");

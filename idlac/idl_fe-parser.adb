@@ -715,8 +715,13 @@ package body Idl_Fe.Parser is
                            Success : out Boolean) is
    begin
       case Get_Token is
---          when T_Readonly | T_Attribute =>
---             Parse_Attr_Dcl (List);
+         when T_Readonly | T_Attribute =>
+            declare
+               Result_Attr : N_Attribute_Acc;
+            begin
+               Parse_Attr_Dcl (Result_Attr, Success);
+               Result := N_Root_Acc (Result_Attr);
+            end;
          when T_Oneway | T_Void | T_Colon_Colon | T_Identifier |
            T_Short | T_Long | T_Float | T_Double | T_Unsigned |
            T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
@@ -3472,6 +3477,7 @@ package body Idl_Fe.Parser is
       begin
          Parse_Declarator (Res, Success);
          if not Success then
+            pragma Debug (O ("Parse_Declarators : first success = false"));
             return;
          else
             Append_Node (Result, N_Root_Acc (Res));
@@ -3508,13 +3514,12 @@ package body Idl_Fe.Parser is
          return;
       else
          if View_Next_Token = T_Left_Sbracket then
+            pragma Debug (O ("Parse_Declarator : Array"));
             Parse_Complex_Declarator (Result, Success);
          else
             Parse_Simple_Declarator (Result, Success);
          end if;
       end if;
-      --  >>>>>>>>>>>>>>>>>>>>>>> Vince added it
-      --    Next_Token;
       return;
    end Parse_Declarator;
 
@@ -3545,6 +3550,8 @@ package body Idl_Fe.Parser is
                (Get_Location (Definition.Node.all)),
                Idl_Fe.Errors.Error,
                Get_Token_Location);
+            Success := False;
+            return;
          else
             Result := new N_Declarator;
             Set_Location (Result.all, Get_Token_Location);
@@ -3893,7 +3900,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if not Add_Identifier (Result, Name.all) then
-         --  the error was raised before <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+         --  the error was raised before
          Success := False;
          null;
       end if;
@@ -4672,6 +4679,7 @@ package body Idl_Fe.Parser is
                                      Success : out Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
+      pragma Debug (O ("Parse_Array_declarator : enter"));
       Result := new N_Declarator;
       Set_Location (Result.all, Get_Token_Location);
       --  try to find a previous definition
@@ -4687,6 +4695,9 @@ package body Idl_Fe.Parser is
             (Get_Location (Definition.Node.all)),
             Idl_Fe.Errors.Error,
             Get_Token_Location);
+         Result := null;
+         Success := False;
+         return;
       else
          --  no previous definition
          if not Add_Identifier (Result,
@@ -4695,17 +4706,22 @@ package body Idl_Fe.Parser is
          end if;
       end if;
       Result.Array_Bounds := Nil_List;
-      while Get_Next_Token = T_Left_Sbracket loop
+      --  eat the identifier
+      Next_Token;
+      while Get_Token = T_Left_Sbracket loop
          declare
             Expr : N_Expr_Acc;
          begin
             Parse_Fixed_Array_Size (Expr, Success);
             if not Success then
+               pragma Debug (O ("Parse_Array_declarator : " &
+                                "Parse_Fixed_Array_Size returned false"));
                return;
             end if;
             Append_Node (Result.Array_Bounds, N_Root_Acc (Expr));
          end;
       end loop;
+      pragma Debug (O ("Parse_Array_declarator : end"));
       return;
    end Parse_Array_Declarator;
 
@@ -4718,6 +4734,8 @@ package body Idl_Fe.Parser is
       Next_Token;
       Parse_Positive_Int_Const (Result, Success);
       if not Success then
+         pragma Debug (O ("Parse_fixed_array_size : "&
+                          "Parse_positive_int_const returned false"));
          return;
       end if;
       if Get_Token /= T_Right_Sbracket then
@@ -5524,28 +5542,98 @@ package body Idl_Fe.Parser is
 --       return Res;
 --    end Parse_Or_Expr;
 
---    --  Rule 70:
---    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
---    --                 <simple_declarator> { "," <simple_declarator> }*
---    procedure Parse_Attr_Dcl (List : in out Node_List) is
---       El : N_Attribute_Acc;
---    begin
---       El := new N_Attribute;
---       Set_Location (El.all, Get_Location);
---       if Token = T_Readonly then
---          El.Is_Readonly := True;
---          Next_Token;
---       else
---          El.Is_Readonly := False;
---       end if;
---       Expect (T_Attribute);
---       Next_Token;
---       El.A_Type := Parse_Param_Type_Spec;
---       Expect (T_Identifier);
---       Add_Identifier (El);
---       Append_Node (List, N_Root_Acc (El));
---       Next_Token;
---    end Parse_Attr_Dcl;
+   ---------------------
+   --  Parse_Attr_Dcl --
+   ---------------------
+
+   procedure Parse_Attr_Dcl (Result : out N_Attribute_Acc;
+                             Success : out Boolean) is
+      El : N_Attribute_Acc;
+   begin
+      El := new N_Attribute;
+      Set_Location (El.all, Get_Token_Location);
+      if Get_Token = T_Readonly then
+         El.Is_Readonly := True;
+         Next_Token;
+      else
+         El.Is_Readonly := False;
+      end if;
+      if Get_Token /= T_Attribute then
+         Idl_Fe.Errors.Parser_Error
+           ("'attribute' expected",
+            Idl_Fe.Errors.Error,
+            Get_Token_Location);
+         --  memory leak >>>>>>>>>>>>>>>>>>>
+         Result := null;
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      pragma Debug (O ("Parse_Attr_dcl :" &
+                       Idl_Token'Image (Get_Token)));
+      Parse_Param_Type_Spec (El.A_Type, Success);
+      if not Success then
+         Result := null;
+         return;
+      end if;
+      if Get_Token /= T_Identifier then
+         Idl_Fe.Errors.Parser_Error
+           ("identifier expected",
+            Idl_Fe.Errors.Error,
+            Get_Token_Location);
+         --  memory leak >>>>>>>>>>>>>>>>>>>
+         Result := null;
+         Success := False;
+         return;
+      end if;
+      declare
+         Res : N_Declarator_Acc;
+      begin
+         Parse_Simple_Declarator (Res, Success);
+         if not Success then
+            Result := null;
+            Success := False;
+            return;
+         else
+            Append_Node (El.Declarators, N_Root_Acc (Res));
+         end if;
+      end;
+      while Get_Token = T_Comma loop
+         Next_Token;
+         declare
+            Res : N_Declarator_Acc;
+         begin
+            Parse_Simple_Declarator (Res, Success);
+            if not Success then
+               Result := null;
+               Success := False;
+               return;
+            else
+               Append_Node (El.Declarators, N_Root_Acc (Res));
+            end if;
+         end;
+      end loop;
+--      if not Add_Identifier (El, Get_Token_String) then
+--         declare
+--            Loc : Idl_Fe.Errors.Location;
+--         begin
+--            Loc := Types.Get_Location
+--              (Find_Identifier_Node (Get_Token_String).all);
+--            Idl_Fe.Errors.Parser_Error
+--              ("This attribute name is already defined in" &
+--               " this scope : " &
+--               Idl_Fe.Errors.Display_Location (Loc),
+--               Idl_Fe.Errors.Error,
+--               Get_Token_Location);
+--            --  memory leak >>>>>>>>>>>>>>>>>>>
+--            Result := null;
+--            Success := False;
+--            return;
+--         end;
+--      end if;
+      Result := El;
+--      Next_Token;
+   end Parse_Attr_Dcl;
 
 
 

@@ -243,10 +243,10 @@ package body Idl_Fe.Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Attribute) return Types.Node_Kind is
---    begin
---       return Types.K_Attribute;
---    end Get_Kind;
+   function Get_Kind (N : N_Attribute) return Types.Node_Kind is
+   begin
+      return Types.K_Attribute;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --

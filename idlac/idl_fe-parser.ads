@@ -705,6 +705,12 @@ private
    procedure Parse_Fixed_Array_Size (Result : out N_Expr_Acc;
                                      Success : out Boolean);
 
+   --  Rule 85:
+   --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
+   --                 <simple_declarator> { "," <simple_declarator> }*
+   procedure Parse_Attr_Dcl (Result : out N_Attribute_Acc;
+                             Success : out Boolean);
+
    --  Rule 86
    --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
    procedure Parse_Except_Dcl (Result : out N_Exception_Acc;
@@ -959,12 +965,6 @@ private
 
 
 --    --
---    --
---    --  Rule 70:
---    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
---    --                 <simple_declarator> { "," <simple_declarator> }*
---    procedure Parse_Attr_Dcl (List : in out Node_List) is
-
 --    --
 
 end Idl_Fe.Parser;

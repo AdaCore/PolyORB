@@ -222,12 +222,13 @@ package Idl_Fe.Tree is
    type N_Operation_Acc is access all N_Operation;
    function Get_Kind (N : N_Operation) return Types.Node_Kind;
 
---    type N_Attribute is new Types.N_Named with record
---       Is_Readonly : Boolean;
---       A_Type : Types.N_Root_Acc;
---    end record;
---    type N_Attribute_Acc is access all N_Attribute;
---    function Get_Kind (N : N_Attribute) return Types.Node_Kind;
+   type N_Attribute is new Types.N_Named with record
+      Is_Readonly : Boolean;
+      A_Type : Types.N_Root_Acc;
+      Declarators : Types.Node_List;
+   end record;
+   type N_Attribute_Acc is access all N_Attribute;
+   function Get_Kind (N : N_Attribute) return Types.Node_Kind;
 
    type N_Void is new Types.N_Root with null record;
    type N_Void_Acc is access all N_Void;

@@ -253,6 +253,20 @@ typedef boolean array1[2];
 /* Test of rule 84 */
 typedef boolean array2[3;
 
+/* Test of rule 85 */      
+interface toitoi{
+attribute;
+readonly error;
+readonly attribute error;
+readonly attribute long;
+readonly attribute blurp;
+readonly attribute long titi;
+readonly attribute long titi;
+readonly attribute long tutu, trotro;
+readonly attribute long tutu,;
+attribute string abab, obob;
+};
+	
 /* Test of rule 87 */
 boolean;
 oneway boolean;

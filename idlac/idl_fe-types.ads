@@ -24,7 +24,7 @@ package Idl_Fe.Types is
        K_State_Member,
        K_Initializer,
        K_Operation,
---        K_Attribute,
+       K_Attribute,
        K_Param,
        K_Exception,
        K_Member,
