@@ -111,14 +111,51 @@ Extended Examples
 @chapter Short Tutorial on the Distributed Systems Annex
 
 @menu
-* Categorization pragmas::
 * Using The Facilities Of The Distributed System Annex::
+* Categorization pragmas::
 * Comparisons With Other Existing Standards::
 * Simple Exaple : Hello_World::
 * Client / Server Example : Simple Bank::
 @end menu
 
-There are basically several categorization pragmas :
+@node Using The Facilities Of The Distributed System Annex
+@section Using The Facilities Of The Distributed System Annex
+
+The basic idea of the Distributed Systems Annex is to allow a user to
+develop his application the same way whether it is going to be executed
+as several programs on a distributed system or as a whole program on a
+non-distributed system.
+
+The first step is to develop the application on a non-distributed
+system. Of course, the design of the application should take into
+account the fact that some units are going to be accessed
+remotely. Therefore, they must contain a restricted set of Ada
+entities. For instance, if the distributed system has no shared memory,
+shared variables should be forbidden. To ensure such restrictions, the
+Distributed System Annex provides several categorization pragmas in
+order to reduce the set of entities one can declare in a given unit.
+
+The second step is to develop the non-distributed application with your
+usual software engineering environment. This is very important to note
+that you don't need to acquire specialized tools to develop your
+distributed application. For instance, you can debug your application
+with your usual debugger. 
+
+The third step is to partition and to configure your non-distributed
+application into a distributed application, that means multiple
+partitions working cooperatively as part of a single Ada program. The
+process of mapping the partitions of a program to the nodes in a
+distributed system is called configuring the partitions of the
+program. This is what GLADE is for.
+
+@node Categorization pragmas
+@section Categorization pragmas
+
+Library units can be categorized according to the role they play in a
+distributed program. A categorization pragma is a library unit pragma
+that restricts the declarations, child units, or semantic dependences of
+the library unit to which it applies. There are several categorization
+pragmas :
 
 @enumerate
 @item Remote_Call_Interface
@@ -127,6 +164,44 @@ There are basically several categorization pragmas :
 @item Pure
 @end enumerate
 
+When a library unit is not categorized, this unit is called a normal
+unit. The following paragraphs do not present the detailed semantics of
+these pragmas. Their purpose is to give to the reader an intuitive
+overview of what these pragmas are for.
+
+As a general remark, to avoid the development of a specific run-time
+library for the Distributed System Annex, the notion of remote
+rendez-vous has not been introduced in the Distributed System
+Annex. Therefore, task types and protected types are not allowed in the
+following Ada library units.
+
+@node Pragma Remote_Call_Interface
+@subsection Pragma Remote_Call_Interface
+
+This pragma is probably the most important pragma of this set of pragmas
+as it provides several ways to implement Remote Procedure Call. When a
+pragma Remote_Call_Interface occurs in the specification of an Ada
+package, then this package is said to be RCI (Remote Call Interface). As
+this pragma is used to implement RPC features, entities forbidden in
+this model are also forbidden in such a unit. This applies to variables
+and to most access types. A distributed program retains the same type
+safety as the equivalent single partition program.
+
+@example 
+package RCI is 
+   pragma Remote_Call_Interface;
+   A_Constant : constant := 0;
+   procedure A_Remote_Procedure (X : in out Integer);
+   function A_Remote_Function return String;
+   An_Exception : exception;
+end RCI;
+@end example
+
+Pragma Asynchronous can be applied to any subprogram of a RCI package as
+long as this subprogram has no inout or out parameters. In this case,
+the subprogram calls is allowed to return prior to the completion of
+subprogram execution. 
+ 
 @node Getting Started With GLADE
 @chapter Getting Started With GLADE
 
