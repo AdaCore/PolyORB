@@ -2,7 +2,7 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----     This package is wrapped around the C class                ----
+----     This package is wrapped around the C++ class              ----
 ----   Ada_OmniRopeAndKey declared in Ada_OmniRopeAndKey.          ----
 ----     It provides the same functions as this package plus       ----
 ----   the Ada version of thouse where arguments types are         ----
@@ -42,11 +42,11 @@ package OmniRopeAndKey is
    -- just to give a name to pointers on Object
 
 
-   procedure C_INIT (Self : in out Object'Class ;
+   procedure C_Init (Self : in out Object'Class ;
                      R : System.Address ;
                      K : System.Address ;
                      Ksize : Interfaces.C.Unsigned_Long) ;
-   pragma Import (C,C_INIT,"Init__18Ada_OmniRopeAndKeyP4RopePUcUl") ;
+   pragma Import (C,C_Init,"Init__18Ada_OmniRopeAndKeyP4RopePUcUl") ;
    -- wrapper around  Ada_OmniRopeAndKey function Init
    -- (see Ada_OmniRopeAndKey.hh)
 
@@ -57,11 +57,14 @@ package OmniRopeAndKey is
    -- Ada equivalent of C function C_Init
 
 
-   procedure Init (Self : in out Object'Class) ;
-   pragma Import (C,Init,"Init__18Ada_OmniRopeAndKey") ;
+   procedure C_Init2 (Self : in out Object'Class) ;
+   pragma Import (C,C_Init2,"Init__18Ada_OmniRopeAndKey") ;
    -- wrapper around  Ada_OmniRopeAndKey function Init
    -- (see Ada_OmniRopeAndKey.hh)
-   -- No Ada equivalent since there is no arguments
+
+   procedure Init (Self : in out Object'Class) ;
+   -- Ada equivalent of C function C_Init2
+   -- needed for avoiding a name conflict
 
 
    function C_Get_Rope (Self : in Object'Class) return System.Address ;
