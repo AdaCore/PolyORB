@@ -611,6 +611,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       use PolyORB.Types;
 
       It           : Iterator := First (List_Of (Args).all);
+      First        : Boolean  := True;
       Arg          : Element_Access;
       Message_Size : Types.Unsigned_Long;
    begin
@@ -625,8 +626,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
             pragma Debug (O ("Marshalling argument "
                              & Types.To_Standard_String (Arg.Name)
                                & " = " & Image (Arg.Argument)));
-            if First (It) then
+            if First then
                Pad_Align (Buffer, First_Arg_Alignment);
+               First := False;
             end if;
             Marshall (Buffer, Arg.all);
          end if;
