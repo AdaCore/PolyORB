@@ -345,6 +345,7 @@ package body PolyORB.References is
 
    begin
       RD.Binding_Object_Ref := RS.Binding_Object_Ref;
+      RD.Binding_Object_Profile := RS.Binding_Object_Profile;
 
       if RD.Type_Id'Length = 0 then
          Free (RD.Type_Id);

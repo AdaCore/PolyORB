@@ -93,14 +93,14 @@ package PolyORB.References is
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Ref, Ref_Ptr);
 
+private
+
    procedure Get_Binding_Info
      (R   :     Ref'Class;
       BOC : out Components.Component_Access;
       Pro : out Binding_Data.Profile_Access);
    --  Retrieve the binding object associated with R, if R is bound.
    --  Otherwise, return null.
-
-private
 
    procedure Set_Binding_Info
      (R   : Ref'Class;

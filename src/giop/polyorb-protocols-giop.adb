@@ -344,9 +344,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Binding_Data;
       use Unsigned_Long_Flags;
 
-      Current_Req    : Pending_Request_Access;
-      Binding_Object : Components.Component_Access;
-      Profile        : Binding_Data.Profile_Access;
+      New_Pending_Req : Pending_Request_Access;
    begin
       if (Sess.Conf.Permitted_Sync_Scopes and R.Req_Flags) = 0
         or else (Sess.Implem.Permitted_Sync_Scopes and R.Req_Flags) = 0 then
@@ -354,38 +352,25 @@ package body PolyORB.Protocols.GIOP is
          raise GIOP_Error;
       end if;
 
-      Current_Req := new Pending_Request;
-
-      References.Get_Binding_Info (R.Target, Binding_Object, Profile);
-      Current_Req.Req := R;
-      Current_Req.Target_Profile := Profile;
-
-      if Profile = null then
-         Current_Req.Target_Profile := Profile_Access (Pro);
-         --  XXX this should *not* happen, it would be logical
-         --  to Assesrt (Pro = Profile)!
-         --  This work-around is currently necessary to pass
-         --  all_types with a dynamic proxy. Apparently,
-         --  Profile is left null for the target reference of
-         --  a proxied request (on the client side of the proxy).
-         --  Needs to be investigated.
-      end if;
+      New_Pending_Req := new Pending_Request;
+      New_Pending_Req.Req := R;
+      New_Pending_Req.Target_Profile := Profile_Access (Pro);
 
       if Is_Set (Sync_With_Transport, R.Req_Flags) then
          --  XXX avoiding memory leaks with one way calls
-         Current_Req.Request_Id := Get_Request_Id (Sess);
-         Send_Request (Sess.Implem, Sess, Current_Req);
-         Free (Current_Req);
+         New_Pending_Req.Request_Id := Get_Request_Id (Sess);
+         Send_Request (Sess.Implem, Sess, New_Pending_Req);
+         Free (New_Pending_Req);
          return;
       end if;
 
       if Sess.Implem.Locate_Then_Request then
-         Current_Req.Locate_Req_Id := Get_Request_Id (Sess);
-         Add_Pending_Request (Sess, Current_Req);
-         Locate_Object (Sess.Implem, Sess, Current_Req);
+         New_Pending_Req.Locate_Req_Id := Get_Request_Id (Sess);
+         Add_Pending_Request (Sess, New_Pending_Req);
+         Locate_Object (Sess.Implem, Sess, New_Pending_Req);
       else
-         Add_Pending_Request (Sess, Current_Req);
-         Send_Request (Sess.Implem, Sess, Current_Req);
+         Add_Pending_Request (Sess, New_Pending_Req);
+         Send_Request (Sess.Implem, Sess, New_Pending_Req);
       end if;
    end Invoke_Request;
 
