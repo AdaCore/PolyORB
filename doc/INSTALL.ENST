@@ -37,29 +37,3 @@
   < [GNATFLAGS="-g -O0 -gnatfa -fstack-check -gnaty -gnatwae -Wall"
   ---
   > [GNATFLAGS="-g -O0 -gnatfa -gnaty -gnatwae -Wall"
-
-
-
- *) Pour tous les fichiers contenant des fonctions dont le nom fini par "Ü" Ada
- sort une erreur de style
- Au début de chaque fichier concerné mettre un "pragma Warnings (Off)"
- (cette approche necessite de rechercher tous les fichiers a chaque 
-  regeneration ...)
- 
- une autre approche (merci a Romain) : modifier le compilateur idlac pour
- qu il rajoute "pragma Warnings (Off)" directement dans le code genere
-
-diff -c -r1.9 ada_be-source_streams.adb
-*** ada_be-source_streams.adb   2002/04/09 14:07:30     1.9
---- ada_be-source_streams.adb   2002/04/11 22:31:47
-***************
-*** 312,317 ****
---- 312,318 ----
-              Put_Line (File, "--  IDL to Ada compiler.");
-           end if;
-           Put_Line (File, "----------------------------------------------");
-+          Put_Line (File, "pragma Warnings (Off);");
-           New_Line (File);
-        end Emit_Standard_Header;
-  
-
