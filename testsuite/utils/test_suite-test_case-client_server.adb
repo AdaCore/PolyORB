@@ -242,8 +242,6 @@ package body Test_Suite.Test_Case.Client_Server is
 
             end case;
 
-            Separator (Output);
-
             Close (Fd_Server);
 
          exception
@@ -253,6 +251,7 @@ package body Test_Suite.Test_Case.Client_Server is
                --  internal error. We cannot judge at this stage.
 
                Log (Output, "==> Server Process Terminated <==");
+               Test_Result := False;
 
                Close (Fd_Server);
                Close_Test_Output_Context (Output, Test_Result);
