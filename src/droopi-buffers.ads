@@ -1,14 +1,19 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#1 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#2 $
 
-with Broca.Opaque; use Broca.Opaque;
+with System;
+--  For bit-order information.
+
+with Ada.Streams;   use Ada.Streams;
+
+with Droopi.Opaque; use Droopi.Opaque;
 --  General opaque data storage types.
 
-with Broca.Opaque.Chunk_Pools;
+with Droopi.Opaque.Chunk_Pools;
 --  Chunked memory storage.
 
-package Broca.Buffers is
+package Droopi.Buffers is
 
    pragma Elaborate_Body;
 
@@ -30,26 +35,23 @@ package Broca.Buffers is
    -- General operations --
    ------------------------
 
-   function Length (Buffer : access Buffer_Type) return Index_Type;
+   function Length (Buffer : access Buffer_Type) return Stream_Element_Count;
    pragma Inline (Length);
    --  Return the length of Buffer.
 
-   function Endianness
-     (Buffer : Buffer_Type)
-     return Endianness_Type;
+   function Endianness (Buffer : Buffer_Type) return Endianness_Type;
    --  Return the endianness of Buffer.
 
-   procedure Release
-     (Buffer : in out Buffer_Type);
+   procedure Release (Buffer : in out Buffer_Type);
    --  Signal that a buffer will not be used anymore.
    --  The associated storage will be deallocated.
 
    procedure Initialize_Buffer
      (Buffer     : access Buffer_Type;
-      Size       : Index_Type;
+      Size       : Stream_Element_Count;
       Data       : Opaque_Pointer;
       Endianness : Endianness_Type;
-      Initial_CDR_Position : Index_Type);
+      Initial_CDR_Position : Stream_Element_Offset);
    --  Sets the contents of Buffer using data
    --  passed as a pointer Data and a size Size.
    --  Buffer must be a fresh, empty buffer.
@@ -108,7 +110,7 @@ package Broca.Buffers is
    --  turned into an opaque Encapsulation object
    --  and back.
 
-   subtype Encapsulation is Octet_Array;
+   subtype Encapsulation is Stream_Element_Array;
 
    function Encapsulate
      (Buffer   : access Buffer_Type)
@@ -178,7 +180,7 @@ package Broca.Buffers is
 
    procedure Set_Initial_Position
      (Buffer   : access Buffer_Type;
-      Position : Index_Type);
+      Position : Stream_Element_Offset);
    --  Sets the initial and current CDR positions
    --  of Buffer to Position. No data must have
    --  been inserted into Buffer yet.
@@ -196,7 +198,7 @@ package Broca.Buffers is
 
    procedure Insert_Raw_Data
      (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
+      Size      : Stream_Element_Count;
       Data      : Opaque_Pointer);
    --  Inserts data into Buffer by reference at the current
    --  CDR position. This procedure is used to implement
@@ -204,7 +206,7 @@ package Broca.Buffers is
 
    procedure Allocate_And_Insert_Cooked_Data
      (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
+      Size      : Stream_Element_Count;
       Data      : out Opaque_Pointer);
    --  Allocates Size bytes within Buffer's memory
    --  pool, and inserts this chunk of memory into
@@ -219,14 +221,14 @@ package Broca.Buffers is
    procedure Extract_Data
      (Buffer : access Buffer_Type;
       Data   : out Opaque_Pointer;
-      Size   : Index_Type);
+      Size   : Stream_Element_Count);
    --  Retrieve Size elements from Buffer.
    --  On return, Data contains an access to the retrieved
    --  Data, and the CDR current position is advanced by Size.
 
 
    function CDR_Position (Buffer : access Buffer_Type)
-     return Index_Type;
+     return Stream_Element_Offset;
    --  return the current CDR position of the buffer
    --  in the marshalling stream.
 
@@ -258,8 +260,12 @@ private
    -- A Buffer --
    --------------
 
-   subtype Iovec is Sockets.Thin.Iovec;
-   --  Render Iovec types from Sockets.Thin visible.
+   type Iovec is record
+      Iov_Base : Opaque_Pointer;
+      Iov_Len  : Stream_Element_Count;
+   end record;
+   --  This is modeled after the POSIX iovec, but is not equivalent
+   --  (because we cannot depend on being able to manipulate System.Address).
 
    type Buffer_Chunk_Metadata is record
       --  An Iovec pool manipulates chunks of memory allocated
@@ -267,7 +273,7 @@ private
       --  associated by the Iovec pool and the Buffer (below)
       --  with each allocated chunk.
 
-      Last_Used : Index_Type := 0;
+      Last_Used : Stream_Element_Offset := 0;
       --  The index within the chunk of the last
       --  used element.
    end record;
@@ -298,7 +304,7 @@ private
 
       procedure Grow
         (Iovec_Pool   : access Iovec_Pool_Type;
-         Size         : Index_Type;
+         Size         : Stream_Element_Count;
          Data         : out Opaque_Pointer);
       --  Augment the length of the last Iovec in
       --  Iovec_Pool by Size elements, if possible.
@@ -324,8 +330,8 @@ private
       procedure Extract_Data
         (Iovec_Pool : Iovec_Pool_Type;
          Data       : out Opaque_Pointer;
-         Offset     : Index_Type;
-         Size       : Index_Type);
+         Offset     : Stream_Element_Offset;
+         Size       : Stream_Element_Count);
       --  Retrieve exactly Size octets of data from
       --  Iovec_Pool starting at Offset.
       --  The data must be stored contiguously.
@@ -351,39 +357,36 @@ private
 
       function Dump
         (Iovec_Pool : Iovec_Pool_Type)
-        return Octet_Array_Ptr;
+        return Opaque_Pointer;
       --  Dump the contents of Iovec_Pool into an array of octets. The result
       --  must be deallocated when not used anymore.
 
-      procedure Write_To_FD
-        (FD : Interfaces.C.int;
-         Iovec_Pool : access Iovec_Pool_Type);
+      --  procedure Write_To_FD
+      --    (FD : Interfaces.C.int;
+      --     Iovec_Pool : access Iovec_Pool_Type);
       --  Write the contents of Iovec_Pool to
       --  the system file descriptor Fd. On
       --  error, Write_Error is raised.
 
    private
 
-      type Iovec_Array is array (Positive_Index_Type range <>)
-        of aliased Iovec;
-      pragma Convention (C, Iovec_Array);
+      type Iovec_Array is array (Positive range <>) of aliased Iovec;
       type Iovec_Array_Access is access all Iovec_Array;
 
-      Prealloc_Size : constant := 64;
+      Prealloc_Size : constant := 16;
       --  The number of slots in the preallocated iovec array.
 
       type Iovec_Pool_Type is record
 
-         Prealloc_Array : aliased Iovec_Array
-           (1 .. Prealloc_Size);
+         Prealloc_Array : aliased Iovec_Array (1 .. Prealloc_Size);
          Dynamic_Array  : Iovec_Array_Access := null;
          --  The pre-allocated and dynamically allocated
          --  Iovec_Arrays.
 
-         Length : Index_Type := Prealloc_Size;
+         Length : Natural := Prealloc_Size;
          --  The length of the arrays currently in use.
 
-         Last : Index_Type := 0;
+         Last : Natural := 0;
          --  The number of the last allocated Iovec in the pool.
          --  If Last <= Prealloc_Array'Last then the pool's
          --  Iovecs are stored in Prealloc_Array, else they
@@ -411,11 +414,11 @@ private
       --  The byte order of the data stored in the
       --  buffer.
 
-      CDR_Position : Index_Type := 0;
+      CDR_Position : Stream_Element_Offset := 0;
       --  The current position within the stream for
       --  marshalling and unmarshalling.
 
-      Initial_CDR_Position : Index_Type := 0;
+      Initial_CDR_Position : Stream_Element_Offset := 0;
       --  The position within the stream of the first
       --  element of Buffer.
 
@@ -426,8 +429,8 @@ private
       --  A set of memory chunks used to store data
       --  marshalled by copy.
 
-      Length       : Index_Type := 0;
+      Length       : Stream_Element_Count := 0;
       --  Length of stored data.
    end record;
 
-end Broca.Buffers;
+end Droopi.Buffers;

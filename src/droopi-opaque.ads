@@ -1,25 +1,34 @@
 --  Storage of opaque data.
 
---  $Id: //droopi/main/src/droopi-opaque.ads#1 $
+--  $Id: //droopi/main/src/droopi-opaque.ads#2 $
 
-with Ada.Streams;
+with Ada.Streams; use Ada.Streams;
+with Ada.Unchecked_Deallocation;
 
 package Droopi.Opaque is
 
    pragma Preelaborate;
 
-   type Zone_Access is access all Ada.Streams.Stream_Element_Array;
+   type Zone_Access is access all Stream_Element_Array;
    --  A storage zone: an array of bytes.
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Stream_Element_Array, Zone_Access);
 
    type Opaque_Pointer is record
       Zone : Zone_Access;
-      --  The storage chunk within which the data resides.
+      --  The storage zone wherein the data resides.
 
-      First, Last : Ada.Streams.Stream_Element_Offset;
-      --  The beginning and end offset of the data within
-      --  the chunk.
+      Offset : Stream_Element_Offset;
+      --  The position of the first data element within the zone.
+
    end record;
 
-   subtype Alignment_Type is Ada.Streams.Stream_Element_Offset range 1 .. 8;
+   function "+" (P : Opaque_Pointer; Ofs : Stream_Element_Offset)
+                return Opaque_Pointer;
+   pragma Inline ("+");
+   --  Add Ofs to P.Offset.
+
+   subtype Alignment_Type is Stream_Element_Offset range 1 .. 8;
 
 end Droopi.Opaque;

@@ -31,27 +31,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Debug;
-with System; use System;
-
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
 
 with Interfaces.C;
 --  For Interfaces.C.int.
 
-with System.Storage_Elements; use System.Storage_Elements;
+--  with CORBA;
+--  --  For CORBA.Octet and CORBA.Bool in Decapsulate.
 
-with CORBA;
---  For CORBA.Octet and CORBA.Bool.
-
-package body Broca.Buffers is
+package body Droopi.Buffers is
 
    use Buffer_Chunk_Pools;
    use Iovec_Pools;
 
-   Flag : constant Natural := Broca.Debug.Is_Active ("broca.buffers");
-   procedure O is new Broca.Debug.Output (Flag);
+   procedure O (X : String) is
+   begin
+      null;
+   end;
 
    subtype Output_Line is String (1 .. 48);
 
@@ -68,7 +65,7 @@ package body Broca.Buffers is
    -- General operations --
    ------------------------
 
-   function Length (Buffer : access Buffer_Type) return Index_Type is
+   function Length (Buffer : access Buffer_Type) return Stream_Element_Count is
    begin
       return Buffer.Length;
    end Length;
@@ -93,14 +90,14 @@ package body Broca.Buffers is
 
    procedure Initialize_Buffer
      (Buffer     : access Buffer_Type;
-      Size       : Index_Type;
+      Size       : Stream_Element_Count;
       Data       : Opaque_Pointer;
       Endianness : Endianness_Type;
-      Initial_CDR_Position : Index_Type)
+      Initial_CDR_Position : Stream_Element_Offset)
    is
       Data_Iovec : constant Iovec
         := (Iov_Base => Data,
-            Iov_Len  => Storage_Offset (Size));
+            Iov_Len  => Data.Zone'Length - (Data.Offset - Data.Zone'First));
 
    begin
       pragma Assert (True
@@ -175,12 +172,13 @@ package body Broca.Buffers is
      (Buffer   : access Buffer_Type)
      return Encapsulation
    is
-      Contents : Octet_Array_Ptr        := Iovec_Pools.Dump (Buffer.Contents);
-      Result   : constant Encapsulation := Contents.all;
+      Contents : Opaque_Pointer := Iovec_Pools.Dump (Buffer.Contents);
+      Result   : constant Encapsulation
+        := Contents.Zone (Contents.Offset .. Contents.Zone'Last);
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
 
-      Free (Contents);
+      Free (Contents.Zone);
       return Result;
    end Encapsulate;
 
@@ -190,20 +188,22 @@ package body Broca.Buffers is
    is
       Endianness : Endianness_Type;
    begin
-      if CORBA.Boolean'Val
-        (CORBA.Octet (Octets (Octets'First))) then
-         Endianness := Little_Endian;
-      else
-         Endianness := Big_Endian;
-      end if;
+      raise Program_Error;
+      --  This is CORBA-specific and must be moved out of Droopi.Buffers.
 
-      Initialize_Buffer
-        (Buffer               => Buffer,
-         Size                 => Octets'Length - 1,
-         Data                 => Octets (Octets'First + 1)'Address,
-         Endianness           => Endianness,
-         Initial_CDR_Position => 1);
-
+--        if CORBA.Boolean'Val
+--          (CORBA.Octet (Octets (Octets'First))) then
+--           Endianness := Little_Endian;
+--        else
+--           Endianness := Big_Endian;
+--        end if;
+--
+--        Initialize_Buffer
+--          (Buffer               => Buffer,
+--           Size                 => Octets'Length - 1,
+--           Data                 => Octets (Octets'First + 1)'Address,
+--           Endianness           => Endianness,
+--           Initial_CDR_Position => 1);
    end Decapsulate;
 
    ------------------------------
@@ -212,7 +212,7 @@ package body Broca.Buffers is
 
    procedure Set_Initial_Position
      (Buffer   : access Buffer_Type;
-      Position : Index_Type) is
+      Position : Stream_Element_Offset) is
    begin
       pragma Assert
         (Buffer.Initial_CDR_Position = Buffer.CDR_Position);
@@ -221,19 +221,19 @@ package body Broca.Buffers is
       Buffer.CDR_Position := Position;
    end Set_Initial_Position;
 
-   Null_Data : aliased array (1 .. Alignment_Type'Last - 1)
-     of Interfaces.Unsigned_8 := (others => 0);
-   pragma Convention (C, Null_Data);
+   Null_Data : aliased Stream_Element_Array
+     := (1 .. Alignment_Type'Last - 1 => 0);
    --  Null data used for padding.
-   Null_Data_Address : constant System.Address
-     := Null_Data'Address;
+
+   Null_Data_Address : constant Opaque_Pointer
+     := (Zone   => Null_Data'Access, Offset => Null_Data'First);
    --  The address of the first element of array Null_Data.
 
    procedure Align
      (Buffer    : access Buffer_Type;
       Alignment : Alignment_Type)
    is
-      Padding : constant Index_Type
+      Padding : constant Stream_Element_Count
          := (Alignment - Buffer.CDR_Position) mod Alignment;
       Padding_Space : Opaque_Pointer;
    begin
@@ -247,7 +247,7 @@ package body Broca.Buffers is
       --  Try to extend Buffer.Content's last Iovec
       --  to provide proper alignment.
 
-      if Padding_Space = Null_Address then
+      if Padding_Space.Zone = null then
          --  Grow was unable to extend the last Iovec:
          --  insert a non-growable iovec corresponding
          --  to static null data.
@@ -255,7 +255,7 @@ package body Broca.Buffers is
          declare
             Padding_Iovec : constant Iovec
               := (Iov_Base => Null_Data_Address,
-                  Iov_Len  => Storage_Offset (Padding));
+                  Iov_Len  => Padding);
          begin
             Append
               (Iovec_Pool => Buffer.Contents,
@@ -276,12 +276,11 @@ package body Broca.Buffers is
 
    procedure Insert_Raw_Data
      (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
+      Size      : Stream_Element_Count;
       Data      : Opaque_Pointer)
    is
       Data_Iovec : constant Iovec
-        := (Iov_Base => Data,
-            Iov_Len  => Storage_Offset (Size));
+        := (Iov_Base => Data, Iov_Len  => Size);
    begin
       pragma Assert (Buffer.Endianness = Host_Order);
 
@@ -294,7 +293,7 @@ package body Broca.Buffers is
 
    procedure Allocate_And_Insert_Cooked_Data
      (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
+      Size      : Stream_Element_Count;
       Data      : out Opaque_Pointer)
    is
       A_Data : Opaque_Pointer;
@@ -302,14 +301,14 @@ package body Broca.Buffers is
       Grow (Buffer.Contents'Access, Size, A_Data);
       --  First try to grow an existing Iovec.
 
-      if A_Data = Null_Address then
+      if A_Data.Zone = null then
          declare
             A_Chunk : Chunk_Access;
             Data_Iovec : Iovec;
          begin
             Allocate (Buffer.Storage'Access, A_Chunk);
             Data_Iovec := (Iov_Base => Chunk_Storage (A_Chunk),
-                           Iov_Len  => Storage_Offset (Size));
+                           Iov_Len  => Size);
 
             A_Data := Chunk_Storage (A_Chunk);
             Metadata (A_Chunk).all :=
@@ -318,7 +317,7 @@ package body Broca.Buffers is
               (Iovec_Pool => Buffer.Contents,
                An_Iovec   => Data_Iovec,
                A_Chunk    => A_Chunk);
-            pragma Assert (A_Data /= Null_Address);
+            pragma Assert (A_Data.Zone /= null);
          end;
       end if;
 
@@ -330,7 +329,7 @@ package body Broca.Buffers is
    procedure Extract_Data
      (Buffer : access Buffer_Type;
       Data   : out Opaque_Pointer;
-      Size   : Index_Type) is
+      Size   : Stream_Element_Count) is
    begin
       Extract_Data
         (Buffer.Contents,
@@ -341,7 +340,7 @@ package body Broca.Buffers is
    end Extract_Data;
 
 
-   function CDR_Position (Buffer : access Buffer_Type) return Index_Type is
+   function CDR_Position (Buffer : access Buffer_Type) return Stream_Element_Offset is
    begin
       return Buffer.CDR_Position;
    end CDR_Position;
@@ -351,13 +350,11 @@ package body Broca.Buffers is
    -- Utility subprograms --
    -------------------------
 
-   procedure Show
-     (Octets : access Octet_Array);
+   procedure Show (Octets : Opaque_Pointer);
    --  Display the contents of Octets for
    --  debugging purposes.
 
-   procedure Show
-     (Octets : access Octet_Array)
+   procedure Show (Octets : Opaque_Pointer)
    is
       Output : Output_Line;
       Index  : Natural := 1;
@@ -366,12 +363,12 @@ package body Broca.Buffers is
       --  For operations on Unsigned_8.
 
    begin
-      for J in Octets'Range loop
+      for J in Octets.Offset .. Octets.Zone'Last loop
          Output (Index)     := ' ';
          Output (Index + 1) := Hex
-           (Natural (Octets (J) / 16) + 1);
+           (Natural (Octets.Zone (J) / 16) + 1);
          Output (Index + 2) := Hex
-           (Natural (Octets (J) mod 16) + 1);
+           (Natural (Octets.Zone (J) mod 16) + 1);
          Index := Index + 3;
 
          if Index > Output'Length then
@@ -394,11 +391,17 @@ package body Broca.Buffers is
       pragma Debug (O ("Dumping "
                        & Endianness_Type'Image (Buffer.Endianness)
                        & " buffer, CDR position is "
-                       & Index_Type'Image
+                       & Stream_Element_Offset'Image
                        (Buffer.CDR_Position) & " (length is" &
                        Buffer.Length'Img & ")"));
 
-      Show (Iovec_Pools.Dump (Buffer.Contents));
+      declare
+         Dumped : Opaque_Pointer
+           := Iovec_Pools.Dump (Buffer.Contents);
+      begin
+         Show (Dumped);
+         Free (Dumped.Zone);
+      end;
    end Show;
 
    package body Iovec_Pools is
@@ -408,22 +411,20 @@ package body Broca.Buffers is
 
       procedure Grow
         (Iovec_Pool   : access Iovec_Pool_Type;
-         Size         : Index_Type;
+         Size         : Stream_Element_Count;
          Data         : out Opaque_Pointer)
       is
 
          use Interfaces.C;
 
-         function First_Address_After
-           (An_Iovec : Iovec)
-           return System.Address;
+         function First_Address_After (An_Iovec : Iovec)
+           return Opaque_Pointer;
          --  Return the address of the storage
          --  element immediately following the
          --  last element of An_Iovec.
 
-         function First_Address_After
-           (An_Iovec : Iovec)
-           return System.Address is
+         function First_Address_After (An_Iovec : Iovec)
+           return Opaque_Pointer is
          begin
             return An_Iovec.Iov_Base + An_Iovec.Iov_Len;
          end First_Address_After;
@@ -448,15 +449,14 @@ package body Broca.Buffers is
                      Chunk_Metadata.Last_Used
                        := Chunk_Metadata.Last_Used + Size;
                      Data := First_Address_After (Last_Iovec);
-                     Last_Iovec.Iov_Len := Last_Iovec.Iov_Len
-                       + Storage_Offset (Size);
+                     Last_Iovec.Iov_Len := Last_Iovec.Iov_Len + Size;
                   end if;
                end;
             end if;
          end Do_Grow;
 
       begin
-         Data := Null_Address;
+         Data.Zone := null;
          if Iovec_Pool.Last = 0 then
             --  Empty Iovec pool.
             return;
@@ -488,8 +488,8 @@ package body Broca.Buffers is
 
       procedure Extend
         (Iovec_Pool : in out Iovec_Pool_Type;
-         Require    : Positive_Index_Type;
-         Allocate   : Positive_Index_Type);
+         Require    : Natural;
+         Allocate   : Natural);
       --  Check the number of available Iovecs in
       --  Iovec_Pool and possibly extend it.
       --  If Iovec_Pool's length is at least
@@ -503,7 +503,7 @@ package body Broca.Buffers is
 
       function Dump
         (Iovecs : Iovec_Array)
-        return Octet_Array_Ptr;
+        return Opaque_Pointer;
       --  Dump the data designated by an Iovec_Array
       --  into an array of octets.
 
@@ -531,49 +531,10 @@ package body Broca.Buffers is
          end if;
       end Iovecs;
 
-      procedure Dump
-        (Iovecs : Iovec_Array;
-         Into   : Opaque_Pointer)
-      is
-         Offset : Storage_Offset := 0;
-      begin
-         for I in Iovecs'Range loop
-            declare
-               L : constant Index_Type := Index_Type (Iovecs (I) .Iov_Len);
-               S : Octet_Array (1 .. L);
-               for S'Address use Iovecs (I) .Iov_Base;
-               D : Octet_Array (1 .. L);
-               for D'Address use Into + Offset;
-            begin
-               D := S;
-               Offset := Offset + Storage_Offset (L);
-            end;
-         end loop;
-      end Dump;
-
-      function Dump
-        (Iovecs : Iovec_Array)
-        return Octet_Array_Ptr
-      is
-         Result : Octet_Array_Ptr;
-         Length : Index_Type := 0;
-      begin
-         for I in Iovecs'Range loop
-            Length := Length + Index_Type (Iovecs (I).Iov_Len);
-         end loop;
-         Result := new Octet_Array (1 .. Length);
-         Dump (Iovecs, Result.all'Address);
-         return Result;
-      end Dump;
-
-      -------------------------------------------
-      -- Visible subprograms (implementations) --
-      -------------------------------------------
-
       procedure Extend
         (Iovec_Pool : in out Iovec_Pool_Type;
-         Require    : Positive_Index_Type;
-         Allocate   : Positive_Index_Type) is
+         Require    : Natural;
+         Allocate   : Natural) is
       begin
          pragma Assert (Allocate >= Require);
 
@@ -597,12 +558,49 @@ package body Broca.Buffers is
          end if;
       end Extend;
 
+      procedure Dump
+        (Iovecs : Iovec_Array;
+         Into   : Opaque_Pointer)
+      is
+         Offset : Stream_Element_Offset := Into.Offset;
+      begin
+         for I in Iovecs'Range loop
+            declare
+               L : constant Stream_Element_Count := Iovecs (I).Iov_Len;
+               S : constant Opaque_Pointer := Iovecs (I).Iov_Base;
+            begin
+               Into.Zone (Offset .. Offset + L - 1)
+                 := S.Zone (S.Offset .. S.Offset + L - 1);
+               Offset := Offset + L;
+            end;
+         end loop;
+      end Dump;
+
+      function Dump
+        (Iovecs : Iovec_Array)
+        return Opaque_Pointer
+      is
+         Result : Opaque_Pointer;
+         Length : Stream_Element_Count := 0;
+      begin
+         for I in Iovecs'Range loop
+            Length := Length + Iovecs (I).Iov_Len;
+         end loop;
+         Result.Zone := new Stream_Element_Array (1 .. Length);
+         Result.Offset := Result.Zone'First;
+         Dump (Iovecs, Result);
+         return Result;
+      end Dump;
+
+      -------------------------------------------
+      -- Visible subprograms (implementations) --
+      -------------------------------------------
+
       procedure Prepend_Pool
         (Prefix     : Iovec_Pool_Type;
          Iovec_Pool : in out Iovec_Pool_Type) is
 
-         New_Last : constant Index_Type
-           := Iovec_Pool.Last + Prefix.Last;
+         New_Last : constant Natural := Iovec_Pool.Last + Prefix.Last;
       begin
          Extend (Iovec_Pool, New_Last, New_Last + 1);
          --  An Iovec pool that has been prefixed
@@ -626,8 +624,7 @@ package body Broca.Buffers is
          An_Iovec   : Iovec;
          A_Chunk    : Buffer_Chunk_Pools.Chunk_Access := null)
       is
-         New_Last : constant Index_Type
-           := Iovec_Pool.Last + 1;
+         New_Last : constant Natural := Iovec_Pool.Last + 1;
       begin
          Extend (Iovec_Pool, New_Last, 2 * Iovec_Pool.Length);
 
@@ -648,14 +645,14 @@ package body Broca.Buffers is
       procedure Extract_Data
         (Iovec_Pool : Iovec_Pool_Type;
          Data       : out Opaque_Pointer;
-         Offset     : Index_Type;
-         Size       : Index_Type)
+         Offset     : Stream_Element_Offset;
+         Size       : Stream_Element_Count)
       is
          use Interfaces.C;
 
-         Vecs             : constant Iovec_Array := Iovecs (Iovec_Pool);
-         Offset_Remainder : Storage_Offset       := Storage_Offset (Offset);
-         Index            : Index_Type           := Vecs'First;
+         Vecs             : constant Iovec_Array  := Iovecs (Iovec_Pool);
+         Offset_Remainder : Stream_Element_Offset := Offset;
+         Index            : Natural               := Vecs'First;
       begin
          while Offset_Remainder >= Vecs (Index).Iov_Len loop
             Offset_Remainder := Offset_Remainder
@@ -663,8 +660,7 @@ package body Broca.Buffers is
             Index := Index + 1;
          end loop;
 
-         pragma Assert (Offset_Remainder + Storage_Offset (Size)
-                          <= Vecs (Index).Iov_Len);
+         pragma Assert (Offset_Remainder + Size <= Vecs (Index).Iov_Len);
 
          Data := Vecs (Index).Iov_Base + Offset_Remainder;
       exception
@@ -693,7 +689,7 @@ package body Broca.Buffers is
 
       function Dump
         (Iovec_Pool : in Iovec_Pool_Type)
-        return Octet_Array_Ptr is
+        return Opaque_Pointer is
       begin
          if Is_Dynamic (Iovec_Pool) then
             return Dump (Iovec_Pool.Dynamic_Array
@@ -704,60 +700,60 @@ package body Broca.Buffers is
          end if;
       end Dump;
 
-      procedure Write_To_FD
-        (FD : in Interfaces.C.int;
-         Iovec_Pool : access Iovec_Pool_Type)
-      is
-         use Sockets.Thin;
-         use Interfaces.C;
-
-         Vecs : Iovec_Array
-           := Iovecs (Iovec_Pool.all);
-
-         Index : Index_Type := Vecs'First;
-
-         Count : Storage_Offset;
-         Rest  : Storage_Offset := 0;
-
-      begin
-         for I in Vecs'Range loop
-            Rest := Rest + Vecs (I).Iov_Len;
-         end loop;
-
-         while Rest > 0 loop
-            Count :=
-              Storage_Offset (C_Writev
-                              (FD,
-                               Vecs (Index)'Address,
-                               C_int (Vecs'Last - Index + 1)));
-
-            --  FIXME: Should improve error reporting.
-            --  This is initially from sockets.adb.
-            --  Thomas.
-            if Count < 0 then
-               --  Raise_With_Message ("Send failed");
-               raise Write_Error;
-            elsif Count = 0 then
-               raise Write_Error;
-            end if;
-
-            while Index <= Vecs'Last
-              and then Count >= Vecs (Index).Iov_Len loop
-               Rest  := Rest  - Vecs (Index).Iov_Len;
-               Count := Count - Vecs (Index).Iov_Len;
-               Index := Index + 1;
-            end loop;
-
-            if Count > 0 then
-               Vecs (Index).Iov_Base :=
-                 Vecs (Index).Iov_Base + Count;
-               Vecs (Index).Iov_Len
-                 := Vecs (Index).Iov_Len - Count;
-            end if;
-         end loop;
-      end Write_To_FD;
+--        procedure Write_To_FD
+--          (FD : in Interfaces.C.int;
+--           Iovec_Pool : access Iovec_Pool_Type)
+--        is
+--           use Sockets.Thin;
+--           use Interfaces.C;
+--
+--           Vecs : Iovec_Array
+--             := Iovecs (Iovec_Pool.all);
+--
+--           Index : Index_Type := Vecs'First;
+--
+--           Count : Storage_Offset;
+--           Rest  : Storage_Offset := 0;
+--
+--        begin
+--           for I in Vecs'Range loop
+--              Rest := Rest + Vecs (I).Iov_Len;
+--           end loop;
+--
+--           while Rest > 0 loop
+--              Count :=
+--                Storage_Offset (C_Writev
+--                                (FD,
+--                                 Vecs (Index)'Address,
+--                                 C_int (Vecs'Last - Index + 1)));
+--
+--              --  FIXME: Should improve error reporting.
+--              --  This is initially from sockets.adb.
+--              --  Thomas.
+--              if Count < 0 then
+--                 --  Raise_With_Message ("Send failed");
+--                 raise Write_Error;
+--              elsif Count = 0 then
+--                 raise Write_Error;
+--              end if;
+--
+--              while Index <= Vecs'Last
+--                and then Count >= Vecs (Index).Iov_Len loop
+--                 Rest  := Rest  - Vecs (Index).Iov_Len;
+--                 Count := Count - Vecs (Index).Iov_Len;
+--                 Index := Index + 1;
+--              end loop;
+--
+--              if Count > 0 then
+--                 Vecs (Index).Iov_Base :=
+--                   Vecs (Index).Iov_Base + Count;
+--                 Vecs (Index).Iov_Len
+--                   := Vecs (Index).Iov_Len - Count;
+--              end if;
+--           end loop;
+--        end Write_To_FD;
 
    end Iovec_Pools;
 
-end Broca.Buffers;
+end Droopi.Buffers;
 

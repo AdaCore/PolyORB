@@ -1,6 +1,8 @@
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/droopi-opaque-chunk_pools.ads#1 $
+--  $Id: //droopi/main/src/droopi-opaque-chunk_pools.ads#2 $
+
+with Ada.Finalization;
 
 generic
 
@@ -16,14 +18,15 @@ package Droopi.Opaque.Chunk_Pools is
    use Ada.Streams;
    use Droopi.Opaque;
 
-   type Chunk (Size : Stream_Element_Count) is private;
+   type Chunk (Size : Stream_Element_Count) is
+     new Ada.Finalization.Limited_Controlled with private;
    type Chunk_Access is access all Chunk;
 
    Default_Chunk_Size : constant Stream_Element_Count := 4096;
 
-   type Pool_Type is private;
-   --  A Pool of chunks with one preallocated
-   --  chunk and a set of dynamically created ones.
+   type Pool_Type is limited private;
+   --  A Pool of chunks with one preallocated chunk and a
+   --  set of dynamically created ones.
 
    type Metadata_Access is access all Chunk_Metadata;
 
@@ -71,18 +74,22 @@ private
    --  A chunk pool is managed as a linked list
    --  of chunks.
 
-   type Chunk (Size : Stream_Element_Count) is record
+   type Chunk (Size : Stream_Element_Count) is
+     new Ada.Finalization.Limited_Controlled with record
       Next     : Chunk_Access;
       --  The next chunk in the pool.
 
       Metadata : aliased Chunk_Metadata;
       --  Metadata associated by a client to this chunk.
 
-      Data     : aliased Stream_Element_Array (1 .. Size);
+      Data     : Zone_Access;
       --  The storage space of the chunk.
    end record;
 
-   type Pool_Type is record
+   procedure Initialize (X : in out Chunk);
+   procedure Finalize (X : in out Chunk);
+
+   type Pool_Type is limited record
       Prealloc : aliased Chunk (Default_Chunk_Size);
       --  A pre-allocated chunk.
 

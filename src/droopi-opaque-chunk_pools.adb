@@ -1,10 +1,22 @@
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/droopi-opaque-chunk_pools.adb#1 $
+--  $Id: //droopi/main/src/droopi-opaque-chunk_pools.adb#2 $
 
 with Ada.Unchecked_Deallocation;
 
 package body Droopi.Opaque.Chunk_Pools is
+
+   procedure Initialize (X : in out Chunk) is
+   begin
+      pragma Assert (X.Data = null);
+      X.Data := new Ada.Streams.Stream_Element_Array (1 .. X.Size);
+      pragma Assert (X.Data /= null);
+   end Initialize;
+
+   procedure Finalize (X : in out Chunk) is
+   begin
+      Free (X.Data);
+   end Finalize;
 
    procedure Allocate
      (Pool    : access Pool_Type;
@@ -25,10 +37,10 @@ package body Droopi.Opaque.Chunk_Pools is
          New_Chunk := Pool.Prealloc'Access;
          Pool.Prealloc_Used := True;
       else
-         New_Chunk := new Chunk'(Size     => Allocation_Size,
-                                 Next     => null,
-                                 Data     => (others => 176),
-                                 Metadata => Null_Metadata);
+         New_Chunk := new Chunk (Size => Allocation_Size);
+         New_Chunk.Next := null;
+         New_Chunk.Data.all := (others => 176);
+         New_Chunk.Metadata := Null_Metadata;
       end if;
 
       if Pool.Last = null then
@@ -49,9 +61,8 @@ package body Droopi.Opaque.Chunk_Pools is
      return Opaque_Pointer is
    begin
       return Opaque_Pointer'
-        (Zone  => A_Chunk.Data'Access,
-         First => A_Chunk.Data'First,
-         Last  => A_Chunk.Data'Last);
+        (Zone   => A_Chunk.Data,
+         Offset => A_Chunk.Data'First);
    end Chunk_Storage;
 
    procedure Release
