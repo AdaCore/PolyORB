@@ -25,6 +25,10 @@ package Broca.Refs is
      (Buffer : in out Broca.Buffers.Buffer_Descriptor;
       Value  : in Ref_Type);
 
+   procedure Unmarshall
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : out Ref_Type);
+
    type Ref_Ptr is access all Ref_Type'Class;
 
    --  Handle the usage counter, unless Obj is null or the counter is
@@ -51,6 +55,10 @@ package Broca.Refs is
    procedure Marshall
      (Buffer : in out Broca.Buffers.Buffer_Descriptor;
       Value  : in Ref);
+
+   procedure Unmarshall
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : out Ref);
 
 private
    type Ref_Type is new Ada.Finalization.Limited_Controlled with

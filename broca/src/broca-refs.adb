@@ -114,6 +114,17 @@ package body Broca.Refs is
       Broca.Exceptions.Raise_Marshal;
    end Marshall;
 
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : out Ref_Type) is
+   begin
+      raise Program_Error;
+   end Unmarshall;
+
    ----------------------
    -- Compute_New_Size --
    ----------------------
@@ -141,6 +152,17 @@ package body Broca.Refs is
       end if;
       Marshall (Buffer, Value.A_Ref.all);
    end Marshall;
+
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : out Ref) is
+   begin
+      raise Program_Error;
+   end Unmarshall;
 
    ---------
    -- Get --
