@@ -69,8 +69,6 @@ package PolyORB.Utils.HTables.Perfect is
 
    pragma Preelaborate;
 
-   use PolyORB.Utils.Strings;
-
    No_Key : exception renames PolyORB.Utils.HTables.No_Key;
 
    type Item_Access is access all Item;
@@ -185,7 +183,7 @@ private
    --  'Element' type.
 
    type Element is record
-      Key        : String_Ptr;     --  Key of the element to hash.
+      Key        : Utils.Strings.String_Ptr; --  Key of the element to hash.
       Used       : Boolean;        --  Is the slot really used ?
       ST_Index   : Natural;        --  Index in the Sub Table.
       ST_Offset  : Natural;        --  Offset in the Sub Table.

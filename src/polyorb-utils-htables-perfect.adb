@@ -36,6 +36,8 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.HTables.Perfect is
 
+   use PolyORB.Utils.Strings;
+
    ------------------------
    -- Utility procedures --
    ------------------------
