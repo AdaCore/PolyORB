@@ -20,7 +20,7 @@ alldeps.dot: droopi-setup-test
 	cat droopi-*.ali | ali2dot > $@
 
 alldeps.ps: alldeps.dot
-	dot -Tps $< | epsffit -r 10 10 831 535 > $@
+	dot -Tps $< | epsffit -c -r 10 10 535 831 > $@
 
 droopi-setup-test: force
 	$(GNATMAKE) droopi-setup-test -cargs $(CFLAGS)
