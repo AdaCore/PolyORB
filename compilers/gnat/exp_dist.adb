@@ -2090,7 +2090,7 @@ package body Exp_Dist is
       Subp_Ref : constant Entity_Id :=
         Make_Defining_Identifier (Loc, Name_R);
       --  Reference that designates the target subprogram (returned
-      --  by Get_RAS_Ref).
+      --  by Get_RAS_Info).
 
       Is_Local : constant Entity_Id :=
         Make_Defining_Identifier (Loc, Name_L);
@@ -2164,13 +2164,13 @@ package body Exp_Dist is
       Set_Etype (Stub_Ptr, Stub_Elements.Stub_Type_Access);
       --  Build_Get_Unique_RP_Call needs this information.
 
-      --  Get_RAS_Ref (Pkg, Subp, R);
+      --  Get_RAS_Info (Pkg, Subp, R);
       --  Obtain a reference to the target subprogram
 
       Proc_Statements := New_List (
         Make_Procedure_Call_Statement (Loc,
           Name =>
-            New_Occurrence_Of (RTE (RE_Get_RAS_Ref), Loc),
+            New_Occurrence_Of (RTE (RE_Get_RAS_Info), Loc),
           Parameter_Associations => New_List (
             New_Occurrence_Of (Package_Name, Loc),
             New_Occurrence_Of (Subp_Id, Loc),
