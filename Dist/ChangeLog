@@ -1,3 +1,11 @@
+2001-01-24  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe_stubs.adb: Move partition launching code from partition.adb
+	to s-garela.adb in order to execute system() before activating any
+	garlic tasks.
+
+	* Makefile.in: Updated.
+
 2001-01-19  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe_check.adb: in (Recompile), when we decide to discard a
