@@ -144,6 +144,13 @@ package body System.PolyORB_Interface is
       Is_Local            : Boolean := False;
       --  True if the package is assigned on this partition.
 
+      Known_Partition_ID  : Boolean := False;
+      --  True if the package is not assigned on this partition,
+      --  and we have determined its partition ID.
+
+      RCI_Partition_ID    : RPC.Partition_ID := RPC.Partition_ID'First;
+      --  Cache of RCI's partition ID, if known.
+
    end record;
 
    package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info);
@@ -694,39 +701,45 @@ package body System.PolyORB_Interface is
 
    function Get_Active_Partition_ID (Name : String) return RPC.Partition_ID
    is
-      Info : constant RCI_Info := Retrieve_RCI_Info (Name);
+      Info : RCI_Info := Retrieve_RCI_Info (Name);
    begin
       if Info.Is_Local then
          return Get_Local_Partition_ID;
       end if;
 
-      declare
-         Request : PolyORB.Requests.Request_Access;
-         Arg_List : PolyORB.Any.NVList.Ref;
-         Result : PolyORB.Any.NamedValue;
-      begin
+      if not Info.Known_Partition_ID then
+         declare
+            Request : PolyORB.Requests.Request_Access;
+            Arg_List : PolyORB.Any.NVList.Ref;
+            Result : PolyORB.Any.NamedValue;
+         begin
 
-         --  XXX This hand-crafted stub should be replaced with
-         --  one automatically generated from a remote object type
-         --  declaration.
+            --  XXX This hand-crafted stub should be replaced with
+            --  one automatically generated from a remote object type
+            --  declaration.
 
-         PolyORB.Any.NVList.Create (Arg_List);
-         Result := (Name => To_PolyORB_String ("result"),
-                    Argument => Get_Empty_Any (TC_I),
-                    Arg_Modes => 0);
+            PolyORB.Any.NVList.Create (Arg_List);
+            Result := (Name => To_PolyORB_String ("result"),
+                       Argument => Get_Empty_Any (TC_I),
+                       Arg_Modes => 0);
 
-         PolyORB.Requests.Create_Request
-           (Target    => Info.Base_Ref,
-            Operation => Op_Get_Partition_Id,
-            Arg_List  => Arg_List,
-            Result    => Result,
-            Req       => Request);
+            PolyORB.Requests.Create_Request
+              (Target    => Info.Base_Ref,
+               Operation => Op_Get_Partition_Id,
+               Arg_List  => Arg_List,
+               Result    => Result,
+               Req       => Request);
 
-         PolyORB.Requests.Invoke (Request);
-         PolyORB.Requests.Destroy_Request (Request);
-
-         return RPC.Partition_ID (FA_I (Result.Argument));
-      end;
+            PolyORB.Requests.Invoke (Request);
+            PolyORB.Requests.Destroy_Request (Request);
+            Info.Known_Partition_ID := True;
+            Info.RCI_Partition_ID   :=
+              RPC.Partition_ID (FA_I (Result.Argument));
+            Known_RCIs.Register (To_Lower (Name), Info);
+         end;
+      end if;
+      pragma Assert (Info.Known_Partition_ID);
+      return Info.RCI_Partition_ID;
    end Get_Active_Partition_ID;
 
    ---------------------------
@@ -805,7 +818,7 @@ package body System.PolyORB_Interface is
    -- Get_Local_Partition_ID --
    ----------------------------
 
-   Local_Partition_ID : RPC.Partition_ID;
+   Local_Partition_ID           : RPC.Partition_ID;
    Local_Partition_ID_Allocated : Boolean := False;
 
    function Get_Local_Partition_ID return RPC.Partition_ID is
@@ -817,6 +830,7 @@ package body System.PolyORB_Interface is
          --  XXX could set a useful partition name...
          Local_Partition_ID_Allocated := True;
       end if;
+      pragma Assert (Local_Partition_ID_Allocated);
       return Local_Partition_ID;
    end Get_Local_Partition_ID;
 
@@ -911,42 +925,40 @@ package body System.PolyORB_Interface is
             All_Stubs :
             while not Last (It) loop
                declare
-                  S : Receiving_Stub renames Value (It).all;
-                  pragma Assert (S.Subp_Info /= Null_Address);
-                  subtype Subp_Info_T is RCI_Subp_Info_Array
-                    (0 .. S.Subp_Info_Len - 1);
-                  package Cvt is
+                  Rec_Stub : Receiving_Stub renames Value (It).all;
+                  pragma Assert (Rec_Stub.Subp_Info /= Null_Address);
+
+                  subtype Subp_Array is RCI_Subp_Info_Array
+                    (0 .. Rec_Stub.Subp_Info_Len - 1);
+
+                  package Subp_Info_Addr_Conv is
                      new System.Address_To_Access_Conversions
-                    (Subp_Info_T);
-                  Subp_Info : constant Cvt.Object_Pointer
-                    := Cvt.To_Pointer (S.Subp_Info);
+                    (Subp_Array);
+
+                  Subp_Info : constant Subp_Info_Addr_Conv.Object_Pointer
+                    := Subp_Info_Addr_Conv.To_Pointer (Rec_Stub.Subp_Info);
                begin
-                  if S.Kind = Pkg_Stub and then S.Name.all = Pkg_Name then
-                     pragma Debug (O ("Found package!"));
+                  if Rec_Stub.Kind = Pkg_Stub
+                    and then Rec_Stub.Name.all = Pkg_Name
+                  then
                      for J in Subp_Info'Range loop
                         declare
                            Info : RCI_Subp_Info
                              renames Subp_Info (J);
 
-                           subtype Fixed_Str is
+                           subtype Str is
                              String (1 .. Info.Name_Length);
 
-                           package Str_Addr_Conversion is
+                           package Str_Addr_Conv is
                               new System.Address_To_Access_Conversions
-                             (Fixed_Str);
-                           use Str_Addr_Conversion;
+                             (Str);
                         begin
-                           if To_Pointer (Info.Name).all
+                           if Str_Addr_Conv.To_Pointer (Info.Name).all
                              = Subprogram_Name
                            then
-                              pragma Debug (O ("Found subprogram!"));
                               Addr := Info.Addr;
-                              Receiver := S.Receiver;
+                              Receiver := Rec_Stub.Receiver;
                               exit All_Stubs;
-                           else
-                              pragma Debug (O ("Skipping subprogram: "
-                                & To_Pointer (Info.Name).all));
-                              null;
                            end if;
                         end;
                      end loop;
@@ -1170,7 +1182,9 @@ package body System.PolyORB_Interface is
                           (Base_Ref            => Ref,
                            Is_Local            => True,
                            Is_All_Calls_Remote =>
-                             Stub.Is_All_Calls_Remote));
+                             Stub.Is_All_Calls_Remote,
+                           Known_Partition_ID  => False,
+                           RCI_Partition_ID    => RPC.Partition_ID'First));
 
                      begin
                         PSNNC.Client.Bind
@@ -1408,8 +1422,10 @@ package body System.PolyORB_Interface is
          Info := RCI_Info'
            (Base_Ref => PSNNC.Client.Resolve
               (Naming_Context, To_Name (LName, "RCI")),
-            Is_Local => False,
-            Is_All_Calls_Remote => True);
+            Is_Local            => False,
+            Is_All_Calls_Remote => True,
+            Known_Partition_ID  => False,
+            RCI_Partition_ID    => RPC.Partition_ID'First);
          Known_RCIs.Register (LName, Info);
       end if;
       return Info;
