@@ -1,4 +1,3 @@
-with Errors;          use Errors;
 with Lexer;           use Lexer;
 with Locations;       use Locations;
 with Nodes;           use Nodes;
@@ -26,6 +25,9 @@ package body Parser is
       CC_System      => 10, CC_Unknown     =>  0
      );
 
+   type P_Item_Function_Ptr is access function return Node_Id;
+   --  Pointer to a function which parse an item
+
    procedure Add_Package_Items (S : Node_Id; D : Node_Id);
    --  Add all package items of S into D (i.e. all items and properties)
    --  S and D are K_Package_Items type
@@ -33,9 +35,10 @@ package body Parser is
    function P_AADL_Declaration return Node_Id;
    function P_AADL_Specification return Node_Id;
 
-   function P_Annex_Specification (Start_Loc : Location) return Node_Id;
+   function P_Annex_Specification return Node_Id;
+   function P_Annex_Subclause return Node_Id;
 
-   function P_Component (Start_Loc : Location) return Node_Id;
+   function P_Component return Node_Id;
    --  Parse Component_Type, Component_Type_Extension
    --        Component_Implementation, Component_Implementation_Extension
 
@@ -46,8 +49,25 @@ package body Parser is
    function P_Component_Implementation (Start_Loc : Location;
                                         Category  : Component_Category)
                                        return Node_Id;
+   --  Parse Component_Implementation, Component_Implementation_Extension
+
    function P_Component_Type (Start_Loc : Location;
-                              Category : Component_Category) return Node_Id;
+                              Category  : Component_Category) return Node_Id;
+   --  Parse Component_Type, Component_Type_Extension
+
+   function P_Component_Type (Start_Loc : Location;
+                              Category  : Component_Category;
+                              Name      : Name_Id) return Node_Id;
+   --  Parse Component_Type
+
+   function P_Component_Type_Extension (Start_Loc : Location;
+                                        Category  : Component_Category;
+                                        Name      : Name_Id) return Node_Id;
+   --  Parse Component_Type_Extension
+
+   function P_Expected_Identifier (Expected_Name : Name_Id) return Boolean;
+   --  Parse Identifier
+   --  Return TRUE if parsed identifier name equals to Expected_Name
 
    function P_Expected_Identifiers (Identifiers : List_Id;
                                     Delimiter : Token_Type) return Boolean;
@@ -57,11 +77,19 @@ package body Parser is
    --  This function is useful for parsing 'end' clause for example
    --  Return TRUE if everything is OK
 
-   function  P_Identifiers (Identifiers : List_Id; Delimiter : Token_Type)
+   function P_Feature return Node_Id;
+
+   function P_Identifiers (Identifiers : List_Id; Delimiter : Token_Type)
                            return Boolean;
    --  Parse { Identifier Delimiter } * Identifier
    --  Parsed identifiers is added into list L
    --  Return TRUE if no error
+
+   function P_Items_List (Func : P_Item_Function_Ptr;
+                          Code : Parsing_Code) return List_Id;
+   --  Parse list items of syntax: ( { Item } + | none_statement )
+   --  Func is a pointer which is used to parse (Item)
+   --  Code indicates the object that we are parsing
 
    function P_None_Statement return Boolean;
    --  Parse " none ; ", this function does NOT return a Node_Id because
@@ -69,11 +97,13 @@ package body Parser is
    --  Return TRUE if the reserved word 'none' is followed by a ';'
 
    function P_Package_Items return Node_Id;
-   function P_Package_Specification (Start_Loc : Location) return Node_Id;
+   function P_Package_Specification return Node_Id;
+   function P_Parameter return Node_Id;
    function P_Port_Group (Start_Loc : Location) return Node_Id;
    function P_Property_Association return Node_Id;
    function P_Property_Set (Start_Loc : Location) return Node_Id;
-   function P_System_Instance (Start_Loc : Location) return Node_Id;
+   function P_Subcomponent_Access return Node_Id;
+   function P_System_Instance return Node_Id;
 
 
    -----------------------
@@ -102,7 +132,7 @@ package body Parser is
    --  property_set                  begins with 'property set'
 
    function P_AADL_Declaration return Node_Id is
-      Loc         : Location;
+      Loc : Location;
 
    begin
       Save_Lexer (Loc);
@@ -112,10 +142,10 @@ package body Parser is
          when T_Data | T_Subprogram | T_Thread | T_Process
            | T_Memory | T_Processor | T_Bus | T_Device
            | T_System =>
-            return P_Component (Loc);
+            return P_Component;
 
          when T_Package =>
-            return P_Package_Specification (Loc);
+            return P_Package_Specification;
 
          when T_Port =>
             Scan_Token;
@@ -123,9 +153,8 @@ package body Parser is
                return P_Port_Group (Loc);
             else
                DPE (PC_Port_Group, T_Group);
-               Restore_Lexer (Loc);
-               Scan_Token;  --  error, ignore 'port'
-               return No_Node;  --  OPT: ignore ---> ';'
+               Skip_Tokens (T_Semicolon);
+               return No_Node;
             end if;
 
          when T_Property =>
@@ -134,17 +163,17 @@ package body Parser is
                return P_Property_Set (Loc);
             else
                DPE (PC_Property_Set, T_Set);
-               Restore_Lexer (Loc);
-               Scan_Token;  --  error, ignore 'property'
-               return No_Node;  --  OPT: ignore ---> ';'
+               Skip_Tokens (T_Semicolon);
+               return No_Node;
             end if;
 
          when T_Identifier =>
-            return P_System_Instance (Loc);
+            return P_System_Instance;
 
          when others =>
             DPE (PC_AADL_Declaration);
-            return No_Node;  --  OPT: ignore ----> ';'
+            Skip_Tokens (T_Semicolon);
+            return No_Node;
       end case;
    end P_AADL_Declaration;
 
@@ -179,24 +208,40 @@ package body Parser is
    -- P_Annex_Specification --
    ---------------------------
 
-   function P_Annex_Specification (Start_Loc : Location) return Node_Id is
+   function P_Annex_Specification return Node_Id is
       Annex : Node_Id;
+
    begin
       --  TODO
-      Annex := New_Node (K_Node_Id, Start_Loc);
+      Annex := New_Node (K_Node_Id, Token_Location);
       return Annex;
    end P_Annex_Specification;
+
+   -----------------------
+   -- P_Annex_Subclause --
+   -----------------------
+
+   function P_Annex_Subclause return Node_Id is
+      Annex : Node_Id;
+
+   begin
+      --  TODO
+      Annex := New_Node (K_Node_Id, Token_Location);
+      return Annex;
+   end P_Annex_Subclause;
 
    -----------------
    -- P_Component --
    -----------------
 
-   function P_Component (Start_Loc : Location) return Node_Id is
-      Category : Component_Category;
-      Loc      : Location;
+   function P_Component return Node_Id is
+      Category  : Component_Category;
+      Loc       : Location;
+      Start_Loc : Location;
 
    begin
-      Category := P_Component_Category;
+      Start_Loc := Token_Location;
+      Category  := P_Component_Category;
       Save_Lexer (Loc);
       Scan_Token;
       if Token = T_Implementation then
@@ -273,10 +318,43 @@ package body Parser is
       Impl : Node_Id;    --  output
 
    begin
+      --  TODO
+
       Impl := New_Node (K_Component_Implementation, Start_Loc);
       Set_Category (Impl, Component_Category_To_Byte (Category));
       return Impl;
    end P_Component_Implementation;
+
+   ----------------------
+   -- P_Component_Type --
+   ----------------------
+
+   function P_Component_Type (Start_Loc : Location;
+                              Category  : Component_Category) return Node_Id is
+      Name      : Name_Id;     --  component identifier
+      Loc       : Location;
+
+   begin
+      Save_Lexer (Loc);
+      Scan_Token;
+      if Token = T_Identifier then
+         Name := Token_Name;
+         Save_Lexer (Loc);
+         Scan_Token;
+
+         if Token = T_Extends then
+            return P_Component_Type_Extension (Start_Loc, Category, Name);
+         else
+            Restore_Lexer (Loc);
+            return P_Component_Type (Start_Loc, Category, Name);
+         end if;
+
+      else
+         DPE (PC_Component_Type, T_Identifier);
+         Skip_Tokens ((T_End, T_Semicolon));
+         return No_Node;
+      end if;
+   end P_Component_Type;
 
    ----------------------
    -- P_Component_Type --
@@ -292,6 +370,118 @@ package body Parser is
    --     { annex_subclause } *
    --  end defining_component_type_identifier ;
 
+   function P_Component_Type (Start_Loc : Location;
+                              Category  : Component_Category;
+                              Name      : Name_Id) return Node_Id is
+      Component       : Node_Id;
+      Loc             : Location;
+      Provides        : List_Id := No_List;
+      Requires        : List_Id := No_List;
+      Parameters      : List_Id := No_List;
+      Properties      : List_Id := No_List;
+      Annexes         : List_Id := No_List;
+      Current_Element : List_Id;
+      Current_Annex   : Node_Id;
+
+   begin
+      Component := New_Node (K_Component_Type, Start_Loc);
+
+      loop
+         Save_Lexer (Loc);
+         Scan_Token;
+         case Token is
+            when T_Provides =>
+               Current_Element := P_Items_List (P_Feature'Access, PC_Provides);
+               if Present (Current_Element) then
+                  Append_List_To_List (Current_Element, Provides);
+               else
+                  Skip_Tokens ((T_End, T_Semicolon));
+                  return No_Node;
+               end if;
+
+            when T_Requires =>
+               Current_Element := P_Items_List (P_Subcomponent_Access'Access,
+                                                PC_Requires);
+               if Present (Current_Element) then
+                  Append_List_To_List (Current_Element, Requires);
+               else
+                  Skip_Tokens ((T_End, T_Semicolon));
+                  return No_Node;
+               end if;
+
+            when T_Parameters =>
+               Current_Element := P_Items_List (P_Parameter'Access,
+                                                PC_Parameters);
+               if Present (Current_Element) then
+                  Append_List_To_List (Current_Element, Parameters);
+               else
+                  Skip_Tokens ((T_End, T_Semicolon));
+                  return No_Node;
+               end if;
+
+            when T_Properties =>
+               Current_Element := P_Items_List (P_Property_Association'Access,
+                                                PC_Properties);
+               if Present (Current_Element) then
+                  Append_List_To_List (Current_Element, Properties);
+               else
+                  Skip_Tokens ((T_End, T_Semicolon));
+                  return No_Node;
+               end if;
+
+            when T_Annex =>
+               Current_Annex := P_Annex_Subclause;
+               if Present (Current_Annex) then
+                  if not Present (Annexes) then
+                     Annexes := New_List (K_List_Id, Loc);
+                  end if;
+                  Append_Node_To_List (Current_Annex, Annexes);
+               else
+                  Skip_Tokens ((T_End, T_Semicolon));
+                  return No_Node;
+               end if;
+
+            when T_End =>
+               exit;
+
+            when others =>
+               DPE (PC_Component_Type);
+               Skip_Tokens ((T_End, T_Semicolon));
+               return No_Node;
+         end case;
+      end loop;
+
+      if P_Expected_Identifier (Name) then
+         Save_Lexer (Loc);
+         Scan_Token;
+
+         if Token = T_Semicolon then
+            Set_Component_Identifier (Component, Name);
+            Set_Category (Component, Component_Category_To_Byte (Category));
+            Set_Provides (Component, Provides);
+            Set_Requires (Component, Requires);
+            Set_Parameters (Component, Parameters);
+            Set_Properties (Component, Properties);
+            Set_Annexes (Component, Annexes);
+            Set_Parent (Component, No_Node);
+
+            return Component;
+         else
+            DPE (PC_Component_Type, T_Semicolon);
+            Restore_Lexer (Loc);
+            return No_Node;
+         end if;
+      else
+         --  Error when parsing Defining_Identifier, quit
+         Skip_Tokens (T_Semicolon);
+         return No_Node;
+      end if;
+   end P_Component_Type;
+
+   --------------------------------
+   -- P_Component_Type_Extension --
+   --------------------------------
+
    --  component_type_extension ::=
    --     component_category defining_component_type_identifier
    --     extends unique_component_type_identifier
@@ -306,15 +496,40 @@ package body Parser is
    --     { annex_subclause } *
    --  end defining_component_type_identifier ;
 
-   function P_Component_Type (Start_Loc : Location;
-                              Category : Component_Category) return Node_Id is
-      Component : Node_Id;     --  output
+   function P_Component_Type_Extension (Start_Loc : Location;
+                                        Category  : Component_Category;
+                                        Name      : Name_Id) return Node_Id is
+      Component : Node_Id;
 
    begin
       Component := New_Node (K_Component_Type, Start_Loc);
+
+      --  TODO
+
       Set_Category (Component, Component_Category_To_Byte (Category));
+      Set_Component_Identifier (Component, Name);
       return Component;
-   end P_Component_Type;
+   end P_Component_Type_Extension;
+
+   ---------------------------
+   -- P_Expected_Identifier --
+   ---------------------------
+
+   function P_Expected_Identifier (Expected_Name : Name_Id) return Boolean is
+      Loc : Location;
+
+   begin
+      Save_Lexer (Loc);
+      Scan_Token;
+      if Token = T_Identifier
+        and then Token_Name = Expected_Name then
+         return True;
+      else
+         DPE (PC_Defining_Identifier, Expected_Name);
+         Restore_Lexer (Loc);
+         return False;
+      end if;
+   end P_Expected_Identifier;
 
    ----------------------------
    -- P_Expected_Identifiers --
@@ -368,6 +583,15 @@ package body Parser is
       return True;
    end P_Expected_Identifiers;
 
+   ---------------
+   -- P_Feature --
+   ---------------
+
+   function P_Feature return Node_Id is
+   begin
+      return No_Node;
+   end P_Feature;
+
    -------------------
    -- P_Identifiers --
    -------------------
@@ -399,6 +623,47 @@ package body Parser is
          end if;
       end loop;
    end P_Identifiers;
+
+   ------------------
+   -- P_Items_List --
+   ------------------
+
+   function P_Items_List (Func : P_Item_Function_Ptr;
+                          Code : Parsing_Code) return List_Id is
+      Loc   : Location;
+      Items : List_Id;
+      Item  : Node_Id;
+
+   begin
+      Items := New_List (K_List_Id, Token_Location);
+      Save_Lexer (Loc);
+      Scan_Token;
+      if Token = T_None then
+         if not P_None_Statement then
+            return No_List;
+         end if;
+
+      else
+         Restore_Lexer (Loc);
+         loop
+            Save_Lexer (Loc);
+            Item := Func.all;
+            if Present (Item) then
+               Append_Node_To_List (Item, Items);
+            else
+               --  Error when parsing item, restore lexer
+               Restore_Lexer (Loc);
+               if Is_Empty (Items) then
+                  --  list must contain at least one element, { Item } +
+                  DPE (Code, "list is empty");
+               end if;
+               exit;
+            end if;
+         end loop;
+      end if;
+
+      return Items;
+   end P_Items_List;
 
    ----------------------
    -- P_None_Statement --
@@ -435,10 +700,9 @@ package body Parser is
 
    function P_Package_Items return Node_Id is
       Package_Items : Node_Id;
-      Items         : List_Id;
-      Properties    : List_Id;
+      Items         : List_Id := No_List;
+      Properties    : List_Id := No_List;
       Item          : Node_Id;
-      Property      : Node_Id;
       Loc           : Location;
 
    begin
@@ -454,7 +718,7 @@ package body Parser is
             when T_Data | T_Subprogram | T_Thread | T_Process
               | T_Memory | T_Processor | T_Bus | T_Device
               | T_System =>
-               return P_Component (Loc);
+               return P_Component;
 
             when T_Port =>
                Scan_Token;
@@ -462,13 +726,12 @@ package body Parser is
                   Item := P_Port_Group (Loc);
                else
                   DPE (PC_Port_Group, T_Group);
-                  Restore_Lexer (Loc);
-                  Scan_Token;  --  error, ignore 'port'
-                  return No_Node;   --  OPT: ignore ----> ";"
+                  Skip_Tokens (T_Semicolon);
+                  return No_Node;
                end if;
 
             when T_Annex =>
-               Item := P_Annex_Specification (Loc);
+               Item := P_Annex_Specification;
 
             when others =>
                Restore_Lexer (Loc);
@@ -478,45 +741,22 @@ package body Parser is
          if Present (Item) then
             Append_Node_To_List (Item, Items);
          else
-            --  Error when parsing package item, quit
-            return No_Node;  --  OPT: ignore ----> ";"
+            return No_Node;
          end if;
       end loop;
 
       --  Parse properties
 
-      Properties := New_List (K_List_Id, Token_Location);
       Save_Lexer (Loc);
       Scan_Token;
 
       if Token = T_Properties then
-         Save_Lexer (Loc);
-         Scan_Token;
-         if Token = T_None then
-            if not P_None_Statement then
-               return No_Node;
-            end if;
-         else
-            Restore_Lexer (Loc);
-            loop
-               Save_Lexer (Loc);
-               Property := P_Property_Association;
-               if Present (Property) then
-                  Append_Node_To_List (Property, Properties);
-               else
-                  --  Error when parsing Property_Association, restore lexer
-                  Restore_Lexer (Loc);
-                  if Is_Empty (Properties) then
-                     --  Warning: Properties list must contain at least one
-                     --           element
-                     Error_Loc (1) := Token_Location;
-                     DE ("properties list is empty", K_Warning);
-                  end if;
-                  exit;
-               end if;
-            end loop;
+         Properties := P_Items_List (P_Property_Association'Access,
+                                     PC_Properties);
+         if not Present (Properties) then
+            --  Error when parsing properties, quit
+            return No_Node;
          end if;
-
       else
          --  No property declared
          Restore_Lexer (Loc);
@@ -542,7 +782,7 @@ package body Parser is
 
    --  package_name ::= { package_identifier . } * package_identifier
 
-   function P_Package_Specification (Start_Loc : Location) return Node_Id is
+   function P_Package_Specification return Node_Id is
       Package_Spec   : Node_Id;      --  result
       Defining_Name  : List_Id;      --  package name
       Current_Items  : Node_Id;      --  items parsed by P_Package_Items
@@ -551,13 +791,14 @@ package body Parser is
       Loc            : Location;
 
    begin
-      Package_Spec  := New_Node (K_Package_Spec, Start_Loc);
+      Package_Spec  := New_Node (K_Package_Spec, Token_Location);
       Defining_Name := New_List (K_Package_Identifiers, Token_Location);
       Public_Items  := No_Node;
       Private_Items := No_Node;
 
       if not P_Identifiers (Defining_Name, T_Dot) then
          --  Defining_Package_Name is not parsed correctly, quit
+         Skip_Tokens ((T_End, T_Semicolon));
          return No_Node;
       end if;
 
@@ -573,8 +814,8 @@ package body Parser is
                   Public_Items := Current_Items;
                end if;
             else
-               --  Error when parsing package items, quit
-               return No_Node;  --  OPT: ignore ----> ';'
+               Skip_Tokens ((T_End, T_Semicolon));
+               return No_Node;
             end if;
 
          elsif Token = T_Private then
@@ -586,8 +827,8 @@ package body Parser is
                   Private_Items := Current_Items;
                end if;
             else
-               --  Error when parsing package items, quit
-               return No_Node;  --  OPT: ignore ----> ';'
+               Skip_Tokens ((T_End, T_Semicolon));
+               return No_Node;
             end if;
 
          elsif Token = T_End then
@@ -595,8 +836,8 @@ package body Parser is
 
          else
             DPE (PC_Package_Specification);
-            Restore_Lexer (Loc);
-            return No_Node;  --  OPT: ignore ----> ';'
+            Skip_Tokens ((T_End, T_Semicolon));
+            return No_Node;
          end if;
       end loop;
 
@@ -617,9 +858,19 @@ package body Parser is
          end if;
       else
          --  Error when parsing Defining_Name, quit
+         Skip_Tokens (T_Semicolon);
          return No_Node;
       end if;
    end P_Package_Specification;
+
+   -----------------
+   -- P_Parameter --
+   -----------------
+
+   function P_Parameter return Node_Id is
+   begin
+      return No_Node;
+   end P_Parameter;
 
    ------------------
    -- P_Port_Group --
@@ -656,17 +907,26 @@ package body Parser is
       return Property_Set;
    end P_Property_Set;
 
+   ---------------------------
+   -- P_Subcomponent_Access --
+   ---------------------------
+
+   function P_Subcomponent_Access return Node_Id is
+   begin
+      return No_Node;
+   end P_Subcomponent_Access;
+
    -----------------------
    -- P_System_Instance --
    -----------------------
 
-   function P_System_Instance (Start_Loc : Location) return Node_Id is
+   function P_System_Instance return Node_Id is
       System_Instance : Node_Id;
       --  First identifier is in CURRENT TOKEN
 
    begin
       --  TODO
-      System_Instance := New_Node (K_Node_Id, Start_Loc);
+      System_Instance := New_Node (K_Node_Id, Token_Location);
       return System_Instance;
    end P_System_Instance;
 

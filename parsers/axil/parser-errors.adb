@@ -15,16 +15,20 @@ package body Parser.Errors is
       PC_Component_Category       => new String'("Component_Category"),
       PC_Component_Implementation => new String'("Component_Implementation"),
       PC_Component_Type           => new String'("Component_Type"),
+      PC_Defining_Identifier      => new String'("Defining_Identifier"),
       PC_Defining_Name            => new String'("Defining_Name"),
       PC_Identifiers              => new String'("Identifiers"),
       PC_None_Statement           => new String'("None_Statement"),
       PC_Package_Items            => new String'("Package_Items"),
       PC_Package_Specification    => new String'("Package_Specification"),
+      PC_Parameters               => new String'("Parameters"),
       PC_Port_Group               => new String'("Port_Group"),
+      PC_Properties               => new String'("Properties"),
       PC_Property_Association     => new String'("Property_Association"),
       PC_Property_Set             => new String'("Property_Set"),
-      PC_System_Instance          => new String'("System_Instance"),
-      others                      => new String'("[UNKNOWN]")
+      PC_Provides                 => new String'("Provides"),
+      PC_Requires                 => new String'("Requires"),
+      PC_System_Instance          => new String'("System_Instance")
      );
 
    procedure Display_Parsing_Code (Code : Parsing_Code);
@@ -48,16 +52,11 @@ package body Parser.Errors is
    -- Display_Parsing_Error --
    ---------------------------
 
-   procedure Display_Parsing_Error (Msg : String) is
+   procedure Display_Parsing_Error (Code : Parsing_Code; Msg : String) is
    begin
       Set_Standard_Error;
-      Write_Str (Image (Token_Location));
-      Write_Str (": ");
-
-      Write_Str (Msg);
-      Write_Char (' ');
-      Write_Line (Image_Current_Token);
-
+      Display_Parsing_Code (Code);
+      Write_Line (Msg);
       Set_Standard_Output;
    end Display_Parsing_Error;
 

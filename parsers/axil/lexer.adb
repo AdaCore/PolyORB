@@ -103,19 +103,8 @@ package body Lexer is
 
    function End_Of_File return Boolean is
    begin
-      loop
-         Skip_Spaces;
-         case Buffer (Token_Location.Scan) is
-            when LF | FF | CR | VT =>
-               New_Line;
-
-            when EOF =>
-               return True;
-
-            when others =>
-               return False;
-         end case;
-      end loop;
+      Skip_Spaces;
+      return Buffer (Token_Location.Scan) = EOF;
    end End_Of_File;
 
    -----------
@@ -349,6 +338,7 @@ package body Lexer is
       New_Token (T_Others, "others");
       New_Token (T_Out, "out");
       New_Token (T_Package, "package");
+      New_Token (T_Parameters, "parameters");
       New_Token (T_Port, "port");
       New_Token (T_Private, "private");
       New_Token (T_Process, "process");
@@ -1059,5 +1049,47 @@ package body Lexer is
          end case;
       end loop;
    end Skip_Spaces;
+
+   -----------------
+   -- Skip_Tokens --
+   -----------------
+
+   procedure Skip_Tokens (Delimiter : Token_Type) is
+      Braces : Integer := 0;   --  number of Opening Delimiters
+      Loc    : Location := Token_Location;
+
+   begin
+      while Token /= T_EOF loop
+         Save_Lexer (Loc);
+         Scan_Token;
+
+         if Token in Opening_Delimiter then
+            Braces := Braces + 1;
+         elsif Token in Closing_Delimiter then
+            Braces := Braces - 1;
+         end if;
+
+         exit when Braces <= 0
+           and then Token = Delimiter;
+      end loop;
+
+      --  When EOF is reached, we restore the lexer (the next procedure call
+      --  Scan_Token gives T_EOF to terminate the program)
+
+      if Token = T_EOF then
+         Restore_Lexer (Loc);
+      end if;
+   end Skip_Tokens;
+
+   -----------------
+   -- Skip_Tokens --
+   -----------------
+
+   procedure Skip_Tokens (Delimiters : Token_List_Type) is
+   begin
+      for Index in Delimiters'First .. Delimiters'Last loop
+         Skip_Tokens (Delimiters (Index));
+      end loop;
+   end Skip_Tokens;
 
 end Lexer;

@@ -1,6 +1,19 @@
 package body Nutils is
 
    -------------------------
+   -- Append_List_To_List --
+   -------------------------
+
+   procedure Append_List_To_List (S : List_Id; D : in out List_Id) is
+   begin
+      if Present (D) then
+         Append_Node_To_List (Node_Id (S), D);
+      else
+         D := S;
+      end if;
+   end Append_List_To_List;
+
+   -------------------------
    -- Append_Node_To_List --
    -------------------------
 

@@ -21,15 +21,13 @@ package Lexer is
       T_Vertical_Line,         --  |
       T_Underline,             --  _
 
-      T_Apostrophe,            --  '         First Delimiter
-      T_Left_Parenthesis,      --  (
-      T_Right_Parenthesis,     --  )
+      T_Apostrophe,            --  '     First Delimiter
       T_Comma,                 --  ,
 
-      T_Plus,                  --  +         First Binary Operator
+      T_Plus,                  --  +     First Binary Operator
       T_Minus,                 --  -
       T_Multiply,              --  *
-      T_Divide,                --  /         Last Binary Operator
+      T_Divide,                --  /     Last Binary Operator
 
       T_Dot,                   --  .
       T_Colon,                 --  :
@@ -37,12 +35,6 @@ package Lexer is
       T_Less_Than_Sign,        --  <
       T_Equals_Sign,           --  =
       T_Greater_Than_Sign,     --  >
-      T_Left_Square_Bracket,   --  [
-      T_Right_Square_Bracket,  --  ]
-      T_Left_Curly_Bracket,    --  {
-      T_Right_Curly_Bracket,   --  }
-
-      --  Compound Delimiters
 
       T_Association,           --  =>
       T_Additive_Association,  --  +=>
@@ -50,10 +42,18 @@ package Lexer is
       T_Immediate_Connection,  --  ->>
       T_Interval,              --  ..
       T_Colon_Colon,           --  ::
+
+      T_Left_Parenthesis,      --  (     First Opening Delimiter
+      T_Left_Square_Bracket,   --  [
+      T_Left_Curly_Bracket,    --  {
       T_Left_Step_Bracket,     --  -[
+      T_Begin_Annex,           --  {**   Last Opening Delimiter
+
+      T_Right_Parenthesis,     --  )     First Closing Delimiter
+      T_Right_Square_Bracket,  --  ]
+      T_Right_Curly_Bracket,   --  }
       T_Right_Step_Bracket,    --  ]->
-      T_Begin_Annex,           --  {**
-      T_End_Annex,             --  **}       Last Delimiter
+      T_End_Annex,             --  **}   Last Closing Delimiter, Last Delimiter
 
       --  Reserved Words
 
@@ -102,6 +102,7 @@ package Lexer is
       T_Others,                --  'others'
       T_Out,                   --  'out'
       T_Package,               --  'package'
+      T_Parameters,            --  'parameters'
       T_Port,                  --  'port'
       T_Private,               --  'private'
       T_Process,               --  'process'
@@ -142,6 +143,8 @@ package Lexer is
    First_Token_Pos   : constant := Token_Type'Pos (Token_Type'First);
    Last_Token_Pos    : constant := Token_Type'Pos (Token_Type'Last);
 
+   type Token_List_Type is array (Positive range <>) of Token_Type;
+
    --  Synonyms
 
    T_Asterisk  : Token_Type renames T_Multiply;
@@ -158,8 +161,11 @@ package Lexer is
    subtype Boolean_Type is Token_Type
      range T_False .. T_True;
 
-   subtype Compound_Delimiter_Type is Token_Type
-     range T_Association .. T_End_Annex;
+   subtype Opening_Delimiter is Token_Type
+     range T_Left_Parenthesis .. T_Begin_Annex;
+
+   subtype Closing_Delimiter is Token_Type
+     range T_Right_Parenthesis .. T_End_Annex;
 
    subtype Delimiter_Type is Token_Type
      range T_Apostrophe .. T_End_Annex;
@@ -232,5 +238,13 @@ package Lexer is
 
    function End_Of_File return Boolean;
    --  Return TRUE if there is no more useful data in file or EOF is reached
+
+   procedure Skip_Tokens (Delimiter : Token_Type);
+   --  Skip tokens until we find Delimiter
+   --  This procedure verifies that skipped tokens are well embraced
+
+   procedure Skip_Tokens (Delimiters : Token_List_Type);
+   pragma Inline (Skip_Tokens);
+   --  Same as above, with each token T in given list, calls Skip_Tokens (T)
 
 end Lexer;

@@ -114,7 +114,7 @@ module Nodes {
   };
 
   interface Component_Type : Node_Id {
-    Node_Id  Component_Identifier;
+    Name_Id  Component_Identifier;
     octet    Category;
     List_Id  Provides;
     List_Id  Requires;
@@ -156,7 +156,7 @@ module Nodes {
     // end component_type_identifier.defining_component_implementation_name ;
 
   interface Component_Implementation : Node_Id {
-    Node_Id Component_Identifier;
+    Name_Id Component_Identifier;
     octet Category;
     // TODO ...
   };

@@ -3,6 +3,10 @@ with Nodes;        use Nodes;
 with Types;        use Types;
 
 package Nutils is
+   procedure Append_List_To_List (S : List_Id; D : in out List_Id);
+   pragma Inline (Append_List_To_List);
+   --  Append list S to list D, if D does not exist, then D := S
+
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
    --  Append node N to list L.
 

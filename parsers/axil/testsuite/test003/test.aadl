@@ -1,0 +1,6 @@
+process Application
+provides
+   --  Nothing now
+requires
+   --  Nothing now
+end Application;
