@@ -9,11 +9,13 @@ Makefile
 Makefile.fil
 Makefile.in
 b_*.c
+b_gaprco
 b~isthrbio.adb
 b~isthrbio.ads
 b~linktest.adb
 b~linktest.ads
 config.h
+constants_nodef
 elaboration
 first
 gnatlib

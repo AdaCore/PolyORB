@@ -1,10 +1,11 @@
-*.o
 *.ali
-b_*.c
+*.o
 Makefile
+b_*.c
 config.cache
 config.log
 config.status
+make-check-stamp
 
 # These are the default patterns globally ignored by Subversion:
 *.o

@@ -1,4 +1,6 @@
 *.o *.ali b_*.c Makefile gnatdist
+b~xe_build.adb
+b~xe_build.ads
 dist1
 distmake
 gnatmake
@@ -6,3 +8,4 @@ sdefault.adb
 xe-gcc
 xe-gcc-filter
 xe_defs.adb
+xe_sysdep.adb
