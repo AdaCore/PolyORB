@@ -93,7 +93,8 @@ package body Droopi.Binding_Data.IIOP is
       --  Connect_Lower (Session, Component_Access (Sli_Filter));
       --  Connect (Sli_Filter.Upper,  Component_Access (Session));
 
-      --  Session must be an access to the lowest filter in
+      Session := null;
+      --  XXX Session must be an access to the lowest filter in
       --  the stack (=> the Slicer).
 
       --  The caller will invoke Register_Endpoint on TE.
