@@ -405,12 +405,12 @@ package body System.Partition_Interface is
 
                if Request.Partition /= Local_Partition then
                   declare
-                     R : Request_Type
-                       := (Set_Unit,
-                           Unit.Partition,
-                           Unit.Receiver,
-                           Unit.Version,
-                           null);
+                     R : constant Request_Type :=
+                       (Set_Unit,
+                        Unit.Partition,
+                        Unit.Receiver,
+                        Unit.Version,
+                        null);
                   begin
                      Send (Request.Partition, R, N);
                   end;
@@ -556,8 +556,8 @@ package body System.Partition_Interface is
 
    package body RCI_Info is
 
-      Cache   : Cache_Access := new Cache_Type;
-      Name    : String       := RCI_Name;
+      Cache   : constant Cache_Access := new Cache_Type;
+      Name    : String                := RCI_Name;
       Uname   : Unit_Id;
 
       Request : Request_Type := (Get_Unit, Local_Partition, 0, null, Cache);
@@ -571,12 +571,12 @@ package body System.Partition_Interface is
          Unit : Unit_Type;
          Done : Boolean;
       begin
-         Cache.Get_RCI_Data (Unit.Receiver, Unit.Partition, Done);
+         Get_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition, Done);
          if not Done then
             pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
             Units.Apply (Uname, Request, Process'Access);
             Unit := Units.Get_Component (Uname);
-            Cache.Set_RCI_Data (Unit.Receiver, Unit.Partition);
+            Set_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition);
          end if;
          return RPC.Partition_ID (Unit.Partition);
       end Get_Active_Partition_ID;
@@ -590,12 +590,12 @@ package body System.Partition_Interface is
          Unit : Unit_Type;
          Done : Boolean;
       begin
-         Cache.Get_RCI_Data (Unit.Receiver, Unit.Partition, Done);
+         Get_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition, Done);
          if not Done then
             pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
 
             Units.Apply (Uname, Request, Process'Access);
-            Cache.Set_RCI_Data (Unit.Receiver, Unit.Partition);
+            Set_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition);
          end if;
          return Unit.Receiver;
       end Get_RCI_Package_Receiver;
@@ -611,8 +611,6 @@ package body System.Partition_Interface is
 
    procedure Run
      (Main : in Main_Subprogram_Type := null) is
-      What    : Ada.Exceptions.Exception_Id;
-      Message : String_Access;
       Caller  : Caller_List := Callers;
       Dummy   : Caller_List;
    begin
@@ -643,15 +641,8 @@ package body System.Partition_Interface is
 
       pragma Debug (D (D_Debug, "Execute main suprogram"));
       if Main /= null then
-         select
-            Fatal_Error.Occurred (What, Message);
-            Soft_Shutdown;
-            Ada.Exceptions.Raise_Exception (What, Message.all);
-         then abort
-            Main.all;
-         end select;
+         Main.all;
       end if;
-      Free (Message);
 
       pragma Debug (D (D_Debug, "Complete termination"));
       Complete_Termination (Garlic.Options.Termination);
@@ -674,7 +665,7 @@ package body System.Partition_Interface is
       Unit      : in Unit_Id)
    is
       Params : aliased Params_Stream_Type (0);
-      Name   : String := Units.Get_Name (Unit);
+      Name   : constant String := Units.Get_Name (Unit);
    begin
       pragma Debug
         (D (D_RNS,

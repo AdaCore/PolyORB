@@ -50,57 +50,49 @@ package System.Garlic.Units is
    type Request_List is array (Types.Partition_ID) of Boolean;
    type Request_Id is (Get_Unit, Set_Unit);
 
-   protected type Cache_Type is
+   type Cache_Type is limited private;
 
-      procedure Get_RCI_Data
-        (Receiver  : out Interfaces.Unsigned_64;
-         Partition : out Types.Partition_ID;
-         Done      : out Boolean);
+   procedure Get_RCI_Data
+     (Cache     : in Cache_Type;
+      Receiver  : out Interfaces.Unsigned_64;
+      Partition : out Types.Partition_ID;
+      Done      : out Boolean);
 
-      procedure Set_RCI_Data
-        (Receiver  : in Interfaces.Unsigned_64;
-         Partition : in Types.Partition_ID);
-
-   private
-
-      Cache_Consistent : Boolean := False;
-      Active_Partition : Types.Partition_ID;
-      Package_Receiver : Interfaces.Unsigned_64;
-
-   end Cache_Type;
+   procedure Set_RCI_Data
+     (Cache     : out Cache_Type;
+      Receiver  : in Interfaces.Unsigned_64;
+      Partition : in Types.Partition_ID);
 
    type Cache_Access is access Cache_Type;
 
    type Unit_Status is (Unknown, Queried, Known);
 
-   type Unit_Type is
-      record
-         Partition : Types.Partition_ID;
-         Receiver  : Interfaces.Unsigned_64;
-         Version   : Utils.String_Access;
-         Cache     : Cache_Access;
-         Status    : Unit_Status;
-         Pending   : Boolean;
-         Requests  : Request_List;
-      end record;
+   type Unit_Type is record
+      Partition : Types.Partition_ID;
+      Receiver  : Interfaces.Unsigned_64;
+      Version   : Utils.String_Access;
+      Cache     : Cache_Access;
+      Status    : Unit_Status;
+      Pending   : Boolean;
+      Requests  : Request_List;
+   end record;
 
-   Null_Unit : constant Unit_Type
-     := (Partition => System.Garlic.Heart.Null_Partition_ID,
-         Receiver  => 0,
-         Version   => null,
-         Cache     => null,
-         Status    => Unknown,
-         Pending   => False,
-         Requests  => (others => False));
+   Null_Unit : constant Unit_Type :=
+     (Partition => System.Garlic.Heart.Null_Partition_ID,
+      Receiver  => 0,
+      Version   => null,
+      Cache     => null,
+      Status    => Unknown,
+      Pending   => False,
+      Requests  => (others => False));
 
-   type Request_Type is
-      record
-         Command   : Request_Id;
-         Partition : Types.Partition_ID;
-         Receiver  : Interfaces.Unsigned_64;
-         Version   : Utils.String_Access;
-         Cache     : Cache_Access;
-      end record;
+   type Request_Type is record
+      Command   : Request_Id;
+      Partition : Types.Partition_ID;
+      Receiver  : Interfaces.Unsigned_64;
+      Version   : Utils.String_Access;
+      Cache     : Cache_Access;
+   end record;
 
    Null_Request : constant Request_Type;
 
@@ -115,6 +107,12 @@ package System.Garlic.Units is
       Parameter_Type => Request_Type);
 
 private
+
+   type Cache_Type is record
+      Cache_Consistent : Boolean := False;
+      Active_Partition : Types.Partition_ID;
+      Package_Receiver : Interfaces.Unsigned_64;
+   end record;
 
    Null_Request : constant Request_Type :=
      (Command   => Get_Unit,

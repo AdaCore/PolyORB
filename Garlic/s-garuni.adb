@@ -33,10 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Debug; use System.Garlic.Debug;
+with System.Garlic.Debug;       use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
-with System.Garlic.Heart; use System.Garlic.Heart;
-with System.Garlic.Types; use System.Garlic.Types;
+with System.Garlic.Elaboration;
+pragma Elaborate_All (System.Garlic.Elaboration);
+pragma Warnings (Off, System.Garlic.Elaboration);
+with System.Garlic.Heart;       use System.Garlic.Heart;
+with System.Garlic.Soft_Links;  use System.Garlic.Soft_Links;
+with System.Garlic.Types;       use System.Garlic.Types;
 
 package body System.Garlic.Units is
 
@@ -49,45 +53,44 @@ package body System.Garlic.Units is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   ----------------
-   -- Cache_Type --
-   ----------------
+   ------------------
+   -- Get_RCI_Data --
+   ------------------
 
-   protected body Cache_Type is
+   procedure Get_RCI_Data
+     (Cache     : in Cache_Type;
+      Receiver  : out Interfaces.Unsigned_64;
+      Partition : out Types.Partition_ID;
+      Done      : out Boolean)
+   is
+   begin
+      Enter_Critical_Section;
+      if not Cache.Cache_Consistent then
+         Done      := False;
+         Receiver  := 0;
+         Partition := Types.Partition_ID'First;
+      else
+         Done      := True;
+         Receiver  := Cache.Package_Receiver;
+         Partition := Cache.Active_Partition;
+      end if;
+      Leave_Critical_Section;
+   end Get_RCI_Data;
 
-      ------------------
-      -- Get_RCI_Data --
-      ------------------
+   ------------------
+   -- Set_RCI_Data --
+   ------------------
 
-      procedure Get_RCI_Data
-        (Receiver  : out Interfaces.Unsigned_64;
-         Partition : out Types.Partition_ID;
-         Done      : out Boolean) is
-      begin
-         if not Cache_Consistent then
-            Done      := False;
-            Receiver  := 0;
-            Partition := Types.Partition_ID'First;
-         else
-            Done      := True;
-            Receiver  := Package_Receiver;
-            Partition := Active_Partition;
-         end if;
-      end Get_RCI_Data;
-
-      ------------------
-      -- Set_RCI_Data --
-      ------------------
-
-      procedure Set_RCI_Data
-        (Receiver  : in Interfaces.Unsigned_64;
-         Partition : in Types.Partition_ID) is
-      begin
-         Cache_Consistent := True;
-         Package_Receiver := Receiver;
-         Active_Partition := Partition;
-      end Set_RCI_Data;
-
-   end Cache_Type;
+   procedure Set_RCI_Data
+     (Cache     : out Cache_Type;
+      Receiver  : in Interfaces.Unsigned_64;
+      Partition : in Types.Partition_ID) is
+   begin
+      Enter_Critical_Section;
+      Cache := (Cache_Consistent => True,
+                Package_Receiver => Receiver,
+                Active_Partition => Partition);
+      Leave_Critical_Section;
+   end Set_RCI_Data;
 
 end System.Garlic.Units;
