@@ -1,3 +1,10 @@
+2000-01-24  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* NEWS: Add a paragraph on multi-protocols feature.
+	
+	* configure.in: Allow to configure rshcmd and rshopt. Needed for
+	HPUX. Update Makefile.in accordingly.
+
 1999-11-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in, configure: Split BOOT_SERVER default value into

@@ -130,18 +130,31 @@ case "${target}" in
 esac
 AC_SUBST(SUPPORTS_LOCAL_LAUNCH)
 #
-# Remote shell
+# Remote shell command
 #
-AC_MSG_CHECKING(which remote shell to use)
-AC_ARG_WITH(remsh,
- [  --with-remsh=command    Select a remote shell command],
- [RSH="${withval}"],
+AC_MSG_CHECKING(which remote shell command to use)
+AC_ARG_WITH(rshcmd,
+ [  --with-rshcmd=command    Select a remote shell command],
+ [RSH_CMD="${withval}"],
  [case "${target}" in
-   hppa*-hp-hpux*)      RSH="remsh -n";;
-   *)                   RSH="rsh -n";;
+   hppa*-hp-hpux*)      RSH_CMD="remsh";;
+   *)                   RSH_CMD="rsh -n";;
   esac])
-AC_SUBST(RSH)
-AC_MSG_RESULT($RSH)
+AC_SUBST(RSH_CMD)
+AC_MSG_RESULT($RSH_CMD)
+#
+# Remote shell flags
+#
+AC_MSG_CHECKING(which remote shell options to use)
+AC_ARG_WITH(rshopt,
+ [  --with-rshopt=command    Select a remote shell command],
+ [RSH_OPT="${withval}"],
+ [case "${target}" in
+   hppa*-hp-hpux*)      RSH_OPT="-n";;
+   *)                   RSH_OPT="";;
+  esac])
+AC_SUBST(RSH_OPT)
+AC_MSG_RESULT($RSH_OPT)
 #
 # Protocol list
 #

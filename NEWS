@@ -4,6 +4,10 @@ Changes since GLADE 3.12a
 New Functionnalities
 --------------------
 
+*   The multi-protocols feature is now fully supported. It is now
+    possible for a partition to communicate with other partitions
+    using different protocol names or different protocol data.
+
 *   Partition_ID is now unlimited (it was bounded to 64 in the previous
     versions). Partition ids of pure client partitions are now recycled.
 
