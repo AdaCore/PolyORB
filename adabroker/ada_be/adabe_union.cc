@@ -1,5 +1,3 @@
-#include <idl.hh>
-#include <idl_extern.hh>
 #include <adabe.h>
 
 adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p)
@@ -7,75 +5,82 @@ adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p
 	  AST_Decl(AST_Decl::NT_union, n, p),
           AST_Structure(AST_Decl::NT_union, n, p),
 	  UTL_Scope(AST_Decl::NT_union),
-	  adabe_name(AST_Decl::NT_union, n, p)
+	  adabe_name()
 {
 }
 
 void
-adabe_union::produce_ads(dep_list with,string &String, string &previousdefinition)
+adabe_union::produce_ads(dep_list with, string &body, string &previous)
 {
   ///////////WARNING//////////////
   //  the type of the discriminant should be check. From this type result a specific solution  
 
-  string temp = "";
   compute_ada_names();
-  INDENT(temp);
-  temp += "type " + get_ada_name();
+  body += "   type " + get_ada_local_name();
   disc_type()->compute_ada_names();
-  name = get_ada_name();
+  name = get_ada_local_name();
   AST_Decl *b = disc_type();
-  temp += "(Switch : "  + adabe_name::narrow_from_decl(d)->dump_name(with, temp, previousdefinition);
-  temp += " := " + name + "'first) is record\n";
-  INC_INDENT();
-  INDENT(temp);
-  temp += "case Switch is\n";
-  INC_INDENT();
+  body += "(Switch : "  + adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
+  body += " := " + name + "'first) is record\n";
+  body += "      case Switch is\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
-      INDENT(temp);
+      INDENT(body);
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_UnionBranch)
-	adabe_name::narrow_from_decl(d)->produce_ads(with, temp, previousdefinition);
+	adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
       i.next();
     }
-  DEC_INDENT();
-  INDENT(temp);
-  temp += "end case; \n"
-  DEC_INDENT();
-  INDENT(temp);
-  temp += "end record; \n";
-  previousdefinition += temp;
+  body += "      end case; \n"
+  body += "   end record; \n";
+  set_already_defined();
 }
 
-void
-adabe_union::produce_adb(dep_list with,string &String, string &previousdefinition)
-{
-  if (!is_imported(with)) return get_ada_name();
+/*
+  void
+  adabe_union::produce_adb(dep_list with,string &body, string &previous)
+  {
+  if (!is_imported(with)) return get_ada_local_name();
   return get_ada_full_name();	   
-}
-
-void
-adabe_union::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
-{
-  produce_ads(with, String, previousdefinition);
-}
-
-void
-adabe_union::produce_impl_adb(dep_list with,string &String, string &previousdefinition)
-{
-  if (!is_imported(with)) return get_ada_name();
+  }
+  
+  void
+  adabe_union::produce_impl_ads(dep_list with,string &body, string &previous)
+  {
+  produce_ads(with, body, previous);
+  }
+  
+  void
+  adabe_union::produce_impl_adb(dep_list with,string &body, string &previous)
+  {
+  if (!is_imported(with)) return get_ada_local_name();
   return get_ada_full_name();	   
+  }
+*/
+
+void
+adabe_structure::produce_marshal_ads(dep_list with, string &body, string &previous);
+{
+}
+void
+adabe_structure::produce_marshal_adb(dep_list with, string &body, string &previous);
+{
 }
 
 string
-adabe_union::dump_name(dep_list with,string &String, string &previousdefinition)
+adabe_union::dump_name(dep_list with, string &body, string &previous)
 {
   if (!is_imported(with))
     {
-      if (!is_already_defined()) produce_ads( with, String, previousdefinition);
-      return get_ada_name();
+      if (!is_already_defined)
+	{
+	  string tmp = "";
+	  produce_ads(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
     }
   return get_ada_full_name();	   
 }

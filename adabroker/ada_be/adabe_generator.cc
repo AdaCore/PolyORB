@@ -1,8 +1,3 @@
-// file adabe_generator
-
-
-#include  <idl.hh>
-#include  <idl_extern.hh>
 #include  <adabe.h>
 
 

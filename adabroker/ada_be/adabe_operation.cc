@@ -1,5 +1,3 @@
-#include <idl.hh>
-#include <idl_extern.hh>
 #include <adabe.h>
 
 adabe_operation::adabe_operation(AST_Type *rt, AST_Operation::Flags fl,
@@ -7,346 +5,312 @@ adabe_operation::adabe_operation(AST_Type *rt, AST_Operation::Flags fl,
                 : AST_Operation(rt, fl, n, p),
 		  AST_Decl(AST_Decl::NT_op, n, p),
 		  UTL_Scope(AST_Decl::NT_op),
-		  adabe_name(AST_Decl::NT_op,n,p)
+		  adabe_name()
 
 {
 }
 
 void
-adabe_operation::produce_ads(dep_list with,string &String, string &previousdefinition)
+adabe_operation::produce_ads(dep_list with,string &body, string &previous)
 {
   compute_ada_names();
-  INDENT();
   switch (pd_flags) {
   case OP_noflags :
   case OP_idempotent :
     break;
   case OP_oneway :
-    String += " oneway ";
+    body += "   oneway ";
     break;
   }
   if (is_function())
     {
-      String += " function" + get_ada_name() + "(Self : in Ref ";
+      body += " function" + get_ada_local_name() + "(Self : in Ref ";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  String += ",";
+	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_Argument)
-	    adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
+	    adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
        	  i.next();
 	}
-      String += ") return "; 
+      body += ") return "; 
       AST_Decl *b = return_type();
-      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ";\n";
+      body += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous) + ";\n";
     }
   else
     {
-      String += " procedure" + get_ada_name() + "(Self : in Ref ";
+      body += " procedure" + get_ada_local_name() + "(Self : in Ref ";
        UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  String += ",";
+	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_Argument)
-	    adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
+	    adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      String += ", Result : out ";
+      body += ", Result : out ";
       AST_Decl *b = return_type();
-      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ");\n";
+      body += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous) + ");\n";
 }
 
 void
-adabe_operation::produce_adb(dep_list with,string &String, string &previousdefinition)
+adabe_operation::produce_adb(dep_list with,string &body, string &previous)
 {
-  INDENT();
   switch (pd_flags) {
   case OP_noflags :
   case OP_idempotent :
     break;
   case OP_oneway :
-    String += " oneway ";
+    body += "   oneway ";
     break;
   }
   if (is_function())
     {
-      String += " function" + get_ada_name() + "(Self : in Ref ";
+      body += " function" + get_ada_local_name() + "(Self : in Ref ";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  String += ",";
+	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_Argument)
-	    adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
+	    adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      String += ") return ";
+      body += ") return ";
       AST_Decl *b = return_type();
-      string name += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition);
-      String += name + "is \n";
+      string name += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous);
+      body += name + "is \n";
       AST_Decl  *c = defined_in();
-      name_of_the_package = c->get_ada_name();
-      INDENT(String);
-      String += "Opcd : " + name_of_the_package + ".Proxies." + get_ada_name() + "_Proxy ;\n";
-      INDENT(String);
-      String += "Result : " + name +";\n";
-      INDENT(String);
-      String += "begin \n";
-      INC_INDENT();
-      INDENT(String);
-      String += "Assert_Ref_Not_Nil(Self);";
-      INDENT(String);
-      String += "Opcd := " + name_of_the_package + ".Proxies.Create(";
+      name_of_the_package = c->get_ada_local_name();
+      body += "   Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
+      body += "   Result : " + name +";\n";
+      body += "   begin \n";
+      body += "      Assert_Ref_Not_Nil(Self);";
+      body += "      Opcd := " + name_of_the_package + ".Proxies.Create(";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
 	{
 	  AST_Decl *e = j.item();
-	  if (e->node_type() == AST_Decl::NT_Argument) String += e->get_ada_name();
+	  if (e->node_type() == AST_Decl::NT_Argument) body += e->get_ada_local_name();
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  j.next();
-	  if (!j.is_done()) String += ", ";
+	  if (!j.is_done()) body += ", ";
 	}
 	  
-      String += ") ;\n";
-      INDENT(String);
-      String += "OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
-      INDENT(String);
-      String += "Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
-      INDENT(String);
-      String += name_of_the_package + ".Proxies.Free(Opcd) ;\n";
-      INDENT(String);
-      String += "return Result ;";
-      DEC_INDENT();
-      INDENT(String);
-      String += "end;";
+      body += ") ;\n";
+      body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
+      body += "      Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
+      body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
+      body += "      return Result ;";
+      body += "   end;";
     }
   else
     {
-      String += " procedure" + ada.name + "(Self : in Ref ";
+      body += "   procedure" + ada.name + "(Self : in Ref ";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  String += ",";
+	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_Argument)
-	    adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
+	    adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
       if (return_type() != NULL) {
 	AST_Decl *b = return_type();
-	string name =  adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition);
-	String += ", Result : out " + name + ") is\n";
+	string name =  adabe_name::narrow_from_decl(b)->dump_name(with, body, previous);
+	body += ", Result : out " + name + ") is\n";
       }
-      else   String += ") is \n";
+      else   body += ") is \n";
       AST_Decl  *b = defined_in();
-      name_of_the_package = b->get_ada_name();
-      INDENT(String);
-      String += "Opcd : " + name_of_the_package + ".Proxies." + get_ada_name() + "_Proxy ;\n";
-      INDENT(String);
-      String += "Result : " + name +";\n";
-      INDENT(String);
-      String += "begin \n";
-      INC_INDENT();
-      INDENT(String);
-      String += "Assert_Ref_Not_Nil(Self);";
-      INDENT(String);
-      String += "Opcd := " + name_of_the_package + ".Proxies.Create(";
+      name_of_the_package = b->get_ada_local_name();
+      body += "   Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
+      body += "   Result : " + name +";\n";
+      body += "   begin \n";
+      body += "      Assert_Ref_Not_Nil(Self);";
+      body += "      Opcd := " + name_of_the_package + ".Proxies.Create(";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
 	{
 	  AST_Decl *e = j.item();
-	  if (e->node_type() == AST_Decl::NT_Argument) String += e->get_ada_name();
+	  if (e->node_type() == AST_Decl::NT_Argument) body += e->get_ada_local_name();
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  j.next();
-	  if (!j.is_done()) String += ", ";
+	  if (!j.is_done()) body += ", ";
 	}
-      if (return_type() !=  NULL) String += ", Result) ;\n";
-      String += ") ;\n";
-      INDENT(String);
-      String += "OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
-      INDENT(String);
-      String += name_of_the_package + ".Proxies.Free(Opcd) ;\n";
-      INDENT(String);
-      String += "return ;";
-      DEC_INDENT();
-      INDENT(String);
-      String += "end;";
+      if (return_type() !=  NULL) body += ", Result) ;\n";
+      body += ") ;\n";
+      body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
+      body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
+      body += "      return ;";
+      body += "   end;";
     }
 }
 
 void
-adabe_operation::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
+adabe_operation::produce_impl_ads(dep_list with,string &body, string &previous)
 {
-  INDENT();
   switch (pd_flags) {
   case OP_noflags :
   case OP_idempotent :
     break;
   case OP_oneway :
-    String += " oneway ";
+    body += "   oneway ";
     break;
   }
   if (is_function())
     {
-      String += " function" + get_ada_name() + "(Self : access Object ";
+      body += "   function" + get_ada_local_name() + "(Self : access Object ";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  String += ",";
+	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_Argument)
-	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, String, previousdefinition);
+	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      String += ") return ";
+      body += ") return ";
       AST_Decl *b = return_type();
-      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ";\n";
+      body += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous) + ";\n";
     }
   else
     {
-      String += " procedure" + get_ada_name() + "(Self : access Object ";
+      body += " procedure" + get_ada_local_name() + "(Self : access Object ";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  String += ",";
+	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_Argument)
-	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, String, previousdefinition);
+	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      String += ", Result : out ";
+      body += ", Result : out ";
       AST_Decl *b = return_type();
-      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ");\n";
+      body += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous) + ");\n";
     }
 }
 
 void
-adabe_operation::produce_impl_adb(dep_list with,string &String, string &previousdefinition)
+adabe_operation::produce_impl_adb(dep_list with,string &body, string &previous)
 {
-  INDENT();
   switch (pd_flags) {
   case OP_noflags :
   case OP_idempotent :
     break;
   case OP_oneway :
-    String += " oneway ";
+    body += "   oneway ";
     break;
   }
   if (is_function())
     {
-      String += " function" + get_ada_name() + "(Self : access Object ";
+      body += "   function" + get_ada_local_name() + "(Self : access Object ";
       while the UTL_Scope is not empty (make a copy)              
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  String += ",";
+	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_Argument)
-	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, String, previousdefinition);
+	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      String += ") return ";
+      body += ") return ";
       AST_Decl *b = return_type();
-      String += adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition) + ";\n";
-      INDENT();
-      String += "begin \n\n";
-      INDENT();
-      String += "end;";
+      body += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous) + ";\n";
+      body += "   begin \n\n";
+      body += "   end;";
     }
   else
     {
-      String += " procedure" + ada.name + "(Self : access Object ";
+      body += "    procedure" + ada.name + "(Self : access Object ";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  String += ",";
+	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_Argument)
-	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, String, previousdefinition);
+	    adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
       if (return_type != NULL) {
 	   AST_Decl *b = return_type();
-           string name =  adabe_name::narrow_from_decl(b)->dump_name(with, String, previousdefinition);
-	   String += ", Result : out " + name + ") is\n";
+           string name =  adabe_name::narrow_from_decl(b)->dump_name(with, body, previous);
+	   body += ", Result : out " + name + ") is\n";
       }
-      else   String += ") is \n";
-      INDENT();
-      String += "begin \n\n";
-      INDENT();
-      String += "end;";      
+      else   body += ") is \n";
+      body += "   begin \n\n";
+      body += "   end;\n";      
     }
 }
 
 void
-adabe_operation::produce_proxies_ads(dep_list with,string &String, string &privatedefinition)
+adabe_operation::produce_proxies_ads(dep_list with,string &body, string &private_definition)
 {
-  INDENT();
   name = get_ada_full_name();
-  String += "type " + name +"_Proxy is new OmniProxyCallDesc.Object with private ;\n";
-  INDENT();
-  String += "function Create(";
+  body += "   type " + name +"_Proxy is new OmniProxyCallDesc.Object with private ;\n";
+  body += "   function Create(";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_Argument)
-	adabe_name::narrow_from_decl(d)->produce_proxies_ads(with, String, "IN"); //add the ","
+	adabe_name::narrow_from_decl(d)->produce_proxies_ads(with, body, "IN"); //add the ","
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
-  String = substr(String,0,String.length()-3); //to remove the last ", "
-  String += ") return " + name +"_Proxy ;\n";
-  INDENT();
-  String += " procedure Free(Self : in out " + name + "_Proxy);\n";
-  INDENT();
-  String += " function Aligned_Size(Self : in " + name + "_Proxy ; Size_In : in Corba.Unsigned_Long)";
-  INDENT();
-  String += " return Corba.Unsigned_Long ;\n";
-  INDENT();
-  String += " procedure Marshal_Arguments(Self : in " + name + "_Proxy ; Giop_Client : in out Giop_C.Object);\n";
-  INDENT();
-  String += " procedure Unmarshal_Returned_Values(Self : in out " + name + "_Proxy ; Giop_Client : in Giop_C.Object);\n";
-  INDENT();
+  body = substr(body,0,body.length()-3); //to remove the last ", "
+  body += ") return " + name +"_Proxy ;\n";
+  body += "   procedure Free(Self : in out " + name + "_Proxy);\n";
+  body += "   function Aligned_Size(Self : in " + name + "_Proxy ; Size_In : in Corba.Unsigned_Long)";
+  body += " return Corba.Unsigned_Long ;\n";
+  body += "   procedure Marshal_Arguments(Self : in " + name + "_Proxy ; Giop_Client : in out Giop_C.Object);\n";
+  body += "   procedure Unmarshal_Returned_Values(Self : in out " + name + "_Proxy ; Giop_Client : in Giop_C.Object);\n";
   if (is_function())
     {
-      String += " function Get_Result (Self : in " + name + "_Proxy ) return ";
-      INDENT();
+      body += "   function Get_Result (Self : in " + name + "_Proxy ) return ";
       AST_Decl *b = return_type();
-      String += adabe_name::narrow_from_decl(b)->dump_name( with, String, previousdefinition) + "; \n"; 
+      body += adabe_name::narrow_from_decl(b)->dump_name(with, body, previous) + "; \n"; 
     }
-  privatedefinition += "type " + name + "_Proxy is new OmniProxyCallDesc.Object with record \n";
-  INC_INDENT();
+  private_definition += "   type " + name + "_Proxy is new OmniProxyCallDesc.Object with record \n";
   UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
   while (!j.is_done())
     {
       AST_Decl *e = j.item();
       if (e->node_type() == AST_Decl::NT_Argument)
-	adabe_name::narrow_from_decl(e)->produce_proxies_adb(with, privatedefinition, previousdefinition);
+	adabe_name::narrow_from_decl(e)->produce_proxies_adb(with, private_definition, previous);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       j.next();
     }
   if (is_function())
     {
-      INDENT(privatedefinition);
-      privatedefinition += "Private_Result : ";
+      private_definition += "      Private_Result : ";
       AST_Decl *c = return_type();
-      String += adabe_name::narrow_from_decl(c)->dump_name( with, String, previousdefinition);
-      String += "_Ptr := null;\n";
+      body += adabe_name::narrow_from_decl(c)->dump_name(with, body, previous);
+      body += "_Ptr := null;\n";
     }
-  DEC_INDENT();
-  INDENT();
-  privatedefinition += "end record; \n ;";
+  private_definition += "   end record; \n ;";
+}
+
+void
+adabe_operation::produce_proxies_adb(dep_list with,string &body, string &private_definition)
+{
+}
+
+void
+adabe_operation::produce_skeleton_adb(dep_list with,string &body, string &private_definition)
+{
 }
 
 bool  

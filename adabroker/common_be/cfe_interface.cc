@@ -1,104 +1,33 @@
-// -*- Mode: C++; -*-
-//                          Package   : omniidl2
-// obe_cfe_interface.cc     Created on: 8/8/1996
-//			    Author    : Sai-Lai Lo (sll)
-//
-//    Copyright (C) 1996, 1997 Olivetti & Oracle Research Laboratory
-//
-//  This file is part of omniidl2.
-//
-//  Omniidl2 is free software; you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation; either version 2 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
-//  USA.
-//
-// Description:
-//    API entry points to interface with CFE
-
-/*
-  $Log: cfe_interface.cc,v $
-  Revision 1.6  1999/03/10 18:50:04  niebel
-  addition of Laurent's work
-  addition of the modified makefile to compile the project
-
-  Revision 1.5  1999/03/02 17:28:12  niebel
-  The produce_adb is added to this class
-
-  Revision 1.3  1999/03/01 23:27:54  niebel
-  modification to allow different BE (the adabroker and the omniidl2 back-end)
-
-
-  Revision 1.2  1999/03/01 19:48:01  niebel
-  modification of the mapping of expressions in the union
-
-  Revision 1.1  1999/02/14 17:45:00  niebel
-  Ajout des sources d'omniidl2 en vue de l'ajout de notre back end.
-
-  Revision 1.19  1999/01/07 09:48:23  djr
-  Changes to support new output file ...DynSK.cc
-
-  Revision 1.18  1998/10/26 12:19:58  sll
-  Added catch for o2be_fe_error exception.
-
-  Revision 1.17  1998/08/13 22:41:24  sll
-  Added pragma hdrstop to control pre-compile header if the compiler feature
-  is available.
-
-  Revision 1.16  1998/08/10 15:33:52  sll
-  Now catch all internal exceptions and print an error message instead
-  of causing a core dump.
-
-  Revision 1.15  1998/08/06 16:27:03  sll
-  Re-indent getopt(). Previously getopt() failed to check for null buf_left
-  before it is de-referenced.
-
-  Revision 1.14  1998/08/06 16:23:27  sll
-  *** empty log message ***
-
-  Revision 1.13  1998/05/20 18:24:13  sll
-  New option (-t) enable the generation of tie implementation template.
-
-  Revision 1.12  1998/04/08 16:08:57  sll
-  *** empty log message ***
-
-  Revision 1.11  1998/04/07 18:41:11  sll
-  Use std::cerr instead of cerr.
-  Added compiler flag -m.
-
-// Revision 1.10  1998/01/27  16:34:55  ewc
-//  Added support for type any and TypeCode
-//
-// Revision 1.9  1998/01/20  19:13:38  sll
-// Added support for OpenVMS.
-//
-  Revision 1.8  1997/12/09 19:55:22  sll
-  *** empty log message ***
-
-// Revision 1.7  1997/09/20  16:37:24  dpg1
-// Added new -l flag for LifeCycle code generation.
-//
-// Revision 1.6  1997/05/07  10:12:52  ewc
-// Changed win32 usage() message.
-//
-// Revision 1.5  1997/05/06  17:28:38  sll
-// Public release.
-//
-  */
+/**********************************************************************************
+**                          Package   : omniidl2                                 ** 
+** obe_cfe_interface.cc     Created on: 8/8/1996                                 ** 
+**			    Author    : Sai-Lai Lo (sll)                         ** 
+**                                                                               ** 
+**    Copyright (C) 1996, 1997 Olivetti & Oracle Research Laboratory             ** 
+**                                                                               ** 
+**  This file is part of omniidl2.                                               ** 
+**                                                                               ** 
+**  Omniidl2 is free software; you can redistribute it and*or modify             ** 
+**  it under the terms of the GNU General Public License as published by         **  
+**  the Free Software Foundation; either version 2 of the License, or            ** 
+**  (at your option) any later version.                                          ** 
+**                                                                               ** 
+**  This program is distributed in the hope that it will be useful,              ** 
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of               ** 
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                ** 
+**  GNU General Public License for more details.                                 ** 
+**                                                                               ** 
+**  You should have received a copy of the GNU General Public License            ** 
+**  along with this program; if not, write to the Free Software                  ** 
+**  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,       ** 
+**  USA.                                                                         ** 
+**                                                                               **
+**********************************************************************************/
 
 #include <idl.hh>
 #include <idl_extern.hh>
 #include <o2be.h>
-#include <adabe.h>   /////////////////////////
+#include <adabe.h> 
 
 #ifdef HAS_pch
 #pragma hdrstop
@@ -175,7 +104,7 @@ getopt(int num_args, char* const* args, const char* optstring)
 
 
 o2be_root* o2be_global::myself = NULL;
-adabe_root* adabe_global::myself = NULL; /////////////////
+adabe_root* adabe_global::myself = NULL; 
 char* o2be_global::pd_hdrsuffix = DEFAULT_IDL_HDR_SUFFIX;
 char* o2be_global::pd_skelsuffix = DEFAULT_IDL_SKEL_SUFFIX;
 char* o2be_global::pd_dynskelsuffix = DEFAULT_IDL_DYNSKEL_SUFFIX;
@@ -198,7 +127,7 @@ BE_init()
   AST_Generator *g;
   if (strcmp(idl_global->be(),"c")==0) g = new o2be_generator();
   else if (strcmp(idl_global->be(),"ada")==0) g = new adabe_generator();
-  return g;/////////////////////////////////////
+  return g;
 }
 
 //
@@ -213,7 +142,7 @@ BE_version()
 // Do the work of this BE.
 //
 void
-BE_produce() //////////////////// revoir les catchs a cause des o2be 
+BE_produce() 
 {
   try {
     if (strcmp(idl_global->be(),"c")==0) o2be_global::root()->produce(); 
@@ -380,7 +309,7 @@ BE_parse_args(int argc, char **argv)
 					IDL_BE_GENERATE_TIE);
 	  break;
 
-	case 'b':                    ///////////////////////////////
+	case 'b':                   
        	  if ((strcmp(optarg,"ada")==0)||(strcmp(optarg,"c")==0))  idl_global->set_be(optarg);
 	  else exit(99) ;
 	  be_defined = 1;   
@@ -393,7 +322,7 @@ BE_parse_args(int argc, char **argv)
 	  return;
 	}
     }
-  if (be_defined==0)  idl_global->set_be("c");  //////////////////////
+  if (be_defined==0)  idl_global->set_be("c"); 
   for (; optind < argc; optind++)
     {
       DRV_files[DRV_nfiles++] = argv[optind];

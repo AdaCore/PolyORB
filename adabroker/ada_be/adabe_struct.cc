@@ -1,92 +1,92 @@
-#include <idl.hh>
-#include <idl_extern.hh>
 #include <adabe.h>
 
 adabe_structure::adabe_structure(UTL_ScopedName *n, UTL_StrList *p);
 	    : AST_Decl(AST_Decl::NT_struct, n, p),
 	      UTL_Scope(AST_Decl::NT_struct),
-	      adabe_name(AST_Decl::NT_struct, n, p),
+	      adabe_name()
 {
 }
 
 void
-adabe_structure::produce_ads(dep_list with,string &String, string &previousdefinition)
+adabe_structure::produce_ads(dep_list with, string &body, string &previous)
 {
   compute_ada_names();
-  INDENT(String);
-  String += "type " + get_ada_name() + "is record\n";
-  INC_INDENT();
+  body += "   type " + get_ada_local_name() + "is record\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
-      INDENT(String);
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_field)
-	adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
+	adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
       i.next();
     }
-  DEC_INDENT();
-  INDENT(String);
-  String += "end record;\n";
-  INDENT(String);
-  String += "type " + get_ada_name() + "_Ptr is access all " + get_ada_name() + ";\n";
-  INDENT(String);
-  String += "procedure free is new Unchecked_Deallocation(";
-  String += get_ada_name() + ", " + get_ada_name ()+ "_Ptr);\n";  
+  body += "   end record;\n";
+  body += "   type " + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
+  body += "   procedure free is new Unchecked_Deallocation(";
+  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";  
   set_already_defined();
 }
 
 /*
-void
-adabe_structure::produce_adb(dep_list with,string &String, string &previousdefinition)
-{
-  if (!is_imported(with)) return get_ada_name();
-  else return get_ada_full_name();
-}
   void
-  adabe_structure::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
+  adabe_structure::produce_adb(dep_list with,string &body, string &previous)
   {
-  INDENT(String);
-  String += "type " + get_ada_name() + "is record\n";
+  if (!is_imported(with)) return get_ada_local_name();
+  else return get_ada_full_name();
+  }
+  void
+  adabe_structure::produce_impl_ads(dep_list with,string &body, string &previous)
+  {
+  INDENT(body);
+  body += "type " + get_ada_local_name() + "is record\n";
   INC_INDENT();
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
   {
-  INDENT(String);
+  INDENT(body);
   AST_Decl *d = i.item();
   if (d->node_type() == AST_Decl::NT_field)
-  adabe_name::narrow_from_decl(d)->produce_impl_ads(with, String, previousdefinition);
+  adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
   else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
   i.next();
   }
   DEC_INDENT();
-  INDENT(String);
-  String += "end record;\n";
+  INDENT(body);
+  body += "end record;\n";
   
   }
 
 
   void  
-  adabe_structure::produce_impl_adb(dep_list with,string &String, string &previousdefinition)
+  adabe_structure::produce_impl_adb(dep_list with,string &body, string &previous)
   {
-  if (!is_imported(with)) return get_ada_name();
+  if (!is_imported(with)) return get_ada_local_name();
   else return get_ada_full_name();
   }
 */
 
+void
+adabe_structure::produce_marshal_ads(dep_list with, string &body, string &previous);
+{
+}
+void
+adabe_structure::produce_marshal_adb(dep_list with, string &body, string &previous);
+{
+}
+
 string
-adabe_structure::dump_name(dep_list with,string &String, string &previousdefinition)
+adabe_structure::dump_name(dep_list with, string &body, string &previous)
 {
   if (!is_imported(with))
     {
       if (!is_already_defined)
 	{
 	  string tmp = "";
-	  produce_ads(with, tmp, previousdefinition);
-	  previousdefinition += tmp;
+	  produce_ads(with, tmp, previous);
+	  previous += tmp;
 	}
-      return get_ada_name();
+      return get_ada_local_name();
     }
   return get_ada_full_name();	   
 }

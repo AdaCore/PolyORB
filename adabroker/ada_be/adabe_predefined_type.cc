@@ -1,42 +1,42 @@
-#include <idl.hh>
-#include <idl_extern.hh>
 #include <adabe.h>
-
 
 adabe_predefined_type::adabe_predefined_type(AST_PredefinedType::PredefinedType t, UTL_ScopedName *n, UTL_StrList *p)
   : AST_PredefinedType(t, sn, p),
     AST_Decl(AST_Decl::NT_pre_defined, sn, p),
-    adabe_name(AST_Decl::NT_pre_defined,sn,p),
+    adabe_name(),
 
 {
 }
 
 void 
-adabe_predefined_type::produce_ads(dep_list with,string &String, string &previousdefinition)
+adabe_predefined_type::produce_ads(dep_list with, string &body, string &previous)
 {
-  String += get_ada_predefined_type();
+  body += get_ada_predefined_type();
+  set_already_defined();
 }
 
-void
-adabe_predefined_type::produce_adb(dep_list with,string &String, string &previousdefinition)
-{
-  String += get_ada_predefined_type();
-}
-
-void 
-adabe_predefined_type::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
-{
-  String += get_ada_predefined_type();
-}
-
-void
-adabe_predefined_type::produce_impl_adb(dep_list with,string &String, string &previousdefinition)
-{
-  String += get_ada_predefined_type();
-}
+/*
+  void
+  adabe_predefined_type::produce_adb(dep_list with,string &body, string &previous)
+  {
+  body += get_ada_predefined_type();
+  }
+  
+  void 
+  adabe_predefined_type::produce_impl_ads(dep_list with,string &body, string &previous)
+  {
+  body += get_ada_predefined_type();
+  }
+  
+  void
+  adabe_predefined_type::produce_impl_adb(dep_list with,string &body, string &previous)
+  {
+  body += get_ada_predefined_type();
+  }
+*/
 
 string
-adabe_predefined_type::dump_name(dep_list with,string &String, string &previousdefinition)
+adabe_predefined_type::dump_name(dep_list with, string &body, string &previous)
 {
   return get_ada_predefined_type();
 }
