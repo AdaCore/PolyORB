@@ -1,5 +1,6 @@
 --  $Id$
 
+with Ada.Real_Time;
 with Ada.Exceptions;
 
 with Droopi.Annotations;
@@ -285,7 +286,14 @@ package body Droopi.ORB is
                --  situation: ORB.ORB_Lock is not held.
 
                if not (Event_Happened or else Monitors'Length = 1) then
-                  delay Poll_Interval;
+                  declare
+                     use Ada.Real_Time;
+
+                     Poll_Expire : constant Time
+                       := Clock + To_Time_Span (Poll_Interval);
+                  begin
+                     delay until Poll_Expire;
+                  end;
                end if;
             end;
 
