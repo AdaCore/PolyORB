@@ -1,5 +1,12 @@
 -*- outline -*-
 
+* New in AdaSockets 0.2.0
+
+** New port
+
+Thanks to Dmitriy Anisimkov <anisimkov@yahoo.com>, AdaSockets now builds
+correctly on a Windows cygwin system.
+
 * New in AdaSockets 0.1.15
 
 ** Bug fix

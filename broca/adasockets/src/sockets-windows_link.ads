@@ -2,11 +2,11 @@
 --                                                                         --
 --                         ADASOCKETS COMPONENTS                           --
 --                                                                         --
---                        S O C K E T S . L I N K                          --
+--               S O C K E T S . W I N D O W S _ L I N K                   --
 --                                                                         --
 --                                S p e c                                  --
 --                                                                         --
---                        $ReleaseVersion: 0.1.6 $                         --
+--                        $ReleaseVersion: 0.1.9 $                         --
 --                                                                         --
 --  Copyright (C) 1998  École Nationale Supérieure des Télécommunications  --
 --                                                                         --
@@ -33,13 +33,17 @@
 --       http://www-inf.enst.fr/ANC/                                       --
 --                                                                         --
 -----------------------------------------------------------------------------
+--  Dmitriy Anisimkov changes only for Win32 platform                      --
+-----------------------------------------------------------------------------
 
-@WINNEEDED@with Sockets.Windows_Link;
-@WINNEEDED@pragma Elaborate (Sockets.Windows_Link);
+private package Sockets.Windows_Link is
 
-package Sockets.Link is
+   pragma Linker_Options ("-lwsock32");
+   
+private
 
-   @NSLNEEDED@pragma Linker_Options ("-lnsl");
-   @SOCKETNEEDED@pragma Linker_Options ("-lsocket");
+   procedure Unsupported;
 
-end Sockets.Link;
+   pragma Export (C, Unsupported, "socketpair");
+
+end Sockets.Windows_Link;

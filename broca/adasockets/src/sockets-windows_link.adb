@@ -2,11 +2,11 @@
 --                                                                         --
 --                         ADASOCKETS COMPONENTS                           --
 --                                                                         --
---                        S O C K E T S . L I N K                          --
+--               S O C K E T S . W I N D O W S _ L I N K                   --
 --                                                                         --
 --                                S p e c                                  --
 --                                                                         --
---                        $ReleaseVersion: 0.1.6 $                         --
+--                        $ReleaseVersion: 0.1.9 $                         --
 --                                                                         --
 --  Copyright (C) 1998  École Nationale Supérieure des Télécommunications  --
 --                                                                         --
@@ -33,13 +33,55 @@
 --       http://www-inf.enst.fr/ANC/                                       --
 --                                                                         --
 -----------------------------------------------------------------------------
+--  Dmitiry Anisimkov changes only for Win32 platform                      --
+-----------------------------------------------------------------------------
 
-@WINNEEDED@with Sockets.Windows_Link;
-@WINNEEDED@pragma Elaborate (Sockets.Windows_Link);
+with Interfaces.C.Strings;
 
-package Sockets.Link is
+package body Sockets.Windows_Link is
 
-   @NSLNEEDED@pragma Linker_Options ("-lnsl");
-   @SOCKETNEEDED@pragma Linker_Options ("-lsocket");
+   use Interfaces, Interfaces.C, Interfaces.C.Strings;
 
-end Sockets.Link;
+   Function_Unsupported_On_Win32 : exception;
+   WSAVERNOTSUPPORTED            : exception;
+
+   type WSADATA is
+      record
+         wVersion       : unsigned_16;
+         wHighVersion   : unsigned_16;
+         szDescription  : char_array (1 .. 129);
+         szSystemStatus : char_array (1 .. 257);
+         iMaxSockets    : unsigned_16;
+         iMaxUdpDg      : unsigned_16;
+         lpVendorInfo   : chars_ptr;
+      end record;
+   pragma Convention (C, WSADATA);
+
+   WSAInfo : aliased WSADATA;
+
+   type LPWSADATA is access all WSADATA;
+   pragma Convention (C, LPWSADATA);
+
+   function WSAStartup
+     (VersionRequested : Short_Integer;
+      WSAData          : LPWSADATA)
+     return Integer;
+
+   pragma Import (StdCall, WSAStartup, "WSAStartup");
+
+   -----------------
+   -- Unsupported --
+   -----------------
+
+   procedure Unsupported is
+   begin
+      raise Function_Unsupported_On_Win32;
+   end Unsupported;
+
+   Version : constant Short_Integer := 16#0101#;
+
+begin
+   if WSAStartup (Version, WSAInfo'Access) /= 0 then
+      raise WSAVERNOTSUPPORTED;
+   end if;
+end Sockets.Windows_Link;

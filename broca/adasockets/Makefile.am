@@ -5,3 +5,4 @@ AUTOHEADER_AMFLAGS = -l ../support
 
 autoconf:
 	aclocal -I support && autoconf && automake
+	autoheader

@@ -82,6 +82,12 @@
 #include <termios.h>
 #endif
 
+#ifdef HAVE_WINDOWS_H
+#define Win32_Winsock
+#include <windows.h>
+/* This directive is checked only for mingw32 2.8.1 */
+#endif
+
 static char *
 capitalize (char *name)
 {
