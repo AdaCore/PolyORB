@@ -516,16 +516,12 @@ package body System.PolyORB_Interface is
       use PolyORB.POA_Config;
       use PolyORB.POA_Manager;
 
-      Configuration : PolyORB.POA_Config.Configuration_Access;
-      pragma Warnings (Off, Configuration);
-      --  XXX initialize someway!
-
       POA : constant Obj_Adapter_Access
         := Create_POA
         (Self         => Root_POA_Object,
          Adapter_Name => PolyORB.Types.To_PolyORB_String (Name),
          A_POAManager => null,
-         Policies     => Default_Policies (Configuration.all));
+         Policies     => Default_Policies (RACW_POA_Config.all));
    begin
       POA.Default_Servant := PolyORB.Objects.Servant_Access
         (Default_Servant);
@@ -633,7 +629,10 @@ begin
      (Module_Info'
       (Name => +"dsa",
        Conflicts => Empty,
-       Depends => +"orb" & "access_points?" & "initial_references",
+       Depends => +"orb"
+         & "initial_references"
+         & "access_points?"
+         & "poa_config.racws?",
        Provides => Empty,
        Init => Initialize'Access));
 end System.PolyORB_Interface;

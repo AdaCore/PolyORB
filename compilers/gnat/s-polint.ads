@@ -9,6 +9,7 @@ with PolyORB.Components;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
+with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
@@ -130,6 +131,8 @@ package System.PolyORB_Interface is
 
    function Is_Nil (R : PolyORB.References.Ref) return Boolean
      renames PolyORB.References.Is_Nil;
+
+   RACW_POA_Config : PolyORB.POA_Config.Configuration_Access;
 
    procedure Get_Local_Address
      (Ref      : PolyORB.References.Ref;

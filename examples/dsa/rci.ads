@@ -1,6 +1,9 @@
+with RT;
+
 package RCI is
 
    pragma Remote_Call_Interface;
+   pragma All_Calls_Remote;
 
    type Color is (Red, Green, Blue);
 
@@ -20,6 +23,8 @@ package RCI is
    procedure My_Proc (X : in Integer; Y : in out Predicate; Z : out Trit);
 
    function My_Func (S : String) return Color;
+
+   function Get_Obj (Name : String) return RT.RACW;
 
    function echoString (S : String) return String;
 
