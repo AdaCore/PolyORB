@@ -54,19 +54,10 @@ with Omniobject ;
 
 package Corba.Boa is
 
-   type Object is tagged record
-      Table : Interfaces.CPP.Vtable_Ptr ;
-   end record ;
-
-   pragma CPP_Class (Object);
-   pragma CPP_Vtable (Object,Table,1);
-   -- This object is wrapped around BOA (see CORBA.h)
-
-   type Object_Ptr is access Object ;
-   -- just to give a name to pointers on Object
+   type Object is new System.Address ;
 
 
-   procedure Object_Is_Ready(Self: in Object'Class ;
+   procedure Object_Is_Ready(Self: in Object ;
                              Obj: in Omniobject.Implemented_Object'Class ) ;
    -- calls the C++ function omni::objectIsReady
    -- has to be done when an implemented object has been created
@@ -75,21 +66,13 @@ package Corba.Boa is
    -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
 
 
-   procedure Object_Is_Ready(Self: in Object'Class ;
+   procedure Object_Is_Ready(Self: in Object ;
                              Obj: in Corba.Object.Ref'Class ) ;
    -- calls the C++ function omni::objectIsReady
    -- has to be done when an implemented object has been created
    -- to register it into the ORB
    -- (as a proxy object )
    -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
-
-
-private
-
-   function Constructor return Object'Class;
-   pragma CPP_Constructor (Constructor);
-   pragma Import (CPP,Constructor,"__Q25CORBA3BOA");
-   -- wrapped around the C constructor of BOA
 
 end Corba.Boa ;
 

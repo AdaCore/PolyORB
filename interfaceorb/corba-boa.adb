@@ -52,7 +52,7 @@ package body Corba.Boa is
 
    -- Object_Is_Ready
    -------------------
-   procedure Object_Is_Ready(Self: in Object'Class ;
+   procedure Object_Is_Ready(Self: in Object ;
                              Obj: in Omniobject.Implemented_Object'Class ) is
    begin
       Omniobject.Object_Is_Ready(Obj) ;
@@ -61,7 +61,7 @@ package body Corba.Boa is
 
    -- Object_Is_Ready
    -------------------
-   procedure Object_Is_Ready(Self: in Object'Class ;
+   procedure Object_Is_Ready(Self: in Object ;
                              Obj: in Corba.Object.Ref'Class ) is
    begin
       Corba.Object.Object_Is_Ready(Obj) ;

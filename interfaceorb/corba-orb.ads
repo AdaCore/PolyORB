@@ -44,6 +44,7 @@
 
 
 with Interfaces.CPP ;
+with System ;
 
 with Corba.Object ;
 with Corba.Boa ;
@@ -58,15 +59,7 @@ package Corba.Orb is
    Debug : constant Boolean := Adabroker_Debug.Is_Active("corba.orb") ;
    -- debugging  flag
 
-   type Object is tagged record
-      Table : Interfaces.CPP.Vtable_Ptr ;
-   end record ;
-   pragma CPP_Class (Object);
-   pragma CPP_Vtable (Object,Table,1);
-   -- This object corresponds to CORBA::ORB
-
-   type Object_Ptr is access all Object'Class ;
-
+   type Object is new System.Address ;
 
    --------------------------------------------------
    ---          specification CORBA 2.0          ----
@@ -97,23 +90,14 @@ package Corba.Orb is
    ---        ORB initialization                 ----
    --------------------------------------------------
 
-   function ORB_Init(Orb_Name : in Standard.String) return Object_Ptr ;
+   function ORB_Init(Orb_Name : in Standard.String) return Object ;
    -- initializes the ORB with parameters of the command line
    -- and returns the ORB
 
-   function BOA_Init(Self : in Object_ptr ;
+   function BOA_Init(Self : in Object ;
                      Boa_Name : in Standard.String)
-                     return Corba.Boa.Object_Ptr ;
+                     return Corba.Boa.Object ;
    -- initializes the BOA with parameters of the command line
    -- and returns the BOA
-
-
-private
-
-   function Constructor return Object'Class;
-   pragma Import (CPP,Constructor,"__Q25CORBA3ORB");
-   pragma CPP_Constructor (Constructor);
-   -- wrapped around the C constructor of CORBA::ORB
-
 
 end Corba.Orb ;

@@ -55,7 +55,7 @@ main: C_files Ada_adb_files Ada_ads_files Sys_Dep
 # compilation of C++ files
 ##########################
 C_files : \
-Ada_exceptions.o Ada_Giop_c.o Ada_Giop_s.o \
+Ada_exceptions.o Ada_Corba_Orb.o Ada_Giop_c.o Ada_Giop_s.o \
 Ada_memBufferedStream.o Ada_netBufferedStream.o Ada_OmniObject.o \
 Ada_OmniRopeAndKey.o omniObject_C2Ada.o proxyObjectFactory_C2Ada.o \
 omniObject_C2Ada.o proxyObjectFactory_C2Ada.o  
@@ -64,6 +64,8 @@ omniObject_C2Ada.o proxyObjectFactory_C2Ada.o
 
 .cc.o:
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) $<
+
+Ada_Corba_Orb.o : Ada_Corba_Orb.hh Ada_Corba_Orb.cc
 
 Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc Ada_netBufferedStream.o
 
@@ -99,8 +101,9 @@ adabroker_debug.ali corba.ali corba-boa.ali corba-command_line.ali  \
 corba-exceptions.ali corba-object.ali corba-orb.ali  \
 corba-sequences-bounded.ali corba-sequences-unbounded.ali exceptions.ali \
 giop.ali giop_c.ali giop_s.ali iop.ali membufferedstream.ali \
-netbufferedstream.ali omni.ali omniobject.ali omniproxycalldesc.ali \
-omniproxycallwrapper.ali omniropeandkey.ali rope.ali sys_dep.ali
+netbufferedstream.ali omni.ali omniobject.ali \
+omniproxycalldesc.ali omniproxycallwrapper.ali omniropeandkey.ali \
+rope.ali sys_dep.ali
 
 .SUFFIXES: .adb .ali
 
