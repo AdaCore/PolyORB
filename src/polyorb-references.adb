@@ -38,7 +38,7 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Tags;
 
-with PolyORB.Filters.Interface;
+with PolyORB.Binding_Objects;
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Utils.Chained_Lists;
@@ -47,6 +47,7 @@ with PolyORB.Utils.Strings;
 package body PolyORB.References is
 
    use type PolyORB.Components.Component_Access;
+   use PolyORB.Binding_Objects;
    use PolyORB.Log;
    use PolyORB.Smart_Pointers;
    use PolyORB.Utils.Strings;
@@ -99,12 +100,6 @@ package body PolyORB.References is
    --  the object have been finalized (at which time the transport
    --  connection and protocol stack will be torn down, as a
    --  result of finalizing the binding object).
-
-   type Binding_Object is new Smart_Pointers.Entity with record
-      BO_Component : Components.Component_Access;
-   end record;
-
-   procedure Finalize (X : in out Binding_Object);
 
    ----------------------
    -- Create_Reference --
@@ -165,21 +160,6 @@ package body PolyORB.References is
       pragma Debug (O ("Finalize (Reference_Info): leave"));
    end Finalize;
 
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize
-     (X : in out Binding_Object)
-   is
-      M : Filters.Interface.Disconnect_Request;
-   begin
-      pragma Debug (O ("Finalizing binding object"));
-
-      Components.Emit_No_Reply (X.BO_Component, M);
-      X.BO_Component := null;
-   end Finalize;
-
    ----------------------
    -- Get_Binding_Info --
    ----------------------
@@ -191,20 +171,16 @@ package body PolyORB.References is
    is
       RI : constant Reference_Info_Access
         := Ref_Info_Of (R);
-      BOP : constant Entity_Ptr := Entity_Of (RI.Binding_Object_Ref);
+
    begin
-      if BOP = null then
+      if Is_Nil (RI.Binding_Object_Ref) then
          pragma Debug (O ("Get_Binding_Info: Reference is not bound"));
          BOC := null;
          Pro := null;
       else
-         declare
-            BO : Binding_Object renames Binding_Object (BOP.all);
-         begin
-            pragma Assert (BO.BO_Component /= null);
-            BOC := BO.BO_Component;
-            Pro := RI.Binding_Object_Profile;
-         end;
+         BOC := Get_Component (Binding_Object
+                               (Entity_Of (RI.Binding_Object_Ref).all));
+         Pro := RI.Binding_Object_Profile;
       end if;
    end Get_Binding_Info;
 
@@ -333,13 +309,12 @@ package body PolyORB.References is
    is
       RI : constant Reference_Info_Access := Ref_Info_Of (R);
       BOP : constant Entity_Ptr := new Binding_Object;
-      BO : Binding_Object renames Binding_Object (BOP.all);
 
    begin
       pragma Assert (Is_Nil (RI.Binding_Object_Ref));
       pragma Assert (BOC /= null);
 
-      BO.BO_Component := BOC;
+      Set_Component (Binding_Object (BOP.all), BOC);
       Set (RI.Binding_Object_Ref, BOP);
       RI.Binding_Object_Profile := Pro;
    end Set_Binding_Info;
