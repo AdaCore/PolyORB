@@ -509,7 +509,7 @@ package body PolyORB.Binding_Data.DIOP is
    is
       Preference_Offset : constant String
         := PolyORB.Parameters.Get_Conf
-        (Section => "corba",
+        (Section => "diop",
          Key     => "polyorb.binding_data.diop.preference",
          Default => "0");
 

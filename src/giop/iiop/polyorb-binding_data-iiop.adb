@@ -514,7 +514,7 @@ package body PolyORB.Binding_Data.IIOP is
    is
       Preference_Offset : constant String
         := PolyORB.Parameters.Get_Conf
-        (Section => "corba",
+        (Section => "iiop",
          Key     => "polyorb.binding_data.iiop.preference",
          Default => "0");
 

@@ -72,7 +72,7 @@ package body PolyORB.Protocols.GIOP.IIOP is
          GIOP_Default_Version,
          F,
          Default_Locate_Then_Request,
-         "giop",
+         "iiop",
          "polyorb.protocols.iiop.giop");
    end Initialize;
 

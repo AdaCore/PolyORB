@@ -612,7 +612,7 @@ package body PolyORB.Binding_Data.UIPMC is
    is
       Preference_Offset : constant String
         := PolyORB.Parameters.Get_Conf
-        (Section => "corba",
+        (Section => "miop",
          Key     => "polyorb.binding_data.uipmc.preference",
          Default => "0");
    begin
