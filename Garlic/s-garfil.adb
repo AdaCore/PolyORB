@@ -66,7 +66,7 @@ package body System.Garlic.Filters is
    --  this implementation doesn't yet incorporate protocols for
    --  negociating a change of the filter algorithm or even the filter
    --  parameters at run-time.)
-   
+
    type Filter_Code is (Query_Name,          --  <empty>
                         Tell_Name,           --  Name, Public Params
                         Set_Session_Params,  --  Public (Name, Private)
@@ -259,23 +259,28 @@ package body System.Garlic.Filters is
 
       procedure Enter
         (Partition_Name, Filter_Name : in String);
-        
+
       function Get
         (Partition_Name : String)
         return String_Access;
       --  If no entry for a partition with the given name is found,
-      --  we just return the default filter name defined above by
-      --  'No_Filter_Name'.
-      
+      --  we just return the default filter name 'Default_Filter_Name'.
+
       procedure Set_Default
         (Default_Name : in String);
-        
-      function Get_Default return String_Access;
+      --  Defines the default filter to use on channels.
+
+      procedure Set_Register
+        (Default_Name : in String);
+      --  Defines the registration filter.
+
+      function Get_Register return String_Access;
       --  Returns No_Filter_Name'Access if not set.
 
    private
-      Channels            : Partition_Filter_Array;
-      Default_Filter_Name : String_Access := No_Filter_Name'Access;
+      Channels             : Partition_Filter_Array;
+      Default_Filter_Name  : String_Access := No_Filter_Name'Access;
+      Register_Filter_Name : String_Access := No_Filter_Name'Access;
    end Partition_Filter_Table;
 
    ----------------------------
@@ -335,26 +340,35 @@ package body System.Garlic.Filters is
             Partition_Name & "' found, using default"));
          --  If no entry for this partition name was found, we requeue and
          --  wait until it is entered.
-         return No_Filter_Name'Access;
+         return Default_Filter_Name;
       end Get;
 
-      ----------------------------------------
-      -- Partition_Filter_Table.Set_Default --
-      ----------------------------------------
+      -----------------------------------------
+      -- Partition_Filter_Table.Set_Register --
+      -----------------------------------------
 
-      procedure Set_Default (Default_Name : in String) is
+      procedure Set_Register (Default_Name : in String) is
       begin
-         Default_Filter_Name := new String'(Default_Name);
-      end Set_Default;
+         Register_Filter_Name := new String'(Default_Name);
+      end Set_Register;
 
       ----------------------------------------
       -- Partition_Filter_Table.Get_Default --
       ----------------------------------------
 
-      function Get_Default return String_Access is
+      function Get_Register return String_Access is
       begin
-         return Default_Filter_Name;
-      end Get_Default;
+         return Register_Filter_Name;
+      end Get_Register;
+
+      -----------------------------------------
+      -- Partition_Filter_Table.Set_Register --
+      -----------------------------------------
+
+      procedure Set_Default (Default_Name : in String) is
+      begin
+         Default_Filter_Name := new String'(Default_Name);
+      end Set_Default;
 
    end Partition_Filter_Table;
 
@@ -893,12 +907,12 @@ package body System.Garlic.Filters is
    --  The following table tells us for which opcodes we have to filter.
 
    type Do_Filter_Table is array (Opcode) of Boolean;
-   
+
    Do_Filter : Do_Filter_Table :=
      (Set_Location => False,
       Filtering    => False,
       others       => True);
-      
+
    --  The two exported routines for filtering data.
 
    ---------------------
@@ -910,9 +924,9 @@ package body System.Garlic.Filters is
        Operation    : in     System.Garlic.Heart.Opcode;
        Params       : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array is
-      
+
       Told : Boolean;
-      
+
    begin
       pragma Debug (D (D_Debug, "Generic filter outgoing"));
       if Do_Filter (Operation) then
@@ -946,9 +960,9 @@ package body System.Garlic.Filters is
        Operation      : in System.Garlic.Heart.Opcode;
        Params         : in Ada.Streams.Stream_Element_Array)
       return Ada.Streams.Stream_Element_Array is
-      
+
       use type Ada.Streams.Stream_Element_Offset;
-      
+
    begin
       pragma Debug (D (D_Debug, "Generic filter incoming"));
       if Do_Filter (Operation) then
@@ -1002,7 +1016,7 @@ package body System.Garlic.Filters is
          null;
       end if;
    end Dbg;
-  
+
    --  Standard filtering routines for outgoing and incoming data.
 
    function Filter_Data_Out
@@ -1011,7 +1025,7 @@ package body System.Garlic.Filters is
        Data      : access System.RPC.Params_Stream_Type;
        Msg       : in     String := "")
       return Ada.Streams.Stream_Element_Array;
-      
+
    function Filter_Data_Out
       (Method    : in     Filter_Access;
        Params    : in     Filter_Params_Access;
@@ -1030,14 +1044,14 @@ package body System.Garlic.Filters is
          return Filtered_Data;
       end;
    end Filter_Data_Out;
-   
+
    function Filter_Data_In
       (Method    : in Filter_Access;
        Params    : in Filter_Params_Access;
        Data      : in Ada.Streams.Stream_Element_Array;
        Msg       : in String := "")
       return Ada.Streams.Stream_Element_Array;
-      
+
    function Filter_Data_In
       (Method    : in Filter_Access;
        Params    : in Filter_Params_Access;
@@ -1058,7 +1072,7 @@ package body System.Garlic.Filters is
          return Filtered_Data;
       end;
    end Filter_Data_In;
-   
+
    ---------------------
    -- Filter_Outgoing --
    ---------------------
@@ -1184,7 +1198,7 @@ package body System.Garlic.Filters is
          (Default_Filter, Public_Params, Private_Params);
       if Default_Filter = null then
          --  Get the default filter's name
-         Default_Name := Partition_Filter_Table.Get_Default;
+         Default_Name := Partition_Filter_Table.Get_Register;
          --  Get the default filter object, waiting until it is registered.
          Filter_Methods_Table.Wait_For_Filter
            (Default_Name.all, Default_Filter);
@@ -1402,13 +1416,23 @@ package body System.Garlic.Filters is
       Filter_Methods_Table.Register_Filter (Filter);
    end Register_Filter;
 
+   -----------------------------
+   -- Set_Registration_Filter --
+   -----------------------------
+
+   procedure Set_Registration_Filter (Filter : in String) is
+   begin
+      pragma Debug (D (D_Debug, "Entering registration filter name"));
+      Partition_Filter_Table.Set_Register (Filter);
+   end Set_Registration_Filter;
+
    ------------------------
    -- Set_Default_Filter --
    ------------------------
 
    procedure Set_Default_Filter (Filter : in String) is
    begin
-      pragma Debug (D (D_Debug, "Entering default filter name"));
+      pragma Debug (D (D_Debug, "Entering default filter for partition"));
       Partition_Filter_Table.Set_Default (Filter);
    end Set_Default_Filter;
 

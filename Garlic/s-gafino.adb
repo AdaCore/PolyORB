@@ -76,7 +76,7 @@ package body System.Garlic.Filters.None is
      (Filter : in No_Filter;
       Params : in Filter_Params_Access;
       Stream : in Ada.Streams.Stream_Element_Array)
-      return Stream_Element_Array is
+      return Ada.Streams.Stream_Element_Array is
    begin
       return Stream;
    end Filter_Incoming;

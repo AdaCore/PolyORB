@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$                              --
 --                                                                          --
 --         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -56,6 +56,10 @@ package System.Garlic.Filters is
       return Ada.Streams.Stream_Element_Array;
    --  The two functions above are called by Garlic.Heart for all
    --  communications.
+   --     NOTE: I would have liked very much to have a symmetric interface
+   --  with 'Outgoing' taking a stream and returning an array while 'Incoming'
+   --  would take an array and return a stream. Unfortunately, this is not
+   --  possible because Ada.Streams.Root_Stream_Type is tagged limited.
 
    procedure Initialize;
    --  Elaboration code.
@@ -65,12 +69,22 @@ package System.Garlic.Filters is
    --  certain partition.
 
    procedure Set_Default_Filter (Filter : in String);
-   --  Sets the default (i.e. registration) filter.
+   --  Sets the default filter. This filter will be used on links for
+   --  which no filter is defined using 'Set_Channel_Filter'. If this
+   --  procedure is not called, no filtering will be done by default.
+
+   procedure Set_Registration_Filter (Filter : in String);
+   --  Sets the registration filter. This filter is used to send channel-
+   --  specific filter-internal data to the partition on the other end of
+   --  the channel the first time a filter is used on the channel.
 
    procedure Set_Partition_Name (Name : in String);
    --  Tells this package the name of this partition.
 
-   Filter_Already_Registered,
+   Filter_Already_Registered : exception;
+   --  Raised when there are several filters trying to register with the
+   --  same name.
+
    Too_Many_Filters,
    Not_A_Public_Params_Algorithm : exception;
    --  Raised if we try to use a filter that needs to exchange its
