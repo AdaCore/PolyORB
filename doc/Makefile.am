@@ -1,4 +1,4 @@
-info_TEXINFOS = polyorb_ug.texi
+info_TEXINFOS = polyorb_ug.texi polyorb_dg.texi
 man_MANS = ab_names.1 idlac.1 polyorb-config.1 polyorb.7
 
 SUFFIXES = .ads .texi
@@ -42,6 +42,17 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex
 	rm -f polyorb_ug_ref.bbl
 	tex '\nonstopmode \input polyorb_ug_ref'
 
+
+polyorb_dg.html: ${srcdir}/polyorb_dg.texi
+	-${TEXI2HTML} -menu -split_chapter -number $<
+
+polyorb_dg.pdf: ${srcdir}/polyorb_dg.texi
+	-${TEXI2DVI} --pdf $<
+
+polyorb_dg.txt: ${srcdir}/polyorb_dg.texi
+	-${MAKEINFO} -o $@ --number-sections $<
+
+
 ADA_KW    = use package is in out exception function with type constant \
 		private of return range procedure begin end array record \
 		subtype generic limited access all
@@ -61,13 +72,15 @@ ada.sed:
 		echo "s/^$$kw$$/@b{$$kw}/g" >> ada.sed; \
 	done
 
-all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt
+all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
+	polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
 
 clean-local:
 	-@${RM} polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info polyorb_ug*.html 
 	-@${RM} polyorb_ug_ref.aux polyorb_ug_ref.bbl polyorb_ug_ref.blg 
 	-@${RM} polyorb_ug_ref.dvi polyorb_ug_ref.log polyorb_ug_ref.texi
 	-@${RM} ${polyorb_ug_TEXINFOS}
+	-@${RM} polyorb_dg.pdf polyorb_dg.txt polyorb_dg.info polyorb_dg.html
 
 install-data-local:
 	$(INSTALL) -d $(prefix)/doc/polyorb
