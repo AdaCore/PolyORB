@@ -3,6 +3,11 @@ with Ada.Text_IO;
 package body Report is
 
    Max : constant Natural := 60;
+
+   ------------
+   -- Output --
+   ------------
+
    procedure Output
      (Message : in String;
       Result  : in Boolean)
@@ -21,5 +26,15 @@ package body Report is
          Ada.Text_IO.Put_Line (": FAILED");
       end if;
    end Output;
+
+   ----------------
+   -- End_Report --
+   ----------------
+
+   procedure End_Report is
+   begin
+      Output ("END TESTS", True);
+   end End_Report;
+
 end Report;
 
