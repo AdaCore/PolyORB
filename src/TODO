@@ -8,13 +8,6 @@ Items still requiring attention
 
 * Fix memory leaks.
 
-* Correct handling of arg modes in SOAP (in/inout/out).
-  The SOAP engine sees incoming argument and marks them as IN.
-  If the object expects some args to be inout or out, make
-  sure that before calling the object, the parameters are present
-  and marked with proper modes. Then, the SOAP engine knows to
-  send out any INOUT or OUT argument with the reply.
-  
 * Factor out common code between different versions of
   Droopi.Binding_Data.*
 
@@ -115,3 +108,10 @@ Items processed
 * When a connection is closed, release all associated resources.
 
 * Make compliant PortableServer tree for CORBA personality.
+
+* Correct handling of arg modes in SOAP (in/inout/out).
+  The SOAP engine sees incoming argument and marks them as IN.
+  If the object expects some args to be inout or out, make
+  sure that before calling the object, the parameters are present
+  and marked with proper modes. Then, the SOAP engine knows to
+  send out any INOUT or OUT argument with the reply.

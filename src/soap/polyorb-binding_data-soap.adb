@@ -150,7 +150,7 @@ package body PolyORB.Binding_Data.SOAP is
      (Profile : SOAP_Profile_Type)
      return Profile_Preference is
    begin
-      return Preference_Default + 1;
+      return Preference_Default;
    end Get_Profile_Preference;
 
    function Get_URI_Path
