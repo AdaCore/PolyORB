@@ -42,16 +42,18 @@
 --  $Id$
 
 with PolyORB.Utils.Dynamic_Tables;
+with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.Strings;
 
 generic
    type Item is private;
 
 package PolyORB.Utils.HTables.Perfect is
+
    pragma Preelaborate;
 
-   use type PolyORB.Utils.Strings.String_Ptr;
-   subtype String_Access is PolyORB.Utils.Strings.String_Ptr;
+   use PolyORB.Utils.Strings;
+   use PolyORB.Utils.HFunctions.Mul;
 
    No_Key : exception renames PolyORB.Utils.HTables.No_Key;
 
@@ -64,15 +66,14 @@ package PolyORB.Utils.HTables.Perfect is
       T : Table_Access;
    end record;
 
-   Default_Prime : constant := 1777771;
    Default_Max   : constant := 10;
 
    procedure Initialize
      (T      : out Table_Instance;
-      Prime  : Natural := Default_Prime;
-      Max    : Natural := Default_Max);
+      HParam :     Hash_Mul_Parameters := Default_Hash_Mul_Parameters;
+      Max    :     Natural := Default_Max);
    --  Initialize the hash table.
-   --  'Prime' is a prime number used by hash functions.
+   --  'HParam' are the hash function parameters,
    --  'Max' is the max number of elements to store.
 
    procedure Finalize
@@ -102,8 +103,9 @@ package PolyORB.Utils.HTables.Perfect is
    --  'Key' is the string to hash and 'Value' its associated Item.
    --  If 'Key' already exists, nothing is done.
 
-   --  Note : this procedure reorganizes, if necessary, the table or
-   --  the sub_tables, leading to amortized O (1) complexity only.
+   --  Note : this procedure may reorganize or extend, when necessary,
+   --  the table or the sub_tables, leading to amortized O (1)
+   --  complexity only.
 
    procedure Delete
      (T   : Table_Instance;
@@ -129,7 +131,7 @@ private
    --  'Element' type.
 
    type Element is record
-      Key        : String_Access;  --  Key of the element to hash.
+      Key        : String_Ptr;     --  Key of the element to hash.
       Used       : Boolean;        --  Is the slot really used ?
       ST_Index   : Natural;        --  Index in the Sub Table.
       ST_Offset  : Natural;        --  Offset in the Sub Table.
@@ -147,12 +149,12 @@ private
    --  'Subtable' type.
 
    type Subtable is record
-      First  : Natural;  --  'First subtable index.
-      Last   : Natural;  --  'Last subtable index.
-      Count  : Natural;  --  Number of elements used.
-      High   : Natural;  --  Highest count value before reorganization.
-      Max    : Natural;  --  Subtable maximum size.
-      K      : Natural;  --  K-parameter of the subtable.
+      First  : Natural;             --  'First subtable index.
+      Last   : Natural;             --  'Last subtable index.
+      Count  : Natural;             --  Number of keys stored.
+      High   : Natural;             --  Highest count before reorganization.
+      Max    : Natural;             --  Subtable maximum size.
+      HParam : Hash_Mul_Parameters; --  Hash parameters.
    end record;
 
    package Dynamic_Subtable_Array is new
@@ -164,11 +166,11 @@ private
    --  'Table_Info' type.
 
    type Table_Info is record
-      Prime        : Natural;  --  Used by the algorithm, user defined.
-      Count        : Natural;  --  Number of Key stored in the table.
-      High         : Natural;  --  When Count = High, the table is resized.
-      N_Subtables  : Natural;  --  Number of subtables.
-      K            : Natural;  --  K-parameter of the subtable.
+      Count        : Natural;             --  Number of keys stored in all
+                                          --  Subtables.
+      High         : Natural;             --  Highest Count before resizing.
+      N_Subtables  : Natural;             --  Number of subtables.
+      HParam       : Hash_Mul_Parameters; --  Hash parameters.
    end record;
 
    --  The Hash table index.
@@ -178,10 +180,8 @@ private
       Elements  : Element_Array;   --  Placeholder for elements.
       Subtables : Subtable_Array;  --  Sub tables information.
    end record;
-   --  Each structure of the array contains the parameters for the sub-table
-   --  hash function except the prime number stored in Info.Prime. In addition
-   --  it contains the limit of each sub-table in the table Elements.
-   --  We can note that :
+
+   --  Per construction, we have:
    --          ..< Subtables.all (i).First   < Subtables.all (i).Last   <
    --              Subtables.all (i+1).First < Subtables.all (i+1).Last <..
 
