@@ -1,3 +1,8 @@
+1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_stubs.adb: Add System.Garlic.Locking to the list of included
+	units.
+
 1998-07-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.ads, xe_utils.adb: Improve GNAT_Style format procedure
@@ -37,6 +42,10 @@
  	termination at the end of the main subprogram of the main
  	partition.
 
+1998-07-21  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_stubs.adb: Style fix.
+
 1998-07-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Move Sam's 1998-06-16 fix to the right
@@ -59,6 +68,8 @@
 
 	* xe_stubs.adb: Choose the right termination package depending on
 	the context.
+	Write a with clause for System.Garlic.Types to get the termination
+	types.
 
 1998-06-16  Laurent Pautet  <pautet@dorine.enst.fr>
 
@@ -66,11 +77,6 @@
 	not already defined and not main partition.
 
 	* xe_back.adb, xe_back.ads: Add new procedure Set_Termination.
-
-1998-06-16  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* xe_stubs.adb: Write a with clause for System.Garlic.Types to get 
-	the termination types.
 
 1998-06-12  Laurent Pautet <pautet@dorine.enst.fr>
 
