@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.46 $
+--                            $Revision: 1.47 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -64,6 +64,15 @@ package CORBA is
    type    Octet          is new Interfaces.Unsigned_8;
    type    String         is new Ada.Strings.Unbounded.Unbounded_String;
 
+   function To_CORBA_String
+     (S : in Standard.String)
+      return CORBA.String;
+   --  Convert a standard string into the correponding corba string
+
+   function To_Standard_String
+     (S : in CORBA.String)
+      return Standard.String;
+   --  Convert a CORBA string into the correponding standard string
 
    ----------------
    -- Exceptions --
@@ -78,69 +87,98 @@ package CORBA is
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out IDL_Exception_Members) is abstract;
-   --  This method return the member corresponding to an exception
-   --  occurence This methos must be redefined for each new member
-   --  type. That's why it is declared abstract.
-
-   --  Free method associated to the type Idl_Exception_Members_Ptr
+   --  Return the member corresponding to an exception occurence.
 
    type Completion_Status is (Completed_Yes, Completed_No, Completed_Maybe);
-   --  Type used for characterize the state of an exception It is defined
-   --  by the CORBA specification.
-
    type Exception_Type is (No_Exception, System_Exception, User_Exception);
-   --  Type used for characterize exceptions.  It is defined by the CORBA
-   --  specification.
 
-   type Ex_Body is new CORBA.IDL_Exception_Members with
+   type System_Exception_Members is new CORBA.IDL_Exception_Members with
       record
          Minor     : CORBA.Unsigned_Long;
          Completed : Completion_Status;
       end record;
-   --  Member type for System exceptions.  It is defined by the CORBA
-   --  specification
+   --  Member type for System exceptions.
 
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
-      To   : out Ex_Body);
-   --  This method return the member corresponding to a system exception
-   --  occurence.
+      To   : out System_Exception_Members);
+   --  Return the member corresponding to a system exception occurence.
 
-   Unknown       : exception;          --  the unknown exception
-   Bad_Param     : exception;          --  an invalid parameter was passed
-   No_Memory     : exception;          --  dynamic memory allocation failure
-   Imp_Limit     : exception;          --  violated implementation limit
-   Comm_Failure  : exception;          --  communication failure
-   Inv_Objref    : exception;          --  invalid object reference
-   No_Permission : exception;          --  no permission for attempted op.
-   Internal      : exception;          --  ORB internal error
-   Marshal       : exception;          --  error marshalling param/result
+   Unknown         : exception;        --  the unknown exception
+   Bad_Param       : exception;        --  an invalid parameter was passed
+   No_Memory       : exception;        --  dynamic memory allocation failure
+   Imp_Limit       : exception;        --  violated implementation limit
+   Comm_Failure    : exception;        --  communication failure
+   Inv_Objref      : exception;        --  invalid object reference
+   No_Permission   : exception;        --  no permission for attempted op.
+   Internal        : exception;        --  ORB internal error
+   Marshal         : exception;        --  error marshalling param/result
    Initialization_Failure : exception; --  ORB initialization failure
-   No_Implement  : exception;          --  operation implementation unavailable
-   Bad_Typecode  : exception;          --  bad typecode
-   Bad_Operation : exception;          --  invalid operation
-   No_Resources  : exception;          --  insufficient resources for req.
-   No_Response   : exception;          --  response to request not available
-   Persist_Store : exception;          --  persistent storage failure
-   Bad_Inv_Order : exception;          --  routine invocations out of order
-   Transient     : exception;          --  transient failure - reissue request
-   Free_Mem      : exception;          --  cannot free memory
-   Inv_Ident     : exception;          --  invalid identifier syntax
-   Inv_Flag      : exception;          --  invalid flag was specified
-   Intf_Repos    : exception;          --  error accessing interface repository
-   Bad_Context   : exception;          --  error processing context object
-   Obj_Adapter   : exception;          --  failure detected by object adapter
+   No_Implement    : exception;        --  operation implementation unavailable
+   Bad_Typecode    : exception;        --  bad typecode
+   Bad_Operation   : exception;        --  invalid operation
+   No_Resources    : exception;        --  insufficient resources for req.
+   No_Response     : exception;        --  response to request not available
+   Persist_Store   : exception;        --  persistent storage failure
+   Bad_Inv_Order   : exception;        --  routine invocations out of order
+   Transient       : exception;        --  transient failure - reissue request
+   Free_Mem        : exception;        --  cannot free memory
+   Inv_Ident       : exception;        --  invalid identifier syntax
+   Inv_Flag        : exception;        --  invalid flag was specified
+   Intf_Repos      : exception;        --  error accessing interface repository
+   Bad_Context     : exception;        --  error processing context object
+   Obj_Adapter     : exception;        --  failure detected by object adapter
    Data_Conversion : exception;        --  data conversion error
 
-   function To_CORBA_String
-     (S : in Standard.String)
-      return CORBA.String;
-   --  Transforms a standard string into the correponding corba string
-
-   function To_Standard_String
-     (S : in CORBA.String)
-      return Standard.String;
-   --  Transforms a CORBA string into the correponding standard string
+   type Unknown_Members is
+    new System_Exception_Members with null record;
+   type Bad_Param_Members is
+    new System_Exception_Members with null record;
+   type No_Memory_Members is
+    new System_Exception_Members with null record;
+   type Imp_Limit_Members is
+    new System_Exception_Members with null record;
+   type Comm_Failure_Members is
+    new System_Exception_Members with null record;
+   type Inv_Objref_Members is
+    new System_Exception_Members with null record;
+   type No_Permission_Members is
+    new System_Exception_Members with null record;
+   type Internal_Members is
+    new System_Exception_Members with null record;
+   type Marshal_Members is
+    new System_Exception_Members with null record;
+   type Initialization_Failure_Members is
+    new System_Exception_Members with null record;
+   type No_Implement_Members is
+    new System_Exception_Members with null record;
+   type Bad_Typecode_Members is
+    new System_Exception_Members with null record;
+   type Bad_Operation_Members is
+    new System_Exception_Members with null record;
+   type No_Resources_Members is
+    new System_Exception_Members with null record;
+   type No_Response_Members is
+    new System_Exception_Members with null record;
+   type Persist_Store_Members is
+    new System_Exception_Members with null record;
+   type Bad_Inv_Order_Members is
+    new System_Exception_Members with null record;
+   type Transient_Members is
+    new System_Exception_Members with null record;
+   type Free_Mem_Members is
+    new System_Exception_Members with null record;
+   type Inv_Ident_Members is
+    new System_Exception_Members with null record;
+   type Inv_Flag_Members is new System_Exception_Members with null record;
+   type Intf_Repos_Members is
+    new System_Exception_Members with null record;
+   type Bad_Context_Members is
+    new System_Exception_Members with null record;
+   type Obj_Adapter_Members is
+    new System_Exception_Members with null record;
+   type Data_Conversion_Members is
+    new System_Exception_Members with null record;
 
    ---------------
    -- TypeCodes --
@@ -227,9 +265,6 @@ package CORBA is
       --  the index'th parameter. Parameters are indexed
       --  from 0 to (Param_Count - 1)
 
-
-
-
    private
       --  implementation defined
       Out_Of_Bounds_Index : exception;
@@ -307,60 +342,26 @@ package CORBA is
    type Status is new CORBA.Unsigned_Long;
 
 
-   ---------------
-   -- AdaBroker --
-   ---------------
+   ------------------------
+   -- AdaBroker specific --
+   ------------------------
 
-   --  This should be moved somewhere else.
+   AdaBroker_Fatal_Error : exception; --  Error in the AdaBroker runtime
+   Not_Implemented_Yet   : exception; --  Function was not implemented yet
+   Not_Initialized_Yet   : exception; --  C object used before initialized
+   C_Out_Of_Range        : exception; --  Cannot convert C val into Ada val
+   Wrong_Union_Case      : exception; --  Call an unchecked case in an union
 
-   type Unknown_Members         is new Ex_Body with null record;
-   type Bad_Param_Members       is new Ex_Body with null record;
-   type No_Memory_Members       is new Ex_Body with null record;
-   type Imp_Limit_Members       is new Ex_Body with null record;
-   type Comm_Failure_Members    is new Ex_Body with null record;
-   type Inv_Objref_Members      is new Ex_Body with null record;
-   type No_Permission_Members   is new Ex_Body with null record;
-   type Internal_Members        is new Ex_Body with null record;
-   type Marshal_Members         is new Ex_Body with null record;
-   type Initialization_Failure_Members is new Ex_Body with null record;
-   type No_Implement_Members    is new Ex_Body with null record;
-   type Bad_Typecode_Members    is new Ex_Body with null record;
-   type Bad_Operation_Members   is new Ex_Body with null record;
-   type No_Resources_Members    is new Ex_Body with null record;
-   type No_Response_Members     is new Ex_Body with null record;
-   type Persist_Store_Members   is new Ex_Body with null record;
-   type Bad_Inv_Order_Members   is new Ex_Body with null record;
-   type Transient_Members       is new Ex_Body with null record;
-   type Free_Mem_Members        is new Ex_Body with null record;
-   type Inv_Ident_Members       is new Ex_Body with null record;
-   type Inv_Flag_Members        is new Ex_Body with null record;
-   type Intf_Repos_Members      is new Ex_Body with null record;
-   type Bad_Context_Members     is new Ex_Body with null record;
-   type Obj_Adapter_Members     is new Ex_Body with null record;
-   type Data_Conversion_Members is new Ex_Body with null record;
-
-
-   procedure Raise_CORBA_Exception
-     (Excp      : in Ada.Exceptions.Exception_Id;
-      Excp_Memb : in IDL_Exception_Members'Class);
-   --  Raises the corresponding exception corba exception and stores its
-   --  member so that it can be retrieved with Get_Members
-
-
-   AdaBroker_Fatal_Error         : exception;
-   --  Error in the AdaBroker runtime
-
-   AdaBroker_Not_Implemented_Yet : exception;
-   --  Function was not implemented yet
-
-   No_Initialization_Error       : exception;
-   --  A C object was used before being initialised via an Init function
-
-   C_Out_Of_Range                : exception;
-   --  A C Value was to be converted into an Ada Value but was out of range
-
-   Dummy_User                    : exception;
-   --  The user tried to call an unchecked case in an union
+   type AdaBroker_Fatal_Error_Members is
+    new System_Exception_Members with null record;
+   type Not_Implemented_Yet_Members is
+    new System_Exception_Members with null record;
+   type Not_Initialized_Error_Members is
+    new System_Exception_Members with null record;
+   type C_Out_Of_Range_Members is
+    new System_Exception_Members with null record;
+   type Union_Case_Error_Members is
+    new System_Exception_Members with null record;
 
    -----------------------
    -- omniORB2 specific --
@@ -373,14 +374,19 @@ package CORBA is
    Invalid_Transaction    : exception;
    Wrong_Transaction      : exception;
 
-   type Object_Not_Exist_Members       is new Ex_Body with null record;
-   type Transaction_Required_Members   is new Ex_Body with null record;
-   type Transaction_Rolledback_Members is new Ex_Body with null record;
-   type Invalid_Transaction_Members    is new Ex_Body with null record;
-   type Wrong_Transaction_Members      is new Ex_Body with null record;
+   type Object_Not_Exist_Members is
+    new System_Exception_Members with null record;
+   type Transaction_Required_Members is
+    new System_Exception_Members with null record;
+   type Transaction_Rolledback_Members is
+    new System_Exception_Members with null record;
+   type Invalid_Transaction_Members is
+    new System_Exception_Members with null record;
+   type Wrong_Transaction_Members is
+    new System_Exception_Members with null record;
 
 private
-   --  implementation defined
+
    type Any is
      record
         The_Value : System.Address;
@@ -442,6 +448,5 @@ private
    function To_CORBA_String is
      new Ada.Unchecked_Conversion
      (Address_To_CORBA_String.Object_Pointer, CORBA_String_Ptr);
-
 
 end CORBA;
