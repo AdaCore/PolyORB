@@ -255,6 +255,7 @@ Garlic/s-stratt.adb
 Garlic/split.adb
 Garlic/s-rpstio.adb
 Garlic/s-rpstio.ads
+Garlic/stamp-h.in
 Garlic/zlib/ChangeLog
 Garlic/zlib/INDEX
 Garlic/zlib/Make_vms.com
