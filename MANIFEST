@@ -29,6 +29,10 @@ adasockets/src/split.adb
 adasockets/src/stamp-h.in
 configure
 configure.in
+cos/Makefile.am
+cos/Makefile.in
+cos/naming/Makefile.am
+cos/naming/Makefile.in
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
