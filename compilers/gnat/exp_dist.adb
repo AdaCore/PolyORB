@@ -5041,7 +5041,6 @@ package body Exp_Dist is
       RCI_Cache         : Entity_Id;
       Calling_Stubs     : Node_Id;
       E_Calling_Stubs   : Entity_Id;
-      Subp_Id           : Node_Id;
 
    begin
       E_Calling_Stubs := RCI_Calling_Stubs_Table.Get (Called_Subprogram);
@@ -5084,12 +5083,9 @@ package body Exp_Dist is
             RCI_Locator := Parent (RCI_Cache);
          end if;
 
-         Subp_Id := Make_String_Literal (Loc,
-           Get_Subprogram_Id (Called_Subprogram));
-
          Calling_Stubs := Build_Subprogram_Calling_Stubs
            (Vis_Decl               => Parent (Parent (Called_Subprogram)),
-            Subp_Id                => Subp_Id,
+            Subp_Id                => Build_Subprogram_Id (Called_Subprogram),
             Asynchronous           => Nkind (N) = N_Procedure_Call_Statement
                                         and then
                                       Is_Asynchronous (Called_Subprogram),
@@ -5151,10 +5147,7 @@ package body Exp_Dist is
    -- Get_Subprogram_Id --
    -----------------------
 
-   function Get_Subprogram_Id
-     (Def : Entity_Id)
-      return String_Id
-   is
+   function Get_Subprogram_Id (Def : Entity_Id) return String_Id is
       Result : String_Id :=
         Subprogram_Identifier_Table.Get (Def);
 
