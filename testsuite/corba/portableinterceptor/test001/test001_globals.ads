@@ -56,13 +56,16 @@ package Test001_Globals is
    subtype Server_Interception_Point is Interception_Point
       range Receive_Request_Service_Contexts .. Send_Other;
 
-   Test_Object : Test001_Interface.Ref;
-
+   Test_Object   : Test001_Interface.Ref;
    Test_ObjectId : PortableInterceptor.ObjectId;
 
-   Raise_Test_Exception : Boolean := False;
+   Test_Forward_Object : Test001_Interface.Ref;
 
-   Enable_Test_Point : array (Interception_Point) of Boolean
+   --  Test behavior switches
+
+   Raise_Test_Exception : Boolean := False;
+   Forward_Location     : Boolean := False;
+   Enable_Test_Point    : array (Interception_Point) of Boolean
      := (others => False);
 
    function Image (Value : in Interception_Point) return String;

@@ -90,9 +90,23 @@ begin
            Test001_Interface.Helper.To_Ref
             (PortableServer.POA.Id_To_Reference (Root_POA, Id));
       end;
+
+      declare
+         Id : constant PortableServer.ObjectId
+           := PortableServer.POA.Activate_Object
+               (Root_POA, new Test001_Interface.Impl.Object);
+      begin
+         Test_Forward_Object :=
+           Test001_Interface.Helper.To_Ref
+            (PortableServer.POA.Id_To_Reference (Root_POA, Id));
+      end;
    end;
 
    PolyORB.Utils.Report.New_Test ("Request Information");
+
+   --  Scenario 1: normal flow
+   --  Client.Send_Request => Server.Receive_Request_Service_Contexts =>
+   --  Server.Receive_Request => Server.Send_Reply => Client.Receive_Reply
 
    Enable_Test_Point (Send_Request) := True;
    Enable_Test_Point (Receive_Request_Service_Contexts) := True;
@@ -105,6 +119,9 @@ begin
    Enable_Test_Point (Receive_Request) := False;
    Enable_Test_Point (Send_Reply) := False;
    Enable_Test_Point (Receive_Reply) := False;
+
+   --  Scenario 2: exception flow
+   --  Server.Send_Exception => Client.Receive_Exception
 
    Enable_Test_Point (Send_Exception) := True;
    Enable_Test_Point (Receive_Exception) := True;
@@ -120,6 +137,16 @@ begin
    Enable_Test_Point (Send_Exception) := False;
    Enable_Test_Point (Receive_Exception) := False;
    Raise_Test_Exception := False;
+
+   --  Scenario 3: location forwarding flow
+   --  Server.Send_Other => Client.Receive_Other
+
+   Enable_Test_Point (Send_Other) := True;
+   Enable_Test_Point (Receive_Other) := True;
+   Forward_Location := True;
+   Aux := Test001_Interface.Func (Test_Object, 10);
+   Enable_Test_Point (Send_Other) := False;
+   Enable_Test_Point (Receive_Other) := False;
 
    PolyORB.Utils.Report.End_Report;
 

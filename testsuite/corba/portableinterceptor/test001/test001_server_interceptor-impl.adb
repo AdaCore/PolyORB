@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
+with CORBA.Object;
+with PortableInterceptor.Helper;
 with PortableInterceptor.Interceptor;
 
 with Test001_Globals;
@@ -86,6 +87,16 @@ package body Test001_Server_Interceptor.Impl is
 
    begin
       Test_Interception_Point (Receive_Request, RI);
+
+      if Forward_Location then
+         Forward_Location := False;
+
+         PortableInterceptor.Helper.Raise_ForwardRequest_From_Any
+           (CORBA.Internals.To_PolyORB_Any
+            (PortableInterceptor.Helper.To_Any
+             (PortableInterceptor.ForwardRequest_Members'
+              (Forward => CORBA.Object.Ref (Test_Forward_Object)))));
+      end if;
    end Receive_Request;
 
    --------------------------------------
