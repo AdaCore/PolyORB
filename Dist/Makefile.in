@@ -298,9 +298,9 @@ xe_defs.adb: Makefile
 	   echo "with XE_Reg;" >>xe_defs.adb;\
 	fi
 	@echo "package body XE_Defs is" >>xe_defs.adb;
-	if [ "$(PSNAME)" != "Windows NT" ]; then \
-	   @echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb; \
-	   @echo "      := \"$(GARLIC)\";" >>xe_defs.adb; \
+	@if [ "$(PSNAME)" != "Windows NT" ]; then \
+	   echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb; \
+	   echo "      := \"$(GARLIC)\";" >>xe_defs.adb; \
 	fi;
 	@for i in GARLIC; do \
 	  echo "   function Get_"$$i"_Dir return String_Access is"; \
