@@ -4,4 +4,4 @@ SUBDIRS = compilers src
 CLEANFILES = config-stamp
 
 depend:
-	cd src; ${MAKE} depend
+	cd src && ${MAKE} depend
