@@ -468,7 +468,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
     with.add("Ada.Proxies");
     with.add("Ada.Object");
   */
-  body += "package body " + get_ada_full_name() + ".Impl is \n";
+  body += "package body " + get_ada_full_name() + ".Impl is \n\n\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {

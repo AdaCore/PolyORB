@@ -233,7 +233,7 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
   }
   if (is_function())
     {
-      body += "   function" + get_ada_local_name() + "(Self : access Object";
+      body += "   function " + get_ada_local_name() + "(Self : access Object";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
