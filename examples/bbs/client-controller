@@ -6,14 +6,12 @@
 
 ab_names=/infres/shalmaneser/quinot/projects/droopi/cos/naming/ab_names
 serverp=/infres/shalmaneser/quinot/projects/droopi/examples/bbs/serverp
+serverp_conf=/infres/shalmaneser/quinot/projects/droopi/examples/bbs/serverp.conf
 evolutedp=/infres/ir10/astre/quinot/polyorb-sparc/build/examples/bbs/evolutedp
 evolutedp_conf=/infres/ir10/astre/quinot/polyorb-sparc/build/examples/bbs/evolutedp.conf
 output=/infres/shalmaneser/quinot/polyorb-output
 
-export POLYORB_CONF=
-
 Revolutedp_pids=""
-clinumber=0
 
 hosts=valjean:cyrano:esmeralda2:lantier:donjuan:blizzard:candide:gavroche:aurelien:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:
 #nadja:goriot:esmeralda:javert:fracasse:
@@ -44,7 +42,7 @@ if $kill; then
   for h in $hosts; do
     if [ "$h" != "" ]; then
       echo $h
-      ssh $h "/usr/ucb/ps axw|grep 'quinot.*evolutedp' | grep -v grep \
+      rsh $h "/usr/ucb/ps axw|grep 'quinot.*evolutedp' | grep -v grep \
          | awk '{print \$1}' | xargs kill -9"
     fi
   done
@@ -55,21 +53,31 @@ now=`date +"%F_%T" | tr -d :`
 output=$output/$now
 mkdir $output
 
-echo "size=$size" > $output/00PARAMETERS
+echo "output=$output" > $output/00PARAMETERS
+echo "size=$size" >> $output/00PARAMETERS
 echo "count=$count" >> $output/00PARAMETERS
 echo "nmax=$nmax" >> $output/00PARAMETERS
 
+echo "000 init"
+sed "s/^/    /" $output/00PARAMETERS
+cp $ab_names_conf $serverp_conf $evolutedp_conf $output 2> /dev/null || true
 trap 'kill $ab_names_pid $serverp_pid $Revoluted_pids' 0 2 15
 
-$ab_names > $output/ab_names.out &
+echo "001 Starting name server..."
+
+POLYORB_CONF=$ab_names_conf $ab_names > $output/ab_names.out &
 ab_names_pid=$!
 sleep 1
+sed "s/^/    /" $output/ab_names.out
 . $output/ab_names.out
 export POLYORB_CORBA_NAMING_IOR
 
-$serverp > $output/serverp.out 2>&1 &
+echo "002 Starting server partition..."
+POLYORB_CONF=$serverp_conf $serverp > $output/serverp.out 2>&1 &
 serverp_pid=$!
+sleep 1
 
+clinumber=0
 while [ "$clinumber" -lt "$nmax" ]; do
   eval `echo $hosts | sed 's/^\([^:]*\):\(.*\)$/host=\1;hosts=\2/'`
   ping -c 2 $host > /dev/null || continue
@@ -80,7 +88,8 @@ while [ "$clinumber" -lt "$nmax" ]; do
   cliout=$output/cli$clinumber-$host 
   touch $cliout
   cliouts="$cliouts $cliout"
-  tail -f $ctl | ssh $host "TERM=dumb \
+  echo `expr 100 + $clinumber`" Starting client on $host"
+  tail -f $ctl | rsh $host "TERM=dumb \
     POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
     POLYORB_CONF=$evolutedp_conf \
     LD_LIBRARY_PATH=/usr/local/lib \
@@ -92,19 +101,11 @@ while [ "$clinumber" -lt "$nmax" ]; do
 done
 
 while [ "`grep -L Ready $cliouts`" != "" ]; do
-  echo "Waiting for clients to become ready."
-  sleep 5
+  echo "200 Waiting for clients to become ready."
+  sleep 2
 done
 
-sleep 10
-
-if grep "New message" $cliouts; then
-  echo "Clients started too early, bailing out."
-  exec $0 -k
-fi
-
-sleep 10
-
+echo "201 GO!"
 date
 i=0
 while [ $i -lt $clinumber ]; do
@@ -113,4 +114,22 @@ while [ $i -lt $clinumber ]; do
 done
 date
 
-sleep 1000
+echo "202 Waiting for clients to complete."
+while true; do
+  if [ "`grep -L 'Elapsed :' $cliouts`" = "" ]; then
+     echo "555 Success."
+     echo OK > $output/99STATUS
+     break
+  fi
+
+  if egrep 'STORAGE|ASSERT' $cliouts > /dev/null; then
+    echo "666 Exception."
+    echo FAIL > $output/99STATUS
+    break
+  fi
+  sleep 5
+done
+date
+echo "888 Completed, cleaning up."
+exec $0 -k
+exit 0

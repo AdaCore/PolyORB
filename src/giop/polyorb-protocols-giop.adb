@@ -1212,6 +1212,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Expect_Message (S : access GIOP_Session) is
    begin
+      pragma Debug (O ("Expect_Message: enter"));
       Buffers.Release_Contents (S.Buffer_In.all);
       S.State := Expect_Header;
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
@@ -1338,6 +1339,7 @@ package body PolyORB.Protocols.GIOP is
    is
    begin
       pragma Assert (Ses.State = Arguments_Ready);
+      pragma Debug (O ("Unmarshalling deferred arguments."));
       Unmarshall_Argument_List (Ses, Args, PolyORB.Any.ARG_IN);
       Expect_Message (Ses);
    end Handle_Unmarshall_Arguments;
@@ -1503,6 +1505,7 @@ package body PolyORB.Protocols.GIOP is
          (Request => Req,
           Requestor => Component_Access (Ses)));
       Free (Object_Key);
+      pragma Debug (O ("Request queued."));
    end Request_Received;
 
    ----------------------------------------
@@ -1600,6 +1603,9 @@ package body PolyORB.Protocols.GIOP is
 
             Unmarshall_Argument_List
               (Ses, Current_Req.Req.Args, PolyORB.Any.ARG_OUT);
+
+            pragma Debug (O ("Request completed: "
+              & Image (Current_Req.Req.all)));
 
             Emit_No_Reply
               (Current_Req.Req.Requesting_Component,
@@ -2008,6 +2014,8 @@ package body PolyORB.Protocols.GIOP is
          when Request =>
             if S.Role = Server then
                Request_Received (S);
+               pragma Debug (O ("Request message processed, State = "
+                 & GIOP_State'Image (S.State)));
             else
                raise GIOP_Error;
             end if;
