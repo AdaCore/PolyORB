@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Broca.Exceptions;
+with Broca.Refs;
 with Broca.Buffers; use Broca.Buffers;
 
 with Broca.Debug;

@@ -37,7 +37,6 @@ with CORBA.Impl;
 with PortableServer; use PortableServer;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
-with Broca.Refs;
 with Broca.Buffers;
 with Broca.Locks;
 with Broca.Sequences;
