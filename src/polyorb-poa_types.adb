@@ -109,6 +109,49 @@ package body PolyORB.POA_Types is
       return U_Oid_To_Oid (U_Oid);
    end Create_Id;
 
+   --  Object ids are represented as stream element arrays
+   --  using a private representation, that need not be
+   --  compatible with anything external. The only constraint
+   --  is that the Get_* and Put_* subprograms below be
+   --  consistent.
+
+   --  The Get_* procedures operate at index SEI in array SEA,
+   --  and advance SEI by the number of consumed Stream_Elements.
+
+   procedure Get_ULong
+     (SEA : in     Stream_Element_Array;
+      SEI : in out Stream_Element_Offset;
+      ULo :    out Types.Unsigned_Long);
+   --  Extract an unsigned long.
+
+   function Put_ULong (ULo : Types.Unsigned_Long)
+     return Stream_Element_Array;
+   --  Store an unsigned long.
+
+   procedure Get_Boolean
+     (SEA : in     Stream_Element_Array;
+      SEI : in out Stream_Element_Offset;
+      Boo :    out Types.Boolean);
+   --  Extract a boolean.
+
+   function Put_Boolean (Boo : Types.Boolean)
+     return Stream_Element_Array;
+   --  Store a boolean.
+
+   procedure Get_String
+     (SEA : in     Stream_Element_Array;
+      SEI : in out Stream_Element_Offset;
+      Str :    out Types.String);
+   --  Extract a string.
+
+   function Put_String (Str : Types.String)
+     return Stream_Element_Array;
+   --  Store a string.
+
+   ---------------------
+   -- Implementations --
+   ---------------------
+
    procedure Get_ULong
      (SEA : in     Stream_Element_Array;
       SEI : in out Stream_Element_Offset;
@@ -230,7 +273,7 @@ package body PolyORB.POA_Types is
       U_Oid := new Unmarshalled_Oid'
         (Creator => Creator,
          Id => Id,
-         System_Generated => Types.Boolean (System_Generated),
+         System_Generated => System_Generated,
          Persistency_Flag => Time_Stamp (Persistency_Flag));
       return U_Oid;
    end Oid_To_U_Oid;
