@@ -64,7 +64,6 @@ package body PolyORB.Utils.SRP is
       SRP_Info.Oid := new Object_Id'(Oid);
    end Set_SRP_Oid;
 
-
    -----------------
    -- Set_SRP_Arg --
    -----------------
@@ -80,6 +79,7 @@ package body PolyORB.Utils.SRP is
             Current_Arg := Current_Arg.all.Next;
          end loop;
          --  ??? revoir la maniere d'obtenir Value
+
          Current_Arg.all.Next :=
            new Arg_Info'(new Types.String'(Name),
                          new Types.String'(From_Any (Value)),
@@ -105,11 +105,8 @@ package body PolyORB.Utils.SRP is
       Current : Arg_Info_Ptr := Args;
       Last    : Arg_Info_Ptr;
 
-      --  ???
-      --  WARNING : we consider a restrictive form of the Object_Id
-      --  Should be changed
       Matches         : Match_Array (1 .. 255);
-      Regexp_Req_OID  : constant Standard.String := "(\w+) (\d+)\?(.*)";
+      Regexp_Req_OID  : constant Standard.String := "(\w+) (\w+)\?(.*)";
       Regexp_Args     : constant Standard.String := "(\w+)=(\w+)&?(.*)";
 
       Args_Ptr : Types.String_Ptr;
@@ -119,16 +116,12 @@ package body PolyORB.Utils.SRP is
       Result.Method :=
         new Types.String'(To_PolyORB_String
                           (Slice (S, Matches (1).First, Matches (1).Last)));
-      --  ???
-      --  Put_Line (Result.Method.all);
 
       --  Stores the Object Id
       Result.Oid :=
         new Object_Id'(To_Oid (String'(To_Standard_String (S)
                                        (Matches (2).First ..
                                         Matches (2).Last))));
-      --  ???
-      --  Put_Line (To_String (Result.Oid.all));
 
       --  Stores the last string containing the arguments
       Args_Ptr := new Types.String'(To_PolyORB_String
@@ -163,27 +156,13 @@ package body PolyORB.Utils.SRP is
       end loop;
 
       Last.Next := null;
+
       --  Destroy the last record (is empty)
       Free_Arg_Info (Current);
 
       Result.Args := Args;
       return Result;
    end Split;
-
-   -----------
-   -- Split --
-   -----------
-
---    function Split (Data : Any.Any) return Split_SRP
---    is
---       Bidon : Split_SRP := (new Types.String'(To_PolyORB_String ("Bidon")),
---                             new Object_Id'(To_Oid ("01000000")),
---                             null);
---    begin
---       raise Not_Implemented;
---       return Bidon;
---  --      return Split (To_PolyORB_String (Any.From_Any (Data)));
---    end Split;
 
    ----------
    -- Join --

@@ -36,24 +36,22 @@ with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
-
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Opaque;
 with PolyORB.ORB;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
-with PolyORB.Requests; use PolyORB.Requests;
-
-with PolyORB.Representations.SRP; use PolyORB.Representations.SRP;
+with PolyORB.Requests;
+with PolyORB.Representations.SRP;
+with PolyORB.Smart_Pointers;
 with PolyORB.Utils;
-with PolyORB.Utils.SRP; use PolyORB.Utils.SRP;
+with PolyORB.Utils.SRP;
 with PolyORB.Types;
 
 package body PolyORB.Protocols.SRP is
@@ -65,7 +63,10 @@ package body PolyORB.Protocols.SRP is
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.ORB.Interface;
+   use PolyORB.Representations.SRP;
+   use PolyORB.Requests;
    use PolyORB.Types;
+   use PolyORB.Utils.SRP;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.srp");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -73,6 +74,9 @@ package body PolyORB.Protocols.SRP is
 
    Rep : constant Rep_SRP_Access := new Rep_SRP;
 
+   ------------
+   -- Create --
+   ------------
 
    procedure Create
      (Proto   : access SRP_Protocol;
@@ -92,6 +96,10 @@ package body PolyORB.Protocols.SRP is
 
    end Create;
 
+   -------------
+   -- Connect --
+   -------------
+
    procedure Connect (S : access SRP_Session) is
    begin
       pragma Warnings (Off);
@@ -99,6 +107,10 @@ package body PolyORB.Protocols.SRP is
       pragma Warnings (On);
       null;
    end Connect;
+
+   --------------------
+   -- Invoke_Request --
+   --------------------
 
    procedure Invoke_Request
      (S : access SRP_Session;
@@ -114,6 +126,10 @@ package body PolyORB.Protocols.SRP is
       null;
    end Invoke_Request;
 
+   -------------------
+   -- Abort_Request --
+   -------------------
+
    procedure Abort_Request
      (S : access SRP_Session;
       R :  Requests.Request_Access)
@@ -126,6 +142,10 @@ package body PolyORB.Protocols.SRP is
       null;
    end Abort_Request;
 
+   ----------------------
+   -- Request_Received --
+   ----------------------
+
    procedure Request_Received (S : access SRP_Session);
 
    procedure Request_Received (S : access SRP_Session)
@@ -133,16 +153,11 @@ package body PolyORB.Protocols.SRP is
       use Binding_Data.Local;
       use PolyORB.Obj_Adapters;
 
-      SRP_Info : Split_SRP;
-
       --  used to store the arg list needed by the method called
       Args   : Any.NVList.Ref;
       Result : Any.NamedValue;
 
---      Method : String_Ptr := new Types.String'(To_PolyORB_String ("bidon"));
---       Oid    : Objects.Object_Id_Access :=
---         new Objects.Object_Id'(To_Oid ("01000000"));
-
+      Deferred_Arguments_Session : Component_Access;
       ORB      : constant ORB_Access := ORB_Access (S.Server);
 
       Request_String : String_Ptr;
@@ -157,50 +172,50 @@ package body PolyORB.Protocols.SRP is
 
       --  Split the string in its different parts and store them in
       --  a Split_SRP record
-      SRP_Info := Split (Request_String.all);
+      S.SRP_Info := Split (Request_String.all);
 
       --  Get the arg profile needed by the method called
       Args := Obj_Adapters.Get_Empty_Arg_List
         (Object_Adapter (ORB),
-         SRP_Info.Oid,
-         To_Standard_String (SRP_Info.Method.all));
+         S.SRP_Info.Oid,
+         To_Standard_String (S.SRP_Info.Method.all));
 
-      Unmarshall (Args, SRP_Info);
-
-      --  Get Object_Id and Operation_Id
---      Unmarshall_Request_Message (S.Buffer_In,
---                                  Oid,
---                                  Method);
-
-      --  Get the arguments' values from the buffer
---      Unmarshall_Args (S.Buffer_In, Args);
-
+      if not PolyORB.Smart_Pointers.Is_Nil
+        (PolyORB.Smart_Pointers.Ref (Args)) then
+         --  The signature of the method is known: unmarshall
+         --  the arguments right now.
+         Unmarshall (Args, S.SRP_Info);
+      else
+         --  Unable to obtain the list of arguments at this point.
+         --  Defer the unmarshalling until the Servant has a chance
+         --  to provide its own arg list.
+         Deferred_Arguments_Session
+           := Components.Component_Access (S);
+      end if;
 
       --  Get the result profile for the method called and create an
       --  appropriate Any.NamedValue for the result
-      Result := (Name     => To_PolyORB_String ("Result"),
-                 Argument =>  Obj_Adapters.Get_Empty_Result
-                   (Object_Adapter (ORB), SRP_Info.Oid,
-                    To_Standard_String (SRP_Info.Method.all)),
-                 Arg_Modes => 0);
+      --  Result := (Name     => To_PolyORB_String ("Result"),
+      --           Argument =>  Obj_Adapters.Get_Empty_Result
+      --             (Object_Adapter (ORB), SRP_Info.Oid,
+      --              To_Standard_String (SRP_Info.Method.all)),
+      --           Arg_Modes => 0);
 
       --  Create a local profile for the request. Indeed, the request isnnow
       --  local
       Create_Local_Profile
-        (SRP_Info.Oid.all, Local_Profile_Type (Target_Profile.all));
+        (S.SRP_Info.Oid.all, Local_Profile_Type (Target_Profile.all));
       References.Create_Reference ((1 => Target_Profile), "", Target);
 
       --  Create a Request
       Create_Request (Target    => Target,
-                      Operation => To_Standard_String (SRP_Info.Method.all),
+                      Operation => To_Standard_String (S.SRP_Info.Method.all),
                       Arg_List  => Args,
                       Result    => Result,
+                      Deferred_Arguments_Session => Deferred_Arguments_Session,
                       Req       => Req);
 
-      --  The following modification is due to the new TP architecture design.
-
       --  Queue the request for execution
-
       Queue_Request_To_Handler
         (ORB.Tasking_Policy,
          ORB,
@@ -210,13 +225,16 @@ package body PolyORB.Protocols.SRP is
 
    end Request_Received;
 
+   ----------------
+   -- Send_Reply --
+   ----------------
+
    procedure Send_Reply (S : access SRP_Session; R : Request_Access)
    is
       use Buffers;
       use PolyORB.Objects;
       use Representations.SRP;
 
-      --  CRLF : constant String := ASCII.CR & ASCII.LF;
       SRP_Info : Split_SRP;
       B : Buffer_Access renames S.Buffer_Out;
    begin
@@ -229,7 +247,7 @@ package body PolyORB.Protocols.SRP is
 
       --  Data := Join (SRP_Info);
 
-      --  ??? Before using this procedure, we must be able to
+      --  XXX Before using this procedure, we must be able to
       --  [un]marshall Split_SRP [from] to Any
       --  Marshall_From_Any (Rep.all, B, Data);
 
@@ -237,6 +255,10 @@ package body PolyORB.Protocols.SRP is
 
       Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => B));
    end Send_Reply;
+
+   -------------------------------
+   -- Handle_Connect_Indication --
+   -------------------------------
 
    procedure Handle_Connect_Indication (S : access SRP_Session) is
    begin
@@ -266,6 +288,10 @@ package body PolyORB.Protocols.SRP is
 
    end Handle_Connect_Indication;
 
+   ---------------------------------
+   -- Handle_Connect_Confirmation --
+   ---------------------------------
+
    procedure Handle_Connect_Confirmation (S : access SRP_Session) is
    begin
       pragma Warnings (Off);
@@ -275,6 +301,10 @@ package body PolyORB.Protocols.SRP is
       --  No setup is necessary for newly-created client connections.
    end Handle_Connect_Confirmation;
 
+   ----------------------------
+   -- Handle_Data_Indication --
+   ----------------------------
+
    procedure Handle_Data_Indication
      (S : access SRP_Session;
       Data_Amount : Stream_Element_Count)
@@ -283,214 +313,18 @@ package body PolyORB.Protocols.SRP is
       pragma Warnings (Off);
       pragma Unreferenced (Data_Amount);
       pragma Warnings (On);
+
       pragma Debug (O ("Received data on SRP service..."));
       pragma Debug (Buffers.Show (S.Buffer_In.all));
 
---       case S.Mess_Type_Received is
---          when Req =>
---             if S.Role = Server then
       Request_Received (S);
---             else
---                raise SRP_Error;
---             end if;
---          when Reply =>
---             if S.Role = Client then
---                Reply_Received (S);
---             else
---                raise SRP_Error;
---             end if;
---       end case;
 
       Buffers.Release_Contents (S.Buffer_In.all);
       --  Clean up
 
       Expect_Data (S, S.Buffer_In, 1024);
-      --  ??? DUMMY size
+      --  XXX DUMMY size
    end Handle_Data_Indication;
-
---    procedure Handle_Data_Indication (S : access SRP_Session)
---    is
---       use Any.NVList;
-
---       use Binding_Data.Local;
---       use Objects;
---       use References;
-
---    begin
---       pragma Debug (O ("Received data on SRP service..."));
---       pragma Debug (Buffers.Show (S.Buffer_In.all));
-
---       declare
---          Argv : Split_SRP
---            := Split (Unmarshall_To_Any (Rep.all, S.Buffer_In));
-
-
---          Method     : constant String := Argv.Method.all;
---          Oid        : constant Object_Id := Argv.Oid.all;
---          Args_Array : constant Arg_Info_Ptr := Argv.Args;
---          Current    : Arg_Info_Ptr := Args_Array;
-
---          Req : Request_Access := null;
---          Args   : Any.NVList.Ref;
---          Args_Type_Reference : Any.NVList.Ref;
---          Result : Any.NamedValue;
-
---          Target_Profile :
---            Binding_Data.Profile_Access := new Local_Profile_Type;
---          Target   : References.Ref;
---          ORB      : constant ORB_Access := ORB_Access (S.Server);
---          Temp_Arg : Any.NamedValue;
---          List     : NV_Sequence_Access;
-
---       begin
---          Buffers.Release_Contents (S.Buffer_In.all);
---          --  Clear buffer
-
---         begin
---             pragma Debug (O ("Received request " & Method
---                              & " on object " & To_String (Oid)
---                              & " with args "));
-
---             --  Block used only for debugging
---             declare
---                procedure Print_Val (Current : Arg_Info_Ptr);
---                procedure Print_Val (Current : Arg_Info_Ptr) is
---                   Pointer : Arg_Info_Ptr := Current;
---                begin
---                   while Pointer /= null loop
---                      Put_Line
---                        (Pointer.Name.all & " = " & Pointer.Value.all);
---                      Pointer := Pointer.Next;
---                   end loop;
---                end Print_Val;
---             begin
---                pragma Debug (Print_Val (Current));
---                null;
---             end;
-
-
---             Current := Args_Array;
-
---             --  Stores the arguments in a NVList before creating the request
---             Any.NVList.Create (Args);
---             --  Create a new NVList where the arguments will be stored
-
---             Args_Type_Reference   := Obj_Adapters.Get_Empty_Arg_List
---               (Object_Adapter (ORB).all, Oid, Method);
---             --  Used only to get the types used by the method called
-
---             declare
---                use PolyORB.Any;
---                Simple_Arg : Any.NamedValue;
---                Arg_Any : Any.Any;
---             begin
---                List := List_Of (
---                for I in 1 .. Get_Count (Args) loop
---                 Temp_Arg := NV_Sequence.Element_Of (List.all, Positive (I));
-
---                   case Kind () is
---                      when Tk_Null =>
---                         Set_Any_Value (Arg_Any,
---                                        Types.Octet (Current.Value));
---                      when Tk_Void =>
-
---                      when Tk_Short =>
---                         Set_Any_Value (Arg_Any,
---                                        Types.Short (Current.Value));
---                      when Tk_Long =>
---                         Set_Any_Value (Arg_Any,
---                                        Types.Long (Current.Value));
---                      when Tk_Ushort =>
---                         Set_Any_Value (Arg_Any,
---                                      Types.Unsigned_Short (Current.Value));
---                      when Tk_Ulong =>
---                         Set_Any_Value (Arg_Any,
---                                        Types.Unsigned_Long (Current.Value));
---                      when Tk_Float =>
---                         Set_Any_Value (Arg_Any,
---                                        Types.Float (Current.Value));
---                      when Tk_Double =>
---                         Set_Any_Value (Arg_Any,
---                                        Types.Double (Current.Value));
---                      when Tk_Boolean =>
---                         Set_Any_Value (Arg_Any,
---                                        Types.Boolean (Current.Value));
---  --                      when Tk_Char =>
---  --                      when Tk_Octet =>
---  --                      when Tk_Any =>
---  --                      when Tk_TypeCode =>
---  --                      when Tk_Principal =>
---  --                      when Tk_Objref =>
---  --                      when Tk_Struct =>
---  --                      when Tk_Union =>
---  --                      when Tk_Enum =>
---  --                      when Tk_String =>
---  --                      when Tk_Sequence =>
---  --                      when Tk_Array =>
---  --                      when Tk_Alias =>
---  --                      when Tk_Except =>
---  --                      when Tk_Longlong =>
---  --                      when Tk_Ulonglong =>
---  --                      when Tk_Longdouble =>
---  --                      when Tk_Widechar =>
---  --                      when Tk_Wstring =>
---  --                      when Tk_Fixed =>
---  --                      when Tk_Value =>
---  --                      when Tk_Valuebox =>
---  --                      when Tk_Native =>
---  --                      when Tk_Abstract_Interface =>
---                      when others =>
---                         null;
---                   end case;
---  --               while Current /= null loop
---  --                Arg_Any
---  --                  := To_Any (To_PolyORB_String (Current.Value.all));
-
---                   Simple_Arg
---                     := (Name      => To_PolyORB_String (Current.Name.all),
---                         Argument  => Arg_Any,
---                         Arg_Modes => Any.ARG_IN);
---                   Any.NVList.Add_Item (Args, Simple_Arg);
---                   Current := Current.Next;
---                end loop;
---             end;
-
---             Result :=
---               (Name     => To_PolyORB_String ("Result"),
---                Argument => Obj_Adapters.Get_Empty_Result
---                (Object_Adapter (ORB).all, Oid, Method),
---                Arg_Modes => 0);
-
---             Create_Local_Profile
---               (Oid, Local_Profile_Type (Target_Profile.all));
---             Create_Reference ((1 => Target_Profile), Target);
-
---             Create_Request
---               (Target    => Target,
---                Operation => Method,
---                Arg_List  => Args,
---                Result    => Result,
---                Req       => Req);
-
---             Emit_No_Reply
---               (Component_Access (ORB),
---                Queue_Request'(Request   => Req,
---                               Requestor => Component_Access (S),
---                               Requesting_Task => null));
-
---          exception
---             when E : others =>
---                O ("Got exception: "
---                   & Ada.Exceptions.Exception_Information (E));
---  --         end;
---       end;
-
---       Expect_Data (S, S.Buffer_In, 1024);
---       --  XXX Not exact amount.
-
---       --  Prepare to receive next message.
-
---    end Handle_Data_Indication;
 
    -----------------------
    -- Handle_Disconnect --
@@ -501,10 +335,21 @@ package body PolyORB.Protocols.SRP is
       pragma Debug (O ("Received disconnect."));
 
       --  Cleanup protocol.
-
       Buffers.Release (S.Buffer_In);
 
    end Handle_Disconnect;
+
+   ---------------------------------
+   -- Handle_Unmarshall_Arguments --
+   ---------------------------------
+
+   procedure Handle_Unmarshall_Arguments
+     (Ses : access SRP_Session;
+      Args : in out Any.NVList.Ref)
+   is
+   begin
+      Unmarshall (Args, Ses.SRP_Info);
+   end Handle_Unmarshall_Arguments;
 
    --------------------------------
    -- Unmarshall_Request_Message --
@@ -513,8 +358,6 @@ package body PolyORB.Protocols.SRP is
    procedure Unmarshall_Request_Message (Buffer : access Buffer_Type;
                                          Oid    : access Object_Id;
                                          Method : access Types.String)
---                                          Oid    : out Objects.Object_Id;
---                                          Method : out Types.String)
    is
       use PolyORB.Objects;
    begin
@@ -525,17 +368,12 @@ package body PolyORB.Protocols.SRP is
       begin
          Oid.all := Object_Id (Obj);
       end;
---       declare
---          Obj : Stream_Element_Array := Unmarshall (Buffer);
---       begin
---          Oid    := Object_Id (Obj);
---       end;
---       Method := Unmarshall (Buffer);
    end Unmarshall_Request_Message;
 
    ---------------------
    -- Unmarshall_Args --
    ---------------------
+
    procedure Unmarshall_Args (Buffer : access Buffer_Type;
                               Args   : in out Any.NVList.Ref)
    is
@@ -561,20 +399,6 @@ package body PolyORB.Protocols.SRP is
    -- Unmarshall --
    ----------------
 
-   function To_SEA (S : Types.String) return Stream_Element_Array;
-   function To_SEA (S : Types.String) return Stream_Element_Array
-   is
-      Temp_S : constant Standard.String := To_Standard_String (S);
-      Value  : Stream_Element_Array (1 .. Temp_S'Length);
-   begin
-      for I in Value'Range loop
-         Value (I) := Stream_Element
-           (Character'Pos (Temp_S (Temp_S'First +
-                                   Integer (I - Value'First))));
-      end loop;
-      return Value;
-   end To_SEA;
-
    procedure Unmarshall (Args : in out Any.NVList.Ref; SRP_Info : Split_SRP)
    is
       use PolyORB.Any.NVList;
@@ -582,6 +406,21 @@ package body PolyORB.Protocols.SRP is
       use PolyORB.Any.NVList.Internals.NV_Sequence;
       use PolyORB.Opaque;
       use PolyORB.Utils;
+
+      function To_SEA (S : Types.String) return Stream_Element_Array;
+
+      function To_SEA (S : Types.String) return Stream_Element_Array
+      is
+         Temp_S : constant Standard.String := To_Standard_String (S);
+         Value  : Stream_Element_Array (1 .. Temp_S'Length);
+      begin
+         for I in Value'Range loop
+            Value (I) := Stream_Element
+              (Character'Pos (Temp_S (Temp_S'First +
+                                      Integer (I - Value'First))));
+         end loop;
+         return Value;
+      end To_SEA;
 
       Args_List   : NV_Sequence_Access;
       Current_Arg : Arg_Info_Ptr := SRP_Info.Args;
@@ -612,22 +451,7 @@ package body PolyORB.Protocols.SRP is
             Unmarshall (Temp_Buffer'Access, Temp_Arg);
             Replace_Element (Args_List.all, Positive (I), Temp_Arg);
          end;
---          declare
---             Value : aliased Stream_Element_Array := To_Stream_Element_Array
---               (To_Standard_String (Current_Arg.all.Value.all));
---             Z : constant Zone_Access
---               := Zone_Access'(Value'Unchecked_Access);
---          begin
---             Initialize_Buffer (Buffer     => Temp_Buffer'Access,
---                                Size       => Value'Length,
---                                Data       => (Zone   => Z,
---                                               Offset => Z'First),
---                                Endianness => Little_Endian,
---                                Initial_CDR_Position => 0);
---             Show (Temp_Buffer);
---          end;
 
-         --  ??? No verification if Current_Arg si null
          Current_Arg := Current_Arg.all.Next;
       end loop;
    end Unmarshall;
