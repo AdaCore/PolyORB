@@ -341,23 +341,6 @@ AC_SUBST(BARGS)
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 ##########################################
-# Build documentation
-##########################################
-
-AC_CHECK_PROGS(TEXI2HTML, texi2html)
-
-DOC_DIR=
-
-AC_ARG_ENABLE(doc,
-[  --enable-doc            Build documentation [default=no]],
-[if [[ "$enableval" = "yes" ]]; then
-	DOC_DIR=doc
-fi],
-[])
-
-AC_SUBST(DOC_DIR)
-
-##########################################
 # We change $host in order to force the generation of a libtool for the
 # target, and not for the host.
 # XXX if someone knows a clean way to do that, be my guest...
