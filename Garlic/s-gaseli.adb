@@ -126,6 +126,9 @@ package body System.Garlic.Serial_Line is
    end Serial_Waiter;
    --  Task which will take care of receiving data.
 
+   Length_Size : Ada.Streams.Stream_Element_Count;
+   --  Length of a Stream_Element_Count.
+
    Global_Protocol : aliased Serial_Protocol;
 
    --------------------------
@@ -166,6 +169,7 @@ package body System.Garlic.Serial_Line is
       Global_Protocol.Other := Null_Partition_ID;
       Serial_Lock.Lock;
       Open_Connection;
+      Length_Size := Get_Length_Size;
       Serial_Waiter.Start;
       Serial_Lock.Unlock;
       Register_Protocol (Global_Protocol'Access);
@@ -224,8 +228,6 @@ package body System.Garlic.Serial_Line is
       use type Ada.Streams.Stream_Element_Offset;
       Length   : constant Ada.Streams.Stream_Element_Offset   :=
         Data'Length - Unused_Space;
-      Length_Size : constant Ada.Streams.Stream_Element_Count :=
-        Get_Length_Size;
       Length_P : aliased Ada.Streams.Stream_Element_Array (1 .. Length_Size);
       Length_V : aliased System.RPC.Params_Stream_Type (0);
    begin
@@ -300,13 +302,10 @@ package body System.Garlic.Serial_Line is
    -------------------
 
    task body Serial_Waiter is
-      Length_Size : Ada.Streams.Stream_Element_Count;
    begin
       accept Start;
 
       Add_Non_Terminating_Task;
-
-      Length_Size := Get_Length_Size;
 
       loop
          declare
