@@ -663,8 +663,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
             Error
               ("Repository Id failed for " & Name (Node),
                Fatal, Get_Location (Node));
-         when others =>
-            raise;
       end;
       PL (CU, "name => CORBA.To_CORBA_String");
       PL (CU, "  (""" & Name (Node) & """),");

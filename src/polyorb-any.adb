@@ -1643,7 +1643,7 @@ package body PolyORB.Any is
          N : Unsigned_Long := 0;
          Ptr : Cell_Ptr := Self.Parameters;
       begin
-         while (Ptr /= null) loop
+         while Ptr /= null loop
             N := N + 1;
             Ptr := Ptr.Next;
          end loop;
@@ -2385,7 +2385,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Short is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Short) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Short then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Short_Ptr (Get_Value (Item)).Value.all;
@@ -2395,7 +2395,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Long is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Long) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Long then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Long_Ptr (Get_Value (Item)).Value.all;
@@ -2405,7 +2405,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Long_Long is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longlong) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longlong then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Long_Long_Ptr (Get_Value (Item)).Value.all;
@@ -2415,7 +2415,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Unsigned_Short is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ushort) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ushort then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_UShort_Ptr (Get_Value (Item)).Value.all;
@@ -2445,7 +2445,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Types.Float is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Float) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Float then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Float_Ptr (Get_Value (Item)).Value.all;
@@ -2455,7 +2455,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Double is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Double) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Double then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Double_Ptr (Get_Value (Item)).Value.all;
@@ -2465,7 +2465,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Long_Double is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longdouble) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longdouble then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Long_Double_Ptr (Get_Value (Item)).Value.all;
@@ -2475,7 +2475,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Boolean is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Boolean) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Boolean then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Boolean_Ptr (Get_Value (Item)).Value.all;
@@ -2485,7 +2485,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Char is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Char) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Char then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Char_Ptr (Get_Value (Item)).Value.all;
@@ -2495,7 +2495,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Wchar is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Widechar) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Widechar then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Wchar_Ptr (Get_Value (Item)).Value.all;
@@ -2505,7 +2505,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Octet is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Octet) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Octet then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Octet_Ptr (Get_Value (Item)).Value.all;
@@ -2515,7 +2515,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Any is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Any) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Any then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Any_Ptr (Get_Value (Item)).Value.all;
@@ -2525,7 +2525,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return TypeCode.Object is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_TypeCode) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_TypeCode then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_TypeCode_Ptr (Get_Value (Item)).Value.all;
@@ -2535,7 +2535,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Types.String is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_String) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_String then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_String_Ptr (Get_Value (Item)).Value.all;
@@ -2545,7 +2545,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Types.Wide_String is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Wstring) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Wstring then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Wide_String_Ptr (Get_Value (Item)).Value.all;

@@ -502,7 +502,7 @@ package body PolyORB.Protocols.GIOP is
       Flags := Types.Octet (Peek (Buffer, Flags_Index - 1));
       pragma Debug (O ("Flags : " & Flags'Img));
 
-      if (Is_Set (Bit_Endianness, Flags)) then
+      if Is_Set (Bit_Little_Endian, Flags) then
          Set_Endianness (Buffer, Little_Endian);
       else
          Set_Endianness (Buffer, Big_Endian);

@@ -248,9 +248,6 @@ package body PortableServer is
       when Skeleton_Unknown =>
          return CORBA.To_CORBA_String
            (PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT"));
-
-      when others =>
-         raise;
    end Get_Type_Id;
 
    ------------------------

@@ -1674,15 +1674,7 @@ package body Ada_Be.Idl2Ada is
                      end;
 
                      if Original_Node (Decl_Node) = No_Node then
-                        begin
-                           Gen_Repository_Id (Decl_Node, CU);
-                        exception
-                           when Constraint_Error =>
-                              PL (CU, "XXX NO REPO ID for decl:"
-                                  & Name (Decl_Node));
-                           when others =>
-                              raise;
-                        end;
+                        Gen_Repository_Id (Decl_Node, CU);
                      end if;
                   end loop;
                end;
@@ -1884,7 +1876,7 @@ package body Ada_Be.Idl2Ada is
       --  XXX the following loop is dubious.
       --  Most likely, it runs exactly once every
       --  time.
-      while (Kind (NT) = K_Scoped_Name) loop
+      while Kind (NT) = K_Scoped_Name loop
          NT := Value (NT);
       end loop;
 

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#18 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#19 $
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -454,7 +454,7 @@ package body Ada_Be.Expansion is
             Idl_File_Node := Idlnodes.Get (Filename);
 
             --  if this is the first node of this file
-            if (Idl_File_Node = No_Node) then
+            if Idl_File_Node = No_Node then
 
                --  create a new node Ben_Idl_File
                Idl_File_Node := Make_Ben_Idl_File (Loc);
@@ -604,7 +604,7 @@ package body Ada_Be.Expansion is
               (New_O_Node, Implicit_Inherited);
             Set_Is_Directly_Supported
               (New_O_Node, Directly_Supported);
-            if (Oldest_Supporting_ValueType /= No_Node) then
+            if Oldest_Supporting_ValueType /= No_Node then
                Set_Oldest_Supporting_ValueType
                  (New_O_Node, Oldest_Supporting_ValueType);
             end if;

@@ -101,9 +101,6 @@ begin
       exception
          when CosNaming.NamingContext.NotFound =>
             null;
-
-         when others =>
-            raise;
       end;
    end;
 

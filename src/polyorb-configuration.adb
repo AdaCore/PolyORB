@@ -357,8 +357,6 @@ package body PolyORB.Configuration is
             --  No configuration file.
             pragma Debug (O ("No " & Conf_File_Name & " configuration file."));
             null;
-         when others =>
-            raise;
       end;
 
       while Success and then not End_Of_File (Conf_File) loop

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#11 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#12 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -1746,7 +1746,7 @@ package body Idl_Fe.Parser is
       Result := Make_ValueType (Get_Previous_Token_Location);
       Set_Abst (Result, Abst);
       Set_Custom (Result, Custom);
-      if (Abst or else Custom) then
+      if Abst or else Custom then
          Set_Location (Result, Get_Previous_Previous_Token_Location);
       else
          Set_Location (Result, Get_Previous_Token_Location);

@@ -651,7 +651,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    begin
       Flags := Unmarshall (Buffer);
 
-      if (Is_Set (Bit_Endianness, Flags)) then
+      if Is_Set (Bit_Little_Endian, Flags) then
          Ctx.Message_Endianness := Little_Endian;
       else
          Ctx.Message_Endianness := Big_Endian;
@@ -661,7 +661,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       pragma Debug (O ("Message Endianness : "
                        & Ctx.Message_Endianness'Img));
 
-      if (Is_Set (Bit_Fragment, Flags)) then
+      if Is_Set (Bit_Fragment, Flags) then
          Ctx.Fragmented := True;
       else
          Ctx.Fragmented := False;
@@ -721,7 +721,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Ctx  : GIOP_Ctx_1_1 renames GIOP_Ctx_1_1 (Sess.Ctx.all);
       Flags : Types.Octet := 0;
    begin
-      Set (Flags, Bit_Endianness, Ctx.Message_Endianness = Little_Endian);
+      Set (Flags, Bit_Little_Endian, Ctx.Message_Endianness = Little_Endian);
       Set (Flags, Bit_Fragment, Ctx.Fragmented);
 
       Marshall (Buffer, Flags);

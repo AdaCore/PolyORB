@@ -2994,34 +2994,29 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       pragma Assert (Kind (Node) = K_ValueType);
 
-      if (not (Abst (Node)) and
-          not (Custom (Node)) and
-          not (Truncatable (Node)))
+      if Boolean'Pos (Abst (Node))
+        + Boolean'Pos (Custom (Node))
+        + Boolean'Pos (Truncatable (Node)) > 1
       then
-         return "CORBA.VTM_NONE";
-      elsif
-         (Abst (Node) and
-          not (Custom (Node)) and
-          not (Truncatable (Node)))
-      then
-         return "CORBA.VTM_ABSTRACT";
-      elsif
-         (not Abst (Node) and
-          Custom (Node) and
-          not (Truncatable (Node)))
-      then
-         return "CORBA.VTM_CUSTOM";
-      elsif
-         (not (Abst (Node) and
-          not (Custom (Node)) and
-          Truncatable (Node)))
-      then
-         return "CORBA.VTM_TRUNCATABLE";
-      else
          --  A Value Type cannot be at the same time
          --  abstract, custom or trucatable
          raise Program_Error;
       end if;
+
+      if Abst (Node) then
+         return "CORBA.VTM_ABSTRACT";
+      end if;
+
+      if Custom (Node) then
+         return "CORBA.VTM_CUSTOM";
+      end if;
+
+      if Truncatable (Node) then
+         return "CORBA.VTM_TRUNCATABLE";
+      end if;
+
+      return "CORBA.VTM_NONE";
+
    end Type_Modifier;
 
    function Visibility (Node : in Node_Id) return String is
