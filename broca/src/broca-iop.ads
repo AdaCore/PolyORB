@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -85,8 +85,8 @@ package Broca.IOP is
    -------------------------------------------------------
 
    subtype Profile_Tag is CORBA.Unsigned_Long;
-   Tag_Internet_IOP        : constant Profile_Tag := 254; --  0;
-   Tag_Multiple_Components : constant Profile_Tag := 255; --  1;
+   Tag_Internet_IOP        : constant Profile_Tag := 0;
+   Tag_Multiple_Components : constant Profile_Tag := 1;
 
    type Profile_Type is abstract tagged limited private;
 
