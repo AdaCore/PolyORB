@@ -141,7 +141,7 @@ package body XE_Utils is
       Opt : constant String := Get_Default_Optimization;
    begin
       if Optimization_Mode and then Opt /= "O0" then
-         Scan_Make_Arg ("-" & Opt, And_Save => True);
+         Scan_Make_Arg ("-" & Opt, And_Save => False);
       end if;
       Optimization_Mode := False;
    end Add_Default_Optimization;
@@ -930,7 +930,7 @@ package body XE_Utils is
                Optimization_Mode := False;
             end if;
          end if;
-         Scan_Make_Arg (Argument (I), And_Save => True);
+         Scan_Make_Arg (Argument (I), And_Save => False);
       end loop;
 
       Add_Default_Optimization;
@@ -942,11 +942,11 @@ package body XE_Utils is
       I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       if Number_Of_Files > 0 then
-         Scan_Make_Arg ("-cargs", And_Save => True);
-         Scan_Make_Arg (I_GARLIC_Dir.all, And_Save => True);
-         Scan_Make_Arg ("-bargs", And_Save => True);
+         Scan_Make_Arg ("-cargs", And_Save => False);
+         Scan_Make_Arg (I_GARLIC_Dir.all, And_Save => False);
+         Scan_Make_Arg ("-bargs", And_Save => False);
       end if;
-      Scan_Make_Arg (I_GARLIC_Dir.all, And_Save => True);
+      Scan_Make_Arg (I_GARLIC_Dir.all, And_Save => False);
 
       Osint.Add_Default_Search_Dirs;
 

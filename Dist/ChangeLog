@@ -1,7 +1,7 @@
 2000-11-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.adb: Set new parameter And_Save for procedure
- 	Scan_Make_Arg to True.
+ 	Scan_Make_Arg to False.
 
 2000-11-09  Pascal Obry  <obry@gnat.com>
 
