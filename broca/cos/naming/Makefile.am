@@ -43,19 +43,13 @@ IMP_1 = $(ADA_1)-impl.ads $(ADA_1)-impl.adb
 IMP_2 = $(ADA_2_1)-impl.ads $(ADA_2_1)-impl.adb \
 	$(ADA_2_2)-impl.ads $(ADA_2_2)-impl.adb 
 
-CLEANFILES = b~*.* *.o *.ali $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2) test_naming
+CLEANFILES = b~*.* *.o *.ali $(GEN_1) $(GEN_2) test_naming
 
 DISTCLEANFILES = test_naming
 
 all-local: test_naming
 
 SUFFIXES = .idl .ads .adb
-
-$(IMP_1): $(IDL_1).idl $(IDLAC)
-	$(IDLAC) -i $(IDL_1).idl
-
-$(IMP_2): $(IDL_2).idl $(IDLAC)
-	$(IDLAC) -i $(IDL_2).idl
 
 $(GEN_1): $(IDL_1).idl $(IDLAC)
 	$(IDLAC) $(IDL_1).idl
@@ -69,7 +63,7 @@ $(IDLAC): force
 $(SOCK_CONS):
 	cd ../../adasockets/src && $(MAKE) sockets-constants.ads
 
-test_naming: force $(GEN_1) $(GEN_2)
+test_naming: force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
 
 force::
