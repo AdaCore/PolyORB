@@ -11,7 +11,7 @@
 # PARTICULAR PURPOSE.
 
 #
-# $Id$
+# $Id: Makefile.am,v 1.6 1998/10/20 11:50:20 tardieu Exp $
 #
 
 
@@ -70,6 +70,7 @@ target_triplet = @target@
 ADA = @ADA@
 ADA_FOR_TARGET = @ADA_FOR_TARGET@
 AWK = @AWK@
+BOOT_SERVER = @BOOT_SERVER@
 CC = @CC@
 CP_PRESERVE = @CP_PRESERVE@
 EXEEXT = @EXEEXT@

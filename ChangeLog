@@ -1,3 +1,8 @@
+1998-10-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in: Generate at configuration time a default boot
+	server address in order to avoid multi-user conflicts.
+
 1998-10-20  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: No need to clean isthrbio and friends anymore since 

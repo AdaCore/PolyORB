@@ -158,8 +158,12 @@ AC_ARG_WITH(protocols,
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
+  DEFAULTPROTOCOL="";
   TCP_INCLUDED="--  ";
   for P in ${withval}; do
+     if test -z "${DEFAULTPROTOCOL}"; then
+       DEFAULTPROTOCOL=${withval};
+     fi
      case ${P} in
      TCP|tcp) 
         LIST="${LIST} tcp";
@@ -181,6 +185,7 @@ AC_MSG_CHECKING([default protocols])
 PROTOCOLSSOURCES="\$(TCPSOURCES)";
 PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
+DEFAULTPROTOCOL="tcp";
 AC_MSG_RESULT([tcp])
 ])
 if test -z "$TCP_INCLUDED"; then
@@ -226,10 +231,30 @@ AC_SUBST(PROTOCOLSOBJECTS)
 AC_SUBST(TCP_INCLUDED)
 AC_SUBST(ISTHRBIO)
 #
+# Default boot server address
+#
+AC_ARG_WITH(boot-server,
+[  --with-boot-server=url  Default boot server (url=<protocol>:<data>)],
+[
+AC_MSG_CHECKING([for default boot server address])
+BOOT_SERVER=${withval}
+AC_MSG_RESULT([${BOOT_SERVER}])
+],
+[
+if test "${DEFAULTPROTOCOL}" = "tcp"; then
+  AC_MSG_CHECKING([for default boot server address])
+  BOOT_SERVER=`echo 000$$ | ${SED} 's,^.*\(...\)$,tcp://localhost:5\1,'`
+  AC_MSG_RESULT([${BOOT_SERVER}])
+else
+  BOOT_SERVER=""
+fi
+])
+AC_SUBST(BOOT_SERVER)
+#
 # Filter list
 #
 AC_ARG_WITH(filters,
-[  --with-filters=list     Enumerate filter list (default=none+zip)],
+[  --with-filters=list     Enumerate filter list (default=zip)],
 [
   FILTERLIST="${withval}";
 ],
