@@ -72,7 +72,7 @@ begin
    CORBA.ORB.Initialize ("ORB");
 
    if Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+      Put_Line ("usage : test_naming_corba <IOR_string_from_server>");
       return;
    end if;
 
@@ -95,8 +95,15 @@ begin
       Rcvd_Ref := resolve (Root_Context, Obj_Name);
 
       unbind (Root_Context, Obj_Name);
-      Rcvd_Ref := resolve (Root_Context, Obj_Name);
+      begin
+         Rcvd_Ref := resolve (Root_Context, Obj_Name);
+      exception
+         when CosNaming.NamingContext.NotFound =>
+            null;
 
+         when others =>
+            raise;
+      end;
    end;
 
 

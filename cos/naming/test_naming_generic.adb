@@ -68,7 +68,7 @@ begin
    PolyORB.Initialization.Initialize_World;
 
    if Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+      Put_Line ("usage : test_naming_generic <IOR_string_from_server>");
       return;
    end if;
 
