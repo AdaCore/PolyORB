@@ -39,6 +39,9 @@ Dist/xe_stdcnf.adb
 Dist/xe_stdcnf.ads
 Dist/xe_stubs.adb
 Dist/xe_stubs.ads
+Dist/xe_sysdep.ads
+Dist/xe_sysdep-nt.adb
+Dist/xe_sysdep-std.adb
 Dist/xe_usage.adb
 Dist/xe_usage.ads
 Dist/xe_utils.adb
