@@ -1,6 +1,3 @@
-AUTOMAKE_OPTIONS = foreign no-dependencies
-ACLOCAL_AMFLAGS = -I ../support
-
 ADA_FULL = \
 	   broca-debug.ads \
 	   broca-opaque-chunk_pools.ads \

@@ -1,5 +1,4 @@
-AUTOMAKE_OPTIONS = foreign no-dependencies
-ACLOCAL_AMFLAGS = -I ../support
+SUBDIRS = testsuite
 
 GNAT_STYLE= -gnaty3bcefhikmt
 GNATMAKE_FLAGS= $(GNAT_STYLE) -O2 -g -gnatf -gnatwu -gnatwe -gnatgao

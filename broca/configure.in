@@ -1,5 +1,6 @@
-AC_INIT(idlac.adb)
-AC_CONFIG_AUX_DIR(../support)
+AC_INIT(MANIFEST)
+AC_CONFIG_AUX_DIR(support)
+AC_CONFIG_SUBDIRS(adasockets)
 #
 # Package description
 #
@@ -9,6 +10,7 @@ AM_INIT_AUTOMAKE
 # Various programs
 #
 AC_PROG_CC
+AC_PROG_INSTALL
 AM_PROG_WORKING_ADA
 AM_CROSS_PROG_WORKING_ADA
 AC_EXEEXT
@@ -23,4 +25,5 @@ AM_ADA_PREREQ(19990629, 3.12p)
 #
 # Output
 #
-AC_OUTPUT([Makefile platform.ads])
+AC_OUTPUT([Makefile idlac/Makefile idlac/platform.ads src/Makefile
+           src/adacompiler idlac/testsuite/Makefile])
