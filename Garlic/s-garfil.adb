@@ -96,10 +96,10 @@ package body System.Garlic.Filters is
    type Half_Channel_Type is record
       Local  : Filter_Params_Access;
       Remote : Filter_Params_Access;
-      Ready  : Boolean;
+      Status : Status_Type;
    end record;
 
-   Null_Half_Channel : constant Half_Channel_Type := (null, null, False);
+   Null_Half_Channel : constant Half_Channel_Type := (null, null, None);
 
    type Channel_Id is new Partition_ID;
    type Channel_Type is record
@@ -125,21 +125,31 @@ package body System.Garlic.Filters is
    Register : Channel_Type  := Null_Channel;
    --  Registration filter to be used when filter params are exchanged
 
-   type Request_Id is (Initialize, Get_Params, Set_Params);
+   type Request_Id is (Get_Params, Set_Params);
    type Request_Type is record
       Command   : Request_Id;
       Parameter : Filter_Params_Access;
    end record;
 
-   Init_Request : constant Request_Type := (Initialize, null);
+   Init : constant Request_Type := (Get_Params, null);
 
    package Filters is new Complex
      (Filter_Id, Null_Filter, First_Filter,
-      Filter_ID_Size, 0, Filter_Access, null, Integer);
+      Filter_ID_Size, 0, Filter_Access, null);
 
    package Channels is new Complex
      (Partition_ID, Null_Partition, First_Partition,
-      Partition_ID_Size, 0, Channel_Type, Null_Channel, Request_Type);
+      Partition_ID_Size, 0, Channel_Type, Null_Channel);
+
+   procedure Get_Params_For_Incoming
+     (Partition : in Partition_ID;
+      Request   : in Request_Type);
+   --  This procedure initializes and extracts the half incoming channel.
+
+   procedure Get_Params_For_Outgoing
+     (Partition : in Partition_ID;
+      Request   : in Request_Type);
+   --  This procedure initializes and extracts the half outgoing channel.
 
    function Get_Partition_Filter
      (Partition : Partition_ID)
@@ -150,28 +160,16 @@ package body System.Garlic.Filters is
 
    procedure Handle_Request
      (Partition : in Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Params_Stream_Type);
    --  Handle a remote request Get_Params and Set_Params. When needed, use
    --  registration filter.
 
-   procedure Incoming
+   procedure Install_Channel
      (Partition : in Partition_ID;
-      Request   : in Request_Type;
-      Channel   : in out Channel_Type;
-      Status    : out Status_Type);
-   --  Procedure to use with Filter.Apply. This procedure handles
-   --  a request in a protected manner. Basically, this procedure
-   --  initializes the half incoming channel.
-
-   procedure Outgoing
-     (Partition : in Partition_ID;
-      Request   : in Request_Type;
-      Channel   : in out Channel_Type;
-      Status    : out Status_Type);
-   --  Procedure to use with Filter.Apply. This procedure handles
-   --  a request in a protected manner. Basically, this procedure
-   --  initializes the half outgoing channel.
+      Channel   : in out Channel_Type);
+   --  Find which filter to use and install it (but not the local and
+   --  remote data for incoming and outgoing).
 
    procedure Send
      (Partition : in Partition_ID;
@@ -179,6 +177,11 @@ package body System.Garlic.Filters is
       Channel   : in Channel_Type);
    --  Send a remote request Get_Params and Set_Params. When needed, use
    --  registration filter.
+
+   procedure Set_Params_For_Outgoing
+     (Partition : in Partition_ID;
+      Request   : in Request_Type);
+   --  This procedure initializes the half outgoing channel.
 
    ---------------------
    -- Filter_Incoming --
@@ -196,13 +199,13 @@ package body System.Garlic.Filters is
 
          --  Check that this half channel is initialized
 
-         if not Channels.Table (Partition).Incoming.Ready then
+         if Channels.Table (Partition).Incoming.Status = None then
             pragma Debug
               (D (D_Debug,
                   "Partition " & Name (Partition) &
                   " incoming filter not initialized"));
 
-            Channels.Apply (Partition, Init_Request, Incoming'Access);
+            Get_Params_For_Incoming (Partition, Init);
          end if;
 
          --  Check whether stream management is needed
@@ -241,13 +244,13 @@ package body System.Garlic.Filters is
 
          --  Check  that this half channel is initialized
 
-         if not Channels.Table (Partition).Outgoing.Ready then
+         if Channels.Table (Partition).Outgoing.Status /= Done then
             pragma Debug
               (D (D_Debug,
                   "Partition " & Name (Partition) &
                   " outgoing filter not initialized"));
 
-            Channels.Apply (Partition, Init_Request, Outgoing'Access);
+            Get_Params_For_Outgoing (Partition, Init);
          end if;
 
          --  Check whether stream management is needed
@@ -310,7 +313,7 @@ package body System.Garlic.Filters is
 
    procedure Handle_Request
      (Partition : in Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Params_Stream_Type)
    is
       --  We may have to filter the original stream. We will interpret the
@@ -344,24 +347,21 @@ package body System.Garlic.Filters is
             Filter := Get_Partition_Filter (Partition);
             Request.Parameter :=
               Filter_Params_Read (Filter.all, To_Stream_Element_Array (P));
-            Channels.Apply (Partition, Request, Outgoing'Access);
+            Set_Params_For_Outgoing (Partition, Request);
 
          else
-            Channels.Apply (Partition, Request, Incoming'Access);
+            Get_Params_For_Incoming (Partition, Request);
 
-            --  If this was a remote query, then provide the remote part to
-            --  the other partition ouside from critical section because
-            --  Send can also require to enter in a critical section.
+            --  Provide the remote part to the other partition ouside
+            --  from critical section because Send can also require to
+            --  enter in a critical section.
 
-            if Request.Command = Get_Params then
-               pragma Debug
-                 (D (D_Debug,
-                     "Provide params for partition " & PName &
-                     " incoming filter"));
+            pragma Debug
+              (D (D_Debug,
+                  "Provide params for partition " & PName &
+                  " incoming filter"));
 
-               Send (Partition, Set_Params,
-                     Channels.Get_Component (Partition));
-            end if;
+            Send (Partition, Set_Params, Channels.Get_Component (Partition));
          end if;
       end Internal_Handler;
 
@@ -386,35 +386,26 @@ package body System.Garlic.Filters is
       end if;
    end Handle_Request;
 
-   --------------
-   -- Incoming --
-   --------------
+   -----------------------------
+   -- Get_Params_For_Incoming --
+   -----------------------------
 
-   procedure Incoming
+   procedure Get_Params_For_Incoming
      (Partition : in Partition_ID;
-      Request   : in Request_Type;
-      Channel   : in out Channel_Type;
-      Status    : out Status_Type)
+      Request   : in Request_Type)
    is
+      Version : Version_Id;
+      Channel : Channel_Type;
    begin
-      Status := Unmodified;
+      Channels.Enter;
+
+      Channel := Channels.Get_Component (Partition);
 
       if not Channel.Installed then
-         pragma Debug
-           (D (D_Debug, "Install filter of partition" & Partition'Img));
-
-         Channel.Filter    := Get_Partition_Filter (Partition);
-         Channel.Installed := True;
-
-         if Channel.Filter = null then
-            Channel.Incoming.Ready := True;
-            Channel.Outgoing.Ready := True;
-         end if;
-
-         Status := Modified;
+         Install_Channel (Partition, Channel);
       end if;
 
-      if not Channel.Incoming.Ready then
+      if Channel.Incoming.Status = None then
          pragma Debug
            (D (D_Debug,
                "Generate params for partition" & Partition'Img &
@@ -429,11 +420,13 @@ package body System.Garlic.Filters is
             Channel.Incoming.Remote,
             Channel.Incoming.Local,
             Channel.Exchange);
-         Channel.Incoming.Ready := True;
+         Channel.Incoming.Status := Done;
 
-         Status := Modified;
+         Channels.Set_Component (Partition, Channel);
       end if;
-   end Incoming;
+
+      Channels.Leave (Version);
+   end  Get_Params_For_Incoming;
 
    ----------------
    -- Initialize --
@@ -474,95 +467,150 @@ package body System.Garlic.Filters is
       Register_Handler (Filtering_Service, Handle_Request'Access);
    end Initialize;
 
-   --------------
-   -- Outgoing --
-   --------------
+   ---------------------
+   -- Install_Channel --
+   ---------------------
 
-   procedure Outgoing
+   procedure Install_Channel
      (Partition : in Partition_ID;
-      Request   : in Request_Type;
-      Channel   : in out Channel_Type;
-      Status    : out Status_Type)
-   is
+      Channel   : in out Channel_Type) is
    begin
-      Status := Unmodified;
+      pragma Debug
+        (D (D_Debug,
+            "Partition " & Name (Partition) &
+            " filter initialized"));
+
+      Channel.Filter    := Get_Partition_Filter (Partition);
+      Channel.Installed := True;
+
+      if Channel.Filter = null then
+         Channel.Incoming.Status := Done;
+         Channel.Outgoing.Status := Done;
+      end if;
+
+      Channels.Set_Component (Partition, Channel);
+   end Install_Channel;
+
+   -----------------------------
+   -- Get_Params_For_Outgoing --
+   -----------------------------
+
+   procedure Get_Params_For_Outgoing
+     (Partition : in Partition_ID;
+      Request   : in Request_Type)
+   is
+      Channel : Channel_Type;
+      Version : Version_Id;
+      Waiting : Boolean;
+   begin
+      loop
+         Waiting := False;
+
+         Channels.Enter;
+         Channel := Channels.Get_Component (Partition);
+
+         if not Channel.Installed then
+            Install_Channel (Partition, Channel);
+         end if;
+
+         case Channel.Outgoing.Status is
+            when None =>
+
+               --  Always generate params. An outgoing channel will not
+               --  always use the local part but it needs to know if an
+               --  param exchange is needed.
+
+               Generate_Params
+                 (Channel.Filter.all,
+                  Channel.Outgoing.Remote,
+                  Channel.Outgoing.Local,
+                  Channel.Exchange);
+
+               if not Channel.Exchange then
+                  pragma Debug
+                    (D (D_Debug,
+                        "Exchange nothing for partition " & Name (Partition) &
+                        " outgoing filter"));
+
+                  Channel.Outgoing.Status := Done;
+
+               else
+
+                  --  A parameter exchange is needed. This partition should
+                  --  ask the other partition for its remote parameter (pull
+                  --  method). Previous remote and local params are discarded.
+
+                  Channel.Outgoing.Status := Busy;
+
+                  Free (Channel.Outgoing.Remote);
+                  Free (Channel.Outgoing.Local);
+
+                  Send (Partition, Get_Params, Channel);
+
+                  pragma Debug
+                    (D (D_Debug,
+                        "Query params for partition " & Name (Partition) &
+                        " outgoing filter"));
+
+                  Waiting := True;
+
+               end if;
+
+               Channels.Set_Component (Partition, Channel);
+
+            when Busy =>
+               Waiting := True;
+
+            when Done =>
+               null;
+
+         end case;
+
+         Channels.Leave (Version);
+
+         exit when not Waiting;
+
+         Channels.Differ (Version);
+      end loop;
+   end Get_Params_For_Outgoing;
+
+   -----------------------------
+   -- Set_Params_For_Outgoing --
+   -----------------------------
+
+   procedure Set_Params_For_Outgoing
+     (Partition : in Partition_ID;
+      Request   : in Request_Type)
+   is
+      Channel : Channel_Type;
+      Version : Version_Id;
+   begin
+      Channels.Enter;
+      Channel := Channels.Get_Component (Partition);
 
       if not Channel.Installed then
+         Install_Channel (Partition, Channel);
+      end if;
+
+      --  If this request (Set_Params) is the answer to a remote
+      --  request from this partition (Get_Params), then save the
+      --  remote part (of the other partition) into the local part
+      --  (of this partition).
+
+      if Channel.Outgoing.Status /= Done then
          pragma Debug
            (D (D_Debug,
-               "Partition " & Name (Partition) &
-               " filter initialized"));
+               "Save params for partition " & Name (Partition) &
+               " outgoing filter"));
 
-         Channel.Filter    := Get_Partition_Filter (Partition);
-         Channel.Installed := True;
+         Channel.Outgoing.Status := Done;
+         Channel.Outgoing.Local  := Request.Parameter;
 
-         if Channel.Filter = null then
-            Channel.Incoming.Ready := True;
-            Channel.Outgoing.Ready := True;
-         end if;
-
-         Status := Modified;
+         Channels.Set_Component (Partition, Channel);
       end if;
 
-      if not Channel.Outgoing.Ready then
-
-         --  If this request (Set_Params) is the answer to a remote request
-         --  from this partition (Get_Params), then save the remote part
-         --  (of the other partition) into the local part (of this
-         --  partition).
-
-         if Request.Command = Set_Params then
-            pragma Debug
-              (D (D_Debug,
-                  "Save params for partition " & Name (Partition) &
-                  " outgoing filter"));
-
-            Channel.Outgoing.Ready := True;
-            Channel.Outgoing.Local := Request.Parameter;
-            Status := Modified;
-
-         else
-
-            --  Always generate params. An outgoing channel will not always
-            --  use the local part but it needs to know if an param
-            --  exchange is needed.
-
-            Generate_Params
-              (Channel.Filter.all,
-               Channel.Outgoing.Remote,
-               Channel.Outgoing.Local,
-               Channel.Exchange);
-
-            if not Channel.Exchange then
-               pragma Debug
-                 (D (D_Debug,
-                     "Exchange no params for partition " &
-                     Name (Partition) &
-                     " outgoing filter"));
-
-               Channel.Outgoing.Ready := True;
-               Status := Modified;
-
-            else
-
-               --  A parameter exchange is needed. This partition should
-               --  ask the other partition for its remote parameter (pull
-               --  method). Previous remote and local params are discarded.
-
-               Free (Channel.Outgoing.Remote);
-               Free (Channel.Outgoing.Local);
-
-               pragma Debug
-                 (D (D_Debug,
-                     "Query params for partition " & Name (Partition) &
-                     " outgoing filter"));
-
-               Send (Partition, Get_Params, Channel);
-               Status := Postponed;
-            end if;
-         end if;
-      end if;
-   end Outgoing;
+      Channels.Leave (Version);
+   end Set_Params_For_Outgoing;
 
    ---------------------
    -- Register_Filter --

@@ -79,7 +79,7 @@ package body System.RPC.Stream_IO is
 
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Garlic.Streams.Params_Stream_Type);
 
    -----------
@@ -236,7 +236,7 @@ package body System.RPC.Stream_IO is
 
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Garlic.Streams.Params_Stream_Type) is
       SEA : Stream_Element_Array (1 .. Params.Count);
       Len : Stream_Element_Offset;

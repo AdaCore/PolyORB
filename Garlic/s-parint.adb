@@ -64,7 +64,7 @@ package body System.Partition_Interface is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.Garlic.Units.Complex;
+   package Units renames System.Garlic.Units.Units;
 
    function Convert is
      new Ada.Unchecked_Conversion
@@ -87,7 +87,7 @@ package body System.Partition_Interface is
 
    procedure Handle_Request
      (Partition : in Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Params_Stream_Type);
    --  Global message receiver
 
@@ -220,10 +220,10 @@ package body System.Partition_Interface is
 
    begin
       To_Lower (N);
-      U := Get_Index (N);
+      U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
-      Apply (U, Get_Unit_Request, Process'Access);
-      return RPC.Partition_ID (Get_Component (U).Partition);
+      Process (U, Get_Unit_Request);
+      return RPC.Partition_ID (Units.Get_Component (U).Partition);
    end Get_Active_Partition_ID;
 
    ------------------------
@@ -238,10 +238,10 @@ package body System.Partition_Interface is
       U : Unit_Id;
    begin
       To_Lower (N);
-      U := Get_Index (N);
+      U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Version"));
-      Apply (U, Get_Unit_Request, Process'Access);
-      return Get_Component (U).Version.all;
+      Process (U, Get_Unit_Request);
+      return Units.Get_Component (U).Version.all;
    end Get_Active_Version;
 
    ----------------------------
@@ -277,11 +277,11 @@ package body System.Partition_Interface is
       U : Unit_Id;
    begin
       To_Lower (N);
-      U := Get_Index (N);
+      U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
 
-      Apply (U, Get_Unit_Request, Process'Access);
-      return Get_Component (U).Receiver;
+      Process (U, Get_Unit_Request);
+      return Units.Get_Component (U).Receiver;
    end Get_RCI_Package_Receiver;
 
    -------------------------------
@@ -345,7 +345,7 @@ package body System.Partition_Interface is
 
    procedure Handle_Request
      (Partition : in Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Params_Stream_Type)
    is
       R : Request_Type;
@@ -355,7 +355,7 @@ package body System.Partition_Interface is
 
       case R.Command is
          when Set_Unit =>
-            U := Get_Index (Unit_Name'Input (Params));
+            U := Units.Get_Index (Unit_Name'Input (Params));
             Partition_ID'Read (Params, R.Partition);
             Interfaces.Unsigned_64'Read (Params, R.Receiver);
             R.Version := new String'(String'Input (Params));
@@ -363,17 +363,17 @@ package body System.Partition_Interface is
             pragma Debug
               (D (D_RNS,
                   "Recv "   & R.Command'Img &
-                  " on "    & Get_Name (U) &
+                  " on "    & Units.Get_Name (U) &
                   " from "  & Partition'Img));
 
          when Get_Unit =>
-            U := Get_Index (Unit_Name'Input (Params));
+            U := Units.Get_Index (Unit_Name'Input (Params));
             R.Partition := Partition;
 
             pragma Debug
               (D (D_RNS,
                   "Recv "   & R.Command'Img &
-                  " on "    & Get_Name (U) &
+                  " on "    & Units.Get_Name (U) &
                   " from "  & Partition'Img));
 
          when Invalidate =>
@@ -388,7 +388,7 @@ package body System.Partition_Interface is
 
       end case;
 
-      Apply (U, R, Process'Access);
+      Process (U, R);
    end Handle_Request;
 
    ------------------------------------
@@ -421,16 +421,16 @@ package body System.Partition_Interface is
    begin
       pragma Debug (D (D_Debug, "Request Register_Receiving_Stub"));
       To_Lower (Uname);
-      Uindex := Get_Index (Uname);
+      Uindex := Units.Get_Index (Uname);
 
       pragma Debug (D (D_Debug, "Request Set_Unit"));
-      Apply (Uindex, Request, Process'Access);
+      Process (Uindex, Request);
 
       pragma Debug (D (D_Debug, "Request Get_Unit"));
-      Apply (Uindex, Get_Unit_Request, Process'Access);
+      Process (Uindex, Get_Unit_Request);
 
       pragma Debug (D (D_Debug, "Verify Set_Unit"));
-      if Get_Component (Uindex).Partition /= Local_Partition then
+      if Units.Get_Component (Uindex).Partition /= Local_Partition then
          Soft_Shutdown;
          Ada.Exceptions.Raise_Exception
            (Program_Error'Identity,
@@ -466,8 +466,8 @@ package body System.Partition_Interface is
          if Status /= Known then
             pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
 
-            Apply (Uname, Request, Process'Access);
-            Unit := Get_Component (Uname);
+            Process (Uname, Request);
+            Unit := Units.Get_Component (Uname);
 
             if Unit.Status = Invalid then
                Raise_Communication_Error
@@ -496,8 +496,8 @@ package body System.Partition_Interface is
          if Status /= Known then
             pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
 
-            Apply (Uname, Request, Process'Access);
-            Unit := Get_Component (Uname);
+            Process (Uname, Request);
+            Unit := Units.Get_Component (Uname);
 
             if Unit.Status = Invalid then
                Raise_Communication_Error
@@ -513,7 +513,7 @@ package body System.Partition_Interface is
 
    begin
       To_Lower (Name);
-      Uname := Get_Index (Name);
+      Uname := Units.Get_Index (Name);
    end RCI_Info;
 
    ---------

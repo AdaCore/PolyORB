@@ -55,8 +55,6 @@ package body System.Garlic.Units is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.Garlic.Units.Complex;
-
    Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
    Get_Unit_Request : constant Request_Type :=
      (Get_Unit, Local_Partition, 0, null, null);
@@ -84,14 +82,15 @@ package body System.Garlic.Units is
 
       pragma Debug
         (D (D_Debug,
-            "Add " & Get_Name (N) & " in RCI list of partition" & P'Img));
+            "Add " & Units.Get_Name (N) &
+            " in RCI list of partition" & P'Img));
 
       RCI_List_Id   := Partition_RCI_List (P);
-      RCI_List_Unit := Get_Component (RCI_List_Id);
+      RCI_List_Unit := Units.Get_Component (RCI_List_Id);
 
       U.Next_Unit := RCI_List_Unit.Next_Unit;
       RCI_List_Unit.Next_Unit := N;
-      Set_Component (RCI_List_Id, RCI_List_Unit);
+      Units.Set_Component (RCI_List_Id, RCI_List_Unit);
    end Add_To_Partition_RCI_List;
 
    ------------------
@@ -130,51 +129,61 @@ package body System.Garlic.Units is
 
    procedure Process
      (N       : in Unit_Id;
-      Request : in Request_Type;
-      Unit    : in out Unit_Type;
-      Status  : out Status_Type)
+      Request : in Request_Type)
    is
       Reconnection : Reconnection_Type;
-
+      Unit         : Unit_Type;
+      Version      : Version_Id;
+      Waiting      : Boolean;
    begin
-      case Request.Command is
-         when Get_Unit =>
+      loop
+         Waiting := False;
 
-            --  If Request.Cache is different from null then the request
-            --  comes from an RCI_Info package. This cache reference
-            --  has to be saved for later use.
+         Units.Enter;
+         Unit := Units.Get_Component (N);
 
-            if Request.Cache /= null then
-               Unit.Cache := Request.Cache;
-            end if;
+         pragma Debug (D (D_Debug,
+                          "Unit " & Units.Get_Name (N) &
+                          " is " & Unit.Status'Img));
 
-            case Unit.Status is
-               when Known =>
-                  pragma Debug (D (D_Debug, Get_Name (N) & " is known"));
+         case Request.Command is
+            when Get_Unit =>
 
-                  --  If the request is remote, then send a set request
-                  --  to the remote partition. Note that the cache reference
-                  --  is useless.
+               --  If Request.Cache is different from null then the request
+               --  comes from an RCI_Info package. This cache reference
+               --  has to be saved for later use.
 
-                  if Request.Partition /= Local_Partition then
-                     declare
-                        R : Request_Type
-                          := (Set_Unit,
-                              Unit.Partition,
-                              Unit.Receiver,
-                              Unit.Version,
-                              null);
-                     begin
-                        Send (Request.Partition, R, N);
-                     end;
-                  end if;
+               if Request.Cache /= null then
+                  Unit.Cache := Request.Cache;
+                  pragma Debug (D (D_Debug, "Update " & Units.Get_Name (N)));
+                  Units.Set_Component (N, Unit);
+               end if;
 
-                  --  Unit kept unmodified
+               case Unit.Status is
+                  when Known =>
+                     pragma Debug
+                       (D (D_Debug, Units.Get_Name (N) & " is known"));
 
-                  Status := Unmodified;
+                     --  If the request is remote, then send a set request
+                     --  to the remote partition. Note that the cache
+                     --  reference is useless.
+
+                     if Request.Partition /= Local_Partition then
+                        declare
+                           R : Request_Type
+                             := (Set_Unit,
+                                 Unit.Partition,
+                                 Unit.Receiver,
+                                 Unit.Version,
+                                 null);
+                        begin
+                           Send (Request.Partition, R, N);
+                        end;
+                     end if;
 
                when Unknown | Queried =>
-                  pragma Debug (D (D_Debug, Get_Name (N) & " is unknown"));
+                  pragma Debug
+                    (D (D_Debug, Units.Get_Name (N) & " is unknown"));
 
                   if not Boot_Partition then
 
@@ -185,15 +194,16 @@ package body System.Garlic.Units is
                      end if;
                      Unit.Status := Queried;
 
-                     --  Unit modified and request unsatisfied
-
-                     Status := Postponed;
+                     pragma Debug
+                       (D (D_Debug, "Update " & Units.Get_Name (N)));
+                     Units.Set_Component (N, Unit);
+                     Waiting := True;
 
                   elsif Request.Partition /= Boot_PID then
                      pragma Debug
                        (D (D_Debug,
                            "Queuing request from" & Request.Partition'Img &
-                           " on " & Get_Name (N)));
+                           " on " & Units.Get_Name (N)));
 
                      --  Queue this request in order to answer it when info
                      --  is available. Note that this is a remote request
@@ -202,18 +212,17 @@ package body System.Garlic.Units is
                      Unit.Pending := True;
                      Unit.Requests (Request.Partition) := True;
 
-                     --  Unit modified but request satisfied (pending)
-
-                     Status := Modified;
+                     pragma Debug
+                       (D (D_Debug, "Update " & Units.Get_Name (N)));
+                     Units.Set_Component (N, Unit);
 
                   else
-                     --  Request unsatisfied
-
-                     Status := Postponed;
+                     Waiting := True;
                   end if;
 
                when Invalid =>
-                  pragma Debug (D (D_Debug, Get_Name (N) & " is invalid"));
+                  pragma Debug
+                    (D (D_Debug, Units.Get_Name (N) & " is invalid"));
 
                   --  If the request is remote, then send a set request
                   --  to the remote partition. Note that the cache reference
@@ -234,178 +243,166 @@ package body System.Garlic.Units is
                         Send (Request.Partition, R, N);
                      end;
                   end if;
+               end case;
 
-                  --  Unit kept unmodified
+            when Set_Unit =>
 
-                  Status := Unmodified;
+               case Unit.Status is
+                  when Unknown | Invalid =>
 
-            end case;
+                     --  If the unit was already registered on a dead
+                     --  partition and if this partition should be rejected
+                     --  on restart then keep name server as is.
 
-         when Set_Unit =>
+                     if Unit.Status /= Invalid
+                       or else not Boot_Partition
+                       or else  Reconnection_Policy (Unit.Partition)
+                       /= Rejected_On_Restart
+                     then
+                        if Boot_Partition then
 
-            case Unit.Status is
-               when Unknown | Invalid =>
+                           --  Link this unit to the list of units
+                           --  configured on this partition.
 
-                  --  If the unit was already registered on a dead partition
-                  --  and if this partition should be rejected on restart
-                  --  then keep name server as is.
+                           Add_To_Partition_RCI_List
+                             (N, Unit, Request.Partition);
 
-                  if Unit.Status = Invalid
-                    and then
-                    Boot_Partition
-                    and then
-                    Reconnection_Policy (Unit.Partition) = Rejected_On_Restart
-                  then
-                     Status := Unmodified;
-                     return;
-                  end if;
+                           --  All set requests are handled on boot partition
 
-                  if Boot_Partition then
+                           Unit.Status    := Known;
+                           Unit.Receiver  := Request.Receiver;
+                           Unit.Version   := Request.Version;
+                           Unit.Partition := Request.Partition;
 
-                     --  Link this unit to the list of units configured
-                     --  on this partition.
+                           --  Answer pending requests
 
-                     Add_To_Partition_RCI_List (N, Unit, Request.Partition);
+                           if Unit.Pending then
+                              pragma Debug
+                                (D (D_Debug,
+                                    "Answer pending requests on " &
+                                    Units.Get_Name (N)));
 
-                     --  All set requests are handled on boot partition
+                              --  Dequeue pending requests
 
-                     Unit.Status    := Known;
-                     Unit.Receiver  := Request.Receiver;
-                     Unit.Version   := Request.Version;
-                     Unit.Partition := Request.Partition;
-
-                     --  Answer pending requests
-
-                     if Unit.Pending then
-                        pragma Debug
-                          (D (D_Debug,
-                              "Answer pending requests on " &
-                              Get_Name (N)));
-
-                        --  Dequeue pending requests
-
-                        for P in Unit.Requests'Range loop
-                           if Unit.Requests (P) then
-                              Send (P, Request, N);
-                              Unit.Requests (P) := False;
+                              for P in Unit.Requests'Range loop
+                                 if Unit.Requests (P) then
+                                    Send (P, Request, N);
+                                    Unit.Requests (P) := False;
+                                 end if;
+                              end loop;
+                              Unit.Pending := False;
                            end if;
-                        end loop;
-                        Unit.Pending := False;
+
+                           if Unit.Cache /= null then
+                              Set_RCI_Data
+                                (Unit.Cache.all,
+                              Unit.Receiver,
+                                 Unit.Partition);
+                           end if;
+
+                           pragma Debug
+                             (D (D_Debug, "Update " & Units.Get_Name (N)));
+                           Units.Set_Component (N, Unit);
+
+                        else
+                           pragma Debug
+                             (D (D_Debug, Units.Get_Name (N) &
+                                 " registered on boot server"));
+
+                           --  Forward set request to boot partition
+
+                           Send (Boot_PID, Request, N);
+
+                        end if;
                      end if;
 
-                     if Unit.Cache /= null then
-                        Set_RCI_Data
-                          (Unit.Cache.all,
-                           Unit.Receiver,
-                           Unit.Partition);
-                     end if;
+                  when Queried =>
 
-                     --  Unit modified
+                     --  If Request.Partition is null, then it means
+                     --  this partition has been invalidated and it is
+                     --  still invalid.
 
-                     Status := Modified;
-
-                  else
-                     pragma Debug
-                       (D (D_Debug, Get_Name (N) &
-                           " registered on boot server"));
-
-                     --  Forward set request to boot partition
-
-                     Send (Boot_PID, Request, N);
-
-                     --  Unit kept unmodified
-
-                     Status := Unmodified;
-
-                  end if;
-
-               when Queried =>
-
-                  --  Unit modified
-
-                  Status := Modified;
-
-                  --  If Request.Partition is null, then it means
-                  --  this partition has been invalidated and it is
-                  --  still invalid.
-
-                  if Request.Partition = Null_PID then
                      Unit.Status := Known;
-                     return;
-                  end if;
+                     if Request.Partition /= Null_PID then
+                        Add_To_Partition_RCI_List (N, Unit, Request.Partition);
 
-                  Add_To_Partition_RCI_List (N, Unit, Request.Partition);
+                        --  Store info. Note this info can be obtained
+                        --  after a "set" request. In this case, we obtain
+                        --  the first partition which has declared this
+                        --  unit.  Register_Receiving_Stub will raise an
+                        --  exception if the partition on which is declared
+                        --  this unit is not the current partition. This is
+                        --  possible when this unit is declared twice.
 
-                  --  Store info. Note this info can be obtained after
-                  --  a "set" request. In this case, we obtain the
-                  --  first partition which has declared this unit.
-                  --  Register_Receiving_Stub will raise an exception
-                  --  if the partition on which is declared this unit is
-                  --  not the current partition. This is possible when
-                  --  this unit is declared twice.
+                        Unit.Receiver  := Request.Receiver;
+                        Unit.Version   := Request.Version;
+                        Unit.Partition := Request.Partition;
 
-                  Unit.Status    := Known;
-                  Unit.Receiver  := Request.Receiver;
-                  Unit.Version   := Request.Version;
-                  Unit.Partition := Request.Partition;
+                        if Unit.Cache /= null then
+                           Set_RCI_Data
+                             (Unit.Cache.all,
+                              Unit.Receiver,
+                              Unit.Partition);
+                        end if;
+                     end if;
 
-                  if Unit.Cache /= null then
-                     Set_RCI_Data
-                       (Unit.Cache.all,
-                        Unit.Receiver,
-                        Unit.Partition);
-                  end if;
+                     pragma Debug
+                       (D (D_Debug, "Update " & Units.Get_Name (N)));
+                     Units.Set_Component (N, Unit);
 
-               when Known =>
+                  when Known =>
+                     null;
 
-                  Status := Unmodified;
+               end case;
 
-            end case;
+            when Invalidate =>
 
-         when Invalidate =>
+               Reconnection := Reconnection_Policy (Request.Partition);
 
-            Status       := Modified;
-            Reconnection := Reconnection_Policy (Request.Partition);
+               --  Send the same request to boot_server
 
-            --  Send the same request to boot_server
+               if not Boot_Partition then
+                  Send (Boot_PID, Request, N);
+               end if;
 
-            if not Boot_Partition then
-               Send (Boot_PID, Request, N);
-            end if;
+               --  Invalidate all RCI units of a given partition
 
-            --  Invalidate all RCI units of a given partition
+               declare
+                  U : Unit_Type;
+                  I : Unit_Id;
+               begin
+                  I := Unit.Next_Unit;
+                  while I /= Null_Unit_Id loop
+                     U := Units.Get_Component (I);
 
-            declare
-               U : Unit_Type;
-               I : Unit_Id;
+                     if Reconnection = Blocked_Until_Restart then
+                        U.Status    := Unknown;
+                     else
+                        U.Status      := Invalid;
+                     end if;
 
-            begin
-               I := Unit.Next_Unit;
-               while I /= Null_Unit_Id loop
-                  U := Get_Component (I);
+                     --  Update cache status
+                     if U.Cache /= null then
+                        Update (U.Cache.all, U.Partition, U.Status);
+                     end if;
 
-                  if Reconnection = Blocked_Until_Restart then
-                     U.Status    := Unknown;
-                  else
-                     U.Status      := Invalid;
-                  end if;
+                     pragma Debug
+                       (D (D_Debug,
+                           "RCI unit " & Units.Get_Name (I) &
+                           " status is now " & U.Status'Img));
 
-                  --  Update cache status
-                  if U.Cache /= null then
-                     Update (U.Cache.all, U.Partition, U.Status);
-                  end if;
+                     Units.Set_Component (I, U);
+                     I := U.Next_Unit;
+                  end loop;
+               end;
+         end case;
 
-                  pragma Debug
-                    (D (D_Debug,
-                        "RCI unit " & Get_Name (I) &
-                        " status is now " & U.Status'Img));
+         Units.Leave (Version);
 
-                  Set_Component (I, U);
-                  I := U.Next_Unit;
-               end loop;
-            end;
+         exit when not Waiting;
 
-      end case;
+         Units.Differ (Version);
+      end loop;
    end Process;
 
    ------------------------
@@ -417,7 +414,7 @@ package body System.Garlic.Units is
       return Unit_Id is
       Name : constant String := "partition " & Partition'Img;
    begin
-      return Get_Index (Name);
+      return Units.Get_Index (Name);
    end Partition_RCI_List;
 
    ----------
@@ -437,10 +434,10 @@ package body System.Garlic.Units is
             pragma Debug
               (D (D_RNS,
                   "Send " & Request.Command'Img &
-                  " on "  & Get_Name (Unit) &
+                  " on "  & Units.Get_Name (Unit) &
                   " to "  & Partition'Img));
 
-            String'Output (Params'Access, Get_Name (Unit));
+            String'Output (Params'Access, Units.Get_Name (Unit));
             Partition_ID'Write (Params'Access, Request.Partition);
             Interfaces.Unsigned_64'Write (Params'Access, Request.Receiver);
             String'Output (Params'Access, Request.Version.all);
@@ -449,10 +446,10 @@ package body System.Garlic.Units is
             pragma Debug
               (D (D_RNS,
                   "Send " & Request.Command'Img &
-                  " on "  & Get_Name (Unit) &
+                  " on "  & Units.Get_Name (Unit) &
                   " to "  & Partition'Img));
 
-            String'Output (Params'Access, Get_Name (Unit));
+            String'Output (Params'Access, Units.Get_Name (Unit));
 
          when Invalidate =>
             pragma Debug

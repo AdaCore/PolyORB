@@ -53,7 +53,9 @@ with System.RPC.Stream_IO;
 package body System.RPC is
 
    use Ada.Streams;
-   use System.Garlic.Units.Complex;
+   use System.Garlic.Units;
+
+   package Units renames System.Garlic.Units.Units;
 
    use type System.Garlic.Streams.Params_Stream_Access;
    use type System.Garlic.Streams.Params_Stream_Type;
@@ -85,7 +87,8 @@ package body System.RPC is
    subtype Valid_RPC_Id is RPC_Id range APC + 1 .. RPC_Id'Last;
 
    Callers : array (Valid_RPC_Id) of RPC_Info;
-   Callers_Mutex : Mutex_Access := Create;
+   Callers_Mutex   : Mutex_Access := Create;
+   Callers_Watcher : Watcher_Access := Create;
 
    type Abort_Keeper is new Ada.Finalization.Controlled with record
       Sent : Boolean := False;
@@ -116,7 +119,7 @@ package body System.RPC is
 
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Streams.Params_Stream_Type);
    --  Receive data
 
@@ -134,6 +137,7 @@ package body System.RPC is
 
    procedure Allocate (RPC : out RPC_Id; PID : in Types.Partition_ID)
    is
+      Version : Version_Id;
    begin
       loop
          Enter (Callers_Mutex);
@@ -142,11 +146,13 @@ package body System.RPC is
                Callers (I).Status := Running;
                Callers (I).PID := PID;
                RPC := I;
-               Leave (Callers_Mutex, Modified);
+               Leave (Callers_Mutex);
                return;
             end if;
          end loop;
-         Leave (Callers_Mutex, Postponed);
+         Commit (Callers_Watcher, Version);
+         Leave (Callers_Mutex);
+         Differ (Callers_Watcher, Version);
       end loop;
    end Allocate;
 
@@ -159,7 +165,8 @@ package body System.RPC is
    begin
       Enter (Callers_Mutex);
       Callers (RPC).Status := Unknown;
-      Leave (Callers_Mutex, Modified);
+      Update (Callers_Watcher);
+      Leave (Callers_Mutex);
    end Deallocate;
 
    ------------
@@ -257,7 +264,6 @@ package body System.RPC is
 
    procedure Finalize (Keeper : in out Abort_Keeper)
    is
-      Status : Status_Type := Unmodified;
    begin
       if Keeper.Sent then
          pragma Debug (D (D_Debug, "Will invalidate object" & Keeper.RPC'Img));
@@ -265,9 +271,9 @@ package body System.RPC is
          Send_Abort_Message (Keeper.PID, Keeper.RPC);
          if Callers (Keeper.RPC).Status = Running then
             Callers (Keeper.RPC).Status := Aborted;
-            Status := Modified;
+            Update (Callers_Watcher);
          end if;
-         Leave (Callers_Mutex, Status);
+         Leave (Callers_Mutex);
       end if;
    end Finalize;
 
@@ -307,7 +313,7 @@ package body System.RPC is
       pragma Debug
         (D (D_Debug, "Invalidate partition" & Partition'Img & "'s RCI units"));
 
-      Apply (Partition_RCI_List (Partition), Invalidation, Process'Access);
+      Process (Partition_RCI_List (Partition), Invalidation);
    end Invalidate_RCI_Units;
 
    ----------------------------------
@@ -332,7 +338,7 @@ package body System.RPC is
 
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Streams.Params_Stream_Type)
    is
       Header : constant RPC_Header := RPC_Header'Input (Params);
@@ -373,7 +379,8 @@ package body System.RPC is
                Callers (Header.RPC).Result
                  := Streams.To_Stream_Element_Access (Params);
             end if;
-            Leave (Callers_Mutex, Modified);
+            Update (Callers_Watcher);
+            Leave (Callers_Mutex);
 
          when Abortion_Query =>
             pragma Debug
@@ -389,7 +396,8 @@ package body System.RPC is
                   Partition'Img & " (rpc" & Header.RPC'Img & ")"));
             Enter (Callers_Mutex);
             Callers (Header.RPC).Status := Unknown;
-            Leave (Callers_Mutex, Modified);
+            Update (Callers_Watcher);
+            Leave (Callers_Mutex);
 
       end case;
    end Handle_Request;
@@ -400,16 +408,19 @@ package body System.RPC is
 
    procedure Raise_Partition_Error (PID : in Types.Partition_ID)
    is
-      Status : Status_Type := Unmodified;
+      Modified : Boolean := False;
    begin
       Enter (Callers_Mutex);
       for I in Callers'Range loop
          if Callers (I).Status = Running then
             Callers (I).Status := Aborted;
-            Status := Modified;
+            Modified := True;
          end if;
       end loop;
-      Leave (Callers_Mutex, Status);
+      if Modified then
+         Update (Callers_Watcher);
+      end if;
+      Leave (Callers_Mutex);
    end Raise_Partition_Error;
 
    ----------
@@ -465,6 +476,7 @@ package body System.RPC is
      (RPC    : in  RPC_Id;
       Result : out Streams.Stream_Element_Access)
    is
+      Version : Version_Id;
    begin
       loop
          Enter (Callers_Mutex);
@@ -473,19 +485,23 @@ package body System.RPC is
                Result := Callers (RPC).Result;
                Callers (RPC).Status := Unknown;
                Callers (RPC).Result := null;
-               Leave (Callers_Mutex, Modified);
+               Update (Callers_Watcher);
+               Leave (Callers_Mutex);
                return;
 
             when Aborted =>
                Callers (RPC).Status := Unknown;
                Callers (RPC).Result := null;
-               Leave (Callers_Mutex, Modified);
+               Update (Callers_Watcher);
+               Leave (Callers_Mutex);
                raise Communication_Error;
 
             when others =>
-               Leave (Callers_Mutex, Postponed);
+               Commit (Callers_Watcher, Version);
+               Leave (Callers_Mutex);
 
          end case;
+         Differ (Callers_Watcher, Version);
       end loop;
    end Wait_For;
 

@@ -169,7 +169,7 @@ package System.Garlic.Heart is
        Filtering_Service);       -- Last Public Opcode
    subtype Internal_Opcode is Any_Opcode
      range No_Operation .. Shutdown_Operation;
-   subtype Public_Opcode is Any_Opcode
+   subtype External_Opcode is Any_Opcode
      range Remote_Call .. Filtering_Service;
    --  Type of the current operation. Note that Invalid_Operation is here
    --  to catch the trivial case where zeros are sent instead of a real
@@ -181,7 +181,7 @@ package System.Garlic.Heart is
    type Request_Handler is
       access procedure
      (Partition : in Types.Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Streams.Params_Stream_Type);
    --  A procedure which will get the requests
 

@@ -6,8 +6,6 @@ with System.Garlic.Physical_Location;
 
 private package System.Garlic.Partitions is
 
-   type Partition_Status is (Undefined, Queried, Defined);
-
    type Partition_Info is record
       Allocated    : Boolean;
       Location     : Physical_Location.Location_Type;
@@ -15,7 +13,7 @@ private package System.Garlic.Partitions is
       Logical_Name : Utils.String_Access;
       Termination  : Types.Termination_Type;
       Reconnection : Types.Reconnection_Type;
-      Status       : Partition_Status;
+      Status       : Types.Status_Type;
    end record;
    --    Allocated    : true when this slot is not empty
    --    Location     : partition physical location
@@ -32,7 +30,7 @@ private package System.Garlic.Partitions is
       Logical_Name => null,
       Termination  => Types.Global_Termination,
       Reconnection => Types.Rejected_On_Restart,
-      Status       => Undefined);
+      Status       => Types.None);
 
    type Request_Kind is (Get_Partition_Info, Set_Partition_Info);
 
@@ -49,14 +47,13 @@ private package System.Garlic.Partitions is
          end case;
       end record;
 
-   package Complex is new System.Garlic.Table.Complex
+   package Partitions is new System.Garlic.Table.Complex
      (Index_Type     => Types.Partition_ID,
       Null_Index     => Types.Null_PID,
       First_Index    => Types.Boot_PID,
       Initial_Size   => Natural (Types.Last_PID),
       Increment_Size => 0,
       Component_Type => Partition_Info,
-      Null_Component => Null_Partition,
-      Parameter_Type => Request_Type);
+      Null_Component => Null_Partition);
 
 end System.Garlic.Partitions;

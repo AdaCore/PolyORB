@@ -93,7 +93,8 @@ package body System.Garlic.TCP is
    end record;
 
    Socket_Table : array (Boot_PID .. Last_PID) of Socket_Type;
-   Socket_Table_Mutex : Mutex_Access := Create;
+   Socket_Table_Mutex   : Mutex_Access := Create;
+   Socket_Table_Watcher : Watcher_Access := Create;
 
    type Banner_Kind is (Junk_Banner, Data_Banner, Quit_Banner);
    --  Various headers that can be performed on a communication link
@@ -336,6 +337,7 @@ package body System.Garlic.TCP is
    -----------
 
    procedure Enter (PID : Partition_ID) is
+      Version : Version_Id;
    begin
       loop
          Enter (Socket_Table_Mutex);
@@ -346,7 +348,9 @@ package body System.Garlic.TCP is
             exit;
          end if;
          pragma Debug (D (D_Debug, "Postpone lock of partition" & PID'Img));
-         Leave (Socket_Table_Mutex, Postponed);
+         Commit (Socket_Table_Watcher, Version);
+         Leave  (Socket_Table_Mutex);
+         Differ (Socket_Table_Watcher, Version);
       end loop;
    end Enter;
 
@@ -512,7 +516,8 @@ package body System.Garlic.TCP is
       Enter (Socket_Table_Mutex);
       pragma Debug (D (D_Debug, "Enter unlock of partition" & PID'Img));
       Socket_Table (PID).Locked := False;
-      Leave (Socket_Table_Mutex, Modified);
+      Update (Socket_Table_Watcher);
+      Leave (Socket_Table_Mutex);
    end Leave;
 
    ----------------------

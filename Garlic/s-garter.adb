@@ -124,7 +124,7 @@ package body System.Garlic.Termination is
 
    procedure Handle_Request
      (Partition : in Partition_ID;
-      Opcode : in Public_Opcode;
+      Opcode : in External_Opcode;
       Params    : access Params_Stream_Type);
    --  Receive a message from Garlic
 
@@ -299,7 +299,7 @@ package body System.Garlic.Termination is
 
    procedure Handle_Request
      (Partition : in Partition_ID;
-      Opcode    : in Public_Opcode;
+      Opcode    : in External_Opcode;
       Params    : access Params_Stream_Type)
    is
       Termination_Operation : Termination_Code;

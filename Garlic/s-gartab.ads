@@ -48,9 +48,6 @@ package System.Garlic.Table is
       type Component_Type is private;
       Null_Component : Component_Type;
 
-      type Parameter_Type is private;
-      --  See procedure Apply for the use of this type
-
    package Complex is
 
       type Component_Table_Type is
@@ -61,6 +58,12 @@ package System.Garlic.Table is
       Table : Component_Table_Access;
 
       --  These procedures are atomic and cannot be aborted
+
+      procedure Differ (Version : in Utils.Version_Id);
+      --  Block until internal Version becomes different from Version.
+
+      procedure Enter;
+      --  Lock table.
 
       function  Get_Component (N : Index_Type) return Component_Type;
       --  Check whether component of index N corresponds to an allocated
@@ -77,6 +80,10 @@ package System.Garlic.Table is
       --  empty string when this index corresponds to a non-allocated
       --  component.
 
+      procedure Leave (Version : out Utils.Version_Id);
+      --  Unlock table. Return internal version for later use. Version is
+      --  updated by Set_Component.
+
       procedure Set_Component (N : Index_Type; C : Component_Type);
       --  Set component of index N to C. When N is not allocated, allocate
       --  it. Raise Constraint_Error when N is not in range of current table.
@@ -84,24 +91,6 @@ package System.Garlic.Table is
       procedure Set_Name  (N : Index_Type; S : String);
       --  Set component name of index N to S. When N is not allocated, allocate
       --  it. Raise Constraint_Error when N is not in range of current table.
-
-      type Process_Type is access procedure
-        (N         : in Index_Type;
-         Parameter : in Parameter_Type;
-         Component : in out Component_Type;
-         Status    : out Utils.Status_Type);
-
-      procedure Apply
-        (N         : in Index_Type;
-         Parameter : in Parameter_Type;
-         Process   : in Process_Type);
-      --  Apply provides a critical section in which Process is executed.
-      --  This Process procedure applies to a Component and takes a
-      --  Parameter. If Status is Modified or Postponed, update the
-      --  component of Index with Component. If Status is Postponed,
-      --  this means that the process has been postponed and should be
-      --  re-executed when Component value has been modified. If component
-      --  of index N is not allocated, then allocate it.
 
    end Complex;
 

@@ -76,8 +76,6 @@ package System.Garlic.Utils is
    procedure Free is
      new Ada.Unchecked_Deallocation (Barrier_Type, Barrier_Access);
 
-   type Status_Type is (Modified, Unmodified, Postponed);
-
    type Mutex_Access is private;
 
    function Create return Mutex_Access;
@@ -90,9 +88,33 @@ package System.Garlic.Utils is
    procedure Destroy (M : in out Mutex_Access);
    --  Free the memory used by a Mutex_Access
 
-   procedure Leave (M : in Mutex_Access; S : in Status_Type := Unmodified);
+   procedure Leave (M : in Mutex_Access);
    pragma Inline (Leave);
    --  Leave one level of critical section
+
+   type Version_Id is mod 2 ** 8;
+
+   type Watcher_Access is private;
+
+   procedure Commit (W : in Watcher_Access; V : out Version_Id);
+   pragma Inline (Commit);
+   --  Fetch W stamp
+
+   function Create return Watcher_Access;
+   pragma Inline (Create);
+   --  Allocate a watcher
+
+   procedure Destroy (W : in out Watcher_Access);
+   pragma Inline (Destroy);
+   --  Destroy a watcher
+
+   procedure Differ (W : in Watcher_Access; V : in Version_Id);
+   pragma Inline (Differ);
+   --  Await until T stamp differs from S
+
+   procedure Update (W : in Watcher_Access);
+   pragma Inline (Update);
+   --  Increment stamp in W
 
    type Adv_Mutex_Access is private;
 
@@ -111,6 +133,10 @@ package System.Garlic.Utils is
    --  Leave one level of critical section
 
 private
+
+   type Watcher_Type;
+
+   type Watcher_Access is access Watcher_Type;
 
    type Mutex_Type;
 

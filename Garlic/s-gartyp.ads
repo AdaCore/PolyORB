@@ -39,6 +39,8 @@ package System.Garlic.Types is
 
    pragma Elaborate_Body;
 
+   type Status_Type is (None, Busy, Done);
+
    type Partition_ID is range 0 .. 63;
 
    Null_PID : constant Partition_ID := Partition_ID'First;

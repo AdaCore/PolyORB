@@ -42,19 +42,20 @@ package body System.Garlic.Utils is
 
    protected type Mutex_Type is
       entry Enter;
-      entry Leave (S : Status_Type := Unmodified);
+      procedure Leave;
    private
-      entry Wait (S : Status_Type);
       Locked : Boolean := False;
-      Status : Status_Type := Unmodified;
    end Mutex_Type;
-   --  A task can enter in a mutex if and only if there is no other task in
-   --  a mutex. A task can leave a mutex returning the status of its
-   --  action.  Unmodified corresponds to no modification of the protected
-   --  data. Postponed indicates that the task would like to be resumed
-   --  when the protected data is modified (in order to enter the mutex
-   --  another time). Modified corresponds to a modification and resume
-   --  all the tasks pending for a modification of the protected data.
+
+   protected type Watcher_Type is
+      function Commit return Version_Id;
+      procedure Update;
+      entry Differ (V : in Version_Id);
+   private
+      entry Await (V : in Version_Id);
+      Current : Version_Id := Version_Id'First;
+      Passing : Boolean := True;
+   end Watcher_Type;
 
    type Adv_Mutex_Type is limited record
       Mutex     : Mutex_Access;
@@ -72,6 +73,8 @@ package body System.Garlic.Utils is
      new Ada.Unchecked_Deallocation (Mutex_Type, Mutex_Access);
    procedure Free is
      new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Watcher_Type, Watcher_Access);
 
    ----------------------
    -- Access_To_String --
@@ -81,28 +84,6 @@ package body System.Garlic.Utils is
    begin
       return S.all;
    end Access_To_String;
-
-   ------------
-   -- Create --
-   ------------
-
-   function Create return Adv_Mutex_Access is
-      Item : Adv_Mutex_Access := new Adv_Mutex_Type;
-
-   begin
-      Item.Mutex   := new Mutex_Type;
-      Item.Current := Null_Task_Id;
-      return Item;
-   end Create;
-
-   ------------
-   -- Create --
-   ------------
-
-   function Create return Mutex_Access is
-   begin
-      return new Mutex_Type;
-   end Create;
 
    ------------------
    -- Barrier_Type --
@@ -149,6 +130,46 @@ package body System.Garlic.Utils is
 
    end Barrier_Type;
 
+   ------------
+   -- Create --
+   ------------
+
+   function Create return Watcher_Access is
+   begin
+      return new Watcher_Type;
+   end Create;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return Adv_Mutex_Access is
+      Item : Adv_Mutex_Access := new Adv_Mutex_Type;
+
+   begin
+      Item.Mutex   := new Mutex_Type;
+      Item.Current := Null_Task_Id;
+      return Item;
+   end Create;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return Mutex_Access is
+   begin
+      return new Mutex_Type;
+   end Create;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (W : in out Watcher_Access) is
+   begin
+      Free (W);
+   end Destroy;
+
    -------------
    -- Destroy --
    -------------
@@ -167,6 +188,15 @@ package body System.Garlic.Utils is
    begin
       Free (M);
    end Destroy;
+
+   ------------
+   -- Differ --
+   ------------
+
+   procedure Differ (W : in Watcher_Access; V : in Version_Id) is
+   begin
+      W.Differ (V);
+   end Differ;
 
    -----------
    -- Enter --
@@ -195,6 +225,15 @@ package body System.Garlic.Utils is
    end Enter;
 
    -----------
+   -- Commit --
+   -----------
+
+   procedure Commit (W : in Watcher_Access; V : out Version_Id) is
+   begin
+      V := W.Commit;
+   end Commit;
+
+   -----------
    -- Leave --
    -----------
 
@@ -214,11 +253,11 @@ package body System.Garlic.Utils is
    -- Leave --
    -----------
 
-   procedure Leave (M : in Mutex_Access; S : in Status_Type := Unmodified) is
+   procedure Leave (M : in Mutex_Access) is
    begin
       pragma Assert (M /= null);
       Abort_Undefer.all;
-      M.Leave (S);
+      M.Leave;
    end Leave;
 
    ----------------
@@ -233,7 +272,6 @@ package body System.Garlic.Utils is
 
       entry Enter when not Locked is
       begin
-         --  Abort_Defer.all;
          Locked := True;
       end Enter;
 
@@ -241,34 +279,10 @@ package body System.Garlic.Utils is
       -- Leave --
       ------------
 
-      entry Leave (S : Status_Type := Unmodified)
-      when Status /= Modified is
+      procedure Leave is
       begin
          Locked := False;
-         --  Abort_Undefer.all;
-         case S is
-            when Modified =>
-               if Wait'Count > 0 then
-                  Status := Modified;
-               end if;
-            when Postponed =>
-               requeue Wait with abort;
-            when Unmodified =>
-               null;
-         end case;
       end Leave;
-
-      ----------
-      -- Wait --
-      ----------
-
-      entry Wait (S : Status_Type)
-      when Status = Modified is
-      begin
-         if Wait'Count = 0 then
-            Status := Unmodified;
-         end if;
-      end Wait;
 
    end Mutex_Type;
 
@@ -296,5 +310,66 @@ package body System.Garlic.Utils is
          end if;
       end loop;
    end To_Lower;
+
+   ------------
+   -- Update --
+   ------------
+
+   procedure Update (W : in Watcher_Access) is
+   begin
+      W.Update;
+   end Update;
+
+   ------------------
+   -- Watcher_Type --
+   ------------------
+
+   protected body Watcher_Type is
+
+      -----------
+      -- Await --
+      -----------
+
+      entry Await (V : in Version_Id) when not Passing is
+      begin
+         if Await'Count = 0 then
+            Passing := True;
+         end if;
+         requeue Differ with abort;
+      end Await;
+
+      ------------
+      -- Commit --
+      ------------
+
+      function Commit return Version_Id is
+      begin
+         return Current;
+      end Commit;
+
+      ------------
+      -- Differ --
+      ------------
+
+      entry Differ (V : in Version_Id) when Passing is
+      begin
+         if Current = V then
+            requeue Await with abort;
+         end if;
+      end Differ;
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update is
+      begin
+         Current := Current + 1;
+         if Await'Count /= 0 then
+            Passing := False;
+         end if;
+      end Update;
+
+   end Watcher_Type;
 
 end System.Garlic.Utils;

@@ -85,7 +85,9 @@ package body System.Garlic.Table is
 
       function Valid (N : Index_Type) return Boolean;
 
-      Local_Mutex : Mutex_Access := Create;
+      Mutex   : Mutex_Access   := Create;
+      Watcher : Watcher_Access := Create;
+
       --  This lock is used to block tasks until the table is
       --  modified. This uses special behaviour of Utils.Mutex_Type.
       --  Basically, Local_Mutex.Leave (Postponed) lets the run-time know
@@ -147,40 +149,23 @@ package body System.Garlic.Table is
          return Old_Max + 1;
       end Allocate;
 
-      -----------
-      -- Apply --
-      -----------
+      ------------
+      -- Differ --
+      ------------
 
-      procedure Apply
-        (N         : in Index_Type;
-         Parameter : in Parameter_Type;
-         Process   : in Process_Type)
-      is
-         Status    : Status_Type;
+      procedure Differ (Version : in Utils.Version_Id) is
       begin
-         pragma Abort_Defer;
+         Differ (Watcher, Version);
+      end Differ;
 
-         pragma Assert (Valid (N));
-         loop
-            Enter (Local_Mutex);
-            declare
-               Component : Component_Type;
-            begin
-               Enter_Critical_Section;
-               Component := Table (N);
-               Leave_Critical_Section;
-               Process (N, Parameter, Component, Status);
-               Enter_Critical_Section;
-               Table (N) := Component;
-               Leave_Critical_Section;
-            end;
-            Leave (Local_Mutex, Status);
+      -----------
+      -- Enter --
+      -----------
 
-            --  Loop when the subprogram execution has been postponed
-
-            exit when Status /= Postponed;
-         end loop;
-      end Apply;
+      procedure Enter is
+      begin
+         Enter (Mutex);
+      end Enter;
 
       -------------------
       -- Get_Component --
@@ -247,6 +232,16 @@ package body System.Garlic.Table is
          return Get (Name);
       end Get_Name;
 
+      -----------
+      -- Leave --
+      -----------
+
+      procedure Leave (Version : out Version_Id) is
+      begin
+         Commit (Watcher, Version);
+         Leave (Mutex);
+      end Leave;
+
       -------------------
       -- Set_Component --
       -------------------
@@ -257,6 +252,7 @@ package body System.Garlic.Table is
          pragma Assert (Valid (N));
          Enter_Critical_Section;
          Table (N) := C;
+         Update (Watcher);
          Leave_Critical_Section;
       end Set_Component;
 
@@ -273,6 +269,10 @@ package body System.Garlic.Table is
          Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
          Leave_Critical_Section;
       end Set_Name;
+
+      -----------
+      -- Valid --
+      -----------
 
       function Valid (N : Index_Type) return Boolean is
       begin
@@ -305,7 +305,8 @@ package body System.Garlic.Table is
       type Usage_Table_Type   is array (Index_Type range <>) of Usage_Type;
       type Usage_Table_Access is access Usage_Table_Type;
 
-      Usage   : Usage_Table_Access;
+      Usage : Usage_Table_Access;
+      Mutex : Mutex_Access := Create;
 
       function Allocate return Index_Type;
       --  Allocate a new component.
@@ -476,6 +477,10 @@ package body System.Garlic.Table is
          Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
          Leave_Critical_Section;
       end Set_Name;
+
+      -----------
+      -- Valid --
+      -----------
 
       function Valid (N : Index_Type) return Boolean is
       begin

@@ -137,21 +137,18 @@ package System.Garlic.Units is
    --  Version     : unit version id
    --  Cache       : reference ot the caller cache
 
-   package Complex is new System.Garlic.Table.Complex
+   package Units is new System.Garlic.Table.Complex
      (Index_Type     => Unit_Id,
       Null_Index     => Null_Unit_Id,
       First_Index    => First_Unit_Id,
       Initial_Size   => 20,
       Increment_Size => 20,
       Component_Type => Unit_Type,
-      Null_Component => Null_Unit,
-      Parameter_Type => Request_Type);
+      Null_Component => Null_Unit);
 
    procedure Process
      (N       : in Unit_Id;
-      Request : in Request_Type;
-      Unit    : in out Unit_Type;
-      Status  : out Utils.Status_Type);
+      Request : in Request_Type);
    --  Execute request Request on unit Unit (N) in a critical section.
    --  When Status is Unmodified, Unit is kept unmodified. When Modified,
    --  Unit is saved in Table. When Postponed, Unit is saved in Table

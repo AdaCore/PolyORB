@@ -1,3 +1,16 @@
+1998-09-18  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garfil.adb, s-garhea.adb, s-garhea.ads, s-garpar.ads,
+ 	s-gartab.adb, s-gartab.ads, s-gartcp.adb, s-garter.adb,
+ 	s-gartyp.ads, s-garuni.adb, s-garuni.ads, s-garuti.adb,
+ 	s-garuti.ads, s-parint.adb, s-rpc.adb, s-rpstio.adb: Change
+ 	implementation of Garlic.Table.Complex. This implemenation uses a
+ 	basic implemenation of Mutex_Type and and new protected object
+ 	Watcher. Watcher handles a resource stamp which can be modified
+ 	and a procedure Differ which suspends a task until the stamp is
+ 	modified. This new implementation of Garlic.Table.Complex is
+	needed to implement Garlic group communication.
+	
 1998-09-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garfil.adb, s-garfil.ads, s-garhea.adb, s-garhea.ads,
