@@ -19,7 +19,7 @@ PROGS=@APPLI_EXES@
 
 FORCE= force
 
-#COS_DIRS=$(COS_ROOT)/event $(COS_ROOT)/naming
+COS_DIRS=../../idls/cos/event ../naming
 
 IMP_1= \
 coseventcomm-pullsupplier-impl.adb \

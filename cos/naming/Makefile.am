@@ -13,7 +13,7 @@ FORCE=	force
 TOOLS=	polyorb-corba_p-naming_tools.adb polyorb-services-naming-tools.adb
 EXTRA=	$(TOOLS:.adb=.ali)
 
-COS_DIRS=../../idls/cos/naming @SERVICE_DIRS@
+COS_DIRS=../../idls/cos/naming
 COS_GNATMAKE_FLAGS=-I../../idls/cos/naming
 
 COS_IMPL=\
