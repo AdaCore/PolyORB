@@ -750,10 +750,17 @@ package body Backend.BE_IDL is
    ---------------------------
 
    procedure Generate_Sequence_Type (E : Node_Id) is
+      S : constant Node_Id := Max_Size (E);
+
    begin
       Write (T_Sequence);
       Write (T_Less);
       Generate (Type_Spec (E));
+      if Present (S) then
+         Write (T_Comma);
+         Write_Space;
+         Generate (S);
+      end if;
       Write (T_Greater);
    end Generate_Sequence_Type;
 

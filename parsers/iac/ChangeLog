@@ -1,3 +1,10 @@
+2004-07-02  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-generator.adb: Generate sequence size in sequence
+	type when needed.
+
+	* parser.adb: Do not forget to set sequence size to its value.
+
 2004-07-01  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* frontend-nodes.idl: Remove Explicitely_Visible and

@@ -1882,11 +1882,12 @@ package body Parser is
             return No_Node;
          end if;
 
-      --  A maximum size of zero stands for no size
+      --  No max size means no size
 
       else
-         Set_Max_Size (Node, No_Node);
+         Size := No_Node;
       end if;
+      Set_Max_Size (Node, Size);
 
       if Token = T_Greater_Greater then
          Sequencing_Level := Sequencing_Level - 2;
