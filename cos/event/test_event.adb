@@ -171,25 +171,28 @@ procedure Test_Event is
       begin
          loop
             EndDisplay := False;
-            accept Activate (O : CORBA.Impl.Object_Ptr) do
-               Ptr := PushConsumer.Impl.Object_Ptr (O);
-            end Activate;
-            loop
-               exit when EndDisplay = True;
-               select
-                  accept DesActivate do
-                     EndDisplay := True;
-                  end DesActivate;
-               else
-                  Try_Pull (Ptr, B, A);
-                  if B then
-                     Ada.Text_IO.Put_Line (
-                          To_Standard_String (From_Any (A)));
+            select
+               accept Activate (O : CORBA.Impl.Object_Ptr) do
+                  Ptr := PushConsumer.Impl.Object_Ptr (O);
+               end Activate;
+               loop
+                  exit when EndDisplay = True;
+                  select
+                     accept DesActivate do
+                        EndDisplay := True;
+                     end DesActivate;
                   else
-                     Ada.Text_IO.Put ("");
-                  end if;
-               end select;
-            end loop;
+                     Try_Pull (Ptr, B, A);
+                     if B then
+                        Ada.Text_IO.Put_Line (
+                                     To_Standard_String (From_Any (A)));
+                     else
+                        Ada.Text_IO.Put ("");
+                     end if;
+                  end select;
+               end loop;
+            or terminate;
+            end select;
          end loop;
       end;
    end Auto_Display;
