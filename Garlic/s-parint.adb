@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -418,7 +418,7 @@ package body System.Partition_Interface is
       Version : in String := "")
    is
       N : String       := Name;
-      V : Version_Type := Version_Type (Version);
+      V : constant Version_Type := Version_Type (Version);
       E : aliased Error_Type;
 
    begin
@@ -443,8 +443,8 @@ package body System.Partition_Interface is
       Version   : in String := "")
      is
       N : String       := Name;
-      V : Version_Type := Version_Type (Version);
-      P : Partition_ID := Partition_ID (Partition);
+      V : constant Version_Type := Version_Type (Version);
+      P : constant Partition_ID := Partition_ID (Partition);
 
    begin
       To_Lower (N);
@@ -488,8 +488,9 @@ package body System.Partition_Interface is
       Version  : in String := "")
    is
       N : String       := Name;
-      V : Version_Type := Version_Type (Version);
-      R : Unsigned_64  := Unsigned_64 (System.Address'(Convert (Receiver)));
+      V : constant Version_Type := Version_Type (Version);
+      R : constant Unsigned_64  :=
+            Unsigned_64 (System.Address'(Convert (Receiver)));
 
    begin
       pragma Debug (D ("Register receiving stub"));

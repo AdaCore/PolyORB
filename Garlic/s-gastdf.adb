@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -250,7 +250,7 @@ package body System.Garlic.Storages.Dfs is
          when Read | Write =>
             declare
                Fname : constant String := Var_Data.Dir.all & Var_Data.Name.all;
-               Fmode : SIO.File_Mode   := To_File_Mode (Request);
+               Fmode : constant SIO.File_Mode   := To_File_Mode (Request);
 
             begin
                if not SIO.Is_Open (Var_Data.File) then

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -76,7 +76,6 @@ package body System.Stream_Attributes is
          F_Bytes      : SEO;     --  N. of fraction bytes completly used
          F_Bits       : Integer; --  N. of bits used on first fraction word
       end record;
-
 
    type Precision is (Single, Double, Extended);
    Fields : constant array (Precision) of Field_Type
@@ -241,7 +240,6 @@ package body System.Stream_Attributes is
    type XDR_SA is mod 2 ** Standard'Address_Size;
    function To_XDR_SA is new UC (System.Address, XDR_SA);
    function To_XDR_SA is new UC (XDR_SA, System.Address);
-
 
    --  Enumerations have the same representation as signed integers.
    --  Enumerations are handy for describing subsets of the integers.
@@ -1084,7 +1082,7 @@ package body System.Stream_Attributes is
    function Scaling
      (X : Short_Float; A : Integer)
       return Short_Float is
-      E : Integer := Short_Float'Exponent (X);
+      E : constant Integer := Short_Float'Exponent (X);
    begin
       return Short_Float'Compose (X, A + E);
    end Scaling;
@@ -1096,7 +1094,7 @@ package body System.Stream_Attributes is
    function Scaling
      (X : Float; A : Integer)
       return Float is
-      E : Integer := Float'Exponent (X);
+      E : constant Integer := Float'Exponent (X);
    begin
       return Float'Compose (X, A + E);
    end Scaling;
@@ -1108,7 +1106,7 @@ package body System.Stream_Attributes is
    function Scaling
      (X : Long_Float; A : Integer)
       return Long_Float is
-      E : Integer := Long_Float'Exponent (X);
+      E : constant Integer := Long_Float'Exponent (X);
    begin
       return Long_Float'Compose (X, A + E);
    end Scaling;
@@ -1120,7 +1118,7 @@ package body System.Stream_Attributes is
    function Scaling
      (X : Long_Long_Float; A : Integer)
       return Long_Long_Float is
-      E : Integer := Long_Long_Float'Exponent (X);
+      E : constant Integer := Long_Long_Float'Exponent (X);
    begin
       return Long_Long_Float'Compose (X, A + E);
    end Scaling;
@@ -1563,7 +1561,7 @@ package body System.Stream_Attributes is
 
             --  Signed infinites.
             else
-               if E_Last + E_Bias < Integer (E) then
+               if E_Last + E_Bias < E then
                   E := E_Last;
                   F := 0.0;
 
@@ -1918,7 +1916,7 @@ package body System.Stream_Attributes is
 
    procedure W_SSU (Stream : access RST; Item : in Short_Short_Unsigned) is
       S : XDR_S_SSU;
-      U : XDR_SSU := XDR_SSU (Item);
+      U : constant XDR_SSU := XDR_SSU (Item);
 
    begin
       --  for N in reverse S'Range loop
@@ -2010,5 +2008,3 @@ package body System.Stream_Attributes is
    end W_WC;
 
 end System.Stream_Attributes;
-
-

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -332,7 +332,7 @@ package body System.RPC is
       case Header.Kind is
          when RPC_Query | APC_Query =>
             declare
-               Params_Copy  : Streams.Params_Stream_Access :=
+               Params_Copy  : constant Streams.Params_Stream_Access :=
                  new Streams.Params_Stream_Type (Query.Initial_Size);
                Session      : Session_Type := Session_Type'First;
                Asynchronous : constant Boolean := Header.Kind = APC_Query;

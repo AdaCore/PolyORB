@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -322,8 +322,8 @@ package body System.Garlic.Storages.Dsm is
       pragma Unreferenced (Reply);
       pragma Unreferenced (Error);
 
-      Name     : String_Access   := new String'(String'Input (Query));
-      Request  : Request_Message := Request_Message'Input (Query);
+      Name     : constant String_Access := new String'(String'Input (Query));
+      Request  : constant Request_Message := Request_Message'Input (Query);
    begin
 
       --  Always delegate to the request processor. The task handling
@@ -430,7 +430,7 @@ package body System.Garlic.Storages.Dsm is
 
    procedure Initialize
    is
-      Root : DSM_Data_Access := new DSM_Data_Type;
+      Root : constant DSM_Data_Access := new DSM_Data_Type;
 
    begin
       if Is_Pure_Client then
@@ -667,7 +667,7 @@ package body System.Garlic.Storages.Dsm is
 
          if Len /= 0 then
             declare
-               Union : Copy_Set_Type := Into.all & Set (1 .. Len);
+               Union : constant Copy_Set_Type := Into.all & Set (1 .. Len);
             begin
                Free (Into);
                Into := new Copy_Set_Type'(Union);
@@ -737,7 +737,7 @@ package body System.Garlic.Storages.Dsm is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       X : out Copy_Set_Access)
    is
-      Len : Natural := Natural'Input (S);
+      Len : constant Natural := Natural'Input (S);
       Set : Copy_Set_Access;
 
    begin
