@@ -52,6 +52,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-poa.ads \
 		polyorb-poa_config.ads \
 		polyorb-poa_config-minimum.ads \
+		polyorb-poa_config-root_poa.ads \
 		polyorb-poa_config-proxies.ads \
 		polyorb-poa_manager-basic_manager.ads \
 		polyorb-poa_policies-id_assignment_policy-system.ads \
@@ -144,6 +145,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-sockets.ads \
 		polyorb-storage_pools.ads \
 		polyorb-tasking.ads \
+		polyorb-tasking-priorities.ads \
 		polyorb-tasking-profiles.ads \
 		polyorb-tasking-profiles-ravenscar.ads \
 		polyorb-tasking-profiles-ravenscar-configuration.ads \
