@@ -26,7 +26,6 @@ def get_subdirs (dir):
           continue
         d = re.sub("\\$\\(([^)]*)\\)", lambda mm, v=vars: v[mm.group (1)], d)
 
-        print "Recursing into " + d
         sub = get_subdirs (d)
         for dd in sub:
           if not (dd in res):
