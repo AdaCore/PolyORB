@@ -96,6 +96,8 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
 	    interface_file.close();
 	  }
 	  break;
+	case AST_Decl::NT_enum_val:
+	  break;
 
 	default:
 	  throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");

@@ -211,7 +211,7 @@ public:
   virtual string marshal_name(dep_list &with, string &previous);
   
 private:
-  void  write_string_to_ada(string &c_string, string &ada_string);
+  void  write_string_to_ada(string c_string, string &ada_string);
 
 };
 

@@ -61,10 +61,10 @@ adabe_root::produce() {
 	      cout << "In root, node type encountered :" <<  d->node_type() << endl;
 #endif 
 	      switch(d->node_type()) {
+	      case AST_Decl::NT_const:
 	      case AST_Decl::NT_sequence:
 	      case AST_Decl::NT_string:
 	      case AST_Decl::NT_array:
-	      case AST_Decl::NT_const:
 	      case AST_Decl::NT_except:
 	      case AST_Decl::NT_union:
 	      case AST_Decl::NT_struct:
@@ -131,7 +131,10 @@ adabe_root::produce() {
 		}
 		
 		break;
+	      case AST_Decl::NT_enum_val:
+		break;
 	      default:
+		cerr << d->node_type() << endl;
 		throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
 		break;
 	      }
@@ -581,7 +584,6 @@ adabe_root::produce() {
 		case AST_Decl::NT_sequence:
 		case AST_Decl::NT_string:
 		case AST_Decl::NT_array:
-		case AST_Decl::NT_const:
 		case AST_Decl::NT_except:
 		case AST_Decl::NT_union:
 		case AST_Decl::NT_struct:
@@ -692,7 +694,6 @@ adabe_root::produce() {
 		case AST_Decl::NT_sequence:
 		case AST_Decl::NT_string:
 		case AST_Decl::NT_array:
-		case AST_Decl::NT_const:
 		case AST_Decl::NT_except:
 		case AST_Decl::NT_union:
 		case AST_Decl::NT_struct:
