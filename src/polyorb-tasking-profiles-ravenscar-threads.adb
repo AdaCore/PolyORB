@@ -32,8 +32,6 @@
 
 --  Implementation of Threads under the Ravenscar profile.
 
---  $Id$
-
 with System.Tasking;
 
 with Ada.Task_Identification;

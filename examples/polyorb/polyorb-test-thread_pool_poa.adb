@@ -32,8 +32,6 @@
 
 --  Set up a test server with the Thread_Pool tasking policy.
 
---  $Id$
-
 with PolyORB.Initialization;
 with PolyORB.Setup.Test_SOA;
 with PolyORB.Setup.Test_POA;

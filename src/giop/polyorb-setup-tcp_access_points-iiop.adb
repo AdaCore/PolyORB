@@ -32,8 +32,6 @@
 
 --  Setup for IIOP access point.
 
---  $Id$
-
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Protocols.GIOP;
 

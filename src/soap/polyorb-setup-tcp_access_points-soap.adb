@@ -32,8 +32,6 @@
 
 --  Setup for SOAP access point.
 
---  $Id$
-
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Filters.HTTP;
 with PolyORB.Protocols.SOAP_Pr;
