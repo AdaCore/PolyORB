@@ -1,0 +1,15 @@
+--  Set up a simple ORB to act as a server.
+--  The user must take care of also setting up a tasking policy.
+
+with PolyORB.Smart_Pointers;
+
+--  Transport subsystem: TCP sockets
+with PolyORB.Setup.TCP_Access_Points;
+pragma Elaborate_All (PolyORB.Setup.TCP_Access_Points);
+
+@PROTO_WITHS@
+
+package body PolyORB.Setup.Server is
+begin
+   null;
+end PolyORB.Setup.Server;

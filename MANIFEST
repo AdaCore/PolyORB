@@ -695,10 +695,11 @@ src/polyorb-sequences-unbounded.ads
 src/polyorb-sequences.ads
 src/polyorb-servants.adb
 src/polyorb-servants.ads
+src/polyorb-setup-client.adb.in
 src/polyorb-setup-client.ads
 src/polyorb-setup-no_tasking_server.adb
 src/polyorb-setup-no_tasking_server.ads
-src/polyorb-setup-server.adb
+src/polyorb-setup-server.adb.in
 src/polyorb-setup-server.ads
 src/polyorb-setup-tcp_access_points.adb
 src/polyorb-setup-tcp_access_points.ads

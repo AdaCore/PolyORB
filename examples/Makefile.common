@@ -22,7 +22,7 @@ GNATMAKE_FLAGS = \
 	-I$(EXAMPLES_ROOT)/../src/srp \
 	-I$(EXAMPLES_ROOT)/../cos/naming \
 	-I$(EXAMPLES_ROOT)/../idls/cos/naming \
-	$(XMLADA_INCLUDE) \
+	$(XMLADA_INCS) \
 	-m \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \

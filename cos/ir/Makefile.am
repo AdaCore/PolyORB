@@ -194,9 +194,10 @@ GEN= \
   corba-repository_root-wstringdef.ads \
   corba-repository_root.ads
 
-if ENABLE_IR
-PROGS=	server client print
-endif
+
+ir_dir = server client print
+
+PROGS =	@TOOLS_DIR@
 
 $(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
 	$(IDLAC) $(srcdir)/ir.idl

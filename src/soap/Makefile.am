@@ -48,7 +48,7 @@ CLEANFILES = *.ali $(GPERF_BODY)
 LINK = $(LIBTOOL) $(ADA) -o libpolyorb-soap.la
 
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
-	-I$(srcdir)/../corba $(XMLADA_INCLUDE) $(GNATFLAGS)
+	-I$(srcdir)/../corba $(XMLADA_INCS) $(GNATFLAGS)
 # XXX CORBA included temporarily because of dep of P.Binding_Data.SOAP on
 # P.Representations.CDR.
 

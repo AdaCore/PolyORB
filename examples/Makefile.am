@@ -61,7 +61,7 @@ $(TESTS): force
 	-I../src/giop \
 	-I../src/soap \
 	-I../src/srp \
-	$(XMLADA_INCLUDE) \
+	$(XMLADA_INCS) \
 	-m $@ \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \

@@ -38,7 +38,7 @@ GNATMAKE_FLAGS = \
 	-I$(COS_ROOT)/../src/giop \
 	-I$(COS_ROOT)/../src/soap \
 	-I$(COS_ROOT)/../src/srp \
-	$(XMLADA_INCLUDE) \
+	$(XMLADA_INCS) \
 	-m \
 	$(COS_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
