@@ -21,8 +21,8 @@ procedure server is
 
    -- Initialisation of the BOA
    Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-
    Myecho : Echo.Impl.Object ;
+
    Ior : Corba.String ;
 begin
    Object_Is_Ready(Boa, Myecho) ;
