@@ -1669,6 +1669,236 @@ package body CORBA is
    --  Any  --
    -----------
 
+   ----------------
+   --  Is_Empty  --
+   ----------------
+   function Is_Empty (Any_Value : in CORBA.Any) return Boolean is
+   begin
+      return Any_Value.The_Value = null;
+   end Is_Empty;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : CORBA.Octet) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Octet then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Octet_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Short) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Short then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Short_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Long then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Long_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long_Long) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Long_Long then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Long_Long_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Short) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Unsigned_Short then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_UShort_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Long) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Unsigned_Long then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_ULong_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Long_Long) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Unsigned_Long_Long then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_ULong_Long_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Boolean) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Boolean then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Boolean_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Char) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Char then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Char_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Wchar) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Wchar then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Wchar_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.String) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_String then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_String_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Wide_String) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Wide_String then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Wide_String_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Float) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Float then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Float_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Double) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Double then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Double_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long_Double) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Long_Double then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_Long_Double_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.TypeCode.Object) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_TypeCode then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_TypeCode_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Any) is
+      use TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_Any then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      --  FIXME : memory leak;
+      Content_Any_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
+
    ---------------------------
    --  Get_Aggregate_Count  --
    ---------------------------

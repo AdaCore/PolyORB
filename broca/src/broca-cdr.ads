@@ -252,10 +252,11 @@ package Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Any);
 
-   function Unmarshall_To_Any
-     (Buffer   : access Buffer_Type;
-      Any_Type : CORBA.TypeCode.Object)
-     return CORBA.Any;
+   --  This procedure unmarshalls an Any in Result.
+   --  If Result already has a value, then its memory location
+   --  will be reused. Otherwise, a nex location will be created
+   procedure Unmarshall_To_Any (Buffer : access Buffer_Type;
+                                Result : in out CORBA.Any);
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -274,12 +275,8 @@ package Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.NamedValue);
 
-   function Unmarshall
-     (Buffer : access Buffer_Type;
-      Name : CORBA.Identifier;
-      Arg_Type : CORBA.TypeCode.Object;
-      Flags : CORBA.Flags)
-      return CORBA.NamedValue;
+   procedure Unmarshall (Buffer : access Buffer_Type;
+                         NV : in out CORBA.NamedValue);
 
    procedure Marshall
      (Buffer : access Buffer_Type;

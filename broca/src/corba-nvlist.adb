@@ -33,7 +33,6 @@
 
 with Broca.CDR;
 with Broca.Debug;
-with Broca.Exceptions;
 
 package body CORBA.NVList is
 
@@ -108,29 +107,6 @@ package body CORBA.NVList is
    end Get_Count;
 
    ----------------
-   --  Get_Item  --
-   ----------------
-   function Get_Item (Self : Ref;
-                      Index : CORBA.Unsigned_Long)
-                      return CORBA.NamedValue is
-   begin
-      if CORBA.Long (Index) < Get_Count (Self) then
-         declare
-            List : NV_List := Get_NVList (Self);
-         begin
-            if Index > 0 then
-               for I in 1 .. Index loop
-                  List := List.Next;
-               end loop;
-            end if;
-            return List.NV;
-         end;
-      else
-         Broca.Exceptions.Raise_Internal;
-      end if;
-   end Get_Item;
-
-   ----------------
    --  Marshall  --
    ----------------
    procedure Marshall
@@ -163,12 +139,7 @@ package body CORBA.NVList is
       while List /= Null_NVList loop
          if List.NV.Arg_Modes = CORBA.ARG_OUT or
            List.NV.Arg_Modes = CORBA.ARG_INOUT then
-            --  FIXME : memory leak when INOUT ?
-            List.NV := Broca.CDR.Unmarshall
-              (Buffer,
-               List.NV.Name,
-               CORBA.Get_Type (List.NV.Argument),
-               List.NV.Arg_Modes);
+            Broca.CDR.Unmarshall (Buffer, List.NV);
          end if;
          List := List.Next;
       end loop;

@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Broca.Exceptions;
+
 package body CORBA.Object.Helper is
 
    --------------
@@ -52,5 +54,18 @@ package body CORBA.Object.Helper is
       end if;
       return Content_ObjRef_Ptr (Item.The_Value).Value;
    end From_Any;
+
+   ---------------------
+   --  Set_Any_Value  --
+   ---------------------
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Object.Ref) is
+      use CORBA.TypeCode;
+   begin
+      if Get_Type (Any_Value) /= CORBA.TC_ObjRef then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      Content_ObjRef_Ptr (Any_Value.The_Value).Value := Value;
+   end Set_Any_Value;
 
 end CORBA.Object.Helper;

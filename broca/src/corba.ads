@@ -769,6 +769,48 @@ package CORBA is
    --  Not in spec : get empty Any (no value ptr)
    function Get_Empty_Any (Tc : TypeCode.Object) return Any;
 
+   --  Not in spec : return true if the Any has a value, false
+   --  if it is an empty one
+   function Is_Empty (Any_Value : in CORBA.Any) return Boolean;
+
+   --  These functions allows the user to set the value of an any
+   --  directly if he knows its kind. It a function is called on a
+   --  bad kind of any, a BAD_TYPECODE exception will be raised
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Octet);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Short);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long_Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Short);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Long_Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Boolean);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Char);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Wchar);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.String);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Wide_String);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Float);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Double);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long_Double);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.TypeCode.Object);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Any);
+
    --  Not in spec : some methods to deal with any aggregates.
    --  What is called any aggregate is an any, made of an aggregate
    --  of values, instead of one unique. It is used for structs,

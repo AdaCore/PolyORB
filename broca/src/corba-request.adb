@@ -96,11 +96,7 @@ package body CORBA.Request is
                                         Self.Args_List);
                pragma Debug (O ("Invoke : unmarshalling return value"));
                --  Unmarshall return value
-               Self.Result := Broca.CDR.Unmarshall
-                 (Handler.Buffer'Access,
-                  Self.Result.Name,
-                  CORBA.Get_Type (Self.Result.Argument),
-                  Self.Result.Arg_Modes);
+               Broca.CDR.Unmarshall (Handler.Buffer'Access, Self.Result);
                Broca.GIOP.Release (Handler);
                pragma Debug (O ("Invoke : end"));
                return;

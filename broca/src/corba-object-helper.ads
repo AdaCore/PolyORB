@@ -33,7 +33,10 @@
 
 package CORBA.Object.Helper is
 
+   --  see comments of the corresponding methods in corba.ads
    function To_Any (Item : in CORBA.Object.Ref) return Any;
    function From_Any (Item : in Any) return CORBA.Object.Ref;
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Object.Ref);
 
 end CORBA.Object.Helper;
