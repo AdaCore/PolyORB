@@ -49,6 +49,7 @@ package body MOMA.Message_Consumers is
 
    function Get_Message_Selector return String is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Get_Message_Selector;
       pragma Warnings (On);

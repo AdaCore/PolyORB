@@ -133,6 +133,7 @@ package body MOMA.Sessions.Queues is
       return MOMA.Message_Consumers.Queues.Queue
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Receiver (Queue, Message_Selector);
       pragma Warnings (On);
@@ -229,6 +230,7 @@ package body MOMA.Sessions.Queues is
    function Create_Temporary
      return MOMA.Destinations.Destination is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Temporary;
       pragma Warnings (On);

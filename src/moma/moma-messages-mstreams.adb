@@ -6,6 +6,7 @@ package body MOMA.Messages.MStreams is
 
    function Read_Boolean return Boolean is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Read_Boolean;
       pragma Warnings (On);
@@ -17,6 +18,7 @@ package body MOMA.Messages.MStreams is
 
    function Read_Char return Character is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Read_Char;
       pragma Warnings (On);
@@ -28,6 +30,7 @@ package body MOMA.Messages.MStreams is
 
    function Read_Float return Float is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Read_Float;
       pragma Warnings (On);
@@ -39,6 +42,7 @@ package body MOMA.Messages.MStreams is
 
    function Read_Integer return Integer is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Read_Integer;
       pragma Warnings (On);
@@ -50,6 +54,7 @@ package body MOMA.Messages.MStreams is
 
    function Read_String return String is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Read_String;
       pragma Warnings (On);
@@ -62,6 +67,7 @@ package body MOMA.Messages.MStreams is
    procedure Reset is
    begin
       null;
+      --  XXX Not Implemented
    end Reset;
 
    -----------------
@@ -74,6 +80,7 @@ package body MOMA.Messages.MStreams is
       pragma Unreferenced (Value);
       pragma Warnings (On);
       null;
+      --  XXX Not Implemented
    end Set_Boolean;
 
    --------------
@@ -86,6 +93,7 @@ package body MOMA.Messages.MStreams is
       pragma Unreferenced (Value);
       pragma Warnings (On);
       null;
+      --  XXX Not Implemented
    end Set_Char;
 
    ---------------
@@ -98,6 +106,7 @@ package body MOMA.Messages.MStreams is
       pragma Unreferenced (Value);
       pragma Warnings (On);
       null;
+      --  XXX Not Implemented
    end Set_Float;
 
    -----------------
@@ -110,6 +119,7 @@ package body MOMA.Messages.MStreams is
       pragma Unreferenced (Value);
       pragma Warnings (On);
       null;
+      --  XXX Not Implemented
    end Set_Integer;
 
    ----------------
@@ -122,6 +132,7 @@ package body MOMA.Messages.MStreams is
       pragma Unreferenced (Value);
       pragma Warnings (On);
       null;
+      --  XXX Not Implemented
    end Set_String;
 
 end MOMA.Messages.MStreams;

@@ -223,6 +223,7 @@ package body MOMA.Messages is
    function Get_Property (Name : MOMA.Types.String)
                           return MOMA.Types.Property_Type is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Get_Property (Name);
       pragma Warnings (On);
@@ -358,6 +359,7 @@ package body MOMA.Messages is
       pragma Unreferenced (Name);
       pragma Warnings (On);
       return False;
+      --  XXX Not Implemented
    end Property_Exists;
 
    ------------------
@@ -372,6 +374,7 @@ package body MOMA.Messages is
       pragma Unreferenced (Value);
       pragma Warnings (On);
       null;
+      --  XXX Not Implemented
    end Set_Property;
 
    ------------------------

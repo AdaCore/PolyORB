@@ -1,3 +1,5 @@
+with PolyORB;
+
 package body MOMA.Sessions.Topics is
 
    -------------------------------
@@ -10,6 +12,7 @@ package body MOMA.Sessions.Topics is
       return MOMA.Message_Consumers.Topics.Topic
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Durable_Subscriber (Topic, Name);
       pragma Warnings (On);
@@ -27,6 +30,7 @@ package body MOMA.Sessions.Topics is
       return MOMA.Message_Consumers.Topics.Topic
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Durable_Subscriber (Topic, Name,
                                         Message_Selector,
@@ -43,6 +47,7 @@ package body MOMA.Sessions.Topics is
       return MOMA.Message_Producers.Topics.Topic
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Publisher (Topic);
       pragma Warnings (On);
@@ -58,6 +63,7 @@ package body MOMA.Sessions.Topics is
       return MOMA.Message_Producers.Topics.Topic
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Subscriber (Topic, Name);
       pragma Warnings (On);
@@ -75,6 +81,7 @@ package body MOMA.Sessions.Topics is
       return MOMA.Message_Producers.Topics.Topic
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Subscriber (Topic, Name, Message_Selector, No_Local);
       pragma Warnings (On);
@@ -89,8 +96,8 @@ package body MOMA.Sessions.Topics is
       pragma Warnings (Off);
       pragma Unreferenced (Name);
       pragma Warnings (On);
-
       null;
+      --  XXX Not Implemented
    end Unsubscribe;
 
 end MOMA.Sessions.Topics;

@@ -32,6 +32,8 @@
 
 --  $Id$
 
+with PolyORB;
+
 package body MOMA.Connections.Topics is
 
    ---------------------
@@ -44,6 +46,7 @@ package body MOMA.Connections.Topics is
       return Message_Consumers.Topics.Topic
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Consumer (Topic, Message_Selector);
       pragma Warnings (On);
@@ -59,6 +62,7 @@ package body MOMA.Connections.Topics is
       return Message_Consumers.Topics.Topic
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Durable_Consumer (Topic, Message_Selector);
       pragma Warnings (On);
@@ -75,6 +79,7 @@ package body MOMA.Connections.Topics is
       return MOMA.Sessions.Topics.Topic
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Session (Self, Transacted, Ackowledge_Mode);
       pragma Warnings (On);

@@ -32,6 +32,8 @@
 
 --  $Id$
 
+with PolyORB;
+
 package body MOMA.Sessions is
 
    ------------
@@ -41,6 +43,7 @@ package body MOMA.Sessions is
    procedure Close is
    begin
       null;
+      --  XXX Not Implemented
    end Close;
 
    -------------
@@ -50,6 +53,7 @@ package body MOMA.Sessions is
    procedure Commit is
    begin
       null;
+      --  XXX Not Implemented
    end Commit;
 
    ---------------------
@@ -58,6 +62,7 @@ package body MOMA.Sessions is
 
    function Get_Transacted return Boolean is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Get_Transacted;
       pragma Warnings (On);
@@ -70,6 +75,7 @@ package body MOMA.Sessions is
    procedure Recover is
    begin
       null;
+      --  XXX Not Implemented
    end Recover;
 
    ---------------
@@ -79,6 +85,7 @@ package body MOMA.Sessions is
    procedure Rollback is
    begin
       null;
+      --  XXX Not Implemented
    end Rollback;
 
 end MOMA.Sessions;

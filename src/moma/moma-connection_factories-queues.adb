@@ -56,6 +56,7 @@ package body MOMA.Connection_Factories.Queues is
    function Create (Username : String; Password : String)
                    return Connections.Queues.Queue is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create (Username, Password);
       pragma Warnings (On);

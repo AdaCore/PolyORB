@@ -59,6 +59,7 @@ package body MOMA.Message_Consumers.Queues is
 
    function Get_Queue return MOMA.Destinations.Queue is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Get_Queue;
       pragma Warnings (On);
@@ -107,6 +108,7 @@ package body MOMA.Message_Consumers.Queues is
 
    function Receive (Timeout : Time) return MOMA.Messages.Message is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Receive (Timeout);
       pragma Warnings (On);
@@ -118,6 +120,7 @@ package body MOMA.Message_Consumers.Queues is
 
    function Receive_No_Wait return MOMA.Messages.Message is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Receive_No_Wait;
       pragma Warnings (On);

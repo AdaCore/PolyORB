@@ -42,6 +42,7 @@ package body MOMA.Connections.Queues is
                              Message_Selector : String)
                             return Message_Consumers.Queues.Queue is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Consumer (Queue, Message_Selector);
       pragma Warnings (On);

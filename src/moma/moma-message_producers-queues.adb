@@ -233,6 +233,7 @@ package body MOMA.Message_Producers.Queues is
       pragma Unreferenced (TTL);
       pragma Warnings (On);
       null;
+      --  XXX Not Implemented
    end Send;
 
    ----------------------

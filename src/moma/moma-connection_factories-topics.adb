@@ -1,3 +1,5 @@
+with PolyORB;
+
 package body MOMA.Connection_Factories.Topics is
 
    ------------
@@ -6,6 +8,7 @@ package body MOMA.Connection_Factories.Topics is
 
    function Create return Connections.Topics.Topic is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create;
       pragma Warnings (On);
@@ -21,6 +24,7 @@ package body MOMA.Connection_Factories.Topics is
       return Connections.Topics.Topic
    is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create (Username, Password);
       pragma Warnings (On);

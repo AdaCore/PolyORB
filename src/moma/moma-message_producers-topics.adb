@@ -1,3 +1,5 @@
+with PolyORB;
+
 package body MOMA.Message_Producers.Topics is
 
    ---------------
@@ -6,6 +8,7 @@ package body MOMA.Message_Producers.Topics is
 
    function Get_Topic return MOMA.Destinations.Destination is
    begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Get_Topic;
       pragma Warnings (On);
@@ -21,6 +24,7 @@ package body MOMA.Message_Producers.Topics is
       pragma Unreferenced (Message);
       pragma Warnings (On);
       null;
+      --  XXX Not Implemented
    end Publish;
 
    -------------
@@ -41,6 +45,7 @@ package body MOMA.Message_Producers.Topics is
       pragma Unreferenced (TTL);
       pragma Warnings (On);
       null;
+      --  XXX Not Implemented
    end Publish;
 
 end MOMA.Message_Producers.Topics;
