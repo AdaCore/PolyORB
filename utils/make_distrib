@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#24 $
+# $Id: //droopi/main/utils/make_distrib#25 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -122,7 +122,7 @@ __EOF__
   case "${tag}" in
     head|HEAD)
       tagsep=#
-      taginfo="CHANGE_`p4 changes -m 1 ... | cut -f 2 -d \ `"
+      taginfo="CHANGE_`unset PWD; p4 changes -m 1 ... | cut -f 2 -d \ `"
       ;;
     *)
       tagsep=@
