@@ -146,59 +146,66 @@ package body Broca.Exceptions is
    -------------------------------------------------------
 
    --  Raise CORBA.bad_param with minor = 0 and completed = Completed_No.
-   procedure Raise_Bad_Param (Status : Completion_Status := Completed_No) is
+   procedure Raise_Bad_Param (Minor : CORBA.Unsigned_Long := 0;
+                              Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Bad_Param'Identity,
-         System_Exception_Members'(Minor => 0, Completed => Status));
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_Param;
 
    --  Raise CORBA.marshal with minor = 0 and completed = Completed_No.
-   procedure Raise_Marshal (Status : Completion_Status := Completed_No) is
+   procedure Raise_Marshal (Minor : CORBA.Unsigned_Long := 0;
+                            Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Marshal'Identity,
-         System_Exception_Members'(Minor => 0, Completed => Status));
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Marshal;
 
    --  Raise CORBA.comm_failure with minor = 0 and completed = Completed_No.
-   procedure Raise_Comm_Failure (Status : Completion_Status := Completed_No) is
+   procedure Raise_Comm_Failure (Minor : CORBA.Unsigned_Long := 0;
+                                 Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Comm_Failure'Identity,
-         System_Exception_Members'(Minor => 0, Completed => Status));
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Comm_Failure;
 
    --  Raise CORBA.inv_objref with minor = 0 and completed = Completed_No.
-   procedure Raise_Inv_Objref (Status : Completion_Status := Completed_No) is
+   procedure Raise_Inv_Objref (Minor : CORBA.Unsigned_Long := 0;
+                               Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Inv_Objref'Identity,
-         System_Exception_Members'(Minor => 0, Completed => Status));
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Inv_Objref;
 
    procedure Raise_Object_Not_Exist
-     (Status : Completion_Status := Completed_No) is
+     (Minor : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Object_Not_Exist'Identity,
-         System_Exception_Members'(Minor => 0, Completed => Status));
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Object_Not_Exist;
 
    procedure Raise_Bad_Operation
-     (Status : Completion_Status := Completed_No) is
+     (Minor : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Bad_Operation'Identity,
-         System_Exception_Members'(Minor => 0, Completed => Status));
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_Operation;
 
    procedure Raise_Transient
-     (Status : Completion_Status := Completed_No) is
+     (Minor : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Transient'Identity,
-         System_Exception_Members'(Minor => 0, Completed => Status));
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Transient;
 
    procedure Raise_Internal
@@ -211,19 +218,21 @@ package body Broca.Exceptions is
    end Raise_Internal;
 
    procedure Raise_Obj_Adapter
-     (Status : Completion_Status := Completed_No) is
+     (Minor : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Obj_Adapter'Identity,
-         System_Exception_Members'(Minor => 0, Completed => Status));
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Obj_Adapter;
 
    procedure Raise_No_Implement
-     (Status : Completion_Status := Completed_No) is
+     (Minor : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (No_Implement'Identity,
-         System_Exception_Members'(Minor => 0, Completed => Status));
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_No_Implement;
 
    ----------------------
@@ -236,6 +245,15 @@ package body Broca.Exceptions is
                        System_Exception_Members'(Minor => Minor,
                                                  Completed => Status));
    end Raise_Imp_Limit;
+
+   procedure Raise_Bad_Inv_Order
+     (Minor : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Bad_Inv_Order'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Bad_Inv_Order;
 
 
 
@@ -318,7 +336,7 @@ package body Broca.Exceptions is
            or else R (F .. F + Prefix'Length - 1) /= Prefix
            or else R (L - Suffix'Length + 1 .. L) /= Suffix
          then
-            Raise_Marshal (Completed_Maybe);
+            Raise_Marshal (Status => Completed_Maybe);
          end if;
 
          Identity := Null_Id;
