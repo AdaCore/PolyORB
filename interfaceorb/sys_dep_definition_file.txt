@@ -1,7 +1,0 @@
--- This file allows to define some symbol for the gnat preprocessor
--- gnatprep
--- uncomment one of the following lines
-
-
-BOOLEAN_ON_1_BYTE := true
--- BOOLEAN_ON_4_BYTES := true ;
