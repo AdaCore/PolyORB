@@ -79,24 +79,40 @@ package body Droopi.Task_Info is
       Hash       => TI_Hash_Func,
       Equal      => "=");
 
+   Task_Info_Mutex : Mutex_Access;
+
    procedure Set_Task_Info
      (I : Task_Info_Access;
       T : Task_Id'Class := Current_Task) is
    begin
+      Enter (Task_Info_Mutex.all);
       Task_Info_Dict.Set (To_Integer (T), I);
+      Leave (Task_Info_Mutex.all);
    end Set_Task_Info;
 
    function Get_Task_Info
      (T : Task_Id'Class := Current_Task)
-     return Task_Info_Access is
+     return Task_Info_Access
+   is
+      Res : Task_Info_Access;
    begin
-      return Task_Info_Dict.Get (To_Integer (T));
+      Enter (Task_Info_Mutex.all);
+      Res := Task_Info_Dict.Get (To_Integer (T));
+      Leave (Task_Info_Mutex.all);
+      return Res;
    end Get_Task_Info;
 
    procedure Reset_Task_Info
      (T : Task_Id'Class := Current_Task) is
    begin
+      Enter (Task_Info_Mutex.all);
       Task_Info_Dict.Remove (To_Integer (T));
+      Leave (Task_Info_Mutex.all);
    end Reset_Task_Info;
+
+   procedure Initialize is
+   begin
+      Create (Task_Info_Mutex);
+   end Initialize;
 
 end Droopi.Task_Info;

@@ -11,6 +11,8 @@ package Droopi.Task_Info is
 
    pragma Elaborate_Body;
 
+   procedure Initialize;
+
    type Task_Kind is (Permanent, Transient);
    --  A Permanent task executes ORB.Run indefinitely.
    --  A Transient task executes ORB.Run until a given condition

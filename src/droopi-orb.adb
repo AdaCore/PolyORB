@@ -239,6 +239,11 @@ package body Droopi.ORB is
         (Task_Kind_For_Exit_Condition (Exit_Condition = null));
 
    begin
+      Set_Task_Info (This_Task'Unchecked_Access);
+      --  Reset_Task_Info must be called at exit from Run
+      --  so as not to leave a dangling pointer in the global
+      --  Task_Info dictionnary.
+
       loop
          pragma Debug (O ("Run: task " & Image (Current_Task)
                           & " entering main loop."));
@@ -346,6 +351,14 @@ package body Droopi.ORB is
          end if;
       end loop;
       pragma Debug (O ("Run: leave."));
+
+      Reset_Task_Info;
+
+   exception
+      when others =>
+         Reset_Task_Info;
+         --  Do not leak Task_Info past this point.
+         raise;
    end Run;
 
    function Work_Pending (ORB : access ORB_Type) return Boolean
