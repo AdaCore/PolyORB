@@ -1,3 +1,19 @@
+1999-08-14  Pascal Obry <obry@gnat.com>
+
+	* xe_sysdep.ads, xe_sysdep-std.adb, xe_sysdep-nt.adb: System
+	dependant functions to copy or remove a file, and to set the
+	executable file's attribute. These files are needed to have a
+	standalone (rely only on the standard system tools) gnatdist tool
+	under NT.
+
+	* xe_utils.adb: remove all usage of external tools here (rm, cp,
+	mkdir and chmod), xe_utils now use the xe_sysdep services. Remove
+	declaration of Chdir and use Directory_Operations.Change_Dir.
+
+	* Makefile.am, Makefile.in: add missing parentheses around PSNAME
+	variable. Add rules to select the right xe_sysdep unit and to
+	build it.
+	
 1999-07-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: gnatdist was supposed to remove object and ali
