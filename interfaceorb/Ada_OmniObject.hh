@@ -85,6 +85,14 @@ public:
   omniObject_C2Ada *getOmniObject() ;
   // returns the underlying omniObject_C2Ada
   
+  static Ada_OmniObject* string_to_ada_object(const char *repoId) ;
+  // this function executes omni::stringToObject,
+  // and cast the result into an Ada_OmniObject.
+  // it can only be called by Corba.Orb.String_To_Object
+
+  static char* ada_object_to_string(Ada_OmniObject* objptr) ;
+  // this function calls omni::objectToString
+  // on the underlying object
 
 private:
   void* ada_pointer ;
@@ -102,8 +110,6 @@ extern void raise_ada_exception (const char *msg) ;
   // this function allows C code to raise Ada exception
   // It is implemented in Ada and only raise a No_Initialisation
   // exception with the message msg. (see corba.ads)
-
-
 
 
 

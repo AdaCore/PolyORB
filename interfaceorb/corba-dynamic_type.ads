@@ -36,7 +36,7 @@ package Corba.Dynamic_Type is
 
 
    function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
-                                                return Corba.Object.Ref'Class ;
+                                                return Corba.Object.Ref_ptr ;
    -- This function takes a repository_id as input
    -- and returns the static nil Ref of the class corresponding
    -- to this repository_id

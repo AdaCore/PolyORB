@@ -108,6 +108,10 @@ package OmniObject is
    function Get_Repository_Id(Self : in Implemented_Object)
                               return Corba.String ;
 
+   function Object_To_String(Self : in Implemented_Object'Class)
+                             return Corba.String ;
+   -- return the IOR corresponding to this object
+
    -----------------------------------------------
    --             Omniobject                    --
    --     this type is imported from C++        --
@@ -141,6 +145,20 @@ package OmniObject is
    -- returns the rope and key for this omniobject
    -- if it is a proxy object
 
+
+   function Get_Repository_Id(Self : in Object'class)
+                              return Corba.String ;
+   -- returns the repository_id for this object
+
+   function String_To_Object(RepoId : in Corba.String)
+                             return Object_Ptr ;
+   -- this function trys to create the Object
+   -- corresponding to this resitory_id,
+   -- returns null on failure
+
+   function Object_To_String(Obj_ptr : in Object_Ptr) return Corba.String ;
+   -- returns the IOR for this object
+   -- Obj can be null
 
 private
 
@@ -187,12 +205,6 @@ private
    procedure Set_Repository_Id(Self : in out Object'class ;
                                Repo_Id : in Corba.String) ;
 
-   function Get_Repository_Id(Self : in Object'class)
-                              return Corba.String ;
-
-
-
-
 
    procedure Init (Self : in out Object'Class ;
                    RepoId : in String ;
@@ -209,7 +221,7 @@ private
    procedure C_Set_Rope_And_Key (Self : in out Object'Class ;
                                  L : in System.Address ;
                                  KeepIOP : in Sys_Dep.C_Boolean) ;
-   pragma Import (C,C_Set_Rope_And_Key,
+   pragma Import (CPP,C_Set_Rope_And_Key,
                   "setRopeAndKey__10omniObjectRC14omniRopeAndKeyb") ;
    -- wrapper around  Ada_OmniObject function setRopeAndKey
    -- (see Ada_OmniObject.hh)

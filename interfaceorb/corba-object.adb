@@ -14,7 +14,7 @@ with Ada.Tags ;
 with Omniobject ;
 use type Omniobject.Object_Ptr ;
 with Omniropeandkey ; use Omniropeandkey ;
-
+with Corba.Dynamic_Type ;
 
 package body Corba.Object is
 
@@ -155,13 +155,57 @@ package body Corba.Object is
     end ;
 
 
-    -- AdaBroker_Set_Dynamic_Type
-    -----------------------------
-    procedure AdaBroker_Set_Dynamic_Type(Self : in out Ref'Class ;
-                                        Dynamic_Type : in Ref_Ptr) is
-    begin
-       Self.Dynamic_Type := Dynamic_Type ;
-    end ;
+   -- Object_To_String
+   -------------------
+   function Object_To_String (Self : in Ref'class)
+                              return CORBA.String is
+   begin
+      if Is_Nil(Self) then
+         return Omniobject.Object_To_String(null) ;
+      else
+         return Omniobject.Object_To_String(Self.Omniobj) ;
+      end if ;
+   end ;
+
+
+   -- String_To_Object
+   -------------------
+   procedure String_to_Object (From : in CORBA.String;
+                               To : out CORBA.Object.Ref'class) is
+      RepoId : Corba.String ;
+      Tmp_Obj_ptr : Omniobject.Object_Ptr ;
+   begin
+      -- Get the omniobject
+      Tmp_Obj_ptr := Omniobject.String_To_Object(From) ;
+
+      -- if there was an error somewhere
+      if Tmp_Obj_Ptr = null then
+         To.Omniobj := null ;
+         To.Dynamic_Type := null ;
+         return ;
+      end if ;
+
+      -- check if the omniobject we got can be put into
+      -- To (type implied the repoId)
+      RepoId := Omniobject.Get_Repository_Id(Tmp_Obj_Ptr.all) ;
+
+      if Is_A(To, RepoId) then
+         To.Omniobj := Tmp_Obj_ptr ;
+         To.Dynamic_Type :=
+           Corba.Dynamic_Type.Get_Dynamic_Type_From_Repository_Id(From) ;
+         return ;
+      end if ;
+
+      -- otherwise, the operation is illegal
+      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+                                     "Corba.Object.String_To_Object :"
+                                     & Corba.CRLF
+                                     & "Cannot cast "
+                                     & Corba.To_Standard_String(RepoId)
+                                     & Corba.CRLF
+                                     & "Into "
+                                     & Corba.To_Standard_String(Get_Repository_Id(To))) ;
+   end ;
 
     --------------------------------------------------
     ---        omniORB specific                    ---

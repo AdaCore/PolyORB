@@ -23,6 +23,7 @@ package Corba.Object is
 
    type Ref is tagged private ;
    type Ref_Ptr is access all Ref'Class ;
+
    Nil_Ref : constant Ref ;
 
    --I boolean is_nil();
@@ -75,8 +76,14 @@ package Corba.Object is
 
    procedure Assert_Ref_Not_Nil(Self : in Ref) ;
 
-   procedure AdaBroker_Set_Dynamic_Type(Self : in out Ref'Class ;
-                                        Dynamic_Type : in Ref_Ptr) ;
+
+   function Object_To_String (Self : in CORBA.Object.Ref'class)
+                              return CORBA.String ;
+   -- returns the IOR corresponding to this object
+
+   procedure String_to_Object (From : in CORBA.String;
+                               To : out CORBA.Object.Ref'class) ;
+   -- creates an object out of an IOR
 
    --------------------------------------------------
    ---        omniORB specific                    ---
@@ -192,6 +199,7 @@ package Corba.Object is
    --                size_t repoIdSize,
    --                size_t initialoffset)
    -- in objectRef.cc L744
+
 
 
 

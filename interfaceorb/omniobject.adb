@@ -22,7 +22,10 @@
 
 with Ada.Exceptions ;
 with Ada.Unchecked_Conversion ;
+
+with System ;
 with System.Address_To_Access_Conversions ;
+use type System.Address ;
 
 with Corba ;
 use type Corba.String ;
@@ -106,7 +109,7 @@ package body OmniObject is
    ----------------------
    procedure C_Set_Repository_Id(Self : in out Object'Class ;
                                  Repo_Id : Interfaces.C.Strings.Chars_Ptr) ;
-   pragma Import (C, C_Set_Repository_Id, "setRepositoryID__14Ada_OmniObjectPCc") ;
+   pragma Import (CPP, C_Set_Repository_Id, "setRepositoryID__14Ada_OmniObjectPCc") ;
    -- corresponds to Ada_OmniObject::setRepositoryID
 
    -- Set_Repository_Id
@@ -174,6 +177,67 @@ package body OmniObject is
 
 
 
+   -- C_String_To_Object
+   ---------------------
+   function C_String_To_Object(RepoId : in Interfaces.C.Strings.Chars_Ptr)
+                               return System.Address ;
+   pragma Import (CPP, C_String_To_Object, "string_to_ada_object__14Ada_OmniObjectPCc") ;
+   -- corresponds to Ada_OmniObject::string_to_ada_object
+
+   -- String_To_Object
+   -------------------
+   function String_To_Object(RepoId : in Corba.String)
+                             return Object_Ptr is
+      package Address_To_Object_ptr is
+        new System.Address_To_Access_Conversions (Object) ;
+      -- to convert access to object to Object_Ptr
+      function To_Object_Ptr is
+        new Ada.Unchecked_Conversion (Address_To_Object_ptr.Object_Pointer,
+                                      Object_Ptr);
+      C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
+      C_Result : System.Address ;
+      Result : Address_To_Object_ptr.Object_Pointer ;
+   begin
+      -- transform arguments into C types ...
+      C_Repoid := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repoid)) ;
+      -- call C function
+      C_Result := C_String_To_Object(C_Repoid) ;
+      -- free arguments
+      Interfaces.C.Strings.Free(C_Repoid) ;
+      -- transform result
+      if  C_Result = System.Null_Address then
+         return null ;
+      else
+         Result := Address_To_Object_Ptr.To_Pointer(C_Result) ;
+         return To_Object_Ptr(Result) ;
+      end if ;
+   end ;
+
+
+   -- C_Object_To_String
+   ---------------------
+   function C_Object_To_String(Obj : in System.Address)
+                               return Interfaces.C.Strings.Chars_Ptr ;
+   pragma Import(CPP, C_Object_To_String, "ada_object_to_string__14Ada_OmniObjectP14Ada_OmniObject") ;
+   -- corresponds to ada_object_to_string
+
+
+   -- Object_To_String
+   -------------------
+   function Object_To_String(Obj_ptr : in Object_Ptr) return Corba.String is
+      package A2a is
+        new System.Address_To_Access_Conversions (Object) ;
+      function Uc is
+        new Ada.Unchecked_Conversion (Object_ptr,
+                                      A2a.Object_Pointer) ;
+      C_Obj_ptr : System.Address ;
+      C_Result : Interfaces.C.Strings.Chars_Ptr ;
+   begin
+      C_Obj_ptr := A2a.To_Address(Uc(Obj_Ptr)) ;
+      C_Result := C_Object_To_String(C_Obj_ptr) ;
+      return Corba.To_Corba_String(Interfaces.C.Strings.Value(C_Result)) ;
+   end ;
+
 
    -- Ada_To_C_Unsigned_Long
    -------------------------
@@ -183,6 +247,18 @@ package body OmniObject is
    -- needed to change ada type Corba.Unsigned_Long
    -- into C type Interfaces.C.Unsigned_Long
 
+
+   -- Object_To_String
+   -------------------
+   function Object_To_String (Self : in Implemented_Object'class)
+                              return CORBA.String is
+   begin
+      if Is_Nil(Self) then
+         return Object_To_String(null) ;
+      else
+         return Object_To_String(Self.Omniobj) ;
+      end if ;
+   end ;
 
 
    -- C_Init2

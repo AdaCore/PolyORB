@@ -173,3 +173,24 @@ Ada_OmniObject::getRepositoryID() {
 }
  
 
+Ada_OmniObject*
+Ada_OmniObject::string_to_ada_object(const char *repoId) {
+  omniObject *objptr = omni::stringToObject(repoId) ;
+  omniObject_C2Ada *adaobj = dynamic_cast<omniObject_C2Ada*>(objptr) ;
+
+  if (adaobj == 0) {
+    return 0 ;
+  } else {
+    return adaobj->Ada_OmniObject_Pointer ;
+  }
+}
+
+char*
+Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr) {
+  if ( objptr == 0 ) {
+    return omni::objectToString(0) ;
+  } else {
+    return omni::objectToString(objptr->C_OmniObject) ;
+  }
+}
+

@@ -21,42 +21,19 @@
 -- il faudra peut-etre avoir un object Nil_object dans omniobject
 -- (je n'en sais rien)
 
+with System ;
+with System.Address_To_Access_Conversions ;
+with Ada.Exceptions ;
+with Ada.Unchecked_Conversion ;
+with Interfaces.C.Strings ;
 with Corba.Command_Line ;
 with Omniobject ;
+use type Omniobject.Object_Ptr ;
+
+with Corba.Object ; use Corba.Object ;
+with Corba.Dynamic_Type ;
 
 package body Corba.Orb is
-
-
-   --------------------------------------------------
-   ---          specification CORBA 2.0          ----
-   --------------------------------------------------
-
-   -- Object_To_String
-   -------------------
-   function Object_To_String (Obj : in CORBA.Object.Ref'class)
-                              return CORBA.String is
-   begin
-      return To_Corba_String("") ;
-   end ;
-
-
-   -- String_To_Object
-   -------------------
-   procedure String_to_Object (From : in CORBA.String;
-                               To : out CORBA.Object.Ref'class) is
-   begin
-      null ;
-   end ;
-
-
-   -- Object_To_String
-   -------------------
-   function Object_To_String (Obj : in CORBA.Object.Object'class)
-                              return CORBA.String is
-   begin
-      return To_Corba_String("") ;
-   end ;
-
 
 
    --------------------------------------------------
@@ -65,9 +42,9 @@ package body Corba.Orb is
 
    function C_ORB_Init( Argc : in Interfaces.C.Int ;
                         Argv : in System.Address ;
-                        Orbname : in Interfaces.C.Chars_Ptr)
-                   return Object'Class ;
-   pragma Import(C, C_ORB_Init, "ORB_init__5CORBARiPPcPCc") ;
+                        Orbname : in Interfaces.C.Strings.Chars_Ptr)
+                       return System.Address ;
+   pragma Import(CPP, C_ORB_Init, "ORB_init__5CORBARiPPcPCc") ;
    -- wrapper around CORBA::ORB_init(int& argc, char** argv,
    --                               const char* orb_identifier);
    -- in corbaOrb.cc L 170
@@ -75,17 +52,20 @@ package body Corba.Orb is
 
    -- ORB_Init
    -----------
-   function ORB_Init(Orb_Name : in Standard.String) return Object is
-      C_Orb_Name : Interfaces.C.Chars_Ptr ;
+   function ORB_Init(Orb_Name : in Standard.String) return Object_Ptr is
+      C_Orb_Name : Interfaces.C.Strings.Chars_Ptr ;
+      C_Result : System.Address ;
+      package A2a is new System.Address_To_Access_Conversions(Object) ;
+      function Conv is new Ada.Unchecked_Conversion(A2a.Object_Pointer, Object_Ptr);
    begin
-
       C_Orb_Name := Interfaces.C.Strings.New_String(Orb_Name) ;
       -- Never deallocated, but it may be used by the ORB
       -- and this function is called only once
 
-      return C_Orb_Init(Corba.Command_Line.Argc,
-                        Corba.Command_Line.Argv,
-                        C_Orb_Name) ;
+      C_Result :=  C_Orb_Init(Corba.Command_Line.Argc,
+                              Corba.Command_Line.Argv,
+                              C_Orb_Name) ;
+      return Conv(A2a.To_Pointer(C_Result)) ;
    end ;
 
 
@@ -94,9 +74,9 @@ package body Corba.Orb is
    function C_BOA_Init(Self : in Object'Class ;
                        Argc : in Interfaces.C.Int ;
                        Argv : in System.Address ;
-                       Boaname : in Interfaces.C.Chars_Ptr)
-                   return Corba.Boa.Object'Class ;
-   pragma Import(C,C_BOA_Init,"") ;
+                       Boaname : in Interfaces.C.Strings.Chars_Ptr)
+                   return System.Address ;
+   pragma Import(CPP,C_BOA_Init,"BOA_init__Q25CORBA3ORBRiPPcPCc") ;
    -- corresponds to
    -- CORBA::BOA_ptr
    -- CORBA::
@@ -107,18 +87,23 @@ package body Corba.Orb is
    -----------
    function BOA_Init(Self : in Object'Class ;
                      Boa_Name : in Standard.String)
-                     return Corba.Boa.Object'Class is
-       C_Boa_Name : Interfaces.C.Chars_Ptr ;
+                     return Corba.Boa.Object_Ptr is
+      C_Boa_Name : Interfaces.C.Strings.Chars_Ptr ;
+      C_Result : System.Address ;
+      package A2a is new System.Address_To_Access_Conversions(Corba.Boa.Object) ;
+      function Conv is new Ada.Unchecked_Conversion(A2a.Object_Pointer,
+                                                    Corba.Boa.Object_Ptr);
    begin
 
       C_Boa_Name := Interfaces.C.Strings.New_String(Boa_Name) ;
       -- Never deallocated, but it may be used by the ORB
       -- and this function is called only once
 
-      return C_Boa_Init(Self,
+      C_Result :=  C_Boa_Init(Self,
                         Corba.Command_Line.Argc,
                         Corba.Command_Line.Argv,
-                        C_Orb_Name) ;
+                        C_Boa_Name) ;
+      return Conv(A2a.To_Pointer(C_Result)) ;
    end ;
 
 

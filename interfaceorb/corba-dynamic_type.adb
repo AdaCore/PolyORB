@@ -68,7 +68,7 @@ package body Corba.Dynamic_Type is
    -- Get_Dynamic_Type_From_Repository_Id
    --------------------------------------
    function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
-                                                return Corba.Object.Ref'Class is
+                                                return Corba.Object.Ref_Ptr is
       Temp : Cell_Ptr := Pd_List ;
    begin
       loop
@@ -79,7 +79,7 @@ package body Corba.Dynamic_Type is
                                             & "No match found for "
                                             & Corba.To_Standard_String(RepoId)) ;
          else if Temp.all.ID = repoID then
-            return Temp.all.Value.all ;
+            return Temp.all.Value ;
          else
             Temp := Temp.all.Next ;
          end if ;
