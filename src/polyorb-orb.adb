@@ -122,6 +122,23 @@ package body PolyORB.ORB is
    --  monitored by ORB. AES is destroyed.
    --  The caller must not hold the ORB lock.
 
+   --  These functions control polling on AES.
+   --  They should be called only from Insert_Source or Delete_Source.
+
+   procedure Disable_Polling (ORB : access ORB_Type);
+   --  Disable polling on AES, abort polling task and waits for its
+   --  completion, if required. ORB lock is released when waiting for
+   --  polling task completion: several tasks may enter this
+   --  procedure. ORB lock ensures they will leave it sequentially.
+   --  Precondition, postcondition: ORB lock is held.
+
+   procedure Enable_Polling (ORB : access ORB_Type);
+   --  Enable polling on AES. If Disable_Polling has been called N
+   --  times, Enable_Polling must be called N times to actually enable
+   --  polling. It is the user responsability to ensure that
+   --  Enable_Polling actually enables polling in bounded time.
+   --  Precondition, postcondition: ORB lock is held.
+
    --------------------------------------------
    -- Annotations used by the ORB internally --
    --------------------------------------------
@@ -156,6 +173,9 @@ package body PolyORB.ORB is
       ORB.Polling  := False;
       Create (ORB.Polling_Completed);
       ORB.Idle_Counter := 0;
+      ORB.Polling_Enabled := True;
+      ORB.Polling_Abort_Counter := 0;
+      ORB.Polling_Abort_Requested := False;
 
       Leave (ORB.ORB_Lock);
    end Create;
@@ -321,6 +341,7 @@ package body PolyORB.ORB is
          --  ORB_Lock is held.
 
          if May_Poll
+           and then ORB.Polling_Enabled
            and then not ORB.Polling
            and then Monitor_Lists.Length (ORB.Monitors) > 0
          then
@@ -349,6 +370,7 @@ package body PolyORB.ORB is
 
                --  ORB.ORB_Lock is held.
 
+               Check_Events :
                while not Last (It) loop
                   declare
                      Monitor : constant Asynch_Ev_Monitor_Access
@@ -356,14 +378,14 @@ package body PolyORB.ORB is
                   begin
                      Set_Status_Blocked (This_Task, Monitor);
 
-                     <<Retry>>
                      ORB.Selector := Monitor;
                      ORB.Polling := True;
-                     ORB.Source_Deleted := False;
-                     Leave (ORB.ORB_Lock);
 
                      pragma Debug (O ("Run: task " & Image (Current_Task)
                                       & " about to Check_Sources."));
+
+                     Leave (ORB.ORB_Lock);
+
                      declare
                         Events : AES_Array
                           := Check_Sources (Monitor, Timeout);
@@ -375,38 +397,34 @@ package body PolyORB.ORB is
                           (O ("Run: task " & Image (Current_Task)
                               & " returned from Check_Sources."));
 
-                        ORB.Polling := False;
-                        ORB.Selector := null;
-
-                        if ORB.Source_Deleted then
-                           --  Another task is about to destroy an
-                           --  asynchronous event source, allow it to
-                           --  complete AES destruction.
-
-                           Broadcast (ORB.Polling_Completed);
-                        end if;
-
-                        exit Main_Loop when Exit_Now;
-
-                        if ORB.Source_Deleted then
-                           --  An asynchronous event source was
-                           --  unregistered while we were blocking,
-                           --  and may now have been destroyed.
-                           goto Retry;
-
-                        end if;
+                        --  Queue events, if any.
 
                         for J in Events'Range loop
                            Queue_Event (ORB, Events (J));
                         end loop;
 
+                        ORB.Polling := False;
+                        ORB.Selector := null;
+
                         Set_Status_Running (This_Task);
                         --  Reset the monitor on which 'This_Task' is blocked.
+
+                        exit Main_Loop when Exit_Now;
+
+                        if ORB.Polling_Abort_Requested then
+                           --  A task requested polling abortion.
+
+                           ORB.Polling_Abort_Requested := False;
+                           Broadcast (ORB.Polling_Completed);
+                           pragma Debug (O ("Broadcast done"));
+                           exit Check_Events;
+                        end if;
+
                      end;
                   end;
                   Next (It);
 
-               end loop;
+               end loop Check_Events;
 
                --  ORB.ORB_Lock is held.
             end;
@@ -733,17 +751,23 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       AES :        Asynch_Ev_Source_Access) is
    begin
-      pragma Assert (AES /= null);
-      pragma Debug (O ("Insert source: enter"));
-
       Enter (ORB.ORB_Lock);
 
+      pragma Debug (O ("Insert_Source: enter"));
+      pragma Assert (AES /= null);
+
+      --  Disable polling to enable safe modification of AES list
+      Disable_Polling (ORB);
+
+      --  At this stage, no task shall concurrently run Check_Sources.
+      pragma Assert (not ORB.Polling);
+
+      --  Register source to a monitor.
       declare
          use Monitor_Lists;
          It : Iterator := First (ORB.Monitors);
-         Success : Boolean;
+         Success : Boolean := False;
       begin
-         Success := False;
 
          while not Last (It) loop
             Register_Source (Value (It).all, AES, Success);
@@ -764,18 +788,12 @@ package body PolyORB.ORB is
          end if;
       end;
 
-      if ORB.Polling then
-         pragma Assert (ORB.Selector /= null);
-         pragma Debug (O ("Waking up polling task."));
-         Abort_Check_Sources (ORB.Selector.all);
+      --  Modification completed, enable polling
+      Enable_Polling (ORB);
 
-      else
-         pragma Debug (O ("Insert source: Signaling Idle Tasks"));
-         Signal (ORB.Idle_Tasks);
-      end if;
+      pragma Debug (O ("Insert_Source: leave"));
+
       Leave (ORB.ORB_Lock);
-
-      pragma Debug (O ("Insert source: leave"));
    end Insert_Source;
 
    -------------------
@@ -788,22 +806,75 @@ package body PolyORB.ORB is
    begin
       Enter (ORB.ORB_Lock);
 
+      pragma Debug (O ("Delete_Source: enter"));
+
+      --  Disable polling to enable safe modification of AES list
+      Disable_Polling (ORB);
+
+      --  At this stage, no task shall concurrently run Check_Sources.
+      pragma Assert (not ORB.Polling);
+
+      --  Remove source
       Unregister_Source (AES);
 
-      if ORB.Polling then
-         --  If one task currently running the ORB main loop is
-         --  blocked, on event sources we must force it to stop now so
-         --  that we can safely destroy the AES.
-
-         ORB.Source_Deleted := True;
-         pragma Assert (ORB.Selector /= null);
-         Abort_Check_Sources (ORB.Selector.all);
-         Wait (ORB.Polling_Completed, ORB.ORB_Lock);
-      end if;
+      --  Modification completed, enable polling
+      Enable_Polling (ORB);
 
       Leave (ORB.ORB_Lock);
+
+      --  Actually destroy AES
       Destroy (AES);
+
+      pragma Debug (O ("Delete_Source: leave"));
    end Delete_Source;
+
+   ---------------------
+   -- Disable_Polling --
+   ---------------------
+
+   procedure Disable_Polling (ORB : access ORB_Type) is
+   begin
+
+      --  Prevent all tasks to enter event source monitoring loop.
+
+      ORB.Polling_Enabled := False;
+      ORB.Polling_Abort_Counter := ORB.Polling_Abort_Counter + 1;
+
+      --  Force all tasks currently executing Check_Sources to abort
+
+      if ORB.Polling then
+         pragma Debug (O ("Disable_Polling: Aborting polling task"));
+
+         ORB.Polling_Abort_Requested := True;
+         Abort_Check_Sources (ORB.Selector.all);
+
+         pragma Debug (O ("Disable_Polling: waiting abort is complete"));
+         Wait (ORB.Polling_Completed, ORB.ORB_Lock);
+
+         pragma Debug (O ("Disable_Polling: aborting done"));
+      end if;
+
+   end Disable_Polling;
+
+   --------------------
+   -- Enable_Polling --
+   --------------------
+
+   procedure Enable_Polling (ORB : access ORB_Type) is
+   begin
+      --  Authorize tasks to enter Check_Sources.
+
+      ORB.Polling_Abort_Counter := ORB.Polling_Abort_Counter - 1;
+
+      if ORB.Polling_Abort_Counter = 0 then
+
+         ORB.Polling_Enabled := True;
+
+         pragma Debug (O ("Enable_Polling: Signaling Idle Tasks"));
+         Signal (ORB.Idle_Tasks);
+      end if;
+
+   end Enable_Polling;
 
    ----------------------------------
    -- Job type for object requests --
