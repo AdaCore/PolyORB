@@ -4,9 +4,12 @@ with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Id_Assignement_Policy is
 
-   type IdAssignementPolicy is abstract new Policy with private;
+   type IdAssignementPolicy is abstract new Policy with
+     record
+         Value : IdAssignementPolicyValue;
+     end record;
    subtype Id_Assignement_Policy is IdAssignementPolicy;
-   type IdAssignementPolicy_Access is access all IdAssignementPolicy;
+   type IdAssignementPolicy_Access is access all IdAssignementPolicy'Class;
    subtype Id_Assignement_Policy_Access is IdAssignementPolicy_Access;
 
    function Create (Value : IdAssignementPolicyValue)
@@ -52,13 +55,5 @@ package CORBA.Policy.Id_Assignement_Policy is
 --  with this ID
 --    --
 --    --  Uses the lifespan policy to create the object id
-
-
-private
-   type IdAssignementPolicy is abstract new Policy with
-      record
-         Value : IdAssignementPolicyValue;
-      end record;
-
 
 end CORBA.Policy.Id_Assignement_Policy;

@@ -43,7 +43,6 @@ package CORBA.POA is
 
          --  Siblings
          Father                     : Obj_Adapter_Access := null;
-         A_Brother                  : Obj_Adapter_Access := null;
          Children                   : POAList_Access     := null;
       end record;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;

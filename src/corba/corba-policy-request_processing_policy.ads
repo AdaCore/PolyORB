@@ -3,9 +3,13 @@ with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Request_Processing_Policy is
 
-   type RequestProcessingPolicy is abstract new Policy with private;
+   type RequestProcessingPolicy is abstract new Policy with
+     record
+         Value : RequestProcessingPolicyValue;
+     end record;
    subtype Request_Processing_Policy is RequestProcessingPolicy;
-   type RequestProcessingPolicy_Access is access all RequestProcessingPolicy;
+   type RequestProcessingPolicy_Access is
+     access all RequestProcessingPolicy'Class;
    subtype Request_Processing_Policy_Access is RequestProcessingPolicy_Access;
 
    function Create (Value : RequestProcessingPolicyValue)
@@ -45,13 +49,5 @@ package CORBA.Policy.Request_Processing_Policy is
 --    --  Case USE_SERVANT_MANAGER:
 --    --  Calls the ServantManager to create the servant if not found in the map
 --    --  ????
-
-
-private
-   type RequestProcessingPolicy is abstract new Policy with
-      record
-         Value : RequestProcessingPolicyValue;
-      end record;
-
 
 end CORBA.Policy.Request_Processing_Policy;

@@ -234,6 +234,9 @@ package CORBA is
    Transaction_Rolledback : exception;
    Invalid_Transaction    : exception;
 
+   Adapter_Already_Exists : exception;
+   Invalid_Policy         : exception;
+
    type Unknown_Members         is new System_Exception_Members
      with null record;
 
@@ -294,6 +297,10 @@ package CORBA is
    type Invalid_Transaction_Members    is new System_Exception_Members
      with null record;
 
+   type Adapter_Already_Exists_Members is new System_Exception_Members
+     with null record;
+   type Invalid_Policy_Members         is new System_Exception_Members
+     with null record;
 
    -----------------------------
    -- exceptions for the ORB  --

@@ -1,11 +1,15 @@
 with CORBA.Policy_Values; use CORBA.Policy_Values;
 with Droopi.Objects;      use Droopi.Objects;
+with CORBA.POA_Types;
 
 package CORBA.Policy.Thread_Policy is
 
-   type ThreadPolicy is abstract new Policy with private;
+   type ThreadPolicy is abstract new Policy with
+     record
+         Value       : ThreadPolicyValue;
+      end record;
    subtype Thread_Policy is ThreadPolicy;
-   type ThreadPolicy_Access is access all ThreadPolicy;
+   type ThreadPolicy_Access is access all ThreadPolicy'Class;
    subtype Thread_Policy_Access is ThreadPolicy_Access;
 
    function Create (Value : ThreadPolicyValue)
@@ -19,10 +23,8 @@ package CORBA.Policy.Thread_Policy is
    --  The real creation function that has to be implemented for each
    --  possible Policy
 
-private
-   type ThreadPolicy is abstract new Policy with
-      record
-         Value       : ThreadPolicyValue;
-      end record;
+   procedure Check_Compatibility (Self : ThreadPolicy;
+                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+      is abstract;
 
 end CORBA.Policy.Thread_Policy;

@@ -108,7 +108,12 @@ package body Droopi.CORBA_P.Exceptions is
       (Exc  => CORBA.Transaction_Rolledback'Identity,
        Name => new String'("CORBA/TRANSACTION_ROLLEDBACK")),
       (Exc  => CORBA.Invalid_Transaction'Identity,
-       Name => new String'("CORBA/INVALID_TRANSACTION")));
+       Name => new String'("CORBA/INVALID_TRANSACTION")),
+
+      (Exc  => CORBA.Adapter_Already_Exists'Identity,
+       Name => new String'("CORBA/ADAPTER_ALREADY_EXISTS")),
+      (Exc  => CORBA.Invalid_Policy'Identity,
+       Name => new String'("CORBA/INVALID_POLICY")));
 
    ----------------------
    -- User_Get_Members --
@@ -353,6 +358,24 @@ package body Droopi.CORBA_P.Exceptions is
         (Bad_TypeCode'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_TypeCode;
+
+   procedure Raise_Adapter_Already_Exists
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Adapter_Already_Exists'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Adapter_Already_Exists;
+
+   procedure Raise_Invalid_Policy
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Invalid_Policy'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Invalid_Policy;
 
    -----------------------------------------------------
    -- System exceptions                               --

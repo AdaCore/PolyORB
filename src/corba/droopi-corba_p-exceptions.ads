@@ -168,6 +168,20 @@ package Droopi.CORBA_P.Exceptions is
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
+   ------------------------------------
+   --  Exceptions raised by the POA  --
+   ------------------------------------
+
+   procedure Raise_Adapter_Already_Exists
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Bad_TypeCode);
+
+   procedure Raise_Invalid_Policy
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Bad_TypeCode);
+
 end Droopi.CORBA_P.Exceptions;
 
 

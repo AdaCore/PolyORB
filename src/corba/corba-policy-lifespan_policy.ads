@@ -4,9 +4,12 @@ with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Lifespan_Policy is
 
-   type LifespanPolicy is abstract new Policy with private;
+   type LifespanPolicy is abstract new Policy with
+      record
+         Value : LifespanPolicyValue;
+      end record;
    subtype Lifespan_Policy is LifespanPolicy;
-   type LifespanPolicy_Access is access all LifespanPolicy;
+   type LifespanPolicy_Access is access all LifespanPolicy'Class;
    subtype Lifespan_Policy_Access is LifespanPolicy_Access;
 
    function Create (Value : LifespanPolicyValue)
@@ -31,12 +34,5 @@ package CORBA.Policy.Lifespan_Policy is
 --    --  If not, raises a BAD_PARAM exception.
 --    --  TRANSIENT:
 --    --  Does nothing.
-
-private
-   type LifespanPolicy is abstract new Policy with
-      record
-         Value : LifespanPolicyValue;
-      end record;
-
 
 end CORBA.Policy.Lifespan_Policy;

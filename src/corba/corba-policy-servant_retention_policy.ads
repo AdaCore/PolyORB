@@ -3,9 +3,13 @@ with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Servant_Retention_Policy is
 
-   type ServantRetentionPolicy is abstract new Policy with private;
+   type ServantRetentionPolicy is abstract new Policy with
+     record
+         Value : ServantRetentionPolicyValue;
+     end record;
    subtype Servant_Retention_Policy is ServantRetentionPolicy;
-   type ServantRetentionPolicy_Access is access all ServantRetentionPolicy;
+   type ServantRetentionPolicy_Access is
+     access all ServantRetentionPolicy'Class;
    subtype Servant_Retention_Policy_Access is ServantRetentionPolicy_Access;
 
    function Create (Value : ServantRetentionPolicyValue)
@@ -77,11 +81,5 @@ package CORBA.Policy.Servant_Retention_Policy is
 --    --  (or raises an exception???)
 --    --  Case NON_RETAIN:
 --    --  Returns Nil
-
-private
-   type ServantRetentionPolicy is abstract new Policy with
-      record
-         Value : ServantRetentionPolicyValue;
-      end record;
 
 end CORBA.Policy.Servant_Retention_Policy;

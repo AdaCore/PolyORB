@@ -17,5 +17,16 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
       return Policy;
    end Create;
 
+   -------------------------
+   -- Check_Compatibility --
+   -------------------------
+
+   procedure Check_Compatibility (Self : Retain_Policy;
+                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+   is
+   begin
+      null;
+   end Check_Compatibility;
+
 end CORBA.Policy.Servant_Retention_Policy.Retain;
 

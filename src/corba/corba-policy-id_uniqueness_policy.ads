@@ -3,9 +3,12 @@ with CORBA.Object_Map;              use CORBA.Object_Map;
 
 package CORBA.Policy.Id_Uniqueness_Policy is
 
-   type IdUniquenessPolicy is abstract new Policy with private;
+   type IdUniquenessPolicy is abstract new Policy with
+     record
+         Value : IdUniquenessPolicyValue;
+     end record;
    subtype Id_Uniqueness_Policy is IdUniquenessPolicy;
-   type IdUniquenessPolicy_Access is access all IdUniquenessPolicy;
+   type IdUniquenessPolicy_Access is access all IdUniquenessPolicy'Class;
    subtype Id_Uniqueness_Policy_Access is IdUniquenessPolicy_Access;
 
    function Create (Value : IdUniquenessPolicyValue)
@@ -29,11 +32,5 @@ package CORBA.Policy.Id_Uniqueness_Policy is
 --    --  If not, throws a ServantAlreadyActive exception.
 --    --  Case MULTIPLE_ID:
 --    --  Does nothing
-
-private
-   type IdUniquenessPolicy is abstract new Policy with
-      record
-         Value : IdUniquenessPolicyValue;
-      end record;
 
 end CORBA.Policy.Id_Uniqueness_Policy;

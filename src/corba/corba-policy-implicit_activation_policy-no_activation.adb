@@ -18,4 +18,16 @@ package body CORBA.Policy.Implicit_Activation_Policy.No_Activation is
                                        NO_IMPLICIT_ACTIVATION);
       return Policy;
    end Create;
+
+   -------------------------
+   -- Check_Compatibility --
+   -------------------------
+
+   procedure Check_Compatibility (Self : No_Activation_Policy;
+                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+   is
+   begin
+      null;
+   end Check_Compatibility;
+
 end CORBA.Policy.Implicit_Activation_Policy.No_Activation;

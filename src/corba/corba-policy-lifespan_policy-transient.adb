@@ -17,4 +17,15 @@ package body CORBA.Policy.Lifespan_Policy.Transient is
       return Policy;
    end Create;
 
+   -------------------------
+   -- Check_Compatibility --
+   -------------------------
+
+   procedure Check_Compatibility (Self : Transient_Policy;
+                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+   is
+   begin
+      null;
+   end Check_Compatibility;
+
 end CORBA.Policy.Lifespan_Policy.Transient;

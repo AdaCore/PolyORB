@@ -1,3 +1,7 @@
+with CORBA.POA;
+with Droopi.CORBA_P.Exceptions;
+with CORBA.Policy_Values;
+
 package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
 
    use CORBA.Policy_Values;
@@ -18,5 +22,23 @@ package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
                                          USE_ACTIVE_OBJECT_MAP_ONLY);
       return Policy;
    end Create;
+
+   -------------------------
+   -- Check_Compatibility --
+   -------------------------
+
+   procedure Check_Compatibility (Self : Active_Map_Only_Policy;
+                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+   is
+      use Droopi.CORBA_P.Exceptions;
+      Object : CORBA.POA.Obj_Adapter_Access
+        := CORBA.POA.Obj_Adapter_Access (OA);
+   begin
+      if Object.Servant_Retention_Policy.Value /= RETAIN then
+         Raise_Invalid_Policy;
+      end if;
+
+      null;
+   end Check_Compatibility;
 
 end CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only;

@@ -3,10 +3,13 @@ with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Implicit_Activation_Policy is
 
-   type ImplicitActivationPolicy is abstract new Policy with private;
+   type ImplicitActivationPolicy is abstract new Policy with
+     record
+         Value : ImplicitActivationPolicyValue;
+     end record;
    subtype Implicit_Activation_Policy is ImplicitActivationPolicy;
    type ImplicitActivationPolicy_Access is
-     access all ImplicitActivationPolicy;
+     access all ImplicitActivationPolicy'Class;
    subtype Implicit_Activation_Policy_Access is
      ImplicitActivationPolicy_Access;
 
@@ -30,11 +33,5 @@ package CORBA.Policy.Implicit_Activation_Policy is
 --    --  Activate the servant and returns its Id
 --    --  Case NO_IMPLICIT_ACTIVATION:
 --    --  Returns Nil
-
-private
-   type ImplicitActivationPolicy is abstract new Policy with
-      record
-         Value : ImplicitActivationPolicyValue;
-      end record;
 
 end CORBA.Policy.Implicit_Activation_Policy;

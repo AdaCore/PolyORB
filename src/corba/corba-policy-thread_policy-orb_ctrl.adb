@@ -17,13 +17,15 @@ package body CORBA.Policy.Thread_Policy.Orb_Ctrl is
       return Policy;
    end Create;
 
-   function Copy (P : Orb_Ctrl_Policy)
-                 return Orb_Ctrl_Policy_Access
+   -------------------------
+   -- Check_Compatibility --
+   -------------------------
+
+   procedure Check_Compatibility (Self : Orb_Ctrl_Policy;
+                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
    is
-      Policy : Orb_Ctrl_Policy_Access;
    begin
-      Policy := new Orb_Ctrl_Policy'(P);
-      return Policy;
-   end Copy;
+      null;
+   end Check_Compatibility;
 
 end CORBA.Policy.Thread_Policy.Orb_Ctrl;
