@@ -64,7 +64,7 @@ package PolyORB.Servants.Group_Servants is
    --  Create a new group servant
 
    procedure Get_Group_Object_Id
-     (Group : PolyORB.Servants.Servant_Access;
+     (Group :        PolyORB.Servants.Servant_Access;
       Oid   :    out Object_Id_Access;
       Error : in out PolyORB.Exceptions.Error_Container);
    --  Return group object id
@@ -80,18 +80,19 @@ package PolyORB.Servants.Group_Servants is
    --------------------------
 
    procedure Associate
-     (Group : PolyORB.Servants.Servant_Access;
-      Ref   : PolyORB.References.Ref;
+     (Group :        PolyORB.Servants.Servant_Access;
+      Ref   :        PolyORB.References.Ref;
       Error : in out PolyORB.Exceptions.Error_Container);
    --  Associate a servant ref with a group
 
    procedure Disassociate
-     (Group : PolyORB.Servants.Servant_Access;
-      Ref   : PolyORB.References.Ref;
+     (Group :        PolyORB.Servants.Servant_Access;
+      Ref   :        PolyORB.References.Ref;
       Error : in out PolyORB.Exceptions.Error_Container);
    --  Disassociate a servant ref with a group
 
    --  Iterator on a group servant
+
    type Iterator is private;
 
    procedure First
@@ -100,9 +101,7 @@ package PolyORB.Servants.Group_Servants is
       Error : in out PolyORB.Exceptions.Error_Container);
    --  Create Iterator and set it on the first element
 
-   function Value
-     (It : in Iterator)
-     return PolyORB.References.Ref;
+   function Value (It : in Iterator) return PolyORB.References.Ref;
    --  Return current iterator reference
 
    procedure Next (It : in out Iterator);
@@ -117,7 +116,8 @@ private
    -- Group Servant --
    -------------------
 
-   --  State for argument proxy
+   --  State of argument proxy
+
    type Proxy_State is (Not_Ready, Wait_First, Wait_Other);
 
    --  List of servants registered in group
@@ -125,7 +125,7 @@ private
    is new PolyORB.Utils.Chained_Lists
      (PolyORB.References.Ref,
       PolyORB.References."=");
-   --  XXX questionnable. works great with corba goa, but need to
+   --  XXX questionnable. works with CORBA GOA, but need to
    --  be replaced by Is_Same_Object function
 
    type Group_Servant is new PolyORB.Servants.Servant with record
@@ -149,25 +149,26 @@ private
       Mutex       : Tasking.Mutexes.Mutex_Access;
       Group_Lock  : Tasking.Mutexes.Mutex_Access;
    end record;
+
    type Group_Servant_Access is access all Group_Servant;
 
    function Handle_Message
      (Self : access Group_Servant;
-      Msg  : Components.Message'Class)
+      Msg  :        Components.Message'Class)
      return Components.Message'Class;
    --  Function used to intercept Unmarshall_Arguments message
 
    function Handle_Unmarshall_Arguments
      (Self : access Group_Servant;
-      Msg  : Components.Message'Class)
+      Msg  :        Components.Message'Class)
      return Components.Message'Class;
    --  Dispatch arguments between targets
 
    function Execute_Servant
      (Self : access Group_Servant;
-      Msg  : Components.Message'Class)
+      Msg  :        Components.Message'Class)
       return Components.Message'Class;
-   --  Dispatch request between targets
+   --  Dispatch request to targets
 
    procedure Register
      (Self : access Group_Servant;

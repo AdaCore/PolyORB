@@ -33,13 +33,11 @@
 
 with Ada.Tags;
 
-with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.Objects;
 with PolyORB.Servants.Interface;
-with PolyORB.ORB;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols.Interface;
 with PolyORB.References.IOR;
@@ -61,15 +59,11 @@ package body PolyORB.Servants.Group_Servants is
 
    package TPL renames Target_List_Package;
 
-   package L is new PolyORB.Log.Facility_Log
-     ("polyorb.servants.group_servants");
+   package L is
+      new PolyORB.Log.Facility_Log ("polyorb.servants.group_servants");
    procedure O (Message : in Standard.String;
                 Level : Log.Log_Level := Log.Debug)
      renames L.Output;
-
-   ----------------
-   -- Args Proxy --
-   ----------------
 
    ---------------------------------
    -- Handle_Unmarshall_Arguments --
@@ -81,9 +75,11 @@ package body PolyORB.Servants.Group_Servants is
       return Components.Message'Class
    is
       use PolyORB.Protocols.Interface;
+
    begin
       pragma Assert (Msg in Unmarshall_Arguments);
       Enter (Self.Mutex);
+
       case Self.State is
          when Not_Ready =>
             raise Unhandled_Message;
@@ -94,7 +90,8 @@ package body PolyORB.Servants.Group_Servants is
             pragma Debug (O ("Try to unmarshall arguments"));
             pragma Assert (Self.Args_Src /= null);
 
-            --  Check that request is oneway check
+            --  Check that request is oneway
+
             declare
                use PolyORB.Any;
                use PolyORB.Any.NVList;
@@ -106,7 +103,7 @@ package body PolyORB.Servants.Group_Servants is
             begin
                while not Last (It) loop
                   if Value (It).Arg_Modes = ARG_OUT
-                    or Value (It).Arg_Modes = ARG_INOUT
+                    or else Value (It).Arg_Modes = ARG_INOUT
                   then
                      raise Not_Oneway_Request;
                   end if;
@@ -114,13 +111,13 @@ package body PolyORB.Servants.Group_Servants is
                end loop;
             end;
 
-            --  Unmarshall arguments from proto stack
+            --  Unmarshall arguments from protocol stack
+
             declare
                use PolyORB.Any.NVList;
                use PolyORB.Any.NVList.Internals.NV_Lists;
 
-               Reply : constant Message'Class
-                 := Emit (Self.Args_Src, Msg);
+               Reply : constant Message'Class := Emit (Self.Args_Src, Msg);
                Req_Args : Ref;
                It : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
             begin
@@ -140,20 +137,21 @@ package body PolyORB.Servants.Group_Servants is
                Leave (Self.Mutex);
 
                --  Send result
+
                return Unmarshalled_Arguments'
                  (Args => Unmarshall_Arguments (Msg).Args);
             end;
 
          when Wait_Other =>
             --  Copy arguments and send it
+
             pragma Debug (O ("Copy previously unmarshalled arguments"));
             declare
                use PolyORB.Any;
                use PolyORB.Any.NVList;
                use PolyORB.Any.NVList.Internals.NV_Lists;
 
-               Req_Args : Ref
-                 := Unmarshall_Arguments (Msg).Args;
+               Req_Args : Ref := Unmarshall_Arguments (Msg).Args;
                It1 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
                It2 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
             begin
@@ -163,25 +161,20 @@ package body PolyORB.Servants.Group_Servants is
                It2 := First (Internals.List_Of (Req_Args).all);
 
                while not Last (It1) loop
-                  pragma Assert
-                    (Value (It1).Name = Value (It2).Name);
-                  pragma Assert
-                    (Value (It1).Arg_Modes = Value (It2).Arg_Modes);
+                  pragma Assert (Value (It1).Name = Value (It2).Name);
+                  pragma Assert (Value (It1).Arg_Modes
+                                 = Value (It2).Arg_Modes);
+
                   Copy_Any_Value (Value (It2).Argument,
                                   Value (It1).Argument);
                   Next (It1);
                   Next (It2);
                end loop;
                Leave (Self.Mutex);
-               return Unmarshalled_Arguments'
-                 (Args => Req_Args);
+               return Unmarshalled_Arguments'(Args => Req_Args);
             end;
       end case;
    end Handle_Unmarshall_Arguments;
-
-   -------------------
-   -- Group Servant --
-   -------------------
 
    ---------------------
    -- Execute_Servant --
@@ -189,7 +182,7 @@ package body PolyORB.Servants.Group_Servants is
 
    function Execute_Servant
      (Self : access Group_Servant;
-      Msg  : Components.Message'Class)
+      Msg  :        Components.Message'Class)
       return Components.Message'Class
    is
       use PolyORB.Requests;
@@ -213,7 +206,8 @@ package body PolyORB.Servants.Group_Servants is
          return Executed_Request'(Req => Request);
       end if;
 
-      --  Init argument proxy
+      --  Initialize argument proxy
+
       Enter (Self.Group_Lock);
       Enter (Self.Mutex);
 
@@ -223,9 +217,11 @@ package body PolyORB.Servants.Group_Servants is
       pragma Assert (Is_Nil (Request.Args));
 
       --  Check if request is oneway
+
       if not Is_Set (Sync_With_Transport, Request.Req_Flags) then
          raise Not_Oneway_Request;
       end if;
+
       if Self.State = Wait_Other then
          Free (Self.Args);
       end if;
@@ -233,7 +229,9 @@ package body PolyORB.Servants.Group_Servants is
       Self.Args_Src := Request.Deferred_Arguments_Session;
 
       It := TPL.First (Self.Target_List);
+
       --  Create requests
+
       while not TPL.Last (It) loop
          declare
             Req  : Request_Access;
@@ -254,10 +252,10 @@ package body PolyORB.Servants.Group_Servants is
                  PolyORB.Components.Component_Access (Self),
                Req                        => Req,
                Req_Flags                  => Request.Req_Flags);
-
             --  XXX Notepad is not copied
 
             --  Requeue request to ORB
+
             Queue_Request_To_Handler
               (The_ORB.Tasking_Policy, The_ORB,
                Queue_Request'
@@ -279,7 +277,6 @@ package body PolyORB.Servants.Group_Servants is
    -- Handle_Message --
    --------------------
 
-   --  Unmarshall_Arguments interceptor
    function Handle_Message
      (Self : access Group_Servant;
       Msg  : Components.Message'Class)
@@ -292,26 +289,32 @@ package body PolyORB.Servants.Group_Servants is
    begin
       if Msg in Unmarshall_Arguments then
          return Handle_Unmarshall_Arguments (Self, Msg);
+
       elsif Msg in Executed_Request then
          Enter (Self.Mutex);
          declare
             use PolyORB.Requests;
 
-            Req : Request_Access
-              := Executed_Request (Msg).Req;
+            Req : Request_Access := Executed_Request (Msg).Req;
          begin
             Destroy_Request (Req);
          end;
+
          Self.Counter := Self.Counter + 1;
+
          if Self.Counter = TPL.Length (Self.Target_List) then
             Leave (Self.Group_Lock);
          end if;
+
          Leave (Self.Mutex);
          return Res;
+
       else
          pragma Debug (O ("Handling message of type "
                           & Ada.Tags.External_Tag (Msg'Tag)));
-         --  Call servants'Handle_Message function
+
+         --  Dispatch
+
          return PolyORB.Servants.Handle_Message
            (Servant (Self.all)'Access, Msg);
       end if;
@@ -356,9 +359,9 @@ package body PolyORB.Servants.Group_Servants is
       Leave (Self.Group_Lock);
    end Unregister;
 
-   ---------------------------
-   -- Initialize / Finalize --
-   ---------------------------
+   ----------------
+   -- Initialize --
+   ----------------
 
    procedure Initialize (GS : in out Group_Servant) is
    begin
@@ -366,16 +369,16 @@ package body PolyORB.Servants.Group_Servants is
       Create (GS.Group_Lock);
    end Initialize;
 
+   --------------
+   -- Finalize --
+   --------------
+
    procedure Finalize   (GS : in out Group_Servant) is
    begin
       TPL.Deallocate (GS.Target_List);
       Destroy (GS.Mutex);
       Destroy (GS.Group_Lock);
    end Finalize;
-
-   ---------------
-   -- Interface --
-   ---------------
 
    --------------------------
    -- Create_Group_Servant --
@@ -392,7 +395,6 @@ package body PolyORB.Servants.Group_Servants is
       GS.Oid := Oid;
       return PolyORB.Servants.Servant_Access (GS);
    end Create_Group_Servant;
-
 
    -------------------------
    -- Get_Group_Object_Id --
@@ -482,9 +484,7 @@ package body PolyORB.Servants.Group_Servants is
    -- Value --
    -----------
 
-   function Value
-     (It : in Iterator)
-     return PolyORB.References.Ref is
+   function Value (It : in Iterator) return PolyORB.References.Ref is
    begin
       return TPL.Value (It.It).all;
    end Value;
