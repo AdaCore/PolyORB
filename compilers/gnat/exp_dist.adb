@@ -407,12 +407,11 @@ package body Exp_Dist is
    --  Get_Subprogram_Id. Spn is the subprogram number.
 
    procedure Reserve_NamingContext_Methods;
-   --  Mark the method names for interface NamingContext as
-   --  already used in the overload table, so no clashes
-   --  occur with user code (RCIs implement the NamingContext
-   --  interface to allow their methods to be accessed as
-   --  objects, for the implementation of remote access-to-subprogram
-   --  types).
+   --  Mark the method names for interface NamingContext as already used in the
+   --  overload table, so no clashes occur with user code (with the PolyORB
+   --  PCS, RCIs Implement The NamingContext interface to allow their methods
+   --  to be accessed as objects, for the implementation of remote
+   --  access-to-subprogram types).
 
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
@@ -854,6 +853,9 @@ package body Exp_Dist is
       RACW_Ctrl   : Boolean := False;
       Any         : Entity_Id) return Node_Id
    is
+      Parameter_Name_String : String_Id;
+      Parameter_Mode        : Node_Id;
+
       function Parameter_Passing_Mode
         (Loc         : Source_Ptr;
          Parameter   : Entity_Id;
@@ -869,10 +871,10 @@ package body Exp_Dist is
       function Parameter_Passing_Mode
         (Loc         : Source_Ptr;
          Parameter   : Entity_Id;
-         Constrained : Boolean)
-      return Node_Id
+         Constrained : Boolean) return Node_Id
       is
          Lib_RE : RE_Id;
+
       begin
          if Out_Present (Parameter) then
             if In_Present (Parameter)
@@ -886,14 +888,16 @@ package body Exp_Dist is
             else
                Lib_RE := RE_Mode_Out;
             end if;
+
          else
             Lib_RE := RE_Mode_In;
          end if;
+
          return New_Occurrence_Of (RTE (Lib_RE), Loc);
       end Parameter_Passing_Mode;
 
-      Parameter_Name_String : String_Id;
-      Parameter_Mode : Node_Id;
+   --  Start of processing for Add_Parameter_To_NVList
+
    begin
       if Nkind (Parameter) = N_Defining_Identifier then
          Get_Name_String (Chars (Parameter));
@@ -901,6 +905,7 @@ package body Exp_Dist is
          Get_Name_String (Chars (Defining_Identifier
                                   (Parameter)));
       end if;
+
       Parameter_Name_String := String_From_Name_Buffer;
 
       if RACW_Ctrl then
@@ -971,10 +976,10 @@ package body Exp_Dist is
       Same_Scope : constant Boolean :=
                      Scope (Desig) = Scope (RACW_Type);
 
-      Stub_Type           : Entity_Id;
-      Stub_Type_Access    : Entity_Id;
-      RPC_Receiver_Decl   : Node_Id;
-      Existing            : Boolean;
+      Stub_Type         : Entity_Id;
+      Stub_Type_Access  : Entity_Id;
+      RPC_Receiver_Decl : Node_Id;
+      Existing          : Boolean;
 
    begin
       if not Expander_Active then
@@ -1578,12 +1583,11 @@ package body Exp_Dist is
 
       Formal := First (Parameter_Specifications (Subp_Decl_Spec));
       pragma Assert (Present (Formal));
-      Next (Formal);
-
-      while Present (Formal) loop
-         Append_To (Actuals, New_Occurrence_Of (
-           Defining_Identifier (Formal), Loc));
+      loop
          Next (Formal);
+         exit when No (Formal);
+         Append_To (Actuals,
+           New_Occurrence_Of (Defining_Identifier (Formal), Loc));
       end loop;
 
       --  O : aliased subpP;
