@@ -35,4 +35,6 @@ package XE_Defs is
 
    function Get_GARLIC_Dir return String_Access;
 
+   function Get_Rsh_Command return String;
+
 end XE_Defs;

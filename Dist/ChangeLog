@@ -1,3 +1,11 @@
+Fri Mar  7 18:48:50 1997  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_defs.ads, Makefile.am, Makefile.in: Add function
+ 	Get_Rsh_Command which is determined at configuration time and set
+ 	in the body of xe_defs.adb.
+
+	* xe_stubs.adb: Use the previous new feature.
+
 Thu Feb 27 11:07:05 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* xe_check.adb: Check that a channel has not been declared twice

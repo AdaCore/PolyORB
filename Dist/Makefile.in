@@ -69,6 +69,7 @@ GARLIC = ${libdir}/garlic
 GNATFLAGS = -gnatpg @GNATFLAGS@
 EXTRA_LIBS = @EXTRA_LIBS@
 GNATMAKE = @GNATMAKE@
+RSH = @RSH@
 
 bin_SCRIPTS = gnatdist
 libexec_PROGRAMS = dist1
@@ -293,6 +294,10 @@ xe_defs.adb:
 		echo "      return new String'("$$i"_Dir);"; \
 		echo "   end Get_"$$i"_Dir;"; \
 	done >> xe_defs.adb
+	@echo "   function Get_Rsh_Command return String is" >>xe_defs.adb
+	@echo "   begin" >>xe_defs.adb
+	@echo "      return \"${RSH}\";" >>xe_defs.adb
+	@echo "   end Get_Rsh_Command;" >>xe_defs.adb
 	@echo "end XE_Defs;" >>xe_defs.adb
 
 xe_defs.o: xe_defs.ads xe_defs.adb

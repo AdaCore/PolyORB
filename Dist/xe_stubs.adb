@@ -31,6 +31,7 @@ with Osint;            use Osint;
 with Output;           use Output;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
+with XE_Defs;          use XE_Defs;
 with XE_Utils;         use XE_Utils;
 
 with Unchecked_Deallocation;
@@ -825,14 +826,18 @@ package body XE_Stubs is
                if Partition /= Main_Partition then
                   Dwrite_Str  (FD, "      system.garlic.remote.full_launch");
                   Dwrite_Eol  (FD);
+                  Dwrite_Str  (FD, "         (launcher        => """);
+                  Dwrite_Str  (FD, Get_Rsh_Command);
+                  Dwrite_Str  (FD, """,");
+                  Dwrite_Eol  (FD);
                   Host := Get_Host (Partition);
                   if Host = No_Name then
-                     Dwrite_Str  (FD, "         (host            => ");
+                     Dwrite_Str  (FD, "          host            => ");
                      Dwrite_Str  (FD, "system.garlic.remote.get_host (""");
                      Dwrite_Name (FD, Partitions.Table (Partition) .Name);
                      Dwrite_Str  (FD, """),");
                   else
-                     Dwrite_Str  (FD, "         (host            => ");
+                     Dwrite_Str  (FD, "          host            => ");
                      Dwrite_Name (FD, Get_Host (Partition));
                      Dwrite_Str  (FD, ",");
                   end if;
