@@ -717,13 +717,10 @@ package body Idl_Fe.Types is
    end Release;
 
    procedure Set_Last (T : in out Table; New_Val : in Uniq_Id) is
-      Old_Last : Integer;
-
    begin
       if Integer (New_Val) < T.Last_Val then
          T.Last_Val := Integer (New_Val);
       else
-         Old_Last := T.Last_Val;
          T.Last_Val := Integer (New_Val);
 
          if T.Last_Val > T.Max then
@@ -964,7 +961,6 @@ package body Idl_Fe.Types is
    procedure Pop_Scope is
       Old_Scope : Scope_Stack_Acc;
       Definition_List : Identifier_Definition_List;
-      Old_Definition_List : Identifier_Definition_List;
       Old_Definition : Identifier_Definition_Acc;
       Forward_Defs : Node_Iterator;
       Forward_Def : Node_Id;
@@ -1019,7 +1015,6 @@ package body Idl_Fe.Types is
          Old_Definition.Previous_Definition := null;
          Old_Definition.Id := Nil_Uniq_Id;
 
-         Old_Definition_List := Definition_List;
          Definition_List := Definition_List.Next;
          pragma Debug (O ("Pop_Scope: end of loop "));
       end loop;

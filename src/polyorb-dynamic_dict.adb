@@ -116,10 +116,8 @@ package body PolyORB.Dynamic_Dict is
    procedure Unregister
      (K : String)
    is
-      V : Value;
    begin
       Ensure_Initialization;
-      V := Lookup (T, K);
       Delete (T, K);
    exception
       when No_Key => raise Key_Not_Found;

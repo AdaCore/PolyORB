@@ -2641,11 +2641,9 @@ package body PolyORB.Any is
      (Value : in out Any;
       Element : in Any)
    is
-      Cl : Content_List;
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
       Enter (Value.Any_Lock);
-      Cl := Content_Aggregate_Ptr (Value.The_Value.all).Value;
       pragma Debug (O ("Add_Aggregate_Element : element kind is "
                        & TCKind'Image
                        (TypeCode.Kind

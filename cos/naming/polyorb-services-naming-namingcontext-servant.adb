@@ -689,7 +689,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    procedure Get_Ctx_And_Last_NC
      (Self : access Object;
       N    : in     Name;
-      Len  : in out Natural;
+      Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
       NC   : out    NameComponent);
    --  Resolve N from a given naming context Self: split a name N into
@@ -1007,7 +1007,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    procedure Get_Ctx_And_Last_NC
      (Self : access Object;
       N    : in     Name;
-      Len  : in out Natural;
+      Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
       NC   : out    NameComponent)
    is

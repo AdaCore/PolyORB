@@ -119,12 +119,19 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
          declare
             The_Entry : Object_Map_Entry_Access
               := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
-            Index : Integer;
          begin
             if The_Entry = null then
                The_Entry := new Object_Map_Entry;
                The_Entry.Oid := new Unmarshalled_Oid'(U_Oid);
-               Index := Add (POA.Active_Object_Map, The_Entry);
+               declare
+                  Index : constant Integer
+                    := Add (POA.Active_Object_Map, The_Entry);
+                  pragma Warnings (Off);
+                  pragma Unreferenced (Index);
+                  pragma Warnings (On);
+               begin
+                  null;
+               end;
             end if;
             The_Entry.Servant := P_Servant;
          end;

@@ -660,32 +660,32 @@ private
 
    --  Rule 63
    --  <char_type> ::= "char"
-   procedure Parse_Char_Type (Result : in out Node_Id;
+   procedure Parse_Char_Type (Result : out Node_Id;
                               Success : out Boolean);
 
    --  Rule 64
    --  <wide_char_type> ::= "wchar"
-   procedure Parse_Wide_Char_Type (Result : in out Node_Id;
+   procedure Parse_Wide_Char_Type (Result : out Node_Id;
                                    Success : out Boolean);
 
    --  Rule 65
    --  <boolean_type> ::= "boolean"
-   procedure Parse_Boolean_Type (Result : in out Node_Id;
+   procedure Parse_Boolean_Type (Result : out Node_Id;
                                  Success : out Boolean);
 
    --  Rule 66
    --  <octet_type> ::= "octet"
-   procedure Parse_Octet_Type (Result : in out Node_Id;
+   procedure Parse_Octet_Type (Result : out Node_Id;
                                Success : out Boolean);
 
    --  Rule 67
    --  <any_type> ::= "any"
-   procedure Parse_Any_Type (Result : in out Node_Id;
+   procedure Parse_Any_Type (Result : out Node_Id;
                              Success : out Boolean);
 
    --  Rule 68
    --  <object_type> ::= "object"
-   procedure Parse_Object_Type (Result : in out Node_Id;
+   procedure Parse_Object_Type (Result : out Node_Id;
                                 Success : out Boolean);
 
    --  Rule 69
@@ -861,7 +861,7 @@ private
 
    --  Rule 98
    --  <value_base_type> ::= "ValueBase"
-   procedure Parse_Value_Base_Type (Result : in out Node_Id;
+   procedure Parse_Value_Base_Type (Result : out Node_Id;
                                     Success : out Boolean);
 
    ------------------------------

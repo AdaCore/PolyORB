@@ -697,17 +697,19 @@ package body Idl_Fe.Parser is
                      end if;
 
                      if Build_Module then
+                        --  Creation of the node
+                        Result := Make_Module (Get_Previous_Token_Location);
+
                         declare
-                           Ok : Boolean;
-                        begin
-                           --  Creation of the node
-                           Result := Make_Module (Get_Previous_Token_Location);
+                           Ok : constant Boolean
+                             := Add_Identifier (Result, Get_Token_String);
+                           pragma Warnings (Off);
+                           pragma Unreferenced (Ok);
+                           pragma Warnings (On);
                            --  here, the addentifier is really added only if
                            --  we're not in the case where the module name
                            --  was already defined
-                           Ok := Add_Identifier
-                             (Result,
-                              Get_Token_String);
+                        begin
                            Set_Default_Repository_Id (Result);
                            Set_Initial_Current_Prefix (Result);
                         end;
@@ -1214,7 +1216,7 @@ package body Idl_Fe.Parser is
 
    procedure Parse_Scoped_Name (Result : out Node_Id;
                                 Success : out Boolean) is
-      Res, Prev : Node_Id;
+      Res : Node_Id;
       Scope : Node_Id;
       A_Name : Node_Id := No_Node;
    begin
@@ -1222,7 +1224,6 @@ package body Idl_Fe.Parser is
 
       Result := No_Node;
       Success := False;
-      Prev := No_Node;
       --  creation of a scoped_name node
       Res := Make_Scoped_Name (Get_Token_Location);
       --  if it begins with :: then the scope of reference is
@@ -2883,12 +2884,11 @@ package body Idl_Fe.Parser is
    -----------------------
    procedure Parse_Const_Exp (Result : out Node_Id;
                               Constant_Type : in Node_Id;
-                              Success : out Boolean) is
-      Loc : Errors.Location;
+                              Success : out Boolean)
+   is
       C_Type : Constant_Value_Ptr;
    begin
       pragma Debug (O2 ("Parse_Const_Exp: enter"));
-      Loc := Get_Token_Location;
       if Constant_Type /= No_Node then
          case Kind (Constant_Type) is
             when K_Short =>
@@ -5018,7 +5018,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Char_Type  --
    -----------------------
-   procedure Parse_Char_Type (Result : in out Node_Id;
+   procedure Parse_Char_Type (Result : out Node_Id;
                               Success : out Boolean) is
    begin
       Next_Token;
@@ -5029,7 +5029,7 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  Parse_Wide_Char_Type  --
    ----------------------------
-   procedure Parse_Wide_Char_Type (Result : in out Node_Id;
+   procedure Parse_Wide_Char_Type (Result : out Node_Id;
                                    Success : out Boolean) is
    begin
       Next_Token;
@@ -5040,7 +5040,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Boolean_Type  --
    --------------------------
-   procedure Parse_Boolean_Type (Result : in out Node_Id;
+   procedure Parse_Boolean_Type (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
       Next_Token;
@@ -5051,7 +5051,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Octet_Type  --
    ------------------------
-   procedure Parse_Octet_Type (Result : in out Node_Id;
+   procedure Parse_Octet_Type (Result : out Node_Id;
                                Success : out Boolean) is
    begin
       Next_Token;
@@ -5062,7 +5062,7 @@ package body Idl_Fe.Parser is
    ----------------------
    --  Parse_Any_Type  --
    ----------------------
-   procedure Parse_Any_Type (Result : in out Node_Id;
+   procedure Parse_Any_Type (Result : out Node_Id;
                              Success : out Boolean) is
    begin
       Next_Token;
@@ -5073,7 +5073,7 @@ package body Idl_Fe.Parser is
    -------------------------
    --  Parse_Object_Type  --
    -------------------------
-   procedure Parse_Object_Type (Result : in out Node_Id;
+   procedure Parse_Object_Type (Result : out Node_Id;
                                 Success : out Boolean) is
    begin
       Result := Make_Object (Get_Token_Location);
@@ -5669,10 +5669,10 @@ package body Idl_Fe.Parser is
       case Get_Token is
          when T_Case =>
             declare
-               Loc : Errors.Location;
+--                Loc : Errors.Location;
             begin
                Next_Token;
-               Loc := Get_Token_Location;
+--                Loc := Get_Token_Location;
                Parse_Const_Exp (Result, Switch_Type, Success);
                if not Success then
                   return;
@@ -7020,7 +7020,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Parse_Value_Base_Type  --
    -----------------------------
-   procedure Parse_Value_Base_Type (Result : in out Node_Id;
+   procedure Parse_Value_Base_Type (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
       Result := No_Node;

@@ -514,8 +514,6 @@ package body PolyORB.POA.Basic_POA is
    is
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
 
-      Child_Id : Integer;
-
    begin
       pragma Debug (O ("Creating POA: " & To_String (Adapter_Name)));
 
@@ -576,7 +574,15 @@ package body PolyORB.POA.Basic_POA is
          Lock_W (Self.Children_Lock);
       end if;
 
-      Child_Id := Register_Child (Self, New_Obj_Adapter);
+      declare
+         Child_Id : constant Integer := Register_Child (Self, New_Obj_Adapter);
+         pragma Warnings (Off);
+         pragma Unreferenced (Child_Id);
+         pragma Warnings (On);
+      begin
+         null;
+      end;
+
       if Length (Self.Absolute_Address) > 0 then
          New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
            & To_PolyORB_String (POA_Path_Separator) & Adapter_Name;
@@ -905,7 +911,7 @@ package body PolyORB.POA.Basic_POA is
       end loop;
 
       pragma Debug (O ("Leave, POA not found"));
-      ---  XXX what to do in this case ? raise an exception or not ???
+      --  XXX what to do in this case ? raise an exception or not ???
 
    end Remove_POA_By_Name;
 
