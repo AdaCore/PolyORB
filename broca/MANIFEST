@@ -77,7 +77,6 @@ idlac/ada_be-idl2ada.adb
 idlac/ada_be-idl2ada.ads
 idlac/ada_be-source_streams.adb
 idlac/ada_be-source_streams.ads
-idlac/ada_be-temporaries.adb
 idlac/ada_be-temporaries.ads
 idlac/ada_be.ads
 idlac/idl_fe-debug.adb
