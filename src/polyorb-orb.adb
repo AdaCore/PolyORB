@@ -68,7 +68,6 @@ package body PolyORB.ORB is
    use PolyORB.Requests;
    use PolyORB.Soft_Links;
    use PolyORB.Transport;
-   use PolyORB.Utils.Semaphores;
 
    use PolyORB.Binding_Data;
    use PolyORB.Types;
@@ -192,7 +191,6 @@ package body PolyORB.ORB is
       Enter (ORB.ORB_Lock.all);
 
       Create (ORB.Idle_Tasks);
-      Create (ORB.Idle_Tasks_Sem);
       ORB.Job_Queue := PolyORB.Jobs.Create_Queue;
       ORB.Shutdown := False;
       ORB.Polling  := False;
@@ -421,9 +419,6 @@ package body PolyORB.ORB is
                --  ORB.ORB_Lock is held.
 
                Update (ORB.Idle_Tasks);
-               pragma Debug (O ("N : "
-                                & Integer'Image (State (ORB.Idle_Tasks_Sem))));
-               --  Up (ORB.Idle_Tasks_Sem);
 
                --  Waiting for an event to happend when in polling
                --  situation: ORB.ORB_Lock is not held.
@@ -931,7 +926,6 @@ package body PolyORB.ORB is
       if Msg in Interface.Queue_Job then
          Queue_Job (ORB.Job_Queue,
                     Interface.Queue_Job (Msg).Job);
-         Up (ORB.Idle_Tasks_Sem);
 
       elsif Msg in Interface.Queue_Request then
          declare
@@ -956,7 +950,6 @@ package body PolyORB.ORB is
             end if;
             Req.Requesting_Component := Request_Job (J.all).Requestor;
             Queue_Job (ORB.Job_Queue, J);
-            Up (ORB.Idle_Tasks_Sem);
             pragma Debug (O ("Queue_Request: leave"));
          end;
 

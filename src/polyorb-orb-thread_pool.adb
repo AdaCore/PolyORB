@@ -40,7 +40,6 @@ with PolyORB.Jobs;
 with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
-with PolyORB.Utils.Semaphores;
 
 package body PolyORB.ORB.Thread_Pool is
 
@@ -54,14 +53,11 @@ package body PolyORB.ORB.Thread_Pool is
    use PolyORB.Soft_Links;
    use PolyORB.Components;
    use PolyORB.Configuration;
-   use PolyORB.Utils.Semaphores;
+
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Thread_Idle_Mutex      : Mutex_Access := null;
-   --  Needed in order not to have all threads leaving idle state
-   --  at the same time
    Default_Threads : constant := 4;
    --  default number of threads in thread pool
    --  XXX should check compatibility with ravenscar, which also defines
@@ -160,7 +156,8 @@ package body PolyORB.ORB.Thread_Pool is
      (P : access Thread_Pool_Policy;
       ORB : ORB_Access)
    is
-      --  use PolyORB.Soft_Links;
+      use PolyORB.Soft_Links;
+      V : Version_Id;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -169,16 +166,12 @@ package body PolyORB.ORB.Thread_Pool is
                        & Image (Current_Task)
                        & " is going idle."));
 
-      --  Enter (Thread_Idle_Mutex);
-      --  Lookup (ORB.Idle_Tasks, V);
-      --  Differ (ORB.Idle_Tasks, V);
-      --  Leave (Thread_Idle_Mutex);
-      Down (ORB.Idle_Tasks_Sem);
+      Lookup (ORB.Idle_Tasks, V);
+      Differ (ORB.Idle_Tasks, V);
 
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
-                       & " left idle state, N = "
-                       & Integer'Image (State (ORB.Idle_Tasks_Sem))));
+                       & " is leaving Idle state"));
    end Idle;
 
    ------------------------------
@@ -217,7 +210,6 @@ package body PolyORB.ORB.Thread_Pool is
       Number_Of_Threads : Positive;
    begin
       pragma Debug (O ("Initialize_threads : enter"));
-      Create (Thread_Idle_Mutex);
       Number_Of_Threads := Get_Conf
         ("tasking",
          "polyorb.orb.thread_pool.threads",

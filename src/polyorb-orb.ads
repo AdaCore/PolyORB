@@ -50,7 +50,6 @@ with PolyORB.Sequences.Unbounded;
 with PolyORB.Soft_Links;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
-with PolyORB.Utils.Semaphores;
 
 package PolyORB.ORB is
 
@@ -274,7 +273,6 @@ private
       --  The queue of jobs to be processed by ORB tasks.
 
       Idle_Tasks : Soft_Links.Watcher_Access;
-      Idle_Tasks_Sem : Utils.Semaphores.Semaphore_Access;
 
       --  Idle ORB task wait on this watcher.
 
