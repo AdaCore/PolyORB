@@ -36,6 +36,8 @@ with Ada.Finalization;
 
 package CORBA.AbstractBase is
 
+   pragma Elaborate_Body;
+
    type Ref is new Ada.Finalization.Controlled with
       record
          Ptr : CORBA.Impl.Object_Ptr := null;
