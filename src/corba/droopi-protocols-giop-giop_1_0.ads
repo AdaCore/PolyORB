@@ -26,24 +26,7 @@ with Droopi.Binding_Data;
 package Droopi.Protocols.GIOP.GIOP_1_0  is
 
 
-   --  Declare a few constants for GIOP version 1.0
-
-
-   -- Header Size of GIOP 1.0 Messages
-
-
-
-   No_Context : constant CORBA.Unsigned_Long;
-
-   function To_Principal
-     (S : String)
-     return Principal;
-
-   --  Convert string S into a Principal containing the characters that
-   --  constitute S, followed by an ASCII NUL.
-
-   --  Size (in bytes) of struct MessageHeader, major version 1.
-
+   No_Context : constant CORBA.Unsigned_Long:=0;
 
    procedure GIOP_Header_Marshall
      (Buffer       : access Buffer_Type;
@@ -59,41 +42,48 @@ package Droopi.Protocols.GIOP.GIOP_1_0  is
       Operation         : in Requests.Operation_Id);
 
 
---   procedure Exception_Marshall
---    ( Buffer           : access Buffer_Type;
---      Request_Id       : in CORBA.Unsigned_Long;
---      Exception_Type   : in ReplyStatusType;
---      Occurence        : in CORBA.Exception_Occurrence);
+   procedure No_Exception_Marshall
+    (Buffer      : access Buffer_Type;
+     Request_Id  : in CORBA.Unsigned_Long)
 
 
---   procedure Location_Forward_Marshall
---    (
---      Buffer           : access Buffer_Type;
---      Request_Id       : in  CORBA.Unsigned_Long;
---      Forward_Ref      : in  Droopi.References.Ref);
+   procedure Exception_Marshall
+    (Buffer           : access Buffer_Type;
+     Request_Id       : in CORBA.Unsigned_Long;
+     Exception_Type   : in ReplyStatusType;
+     Occurence        : in CORBA.Exception_Occurrence);
 
 
---   procedure Cancel_Request_Marshall
---     (Buffer           : access Buffer_Type;
---      Request_Id       : in CORBA.Unsigned_Long);
+   procedure Location_Forward_Marshall
+    (Buffer           : access Buffer_Type;
+     Request_Id       : in  CORBA.Unsigned_Long;
+    Forward_Ref      : in  Droopi.References.Ref);
 
 
---   procedure Locate_Request_Marshall
---     (Buffer           : access Buffer_Type;
---      Request_Id       : in CORBA.Unsigned_Long;
---      Profile_Ref      : in Binding_Data.Profile_Type );
+   ------------------------------------
+   --- Unmarshalling receiving messages
+   -------------------------------------
 
---   procedure Locate_Reply_Marshall
---   (
---     Buffer         : access Buffer_Type;
---     Request_Id     : in CORBA.Unsigned_Long;
---     Locate_Status  : in LocateReplyStatus);
+   procedure Request_Message_Unmarshall
+     (Buffer            : access Buffer_Type;
+      Request_Id        : out Corba.Unisgned_Long;
+      Response_Expected : out Boolean;
+      Object_Key        : out Objects.Object_Id;
+      Operation         : out Corba.String);
+
+
+   procedure Reply_Message_Unmarshall
+      (Buffer       : access Buffer_Type,
+       Request_Id   : out Corba.Unsigned_Long,
+       Reply_Status : out Reply_Status_Type);
 
 
 private
 
-
    No_Context : constant CORBA.Unsigned_Long := 0;
 
+    -- Version
+   Major_Version : constant CORBA.Octet:= 1;
+   Minor_Version : constant CORBA.Octet:= 0;
 
 end Droopi.Protocols.GIOP.GIOP_1_0;

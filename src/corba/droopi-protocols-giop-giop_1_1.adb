@@ -10,7 +10,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams; Uses Ada.Streams;
+with Ada.Streams; use Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with CORBA;
@@ -24,21 +24,11 @@ with Droopi.Binding_Data; use Droopi.Binding_Data;
 with Droopi.Protocols; use Droopi.Protocols;
 
 
-pragma Elaborate_All (Broca.Debug);
+pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
 
-   -- debug information not yet implemented
-
-   --Flag : constant Natural := Broca.Debug.Is_Active ("broca.giop");
-   --procedure O is new Broca.Debug.Output (Flag);
-
-
-   Major_Version : constant CORBA.Octet
-     := 1;
-   Minor_Version : constant CORBA.Octet
-     := 1;
 
    Endianess_Bit: constant Integer:=1;
    Fragment_Bit: constant Integer:=2;
@@ -48,7 +38,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
    type Bits_8 is CORBA.Octet;
 
-   Default_Principal : Principal;
+   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
+      := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
 
 
    --------------------------
@@ -60,12 +51,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
      ( Buffer        : access Buffer_Type;
        Message_Type  : in MsgType;
        Message_Size  : in Stream_Element_Offset;
-       Fragment_Next :in Boolean)
+       Fragment_Next : in Boolean)
 
    is
-      use Corba.CDR;
+      use representations.CDR;
       Flags: Bits_8:=0;
-      I : Integer;
    begin
 
      --  Magic
@@ -98,7 +88,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       --  Message size
       Marshall (Buffer, CORBA.Unsigned_Long (Message_Size));
 
-   end Marshall_GIOP_Header;
+   end  GIOP_Header_Marshall;
 
 
   ------------------------------------------------
@@ -115,13 +105,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       Operation          : in Requests.Operation_Id)
 
     is
-      use Corba.CDR;
+      use representations.CDR;
       Reserved: constant Corba.Octet:=0;
-      I: Integer;
 
     begin
-      --pragma Debug (O ("Request_Message_Marshall: invoking "
-      --  & CORBA.To_Standard_String (Operation)));
 
       --  Reserve space for message header
       Set_Initial_Position
@@ -151,10 +138,100 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
 
       --  Principal
-      Corba.CDR.Marshall
-        (Ses.Buffer_Out,
-           Stream_Element_Array'(Default_Principal));
-    end Send_Request_Marshall;
+      Marshall(Ses.Buffer_Out,
+               Corba.String'(Nobody_Principal));
+
+    end Request_Message_Marshall;
+
+
+   -----------------------------
+   ---  No Exception Reply
+   ------------------------------
+
+   procedure No_Exception_Marshall
+    (Buffer      : access Buffer_Type;
+     Request_Id  : in CORBA.Unsigned_Long)
+
+   is
+    use  representations.CDR;
+   begin
+     Set_Initial_Position
+        (Buffer, Message_Header_Size);
+
+     --  Service context
+     Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
+
+     -- Request id
+     Marshall(Buffer, Request_Id);
+
+     -- Reply Status
+     Marshall(Buffer, GIOP.No_Exception);
+
+   end No_Exception_Marshall;
+
+
+
+   -------------------------------------
+   --  System Exception Marshall
+   -------------------------------------
+
+   procedure Exception_Marshall
+    ( Buffer           : access Buffer_Type;
+      Request_Id       : in CORBA.Unsigned_long;
+      Exception_Type   : in ReplyStatusType range User_Exception..System_Exception;
+      Occurence        : in CORBA.Exception_Occurrence)
+   is
+     use representations.CDR;
+   begin
+
+      Set_Initial_Position
+       (Buffer, Message_Header_Size);
+
+      --  Service context
+      Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
+
+      -- Request id
+      Marshall(Buffer, Request_Id);
+
+      -- Reply Status
+      Marshall(Buffer, Exception_Type);
+
+      -- Occurrence
+      Marshall(Buffer, Occurence);
+   end  Exception_Marshall;
+
+
+
+    -------------------------------------
+    -- Location Forward Reply Marshall
+    ------------------------------------
+
+    procedure Location_Forward_Marshall
+    ( Buffer           : access Buffer_Type;
+      Request_Id       : in  CORBA.Unsigned_Long;
+      Forward_Ref      : in  Droopi.References.Ref)
+    is
+
+    begin
+
+     Set_Initial_Position
+      (Buffer, Message_Header_Size);
+
+      --  Service context
+      Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
+
+      -- Request id
+      Marshall(Buffer, Request_Id);
+
+      -- Reply Status
+      Marshall(Buffer, GIOP.Location_Forward);
+
+
+      -- Object reference
+      Marshall(Buffer, Forward_Ref);
+
+    end Location_Forward_Marshall;
+
 
 
    ---------------------------------------
@@ -164,16 +241,12 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
   procedure Fragment_Marshall
     ( Buffer      : access Buffer_Type;
-      Request_Id  : in CORBA.Unsigned_Long
-    )
+      Request_Id  : in CORBA.Unsigned_Long)
 
    is
-      use Broca.CDR;
-      --I: Integer;
+      use representations.CDR;
 
    begin
-      --pragma Debug (O ("Send_Request_Marshall: invoking "
-      --  & CORBA.To_Standard_String (Operation)));
 
       --  Reserve space for message header
       Set_Initial_Position
@@ -183,5 +256,91 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       Marshall(Buffer, Request_Id);
 
    end Fragment_Marshall;
+
+   ----------------------------------
+   --- Request Unmarshalling
+   -----------------------------------------
+
+   procedure Request_Message_Unmarshall
+     ( Buffer            : access Buffer_Type;
+       Request_Id        : out Corba.Unisgned_Long;
+       Response_Expected : out Boolean;
+       Object_Key        : out Objects.Object_Id;
+       Operation         : out Requests.Operation_Id)
+   is
+       Service_Context1  : CORBA.Unsigned_Long;
+       Service_Context2  : CORBA.Unsigned_Long;
+       Reserved          : CORBA.Octet;
+       Principal         : CORBA.String;
+   begin
+
+      --  Service context
+      Service_Context1 := Unmarshall (Buffer);
+      Service_Context1 := Unmarshall (Buffer);
+
+      if Service_Context /= ServiceId'Pos( Service_Context_List_1_1(0)) or
+          Service_Context /= ServiceId'Pos( Service_Context_List_1_1(1)
+
+         pragma Debug (O (" Request_Message_Unmarshall : incorrect context"
+                             & Service_Context'Img));
+         raise GIOP_Error;
+      end if;
+
+      --  Request id
+      Request_Id := Unmarshall(Buffer);
+
+      --  Response expected
+      Response_Expected := Unmarshall(Buffer);
+
+      -- Reserved
+      for I in 1..3 loop
+       Reserved := Marshall(Buffer);
+      end loop;
+
+      --  Object Key
+      Object_Key := Unmarshall (Buffer);
+
+      -- Operation
+      Operation :=  Unmarshall (Buffer);
+
+      -- Principal
+      Principal :=  Unmarshall (Buffer);
+
+   end Request_Message_Unmarshall;
+
+
+   -----------------------------------------
+   --- Reply  Unmarshalling
+   -----------------------------------------
+
+   procedure Reply_Message_Unmarshall
+      (Buffer       : access Buffer_Type;
+       Request_Id   : out Corba.Unsigned_Long;
+       Reply_Status : out Reply_Status_Type)
+
+   is
+      Service_Context1  : CORBA.Unsigned_Long;
+      Service_Context2  : CORBA.Unsigned_Long;
+   begin
+
+      --  Service context
+      if Service_Context /= ServiceId'Pos( Service_Context_List_1_1(0)) or
+          Service_Context /= ServiceId'Pos( Service_Context_List_1_1(1)) then
+
+         pragma Debug (O (" Request_Message_Unmarshall : incorrect context"
+                             & Service_Context'Img));
+         raise GIOP_Error;
+      end if;
+
+       --  Request id
+      Request_Id := Unmarshall(Buffer);
+
+      -- Reply Status
+
+      Unmarshall(Reply_Status);
+
+   end Reply_Message_Unmarshall;
+
+
 
 end Droopi.Protocols.GIOP.GIOP_1_1;

@@ -23,21 +23,6 @@ with Droopi.Binding_Data;
 
 
 package Droopi.Protocols.GIOP.GIOP_1_2 is
-   --  Declare a few constants for GIOP version 1.2.
-
-
-
-   --package Octet_Sequences is new CORBA.Sequences.Unbounded(CORBA.Octet);
-   --subtype CORBA_Octet_Array is Octet_Sequences.Sequence.Element_Array;
-
-   -- Define Types of Target Addresses used with Request Message
-
-
-
-
-
-
-   Service_Context_List_1_2 : constant array (range 0 .. 9) of ServiceId;
 
 
    procedure GIOP_Header_Marshall
@@ -47,13 +32,18 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
       Fragment_Next : in Boolean);
 
 
-   procedure Request_Message_Marshall
+    procedure Request_Message_Marshall
      (Buffer            : access Buffers.Buffer_Type;
       Request_Id        : in CORBA.Unsigned_Long;
       Operation         : in Requests.Operation_Id;
       Addess_Type       : in AddressingDisposition;
       Target_Ref        : in TargetAddress;
       Sync_Type         : in CORBA.SyncScope);
+
+
+    procedure No_Exception_Marshall
+    (Buffer      : access Buffer_Type;
+     Request_Id  : in CORBA.Unsigned_Long);
 
 
     procedure Exception_Marshall
@@ -85,10 +75,26 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
      Address_Type      : in Addressing_Disposition;
      Target_Ref        : in Target_Address);
 
+
     procedure Fragment_Marshall
     ( Buffer   : access Buffers.Buffer_Type;
       Req_Id   : in CORBA.Unsigned_Long);
 
+    -------------------------------------
+    --  Unmarshall procedures
+    --------------------------------------
+
+    procedure Request_Message_Unmarshall
+     ( Buffer            : access Buffer_Type;
+       Request_Id        : out Corba.Unisgned_Long;
+       Response_Expected : out Boolean;
+       Target_Ref        : out TargetAddress;
+       Operation         : out Requests.Operation_Id;
+
+    procedure Reply_Message_Unmarshall
+      (Buffer       : access Buffer_Type;
+       Request_Id   : out Corba.Unsigned_Long;
+       Reply_Status : out Reply_Status_Type);
 
 private
 
@@ -99,6 +105,13 @@ private
             SendingContextRunTime, Invocation_Policies,
             Forwarded_Identity, UnknownExceptionInfo);
 
+   Major_Version : constant CORBA.Octet
+     := 1;
+   Minor_Version : constant CORBA.Octet
+     := 2;
+
+   Response_Flags: constant array(range 0..3) of CORBA.Octet:=
+                   (0,16#1#, 16#2#, 16#3#);
 
 
 end Droopi.Protocols.GIOP.GIOP_1_2;
