@@ -215,4 +215,13 @@ package body CORBA.NVList is
       return Actual_Ref;
    end Create_Object;
 
+   package body Internals is
+
+      function List_Of (NVList : Ref) return NV_Sequence_Access is
+      begin
+         return Object_Ptr (Object_Of (NVList)).List'Access;
+      end List_Of;
+
+   end Internals;
+
 end CORBA.NVList;

@@ -40,19 +40,30 @@ package CORBA.NVList is
    function Image (NVList : Ref) return Standard.String;
    --  For debugging purposes.
 
+   package Internals is
+
+      --  The actual implementation of an NVList:
+      --  a sequence of NamedValues.
+
+      package NV_Sequence is new Sequences.Unbounded (CORBA.NamedValue);
+      type NV_Sequence_Access is access all NV_Sequence.Sequence;
+
+      function List_Of (NVList : Ref) return NV_Sequence_Access;
+
+   end Internals;
+
 private
 
-   --  The actual implementation of an NVList:
-   --  a sequence of NamedValues.
-
-   package NV_Sequence is new Sequences.Unbounded (CORBA.NamedValue);
+   package NV_Sequence renames Internals.NV_Sequence;
 
    type Object is new CORBA.Impl.Object with record
-      List : NV_Sequence.Sequence := NV_Sequence.Null_Sequence;
+      List : aliased NV_Sequence.Sequence
+        := NV_Sequence.Null_Sequence;
    end record;
    type Object_Ptr is access all Object;
 
    procedure Finalize (Obj : in out Object);
+
 
    function Create_Object return Object_Ptr;
    --  Create a new and empty Object
