@@ -328,7 +328,11 @@ package System.Garlic.Thin is
       Iovcnt : C.int)
      return C.int;
 
-   function C_Recv (S : C.int; Buf : Strings.chars_ptr; Len, Flags : C.int)
+   function C_Recv
+     (S     : C.int;
+      Buf   : Strings.chars_ptr;
+      Len   : C.int;
+      Flags : C.int)
      return C.int;
 
    function C_Recvfrom
@@ -356,7 +360,7 @@ package System.Garlic.Thin is
 
    function C_Send
      (S     : C.int;
-      Msg   : Strings.chars_ptr;
+      Buf   : Strings.chars_ptr;
       Len   : C.int;
       Flags : C.int)
      return C.int;

@@ -1,3 +1,13 @@
+1998-05-06  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* 5wgtplsp.adb: Use C_Recv and C_Send instead of C_Read and
+	C_Write. Fix problem of external names.
+
+	* s-ganobl.adb, s-ganobl.ads, s-gartcp.adb: Switch every
+ 	occurrence of 'Read' and 'Write' into 'Recv' and 'Send.
+
+	* s-garthi.ads: Reformat C_Recv spec.
+
 1998-05-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* 5wgtplsp.adb: C_Read and C_Write are exported as "read" and

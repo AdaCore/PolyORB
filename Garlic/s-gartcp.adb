@@ -735,7 +735,7 @@ package body System.Garlic.TCP is
    begin
       while Rest > 0 loop
 
-         Code := Net.C_Read (FD, To_Chars_Ptr (Current), Rest);
+         Code := Net.C_Recv (FD, To_Chars_Ptr (Current), Rest, 0);
          if Code <= 0 then
             Code := Net.C_Close (FD);
             Raise_Communication_Error ("Read error");
@@ -759,7 +759,7 @@ package body System.Garlic.TCP is
       Code    : C.int;
    begin
       while Rest > 0 loop
-         Code := Net.C_Write (FD, To_Chars_Ptr (Current), Rest);
+         Code := Net.C_Send (FD, To_Chars_Ptr (Current), Rest, 0);
          if Code <= 0 then
             Code := Net.C_Close (FD);
             Raise_Communication_Error ("Write error");

@@ -333,15 +333,16 @@ package body System.Garlic.TCP.Platform_Specific is
    end C_Listen;
 
    ------------
-   -- C_Read --
+   -- C_Recv --
    ------------
 
-   function C_Read
-     (S   : C.int;
-      Buf : Strings.chars_ptr;
-      Len : C.int)
+   function C_Recv
+     (S     : C.int;
+      Buf   : Strings.chars_ptr;
+      Len   : C.int;
+      Flags : C.int)
       return C.int;
-   pragma Export (C, C_Read, "read");
+   pragma Export (C, C_Recv, "recv");
 
    function Std_Recv
      (S     : C.int;
@@ -351,25 +352,27 @@ package body System.Garlic.TCP.Platform_Specific is
       return C.int;
    pragma Import (Stdcall, Std_Recv, "recv");
 
-   function C_Read
-     (S   : C.int;
-      Buf : Strings.chars_ptr;
-      Len : C.int)
+   function C_Recv
+     (S     : C.int;
+      Buf   : Strings.chars_ptr;
+      Len   : C.int;
+      Flags : C.int)
       return C.int is
    begin
-      return Std_Recv (S, Buf, Len, 0);
-   end C_Read;
+      return Std_Recv (S, Buf, Len, Flags);
+   end C_Recv;
 
-   -------------
-   -- C_Write --
-   -------------
+   ------------
+   -- C_Send --
+   ------------
 
-   function C_Write
+   function C_Send
      (S     : C.int;
       Msg   : Strings.chars_ptr;
-      Len   : C.int)
+      Len   : C.int;
+      Flags : C.int)
       return C.int;
-   pragma Export (C, C_Write, "write");
+   pragma Export (C, C_Send, "send");
 
    function Std_Send
      (S     : C.int;
@@ -379,15 +382,15 @@ package body System.Garlic.TCP.Platform_Specific is
      return C.int;
    pragma Import (Stdcall, Std_Send, "send");
 
-   function C_Write
+   function C_Send
      (S     : C.int;
       Msg   : Strings.chars_ptr;
       Len   : C.int;
       Flags : C.int)
      return C.int is
    begin
-      return Std_Send (S, Msg, Len, 0);
-   end C_Write;
+      return Std_Send (S, Msg, Len, Flags);
+   end C_Send;
 
    --------------
    -- C_Setsid --

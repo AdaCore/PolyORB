@@ -63,17 +63,19 @@ package System.Garlic.Non_Blocking is
      return C.int;
    --  Thread blocking connect
 
-   function C_Read
-     (Fildes : C.int;
+   function C_Recv
+     (S      : C.int;
       Buf    : Strings.chars_ptr;
-      Nbyte  : C.int)
+      Len    : C.int;
+      Flags  : C.int)
      return C.int;
    --  Thread blocking read
 
-   function C_Write
-     (Fildes : C.int;
-      Buf    : Strings.chars_ptr;
-      Nbyte  : C.int)
+   function C_Send
+     (S     : C.int;
+      Buf   : Strings.chars_ptr;
+      Len   : C.int;
+      Flags : C.int)
      return C.int;
    --  Thread blocking write
 

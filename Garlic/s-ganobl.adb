@@ -76,48 +76,52 @@ package body System.Garlic.Non_Blocking is
 
    protected type Asynchronous_Type is
 
-      entry Read (Descriptors)
+      entry Recv (Descriptors)
         (Buf    : in chars_ptr;
-         Nbyte  : in int;
+         Len    : in int;
+         Flags  : in int;
          Result : out int);
       --  You may wait for data to be here by setting Nbyte to zero
 
-      entry Write (Descriptors)
+      entry Send (Descriptors)
         (Buf    : in chars_ptr;
-         Nbyte  : in int;
+         Len    : in int;
+         Flags  : in int;
          Result : out int);
       --  You may wait for data to be written by setting Nbyte to zero
 
       procedure Get_Masks
-        (Read_M  : out Desc_Set;
-         Write_M : out Desc_Set;
-         Max     : out int);
+        (Recv_M : out Desc_Set;
+         Send_M : out Desc_Set;
+         Max    : out int);
       --  Get the masks on which select should apply
 
       procedure Set_Masks
-        (Read_M  : in Desc_Set;
-         Write_M : in Desc_Set);
+        (Recv_M : in Desc_Set;
+         Send_M : in Desc_Set);
       --  Set the masks as returned by C_Select
 
    private
 
-      entry Read_Requeue (Descriptors)
+      entry Recv_Requeue (Descriptors)
         (Buf    : in chars_ptr;
-         Nbyte  : in int;
+         Len    : in int;
+         Flags  : in int;
          Result : out int);
-      entry Write_Requeue (Descriptors)
+      entry Send_Requeue (Descriptors)
         (Buf    : in chars_ptr;
-         Nbyte  : in int;
+         Len    : in int;
+         Flags  : in int;
          Result : out int);
 
-      Read_Mask        : Desc_Set := (others => False);
-      Write_Mask       : Desc_Set := (others => False);
-      Ready_Read_Mask  : Desc_Set := (others => False);
-      Ready_Write_Mask : Desc_Set := (others => False);
-      Rfds             : Fd_Set_Access := new Fd_Set;
-      Wfds             : Fd_Set_Access := new Fd_Set;
-      Timeout          : Timeval_Access := new Timeval;
-      Max_FD           : int := -1;
+      Recv_Mask       : Desc_Set := (others => False);
+      Send_Mask       : Desc_Set := (others => False);
+      Ready_Recv_Mask : Desc_Set := (others => False);
+      Ready_Send_Mask : Desc_Set := (others => False);
+      Rfds            : Fd_Set_Access := new Fd_Set;
+      Sfds            : Fd_Set_Access := new Fd_Set;
+      Timeout         : Timeval_Access := new Timeval;
+      Max_FD          : int := -1;
 
    end Asynchronous_Type;
 
@@ -159,146 +163,150 @@ package body System.Garlic.Non_Blocking is
       ---------------
 
       procedure Get_Masks
-        (Read_M  : out Desc_Set;
-         Write_M : out Desc_Set;
-         Max     : out int) is
+        (Recv_M : out Desc_Set;
+         Send_M : out Desc_Set;
+         Max    : out int) is
       begin
-         Read_M := Read_Mask;
-         Write_M := Write_Mask;
+         Recv_M := Recv_Mask;
+         Send_M := Send_Mask;
          Max := Max_FD;
       end Get_Masks;
 
       ----------
-      -- Read --
+      -- Recv --
       ----------
 
-      entry Read (for RFD in Descriptors)
+      entry Recv (for RRFD in Descriptors)
         (Buf    : in chars_ptr;
-         Nbyte  : in int;
+         Len    : in int;
+         Flags  : in int;
          Result : out int)
       when True is
          Dummy : int;
          Empty : Boolean;
       begin
-         Set_Asynchronous (RFD);
-         if Nbyte = 0 then
+         Set_Asynchronous (RRFD);
+         if Len = 0 then
             Timeout.all  := Immediat;
-            Rfds.all := 2 ** Integer (RFD);
-            Dummy := C_Select (RFD + 1, Rfds, null, null, Timeout);
+            Rfds.all := 2 ** Integer (RRFD);
+            Dummy := C_Select (RRFD + 1, Rfds, null, null, Timeout);
             Empty := Rfds.all = 0;
          else
-            Dummy := Thin.C_Read (RFD, Buf, Nbyte);
+            Dummy := Thin.C_Recv (RRFD, Buf, Len, Flags);
             Empty := Dummy = Thin.Failure and then Errno = Eagain;
          end if;
          if Empty then
-            Read_Mask (RFD) := True;
-            if RFD > Max_FD then
-               Max_FD := RFD;
+            Recv_Mask (RRFD) := True;
+            if RRFD > Max_FD then
+               Max_FD := RRFD;
             end if;
-            requeue Read_Requeue (RFD) with abort;
+            requeue Recv_Requeue (RRFD) with abort;
          else
             Result := Dummy;
          end if;
-      end Read;
+      end Recv;
 
       ------------------
-      -- Read_Requeue --
+      -- Recv_Requeue --
       ------------------
 
-      entry Read_Requeue (for RRFD in Descriptors)
+      entry Recv_Requeue (for RRFD in Descriptors)
         (Buf    : in chars_ptr;
-         Nbyte  : in int;
+         Len    : in int;
+         Flags  : in int;
          Result : out int)
-      when Ready_Read_Mask (RRFD) is
+      when Ready_Recv_Mask (RRFD) is
       begin
-         if Nbyte > 0 then
-            Result := Thin.C_Read (RRFD, Buf, Nbyte);
+         if Len > 0 then
+            Result := Thin.C_Recv (RRFD, Buf, Len, Flags);
          else
             Result := 0;
          end if;
-         Read_Mask (RRFD) := False;
-         Ready_Read_Mask (RRFD) := False;
+         Recv_Mask (RRFD) := False;
+         Ready_Recv_Mask (RRFD) := False;
          if Max_FD = RRFD then
             Max_FD := -1;
             for I in reverse Descriptors'First .. RRFD loop
-               if Read_Mask (I) or Write_Mask (I) then
+               if Recv_Mask (I) or Send_Mask (I) then
                   Max_FD := I;
                   exit;
                end if;
             end loop;
          end if;
-      end Read_Requeue;
+      end Recv_Requeue;
 
       ---------------
       -- Set_Masks --
       ---------------
 
       procedure Set_Masks
-        (Read_M  : in Desc_Set;
-         Write_M : in Desc_Set)
+        (Recv_M : in Desc_Set;
+         Send_M : in Desc_Set)
       is
       begin
-         for I in Read_M'Range loop
-            if Read_M (I) then
-               Ready_Read_Mask (I) := True;
+         for I in Recv_M'Range loop
+            if Recv_M (I) then
+               Ready_Recv_Mask (I) := True;
             end if;
-            if Write_M (I) then
-               Ready_Write_Mask (I) := True;
+            if Send_M (I) then
+               Ready_Send_Mask (I) := True;
             end if;
          end loop;
       end Set_Masks;
 
-      -----------
-      -- Write --
-      -----------
+      ----------
+      -- Send --
+      ----------
 
-      entry Write (for WFD in Descriptors)
+      entry Send (for RSFD in Descriptors)
         (Buf    : in chars_ptr;
-         Nbyte  : in int;
+         Len    : in int;
+         Flags  : in int;
          Result : out int)
       when True is
          Dummy : int;
       begin
-         Set_Asynchronous (WFD);
-         Dummy := Thin.C_Write (WFD, Buf, Nbyte);
+         Set_Asynchronous (RSFD);
+         Dummy := Thin.C_Send (RSFD, Buf, Len, Flags);
          if Dummy = Thin.Failure and then Errno = Eagain then
-            Write_Mask (WFD) := True;
-            if WFD > Max_FD then
-               Max_FD := WFD;
+            Send_Mask (RSFD) := True;
+            if RSFD > Max_FD then
+               Max_FD := RSFD;
             end if;
-            requeue Write_Requeue (WFD) with abort;
+            requeue Send_Requeue (RSFD) with abort;
          else
             Result := Dummy;
          end if;
-      end Write;
+      end Send;
 
-      -------------------
-      -- Write_Requeue --
-      -------------------
+      ------------------
+      -- Send_Requeue --
+      ------------------
 
-      entry Write_Requeue (for RWFD in Descriptors)
+      entry Send_Requeue (for RSFD in Descriptors)
         (Buf    : in chars_ptr;
-         Nbyte  : in int;
+         Len    : in int;
+         Flags  : in int;
          Result : out int)
-      when Ready_Write_Mask (RWFD) is
+      when Ready_Send_Mask (RSFD) is
       begin
-         if Nbyte > 0 then
-            Result := Thin.C_Write (RWFD, Buf, Nbyte);
+         if Len > 0 then
+            Result := Thin.C_Send (RSFD, Buf, Len, Flags);
          else
             Result := 0;
          end if;
-         Write_Mask (RWFD) := False;
-         Ready_Write_Mask (RWFD) := False;
-         if Max_FD = RWFD then
+         Send_Mask (RSFD) := False;
+         Ready_Send_Mask (RSFD) := False;
+         if Max_FD = RSFD then
             Max_FD := -1;
-            for I in reverse Descriptors'First .. RWFD loop
-               if Read_Mask (I) or Write_Mask (I) then
+            for I in reverse Descriptors'First .. RSFD loop
+               if Recv_Mask (I) or Send_Mask (I) then
                   Max_FD := I;
                   exit;
                end if;
             end loop;
          end if;
-      end Write_Requeue;
+      end Send_Requeue;
 
    end Asynchronous_Type;
 
@@ -318,7 +326,7 @@ package body System.Garlic.Non_Blocking is
       Set_Non_Blocking (S);
       pragma Debug
         (D (D_Debug, "Blocking until there is something to accept"));
-      Asynchronous.Read (S) (Dummy_CP, 0, Dummy);
+      Asynchronous.Recv (S) (Dummy_CP, 0, 0, Dummy);
       pragma Debug
         (D (D_Debug, "There is something to accept"));
       return Thin.C_Accept (S, Addr, Addrlen);
@@ -358,7 +366,7 @@ package body System.Garlic.Non_Blocking is
         Errno /= Einprogress then
          return Dummy;
       end if;
-      Asynchronous.Write (S) (Dummy_CP, 0, Dummy);
+      Asynchronous.Send (S) (Dummy_CP, 0, 0, Dummy);
       Dummy := Thin.C_Connect (S, Name, Namelen);
       pragma Debug
         (D (D_Debug,
@@ -374,50 +382,52 @@ package body System.Garlic.Non_Blocking is
    end C_Connect;
 
    ------------
-   -- C_Read --
+   -- C_Recv --
    ------------
 
-   function C_Read
-     (Fildes : int;
+   function C_Recv
+     (S      : int;
       Buf    : chars_ptr;
-      Nbyte  : int)
+      Len    : int;
+      Flags  : int)
      return int is
       Count : int;
    begin
-      pragma Debug (D (D_Debug, "Read on " & Fildes'Img));
-      In_Use (Fildes) := True;
-      Asynchronous.Read (Fildes) (Buf, Nbyte, Count);
+      pragma Debug (D (D_Debug, "Recv on " & S'Img));
+      In_Use (S) := True;
+      Asynchronous.Recv (S) (Buf, Len, Flags, Count);
       return Count;
-   end C_Read;
+   end C_Recv;
 
-   -------------
-   -- C_Write --
-   -------------
+   ------------
+   -- C_Send --
+   ------------
 
-   function C_Write
-     (Fildes : C.int;
+   function C_Send
+     (S      : C.int;
       Buf    : Strings.chars_ptr;
-      Nbyte  : C.int)
+      Len    : C.int;
+      Flags  : C.int)
      return C.int is
       Count : int;
    begin
-      pragma Debug (D (D_Debug, "Write on " & Fildes'Img));
-      In_Use (Fildes) := True;
-      Asynchronous.Write (Fildes) (Buf, Nbyte, Count);
+      pragma Debug (D (D_Debug, "Send on " & S'Img));
+      In_Use (S) := True;
+      Asynchronous.Send (S) (Buf, Len, Flags, Count);
       return Count;
-   end C_Write;
+   end C_Send;
 
    ---------------
    -- Selection --
    ---------------
 
    task body Selection is
-      RFD, WFD     : Desc_Set;
+      RFD, SFD     : Desc_Set;
       Max          : aliased int;
       Dummy        : int;
       Pfd          : aliased Thin.Pollfd;
       Rfds         : Fd_Set_Access := new Fd_Set;
-      Wfds         : Fd_Set_Access := new Fd_Set;
+      Sfds         : Fd_Set_Access := new Fd_Set;
       Timeout      : Timeval_Access := new Timeval;
       Continue     : Boolean := True;
    begin
@@ -427,12 +437,12 @@ package body System.Garlic.Non_Blocking is
          Sigio.Wait;
          pragma Debug (D (D_Debug, "After  SIGIO"));
 
-         Asynchronous.Get_Masks (RFD, WFD, Max);
+         Asynchronous.Get_Masks (RFD, SFD, Max);
 
          if Max > -1 then
             for I in RFD'First .. Max loop
 
-               if RFD (I) or else WFD (I) then
+               if RFD (I) or else SFD (I) then
 
                   if TCP.Platform_Specific.Use_Poll then
 
@@ -445,14 +455,14 @@ package body System.Garlic.Non_Blocking is
                         Pfd.Events := Pfd.Events + Pollin;
                      end if;
 
-                     if WFD (I) then
+                     if SFD (I) then
                         Pfd.Events := Pfd.Events + Pollout;
                      end if;
 
                      Dummy := Thin.C_Poll (Pfd'Address, 1, 0);
 
                      RFD (I) := (Pfd.Revents / Pollin) mod 2 = 1;
-                     WFD (I) := (Pfd.Revents / Pollout) mod 2 = 1;
+                     SFD (I) := (Pfd.Revents / Pollout) mod 2 = 1;
 
                   else
 
@@ -461,31 +471,31 @@ package body System.Garlic.Non_Blocking is
                      if RFD (I) then
                         Rfds.all := 2 ** Integer (I);
                         pragma Debug
-                          (D (D_Debug, "select read :" & I'Img));
+                          (D (D_Debug, "select recv :" & I'Img));
                      else
                         Rfds.all := 0;
                      end if;
 
-                     if WFD (I) then
-                        Wfds.all := 2 ** Integer (I);
+                     if SFD (I) then
+                        Sfds.all := 2 ** Integer (I);
                         pragma Debug
-                          (D (D_Debug, "select write :" & I'Img));
+                          (D (D_Debug, "select send :" & I'Img));
                      else
-                        Wfds.all := 0;
+                        Sfds.all := 0;
                      end if;
 
-                     Dummy := C_Select (I + 1, Rfds, Wfds, null, Timeout);
+                     Dummy := C_Select (I + 1, Rfds, Sfds, null, Timeout);
                      pragma Debug (D (D_Debug, "select value :" & Dummy'Img));
 
                      RFD (I) := Rfds.all /= 0;
-                     WFD (I) := Wfds.all /= 0;
+                     SFD (I) := Sfds.all /= 0;
 
                   end if;
 
                end if;
 
             end loop;
-            Asynchronous.Set_Masks (RFD, WFD);
+            Asynchronous.Set_Masks (RFD, SFD);
 
          elsif TCP.Shutdown_Completed then
             Continue := False;
