@@ -27,8 +27,12 @@
 ------------------------------------------------------------------------------
 
 with GNAT.Registry; use GNAT.Registry;
+with Gnatvsn;       use Gnatvsn;
 
 package body XE_Reg is
+
+   function Get_GNAT_Version return String;
+   --  Returns the GNAT version number
 
    --------------------
    -- Get_GARLIC_Dir --
@@ -63,12 +67,13 @@ package body XE_Reg is
 
       --  open "HKEY_LOCAL_MACHINE\SOFTWARE\Free Software Foundation" key
 
-      ACT_Key := Open_Key (HKEY_LOCAL_MACHINE,
-                           "SOFTWARE\Ada Core Technologies");
+      ACT_Key := Open_Key
+        (HKEY_LOCAL_MACHINE,
+         "SOFTWARE\Ada Core Technologies\GNAT\" & Get_GNAT_Version);
 
       --  get GCC value
 
-      Result := new String'(Query_Value (ACT_Key, "GCC") & "\lib\garlic");
+      Result := new String'(Query_Value (ACT_Key, "ROOT") & "\lib\garlic");
 
       Close_Key (ACT_Key);
 
@@ -78,5 +83,20 @@ package body XE_Reg is
       when Registry_Error =>
          return null;
    end Get_GARLIC_Dir;
+
+   ----------------------
+   -- Get_GNAT_Version --
+   ----------------------
+
+   function Get_GNAT_Version return String is
+      GSVS : String renames Gnat_Static_Version_String;
+   begin
+      for K in GSVS'Range loop
+         if GSVS (K) = ' ' then
+            return GSVS (GSVS'First .. K - 1);
+         end if;
+      end loop;
+      return "";
+   end Get_GNAT_Version;
 
 end XE_Reg;
