@@ -302,10 +302,14 @@ private
       end record;
 
    procedure Initialize (Object : in out Sequence);
-
    procedure Adjust (Object : in out Sequence);
-
    procedure Finalize (Object : in out Sequence);
+
+   procedure Allocate
+     (Source : in out Sequence;
+      Length : in Natural);
+   --  Allocate Source.Content and set Source.Length to Length. Do not
+   --  release previous Source.Content.
 
 end PolyORB.Sequences.Unbounded;
 

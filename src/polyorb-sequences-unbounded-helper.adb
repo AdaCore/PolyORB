@@ -45,15 +45,21 @@ package body PolyORB.Sequences.Unbounded.Helper is
    Initialized : Boolean := False;
 
    function From_Any (Item : Any.Any) return Sequence is
-      Len : constant Types.Unsigned_Long
-        := From_Any (Get_Aggregate_Element (Item, TC_Unsigned_Long, 0));
-      Arr : Element_Array (1 .. Integer (Len));
+      Len : constant Integer
+        := Integer
+        (Types.Unsigned_Long'
+         (From_Any (Get_Aggregate_Element (Item, TC_Unsigned_Long, 0))));
+
+      Result : Sequence;
    begin
-      for J in Arr'Range loop
-         Arr (J) := Element_From_Any
-           (Get_Aggregate_Element (Item, Element_TC, Types.Unsigned_Long (J)));
+      Allocate (Result, Len);
+      for J in Result.Content'First .. Result.Content'First + Len - 1 loop
+         Result.Content (J) := Element_From_Any
+           (Get_Aggregate_Element
+            (Item, Element_TC,
+             Types.Unsigned_Long (1 + J - Result.Content'First)));
       end loop;
-      return To_Sequence (Arr);
+      return Result;
    end From_Any;
 
    procedure Initialize is
@@ -82,15 +88,13 @@ package body PolyORB.Sequences.Unbounded.Helper is
    end Sequence_TC;
 
    function To_Any   (Item : Sequence) return Any.Any is
-      Arr    : constant Element_Array
-        := To_Element_Array (Item);
       Result : Any.Any := Get_Empty_Any_Aggregate (Sequence_TC);
    begin
       Add_Aggregate_Element
-        (Result, To_Any (Types.Unsigned_Long (Arr'Length)));
+        (Result, To_Any (Types.Unsigned_Long (Item.Length)));
 
-      for J in Arr'Range loop
-         Add_Aggregate_Element (Result, Element_To_Any (Arr (J)));
+      for J in Item.Content'First .. Item.Content'First + Item.Length - 1 loop
+         Add_Aggregate_Element (Result, Element_To_Any (Item.Content (J)));
       end loop;
       return Result;
    end To_Any;

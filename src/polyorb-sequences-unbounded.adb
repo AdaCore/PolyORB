@@ -46,12 +46,6 @@ package body PolyORB.Sequences.Unbounded is
    pragma Inline (Get_Null_Contents);
    --  Obtain a pointer to a global zero-length element array.
 
-   procedure Allocate
-     (Source : in out Sequence;
-      Length : in Natural);
-   --  Allocate Source.Content and set Source.Length to Length. Do not
-   --  release previous Source.Content.
-
    procedure Reallocate
      (Source : in out Sequence;
       Length : in Natural);

@@ -2710,130 +2710,188 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Sequence_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : in     Node_Id)
+   is
+      B_Node : constant Node_Id := Bound (Sequence (Node));
    begin
-      if Generate_Dyn then
-         --  From_Any
-
-         NL (CU);
-         Gen_From_Any_Profile (CU, Node);
-         PL (CU, " is");
-         II (CU);
-         PL (CU, "use " & Ada_Name (Node) & ";");
-         Add_With (CU, "CORBA");
-         PL (CU, "Nb_Any : CORBA.Any :=");
-         II (CU);
-         PL (CU, "CORBA.Get_Aggregate_Element");
-         PL (CU, "  (Item,");
-         II (CU);
-         PL (CU, "CORBA.TC_Unsigned_Long,");
-         PL (CU, "CORBA.Unsigned_Long (0));");
-         DI (CU);
-         DI (CU);
-         PL (CU, "Nb : constant Integer");
-         PL (CU, "  := Integer (CORBA.Unsigned_Long'"
-                 & "(CORBA.From_Any (Nb_Any)));");
-         PL (CU, "Index : CORBA.Any;");
-         PL (CU, "Result : Element_Array (1 .. Nb);");
-         DI (CU);
-         PL (CU, "begin");
-         II (CU);
-
-         if Bound (Sequence (Node)) /= No_Node then
-            Put (CU, "if Nb > ");
-            Gen_Constant_Value (CU, Bound (Sequence (Node)));
-            PL (CU, " then");
-            II (CU);
-            PL (CU, "CORBA.Raise_Bad_TypeCode (Default_Sys_Member);");
-            DI (CU);
-            PL (CU, "end if;");
-         end if;
-
-         PL (CU, "for I in Result'Range loop");
-         II (CU);
-         PL (CU, "Index :=");
-         II (CU);
-         PL (CU, "CORBA.Get_Aggregate_Element (Item,");
-         Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
-         PL (CU, "                             "
-             & Ada_Full_TC_Name (Sequence_Type (Sequence (Node)))
-             & ",");
-         PL (CU, "                             CORBA.Unsigned_Long (I));");
-         DI (CU);
-         Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
-         PL (CU, "Result (I) := "
-             & Ada_Helper_Name (Sequence_Type (Sequence (Node)))
-             & ".From_Any (Index);");
-         DI (CU);
-         PL (CU, "end loop;");
-         PL (CU, "return To_Sequence (Result);");
-         DI (CU);
-         PL (CU, "end From_Any;");
-
-         --  To_Any
-
-         NL (CU);
-         Gen_To_Any_Profile (CU, Node);
-         PL (CU, " is");
-         II (CU);
-         PL (CU, "use " & Ada_Name (Node) & ";");
-         PL (CU, "Array_Item : constant Element_Array"
-           & " := To_Element_Array (Item);");
-         Add_With (CU, "CORBA");
-         PL (CU, "Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate");
-         PL (CU, "  ("
-             & Ada_TC_Name (Node)
-             & ");");
-         DI (CU);
-
-         PL (CU, "begin");
-         II (CU);
-         PL (CU, "CORBA.Add_Aggregate_Element");
-         PL (CU, "  (Result,");
-         II (CU);
-         PL (CU, " CORBA.To_Any (CORBA.Unsigned_Long (Length (Item))));");
-         DI (CU);
-         PL (CU, "for I in Array_Item'Range loop");
-         II (CU);
-         PL (CU, "CORBA.Add_Aggregate_Element");
-         PL (CU, "  (Result,");
-         II (CU);
-         declare
-            Helper : constant String
-              := Ada_Helper_Name (Sequence_Type (Sequence (Node)));
-         begin
-            Add_With (CU, Helper);
-            PL (CU, Helper & ".To_Any (Array_Item (I)));");
-         end;
-         DI (CU);
-         DI (CU);
-         PL (CU, "end loop;");
-         PL (CU, "return Result;");
-         DI (CU);
-         PL (CU, "end To_Any;");
-
-         --  Fill in typecode TC_<name of the type>
-
-         Divert (CU, Deferred_Initialization);
-         NL (CU);
-         Add_With (CU, "CORBA");
-         Put (CU, "CORBA.TypeCode.Add_Parameter ("
-              & Ada_TC_Name (Node)
-              & ", CORBA.To_Any (CORBA.Unsigned_Long (");
-         if Bound (Sequence (Node)) /= No_Node then
-            Gen_Constant_Value (CU, Bound (Sequence (Node)));
-         else
-            Put (CU, "0");
-         end if;
-         PL (CU, ")));");
-         Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
-         PL (CU, "CORBA.TypeCode.Add_Parameter ("
-             & Ada_TC_Name (Node)
-             & ", CORBA.To_Any ("
-             & Ada_Full_TC_Name (Sequence_Type (Sequence (Node)))
-             & "));");
-         Divert (CU, Visible_Declarations);
+      if not Generate_Dyn then
+         return;
       end if;
+
+      if B_Node = No_Node then
+
+         declare
+            Seq_Helper_Name : constant String
+              := Ada_Name (Node) & "_Helper";
+         begin
+
+            --  Unbounded sequence.
+
+            Add_With (CU, "PolyORB.Sequences.Unbounded.Helper");
+            Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
+            Add_With (CU, Helper_Unit (Sequence_Type (Sequence (Node))));
+
+            NL (CU);
+            PL (CU, "package " & Seq_Helper_Name
+                & " is new " & Ada_Name (Node) & ".Helper");
+            Put (CU, "  (");
+            II (CU);
+
+            PL (CU, "Element_TC =>" & ASCII.LF
+                & "  " & Ada_Full_TC_Name
+                (Sequence_Type (Sequence (Node))) & ",");
+            PL (CU, "Element_To_Any =>" & ASCII.LF
+                & "  " & Helper_Unit
+                (Sequence_Type (Sequence (Node))) & ".To_Any,");
+            PL (CU, "Element_From_Any =>" & ASCII.LF
+                & "  " & Helper_Unit
+                (Sequence_Type (Sequence (Node))) & ".From_Any);");
+
+            DI (CU);
+
+            NL (CU);
+            Gen_From_Any_Profile (CU, Node);
+            NL (CU);
+            PL (CU, " renames " & Seq_Helper_Name & ".From_Any;");
+            Gen_To_Any_Profile (CU, Node);
+            NL (CU);
+            PL (CU, " renames " & Seq_Helper_Name & ".To_Any;");
+
+            Divert (CU, Deferred_Initialization);
+            NL (CU);
+            PL (CU, Seq_Helper_Name & ".Initialize;");
+            PL (CU, Ada_TC_Name (Node) & " := "
+                & Seq_Helper_Name & ".Sequence_TC;");
+            Divert (CU, Visible_Declarations);
+         end;
+         return;
+      end if;
+
+      --  Bounded sequence.
+
+      --  From_Any
+
+      NL (CU);
+      Gen_From_Any_Profile (CU, Node);
+      PL (CU, " is");
+      II (CU);
+      PL (CU, "use " & Ada_Name (Node) & ";");
+      Add_With (CU, "CORBA");
+      PL (CU, "Nb_Any : CORBA.Any :=");
+      II (CU);
+      PL (CU, "CORBA.Get_Aggregate_Element");
+      PL (CU, "  (Item,");
+      II (CU);
+      PL (CU, "CORBA.TC_Unsigned_Long,");
+      PL (CU, "CORBA.Unsigned_Long (0));");
+      DI (CU);
+      DI (CU);
+      PL (CU, "Nb : constant Integer");
+      PL (CU, "  := Integer (CORBA.Unsigned_Long'"
+          & "(CORBA.From_Any (Nb_Any)));");
+      PL (CU, "Index : CORBA.Any;");
+      PL (CU, "Result : Element_Array (1 .. Nb);");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+
+      --  XXX The fragment below is the only difference wrt unbounded code
+      pragma Assert (B_Node /= No_Node);
+
+      Put (CU, "if Nb > ");
+      Gen_Constant_Value (CU, B_Node);
+      PL (CU, " then");
+      II (CU);
+      PL (CU, "CORBA.Raise_Bad_TypeCode (Default_Sys_Member);");
+      DI (CU);
+      PL (CU, "end if;");
+      --  XXX end fragment
+
+      PL (CU, "for I in Result'Range loop");
+      II (CU);
+      PL (CU, "Index :=");
+      II (CU);
+      PL (CU, "CORBA.Get_Aggregate_Element (Item,");
+      Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
+      PL (CU, "                             "
+          & Ada_Full_TC_Name (Sequence_Type (Sequence (Node)))
+          & ",");
+      PL (CU, "                             CORBA.Unsigned_Long (I));");
+      DI (CU);
+      Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
+      PL (CU, "Result (I) := "
+          & Ada_Helper_Name (Sequence_Type (Sequence (Node)))
+          & ".From_Any (Index);");
+      DI (CU);
+      PL (CU, "end loop;");
+      PL (CU, "return To_Sequence (Result);");
+      DI (CU);
+      PL (CU, "end From_Any;");
+
+      --  To_Any
+
+      NL (CU);
+      Gen_To_Any_Profile (CU, Node);
+      PL (CU, " is");
+      II (CU);
+      PL (CU, "use " & Ada_Name (Node) & ";");
+      PL (CU, "Array_Item : constant Element_Array"
+          & " := To_Element_Array (Item);");
+      Add_With (CU, "CORBA");
+      PL (CU, "Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate");
+      PL (CU, "  ("
+          & Ada_TC_Name (Node)
+          & ");");
+      DI (CU);
+
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "CORBA.Add_Aggregate_Element");
+      PL (CU, "  (Result,");
+      II (CU);
+      PL (CU, " CORBA.To_Any (CORBA.Unsigned_Long (Length (Item))));");
+      DI (CU);
+      PL (CU, "for I in Array_Item'Range loop");
+      II (CU);
+      PL (CU, "CORBA.Add_Aggregate_Element");
+      PL (CU, "  (Result,");
+      II (CU);
+      declare
+         Helper : constant String
+           := Ada_Helper_Name (Sequence_Type (Sequence (Node)));
+      begin
+         Add_With (CU, Helper);
+         PL (CU, Helper & ".To_Any (Array_Item (I)));");
+      end;
+      DI (CU);
+      DI (CU);
+      PL (CU, "end loop;");
+      PL (CU, "return Result;");
+      DI (CU);
+      PL (CU, "end To_Any;");
+
+      --  Fill in typecode TC_<name of the type>
+
+      Divert (CU, Deferred_Initialization);
+      NL (CU);
+      Add_With (CU, "CORBA");
+      Put (CU, "CORBA.TypeCode.Add_Parameter ("
+           & Ada_TC_Name (Node)
+           & ", CORBA.To_Any (CORBA.Unsigned_Long (");
+      if Bound (Sequence (Node)) /= No_Node then
+         Gen_Constant_Value (CU, Bound (Sequence (Node)));
+      else
+         Put (CU, "0");
+      end if;
+      PL (CU, ")));");
+      Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
+      PL (CU, "CORBA.TypeCode.Add_Parameter ("
+          & Ada_TC_Name (Node)
+          & ", CORBA.To_Any ("
+          & Ada_Full_TC_Name (Sequence_Type (Sequence (Node)))
+          & "));");
+      Divert (CU, Visible_Declarations);
+
    end Gen_Sequence_Body;
 
    --------------------
