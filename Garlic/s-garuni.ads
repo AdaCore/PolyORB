@@ -41,24 +41,71 @@ package System.Garlic.Units is
 
    pragma Elaborate_Body;
 
-   --  This package needs comments ???
+   --  This package maintains a catalogue of all locally registered
+   --  RCI units, as well as a cache for information about remote
+   --  units registered with the name server.
+
+   type Subprogram_Id is new Natural;
+   --  Each subprogram in an RCI unit is assigned a subprogram
+   --  identifier, which is used to denote the subprogram in the
+   --  context of remote calls.
+
+   First_RCI_Subprogram_Id : constant := 2;
+   --  The first two subprogram IDs have special meaning:
+   --    0 denotes a remote call performed through a dereference
+   --      of a remote access-to-subprogram type;
+   --    1 is a call to an inteernally-generated lookup service
+   --      allowing a remote customer to retrieve the address of
+   --      the proxy object associated with a given subprogram ID.
+   --      This address is used to build values for remote access-to-
+   --      subprogram types.
+   --  Thus, user subprograms are numbered starting at 2.
+   --  This constant must be kept consistent with its counterpart
+   --  in Exp_Dist.
+
+   --  RCI receiving stubs contain a table of descriptors for
+   --  all user subprograms exported by the unit.
+
+   type RCI_Subp_Info is record
+      Addr  : System.Address;
+      --  Local address of the proxy object
+   end record;
+   type RCI_Subp_Info_Access is access all RCI_Subp_Info;
+   type RCI_Subp_Info_Array is array (Integer range <>) of
+     aliased RCI_Subp_Info;
+
+   --  The subprograms below allow various properties of a unit
+   --  to be queried. If an error occurs during their execution,
+   --  an error condition is returned in the Error out parameter.
+
+   function Get_Unit_Id (Name : String) return Types. Unit_Id;
+   --  Retrieve the unit ID assigned to the named unit.
 
    procedure Get_Partition
      (Unit      : in Types.Unit_Id;
       Partition : out Types.Partition_ID;
       Error     : in out Exceptions.Error_Type);
+   --  Retrieve the partition ID of the partition on which Unit
+   --  is instantiated.
 
    procedure Get_Receiver
      (Unit     : in Types.Unit_Id;
       Receiver : out Interfaces.Unsigned_64;
       Error    : in out Exceptions.Error_Type);
+   --  Retrieve the RPC receiver address for Unit.
 
    procedure Get_Version
      (Unit    : in Types.Unit_Id;
       Version : out Types.Version_Type;
       Error   : in out Exceptions.Error_Type);
+   --  Retrieve the version for Unit.
 
-   function Get_Unit_Id (Name : String) return Types. Unit_Id;
+   function Get_Subprogram_Info
+     (Unit    : in Types.Unit_Id;
+      Subp_Id : in Subprogram_Id)
+      return RCI_Subp_Info_Access;
+   --  Retrieve the subprogram descriptor for the given subprogram
+   --  in the named (local) unit, or null if not found.
 
    procedure Initialize;
 
@@ -71,10 +118,12 @@ package System.Garlic.Units is
    --  Invalid. Otherwise, it will be set to Undefined.
 
    procedure Register_Unit
-     (Partition : in Types.Partition_ID;
-      Name      : in String;
-      Receiver  : in Interfaces.Unsigned_64;
-      Version   : in Types.Version_Type);
+     (Partition     : in Types.Partition_ID;
+      Name          : in String;
+      Receiver      : in Interfaces.Unsigned_64;
+      Version       : in Types.Version_Type;
+      Subp_Info     : in System.Address;
+      Subp_Info_Len : in Integer);
    --  Register locally this unit. The remote registration is
    --  postponed and will be performed by Register_Units_On_Boot_Server.
 

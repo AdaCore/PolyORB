@@ -95,21 +95,25 @@ package body System.Garlic.Units is
 
    type Unit_Info is
       record
-         Next_Unit : Types.Unit_Id;
-         Partition : Types.Partition_ID;
-         Receiver  : Interfaces.Unsigned_64;
-         Version   : Types.Version_Type;
-         Status    : Unit_Status;
-         Requests  : Request_List;
+         Next_Unit     : Types.Unit_Id;
+         Partition     : Types.Partition_ID;
+         Receiver      : Interfaces.Unsigned_64;
+         Version       : Types.Version_Type;
+         Status        : Unit_Status;
+         Requests      : Request_List;
+         Subp_Info     : System.Address;
+         Subp_Info_Len : Integer;
       end record;
 
    Null_Unit : constant Unit_Info :=
-     (Next_Unit => Types.Null_Unit_Id,
-      Partition => Types.Null_PID,
-      Receiver  => 0,
-      Version   => Types.Null_Version,
-      Status    => Undefined,
-      Requests  => Null_Request_List);
+     (Next_Unit     => Types.Null_Unit_Id,
+      Partition     => Types.Null_PID,
+      Receiver      => 0,
+      Version       => Types.Null_Version,
+      Status        => Undefined,
+      Requests      => Null_Request_List,
+      Subp_Info     => System.Null_Address,
+      Subp_Info_Len => 0);
 
    --  Next_Unit   : units on the same partition are linked together
    --  Partition   : unit partition id
@@ -244,12 +248,14 @@ package body System.Garlic.Units is
    type Elab_Unit_List is access Elab_Unit_Node;
    type Elab_Unit_Node is
       record
-         PID      : Partition_ID;
-         Name     : String_Access;
-         Version  : Version_Type;
-         Receiver : Interfaces.Unsigned_64;
-         Previous : Elab_Unit_List;
-         Next     : Elab_Unit_List;
+         PID           : Partition_ID;
+         Name          : String_Access;
+         Version       : Version_Type;
+         Receiver      : Interfaces.Unsigned_64;
+         Subp_Info     : System.Address := System.Null_Address;
+         Subp_Info_Len : Integer;
+         Previous      : Elab_Unit_List;
+         Next          : Elab_Unit_List;
       end record;
 
    Elab_Units : Elab_Unit_List;
@@ -444,6 +450,36 @@ package body System.Garlic.Units is
       Receiver := Info.Receiver;
    end Get_Receiver;
 
+   -------------------------
+   -- Get_Subprogram_Info --
+   -------------------------
+
+   function Get_Subprogram_Info
+     (Unit    : in Types.Unit_Id;
+      Subp_Id : in Subprogram_Id)
+      return RCI_Subp_Info_Access
+   is
+      Error : Error_Type;
+      Info : Unit_Info;
+   begin
+      Get_Unit_Info (Unit, Info, Error);
+      if Found (Error) then
+         return null;
+      end if;
+      declare
+         Subprograms_Address : constant System.Address := Info.Subp_Info;
+         subtype Subprogram_Array is
+           RCI_Subp_Info_Array
+             (First_RCI_Subprogram_Id ..
+              First_RCI_Subprogram_Id + Info.Subp_Info_Len - 1);
+         Subprograms : Subprogram_Array;
+         for Subprograms'Address use Subprograms_Address;
+         pragma Import (Ada, Subprograms);
+      begin
+         return Subprograms (Integer (Subp_Id))'Unchecked_Access;
+      end;
+   end Get_Subprogram_Info;
+
    -----------------
    -- Get_Unit_Id --
    -----------------
@@ -481,12 +517,14 @@ package body System.Garlic.Units is
          begin
             while List /= null loop
                if List.Name.all = Name then
-                  Info.Next_Unit := Null_Unit_Id;
-                  Info.Partition := Self_PID;
-                  Info.Receiver  := List.Receiver;
-                  Info.Version   := List.Version;
-                  Info.Status    := Declared;
-                  Info.Requests  := Null_Request_List;
+                  Info.Next_Unit     := Null_Unit_Id;
+                  Info.Partition     := Self_PID;
+                  Info.Receiver      := List.Receiver;
+                  Info.Version       := List.Version;
+                  Info.Status        := Declared;
+                  Info.Requests      := Null_Request_List;
+                  Info.Subp_Info     := List.Subp_Info;
+                  Info.Subp_Info_Len := List.Subp_Info_Len;
                   Soft_Links.Leave_Critical_Section;
                   return;
                end if;
@@ -907,10 +945,12 @@ package body System.Garlic.Units is
    -------------------
 
    procedure Register_Unit
-     (Partition : in Partition_ID;
-      Name      : in String;
-      Receiver  : in Interfaces.Unsigned_64;
-      Version   : in Types.Version_Type)
+     (Partition     : in Partition_ID;
+      Name          : in String;
+      Receiver      : in Interfaces.Unsigned_64;
+      Version       : in Types.Version_Type;
+      Subp_Info     : in System.Address;
+      Subp_Info_Len : in Integer)
    is
       Node : constant Elab_Unit_List := new Elab_Unit_Node;
 
@@ -921,12 +961,14 @@ package body System.Garlic.Units is
 
       Soft_Links.Enter_Critical_Section;
       Node.all :=
-        (PID      => Partition,
-         Name     => new String'(Name),
-         Version  => Version,
-         Receiver => Receiver,
-         Previous => null,
-         Next     => Elab_Units);
+        (PID           => Partition,
+         Name          => new String'(Name),
+         Version       => Version,
+         Receiver      => Receiver,
+         Subp_Info     => Subp_Info,
+         Subp_Info_Len => Subp_Info_Len,
+         Previous      => null,
+         Next          => Elab_Units);
       if Elab_Units /= null then
          Elab_Units.Previous := Node;
       end if;
@@ -1043,6 +1085,10 @@ package body System.Garlic.Units is
               (Program_Error'Identity,
                "unit " & List.Name.all & " is already declared");
          end if;
+
+         Info.Subp_Info := List.Subp_Info;
+         Info.Subp_Info_Len := List.Subp_Info_Len;
+         Units.Set_Component (Unit, Info);
 
          Node := List;
          List := List.Next;
