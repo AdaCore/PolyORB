@@ -74,6 +74,8 @@ two things:
 <li>the protocol used by the middleware environment to talk to other
     nodes in the distributed application.
 </ul>
+Usually, middleware for one platform supports only one set of such
+interfaces, and cannot interoperate with other platforms.
 
 <p>
 A polymorphic middleware allows the existence of several different
@@ -91,7 +93,12 @@ actually <em>schizophrenic</em>.
 The decoupling of application and protocol personalities, and the support
 for multiple simultaneous personalities within the same running middleware
 are key features required for the construction of interoperable distributed
-applications. The PolyORB architecture also permits the automatic,
+applications. This allows PolyORB to communicate with middlewares
+that implement different distribution standards: PolyORB provides
+<em>middleware-to-middleware</em> interoperability.
+
+<p>
+The PolyORB architecture also permits the automatic,
 just-in-time creation of proxies between incompatible environments
 (although this feature is not implemented yet).
 
