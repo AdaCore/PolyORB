@@ -1230,7 +1230,7 @@ package body System.PolyORB_Interface is
    begin
       if PSNNC.Is_Nil (Naming_Context_Cache) then
          PolyORB.References.String_To_Object
-           (PolyORB.Parameters.Get_Conf ("dsa", "naming_ior"),
+           (PolyORB.Parameters.Get_Conf ("dsa", "name_service"),
             R);
          PSNNC.Set (Naming_Context_Cache, Entity_Of (R));
       end if;

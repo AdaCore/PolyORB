@@ -765,10 +765,10 @@ package body CORBA.ORB is
    is
       Naming_IOR : constant Standard.String :=
         PolyORB.Parameters.Get_Conf
-        (Section => "corba", Key => "naming_ior", Default => "");
+        (Section => "corba", Key => "name_service", Default => "");
       InterfaceRepository_IOR : constant Standard.String :=
         PolyORB.Parameters.Get_Conf
-        (Section => "corba", Key => "ir_ior", Default => "");
+        (Section => "corba", Key => "ir_service", Default => "");
 
    begin
       --  Register initial reference for NamingService
