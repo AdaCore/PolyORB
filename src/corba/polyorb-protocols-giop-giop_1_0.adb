@@ -66,7 +66,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
    ------------------
    -- To_Principal --
-   -------------------
+   ------------------
 
 --   function To_Principal
 --     (S : String)
@@ -158,14 +158,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    end Marshall_Request_Message;
 
    ---------------------------
-   -- No_Exception_Marshall --
+   -- Marshall_No_Exception --
    ---------------------------
 
    procedure Marshall_No_Exception
      (Buffer      : access Buffer_Type;
       Request_Id  : in Types.Unsigned_Long) is
    begin
-
 
       --  Service context
       Marshall (Buffer, No_Context);
@@ -203,7 +202,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    end  Marshall_Exception;
 
    -------------------------------
-   -- Location_Forward_Marshall --
+   -- Marshall_Location_Forward --
    -------------------------------
 
    procedure Marshall_Location_Forward
@@ -229,7 +228,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    end  Marshall_Location_Forward;
 
    --------------------------------
-   -- Request Message Unmarshall --
+   -- Unmarshall_Request_Message --
    --------------------------------
 
    procedure Unmarshall_Request_Message

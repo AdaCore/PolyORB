@@ -83,7 +83,6 @@ package PolyORB.Protocols.GIOP.GIOP_1_0 is
       Object_Key        : out Objects.Object_Id_Access;
       Operation         : out Types.String);
 
-
    procedure Unmarshall_Reply_Message
       (Buffer       : access Buffers.Buffer_Type;
        Request_Id   : out Types.Unsigned_Long;

@@ -107,12 +107,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          Types.Unsigned_Long (Message_Size - Message_Header_Size));
    end  Marshall_GIOP_Header;
 
+   -----------------------------------------
+   -- Marshaling of the GIOP 1.1 messages --
+   -----------------------------------------
 
-   ------------------------------------------------
-   --  Marshaling of the  GIOP 1.1 messages
-   ------------------------------------------------
-   -- Marshalling of the request Message ----------
-   ------------------------------------------------
+   ------------------------------
+   -- Marshall_Request_Message --
+   ------------------------------
 
    procedure Marshall_Request_Message
      (Buffer             : access Buffers.Buffer_Type;
@@ -159,9 +160,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    end Marshall_Request_Message;
 
 
-   -----------------------------
-   ---  No Exception Reply
-   ------------------------------
+   ---------------------------
+   -- Marshall_No_Exception --
+   ---------------------------
 
    procedure Marshall_No_Exception
     (Buffer      : access Buffer_Type;
@@ -170,7 +171,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    is
       use Representations.CDR;
    begin
-
 
       --  Service context
       Marshall (Buffer, Types.Octet (ServiceId'Pos
@@ -186,11 +186,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    end Marshall_No_Exception;
 
-
-
-   -------------------------------------
-   --  System Exception Marshall
-   -------------------------------------
+   ------------------------
+   -- Marshall_Exception --
+   ------------------------
 
    procedure Marshall_Exception
     (Buffer           : access Buffer_Type;
@@ -220,9 +218,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Marshall_From_Any (Buffer, Occurrence);
    end Marshall_Exception;
 
-   -------------------------------------
-   -- Location Forward Reply Marshall --
-   -------------------------------------
+   -------------------------------
+   -- Marshall_Location_Forward --
+   -------------------------------
 
    procedure Marshall_Location_Forward
     (Buffer           : access Buffer_Type;
@@ -249,12 +247,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    end Marshall_Location_Forward;
 
-
-
-   ---------------------------------------
-   ----- Fragment Message Marshall
-   ----------------------------------------
-
+   -----------------------
+   -- Marshall_Fragment --
+   -----------------------
 
    procedure Marshall_Fragment
     (Buffer      : access Buffer_Type;
@@ -269,9 +264,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    end Marshall_Fragment;
 
-   ----------------------------------
-   --- Request Unmarshalling
-   -----------------------------------------
+   -------------------------------------------
+   -- Unmarshaling of the GIOP 1.1 messages --
+   -------------------------------------------
+
+   --------------------------------
+   -- Unmarshall_Request_Message --
+   --------------------------------
 
    procedure Unmarshall_Request_Message
      (Buffer            : access Buffer_Type;
@@ -324,10 +323,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    end Unmarshall_Request_Message;
 
-
-   -----------------------------------------
-   --- Reply  Unmarshalling
-   -----------------------------------------
+   ------------------------------
+   -- Unmarshall_Reply_Message --
+   ------------------------------
 
    procedure Unmarshall_Reply_Message
       (Buffer       : access Buffer_Type;
