@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //depot/adabroker/main/broca/Utils/update-headers.el#2 $
+;;; $Id: //droopi/main/utils/update-headers.el#2 $
 ;;;
 ;;; This file contains the update-header command which can be used to
 ;;; update headers depending on the header.txt file in the current directory.
@@ -12,12 +12,12 @@
   (interactive)
   (let (name spec)
     (goto-char (point-min))
-    (if (re-search-forward "^--  $Id" nil t)
-	(progn
-	  (next-line 2)
-	  (beginning-of-line)
-	  (delete-region (point-min) (point))))
-    (goto-char (point-min))
+;    (if (re-search-forward "^--  $Id" nil t)
+;	(progn
+;	  (next-line 2)
+;	  (beginning-of-line)
+;	  (delete-region (point-min) (point)))
+;    (goto-char (point-min))
     (next-line 1)
     (if (re-search-forward "^----------" nil t)
 	(progn
@@ -58,7 +58,14 @@
       (if (not (equal (buffer-substring beg (point)) ""))
 	  (progn
 	    (beginning-of-line)
-	    (insert "\n"))))))
+	    (insert "\n"))))
+    (goto-char (point-min))
+    (if (not (re-search-forward "^--  $Id:" nil t))
+	(progn
+	  (goto-char (point-min))
+	  (re-search-forward "^[a-z]")
+	  (beginning-of-line)
+	  (insert "--  $Id: //droopi/main/utils/update-headers.el#2 $\n\n")))))
 
 (defun expand-ada-name (n)
   (if (<= (length n) 1) n
