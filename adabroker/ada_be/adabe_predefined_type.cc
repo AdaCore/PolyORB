@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.22 $
+//                            $Revision: 1.23 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -59,12 +59,11 @@ adabe_predefined_type::marshal_name (dep_list& with, string &previous)
 }
 
 string adabe_predefined_type::get_ada_predefined_type () 
-{ 
+{
   string name = ""; 
   switch (pt ()) 
     { 
-    case AST_PredefinedType::PT_long:
-      name = "CORBA.Long"; 
+    case AST_PredefinedType::PT_long: name = "CORBA.Long"; 
       break; 
     case AST_PredefinedType::PT_ulong: name = "CORBA.Unsigned_Long";
       break; 
@@ -84,9 +83,30 @@ string adabe_predefined_type::get_ada_predefined_type ()
       break; 
     case AST_PredefinedType::PT_void: name = "<void>"; 
       break;
-    default: throw
-	       adabe_internal_error (__FILE__,__LINE__,"Unexpected predefined type");
-      break; 
+    case AST_PredefinedType::PT_longlong:
+      throw adabe_internal_error
+	(__FILE__,__LINE__,"unimplemented predefined type long long");
+    case AST_PredefinedType::PT_ulonglong:
+      throw adabe_internal_error
+	(__FILE__,__LINE__,"unimplemented predefined type unsigned long long");
+    case AST_PredefinedType::PT_longdouble:
+      throw adabe_internal_error
+	(__FILE__,__LINE__,"unimplemented predefined type long double");
+    case AST_PredefinedType::PT_wchar:
+      throw adabe_internal_error
+	(__FILE__,__LINE__,"unimplemented predefined type wchar_t");
+    case AST_PredefinedType::PT_any:
+      throw adabe_internal_error
+	(__FILE__,__LINE__,"unimplemented predefined type Any");
+    case AST_PredefinedType::PT_pseudo:
+      throw adabe_internal_error
+	(__FILE__,__LINE__,"unimplemented predefined type pseudo object");
+    case AST_PredefinedType::PT_TypeCode:
+      throw adabe_internal_error
+	(__FILE__,__LINE__,"unimplemented predefined type TypeCode");
+    default:
+      throw adabe_internal_error
+	(__FILE__,__LINE__,"Unexpected predefined type");
     }
   return name; 
 }
