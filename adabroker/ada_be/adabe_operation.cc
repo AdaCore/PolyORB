@@ -37,7 +37,7 @@ adabe_operation::produce_ads(dep_list with,string &String, string &previousdefin
        if it is an argument
        argument.produce_ads(dep_list with,string &String, string &previousdefinition);
     }
-    string += ", Outs : out " return_type_cast.dump_name(dep_list with,string &String, string &previousdefinition) + ");";
+    string += ", Returns : out " return_type_cast.dump_name(dep_list with,string &String, string &previousdefinition) + ");";
   }
 */
 
