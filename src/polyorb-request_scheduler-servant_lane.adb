@@ -118,11 +118,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
                      return False;
                   end if;
 
-                  if Model = CLIENT_PROPAGATED then
-                     Queue_Job (To_Lane, Job, Server_External_Priority);
-                  else
-                     Queue_Job (To_Lane, Job);
-                  end if;
+                  Queue_Job (To_Lane, Job, Server_External_Priority);
 
                   return True;
                end;
