@@ -72,6 +72,7 @@ pragma Elaborate(Adabroker_Debug) ;
 package OmniObject is
 
    Omniobject : constant Boolean := Adabroker_Debug.Is_Active("omniobject") ;
+   Omni_Fin : constant Boolean := Adabroker_Debug.Is_Active("omniobject:finalization") ;
 
    -----------------------------------------------
    --         Implemented_Object                --

@@ -113,6 +113,8 @@ package Corba.Boa is
                             Obj: in Omniobject.Implemented_Object'Class ) ;
    -- tells the BOA that this object is going to be destroyed
    -- and that it should not accept connexions any longer
+   -- The user HAS to call this function, it cannot be called
+   -- automatically.
 
 
 end Corba.Boa ;

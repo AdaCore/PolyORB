@@ -55,7 +55,7 @@
 
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
-#define DEBUG
+//#define DEBUG
 
 
 // Constructor
@@ -216,8 +216,13 @@ void
 Ada_OmniObject::disposeObject() {
 ADABROKER_TRY
   if (Init_Ok) {
-  omni::disposeObject(C_Object) ;
-  Init_Ok = false ;
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::disposeObject : disposing ..." << endl ;
+#endif
+    omni::disposeObject(C_Object) ;
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::disposeObject : C++ dispose OK" << endl ;
+#endif
   } else {
     throw omniORB::fatalException(__FILE__,
 				  __LINE__,

@@ -98,6 +98,7 @@ package body OmniObject is
                                 Disp : in Dispatch_Procedure ) is
       C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
    begin
+      pragma Debug(Output(Omni_Fin,"Omniobject.Init_Local_Object")) ;
       Initialize(Implemented_Object(Self)) ;
       if not Is_Nil(Self) then
          C_Repoid := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repo_Id)) ;
@@ -446,7 +447,7 @@ package body OmniObject is
    ---------------------
    procedure Omniobject_Dispose(Self : in Object_Ptr) is
    begin
-      C_Omniobject_Is_Ready(Address_To_Object.To_Address(From_Object_Ptr(Self))) ;
+      C_Omniobject_Dispose(Address_To_Object.To_Address(From_Object_Ptr(Self))) ;
    end ;
 
 
@@ -631,6 +632,7 @@ package body OmniObject is
         new Ada.Unchecked_Conversion (Ptr, Implemented_Object_Ptr);
       Tmp : Object_Ptr := Object_Ptr_Constructor ;
    begin
+      pragma Debug(Output(Omni_Fin,"Omniobject.Initialize")) ;
       Tmp.all.Implobj := To_Implemented_Object_Ptr(Self'Access) ;
       Self.Omniobj := Tmp ;
       Self.Dispatch := null ;
@@ -642,7 +644,8 @@ package body OmniObject is
    -----------
    procedure Adjust (Self: in out Implemented_Object) is
    begin
-      if not Is_Nil(Self) then
+      pragma Debug(Output(Omni_Fin,"Omniobject.Adjust")) ;
+     if not Is_Nil(Self) then
          Self.Omniobj := Omniobject_Duplicate(Self.omniobj) ;
       end if ;
    end ;
@@ -651,11 +654,14 @@ package body OmniObject is
    -----------
    procedure Finalize (Self: in out Implemented_Object) is
    begin
+      pragma Debug(Output(Omni_Fin,"Omniobject.Finalize")) ;
       if not Is_Nil(Self) then
-         Omniobject_Dispose(Self.Omniobj) ;
+         pragma Debug(Output(Omni_Fin,"Omniobject.Finalizing non nil object")) ;
          Omniobject_Destructor(Self.Omniobj) ;
+         pragma Debug(Output(Omni_Fin,"Omniobject.Finalize :object destroyed")) ;
          Self.Omniobj := null ;
          Self.Dispatch := null ;
+         pragma Debug(Output(Omni_Fin,"Omniobject.Finalize : OK")) ;
       end if ;
    end ;
 
