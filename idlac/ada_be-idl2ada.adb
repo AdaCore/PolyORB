@@ -167,9 +167,12 @@ package body Ada_Be.Idl2Ada is
             Gen_Value_Scope (Node, Implement, To_Stdout);
          when
            K_Ben_Idl_File |
-           K_Module |
+           K_Module =>
+            Gen_Interface_Module_Scope (Node, Implement, To_Stdout);
+         when
            K_Interface =>
             Gen_Interface_Module_Scope (Node, Implement, To_Stdout);
+
          when others =>
             raise Program_Error;
             --  should never happen
