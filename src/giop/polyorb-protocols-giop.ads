@@ -394,10 +394,6 @@ private
      (Sess   : access GIOP_Session;
       Buffer : access PolyORB.Buffers.Buffer_Type);
 
-   procedure Marshall_Global_GIOP_Header
-     (Version :        GIOP_Version;
-      Buffer  : access PolyORB.Buffers.Buffer_Type);
-
    --  Prepare S to receive next GIOP message.
    --  This must be called once when a session is established
    --  (in Handle_Connect_Indication for a server session,

@@ -539,16 +539,9 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Marshall_Global_GIOP_Header
      (Sess   : access GIOP_Session;
-      Buffer : access Buffer_Type) is
+      Buffer : access PolyORB.Buffers.Buffer_Type)
+   is
    begin
-      Marshall_Global_GIOP_Header (Sess.Implem.Version, Buffer);
-   end Marshall_Global_GIOP_Header;
-
-   procedure Marshall_Global_GIOP_Header
-     (Version :        GIOP_Version;
-      Buffer  : access Buffer_Type) is
-   begin
-
       --  Magic
 
       for J in Magic'Range loop
@@ -557,8 +550,13 @@ package body PolyORB.Protocols.GIOP is
 
       --  Version
 
-      Marshall (Buffer, Version.Major);
-      Marshall (Buffer, Version.Minor);
+      Marshall (Buffer, Sess.Implem.Version.Major);
+      Marshall (Buffer, Sess.Implem.Version.Minor);
+
+      --  Implem-specific data
+
+      Marshall_GIOP_Header (Sess.Implem, Sess, Buffer);
+
    end Marshall_Global_GIOP_Header;
 
    -----------------------------------

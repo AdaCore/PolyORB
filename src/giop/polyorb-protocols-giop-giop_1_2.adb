@@ -626,13 +626,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             pragma Debug (O ("Request Id :" & Request_Id'Img));
 
-            --  fill out_buff with headers
+            --  fill out_buf with headers
 
-            Marshall_Global_GIOP_Header (Version, Out_Buf);
             Ctx.Message_Size := Implem.Max_Body;
             Ctx.Fragmented := True;
             Ctx.Message_Type := Message_Type;
-            Marshall_GIOP_Header (Implem, S, Out_Buf);
+            pragma Assert (Sess.Implem.Version = Version);
+            Marshall_Global_GIOP_Header (Sess'Access, Out_Buf);
 
             --  marshall request id and first slice of data
 
@@ -671,8 +671,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
                --  fill out_buf with headers
 
-               Marshall_Global_GIOP_Header (Version, Out_Buf);
-               Marshall_GIOP_Header (Implem, S, Out_Buf);
+               pragma Assert (Sess.Implem.Version = Version);
+               Marshall_Global_GIOP_Header (Sess'Access, Out_Buf);
                Marshall (Out_Buf, Request_Id);
 
                --  if needed, copy data
@@ -879,12 +879,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          (Address_Type => Key_Addr,
           Object_Key   => Get_Object_Key (R.Target_Profile.all)));
 
-      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Ctx.Fragmented := False;
       Ctx.Message_Type := Locate_Request;
       Ctx.Message_Size := Types.Unsigned_Long (Length (Buffer))
         - Types.Unsigned_Long (GIOP_Header_Size);
-      Marshall_GIOP_Header (Sess.Implem, S, Header_Buffer);
+      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
       Emit_Message (Sess.Implem, S, Buffer);
@@ -1011,14 +1010,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  GIOP Header
 
-      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
-
       Ctx.Fragmented := False;
       Ctx.Message_Type := Request;
       Ctx.Message_Size := Types.Unsigned_Long (Length (Buffer))
         - Types.Unsigned_Long (GIOP_Header_Size);
 
-      Marshall_GIOP_Header (Sess.Implem, Sess'Access, Header_Buffer);
+      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
 

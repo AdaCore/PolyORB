@@ -244,7 +244,6 @@ package body PolyORB.Protocols.GIOP.Common is
         (Length (Buffer_Out) - GIOP_Header_Size);
 
       Marshall_Global_GIOP_Header (Sess, Header_Buffer);
-      Marshall_GIOP_Header (Sess.Implem, Sess, Header_Buffer);
 
       --  Copy Header
 
@@ -282,9 +281,10 @@ package body PolyORB.Protocols.GIOP.Common is
                        & " , type : "
                        & Loc_Type'Img));
 
-      Marshall_Global_GIOP_Header (Sess, Buffer);
       Sess.Ctx.Message_Size := 2 * Types.Unsigned_Long'Size / Types.Octet'Size;
-      Marshall_GIOP_Header (Sess.Implem, Sess, Buffer);
+
+      Marshall_Global_GIOP_Header (Sess, Buffer);
+
       Marshall (Buffer, Request_Id);
       Marshall (Buffer, Loc_Type);
       Emit_Message (Sess.Implem, Sess, Buffer);
@@ -355,9 +355,8 @@ package body PolyORB.Protocols.GIOP.Common is
 
       Buffer := new Buffer_Type;
 
-      Marshall_Global_GIOP_Header (Sess, Buffer);
       Sess.Ctx.Message_Size := Types.Unsigned_Long'Size / Types.Octet'Size;
-      Marshall_GIOP_Header (Sess.Implem, Sess, Buffer);
+      Marshall_Global_GIOP_Header (Sess, Buffer);
 
       Marshall (Buffer, Current_Req.Request_Id);
 

@@ -475,12 +475,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          R.Locate_Req_Id,
          Get_Object_Key (R.Target_Profile.all));
 
-      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Ctx.Fragmented := False;
       Ctx.Message_Type := Locate_Request;
       Ctx.Message_Size := Types.Unsigned_Long (Length (Buffer))
         - Types.Unsigned_Long (GIOP_Header_Size);
-      Marshall_GIOP_Header (Sess.Implem, S, Header_Buffer);
+
+      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
       Emit_Message (Sess.Implem, S, Buffer);
@@ -541,12 +541,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
         (Sess.Implem, Buffer, R.Req.Args, PolyORB.Any.ARG_IN,
          Sess.Implem.Data_Alignment);
 
-      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Ctx.Fragmented := False;
       Ctx.Message_Type := Request;
       Ctx.Message_Size := Types.Unsigned_Long (Length (Buffer)) -
         Types.Unsigned_Long (GIOP_Header_Size);
-      Marshall_GIOP_Header (Sess.Implem, Sess'Access, Header_Buffer);
+
+      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
       Emit_Message (Sess.Implem, Sess'Access, Buffer);
