@@ -54,6 +54,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
      ("polyorb.protocols.giop.giop_1_1");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   pragma Unreferenced (O);
 
    ---------------
    -- Constants --
@@ -131,10 +132,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    begin
 
       --  Service context
-      Marshall (Buffer, Types.Octet (ServiceId'Pos
-               (Service_Context_List_1_1 (0))));
-      Marshall (Buffer, Types.Octet (ServiceId'Pos
-               (Service_Context_List_1_1 (1))));
+      Marshall_Service_Context_List (Buffer);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -173,12 +171,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    is
       use Representations.CDR;
    begin
-
       --  Service context
-      Marshall (Buffer, Types.Octet (ServiceId'Pos
-                   (Service_Context_List_1_1 (0))));
-      Marshall (Buffer, Types.Octet (ServiceId'Pos
-                   (Service_Context_List_1_1 (1))));
+      Marshall_Service_Context_List (Buffer);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -204,10 +198,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       pragma Assert (Exception_Type in User_Exception .. System_Exception);
 
       --  Service context
-      Marshall (Buffer, Types.Octet (ServiceId'Pos
-                (Service_Context_List_1_1 (0))));
-      Marshall (Buffer, Types.Octet (ServiceId'Pos
-                (Service_Context_List_1_1 (1))));
+      Marshall_Service_Context_List (Buffer);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -233,10 +224,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    begin
 
       --  Service context
-      Marshall (Buffer, Types.Octet (ServiceId'Pos
-               (Service_Context_List_1_1 (0))));
-      Marshall (Buffer, Types.Octet (ServiceId'Pos
-               (Service_Context_List_1_1 (1))));
+      Marshall_Service_Context_List (Buffer);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -282,21 +270,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Operation         : out Types.String)
    is
       use PolyORB.Objects;
-      Service_Context1  : constant Types.Unsigned_Long
-        := Unmarshall (Buffer);
-      Service_Context2  : constant Types.Unsigned_Long
-        := Unmarshall (Buffer);
       Principal         : Types.String;
    begin
 
       --  Service context
-
-      if Service_Context1 /= ServiceId'Pos (Service_Context_List_1_1 (0)) or
-          Service_Context2 /= ServiceId'Pos (Service_Context_List_1_1 (1))
-      then
-         pragma Debug (O (" Request_Message_Unmarshall : incorrect context"));
-         raise GIOP_Error;
-      end if;
+      Unmarshall_Service_Context_List (Buffer);
 
       --  Request id
       Request_Id := Unmarshall (Buffer);
@@ -332,19 +310,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
        Reply_Status : out Reply_Status_Type)
 
    is
-      Service_Context1  : constant Types.Unsigned_Long
-        := Unmarshall (Buffer);
-      Service_Context2  : constant Types.Unsigned_Long
-        := Unmarshall (Buffer);
    begin
 
       --  Service context
-      if Service_Context1 /= ServiceId'Pos (Service_Context_List_1_1 (0)) or
-          Service_Context2 /= ServiceId'Pos (Service_Context_List_1_1 (1)) then
-
-         pragma Debug (O (" Request_Message_Unmarshall : incorrect context"));
-         raise GIOP_Error;
-      end if;
+      Unmarshall_Service_Context_List (Buffer);
 
       --  Request id
       Request_Id := Unmarshall (Buffer);

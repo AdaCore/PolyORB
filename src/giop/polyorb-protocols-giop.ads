@@ -254,6 +254,16 @@ private
    -- Common marshalling procedures for GIOP 1.0, 1.1, 1.2 --
    ----------------------------------------------------------
 
+   procedure Marshall_Service_Context_List
+     (Buffer : access Buffers.Buffer_Type);
+   --  PolyORB does not currently support GIOP service contexts:
+   --  this procedure always marshalls an empty context list.
+
+   procedure Unmarshall_Service_Context_List
+     (Buffer : access Buffers.Buffer_Type);
+   --  PolyORB does not currently support GIOP service contexts:
+   --  this procedure unmarshalls and discards a context list.
+
    --  procedure Marshall_Exception
    --   (Buffer           : access Buffers.Buffer_Type;
    --    Request_Id       : in Types.Unsigned_Long;

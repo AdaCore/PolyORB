@@ -2270,6 +2270,44 @@ package body PolyORB.Protocols.GIOP is
       Create (GIOP_Lock);
    end Initialize;
 
+   -----------------------------------
+   -- Marshall_Service_Context_List --
+   -----------------------------------
+
+   procedure Marshall_Service_Context_List
+     (Buffer : access Buffers.Buffer_Type)
+   is
+   begin
+      Marshall (Buffer, Types.Unsigned_Long (0));
+   end Marshall_Service_Context_List;
+
+   -------------------------------------
+   -- Unmarshall_Service_Context_List --
+   -------------------------------------
+
+   procedure Unmarshall_Service_Context_List
+     (Buffer : access Buffers.Buffer_Type)
+   is
+      Nb : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
+   begin
+      pragma Debug (O ("Unmarshall_Service_Context_List: enter, nb ="
+                       & PolyORB.Types.Unsigned_Long'Image (Nb)));
+
+      for I in 1 .. Nb loop
+         declare
+            Context_Id   : constant Types.Unsigned_Long := Unmarshall (Buffer);
+            Context_Data : constant Encapsulation := Unmarshall (Buffer);
+            pragma Warnings (Off);
+            pragma Unreferenced (Context_Id, Context_Data);
+            pragma Warnings (On);
+         begin
+            null;
+         end;
+      end loop;
+
+      pragma Debug (O ("Unmarshall_Service_Context_List: leave"));
+   end Unmarshall_Service_Context_List;
+
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;

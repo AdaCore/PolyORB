@@ -54,12 +54,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
      ("polyorb.protocols.giop.giop_1_0");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   pragma Unreferenced (O);
 
    ---------------
    -- Constants --
    ---------------
-
-   No_Context : constant Types.Unsigned_Long := 0;
 
    --  Version
    Major_Version : constant Types.Octet := 1;
@@ -137,7 +136,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
 
       --  Service context
-      Marshall (Buffer, No_Context);
+      Marshall_Service_Context_List (Buffer);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -168,7 +167,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
 
       --  Service context
-      Marshall (Buffer, No_Context);
+      Marshall_Service_Context_List (Buffer);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -189,7 +188,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Assert (Exception_Type in User_Exception  .. System_Exception);
 
       --  Service context
-      Marshall (Buffer, No_Context);
+      Marshall_Service_Context_List (Buffer);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -215,7 +214,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
 
       --  Service context
-      Marshall (Buffer, No_Context);
+      Marshall_Service_Context_List (Buffer);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -239,16 +238,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Object_Key        : out Objects.Object_Id_Access;
       Operation         : out Types.String)
    is
-      Service_Context : constant Types.Unsigned_Long
-        := Unmarshall (Buffer);
       Principal       : Types.String;
    begin
+
       --  Service context
-      if Service_Context /= No_Context then
-         pragma Debug (O ("Request_Message : incorrect context"
-                          & Service_Context'Img));
-         raise GIOP_Error;
-      end if;
+      Unmarshall_Service_Context_List (Buffer);
 
       --  Request id
       Request_Id := Unmarshall (Buffer);
@@ -274,16 +268,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Request_Id   : out Types.Unsigned_Long;
       Reply_Status : out Reply_Status_Type)
    is
-      Service_Context : constant Types.Unsigned_Long
-        := Unmarshall (Buffer);
    begin
 
       --  Service context
-      if Service_Context /= No_Context then
-         pragma Debug
-           (O ("Reply_Message : incorrect context" & Service_Context'Img));
-         raise GIOP_Error;
-      end if;
+      Unmarshall_Service_Context_List (Buffer);
 
       --  Request id
       Request_Id := Unmarshall (Buffer);

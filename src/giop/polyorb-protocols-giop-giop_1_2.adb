@@ -55,6 +55,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      ("polyorb.protocols.giop.giop_1_2");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   pragma Unreferenced (O);
 
    ---------------
    -- Constants --
@@ -76,14 +77,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    function Unmarshall
      (Buffer  : access Buffers.Buffer_Type)
      return Addressing_Disposition;
-
-   procedure Marshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type);
-   --  XXX Dummy marshalling for Service Context List.
-
-   procedure Unmarshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type);
-   --  XXX Dummy unmarshalling for Service Context List.
 
    --------------------------
    -- Marshall_GIOP_Header --
@@ -124,67 +117,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                 Types.Unsigned_Long (Message_Size - Message_Header_Size));
 
    end Marshall_GIOP_Header;
-
-   -----------------------------------
-   -- Marshall_Service_Context_List --
-   -----------------------------------
-
-   procedure Marshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type) is
-   begin
-      pragma Debug (O ("Enter: Marshall_Service_Context_List"));
-
-      --  Marshall a dummy Service_Context_List built after the one
-      --  sent by omniorb.
-      Marshall (Buffer, Types.Unsigned_Long (0));
-      --  One element in the sequence
-
---        Marshall (Buffer, Types.Unsigned_Long (1));
-      --  Id = 0x01
-
---        Marshall (Buffer, Types.Unsigned_Long (12));
---        Marshall (Buffer, Types.Octet (1));
---        Marshall (Buffer, Types.Octet (0));
---        Marshall (Buffer, Types.Octet (0));
---        Marshall (Buffer, Types.Octet (0));
---        Marshall (Buffer, Types.Octet (1));
---        Marshall (Buffer, Types.Octet (0));
---        Marshall (Buffer, Types.Octet (1));
---        Marshall (Buffer, Types.Octet (0));
---        Marshall (Buffer, Types.Octet (9));
---        Marshall (Buffer, Types.Octet (1));
---        Marshall (Buffer, Types.Octet (1));
---        Marshall (Buffer, Types.Octet (0));
-
-      pragma Debug (O ("Leave: Marshall_Service_Context_List"));
-   end Marshall_Service_Context_List;
-
-   -------------------------------------
-   -- Unmarshall_Service_Context_List --
-   -------------------------------------
-
-   procedure Unmarshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type)
-   is
-      Nb : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
-   begin
-      pragma Debug (O ("Unmarshall_Service_Context_List: enter, nb ="
-                       & PolyORB.Types.Unsigned_Long'Image (Nb)));
-
-      for I in 1 .. Nb loop
-         declare
-            Context_Id : constant Types.Unsigned_Long := Unmarshall (Buffer);
-            Context_Data : constant Encapsulation := Unmarshall (Buffer);
-            pragma Warnings (Off);
-            pragma Unreferenced (Context_Id, Context_Data);
-            pragma Warnings (On);
-         begin
-            null;
-         end;
-      end loop;
-
-      pragma Debug (O ("Unmarshall_Service_Context_List: leave"));
-   end Unmarshall_Service_Context_List;
 
    -------------------------------------
    -- Marshaling of GIOP 1.2 messages --
