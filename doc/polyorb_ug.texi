@@ -56,7 +56,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#8 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#9 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -364,6 +364,8 @@ platforms:
 @end itemize
 
 @noindent
+@emph{Note: PolyORB should compile and run on every target for which
+GNAT and the @code{GNAT.Sockets} package are available.}
 
 @c -------------------------------------------------------------------
 @node Build requirements
@@ -371,17 +373,24 @@ platforms:
 @c -------------------------------------------------------------------
 
 @noindent
-Ada 95 compiler: GNAT 3.15a (or the public release 3.15p) or later.
+Ada 95 compiler: GNAT 3.16a1 (or later), GNAT 5.02a (or later), GCC
+3.4.0 (or later).
 
-Optional: XmlAda (@url{http://libre.act-europe.fr/xmlada/}) if you want to
-build the SOAP protocol personality.
+Optional: 
 
-Note: per construction, the macro 'configure' used to find your GNAT
-compiler looks first to the executables 'gnatgcc', then 'adagcc' and
-finally to 'gcc' to find out which Ada compiler to use. You should be
-very careful with your path and executables if you have multiple GNAT
-versions installed. See below explanations on the ADA environment
-variable if you need to override the default guess.
+@itemize @bullet
+@item XmlAda (@url{http://libre.act-europe.fr/xmlada/}) if you
+want to build the SOAP protocol personality.
+@end itemize
+
+@noindent
+Note: per construction, the macro @command{configure} used to find
+your GNAT compiler looks first to the executables @command{gnatgcc},
+then @command{adagcc} and finally to @command{gcc} to find out which
+Ada compiler to use. You should be very careful with your path and
+executables if you have multiple GNAT versions installed. See below
+explanations on the ADA environment variable if you need to override
+the default guess.
 
 @c -------------------------------------------------------------------
 @node Build instructions
@@ -446,7 +455,6 @@ and supplementary runtime checks.
 
 @end itemize
 
-
 @c -------------------------------------------------------------------
 @subsection Compiler, Tools and Run-Time libraries Options
 @c -------------------------------------------------------------------
@@ -457,17 +465,26 @@ guess at what compilers to use:
 
 @itemize
 
-@item  @code{CC}:  the C compiler
-@item  @code{ADA}: the Ada 95 compiler
-
+@item @code{CC}:  the C compiler
+@item @code{ADA}: the Ada 95 compiler
+@item @code{CXXCPP}, @code{CXXCPPFLAGS}: the preprocessor used by
+idlac (only when setting up the CORBA application personality).
 
 @end itemize
+
 @noindent
 For example, if you have two versions of GNAT installed and available
 in your @code{PATH}, and configure picks the wrong one, you can
 indicate what compiler should be used with the following syntax:
 
-@code{ADA=/path/to/good/compiler/gcc ./configure [options]}
+@smallexample
+  % ADA=/path/to/good/compiler/gcc ./configure [options]
+@end smallexample
+
+PolyORB will be compiled with GNAT build host's configration,
+including run-time library. You may override this setting using
+@code{ADA_INCLUDE_PATH} and @code{ADA_OBJECTS_PATH} environment
+variables. See GNAT User's Guide for more details.
 
 NOTE: Developers building PolyORB from the version control repository
 who need to rebuild the configure and Makefile.in files should
