@@ -2,11 +2,7 @@
 --                                                                          --
 --                            GLADE EXAMPLES                                --
 --                                                                          --
---                               T Y P E S                                  --
---                                                                          --
---                                S p e c                                   --
---                                                                          --
---                           $Revision$                              --
+XXXXX
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -25,10 +21,3 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-package Types is
-   pragma Pure;
-   type Std_Session is new Natural;
-   type Std_Number  is range 0 .. 100;
-   type Std_Node is new Natural;
-end Types;
