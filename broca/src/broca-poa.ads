@@ -154,6 +154,10 @@ package Broca.POA is
 
    type Skeleton_Ptr is access all Skeleton;
 
+   function Skeleton_To_Ref
+     (Skel : Skeleton_Ptr)
+     return CORBA.Object.Ref;
+
    --  Can raise Bad_Param.
    function To_Skeleton (Ref : CORBA.Object.Ref'Class)
                          return Skeleton_Ptr;

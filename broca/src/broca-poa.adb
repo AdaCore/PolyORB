@@ -33,21 +33,35 @@
 
 with Broca.Exceptions;
 with Broca.Refs;
+with Broca.Sequences;
+with Broca.Opaque;
+with Broca.CDR;
 with Broca.Buffers; use Broca.Buffers;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
+with Ada.Unchecked_Conversion;
+
 package body Broca.POA is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.poa");
    procedure O is new Broca.Debug.Output (Flag);
 
-   function Get_The_POAManager (Self : access POA_Object)
-                                return POAManager_Object_Ptr is
+   ------------------------
+   -- Get_The_POAManager --
+   ------------------------
+
+   function Get_The_POAManager
+     (Self : access POA_Object)
+     return POAManager_Object_Ptr is
    begin
       return Self.POA_Manager;
    end Get_The_POAManager;
 
+   --------------
+   -- Marshall --
+   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -56,44 +70,91 @@ package body Broca.POA is
       Broca.Sequences.Marshall (Buffer, Value.IOR);
    end Marshall;
 
-   function To_Skeleton (Ref : CORBA.Object.Ref'Class)
-                         return Skeleton_Ptr
+   -----------------
+   -- To_Skeleton --
+   -----------------
+
+   function To_Skeleton
+     (Ref : CORBA.Object.Ref'Class)
+     return Skeleton_Ptr
    is
       use Broca.Refs;
+
       Res : Broca.Refs.Ref_Ptr;
+
    begin
       Res := Broca.Refs.Ref_Ptr (Ref.Ptr);
       if Res = null or else Res.all not in Skeleton'Class then
          Broca.Exceptions.Raise_Bad_Param;
-      else
-         return Skeleton_Ptr (Res);
       end if;
+
+      return Skeleton_Ptr (Res);
    end To_Skeleton;
 
-   --  Can raise Bad_Param.
+   --------------------------
+   -- To_Internal_Skeleton --
+   --------------------------
+
    function To_Internal_Skeleton
      (Ref : CORBA.Object.Ref'Class)
      return Internal_Skeleton_Ptr
    is
       use Broca.Refs;
+
       Res : Broca.Refs.Ref_Ptr;
+
    begin
       Res := Broca.Refs.Ref_Ptr (Ref.Ptr);
       if Res = null or else Res.all not in Internal_Skeleton'Class then
          Broca.Exceptions.Raise_Bad_Param;
-      else
-         return Internal_Skeleton_Ptr (Res);
       end if;
+
+      return Internal_Skeleton_Ptr (Res);
    end To_Internal_Skeleton;
 
-   function Create_Internal_Skeleton (P_Servant : PortableServer.Servant)
-                                      return Internal_Skeleton_Ptr
+   ---------------------
+   -- Skeleton_To_Ref --
+   ---------------------
+
+   function Skeleton_To_Ref
+     (Skel : Skeleton_Ptr)
+     return CORBA.Object.Ref
+   is
+      use Broca.Sequences;
+      use Broca.Opaque;
+      use Broca.Sequences.Octet_Sequences;
+
+      Len : constant Natural := Length (Skel.IOR);
+      subtype T1 is Element_Array (1 .. Len);
+      subtype T2 is Octet_Array (1 .. Index_Type (Len));
+      function T1_To_T2 is new Ada.Unchecked_Conversion (T1, T2);
+      A : aliased Octet_Array := T1_To_T2 (To_Element_Array (Skel.IOR));
+      B : aliased Buffer_Type;
+      R : CORBA.Object.Ref;
+
+   begin
+      Broca.Buffers.Decapsulate (A'Access, B'Access);
+      Show (B);
+      Broca.CDR.Unmarshall (B'Access, R);
+      Release (B);
+      return R;
+   end Skeleton_To_Ref;
+
+   ------------------------------
+   -- Create_Internal_Skeleton --
+   ------------------------------
+
+   function Create_Internal_Skeleton
+     (P_Servant : PortableServer.Servant)
+     return Internal_Skeleton_Ptr
    is
       Res : Internal_Skeleton_Ptr;
+
    begin
       Res := new Internal_Skeleton;
       Res.P_Servant := P_Servant;
       Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res));
       return Res;
    end Create_Internal_Skeleton;
+
 end Broca.POA;
