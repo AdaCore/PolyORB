@@ -1077,7 +1077,10 @@ package body Idl_Fe.Types is
          if Definition /= null then
             Append_Node (List, N_Root_Acc (Definition.Node));
          else
-            Find_Identifier_In_Inheritance (Name, N_Imports_Acc (Node), List);
+            Find_Identifier_In_Inheritance
+              (Name,
+               N_Imports_Acc (Idl_Fe.Tree.N_Scoped_Name_Acc (Node).Value),
+               List);
          end if;
          Next (It);
       end loop;
