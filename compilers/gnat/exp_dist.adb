@@ -676,12 +676,8 @@ package body Exp_Dist is
       Declarations        : in List_Id)
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
+      Is_RAS : constant Boolean := not Comes_From_Source (RACW_Type);
 
-      Is_RAS : constant Boolean :=
-        Present (Original_Node (RACW_Type))
-        and then Is_Remote_Access_To_Subprogram_Type
-        (Original_Node (RACW_Type));
-      pragma Unreferenced (Is_RAS);
       Fnam : constant Entity_Id
         := Make_Defining_Identifier (Loc, New_Internal_Name ('F'));
 
@@ -737,17 +733,21 @@ package body Exp_Dist is
         Make_Object_Declaration (Loc,
           Defining_Identifier => Stubbed_Result,
           Object_Definition   =>
-            New_Occurrence_Of (Stub_Type_Access, Loc)),
+            New_Occurrence_Of (Stub_Type_Access, Loc)));
 
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Is_Local,
-          Object_Definition   =>
-            New_Occurrence_Of (Standard_Boolean, Loc)),
+      if not Is_RAS then
+         Append_To (Decls,
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => Is_Local,
+             Object_Definition   =>
+               New_Occurrence_Of (Standard_Boolean, Loc)));
 
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Addr,
-          Object_Definition =>
-            New_Occurrence_Of (RTE (RE_Address), Loc)));
+         Append_To (Decls,
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => Addr,
+             Object_Definition =>
+               New_Occurrence_Of (RTE (RE_Address), Loc)));
+      end if;
 
       --  If the ref Is_Nil, return a null pointer.
 
@@ -764,24 +764,27 @@ package body Exp_Dist is
               Expression =>
                 Make_Null (Loc)))));
 
-      --  If the reference denotes an object created on
-      --  the current partition, then Local_Statements
-      --  will be executed: the real object will be used.
+      if not Is_RAS then
 
-      Append_To (Statements,
-        Make_Procedure_Call_Statement (Loc,
-          Name =>
-            New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
-          Parameter_Associations => New_List (
-            New_Occurrence_Of (Reference, Loc),
-            New_Occurrence_Of (Is_Local, Loc),
-            New_Occurrence_Of (Addr, Loc))));
+         --  If the reference denotes an object created on
+         --  the current partition, then Local_Statements
+         --  will be executed: the real object will be used.
 
-      Local_Statements := New_List (
-        Make_Return_Statement (Loc,
-          Expression =>
-            Unchecked_Convert_To (RACW_Type,
-              New_Occurrence_Of (Addr, Loc))));
+         Append_To (Statements,
+           Make_Procedure_Call_Statement (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
+             Parameter_Associations => New_List (
+               New_Occurrence_Of (Reference, Loc),
+               New_Occurrence_Of (Is_Local, Loc),
+               New_Occurrence_Of (Addr, Loc))));
+
+         Local_Statements := New_List (
+           Make_Return_Statement (Loc,
+             Expression =>
+               Unchecked_Convert_To (RACW_Type,
+                 New_Occurrence_Of (Addr, Loc))));
+      end if;
 
       --  If the object is located on another partition, then a stub
       --  object will be created with all the information needed to
@@ -837,12 +840,18 @@ package body Exp_Dist is
       --  Distinguish between the local and remote cases, and execute the
       --  appropriate piece of code.
 
-      Append_To (Statements,
-        Make_Implicit_If_Statement (RACW_Type,
-          Condition =>
-            New_Occurrence_Of (Is_Local, Loc),
-          Then_Statements => Local_Statements,
-          Else_Statements => Remote_Statements));
+      if not Is_RAS then
+         Append_To (Statements,
+           Make_Implicit_If_Statement (RACW_Type,
+             Condition =>
+               New_Occurrence_Of (Is_Local, Loc),
+             Then_Statements => Local_Statements,
+             Else_Statements => Remote_Statements));
+      else
+         Append_List_To (Statements, Remote_Statements);
+         --  For a RACW used as implementation of a RAS, always
+         --  instanciate a stub.
+      end if;
 
       Func_Spec :=
         Make_Function_Specification (Loc,
@@ -894,6 +903,8 @@ package body Exp_Dist is
       Stub_Elements : constant Stub_Structure :=
         Stubs_Table.Get (Designated_Type);
       pragma Assert (Stub_Elements /= Empty_Stub_Structure);
+      Is_RAS : constant Boolean :=
+        not Comes_From_Source (Stub_Elements.RACW_Type);
 
       Current_Insertion_Node : Node_Id := Insertion_Node;
 
@@ -931,12 +942,14 @@ package body Exp_Dist is
       --  Build callers, receivers for every primitive operations and a RPC
       --  receiver for this type.
 
-      Build_RPC_Receiver_Body (
-        RPC_Receiver => RPC_Receiver,
-        Request      => RPC_Receiver_Request,
-        Subp_Id      => RPC_Receiver_Subp_Id,
-        Stmts        => RPC_Receiver_Statements,
-        Decl         => RPC_Receiver_Decl);
+      if not Is_RAS then
+         Build_RPC_Receiver_Body (
+           RPC_Receiver => RPC_Receiver,
+           Request      => RPC_Receiver_Request,
+           Subp_Id      => RPC_Receiver_Subp_Id,
+           Stmts        => RPC_Receiver_Statements,
+           Decl         => RPC_Receiver_Decl);
+      end if;
 
       if Present (Primitive_Operations (Designated_Type)) then
 
@@ -1006,23 +1019,22 @@ package body Exp_Dist is
                --  For this reason, it will be analyzed later in the
                --  regular flow.
 
-               --  Build the receiver stubs
+               --  Build the receiver stubs (only for RACWs that correspond
+               --  to real objects, not for RAS).
 
-               Current_Receiver_Body :=
-                 Build_Subprogram_Receiving_Stubs
-                   (Vis_Decl                 => Current_Primitive_Decl,
-                    Asynchronous             => Possibly_Asynchronous,
-                    Dynamically_Asynchronous => Possibly_Asynchronous,
-                    Stub_Type                => Stub_Elements.Stub_Type,
-                    RACW_Type                => Stub_Elements.RACW_Type,
-                    Parent_Primitive         => Current_Primitive);
+               if not Is_RAS then
+                  Current_Receiver_Body :=
+                    Build_Subprogram_Receiving_Stubs
+                      (Vis_Decl                 => Current_Primitive_Decl,
+                       Asynchronous             => Possibly_Asynchronous,
+                       Dynamically_Asynchronous => Possibly_Asynchronous,
+                       Stub_Type                => Stub_Elements.Stub_Type,
+                       RACW_Type                => Stub_Elements.RACW_Type,
+                       Parent_Primitive         => Current_Primitive);
 
-               Current_Receiver :=
-                  Defining_Unit_Name (Specification (Current_Receiver_Body));
+                  Append_To (Decls, Current_Receiver_Body);
 
-               Append_To (Decls, Current_Receiver_Body);
-
-               --  Add a case alternative to the receiver
+                  --  Add a case alternative to the receiver
 
 --                 Append_To (RPC_Receiver_Case_Alternatives,
 --                   Make_Case_Statement_Alternative (Loc,
@@ -1037,23 +1049,27 @@ package body Exp_Dist is
 --                           New_Occurrence_Of (
 --                             RPC_Receiver_Request, Loc))))));
 
-               Append_To (RPC_Receiver_Case_Alternatives,
-                 Make_Implicit_If_Statement (Designated_Type,
-                   Condition =>
-                     Make_Function_Call (Loc,
-                       Name =>
-                         New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
-                       Parameter_Associations => New_List (
-                         New_Occurrence_Of (RPC_Receiver_Subp_Id, Loc),
-                         Make_String_Literal (Loc, Subp_Str))),
-                   Then_Statements => New_List (
-                     Make_Procedure_Call_Statement (Loc,
-                       Name                   =>
-                         New_Occurrence_Of (Current_Receiver, Loc),
-                       Parameter_Associations => New_List (
-                         New_Occurrence_Of (
-                           RPC_Receiver_Request, Loc))))));
-
+                  Current_Receiver :=
+                     Defining_Unit_Name (
+                       Specification (Current_Receiver_Body));
+                  Append_To (RPC_Receiver_Case_Alternatives,
+                    Make_Implicit_If_Statement (Designated_Type,
+                      Condition =>
+                        Make_Function_Call (Loc,
+                          Name =>
+                            New_Occurrence_Of (
+                              RTE (RE_Caseless_String_Eq), Loc),
+                          Parameter_Associations => New_List (
+                            New_Occurrence_Of (RPC_Receiver_Subp_Id, Loc),
+                            Make_String_Literal (Loc, Subp_Str))),
+                      Then_Statements => New_List (
+                        Make_Procedure_Call_Statement (Loc,
+                          Name                   =>
+                            New_Occurrence_Of (Current_Receiver, Loc),
+                          Parameter_Associations => New_List (
+                            New_Occurrence_Of (
+                              RPC_Receiver_Request, Loc))))));
+               end if;
                --  Increment the index of current primitive
 
                Current_Primitive_Number := Current_Primitive_Number + 1;
@@ -1076,10 +1092,11 @@ package body Exp_Dist is
 --              New_Occurrence_Of (RPC_Receiver_OLD_Subp_Id, Loc),
 --            Alternatives => RPC_Receiver_Case_Alternatives));
 
-      Append_List_To (RPC_Receiver_Statements,
-        RPC_Receiver_Case_Alternatives);
+      if not Is_RAS then
+         Append_List_To (RPC_Receiver_Statements,
+           RPC_Receiver_Case_Alternatives);
 
-      Append_To (Decls, RPC_Receiver_Decl);
+         Append_To (Decls, RPC_Receiver_Decl);
 --        Append_To (Decls,
 --          Make_Assignment_Statement (Loc,
 --            Name =>
@@ -1099,37 +1116,38 @@ package body Exp_Dist is
 --                  Name_Access)));
 
 --        Append_Freeze_Action (Designated_Type,
-      Append_To (Decls,
-        Make_Procedure_Call_Statement (Loc,
-           Name =>
-             New_Occurrence_Of (
-               RTE (RE_Register_Obj_Receiving_Stub), Loc),
-
-           Parameter_Associations => New_List (
-               --  Name
-             Make_String_Literal (Loc,
-               Full_Qualified_Name (Designated_Type)),
-
-               --  Handler
-             Make_Attribute_Reference (Loc,
-               Prefix =>
-                 New_Occurrence_Of (
-                   Defining_Unit_Name (
-                     Specification (RPC_Receiver_Decl)), Loc),
-               Attribute_Name =>
-                 Name_Access),
-
-               --  Receiver
-             Make_Attribute_Reference (Loc,
-               Prefix =>
+         Append_To (Decls,
+           Make_Procedure_Call_Statement (Loc,
+              Name =>
                 New_Occurrence_Of (
-                  Stub_Elements.Object_RPC_Receiver, Loc),
-               Attribute_Name =>
-                 Name_Access))));
+                  RTE (RE_Register_Obj_Receiving_Stub), Loc),
 
-      --  Do not analyze RPC receiver at this stage since it will otherwise
-      --  reference subprograms that have not been analyzed yet. It will
-      --  be analyzed in the regular flow.
+              Parameter_Associations => New_List (
+                  --  Name
+                Make_String_Literal (Loc,
+                  Full_Qualified_Name (Designated_Type)),
+
+                  --  Handler
+                Make_Attribute_Reference (Loc,
+                  Prefix =>
+                    New_Occurrence_Of (
+                      Defining_Unit_Name (
+                        Specification (RPC_Receiver_Decl)), Loc),
+                  Attribute_Name =>
+                    Name_Access),
+
+                  --  Receiver
+                Make_Attribute_Reference (Loc,
+                  Prefix =>
+                   New_Occurrence_Of (
+                     Stub_Elements.Object_RPC_Receiver, Loc),
+                  Attribute_Name =>
+                    Name_Access))));
+
+         --  Do not analyze RPC receiver at this stage since it will otherwise
+         --  reference subprograms that have not been analyzed yet. It will
+         --  be analyzed in the regular flow.
+      end if;
 
    end Add_RACW_Primitive_Declarations_And_Bodies;
 
@@ -1414,6 +1432,7 @@ package body Exp_Dist is
       Declarations     : in List_Id)
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
+      Is_RAS : constant Boolean := not Comes_From_Source (RACW_Type);
 
       Fnam : Entity_Id;
 
@@ -1430,6 +1449,7 @@ package body Exp_Dist is
       Null_Statements   : List_Id;
       Local_Statements  : List_Id;
       Remote_Statements : List_Id;
+      If_Node           : Node_Id;
       --  Various parts of the subprogram
 
       RACW_Parameter : constant Entity_Id
@@ -1461,27 +1481,6 @@ package body Exp_Dist is
       --  then we call To_Any on that reference and fix the
       --  Any's TypeCode.
 
-      --  If the reference denotes an object created on
-      --  the current partition, then Local_Statements
-      --  will be executed.
-
-      Local_Statements := New_List (
-        Make_Procedure_Call_Statement (Loc,
-          Name =>
-            New_Occurrence_Of (RTE (RE_Get_Reference), Loc),
-          Parameter_Associations => New_List (
-            Unchecked_Convert_To (
-              RTE (RE_Address),
-              New_Occurrence_Of (RACW_Parameter, Loc)),
-            Make_String_Literal (Loc,
-              Full_Qualified_Name (Designated_Type)),
-            Make_Attribute_Reference (Loc,
-              Prefix =>
-                New_Occurrence_Of (Stub_Elements.Object_RPC_Receiver, Loc),
-              Attribute_Name =>
-                Name_Access),
-            New_Occurrence_Of (Reference, Loc))));
-
       --  If the object is located on another partition, use the
       --  reference from the stub type.
 
@@ -1505,17 +1504,41 @@ package body Exp_Dist is
       --  Distinguish between the null, local and remote cases,
       --  and execute the appropriate piece of code.
 
-      Statements := New_List (
+      If_Node :=
         Make_Implicit_If_Statement (RACW_Type,
           Condition       =>
             Make_Op_Eq (Loc,
               Left_Opnd  => New_Occurrence_Of (RACW_Parameter, Loc),
               Right_Opnd => Make_Null (Loc)),
           Then_Statements => Null_Statements,
-          Elsif_Parts     => New_List (
+          Else_Statements => Remote_Statements);
+
+      if not Is_RAS then
+
+         --  If this is a real RACW, handle the case where it
+         --  designates a local object.
+
+         Local_Statements := New_List (
+           Make_Procedure_Call_Statement (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_Get_Reference), Loc),
+             Parameter_Associations => New_List (
+               Unchecked_Convert_To (
+                 RTE (RE_Address),
+                 New_Occurrence_Of (RACW_Parameter, Loc)),
+               Make_String_Literal (Loc,
+                 Full_Qualified_Name (Designated_Type)),
+               Make_Attribute_Reference (Loc,
+                 Prefix =>
+                   New_Occurrence_Of (Stub_Elements.Object_RPC_Receiver, Loc),
+                 Attribute_Name =>
+                   Name_Access),
+               New_Occurrence_Of (Reference, Loc))));
+
+         Set_Elsif_Parts (If_Node, New_List (
             Make_Elsif_Part (Loc,
               Condition       =>
-                Make_Op_Eq (Loc,
+                Make_Op_Ne (Loc,
                   Left_Opnd  =>
                     Make_Attribute_Reference (Loc,
                       Prefix         =>
@@ -1525,8 +1548,11 @@ package body Exp_Dist is
                     Make_Attribute_Reference (Loc,
                       Prefix         => New_Occurrence_Of (Stub_Type, Loc),
                       Attribute_Name => Name_Tag)),
-              Then_Statements => Remote_Statements)),
-          Else_Statements => Local_Statements),
+              Then_Statements => Local_Statements)));
+      end if;
+
+      Statements := New_List (
+        If_Node,
         Make_Assignment_Statement (Loc,
           Name =>
             New_Occurrence_Of (Any, Loc),
@@ -1887,7 +1913,7 @@ package body Exp_Dist is
 
       --  Initialize the fields of the record type with the appropriate data
 
-      Set_Field (Name_RAS_Calling_Stub,
+      Set_Field (Name_Ras,
         OK_Convert_To (RTE (RE_Unsigned_64), New_Occurrence_Of (Param, Loc)));
 
       Set_Field (Name_Origin,
@@ -2158,7 +2184,7 @@ package body Exp_Dist is
           OK_Convert_To (RTE (RE_Address),
             Make_Selected_Component (Loc,
               Prefix        => New_Occurrence_Of (Pointer, Loc),
-              Selector_Name => Make_Identifier (Loc, Name_RAS_Calling_Stub))));
+              Selector_Name => Make_Identifier (Loc, Name_Ras))));
 
       if Is_Function then
          Append_To (Direct_Statements,
@@ -2196,7 +2222,7 @@ package body Exp_Dist is
                     Make_Selected_Component (Loc,
                       Prefix        => New_Occurrence_Of (Pointer, Loc),
                       Selector_Name =>
-                         Make_Identifier (Loc, Name_RAS_Calling_Stub)),
+                         Make_Identifier (Loc, Name_Ras)),
                   Right_Opnd =>
                     Make_Integer_Literal (Loc, Uint_0)),
 

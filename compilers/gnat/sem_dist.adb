@@ -749,6 +749,7 @@ package body Sem_Dist is
       if Comes_From_Source (P)
         and then (Is_Remote_Call_Interface (ET)
                    or else Is_Remote_Types (ET))
+        and then Ekind (ET) = E_Record_Type
         and then Present (Corresponding_Remote_Type (ET))
         and then Ekind (Entity (P)) /= E_Function
       then
