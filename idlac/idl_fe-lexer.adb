@@ -37,7 +37,6 @@ with GNAT.Case_Util;
 with GNAT.OS_Lib;
 
 with Idl_Fe.Debug;
-pragma Elaborate_All (Idl_Fe.Debug);
 
 with Platform;
 
