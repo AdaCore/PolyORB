@@ -1,3 +1,7 @@
+2005-02-24  Laurent Pautet  <pautet@noos.fr>
+
+	* glade_ug.texi, gfdl.texi: fix inconsistencies in texinfo nodes.
+
 2003-12-11  Samuel Tardieu  <sam@rfc1149.net>
 
 	* glade_ug.texi: Change two instances of Wait_Until_Restart into
