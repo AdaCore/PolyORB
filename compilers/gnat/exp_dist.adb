@@ -332,10 +332,10 @@ package body Exp_Dist is
    --  operations.
 
    type Stub_Structure is record
-      Stub_Type            : Entity_Id;
-      Stub_Type_Access     : Entity_Id;
-      Object_RPC_Receiver  : Entity_Id;
-      RACW_Type            : Entity_Id;
+      Stub_Type           : Entity_Id;
+      Stub_Type_Access    : Entity_Id;
+      Object_RPC_Receiver : Entity_Id;
+      RACW_Type           : Entity_Id;
    end record;
    --  This structure is necessary because of the two phases analysis of
    --  a RACW declaration occurring in the same Remote_Types package as the
@@ -511,8 +511,8 @@ package body Exp_Dist is
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
       Package_Spec : Node_Id) return Node_Id;
-   --  Instantiate the generic package RCI_Locator in order to locate
-   --  the RCI package whose spec is given as argument.
+   --  Instantiate the generic package RCI_Locator in order to locate the
+   --  RCI package whose spec is given as argument.
 
    function Make_Tag_Check (Loc : Source_Ptr; N : Node_Id) return Node_Id;
    --  Surround a node N by a tag check, as in:
@@ -574,7 +574,7 @@ package body Exp_Dist is
       Subp_Str                  : String_Id;
    begin
       --  The first thing added is an instantiation of the generic package
-      --  System.PolyORB_Interface.RCI_Locator with the name of the (current)
+      --  System.Partition_Interface.RCI_Locator with the name of this
       --  remote package. This will act as an interface with the name server
       --  to determine the Partition_ID and the RPC_Receiver for the
       --  receiver of this package.
@@ -5018,11 +5018,12 @@ package body Exp_Dist is
    is
       Parameters : List_Id := No_List;
 
-      Current_Parameter : Node_Id;
-      Current_Type      : Node_Id;
-      Current_Etype     : Entity_Id;
+      Current_Parameter  : Node_Id;
+      Current_Identifier : Entity_Id;
+      Current_Type       : Node_Id;
+      Current_Etype      : Entity_Id;
 
-      Name_For_New_Spec : Name_Id := No_Name;
+      Name_For_New_Spec : Name_Id;
 
       New_Identifier : Entity_Id;
 
@@ -5040,12 +5041,13 @@ package body Exp_Dist is
          Parameters        := New_List;
          Current_Parameter := First (Parameter_Specifications (Spec));
          while Current_Parameter /= Empty loop
-            Current_Type := Parameter_Type (Current_Parameter);
+            Current_Identifier := Defining_Identifier (Current_Parameter);
+            Current_Type       := Parameter_Type (Current_Parameter);
 
             if Nkind (Current_Type) = N_Access_Definition then
                Current_Etype := Entity (Subtype_Mark (Current_Type));
 
-               if Object_Type = Empty then
+               if Present (Object_Type) then
                   Current_Type :=
                     Make_Access_Definition (Loc,
                       Subtype_Mark =>
@@ -5071,7 +5073,7 @@ package body Exp_Dist is
             end if;
 
             New_Identifier := Make_Defining_Identifier (Loc,
-              Chars (Defining_Identifier (Current_Parameter)));
+              Chars (Current_Identifier));
 
             Append_To (Parameters,
               Make_Parameter_Specification (Loc,
@@ -5608,20 +5610,24 @@ package body Exp_Dist is
    is
       Inst : Node_Id;
       Pkg_Name : String_Id;
+
    begin
       Get_Pkg_Name_String (Package_Spec);
       Pkg_Name := String_From_Name_Buffer;
-      Inst := Make_Package_Instantiation (Loc,
-        Defining_Unit_Name   =>
-          Make_Defining_Identifier (Loc, New_Internal_Name ('R')),
-        Name                 =>
-          New_Occurrence_Of (RTE (RE_RCI_Locator), Loc),
-        Generic_Associations => New_List (
-          Make_Generic_Association (Loc,
-            Selector_Name                     =>
-              Make_Identifier (Loc, Name_RCI_Name),
-            Explicit_Generic_Actual_Parameter =>
-              Make_String_Literal (Loc, Pkg_Name))));
+      Inst :=
+        Make_Package_Instantiation (Loc,
+          Defining_Unit_Name   =>
+            Make_Defining_Identifier (Loc, New_Internal_Name ('R')),
+          Name                 =>
+            New_Occurrence_Of (RTE (RE_RCI_Locator), Loc),
+          Generic_Associations => New_List (
+            Make_Generic_Association (Loc,
+              Selector_Name                     =>
+                Make_Identifier (Loc, Name_RCI_Name),
+              Explicit_Generic_Actual_Parameter =>
+                Make_String_Literal (Loc,
+                  Strval => Pkg_Name))));
+
       RCI_Locator_Table.Set (Defining_Unit_Name (Package_Spec),
         Defining_Unit_Name (Inst));
       return Inst;
