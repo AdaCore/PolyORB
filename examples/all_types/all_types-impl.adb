@@ -26,6 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Text_IO;
+
 with all_types.Skel;
 pragma Elaborate (all_types.Skel);
 pragma Warnings (Off, all_types.Skel);
@@ -125,6 +127,10 @@ package body all_types.Impl is
       return CORBA.String
    is
    begin
+      Ada.Text_IO.Put_Line
+        ("Thus spake my client unto me: « "
+         & CORBA.To_Standard_String (Arg)
+         & " »");
       return arg;
    end echoString;
 

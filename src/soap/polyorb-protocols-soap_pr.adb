@@ -244,14 +244,14 @@ package body PolyORB.Protocols.SOAP_Pr is
    end Process_Reply;
 
    procedure Handle_Unmarshall_Arguments
-     (S : access SOAP_Session;
+     (S    : access SOAP_Session;
       Args : in out PolyORB.Any.NVList.Ref)
    is
       Src : aliased Buffer_Sources.Input_Source;
    begin
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
-      S.Current_SOAP_Req := Message.XML.Load_Payload
-        (Src'Access, Args);
+      Message.XML.Load_Payload
+        (Src'Access, Args, S.Current_SOAP_Req);
       Buffers.Release_Contents (S.In_Buf.all);
    end Handle_Unmarshall_Arguments;
 

@@ -160,7 +160,8 @@ package body PolyORB.References.Binding is
                         pragma Debug (O ("Bind: recursing on proxy ref"));
                         Bind (Continuation, Local_ORB, Servant, Pro);
                         pragma Debug (O ("Recursed."));
-                        Set_Binding_Info (R, Servant, Pro);
+                        Share_Binding_Info
+                          (Dest => R, Source => Continuation);
                         pragma Debug (O ("Cached binding data."));
                      end if;
                      pragma Debug (O ("About to finalize Continuation"));

@@ -72,6 +72,11 @@ begin
    Output ("test not null", not all_types.Is_Nil (Myall_types));
 
    loop
+      Output ("test string",
+              To_Standard_String
+              (EchoString
+               (Myall_types, To_CORBA_String ("hello distributed world")))
+              = "hello distributed world");
       Output ("test boolean", echoBoolean (Myall_types, True) = True);
       Output ("test short", echoShort (Myall_types, 123) = 123);
       Output ("test long",  echoLong (Myall_types, 456) = 456);
@@ -88,9 +93,6 @@ begin
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
       Output ("test octet", echoOctet (Myall_types, 5) = 5);
-      Output ("test string",
-              To_Standard_String
-              (echoString (Myall_types, To_CORBA_String ("hello"))) = "hello");
       begin
          Output ("test enum", echoColor (Myall_types, Blue) = Blue);
       exception

@@ -199,4 +199,14 @@ package body PolyORB.References is
       RI.Binding_Object_Profile := Pro;
    end Set_Binding_Info;
 
+   procedure Share_Binding_Info
+     (Dest   : Ref;
+      Source : Ref)
+   is
+      RD : constant Reference_Info_Access := Ref_Info_Of (Dest);
+      RS : constant Reference_Info_Access := Ref_Info_Of (Source);
+   begin
+      RD.Binding_Object_Ref := RS.Binding_Object_Ref;
+   end Share_Binding_Info;
+
 end PolyORB.References;

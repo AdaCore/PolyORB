@@ -254,10 +254,10 @@ package body SOAP.Message.XML is
    -- Load_Payload --
    ------------------
 
-   function Load_Payload
-     (Source : access Input_Sources.Input_Source'Class;
-      Args   : in     PolyORB.Any.NVList.Ref)
-     return Message.Payload.Object_Access
+   procedure Load_Payload
+     (Source  : access Input_Sources.Input_Source'Class;
+      Args    : in out PolyORB.Any.NVList.Ref;
+      R_Payload :    out Message.Payload.Object_Access)
    is
       Reader  : Tree_Reader;
       S       : State;
@@ -274,10 +274,13 @@ package body SOAP.Message.XML is
       S.Parameters := SOAP.Parameters.List'(Args with null record);
       S.Kind := Payload;
       Parse_Document (Doc, S);
+      Args := PolyORB.Any.NVList.Ref (S.Parameters);
+      --  May have been modified by Parse_Document (if it was
+      --  initially empty).
 
       Free (Doc);
 
-      return new Message.Payload.Object'
+      R_Payload := new Message.Payload.Object'
         (Message.Payload.Build
          (To_String (S.Wrapper_Name), S.Parameters));
    end Load_Payload;
@@ -719,6 +722,7 @@ package body SOAP.Message.XML is
       R : PolyORB.References.Ref;
       use PolyORB.Any;
    begin
+      pragma Debug (O ("Parse_ObjRef: Type_Id = " & Type_Id));
       Normalize (N);
       P := PolyORB.Binding_Data.SOAP.Create_Profile
         (To_PolyORB_String (Node_Value (First_Child (N))));
@@ -769,6 +773,27 @@ package body SOAP.Message.XML is
 
       Atts : constant DOM.Core.Named_Node_Map := Attributes (N);
       NV : PolyORB.Any.NamedValue;
+
+      procedure Get_Empty_Any_With_Default
+        (Expected_Type,
+           Default_Expected_Type : PolyORB.Any.TypeCode.Object;
+         NV : in out PolyORB.Any.NamedValue);
+
+      procedure Get_Empty_Any_With_Default
+        (Expected_Type,
+           Default_Expected_Type : PolyORB.Any.TypeCode.Object;
+         NV : in out PolyORB.Any.NamedValue)
+      is
+         TCK : constant TCKind := TypeCode.Kind (Expected_Type);
+      begin
+         if TCK /= Tk_Void then
+            NV.Argument := Get_Empty_Any (Expected_Type);
+         else
+            NV.Argument := Get_Empty_Any (Default_Expected_Type);
+            NV.Arg_Modes := ARG_IN;
+         end if;
+      end Get_Empty_Any_With_Default;
+
    begin
       if To_String (S.Wrapper_Name) = "Fault" then
          NV.Name := To_PolyORB_String (Local_Name (N));
@@ -856,38 +881,64 @@ package body SOAP.Message.XML is
                   begin
 
                      NV.Name := To_PolyORB_String (Local_Name (N));
-                     NV.Argument := Get_Empty_Any (Expected_Type);
 
                      if xsd = Types.XML_Int then
+                        Get_Empty_Any_With_Default
+                          (Expected_Type,
+                           PolyORB.Any.TC_Long, NV);
                         Parse_Int (N, NV);
                      elsif xsd = Types.XML_Short then
+                        Get_Empty_Any_With_Default
+                          (Expected_Type,
+                           PolyORB.Any.TC_Short, NV);
                         Parse_Short (N, NV);
 
                      elsif xsd = Types.XML_UInt then
+                        Get_Empty_Any_With_Default
+                          (Expected_Type,
+                           PolyORB.Any.TC_Unsigned_Long, NV);
+
                         Parse_UInt (N, NV);
                      elsif xsd = Types.XML_UShort then
+                        Get_Empty_Any_With_Default
+                          (Expected_Type,
+                           PolyORB.Any.TC_Unsigned_Short, NV);
                         Parse_UShort (N, NV);
                      elsif xsd = Types.XML_UByte then
+                        Get_Empty_Any_With_Default
+                          (Expected_Type,
+                           PolyORB.Any.TC_Octet, NV);
                         Parse_UByte (N, NV);
 
                      elsif xsd = Types.XML_Float then
+                        Get_Empty_Any_With_Default
+                          (Expected_Type,
+                           PolyORB.Any.TC_Float, NV);
                         Parse_Float (N, NV);
                      elsif xsd = Types.XML_Double then
+                        Get_Empty_Any_With_Default
+                          (Expected_Type,
+                           PolyORB.Any.TC_Double, NV);
                         Parse_Double (N, NV);
 
                      elsif xsd = Types.XML_String then
-                        case Expected_TCKind is
-                           when Tk_String =>
-                              Parse_String (N, NV);
-                           when Tk_Char =>
-                              Parse_Char (N, NV);
-                           when others =>
-                              Error (N, "Wrong or not supported type");
-                        end case;
+                        Get_Empty_Any_With_Default
+                          (Expected_Type,
+                           PolyORB.Any.TC_String, NV);
+
+                        if Expected_TCKind = Tk_Char then
+                           Parse_Char (N, NV);
+                        else
+                           Parse_String (N, NV);
+                        end if;
                      elsif xsd = Types.XML_Boolean then
+                        Get_Empty_Any_With_Default
+                          (Expected_Type,
+                           PolyORB.Any.TC_Boolean, NV);
                         Parse_Boolean (N, NV);
 
                      elsif Expected_TCKind = Tk_Objref then
+                        NV.Argument := Get_Empty_Any (Expected_Type);
                         Parse_ObjRef (N, NV, Type_Id => xsd);
                      else
                         Error (N, "Wrong or not supported type");
@@ -964,30 +1015,52 @@ package body SOAP.Message.XML is
       Name : constant String := Local_Name (N);
 
       Args_Index : Integer := 0;
-      Args_List : constant NV_Sequence_Access
-        := List_Of (PolyORB.Any.NVList.Ref (S.Parameters));
+      Args_List : NV_Sequence_Access;
+
+      Constructing_Args_List : Boolean;
+      --  True iff the args list is initially empty and we have
+      --  to determine the types of the arguments using only the
+      --  XML attributes in the message.
+
       NV : PolyORB.Any.NamedValue;
+      No_TypeCode : PolyORB.Any.TypeCode.Object;
    begin
       S.Wrapper_Name := To_Unbounded_String (Name);
 
-      for K in 0 .. Length (NL) - 1 loop
+      Constructing_Args_List := SOAP.Parameters.Is_Nil (S.Parameters);
+
+      if Constructing_Args_List then
+         SOAP.Parameters.Create (S.Parameters);
+      end if;
+
+      Args_List := List_Of (PolyORB.Any.NVList.Ref (S.Parameters));
+
+      for I in 0 .. Length (NL) - 1 loop
          Args_Index := Args_Index + 1;
-         loop
-            --  Ignore any element in S.Args that is not of the
-            --  proper mode (i.e. OUT elements when parsing a
-            --  request, IN elements when parsing a response;
-            --  INOUT elements are never skipped.)
 
-            NV := Element_Of (Args_List.all, Args_Index);
-            exit when NV.Arg_Modes = ARG_INOUT
-              or else (S.Kind = Payload xor NV.Arg_Modes = ARG_OUT);
-            Args_Index := Args_Index + 1;
-         end loop;
+         if not Constructing_Args_List then
+            loop
 
-         Copy_Any_Value
-           (NV.Argument,
-            Parse_Param
-            (Item (NL, K), S, Get_Type (NV.Argument)).Argument);
+               --  Ignore any element in S.Args that is not of the
+               --  proper mode (i.e. OUT elements when parsing a
+               --  request, IN elements when parsing a response;
+               --  INOUT elements are never skipped.)
+
+               NV := Element_Of (Args_List.all, Args_Index);
+               exit when NV.Arg_Modes = ARG_INOUT
+                 or else (S.Kind = Payload xor NV.Arg_Modes = ARG_OUT);
+               Args_Index := Args_Index + 1;
+            end loop;
+
+            Copy_Any_Value
+              (NV.Argument,
+               Parse_Param
+               (Item (NL, I), S, Get_Type (NV.Argument)).Argument);
+         else
+            SOAP.Parameters.Add_Item
+              (S.Parameters, Parse_Param
+               (Item (NL, I), S, No_TypeCode));
+         end if;
       end loop;
    end Parse_Wrapper;
 

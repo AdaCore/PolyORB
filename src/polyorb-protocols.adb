@@ -79,6 +79,7 @@ package body PolyORB.Protocols is
      return Components.Message'Class
    is
       Nothing : Components.Null_Message;
+      Req : Request_Access;
    begin
       pragma Debug
         (O ("Handling message of type "
@@ -105,21 +106,42 @@ package body PolyORB.Protocols is
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
       elsif S in Execute_Request then
-         pragma Assert
-           (Execute_Request (S).Req.Deferred_Arguments_Session
-            = null);
-         --  If not null, this means that this session object
-         --  participates in a proxy construct, and that we
-         --  have to determine the signature of the called
-         --  method in order to translate the request.
+         Req := Execute_Request (S).Req;
 
-         --  XXX this may require an interface repository lookup,
-         --      which is not implemented.
+         if Req.Deferred_Arguments_Session /= null then
+
+            --  This session object participates in a proxy
+            --  construct: now is the last place we can determine
+            --  the signature of the called method in order to
+            --  translate the request.
+
+            --  XXX this may require an interface repository lookup,
+            --      which is not implemented. For now we do our best,
+            --      hoping that the protocol on the server session
+            --      can make sense of the args without an arg list.
+
+            declare
+               use Protocols.Interface;
+
+               Args : Any.NVList.Ref;
+               Reply : constant Components.Message'Class
+                 := Components.Emit
+                 (Req.Deferred_Arguments_Session,
+                  Unmarshall_Arguments'(Args => Args));
+            begin
+               pragma Assert (Reply in Unmarshalled_Arguments);
+               pragma Debug (O ("Unmarshalled deferred arguments"));
+               Args := Unmarshalled_Arguments (Reply).Args;
+               Req.Args := Args;
+               Req.Deferred_Arguments_Session := null;
+               pragma Debug (O ("Proxying request: " & Image (Req.all)));
+            end;
+
+         end if;
 
          Invoke_Request
-           (Session_Access (Sess),
-            Execute_Request (S).Req,
-            Execute_Request (S).Pro);
+           (Session_Access (Sess), Req, Execute_Request (S).Pro);
+
       elsif S in Executed_Request then
          declare
             Var_Req : Request_Access

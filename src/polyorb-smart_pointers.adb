@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#7 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#8 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;

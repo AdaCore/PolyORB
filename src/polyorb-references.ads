@@ -84,6 +84,10 @@ package PolyORB.References is
    --  Set BOC to be the binding object associated with R.
    --  R must not be already bound.
 
+   procedure Share_Binding_Info
+     (Dest   : Ref;
+      Source : Ref);
+
    function Image (R : Ref) return String;
    --  For debugging purposes.
 

@@ -38,10 +38,10 @@ with PolyORB.Any.NVList;
 
 package SOAP.Message.XML is
 
-   function Load_Payload
-     (Source : access Input_Sources.Input_Source'Class;
-      Args   : in     PolyORB.Any.NVList.Ref)
-     return Message.Payload.Object_Access;
+   procedure Load_Payload
+     (Source    : access Input_Sources.Input_Source'Class;
+      Args      : in out PolyORB.Any.NVList.Ref;
+      R_Payload :    out Message.Payload.Object_Access);
    --  Build a Payload object by parsing an XML payload from source.
    --  Args is expected to designate a list of empty Any's,
    --  whose typecodes are used to determine how to decode the
