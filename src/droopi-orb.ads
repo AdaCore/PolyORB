@@ -1,4 +1,7 @@
 --  The ORB core module: main loop and scheduler.
+--  Role: * to coordinate operation of the various subsystems.
+--        * to gateway asynchronous external events to the
+--          syncrhonous messaging architecture used within DROOPI.
 
 --  $Id$
 

@@ -15,6 +15,17 @@ package body Droopi.Transport is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   function Handle_Message
+     (TAP : access Transport_Access_Point;
+      Msg : Components.Message'Class)
+     return Components.Message'Class is
+   begin
+      raise Unhandled_Message;
+      --  Small is beautiful.
+
+      return Handle_Message (TAP, Msg);
+      --  Keep the compiler happy.
+   end Handle_Message;
 
    procedure Connect_Upper
      (TE    : access Transport_Endpoint;

@@ -11,8 +11,16 @@ with Droopi.Components; use Droopi.Components;
 
 package Droopi.Transport is
 
+   -------------------------------------------------------------
+   -- A transport service access point:                       --
+   --                                                         --
+   -- an object that has an address within a communcation     --
+   -- domain, on which connections can be established by      --
+   -- remote entities that wish to communicate with this ORB. --
+   -------------------------------------------------------------
+
    type Transport_Access_Point
-      is abstract tagged limited private;
+      is abstract new Component with private;
    type Transport_Access_Point_Access is
      access all Transport_Access_Point'Class;
    --  A listening transport service access point.
@@ -22,6 +30,18 @@ package Droopi.Transport is
      return Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TAP as an asyncrhonous event source.
+
+   function Handle_Message
+     (TAP : access Transport_Access_Point;
+      Msg : Components.Message'Class)
+     return Components.Message'Class;
+
+   ----------------------------------------------------------------
+   -- A transport service endpoint:                              --
+   --                                                            --
+   -- an object that represent a connection that was established --
+   -- when a transport access point was contacted.               --
+   ----------------------------------------------------------------
 
    type Transport_Endpoint is abstract new Component with private;
 
@@ -85,7 +105,7 @@ package Droopi.Transport is
 private
 
    type Transport_Access_Point
-      is abstract tagged limited null record;
+      is abstract new Components.Component with null record;
 
    type Transport_Endpoint
       is abstract new Components.Component with record
