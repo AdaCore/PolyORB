@@ -70,4 +70,30 @@ package body CORBA.Object is
       end;
    end Object_To_String;
 
+
+   -----------
+   --  Any  --
+   -----------
+
+   --------------
+   --  To_Any  --
+   --------------
+   function To_Any (Item : in Ref) return Any is
+   begin
+      return (new Content_ObjRef' (Value => Item),
+              CORBA.TypeCode.TC_ObjRef);
+   end To_Any;
+
+   ----------------
+   --  From_Any  --
+   ----------------
+   function From_Any (Item : in Any) return Ref'Class is
+   begin
+      if (TypeCode.Kind (Item.The_Type) /= Tk_Objref) then
+         raise Bad_Typecode;
+      end if;
+      return Content_ObjRef_Ptr (Item.The_Value).Value;
+   end From_Any;
+
+
 end CORBA.Object;

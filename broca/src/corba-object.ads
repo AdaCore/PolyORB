@@ -119,8 +119,27 @@ package CORBA.Object is
    --       Req_Flags : in     Flags;
    --       Returns   : out    Status);
 
+   -----------
+   --  Any  --
+   -----------
+
+   function To_Any (Item : in Ref)  return Any;
+   function From_Any (Item : in Any) return Ref'Class;
+
+
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
+
+
+   -----------
+   --  Any  --
+   -----------
+
+   type Content_ObjRef is new Content with
+      record
+         Value : Ref;
+      end record;
+   type Content_ObjRef_Ptr is access all Content_ObjRef;
 
 end CORBA.Object;

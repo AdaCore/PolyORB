@@ -415,13 +415,7 @@ package body Broca.CDR is
             --  FIXME : to be done
             null;
          when Tk_Objref =>
-            --  FIXME : loop problem
---          declare
---             Ref : CORBA.Object.Ref := From_Any (Data);
---          begin
---             Marshall (Buffer, Ref);
---          end;
-            null;
+            Marshall (Buffer, CORBA.Object.From_Any (Data));
          when Tk_Struct =>
             declare
                Nb : CORBA.Unsigned_Long :=
