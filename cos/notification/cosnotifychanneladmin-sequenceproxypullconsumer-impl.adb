@@ -131,14 +131,13 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
       T_Initialized := True;
    end Ensure_Initialization;
 
-   -------------------------------
-   -- Proxy_Pull_Consumer_Engin --
-   -------------------------------
+   --------------------------------
+   -- Proxy_Pull_Consumer_Engine --
+   --------------------------------
 
    procedure Proxy_Pull_Consumer_Engine;
 
-   procedure Proxy_Pull_Consumer_Engine
-   is
+   procedure Proxy_Pull_Consumer_Engine is
       This       : Object_Ptr;
       Peer       : CosNotifyComm.SequencePullSupplier.Ref;
       Max_Number : constant CORBA.Long := 2;
@@ -186,7 +185,7 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
 
          Reference_To_Servant (This.X.Admin, Servant (Obj));
          CosNotifyChannelAdmin.SupplierAdmin.Impl.Sequence_Post
-         (CosNotifyChannelAdmin.SupplierAdmin.Impl.Object_Ptr (Obj), Event);
+           (CosNotifyChannelAdmin.SupplierAdmin.Impl.Object_Ptr (Obj), Event);
       end loop;
 
       This.X.Engin_Launched := False;
@@ -198,7 +197,8 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
 
    procedure Connect_Sequence_Pull_Supplier
      (Self          : access Object;
-      Pull_Supplier : in CosNotifyComm.SequencePullSupplier.Ref) is
+      Pull_Supplier : in     CosNotifyComm.SequencePullSupplier.Ref)
+   is
    begin
       Ensure_Initialization;
       pragma Debug
@@ -308,7 +308,7 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
 
    function Obtain_Subscription_Types
      (Self : access Object;
-      Mode : in CosNotifyChannelAdmin.ObtainInfoMode)
+      Mode : in     CosNotifyChannelAdmin.ObtainInfoMode)
      return CosNotification.EventTypeSeq
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -332,8 +332,8 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
 
    procedure Validate_Event_QoS
      (Self          : access Object;
-      Required_QoS  : in CosNotification.QoSProperties;
-      Available_QoS : out CosNotification.NamedPropertyRangeSeq)
+      Required_QoS  : in     CosNotification.QoSProperties;
+      Available_QoS :    out CosNotification.NamedPropertyRangeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Required_QoS, Available_QoS);
@@ -373,7 +373,7 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in CosNotification.QoSProperties)
+      QoS  : in     CosNotification.QoSProperties)
    is
       MyProp     : CosNotification.Property;
       MyError    : CosNotification.PropertyError;
@@ -405,8 +405,8 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if CORBA.Short'(From_Any (MyProp.value)) < -32767
-              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            if CORBA.Short'(From_Any (MyProp.value))
+              not in -32_767 .. 32_767
             then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
@@ -511,9 +511,9 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
    ------------------
 
    procedure Validate_QoS
-      (Self         : access Object;
-       Required_QoS  : in CosNotification.QoSProperties;
-       Available_QoS : out CosNotification.NamedPropertyRangeSeq)
+     (Self          : access Object;
+      Required_QoS  : in     CosNotification.QoSProperties;
+      Available_QoS :    out CosNotification.NamedPropertyRangeSeq)
    is
       MyProp       : CosNotification.Property;
       MyError      : CosNotification.PropertyError;
@@ -546,8 +546,8 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if CORBA.Short'(From_Any (MyProp.value)) < -32767
-              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            if CORBA.Short'(From_Any (MyProp.value))
+              not in -32_767 .. 32_767
             then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
@@ -665,7 +665,7 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
 
    function Add_Filter
      (Self       : access Object;
-      New_Filter : in CosNotifyFilter.Filter.Ref)
+      New_Filter : in     CosNotifyFilter.Filter.Ref)
      return CosNotifyFilter.FilterID
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -691,7 +691,7 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
 
    procedure Remove_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : in     CosNotifyFilter.FilterID)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Filter);
@@ -710,7 +710,7 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
 
    function Get_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : in     CosNotifyFilter.FilterID)
      return CosNotifyFilter.Filter.Ref
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -773,8 +773,8 @@ package body CosNotifyChannelAdmin.SequenceProxyPullConsumer.Impl is
 
    procedure Offer_Change
      (Self    : access Object;
-      Added   : CosNotification.EventTypeSeq;
-      Removed : CosNotification.EventTypeSeq)
+      Added   : in     CosNotification.EventTypeSeq;
+      Removed : in     CosNotification.EventTypeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Added, Removed);

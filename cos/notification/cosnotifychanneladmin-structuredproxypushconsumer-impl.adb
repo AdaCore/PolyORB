@@ -114,8 +114,9 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
    --------------------------------------
 
    procedure Connect_Structured_Push_Supplier
-     (Self : access Object;
-      Push_Supplier : in CosNotifyComm.StructuredPushSupplier.Ref) is
+     (Self          : access Object;
+      Push_Supplier : in     CosNotifyComm.StructuredPushSupplier.Ref)
+   is
    begin
       Ensure_Initialization;
       pragma Debug
@@ -178,7 +179,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    function Obtain_Subscription_Types
      (Self : access Object;
-      Mode : in CosNotifyChannelAdmin.ObtainInfoMode)
+      Mode : in     CosNotifyChannelAdmin.ObtainInfoMode)
      return CosNotification.EventTypeSeq
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -202,8 +203,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Validate_Event_QoS
      (Self          : access Object;
-      Required_QoS  : in CosNotification.QoSProperties;
-      Available_QoS : out CosNotification.NamedPropertyRangeSeq)
+      Required_QoS  : in     CosNotification.QoSProperties;
+      Available_QoS :    out CosNotification.NamedPropertyRangeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Required_QoS, Available_QoS);
@@ -243,7 +244,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in CosNotification.QoSProperties)
+      QoS  : in     CosNotification.QoSProperties)
    is
       MyProp     : CosNotification.Property;
       MyError    : CosNotification.PropertyError;
@@ -275,8 +276,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if CORBA.Short'(From_Any (MyProp.value)) < -32767
-              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            if CORBA.Short'(From_Any (MyProp.value))
+              not in -32_767 .. 32_767
             then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
@@ -381,9 +382,9 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
    ------------------
 
    procedure Validate_QoS
-      (Self         : access Object;
-       Required_QoS  : in CosNotification.QoSProperties;
-       Available_QoS : out CosNotification.NamedPropertyRangeSeq)
+     (Self          : access Object;
+      Required_QoS  : in     CosNotification.QoSProperties;
+      Available_QoS :    out CosNotification.NamedPropertyRangeSeq)
    is
       MyProp       : CosNotification.Property;
       MyError      : CosNotification.PropertyError;
@@ -416,8 +417,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if CORBA.Short'(From_Any (MyProp.value)) < -32767
-              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            if CORBA.Short'(From_Any (MyProp.value))
+              not in -32_767 .. 32_767
             then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
@@ -535,7 +536,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    function Add_Filter
      (Self       : access Object;
-      New_Filter : in CosNotifyFilter.Filter.Ref)
+      New_Filter : in     CosNotifyFilter.Filter.Ref)
      return CosNotifyFilter.FilterID
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -561,7 +562,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Remove_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : in     CosNotifyFilter.FilterID)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Filter);
@@ -580,7 +581,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    function Get_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : in     CosNotifyFilter.FilterID)
      return CosNotifyFilter.Filter.Ref
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -643,8 +644,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPushConsumer.Impl is
 
    procedure Offer_Change
      (Self    : access Object;
-      Added   : CosNotification.EventTypeSeq;
-      Removed : CosNotification.EventTypeSeq)
+      Added   : in     CosNotification.EventTypeSeq;
+      Removed : in     CosNotification.EventTypeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Added, Removed);

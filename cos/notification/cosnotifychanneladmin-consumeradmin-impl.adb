@@ -245,7 +245,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Set_Priority_Filter
      (Self : access Object;
-      To   : in CosNotifyFilter.MappingFilter.Ref)
+      To   : in     CosNotifyFilter.MappingFilter.Ref)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, To);
@@ -347,7 +347,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    function Get_Proxy_Supplier
      (Self       : access Object;
-      Proxy_Id   : in CosNotifyChannelAdmin.ProxyID)
+      Proxy_Id   : in     CosNotifyChannelAdmin.ProxyID)
      return CosNotifyChannelAdmin.ProxySupplier.Ref
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -370,9 +370,9 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Obtain_Notification_Pull_Supplier
      (Self     : access Object;
-      Ctype    : in CosNotifyChannelAdmin.ClientType;
-      Proxy_Id : out CosNotifyChannelAdmin.ProxyID;
-      Returns  : out CosNotifyChannelAdmin.ProxySupplier.Ref)
+      Ctype    : in     CosNotifyChannelAdmin.ClientType;
+      Proxy_Id :    out CosNotifyChannelAdmin.ProxyID;
+      Returns  :    out CosNotifyChannelAdmin.ProxySupplier.Ref)
    is
       Channel         : CosNotifyChannelAdmin.EventChannel.Impl.Object_Ptr;
       MyRef           : CosNotifyChannelAdmin.ConsumerAdmin.Ref;
@@ -401,52 +401,56 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          raise AdminLimitExceeded;
       end if;
 
-      if Ctype = ANY_EVENT then
-         Ptype := PULL_ANY;
-         Proxy_Id := CosNotifyChannelAdmin.ProxyID
-                     (AllProxies.Length (Self.X.AllPxs));
-         Servant_To_Reference (Servant (Self.X.This), MyRef);
-         Supplier := CosNotifyChannelAdmin.ProxyPullSupplier.Impl.Create
-                     (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
-         Servant_To_Reference (Servant (Supplier), Returns);
-         SRef := CosNotifyChannelAdmin.ProxyPullSupplier.Helper.To_Ref
-                 (Returns);
-         PullSuppliers.Append (Self.X.Pulls, SRef);
-         Append (Self.X.PullIDSeq, Proxy_Id);
-         AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      elsif Ctype = STRUCTURED_EVENT then
-         Ptype := PULL_STRUCTURED;
-         Proxy_Id := CosNotifyChannelAdmin.ProxyID
-                     (AllProxies.Length (Self.X.AllPxs));
-         Servant_To_Reference (Servant (Self.X.This), MyRef);
+      case Ctype is
+         when ANY_EVENT =>
+            Ptype := PULL_ANY;
+            Proxy_Id := CosNotifyChannelAdmin.ProxyID
+                        (AllProxies.Length (Self.X.AllPxs));
+            Servant_To_Reference (Servant (Self.X.This), MyRef);
+            Supplier := CosNotifyChannelAdmin.ProxyPullSupplier.Impl.Create
+                        (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
+            Servant_To_Reference (Servant (Supplier), Returns);
+            SRef := CosNotifyChannelAdmin.ProxyPullSupplier.Helper.To_Ref
+                    (Returns);
+            PullSuppliers.Append (Self.X.Pulls, SRef);
+            Append (Self.X.PullIDSeq, Proxy_Id);
+            AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
 
-         Struct_Supplier :=
-         CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl.Create
-         (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
+         when STRUCTURED_EVENT =>
+            Ptype := PULL_STRUCTURED;
+            Proxy_Id := CosNotifyChannelAdmin.ProxyID
+                        (AllProxies.Length (Self.X.AllPxs));
+            Servant_To_Reference (Servant (Self.X.This), MyRef);
 
-         Servant_To_Reference (Servant (Struct_Supplier), Returns);
-         Struct_SRef := CosNotifyChannelAdmin.StructuredProxyPullSupplier.
-                        Helper.To_Ref (Returns);
-         StructuredPullSuppliers.Append (Self.X.StructPulls, Struct_SRef);
-         Append (Self.X.PullIDSeq, Proxy_Id);
-         AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      elsif Ctype = SEQUENCE_EVENT then
-         Ptype := PULL_SEQUENCE;
-         Proxy_Id := CosNotifyChannelAdmin.ProxyID
-                     (AllProxies.Length (Self.X.AllPxs));
-         Servant_To_Reference (Servant (Self.X.This), MyRef);
+            Struct_Supplier :=
+            CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl.Create
+            (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
 
-         Seq_Supplier :=
-         CosNotifyChannelAdmin.SequenceProxyPullSupplier.Impl.Create
-         (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
+            Servant_To_Reference (Servant (Struct_Supplier), Returns);
+            Struct_SRef := CosNotifyChannelAdmin.StructuredProxyPullSupplier.
+                           Helper.To_Ref (Returns);
+            StructuredPullSuppliers.Append (Self.X.StructPulls, Struct_SRef);
+            Append (Self.X.PullIDSeq, Proxy_Id);
+            AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
 
-         Servant_To_Reference (Servant (Seq_Supplier), Returns);
-         Seq_SRef := CosNotifyChannelAdmin.SequenceProxyPullSupplier.
-                        Helper.To_Ref (Returns);
-         SequencePullSuppliers.Append (Self.X.SequencePulls, Seq_SRef);
-         Append (Self.X.PullIDSeq, Proxy_Id);
-         AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      end if;
+         when SEQUENCE_EVENT =>
+            Ptype := PULL_SEQUENCE;
+            Proxy_Id := CosNotifyChannelAdmin.ProxyID
+                        (AllProxies.Length (Self.X.AllPxs));
+            Servant_To_Reference (Servant (Self.X.This), MyRef);
+
+            Seq_Supplier :=
+            CosNotifyChannelAdmin.SequenceProxyPullSupplier.Impl.Create
+            (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
+
+            Servant_To_Reference (Servant (Seq_Supplier), Returns);
+            Seq_SRef := CosNotifyChannelAdmin.SequenceProxyPullSupplier.
+                           Helper.To_Ref (Returns);
+            SequencePullSuppliers.Append (Self.X.SequencePulls, Seq_SRef);
+            Append (Self.X.PullIDSeq, Proxy_Id);
+            AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
+
+      end case;
 
       Leave (Self_Mutex);
 
@@ -458,9 +462,9 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Obtain_Notification_Push_Supplier
      (Self     : access Object;
-      Ctype    : in CosNotifyChannelAdmin.ClientType;
-      Proxy_Id : out CosNotifyChannelAdmin.ProxyID;
-      Returns  : out CosNotifyChannelAdmin.ProxySupplier.Ref)
+      Ctype    : in     CosNotifyChannelAdmin.ClientType;
+      Proxy_Id :    out CosNotifyChannelAdmin.ProxyID;
+      Returns  :    out CosNotifyChannelAdmin.ProxySupplier.Ref)
    is
       Channel         : CosNotifyChannelAdmin.EventChannel.Impl.Object_Ptr;
       MyRef           : CosNotifyChannelAdmin.ConsumerAdmin.Ref;
@@ -490,52 +494,56 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          raise AdminLimitExceeded;
       end if;
 
-      if Ctype = ANY_EVENT then
-         Ptype := PUSH_ANY;
-         Proxy_Id := CosNotifyChannelAdmin.ProxyID
-                     (AllProxies.Length (Self.X.AllPxs));
-         Servant_To_Reference (Servant (Self.X.This), MyRef);
-         Supplier := CosNotifyChannelAdmin.ProxyPushSupplier.Impl.Create
-                     (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
-         Servant_To_Reference (Servant (Supplier), Returns);
-         SRef := CosNotifyChannelAdmin.ProxyPushSupplier.Helper.To_Ref
-                 (Returns);
-         PushSuppliers.Append (Self.X.Pushs, SRef);
-         Append (Self.X.PushIDSeq, Proxy_Id);
-         AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      elsif Ctype = STRUCTURED_EVENT then
-         Ptype := PUSH_STRUCTURED;
-         Proxy_Id := CosNotifyChannelAdmin.ProxyID
-                     (AllProxies.Length (Self.X.AllPxs));
-         Servant_To_Reference (Servant (Self.X.This), MyRef);
+      case Ctype is
+         when ANY_EVENT =>
+            Ptype := PUSH_ANY;
+            Proxy_Id := CosNotifyChannelAdmin.ProxyID
+                        (AllProxies.Length (Self.X.AllPxs));
+            Servant_To_Reference (Servant (Self.X.This), MyRef);
+            Supplier := CosNotifyChannelAdmin.ProxyPushSupplier.Impl.Create
+                        (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
+            Servant_To_Reference (Servant (Supplier), Returns);
+            SRef := CosNotifyChannelAdmin.ProxyPushSupplier.Helper.To_Ref
+                    (Returns);
+            PushSuppliers.Append (Self.X.Pushs, SRef);
+            Append (Self.X.PushIDSeq, Proxy_Id);
+            AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
 
-         Struct_Supplier :=
-         CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl.Create
-         (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
+         when STRUCTURED_EVENT =>
+            Ptype := PUSH_STRUCTURED;
+            Proxy_Id := CosNotifyChannelAdmin.ProxyID
+                        (AllProxies.Length (Self.X.AllPxs));
+            Servant_To_Reference (Servant (Self.X.This), MyRef);
 
-         Servant_To_Reference (Servant (Struct_Supplier), Returns);
-         Struct_SRef := CosNotifyChannelAdmin.StructuredProxyPushSupplier.
-                        Helper.To_Ref (Returns);
-         StructuredPushSuppliers.Append (Self.X.StructPushs, Struct_SRef);
-         Append (Self.X.PushIDSeq, Proxy_Id);
-         AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      elsif Ctype = SEQUENCE_EVENT then
-         Ptype := PUSH_SEQUENCE;
-         Proxy_Id := CosNotifyChannelAdmin.ProxyID
-                     (AllProxies.Length (Self.X.AllPxs));
-         Servant_To_Reference (Servant (Self.X.This), MyRef);
+            Struct_Supplier :=
+            CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl.Create
+            (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
 
-         Seq_Supplier :=
-         CosNotifyChannelAdmin.SequenceProxyPushSupplier.Impl.Create
-         (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
+            Servant_To_Reference (Servant (Struct_Supplier), Returns);
+            Struct_SRef := CosNotifyChannelAdmin.StructuredProxyPushSupplier.
+                           Helper.To_Ref (Returns);
+            StructuredPushSuppliers.Append (Self.X.StructPushs, Struct_SRef);
+            Append (Self.X.PushIDSeq, Proxy_Id);
+            AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
 
-         Servant_To_Reference (Servant (Seq_Supplier), Returns);
-         Seq_SRef := CosNotifyChannelAdmin.SequenceProxyPushSupplier.
-                        Helper.To_Ref (Returns);
-         SequencePushSuppliers.Append (Self.X.SequencePushs, Seq_SRef);
-         Append (Self.X.PushIDSeq, Proxy_Id);
-         AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      end if;
+         when SEQUENCE_EVENT =>
+            Ptype := PUSH_SEQUENCE;
+            Proxy_Id := CosNotifyChannelAdmin.ProxyID
+                        (AllProxies.Length (Self.X.AllPxs));
+            Servant_To_Reference (Servant (Self.X.This), MyRef);
+
+            Seq_Supplier :=
+            CosNotifyChannelAdmin.SequenceProxyPushSupplier.Impl.Create
+            (MyRef, Self.X.QoSPropSeq, Ptype, Proxy_Id);
+
+            Servant_To_Reference (Servant (Seq_Supplier), Returns);
+            Seq_SRef := CosNotifyChannelAdmin.SequenceProxyPushSupplier.
+                           Helper.To_Ref (Returns);
+            SequencePushSuppliers.Append (Self.X.SequencePushs, Seq_SRef);
+            Append (Self.X.PushIDSeq, Proxy_Id);
+            AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
+
+      end case;
 
       Leave (Self_Mutex);
 
@@ -586,7 +594,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in CosNotification.QoSProperties)
+      QoS  : in     CosNotification.QoSProperties)
    is
       My_Ptr     : ConsumerAdmin.Impl.Object_Ptr;
       MyProp     : CosNotification.Property;
@@ -632,8 +640,8 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if CORBA.Short'(From_Any (MyProp.value)) < -32767
-              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            if CORBA.Short'(From_Any (MyProp.value))
+              not in -32_767 .. 32_767
             then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
@@ -738,9 +746,9 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
    ------------------
 
    procedure Validate_QoS
-      (Self         : access Object;
-       Required_QoS  : in CosNotification.QoSProperties;
-       Available_QoS : out CosNotification.NamedPropertyRangeSeq)
+     (Self          : access Object;
+      Required_QoS  : in     CosNotification.QoSProperties;
+      Available_QoS :    out CosNotification.NamedPropertyRangeSeq)
    is
       My_Ptr       : ConsumerAdmin.Impl.Object_Ptr;
       MyProp       : CosNotification.Property;
@@ -786,8 +794,8 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if CORBA.Short'(From_Any (MyProp.value)) < -32767
-              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            if CORBA.Short'(From_Any (MyProp.value))
+              not in -32_767 .. 32_767
             then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
@@ -905,8 +913,8 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Subscription_Change
      (Self    : access Object;
-      Added   : CosNotification.EventTypeSeq;
-      Removed : CosNotification.EventTypeSeq)
+      Added   : in     CosNotification.EventTypeSeq;
+      Removed : in     CosNotification.EventTypeSeq)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Added, Removed);
@@ -926,7 +934,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    function Add_Filter
      (Self       : access Object;
-      New_Filter : in CosNotifyFilter.Filter.Ref)
+      New_Filter : in     CosNotifyFilter.Filter.Ref)
      return CosNotifyFilter.FilterID
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -952,7 +960,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Remove_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : in     CosNotifyFilter.FilterID)
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Filter);
@@ -971,7 +979,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    function Get_Filter
      (Self   : access Object;
-      Filter : in CosNotifyFilter.FilterID)
+      Filter : in     CosNotifyFilter.FilterID)
      return CosNotifyFilter.Filter.Ref
    is
       pragma Warnings (Off); --  WAG:3.14
@@ -1077,10 +1085,11 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
    ------------
 
    function Create
-      (Channel     : CosNotifyChannelAdmin.EventChannel.Ref;
-       Initial_QoS : CosNotification.QoSProperties;
-       MyID        : CosNotifyChannelAdmin.AdminID;
-       MyOp        : CosNotifyChannelAdmin.InterFilterGroupOperator := AND_OP)
+     (Channel     : in CosNotifyChannelAdmin.EventChannel.Ref;
+      Initial_QoS : in CosNotification.QoSProperties;
+      MyID        : in CosNotifyChannelAdmin.AdminID;
+      MyOp        : in CosNotifyChannelAdmin.InterFilterGroupOperator
+        := AND_OP)
       return Object_Ptr
    is
       Consumer : Object_Ptr;
@@ -1124,8 +1133,8 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Post
      (Self          : access Object;
-      Data          : in CORBA.Any;
-      Internal_Post : CORBA.Boolean := False)
+      Data          : in     CORBA.Any;
+      Internal_Post : in     CORBA.Boolean := False)
    is
       PullSupplier : CosNotifyChannelAdmin.ProxyPullSupplier.Impl.Object_Ptr;
       PushSupplier : CosNotifyChannelAdmin.ProxyPushSupplier.Impl.Object_Ptr;
@@ -1209,8 +1218,8 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Structured_Post
      (Self          : access Object;
-      Notification  : in CosNotification.StructuredEvent;
-      Internal_Post : CORBA.Boolean := False)
+      Notification  : in     CosNotification.StructuredEvent;
+      Internal_Post : in     CORBA.Boolean := False)
    is
       PushSupplier : CosNotifyChannelAdmin.StructuredProxyPushSupplier.
                         Impl.Object_Ptr;
@@ -1276,8 +1285,8 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Sequence_Post
      (Self          : access Object;
-      Notifications : in CosNotification.EventBatch;
-      Internal_Post : CORBA.Boolean := False)
+      Notifications : in     CosNotification.EventBatch;
+      Internal_Post : in     CORBA.Boolean := False)
    is
       PushSupplier : CosNotifyChannelAdmin.SequenceProxyPushSupplier.
                         Impl.Object_Ptr;

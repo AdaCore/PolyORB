@@ -210,10 +210,10 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    -----------------------
 
    procedure New_For_Consumers
-      (Self    : access Object;
-       Op      : in CosNotifyChannelAdmin.InterFilterGroupOperator;
-       Id      : out CosNotifyChannelAdmin.AdminID;
-       Returns : out CosNotifyChannelAdmin.ConsumerAdmin.Ref)
+     (Self    : access Object;
+      Op      : in     CosNotifyChannelAdmin.InterFilterGroupOperator;
+      Id      :    out CosNotifyChannelAdmin.AdminID;
+      Returns :    out CosNotifyChannelAdmin.ConsumerAdmin.Ref)
    is
       Consumer : CosNotifyChannelAdmin.ConsumerAdmin.Impl.Object_Ptr;
       MyRef    : CosNotifyChannelAdmin.EventChannel.Ref;
@@ -241,10 +241,10 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    -----------------------
 
    procedure New_For_Suppliers
-      (Self    : access Object;
-       Op      : in CosNotifyChannelAdmin.InterFilterGroupOperator;
-       Id      : out CosNotifyChannelAdmin.AdminID;
-       Returns : out CosNotifyChannelAdmin.SupplierAdmin.Ref)
+     (Self    : access Object;
+      Op      : in     CosNotifyChannelAdmin.InterFilterGroupOperator;
+      Id      :    out CosNotifyChannelAdmin.AdminID;
+      Returns :    out CosNotifyChannelAdmin.SupplierAdmin.Ref)
    is
       Supplier : CosNotifyChannelAdmin.SupplierAdmin.Impl.Object_Ptr;
       MyRef    : CosNotifyChannelAdmin.EventChannel.Ref;
@@ -272,9 +272,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    -----------------------
 
    function Get_ConsumerAdmin
-      (Self : access Object;
-       Id   : in CosNotifyChannelAdmin.AdminID)
-       return CosNotifyChannelAdmin.ConsumerAdmin.Ref
+     (Self : access Object;
+      Id   : in     CosNotifyChannelAdmin.AdminID)
+      return CosNotifyChannelAdmin.ConsumerAdmin.Ref
    is
       MyConsumerAdmin : CosNotifyChannelAdmin.ConsumerAdmin.Ref;
       SeqLen          : CosNotifyChannelAdmin.AdminID;
@@ -307,9 +307,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    -----------------------
 
    function Get_SupplierAdmin
-      (Self : access Object;
-       Id   : in CosNotifyChannelAdmin.AdminID)
-       return CosNotifyChannelAdmin.SupplierAdmin.Ref
+     (Self : access Object;
+      Id   : in     CosNotifyChannelAdmin.AdminID)
+      return CosNotifyChannelAdmin.SupplierAdmin.Ref
    is
       MySupplierAdmin : CosNotifyChannelAdmin.SupplierAdmin.Ref;
       SeqLen          : CosNotifyChannelAdmin.AdminID;
@@ -342,7 +342,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    ----------------------------
 
    function Get_All_ConsumerAdmins
-      (Self : access Object)
+     (Self : access Object)
       return CosNotifyChannelAdmin.AdminIDSeq
    is
       MySeq : CosNotifyChannelAdmin.AdminIDSeq;
@@ -363,7 +363,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    ----------------------------
 
    function Get_All_SupplierAdmins
-      (Self : access Object)
+     (Self : access Object)
       return CosNotifyChannelAdmin.AdminIDSeq
    is
       MySeq : CosNotifyChannelAdmin.AdminIDSeq;
@@ -384,7 +384,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    -------------
 
    function Get_QoS
-      (Self : access Object)
+     (Self : access Object)
       return CosNotification.QoSProperties
    is
       MyProp : CosNotification.QoSProperties;
@@ -406,7 +406,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Set_QoS
      (Self : access Object;
-      QoS  : in CosNotification.QoSProperties)
+      QoS  : in     CosNotification.QoSProperties)
    is
       Consumers  : CORBA.Long;
       My_Ptr     : EventChannel.Impl.Object_Ptr;
@@ -461,8 +461,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if CORBA.Short'(From_Any (MyProp.value)) < -32767
-              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            if CORBA.Short'(From_Any (MyProp.value))
+              not in -32_767 .. 32_767
             then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
@@ -569,9 +569,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    ------------------
 
    procedure Validate_QoS
-      (Self          : access Object;
-       Required_QoS  : in CosNotification.QoSProperties;
-       Available_QoS : out CosNotification.NamedPropertyRangeSeq)
+     (Self          : access Object;
+      Required_QoS  : in     CosNotification.QoSProperties;
+      Available_QoS :    out CosNotification.NamedPropertyRangeSeq)
    is
       Consumers    : CORBA.Long;
       My_Ptr       : EventChannel.Impl.Object_Ptr;
@@ -625,8 +625,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if CORBA.Short'(From_Any (MyProp.value)) < -32767
-              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            if CORBA.Short'(From_Any (MyProp.value))
+              not in -32_767 .. 32_767
             then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
@@ -769,8 +769,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    ---------------
 
    procedure Set_Admin
-      (Self  : access Object;
-       Admin : in CosNotification.AdminProperties)
+     (Self  : access Object;
+      Admin : in     CosNotification.AdminProperties)
    is
       Consumers  : CORBA.Long;
       My_Ptr     : EventChannel.Impl.Object_Ptr;
@@ -940,7 +940,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
    ------------
 
    function Create
-     (Factory : CosNotifyChannelAdmin.EventChannelFactory.Ref;
+     (Factory       : in CosNotifyChannelAdmin.EventChannelFactory.Ref;
       Initial_QoS   : in CosNotification.QoSProperties;
       Initial_Admin : in CosNotification.AdminProperties)
       return Object_Ptr
@@ -988,8 +988,8 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if CORBA.Short'(From_Any (MyProp.value)) < -32767
-              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            if CORBA.Short'(From_Any (MyProp.value))
+              not in -32_767 .. 32_767
             then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
@@ -1322,7 +1322,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any)
+      Data : in     CORBA.Any)
    is
       Consumer    : CosNotifyChannelAdmin.ConsumerAdmin.Impl.Object_Ptr;
    begin
@@ -1355,7 +1355,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Structured_Post
      (Self         : access Object;
-      Notification : in CosNotification.StructuredEvent)
+      Notification : in     CosNotification.StructuredEvent)
    is
       Consumer    : CosNotifyChannelAdmin.ConsumerAdmin.Impl.Object_Ptr;
    begin
@@ -1388,7 +1388,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
 
    procedure Sequence_Post
      (Self          : access Object;
-      Notifications : in CosNotification.EventBatch)
+      Notifications : in     CosNotification.EventBatch)
    is
       Consumer    : CosNotifyChannelAdmin.ConsumerAdmin.Impl.Object_Ptr;
    begin
