@@ -378,6 +378,14 @@ idls/cos/naming/CosNaming.idl
 idls/cos/naming/Lname-library.idl
 idls/cos/naming/Makefile.am
 idls/cos/naming/Makefile.in
+idls/cos/notification/CosNotification.idl
+idls/cos/notification/CosNotifyChannelAdmin.idl
+idls/cos/notification/CosNotifyComm.idl
+idls/cos/notification/CosNotifyFilter.idl
+idls/cos/notification/CosTypedNotifyChannelAdmin.idl
+idls/cos/notification/CosTypedNotifyComm.idl
+idls/cos/notification/Makefile.am
+idls/cos/notification/Makefile.in
 idls/cos/persistent/cospersistenceddo.idl
 idls/cos/persistent/cospersistenceds_cli.idl
 idls/cos/persistent/cospersistencepds.idl
