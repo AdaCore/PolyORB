@@ -1049,6 +1049,10 @@ package Rtsfind is
      RE_Set_Result,                      -- System.PolyORB_Interface
      RE_Register_Receiving_Stub,         -- System.PolyORB_Interface
      RE_Is_Nil,                          -- System.PolyORB_Interface
+     RE_Entity_Ptr,                      -- System.PolyORB_Interface
+     RE_Entity_Of,                       -- System.PolyORB_Interface
+     RE_Adjust_Ref,                      -- System.PolyORB_Interface
+     RE_Set_Ref,                         -- System.PolyORB_Interface
      RE_Get_Local_Address,               -- System.PolyORB_Interface
      RE_Local_Oid_To_Address,            -- System.PolyORB_Interface
      RE_RCI_Info,                        -- System.PolyORB_Interface
@@ -2061,6 +2065,10 @@ package Rtsfind is
      RE_Set_Result                       => System_PolyORB_Interface,
      RE_Register_Receiving_Stub          => System_PolyORB_Interface,
      RE_Is_Nil                           => System_PolyORB_Interface,
+     RE_Entity_Ptr                       => System_PolyORB_Interface,
+     RE_Entity_Of                        => System_PolyORB_Interface,
+     RE_Adjust_Ref                       => System_PolyORB_Interface,
+     RE_Set_Ref                          => System_PolyORB_Interface,
      RE_Get_Local_Address                => System_PolyORB_Interface,
      RE_Local_Oid_To_Address             => System_PolyORB_Interface,
      RE_RCI_Info                         => System_PolyORB_Interface,

@@ -628,6 +628,9 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
 
+      Fnam : constant Entity_Id
+        := Make_Defining_Identifier (Loc, Name_uFrom_Any);
+
       Func_Spec : Node_Id;
       --  Specification and body of the currently built function
 
@@ -739,12 +742,22 @@ package body Exp_Dist is
             Make_Allocator (Loc,
               New_Occurrence_Of (Stub_Type, Loc))),
 
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Adjust_Ref), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Reference, Loc))),
+
         Make_Assignment_Statement (Loc,
           Name       => Make_Selected_Component (Loc,
             Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
             Selector_Name => Make_Identifier (Loc, Name_Target)),
           Expression =>
-            New_Occurrence_Of (Reference, Loc)),
+            Make_Function_Call (Loc,
+              Name =>
+                New_Occurrence_Of (RTE (RE_Entity_Of), Loc),
+              Parameter_Associations => New_List (
+                New_Occurrence_Of (Reference, Loc)))),
 
         Make_Assignment_Statement (Loc,
           Name       => Make_Selected_Component (Loc,
@@ -779,7 +792,7 @@ package body Exp_Dist is
       Func_Spec :=
         Make_Function_Specification (Loc,
           Defining_Unit_Name =>
-            Make_Defining_Identifier (Loc, Name_uFrom_Any),
+            Fnam,
           Parameter_Specifications => New_List (
             Make_Parameter_Specification (Loc,
               Defining_Identifier =>
@@ -816,6 +829,8 @@ package body Exp_Dist is
 --            Expression =>
 --              New_Occurrence_Of (Defining_Unit_Name (Proc_Spec), Loc));
 
+      Set_Ekind (Fnam, E_Function);
+      Set_Etype (Fnam, RACW_Type);
       Set_TSS (RACW_Type, Defining_Unit_Name (Func_Spec));
 
       --  Insert_After (Declaration_Node (RACW_Type), Func_Decl);
@@ -2465,7 +2480,7 @@ package body Exp_Dist is
                       Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Target),
                       Subtype_Indication  =>
-                        New_Occurrence_Of (RTE (RE_Object_Ref), Loc)),
+                        New_Occurrence_Of (RTE (RE_Entity_Ptr), Loc)),
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
@@ -3143,8 +3158,11 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Vis_Decl);
 
+      Target_Reference : constant Entity_Id :=
+        Make_Defining_Identifier (Loc,
+          New_Internal_Name ('T'));
       Target_Object : Node_Id;
-      --  Contains the name of the target partition
+      --  Reference to the target object.
 
       Decls      : constant List_Id := New_List;
       Statements : constant List_Id := New_List;
@@ -3289,14 +3307,28 @@ package body Exp_Dist is
 --                 New_Occurrence_Of (Controlling_Parameter, Loc),
 --               Selector_Name =>
 --                 Make_Identifier (Loc, Name_Receiver));
+         Append_To (Decls,
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => Target_Reference,
+             Object_Definition   =>
+               New_Occurrence_Of (RTE (RE_Object_Ref), Loc)));
 
-         Target_Object := Make_Selected_Component (Loc,
-           Prefix        =>
-             New_Occurrence_Of (Controlling_Parameter, Loc),
-           Selector_Name =>
-             Make_Identifier (Loc, Name_Target));
+         Append_To (Statements,
+           Make_Procedure_Call_Statement (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_Set_Ref), Loc),
+             Parameter_Associations => New_List (
+               New_Occurrence_Of (Target_Reference, Loc),
+               Make_Selected_Component (Loc,
+                 Prefix        =>
+                   New_Occurrence_Of (Controlling_Parameter, Loc),
+                 Selector_Name =>
+                   Make_Identifier (Loc, Name_Target)))));
          --  Controlling_Parameter has the same components
          --  as System.PolyORB_Interfance.RACW_Stub_Type.
+
+         Target_Object := New_Occurrence_Of (Target_Reference, Loc);
+
       else
 --           Append_To (Decls,
 --             Make_Object_Declaration (Loc,
@@ -3319,6 +3351,7 @@ package body Exp_Dist is
 --                 Make_Identifier (Loc, Chars (RCI_Locator)),
 --               Selector_Name =>
 --                 Make_Identifier (Loc, Name_Get_RCI_Package_Receiver));
+
          Target_Object :=
            Make_Selected_Component (Loc,
              Prefix        =>

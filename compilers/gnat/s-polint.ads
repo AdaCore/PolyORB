@@ -17,6 +17,22 @@ package System.PolyORB_Interface is
 
    pragma Elaborate_Body;
 
+   procedure Adjust_Ref
+     (The_Ref : in out PolyORB.References.Ref)
+     renames PolyORB.References.Adjust;
+
+   procedure Set_Ref
+     (The_Ref    : in out PolyORB.References.Ref;
+      The_Entity :        PolyORB.Smart_Pointers.Entity_Ptr)
+     renames PolyORB.References.Set;
+
+   function Entity_Of
+     (R : PolyORB.References.Ref)
+      return PolyORB.Smart_Pointers.Entity_Ptr
+     renames PolyORB.References.Entity_Of;
+
+   subtype Entity_Ptr is PolyORB.Smart_Pointers.Entity_Ptr;
+
    type RACW_Stub_Type is tagged record
       Origin       : System.RPC.Partition_ID;
       Receiver     : Interfaces.Unsigned_64;
@@ -24,7 +40,12 @@ package System.PolyORB_Interface is
       --  XXX the fields above are placeholders and must not
       --  be used.
 
-      Target       : PolyORB.References.Ref;
+      Target       : Entity_Ptr;
+      --  Target cannot be a References.Ref (a controlled type)
+      --  because that would pollute RACW_Stub_Type's dispatch
+      --  table (which must be exactly identical to that of
+      --  the designated tagged type).
+      --  Target must be a pointer to References.Reference_Info.
 
       Asynchronous : Boolean;
    end record;

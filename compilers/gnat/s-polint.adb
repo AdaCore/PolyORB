@@ -267,9 +267,38 @@ package body System.PolyORB_Interface is
       Is_Local : out Boolean;
       Addr     : out System.Address)
    is
-   begin
+      use PolyORB.References;
 
+      Profiles : constant Profile_Array
+        := Profiles_Of (Ref);
+   begin
+      for J in Profiles'Range loop
+         if PolyORB.ORB.Is_Profile_Local
+           (PolyORB.Setup.The_ORB,
+            Profiles (J))
+         then
+            Is_Local := True;
+            Addr := Null_Address;
+            --  XXX need to construct Addr from
+            --  Ref's object key.
+            return;
+         end if;
+      end loop;
+
+      Is_Local := False;
    end Get_Local_Address;
+
+   -------------------------------
+   -- Get_Unique_Remote_Pointer --
+   -------------------------------
+
+   procedure Get_Unique_Remote_Pointer
+     (Handler : in out RACW_Stub_Type_Access)
+   is
+   begin
+      null;
+      --  XXX TBD.
+   end Get_Unique_Remote_Pointer;
 
    -----------------------------
    -- Register_Receiving_Stub --
