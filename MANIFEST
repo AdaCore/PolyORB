@@ -349,8 +349,10 @@ idls/corba/CORBA_CustomMarshal.idl
 idls/corba/CORBA_DomainManager.idl
 idls/corba/CORBA_InterfaceRepository.idl
 idls/corba/CORBA_Policy.idl
+idls/corba/CORBA_Pollable.idl
 idls/corba/CORBA_StandardExceptions.idl
 idls/corba/CORBA_Stream.idl
+idls/corba/CORBA_TypeCode.idl
 idls/corba/orb.idl
 idls/corba_pidl/corba_context.idl
 idls/corba_pidl/corba_interceptor.idl
