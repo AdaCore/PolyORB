@@ -2887,12 +2887,14 @@ package body Exp_Dist is
         Make_Object_Declaration (Loc,
           Defining_Identifier => Subp_Info_Array,
           Constant_Present    => True,
+          Aliased_Present     => True,
           Object_Definition   =>
-            Make_Unconstrained_Array_Definition (Loc,
-              Subtype_Marks => New_List (
-                New_Occurrence_Of (Standard_Integer, Loc)),
-              Subtype_Indication =>
-                New_Occurrence_Of (RTE (RE_RCI_Subp_Info), Loc)),
+--              Make_Unconstrained_Array_Definition (Loc,
+--                Subtype_Marks => New_List (
+--                  New_Occurrence_Of (Standard_Integer, Loc)),
+--                Subtype_Indication =>
+--                  New_Occurrence_Of (RTE (RE_RCI_Subp_Info), Loc)),
+            New_Occurrence_Of (RTE (RE_RCI_Subp_Info_Array), Loc),
           Expression          =>
             Make_Aggregate (Loc,
               Component_Associations => Subp_Info_List)));
@@ -2977,7 +2979,14 @@ package body Exp_Dist is
                           Defining_Identifier (
                             Pkg_RPC_Receiver_Object), Loc),
                       Attribute_Name =>
-                        Name_Unrestricted_Access),
+                        Name_Access),
+
+                     --  Subp_Info
+                    Make_Attribute_Reference (Loc,
+                      Prefix         =>
+                        New_Occurrence_Of (Subp_Info_Array, Loc),
+                      Attribute_Name =>
+                        Name_Access),
 
                      --  Is_All_Calls_Remote
                     New_Occurrence_Of (All_Calls_Remote_E, Loc))))));

@@ -4,6 +4,7 @@ with Ada.Streams;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
+with System.Address_To_Access_Conversion;
 with System.RPC;
 
 with GNAT.HTable;
@@ -62,6 +63,8 @@ package body System.PolyORB_Interface is
    --  are created within the middleware and the naming service.
 
    type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
+   type RCI_Subp_Info_Array_Access is
+     access all RCI_Subp_Info_Array;
 
    type Receiving_Stub is record
       Kind                : Receiving_Stub_Kind;
@@ -74,12 +77,17 @@ package body System.PolyORB_Interface is
       Version             : String_Ptr;
       --  For RCIs only: library unit version
 
+      Receiver            : Servant_Access;
+      --  The RPC receiver (servant) object
+
       Is_All_Calls_Remote : Boolean;
       --  For RCIs only: true iff a pragma All_Calls_Remote
       --  applies to this unit.
 
-      Receiver            : Servant_Access;
-      --  The RPC receiver (servant) object
+      Subp_Info           : RCI_Subp_Info_Array_Access;
+      --  For RCIs only: mapping of RCI subprogram names to
+      --  addresses.
+
    end record;
 
    package Receiving_Stub_Lists is new PolyORB.Utils.Chained_Lists
@@ -94,15 +102,17 @@ package body System.PolyORB_Interface is
    --  A map of all known RCIs is maintained.
 
    type RCI_Info is record
+
+      Is_All_Calls_Remote : Boolean := True;
+      --  True if the package is remote, or if a
+      --  pragma All_Call_Remotes applies.
+
       Base_Ref            : Object_Ref;
       --  The main reference for this package.
 
       Is_Local            : Boolean := False;
       --  True if the package is assigned on this partition.
 
-      Is_All_Calls_Remote : Boolean := True;
-      --  True if the package is remote, or if a
-      --  pragma All_Call_Remotes applies.
    end record;
 
    No_RCI_Info : RCI_Info;
@@ -365,7 +375,7 @@ package body System.PolyORB_Interface is
             use PolyORB.ORB;
             use PolyORB.Setup;
 
-            Stub : Receiving_Stub := Value (It).all;
+            Stub : Receiving_Stub renames Value (It).all;
 
          begin
             case Stub.Kind is
@@ -409,14 +419,17 @@ package body System.PolyORB_Interface is
                      end;
                   end;
             end case;
-
-            Free (Stub.Name);
-            Free (Stub.Version);
          end;
          Next (It);
       end loop;
-      Deallocate (All_Receiving_Stubs);
       pragma Debug (O ("Done initializing DSA."));
+
+      --  Note: currently we keep the All_Receiving_Stubs list
+      --  in memory, because Get_RAS_Ref uses it at a later point.
+      --  An alternative (better) design would store the relevant
+      --  RCI subprogram info in hash tables, and get rid of
+      --  the list after initialization.
+
    end Initialize;
 
    -----------------------
@@ -465,15 +478,59 @@ package body System.PolyORB_Interface is
       Subp_Ref        : out Object_Ref)
    is
       Info : constant RCI_Info := Retrieve_RCI_Info (Pkg_Name);
+
    begin
       if Info.Is_Local then
-         --  retrieve subprogram address using subprogram name
+         --  Retrieve subprogram address using subprogram name
          --  and subprogram table. Warning: the name used
          --  MUST be the distribution-name (with overload
          --  suffix, where appropriate.)
-         null;
-         --  Subp_Ref := ...;
-         --  XXX TBD
+
+         declare
+            use Receiving_Stub_Lists;
+            It : Receiving_Stub_Lists.Iterator :=
+              First (All_Receiving_Stubs);
+
+            package Str_Addr_Conversion is
+               new System.Address_To_Access_Conversion (String);
+            use Str_Addr_Conversion;
+
+            Addr : System.Address := System.Null_Address;
+            Receiver : Servant_Access := null;
+
+         begin
+
+            --  XXX
+            --  The following is ugly and inefficient (two levels
+            --  of linear search) and should probably be optimized
+            --  in some way.
+
+            All_Stubs :
+            while not Last (It) loop
+               declare
+                  S : Receiving_Stub renames Value (It).all;
+               begin
+                  if S.Kind = Pkg_Stub and then S.Name.all = Pkg_Name then
+                     for J in S.Subp_Info'Range loop
+                        if To_Access (S.Subp_Info (J).Name).all
+                          = Subprogram_Name
+                        then
+                           Addr := S.Subp_Info (J).Addr;
+                           Receiver := S.Receiver;
+                           exit All_Stubs;
+                        end if;
+                     end loop;
+                  end if;
+               end;
+            end loop All_Stubs;
+
+            if Addr = System.Null_Address then
+               return;
+            end if;
+
+            Get_Reference
+              (Addr, Pkg_Name, Receiver, Subp_Ref);
+         end;
       else
          --  Remote_Get_RAS_Ref (Info.Base_Ref, Subprogram_Name);
          --  XXX make a RPC to resolve subprogram name to a ref.
@@ -481,8 +538,6 @@ package body System.PolyORB_Interface is
          --  Subp_Ref := ...;
          --  XXX TBD
       end if;
-      pragma Warnings (Off, Subp_Ref);
-      --  Never assigned a value (XXX)
    end Get_RAS_Ref;
 
    -------------------
@@ -495,9 +550,11 @@ package body System.PolyORB_Interface is
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref)
    is
+      Last : Integer := Typ'Last;
    begin
-      pragma Assert (Typ'Length > 0
-                     and then Typ (Typ'Last) = ASCII.NUL);
+      if Last in Typ'Range and then Typ (Last) = ASCII.NUL then
+         Last := Last - 1;
+      end if;
 
       if Addr /= Null_Address then
          declare
@@ -513,7 +570,7 @@ package body System.PolyORB_Interface is
          begin
             PolyORB.ORB.Create_Reference
               (PolyORB.Setup.The_ORB, Oid'Access,
-               "DSA:" & Typ (Typ'First .. Typ'Last - 1), Ref);
+               "DSA:" & Typ (Typ'First .. Last), Ref);
          end;
       end if;
    exception
@@ -598,6 +655,7 @@ package body System.PolyORB_Interface is
               +Name (Name'First .. Name'Last - 1),
             Receiver            => Receiver,
             Version             => null,
+            Subp_Info           => null,
             Is_All_Calls_Remote => False));
    end Register_Obj_Receiving_Stub;
 
@@ -610,6 +668,7 @@ package body System.PolyORB_Interface is
       Version             : String;
       Handler             : Request_Handler_Access;
       Receiver            : Servant_Access;
+      Subp_Info           : access RCI_Subp_Info_Array;
       Is_All_Calls_Remote : Boolean)
    is
       use Receiving_Stub_Lists;
@@ -622,6 +681,8 @@ package body System.PolyORB_Interface is
             Name                => +Name,
             Receiver            => Receiver,
             Version             => +Version,
+            Subp_Info           => RCI_Subp_Info_Array_Access
+              (Subp_Info),
             Is_All_Calls_Remote => Is_All_Calls_Remote));
    end Register_Pkg_Receiving_Stub;
 

@@ -45,6 +45,9 @@ package System.PolyORB_Interface is
       --  Local address of the actual subprogram
    end record;
 
+   type RCI_Subp_Info_Array is array (Integer range <>)
+     of RCI_Subp_Info;
+
    ---------------------------------------
    -- Remote access-to-subprogram types --
    ---------------------------------------
@@ -98,6 +101,7 @@ package System.PolyORB_Interface is
       Version             : String;
       Handler             : Request_Handler_Access;
       Receiver            : Servant_Access;
+      Subp_Info           : access RCI_Subp_Info_Array;
       Is_All_Calls_Remote : Boolean);
       --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
