@@ -1,5 +1,8 @@
 Mon Apr  7 12:46:42 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Makefile.am: Do not destroy the target directory before building
+	  the objects.
+
 	* constants.sh: Output aligned constants & use hexa instead of
 	  decimal.
 

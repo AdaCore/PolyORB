@@ -138,7 +138,7 @@ s-garcon.ads: ${CONSTANTS_SH}
 s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
 
-all-local: ${OBJECTS} ${SOURCES}
+all-local: ${SOURCES} ${OBJECTS}
 
 install-dirs-local:
 	-rm -rf ${GARLIC}
@@ -146,7 +146,7 @@ install-dirs-local:
 
 install-extra-libs: ${FILTERINSTALL}
 
-install-data-local: install-dirs-local install-extra-libs all-local
+install-data-local: all-local install-dirs-local install-extra-libs
 	${CP} -p ${SOURCES} ${OBJECTS} \
 		`echo ${OBJECTS} | sed -e 's/\.o/.ali/g'` ${GARLIC}
 
