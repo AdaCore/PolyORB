@@ -6,6 +6,10 @@ MAKEINFO= @MAKEINFO@
 TEXI2HTML= @TEXI2HTML@
 TEX= @TEX@
 
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+prefix = @prefix@
+
 all: ${FORMATS}
 
 %.dvi: %.texi
@@ -71,3 +75,12 @@ clean: force
 distclean: clean
 
 force:
+
+install:
+	$(INSTALL) -d $(prefix)/doc/polyorb
+	$(INSTALL) -d $(prefix)/doc/polyorb/html
+	$(INSTALL) -d $(prefix)/doc/polyorb/ps
+	$(INSTALL) -d $(prefix)/doc/polyorb/txt
+	for f in `ls *.html`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/html; done
+	for f in `ls *.ps`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/ps; done
+	for f in `ls *.txt`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/txt; done
