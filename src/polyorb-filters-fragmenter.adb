@@ -187,7 +187,6 @@ package body PolyORB.Filters.Fragmenter is
       S : Components.Message'Class)
      return Components.Message'Class
    is
-      Res : Components.Null_Message;
    begin
       if S in Data_Expected'Class then
          declare
@@ -249,8 +248,6 @@ package body PolyORB.Filters.Fragmenter is
       else
          raise Unhandled_Message;
       end if;
-
-      return Res;
    end Handle_Message;
 
 end PolyORB.Filters.Fragmenter;
