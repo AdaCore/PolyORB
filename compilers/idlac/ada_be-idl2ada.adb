@@ -451,8 +451,8 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "--  Sanity check");
                   PL (CU, "if Is_Nil (Self) then");
                   II (CU);
-                  Add_With (CU, "Broca.Exceptions");
-                  PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
+                  Add_With (CU, "Droopi.CORBA_P.Exceptions");
+                  PL (CU, "Droopi.CORBA_P.Exceptions.Raise_Inv_Objref;");
                   DI (CU);
                   PL (CU, "end if;");
                   NL (CU);
@@ -709,7 +709,7 @@ package body Ada_Be.Idl2Ada is
                   NL (Delegate_Spec);
                   PL (Delegate_Spec,
                       "type Object (<>) is " &
-                      "new PortableServer.Servant_Base with private;");
+                      "new PortableServer.DynamicImplementation with private;");
                   PL (Delegate_Spec,
                       "type Object_Ptr is access all Object'Class;");
                   NL (Delegate_Spec);
@@ -723,7 +723,7 @@ package body Ada_Be.Idl2Ada is
                   NL (Delegate_Spec);
                   PL (Delegate_Spec,
                       "type Object is " &
-                      "new PortableServer.Servant_Base with record");
+                      "new PortableServer.DynamicImplementation with record");
                   PL (Delegate_Spec,
                       "   Real : Wrapped_Access;");
                   PL (Delegate_Spec,
@@ -748,9 +748,10 @@ package body Ada_Be.Idl2Ada is
                   Suppress_Warning_Message (Impl_Spec);
                   Suppress_Warning_Message (Impl_Body);
 
-                  Add_With (Impl_Body, Skel_Name,
-                            Use_It => False,
-                            Elab_Control => None);
+                  --  XXX For now, with DROOPI, no more skels.
+--                   Add_With (Impl_Body, Skel_Name,
+--                             Use_It => False,
+--                             Elab_Control => None);
                end if;
             end if;
 
@@ -845,9 +846,11 @@ package body Ada_Be.Idl2Ada is
                if Implement then
 
                   NL (Impl_Spec);
-                  PL (Impl_Spec, "procedure Invoke ( Self : access Object ;");
-                  PL (Impl_Spec, "                   Request : access CORBA.ServerRequest.Object );");
-                  PL (Impl_Spec, "function Primary_Interface( Self : access Object ; -- ....");
+                  PL (Impl_Spec, "procedure Invoke");
+                  PL (Impl_Spec, "  (Self : access Object;");
+                  PL (Impl_Spec, "   Request : in CORBA.ServerRequest.Object_ptr);");
+                  NL (Impl_Spec);
+                  PL (Impl_Spec, "function Primary_Interface (Self : access Object; -- ....");
                   PL (Impl_Spec, "   POA_Ptr : PortableServer.POA.Ref) return String;");
 
                   Add_With (Impl_Spec, "CORBA.ServerRequest");
@@ -859,8 +862,7 @@ package body Ada_Be.Idl2Ada is
                             Use_It    => True,
                             Elab_Control => Elaborate_All);
 
-                  Add_With (Impl_Body, "Broca.Object");
-                  Add_With (Impl_Body, "Broca.Exceptions");
+                  Add_With (Impl_Body, "Droopi.CORBA_P.Exceptions");
 
                   Add_With (Impl_Body, "CORBA.Object");
                   Add_With (Impl_Body, "CORBA.Context");
@@ -871,12 +873,14 @@ package body Ada_Be.Idl2Ada is
 
                   NL (Impl_Body);
                   NL (Impl_Body);
-                  PL (Impl_Body, "procedure Invoke ( Self : access Object ;");
-                  PL (Impl_Body, "                   Request : access CORBA.ServerRequest.Object ) is  ");
-                  NL (Impl_Body);
-                  PL (Impl_Body, "   Operation : Standard.String");
-                  PL (Impl_Body, "      := CORBA.To_Standard_String (CORBA.ServerRequest.Operation (Request.all));");
-                  NL (Impl_Body);
+                  PL (Impl_Body, "procedure Invoke");
+                  PL (Impl_Body, "  (Self : access Object;");
+                  PL (Impl_Body, "   Request : in CORBA.ServerRequest.Object_ptr)");
+                  PL (Impl_Body, "is");
+                  II (Impl_Body);
+                  PL (Impl_Body, "Operation : Standard.String");
+                  PL (Impl_Body, "   := CORBA.To_Standard_String (CORBA.ServerRequest.Operation (Request.all));");
+                  DI (Impl_Body);
                   PL (Impl_Body, "begin");
 
                   declare
@@ -889,20 +893,19 @@ package body Ada_Be.Idl2Ada is
 
                         if Is_Gen_Scope (Export_Node) then
                            Put_Line ("mmmmmmmmmmmmmm");
+                           --  XXX What's that???
                         else
-
                            Gen_Invoke
                              (Impl_Body, Export_Node);
-
                         end if;
 
                      end loop;
                   end;
 
-                  PL (Impl_Body, "Broca.Exceptions.Raise_Bad_Operation;");
+                  PL (Impl_Body, "Droopi.CORBA_P.Exceptions.Raise_Bad_Operation;");
                   PL (Impl_Body, "end Invoke;");
                   NL (Impl_Body);
-                  PL (Impl_Body, "function Primary_Interface( Self : access Object ; -- ....");
+                  PL (Impl_Body, "function Primary_Interface (Self : access Object; -- ....");
                   PL (Impl_Body, "   POA_Ptr : PortableServer.POA.Ref) return String is ");
                   PL (Impl_Body, "begin");
                   Pl (Impl_Body, "   return """ &  Idl_Repository_Id (Node)  & """;");
@@ -1244,7 +1247,7 @@ package body Ada_Be.Idl2Ada is
       if Primary_Parent = No_Node then
          Add_With (CU, "PortableServer");
          Put (CU, "  ");
-         Put (CU, "new PortableServer.Servant_Base");
+         Put (CU, "new PortableServer.DynamicImplementation");
       else
          declare
             It : Node_Iterator;
@@ -1797,7 +1800,7 @@ package body Ada_Be.Idl2Ada is
                          Use_It    => False,
                          Elab_Control => Elaborate_All);
                Add_With (CU, "Broca.Object");
-               Add_With (CU, "Broca.Exceptions");
+               Add_With (CU, "Droopi.CORBA_P.Exceptions");
 
                NL (CU);
                PL (CU, O_Name
@@ -1944,7 +1947,7 @@ package body Ada_Be.Idl2Ada is
 
                      if First then
                         Add_With (CU, "Broca.CDR", Use_It => True);
-                        Add_With (CU, "Broca.Exceptions");
+                        Add_With (CU, "Droopi.CORBA_P.Exceptions");
 
                         PL (CU, "declare");
                         II (CU);
@@ -1979,7 +1982,7 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "begin");
                      II (CU);
                      PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
-                     PL (CU, "Broca.Exceptions.User_Raise_Exception");
+                     PL (CU, "Droopi.CORBA_P.Exceptions.User_Raise_Exception");
                      PL (CU, "  (" & Ada_Full_Name (E_Node)
                          & "'Identity,");
                      PL (CU, "   " & T_Members & ");");
@@ -1995,7 +1998,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "--  A user exception was raise, but it is not");
                PL (CU, "--  listed in this operation's ""raises"" clause.");
                NL (CU);
-               PL (CU, "Broca.Exceptions.Raise_Unknown");
+               PL (CU, "Droopi.CORBA_P.Exceptions.Raise_Unknown");
                PL (CU, "  (Status => CORBA.Completed_Maybe);");
 
                if not Is_Empty (Raises (Node)) then
@@ -2013,7 +2016,7 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Exception =>
-            Add_With (CU, "Broca.Exceptions");
+            Add_With (CU, "Droopi.CORBA_P.Exceptions");
             NL (CU);
             PL (CU, "procedure Get_Members");
             PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
@@ -2022,7 +2025,7 @@ package body Ada_Be.Idl2Ada is
                 & ") is");
             PL (CU, "begin");
             II (CU);
-            PL (CU, "Broca.Exceptions.User_Get_Members (From, To);");
+            PL (CU, "Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);");
             DI (CU);
             PL (CU, "end Get_Members;");
 
@@ -2126,14 +2129,15 @@ package body Ada_Be.Idl2Ada is
 
 
                Prefix, Arg_Name, Str1, Str2 : Str_Access;
+               --  XXX Abusive use of dynamic allocation here!
+
                Max_Len : Integer := T_Result_Name'Length;
             begin
                Add_With (CU, "CORBA",
                          Use_It    => True,
                          Elab_Control => Elaborate_All);
 
-               Add_With (CU, "Broca.Object");
-               Add_With (CU, "Broca.Exceptions");
+               Add_With (CU, "Droopi.CORBA_P.Exceptions");
 
                Add_With (CU, "CORBA.Object");
                Add_With (CU, "CORBA.Context");
@@ -2187,7 +2191,6 @@ package body Ada_Be.Idl2Ada is
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
-                     Add_With_Stream (CU, Param_Type (P_Node));
 
                      if not Is_Returns (P_Node) then
                         Arg_Name := new String'
@@ -2245,7 +2248,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
                II (CU);
-               PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
+               PL (CU, "Droopi.CORBA_P.Exceptions.Raise_Inv_Objref;");
                DI (CU);
                PL (CU, "end if;");
                NL (CU);
@@ -2271,7 +2274,8 @@ package body Ada_Be.Idl2Ada is
 
                         if First then
                            NL (CU);
-                           PL (CU, "--  marshalling arguments.");
+                           PL (CU, "--  Create argument list");
+                           NL (CU);
                            First := False;
                         end if;
 
@@ -2367,7 +2371,6 @@ package body Ada_Be.Idl2Ada is
                      First  : Boolean := True;
                   begin
                      if Kind (Original_Operation_Type (Node)) /= K_Void then
-                        Add_With_Stream (CU, Original_Operation_Type (Node));
                         NL (CU);
                         PL (CU, "--  Unmarshall return value.");
 
@@ -2434,7 +2437,7 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Exception =>
-            Add_With (CU, "Broca.Exceptions");
+            Add_With (CU, "Droopi.CORBA_P.Exceptions");
             NL (CU);
             PL (CU, "procedure Get_Members");
             PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
@@ -2443,7 +2446,7 @@ package body Ada_Be.Idl2Ada is
                 & ") is");
             PL (CU, "begin");
             II (CU);
-            PL (CU, "Broca.Exceptions.User_Get_Members (From, To);");
+            PL (CU, "Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);");
             DI (CU);
             PL (CU, "end Get_Members;");
 
@@ -3366,7 +3369,7 @@ package body Ada_Be.Idl2Ada is
       NL (CU);
       PL (CU, "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
       II (CU);
-      PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
+      PL (CU, "Droopi.CORBA_P.Exceptions.Raise_Inv_Objref;");
       DI (CU);
       PL (CU, "end if;");
       NL (CU);
@@ -3526,13 +3529,10 @@ package body Ada_Be.Idl2Ada is
                  := not (Raises (Node) = Nil_List);
 
 
-               Prefix, Arg_Name, Str1, Str2 : Str_Access;
+               Prefix, Str1, Str2 : Str_Access;
                Max_Len : Integer := T_Result_Name'Length;
 
             begin
-
-
-
                declare
                   It   : Node_Iterator;
                   P_Node : Node_Id;
@@ -3541,16 +3541,17 @@ package body Ada_Be.Idl2Ada is
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
                      if not Is_Returns (P_Node) then
-                        Arg_Name := new String'
-                          (Ada_Name (Declarator (P_Node)));
-                        if Max_Len <
-                          (Arg_Name.all'Length + T_Argument'Length) then
-                           Max_Len := Arg_Name.all'Length + T_Argument'Length;
-                        end if;
+                        declare
+                           L : constant Integer
+                             := Ada_Name (Declarator (P_Node))'Length;
+                        begin
+                           if Max_Len < (L + T_Argument'Length) then
+                              Max_Len := L + T_Argument'Length;
+                           end if;
+                        end;
                      end if;
                   end loop;
                end;
-
 
                NL (CU);
                PL (CU,
@@ -3571,40 +3572,40 @@ package body Ada_Be.Idl2Ada is
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
-                     Add_With_Stream (CU, Param_Type (P_Node));
 
+                     declare
+                        Arg_Name : constant String
+                          := Ada_Name (Declarator (P_Node));
+                     begin
 
-                     Arg_Name := new String'
-                       (Ada_Name (Declarator (P_Node)));
+                        PL (CU, Justify (Arg_Name, Max_Len)
+                            & " : " & Ada_Type_Name (Param_Type (P_Node))  & ";");
 
+                        if not Is_Returns (P_Node) then
+                           PL (CU, Justify (T_Arg_Name & Arg_Name, Max_Len)
+                               & " : CORBA.Identifier := To_CORBA_String ("""
+                               & Arg_Name & """);");
+                        end if;
 
-                     PL (CU, Justify (Arg_Name.all, Max_Len)
-                         & " : " & Ada_Type_Name ( Param_Type (P_Node) )  & ";");
+                        Prefix := new String'
+                          (Helper_Path (Param_Type (P_Node)));
+                        Add_With (CU, Prefix.all);
 
-                     if not Is_Returns (P_Node) then
-                        PL (CU, Justify (T_Arg_Name & Arg_Name.all, Max_Len)
-                            & " : CORBA.Identifier := To_CORBA_String ("""
-                            & Arg_Name.all & """);");
-                     end if;
+                        Forward_Stuff
+                          (Param_Type (P_Node), "From_Forward", Str1, Str2);
 
-                     Prefix := new String'
-                       (Helper_Path (Param_Type (P_Node)));
-                     Add_With (CU, Prefix.all);
-                     Forward_Stuff
-                       (Param_Type (P_Node), "From_Forward", Str1, Str2);
-                     PL (CU, Justify (T_Argument & Arg_Name.all, Max_Len)
-                         & " : CORBA.Any := " & Prefix.all & ".To_Any"
-                         & " (" & Str1.all & Arg_Name.all
-                         & Str2.all & ");");
-                     NL (CU);
-
+                        PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
+                            & " : CORBA.Any := " & Prefix.all & ".To_Any"
+                            & " (" & Str1.all & Arg_Name
+                            & Str2.all & ");");
+                        NL (CU);
+                     end;
                   end loop;
                end;
 
                if Is_Function then
-
                   PL (CU, Justify (T_Result, Max_Len)
-                      & " : " & Ada_Type_Name ( O_Type )  & ";");
+                      & " : " & Ada_Type_Name (O_Type)  & ";");
                   PL (CU, Justify (T_Argument & T_Result , Max_Len)
                       & " : CORBA.Any ;");
                end if;
@@ -3625,12 +3626,13 @@ package body Ada_Be.Idl2Ada is
                II (CU);
 
 
-               PL (CU, "--  creating the argument list");
+               PL (CU, "--  Create argument list");
+               NL (CU);
                PL (CU, "CORBA.ORB.Create_List (0, " & T_Arg_List & ");");
+
                declare
                   It   : Node_Iterator;
                   P_Node : Node_Id;
-                  First : Boolean := True;
                begin
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
@@ -3638,38 +3640,31 @@ package body Ada_Be.Idl2Ada is
                      Get_Next_Node (It, P_Node);
 
                      if not Is_Returns (P_Node) then
+                        declare
+                           Arg_Name : constant String
+                             := Ada_Name (Declarator (P_Node));
+                        begin
+                           PL (CU, "CORBA.NVList.Add_Item (" & T_Arg_List & ",");
+                           PL (CU, "                       " & T_Arg_Name
+                               & Arg_Name & ",");
+                           PL (CU, "                       "
+                               & T_Argument & Arg_Name & ",");
 
-                        Arg_Name := new String'
-                          (Ada_Name (Declarator (P_Node)));
-
-                        if First then
-                           NL (CU);
-                           PL (CU, "--  marshalling arguments.");
-                           First := False;
-                        end if;
-
-                        PL (CU, "CORBA.NVList.Add_Item (" & T_Arg_List & ",");
-                        PL (CU, "                       " & T_Arg_Name
-                          & Arg_Name.all & ",");
-                        PL (CU, "                       "
-                          & T_Argument&Arg_Name.all & ",");
-
-                        case Mode (P_Node) is
-                           when Mode_In =>
-                              PL (CU,
-                                "                       CORBA.ARG_IN);");
-                           when Mode_Inout =>
-                              PL (CU,
-                                "                       CORBA.ARG_INOUT);");
-                           when Mode_Out =>
-                              PL (CU,
-                                "                       CORBA.ARG_OUT);");
-                           when others =>
-                              null;
-                        end case;
-
+                           case Mode (P_Node) is
+                              when Mode_In =>
+                                 PL (CU,
+                                     "                       CORBA.ARG_IN);");
+                              when Mode_Inout =>
+                                 PL (CU,
+                                     "                       CORBA.ARG_INOUT);");
+                              when Mode_Out =>
+                                 PL (CU,
+                                     "                       CORBA.ARG_OUT);");
+                              when others =>
+                                 null;
+                           end case;
+                        end;
                      end if;
-
                   end loop;
                end;
 
@@ -3678,7 +3673,37 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
 
 
-               PL (CU, "begin"); II (CU);
+               PL (CU, "begin");
+               II (CU);
+               PL (CU, "--  Convert arguments from their Any");
+               NL (CU);
+
+               declare
+                  It   : Node_Iterator;
+                  P_Node : Node_Id;
+               begin
+                  Init (It, Parameters (Node));
+                  while not Is_End (It) loop
+
+                     Get_Next_Node (It, P_Node);
+
+                     declare
+                        Arg_Name : constant String
+                          := Ada_Name (Declarator (P_Node));
+                     begin
+                        if not Is_Returns (P_Node) then
+                           if Mode (P_Node) = Mode_In
+                             or else Mode (P_Node) = Mode_Inout
+                           then
+                              PL (CU, Arg_Name
+                                  & " := From_Any ("
+                                  & T_Argument & Arg_Name & ");");
+                           end if;
+                        end if;
+                     end;
+
+                  end loop;
+               end;
 
                if Is_Function then
                   Put (CU, T_Result & " := ");
@@ -3693,8 +3718,7 @@ package body Ada_Be.Idl2Ada is
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
-                     Arg_Name := new String'(Ada_Name (Declarator (P_Node)));
-                     Put (CU, ", " & Arg_Name.all);
+                     Put (CU, ", " & Ada_Name (Declarator (P_Node)));
                   end loop;
                end;
                PL (CU, ");");
@@ -3754,25 +3778,27 @@ package body Ada_Be.Idl2Ada is
                            if Mode (P_Node) =  Mode_Inout
                              or else Mode (P_Node) = Mode_Out
                            then
+                              declare
+                                 Arg_Name : constant String
+                                   := Ada_Name (Declarator (P_Node));
+                              begin
 
-                              Arg_Name := new String'
-                                (Ada_Name (Declarator (P_Node)));
+                                 if First then
+                                    NL (CU);
+                                    PL (CU, "--  Set out arguments.");
+                                    NL (CU);
+                                    First := False;
+                                 end if;
 
-                              if First then
+                                 Prefix := new String'(Helper_Path (Param_Type (P_Node)));
+                                 Add_With (CU, Prefix.all);
+                                 Forward_Stuff (Param_Type (P_Node), "From_Forward", Str1, Str2);
+                                 PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
+                                     & " := " & Prefix.all & ".To_Any"
+                                     & " (" & Str1.all & Arg_Name
+                                     & Str2.all & ");");
                                  NL (CU);
-                                 PL (CU, "--  Set out arguments.");
-                                 First := False;
-                              end if;
-
-                              Prefix := new String'(Helper_Path (Param_Type (P_Node)));
-                              Add_With (CU, Prefix.all);
-                              Forward_Stuff (Param_Type (P_Node), "From_Forward", Str1, Str2);
-                              PL (CU, Justify (T_Argument & Arg_Name.all, Max_Len)
-                                  & " := " & Prefix.all & ".To_Any"
-                                  & " (" & Str1.all & Arg_Name.all
-                                  & Str2.all & ");");
-                              NL (CU);
-
+                              end;
                            end if;
 
                         end if;
@@ -3781,25 +3807,27 @@ package body Ada_Be.Idl2Ada is
                   end;
 
                   if Kind (Original_Operation_Type (Node)) /= K_Void then
+                     NL (CU);
                      PL (CU, "-- Set Result");
+                     NL (CU);
+
+                     Prefix := new String'(Helper_Path (Original_Operation_Type (Node)));
+                     Forward_Stuff (Original_Operation_Type (Node), "From_Forward", Str1, Str2);
+                     Put (CU, T_Argument & T_Result
+                          & " := " & Prefix.all & ".To_Any"
+                          & " (" & Str1.all);
+
                      if Is_Function then
-                        Arg_Name := new String'(T_Result);
+                        Put (CU, T_Result);
                      else
-                        Arg_Name := new String'("Returns");
+                        Put (CU, "Returns");
                      end if;
 
-                        Prefix := new String'(Helper_Path (Original_Operation_Type (Node)));
-                        Forward_Stuff (Original_Operation_Type (Node), "From_Forward", Str1, Str2);
-                        PL (CU, T_Argument & T_Result
-                            & " := " & Prefix.all & ".To_Any"
-                            & " (" & Str1.all & Arg_Name.all
-                            & Str2.all & ");");
-                        PL (CU, "CORBA.ServerRequest.Set_Result (Request, "
-                            & T_Argument & T_Result & ");" );
+                     PL (CU, Str2.all & ");");
+                     PL (CU, "CORBA.ServerRequest.Set_Result (Request, "
+                         & T_Argument & T_Result & ");");
                   end if;
-
                end if;
-
 
                PL (CU, "return;");
 

@@ -1,51 +1,39 @@
-------------------------------------------------------------------------------
---                                                                          --
---                          ADABROKER COMPONENTS                            --
---                                                                          --
---                            E C H O . I M P L                             --
---                                                                          --
---                                 S p e c                                  --
---                                                                          --
---                            $Revision: 1.4 $
---                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
---                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
--- under terms of the  GNU General Public License as published by the  Free --
--- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
--- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
--- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
---                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
---                                                                          --
-------------------------------------------------------------------------------
+----------------------------------------------
+--  This file has been generated automatically
+--  by AdaBroker (http://adabroker.eu.org/)
+----------------------------------------------
 
-with CORBA;
+with PortableServer.POA;
 with CORBA.ServerRequest;
+with CORBA;
 with PortableServer;
 
 package Echo.Impl is
-   --  My own implementation of echo object.
-   --  This is simply used to define the operations.
 
-   type Object is new PortableServer.DynamicImplementation with record
-      Msg : CORBA.String;
-   end record;
+   type Object is
+     new PortableServer.DynamicImplementation with private;
 
-   type Object_Acc is access Object;
+   type Object_Ptr is access all Object'Class;
+
+   function echoString
+     (Self : access Object;
+      Mesg : in CORBA.String)
+     return CORBA.String;
 
    procedure Invoke
      (Self : access Object;
-      R : in CORBA.ServerRequest.Object_Ptr);
+      Request : in CORBA.ServerRequest.Object_ptr);
 
-   function EchoString
-     (Self : access Object; Mesg : in CORBA.String)
-     return CORBA.String;
+   function Primary_Interface (Self : access Object; -- ....
+      POA_Ptr : PortableServer.POA.Ref) return String;
+
+private
+
+   type Object is
+     new PortableServer.DynamicImplementation with record
+      --  Insert components to hold the state
+      --  of the implementation object.
+      null;
+   end record;
 
 end Echo.Impl;
