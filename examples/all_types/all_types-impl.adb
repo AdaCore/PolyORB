@@ -4,6 +4,69 @@ with all_types.Skeleton ;
 package body all_types.Impl is
 
 
+   -----------------------
+   -- IDL definitions   --
+   -----------------------
+
+   function echoBoolean(Self : access Object; arg : in Corba.Boolean) return Corba.Boolean is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echoShort(Self : access Object; arg : in Corba.Short) return Corba.Short is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echoLong(Self : access Object; arg : in Corba.Long) return Corba.Long is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echoUShort(Self : access Object; arg : in Corba.Unsigned_Short) return Corba.Unsigned_Short is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echoULong(Self : access Object; arg : in Corba.Unsigned_Long) return Corba.Unsigned_Long is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echoFloat(Self : access Object; arg : in Corba.Float) return Corba.Float is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echoDouble(Self : access Object; arg : in Corba.Double) return Corba.Double is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echoChar(Self : access Object; arg : in Corba.Char) return Corba.Char is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echoOctet(Self : access Object; arg : in Corba.Octet) return Corba.Octet is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echoString(Self : access Object; arg : in Corba.String) return Corba.String is
+   begin
+      return Arg ;
+   end ;
+
    procedure simple_exception_test(Self : access Object) is
    begin
       raise Simple_Exception ;
@@ -88,9 +151,13 @@ package body all_types.Impl is
    -------------
    procedure Initialize(Self : in out Object) is
    begin
-      Omniobject.Init_Local_Object(Omniobject.Implemented_Object(Self),
-                                 Repository_Id, all_types.Skeleton.Dispatch'Access) ;
+      Omniobject.Initialize(Omniobject.Implemented_Object(Self)) ;
+      Init_Local_Object(Self,
+                        Repository_Id,
+                        All_Types.Skeleton.Dispatch'Access,
+                        All_Types.Is_A'Access) ;
       -- You can add things *BELOW* this line
+
    end Initialize ;
 
 

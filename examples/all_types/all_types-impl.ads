@@ -6,6 +6,26 @@ package all_types.Impl is
    type Object_Ptr is access all Object ;
 
 
+   function echoBoolean(Self : access Object; arg : in Corba.Boolean) return Corba.Boolean ;
+
+   function echoShort(Self : access Object; arg : in Corba.Short) return Corba.Short ;
+
+   function echoLong(Self : access Object; arg : in Corba.Long) return Corba.Long ;
+
+   function echoUShort(Self : access Object; arg : in Corba.Unsigned_Short) return Corba.Unsigned_Short ;
+
+   function echoULong(Self : access Object; arg : in Corba.Unsigned_Long) return Corba.Unsigned_Long ;
+
+   function echoFloat(Self : access Object; arg : in Corba.Float) return Corba.Float ;
+
+   function echoDouble(Self : access Object; arg : in Corba.Double) return Corba.Double ;
+
+   function echoChar(Self : access Object; arg : in Corba.Char) return Corba.Char ;
+
+   function echoOctet(Self : access Object; arg : in Corba.Octet) return Corba.Octet ;
+
+   function echoString(Self : access Object; arg : in Corba.String) return Corba.String ;
+
    procedure simple_exception_test(Self : access Object ) ;
    procedure complexe_exception_test(Self : access Object ) ;
    function echo1(Self : access Object; arg : in example) return example ;

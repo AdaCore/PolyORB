@@ -61,6 +61,121 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
+   -- simple types
+
+   declare
+      Arg : Corba.Boolean := True ;
+   begin
+   Put_Line ("####### Test of Boolean #######") ;
+   Put_Line("I sent : " & Corba.Boolean'Image(Arg)) ;
+   Arg := EchoBoolean(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.Boolean'Image(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   declare
+      Arg : Corba.Short := 123 ;
+   begin
+   Put_Line ("####### Test of Short #######") ;
+   Put_Line("I sent : " & Corba.Short'Image(Arg)) ;
+   Arg := EchoShort(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.Short'Image(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   declare
+      Arg : Corba.Long := 456 ;
+   begin
+   Put_Line ("####### Test of Long #######") ;
+   Put_Line("I sent : " & Corba.Long'Image(Arg)) ;
+   Arg := EchoLong(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.Long'Image(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   declare
+      Arg : Corba.Unsigned_Short := 123 ;
+   begin
+   Put_Line ("####### Test of Unsigned_Short #######") ;
+   Put_Line("I sent : " & Corba.Unsigned_Short'Image(Arg)) ;
+   Arg := EchoUShort(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.Unsigned_Short'Image(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   declare
+      Arg : Corba.Unsigned_Long := 123 ;
+   begin
+   Put_Line ("####### Test of Unsigned_Long #######") ;
+   Put_Line("I sent : " & Corba.Unsigned_Long'Image(Arg)) ;
+   Arg := EchoULong(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.Unsigned_Long'Image(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   declare
+      Arg : Corba.Float := 1.5 ;
+   begin
+   Put_Line ("####### Test of Float #######") ;
+   Put_Line("I sent : " & Corba.Float'Image(Arg)) ;
+   Arg := EchoFloat(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.Float'Image(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   declare
+      Arg : Corba.Double := 3.14 ;
+   begin
+   Put_Line ("####### Test of Double #######") ;
+   Put_Line("I sent : " & Corba.Double'Image(Arg)) ;
+   Arg := EchoDouble(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.Double'Image(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   declare
+      Arg : Corba.Char := 'A' ;
+   begin
+   Put_Line ("####### Test of Char #######") ;
+   Put_Line("I sent : " & Corba.Char'Image(Arg)) ;
+   Arg := EchoChar(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.Char'Image(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   declare
+      Arg : Corba.Octet := Corba.Octet(5) ;
+   begin
+   Put_Line ("####### Test of Octet #######") ;
+   Put_Line("I sent : " & Corba.Octet'Image(Arg)) ;
+   Arg := EchoOctet(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.Octet'Image(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   declare
+      Arg : Corba.String := Corba.To_Corba_String("Hello world");
+   begin
+   Put_Line ("####### Test of String #######") ;
+   Put_Line("I sent : " & Corba.To_Standard_String(Arg)) ;
+   Arg := EchoString(MyAll_Types, Arg) ;
+   Put_Line("I received : " & Corba.To_Standard_String(Arg)) ;
+   Put_Line("") ;
+   Put_Line("") ;
+   end ;
+
+   -- complex types
+
+
    -- Test of the simple exception
    declare
    begin
