@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,6 @@
 
 --  $Id$
 
-with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
 
@@ -46,12 +45,25 @@ package body CORBA.ServerRequest is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   function Operation (O : Object) return Identifier is
+   ---------------
+   -- Operation --
+   ---------------
+
+   function Operation
+     (O : Object)
+     return Identifier is
    begin
       return Identifier (O.Operation);
    end Operation;
 
-   procedure Arguments (O : access Object; NV : in out NVList.Ref) is
+   ---------------
+   -- Arguments --
+   ---------------
+
+   procedure Arguments
+     (O  : access Object;
+      NV : in out NVList.Ref)
+   is
       PolyORB_Args : PolyORB.Any.NVList.Ref
         := CORBA.NVList.To_PolyORB_Ref (NV);
    begin
@@ -60,15 +72,25 @@ package body CORBA.ServerRequest is
       NV := CORBA.NVList.To_CORBA_Ref (PolyORB_Args);
    end Arguments;
 
-   procedure Set_Result (O : access Object; Val : Any)
-   is
+   ----------------
+   -- Set_Result --
+   ----------------
+
+   procedure Set_Result
+     (O   : access Object;
+      Val :        Any) is
    begin
       PolyORB.Requests.Set_Result
         (PolyORB.Requests.Request_Access (O), Val);
    end Set_Result;
 
-   procedure Set_Exception (Obj : access Object; Val : Any)
-   is
+   -------------------
+   -- Set_Exception --
+   -------------------
+
+   procedure Set_Exception
+     (Obj : access Object;
+      Val :        Any) is
    begin
       pragma Debug
         (O ("Server notifies exception: " & Image (Val)));
