@@ -69,3 +69,4 @@ $(IDLAC): force
 
 force:
 
+include $(top_srcdir)/Makefile.common
