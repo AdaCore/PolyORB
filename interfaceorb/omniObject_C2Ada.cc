@@ -108,11 +108,14 @@ omniObject_C2Ada::dispatch(GIOP_S &giop_s,
 
 #ifdef DEBUG
   cerr << "omniObject_C2Ada::dispatch : call the Ada code" << endl ;
+
   if (Ada_OmniObject_Pointer == 0) {
-    cerr << "omniObject_C2Ada::dispatch : Ada_OmniObject_Pointer not null" << endl ;
-  } else {
     cerr << "omniObject_C2Ada::dispatch : Ada_OmniObject_Pointer *IS* null" << endl ;
+  } else {
+    cerr << "omniObject_C2Ada::dispatch : Ada_OmniObject_Pointer is not null" << endl ;
   }
+
+  cerr << "omniObject_C2Ada::dispatch is_proxy ? " << is_proxy() << endl ;
 #endif
 
   Ada_OmniObject_Pointer->dispatch(ada_giop_s,

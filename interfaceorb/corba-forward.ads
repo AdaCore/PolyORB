@@ -72,7 +72,7 @@ package Corba.Forward is
    -- for all IDL interfaces (Corba.Object.Ref is indeed
    -- an IDL interface)
 
-   function Get_Nil_Ref(Self : in Ref) return Ref ;
+   --function Get_Nil_Ref(Self : in Ref) return Corba.Object.Constant_Ref_Ptr ;
    -- see comment for To_Ref
 
    generic

@@ -66,16 +66,16 @@ package body Corba.Forward is
 
    -- Get_Nil_Ref
    --------------
-   function Get_Nil_Ref(Self : in Ref) return Ref is
-      Dummy_Result : Ref ;
-   begin
-      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
-                                     Corba.CRLF
-                                     & "Corba.Forward.Get_Nil_Ref is illegal on a forwarded type"
-                                     & Corba.CRLF
-                                     & "use From_Forward first to convert it into a non forwarded type") ;
-      return Dummy_Result ;
-   end ;
+   --function Get_Nil_Ref(Self : in Ref) return Corba.Object.Constant_Ref_Ptr is
+   --begin
+   --   Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+   --                                  Corba.CRLF
+   --                                  & "Corba.Forward.Get_Nil_Ref is illegal on a forwarded type"
+   --                                  & Corba.CRLF
+   --                                  & "use From_Forward first to convert it into a non forwarded type") ;
+   --   -- dummy return
+   --   return Corba.Object.Nil_Ref'Access ;
+   --end ;
 
 
    --------------------------------------------------------

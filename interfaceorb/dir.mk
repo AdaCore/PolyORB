@@ -15,6 +15,23 @@ CXXOBJS          = \
 		omniObject_C2Ada.o \
 		proxyObjectFactory_C2Ada.o  
 
+CXXSRCS       =   \
+		Ada_Corba_Exceptions.cc \
+		Ada_Corba_Orb.cc \
+		Ada_Corba_Boa.cc \
+		Ada_exceptions.cc \
+		Ada_Giop_c.cc \
+		Ada_Giop_s.cc \
+		Ada_Iop.cc \
+		Ada_memBufferedStream.cc \
+		Ada_netBufferedStream.cc \
+		Ada_OmniObject.cc \
+		Ada_OmniRopeAndKey.cc \
+		omniObject_C2Ada.cc \
+		proxyObjectFactory_C2Ada.cc \
+		omniObject_C2Ada.cc \
+		proxyObjectFactory_C2Ada.cc
+
 
 DIR_CPPFLAGS = -I. -I../omniORB_2.7.0/include
 DIR_CPPFLAGS += $(CORBA_CPPFLAGS) 

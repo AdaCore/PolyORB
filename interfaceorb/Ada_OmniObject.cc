@@ -63,6 +63,15 @@
 Ada_OmniObject::Ada_OmniObject()
 {
   Init_Ok = false;
+};
+
+// Constructor
+//------------
+Ada_OmniObject::Ada_OmniObject(omniObject_C2Ada* c_obj)
+{
+
+  C_Object = c_obj ;
+  Init_Ok = true;
 
 };
 
@@ -76,6 +85,7 @@ Ada_OmniObject::~Ada_OmniObject()
     // we must not delete C_Object because there might be other
     // refernces to this object. omniORB's objectRelease is
     // here to handle memory
+
     Init_Ok = false ;
   } else {
     throw omniORB::fatalException(__FILE__,
@@ -111,7 +121,11 @@ ADABROKER_TRY
   if (o->Init_Ok) {
 
 #ifdef DEBUG
-    cerr << "Ada_OmniObject::Destructor Init_Ok = true -> DESTROYING OBJECT !!" << endl ;
+    if (o->is_proxy())
+      cerr << "Ada_OmniObject::Destructor Init_Ok = true -> DESTROYING WRAPPER AROUND PROXY OBJECT !!" << endl ;
+    else
+      cerr << "Ada_OmniObject::Destructor Init_Ok = true -> DESTROYING WRAPPER AROUND *LOCAL* OBJECT !!" << endl ;
+      
 #endif
       delete o ;
 
@@ -140,6 +154,9 @@ ADABROKER_TRY
   // Creation of the underlying omniobject_C2Ada object
   try {
      C_Object = new omniObject_C2Ada (this) ;
+     // omni::objectDuplicate(C_Object) ;
+     // when we create the omniObject_C2Ada, its reference count is 0
+     // we have to duplicate it to set it to 1
   } catch (...) {
     cerr << "Ada_OmniObject::initLocalObject : you cannot initialize an object before initializing the ORB and the BOA" << endl
 	 << "     >   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init(\"omniORB2\") ;" << endl
@@ -190,7 +207,11 @@ Ada_OmniObject::objectDuplicate(Ada_OmniObject* same) {
 ADABROKER_TRY
   if (same->Init_Ok) {
 #ifdef DEBUG
-    cerr << "Ada_OmniObject::objectDuplicate : Init_Ok = true" << endl ;
+    if (same->is_proxy()) {
+      cerr << "Ada_OmniObject::objectDuplicate : Init_Ok = true, duplicating PROXY object " << endl ;
+    } else {
+      cerr << "Ada_OmniObject::objectDuplicate : Init_Ok = true, duplicating *LOCAL* object " << endl ;
+    }
 #endif
     omni::objectDuplicate(same->C_Object) ;
     // register a new pointer to this object
@@ -470,7 +491,8 @@ ADABROKER_TRY
   if (adaobj == 0) {
     return 0 ;
   } else {
-    return adaobj->Ada_OmniObject_Pointer ;
+    // create a new Ada_OmniObject that points to the same omniObject_C2Ada
+    return new Ada_OmniObject (adaobj) ;
   }
 ADABROKER_CATCH
   // never reach here just a default return for dummy compilers.

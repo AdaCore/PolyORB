@@ -247,10 +247,11 @@ package body Corba.Object is
 
    -- Get_Nil_Ref
    --------------
-   function Get_Nil_Ref(Self : in Ref) return Ref is
-   begin
-      return Nil_Ref ;
-   end ;
+--   function Get_Nil_Ref(Self : in Ref) return Constant_Ref_Ptr is
+--   begin
+--      return Nil_Ref'Access ;
+--   end ;
+
 
 
    -- Get_OmniObject_Ptr
@@ -287,6 +288,15 @@ package body Corba.Object is
 
       -- if the result is correct
       if not (To.Omniobj = null) then
+
+         -- just print a message to tell if the C++ object is a proxy or a local object
+         if  Omniobject.Is_Proxy(To.Omniobj.all) then
+            pragma Debug(Output(Debug, "Corba.Object.String_To_Object :  creating Ref with local object inside")) ;
+            null ;
+         else
+            pragma Debug(Output(Debug, "Corba.Object.String_To_Object :  creating Ref with local object inside")) ;
+            null ;
+         end if ;
 
          -- check if the omniobject we got can be put into
          -- To (type implied the repoId)
@@ -350,13 +360,29 @@ package body Corba.Object is
    procedure Internal_Copy(From : in Ref'Class ;
                            To : in out Ref'Class) is
    begin
-      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy : entering ...")) ;
+      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Ref) : entering ...")) ;
       Finalize(To) ;
       To.Omniobj := From.Omniobj ;
       To.Dynamic_Type := From.Dynamic_Type ;
-      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy : adjusting ...")) ;
+      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Ref) : adjusting ...")) ;
       Adjust(To) ;
-      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy : exiting ... OK")) ;
+      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Ref) : exiting ... OK")) ;
+   end ;
+
+
+   -- Internal_Copy
+   ----------------
+   procedure Internal_Copy(From : in Omniobject.Implemented_Object'Class ;
+                           Dyn_Type : in Constant_Ref_Ptr ;
+                           To : in out Ref'Class) is
+   begin
+      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Impl) : entering ...")) ;
+      Finalize(To) ;
+      To.Omniobj := Omniobject.Get_Object_Ptr(From) ;
+      To.Dynamic_Type := Dyn_Type ;
+      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Impl) : adjusting ...")) ;
+      Adjust(To) ;
+      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Impl) : exiting ... OK")) ;
    end ;
 
 

@@ -66,6 +66,11 @@ public:
   Ada_OmniObject (void) ;
   // default constructor
   
+  Ada_OmniObject (omniObject_C2Ada* c_obj) ;
+  // constructor for proxy objects, only called in C++
+  // that makes this Ada_OmniObject point on an already existent
+  // omniObject_C2Ada
+  
   virtual ~Ada_OmniObject() ;
 
   static Ada_OmniObject *Constructor() ;

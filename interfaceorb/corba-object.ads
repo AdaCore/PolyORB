@@ -129,7 +129,6 @@ package Corba.Object is
    -- used to cast any Corba.Object.Ref'Class into a Corba.Object.Ref
    -- it has to be overloaded for all descendants of Corba.Object.Ref
 
-
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
@@ -147,24 +146,28 @@ package Corba.Object is
    -- the repository ID of Corba.Object.Ref
 
 
-   function Get_Nil_Ref(Self : in Ref) return Ref ;
+   -- function Get_Nil_Ref(Self : in Ref) return Constant_Ref_Ptr ;
    -- this function returns a Nil_Ref of the same type
    -- of the object it is given. It is used for
    -- typing (see below)
 
 
-   -- function Get_OmniObject_Ptr (Self : in Ref) return Omniobject.Object_Ptr ;
-   -- return the underlying omniobject
-
    function Get_Omniobject_Ptr(Self : in Ref'Class)
                                return Omniobject.Object_Ptr ;
    -- returns the underlying Omniobject.Object
+   -- used in omniproxycallwrapper
 
    procedure Internal_Copy(From : in Ref'Class ;
                            To : in out Ref'Class) ;
    -- This is a workaround for a bug in gnat 3.11p
    -- it simply copies the two fields of From
    -- into To. It also finalizes and adjusts whrn needed
+
+   procedure Internal_Copy(From : in Omniobject.Implemented_Object'Class ;
+                           Dyn_Type : in Constant_Ref_Ptr ;
+                           To : in out Ref'Class) ;
+   -- this function is used to create a proxy object (Ref)
+   -- pointing on a local object
 
    -----------------------------------------------
    --             object <-> IOR                --

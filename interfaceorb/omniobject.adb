@@ -131,7 +131,11 @@ package body OmniObject is
    function Get_Repository_Id(Self : in Implemented_Object)
                               return Corba.String is
    begin
-      return Repository_Id ;
+      if Is_Nil(Self) then
+         Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+                                        "Get_Repository_Id cannot be invoked on a nil object") ;
+      end if ;
+      return Get_Repository_Id(Self.Omniobj.all) ;
    end ;
 
 
@@ -147,6 +151,14 @@ package body OmniObject is
                                         "Cannot call hash on a nil object") ;
       end if ;
       return Hash(Self.Omniobj.all, Maximum) ;
+   end ;
+
+
+   -- Get_Object_Ptr
+   -----------------
+   function Get_Object_Ptr(Self : in Implemented_Object) return Object_Ptr is
+   begin
+      return Self.Omniobj ;
    end ;
 
 
@@ -360,18 +372,19 @@ package body OmniObject is
       Result : Object_Ptr ;
    begin
       C_Mdr := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Most_Derived_Repoid)) ;
-      -- never deallocatd, it will be stored in the object
+      -- never deallocatd, it will be stored in the object (?? to be checked ??)
       C_R := Sys_Dep.Boolean_Ada_To_C(Release) ;
       C_Profiles := System.Address(Profiles) ;
 
       C_Result := C_Create_Omniobject(C_Mdr, C_Profiles, C_R) ;
       Result :=  To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
 
-      pragma Debug(Output(Omniobject,"Omniobject.Create_Omniobject : WARNING : C++ function returned NULL")) ;
-
       if not (Result = null) then
          Result.all.Implobj := null ;
          pragma Debug(Output(Omniobject,"Omniobject.Create_Omniobject : setting result.all.implobj to null")) ;
+      else
+         pragma Debug(Output(Omniobject,"Omniobject.Create_Omniobject : WARNING : C++ function returned NULL")) ;
+         null ;
       end if ;
 
       return Result ;
@@ -658,10 +671,12 @@ package body OmniObject is
    -----------
    procedure Adjust (Self: in out Implemented_Object) is
    begin
-      pragma Debug(Output(Omni_Fin,"Omniobject.Adjust")) ;
-     if not Is_Nil(Self) then
-         Self.Omniobj := Omniobject_Duplicate(Self.omniobj) ;
-      end if ;
+      null ;
+      --      pragma Debug(Output(Omni_Fin,"Omniobject.Adjust")) ;
+--     if not Is_Nil(Self) then
+--         Self.Omniobj := Omniobject_Duplicate(Self.omniobj) ;
+--        Self.Omniobj.all.Implobj := Self'Access ;
+--      end if ;
    end ;
 
    -- Finalize
@@ -690,12 +705,17 @@ package body OmniObject is
    -----------------------------------------------
 
 
+   -- C_Is_Proxy
+   -------------
+   function C_Is_Proxy(Self : in Object'Class) return Sys_Dep.C_Boolean ;
+   pragma Import (CPP, C_Is_Proxy,"is_proxy__14Ada_OmniObject") ;
+
    -- Is_Proxy
    -----------
    function Is_Proxy (Self : in Object'Class)
                       return Boolean is
    begin
-      return Self.Implobj = null ;
+      return Sys_Dep.Boolean_C_To_Ada(C_Is_Proxy(Self)) ;
    end ;
 
 
@@ -899,14 +919,12 @@ package body OmniObject is
             when E : Corba.Wrong_Transaction =>
               Corba.Get_Members(E, Exbd) ;
               MarshallSystemException(Corba.Constants.Wrong_Transaction_Repoid, Exbd, Orls) ;
-            when E : Corba.Adabroker_Fatal_Error
+            when Corba.Adabroker_Fatal_Error
               | Corba.No_Initialisation_Error
               | Corba.C_Out_Of_Range
               | Corba.OmniORB_Fatal_Error =>
-               pragma Debug(Output(Omniobject, "Omniobject.Dispatch : caught "
-                                   & Ada.Exceptions.Exception_Name(E))) ;
-               Exbd := (0, Corba.COMPLETED_MAYBE) ;
-               MarshallSystemException(Corba.Constants.Internal_Repoid, Exbd, Orls) ;
+               pragma Debug(Output(Omniobject,"Omniobject.Dispatch : caught a serious error : re-raising it !!")) ;
+               raise ;
             when others =>
                Exbd := (0, Corba.COMPLETED_MAYBE) ;
                MarshallSystemException(Corba.Constants.Unknown_Repoid, Exbd, Orls) ;
@@ -970,6 +988,10 @@ package body OmniObject is
    -- we cannot write
    -- toto : Object_Ptr := new Object
    -- we have to call the C++ constructor to create objects
+   -- this constructor is only used in Initialize(Implemented_Object)
+   -- it must not be ued otherwise, because it creates non-initialized objects
+   -- which are initialized afrewards in Initialize(Implemented_Object)
+   -- see Create_Omniobject : another way of creatins omniobject.Object
 
    -- Object_Ptr_Constructor
    -------------------------

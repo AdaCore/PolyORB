@@ -83,7 +83,7 @@ package OmniObject is
    --            TYPE DEFINITION                --
    -----------------------------------------------
 
-   type Implemented_Object is abstract tagged private ;
+   type Implemented_Object is abstract tagged limited private ;
 
    type Implemented_Object_Ptr is access all Implemented_Object'Class ;
 
@@ -165,15 +165,14 @@ package OmniObject is
 
    function Get_Repository_Id(Self : in Implemented_Object)
                               return Corba.String ;
-
-
-   Repository_Id : Corba.String
-     := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
-
+   -- return the repository_id of the C++ object
 
    function Hash(Self : in Implemented_Object ;
                  Maximum : in Corba.Unsigned_Long) return Corba.Unsigned_Long ;
    -- returns a hash value for this object
+
+   function Get_Object_Ptr(Self : in Implemented_Object) return Object_Ptr;
+   -- returns its underlying Object
 
    -----------------------------------------------
    --      registering into the ORB             --
@@ -332,6 +331,11 @@ package OmniObject is
    --          miscellaneous                    --
    -----------------------------------------------
 
+   function Is_Proxy (Self : in Object'Class)
+                      return Boolean ;
+   -- returns true if this is a proxy object
+   -- by calling the C++ function on the omniobject
+
    function Non_Existent(Self : in Object'Class) return Corba.Boolean ;
    -- returns true if the ORB is sure that this object
    -- does not exist
@@ -383,7 +387,7 @@ private
    -----------------------------------------------
 
 
-  type Implemented_Object is abstract new Ada.Finalization.Controlled with record
+  type Implemented_Object is abstract new Ada.Finalization.Limited_Controlled with record
       Omniobj : Object_Ptr ;
       Dispatch : Dispatch_Procedure ;
       Is_A : Is_A_Function ;
@@ -405,12 +409,6 @@ private
                                                             Address_To_Object.Object_Pointer) ;
    -- useful routines to convert to/from C types.
 
-
-   function Is_Proxy (Self : in Object'Class)
-                      return Boolean ;
-   -- returns true if this is a proxy object
-   -- there is no need to call the C++ function
-   -- To Know It Because We Have The Information in Ada
 
 
    procedure Set_Repository_Id(Self : in out Object'class ;
