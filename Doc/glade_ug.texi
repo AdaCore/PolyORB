@@ -952,7 +952,22 @@ access types see @ref{Transmitting Dynamic Structure}.
 @node Incorrect Remote Dispatching, Partition Ids, Marshalling and Unmarshalling Operations, Partition Communication Subsystem
 @subsection Incorrect Remote Dispatching
 
-@b{Sam, please write some stuff on E.4 (18)}
+When a remote subprogram takes a class wide argument, there is a risk of 
+using an object of a derived type that will not be clean enough to be
+transmitted. For example, given a type called Root_Type, if a 
+remote procedure takes a Root_Type'Class as an argument, the user can
+call it with an instance of Derived_Type that is Root_Type enriched with 
+a field of a task type. This will lead to a non-communicable type to be
+transmitted between partitions.
+
+To prevent this, paragraph E.4(18) of the reference manual explains that
+any actual type used as parameter for a remote call whose formal type is
+a class wide type must be declared in the visible part of a Pure or
+Remote_Types package. This property also holds for remote functions
+returning class wide types. To summarize, the actual type used should
+have been eligible for being declared where the root type has been
+declared. If a `bad' object is given to a remote subprogram,
+@i{Program_Error} will be raised at the point of the call.
 
 @node Partition Ids, Concurrent Remote Calls, Incorrect Remote Dispatching, Partition Communication Subsystem
 @subsection Partition Ids
