@@ -1,3 +1,11 @@
+Fri Nov 29 12:40:47 1996  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe.ads, xe.adb, xe_parse.adb, xe_stubs.adb, xe_back.adb: Add a
+ 	new partition attribute Permanent and all the needed operations.
+
+	* xe.ads, xe.adb, xe_build.adb: Use XE subprograms to build
+	GNATDIST report.
+
 Fri Nov 29 11:47:57 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_stubs.adb: Generate a call to Set_Boot_Server in elaboration

@@ -837,6 +837,15 @@ procedure XE_Stubs is
       end if;
       Dwrite_Eol (FD);
 
+      --  The partition should not terminate.
+
+      if Get_Permanent (PID) then
+         Dwrite_Str (FD, "   Set_Permanent (True);");
+      else
+         Dwrite_Str (FD, "   Set_Permanent (True);");
+      end if;
+      Dwrite_Eol (FD);
+
       --  If a protocol has been specified, then use it (with its data
       --  if present).
 

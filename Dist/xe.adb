@@ -244,6 +244,7 @@ package body XE is
       Partitions.Table (Partition).Storage_Dir     := No_Storage_Dir;
       Partitions.Table (Partition).Command_Line    := No_Command_Line;
       Partitions.Table (Partition).Main_Subprogram := No_Name;
+      Partitions.Table (Partition).Permanent       := Unknown;
       Partitions.Table (Partition).First_Unit      := Null_CUID;
       Partitions.Table (Partition).Last_Unit       := Null_CUID;
       Partitions.Table (Partition).To_Build        := True;
@@ -1526,6 +1527,7 @@ package body XE is
 
    procedure Show_Configuration is
 
+      Main         : Main_Subprogram_Type;
       Host         : Host_Id;
       Storage_Dir  : Storage_Dir_Name_Type;
       Command_Line : Command_Line_Type;
@@ -1576,9 +1578,10 @@ package body XE is
             Write_Name (I.Name);
             Write_Eol;
 
-            if I.Main_Subprogram /= No_Name then
+            Main := Get_Main_Subprogram (P);
+            if Main /= No_Main_Subprogram then
                Write_Str ("   Main     : ");
-               Write_Name (I.Main_Subprogram);
+               Write_Name (Main);
                Write_Eol;
             end if;
 
@@ -1606,31 +1609,22 @@ package body XE is
                Write_Eol;
             end if;
 
-            if I.Storage_Dir /= No_Storage_Dir then
-               Storage_Dir := I.Storage_Dir;
-            elsif Default_Storage_Dir /= No_Storage_Dir then
-               Storage_Dir := Default_Storage_Dir;
-            else
-               Storage_Dir := No_Storage_Dir;
-            end if;
-
+            Storage_Dir := Get_Storage_Dir (P);
             if Storage_Dir /= No_Storage_Dir then
                Write_Str ("   Storage  : ");
                Write_Name (Storage_Dir);
                Write_Eol;
             end if;
 
-            if I.Command_Line /= No_Command_Line then
-               Command_Line := I.Command_Line;
-            elsif Default_Command_Line /= No_Command_Line then
-               Command_Line := Default_Command_Line;
-            else
-               Command_Line := No_Command_Line;
-            end if;
-
+            Command_Line := Get_Command_Line (P);
             if Command_Line /= No_Command_Line then
                Write_Str ("   Command  : ");
                Write_Name (Command_Line);
+               Write_Eol;
+            end if;
+
+            if Get_Permanent (P) then
+               Write_Str ("   Permanent: yes");
                Write_Eol;
             end if;
 
@@ -1657,6 +1651,10 @@ package body XE is
       Write_Eol;
 
    end Show_Configuration;
+
+   -----------------------
+   -- Get_Absolute_Exec --
+   -----------------------
 
    function Get_Absolute_Exec (P : in PID_Type) return Name_Id is
       Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
@@ -1691,6 +1689,10 @@ package body XE is
 
    end Get_Absolute_Exec;
 
+   -----------------------
+   -- Get_Relative_Exec --
+   -----------------------
+
    function Get_Relative_Exec (P : in PID_Type) return Name_Id is
       Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
       Name : Name_Id renames Partitions.Table (P).Name;
@@ -1715,6 +1717,10 @@ package body XE is
       end if;
 
    end Get_Relative_Exec;
+
+   --------------
+   -- Get_Host --
+   --------------
 
    function Get_Host            (P : in PID_Type) return Name_Id is
       H : Host_Id := Partitions.Table (P).Host;
@@ -1752,7 +1758,27 @@ package body XE is
 
    end Get_Host;
 
-   function Get_Command_Line    (P : in PID_Type) return Name_Id is
+   ---------------------
+   -- Get_Storage_Dir --
+   ---------------------
+
+   function Get_Storage_Dir (P : in PID_Type) return Storage_Dir_Name_Type is
+      Storage_Dir : Storage_Dir_Name_Type := Partitions.Table (P).Storage_Dir;
+   begin
+
+      if Storage_Dir = No_Storage_Dir then
+         Storage_Dir := Default_Storage_Dir;
+      end if;
+
+      return Storage_Dir;
+
+   end Get_Storage_Dir;
+
+   ----------------------
+   -- Get_Command_Line --
+   ----------------------
+
+   function Get_Command_Line    (P : in PID_Type) return Command_Line_Type is
       Cmd : Command_Line_Type := Partitions.Table (P).Command_Line;
    begin
 
@@ -1764,7 +1790,13 @@ package body XE is
 
    end Get_Command_Line;
 
-   function Get_Main_Subprogram (P : in PID_Type) return Name_Id is
+   -------------------------
+   -- Get_Main_Subprogram --
+   -------------------------
+
+   function Get_Main_Subprogram
+     (P : in PID_Type)
+      return Main_Subprogram_Type is
       Main : Main_Subprogram_Type := Partitions.Table (P).Main_Subprogram;
    begin
 
@@ -1775,6 +1807,31 @@ package body XE is
       return Main;
 
    end Get_Main_Subprogram;
+
+   -------------------
+   -- Get_Permanent --
+   -------------------
+
+   function Get_Permanent
+     (P : in PID_Type)
+      return Boolean is
+      Permanent : Permanent_Type := Partitions.Table (P).Permanent;
+   begin
+
+      if Permanent = Unknown then
+         Permanent := Default_Permanent;
+      end if;
+      if Permanent = Unknown then
+         Permanent := No;
+      end if;
+
+      return Permanent = Yes;
+
+   end Get_Permanent;
+
+   --------------------
+   -- Get_Unit_Sfile --
+   --------------------
 
    function Get_Unit_Sfile (U : in Unit_Id) return File_Name_Type is
    begin

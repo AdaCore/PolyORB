@@ -98,12 +98,13 @@ package XE is
        Attribute_Host,           --  (1) Host Name
        Attribute_Storage_Dir,    --  (2) Storage directory
        Attribute_Main,           --  (3) Main procedure
-       Attribute_Command_Line    --  (4) Command line
+       Attribute_Command_Line,   --  (4) Command line
+       Attribute_Permanent       --  (5) Permanent
        );
 
    Attr_Wrong : constant Int := 200;
    Attr_First : constant Int := Attr_Wrong + 1;
-   Attr_Last  : constant Int := Attr_Wrong + 4;
+   Attr_Last  : constant Int := Attr_Wrong + 5;
    --  Should match Attribute_Type length
 
    type Attr_Type is new Int range Attr_Wrong .. Attr_Last;
@@ -611,11 +612,14 @@ package XE is
    subtype Storage_Dir_Name_Type is Name_Id;
    No_Storage_Dir    : constant Storage_Dir_Name_Type := No_Name;
 
+   type Permanent_Type is (Yes, No, Unknown);
+
    --  Default values
    Default_Main          : Main_Subprogram_Type  := No_Main_Subprogram;
    Default_Host          : Host_Id               := Null_Host;
    Default_Storage_Dir   : Storage_Dir_Name_Type := No_Storage_Dir;
    Default_Command_Line  : Command_Line_Type     := No_Command_Line;
+   Default_Permanent     : Permanent_Type        := Unknown;
 
    type Partition_Type is record
       Name            : Partition_Name_Type;
@@ -623,6 +627,7 @@ package XE is
       Storage_Dir     : Storage_Dir_Name_Type;
       Command_Line    : Command_Line_Type;
       Main_Subprogram : Unit_Name_Type;
+      Permanent       : Permanent_Type;
       First_Unit      : CUID_Type;
       Last_Unit       : CUID_Type;
       To_Build        : Boolean;
@@ -695,8 +700,10 @@ package XE is
    function Get_Absolute_Exec   (P : in PID_Type) return Name_Id;
    function Get_Relative_Exec   (P : in PID_Type) return Name_Id;
    function Get_Host            (P : in PID_Type) return Name_Id;
-   function Get_Command_Line    (P : in PID_Type) return Name_Id;
-   function Get_Main_Subprogram (P : in PID_Type) return Name_Id;
+   function Get_Command_Line    (P : in PID_Type) return Command_Line_Type;
+   function Get_Main_Subprogram (P : in PID_Type) return Main_Subprogram_Type;
+   function Get_Storage_Dir     (P : in PID_Type) return Storage_Dir_Name_Type;
+   function Get_Permanent       (P : in PID_Type) return Boolean;
    function Get_Unit_Sfile      (U : in Unit_Id)  return File_Name_Type;
 
    Configuration_File : Name_Id := No_Name;

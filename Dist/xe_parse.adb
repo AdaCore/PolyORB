@@ -1603,6 +1603,24 @@ package body XE_Parse is
         (Configuration_Node,
          Str_To_Id ("private"));
 
+      --  type Boolean_Type is (False, True); (standard)
+
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Str_To_Id ("boolean"),
+         Type_Kind    => Pre_Type_Boolean,
+         Structure    => False,
+         Type_Sloc    => Null_Location,
+         Type_Node    => Boolean_Type_Node);
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("true"),
+         Boolean_Type_Node,
+         Not_Unique,
+         Null_Location,
+         Variable_Node);
+
       --  type string (standard)
 
       Declare_Type
@@ -1698,6 +1716,14 @@ package body XE_Parse is
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
+      Declare_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("permanent"),
+         Attr_Type_Node => Boolean_Type_Node,
+         Attribute_Kind => Attribute_Permanent,
+         Attribute_Sloc => Null_Location,
+         Attribute_Node => Attribute_Node);
+
       --  type type__ada_unit (standard)
 
       Declare_Type
@@ -1749,24 +1775,6 @@ package body XE_Parse is
 
       --  To easily retrieve the enumeration literal.
       Set_Variable_Mark (Variable_Node, Convert (None_Starter));
-
-      --  type Boolean_Type is (False, True); (standard)
-
-      Declare_Type
-        (Conf_Node    => Configuration_Node,
-         Type_Name    => Str_To_Id ("boolean"),
-         Type_Kind    => Pre_Type_Boolean,
-         Structure    => False,
-         Type_Sloc    => Null_Location,
-         Type_Node    => Boolean_Type_Node);
-
-      Declare_Variable
-        (Configuration_Node,
-         Str_To_Id ("true"),
-         Boolean_Type_Node,
-         Not_Unique,
-         Null_Location,
-         Variable_Node);
 
       --  To easily retrieve the enumeration literal.
       Set_Variable_Mark (Variable_Node, 1);
