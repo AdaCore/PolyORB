@@ -44,6 +44,7 @@ with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
+with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Types;
 

@@ -71,7 +71,7 @@ package body MOMA.Message_Producers is
    --  an ORB node.
 
    procedure Send_To_MOM
-     (Servant : PolyORB.References.Ref;
+     (Servant : MOMA.Types.Ref;
       Message : MOMA.Messages.Message'Class);
    --  Send Message to a MOM object.
 
@@ -237,7 +237,7 @@ package body MOMA.Message_Producers is
 
    function Get_Ref
      (Self : Message_Producer)
-     return PolyORB.References.Ref is
+     return MOMA.Types.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -352,7 +352,7 @@ package body MOMA.Message_Producers is
    -----------------
 
    procedure Send_To_MOM
-     (Servant : PolyORB.References.Ref;
+     (Servant : MOMA.Types.Ref;
       Message : MOMA.Messages.Message'Class)
    is
       Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
@@ -516,7 +516,7 @@ package body MOMA.Message_Producers is
 
    procedure Set_Ref
      (Self : in out Message_Producer;
-      Ref  :        PolyORB.References.Ref) is
+      Ref  :        MOMA.Types.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;

@@ -40,6 +40,7 @@ with Ada.Strings.Unbounded;
 with PolyORB.Any;
 pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
 
+with PolyORB.References;
 with PolyORB.Types;
 with PolyORB.Sequences.Unbounded;
 
@@ -62,6 +63,7 @@ package MOMA.Types is
    subtype String         is PolyORB.Types.String;
    subtype Unsigned_Long  is PolyORB.Types.Unsigned_Long;
    subtype Unsigned_Short is PolyORB.Types.Unsigned_Short;
+   subtype Ref            is PolyORB.References.Ref;
 
    function To_Any (Item : in Any)                return Any;
    function To_Any (Item : in Boolean)            return Any;
@@ -87,7 +89,14 @@ package MOMA.Types is
    function From_Any (Item : in Any) return Unsigned_Long;
    function From_Any (Item : in Any) return Unsigned_Short;
 
-   function "=" (Left, Right : in Any) return Boolean;
+   function "=" (Left, Right : in Any) return Boolean
+     renames PolyORB.Any."=";
+
+   function "=" (Left, Right : in Ref) return Boolean
+     renames PolyORB.References."=";
+
+   Nil_Ref : constant MOMA.Types.Ref
+     := MOMA.Types.Ref (PolyORB.References.Nil_Ref);
 
    --
    --  String conversion fonctions.

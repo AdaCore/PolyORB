@@ -61,8 +61,8 @@ procedure Router is
    use MOMA.Configuration.Server;
    use MOMA.Types;
 
-   Other_Router   : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
-   Router         : PolyORB.References.Ref;
+   Other_Router   : MOMA.Types.Ref := MOMA.Types.Nil_Ref;
+   Router         : MOMA.Types.Ref;
 
 begin
 

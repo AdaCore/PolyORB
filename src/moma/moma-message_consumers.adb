@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,7 +78,7 @@ package body MOMA.Message_Consumers is
       MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Consumer.Object_Acc
         := new PolyORB.MOMA_P.Provider.Message_Consumer.Object;
 
-      MOMA_Ref : PolyORB.References.Ref;
+      MOMA_Ref : MOMA.Types.Ref;
 
       Consumer : constant MOMA.Message_Consumers.Message_Consumer_Acc
         := new MOMA.Message_Consumers.Message_Consumer;
@@ -150,7 +150,7 @@ package body MOMA.Message_Consumers is
 
    function Get_Ref
      (Self : Message_Consumer)
-     return PolyORB.References.Ref is
+     return MOMA.Types.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -236,7 +236,7 @@ package body MOMA.Message_Consumers is
 
    procedure Set_Ref
      (Self : in out Message_Consumer;
-      Ref  :        PolyORB.References.Ref) is
+      Ref  :        MOMA.Types.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;

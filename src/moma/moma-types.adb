@@ -288,13 +288,6 @@ package body MOMA.Types is
       return PolyORB.Any.To_Any (PolyORB.Types.String (Item));
    end To_Any;
 
-   ---------
-   -- "=" --
-   ---------
-
-   function "=" (Left, Right : in Any) return Boolean
-     renames PolyORB.Any."=";
-
    -----------------
    -- Get_Boolean --
    -----------------

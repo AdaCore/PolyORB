@@ -87,7 +87,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
    --  Route a Message to another router.
 
    procedure Store
-     (Pool    : Ref;
+     (Pool    : PolyORB.References.Ref;
       Message : PolyORB.Any.Any);
    --  Store a Message in a Pool.
    --  XXX Code from Moma.Provider.Message_Producer is duplicated.
@@ -526,7 +526,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
    -----------
 
    procedure Store
-     (Pool    : Ref;
+     (Pool    : PolyORB.References.Ref;
       Message : PolyORB.Any.Any)
    is
       Request     : PolyORB.Requests.Request_Access;

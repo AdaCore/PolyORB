@@ -64,7 +64,7 @@ procedure Server is
    use MOMA.Configuration.Server;
    use MOMA.Types;
 
-   MOMA_Ref : PolyORB.References.Ref;
+   MOMA_Ref : MOMA.Types.Ref;
    Pool_1   : Message_Pool;
 
 begin
@@ -100,7 +100,7 @@ begin
 
    if Argument_Count = 1 then
       declare
-         R : PolyORB.References.Ref;
+         R : MOMA.Types.Ref;
       begin
          PolyORB.References.String_To_Object
            (Ada.Command_Line.Argument (1), R);

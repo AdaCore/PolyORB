@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -79,7 +79,7 @@ private
      Last_Read_Id : Natural := 0;
          --  XXX Dummy counter for message_id, to be trashed ...
 
-     Message_Handler : PolyORB.References.Ref := Nil_Ref;
+     Message_Handler : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
          --  Reference of the Message_Handler to which Notify or Handle
          --  Requests must be sent.
 

@@ -79,7 +79,7 @@ procedure Client_Call_Back is
    use PolyORB.Types;
    use PolyORB.Utils.Report;
 
-   Pool_Ref           : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
+   Pool_Ref           : MOMA.Types.Ref := MOMA.Types.Nil_Ref;
    MOMA_Factory       : Connection_Factory;
    MOMA_Connection    : MOMA.Connections.Connection;
    MOMA_Session       : MOMA.Sessions.Session;
@@ -139,6 +139,7 @@ begin
    MOMA.Connection_Factories.Create (MOMA_Factory, Pool_Ref);
 
    --  Create connection using Connection Factory.
+
    MOMA_Connection
      := MOMA.Connections.Create_Connection (MOMA_Factory);
 
@@ -171,6 +172,7 @@ begin
    MOMA_Handler := MOMA_Handler_Acc.all;
 
    --  Initialization is completed
+
    Output ("Initialization", True);
 
    --  Test #1

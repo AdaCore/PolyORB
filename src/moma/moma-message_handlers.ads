@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,6 @@ with MOMA.Sessions;
 with MOMA.Types;
 
 with PolyORB.Annotations;
-with PolyORB.References;
 
 package MOMA.Message_Handlers is
 
@@ -144,7 +143,7 @@ package MOMA.Message_Handlers is
 private
 
    type Message_Handler is record
-      Servant_Ref          : PolyORB.References.Ref;
+      Servant_Ref          : MOMA.Types.Ref;
       Message_Cons         : MOMA.Message_Consumers.Message_Consumer_Acc;
       Handler_Procedure    : Handler := null;
       Notifier_Procedure   : Notifier := null;

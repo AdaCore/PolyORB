@@ -39,6 +39,7 @@ with PolyORB.Any.ObjRef;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
+with PolyORB.References;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -71,7 +72,7 @@ package body MOMA.Destinations is
 
    function Create_Destination
      (Name    : MOMA.Types.String;
-      Ref     : PolyORB.References.Ref;
+      Ref     : MOMA.Types.Ref;
       Kind    : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
      return Destination
    is
@@ -88,7 +89,7 @@ package body MOMA.Destinations is
      return Destination is
    begin
       return Create_Destination (To_MOMA_String ("null"),
-                                 PolyORB.References.Nil_Ref,
+                                 MOMA.Types.Nil_Ref,
                                  MOMA.Types.Unknown);
    end Create_Destination;
 
@@ -124,7 +125,7 @@ package body MOMA.Destinations is
    is
       Kind     : MOMA.Types.Destination_Type := MOMA.Types.Unknown;
       Name     : MOMA.Types.String;
-      Ref      : PolyORB.References.Ref;
+      Ref      : MOMA.Types.Ref;
    begin
       Name := From_Any
         (PolyORB.Any.Get_Aggregate_Element
@@ -175,7 +176,7 @@ package body MOMA.Destinations is
 
    function Get_Ref
      (Self : Destination)
-     return PolyORB.References.Ref is
+     return MOMA.Types.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -211,7 +212,7 @@ package body MOMA.Destinations is
 
    procedure Set_Ref
      (Self : in out Destination;
-      Ref  :        PolyORB.References.Ref) is
+      Ref  :        MOMA.Types.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;

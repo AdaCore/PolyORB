@@ -81,7 +81,6 @@ procedure Client is
    use MOMA.Messages;
    use MOMA.Types;
 
-   use PolyORB.References;
    use PolyORB.Services.Naming.Tools;
    use PolyORB.Types;
    use PolyORB.Utils.Report;
@@ -89,8 +88,8 @@ procedure Client is
    Arg1               : String renames Ada.Command_Line.Argument (1);
    Arg2               : String renames Ada.Command_Line.Argument (2);
    Arg3               : String renames Ada.Command_Line.Argument (3);
-   Pool_Ref           : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
-   Router_Ref         : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
+   Pool_Ref           : MOMA.Types.Ref := MOMA.Types.Nil_Ref;
+   Router_Ref         : MOMA.Types.Ref := MOMA.Types.Nil_Ref;
    MOMA_Factory       : Connection_Factory;
    MOMA_Connection    : MOMA.Connections.Connection;
    MOMA_Session       : MOMA.Sessions.Session;
@@ -473,7 +472,7 @@ begin
 
       when Naming =>
          declare
-            Naming_Ref : PolyORB.References.Ref;
+            Naming_Ref : MOMA.Types.Ref;
          begin
             PolyORB.References.String_To_Object (Arg3, Naming_Ref);
             Init (Naming_Ref);
@@ -508,14 +507,14 @@ begin
    --  references to the same object (Pool_Ref). This will probably
    --  change later.
 
-   if Pool_Ref /= PolyORB.References.Nil_Ref then
+   if Pool_Ref /= Nil_Ref then
       MOMA_Dest_Pool := MOMA.Destinations.Create_Destination
          (To_MOMA_String ("queue1"),
           Pool_Ref,
           MOMA.Types.Pool);
    end if;
 
-   if Router_Ref /= PolyORB.References.Nil_Ref then
+   if Router_Ref /= Nil_Ref then
       MOMA_Dest_Router := MOMA.Destinations.Create_Destination
          (To_MOMA_String ("Test"),
           Router_Ref,
