@@ -3,34 +3,34 @@ package body Prime_1 is
 
    package Next_Pool renames Prime_2;
 
-   type Cell_Type is 
-   record
-      Prime : Natural := 0;
-      Next  : Natural := 0;
-   end record;
+   Last    : Natural  := 0;
+   Length  : constant := 10;
+   Table   : array (1 .. Length) of Natural;
 
-   Last : Natural := 0;
-   Cells : array (1 .. 10) of Cell_Type;
+   Current : Natural := 1;
 
    procedure Test_Number
-     (Number  : in     Natural;
-      Cell    : in out Natural;
-      Prime   : out    Natural) is
+     (Number   : in  Natural;
+      Divider  : out Natural;
+      Where    : out Natural) is
    begin
-      if Cell = 0 then
-         Last  := Last + 1;
-         Cell  := Last;
-         Prime := Number;
-         Cells (Last).Prime := Number;
-      else
-         if Number mod Cells (Cell).Prime = 0 then
-            Prime := Cells (Cell).Prime;
+      if Current <= Last then
+         if Number mod Table (Current) = 0 then
+            Divider := Table (Current);
+            Where := Prime_1'Partition_ID;
          else
+            Current := Current + 1;
             Next_Pool.Test_Number
               (Number,
-               Cells (Cell).Next,
-               Prime);
+               Divider,
+               Where);
+            Current := Current - 1;
          end if;
+      else
+         Last := Last + 1;
+         Table (Last) := Number;
+         Divider := Number;
+         Where := Prime_1'Partition_ID;
       end if;
    end Test_Number;
             
