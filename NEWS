@@ -16,6 +16,15 @@ New Functionnalities
     task is ever started, in order to avoid creating tasks which will
     never be used.
 
+New Ports
+---------
+
+  * Digital Unix
+    GLADE now works correctly on Digital Unix. Heterogeneous
+    distribution involving Digital Unix platforms is not yet
+    supported. Compilation must use -O0 instead of -O2 to prevent a
+    bug at runtime.
+
 Changes since GLADE 1.02
 ========================
 
