@@ -32,14 +32,7 @@
 
 --  $Id$
 
---  pragma Warnings (Off);
---  with System.IO; use System.IO;
---  Package System.IO is GNAT-specific; for other compilers use
---  Ada.Text_IO instead.
---  pragma Warnings (On);
---  XXX we do not use System.IO because we need atomic write.
-
-with GNAT.OS_Lib;
+with Interfaces.C;
 with System;
 
 package body PolyORB.Log is
@@ -141,10 +134,17 @@ package body PolyORB.Log is
 
       procedure Put_Line (S : String)
       is
-         use GNAT.OS_Lib;
          SS : aliased String := S & ASCII.LF;
+
+         procedure C_Write
+           (Fd  : Interfaces.C.int;
+            P   : System.Address;
+            Len : Interfaces.C.int);
+         pragma Import (C, C_Write, "write");
       begin
-         Write (Standerr, SS (SS'First)'Address, SS'Length);
+         C_Write (2, SS (SS'First)'Address, SS'Length);
+         --  2 is standard error.
+
       end Put_Line;
 
    end Internals;
