@@ -38,6 +38,16 @@ with Broca.POA;
 
 package body PortableServer.ServantLocator is
 
+   ----------------
+   --  From_Any  --
+   ----------------
+   function From_Any (Item : in CORBA.Any) return Ref is
+      Result : Ref;
+   begin
+      From_Any (Item, Result);
+      return Result;
+   end From_Any;
+
    procedure Preinvoke
      (Self : in Ref;
       Oid : in ObjectId;

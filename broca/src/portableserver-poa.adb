@@ -41,6 +41,16 @@ with PortableServer.ServantLocator.Impl;
 with CORBA.Impl;
 
 package body Portableserver.POA is
+   ----------------
+   --  From_Any  --
+   ----------------
+   function From_Any (Item : in CORBA.Any) return Ref is
+      Result : Ref;
+   begin
+      From_Any (Item, Result);
+      return Result;
+   end From_Any;
+
    function Create_Ref (Referenced : CORBA.Impl.Object_Ptr) return Ref;
 
    function Create_Ref (Referenced : CORBA.Impl.Object_Ptr) return Ref is

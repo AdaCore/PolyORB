@@ -121,8 +121,9 @@ package CORBA.Object is
    --  Any  --
    -----------
 
-   function To_Any (Item : in Ref)  return Any;
-   function From_Any (Item : in Any) return Ref'Class;
+   function To_Any (Item : in Ref) return Any;
+   procedure From_Any (Item : in Any; Result : out Ref);
+   function From_Any (Item : in Any) return Ref;
 
 
 private

@@ -37,6 +37,16 @@ with Broca.POA; use Broca.POA;
 with CORBA.Impl;
 
 package body PortableServer.POAManager is
+   ----------------
+   --  From_Any  --
+   ----------------
+   function From_Any (Item : in CORBA.Any) return Ref is
+      Result : Ref;
+   begin
+      From_Any (Item, Result);
+      return Result;
+   end From_Any;
+
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
                           To   : out AdapterInactive_Members)
    is

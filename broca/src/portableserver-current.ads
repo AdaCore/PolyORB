@@ -38,6 +38,8 @@ with PortableServer; use PortableServer;
 package PortableServer.Current is
    type Ref is new CORBA.Current.Ref with private;
 
+   function From_Any (Item : CORBA.Any) return Ref;
+
    NoContext : exception;
    type NoContext_Members is new CORBA.IDL_Exception_Members
      with null record;

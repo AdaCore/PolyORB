@@ -35,6 +35,16 @@ with Broca.Task_Attributes;
 
 package body PortableServer.Current is
 
+   ----------------
+   --  From_Any  --
+   ----------------
+   function From_Any (Item : in CORBA.Any) return Ref is
+      Result : Ref;
+   begin
+      From_Any (Item, Result);
+      return Result;
+   end From_Any;
+
    procedure Get_Members
      (From : in  CORBA.Exception_Occurrence;
       To   : out NoContext_Members) is

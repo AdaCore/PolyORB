@@ -31,10 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA;
 with CORBA.Object;
 
 package PortableServer.ServantManager is
 
    type Ref is new CORBA.Object.Ref with null record;
+
+   function From_Any (Item : in CORBA.Any) return Ref;
 
 end PortableServer.ServantManager;

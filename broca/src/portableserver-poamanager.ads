@@ -38,6 +38,8 @@ with CORBA.Object;
 package PortableServer.POAManager is
    type Ref is new CORBA.Object.Ref with null record;
 
+   function From_Any (Item : in CORBA.Any) return Ref;
+
    AdapterInactive : exception;
 
    type AdapterInactive_Members is

@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA;
 with CORBA.Object;
 with PortableServer.POAManager;
 with PortableServer.AdapterActivator;
@@ -40,6 +41,8 @@ with PortableServer.ServantManager;
 package PortableServer.POA is
 
    type Ref is new CORBA.Object.Ref with null record;
+
+   function From_Any (Item : CORBA.Any) return Ref;
 
    AdapterAlreadyExists : exception;
 

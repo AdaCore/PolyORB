@@ -111,12 +111,22 @@ package body CORBA.Object is
    ----------------
    --  From_Any  --
    ----------------
-   function From_Any (Item : in Any) return Ref'Class is
+   procedure From_Any (Item : in Any; Result : out Ref) is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Objref) then
          raise Bad_Typecode;
       end if;
-      return Content_ObjRef_Ptr (Item.The_Value).Value;
+      Result := Content_ObjRef_Ptr (Item.The_Value).Value;
+   end From_Any;
+
+   ----------------
+   --  From_Any  --
+   ----------------
+   function From_Any (Item : in Any) return Ref is
+      Result : Ref;
+   begin
+      From_Any (Item, Result);
+      return Result;
    end From_Any;
 
 

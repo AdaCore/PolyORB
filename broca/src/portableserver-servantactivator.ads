@@ -39,6 +39,8 @@ package PortableServer.ServantActivator is
 
    type Ref is new PortableServer.ServantManager.Ref with null record;
 
+   function From_Any (Item : in CORBA.Any) return Ref;
+
    function Incarnate
      (Self    : in Ref;
       Oid     : in ObjectId;

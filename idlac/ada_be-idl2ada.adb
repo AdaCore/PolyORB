@@ -136,6 +136,12 @@ package body Ada_Be.Idl2Ada is
    --  Generate the declaration of an object
    --  reference type.
 
+   procedure Gen_Object_Reference_Implementation
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the primitive methods of an object
+   --  reference type.
+
    procedure Gen_Object_Servant_Declaration
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
@@ -159,6 +165,16 @@ package body Ada_Be.Idl2Ada is
    --  Generate the profile for the Unmarshall function
    --  of a type.
    --  FIXME: This is unmarshall-by-value (see above).
+
+   procedure Gen_From_Any_Profile
+     (CU        : in out Compilation_Unit;
+      Type_Node : in     Node_Id);
+   --  Generate the profile for the From_Any function of a type
+
+   procedure Gen_To_Any_Profile
+     (CU        : in out Compilation_Unit;
+      Type_Node : in     Node_Id);
+   --  Generate the profile for the To_Any function of a type
 
    procedure Gen_Array_Iterator
      (CU               : in out Compilation_Unit;
@@ -361,6 +377,7 @@ package body Ada_Be.Idl2Ada is
    begin
       --  the valuetype type
       Gen_Object_Reference_Declaration (Stubs_Spec, Node);
+      Gen_Object_Reference_Implementation (Stubs_Body, Node);
       PL (Stubs_Spec, "Null_Value : constant Value_Ref;");
 
       --  Marshalling subprograms for the object
@@ -665,8 +682,8 @@ package body Ada_Be.Idl2Ada is
 
          when K_Interface =>
 
-            Gen_Object_Reference_Declaration
-              (Stubs_Spec, Node);
+            Gen_Object_Reference_Declaration (Stubs_Spec, Node);
+            Gen_Object_Reference_Implementation (Stubs_Body, Node);
             --  The object reference type.
 
             Add_Elaborate_Body (Skel_Spec);
@@ -943,8 +960,31 @@ package body Ada_Be.Idl2Ada is
          end;
       end if;
       PL (CU, " with null record;");
+      NL (CU);
+      Gen_From_Any_Profile (CU, Node);
+      PL (CU, ";");
    end Gen_Object_Reference_Declaration;
 
+   procedure Gen_Object_Reference_Implementation
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      pragma Assert (False
+         or else Kind (Node) = K_Interface
+         or else Kind (Node) = K_ValueType);
+      NL (CU);
+      Gen_From_Any_Profile (CU, Node);
+      PL (CU, " is");
+      II (CU);
+      PL (CU, "Result : Ref;");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "From_Any (Item, Result);");
+      PL (CU, "return Result;");
+      DI (CU);
+      PL (CU, "end From_Any;");
+   end Gen_Object_Reference_Implementation;
 
    procedure Gen_Object_Servant_Declaration
      (CU   : in out Compilation_Unit;
@@ -1075,8 +1115,10 @@ package body Ada_Be.Idl2Ada is
 
          when
            K_Repository |
-           K_Module     |
-           K_Interface  =>
+           K_Module =>
+            null;
+
+         when K_Interface  =>
             null;
 
          when K_Forward_Interface =>
@@ -1394,7 +1436,6 @@ package body Ada_Be.Idl2Ada is
             null;
 
          when K_Fixed =>
-
             Put (CU, "delta 10.0 ** (-");
             Gen_Node_Stubs_Spec (CU, Scale (Node));
             Put (CU, ") digits ");
@@ -1778,8 +1819,10 @@ package body Ada_Be.Idl2Ada is
 
          when
            K_Repository |
-           K_Module     |
-           K_Interface  =>
+           K_Module =>
+            null;
+
+         when K_Interface  =>
             null;
 
          when K_Forward_Interface =>
@@ -2072,7 +2115,6 @@ package body Ada_Be.Idl2Ada is
             PL (CU, "Broca.Exceptions.User_Get_Members (From, To);");
             DI (CU);
             PL (CU, "end Get_Members;");
-
 
          when others =>
             null;
@@ -2972,6 +3014,29 @@ package body Ada_Be.Idl2Ada is
            & Ada_Type_Name (Type_Node));
    end Gen_Unmarshall_Profile;
 
+   procedure Gen_From_Any_Profile
+     (CU        : in out Compilation_Unit;
+      Type_Node : in Node_Id) is
+   begin
+      Add_With (CU, "CORBA", Use_It => False);
+      PL (CU, "function From_Any (Item : in CORBA.Any)");
+      II (CU);
+      Put (CU, "return "
+           & Ada_Type_Name (Type_Node));
+      DI (CU);
+   end Gen_From_Any_Profile;
+
+   procedure Gen_To_Any_Profile
+     (CU        : in out Compilation_Unit;
+      Type_Node : in Node_Id) is
+   begin
+      Add_With (CU, "CORBA", Use_It => False);
+      PL (CU, "function To_Any");
+      PL (CU, "  (Item : in "
+          & Ada_Type_Name (Type_Node)
+          & ")");
+      Put (CU, "  return Any");
+   end Gen_To_Any_Profile;
 
    -----------------------------
    --  Ada_Type_Defining_Name --
@@ -3360,6 +3425,8 @@ package body Ada_Be.Idl2Ada is
         := Ada_Type_Defining_Name (Node);
       Type_Name : constant String
         := Ada_Type_Name (Node);
+      NK : constant Node_Kind
+        := Kind (Node);
    begin
       Add_With (Helper_Spec, "CORBA.Object");
       NL (Helper_Spec);
@@ -3415,6 +3482,22 @@ package body Ada_Be.Idl2Ada is
       PL (Helper_Body, "end if;");
       DI (Helper_Body);
       PL (Helper_Body, "end To_" & Short_Type_Name & ";");
+
+      --  to_any and from_any functions
+      case NK is
+         when K_Object =>
+            NL (Helper_Spec);
+            Gen_From_Any_Profile (Helper_Spec, Node);
+            NL (Helper_Spec);
+            II (Helper_Spec);
+            PL (Helper_Spec, "renames "
+                & Ada_Name (Node)
+                & ".From_Any");
+            DI (Helper_Spec);
+         when others =>
+            null;
+      end case;
+
    end Gen_Helper;
 
 
