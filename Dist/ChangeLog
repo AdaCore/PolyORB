@@ -1,5 +1,7 @@
 Thu Feb 13 15:21:57 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
+	* xe.adb: Minor reformating
+
 	* xe_stubs.adb, xe_back.adb, xe_parse.adb, xe.ads, xe.adb: Move
  	Permanent into Termination. Three modes are allowed : Local (Don't
  	bother with other partitions), Global (Default), Deferred (Same as

@@ -1524,15 +1524,15 @@ package body XE is
       Write_Eol;
       Write_Str ("Configuration :");
       Write_Eol;
-      Write_Str ("   Name     : ");
+      Write_Str ("   Name        : ");
       Write_Name (Configuration);
       Write_Eol;
 
-      Write_Str ("   Main     : ");
+      Write_Str ("   Main        : ");
       Write_Name (Main_Subprogram);
       Write_Eol;
 
-      Write_Str ("   Starter  : ");
+      Write_Str ("   Starter     : ");
       case Starter_Method is
          when Ada_Starter =>
             Write_Str ("Ada code");
@@ -1544,7 +1544,7 @@ package body XE is
       Write_Eol;
 
       if Protocol_Name /= No_Name then
-         Write_Str  ("   Protocol : ");
+         Write_Str  ("   Protocol    : ");
          Write_Name (Protocol_Name);
          Write_Str  ("://");
          Write_Name (Protocol_Data);
