@@ -165,33 +165,24 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    procedure Unmarshall_Service_Context_List
      (Buffer : access Buffers.Buffer_Type)
    is
-      Nb : PolyORB.Types.Unsigned_Long;
-      --  Get the size.
-
-      Garbage_Context_Id : PolyORB.Types.Unsigned_Long;
+      Nb : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Enter: Unmarshall_Service_Context_List"));
-      Nb := Unmarshall (Buffer);
-
-      pragma Debug (O ("List size: "
+      pragma Debug (O ("Unmarshall_Service_Context_List: enter, nb ="
                        & PolyORB.Types.Unsigned_Long'Image (Nb)));
 
       for I in 1 .. Nb loop
-         Garbage_Context_Id := Unmarshall (Buffer);
-         --  Unmarshall the Context_Id.
-
-         --  Unmarshall the Context_Data.
          declare
-            Size : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
-            Garbage_Data : PolyORB.Types.Octet;
+            Context_Id : constant Types.Unsigned_Long := Unmarshall (Buffer);
+            Context_Data : constant Encapsulation := Unmarshall (Buffer);
+            pragma Warnings (Off);
+            pragma Unreferenced (Context_Id, Context_Data);
+            pragma Warnings (On);
          begin
-            for I in 1 .. Size loop
-               Garbage_Data := Unmarshall (Buffer);
-            end loop;
+            null;
          end;
       end loop;
 
-      pragma Debug (O ("Leave: Unmarshall_Service_Context_List"));
+      pragma Debug (O ("Unmarshall_Service_Context_List: leave"));
    end Unmarshall_Service_Context_List;
 
    -------------------------------------
@@ -264,9 +255,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    end Marshall_Request_Message;
 
-   ----------------------------
-   --- Marshall_No_Exception --
-   ----------------------------
+   ---------------------------
+   -- Marshall_No_Exception --
+   ---------------------------
 
    procedure Marshall_No_Exception
     (Buffer      : access Buffer_Type;
@@ -382,9 +373,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    end  Marshall_Needs_Addressing_Mode;
 
-   ------------------------------
-   --- Marshall_Locate_Request --
-   ------------------------------
+   -----------------------------
+   -- Marshall_Locate_Request --
+   -----------------------------
 
    procedure Marshall_Locate_Request
     (Buffer            : access Buffer_Type;
@@ -454,7 +445,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    is
       use  Representations.CDR;
 
-      Reserved             : Types.Octet;
       Received_Flags       : Types.Octet;
       Temp_Octet           : Addressing_Disposition;
 
@@ -488,9 +478,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end case;
 
       --  Reserved
-      for I in 1 .. 3 loop
-         Reserved := Unmarshall (Buffer);
-      end loop;
+      Align_Position (Buffer, 3);
 
       --  Target Ref
       Temp_Octet := Unmarshall (Buffer);

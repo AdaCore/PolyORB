@@ -476,7 +476,7 @@ package body CORBA.ORB is
 
       --  Register initial reference for "RootPOA".
 
-      --- XXX FIX ME, requires to solve a chicken and egg problem
+      --  XXX FIX ME, requires to solve a chicken and egg problem
 
       CORBA.Object.Set
         (RootPOA, PolyORB.Smart_Pointers.Entity_Ptr

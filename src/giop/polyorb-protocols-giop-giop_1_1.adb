@@ -284,7 +284,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
         := Unmarshall (Buffer);
       Service_Context2  : constant Types.Unsigned_Long
         := Unmarshall (Buffer);
-      Reserved          : Types.Octet;
       Principal         : Types.String;
    begin
 
@@ -303,10 +302,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  Response expected
       Response_Expected := Unmarshall (Buffer);
 
-      --  Reserved
-      for I in 1 .. 3 loop
-         Reserved := Unmarshall (Buffer);
-      end loop;
+      --  Skip 3 reserved bytes
+      Align_Position (Buffer, 4);
 
       --  Object Key
       declare
