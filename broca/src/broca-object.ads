@@ -15,14 +15,15 @@ package Broca.Object is
 
    --  Send a buffer to a connection.
    --  Raise comm_failure in case of error.
-   procedure Send (Connection : access Connection_Type;
-                   Stream : in Buffer_Descriptor) is abstract;
+     procedure Send
+       (Connection : access Connection_Type;
+        Buffer     : in out Buffer_Descriptor) is abstract;
 
-   --  Receive data from a connection.
-   --  Exactly stream.Pos bytes are expected.
-   --  Can raise comm_failure.
-   procedure Receive (Connection : access Connection_Type;
-                      Stream : in out Buffer_Descriptor) is abstract;
+   --  Receive data from a connection.  Fill exactly Buffer. Can
+   --  raise comm_failure.
+     procedure Receive
+       (Connection : access Connection_Type;
+        Buffer     : in out Buffer_Descriptor) is abstract;
 
    type Profile_Type is abstract tagged limited null record;
    function Get_Object_Key (Profile : Profile_Type)

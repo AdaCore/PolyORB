@@ -348,8 +348,8 @@ package body Broca.Giop is
 
       --  1.4 Receive reply
       --  1.4.1 the message header
-      Allocate_Buffer_And_Set_Pos
-        (Handler.Buffer, Broca.Giop.Message_Header_Size);
+      Allocate_Buffer_And_Clear_Pos (Handler.Buffer, Message_Header_Size);
+
       pragma Debug (O ("Receive answer ..."));
       Broca.Object.Receive (Handler.Connection, Handler.Buffer);
       pragma Debug (O ("Receive answer done"));
@@ -357,20 +357,14 @@ package body Broca.Giop is
       Unmarshall_GIOP_Header (Handler.Buffer, Message_Type, Message_Size);
 
       --  Allocate enough bytes for the message.
-      Allocate_Buffer_And_Set_Pos
-        (Tmp, Buffer_Index_Type (Message_Size));
+      Allocate_Buffer_And_Clear_Pos
+        (Handler.Buffer,
+         Buffer_Index_Type (Message_Size) + Message_Header_Size);
+      Skip_Bytes (Handler.Buffer, Message_Header_Size);
 
       --  1.4.5 Receive the reply header and body.
-      Broca.Object.Receive (Handler.Connection, Tmp);
+      Broca.Object.Receive (Handler.Connection, Handler.Buffer);
       Broca.Object.Release_Connection (Handler.Connection);
-
-      Allocate_Buffer_And_Set_Pos
-        (Handler.Buffer,
-         Buffer_Index_Type (Message_Size + Message_Header_Size));
-      Handler.Buffer.Buffer (Message_Header_Size .. Handler.Buffer.Pos - 1)
-        := Tmp.Buffer.all;
-      Handler.Buffer.Pos := Message_Header_Size;
-      Free (Tmp.Buffer);
 
       --  Service context
       Unmarshall (Handler.Buffer, Service_Context);

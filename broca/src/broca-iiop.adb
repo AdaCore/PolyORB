@@ -33,6 +33,10 @@ package body Broca.Iiop is
       end if;
    end Port_To_Network_Port;
 
+   --------------------
+   -- Create_Profile --
+   --------------------
+
    procedure Create_Profile
      (Buffer : in out Buffer_Descriptor;
       Profile : out Broca.Object.Profile_Acc)
@@ -148,51 +152,66 @@ package body Broca.Iiop is
       end record;
    function Get_Request_Id (Connection : access Strand_Connection_Type)
                             return CORBA.Unsigned_Long;
-   procedure Send (Connection : access Strand_Connection_Type;
-                   Stream : in Buffer_Descriptor);
-   procedure Receive (Connection : access Strand_Connection_Type;
-                      Stream : in out Buffer_Descriptor);
-   procedure Release_Connection (Connection : access Strand_Connection_Type);
+   procedure Send
+     (Connection : access Strand_Connection_Type;
+      Buffer     : in out Buffer_Descriptor);
 
-   procedure Send (Connection : access Strand_Connection_Type;
-                   Stream : in Buffer_Descriptor)
+   procedure Receive
+     (Connection : access Strand_Connection_Type;
+      Buffer     : in out Buffer_Descriptor);
+
+   procedure Release_Connection
+     (Connection : access Strand_Connection_Type);
+
+   procedure Send
+     (Connection : access Strand_Connection_Type;
+      Buffer     : in out Buffer_Descriptor)
    is
       use Sockets.Thin;
       use Interfaces.C;
-      Len : Interfaces.C.int;
+      Length : Buffer_Index_Type := Size (Buffer);
+      Bytes  : Buffer_Type (0 .. Length - 1);
+      Result : Interfaces.C.Int;
    begin
-      Len := Interfaces.C.int (Stream.Pos);
-      pragma Debug (O ("Dump outgoing buffer of length" & Len'Img));
-      Broca.Buffers.Dump (Stream.Buffer (0 .. Stream.Pos - 1));
-      if C_Send (Connection.Strand.Fd,
-                 Stream.Buffer.all'Address,
-                 Len,
-                 0) /= Len
-      then
+      Read (Buffer, Bytes);
+      pragma Debug (O ("Dump outgoing buffer of length" & Length'Img));
+      Broca.Buffers.Dump (Bytes);
+      Result := C_Send
+        (Connection.Strand.Fd,
+         Bytes'Address,
+         Interfaces.C.Int (Length), 0);
+      if Result /= Interfaces.C.Int (Length) then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
       pragma Debug (O ("Message correctly sent"));
    end Send;
 
+   -------------
+   -- Receive --
+   -------------
+
    procedure Receive
      (Connection : access Strand_Connection_Type;
-      Stream : in out Buffer_Descriptor)
+      Buffer     : in out Buffer_Descriptor)
    is
       use Sockets.Thin;
       use Interfaces.C;
-      Len : Interfaces.C.int;
+      Length : Buffer_Index_Type := Size_Left (Buffer);
+      Bytes  : Buffer_Type (0 .. Length - 1);
+      Result : Interfaces.C.Int;
    begin
-      Len := Interfaces.C.int (Stream.Pos);
-      Len := C_Recv (Connection.Strand.Fd,
-                     Stream.Buffer.all'Address,
-                     Len, 0);
-      if Len < 0 then
+      Result := C_Recv
+        (Connection.Strand.Fd,
+         Bytes'Address,
+         Interfaces.C.Int (Length), 0);
+
+      if Result /=  Interfaces.C.Int (Length) then
          Broca.Exceptions.Raise_Comm_Failure;
-      else
-         Stream.Pos := Buffer_Index_Type (Len);
       end if;
-      pragma Debug (O ("Dump incoming buffer of length" & Len'Img));
-      Broca.Buffers.Dump (Stream.Buffer (0 .. Stream.Pos - 1));
+      Write (Buffer, Bytes);
+
+      pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
+      Broca.Buffers.Dump (Bytes);
    end Receive;
 
    function Get_Request_Id (Connection : access Strand_Connection_Type)
