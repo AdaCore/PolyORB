@@ -280,6 +280,14 @@ package body XE_Stdcnf is
 
       Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("storage_dir"),
+         Attr_Type_Node => String_Type_Node,
+         Attribute_Kind => Attribute_Directory,
+         Attribute_Sloc => Null_Location,
+         Attribute_Node => Attribute_Node);
+
+      Declare_Type_Attribute
+        (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("directory"),
          Attr_Type_Node => String_Type_Node,
          Attribute_Kind => Attribute_Directory,
