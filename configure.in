@@ -248,4 +248,5 @@ AC_OUTPUT([Makefile
            Examples/Eratho/dynamic/Makefile
            Examples/Eratho/spiral/Makefile
            Examples/Bank/Makefile
+           Examples/LightBank/Makefile
            Examples/RACW/Makefile])
