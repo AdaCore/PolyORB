@@ -425,6 +425,9 @@ package body Sem_Dist is
 
          if No (Attribute_Subp) then
             Add_RAST_Features (Parent (New_Type));
+            --  XXX ??? Does this really happen? Normally
+            --  the RAST features should have been added when
+            --  the type was analyzed.
          end if;
 
          RAS_Type := Equivalent_Type (New_Type);
@@ -633,9 +636,13 @@ package body Sem_Dist is
 
       Set_Suppress_Init_Proc (Fat_Type);
 
---        if Expander_Active then
---           Add_RAST_Features (Parent (User_Type));
---        end if;
+      if Expander_Active then
+         Analyze (Subpkg_Decl);
+         Analyze (Fat_Type_Decl);
+         --  Set up RACW features.
+
+         Add_RAST_Features (Parent (User_Type));
+      end if;
 
    end Process_Remote_AST_Declaration;
 

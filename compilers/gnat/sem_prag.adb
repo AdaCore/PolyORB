@@ -3918,15 +3918,8 @@ package body Sem_Prag is
                   if Is_Asynchronous (Nm)
                     and then Expander_Active
                   then
-
-                     --  The associated RACW type is the type of
-                     --  the first component of the E_Record_Type
-                     --  that is the Equivalent_Type of the RAS.
-
                      RACW_Type_Is_Asynchronous (
-                       Etype (Subtype_Indication (
-                         First (Component_Items (Component_List (
-                           Type_Definition (Declaration_Node (Nm))))))));
+                       Underlying_RACW_Type (Nm));
                   end if;
 
                else

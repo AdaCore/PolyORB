@@ -185,6 +185,7 @@ package body Exp_Dist is
    --  Add receiving stubs to the declarative part
 
    procedure Add_RAS_Dereference_TSS (N : in Node_Id);
+   pragma Unreferenced (Add_RAS_Dereference_TSS);
    --  Add a subprogram body for RAS dereference
 
    procedure Add_RAS_Access_TSS (N : in Node_Id);
@@ -687,6 +688,7 @@ package body Exp_Dist is
 
       Decls             : List_Id;
       Statements        : List_Id;
+      Stub_Statements   : List_Id;
       Local_Statements  : List_Id;
       Remote_Statements : List_Id;
       --  Various parts of the subprogram
@@ -733,21 +735,17 @@ package body Exp_Dist is
         Make_Object_Declaration (Loc,
           Defining_Identifier => Stubbed_Result,
           Object_Definition   =>
-            New_Occurrence_Of (Stub_Type_Access, Loc)));
+            New_Occurrence_Of (Stub_Type_Access, Loc)),
 
-      if not Is_RAS then
-         Append_To (Decls,
-           Make_Object_Declaration (Loc,
-             Defining_Identifier => Is_Local,
-             Object_Definition   =>
-               New_Occurrence_Of (Standard_Boolean, Loc)));
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Is_Local,
+          Object_Definition   =>
+            New_Occurrence_Of (Standard_Boolean, Loc)),
 
-         Append_To (Decls,
-           Make_Object_Declaration (Loc,
-             Defining_Identifier => Addr,
-             Object_Definition =>
-               New_Occurrence_Of (RTE (RE_Address), Loc)));
-      end if;
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Addr,
+          Object_Definition =>
+            New_Occurrence_Of (RTE (RE_Address), Loc)));
 
       --  If the ref Is_Nil, return a null pointer.
 
@@ -764,33 +762,22 @@ package body Exp_Dist is
               Expression =>
                 Make_Null (Loc)))));
 
-      if not Is_RAS then
-
-         --  If the reference denotes an object created on
-         --  the current partition, then Local_Statements
-         --  will be executed: the real object will be used.
-
-         Append_To (Statements,
-           Make_Procedure_Call_Statement (Loc,
-             Name =>
-               New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
-             Parameter_Associations => New_List (
-               New_Occurrence_Of (Reference, Loc),
-               New_Occurrence_Of (Is_Local, Loc),
-               New_Occurrence_Of (Addr, Loc))));
-
-         Local_Statements := New_List (
-           Make_Return_Statement (Loc,
-             Expression =>
-               Unchecked_Convert_To (RACW_Type,
-                 New_Occurrence_Of (Addr, Loc))));
-      end if;
+      Append_To (Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Reference, Loc),
+            New_Occurrence_Of (Is_Local, Loc),
+            New_Occurrence_Of (Addr, Loc))));
 
       --  If the object is located on another partition, then a stub
       --  object will be created with all the information needed to
-      --  rebuild the real object at the other end.
+      --  rebuild the real object at the other end. This stanza
+      --  is always used in the case of RAS types, for which a
+      --  stub is required even for local subprograms.
 
-      Remote_Statements := New_List (
+      Stub_Statements := New_List (
 
         Make_Assignment_Statement (Loc,
           Name       => New_Occurrence_Of (Stubbed_Result, Loc),
@@ -832,26 +819,47 @@ package body Exp_Dist is
             Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
               New_Occurrence_Of (Stubbed_Result, Loc)))));
 
-      Append_To (Remote_Statements,
-        Make_Return_Statement (Loc,
-          Expression => Unchecked_Convert_To (RACW_Type,
-            New_Occurrence_Of (Stubbed_Result, Loc))));
-
       --  Distinguish between the local and remote cases, and execute the
       --  appropriate piece of code.
 
-      if not Is_RAS then
-         Append_To (Statements,
-           Make_Implicit_If_Statement (RACW_Type,
-             Condition =>
-               New_Occurrence_Of (Is_Local, Loc),
-             Then_Statements => Local_Statements,
-             Else_Statements => Remote_Statements));
+      if Is_RAS then
+         Append_List_To (Statements, Stub_Statements);
+         --  Always instanciate a stub.
+
+         Local_Statements := New_List (
+           Make_Assignment_Statement (Loc,
+             Name =>
+               Make_Selected_Component (Loc,
+                 Prefix =>
+                   New_Occurrence_Of (Stubbed_Result, Loc),
+                 Selector_Name =>
+                   Make_Identifier (Loc, Name_Addr)),
+             Expression =>
+               New_Occurrence_Of (Addr, Loc)));
+
+         Remote_Statements := New_List (Make_Null_Statement (Loc));
+
       else
-         Append_List_To (Statements, Remote_Statements);
-         --  For a RACW used as implementation of a RAS, always
-         --  instanciate a stub.
+         Local_Statements := New_List (
+           Make_Return_Statement (Loc,
+             Expression =>
+               Unchecked_Convert_To (RACW_Type,
+                 New_Occurrence_Of (Addr, Loc))));
+
+         Remote_Statements := Stub_Statements;
       end if;
+
+      Append_To (Statements,
+        Make_Implicit_If_Statement (RACW_Type,
+          Condition =>
+            New_Occurrence_Of (Is_Local, Loc),
+          Then_Statements => Local_Statements,
+          Else_Statements => Remote_Statements));
+
+      Append_To (Statements,
+        Make_Return_Statement (Loc,
+          Expression => Unchecked_Convert_To (RACW_Type,
+            New_Occurrence_Of (Stubbed_Result, Loc))));
 
       Func_Spec :=
         Make_Function_Specification (Loc,
@@ -1326,14 +1334,15 @@ package body Exp_Dist is
             Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
             Selector_Name => Make_Identifier (Loc, Name_Receiver)),
           Expression =>
-            New_Occurrence_Of (Source_Receiver, Loc)),
+            New_Occurrence_Of (Source_Receiver, Loc)));
 
-        Make_Assignment_Statement (Loc,
-          Name       => Make_Selected_Component (Loc,
-            Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
-            Selector_Name => Make_Identifier (Loc, Name_Addr)),
-          Expression =>
-            New_Occurrence_Of (Source_Address, Loc)));
+--          Make_Assignment_Statement (Loc,
+--            Name       => Make_Selected_Component (Loc,
+--              Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
+--              Selector_Name => Make_Identifier (Loc, Name_Addr)),
+--            Expression =>
+--              New_Occurrence_Of (Source_Address, Loc)));
+--  XXX
 
       Append_To (Remote_Statements,
         Make_Assignment_Statement (Loc,
@@ -1776,17 +1785,17 @@ package body Exp_Dist is
                 Object),
               Selector_Name =>
                 Make_Identifier (Loc, Name_Receiver)),
-         Etyp   => RTE (RE_Unsigned_64)),
-
-        Pack_Node_Into_Stream_Access (Loc,
-         Stream => Stream_Parameter,
-         Object =>
-            Make_Selected_Component (Loc,
-              Prefix        => Unchecked_Convert_To (Stub_Type_Access,
-                Object),
-              Selector_Name =>
-                Make_Identifier (Loc, Name_Addr)),
          Etyp   => RTE (RE_Unsigned_64)));
+
+--          Pack_Node_Into_Stream_Access (Loc,
+--           Stream => Stream_Parameter,
+--           Object =>
+--              Make_Selected_Component (Loc,
+--                Prefix        => Unchecked_Convert_To (Stub_Type_Access,
+--                  Object),
+--                Selector_Name =>
+--                  Make_Identifier (Loc, Name_Addr)),
+--           Etyp   => RTE (RE_Unsigned_64)));
 
       --  Build the code fragment corresponding to the marshalling of a null
       --  object.
@@ -1858,8 +1867,23 @@ package body Exp_Dist is
    -------------------------
 
    procedure Add_RAS_Access_TSS (N : in Node_Id) is
-      Ras_Type : constant Entity_Id := Defining_Identifier (N);
-      Fat_Type : constant Entity_Id := Equivalent_Type (Ras_Type);
+      Loc : constant Source_Ptr := Sloc (N);
+
+      Ras_Type  : constant Entity_Id := Defining_Identifier (N);
+      Fat_Type  : constant Entity_Id := Equivalent_Type (Ras_Type);
+      RACW_Type : constant Entity_Id :=
+        Underlying_RACW_Type (Ras_Type);
+
+      Desig     : constant Entity_Id :=
+        Etype (Designated_Type (RACW_Type));
+
+      Stub_Elements : constant Stub_Structure :=
+        Stubs_Table.Get (Desig);
+      pragma Assert (Stub_Elements /= Empty_Stub_Structure);
+
+      Stub_Ptr : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+
       --  Ras_Type is the access to subprogram type while Fat_Type points to
       --  the record type corresponding to a remote access to subprogram type.
 
@@ -1877,8 +1901,6 @@ package body Exp_Dist is
       Asynchronous : Node_Id;
       Return_Value : Node_Id;
 
-      Loc : constant Source_Ptr := Sloc (N);
-
       procedure Set_Field (Field_Name : in Name_Id; Value : in Node_Id);
       --  Set a field name for the return value
 
@@ -1889,7 +1911,7 @@ package body Exp_Dist is
            Make_Assignment_Statement (Loc,
              Name       =>
                Make_Selected_Component (Loc,
-                 Prefix        => New_Occurrence_Of (Return_Value, Loc),
+                 Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
                  Selector_Name => Make_Identifier (Loc, Field_Name)),
              Expression => Value));
       end Set_Field;
@@ -1907,34 +1929,39 @@ package body Exp_Dist is
 
       Append_To (Proc_Decls,
         Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Stub_Ptr,
+          Constant_Present    => True,
+          Object_Definition   =>
+            New_Occurrence_Of (Stub_Elements.Stub_Type_Access, Loc),
+          Expression          =>
+            Make_Allocator (Loc,
+              New_Occurrence_Of (
+                Stub_Elements.Stub_Type, Loc))));
+
+      Append_To (Proc_Decls,
+        Make_Object_Declaration (Loc,
           Defining_Identifier => Return_Value,
           Object_Definition   =>
-            New_Occurrence_Of (Fat_Type, Loc)));
+            New_Occurrence_Of (Fat_Type, Loc),
+          Expression =>
+            Make_Aggregate (Loc,
+              Component_Associations => New_List (
+                Make_Component_Association (Loc,
+                  Choices =>
+                    New_List (Make_Identifier (Loc, Name_Ras)),
+                  Expression =>
+                    Unchecked_Convert_To (RACW_Type,
+                       New_Occurrence_Of (
+                         Stub_Ptr, Loc)))))));
 
       --  Initialize the fields of the record type with the appropriate data
 
-      Set_Field (Name_Ras,
-        OK_Convert_To (RTE (RE_Unsigned_64), New_Occurrence_Of (Param, Loc)));
+--        Set_Field (Name_Target, XXX Some Ref );
+--        Set_Field (Name_Addr, XXX 'Address for Local Subp);
+--  XXX TBD!!!
 
-      Set_Field (Name_Origin,
-        Unchecked_Convert_To (Standard_Integer,
-          Make_Function_Call (Loc,
-            Name                   =>
-              New_Occurrence_Of (RTE (RE_Get_Active_Partition_Id), Loc),
-            Parameter_Associations => New_List (
-              New_Occurrence_Of (Package_Name, Loc)))));
-
-      Set_Field (Name_Receiver,
-        Make_Function_Call (Loc,
-          Name                   =>
-            New_Occurrence_Of (RTE (RE_Get_RCI_Package_Receiver), Loc),
-          Parameter_Associations => New_List (
-            New_Occurrence_Of (Package_Name, Loc))));
-
-      Set_Field (Name_Subp_Id,
-        New_Occurrence_Of (Subp_Id, Loc));
-
-      Set_Field (Name_Async,
+      Set_Field (Name_Asynchronous,
         New_Occurrence_Of (Asynchronous, Loc));
 
       --  Return the newly created value
@@ -2111,7 +2138,7 @@ package body Exp_Dist is
              Prefix        =>
                New_Occurrence_Of (Pointer, Loc),
              Selector_Name =>
-               Make_Identifier (Loc, Name_Async));
+               Make_Identifier (Loc, Name_Asynchronous));
 
       end if;
 
@@ -2264,17 +2291,11 @@ package body Exp_Dist is
 
    procedure Add_RAST_Features (Vis_Decl : Node_Id) is
    begin
-      --  Do not add attributes more than once in any case. This should
-      --  be replaced by an assert or this comment removed if we decide
-      --  that this is normal to be called several times ???
+      pragma Assert (No (
+        TSS (Equivalent_Type (Defining_Identifier (
+          Vis_Decl)), Name_uRAS_Access)));
 
-      if Present (TSS (Equivalent_Type (Defining_Identifier
-           (Vis_Decl)), Name_uRAS_Access))
-      then
-         return;
-      end if;
-
-      Add_RAS_Dereference_TSS (Vis_Decl);
+      --  Add_RAS_Dereference_TSS (Vis_Decl);
       Add_RAS_Access_TSS (Vis_Decl);
    end Add_RAST_Features;
 
@@ -2688,15 +2709,15 @@ package body Exp_Dist is
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
-                        Make_Defining_Identifier (Loc, Name_Addr),
-                      Subtype_Indication  =>
-                        New_Occurrence_Of (RTE (RE_Unsigned_64), Loc)),
-
-                    Make_Component_Declaration (Loc,
-                      Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Target),
                       Subtype_Indication  =>
                         New_Occurrence_Of (RTE (RE_Entity_Ptr), Loc)),
+
+                    Make_Component_Declaration (Loc,
+                      Defining_Identifier =>
+                        Make_Defining_Identifier (Loc, Name_Addr),
+                      Subtype_Indication  =>
+                        New_Occurrence_Of (RTE (RE_Address), Loc)),
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
@@ -4989,5 +5010,24 @@ package body Exp_Dist is
       end if;
       Set_TSS (Typ, Snam);
    end Set_Renaming_TSS;
+
+   function Underlying_RACW_Type
+     (RAS_Typ : Entity_Id)
+      return Entity_Id
+   is
+      Record_Type : Entity_Id;
+   begin
+      if Ekind (RAS_Typ) = E_Record_Type then
+         Record_Type := RAS_Typ;
+      else
+         pragma Assert (Present (Equivalent_Type (RAS_Typ)));
+         Record_Type := Equivalent_Type (RAS_Typ);
+      end if;
+
+      return
+        Etype (Subtype_Indication (
+          First (Component_Items (Component_List (
+            Type_Definition (Declaration_Node (Record_Type)))))));
+   end Underlying_RACW_Type;
 
 end Exp_Dist;

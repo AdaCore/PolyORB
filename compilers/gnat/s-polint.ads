@@ -113,7 +113,6 @@ package System.PolyORB_Interface is
    type RACW_Stub_Type is tagged limited record
       Origin       : System.RPC.Partition_ID;
       Receiver     : Interfaces.Unsigned_64;
-      Addr         : Interfaces.Unsigned_64;
       --  XXX the 2 fields above are placeholders and must not
       --  be used (they are kept here only while Exp_Dist is
       --  not completely updated for PolyORB).
@@ -124,6 +123,12 @@ package System.PolyORB_Interface is
       --  table (which must be exactly identical to that of
       --  the designated tagged type).
       --  Target must be a pointer to References.Reference_Info.
+
+      Addr         : System.Address := System.Null_Address;
+      --  If this stub is for a remote access-to-subprogram type
+      --  that designates a local subprogram, then this field
+      --  is set to that subprogram's address, else it is
+      --  Null_Address.
 
       Asynchronous : Boolean;
    end record;
