@@ -144,6 +144,9 @@ package body System.Garlic.Non_Blocking is
    end Selection;
    --  This task is in charge of calling C_Select
 
+   SVR4_Stream_IO : Boolean := False;
+   --  Will be set to True if SVR4 stream io operations are detected
+
    -----------------------
    -- Asynchronous_Type --
    -----------------------
@@ -436,8 +439,19 @@ package body System.Garlic.Non_Blocking is
    procedure Set_Asynchronous (FD : in Descriptors) is
       Dummy : int;
    begin
-      Dummy := Thin.C_Fcntl (FD, F_Setfl, Fasync);
-      Dummy := Thin.C_Fcntl (FD, F_Setown, int (PID));
+      if not (SVR4_Stream_IO
+               or else Thin.C_Fcntl (FD, F_Setown, int (PID)) = Thin.Failure)
+      then
+         Dummy := Thin.C_Fcntl (FD, F_Setfl, Fasync);
+      elsif I_Setsig /= -1
+        and then S_Rdnorm /= -1
+        and then S_Wrnorm /= -1
+      then
+         --  Use an alternate method for SVR4
+
+         SVR4_Stream_IO := True;
+         Dummy          := Thin.C_Ioctl (FD, I_Setsig, S_Rdnorm + S_Wrnorm);
+      end if;
    end Set_Asynchronous;
 
    ----------------------
