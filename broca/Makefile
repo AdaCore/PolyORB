@@ -3,6 +3,11 @@ all:: config-stamp
 	cd adasockets && $(MAKE) all
 	cd src && $(MAKE) all
 
+autoconf::
+	cd idlac && (aclocal -I ../support && autoconf && automake)
+	cd adasockets && (aclocal -I ../support && autoconf && automake)
+	cd src && (aclocal -I ../support && autoconf && automake)
+
 config-stamp:
 	cd idlac && ./configure --cache-file=../config.cache
 	cd adasockets && ./configure --cache-file=../config.cache
