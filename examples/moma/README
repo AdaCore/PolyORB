@@ -1,5 +1,5 @@
 README for the PolyORB MOMA example
-------------------------------------
+-----------------------------------
 
 $Id$
 
@@ -18,5 +18,3 @@ To test persistence, you must setup a persistent destination, then
 - run the client to store messages : ./client <IOR> stor
 - kill the server, then re-launch it
 - run the client to retrieve messages : ./client <IOR> retr
-
-

@@ -1,0 +1,17 @@
+README for the PolyORB examples directory
+-----------------------------------------
+
+$Id$
+
+This directory contains a few demonstration of PolyORB's capabilities.
+It is organized around PolyORB application personnalities
+
+ common/  : common files used by the different demos,
+ corba/   : CORBA demos,
+ dsa/     : Ada 95 Distributed System Annex demos,
+ moma/    : MOMA demo,
+ polyorb/ : simple demo using PolyORB's neutral core layer.
+
+Interoperability demo :
+
+XXX To be written.
