@@ -1,5 +1,5 @@
 /* infblock.c -- interpret and process block types to last block
- * Copyright (C) 1995-1998 Mark Adler
+ * Copyright (C) 1995-2002 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
@@ -10,6 +10,10 @@
 #include "infutil.h"
 
 struct inflate_codes_state {int dummy;}; /* for buggy compilers */
+
+/* simplify the use of the inflate_huft type with some defines */
+#define exop word.what.Exop
+#define bits word.what.Bits
 
 /* Table for deflate from PKZIP's appnote.txt. */
 local const uInt border[] = { /* Order of the bit length code lengths */
@@ -71,11 +75,7 @@ uLongf *c;
   if (s->mode == BTREE || s->mode == DTREE)
     ZFREE(z, s->sub.trees.blens);
   if (s->mode == CODES)
-  {
     inflate_codes_free(s->sub.decode.codes, z);
-    inflate_trees_free(s->sub.decode.td, z);
-    inflate_trees_free(s->sub.decode.tl, z);
-  }
   s->mode = TYPE;
   s->bitk = 0;
   s->bitb = 0;
@@ -96,8 +96,15 @@ uInt w;
   if ((s = (inflate_blocks_statef *)ZALLOC
        (z,1,sizeof(struct inflate_blocks_state))) == Z_NULL)
     return s;
+  if ((s->hufts =
+       (inflate_huft *)ZALLOC(z, sizeof(inflate_huft), MANY)) == Z_NULL)
+  {
+    ZFREE(z, s);
+    return Z_NULL;
+  }
   if ((s->window = (Bytef *)ZALLOC(z, 1, w)) == Z_NULL)
   {
+    ZFREE(z, s->hufts);
     ZFREE(z, s);
     return Z_NULL;
   }
@@ -110,9 +117,6 @@ uInt w;
 }
 
 
-#ifdef DEBUG
-  extern uInt inflate_hufts;
-#endif
 int inflate_blocks(s, z, r)
 inflate_blocks_statef *s;
 z_streamp z;
@@ -153,15 +157,13 @@ int r;
             uInt bl, bd;
             inflate_huft *tl, *td;
 
-            inflate_trees_fixed(&bl, &bd, &tl, &td);
+            inflate_trees_fixed(&bl, &bd, &tl, &td, z);
             s->sub.decode.codes = inflate_codes_new(bl, bd, tl, td, z);
             if (s->sub.decode.codes == Z_NULL)
             {
               r = Z_MEM_ERROR;
               LEAVE
             }
-            s->sub.decode.tl = Z_NULL;  /* don't try to free these */
-            s->sub.decode.td = Z_NULL;
           }
           DUMPBITS(3)
           s->mode = CODES;
@@ -244,13 +246,15 @@ int r;
         s->sub.trees.blens[border[s->sub.trees.index++]] = 0;
       s->sub.trees.bb = 7;
       t = inflate_trees_bits(s->sub.trees.blens, &s->sub.trees.bb,
-                             &s->sub.trees.tb, z);
+                             &s->sub.trees.tb, s->hufts, z);
       if (t != Z_OK)
       {
-        ZFREE(z, s->sub.trees.blens);
         r = t;
         if (r == Z_DATA_ERROR)
+        {
+          ZFREE(z, s->sub.trees.blens);
           s->mode = BAD;
+        }
         LEAVE
       }
       s->sub.trees.index = 0;
@@ -266,8 +270,8 @@ int r;
         t = s->sub.trees.bb;
         NEEDBITS(t)
         h = s->sub.trees.tb + ((uInt)b & inflate_mask[t]);
-        t = h->word.what.Bits;
-        c = h->more.Base;
+        t = h->bits;
+        c = h->base;
         if (c < 16)
         {
           DUMPBITS(t)
@@ -286,7 +290,6 @@ int r;
           if (i + j > 258 + (t & 0x1f) + ((t >> 5) & 0x1f) ||
               (c == 16 && i < 1))
           {
-            inflate_trees_free(s->sub.trees.tb, z);
             ZFREE(z, s->sub.trees.blens);
             s->mode = BAD;
             z->msg = (char*)"invalid bit length repeat";
@@ -300,7 +303,6 @@ int r;
           s->sub.trees.index = i;
         }
       }
-      inflate_trees_free(s->sub.trees.tb, z);
       s->sub.trees.tb = Z_NULL;
       {
         uInt bl, bd;
@@ -310,32 +312,28 @@ int r;
         bl = 9;         /* must be <= 9 for lookahead assumptions */
         bd = 6;         /* must be <= 9 for lookahead assumptions */
         t = s->sub.trees.table;
-#ifdef DEBUG
-      inflate_hufts = 0;
-#endif
         t = inflate_trees_dynamic(257 + (t & 0x1f), 1 + ((t >> 5) & 0x1f),
-                                  s->sub.trees.blens, &bl, &bd, &tl, &td, z);
-        ZFREE(z, s->sub.trees.blens);
+                                  s->sub.trees.blens, &bl, &bd, &tl, &td,
+                                  s->hufts, z);
         if (t != Z_OK)
         {
           if (t == (uInt)Z_DATA_ERROR)
+          {
+            ZFREE(z, s->sub.trees.blens);
             s->mode = BAD;
+          }
           r = t;
           LEAVE
         }
-        Tracev((stderr, "inflate:       trees ok, %d * %d bytes used\n",
-              inflate_hufts, sizeof(inflate_huft)));
+        Tracev((stderr, "inflate:       trees ok\n"));
         if ((c = inflate_codes_new(bl, bd, tl, td, z)) == Z_NULL)
         {
-          inflate_trees_free(td, z);
-          inflate_trees_free(tl, z);
           r = Z_MEM_ERROR;
           LEAVE
         }
         s->sub.decode.codes = c;
-        s->sub.decode.tl = tl;
-        s->sub.decode.td = td;
       }
+      ZFREE(z, s->sub.trees.blens);
       s->mode = CODES;
     case CODES:
       UPDATE
@@ -343,8 +341,6 @@ int r;
         return inflate_flush(s, z, r);
       r = Z_OK;
       inflate_codes_free(s->sub.decode.codes, z);
-      inflate_trees_free(s->sub.decode.td, z);
-      inflate_trees_free(s->sub.decode.tl, z);
       LOAD
       Tracev((stderr, "inflate:       codes end, %lu total out\n",
               z->total_out + (q >= s->read ? q - s->read :
@@ -353,13 +349,6 @@ int r;
       {
         s->mode = TYPE;
         break;
-      }
-      if (k > 7)              /* return unused byte, if any */
-      {
-        Assert(k < 16, "inflate_codes grabbed too many bytes")
-        k -= 8;
-        n++;
-        p--;                    /* can always return one */
       }
       s->mode = DRY;
     case DRY:
@@ -386,6 +375,7 @@ z_streamp z;
 {
   inflate_blocks_reset(s, z, Z_NULL);
   ZFREE(z, s->window);
+  ZFREE(z, s->hufts);
   ZFREE(z, s);
   Tracev((stderr, "inflate:   blocks freed\n"));
   return Z_OK;
@@ -397,7 +387,7 @@ inflate_blocks_statef *s;
 const Bytef *d;
 uInt  n;
 {
-  zmemcpy((charf *)s->window, d, n);
+  zmemcpy(s->window, d, n);
   s->read = s->write = s->window + n;
 }
 

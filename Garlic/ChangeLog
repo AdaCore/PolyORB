@@ -1,3 +1,12 @@
+2002-04-22  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* zlib: Update zlib to 1.1.4 because of a vulnerability uncovered
+	in 1.0.8. Fix 9912-002.
+
+2002-04-08  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* b_gaprco.adb: Change header and update copyright.
+
 2002-01-04  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-gafizi.adb, s-ganata.adb, s-ganeut.adb, s-ganota.adb,

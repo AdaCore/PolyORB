@@ -1,9 +1,11 @@
 /* gzio.c -- IO on .gz files
- * Copyright (C) 1995-1998 Jean-loup Gailly.
+ * Copyright (C) 1995-2002 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  *
  * Compile this file with -DNO_DEFLATE to avoid the compression code.
  */
+
+/* @(#) $Id$ */
 
 #include <stdio.h>
 
@@ -11,7 +13,16 @@
 
 struct internal_state {int dummy;}; /* for buggy compilers */
 
-#define Z_BUFSIZE 4096
+#ifndef Z_BUFSIZE
+#  ifdef MAXSEG_64K
+#    define Z_BUFSIZE 4096 /* minimize memory usage for 16-bit DOS */
+#  else
+#    define Z_BUFSIZE 16384
+#  endif
+#endif
+#ifndef Z_PRINTF_BUFSIZE
+#  define Z_PRINTF_BUFSIZE 4096
+#endif
 
 #define ALLOC(size) malloc(size)
 #define TRYFREE(p) {if (p) free(p);}
@@ -129,8 +140,12 @@ local gzFile gz_open (path, mode, fd)
         s->stream.next_in  = s->inbuf = (Byte*)ALLOC(Z_BUFSIZE);
 
         err = inflateInit2(&(s->stream), -MAX_WBITS);
-        /* windowBits is passed < 0 to tell that there is no zlib header */
-
+        /* windowBits is passed < 0 to tell that there is no zlib header.
+         * Note that in this case inflate *requires* an extra "dummy" byte
+         * after the compressed stream in order to complete decompression and
+         * return Z_STREAM_END. Here the gzip CRC32 ensures that 4 bytes are
+         * present after the compressed stream.
+         */
         if (err != Z_OK || s->inbuf == Z_NULL) {
             return destroy(s), (gzFile)Z_NULL;
         }
@@ -165,7 +180,7 @@ local gzFile gz_open (path, mode, fd)
 /* ===========================================================================
      Opens a gzip (.gz) file for reading or writing.
 */
-gzFile EXPORT gzopen (path, mode)
+gzFile ZEXPORT gzopen (path, mode)
     const char *path;
     const char *mode;
 {
@@ -176,7 +191,7 @@ gzFile EXPORT gzopen (path, mode)
      Associate a gzFile with the file descriptor fd. fd is not dup'ed here
    to mimic the behavio(u)r of fdopen.
 */
-gzFile EXPORT gzdopen (fd, mode)
+gzFile ZEXPORT gzdopen (fd, mode)
     int fd;
     const char *mode;
 {
@@ -191,7 +206,7 @@ gzFile EXPORT gzdopen (fd, mode)
 /* ===========================================================================
  * Update the compression level and strategy
  */
-int EXPORT gzsetparams (file, level, strategy)
+int ZEXPORT gzsetparams (file, level, strategy)
     gzFile file;
     int level;
     int strategy;
@@ -337,7 +352,7 @@ local int destroy (s)
      Reads the given number of uncompressed bytes from the compressed file.
    gzread returns the number of bytes actually read (0 for end of file).
 */
-int EXPORT gzread (file, buf, len)
+int ZEXPORT gzread (file, buf, len)
     gzFile file;
     voidp buf;
     unsigned len;
@@ -373,7 +388,11 @@ int EXPORT gzread (file, buf, len)
 		s->stream.avail_out -= fread(next_out, 1, s->stream.avail_out,
 					     s->file);
 	    }
-	    return (int)(len - s->stream.avail_out);
+	    len -= s->stream.avail_out;
+	    s->stream.total_in  += (uLong)len;
+	    s->stream.total_out += (uLong)len;
+            if (len == 0) s->z_eof = 1;
+	    return (int)len;
 	}
         if (s->stream.avail_in == 0 && !s->z_eof) {
 
@@ -395,10 +414,14 @@ int EXPORT gzread (file, buf, len)
 	    s->crc = crc32(s->crc, start, (uInt)(s->stream.next_out - start));
 	    start = s->stream.next_out;
 
-	    if (getLong(s) != s->crc || getLong(s) != s->stream.total_out) {
+	    if (getLong(s) != s->crc) {
 		s->z_err = Z_DATA_ERROR;
 	    } else {
-		/* Check for concatenated .gz files: */
+	        (void)getLong(s);
+                /* The uncompressed length returned by above getlong() may
+                 * be different from s->stream.total_out) in case of
+		 * concatenated .gz files. Check for such files:
+		 */
 		check_header(s);
 		if (s->z_err == Z_OK) {
 		    uLong total_in = s->stream.total_in;
@@ -423,7 +446,7 @@ int EXPORT gzread (file, buf, len)
       Reads one byte from the compressed file. gzgetc returns this byte
    or -1 in case of end of file or error.
 */
-int EXPORT gzgetc(file)
+int ZEXPORT gzgetc(file)
     gzFile file;
 {
     unsigned char c;
@@ -432,12 +455,35 @@ int EXPORT gzgetc(file)
 }
 
 
+/* ===========================================================================
+      Reads bytes from the compressed file until len-1 characters are
+   read, or a newline character is read and transferred to buf, or an
+   end-of-file condition is encountered.  The string is then terminated
+   with a null character.
+      gzgets returns buf, or Z_NULL in case of error.
+
+      The current implementation is not optimized at all.
+*/
+char * ZEXPORT gzgets(file, buf, len)
+    gzFile file;
+    char *buf;
+    int len;
+{
+    char *b = buf;
+    if (buf == Z_NULL || len <= 0) return Z_NULL;
+
+    while (--len > 0 && gzread(file, buf, 1) == 1 && *buf++ != '\n') ;
+    *buf = '\0';
+    return b == buf && len > 0 ? Z_NULL : b;
+}
+
+
 #ifndef NO_DEFLATE
 /* ===========================================================================
      Writes the given number of uncompressed bytes into the compressed file.
    gzwrite returns the number of bytes actually written (0 in case of error).
 */
-int EXPORT gzwrite (file, buf, len)
+int ZEXPORT gzwrite (file, buf, len)
     gzFile file;
     const voidp buf;
     unsigned len;
@@ -476,33 +522,34 @@ int EXPORT gzwrite (file, buf, len)
 #ifdef STDC
 #include <stdarg.h>
 
-int EXPORTVA gzprintf (gzFile file, const char *format, /* args */ ...)
+int ZEXPORTVA gzprintf (gzFile file, const char *format, /* args */ ...)
 {
-    char buf[Z_BUFSIZE];
+    char buf[Z_PRINTF_BUFSIZE];
     va_list va;
     int len;
 
     va_start(va, format);
 #ifdef HAS_vsnprintf
-    len = vsnprintf(buf, sizeof(buf), format, va);
+    (void)vsnprintf(buf, sizeof(buf), format, va);
 #else
-    len = vsprintf(buf, format, va);
+    (void)vsprintf(buf, format, va);
 #endif
     va_end(va);
+    len = strlen(buf); /* some *sprintf don't return the nb of bytes written */
     if (len <= 0) return 0;
 
     return gzwrite(file, buf, (unsigned)len);
 }
 #else /* not ANSI C */
 
-int EXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
+int ZEXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
 	               a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
     gzFile file;
     const char *format;
     int a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
 	a11, a12, a13, a14, a15, a16, a17, a18, a19, a20;
 {
-    char buf[Z_BUFSIZE];
+    char buf[Z_PRINTF_BUFSIZE];
     int len;
 
 #ifdef HAS_snprintf
@@ -523,13 +570,26 @@ int EXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
       Writes c, converted to an unsigned char, into the compressed file.
    gzputc returns the value that was written, or -1 in case of error.
 */
-int EXPORT gzputc(file, c)
+int ZEXPORT gzputc(file, c)
     gzFile file;
     int c;
 {
     unsigned char cc = (unsigned char) c; /* required for big endian systems */
 
     return gzwrite(file, &cc, 1) == 1 ? (int)cc : -1;
+}
+
+
+/* ===========================================================================
+      Writes the given null-terminated string to the compressed file, excluding
+   the terminating null character.
+      gzputs returns the number of characters written, or -1 in case of error.
+*/
+int ZEXPORT gzputs(file, s)
+    gzFile file;
+    const char *s;
+{
+    return gzwrite(file, (char*)s, (unsigned)strlen(s));
 }
 
 
@@ -576,7 +636,7 @@ local int do_flush (file, flush)
     return  s->z_err == Z_STREAM_END ? Z_OK : s->z_err;
 }
 
-int EXPORT gzflush (file, flush)
+int ZEXPORT gzflush (file, flush)
      gzFile file;
      int flush;
 {
@@ -597,24 +657,24 @@ int EXPORT gzflush (file, flush)
       SEEK_END is not implemented, returns error.
       In this version of the library, gzseek can be extremely slow.
 */
-z_off_t EXPORT gzseek (file, offset, whence)
+z_off_t ZEXPORT gzseek (file, offset, whence)
     gzFile file;
     z_off_t offset;
     int whence;
 {
     gz_stream *s = (gz_stream*)file;
 
-    if (s == NULL || whence == SEEK_END || s->z_err == Z_ERRNO) return -1L;
-
-    s->z_err = Z_OK;
-    s->z_eof = 0;
+    if (s == NULL || whence == SEEK_END ||
+	s->z_err == Z_ERRNO || s->z_err == Z_DATA_ERROR) {
+	return -1L;
+    }
     
     if (s->mode == 'w') {
 #ifdef NO_DEFLATE
 	return -1L;
 #else
 	if (whence == SEEK_SET) {
-	    offset -= s->stream.total_out;
+	    offset -= s->stream.total_in;
 	}
 	if (offset < 0) return -1L;
 
@@ -637,8 +697,6 @@ z_off_t EXPORT gzseek (file, offset, whence)
     }
     /* Rest of function is for reading only */
 
-    if (s->z_err == Z_DATA_ERROR) return -1L;
-
     /* compute absolute position */
     if (whence == SEEK_CUR) {
 	offset += s->stream.total_out;
@@ -649,7 +707,9 @@ z_off_t EXPORT gzseek (file, offset, whence)
 	/* map to fseek */
 	s->stream.avail_in = 0;
 	s->stream.next_in = s->inbuf;
-	if (fseek(s->file, offset, SEEK_SET) < 0) return -1L;
+        if (fseek(s->file, offset, SEEK_SET) < 0) return -1L;
+
+	s->stream.total_in = s->stream.total_out = (uLong)offset;
 	return offset;
     }
 
@@ -678,7 +738,7 @@ z_off_t EXPORT gzseek (file, offset, whence)
 /* ===========================================================================
      Rewinds input file. 
 */
-int EXPORT gzrewind (file)
+int ZEXPORT gzrewind (file)
     gzFile file;
 {
     gz_stream *s = (gz_stream*)file;
@@ -689,6 +749,7 @@ int EXPORT gzrewind (file)
     s->z_eof = 0;
     s->stream.avail_in = 0;
     s->stream.next_in = s->inbuf;
+    s->crc = crc32(0L, Z_NULL, 0);
 	
     if (s->startpos == 0) { /* not a compressed file */
 	rewind(s->file);
@@ -704,7 +765,7 @@ int EXPORT gzrewind (file)
    given compressed file. This position represents a number of bytes in the
    uncompressed data stream.
 */
-z_off_t EXPORT gztell (file)
+z_off_t ZEXPORT gztell (file)
     gzFile file;
 {
     return gzseek(file, 0L, SEEK_CUR);
@@ -714,7 +775,7 @@ z_off_t EXPORT gztell (file)
      Returns 1 when EOF has previously been detected reading the given
    input stream, otherwise zero.
 */
-int EXPORT gzeof (file)
+int ZEXPORT gzeof (file)
     gzFile file;
 {
     gz_stream *s = (gz_stream*)file;
@@ -737,7 +798,8 @@ local void putLong (file, x)
 }
 
 /* ===========================================================================
-   Reads a long in LSB order from the given gz_stream. Sets 
+   Reads a long in LSB order from the given gz_stream. Sets z_err in case
+   of error.
 */
 local uLong getLong (s)
     gz_stream *s;
@@ -757,7 +819,7 @@ local uLong getLong (s)
      Flushes all pending output if necessary, closes the compressed file
    and deallocates all the (de)compression state.
 */
-int EXPORT gzclose (file)
+int ZEXPORT gzclose (file)
     gzFile file;
 {
     int err;
@@ -786,7 +848,7 @@ int EXPORT gzclose (file)
    errnum is set to Z_ERRNO and the application may consult errno
    to get the exact error code.
 */
-const char*  EXPORT gzerror (file, errnum)
+const char*  ZEXPORT gzerror (file, errnum)
     gzFile file;
     int *errnum;
 {

@@ -1,7 +1,9 @@
 /* example.c -- usage example of the zlib compression library
- * Copyright (C) 1995-1998 Jean-loup Gailly.
+ * Copyright (C) 1995-2002 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
+
+/* @(#) $Id$ */
 
 #include <stdio.h>
 #include "zlib.h"
@@ -11,6 +13,12 @@
 #  include <stdlib.h>
 #else
    extern void exit  OF((int));
+#endif
+
+#if defined(VMS) || defined(RISCOS)
+#  define TESTFILE "foo-gz"
+#else
+#  define TESTFILE "foo.gz"
 #endif
 
 #define CHECK_ERR(err, msg) { \
@@ -69,7 +77,7 @@ void test_compress(compr, comprLen, uncompr, uncomprLen)
         fprintf(stderr, "bad uncompress\n");
 	exit(1);
     } else {
-        printf("uncompress(): %s\n", uncompr);
+        printf("uncompress(): %s\n", (char *)uncompr);
     }
 }
 
@@ -77,8 +85,8 @@ void test_compress(compr, comprLen, uncompr, uncomprLen)
  * Test read/write of .gz files
  */
 void test_gzio(out, in, uncompr, uncomprLen)
-    const char *out; /* output file */
-    const char *in;  /* input file */
+    const char *out; /* compressed output file */
+    const char *in;  /* compressed input file */
     Byte *uncompr;
     int  uncomprLen;
 {
@@ -93,7 +101,11 @@ void test_gzio(out, in, uncompr, uncomprLen)
         exit(1);
     }
     gzputc(file, 'h');
-    if (gzprintf(file, "%s, %s!", "ello", "hello") != len-2) {
+    if (gzputs(file, "ello") != 4) {
+        fprintf(stderr, "gzputs err: %s\n", gzerror(file, &err));
+	exit(1);
+    }
+    if (gzprintf(file, ", %s!", "hello") != 8) {
         fprintf(stderr, "gzprintf err: %s\n", gzerror(file, &err));
 	exit(1);
     }
@@ -115,13 +127,13 @@ void test_gzio(out, in, uncompr, uncomprLen)
         fprintf(stderr, "bad gzread: %s\n", (char*)uncompr);
 	exit(1);
     } else {
-        printf("gzread(): %s\n", uncompr);
+        printf("gzread(): %s\n", (char *)uncompr);
     }
 
     pos = gzseek(file, -8L, SEEK_CUR);
     if (pos != 6 || gztell(file) != pos) {
 	fprintf(stderr, "gzseek error, pos=%ld, gztell=%ld\n",
-		pos, gztell(file));
+		(long)pos, (long)gztell(file));
 	exit(1);
     }
 
@@ -130,16 +142,17 @@ void test_gzio(out, in, uncompr, uncomprLen)
 	exit(1);
     }
 
-    uncomprLen = gzread(file, uncompr, (unsigned)uncomprLen);
-    if (uncomprLen != 7) {
-        fprintf(stderr, "gzread err after gzseek: %s\n", gzerror(file, &err));
+    gzgets(file, (char*)uncompr, uncomprLen);
+    uncomprLen = strlen((char*)uncompr);
+    if (uncomprLen != 6) { /* "hello!" */
+        fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
 	exit(1);
     }
     if (strcmp((char*)uncompr, hello+7)) {
-        fprintf(stderr, "bad gzread after gzseek\n");
+        fprintf(stderr, "bad gzgets after gzseek\n");
 	exit(1);
     } else {
-        printf("gzread() after gzseek: %s\n", uncompr);
+        printf("gzgets() after gzseek: %s\n", (char *)uncompr);
     }
 
     gzclose(file);
@@ -220,7 +233,7 @@ void test_inflate(compr, comprLen, uncompr, uncomprLen)
         fprintf(stderr, "bad inflate\n");
 	exit(1);
     } else {
-        printf("inflate(): %s\n", uncompr);
+        printf("inflate(): %s\n", (char *)uncompr);
     }
 }
 
@@ -399,7 +412,7 @@ void test_sync(compr, comprLen, uncompr, uncomprLen)
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
-    printf("after inflateSync(): hel%s\n", uncompr);
+    printf("after inflateSync(): hel%s\n", (char *)uncompr);
 }
 
 /* ===========================================================================
@@ -485,7 +498,7 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
         fprintf(stderr, "bad inflate with dict\n");
 	exit(1);
     } else {
-        printf("inflate with dictionary: %s\n", uncompr);
+        printf("inflate with dictionary: %s\n", (char *)uncompr);
     }
 }
 
@@ -521,8 +534,8 @@ int main(argc, argv)
     }
     test_compress(compr, comprLen, uncompr, uncomprLen);
 
-    test_gzio((argc > 1 ? argv[1] : "foo.gz"),
-              (argc > 2 ? argv[2] : "foo.gz"),
+    test_gzio((argc > 1 ? argv[1] : TESTFILE),
+              (argc > 2 ? argv[2] : TESTFILE),
 	      uncompr, (int)uncomprLen);
 
     test_deflate(compr, comprLen);
