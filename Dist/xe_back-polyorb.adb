@@ -408,7 +408,7 @@ package body XE_Back is
          Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
       end if;
 
-      Build (Sfile, Make_Args);
+      Build (Sfile, Make_Args, Fatal => True, Silent => False);
 
       Free (Make_Args (2));
       Free (Make_Args (8));
