@@ -140,9 +140,6 @@ cos/event/coseventcomm-pushconsumer-impl.adb
 cos/event/coseventcomm-pushconsumer-impl.ads
 cos/event/coseventcomm-pushsupplier-impl.adb
 cos/event/coseventcomm-pushsupplier-impl.ads
-cos/event/header.txt
-cos/event/priority_queue.adb
-cos/event/priority_queue.ads
 cos/event/supplier.cmd
 cos/event/test_event.adb
 cos/ir/Makefile.am
