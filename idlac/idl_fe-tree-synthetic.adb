@@ -141,7 +141,7 @@ package body Idl_Fe.Tree.Synthetic is
    begin
       pragma Assert (Repository_Id_Node /= No_Node);
 
-      return String_Value (Repository_Id_Node);
+      return String_Value (Repository_Id_Node).all;
    end Idl_Repository_Id;
 
    function All_Ancestors
@@ -181,39 +181,12 @@ package body Idl_Fe.Tree.Synthetic is
    function Integer_Value
      (Node : Node_Id)
      return Integer is
+      O_Node : constant Node_Id
+        := Operand (Node);
    begin
-      return Integer (Expr_Value (Node).Integer_Value);
+      return Integer'Value
+        (String_Value (O_Node).all);
    end Integer_Value;
-
-   function String_Value
-     (Node : Node_Id)
-     return String is
-   begin
-      return Expr_Value (Node).String_Value.all;
-   end String_Value;
-
-   function Boolean_Value
-     (Node : Node_Id)
-     return Boolean is
-   begin
-      return Expr_Value (Node).Boolean_Value;
-   end Boolean_Value;
-
-   function Enum_Value
-     (Node : Node_Id)
-     return Node_Id is
-   begin
-      return Expr_Value (Node).Enum_Value;
-   end Enum_Value;
-
-   procedure Set_String_Value
-     (Node : Node_Id;
-      Val  : String) is
-   begin
-      Set_Expr_Value
-        (Node, new Constant_Value (Kind => C_String));
-      Expr_Value (Node).String_Value := new String'(Val);
-   end Set_String_Value;
 
    function Default_Repository_Id
      (Node : Node_Id)
@@ -222,15 +195,11 @@ package body Idl_Fe.Tree.Synthetic is
       P_Node : constant Node_Id
         := Parent_Scope (Node);
    begin
-      if P_Node /= No_Node then
-         if Kind (P_Node) = K_Repository then
-            return Name (Node);
-         else
-            return Default_Repository_Id (Parent_Scope (Node))
-              & "/" & Name (Node);
-         end if;
-      else
+      if Kind (P_Node) = K_Repository then
          return Name (Node);
+      else
+         return Default_Repository_Id (Parent_Scope (Node))
+           & "/" & Name (Node);
       end if;
    end Default_Repository_Id;
 

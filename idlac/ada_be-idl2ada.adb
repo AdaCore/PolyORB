@@ -2445,16 +2445,10 @@ package body Ada_Be.Idl2Ada is
             --        when K_Not =>
 
          when K_Lit_String =>
-            Put (CU, String_Value (Node));
-
-         when K_Lit_Integer =>
-            Put (CU, Img (Integer_Value (Node)));
+            Put (CU, String_Value (Node).all);
 
          when K_Lit_Boolean =>
-            Put (CU, Img (Boolean_Value (Node)));
-
-         when K_Lit_Enum =>
-            Put (CU, Ada_Name (Enum_Value (Node)));
+            Put (CU, Img (Bool_Value (Node)));
 
          when K_Primary_Expr =>
             Gen_Node_Default (CU, Operand (Node));
