@@ -1855,10 +1855,9 @@ package body Exp_Hlpr is
       Counter : Entity_Id := Empty;
       Depth   : Pos       := 1)
    is
-      Constrained : constant Boolean := Is_Constrained (Arry);
-
       Loc       : constant Source_Ptr := Sloc (Subprogram);
       Typ       : constant Entity_Id  := Etype (Arry);
+      Constrained : constant Boolean := Is_Constrained (Typ);
       Ndim      : constant Pos        := Number_Dimensions (Typ);
       Inner_Any, Inner_Counter : Entity_Id;
       Loop_Stm  : Node_Id;

@@ -126,6 +126,11 @@ package body RCI is
 
    Cookie : Integer := 0;
 
+   function echoC_4_5 (X : C_4_5) return C_4_5 is
+   begin
+      return X;
+   end echoC_4_5;
+
    function Get_Cookie return Integer is
    begin
       return Cookie;

@@ -99,6 +99,20 @@ begin
    Put_Line ("|2 + 3i|^2 = " & Float'Image (RCI.Modulus2 (Z)));
 
    declare
+      use type RCI.C_4_5;
+
+      Matrix : RCI.C_4_5;
+   begin
+      for J in Matrix'Range (1) loop
+         for K in Matrix'Range (2) loop
+            Matrix (J, K) := (Re => 1.0 / Float (J), Im => 1.0 / Float (K));
+         end loop;
+      end loop;
+      Put_Line ("Matrix passed? "
+        & Boolean'Image (Matrix = RCI.echoC_4_5 (Matrix)));
+   end;
+
+   declare
       C : constant Integer := RCI.Get_Cookie;
    begin
       Put_Line ("Cookie value:" & Integer'Image (C));

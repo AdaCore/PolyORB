@@ -75,6 +75,10 @@ package RCI is
 
    function Modulus2 (Z : Complex) return Float;
 
+   type C_4_5 is array (0 .. 3, 0 .. 4) of Complex;
+
+   function echoC_4_5 (X : C_4_5) return C_4_5;
+
    --  type Parameterless_RAS is access procedure;
 
    function Get_Cookie return Integer;
