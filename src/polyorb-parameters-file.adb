@@ -148,7 +148,7 @@ package body PolyORB.Parameters.File is
                         O ("Syntax error on line" &
                            Integer'Image (Current_Line) &
                            ": " & Line (Line'First .. Last));
-                        raise Program_Error;
+                        raise Constraint_Error;
                      end if;
 
                      Set_Current_Section (Line (Bra + 1 .. Ket - 1));
@@ -164,14 +164,14 @@ package body PolyORB.Parameters.File is
                         O ("Assignment out of any section on line" &
                            Integer'Image (Current_Line) &
                            ": " & Line (Line'First .. Last));
-                        raise Program_Error;
+                        raise Constraint_Error;
                      end if;
 
                      if Eq not in Line'First + 1 .. Last - 1 then
                         O ("Syntax error on line" &
                            Integer'Image (Current_Line) &
                            ": " & Line (Line'First .. Last));
-                        raise Program_Error;
+                        raise Constraint_Error;
                      end if;
 
                      Set_Conf
