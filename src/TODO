@@ -6,6 +6,10 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* When registering a profile tag, the associated representation
+  subprograms should be To_Any and From_Any, not CDR marshalling
+  subprograms.
+  
 * Clarify the uniform interface of representations:
   either create a PolyORB.Representations.CDR.CDR_Representation
   type (derived from P.R.Representation) or remove P.R.Representation
@@ -18,14 +22,16 @@ Items still requiring attention
   that returns a Transport_Endpoint.
 
 * Factor out common code between different versions of
-  PolyORB.Binding_Data.*. Incorporate Transport_Access_Point_Name
-  usage as a Binding_Object_Fragment_Factory (extension of the
-  notion of Filter_Factory to fragments of binding objects that
+  PolyORB.Binding_Data.*.
+
+* Incorporate Transport_Access_Point_Name usage as a
+  Binding_Object_Fragment_Factory (extension of the notion of
+  Filter_Factory to fragments of binding objects that
   are not filter). Think Netgraph.
 
 * Exception support: separate personality-specific (CORBA)
   code from generic code. Check proper implementation of
-  DSA exception. Document mapping between both models.
+  DSA exceptions. Document mapping between both models.
 
 * Ada 95 DSA personality:
   -> Asynchronous
@@ -42,8 +48,12 @@ Items still requiring attention
 
 * Support logging to syslog (also for Java ?)
 
-* PolyORB.Buffers: remove mentions of CDR.
+* PolyORB.Buffers: remove mentions of CDR (most notably, the Endianness
+  property of a buffer and all endianness considerations are irrelevant
+  to PolyORB.Buffers).
+
 * PolyORB.Buffers: remove mention of sockets.
+
 * PolyORB.Buffers: Zero-copy buffers.
 
 * Configuration of memory allocation:
@@ -54,7 +64,7 @@ Items still requiring attention
 
   See Allocator abstract class in Quarterware.
 
-* HTTP protocol (to be used with Minimal_Servant to compose a
+* HTTP as a Protocol (to be used with Minimal_Servant to compose a
   web server).
 
 * CSTA protocol (for telephony applications.)

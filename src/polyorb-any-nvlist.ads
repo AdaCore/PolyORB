@@ -60,9 +60,9 @@ package PolyORB.Any.NVList is
    procedure Free_Memory (Self : Ref) renames Free;
    --  Free and Free_Memory are no-ops in Ada.
 
-   -----------------------------------------
+   ------------------------------------------
    -- The following is specific to PolyORB --
-   -----------------------------------------
+   ------------------------------------------
 
    procedure Create (NVList : out Ref);
    --  Create a new NVList object and return a reference to it.

@@ -122,29 +122,13 @@ package body PolyORB.Any.NVList is
       end if;
    end Get_Count;
 
-   -------------------
-   -- Create_Object --
-   -------------------
-
-   function Create_Object return Object_Ptr;
-   --  Create a new and empty Object
-
-   function Create_Object return Object_Ptr
-   is
-      Res : constant Object_Ptr := new Object;
-   begin
-      return Res;
-   end Create_Object;
-
    ------------
    -- Create --
    ------------
 
-   procedure Create (NVList : out Ref)
-   is
-      Object : constant Object_Ptr := Create_Object;
+   procedure Create (NVList : out Ref) is
    begin
-      Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr (Object));
+      Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr'(new Object));
    end Create;
 
    function Image (NVList : Ref) return Standard.String

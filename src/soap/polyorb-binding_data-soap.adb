@@ -72,6 +72,13 @@ package body PolyORB.Binding_Data.SOAP is
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for SOAP profiles.
 
+   --------------------------
+   -- Internal subprograms --
+   --------------------------
+
+   procedure Initialize;
+   --  Initialize the SOAP binding subsystem.
+
    procedure Marshall_Socket
      (Buffer   : access Buffer_Type;
       Sock     : Sockets.Sock_Addr_Type);
