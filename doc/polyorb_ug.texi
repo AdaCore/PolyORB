@@ -56,7 +56,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#9 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#10 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -520,7 +520,14 @@ Solaris 2.8:
 @c -------------------------------------------------------------------
 
 @noindent
+A personality is an instanciation of specific PolyORB components. It
+provides the mechanisms specified by a distribution model, e.g. an
+API, a code generator or a protocol stack.
+
 This section provides a brief overview of existing personalities.
+
+@emph{Note: some of these personalities are available only through
+PolyORB's repository.}
 
 @menu
 * Application personalities::
@@ -533,7 +540,25 @@ This section provides a brief overview of existing personalities.
 @cindex Application personalities
 @c -------------------------------------------------------------------
 
+@noindent
+Application personalities constitute the adaptation layer between
+application components and middleware. They provide APIs and/or code
+generator to register application entities with PolyORB's core, and
+interoperate with the core to allow the exchange of requests with
+remote entities.
+
+@menu
+* CORBAoverview::
+* DSAoverview::
+* MOMAoverview::
+* AWSoverview::
+@end menu
+
+@c -------------------------------------------------------------------
+@node CORBAoverview
 @subsection CORBA
+@cindex CORBA
+@c -------------------------------------------------------------------
 
 @noindent
 CORBA is OMG specification of a Distributed Object Computing (DOC)
@@ -545,15 +570,24 @@ PolyORB provides a CORBA-compliant implementation based on mapping of
 the IDL language version 1.2 described in @cite{[OMG01]} and CORBA
 core specifications.
 
+@c -------------------------------------------------------------------
+@node DSAoverview
 @subsection Distributed System Annex of Ada (DSA)
+@cindex Distributed System Annex (DSA)
+@cindex DSA
+@c -------------------------------------------------------------------
 
 @noindent
 The Distributed System Annex of Ada (DSA) @cite{[ISO95]} is a normative
 specification part of the language. It describes remote invocation
 schemes applied to most language constructs.
 
-
+@c -------------------------------------------------------------------
+@node MOMAoverview
 @subsection Message Oriented Middleware for Ada (MOMA)
+@cindex Message Oriented Middleware for Ada (MOMA)
+@cindex MOMA
+@c -------------------------------------------------------------------
 
 @noindent
 MOMA (Message Oriented Middleware for Ada) provides message passing
@@ -561,7 +595,12 @@ mechanisms. It is an Ada adaptation of Sun's Java Message Service
 (JMS) @cite{[SUN99]}, a standardized API for common message passing
 models.
 
+@c -------------------------------------------------------------------
+@node AWSoverview
 @subsection Ada Web Server (AWS)
+@cindex Ada Web Server (AWS)
+@cindex AWS
+@c -------------------------------------------------------------------
 
 @noindent
 The Web Server personality provides the same API as the Ada Web Server
@@ -575,9 +614,23 @@ outgoing @code{HTTP} and @code{SOAP} requests.
 @section Protocol personalities
 @cindex Protocol personality
 @c -------------------------------------------------------------------
- 
-@subsection GIOP
 
+@noindent
+Protocol personalities handle the mapping of requests
+(representing interactions between application entities) onto messages
+exchanged through a communication network, according to a specific
+protocol.
+
+@menu
+* GIOPoverview::
+* SOAPoverview::
+@end menu
+
+@c -------------------------------------------------------------------
+@node GIOPoverview
+@subsection GIOP
+@cindex GIOP
+@c -------------------------------------------------------------------
 
 @noindent
 GIOP is the transport layer of the CORBA specifications. GIOP is a
@@ -588,13 +641,23 @@ following dedicated instances:
 
 @itemize @bullet
 @item IIOP supports synchronous request semantics over TCP/IP,
+@cindex IIOP
 
-@item MIOP instantiation of GIOP enables group communication over IP multicast,
+@item MIOP instantiation of GIOP enables group communication over 
+IP multicast,
+@cindex MIOP
 
-@item DIOP relies on UDP/IP communications to transmit one-way requests only.
+@item DIOP relies on UDP/IP communications to transmit one-way 
+requests only.
+@cindex DIOP
+
 @end itemize
 
+@c -------------------------------------------------------------------
+@node SOAPoverview
 @subsection SOAP
+@cindex SOAP
+@c -------------------------------------------------------------------
 
 @noindent
 The SOAP protocol @cite{[W3C03]} enables the exchange of structured
