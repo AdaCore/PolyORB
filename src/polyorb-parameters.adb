@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  PolyORB runtime configuration facility.
+--  PolyORB runtime configuration facility
 
 with Ada.Characters.Handling;
 
@@ -79,10 +79,10 @@ package body PolyORB.Parameters is
    --  otherwise.
 
    function Make_Global_Key (Section, Key : String) return String;
-   --  Build Dynamic Dict key from (Section, Key) tuple.
+   --  Build Dynamic Dict key from (Section, Key) tuple
 
    function Make_Env_Name (Section, Key : String) return String;
-   --  Build environment variable from (Section, Key) tuple.
+   --  Build environment variable from (Section, Key) tuple
 
    function To_Boolean (V : String) return Boolean;
    --  Convert a String value to a Boolean value according
@@ -102,12 +102,9 @@ package body PolyORB.Parameters is
    -- Make_Env_Name --
    -------------------
 
-   function Make_Env_Name
-     (Section, Key : String)
-     return String
-   is
-      Result : String := "POLYORB_"
-        & To_Upper (Section & "_" & Key);
+   function Make_Env_Name (Section, Key : String) return String is
+      Result : String := "POLYORB_" & To_Upper (Section & "_" & Key);
+
    begin
       for J in Result'Range loop
          case Result (J) is
@@ -145,11 +142,9 @@ package body PolyORB.Parameters is
    -- To_Boolean --
    ----------------
 
-   function To_Boolean
-     (V : String)
-     return Boolean
-   is
+   function To_Boolean (V : String) return Boolean is
       VV : constant String := To_Lower (V);
+
    begin
       if VV'Length > 0 then
          case VV (VV'First) is
@@ -233,7 +228,8 @@ package body PolyORB.Parameters is
    function Get_Conf
      (Section, Key : String;
       Default      : Integer := 0)
-     return Integer is
+     return Integer
+   is
    begin
       return Integer'Value (Get_Conf (Section, Key, Integer'Image (Default)));
    end Get_Conf;
@@ -265,6 +261,7 @@ package body PolyORB.Parameters is
    is
       K : constant String := Make_Global_Key (Section, Key);
       P : String_Ptr := Variables.Lookup (K, null);
+
    begin
       pragma Debug (O (K & "=" & Value));
       if P /= null then
