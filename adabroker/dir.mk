@@ -1,4 +1,4 @@
-SUBDIRS = common_be ast driver fe narrow util omniORB2_be ada_be
+SUBDIRS = common_be ast driver fe narrow util ada_be
 
 ifdef Win32Platform
 DRV_OBJS =      driver/drv_init.o \
@@ -23,7 +23,6 @@ OBJ_LIBS = driver/$(patsubst %,$(LibPattern),drv)
 endif
 
 OBJ_LIBS += \
-           omniORB2_be/$(patsubst %,$(LibPattern),omniORB2_be) \
            ast/$(patsubst %,$(LibPattern),ast) \
 	   common_be/$(patsubst %,$(LibPattern),common_be)\
            fe/$(patsubst %,$(LibPattern),fe) \
