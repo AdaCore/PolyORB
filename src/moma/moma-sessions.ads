@@ -65,6 +65,12 @@ package MOMA.Sessions is
                         Pool  : MOMA.Destinations.Destination);
    --  Subscribe a Pool to a Topic. See MOMA.Destinations for more details.
 
+   procedure Unsubscribe (Topic : MOMA.Destinations.Destination;
+                          Pool  : MOMA.Destinations.Destination);
+   --  Unsubscribe a Pool from a Topic. See MOMA.Destinations for more details.
+
+   --  XXX These two procedures would rather be elsewhere.
+
 private
 
 end MOMA.Sessions;

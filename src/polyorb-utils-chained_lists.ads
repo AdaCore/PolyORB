@@ -36,6 +36,7 @@
 
 generic
    type T is private;
+   with function "=" (X, Y : T) return Boolean is <>;
 package PolyORB.Utils.Chained_Lists is
 
    pragma Preelaborate;
@@ -60,6 +61,12 @@ package PolyORB.Utils.Chained_Lists is
 
    procedure Prepend (L : in out List; I : T);
    procedure Append (L : in out List; I : T);
+
+   procedure Remove (L           : in out List;
+                     I           : T;
+                     Free_Memory : Boolean);
+   --  Remove all occurences of I in list L.
+   --  If Free_Memory is true then the occurences removed are also freed.
 
    Empty : constant List;
 

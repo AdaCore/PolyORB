@@ -49,6 +49,16 @@ package body MOMA.Destinations is
    use PolyORB.Any.ObjRef;
    use PolyORB.Types;
 
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Dest1 : Destination; Dest2 : Destination) return Boolean
+   is
+   begin
+      return Get_Name (Dest1) = Get_Name (Dest2);
+   end "=";
+
    ------------
    -- Create --
    ------------
@@ -153,6 +163,7 @@ package body MOMA.Destinations is
                    return String is
    begin
       return "<name: " & MOMA.Types.To_Standard_String (Self.Name)
+             & ",kind: " & MOMA.Types.Destination_Type'Image (Self.Kind)
              & ",ref: " & PolyORB.References.Image (Self.Ref)
              & ">";
    end Image;
@@ -193,15 +204,20 @@ package body MOMA.Destinations is
    ---------------
 
    procedure Subscribe (Topic : Destination;
-                        Pool  : Destination)
+                        Pool  : Destination;
+                        Sub   : Boolean := True)
    is
-      Arg_List : PolyORB.Any.NVList.Ref;
-      Request  : PolyORB.Requests.Request_Access;
-      Result   : PolyORB.Any.NamedValue;
+      Arg_List  : PolyORB.Any.NVList.Ref;
+      Request   : PolyORB.Requests.Request_Access;
+      Result    : PolyORB.Any.NamedValue;
+      Operation : MOMA.Types.String := To_MOMA_String ("Subscribe");
    begin
       if Get_Kind (Topic) /= MOMA.Types.Topic
       or else Get_Kind (Pool) /= MOMA.Types.Pool then
          raise Program_Error;
+      end if;
+      if not (Sub) then
+         Operation := To_MOMA_String ("Unsubscribe");
       end if;
       PolyORB.Any.NVList.Create (Arg_List);
       PolyORB.Any.NVList.Add_Item (Arg_List,
@@ -217,7 +233,7 @@ package body MOMA.Destinations is
                  Arg_Modes => 0);
       PolyORB.Requests.Create_Request
         (Target    => Get_Ref (Topic),
-         Operation => "Subscribe",
+         Operation => MOMA.Types.To_Standard_String (Operation),
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);

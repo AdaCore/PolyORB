@@ -45,16 +45,11 @@ with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Tasking.Rw_Locks;
-with PolyORB.Utils.Chained_Lists;
 
 package MOMA.Provider.Routers is
 
    use MOMA.Types;
    use PolyORB.References;
-
-   package Destination_List is
-      new PolyORB.Utils.Chained_Lists (MOMA.Destinations.Destination);
-   --  A chained list of destinations.
 
    type Router is new PolyORB.Minimal_Servant.Servant with private;
    --  Id       : the Id of the router.
@@ -99,7 +94,7 @@ package MOMA.Provider.Routers is
 private
 
    type Routers_List is record
-      List           : Destination_List.List;
+      List           : MOMA.Provider.Topic_Datas.Destination_List.List;
       L_Initialized  : Boolean := False;
       L_Lock         : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
    end record;
@@ -145,6 +140,14 @@ private
    --  Topic's kind must be set to "Topic".
    --  Pool's kind must be set to "Pool".
 
+   procedure Unsubscribe (Self   : access Router;
+                          Topic  : MOMA.Destinations.Destination;
+                          Pool   : MOMA.Destinations.Destination);
+   --  Unsubscribe a Pool to a Topic (same parameters as Subscribe).
+   --  NB : the current implementation needs a client to send the
+   --  Unsubscription and Subscription requests for a same pool to the same
+   --  router.
+
    function Get_Parameter_Profile (Method : String)
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
@@ -155,7 +158,8 @@ private
 
    --  Private accessors to internal data.
 
-   function Get_Routers (Self : Router) return Destination_List.List;
+   function Get_Routers (Self : Router)
+      return MOMA.Provider.Topic_Datas.Destination_List.List;
    --  Return a copy of the list Self.Routers.List.
 
 end MOMA.Provider.Routers;

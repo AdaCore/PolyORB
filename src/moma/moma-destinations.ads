@@ -65,10 +65,12 @@ package MOMA.Destinations is
    --  Image function for destination type.
 
    procedure Subscribe (Topic : Destination;
-                        Pool  : Destination);
-   --  Subscribe a Pool to a Topic.
+                        Pool  : Destination;
+                        Sub   : Boolean := True);
+   --  Subscribe / Unsubscribe a Pool to a Topic.
    --  Topic's reference must be a router.
    --  Pool's reference must be a message pool.
+   --  If Sub is true then it is a subscription, if false an unsubscription.
 
    --  Accessors to Destination internal data.
 
@@ -93,6 +95,10 @@ package MOMA.Destinations is
 
    TC_MOMA_Destination : PolyORB.Any.TypeCode.Object
          := PolyORB.Any.TypeCode.TC_Struct;
+
+   function "=" (Dest1 : Destination; Dest2 : Destination) return Boolean;
+   --  Compare two destinations.
+   --  XXX Comparison is made only on the name.
 
    function To_Any (Self : Destination)
       return PolyORB.Any.Any;

@@ -45,6 +45,7 @@ package body MOMA.Provider.Routers is
 
    use MOMA.Destinations;
    use MOMA.Messages;
+   use MOMA.Provider.Topic_Datas;
 
    use PolyORB.Any;
    use PolyORB.Log;
@@ -130,7 +131,8 @@ package body MOMA.Provider.Routers is
                               (MOMA.Destinations.TC_MOMA_Destination),
               Arg_Modes => PolyORB.Any.ARG_IN));
 
-      elsif Method = "Subscribe" then
+      elsif Method = "Subscribe"
+      or else Method = "Unsubscribe" then
          PolyORB.Any.NVList.Add_Item
             (Result,
              (Name      => To_PolyORB_String ("Topic"),
@@ -174,7 +176,8 @@ package body MOMA.Provider.Routers is
    -- Get_Routers --
    -----------------
 
-   function Get_Routers (Self : Router) return Destination_List.List
+   function Get_Routers (Self : Router)
+      return MOMA.Provider.Topic_Datas.Destination_List.List
    is
       Routers : Destination_List.List;
    begin
@@ -232,7 +235,8 @@ package body MOMA.Provider.Routers is
      (Self : access Router;
       Req  : PolyORB.Requests.Request_Access)
    is
-      Args : PolyORB.Any.NVList.Ref;
+      Args        : PolyORB.Any.NVList.Ref;
+      Operation   : constant String := To_Standard_String (Req.all.Operation);
    begin
       pragma Debug (O ("The router is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
@@ -242,7 +246,7 @@ package body MOMA.Provider.Routers is
       Args := Get_Parameter_Profile (To_Standard_String (Req.all.Operation));
       PolyORB.Requests.Arguments (Req, Args);
 
-      if Req.all.Operation = To_PolyORB_String ("Publish") then
+      if Operation = "Publish" then
 
          --  Publish
 
@@ -255,7 +259,7 @@ package body MOMA.Provider.Routers is
             Publish (Self, Message);
          end;
 
-      elsif Req.all.Operation = To_PolyORB_String ("Register") then
+      elsif Operation = "Register" then
 
          --  Register
 
@@ -270,7 +274,7 @@ package body MOMA.Provider.Routers is
             Add_Router (Self.all, Router);
          end;
 
-      elsif Req.all.Operation = To_PolyORB_String ("Route") then
+      elsif Operation = "Route" then
 
          --  Route
 
@@ -286,9 +290,10 @@ package body MOMA.Provider.Routers is
             Publish (Self, Message, From_Router_Id);
          end;
 
-      elsif Req.all.Operation = To_PolyORB_String ("Subscribe") then
+      elsif Operation = "Subscribe"
+      or else  Operation = "Unsubscribe" then
 
-         --  Subscribe
+         --  Subscribe / Unsubscribe
 
          declare
             use PolyORB.Any.NVList.Internals;
@@ -300,7 +305,11 @@ package body MOMA.Provider.Routers is
                MOMA.Destinations.From_Any
                   (NV_Sequence.Element_Of (Args_Sequence.all, 2).Argument);
          begin
-            Subscribe (Self, Topic, Pool);
+            if Operation = "Subscribe" then
+               Subscribe (Self, Topic, Pool);
+            else
+               Unsubscribe (Self, Topic, Pool);
+            end if;
          end;
 
       end if;
@@ -315,9 +324,8 @@ package body MOMA.Provider.Routers is
                       From_Router_Id   : MOMA.Types.String :=
                                             To_MOMA_String (""))
    is
-      use MOMA.Provider.Topic_Datas.Ref_List;
-      Subscribers : MOMA.Provider.Topic_Datas.Ref_List.List;
-      I           : MOMA.Provider.Topic_Datas.Ref_List.Iterator;
+      Subscribers : Destination_List.List;
+      I           : Destination_List.Iterator;
       Topic_Id    : MOMA.Types.String;
       Destination : MOMA.Destinations.Destination;
       Routers     : Destination_List.List;
@@ -347,14 +355,13 @@ package body MOMA.Provider.Routers is
 
       --  Store Message into known pools subscribed to this topic.
 
-      Subscribers := MOMA.Provider.Topic_Datas.Get_Subscribers (Self.Topics,
-                                                                Topic_Id);
-      I := First (Subscribers);
-      while not (Last (I)) loop
-         Store (Value (I).all, Message);
-         Next (I);
+      Subscribers := Get_Subscribers (Self.Topics, Topic_Id);
+      I := Destination_List.First (Subscribers);
+      while not (Destination_List.Last (I)) loop
+         Store (Get_Ref (Destination_List.Value (I).all), Message);
+         Destination_List.Next (I);
       end loop;
-      Deallocate (Subscribers);
+      Destination_List.Deallocate (Subscribers);
    end Publish;
 
    --------------
@@ -480,9 +487,9 @@ package body MOMA.Provider.Routers is
    -- Subscribe --
    ---------------
 
-   procedure Subscribe (Self     : access Router;
-                        Topic    : MOMA.Destinations.Destination;
-                        Pool     : MOMA.Destinations.Destination)
+   procedure Subscribe (Self  : access Router;
+                        Topic : MOMA.Destinations.Destination;
+                        Pool  : MOMA.Destinations.Destination)
    is
    begin
       if Get_Kind (Topic) /= MOMA.Types.Topic
@@ -491,7 +498,25 @@ package body MOMA.Provider.Routers is
       end if;
       MOMA.Provider.Topic_Datas.Add_Subscriber (Self.Topics,
                                                 Get_Name (Topic),
-                                                Get_Ref (Pool));
+                                                Pool);
    end Subscribe;
+
+   -----------------
+   -- Unsubscribe --
+   -----------------
+
+   procedure Unsubscribe (Self   : access Router;
+                          Topic  : MOMA.Destinations.Destination;
+                          Pool   : MOMA.Destinations.Destination)
+   is
+   begin
+      if Get_Kind (Topic) /= MOMA.Types.Topic
+      or else Get_Kind (Pool) /= MOMA.Types.Pool then
+         raise Program_Error;
+      end if;
+      MOMA.Provider.Topic_Datas.Remove_Subscriber (Self.Topics,
+                                                   Get_Name (Topic),
+                                                   Pool);
+   end Unsubscribe;
 
 end MOMA.Provider.Routers;

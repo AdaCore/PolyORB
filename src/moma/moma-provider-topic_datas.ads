@@ -35,26 +35,31 @@
 
 --  $Id$
 
-with PolyORB.References;
 with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.HTables.Perfect;
 
+with MOMA.Destinations;
 with MOMA.Types;
 
 package MOMA.Provider.Topic_Datas is
 
-   package Ref_List is
-      new PolyORB.Utils.Chained_Lists (PolyORB.References.Ref);
+   use MOMA.Destinations;
+
+   package Destination_List is
+      new PolyORB.Utils.Chained_Lists (MOMA.Destinations.Destination,
+                                       MOMA.Destinations."=");
+   --  A chained list of destinations.
 
    type Topic is record
       Name        : MOMA.Types.String;
-      Subscribers : Ref_List.List;
+      Subscribers : Destination_List.List;
    end record;
    --  Name : Name of the topic.
-   --  Subscribers   : chained list of references, which are the references of
-   --                  the message pools subscribed to this topic.
+   --  Subscribers   : chained list of destinations, which are the message
+   --                  pools subscribed to this topic.
    --  XXX Should be private.
+   --  XXX Maybe not necessary to store a name...
 
    package Perfect_Htable is
       new PolyORB.Utils.HTables.Perfect (Topic);
@@ -67,15 +72,20 @@ package MOMA.Provider.Topic_Datas is
 
    procedure Add_Subscriber (Data      : Topic_Data;
                              Topic_Id  : MOMA.Types.String;
-                             Pool      : PolyORB.References.Ref);
-   --  Add a new pool in the subsribers list of a topic.
+                             Pool      : MOMA.Destinations.Destination);
+   --  Add a new pool in the subscribers list of a topic.
 
    procedure Ensure_Initialization (W : in out Topic_Data);
    --  Ensure that T was initialized.
 
+   procedure Remove_Subscriber (Data      : Topic_Data;
+                                Topic_Id  : MOMA.Types.String;
+                                Pool      : MOMA.Destinations.Destination);
+   --  Remove a pool from the subscribers list of a topic.
+
    function Get_Subscribers (Data      : Topic_Data;
                              Topic_Id  : MOMA.Types.String)
-      return Ref_List.List;
+      return Destination_List.List;
    --  Return the list of current subscribers to a given topic.
 
 private
@@ -113,7 +123,7 @@ private
    --  As above, but Default is returned for non-registered keys,
    --  instead of raising an exception.
 
-   function New_Topic (S : Ref_List.List) return Topic;
+   function New_Topic (S : Destination_List.List) return Topic;
    --  Return a new topic with the list of subscribers S.
 
 end MOMA.Provider.Topic_Datas;

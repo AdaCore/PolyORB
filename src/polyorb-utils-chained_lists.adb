@@ -89,7 +89,7 @@ package body PolyORB.Utils.Chained_Lists is
       P : Node_Access;
       Q : Node_Access;
    begin
-      if N = null then
+      if L = Empty then
          return D;
       end if;
       D.First := new Node'(Value => N.Value,
@@ -100,7 +100,7 @@ package body PolyORB.Utils.Chained_Lists is
       while N /= null loop
          P := Q;
          Q := new Node'(Value => N.Value,
-                             Next => null);
+                        Next => null);
          P.Next := Q;
          N := N.Next;
       end loop;
@@ -203,6 +203,35 @@ package body PolyORB.Utils.Chained_Lists is
          L.Last := L.First;
       end if;
    end Prepend;
+
+   ------------
+   -- Remove --
+   ------------
+
+   procedure Remove (L           : in out List;
+                     I           : T;
+                     Free_Memory : Boolean)
+   is
+      Current : Node_Access := L.First;
+      Previous : Node_Access := Current;
+   begin
+      while Current /= null loop
+         if "=" (Current.Value, I) then
+            if Current = Previous then
+               L.First  := Current.Next;
+               Previous := Current.Next;
+               Current  := Current.Next;
+            else
+               Previous.Next := Current.Next;
+               Current := Current.Next;
+            end if;
+         else
+            Previous := Current;
+            Current := Current.Next;
+         end if;
+      end loop;
+      L.Last := Previous;
+   end Remove;
 
    -----------
    -- Value --

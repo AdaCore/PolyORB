@@ -35,11 +35,18 @@
 
 --  $Id$
 
+with PolyORB.Log;
+
 package body MOMA.Provider.Topic_Datas is
 
    use MOMA.Types;
 
+   use PolyORB.Log;
    use PolyORB.Tasking.Rw_Locks;
+
+   package L is new PolyORB.Log.Facility_Log ("moma.provider.topic_datas");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    --------------------
    -- Add_Subscriber --
@@ -47,18 +54,20 @@ package body MOMA.Provider.Topic_Datas is
 
    procedure Add_Subscriber (Data      : Topic_Data;
                              Topic_Id  : MOMA.Types.String;
-                             Pool      : PolyORB.References.Ref)
+                             Pool      : MOMA.Destinations.Destination)
    is
       V : Topic;
       T : constant String := To_Standard_String (Topic_Id);
    begin
+      pragma Debug (O ("Adding to topic " & T & " the Pool "
+                        & MOMA.Destinations.Image (Pool)));
       Lock_W (Data.T_Lock);
       V := Lookup (Data.T, T);
-      Ref_List.Append (V.Subscribers, Pool);
+      Destination_List.Append (V.Subscribers, Pool);
       Unlock_W (Data.T_Lock);
    exception
       when No_Key =>
-         Insert (Data.T, T, New_Topic (Ref_List."+" (Pool)));
+         Insert (Data.T, T, New_Topic (Destination_List."+" (Pool)));
          Unlock_W (Data.T_Lock);
    end Add_Subscriber;
 
@@ -81,18 +90,18 @@ package body MOMA.Provider.Topic_Datas is
    -- Get_Subscribers --
    ---------------------
 
-   function Get_Subscribers (Data   : Topic_Data;
-                             Topic_Id : MOMA.Types.String)
-      return Ref_List.List
+   function Get_Subscribers (Data      : Topic_Data;
+                             Topic_Id  : MOMA.Types.String)
+      return Destination_List.List
    is
       V           : Topic;
-      Subscribers : Ref_List.List;
+      Subscribers : Destination_List.List;
       K           : constant String := To_Standard_String (Topic_Id);
    begin
       --  XXX Should we call Ensure_Initialization ?
       Lock_R (Data.T_Lock);
       V := Lookup (Data.T, K);
-      Subscribers := Ref_List.Duplicate (V.Subscribers);
+      Subscribers := Destination_List.Duplicate (V.Subscribers);
       Unlock_R (Data.T_Lock);
       return Subscribers;
    exception
@@ -140,7 +149,7 @@ package body MOMA.Provider.Topic_Datas is
    -- New_Topic --
    ---------------
 
-   function New_Topic (S : Ref_List.List) return Topic
+   function New_Topic (S : Destination_List.List) return Topic
    is
    begin
       return Topic'(To_MOMA_String ("Unknown"), S);
@@ -161,6 +170,32 @@ package body MOMA.Provider.Topic_Datas is
       Insert (W.T, K, T);
       Unlock_W (W.T_Lock);
    end Register;
+
+   -----------------------
+   -- Remove_Subscriber --
+   -----------------------
+
+   procedure Remove_Subscriber (Data      : Topic_Data;
+                                Topic_Id  : MOMA.Types.String;
+                                Pool      : MOMA.Destinations.Destination)
+   is
+      use Destination_List;
+      V     : Topic;
+      T     : constant String := To_Standard_String (Topic_Id);
+   begin
+      pragma Debug (O ("Removing from topic " & T & " the Pool "
+                        & MOMA.Destinations.Image (Pool)));
+      Lock_W (Data.T_Lock);
+      V := Lookup (Data.T, T);
+      Destination_List.Remove (V.Subscribers, Pool, True);
+      if V.Subscribers = Destination_List.Empty then
+         Delete (Data.T, T);
+      end if;
+      Unlock_W (Data.T_Lock);
+   exception
+      when No_Key =>
+         raise Key_Not_Found;
+   end Remove_Subscriber;
 
    ----------------
    -- Unregister --

@@ -96,8 +96,19 @@ package body MOMA.Sessions is
                         Pool  : MOMA.Destinations.Destination)
    is
    begin
-      MOMA.Destinations.Subscribe (Topic, Pool);
+      MOMA.Destinations.Subscribe (Topic, Pool, True);
    end Subscribe;
+
+   -----------------
+   -- Unsubscribe --
+   -----------------
+
+   procedure Unsubscribe (Topic : MOMA.Destinations.Destination;
+                          Pool  : MOMA.Destinations.Destination)
+   is
+   begin
+      MOMA.Destinations.Subscribe (Topic, Pool, False);
+   end Unsubscribe;
 
 end MOMA.Sessions;
 

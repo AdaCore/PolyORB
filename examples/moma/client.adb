@@ -105,7 +105,7 @@ procedure Client is
 
    Ok : Boolean;
 
-   type Scenario_T is (Full, Stor, Retr, Sub);
+   type Scenario_T is (Full, Stor, Retr, Sub, Unsub);
    Scenario : Scenario_T;
 
    type Kind_T is (Naming, Pool, Topic);
@@ -371,9 +371,10 @@ procedure Client is
       Put_Line ("or    : client stor topic <IOR>");
       Put_Line (" where <IOR> is the IOR of a router");
       New_Line;
-      Put_Line ("or    : client sub <IOR1> <IOR2>");
-      Put_Line (" where <IOR1> is the IOR of the message pool to subscribe");
-      Put_Line (" and   <IOR2> is the IOR of a router");
+      Put_Line ("or    : client <submode> <IOR1> <IOR2>");
+      Put_Line (" where <submode> is in (sub, unsub)");
+      Put_Line ("       <IOR1> is the IOR of the message pool to sub / unsub");
+      Put_Line ("       <IOR2> is the IOR of a router");
       New_Line;
       Put_Line ("{stor, retr} scenarios are to test persistency");
    end Put_Usage;
@@ -401,6 +402,10 @@ procedure Client is
          Scenario := Retr;
       elsif Arg1 = "sub" then
          Scenario := Sub;
+         Kind := Topic;
+         return True;
+      elsif Arg1 = "unsub" then
+         Scenario := Unsub;
          Kind := Topic;
          return True;
       else
@@ -445,7 +450,7 @@ begin
       Kind := Pool;
    elsif Kind = Topic then
       Router_Ref := PolyORB.References.IOR.String_To_Object (Arg3);
-      if Scenario = Sub then
+      if Scenario = Sub or Scenario = Unsub then
          Pool_Ref := PolyORB.References.IOR.String_To_Object (Arg2);
       end if;
    end if;
@@ -487,9 +492,13 @@ begin
    --  Create Message Consumer associated to the Session.
    MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Dest_Pool);
 
-   --  Subscribe to the "Test" topic.
-   if Kind = Topic and then Scenario = Sub then
-      MOMA.Sessions.Subscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
+   --  Subscribe / Unsubscribe to the "Test" topic.
+   if Kind = Topic then
+      if Scenario = Sub then
+         MOMA.Sessions.Subscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
+      elsif Scenario = Unsub then
+         MOMA.Sessions.Unsubscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
+      end if;
    end if;
 
    --  Initialization is completed.
