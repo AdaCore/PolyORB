@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Thin;
+with Interfaces.C;
 
 package body System.Garlic.TCP_Platform_Specific is
 
@@ -394,11 +395,11 @@ package body System.Garlic.TCP_Platform_Specific is
    --------------
 
    function C_Select
-     (N         : C.int;
-      Rfds      : Fd_Set_Access;
-      Sfds      : Fd_Set_Access;
+     (Nfds      : C.int;
+      Readfds   : Fd_Set_Access;
+      Writefds  : Fd_Set_Access;
       Exceptfds : Fd_Set_Access;
-      Tptr      : Timeval_Access)
+      Timeout   : Timeval_Access)
      return C.int;
    pragma Export (C, C_Select, "select");
 
@@ -412,115 +413,99 @@ package body System.Garlic.TCP_Platform_Specific is
    pragma Import (Stdcall, Std_Select, "select");
 
    function C_Select
-     (N         : C.int;
-      Rfds      : Fd_Set_Access;
-      Sfds      : Fd_Set_Access;
+     (Nfds      : C.int;
+      Readfds   : Fd_Set_Access;
+      Writefds  : Fd_Set_Access;
       Exceptfds : Fd_Set_Access;
-      Tptr      : Timeval_Access)
+      Timeout   : Timeval_Access)
      return C.int
    is
 
-      Mask : array (1 .. 32) of Thin.Fd_Set
-        := (2#00000000_00000000_00000000_00000001#,
-            2#00000000_00000000_00000000_00000010#,
-            2#00000000_00000000_00000000_00000100#,
-            2#00000000_00000000_00000000_00001000#,
-            2#00000000_00000000_00000000_00010000#,
-            2#00000000_00000000_00000000_00100000#,
-            2#00000000_00000000_00000000_01000000#,
-            2#00000000_00000000_00000000_10000000#,
-            2#00000000_00000000_00000001_00000000#,
-            2#00000000_00000000_00000010_00000000#,
-            2#00000000_00000000_00000100_00000000#,
-            2#00000000_00000000_00001000_00000000#,
-            2#00000000_00000000_00010000_00000000#,
-            2#00000000_00000000_00100000_00000000#,
-            2#00000000_00000000_01000000_00000000#,
-            2#00000000_00000000_10000000_00000000#,
-            2#00000000_00000001_00000000_00000000#,
-            2#00000000_00000010_00000000_00000000#,
-            2#00000000_00000100_00000000_00000000#,
-            2#00000000_00001000_00000000_00000000#,
-            2#00000000_00010000_00000000_00000000#,
-            2#00000000_00100000_00000000_00000000#,
-            2#00000000_01000000_00000000_00000000#,
-            2#00000000_10000000_00000000_00000000#,
-            2#00000001_00000000_00000000_00000000#,
-            2#00000010_00000000_00000000_00000000#,
-            2#00000100_00000000_00000000_00000000#,
-            2#00001000_00000000_00000000_00000000#,
-            2#00010000_00000000_00000000_00000000#,
-            2#00100000_00000000_00000000_00000000#,
-            2#01000000_00000000_00000000_00000000#,
-            2#10000000_00000000_00000000_00000000#);
+      procedure To_NT_Set
+        (Source : in Fd_Set_Access;
+         Target : out NT_Fd_Set);
+      pragma Inline (To_NT_Set);
+      --  convert BSD fd_set into NT fd_set.
 
-      procedure BSD_Fd_Set_To_NT (BSD  : in     Fd_Set_Access;
-                                  MS   :    out NT_Fd_Set);
-      pragma Inline (BSD_Fd_Set_To_NT);
-      --  convert from BSD fd_set to Microsoft fd_set.
+      procedure To_BSD_Set
+        (Source : in NT_Fd_Set;
+         Target : in Fd_Set_Access);
+      pragma Inline (To_BSD_Set);
+      --  convert NT fd_set into BSD fd_set.
 
-      procedure NT_To_BSD_Fd_Set (MS   : in NT_Fd_Set;
-                                  BSD  : in Fd_Set_Access);
-      pragma Inline (NT_To_BSD_Fd_Set);
-      --  convert from Microsoft fd_set to BSD fd_set.
-
-      L_Rfds, L_Sfds : aliased NT_Fd_Set;
-
-      L_Tptr         : aliased NT_Timeval
-        := (C.long (Tptr.Tv_Sec), C.long (Tptr.Tv_Usec));
+      NT_Readfds   : aliased NT_Fd_Set;
+      NT_Writefds  : aliased NT_Fd_Set;
+      NT_Exceptfds : aliased NT_Fd_Set;
+      NT_Timeout   : aliased NT_Timeval
+        := (C.long (Timeout.Tv_Sec), C.long (Timeout.Tv_Usec));
 
       Result : C.int;
 
-      ----------------------
-      -- BSD_Fd_Set_To_NT --
-      ----------------------
+      ---------------
+      -- To_NT_Set --
+      ---------------
 
-      procedure BSD_Fd_Set_To_NT (BSD : in     Fd_Set_Access;
-                                         MS  :    out NT_Fd_Set)
+      procedure To_NT_Set
+        (Source : in Fd_Set_Access;
+         Target : out NT_Fd_Set)
       is
          use type C.unsigned;
 
+         Mask  : C.unsigned := 1;
+         Count : Natural    := 0;
+
       begin
-         MS.fd_count := 0;
+         --  We modify Source but it is not a problem since it is
+         --  supposed to be reassigned later on.
 
-         for K in 1 .. 32 loop
-            if not ((BSD.all and Mask (K)) = 0) then
-               MS.fd_count := MS.fd_count + 1;
-               MS.fd_array (Positive (MS.fd_count))
-                 := C.unsigned (Mask (K));
-            end if;
-         end loop;
-      end BSD_Fd_Set_To_NT;
+         if Source /= null then
+            while Source.all /= 0 loop
+               if Source.all mod 2 /= 0 then
+                  Count := Count + 1;
+                  Target.fd_array (Count) := Mask;
+               end if;
+               Mask := 2 * Mask;
+            end loop;
+         end if;
+         Target.fd_count := C.unsigned (Count);
+      end To_NT_Set;
 
-      ----------------------
-      -- NT_To_BSD_Fd_Set --
-      ----------------------
+      ----------------
+      -- To_BSD_Set --
+      ----------------
 
-      procedure NT_To_BSD_Fd_Set (MS  : in NT_Fd_Set;
-                                  BSD : in Fd_Set_Access)
+      procedure To_BSD_Set
+        (Source : in NT_Fd_Set;
+         Target : in Fd_Set_Access)
       is
-      begin
-         BSD.all := 0;
+         use type Fd_Set;
 
-         for K in 1 .. MS.fd_count loop
-            BSD.all := BSD.all + Mask (Positive (MS.fd_array (Positive (K))));
-         end loop;
-      end NT_To_BSD_Fd_Set;
+      begin
+         if Target /= null then
+            Target.all := 0;
+            for I in 1 .. Natural (Source.fd_count) loop
+               Target.all := Target.all + Fd_Set (Source.fd_array (I));
+            end loop;
+         end if;
+      end To_BSD_Set;
 
    begin
-      --  convert data from BSD format to Microsoft one.
-      BSD_Fd_Set_To_NT (Rfds, L_Rfds);
-      BSD_Fd_Set_To_NT (Sfds, L_Sfds);
+      --  convert to NT format.
+      To_NT_Set (Readfds,  NT_Readfds);
+      To_NT_Set (Writefds, NT_Writefds);
+      To_NT_Set (Exceptfds, NT_Exceptfds);
 
-      Result := Std_Select (N,
-                            L_Rfds'Unchecked_Access,
-                            L_Sfds'Unchecked_Access,
-                            null,              --  not use right now
-                            L_Tptr'Unchecked_Access);
+      Result := Std_Select
+        (Nfds,
+         NT_Readfds'Unchecked_Access,
+         NT_Writefds'Unchecked_Access,
+         NT_Exceptfds'Unchecked_Access,
+         NT_Timeout'Unchecked_Access);
 
       --  convert back to BSD format.
-      NT_To_BSD_Fd_Set (L_Rfds, Rfds);
-      NT_To_BSD_Fd_Set (L_Sfds, Sfds);
+      To_BSD_Set (NT_Readfds, Readfds);
+      To_BSD_Set (NT_Writefds, Writefds);
+      To_BSD_Set (NT_Exceptfds, Exceptfds);
 
       return Result;
    end C_Select;

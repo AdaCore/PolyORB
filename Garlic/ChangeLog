@@ -1,5 +1,7 @@
 2000-10-05  Laurent Pautet  <pautet@arlequin>
 
+	* 5wgtplsp.adb: Reimplement C_Select for NT.
+
 	* s-gartas.adb, s-gastha.adb: Free only non-null entities (8203-003).
 
 2000-09-21  Laurent Pautet  <pautet@arlequin>
