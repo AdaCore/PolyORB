@@ -158,7 +158,9 @@ package PolyORB.Protocols.HTTP is
       (C : HTTP_Connection)
      return URL_Object;
 
-
+   -----------------------------
+   -- HTTP_Response accessors --
+   -----------------------------
 
    function Response_Status (Resp : HTTP_Response)
       return Utils.HTTP_Messages.Status_Code;
@@ -168,11 +170,19 @@ package PolyORB.Protocols.HTTP is
 
    function Response_CT (Resp : HTTP_Response)
      return Types.String;
+   --  Return the Content-Type header of Resp.
+
+   function Response_CL (Resp : HTTP_Response)
+     return Natural;
+   --  Return the Content-Length header of Resp.
 
    function Response_TE (Resp : HTTP_Response)
      return Types.String;
+   --  Return the Transfer-Encoding header of Resp.
 
-   --------------------------------
+   ----------------------------
+   -- HTTP_Request accessors --
+   ----------------------------
 
    function Request_Mtd (Req : HTTP_Request)
      return Request_Method;
@@ -182,9 +192,15 @@ package PolyORB.Protocols.HTTP is
 
    function Request_CT (Req : HTTP_Request)
      return Types.String;
+   --  Return the Content-Type header of Req.
+
+   function Request_CL (Req : HTTP_Request)
+     return Natural;
+   --  Return the Content-Length header of Req.
 
    function Request_URI (Req : HTTP_Request)
      return Types.String;
+   --  Return the requested URI of Req.
 
 private
 

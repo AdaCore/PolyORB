@@ -707,6 +707,13 @@ package body PolyORB.Protocols.HTTP is
       return Resp.Content_Type;
    end Response_CT;
 
+   function Response_CL
+     (Resp : HTTP_Response)
+     return Natural
+   is
+   begin
+      return Resp.Content_Length;
+   end Response_CL;
 
    function Response_TE
      (Resp : HTTP_Response)
@@ -741,6 +748,14 @@ package body PolyORB.Protocols.HTTP is
    begin
       return Req.Content_Type;
    end Request_CT;
+
+   function Request_CL
+     (Req : HTTP_Request)
+     return Natural
+   is
+   begin
+      return Req.Content_Length;
+   end Request_CL;
 
    function Request_URI (Req : HTTP_Request)
      return Types.String

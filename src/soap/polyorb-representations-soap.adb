@@ -668,10 +668,13 @@ package body PolyORB.Representations.SOAP is
       Line : XML_String := XML_Null_String;
 
    begin
+      pragma Debug (O ("Next_Token: enter"));
       while not End_Of_Input (Str) loop
          declare
             ch  : Character := Get (Str);
          begin
+            pragma Debug (O ("ch = " & ch));
+            pragma Debug (O ("State = " & State'Img));
             case State is
                when None =>
                   if ch = Character'Val (34)  then
@@ -719,6 +722,8 @@ package body PolyORB.Representations.SOAP is
             end case;
          end;
       end loop;
+      pragma Debug (O ("Next_Token: leave, returning `"
+                       & To_Standard_String (Line) & "'"));
       return Line;
    end Next_Token;
 
@@ -797,11 +802,8 @@ package body PolyORB.Representations.SOAP is
       (XML_Comp : in out XML_Component_Access;
        Str      : Stream_Char_Access)
    is
-      Token : XML_String;
    begin
-      Token := Next_Token (Str);
-
-      if Token /= To_PolyORB_String ("<") then
+      if Next_Token (Str) /= To_PolyORB_String ("<") then
          raise Unexpected_Token;
       end if;
       Parse_Component (XML_Comp, Str);
@@ -834,7 +836,6 @@ package body PolyORB.Representations.SOAP is
       end if;
       return Result;
    end Get;
-
 
    procedure Release
      (Rec : in out Child_List_Access)

@@ -50,6 +50,7 @@ with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.References;
 with PolyORB.Buffers;
+with PolyORB.Opaque;
 
 with PolyORB.Components;
 with PolyORB.Filters.Interface;
@@ -654,7 +655,6 @@ package body PolyORB.Protocols.SOAP  is
    procedure Handle_Data_Indication
       (S : access SOAP_Session)
    is
-      Cl : Natural := 0;
       use PolyORB.Buffers;
    begin
       pragma Assert (S.HTTP_Session /= null);
@@ -682,15 +682,20 @@ package body PolyORB.Protocols.SOAP  is
             if S.Role = Client then
                Resp := new HTTP_Response;
                Response_Parse_Header (Header, Resp);
-               if Response_Status (Resp.all) = S200 or
-                 Response_Status (Resp.all) = S500 then
-                  if Response_CT (Resp.all) = Text_XML and then
-                    Response_TE (Resp.all) /= "chuncked" then
-                     Expect_Data (S, S.Buffer, Stream_Element_Offset (Cl));
+               if Response_Status (Resp.all) = S200
+                 or else Response_Status (Resp.all) = S500
+               then
+                  if Response_CT (Resp.all) = Text_XML
+                    and then Response_CL (Resp.all) > 0
+                    and then Response_TE (Resp.all) /= "chunked"
+                  then
+                     Expect_Data
+                       (S, S.Buffer, Stream_Element_Offset
+                        (Response_CL (Resp.all)));
                      S.Expect_Header := False;
                   else
                      pragma Debug (O
-                                   ("Invalid HTTP Responsein SOAP Context"));
+                                   ("Invalid HTTP response in SOAP Context"));
                      Expect_Data (S, S.Buffer, 0);
                   end if;
                else
@@ -702,12 +707,15 @@ package body PolyORB.Protocols.SOAP  is
             else
                Req := new HTTP_Request;
                Request_Parse_Header (Header, S.HTTP_Session.Request, Succ);
-               if Succ and then
-                 Request_Mtd (Req.all) = POST and then
-                 Request_Version (Req.all) = HTTP_Version and then
-                 Request_CT (Req.all) = Text_XML then
-
-                  Expect_Data (S, S.Buffer, Stream_Element_Offset (Cl));
+               if Succ
+                 and then Request_Mtd (Req.all) = POST
+                 and then Request_Version (Req.all) = HTTP_Version
+                 and then Request_CT (Req.all) = Text_XML
+                 and then Request_CL (Req.all) > 0
+               then
+                  Expect_Data
+                    (S, S.Buffer,
+                     Stream_Element_Offset (Request_CL (Req.all)));
                   S.Expect_Header := False;
                else
                   pragma Debug (O ("Invalid HTTP Request in SOAP Context"));
@@ -719,7 +727,7 @@ package body PolyORB.Protocols.SOAP  is
       else
          pragma Debug (O ("SOAP Data_Indication: body"));
          declare
-            Octets_List : constant Stream_Element_Array
+            Octets_List : PolyORB.Opaque.Zone_Access
               := To_Stream_Element_Array (S.Buffer);
             Message : Types.String := To_PolyORB_String ("");
             XML_Comp : XML_Component_Access := new XML_Component;
@@ -728,6 +736,7 @@ package body PolyORB.Protocols.SOAP  is
                Append (Message, Character'Val
                        (Natural (Octets_List (I))));
             end loop;
+            PolyORB.Opaque.Free (Octets_List);
             S.HTTP_Session.Message_Body := Message;
             XML_Parse (XML_Comp, new Stream_Char'
                        (Current_Pos => 0,

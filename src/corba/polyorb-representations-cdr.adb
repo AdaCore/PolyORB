@@ -106,7 +106,7 @@ package body PolyORB.Representations.CDR is
      (Buffer : access Buffer_Type)
      return Encapsulation is
    begin
-      return Encapsulation (To_Stream_Element_Array (Buffer));
+      return Encapsulation'(To_Stream_Element_Array (Buffer));
    end Encapsulate;
 
    -------------------------

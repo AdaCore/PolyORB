@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-buffers.adb#4 $
+--  $Id: //droopi/main/src/polyorb-buffers.adb#5 $
 
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
@@ -185,13 +185,20 @@ package body PolyORB.Buffers is
 
    function To_Stream_Element_Array
      (Buffer   : access Buffer_Type)
-     return Stream_Element_Array
+     return Opaque.Zone_Access
    is
-      Contents : Zone_Access := Iovec_Pools.Dump (Buffer.Contents);
-      Result   : constant Stream_Element_Array  := Contents.all;
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
+      return Iovec_Pools.Dump (Buffer.Contents);
+   end To_Stream_Element_Array;
 
+   function To_Stream_Element_Array
+     (Buffer   : access Buffer_Type)
+     return Stream_Element_Array
+   is
+      Contents : Zone_Access := To_Stream_Element_Array (Buffer);
+      Result   : constant Stream_Element_Array  := Contents.all;
+   begin
       Free (Contents);
       return Result;
    end To_Stream_Element_Array;

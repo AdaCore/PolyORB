@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#5 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#6 $
 
 with System;
 --  For bit-order information.
@@ -139,6 +139,16 @@ package PolyORB.Buffers is
      (Buffer   : access Buffer_Type)
      return Stream_Element_Array;
    --  Dump the contents of Buffer into a Stream_Element_Array.
+   --  Using this function is dangerous because it may overflow
+   --  the stack with the contents of a big buffer. It is therefore
+   --  DEPRECATED. Use the following instead.
+
+   function To_Stream_Element_Array
+     (Buffer   : access Buffer_Type)
+     return Opaque.Zone_Access;
+   --  Dump the contents of Buffer into a Stream_Element_Array,
+   --  and return a pointer to it. The caller must take care of
+   --  deallocating the pointer after use.
 
    ------------------------------
    -- The CDR view of a buffer --
