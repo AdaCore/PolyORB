@@ -15,6 +15,7 @@ ADA_SPECS_WITH_BODY = \
 	   broca-giop.ads \
 	   broca-iiop.ads \
 	   broca-inet_server.ads \
+	   broca-iop.ads \
 	   broca-ior.ads \
 	   broca-locks.ads \
            broca-names.ads \
@@ -31,6 +32,8 @@ ADA_SPECS_WITH_BODY = \
 	   broca-stream.ads \
 	   broca-task_attributes.ads \
 	   broca-vararray.ads \
+	   broca-value-operation_store.ads \
+	   broca-value-value_skel.ads \
 	   corba-forward.ads \
 	   corba-object.ads \
 	   corba-object-helper.ads \
@@ -59,7 +62,7 @@ ADA_SPECS_WITH_BODY = \
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	   broca.ads \
 	   broca-opaque.ads \
-	   broca-iop.ads \
+	   broca-value.ads \
 	   corba-current.ads \
 	   corba-sequences.ads \
 	   corba-sequences-bounded.ads \
