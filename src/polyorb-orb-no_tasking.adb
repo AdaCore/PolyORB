@@ -189,7 +189,9 @@ begin
      (Module_Info'
       (Name => +"orb.no_tasking",
        Conflicts => Empty,
-       Depends => +"tasking.threads" & "tasking.monitors",
+       Depends => +"tasking.threads"
+         & "tasking.mutexes"
+         & "tasking.condition_variables",
        Provides => +"orb.tasking_policy",
        Init => Initialize'Access));
 end PolyORB.ORB.No_Tasking;

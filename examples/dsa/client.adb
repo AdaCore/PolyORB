@@ -6,7 +6,6 @@ with SP;
 pragma Warnings (Off);
 with PolyORB.Initialization;
 with PolyORB.ORB.No_Tasking;
-with PolyORB.No_Tasking;
 
 with PolyORB.ORB;
 with PolyORB.Setup;
