@@ -1,5 +1,7 @@
 Mon Aug 12 16:13:54 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-ganobl.adb: Added two "with abort" which were missing.
+
 	* s-rpc.adb: More debugging information.
 
 	* s-parint.adb: Idem.

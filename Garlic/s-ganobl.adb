@@ -23,7 +23,7 @@ package body System.Garlic.Non_Blocking is
 
    use C, Strings;
 
-   Safety_Delay : constant Duration := 1.0;
+   Safety_Delay : constant Duration := 0.2;
    --  A SIGIO will be simulated every Safety_Delay seconds, to make
    --  sure we do not get stuned because we have missed one of them.
 
@@ -142,7 +142,7 @@ package body System.Garlic.Non_Blocking is
             Max_FD := RFD;
          end if;
          Set_Asynchronous (RFD);
-         requeue Read_Requeue (RFD);
+         requeue Read_Requeue (RFD) with abort;
       end Read;
 
       ------------------
@@ -206,7 +206,7 @@ package body System.Garlic.Non_Blocking is
             Max_FD := WFD;
          end if;
          Set_Asynchronous (WFD);
-         requeue Write_Requeue (WFD);
+         requeue Write_Requeue (WFD) with abort;
       end Write;
 
       -------------------
@@ -387,7 +387,6 @@ package body System.Garlic.Non_Blocking is
    begin
       Dummy := Thin.C_Fcntl (FD, F_Setfl, Fasync);
       Dummy := Thin.C_Fcntl (FD, F_Setown, int (PID));
-      --  Dummy := Thin.C_Fcntl (FD, F_Setown, 0);
    end Set_Asynchronous;
 
    ----------------------
