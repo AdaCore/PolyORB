@@ -91,7 +91,7 @@ package body Namet is
 
    procedure Add_Char_To_Name_Buffer (C : Character) is
    begin
-      if Name_Len < Hostparm.Max_Name_Length then
+      if Name_Len < Name_Buffer'Last then
          Name_Len := Name_Len + 1;
          Name_Buffer (Name_Len) := C;
       end if;
@@ -490,7 +490,7 @@ package body Namet is
       declare
          New_Len : Natural;
          Old     : Positive;
-         New_Buf : String (1 .. Hostparm.Max_Name_Length);
+         New_Buf : String (1 .. Name_Buffer'Last);
 
          procedure Insert_Character (C : Character);
          --  Insert a new character into output decoded name

@@ -53,8 +53,7 @@ package body Prj.Pars is
    --  Contains the name of the package of the tool in use.
 
    type Token_Type is
-     (Tok_GNAT,
-      Tok_Project,
+     (Tok_Project,
       Tok_Is,
       Tok_Modifying,
       Tok_With,
@@ -1466,7 +1465,9 @@ package body Prj.Pars is
             then
                declare
                   Root : constant String_Access :=
-                           Locate_Directory (From, Ref.Directory);
+                    Locate_Directory
+                      (new String'(From (From'First .. From'Last - 3)),
+                       Ref.Directory);
 
                begin
                   if Root = null then
@@ -1525,11 +1526,6 @@ package body Prj.Pars is
                            Util.Value_Of ("object_dir", Ref.Decl.Variables);
 
          begin
-            if Object_Dir = Nil_Variable_Value then
-               Object_Dir := Util.Value_Of ("object_directory",
-                                            Ref.Decl.Variables);
-            end if;
-
             case Object_Dir.Kind is
                when Undefined =>
                   Ref.Object_Directory := Ref.Directory;
@@ -1559,10 +1555,6 @@ package body Prj.Pars is
                             Util.Value_Of ("source_dirs", Ref.Decl.Variables);
 
          begin
-            if Source_Dirs = Nil_Variable_Value then
-               Source_Dirs := Util.Value_Of ("source_directories",
-                                             Ref.Decl.Variables);
-            end if;
 
             case Source_Dirs.Kind is
                when Undefined =>
@@ -1714,8 +1706,7 @@ package body Prj.Pars is
                         begin
                            declare
                               Casing : constant Casing_Type :=
-                                         Casing_Type'Value
-                                           (Casing_String.Value.all);
+                                         Value (Casing_String.Value.all);
 
                            begin
                               Ref.Naming.Casing := Casing;
@@ -1734,7 +1725,7 @@ package body Prj.Pars is
 
                if Current_Verbosity = High then
                   Write_Str  ("  Casing = ");
-                  Write_Str  (Casing_Type'Image (Ref.Naming.Casing));
+                  Write_Str  (Image (Ref.Naming.Casing));
                   Write_Char ('.');
                   Write_Eol;
                end if;
@@ -2211,6 +2202,10 @@ package body Prj.Pars is
             if Unbounded.Index (Source => Result,
                                 Pattern => ".") /= 0
             then
+               if Current_Verbosity = High then
+                  Write_Line
+                    ("   Not a valid file name (some dot not replaced).");
+               end if;
                Unit_Name := null;
                return;
             end if;
@@ -2228,6 +2223,36 @@ package body Prj.Pars is
                   By     => ".");
             end loop;
          end if;
+
+         declare
+            Src : String := Unbounded.To_String (Result);
+            use Unbounded;
+
+         begin
+            case Naming.Casing is
+               when Lowercase =>
+                  Fixed.Translate
+                    (Source  => Src,
+                     Mapping => Lower_Case_Map);
+
+               when Uppercase =>
+                  Fixed.Translate
+                    (Source  => Src,
+                     Mapping => Upper_Case_Map);
+
+               when Mixedcase =>
+                  null;
+            end case;
+
+            if Src /= Result then
+               if Current_Verbosity = High then
+                  Write_Line ("   Not a valid file name (casing).");
+               end if;
+
+               Unit_Name := null;
+               return;
+            end if;
+         end;
 
          Unbounded.Translate
            (Source  => Result,
@@ -2366,8 +2391,8 @@ package body Prj.Pars is
                   Last_Unit.File_Names (Unit_Kind).Name := File_Name;
                   Last_Unit.File_Names (Unit_Kind).Path := Path_Name;
                   Last_Unit.Ref := Ref;
-                  Last_Unit.File_Names (Unit_Kind).Needs_Pragma
-                    := Ref.Naming /= Standard_Naming_Data;
+                  Last_Unit.File_Names (Unit_Kind).Needs_Pragma :=
+                    Needs_Pragma;
                end if;
             end;
          end if;
@@ -2591,12 +2616,6 @@ package body Prj.Pars is
             Scan.Error (Source, Text => "Expected ';'.");
          end if;
       end loop;
-
-      if Token /= Tok_GNAT then
-         Scan.Error (Source, Text => "Expected ""GNAT"".");
-      end if;
-
-      Scan.Get (Token, Source);
 
       if Token /= Tok_Project then
          Scan.Error (Source, Text => "Expected ""project"".");
@@ -2838,13 +2857,6 @@ package body Prj.Pars is
                  and then Source.Value (1 .. 8) = "external"
                then
                   Source.Current := Tok_External;
-               end if;
-
-            when 'g' =>
-               if Source.Last_Value = 4
-                 and then Source.Value (1 .. 4) = "gnat"
-               then
-                  Source.Current := Tok_GNAT;
                end if;
 
             when 'i' =>
@@ -3351,6 +3363,9 @@ package body Prj.Pars is
                   return Prj.Ext.Value_Of (Name);
 
                when Tok_Comma =>
+
+                  Scan.Get (Token, Source);
+
                   declare
                      Default : constant String := Value (Ref, Pkg, Source);
 

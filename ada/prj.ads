@@ -39,7 +39,8 @@ package Prj is
 
    type Verbosity is (Default, Medium, High);
    --  Verbosity when parsing GNAT Project Files.
-   --  Default is default. Medium is more verbose.
+   --  Default is default (very quiet, if no errors).
+   --  Medium is more verbose.
    --  High is extremely verbose.
 
    type String_Element;
@@ -55,7 +56,7 @@ package Prj is
      (String_Element, String_List);
 
    type Variable_Kind is (Undefined, List, Single);
-   --  Different kinds of variables.
+   --  Different kinds of variables
 
    type Variable_Value (Kind : Variable_Kind := Undefined) is record
       case Kind is
@@ -67,7 +68,7 @@ package Prj is
             Value : String_Access;
       end case;
    end record;
-   --  Values for variables and array elements.
+   --  Values for variables and array elements
 
    Nil_Variable_Value : constant Variable_Value := (Kind => Undefined);
    --  Value of a non existing variable or array element.
@@ -97,7 +98,7 @@ package Prj is
       Value : Array_Component_Reference;
       Next  : Array_List;
    end record;
-   --  A list of arrays.Each Array_Element represents an array.
+   --  A list of arrays. Each Array_Element represents an array.
    --  Used in declarations.
 
    type Package_Element;
@@ -126,6 +127,15 @@ package Prj is
                                      new String'(".adb");
 
    type Casing_Type is (Lowercase, Uppercase, Mixedcase);
+
+   function Image (Casing : Casing_Type) return String;
+   --  Similar to 'Image
+
+   function Value (Image : String) return Casing_Type;
+   --  Similar to 'Value
+   --  This is to avoid s-valenu in the closure of the tools
+   --  Raises Constraint_Error if not a Casing_Type image.
+
    type Naming_Data is record
      Dot_Replacement      : String_Access := Standard_Dot_Replacement;
      Casing               : Casing_Type   := Lowercase;

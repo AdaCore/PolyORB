@@ -576,12 +576,23 @@ package body Make is
 
             Switch_List := Switches.Values;
             while Switch_List /= null loop
+               if Opt.Verbose_Mode then
+                  Write_Str ("   Adding ");
+                  Write_Line (Switch_List.Value.all);
+               end if;
+
                Scan_Make_Arg (Switch_List.Value.all, And_Save => False);
                Switch_List := Switch_List.Next;
             end loop;
 
          when Single =>
             Program_Args := Program;
+
+            if Opt.Verbose_Mode then
+               Write_Str ("   Adding ");
+               Write_Line (Switches.Value.all);
+            end if;
+
             Scan_Make_Arg (Switches.Value.all, And_Save => False);
       end case;
    end Add_Switches;
@@ -2220,8 +2231,6 @@ package body Make is
          Add_Switch ("-z", Binder, And_Save => True);
       end if;
 
-      Display_Commands (not Opt.Quiet_Output);
-
       if Project_File_Name /= null then
 
          if Opt.Verbose_Mode then
@@ -2437,6 +2446,8 @@ package body Make is
          end if;
 
       end if;
+
+      Display_Commands (not Opt.Quiet_Output);
 
       for J in 1 .. Saved_Binder_Switches.Last loop
          Add_Switch
@@ -3180,6 +3191,24 @@ package body Make is
       --  -bargs or -largs switch. If yes save it.
 
       elsif Program_Args /= None then
+
+         --  Check to see if we are reading -I switches in order
+         --  to take into account in the src & lib search directories.
+
+         if Argv'Length > 2 and then Argv (1 .. 2) = "-I" then
+            if Argv (3 .. Argv'Last) = "-" then
+               Opt.Look_In_Primary_Dir := False;
+
+            elsif Program_Args = Compiler then
+               if Argv (3 .. Argv'Last) /= "-" then
+                  Add_Src_Search_Dir (Argv (3 .. Argv'Last));
+
+               end if;
+            elsif Program_Args = Binder then
+               Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
+            end if;
+         end if;
+
          Add_Switch (Argv, Program_Args, And_Save => And_Save);
 
       --  Handle non-default compiler, binder, linker

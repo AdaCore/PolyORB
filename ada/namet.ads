@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Alloc;
-with Hostparm; use Hostparm;
 with Table;
 with System;   use System;
 with Types;    use Types;
@@ -116,10 +115,12 @@ package Namet is
 --  In the binder, the Byte field is unused, and the Int field is used in
 --  various ways depending on the name involved (see binder documentation).
 
-   Name_Buffer : String (1 .. Hostparm.Max_Name_Length + 1);
+   Name_Buffer : String (1 .. 16*1024);
    --  This buffer is used to set the name to be stored in the table for the
    --  Name_Find call, and to retrieve the name for the Get_Name_String call.
-   --  The plus 1 in the length allows for cases of adding ASCII.NUL.
+   --  The plus 1 in the length allows for cases of adding ASCII.NUL. The
+   --  16K here is intended to be an infinite value that ensures that we
+   --  never overflow the buffer (names this long are too absurd to worry!)
 
    Name_Len : Natural;
    --  Length of name stored in Name_Buffer. Used as an input parameter for

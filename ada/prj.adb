@@ -26,7 +26,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+
 package body Prj is
+
+   The_Casing_Images : constant array (Casing_Type) of String_Access :=
+     (Lowercase => new String'("lowercase"),
+      Uppercase => new String'("UPPERCASE"),
+      Mixedcase => new String'("MixedCase"));
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Casing : Casing_Type) return String is
+   begin
+      return The_Casing_Images (Casing).all;
+   end Image;
+
+   ------------------------
+   -- Same_Naming_Scheme --
+   ------------------------
 
    function Same_Naming_Scheme
      (Left, Right : Naming_Data)
@@ -41,5 +61,20 @@ package body Prj is
         and then Left.Body_Append.all = Right.Body_Append.all
         and then Left.Separate_Append.all = Right.Separate_Append.all;
    end Same_Naming_Scheme;
+
+   -----------
+   -- Value --
+   -----------
+
+   function Value (Image : String) return Casing_Type is
+   begin
+      for Casing in Casing_Type loop
+         if To_Lower (Image) = To_Lower (The_Casing_Images (Casing).all) then
+            return Casing;
+         end if;
+      end loop;
+
+      raise Constraint_Error;
+   end Value;
 
 end Prj;

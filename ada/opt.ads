@@ -761,6 +761,20 @@ package Opt is
    --  the values of the Config switches, as possibly modified by the use
    --  of command line switches and configuration pragmas.
 
+   ------------------------
+   -- Other Global Flags --
+   ------------------------
+
+   Expander_Active : Boolean := False;
+   --  A flag that indicates if expansion is active (True) or deactivated
+   --  (False). When expansion is deactivated all calls to expander routines
+   --  have no effect. Note that the initial setting of False is merely to
+   --  prevent saving of an undefined value for an initial call to the
+   --  Expander_Mode_Save_And_Set procedure. For more information on the
+   --  use of this flag, see package Expander. Indeed this flag might more
+   --  logically be in the spec of Expander, but it is referenced by Errout,
+   --  and it really seems wrong for Errout to depend on Expander.
+
    -----------------------
    -- Tree I/O Routines --
    -----------------------

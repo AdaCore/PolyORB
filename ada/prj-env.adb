@@ -395,8 +395,7 @@ package body Prj.Env is
                   """,");
                Put_Line
                  (File, "   Casing          => " &
-                  Casing_Type'Image (Refer.Naming.Casing) &
-                  ",");
+                  Image (Refer.Naming.Casing) & ",");
                Put_Line
                  (File, "   Dot_Replacement => """ &
                   Refer.Naming.Dot_Replacement.all &
@@ -409,8 +408,7 @@ package body Prj.Env is
                   """,");
                Put_Line
                  (File, "   Casing          => " &
-                  Casing_Type'Image (Refer.Naming.Casing) &
-                  ",");
+                  Image (Refer.Naming.Casing) & ",");
                Put_Line
                  (File, "   Dot_Replacement => """ &
                   Refer.Naming.Dot_Replacement.all &
@@ -427,7 +425,7 @@ package body Prj.Env is
                      """,");
                   Put_Line
                     (File, "   Casing          => " &
-                     Casing_Type'Image (Refer.Naming.Casing) &
+                     Image (Refer.Naming.Casing) &
                      ",");
                   Put_Line
                     (File, "   Dot_Replacement => """ &

@@ -213,6 +213,7 @@ package body Table is
          if Length /= 0 and then Table = null then
             Set_Standard_Error;
             Write_Str ("available memory exhausted");
+            Write_Eol;
             Set_Standard_Output;
             raise Unrecoverable_Error;
          end if;
