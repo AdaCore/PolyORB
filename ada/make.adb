@@ -627,7 +627,9 @@ package body Make is
             Verbose_Msg (Full_Lib_File, "incorrectly formatted ALI file");
             return;
 
-         elsif ALIs.Table (ALI).Ver /= Library_Version then
+         elsif ALIs.Table (ALI).Ver (1 .. ALIs.Table (ALI).Ver_Len) /=
+           Library_Version
+         then
             Verbose_Msg (Full_Lib_File, "compiled with old GNAT version");
             ALI := No_ALI_Id;
             return;
