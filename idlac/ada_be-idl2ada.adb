@@ -125,8 +125,10 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Operation_Profile
      (CU : in out Compilation_Unit;
+      Object_Type : in String;
       Node : Node_Id);
-   --  Generate the profile for an K_Operation node.
+   --  Generate the profile for an K_Operation node,
+   --  with the Self formal parameter of type Object_Type.
 
    procedure Gen_To_Ref
      (Stubs_Spec : in out Compilation_Unit;
@@ -170,7 +172,7 @@ package body Ada_Be.Idl2Ada is
    procedure Generate
      (Node : in Node_Id) is
    begin
-      pragma Assert (Is_Gen_Scope (Node));
+      pragma Assert (Is_Repository (Node));
 
       Gen_Scope (Node);
    end Generate;
@@ -214,8 +216,9 @@ package body Ada_Be.Idl2Ada is
             raise Program_Error;
 
          when
-           K_Repository |
-           K_Module     =>
+           K_Repository   |
+           K_BEN_IDL_File |
+           K_Module       =>
 
             declare
                It   : Node_Iterator;
@@ -581,7 +584,7 @@ package body Ada_Be.Idl2Ada is
 
          when K_Operation =>
 
-            Gen_Operation_Profile (CU, Node);
+            Gen_Operation_Profile (CU, "Ref", Node);
             PL (CU, ";");
 
             --        when K_Attribute =>
@@ -847,7 +850,7 @@ package body Ada_Be.Idl2Ada is
 
          when K_Operation =>
 
-            Gen_Operation_Profile (CU, Node);
+            Gen_Operation_Profile (CU, "Object", Node);
             PL (CU, " is abstract;");
 
             --        when K_Attribute =>
@@ -1080,7 +1083,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "  := CORBA.To_CORBA_String ("""
                          & O_Name & """);");
 
-               Gen_Operation_Profile (CU, Node);
+               Gen_Operation_Profile (CU, "Ref", Node);
                NL (CU);
                PL (CU, "is");
                II (CU);
@@ -1276,6 +1279,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Operation_Profile
      (CU : in out Compilation_Unit;
+      Object_Type : in String;
       Node : Node_Id) is
    begin
       case Kind (Node) is
@@ -1295,7 +1299,7 @@ package body Ada_Be.Idl2Ada is
             --  Formals
 
             NL (CU);
-            Put (CU, "  (Self : in Ref");
+            Put (CU, "  (Self : in " & Object_Type);
             II (CU);
 
             declare
@@ -1309,7 +1313,8 @@ package body Ada_Be.Idl2Ada is
                   Next (It);
 
                   PL (CU, ";");
-                  Gen_Operation_Profile (CU, P_Node);
+                  Gen_Operation_Profile
+                    (CU, Object_Type, P_Node);
                end loop;
 
                Put (CU, ")");
@@ -1328,7 +1333,7 @@ package body Ada_Be.Idl2Ada is
          when K_Param =>
 
             Gen_Operation_Profile
-              (CU, Declarator (Node));
+              (CU, Object_Type, Declarator (Node));
             case Mode (Node) is
                when Mode_In =>
                   Put (CU, " : in ");
@@ -1338,7 +1343,8 @@ package body Ada_Be.Idl2Ada is
                   Put (CU, " : in out ");
             end case;
             --  XXX Add_With for Param_Type (Node)
-            Gen_Operation_Profile (CU, Param_Type (Node));
+            Gen_Operation_Profile
+              (CU, Object_Type, Param_Type (Node));
 
          when others =>
             Gen_Node_Default (CU, Node);

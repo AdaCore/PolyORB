@@ -83,6 +83,7 @@ package body Idl_Fe.Tree.Synthetic is
    begin
       return (False
         or else K = K_Repository
+        or else K = K_BEN_IDL_File
         or else K = K_Module
         or else K = K_Interface
         or else K = K_ValueType);

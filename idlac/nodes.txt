@@ -230,17 +230,16 @@ Fixed
 
 ValueBase
 
-
---  expansion specific nodes
-
+------------------------------
+-- Expansion-specific nodes --
+------------------------------
 
 Ben_Idl_File <-- Named
   Contents : Node_List
 
---  an anonymous list to replace a single node by several nodes
 Ben_Node_List
+  --  An anonymous list to replace a single node by several.
   Contents : Node_List
-
 
 END
 
