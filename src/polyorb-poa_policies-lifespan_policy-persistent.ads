@@ -34,13 +34,15 @@
 package PolyORB.POA_Policies.Lifespan_Policy.Persistent is
 
    type Persistent_Policy is new LifespanPolicy with null record;
+
    type Persistent_Policy_Access is access all Persistent_Policy;
 
-   function Create return Persistent_Policy_Access;
+   function Create
+     return Persistent_Policy_Access;
 
    procedure Check_Compatibility
-     (Self           : Persistent_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Persistent_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
@@ -53,9 +55,9 @@ package PolyORB.POA_Policies.Lifespan_Policy.Persistent is
      return Time_Stamp;
 
    procedure Ensure_Lifespan
-     (Self  : Persistent_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid;
+     (Self  :        Persistent_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid :        Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container);
 
 end PolyORB.POA_Policies.Lifespan_Policy.Persistent;

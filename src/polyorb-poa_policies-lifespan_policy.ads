@@ -40,15 +40,14 @@ package PolyORB.POA_Policies.Lifespan_Policy is
    use PolyORB.POA_Types;
 
    type LifespanPolicy is abstract new Policy with null record;
-   subtype Lifespan_Policy is LifespanPolicy;
 
    type LifespanPolicy_Access is access all LifespanPolicy'Class;
-   subtype Lifespan_Policy_Access is LifespanPolicy_Access;
 
    function Get_Lifespan_Cookie
      (P  : LifespanPolicy;
       OA : PolyORB.POA_Types.Obj_Adapter_Access)
-     return Lifespan_Cookie is abstract;
+     return Lifespan_Cookie
+      is abstract;
 
    procedure Ensure_Lifespan
      (P     :        LifespanPolicy;

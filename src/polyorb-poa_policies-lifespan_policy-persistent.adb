@@ -41,7 +41,8 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    -- Create --
    ------------
 
-   function Create return Persistent_Policy_Access is
+   function Create
+     return Persistent_Policy_Access is
    begin
       return new Persistent_Policy;
    end Create;
@@ -51,8 +52,8 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : Persistent_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Persistent_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);

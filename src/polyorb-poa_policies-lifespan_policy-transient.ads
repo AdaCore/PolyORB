@@ -37,7 +37,8 @@ package PolyORB.POA_Policies.Lifespan_Policy.Transient is
 
    type Transient_Policy_Access is access all Transient_Policy;
 
-   function Create return Transient_Policy_Access;
+   function Create
+     return Transient_Policy_Access;
 
    procedure Check_Compatibility
      (Self           :        Transient_Policy;

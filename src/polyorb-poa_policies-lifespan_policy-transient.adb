@@ -42,7 +42,8 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    -- Create --
    ------------
 
-   function Create return Transient_Policy_Access is
+   function Create
+     return Transient_Policy_Access is
    begin
       return new Transient_Policy;
    end Create;
@@ -52,8 +53,8 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : Transient_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Transient_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
