@@ -116,4 +116,51 @@ package body Backend.BE_Ada.Nutils is
       return BE_Namet.Name_Find;
    end Map_Id_Name_Idl2Ada;
 
+   function Mk_Node_Ada_Argument
+     (I : Node_Id; T : Node_Id; M : Mode_Id) return Node_Id is
+      pragma Unreferenced (I, T, M);
+   begin
+      return No_Node;
+   end Mk_Node_Ada_Argument;
+
+   function Mk_Node_Ada_Argument_List (L : List_Id) return List_Id is
+      pragma Unreferenced (L);
+   begin
+      return No_List;
+   end Mk_Node_Ada_Argument_List;
+
+
+   function Mk_Node_Ada_Function_Spec
+     (Arg_List : List_Id; Return_Type : Node_Id) return Node_Id is
+      pragma Unreferenced (Arg_List, Return_Type);
+   begin
+      return No_Node;
+   end Mk_Node_Ada_Function_Spec;
+
+   function Mk_Node_Ada_Function
+     (Function_Spec : Node_Id; Decl : List_Id;
+                               Funct_Body : List_Id) return Node_Id is
+      pragma Unreferenced (Function_Spec, Decl, Funct_Body);
+   begin
+      return No_Node;
+   end Mk_Node_Ada_Function;
+
+
+   function Mk_Node_Ada_Procedure_Spec
+     (Arg_List : List_Id) return Node_Id is
+      pragma Unreferenced (Arg_List);
+   begin
+      return No_Node;
+   end Mk_Node_Ada_Procedure_Spec;
+
+   function Mk_Node_Ada_Procedure
+     (Proc_Spec : Node_Id; Decl : List_Id;
+                           Proc_Body : List_Id) return Node_Id is
+      pragma Unreferenced (Proc_Spec, Decl, Proc_Body);
+   begin
+      return No_Node;
+   end Mk_Node_Ada_Procedure;
+
+
+
 end Backend.BE_Ada.Nutils;

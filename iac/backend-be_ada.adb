@@ -39,6 +39,9 @@ package body Backend.BE_Ada is
    procedure Insert_Base_Type;
    procedure Declare_Base_Type (Type_Str : String; K : BE.Node_Kind);
    procedure Run_Test_Procedure; --   Just for making tests.
+   procedure Insert_Attr_SetGet (N : Node_Id; L : List_Id);
+
+
 
    use Inheritance_Stack;
    --------------
@@ -209,6 +212,7 @@ package body Backend.BE_Ada is
       Public_Decl : List_Id;
       I_Spec : List_Id;
       I_Body : List_Id;
+      N : Node_Id;
       pragma Unreferenced (Pkg_Body, I_Body);
    begin
       Pkg := G_Package (E);
@@ -218,6 +222,19 @@ package body Backend.BE_Ada is
       Public_Decl := New_List (BE.K_List_Id, No_Location);
       BE.Set_Ada_Public (Pkg_Spec, Public_Decl);
       Insert_Type_Ref (Public_Decl, I_Spec, False);
+      if I_Spec /= No_List then
+         N := BE.First_Node (I_Spec);
+         while Present (N) loop
+            case Kind (N) is
+               when K_Attribute_Declaration =>
+                  Insert_Attr_SetGet (N, Public_Decl);
+               when others =>
+                  DE ("Visit_Interface : Fonctionnalite pas encore imp!");
+            end case;
+
+         end loop;
+      end if;
+
 
       --   Type reference insertion
       BE.Set_Package_Spec (Pkg, Pkg_Spec);
@@ -341,9 +358,21 @@ package body Backend.BE_Ada is
 
    procedure Run_Test_Procedure is
    begin
-      Write_Line (Image (BE.K_Ada_Packages));
-
+      --   Write_Line (Image (BE.K_Ada_Packages));
+      null;
    end Run_Test_Procedure;
+
+   procedure Insert_Attr_SetGet (N : Node_Id; L : List_Id) is
+      pragma Unreferenced (L);
+   begin
+      if Is_Readonly (N) then
+         null;
+      else
+         null;
+      end if;
+   end Insert_Attr_SetGet;
+
+
 
 end Backend.BE_Ada;
 
