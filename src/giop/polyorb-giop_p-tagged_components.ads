@@ -33,6 +33,7 @@
 
 --  Implementation of CORBA IOR Tagged components
 
+with Ada.Streams;
 with PolyORB.Types;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Buffers;
@@ -110,6 +111,33 @@ package PolyORB.GIOP_P.Tagged_Components is
    procedure Register
      (Tag : Types.Unsigned_Long;
       F   : New_Component_Func_Access);
+
+   -----------------------
+   -- Unkowon Component --
+   -----------------------
+
+   type Octet_Access is access all Ada.Streams.Stream_Element_Array;
+
+   type Unknown_Component
+   is new Tagged_Component with record
+      Data : Octet_Access;
+   end record;
+   type Unknown_Component_Access is access all Unknown_Component'Class;
+
+   procedure Marshall
+     (C      : access Unknown_Component;
+      Buffer : access Buffer_Type);
+
+   procedure Unmarshall
+     (C      : access Unknown_Component;
+      Buffer : access Buffer_Type);
+
+   function Get_Tag
+     (C : access Unknown_Component)
+     return Types.Unsigned_Long;
+
+   procedure Release_Contents
+     (C : access Unknown_Component);
 
 private
 
