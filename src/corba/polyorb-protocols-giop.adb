@@ -639,6 +639,8 @@ package body PolyORB.Protocols.GIOP is
 
       --  Marshall the reply Body
       Marshall (Ses.Buffer_Out, Request.Result);
+      --  XXX it seems to me that we should also be marshalling
+      --  the INOUT and OUT arguments here.
 
       if Length (Ses.Buffer_Out)  > Maximum_Message_Size then
          Fragment_Next := True;
@@ -1431,8 +1433,6 @@ package body PolyORB.Protocols.GIOP is
               (Ses.Buffer_In, Current_Req.Req.Result.Argument);
             --  XXX This looks wrong: not only should we unmarshall
             --  the result, but also the "out" and "inout" arguments.
-            --  Also check that when sending the request, we send out
-            --  only the "in" and "inout" arguments.
 
             Emit_No_Reply
               (Component_Access (ORB),
@@ -1666,6 +1666,7 @@ package body PolyORB.Protocols.GIOP is
 
       Release_Contents (S.Buffer_Out.all);
       No_Exception_Reply (S, R, Fragment_Next);
+      --  XXX what if R has raised an exception?
 
       pragma Debug (O ("Sending Reply"));
 
