@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -94,7 +94,7 @@ package body System.Garlic.Filters.Zip is
       target_bytes := C.long (Target_Length);
       Target_Buffer := new Stream_Element_Array (1 .. Target_Length);
       if Target_Length > 0 then
-         source_bytes := C.long (L - F - 3 - Offset);
+         source_bytes := C.long (L - F - 3);
          result := Decompress
            (Target_Buffer (Target_Buffer'First)'Address, target_bytes'Address,
             Stream (F + 4)'Address, source_bytes);
