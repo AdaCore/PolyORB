@@ -321,7 +321,7 @@ install-dirs-local:
 install-extra-libs: ${FILTERINSTALL}
 
 install-data-local: all-local install-dirs-local install-extra-libs
-	${INSTALL} `type gcc | sed 's/gcc is //' | sed 's%/bin/gcc%%'`/lib/gcc-lib/`gcc -dumpmachine`/`gcc -dumpversion`/adalib/libgnat.a ${GARLIC}
+	${INSTALL} `${srcdir}/../Dist/config.sdefault pathtolib` ${GARLIC}
 	${AR} d ${GARLIC}/libgnat.a s-stratt.o s-rpc.o s-parint.o
 	${RANLIB} ${GARLIC}/libgnat.a
 	for i in ${SOURCES} \
