@@ -636,16 +636,17 @@ package body PolyORB.ORB is
       pragma Assert (J.Request /= null);
 
       declare
---           Oid : constant Objects.Object_Id
---             := Extract_Local_Object_Id (J.Req.Target);
-
-
-         Surrogate : constant Components.Component_Access
-           := References.Binding.Bind (J.Request.Target, J.ORB);
+         Surrogate : Components.Component_Access;
+         Oid : Objects.Object_Id_Access;
       begin
          pragma Debug (O ("Executing: "
                            & Requests.Image (J.Request.all)));
+
+         References.Binding.Bind
+           (J.Request.Target, J.ORB, Surrogate, Oid);
+
          --  Setup_Environment (Oid);
+         --  XXX for 'Current'
 
          declare
             Result : constant Components.Message'class

@@ -35,18 +35,21 @@
 --  $Id$
 
 with PolyORB.Components;
+with PolyORB.Objects;
 with PolyORB.ORB;
 
 package PolyORB.References.Binding is
 
    pragma Elaborate_Body;
 
-   function Bind
+   procedure Bind
      (R         : Ref;
-      Local_ORB : ORB.ORB_Access)
-     return Components.Component_Access;
+      Local_ORB : ORB.ORB_Access;
+      Servant   : out Components.Component_Access;
+      Oid       : out Objects.Object_Id_Access);
    --  Bind R to a servant, and return that servant (or a surrogate
-   --  thereof).
+   --  thereof) and the object id corresponding to the profile of R
+   --  that was used.
    --  Local_ORB is the local middleware. It is used to determine
    --  whether reference profiles are local. Its object adapter
    --  is queried to resolve local object ids into servants.

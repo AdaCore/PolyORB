@@ -49,11 +49,6 @@ package PolyORB.Binding_Data.SOAP is
    procedure Adjust     (P : in out SOAP_Profile_Type);
    procedure Finalize   (P : in out SOAP_Profile_Type);
 
-   function Get_Object_Key
-     (Profile : SOAP_Profile_Type)
-     return Objects.Object_Id;
-   --  XXX Change to return an OID_Access
-
    procedure Bind_Profile
      (Profile   : SOAP_Profile_Type;
       TE        : out Transport.Transport_Endpoint_Access;
@@ -99,7 +94,6 @@ private
 
    type SOAP_Profile_Type is new Profile_Type with record
       Address    : Sockets.Sock_Addr_Type;
-      Object_Id  : Objects.Object_Id_Access;
    end record;
 
    type SOAP_Profile_Factory is new Profile_Factory with record

@@ -104,7 +104,7 @@ package body PolyORB.POA.Basic_POA is
 
    function Find_Servant
      (OA       : access Basic_Obj_Adapter;
-      Id       :        PolyORB.Objects.Object_Id;
+      Id       : access PolyORB.Objects.Object_Id;
       Do_Check :        Check_State)
      return PolyORB.Objects.Servant_Access;
    --  The Find_Servant from PolyORB, plus a parameter.
@@ -907,7 +907,7 @@ package body PolyORB.POA.Basic_POA is
 
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
-      Oid    : PolyORB.Objects.Object_Id;
+      Oid    : access PolyORB.Objects.Object_Id;
       Method : PolyORB.Requests.Operation_Id)
      return PolyORB.Any.NVList.Ref
    is
@@ -915,7 +915,7 @@ package body PolyORB.POA.Basic_POA is
       Nil_Result : PolyORB.Any.NVList.Ref;
    begin
       pragma Debug (O ("Get_Empty_Arg_List for Id "
-                       & PolyORB.Objects.To_String (Oid)));
+                       & PolyORB.Objects.To_String (Oid.all)));
       S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
       if S.If_Desc.PP_Desc /= null then
          return S.If_Desc.PP_Desc (Method);
@@ -941,14 +941,14 @@ package body PolyORB.POA.Basic_POA is
 
    function Get_Empty_Result
      (OA     : access Basic_Obj_Adapter;
-      Oid    : PolyORB.Objects.Object_Id;
+      Oid    : access PolyORB.Objects.Object_Id;
       Method : PolyORB.Requests.Operation_Id)
      return PolyORB.Any.Any
    is
       S : Servant_Access;
    begin
       pragma Debug (O ("Get_Empty_Result for Id "
-                       & PolyORB.Objects.To_String (Oid)));
+                       & PolyORB.Objects.To_String (Oid.all)));
       S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
       if S.If_Desc.RP_Desc /= null then
          return S.If_Desc.RP_Desc (Method);
@@ -963,7 +963,7 @@ package body PolyORB.POA.Basic_POA is
 
    function Find_Servant
      (OA : access Basic_Obj_Adapter;
-      Id :        PolyORB.Objects.Object_Id)
+      Id : access PolyORB.Objects.Object_Id)
      return PolyORB.Objects.Servant_Access
    is
    begin
@@ -976,12 +976,12 @@ package body PolyORB.POA.Basic_POA is
 
    function Find_Servant
      (OA       : access Basic_Obj_Adapter;
-      Id       :        PolyORB.Objects.Object_Id;
+      Id       : access PolyORB.Objects.Object_Id;
       Do_Check :        Check_State)
      return PolyORB.Objects.Servant_Access
    is
       U_Oid  : Unmarshalled_Oid_Access
-        := Oid_To_U_Oid (Object_Id (Id));
+        := Oid_To_U_Oid (Object_Id (Id.all));
    begin
       if Do_Check = CHECK then
          case Get_State (POA_Manager_Of (OA).all) is
@@ -1016,11 +1016,11 @@ package body PolyORB.POA.Basic_POA is
          pragma Debug
            (O ("OA : " & To_Standard_String (The_OA.Name)
                & " looks for servant associated with Id "
-               & PolyORB.Objects.To_String (Id)));
+               & PolyORB.Objects.To_String (Id.all)));
 
          if The_OA /= null then
             return PolyORB.Objects.Servant_Access
-              (Id_To_Servant (The_OA, Id));
+              (Id_To_Servant (The_OA, Id.all));
          else
             raise Invalid_Object_Id;
             --  This is an exception from PolyORB
@@ -1034,11 +1034,13 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Release_Servant
      (OA      : access Basic_Obj_Adapter;
-      Id      :        PolyORB.Objects.Object_Id;
+      Id      : access PolyORB.Objects.Object_Id;
       Servant : in out PolyORB.Objects.Servant_Access)
    is
    begin
       null;
+      --  XXX if servant has been created on the fly, must
+      --  destroy it now.
    end Release_Servant;
 
 end PolyORB.POA.Basic_POA;

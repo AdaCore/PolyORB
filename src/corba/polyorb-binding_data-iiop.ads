@@ -65,11 +65,6 @@ package PolyORB.Binding_Data.IIOP is
    procedure Adjust     (P : in out IIOP_Profile_Type);
    procedure Finalize   (P : in out IIOP_Profile_Type);
 
-   function Get_Object_Key
-     (Profile : IIOP_Profile_Type)
-     return Objects.Object_Id;
-   --  XXX Change to return an OID_Access
-
    procedure Bind_Profile
      (Profile   : IIOP_Profile_Type;
       TE        : out Transport.Transport_Endpoint_Access;
@@ -128,7 +123,6 @@ private
       Major_Version : Types.Octet := IIOP_Major_Version;
       Minor_Version : Types.Octet := IIOP_Minor_Version;
       Address    : Sockets.Sock_Addr_Type;
-      Object_Id  : Objects.Object_Id_Access;
       Components : Component_Seq.Sequence;
    end record;
 

@@ -54,10 +54,12 @@ package body PolyORB.References.Binding is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   function Bind
+   procedure Bind
      (R         : Ref;
-      Local_ORB : ORB.ORB_Access)
-     return Components.Component_Access is
+      Local_ORB : ORB.ORB_Access;
+      Servant   : out Components.Component_Access;
+      Oid       : out Objects.Object_Id_Access)
+   is
    begin
       pragma Debug (O ("Bind: enter"));
       if Is_Nil (R) then
@@ -107,16 +109,19 @@ package body PolyORB.References.Binding is
          declare
             P : Profile_Access
               renames Profiles (Best_Profile_Index);
+            POid : constant Objects.Object_Id_Access
+              := PolyORB.Binding_Data.Get_Object_Key (P.all);
          begin
             pragma Debug (O ("Found profile: "
                              & Ada.Tags.External_Tag (P'Tag)));
             null;
 
+            Oid := POid;
             if P.all in Local_Profile_Type
               or else Is_Profile_Local (Local_ORB, P) then
                --  Easy case: local profile.
                --  Resolve object id within local object adapter.
-               return Components.Component_Access
+               Servant := Components.Component_Access
                  (Find_Servant
                   (Object_Adapter (Local_ORB),
                    Get_Object_Key (P.all)));
@@ -145,34 +150,32 @@ package body PolyORB.References.Binding is
 
                   if Binding_Object /= null then
                      pragma Debug (O ("Using existing binding object"));
-                     return Binding_Object;
+                     Servant := Binding_Object;
+                  else
+                     pragma Debug (O ("Creating new binding object"));
+
+                     PolyORB.Binding_Data.Bind_Profile
+                       (P.all, New_TE, Component_Access (New_Filter));
+                     ORB.Register_Endpoint
+                       (Local_ORB, New_TE, New_Filter, Client);
+
+                     loop
+                        FU := Filter_Access (Upper (New_Filter));
+                        exit when FU = null;
+                        New_Filter := FU;
+                     end loop;
+
+                     Set_Binding_Object
+                       (P.all, Components.Component_Access (New_Filter));
+                     Servant := Components.Component_Access (New_Filter);
+                     --  The Session itself acts as a remote surrogate
+                     --  of the designated object.
+
                   end if;
-
-                  pragma Debug (O ("Creating new binding object"));
-
-                  PolyORB.Binding_Data.Bind_Profile
-                    (P.all, New_TE, Component_Access (New_Filter));
-                  ORB.Register_Endpoint
-                    (Local_ORB, New_TE, New_Filter, Client);
-
-                  loop
-                     FU := Filter_Access (Upper (New_Filter));
-                     exit when FU = null;
-                     New_Filter := FU;
-                  end loop;
-
-                  Set_Binding_Object
-                    (P.all, Components.Component_Access (New_Filter));
-                  return Components.Component_Access (New_Filter);
-                  --  The Session itself acts as a remote surrogate
-                  --  of the designated object.
                end;
             end if;
 
          end;
-
-         --  XXX TODO?!
-         raise Not_Implemented;
       end;
    end Bind;
 

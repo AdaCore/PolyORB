@@ -35,11 +35,26 @@
 --  $Id$
 
 with AWS.Response;
+
 with PolyORB.Filters.Interface;
+with PolyORB.HTTP_Methods;
+with PolyORB.Types;
 
 package PolyORB.Filters.AWS_Interface is
 
    use PolyORB.Filters.Interface;
+
+   type AWS_Request_Out is new Root_Data_Unit with record
+      Request_Method : PolyORB.HTTP_Methods.Method;
+      Relative_URI   : Types.String;
+      Data           : Types.String;
+      SOAP_Action    : Types.String;
+--       User : ;
+--       Passwd : ;
+--       Proxy : ;
+--       Proxy_User : ;
+--       Proxy_Passwd : ;
+   end record;
 
    type AWS_Response_Out is new Root_Data_Unit with record
       --  Direction: from upper to lower.

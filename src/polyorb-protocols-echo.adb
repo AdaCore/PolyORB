@@ -204,7 +204,7 @@ package body PolyORB.Protocols.Echo is
            := Split (Unmarshall_String (Rep, S.Buffer));
 
          Method     : constant String := Argv (1).all;
-         Oid        : constant Object_Id := To_Oid (Argv (2).all);
+         Oid        : aliased Object_Id := To_Oid (Argv (2).all);
          Arg_String : constant String := Argv (3).all;
 
          Req : Request_Access := null;
@@ -227,11 +227,11 @@ package body PolyORB.Protocols.Echo is
                              & " with args " & Arg_String));
 
             Args   := Obj_Adapters.Get_Empty_Arg_List
-              (Object_Adapter (ORB), Oid, Method);
+              (Object_Adapter (ORB), Oid'Access, Method);
             Result :=
               (Name     => To_PolyORB_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
-               (Object_Adapter (ORB), Oid, Method),
+               (Object_Adapter (ORB), Oid'Access, Method),
                Arg_Modes => 0);
 
             Create_Local_Profile

@@ -78,29 +78,29 @@ package PolyORB.Obj_Adapters.Simple is
 
    procedure Set_Interface_Description
      (OA      : in out Simple_Obj_Adapter;
-      Id      : Object_Id;
+      Id      : access Object_Id;
       If_Desc : Interface_Description);
 
    function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
-      Oid    : Object_Id;
+      Oid    : access Object_Id;
       Method : Requests.Operation_Id)
      return Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
-      Oid    : Object_Id;
+      Oid    : access Object_Id;
       Method : Requests.Operation_Id)
      return Any.Any;
 
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
-      Id : Object_Id)
+      Id : access Object_Id)
      return Servant_Access;
 
    procedure Release_Servant
      (OA : access Simple_Obj_Adapter;
-      Id : Object_Id;
+      Id : access Object_Id;
       Servant : in out Servant_Access);
 
 private

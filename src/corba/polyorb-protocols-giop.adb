@@ -542,7 +542,7 @@ package body PolyORB.Protocols.GIOP is
                          (Pend_Req.Target_Profile.all))));
 
             declare
-               Key : aliased Object_Id
+               Oid : constant Object_Id_Access
                  := (Binding_Data.IIOP.Get_Object_Key
                      (IIOP_Profile_Type (Pend_Req.Target_Profile.all)));
             begin
@@ -551,7 +551,7 @@ package body PolyORB.Protocols.GIOP is
                   Request_Id,
                   Target_Address'
                   (Address_Type => Key_Addr,
-                   Object_Key   => Key'Unchecked_Access),
+                   Object_Key   => Oid),
                   Sync,
                   To_Standard_String (Pend_Req.Req.Operation));
             end;
@@ -1282,7 +1282,7 @@ package body PolyORB.Protocols.GIOP is
 
       Args := Obj_Adapters.Get_Empty_Arg_List
         (Object_Adapter (ORB),
-         Object_Key.all,
+         Object_Key,
          To_Standard_String (Operation));
 
       Ses.State := Arguments_Ready;
@@ -1576,14 +1576,13 @@ package body PolyORB.Protocols.GIOP is
       --      the Server part of this GIOP stack.
 
       if False and then S.Object_Found = False then
-         if  S.Nbr_Tries <= Max_Nb_Tries then
+         if S.Nbr_Tries <= Max_Nb_Tries then
             declare
-               Oid : aliased Object_Id := Get_Object_Key
+               Oid : constant Object_Id_Access := Get_Object_Key
                    (Current_Req.Target_Profile.all);
             begin
                Locate_Request_Message
-                 (S, Current_Req.Req,
-                  Oid'Access, Fragment_Next);
+                 (S, Current_Req.Req, Oid, Fragment_Next);
                S.Nbr_Tries := S.Nbr_Tries + 1;
                pragma Debug (O ("Locate Request Message"));
             end;
@@ -1600,7 +1599,7 @@ package body PolyORB.Protocols.GIOP is
 
       --  Sending the message
       --  Sending the data to lower layers
-      Emit_No_Reply (Lower (S), Data_Out' (Out_Buf => S.Buffer_Out));
+      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
    end Invoke_Request;
 
    -------------------

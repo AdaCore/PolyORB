@@ -66,13 +66,6 @@ package body PolyORB.Binding_Data.SRP is
       Free (P.Object_Id);
    end Finalize;
 
-   function Get_Object_Key
-     (Profile : SRP_Profile_Type)
-     return Objects.Object_Id is
-   begin
-      return Profile.Object_Id.all;
-   end Get_Object_Key;
-
    procedure Bind_Profile
      (Profile : SRP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;

@@ -92,14 +92,6 @@ package body PolyORB.Binding_Data.SOAP is
       Free (P.Object_Id);
    end Finalize;
 
-   function Get_Object_Key
-     (Profile : SOAP_Profile_Type)
-     return Objects.Object_Id is
-   begin
-      return Profile.Object_Id.all;
-   end Get_Object_Key;
-
-
    procedure Bind_Profile
      (Profile : SOAP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;

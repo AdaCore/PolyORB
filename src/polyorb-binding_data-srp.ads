@@ -46,10 +46,6 @@ package PolyORB.Binding_Data.SRP is
    procedure Adjust (P : in out SRP_Profile_Type);
    procedure Finalize (P : in out SRP_Profile_Type);
 
-   function Get_Object_Key
-     (Profile : SRP_Profile_Type)
-     return Objects.Object_Id;
-
    procedure Bind_Profile
      (Profile : SRP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
@@ -88,7 +84,6 @@ private
 
    type SRP_Profile_Type is new Profile_Type with record
       Address   : Sockets.Sock_Addr_Type;
-      Object_Id : Objects.Object_Id_Access;
    end record;
 
    type SRP_Profile_Factory is new Profile_Factory

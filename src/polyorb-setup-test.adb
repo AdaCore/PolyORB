@@ -326,7 +326,7 @@ package body PolyORB.Setup.Test is
       begin
          Obj_Adapters.Simple.Set_Interface_Description
            (Obj_Adapters.Simple.Simple_Obj_Adapter (Obj_Adapter.all),
-            My_Id.all, Test_Object.If_Desc);
+            My_Id, Test_Object.If_Desc);
          --  Set object description.
 
          Create_Reference (The_ORB, My_Id, "IDL:Echo:1.0", My_Ref);

@@ -114,24 +114,24 @@ package PolyORB.POA.Basic_POA is
 
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
-      Oid    : PolyORB.Objects.Object_Id;
+      Oid    : access PolyORB.Objects.Object_Id;
       Method : PolyORB.Requests.Operation_Id)
      return PolyORB.Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Basic_Obj_Adapter;
-      Oid    : PolyORB.Objects.Object_Id;
+      Oid    : access PolyORB.Objects.Object_Id;
       Method : PolyORB.Requests.Operation_Id)
      return PolyORB.Any.Any;
 
    function Find_Servant
      (OA : access Basic_Obj_Adapter;
-      Id :        PolyORB.Objects.Object_Id)
+      Id : access PolyORB.Objects.Object_Id)
      return PolyORB.Objects.Servant_Access;
 
    procedure Release_Servant
      (OA      : access Basic_Obj_Adapter;
-      Id      :        PolyORB.Objects.Object_Id;
+      Id      : access PolyORB.Objects.Object_Id;
       Servant : in out PolyORB.Objects.Servant_Access);
 
    -------------------------------------------------

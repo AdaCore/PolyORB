@@ -90,7 +90,7 @@ package PolyORB.Obj_Adapters is
 
    function Get_Empty_Arg_List
      (OA     : access Obj_Adapter;
-      Oid    : Object_Id;
+      Oid    : access Object_Id;
       Method : Requests.Operation_Id)
      return Any.NVList.Ref is abstract;
    --  Return the paramter profile of the given method, so the
@@ -98,21 +98,21 @@ package PolyORB.Obj_Adapters is
 
    function Get_Empty_Result
      (OA     : access Obj_Adapter;
-      Oid    : Object_Id;
+      Oid    : access Object_Id;
       Method : Requests.Operation_Id)
      return Any.Any is abstract;
    --  Return the result profile of the given method.
 
    function Find_Servant
      (OA : access Obj_Adapter;
-      Id : Object_Id)
+      Id : access Object_Id)
      return Objects.Servant_Access is abstract;
    --  Retrieve the servant managed by OA for logical object Id.
    --  The servant that incarnates the object is return.
 
    procedure Release_Servant
      (OA : access Obj_Adapter;
-      Id : Object_Id;
+      Id : access Object_Id;
       Servant : in out Servant_Access) is abstract;
    --  Signal to OA that a Servant previously obtained using
    --  Find_Servant won't be used by the client anymore. This

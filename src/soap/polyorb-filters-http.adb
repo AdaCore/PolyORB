@@ -36,6 +36,7 @@ with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 
+with AWS.MIME;
 with AWS.Response;
 
 with PolyORB.Components;
@@ -128,20 +129,24 @@ package body PolyORB.Filters.HTTP is
    function Image (I : Integer) return String
      renames PolyORB.Utils.Trimmed_Image;
 
+   procedure Prepare_Request
+     (F  : access HTTP_Filter;
+      RO : PolyORB.Filters.AWS_Interface.AWS_Request_Out);
+
    procedure Prepare_Header_Only
-     (F : access HTTP_Filter;
+     (F  : access HTTP_Filter;
       RD : AWS.Response.Data);
 
    procedure Prepare_General_Header
-     (F : access HTTP_Filter;
+     (F  : access HTTP_Filter;
       RD : AWS.Response.Data);
 
    procedure Prepare_Message
-     (F : access HTTP_Filter;
+     (F  : access HTTP_Filter;
       RD : AWS.Response.Data);
 
    procedure Error
-     (F : access HTTP_Filter;
+     (F      : access HTTP_Filter;
       Status : HTTP_Status_Code);
    --  Send an error message to F.
    --  XXX should a message body be included with the error status?
@@ -223,6 +228,11 @@ package body PolyORB.Filters.HTTP is
 
       elsif S in Data_Indication then
          Handle_Data_Indication (F, Data_Indication (S));
+
+      elsif S in AWS_Request_Out then
+         Release_Contents (F.Out_Buf.all);
+         Prepare_Request (F, AWS_Request_Out (S));
+         Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => F.Out_Buf));
 
       elsif S in AWS_Response_Out then
 
@@ -1007,8 +1017,75 @@ package body PolyORB.Filters.HTTP is
 
    use PolyORB.HTTP_Headers;
 
-   --  The procedures Prepare_* are adapted from those
-   --  in AWS.Server.Protocol_Handler.
+   --  The procedures Prepare_* are adapted from code in
+   --  AWS.Server.Protocol_Handler and AWS.Client.
+
+   procedure Prepare_Request
+     (F  : access HTTP_Filter;
+      RO : PolyORB.Filters.AWS_Interface.AWS_Request_Out)
+   is
+      use PolyORB.HTTP_Methods;
+      use PolyORB.Types;
+
+      SOAP_Action : constant String
+        := To_Standard_String (RO.SOAP_Action);
+   begin
+      Put_Line
+        (F, To_String (RO.Request_Method)
+         & " " & Types.To_Standard_String (RO.Relative_URI)
+         & " " & Image (F.Version));
+
+      --  Put_Line (F, H_Host (Host_Address));
+      --  XXX When binding an HTTP profile, the Host
+      --  info (from the URL or a Tag_SOAP or a Tag_HTTP
+      --  profile) should be propagated down the protocol
+      --  stack so we can generate a proper Host: header.
+
+      --  XXX Cookie??
+
+      --  Put_Line (F, H_Accept_Type ("text/html, */*"));
+      Put_Line (F, Header (H_Accept_Language, "fr, us"));
+      Put_Line (F, Header (H_User_Agent, "PolyORB"));
+      --  XXX BAD BAD too much hardcoded stuff.
+
+      if False then
+         Put_Line (F, Header (H_Connection, "Keep-Alive"));
+         --  XXX should provide keepalive mechanism!
+         --  (it should even be the default).
+      else
+         Put_Line (F, Header (H_Connection, "Close"));
+      end if;
+
+      --  XXX Authentication??
+
+      if SOAP_Action'Length /= 0 then
+         Put_Line (F, Header (H_SOAPAction, SOAP_Action));
+      end if;
+
+      case RO.Request_Method is
+         when GET =>
+            New_Line (F);
+
+         when POST =>
+            if SOAP_Action'Length /= 0 then
+               Put_Line (F, Header (H_Content_Type, AWS.MIME.Text_XML));
+            else
+               Put_Line (F, Header (H_Content_Type, AWS.MIME.Appl_Form_Data));
+            end if;
+            Put_Line
+              (F, Header (H_Content_Length, Image (Length (RO.Data))));
+            New_Line (F);
+            Put_Line (F, To_Standard_String (RO.Data));
+            --  XXX bad bad passing complete SOAP request
+            --  on the stack!! Would be better off inserting
+            --  it directly as a chunk!! (Marshall-by-address
+            --  for Types.String!)
+
+         when others =>
+            raise PolyORB.Not_Implemented;
+      end case;
+
+   end Prepare_Request;
 
    procedure Prepare_General_Header
      (F : access HTTP_Filter;

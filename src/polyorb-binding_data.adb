@@ -63,6 +63,12 @@ package body PolyORB.Binding_Data is
       Free (P);
    end Destroy_Profile;
 
+   function Get_Object_Key (Profile : Profile_Type)
+     return Objects.Object_Id_Access is
+   begin
+      return Profile.Object_Id;
+   end Get_Object_Key;
+
    function Get_Binding_Object
      (Profile : Profile_Type)
      return Components.Component_Access is
