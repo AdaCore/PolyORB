@@ -108,7 +108,11 @@ Ada_OmniObject::initLocalObject (const char* repoid)
   cerr << "Ada_OmniObject::initLocalObject : start" << endl ;
 #endif
   // Creation of the underlying omniobject_C2Ada object
-  C_Object = new omniObject_C2Ada (this);
+  try {
+     C_Object = new omniObject_C2Ada (this) ;
+  } catch (...) {
+    cerr << "ici" << endl ;
+  }
 #ifdef DEBUG
   cerr << "Ada_OmniObject::initLocalObject : C_Object created" << endl ;
 #endif
