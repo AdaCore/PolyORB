@@ -38,14 +38,50 @@ pragma Warnings (Off, System.Garlic.Debug);
 
 package body System.Garlic.Thin is
 
+   ----------------
+   -- Initialize --
+   ----------------
+
    procedure Initialize is
    begin
       null;
    end Initialize;
 
+   --------------
+   -- Shutdown --
+   --------------
+
    procedure Shutdown is
    begin
       null;
    end Shutdown;
+
+   -----------
+   -- Clear --
+   -----------
+
+   procedure Clear  (FS : in out Fd_Set) is
+   begin
+      FS := 0;
+   end Clear;
+
+   ---------
+   -- Set --
+   ---------
+
+   procedure Set    (FS : in out Fd_Set; Socket : in Socket_Fd) is
+   begin
+      FS := FS + 2 ** Integer (Socket);
+   end Set;
+
+   ------------
+   -- Is_Set --
+   ------------
+
+   function  Is_Set (FS : in     Fd_Set; Socket : in Socket_Fd)
+     return Boolean is
+   begin
+      return (FS / 2 ** Natural (Socket)) mod 2 = 1;
+   end Is_Set;
 
 end System.Garlic.Thin;
