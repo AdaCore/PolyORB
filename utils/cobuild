@@ -214,7 +214,6 @@ rungroup /bin/sh -c '(
   mkdir install > /dev/null 2>&1 || true
 
   cd src
-  cat $SOURCE_DIR/MANIFEST |
   while read file
   do
     dir=`dirname "$file"`
@@ -223,13 +222,24 @@ rungroup /bin/sh -c '(
     then
       ln -s "$SOURCE_DIR/$file" "$file"
     fi
-  done
+  done < $SOURCE_DIR/MANIFEST
   if [ ! -e testsuite ]
   then
     ln -s "$SOURCE_DIR/testsuite" .
   fi
 
   support/reconfig -w
+
+  # At this point every file named in MANIFEST must exist
+
+  while read file
+  do
+    if [ ! -f "$file" ]
+    then
+      echo "FATAL: MANIFEST file $file not found."
+      exit 1
+    fi
+  done < MANIFEST
 
   cd ../build
 
