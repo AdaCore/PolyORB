@@ -1,5 +1,5 @@
 if HAS_XMLADA
-SUBDIRS=	. corba soap
+SUBDIRS=	. corba soap moma
 else
 SUBDIRS=	. corba
 endif
