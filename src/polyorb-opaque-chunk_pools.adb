@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#11 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#12 $
 
 with Ada.Unchecked_Deallocation;
 with System;
@@ -43,25 +43,26 @@ package body PolyORB.Opaque.Chunk_Pools is
    use Ada.Streams;
    use Chunk_Lists;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   --------------------
+   -- Allocate_Chunk --
+   --------------------
 
-   procedure Initialize (X : in out Chunk) is
+   procedure Allocate_Chunk (X : in out Chunk) is
    begin
-      pragma Assert (X.Data = null);
-      X.Data := new Ada.Streams.Stream_Element_Array (1 .. X.Size);
+      if X.Data = null then
+         X.Data := new Ada.Streams.Stream_Element_Array (1 .. X.Size);
+      end if;
       pragma Assert (X.Data /= null);
-   end Initialize;
+   end Allocate_Chunk;
 
-   --------------
-   -- Finalize --
-   --------------
+   ----------------------
+   -- Deallocate_Chunk --
+   ----------------------
 
-   procedure Finalize (X : in out Chunk) is
+   procedure Deallocate_Chunk (X : in out Chunk) is
    begin
       Free (X.Data);
-   end Finalize;
+   end Deallocate_Chunk;
 
    --------------
    -- Allocate --
@@ -75,6 +76,7 @@ package body PolyORB.Opaque.Chunk_Pools is
       Allocation_Size : Stream_Element_Count;
       New_Chunk       : Chunk_Access;
    begin
+
       if Size <= Default_Chunk_Size then
          Allocation_Size := Default_Chunk_Size;
       else
@@ -84,9 +86,11 @@ package body PolyORB.Opaque.Chunk_Pools is
       if Allocation_Size = Default_Chunk_Size
         and then not Pool.Prealloc_Used then
          New_Chunk := Pool.Prealloc'Access;
+         Allocate_Chunk (New_Chunk.all);
          Pool.Prealloc_Used := True;
       else
          New_Chunk := new Chunk (Size => Allocation_Size);
+         Allocate_Chunk (New_Chunk.all);
          New_Chunk.Data.all := (others => 176);
          New_Chunk.Metadata := Null_Metadata;
       end if;
@@ -104,6 +108,7 @@ package body PolyORB.Opaque.Chunk_Pools is
      (A_Chunk : Chunk_Access)
      return Opaque_Pointer is
    begin
+      pragma Assert (A_Chunk /= null);
       return A_Chunk.Data (A_Chunk.Data'First)'Address;
    end Chunk_Storage;
 
@@ -125,8 +130,10 @@ package body PolyORB.Opaque.Chunk_Pools is
             use type System.Address;
             This : Chunk_Access renames Value (It).all;
          begin
+            Deallocate_Chunk (This.all);
             if This.all'Address /= Pool.Prealloc'Address then
                Free (This);
+               null;
             end if;
          end;
          Next (It);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,9 +33,8 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#10 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#11 $
 
-with Ada.Finalization;
 
 with PolyORB.Utils.Chained_Lists;
 
@@ -51,7 +50,7 @@ package PolyORB.Opaque.Chunk_Pools is
    pragma Preelaborate;
 
    type Chunk (Size : Ada.Streams.Stream_Element_Count) is
-     new Ada.Finalization.Limited_Controlled with private;
+     tagged limited private;
 
    type Chunk_Access is access all Chunk;
 
@@ -92,22 +91,24 @@ package PolyORB.Opaque.Chunk_Pools is
 
 private
 
+   procedure Allocate_Chunk (X : in out Chunk);
+   --  Initialize data for the chunk.
+   procedure Deallocate_Chunk (X : in out Chunk);
+   --  Free the memory allocated for the chunk.
+
    pragma Inline (Metadata);
 
    --  A chunk pool is managed as a linked list
    --  of chunks.
 
    type Chunk (Size : Ada.Streams.Stream_Element_Count) is
-     new Ada.Finalization.Limited_Controlled with record
+     tagged limited record
         Metadata : aliased Chunk_Metadata;
          --  Metadata associated by a client to this chunk.
 
         Data     : Zone_Access;
          --  The storage space of the chunk.
      end record;
-
-   procedure Initialize (X : in out Chunk);
-   procedure Finalize (X : in out Chunk);
 
    package Chunk_Lists is new Utils.Chained_Lists (Chunk_Access);
 
