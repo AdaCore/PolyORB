@@ -139,7 +139,6 @@ private
    pragma Inline (Prepend);
    pragma Inline (Append);
    pragma Inline (Insert);
-   pragma Inline (Remove);
    pragma Inline ("+");
    pragma Inline ("&");
 
