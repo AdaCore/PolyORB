@@ -1,123 +1,12 @@
 with Backend.BE_Ada.Nodes;  use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils; use Backend.BE_Ada.Nutils;
 
-with Charset; use Charset;
 with Namet;   use Namet;
 with Output;  use Output;
 with Types;   use Types;
 with Values;  use Values;
 
 package body Backend.BE_Ada.Generator is
-
-   type Token_Type is
-     (
-      --   Token name      Token type
-      --   Keywords
-      Tok_Mod,             -- MOD   **** First Keyword
-      Tok_Rem,             -- REM
-      Tok_New,             -- NEW
-      Tok_Abs,             -- ABS
-      Tok_Others,          -- OTHERS
-      Tok_Null,            -- NULL
-      Tok_Delta,           -- DELTA
-      Tok_Digits,          -- DIGITS
-      Tok_Range,           -- RANGE
-      Tok_And,             -- AND
-      Tok_Or,              -- OR
-      Tok_Xor,             -- XOR
-      Tok_In,              -- IN
-      Tok_Not,             -- NOT
-      Tok_Abstract,        -- ABSTRACT
-      Tok_Access,          -- ACCESS
-      Tok_Aliased,         -- ALIASED
-      Tok_All,             -- ALL
-      Tok_Array,           -- ARRAY
-      Tok_At,              -- AT
-      Tok_Body,            -- BODY
-      Tok_Constant,        -- CONSTANT
-      Tok_Do,              -- DO
-      Tok_Is,              -- IS
-      Tok_Limited,         -- LIMITED
-      Tok_Of,              -- OF
-      Tok_Out,             -- OUT
-      Tok_Record,          -- RECORD
-      Tok_Renames,         -- RENAMES
-      Tok_Reverse,         -- REVERSE
-      Tok_Tagged,          -- TAGGED
-      Tok_Then,            -- THEN
-      Tok_Abort,           -- ABORT
-      Tok_Accept,          -- ACCEPT
-      Tok_Case,            -- CASE
-      Tok_Delay,           -- DELAY
-      Tok_Else,            -- ELSE
-      Tok_Elsif,           -- ELSIF
-      Tok_End,             -- END
-      Tok_Exception,       -- EXCEPTION
-      Tok_Exit,            -- EXIT
-      Tok_Goto,            -- GOTO
-      Tok_If,              -- IF
-      Tok_Pragma,          -- PRAGMA
-      Tok_Raise,           -- RAISE
-      Tok_Requeue,         -- REQUEUE
-      Tok_Return,          -- RETURN
-      Tok_Select,          -- SELECT
-      Tok_Terminate,       -- TERMINATE
-      Tok_Until,           -- UNTIL
-      Tok_When,            -- WHEN
-
-      Tok_Begin,           -- BEGIN
-      Tok_Declare,         -- DECLARE
-      Tok_For,             -- FOR
-      Tok_Loop,            -- LOOP
-      Tok_While,           -- WHILE
-
-      Tok_Entry,           -- ENTRY
-      Tok_Protected,       -- PROTECTED
-      Tok_Task,            -- TASK
-      Tok_Type,            -- TYPE
-      Tok_Subtype,         -- SUBTYPE
-      Tok_Use,             -- USE
-
-      Tok_Function,        -- FUNCTION
-      Tok_Generic,         -- GENERIC
-      Tok_Package,         -- PACKAGE
-      Tok_Procedure,       -- PROCEDURE
-
-      Tok_Private,         -- PRIVATE
-      Tok_With,            -- WITH
-      Tok_Separate,        -- SEPARATE **** Last Keyword
-
-      --  Graphic Characters
-      Tok_Double_Asterisk, -- **
-      Tok_Ampersand,       -- &
-      Tok_Minus,           -- -
-      Tok_Plus,            -- +
-      Tok_Asterisk,        -- *
-      Tok_Slash,           -- /
-      Tok_Dot,             -- .
-      Tok_Apostrophe,      -- '
-      Tok_Left_Paren,      -- (
-      Tok_Right_Paren,     -- )
-      Tok_Comma,           -- ,
-      Tok_Less,            -- <
-      Tok_Equal,           -- =
-      Tok_Greater,         -- >
-      Tok_Not_Equal,       -- /=
-      Tok_Greater_Equal,   -- >=
-      Tok_Less_Equal,      -- <=
-      Tok_Box,             -- <>
-      Tok_Colon_Equal,     -- :=
-      Tok_Colon,           -- :
-      Tok_Greater_Greater, -- >>
-      Tok_Less_Less,       -- <<
-      Tok_Semicolon,       -- ;
-      Tok_Arrow,           -- =>
-      Tok_Vertical_Bar,    -- |
-      Tok_Dot_Dot);        -- ..
-
-   Token_Image : array (Token_Type) of Name_Id;
-   subtype Keyword_Type is Token_Type
-     range Tok_Mod .. Tok_Separate;
 
    procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
@@ -142,9 +31,6 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Subprogram_Specification (N : Node_Id);
    procedure Generate_Withed_Package (N : Node_Id);
 
-   function Image (T : Token_Type) return String;
-
-   procedure New_Token (T : Token_Type; I : String := "");
 
    procedure Write (T : Token_Type);
    procedure Write_Line (T : Token_Type);
@@ -822,75 +708,6 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Generate (Defining_Identifier (N));
    end Generate_Withed_Package;
-
-   -----------
-   -- Image --
-   -----------
-
-   function Image (T : Token_Type) return String is
-      S : String := Token_Type'Image (T);
-   begin
-      To_Lower (S);
-      return S (5 .. S'Last);
-   end Image;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-
-      --  Keywords.
-      for I in Keyword_Type loop
-         New_Token (I);
-      end loop;
-
-      --  Graphic Characters
-      New_Token (Tok_Double_Asterisk, "**");
-      New_Token (Tok_Ampersand, "&");
-      New_Token (Tok_Minus, "-");
-      New_Token (Tok_Plus, "+");
-      New_Token (Tok_Asterisk, "*");
-      New_Token (Tok_Slash, "/");
-      New_Token (Tok_Dot, ".");
-      New_Token (Tok_Apostrophe, "'");
-      New_Token (Tok_Left_Paren, "(");
-      New_Token (Tok_Right_Paren, ")");
-      New_Token (Tok_Comma, ",");
-      New_Token (Tok_Less, "<");
-      New_Token (Tok_Equal, "=");
-      New_Token (Tok_Greater, ">");
-      New_Token (Tok_Not_Equal, "/=");
-      New_Token (Tok_Greater_Equal, ">=");
-      New_Token (Tok_Less_Equal, "<=");
-      New_Token (Tok_Box, "<>");
-      New_Token (Tok_Colon_Equal, ":=");
-      New_Token (Tok_Colon, ":");
-      New_Token (Tok_Greater_Greater, ">>");
-      New_Token (Tok_Less_Less, "<<");
-      New_Token (Tok_Semicolon, ";");
-      New_Token (Tok_Arrow, "=>");
-      New_Token (Tok_Vertical_Bar, "|");
-      New_Token (Tok_Dot_Dot, "..");
-   end Initialize;
-
-   ---------------
-   -- New_Token --
-   ---------------
-
-   procedure New_Token
-     (T : Token_Type;
-      I : String := "") is
-   begin
-      if T in Keyword_Type then
-         Set_Str_To_Name_Buffer (Image (T));
-         Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (T)));
-      else
-         Set_Str_To_Name_Buffer (I);
-      end if;
-      Token_Image (T) := Name_Find;
-   end New_Token;
 
    -----------
    -- Write --

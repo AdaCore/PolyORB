@@ -22,7 +22,17 @@ package body Backend.BE_Ada.Runtime is
       for U in RU_Id loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));
          Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
+         case U is
+            when RU_CORBA =>
+               null;
+
+            when RU_PolyORB =>
+               Capitalize (Name_Buffer (1 .. 4));
+
+            when others =>
+               Capitalize (Name_Buffer (1 .. Name_Len));
+         end case;
+
          if Name_Buffer (1 .. Name_Len) = "Null" then
             RUD (U) := No_Node;
          else

@@ -1,5 +1,6 @@
 with GNAT.Table;
 
+with Charset; use Charset;
 with Locations; use Locations;
 with Namet;     use Namet;
 with Utils;     use Utils;
@@ -212,6 +213,58 @@ package body Backend.BE_Ada.Nutils is
          return Table (Last).Current_Package;
       end if;
    end Current_Package;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (T : Token_Type) return String is
+      S : String := Token_Type'Image (T);
+   begin
+      To_Lower (S);
+      return S (5 .. S'Last);
+   end Image;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+
+      --  Keywords.
+      for I in Keyword_Type loop
+         New_Token (I);
+      end loop;
+
+      --  Graphic Characters
+      New_Token (Tok_Double_Asterisk, "**");
+      New_Token (Tok_Ampersand, "&");
+      New_Token (Tok_Minus, "-");
+      New_Token (Tok_Plus, "+");
+      New_Token (Tok_Asterisk, "*");
+      New_Token (Tok_Slash, "/");
+      New_Token (Tok_Dot, ".");
+      New_Token (Tok_Apostrophe, "'");
+      New_Token (Tok_Left_Paren, "(");
+      New_Token (Tok_Right_Paren, ")");
+      New_Token (Tok_Comma, ",");
+      New_Token (Tok_Less, "<");
+      New_Token (Tok_Equal, "=");
+      New_Token (Tok_Greater, ">");
+      New_Token (Tok_Not_Equal, "/=");
+      New_Token (Tok_Greater_Equal, ">=");
+      New_Token (Tok_Less_Equal, "<=");
+      New_Token (Tok_Box, "<>");
+      New_Token (Tok_Colon_Equal, ":=");
+      New_Token (Tok_Colon, ":");
+      New_Token (Tok_Greater_Greater, ">>");
+      New_Token (Tok_Less_Less, "<<");
+      New_Token (Tok_Semicolon, ";");
+      New_Token (Tok_Arrow, "=>");
+      New_Token (Tok_Vertical_Bar, "|");
+      New_Token (Tok_Dot_Dot, "..");
+   end Initialize;
 
    --------------
    -- Is_Empty --
@@ -658,6 +711,23 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end New_Node;
 
+   ---------------
+   -- New_Token --
+   ---------------
+
+   procedure New_Token
+     (T : Token_Type;
+      I : String := "") is
+   begin
+      if T in Keyword_Type then
+         Set_Str_To_Name_Buffer (Image (T));
+         Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (T)));
+      else
+         Set_Str_To_Name_Buffer (I);
+      end if;
+      Token_Image (T) := Name_Find;
+   end New_Token;
+
    ----------------
    -- Pop_Entity --
    ----------------
@@ -769,7 +839,8 @@ package body Backend.BE_Ada.Nutils is
 
    function To_Ada_Name (N : Name_Id) return Name_Id is
       First : Natural := 1;
-
+      Name  : Name_Id;
+      V     : Byte;
    begin
       Get_Name_String (N);
       while First <= Name_Len
@@ -790,8 +861,17 @@ package body Backend.BE_Ada.Nutils is
       if Name_Buffer (Name_Len) = '_' then
          Add_Char_To_Name_Buffer ('U');
       end if;
+      Name := Name_Find;
 
-      return Name_Find;
+      --  if the Identifier collide with an Ada reserved word
+      --  insert "IDL_" string before the identifier.
+      V := Get_Name_Table_Byte (Name);
+      if V > 0 then
+         Set_Str_To_Name_Buffer ("IDL_");
+         Get_Name_String_And_Append (Name);
+         Name := Name_Find;
+      end if;
+      return Name;
    end To_Ada_Name;
 
 end Backend.BE_Ada.Nutils;

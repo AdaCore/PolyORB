@@ -6,6 +6,116 @@ package Backend.BE_Ada.Nutils is
 
    Int0_Val : Value_Id;
 
+   type Token_Type is
+     (
+      --   Token name      Token type
+      --   Keywords
+      Tok_Mod,             -- MOD   **** First Keyword
+      Tok_Rem,             -- REM
+      Tok_New,             -- NEW
+      Tok_Abs,             -- ABS
+      Tok_Others,          -- OTHERS
+      Tok_Null,            -- NULL
+      Tok_Delta,           -- DELTA
+      Tok_Digits,          -- DIGITS
+      Tok_Range,           -- RANGE
+      Tok_And,             -- AND
+      Tok_Or,              -- OR
+      Tok_Xor,             -- XOR
+      Tok_In,              -- IN
+      Tok_Not,             -- NOT
+      Tok_Abstract,        -- ABSTRACT
+      Tok_Access,          -- ACCESS
+      Tok_Aliased,         -- ALIASED
+      Tok_All,             -- ALL
+      Tok_Array,           -- ARRAY
+      Tok_At,              -- AT
+      Tok_Body,            -- BODY
+      Tok_Constant,        -- CONSTANT
+      Tok_Do,              -- DO
+      Tok_Is,              -- IS
+      Tok_Limited,         -- LIMITED
+      Tok_Of,              -- OF
+      Tok_Out,             -- OUT
+      Tok_Record,          -- RECORD
+      Tok_Renames,         -- RENAMES
+      Tok_Reverse,         -- REVERSE
+      Tok_Tagged,          -- TAGGED
+      Tok_Then,            -- THEN
+      Tok_Abort,           -- ABORT
+      Tok_Accept,          -- ACCEPT
+      Tok_Case,            -- CASE
+      Tok_Delay,           -- DELAY
+      Tok_Else,            -- ELSE
+      Tok_Elsif,           -- ELSIF
+      Tok_End,             -- END
+      Tok_Exception,       -- EXCEPTION
+      Tok_Exit,            -- EXIT
+      Tok_Goto,            -- GOTO
+      Tok_If,              -- IF
+      Tok_Pragma,          -- PRAGMA
+      Tok_Raise,           -- RAISE
+      Tok_Requeue,         -- REQUEUE
+      Tok_Return,          -- RETURN
+      Tok_Select,          -- SELECT
+      Tok_Terminate,       -- TERMINATE
+      Tok_Until,           -- UNTIL
+      Tok_When,            -- WHEN
+
+      Tok_Begin,           -- BEGIN
+      Tok_Declare,         -- DECLARE
+      Tok_For,             -- FOR
+      Tok_Loop,            -- LOOP
+      Tok_While,           -- WHILE
+
+      Tok_Entry,           -- ENTRY
+      Tok_Protected,       -- PROTECTED
+      Tok_Task,            -- TASK
+      Tok_Type,            -- TYPE
+      Tok_Subtype,         -- SUBTYPE
+      Tok_Use,             -- USE
+
+      Tok_Function,        -- FUNCTION
+      Tok_Generic,         -- GENERIC
+      Tok_Package,         -- PACKAGE
+      Tok_Procedure,       -- PROCEDURE
+
+      Tok_Private,         -- PRIVATE
+      Tok_With,            -- WITH
+      Tok_Separate,        -- SEPARATE **** Last Keyword
+
+      --  Graphic Characters
+      Tok_Double_Asterisk, -- **
+      Tok_Ampersand,       -- &
+      Tok_Minus,           -- -
+      Tok_Plus,            -- +
+      Tok_Asterisk,        -- *
+      Tok_Slash,           -- /
+      Tok_Dot,             -- .
+      Tok_Apostrophe,      -- '
+      Tok_Left_Paren,      -- (
+      Tok_Right_Paren,     -- )
+      Tok_Comma,           -- ,
+      Tok_Less,            -- <
+      Tok_Equal,           -- =
+      Tok_Greater,         -- >
+      Tok_Not_Equal,       -- /=
+      Tok_Greater_Equal,   -- >=
+      Tok_Less_Equal,      -- <=
+      Tok_Box,             -- <>
+      Tok_Colon_Equal,     -- :=
+      Tok_Colon,           -- :
+      Tok_Greater_Greater, -- >>
+      Tok_Less_Less,       -- <<
+      Tok_Semicolon,       -- ;
+      Tok_Arrow,           -- =>
+      Tok_Vertical_Bar,    -- |
+      Tok_Dot_Dot);        -- ..
+
+   Token_Image : array (Token_Type) of Name_Id;
+   subtype Keyword_Type is Token_Type
+     range Tok_Mod .. Tok_Separate;
+
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
 
    procedure Push_Entity (E : Node_Id);
@@ -25,6 +135,11 @@ package Backend.BE_Ada.Nutils is
      (Kind : Node_Kind;
       From : Node_Id := No_Node)
      return List_Id;
+
+   function Image (T : Token_Type) return String;
+   procedure Initialize;
+   procedure New_Token (T : Token_Type; I : String := "");
+
 
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.

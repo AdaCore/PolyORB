@@ -125,9 +125,7 @@ package body Backend.BE_Ada is
       Visit_Specification (E);
       if Print_Ada_Tree then
          W_Node_Id (BE_Node (E));
-
       else
-         Generator.Initialize;
          Generator.Generate (BE_Node (E));
       end if;
    end Generate;
@@ -156,6 +154,7 @@ package body Backend.BE_Ada is
 
       Set_Space_Increment (3);
       Int0_Val := New_Integer_Value (0, 1, 10);
+      Nutils.Initialize;
    end Initialize;
 
    ---------------------------------
