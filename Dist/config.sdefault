@@ -35,6 +35,7 @@ if test "x$1" = "xpathtolib"; then
 fi
 S4=`echo ${S2} | sed -e 's,/adalib,,g'`
 cat >sdefault.adb <<EOF
+pragma Style_Checks (Off);
 package body Sdefault is
    S1 : aliased constant String
       := "${S1}";
