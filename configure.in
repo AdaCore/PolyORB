@@ -540,6 +540,8 @@ AC_OUTPUT([
 	testsuite/acats/CXE4005/Makefile
 	testsuite/acats/CXE4006/Makefile
 	testsuite/utils/Makefile
+        tools/Makefile
+        tools/po_catref/Makefile
 	support/adacompiler
 	support/linker
 	polyorb-config

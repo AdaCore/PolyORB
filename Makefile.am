@@ -10,7 +10,7 @@ giop_dir       =
 soap_dir       =
 srp_dir        =
 
-SUBDIRS = support compilers @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@ src @DOC_DIR@
+SUBDIRS = support compilers @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@ src tools @DOC_DIR@
 
 CLEANFILES = config-stamp
 DISTCLEANFILES = support/adacompiler support/native-adacompiler support/linker polyorb-config
