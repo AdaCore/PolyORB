@@ -466,9 +466,9 @@ package body Tokens is
                end if;
             when '8' | '9' | 'A' .. 'F' | LC_C .. LC_e =>
                Go_To_End_Of_Char;
-               Errors.Lexer_Error ("Invalid octal character code, "
+               Errors.Lexer_Error ("Invalid octal character code : "
                                    & Get_Marked_Text
-                                   & "' for hexadecimal codes, use \xhh",
+                                   & "'. For hexadecimal codes, use \xhh",
                                    Errors.Error);
                Current_Token := T_Error;
             when others =>
@@ -892,7 +892,7 @@ package body Tokens is
                                New_Line_Number,
                                Last);
                Col := Last;
-               Current_State.Line_Number := New_Line_Number;
+               Current_State.Line_Number := New_Line_Number - 1;
                Skip_Spaces;
                case View_Next_Char is
                   when Quotation =>
@@ -907,14 +907,7 @@ package body Tokens is
                      while View_Next_Char /= Lf loop
                         --  there is a flag
                         case Next_Char is
-                           when '1' =>
-                              --  start of a new file
-                              Current_State.Line_Number :=
-                                Current_State.Line_Number - 1;
-                           when '2' =>
-                              --  return to a file
-                              null;
-                           when '3' | '4' =>
+                           when '1' | '2' | '3' | '4' =>
                               --  not taken into account
                               null;
                            when others =>

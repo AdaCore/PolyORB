@@ -45,7 +45,7 @@ package body Disp is
 
    procedure Disp_List (List : Node_List; Indent : Natural; Full : Boolean) is
       It : Node_Iterator;
-      N : Node_Acc;
+      N : N_Root_Acc;
    begin
       Init (It, List);
       while not Is_End (It) loop

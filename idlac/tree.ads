@@ -43,7 +43,7 @@ package Tree is
    --  Therefore, usual way to use an iterator is:
    --  declare
    --    it: node_iterator;
-   --    node: node_acc;
+   --    node: n_root_acc;
    --  begin
    --    init (it, rep.contents);
    --    while not is_end (it) loop
@@ -53,12 +53,12 @@ package Tree is
    --    end loop;
    type Node_Iterator is limited private;
    procedure Init (It : out Node_Iterator; List : Node_List);
-   function Get_Node (It : Node_Iterator) return Node_Acc;
+   function Get_Node (It : Node_Iterator) return N_Root_Acc;
    procedure Next (It : in out Node_Iterator);
    function Is_End (It : Node_Iterator) return Boolean;
 
    --  Append a node at the end of a list.
-   procedure Append_Node (List : in out Node_List; Node : Node_Acc);
+   procedure Append_Node (List : in out Node_List; Node : N_Root_Acc);
 
    --  Top of the repository.
    --  A repository is a list of elements.
@@ -70,7 +70,7 @@ package Tree is
 
    --  A scoped name.
    type N_Scoped_Name is new N_Root with record
-      Value : Named_Node_Acc;
+      Value : N_Named_Acc;
    end record;
    type N_Scoped_Name_Acc is access all N_Scoped_Name;
    function Get_Kind (N : N_Scoped_Name) return Node_Kind;
@@ -88,7 +88,7 @@ package Tree is
    function Get_Kind (N : N_Interface) return Node_Kind;
 
    --  Forward declaration of an interface.
-   type N_Forward_Interface is new Named_Node with record
+   type N_Forward_Interface is new N_Named with record
       Forward : N_Interface_Acc;
    end record;
    function Get_Kind (N : N_Forward_Interface) return Node_Kind;
@@ -96,7 +96,7 @@ package Tree is
    --  Declaration of an operation.
    type N_Operation is new N_Scope with record
       Is_Oneway : Boolean;
-      Op_Type : Node_Acc;
+      Op_Type : N_Root_Acc;
       Parameters : Node_List;
       Raises : Node_List;
       Contexts : Node_List;
@@ -104,9 +104,9 @@ package Tree is
    type N_Operation_Acc is access all N_Operation;
    function Get_Kind (N : N_Operation) return Node_Kind;
 
-   type N_Attribute is new Named_Node with record
+   type N_Attribute is new N_Named with record
       Is_Readonly : Boolean;
-      A_Type : Node_Acc;
+      A_Type : N_Root_Acc;
    end record;
    type N_Attribute_Acc is access all N_Attribute;
    function Get_Kind (N : N_Attribute) return Node_Kind;
@@ -183,33 +183,33 @@ package Tree is
    --  String type
    --  If BOUND = null, then this is an unbounded string.
    type N_String is new N_Types with record
-      Bound : Node_Acc;
+      Bound : N_Root_Acc;
    end record;
    type N_String_Acc is access all N_String;
    function Get_Kind (N : N_String) return Node_Kind;
 
    type Param_Mode is (Mode_In, Mode_Out, Mode_Inout);
-   type N_Param is new Named_Node with record
+   type N_Param is new N_Named with record
       Mode : Param_Mode;
-      P_Type : Node_Acc;
+      P_Type : N_Root_Acc;
    end record;
    type N_Param_Acc is access all N_Param;
    function Get_Kind (N : N_Param) return Node_Kind;
 
-   type N_Exception is new Named_Node with record
+   type N_Exception is new N_Named with record
       Members : Node_List;
    end record;
    type N_Exception_Acc is access all N_Exception;
    function Get_Kind (N : N_Exception) return Node_Kind;
 
    type N_Member is new N_Root with record
-      M_Type : Node_Acc;
+      M_Type : N_Root_Acc;
       Decl : Node_List;
    end record;
    type N_Member_Acc is access all N_Member;
    function Get_Kind (N : N_Member) return Node_Kind;
 
-   type N_Declarator is new Named_Node with record
+   type N_Declarator is new N_Named with record
       Array_Bounds : Node_List;
    end record;
    type N_Declarator_Acc is access all N_Declarator;
@@ -222,7 +222,7 @@ package Tree is
    function Get_Kind (N : N_Native) return Node_Kind;
 
    type N_Union is new N_Scope with record
-      Switch_Type : Node_Acc;
+      Switch_Type : N_Root_Acc;
       Cases : Node_List;
    end record;
    type N_Union_Acc is access all N_Union;
@@ -232,7 +232,7 @@ package Tree is
    --  a null element is used.
    type N_Case is new N_Root with record
       Labels : Node_List;
-      C_Type : Node_Acc;
+      C_Type : N_Root_Acc;
       C_Decl : N_Declarator_Acc;
    end record;
    type N_Case_Acc is access all N_Case;
@@ -244,18 +244,18 @@ package Tree is
    type N_Struct_Acc is access all N_Struct;
    function Get_Kind (N : N_Struct) return Node_Kind;
 
-   type N_Enum is new Named_Node with record
+   type N_Enum is new N_Named with record
       Enumerators : Node_List;
    end record;
    type N_Enum_Acc is access all N_Enum;
    function Get_Kind (N : N_Enum) return Node_Kind;
 
-   type N_Enumerator is new Named_Node with null record;
+   type N_Enumerator is new N_Named with null record;
    type N_Enumerator_Acc is access all N_Enumerator;
    function Get_Kind (N : N_Enumerator) return Node_Kind;
 
    type N_Type_Declarator is new N_Root with record
-      T_Type : Node_Acc;
+      T_Type : N_Root_Acc;
       Declarators : Node_List;
    end record;
    type N_Type_Declarator_Acc is access all N_Type_Declarator;
@@ -263,8 +263,8 @@ package Tree is
 
    --  If BOUND is null, then this is an unbounded sequence.
    type N_Sequence is new N_Root with record
-      S_Type : Node_Acc;
-      Bound : Node_Acc;
+      S_Type : N_Root_Acc;
+      Bound : N_Root_Acc;
    end record;
    type N_Sequence_Acc is access all N_Sequence;
    function Get_Kind (N : N_Sequence) return Node_Kind;
@@ -274,13 +274,13 @@ package Tree is
    function Get_Kind (N : N_Expr) return Node_Kind is abstract;
 
    type N_Binary_Expr is abstract new N_Expr with record
-      Left, Right : Node_Acc;
+      Left, Right : N_Root_Acc;
    end record;
    type N_Binary_Expr_Acc is access all N_Binary_Expr'Class;
    function Get_Kind (N : N_Binary_Expr) return Node_Kind is abstract;
 
    type N_Unary_Expr is abstract new N_Expr with record
-      Operand : Node_Acc;
+      Operand : N_Root_Acc;
    end record;
    type N_Unary_Expr_Acc is access all N_Unary_Expr'Class;
    function Get_Kind (N : N_Unary_Expr) return Node_Kind is abstract;
@@ -357,9 +357,9 @@ package Tree is
    type N_Module_Acc is access all N_Module;
    function Get_Kind (N : N_Module) return Node_Kind;
 
-   type N_Const is new Named_Node with record
-      C_Type : Node_Acc;
-      Expr : Node_Acc;
+   type N_Const is new N_Named with record
+      C_Type : N_Root_Acc;
+      Expr : N_Root_Acc;
    end record;
    type N_Const_Acc is access all N_Const;
    function Get_Kind (N : N_Const) return Node_Kind;
@@ -367,7 +367,7 @@ private
    type Node_List_Cell;
    type Node_List is access Node_List_Cell;
    type Node_List_Cell is record
-      Car : Node_Acc;
+      Car : N_Root_Acc;
       Cdr : Node_List;
    end record;
 

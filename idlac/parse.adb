@@ -24,10 +24,10 @@ package body Parse is
 
    --  FIXME: to add: rules 25, 26, 81, 82.
 
-   function Parse_Param_Type_Spec return Node_Acc;
-   function Parse_Const_Exp return Node_Acc;
+   function Parse_Param_Type_Spec return N_Root_Acc;
+   function Parse_Const_Exp return N_Root_Acc;
    function Parse_Sequence_Type return N_Sequence_Acc;
-   function Parse_Constr_Type_Spec return Node_Acc;
+   function Parse_Constr_Type_Spec return N_Root_Acc;
    function Parse_Module return N_Module_Acc;
 
    --  Be sure TOKEN_KIND is the current token.
@@ -64,7 +64,7 @@ package body Parse is
    function Parse_Scoped_Name return N_Scoped_Name_Acc is
       Res, Prev : N_Scoped_Name_Acc;
       Scope : N_Scope_Acc;
-      Name : Named_Node_Acc;
+      Name : N_Named_Acc;
    begin
       Prev := null;
       Res := new N_Scoped_Name;
@@ -111,7 +111,7 @@ package body Parse is
    --            | <fixed_pt_literal>
    --            | <floating_pt_literal>
    --            | <boolean_literal>
-   function Parse_Literal return Node_Acc is
+   function Parse_Literal return N_Root_Acc is
    begin
       case Token is
          when T_Lit_Decimal_Integer =>
@@ -121,7 +121,7 @@ package body Parse is
                Res := new N_Lit_Integer;
                Res.Lit := new String'(Get_Literal);
                Next_Token;
-               return Node_Acc (Res);
+               return N_Root_Acc (Res);
             end;
          when T_Lit_Simple_Floating_Point =>
             declare
@@ -130,7 +130,7 @@ package body Parse is
                Res := new N_Lit_Floating_Point;
                Res.Lit := new String'(Get_Literal);
                Next_Token;
-               return Node_Acc (Res);
+               return N_Root_Acc (Res);
             end;
          when others =>
             raise Errors.Internal_Error;
@@ -140,16 +140,16 @@ package body Parse is
    --  Rule 74:
    --  <op_type_spec> ::= <param_type_spec>
    --                 |   "void"
-   function Parse_Op_Type_Spec return Node_Acc is
-      Res : Node_Acc;
+   function Parse_Op_Type_Spec return N_Root_Acc is
+      Res : N_Root_Acc;
    begin
       if Token = T_Void then
-         Res := Node_Acc'(new N_Void);
+         Res := N_Root_Acc'(new N_Void);
          Set_Loc (Res.all, Get_Location);
          Next_Token;
          return Res;
       else
-         return Node_Acc (Parse_Param_Type_Spec);
+         return N_Root_Acc (Parse_Param_Type_Spec);
       end if;
    end Parse_Op_Type_Spec;
 
@@ -192,7 +192,7 @@ package body Parse is
       Expect (T_Identifier);
       Add_Identifier (N_Param_Acc (Res));
       Next_Token;
-      Append_Node (List, Node_Acc (Res));
+      Append_Node (List, N_Root_Acc (Res));
    end Parse_Param_Dcl;
 
    --  Rule 75:
@@ -254,7 +254,7 @@ package body Parse is
          Scan_Expect (T_Left_Paren);
          Next_Token;
          loop
-            Append_Node (Res.Raises, Node_Acc (Parse_Scoped_Name));
+            Append_Node (Res.Raises, N_Root_Acc (Parse_Scoped_Name));
             exit when Token = T_Right_Paren;
             Expect (T_Comma);
             Next_Token;
@@ -266,7 +266,7 @@ package body Parse is
          Next_Token;
          loop
             Expect (T_Lit_String);
-            Append_Node (Res.contexts, Node_Acc (Parse_Literal));
+            Append_Node (Res.contexts, N_Root_Acc (Parse_Literal));
             exit when Token = T_Right_Paren;
             Expect (T_Comma);
             Next_Token;
@@ -280,12 +280,12 @@ package body Parse is
    --  <primary_expr> ::= <scoped_name>
    --                 |   <literal>
    --                 |   "(" <const_expr> ")"
-   function Parse_Primary_Expr return Node_Acc is
-      Res : Node_Acc;
+   function Parse_Primary_Expr return N_Root_Acc is
+      Res : N_Root_Acc;
    begin
       case Token is
          when T_Colon_Colon | T_Identifier =>
-            return Node_Acc (Parse_Scoped_Name);
+            return N_Root_Acc (Parse_Scoped_Name);
          when T_Left_Paren =>
             Next_Token;
             Res := Parse_Const_Exp;
@@ -310,7 +310,7 @@ package body Parse is
    --
    --  Rule 22:
    --  <unary_operator> ::= "+" | "-" | "~"
-   function Parse_Unary_Expr return Node_Acc is
+   function Parse_Unary_Expr return N_Root_Acc is
       R : N_Unary_Expr_Acc;
    begin
       case Token is
@@ -318,17 +318,17 @@ package body Parse is
             R := new N_Neg_Expr;
             Next_Token;
             R.Operand := Parse_Primary_Expr;
-            return Node_Acc (R);
+            return N_Root_Acc (R);
          when T_Plus =>
             R := new N_Id_Expr;
             Next_Token;
             R.Operand := Parse_Primary_Expr;
-            return Node_Acc (R);
+            return N_Root_Acc (R);
          when T_Tilde =>
             R := new N_Not_Expr;
             Next_Token;
             R.Operand := Parse_Primary_Expr;
-            return Node_Acc (R);
+            return N_Root_Acc (R);
          when others =>
             return Parse_Primary_Expr;
       end case;
@@ -339,8 +339,8 @@ package body Parse is
    --              |   <mult_expr> "*" <unary_expr>
    --              |   <mult_expr> "/" <unary_expr>
    --              |   <mult_expr> "%" <unary_expr>
-   function Parse_Mult_Expr return Node_Acc is
-      Res : Node_Acc;
+   function Parse_Mult_Expr return N_Root_Acc is
+      Res : N_Root_Acc;
       R : N_Binary_Expr_Acc;
    begin
       Res := Parse_Unary_Expr;
@@ -357,7 +357,7 @@ package body Parse is
          R.Left := Res;
          Next_Token;
          R.Right := Parse_Unary_Expr;
-         Res := Node_Acc (R);
+         Res := N_Root_Acc (R);
       end loop;
       return Res;
    end Parse_Mult_Expr;
@@ -366,8 +366,8 @@ package body Parse is
    --  <add_expr> ::= <mult_expr>
    --             |   <add_expr> "+" <mult_expr>
    --             |   <add_expr> "-" <mult_expr>
-   function Parse_Add_Expr return Node_Acc is
-      Res : Node_Acc;
+   function Parse_Add_Expr return N_Root_Acc is
+      Res : N_Root_Acc;
       R : N_Binary_Expr_Acc;
    begin
       Res := Parse_Mult_Expr;
@@ -382,7 +382,7 @@ package body Parse is
          R.Left := Res;
          Next_Token;
          R.Right := Parse_Mult_Expr;
-         Res := Node_Acc (R);
+         Res := N_Root_Acc (R);
       end loop;
       return Res;
    end Parse_Add_Expr;
@@ -391,8 +391,8 @@ package body Parse is
    --  <shift_expr> ::= <add_expr>
    --               |   <shift_expr> ">>" <add_expr>
    --               |   <shift_expr> "<<" <add_expr>
-   function Parse_Shift_Expr return Node_Acc is
-      Res : Node_Acc;
+   function Parse_Shift_Expr return N_Root_Acc is
+      Res : N_Root_Acc;
       R : N_Binary_Expr_Acc;
    begin
       Res := Parse_Add_Expr;
@@ -407,7 +407,7 @@ package body Parse is
          R.Left := Res;
          Next_Token;
          R.Right := Parse_Add_Expr;
-         Res := Node_Acc (R);
+         Res := N_Root_Acc (R);
       end loop;
       return Res;
    end Parse_Shift_Expr;
@@ -415,8 +415,8 @@ package body Parse is
    --  Rule 17:
    --  <and_expr> ::= <shift_expr>
    --             |   <and_expr> "&" <shift_expr>
-   function Parse_And_Expr return Node_Acc is
-      Res : Node_Acc;
+   function Parse_And_Expr return N_Root_Acc is
+      Res : N_Root_Acc;
       R : N_And_Expr_Acc;
    begin
       Res := Parse_Shift_Expr;
@@ -425,7 +425,7 @@ package body Parse is
          R.Left := Res;
          Next_Token;
          R.Right := Parse_Shift_Expr;
-         Res := Node_Acc (R);
+         Res := N_Root_Acc (R);
       end loop;
       return Res;
    end Parse_And_Expr;
@@ -433,8 +433,8 @@ package body Parse is
    --  Rule 16:
    --  <xor_expr> ::= <and_expr>
    --             |   <xor_expr> "^" <and_expr>
-   function Parse_Xor_Expr return Node_Acc is
-      Res : Node_Acc;
+   function Parse_Xor_Expr return N_Root_Acc is
+      Res : N_Root_Acc;
       R : N_Xor_Expr_Acc;
    begin
       Res := Parse_And_Expr;
@@ -443,7 +443,7 @@ package body Parse is
          R.Left := Res;
          Next_Token;
          R.Right := Parse_And_Expr;
-         Res := Node_Acc (R);
+         Res := N_Root_Acc (R);
       end loop;
       return Res;
    end Parse_Xor_Expr;
@@ -451,8 +451,8 @@ package body Parse is
    --  Rule 15:
    --  <or_expr> ::= <xor_expr>
    --            |   <or_expr> "^" <xor_expr>
-   function Parse_Or_Expr return Node_Acc is
-      Res : Node_Acc;
+   function Parse_Or_Expr return N_Root_Acc is
+      Res : N_Root_Acc;
       R : N_Or_Expr_Acc;
    begin
       Res := Parse_Xor_Expr;
@@ -461,14 +461,14 @@ package body Parse is
          R.Left := Res;
          Next_Token;
          R.Right := Parse_Xor_Expr;
-         Res := Node_Acc (R);
+         Res := N_Root_Acc (R);
       end loop;
       return Res;
    end Parse_Or_Expr;
 
    --  Rule 14:
    --  <const_expr> ::= <or_expr>
-   function Parse_Const_Exp return Node_Acc is
+   function Parse_Const_Exp return N_Root_Acc is
    begin
       return Parse_Or_Expr;
    end Parse_Const_Exp;
@@ -495,7 +495,7 @@ package body Parse is
    --  Rule 67:
    --  <wide_string_type> ::= "wstring" "<" <positive_int_const> ">"
    --                     |   "wstring"
-   function Parse_Wide_String_Type return Node_Acc is
+   function Parse_Wide_String_Type return N_Root_Acc is
    begin
       Errors.Parser_Error ("can't parse wide string type",
                             Errors.Error);
@@ -506,7 +506,7 @@ package body Parse is
    --  Rule 81:
    --  <fixed_pt_type>  ::= "fixed" "<" <positive_int_const> ","
    --                       <integer_literal> ">"
-   function Parse_Fixed_Pt_Type return Node_Acc is
+   function Parse_Fixed_Pt_Type return N_Root_Acc is
    begin
       Errors.Parser_Error ("can't parse fixed pt type",
                             Errors.Error);
@@ -578,43 +578,43 @@ package body Parse is
    --
    --  Rule 53:
    --  <object_type> ::= "Object"
-   function Parse_Base_Type_Spec return Node_Acc is
+   function Parse_Base_Type_Spec return N_Root_Acc is
    begin
       case Token is
          when T_Float =>
             Next_Token;
-            return Node_Acc'(new N_Float);
+            return N_Root_Acc'(new N_Float);
          when T_Double =>
             Next_Token;
-            return Node_Acc'(new N_Double);
+            return N_Root_Acc'(new N_Double);
          when T_Short =>
             Next_Token;
-            return Node_Acc'(new N_Short);
+            return N_Root_Acc'(new N_Short);
          when T_Long =>
             Next_Token;
             case Token is
                when T_Double =>
                   Next_Token;
-                  return Node_Acc'(new N_Long_Double);
+                  return N_Root_Acc'(new N_Long_Double);
                when T_Long =>
                   Next_Token;
-                  return Node_Acc'(new N_Long_Long);
+                  return N_Root_Acc'(new N_Long_Long);
                when others =>
-                  return Node_Acc'(new N_Long);
+                  return N_Root_Acc'(new N_Long);
             end case;
          when T_Unsigned =>
             Next_Token;
             case Token is
                when T_Short =>
                   Next_Token;
-                  return Node_Acc'(new N_Unsigned_Short);
+                  return N_Root_Acc'(new N_Unsigned_Short);
                when T_Long =>
                   Next_Token;
                   if Token = T_Long then
                      Next_Token;
-                     return Node_Acc'(new N_Unsigned_Long_Long);
+                     return N_Root_Acc'(new N_Unsigned_Long_Long);
                   else
-                     return Node_Acc'(new N_Unsigned_Long);
+                     return N_Root_Acc'(new N_Unsigned_Long);
                   end if;
                when others =>
                   Errors.Parser_Error ("`unsigned' must be followed either "
@@ -622,26 +622,26 @@ package body Parse is
                                        Errors.Error);
                   Errors.Parser_Error ("`unsigned long' assumed",
                                        Errors.Error);
-                  return Node_Acc'(new N_Unsigned_Long);
+                  return N_Root_Acc'(new N_Unsigned_Long);
             end case;
          when T_Char =>
             Next_Token;
-            return Node_Acc'(new N_Char);
+            return N_Root_Acc'(new N_Char);
          when T_Wchar =>
             Next_Token;
-            return Node_Acc'(new N_Wchar);
+            return N_Root_Acc'(new N_Wchar);
          when T_Boolean =>
             Next_Token;
-            return Node_Acc'(new N_Boolean);
+            return N_Root_Acc'(new N_Boolean);
          when T_Octet =>
             Next_Token;
-            return Node_Acc'(new N_Octet);
+            return N_Root_Acc'(new N_Octet);
          when T_Any =>
             Next_Token;
-            return Node_Acc'(new N_Any);
+            return N_Root_Acc'(new N_Any);
          when T_Object =>
             Next_Token;
-            return Node_Acc'(new N_Object);
+            return N_Root_Acc'(new N_Object);
          when others =>
             Errors.Parser_Error ("base type expected",
                                  Errors.Error);
@@ -655,17 +655,17 @@ package body Parse is
    --                    |   <wide_string_type>
    --                    |   <fixed_pt_type>
    --                    |   <scoped_name>
-   function Parse_Param_Type_Spec return Node_Acc is
+   function Parse_Param_Type_Spec return N_Root_Acc is
    begin
       case Token is
          when T_String =>
-            return Node_Acc (Parse_String_Type);
+            return N_Root_Acc (Parse_String_Type);
          when T_Wstring =>
             return Parse_Wide_String_Type;
          when T_Fixed =>
             return Parse_Fixed_Pt_Type;
          when T_Colon_Colon | T_Identifier =>
-            return Node_Acc (Parse_Scoped_Name);
+            return N_Root_Acc (Parse_Scoped_Name);
          when T_Float | T_Double | T_Long | T_Short | T_Unsigned | T_Char
            | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object =>
             return Parse_Base_Type_Spec;
@@ -695,7 +695,7 @@ package body Parse is
       El.A_Type := Parse_Param_Type_Spec;
       Expect (T_Identifier);
       Add_Identifier (El);
-      Append_Node (List, Node_Acc (El));
+      Append_Node (List, N_Root_Acc (El));
       Next_Token;
    end Parse_Attr_Dcl;
 
@@ -704,17 +704,17 @@ package body Parse is
    --                       |   <string_type>
    --                       |   <wide_string_type>
    --                       |   <fixed_pt_type>
-   function Parse_Template_Type_Spec return Node_Acc is
+   function Parse_Template_Type_Spec return N_Root_Acc is
    begin
       case Token is
          when T_Sequence =>
-            return Node_Acc (Parse_Sequence_Type);
+            return N_Root_Acc (Parse_Sequence_Type);
          when T_String =>
-            return Node_Acc (Parse_String_Type);
+            return N_Root_Acc (Parse_String_Type);
          when T_Wstring =>
-            return Node_Acc (Parse_Wide_String_Type);
+            return N_Root_Acc (Parse_Wide_String_Type);
          when T_Fixed =>
-            return Node_Acc (Parse_Fixed_Pt_Type);
+            return N_Root_Acc (Parse_Fixed_Pt_Type);
          when others =>
             raise Errors.Internal_Error;
       end case;
@@ -724,11 +724,11 @@ package body Parse is
    --  <simple_type_spec> ::= <base_type_spec>
    --                     |   <template_type_spec>
    --                     |   <scoped_name>
-   function Parse_Simple_Type_Spec return Node_Acc is
+   function Parse_Simple_Type_Spec return N_Root_Acc is
    begin
       case Token is
          when T_Colon_Colon | T_Identifier =>
-            return Node_Acc (Parse_Scoped_Name);
+            return N_Root_Acc (Parse_Scoped_Name);
          when T_Sequence | T_String | T_Wstring | T_Fixed =>
             return Parse_Template_Type_Spec;
          when T_Float | T_Double | T_Long | T_Short | T_Unsigned |
@@ -768,7 +768,7 @@ package body Parse is
    --  Rule 29:
    --  <type_spec> ::= <simple_type_spec>
    --              |   <constr_type_spec>
-   function Parse_Type_Spec return Node_Acc is
+   function Parse_Type_Spec return N_Root_Acc is
    begin
       case Token is
          when T_Float | T_Double | T_Long | T_Short | T_Unsigned |
@@ -824,7 +824,7 @@ package body Parse is
    begin
       loop
          El := Parse_Declarator;
-         Append_Node (List, Node_Acc (El));
+         Append_Node (List, N_Root_Acc (El));
          exit when Token /= T_Comma;
          Next_Token;
       end loop;
@@ -844,7 +844,7 @@ package body Parse is
          Res.M_Type := Parse_Type_Spec;
          Parse_Declarators (Res.Decl);
          Expect (T_Semi_Colon);
-         Append_Node (List, Node_Acc (Res));
+         Append_Node (List, N_Root_Acc (Res));
          Next_Token;
          exit when Token = T_Right_Cbracket;
       end loop;
@@ -946,7 +946,7 @@ package body Parse is
          when T_Enum =>
             raise Errors.Internal_Error;
          when T_Colon_Colon | T_Identifier =>
-            Res.Switch_Type := Node_Acc (Parse_Scoped_Name);
+            Res.Switch_Type := N_Root_Acc (Parse_Scoped_Name);
          when others =>
             Errors.Parser_Error ("switch type expected",
                                  Errors.Error);
@@ -957,7 +957,7 @@ package body Parse is
       Push_Scope (Res);
       Next_Token;
       loop
-         Append_Node (Res.Cases, Node_Acc (Parse_Case));
+         Append_Node (Res.Cases, N_Root_Acc (Parse_Case));
          exit when Token = T_Right_Cbracket;
       end loop;
       Pop_Scope (Res);
@@ -1004,7 +1004,7 @@ package body Parse is
          El := new N_Enumerator;
          Set_Loc (El.all, Get_Location);
          Add_Identifier (El);
-         Append_Node (Res.Enumerators, Node_Acc (El));
+         Append_Node (Res.Enumerators, N_Root_Acc (El));
          Next_Token;
          exit when Token /= T_Comma;
       end loop;
@@ -1017,15 +1017,15 @@ package body Parse is
    --  <constr_type_spec> ::= <struct_type>
    --                     |   <union_type>
    --                     |   <enum_type>
-   function Parse_Constr_Type_Spec return Node_Acc is
+   function Parse_Constr_Type_Spec return N_Root_Acc is
    begin
       case Token is
          when T_Struct =>
-            return Node_Acc (Parse_Struct_Type);
+            return N_Root_Acc (Parse_Struct_Type);
          when T_Union =>
-            return Node_Acc (Parse_Union_Type);
+            return N_Root_Acc (Parse_Union_Type);
          when T_Enum =>
-            return Node_Acc (Parse_Enum_Type);
+            return N_Root_Acc (Parse_Enum_Type);
          when others =>
             Errors.Parser_Error ("constructed type expected",
                                  Errors.Error);
@@ -1051,18 +1051,18 @@ package body Parse is
    --             |   <union_type>
    --             |   <enum_type>
    --             |   "native" <simple_declarator>
-   function Parse_Type_Dcl return Node_Acc is
+   function Parse_Type_Dcl return N_Root_Acc is
    begin
       case Token is
          when T_Typedef =>
             Next_Token;
-            return Node_Acc (Parse_Type_Declarator);
+            return N_Root_Acc (Parse_Type_Declarator);
          when T_Struct =>
-            return Node_Acc (Parse_Struct_Type);
+            return N_Root_Acc (Parse_Struct_Type);
          when T_Union =>
-            return Node_Acc (Parse_Union_Type);
+            return N_Root_Acc (Parse_Union_Type);
          when T_Enum =>
-            return Node_Acc (Parse_Enum_Type);
+            return N_Root_Acc (Parse_Enum_Type);
          when T_Native =>
             declare
                Res : N_Native_Acc;
@@ -1076,7 +1076,7 @@ package body Parse is
                   Errors.Parser_Error ("simple declarator expected",
                                        Errors.Error);
                end if;
-               return Node_Acc (Res);
+               return N_Root_Acc (Res);
             end;
          when others =>
             Errors.Parser_Error ("type declarator expected",
@@ -1100,17 +1100,17 @@ package body Parse is
            T_Short | T_Long | T_Float | T_Double | T_Unsigned |
            T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
            T_String | T_Wstring =>
-            Append_Node (List, Node_Acc (Parse_Op_Dcl));
+            Append_Node (List, N_Root_Acc (Parse_Op_Dcl));
          when T_Right_Cbracket =>
             return;
          when T_Exception =>
-            Append_Node (List, Node_Acc (Parse_Except_Dcl));
+            Append_Node (List, N_Root_Acc (Parse_Except_Dcl));
          when T_Union =>
-            Append_Node (List, Node_Acc (Parse_Union_Type));
+            Append_Node (List, N_Root_Acc (Parse_Union_Type));
          when T_Struct =>
-            Append_Node (List, Node_Acc (Parse_Struct_Type));
+            Append_Node (List, N_Root_Acc (Parse_Struct_Type));
          when T_Enum =>
-            Append_Node (List, Node_Acc (Parse_Enum_Type));
+            Append_Node (List, N_Root_Acc (Parse_Enum_Type));
          when T_Typedef =>
             Append_Node (List, Parse_Type_Dcl);
          when others =>
@@ -1150,7 +1150,7 @@ package body Parse is
          --  inheritance_spec
          loop
             Next_Token;
-            Append_Node (Res.Parents, Node_Acc (Parse_Scoped_Name));
+            Append_Node (Res.Parents, N_Root_Acc (Parse_Scoped_Name));
             exit when Token /= T_Comma;
          end loop;
       end if;
@@ -1170,7 +1170,7 @@ package body Parse is
    --
    --  Rule 6:
    --  <forward_dcl> ::= "interface" <identifier>
-   function Parse_Interface return Node_Acc is
+   function Parse_Interface return N_Root_Acc is
       Res : N_Interface_Acc;
       Fd_Res : N_Forward_Interface_Acc;
       Name : Scope_Cell_Acc;
@@ -1208,9 +1208,9 @@ package body Parse is
          Fd_Res.Forward := null;
          Redefine_Identifier (Name, Fd_Res);
          --  Free (Res);
-         return Node_Acc (Fd_Res);
+         return N_Root_Acc (Fd_Res);
       else
-         return Node_Acc (Parse_Interface_Dcl (Res));
+         return N_Root_Acc (Parse_Interface_Dcl (Res));
       end if;
    end Parse_Interface;
 
@@ -1224,21 +1224,21 @@ package body Parse is
    --               |   <wide_string_type>
    --               |   <fixed_pt_const_type>
    --               |   <scoped_name>
-   function Parse_Const_Type return Node_Acc is
+   function Parse_Const_Type return N_Root_Acc is
    begin
       case Token is
          when T_Short | T_Long | T_Float | T_Double | T_Unsigned |
            T_Char | T_Wchar | T_Boolean =>
             return Parse_Base_Type_Spec;
          when T_String =>
-            return Node_Acc (Parse_String_Type);
+            return N_Root_Acc (Parse_String_Type);
          when T_Wstring =>
             return Parse_Wide_String_Type;
          when T_Fixed =>
             raise Errors.Internal_Error;
             --  return Parse_Fixed_Pt_Const_Type;
          when T_Colon_Colon | T_Identifier =>
-            return Node_Acc (Parse_Scoped_Name);
+            return N_Root_Acc (Parse_Scoped_Name);
          when others =>
             Errors.Parser_Error ("const type expected",
                                  Errors.Error);
@@ -1270,20 +1270,20 @@ package body Parse is
    --               |   <except_dcl> ";"
    --               |   <interface> ";"
    --               |   <module> ";"
-   function Parse_Definition return Node_Acc is
-      Res : Node_Acc;
+   function Parse_Definition return N_Root_Acc is
+      Res : N_Root_Acc;
    begin
       case Token is
          when T_Typedef | T_Struct | T_Union | T_Enum | T_Native =>
-            Res := Node_Acc (Parse_Type_Dcl);
+            Res := N_Root_Acc (Parse_Type_Dcl);
          when T_Const =>
-            Res := Node_Acc (Parse_Const_Dcl);
+            Res := N_Root_Acc (Parse_Const_Dcl);
          when T_Exception =>
-            Res := Node_Acc (Parse_Except_Dcl);
+            Res := N_Root_Acc (Parse_Except_Dcl);
          when T_Interface =>
-            Res := Node_Acc (Parse_Interface);
+            Res := N_Root_Acc (Parse_Interface);
          when T_Module =>
-            Res := Node_Acc (Parse_Module);
+            Res := N_Root_Acc (Parse_Module);
          when others =>
             Errors.Parser_Error ("definition expected",
                                  Errors.Error);

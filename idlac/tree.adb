@@ -17,7 +17,7 @@
 --
 
 package body Tree is
-   procedure Append_Node (List : in out Node_List; Node : Node_Acc) is
+   procedure Append_Node (List : in out Node_List; Node : N_Root_Acc) is
       Cell, Last : Node_List;
    begin
       Cell := new Node_List_Cell'(Car => Node, Cdr => null);
@@ -37,7 +37,7 @@ package body Tree is
       It := Node_Iterator (List);
    end Init;
 
-   function Get_Node (It : Node_Iterator) return Node_Acc is
+   function Get_Node (It : Node_Iterator) return N_Root_Acc is
    begin
       return It.Car;
    end Get_Node;

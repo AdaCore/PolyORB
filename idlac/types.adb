@@ -35,20 +35,6 @@ package body Types is
       return N.Loc;
    end Get_Loc;
 
-   procedure Set_Back_End (N : in out N_Root'Class;
-                           Be : access N_Back_End'Class) is
-   begin
-      if N.Back_End /= null then
-         raise Errors.Internal_Error;
-      end if;
-      N.Back_End := N_Back_End_Acc (Be);
-   end Set_Back_End;
-
-   function Get_Back_End (N : N_Root'Class) return N_Back_End_Acc is
-   begin
-      return N.Back_End;
-   end Get_Back_End;
-
    --  These define the stack of the scopes.
    --  The top of the stack is keep in CURRENT_SCOPE.
    --  Each cell of the stack points to a scope node and to the cell defining
@@ -215,7 +201,7 @@ package body Types is
       return Index;
    end Get_Identifier;
 
-   function Find_Identifier return Named_Node_Acc is
+   function Find_Identifier return N_Named_Acc is
       Cell : Scope_Cell_Acc;
       Index : Uniq_Id;
    begin
@@ -235,24 +221,24 @@ package body Types is
       return Id_Table.Table (Index).Cell;
    end Find_Identifier;
 
-   function Get_Node (Cell : Scope_Cell_Acc) return Named_Node_Acc is
+   function Get_Node (Cell : Scope_Cell_Acc) return N_Named_Acc is
    begin
       return Cell.Node;
    end Get_Node;
 
    procedure Redefine_Identifier
-     (Cell : Scope_Cell_Acc; Node : access Named_Node'Class) is
+     (Cell : Scope_Cell_Acc; Node : access N_Named'Class) is
    begin
       if Cell.Node = null or else Node.Cell /= null then
          raise Errors.Internal_Error;
       end if;
       Cell.Node.Cell := null;
-      Cell.Node := Named_Node_Acc (Node);
+      Cell.Node := N_Named_Acc (Node);
       Node.Cell := Cell;
    end Redefine_Identifier;
 
    function Add_Identifier (Index : Uniq_Id;
-                            Node : access Named_Node'Class)
+                            Node : access N_Named'Class)
                             return Scope_Cell_Acc is
       Cell : Scope_Cell_Acc;
    begin
@@ -268,7 +254,7 @@ package body Types is
       --  Create a cell.
       Cell := new Scope_Cell;
       Cell.Identifier := Index;
-      Cell.Node := Named_Node_Acc (Node);
+      Cell.Node := N_Named_Acc (Node);
       Cell.Old := Id_Table.Table (Index).Cell;
       Id_Table.Table (Index).Cell := Cell;
       Cell.Next := Current_Scope.Scope.Identifier_List;
@@ -279,7 +265,7 @@ package body Types is
       return Cell;
    end Add_Identifier;
 
-   function Get_Name (Node : in Named_Node'Class) return String is
+   function Get_Name (Node : in N_Named'Class) return String is
    begin
       if Node.Cell /= null then
          return Id_Table.Table (Node.Cell.Identifier).Str.all;
@@ -288,7 +274,7 @@ package body Types is
       end if;
    end Get_Name;
 
-   procedure Add_Identifier (Node : access Named_Node'Class) is
+   procedure Add_Identifier (Node : access N_Named'Class) is
       Index : Uniq_Id;
       Cell : Scope_Cell_Acc;
    begin
@@ -301,7 +287,7 @@ package body Types is
    end Add_Identifier;
 
    function Find_Identifier_In_Scope (Scope : N_Scope_Acc)
-                                      return Named_Node_Acc is
+                                      return N_Named_Acc is
       Cell : Scope_Cell_Acc;
       Index : Uniq_Id;
    begin
@@ -319,7 +305,7 @@ package body Types is
       end loop;
    end Find_Identifier_In_Scope;
 
-   function Import_Uniq_Identifier (Node : Named_Node_Acc) return Boolean is
+   function Import_Uniq_Identifier (Node : N_Named_Acc) return Boolean is
    begin
       return Add_Identifier (Node.Cell.Identifier, Node) /= null;
    end Import_Uniq_Identifier;
@@ -329,7 +315,7 @@ package body Types is
       return Cell.Parent = Current_Scope.Scope;
    end Is_Identifier_Imported;
 
-   procedure Import_Identifier (Node : Named_Node_Acc) is
+   procedure Import_Identifier (Node : N_Named_Acc) is
    begin
       raise Errors.Internal_Error;
    end Import_Identifier;
@@ -342,4 +328,23 @@ package body Types is
                    & "', next: " & Uniq_Id'Image (Id_Table.Table (I).Next));
       end loop;
    end Disp_Id_Table;
+
+
+--  INUTILE ???
+
+--    procedure Set_Back_End (N : in out N_Root'Class;
+--                            Be : access N_Back_End'Class) is
+--    begin
+--       if N.Back_End /= null then
+--          raise Errors.Internal_Error;
+--       end if;
+--       N.Back_End := N_Back_End_Acc (Be);
+--    end Set_Back_End;
+
+--    function Get_Back_End (N : N_Root'Class) return N_Back_End_Acc is
+--    begin
+--       return N.Back_End;
+--    end Get_Back_End;
+
+
 end Types;

@@ -98,7 +98,7 @@ package body Be_Ada is
    type Be_Interface_Acc is access all Be_Interface;
 
    procedure Pre_Generate_Idl_Type_Spec
-     (A_Type : Node_Acc;
+     (A_Type : N_Root_Acc;
       Declarator : N_Declarator_Acc;
       Container_Be : Be_Container_Acc);
 
@@ -209,7 +209,7 @@ package body Be_Ada is
    end Map_Identifier;
 
    procedure Create_Ada_Identifier
-     (Node : in out Named_Node'Class; Parent : Be_Container_Acc)
+     (Node : in out N_Named'Class; Parent : Be_Container_Acc)
    is
       Res : String_Cacc;
       Be : Be_Named_Node_Acc;
@@ -362,7 +362,7 @@ package body Be_Ada is
 
    procedure Disp_Ada (List : Node_List) is
       It : Node_Iterator;
-      Node : Node_Acc;
+      Node : N_Root_Acc;
    begin
       Init (It, List);
       while not Is_End (It) loop
@@ -437,7 +437,7 @@ package body Be_Ada is
       Package_Type : Package_Kind := Package_Client)
    is
       Kind : Node_Kind;
-      N : Named_Node_Acc;
+      N : N_Named_Acc;
       Parent : Be_Container_Acc;
    begin
       N := Node.Value;
@@ -476,7 +476,7 @@ package body Be_Ada is
    --  Convert a type node into Ada.
    --  See syntax § 1.9
    procedure Generate_Idl_For_Type
-     (Node : Node_Acc;
+     (Node : N_Root_Acc;
       Unit : in out Unit_Decl;
       Container : Be_Container_Acc)
    is
@@ -531,7 +531,7 @@ package body Be_Ada is
    end Generate_Idl_For_Type;
 
    procedure Generate_Idl_For_Const
-     (Node : Node_Acc;
+     (Node : N_Root_Acc;
       Unit : in out Unit_Decl;
       Container : Be_Container_Acc)
    is
@@ -561,13 +561,13 @@ package body Be_Ada is
    end Generate_Idl_For_Const;
 
    procedure Generate_Idl_For_Complex_Type
-     (Type_Spec : Node_Acc;
+     (Type_Spec : N_Root_Acc;
       Declarator : N_Declarator_Acc;
       Container : Be_Container_Acc)
    is
       Spec : Unit_Decl renames Container.Client.P_Spec;
       It : Node_Iterator;
-      Node : Node_Acc;
+      Node : N_Root_Acc;
    begin
       if Declarator.Array_Bounds /= Nil_List then
          Add_Text (Spec, "array (");
@@ -630,7 +630,7 @@ package body Be_Ada is
    end Generate_Any;
 
    procedure Generate_Idl_For_Decls
-     (Type_Spec : Node_Acc;
+     (Type_Spec : N_Root_Acc;
       Declarator : N_Declarator_Acc;
       Container_Be : Be_Container_Acc)
    is
@@ -782,7 +782,7 @@ package body Be_Ada is
    end Generate_Idl;
 
    procedure Pre_Generate_Idl_Type_Spec
-     (A_Type : Node_Acc;
+     (A_Type : N_Root_Acc;
       Declarator : N_Declarator_Acc;
       Container_Be : Be_Container_Acc)
    is
@@ -806,7 +806,7 @@ package body Be_Ada is
    end Pre_Generate_Idl_Type_Spec;
 
    procedure Generate_Idl
-     (Type_Spec : Node_Acc;
+     (Type_Spec : N_Root_Acc;
       Declarator : N_Declarator_Acc;
       Container : Be_Container_Acc)
    is
@@ -1055,7 +1055,7 @@ package body Be_Ada is
    procedure Generate_Idl (A_Case : N_Case_Acc;
                            Container_Be : Be_Container_Acc)
    is
-      A_Label : Node_Acc;
+      A_Label : N_Root_Acc;
       It_Label : Node_Iterator;
       Be_Decl : Be_Declarator_Node_Acc;
       Spec : Unit_Decl renames Container_Be.Client.P_Spec;
@@ -1476,7 +1476,7 @@ package body Be_Ada is
       Op_It : Node_Iterator;
       Parent : N_Interface_Acc;
       Be : Be_Interface_Acc;
-      Sub_Node : Node_Acc;
+      Sub_Node : N_Root_Acc;
    begin
       Be := Be_Interface_Acc (Get_Back_End (Node.all));
       if Be.Seen then
@@ -1712,7 +1712,7 @@ package body Be_Ada is
       Is_Repository : Boolean := False)
    is
       It : Node_Iterator;
-      N : Node_Acc;
+      N : N_Root_Acc;
    begin
       Init (It, List);
       while not Is_End (It) loop
@@ -1790,7 +1790,7 @@ package body Be_Ada is
       Need_File_Package : Boolean;
       Be : Be_Container_Acc;
       It : Node_Iterator;
-      N : Node_Acc;
+      N : N_Root_Acc;
    begin
       --  Ada mappping, 1.5.4:
       --   If all the IDL statements in a file are enclosed by a single module
@@ -1826,7 +1826,7 @@ package body Be_Ada is
 
       --  Display it.
       if Need_File_Package then
-         Disp_Ada (Node_Acc (Repository));
+         Disp_Ada (N_Root_Acc (Repository));
       else
          Disp_Ada (Repository.Contents);
       end if;

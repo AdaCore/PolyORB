@@ -1,5 +1,6 @@
 interface echo {
 
+  const char '\8';
   /*** preprocessor tests ***/
 
   #if 1
@@ -42,7 +43,7 @@ interface echo {
   #pragma toto
   #line 500
   const char '\8';
-  #line 45
+  #line 47
 
 
   /*** comment tests ***/
