@@ -8,14 +8,14 @@ all: servers client
 force:
 
 servers: force harness-skel.ads 
-	$(GNATMAKE)  server*.adb $(GNATFLAGS) -I../../../../perforce/cos/naming/ -I../../../common_files/ `polyorb-config`
+	$(GNATMAKE)  server*.adb $(GNATFLAGS) -I../../../../perforce/cos/naming/ -I../../../common_files/ `polyorb-config` -margs -largs -g
 
 client: force harness-skel.ads
 	$(GNATMAKE)  client.adb $(GNATFLAGS) -I../../../../perforce/cos/naming/ -I../../../common_files/ 	`polyorb-config`
 
 harness-skel.ads: harness.idl 
 	iac -ada harness.idl > iac.ada 
-	$(GNATCHOP) -w iac.ada
+#	$(GNATCHOP) -w iac.ada
 
 clean: 
 	@-rm -f *.o *.ali *ir_info* 
