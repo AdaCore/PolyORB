@@ -1223,6 +1223,8 @@ package body PolyORB.POA.Basic_POA is
                      Servant,
                      Error);
 
+      Unlock_R (The_OA.POA_Lock);
+
       if Found (Error) then
          return;
       end if;
@@ -1238,8 +1240,6 @@ package body PolyORB.POA.Basic_POA is
       Servants.Set_Thread_Policy (Servant, The_OA.Thread_Policy);
 
       pragma Debug (O ("Find_Servant: Leave."));
-      Unlock_R (The_OA.POA_Lock);
-
    end Find_Servant;
 
    ---------------------
