@@ -37,7 +37,9 @@ with Ada.Unchecked_Deallocation;
 
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Filters;           use System.Garlic.Filters;
+pragma Warnings (Off);
 with System.Garlic.Linker_Options;
+pragma Warnings (On);
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
 with System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;

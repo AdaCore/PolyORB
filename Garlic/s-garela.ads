@@ -33,8 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Warnings (Off);
 with System.Garlic.Options;
 pragma Elaborate_All (System.Garlic.Options);
+pragma Warnings (On);
 
 package System.Garlic.Elaboration is
 
