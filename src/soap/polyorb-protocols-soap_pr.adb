@@ -364,7 +364,8 @@ package body PolyORB.Protocols.SOAP_Pr is
          Sess.Target := Set_Target_Object (S).Target;
          return Result;
       else
-         return Handle_Message (Session (Sess.all)'Access, S);
+         return PolyORB.Protocols.Handle_Message
+           (Session (Sess.all)'Access, S);
          --  Call ancestor method.
       end if;
    end Handle_Message;
