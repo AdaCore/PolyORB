@@ -587,8 +587,6 @@ src/polyorb-initialization.adb
 src/polyorb-initialization.ads
 src/polyorb-jobs.adb
 src/polyorb-jobs.ads
-src/polyorb-locked_queue.adb
-src/polyorb-locked_queue.ads
 src/polyorb-log.adb
 src/polyorb-log.ads
 src/polyorb-minimal_servant.adb
