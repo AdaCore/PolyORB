@@ -81,7 +81,7 @@ package System.Garlic.Tasking is
       V : in Types.Version_Id);
 
    procedure Lookup
-     (W : in out Protected_Watcher_Type;
+     (W : in Protected_Watcher_Type;
       V : out Types.Version_Id);
 
    procedure Update (W : in out Protected_Watcher_Type);
@@ -118,9 +118,9 @@ package System.Garlic.Tasking is
    protected type Mutex_PO is
       entry Enter;
       procedure Leave;
-      function Is_Busy return Boolean;
+      function Is_Held return Boolean;
    private
-      Busy : Boolean := False;
+      Held : Boolean := False;
    end Mutex_PO;
 
    type Mutex_PO_Access is access Mutex_PO;
@@ -135,11 +135,19 @@ private
         X : Mutex_PO_Access;
      end record;
 
-   type Protected_Watcher_Type is new Soft_Links.Watcher_Type with record
-      Queue   : Mutex_PO;
-      Protect : Mutex_PO;
-      Count   : Natural := 0;
+   protected type Watcher_PO is
+      procedure Update;
+      entry Differ (From : in Types.Version_Id);
+      function Lookup return Types.Version_Id;
+      procedure Init (Initial_Value : in Types.Version_Id);
+   private
+      entry Wait_For_Update (From : in Types.Version_Id);
       Value   : Types.Version_Id;
+      Updated : Boolean := False;
+   end Watcher_PO;
+
+   type Protected_Watcher_Type is new Soft_Links.Watcher_Type with record
+      P : Watcher_PO;
    end record;
 
    protected type Clever_Lock is

@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Task_Attributes;
 with Ada.Dynamic_Priorities;
 
 with System;                     use System;
@@ -58,10 +57,6 @@ package body System.Garlic.Tasking is
 
    use Ada.Task_Identification;
    use type System.Tasking.Task_ID;
-
-   package LLTA is new Ada.Task_Attributes (Natural, 0);
-   use LLTA;
-   --  Lock Level Task Attribute
 
    Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
    --  The environment task. Self will be set to it at elaboration time.
@@ -138,7 +133,7 @@ package body System.Garlic.Tasking is
    function Create (V : in Version_Id) return Watcher_Access is
       W : constant Protected_Watcher_Access := new Protected_Watcher_Type;
    begin
-      W.Value := V;
+      W.P.Init (V);
       return Watcher_Access (W);
    end Create;
 
@@ -197,32 +192,8 @@ package body System.Garlic.Tasking is
 
    procedure Differ (W : in out Protected_Watcher_Type; V : in Version_Id)
    is
-      Updated : Boolean;
-
    begin
-      pragma Assert (Value = 0);
-
-      loop
-         W.Protect.Enter;
-         Updated := (W.Value /= V);
-         if not Updated then
-
-            --  Check that the queue is correctly initialized as busy to
-            --  block this task.
-
-            if W.Count = 0
-              and then W.Queue.Is_Busy
-            then
-               W.Protect.Leave;
-               W.Queue.Enter;
-               W.Protect.Enter;
-            end if;
-            W.Count := W.Count + 1;
-         end if;
-         W.Protect.Leave;
-         exit when Updated;
-         W.Queue.Enter;
-      end loop;
+      W.P.Differ (V);
    end Differ;
 
    -----------
@@ -351,11 +322,9 @@ package body System.Garlic.Tasking is
    -- Lookup --
    ------------
 
-   procedure Lookup (W : in out Protected_Watcher_Type; V : out Version_Id) is
+   procedure Lookup (W : in Protected_Watcher_Type; V : out Version_Id) is
    begin
-      W.Protect.Enter;
-      V := W.Value;
-      W.Protect.Leave;
+      V := W.P.Lookup;
    end Lookup;
 
    --------------
@@ -364,31 +333,32 @@ package body System.Garlic.Tasking is
 
    protected body Mutex_PO is
 
-      --------------------
-      -- Mutex_PO.Enter --
-      --------------------
+      -----------
+      -- Enter --
+      -----------
 
-      entry Enter when not Busy is
+      entry Enter when not Held is
       begin
-         Busy := True;
+         Held := True;
       end Enter;
 
-      ----------------------
-      -- Mutex_PO.Is_Busy --
-      ----------------------
+      -------------
+      -- Is_Held --
+      -------------
 
-      function Is_Busy return Boolean is
+      function Is_Held return Boolean is
       begin
-         return Busy;
-      end Is_Busy;
+         return Held;
+      end Is_Held;
 
-      --------------------
-      -- Mutex_PO.Leave --
-      --------------------
+      -----------
+      -- Leave --
+      -----------
 
       procedure Leave is
       begin
-         Busy := False;
+         pragma Assert (Held);
+         Held := False;
       end Leave;
 
    end Mutex_PO;
@@ -408,17 +378,68 @@ package body System.Garlic.Tasking is
 
    procedure Update (W : in out Protected_Watcher_Type) is
    begin
-      W.Protect.Enter;
-      W.Value := W.Value + 1;
-
-      --  Resume at least W.Count but maybe less than W.Count if
-      --  we take into account aborted Differ operations.
-
-      for I in 1 .. W.Count loop
-         W.Queue.Leave;
-      end loop;
-      W.Count := 0;
-      W.Protect.Leave;
+      W.P.Update;
    end Update;
+
+   ----------------
+   -- Watcher_PO --
+   ----------------
+
+   protected body Watcher_PO is
+
+      ------------
+      -- Differ --
+      ------------
+
+      entry Differ (From : in Version_Id) when not Updated is
+      begin
+         if From = Value then
+            requeue Wait_For_Update with abort;
+         end if;
+      end Differ;
+
+      ----------
+      -- Init --
+      ----------
+
+      procedure Init (Initial_Value : in Version_Id) is
+      begin
+         Value := Initial_Value;
+      end Init;
+
+      ------------
+      -- Lookup --
+      ------------
+
+      function Lookup return Version_Id is
+      begin
+         return Value;
+      end Lookup;
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update is
+      begin
+         Value  := Value + 1;
+         if Wait_For_Update'Count > 0 then
+            Updated := True;
+         end if;
+      end Update;
+
+      ---------------------
+      -- Wait_For_Update --
+      ---------------------
+
+      entry Wait_For_Update (From : in Version_Id) when Updated is
+      begin
+         if Wait_For_Update'Count = 0 then
+            Updated := False;
+         end if;
+         requeue Differ;
+      end Wait_For_Update;
+
+   end Watcher_PO;
 
 end System.Garlic.Tasking;
