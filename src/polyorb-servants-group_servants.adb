@@ -45,7 +45,6 @@ with PolyORB.Protocols.Interface;
 with PolyORB.References.IOR;
 with PolyORB.Requests;
 with PolyORB.Setup;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 
 with PolyORB.Log;
@@ -84,6 +83,8 @@ package body PolyORB.Servants.Group_Servants is
 
       case Self.State is
          when Not_Ready =>
+            Leave (Self.Mutex);
+
             raise Unhandled_Message;
 
          when Wait_First =>
@@ -224,6 +225,9 @@ package body PolyORB.Servants.Group_Servants is
       --  Check if request is oneway
 
       if not Is_Set (Sync_With_Transport, Request.Req_Flags) then
+         Leave (Self.Group_Lock);
+         Leave (Self.Mutex);
+
          raise Not_Oneway_Request;
       end if;
 
@@ -231,6 +235,7 @@ package body PolyORB.Servants.Group_Servants is
          Free (Self.Args);
       end if;
 
+      Self.Counter := 0;
       Self.State := Wait_First;
       Self.Args_Src := Request.Deferred_Arguments_Session;
 
@@ -272,7 +277,7 @@ package body PolyORB.Servants.Group_Servants is
             pragma Debug (O ("Request sent."));
             TPL.Next (It);
          end;
-         Self.Counter := 0;
+
          Leave (Self.Mutex);
       end loop;
 
