@@ -8,6 +8,7 @@
 \usepackage[latin1]{inputenc}
 \usepackage[francais]{babel}
 \usepackage{graphics}
+\usepackage{psfig}
 \usepackage{array}
 
 \title{Architecture de DROOPI}
@@ -114,7 +115,22 @@ CORBA AdaBroker & 4 & 7 & 2 & 1  \\\hline
   Réciproqe du précédent.
 \end{enumerate}
 
-\section{Découpage}
+\section{Principes de l'architecture}
+\subsection{Vue d'ensemble}
+
+\begin{figure}
+\begin{center}
+\mbox{\psfig{file=droopi-arch.eps,width=10cm}}
+\end{center}
+\caption{Architecture DROOPI}
+\label{fig:droopi-arch}
+\end{figure}
+
+La figure~\ref{fig:droopi-arch} donne une vue d'ensemble de
+l'architecture retenue pour DROOPI.
+
+%%  XXX explication du dessin
+
 \subsection{Client}
 
 Un client DROOPI dispose d'une description de service dans une
@@ -155,7 +171,89 @@ Cette facette peut, dans un premier temps, être réalisée par traduction
 manuelle. On laisse l'automatisation de cette phase à des travaux
 annexes ou futurs.
 
-\subsection{Objets de communication}
+\section{Conception d'une solution}
+\subsection{Vue d'ensemble}
+
+\begin{figure}
+\begin{center}
+\psfig{file=droopi-design.eps,width=15cm}
+\end{center}
+\caption{Conception DROOPI}
+\label{fig:droopi-uml}
+\end{figure}
+
+La figure \ref{fig:droopi-uml} donne une vue d'ensemble de
+l'implémentation de DROOPI. Elle est pilotée par des événements
+échangés entre modules. En effet, le middleware ne doit pas imposer
+l'ajout de nouvelles tâches dans une application qui n'en comporte pas.
+Les activités de l'ORB ne doivent être déclenchées qu'en tant que de
+besoin, lorsque l'application souhaite invoquer une méthode distante,
+ou lorsqu'un message est reçu sur un canal de communication.
+
+\subsection{Ordonnancement}
+
+Un object \emph{Scheduler} (ordonnanceur) régit l'exécution des activités de l'ORB
+en fonction des événements qui se produisent. Différentes politiques
+d'ordonnancement peuvent être mises en {\oe}uvre. Elles sont matérialisées
+par des objets dérivés de \emph{Tasking\_Policy}, auxquels l'ordonnanceur
+délègue une partie de ses comportements.
+
+\subsection{Couche applicative}
+
+Les personnalités applicatives sont réalisées par concrétisation
+d'un certain nombre de classes abstraites.
+
+\begin{description}
+\item[Object\_Adapter] un  «~annuaire d'objets~» qui associe
+  des références logiques (\emph{Object\_References})
+  aux implémentations concrètes (\emph{Servants})~;
+\item[Object\_Reference] une information communicable,
+  créée par un object adapter, qui contient un ou plusieurs
+  profiles.
+  Chaque profil désigne un point d'accès du service de transport
+  sur lequel des requêtes peuvent être envoyées. Il contient
+  également l'identité de l'object adapter qui a créé la référence,
+  et l'identité de l'objet logique désigné.
+\item[Servant] la classe racine de toutes les implémentations
+  d'objets, i. e. de toute chose susceptible d'exécuter une
+  méthode invoquée à distance.
+\end{description}
+
+Les classes \emph{Servant} et \emph{Object\_Reference} sont
+éventuellement dérivées par chaque personnalité d'une façon qui
+lui est propre, pour s'articuler avec les composants applicatifs.
+
+\subsection{Couche protocolaire}
+
+Les personnalités procotolaires sont réalisées par concrétisation
+d'un certain nombre de classes abstraites.
+
+\begin{description}
+\item[Asynch\_Event\_Source] une source d'événements externes
+  asynchrones, par exemple un descripteur de fichier qui peut
+  participer à un appel à \emph{select(2)}~;
+\item[Filter] une interface supportant le passage de messages
+  dynamiquement typés à l'intérieur de DROOPI. Toute entité
+  qui a besoin de participer à la gestion des communications
+  avec d'autres ORBS implémente cette interface. Ainsi, les
+  types concrets de messages échangés entre les entités peuvent
+  être définis séparément, ce qui résout les problèmes de
+  visibilité croisée.
+%% XXX inclure un exemple succint.
+\item[Transport\_Endpoint] une extrémité d'un canal de communication
+  permettant d'échanger des messages avec un autre ORB.
+  L'objet qui concrétise un TE peut également être vu comme une source
+  d'événements asynchrones (\emph{AES\_View})~; l'interface
+  \emph{Transport\_Endpoint} est la vue de cet objet qui est présentée
+  aux couches supérieures du module de communication, tandis que la vue
+  \emph{Asynchronous\_Event\_Source} présentée à l'ordonnanceur.
+\item[Protocol] interface abstraite pour un protocole d'appel de méthode
+  à distance (par exemple GIOP ou SOAP). Un \emph{Protocol} est une factory
+  d'objets \emph{Session}.
+\item[Session] incarne l'état d'une session ouverte d'un protocole.
+  Cet objet effectue l'échange de messages nécessaire pour passer
+  des demandes d'invocation de méthodes d'un ORB à l'autre.
+\end{description}
 
 \subsubsection{Transport endpoint (TE)}
 
