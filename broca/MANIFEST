@@ -21,9 +21,14 @@ adasockets/src/config.h.in
 adasockets/src/constants.c
 adasockets/src/constants.sh
 adasockets/src/sockets-link.ads.in
+adasockets/src/sockets-multicast.adb
+adasockets/src/sockets-multicast.ads
 adasockets/src/sockets-naming.adb
 adasockets/src/sockets-naming.ads
 adasockets/src/sockets-thin.ads
+adasockets/src/sockets-utils.adb
+adasockets/src/sockets-utils.ads
+adasockets/src/sockets.adb
 adasockets/src/sockets.ads
 adasockets/src/split.adb
 adasockets/src/stamp-h.in
@@ -218,8 +223,6 @@ idlac/testsuite/omg/egg.idl
 idlac/testsuite/parser/alldefinitions.idl
 idlac/testsuite/parser/testparser.idl
 idlac/utils.adb
-idlac/utils.adb
-idlac/utils.ads
 idlac/utils.ads
 src/ChangeLog
 src/Makefile.am
