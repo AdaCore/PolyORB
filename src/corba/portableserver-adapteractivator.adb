@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,9 +32,13 @@
 
 --  with PortableServer.AdapterActivator.Impl;
 
---  $Id: //droopi/main/src/corba/portableserver-adapteractivator.adb#3 $
+--  $Id: //droopi/main/src/corba/portableserver-adapteractivator.adb#4 $
 
 package body PortableServer.AdapterActivator is
+
+   ---------------------
+   -- Unknown_Adapter --
+   ---------------------
 
    function Unknown_Adapter
      (Self   : Ref;

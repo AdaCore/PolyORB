@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,10 @@
 
 package body CORBA.Impl is
 
+   ---------------------
+   -- Execute_Servant --
+   ---------------------
+
    function Execute_Servant
      (Self : access Object;
       Msg  : PolyORB.Components.Message'Class)
@@ -55,17 +59,29 @@ package body CORBA.Impl is
       return Execute_Servant (Self.As_Object, Msg);
    end Execute_Servant;
 
+   ------------------------
+   -- To_PolyORB_Servant --
+   ------------------------
+
    function To_PolyORB_Servant (S : access Object)
      return PolyORB.Servants.Servant_Access is
    begin
       return S.Neutral_View'Access;
    end To_PolyORB_Servant;
 
+   ----------------------
+   -- To_CORBA_Servant --
+   ----------------------
+
    function To_CORBA_Servant (S : PolyORB.Servants.Servant_Access)
      return Object_Ptr is
    begin
       return Object_Ptr (Implementation (S.all).As_Object);
    end To_CORBA_Servant;
+
+   ---------
+   -- "=" --
+   ---------
 
    function "=" (X, Y : Implementation) return Boolean
    is

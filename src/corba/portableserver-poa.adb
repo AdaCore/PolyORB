@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,12 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#24 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#25 $
 
 with Ada.Exceptions;
 
 with PolyORB.Binding_Data;
 with PolyORB.Components;
+with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.POA;
@@ -43,11 +44,12 @@ with PolyORB.POA_Manager;
 with PolyORB.POA_Types;
 with PolyORB.References;
 with PolyORB.References.Binding;
+with PolyORB.Servants;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
-with PolyORB.Servants;
+with PolyORB.Types;
 
-with PolyORB.Exceptions;
+with PolyORB.CORBA_P.POA_Config;
 
 --  with PortableServer.ServantManager.Impl;
 --  with PortableServer.ServantActivator.Impl;
@@ -61,11 +63,20 @@ package body PortableServer.POA is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   function Create_Ref
-     (Referenced : PolyORB.Smart_Pointers.Entity_Ptr) return Ref;
+   function Create_Ref (Referenced : PolyORB.Smart_Pointers.Entity_Ptr)
+                       return Ref;
+   --  Convert a PolyORB.Smart_Pointers.Entity_Ptr into a CORBA.Object.Ref.
+
+   function To_POA (Self : Ref) return PolyORB.POA.Obj_Adapter_Access;
+   --  Convert a Ref to a CORBA POA to a PolyORB POA.
+
+   ----------------
+   -- Create_Ref --
+   ----------------
 
    function Create_Ref
-     (Referenced : PolyORB.Smart_Pointers.Entity_Ptr) return Ref
+     (Referenced : PolyORB.Smart_Pointers.Entity_Ptr)
+     return Ref
    is
       Res : Ref;
    begin
@@ -73,43 +84,58 @@ package body PortableServer.POA is
       return Res;
    end Create_Ref;
 
+   -----------------
+   -- Get_Members --
+   -----------------
+
    procedure Get_Members
      (From : in CORBA.Exception_Occurrence;
       To   : out AdapterAlreadyExists_Members)
    is
       use Ada.Exceptions;
+
    begin
       if Exception_Identity (From) /= AdapterAlreadyExists'Identity then
          PolyORB.Exceptions.Raise_Bad_Param;
       end if;
+
       To := AdapterAlreadyExists_Members'
         (CORBA.IDL_Exception_Members with null record);
    end Get_Members;
 
-   procedure Get_Members (From : in CORBA.Exception_Occurrence;
-                          To   : out AdapterNonExistent_Members)
+   procedure Get_Members
+     (From : in CORBA.Exception_Occurrence;
+      To   : out AdapterNonExistent_Members)
    is
       use Ada.Exceptions;
+
    begin
       if Exception_Identity (From) /= AdapterNonExistent'Identity then
          PolyORB.Exceptions.Raise_Bad_Param;
       end if;
+
       To := AdapterNonExistent_Members'
         (CORBA.IDL_Exception_Members with null record);
    end Get_Members;
 
-   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref is
+   ------------
+   -- To_Ref --
+   ------------
+
+   function To_Ref (Self : CORBA.Object.Ref'Class)
+                   return Ref is
    begin
       if CORBA.Object.Entity_Of (Self).all
         not in PolyORB.POA.Obj_Adapter'Class then
          PolyORB.Exceptions.Raise_Bad_Param;
       end if;
+
       return Create_Ref (CORBA.Object.Entity_Of (Self));
    end To_Ref;
 
-   function To_POA
-     (Self : Ref)
-     return PolyORB.POA.Obj_Adapter_Access;
+   ------------
+   -- To_POA --
+   ------------
 
    function To_POA
      (Self : Ref)
@@ -121,7 +147,8 @@ package body PortableServer.POA is
         := Entity_Of (Self);
 
    begin
-      if Res = null or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
+      if Res = null
+        or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
          PolyORB.Exceptions.Raise_Bad_Param;
       end if;
 
@@ -139,18 +166,32 @@ package body PortableServer.POA is
       end;
    end To_POA;
 
-   function Get_The_Name (Self : Ref) return CORBA.String is
+   ------------------
+   -- Get_The_Name --
+   ------------------
+
+   function Get_The_Name (Self : Ref)
+                         return CORBA.String is
    begin
       return CORBA.String (To_POA (Self).Name);
    end Get_The_Name;
 
-   function Get_The_Parent (Self : Ref) return Ref'Class is
+   --------------------
+   -- Get_The_Parent --
+   --------------------
+
+   function Get_The_Parent (Self : Ref)
+                           return Ref'Class is
    begin
       return Ref'
         (Create_Ref
          (PolyORB.Smart_Pointers.Entity_Ptr
           (To_POA (Self).Father)));
    end Get_The_Parent;
+
+   ------------------------
+   -- Get_The_POAManager --
+   ------------------------
 
    function Get_The_POAManager
      (Self : Ref)
@@ -163,11 +204,17 @@ package body PortableServer.POA is
 
    begin
       pragma Debug (O ("Get_The_POAManager: enter"));
+
       Set (Res, Entity_Ptr (PolyORB.POA_Manager.Entity_Of
                             (To_POA (Self).POA_Manager)));
+
       pragma Debug (O ("Get_The_POAManager: leave"));
       return Res;
    end Get_The_POAManager;
+
+   -------------------------
+   -- Get_Servant_Manager --
+   -------------------------
 
    function Get_Servant_Manager
      (Self : Ref)
@@ -190,6 +237,10 @@ package body PortableServer.POA is
       --  "Possible infinite recursion".
       pragma Warnings (On);
    end Get_Servant_Manager;
+
+   -------------------------
+   -- Set_Servant_Manager --
+   -------------------------
 
    procedure Set_Servant_Manager
      (Self : in Ref;
@@ -225,6 +276,10 @@ package body PortableServer.POA is
       raise PolyORB.Not_Implemented;
    end Set_Servant_Manager;
 
+   -----------------------
+   -- Get_The_Activator --
+   -----------------------
+
    function Get_The_Activator
      (Self : Ref)
      return PortableServer.AdapterActivator.Ref is
@@ -235,7 +290,12 @@ package body PortableServer.POA is
       return Get_The_Activator (Self);
       --  "Possible infinite recursion".
       pragma Warnings (On);
+
    end Get_The_Activator;
+
+   -----------------------
+   -- Set_The_Activator --
+   -----------------------
 
    procedure Set_The_Activator
      (Self : in Ref;
@@ -262,54 +322,25 @@ package body PortableServer.POA is
       Rp           : RequestProcessingPolicyValue)
      return Ref'Class
    is
-      pragma Warnings (Off);
-      pragma Unreferenced
-        (Self,
-         Adapter_Name,
-         A_POAManager,
-         Tp,
-         Lp);
-      pragma Warnings (On);
-      --  Res : PolyORB.POA.Obj_Adapter_Access;
-      --  POA : constant PolyORB.POA.Obj_Adapter_Access
-      --    := To_POA (Self);
+      use PolyORB.CORBA_P.POA_Config;
+
+      Res : PolyORB.POA.Obj_Adapter_Access;
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := To_POA (Self);
    begin
-      --  Note - The NON_RETAIN policy requires either the USE_DEFAULT_SERVANT
-      --  or USE_SERVANT_MANAGER policies.
+      pragma Debug (O ("Creating POA"
+                       & CORBA.To_Standard_String (Adapter_Name)));
 
-      if (Sp = NON_RETAIN
-          and then Rp /= USE_DEFAULT_SERVANT
-          and then Rp /= USE_SERVANT_MANAGER)
-        or else
-         (Rp = USE_ACTIVE_OBJECT_MAP_ONLY
-          and then Sp /= RETAIN)
-        or else
-         (Rp = USE_DEFAULT_SERVANT
-          and then Up /= MULTIPLE_ID)
-        or else
-         (Ap = IMPLICIT_ACTIVATION
-          and then (Ip /= SYSTEM_ID or else Sp /= RETAIN))
-      then
-         PolyORB.Exceptions.Raise_Bad_Param;
-      end if;
+      --  Note : Policy compability is ensured by 'PolyORB.POA.Create_POA'.
 
---       begin
---          Lock_W (All_POAs_Lock);
---          Res := PolyORB.POA.Create_POA
---            (POA,
---             Adapter_Name,
---             POAManager_Object_Ptr
---             (PortableServer.POAManager.Entity_Of (A_POAManager)),
---             Tp, Lp, Up, Ip, Ap, Sp, Rp);
---          Unlock_W (All_POAs_Lock);
---          return Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (Res));
---       exception
---          when others =>
---             Unlock_W (All_POAs_Lock);
---             raise;
---       end;
-      raise PolyORB.Not_Implemented;
-      return Create_Ref (null);
+      Res := PolyORB.POA.Create_POA
+        (POA,
+         PolyORB.Types.String (Adapter_Name),
+         PolyORB.POA_Manager.POAManager_Access
+         (PortableServer.POAManager.Entity_Of (A_POAManager)),
+         Create_PolicyList (Tp, Lp, Up, Ip, Ap, Sp, Rp));
+
+      return Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (Res));
    end Create_POA;
 
    --------------
@@ -322,35 +353,27 @@ package body PortableServer.POA is
       Activate_It  : CORBA.Boolean)
       return Ref'Class
    is
-      pragma Warnings (Off);
-      pragma Unreferenced
-        (Self,
-         Adapter_Name,
-         Activate_It);
-      pragma Warnings (On);
---       The_POA : constant PolyORB.POA.Obj_Adapter_Access
---         := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := To_POA (Self);
+
+      POA_Ref : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Find_POA (POA,
+                                 PolyORB.Types.String (Adapter_Name));
+
+      Res : Ref
+        := Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (POA_Ref));
+
    begin
---       Lock_W (All_POAs_Lock);
---       declare
---          POA_Ref : constant PolyORB.POA.Ref'Class
---            := PolyORB.POA.Find_POA
---            (The_POA, Adapter_Name, Activate_It);
+      if Is_Nil (Res) then
+         raise AdapterNonExistent;
+      end if;
 
---          Res : Ref
---            := Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr
---                           (POA_Object_Of (POA_Ref)));
---       begin
---          Unlock_W (All_POAs_Lock);
+      if Activate_It then
+         raise PolyORB.Not_Implemented;
+         --  XXX require servant activator.
+      end if;
 
---          if Is_Nil (Res) then
---             raise AdapterNonExistent;
---          end if;
-
---          return Res;
---       end;
-      raise PolyORB.Not_Implemented;
-      return Create_Ref (null);
+      return Res;
    end Find_POA;
 
    -------------
@@ -362,16 +385,24 @@ package body PortableServer.POA is
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean)
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+--      POA : PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Etherealize_Objects);
+      pragma Unreferenced (Wait_For_Completion);
+      pragma Warnings (On);
 
    begin
-      --  PolyORB.POA.Destroy_POA
-      --    (POA, Etherealize_Objects, Wait_For_Completion);
+--      PolyORB.POA.Destroy
+--        (POA,
+--         PolyORB.Types.Boolean (Etherealize_Objects),
+--         PolyORB.Types.Boolean (Wait_For_Completion));
+--  XXX Ugly, seems a dispatching call is not possible at this stage.
+
       --  FIXME: Huh, SELF is still a reference to an invalid POA.
       --    --> file an issue against the spec to have Ref converted
       --        to an 'in out' arg...
-      raise PolyORB.Not_Implemented;
+      null;
    end Destroy;
 
    -----------------
@@ -435,21 +466,9 @@ package body PortableServer.POA is
         := To_POA (Self);
 
    begin
---       --  Cf 9-34: this operation requires SYSTEM_ID and RETAIN policies.
---       if POA.Id_Assign_Policy /= SYSTEM_ID
---         or else POA.Servant_Policy /= RETAIN
---       then
---          raise WrongPolicy;
---       end if;
-
       return ObjectId (PolyORB.POA.Activate_Object
         (POA, PolyORB.Servants.Servant_Access
          (To_PolyORB_Servant (P_Servant))));
---       raise PolyORB.Not_Implemented;
---       pragma Warnings (Off);
---       return Activate_Object (Self, P_Servant);
---       --  "Possible infinite recursion".
---       pragma Warnings (On);
    end Activate_Object;
 
    -----------------------------
@@ -465,6 +484,7 @@ package body PortableServer.POA is
         := To_POA (Self);
       A_Oid : aliased PolyORB.POA_Types.Object_Id
         := PolyORB.POA_Types.Object_Id (Oid);
+
       pragma Warnings (Off);
       R_Oid : constant PolyORB.POA_Types.Object_Id
         := PolyORB.POA.Activate_Object
@@ -473,10 +493,6 @@ package body PortableServer.POA is
       pragma Unreferenced (R_Oid);
       pragma Warnings (On);
    begin
---       --  Cf 9-34: this operation requires RETAIN policy.
---       if POA.Servant_Policy /= RETAIN then
---          raise WrongPolicy;
---       end if;
       null;
    end Activate_Object_With_Id;
 
@@ -491,14 +507,11 @@ package body PortableServer.POA is
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
 
-   begin
---       --  Cf 9-34: this operation requires RETAIN policy.
---       if POA.Servant_Policy /= RETAIN then
---          raise WrongPolicy;
---       end if;
+      A_Oid : aliased constant PolyORB.POA_Types.Object_Id
+        := PolyORB.POA_Types.Object_Id (Oid);
 
---       PolyORB.POA.Deactivate_Object (POA, Oid);
-      raise PolyORB.Not_Implemented;
+   begin
+      PolyORB.POA.Deactivate_Object (POA, A_Oid);
    end Deactivate_Object;
 
    ----------------------
@@ -514,15 +527,12 @@ package body PortableServer.POA is
         := To_POA (Self);
 
    begin
---       if POA.Id_Assign_Policy /= SYSTEM_ID then
---          raise WrongPolicy;
---       end if;
 
---       return PolyORB.POA.Create_Reference (POA, Intf);
+      --  return PolyORB.POA.Create_Reference (POA, Intf);
+
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Create_Reference (Self, Intf);
-      --  "Possible infinite recursion".
       pragma Warnings (On);
    end Create_Reference;
 
@@ -541,9 +551,9 @@ package body PortableServer.POA is
 
    begin
       raise PolyORB.Not_Implemented;
+
       pragma Warnings (Off);
       return Create_Reference_With_Id (Self, Oid, Intf);
-      --  "Possible infinite recursion".
       pragma Warnings (On);
    end Create_Reference_With_Id;
 
@@ -560,21 +570,8 @@ package body PortableServer.POA is
         := To_POA (Self);
 
    begin
---       if POA.Request_Processing_Policy /= USE_DEFAULT_SERVANT
---         and then
---         (POA.Servant_Policy /= RETAIN
---          or else (POA.Uniqueness_Policy /= UNIQUE_ID
---                   and then POA.Activation_Policy /= IMPLICIT_ACTIVATION))
---       then
---          raise WrongPolicy;
---       end if;
-
---       return PolyORB.POA.Servant_To_Skeleton (POA, P_Servant).Object_Id;
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Servant_To_Id (Self, P_Servant);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      return ObjectId (PolyORB.POA.Servant_To_Id
+                       (POA, To_PolyORB_Servant (P_Servant)));
    end Servant_To_Id;
 
    --------------------------
@@ -582,7 +579,8 @@ package body PortableServer.POA is
    --------------------------
 
    function Servant_To_Reference
-     (Self : Ref; P_Servant : Servant)
+     (Self : Ref;
+      P_Servant : Servant)
      return CORBA.Object.Ref
    is
       POA  : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
@@ -594,21 +592,6 @@ package body PortableServer.POA is
       P_Result : PolyORB.References.Ref;
       C_Result : CORBA.Object.Ref;
    begin
---       --  FIXME: If Servant_To_Reference is called in the context
---       --    of executing a request on the given servant, there are
---       --    no constraints on the POA's policies. (11.3.8.21).
---       if POA.Servant_Policy /= RETAIN
---         or else (POA.Uniqueness_Policy /= UNIQUE_ID
---                  and then POA.Activation_Policy /= IMPLICIT_ACTIVATION)
---       then
---          raise WrongPolicy;
---       end if;
-
---       Skel := Servant_To_Skeleton
---         (POA, P_Servant, Called_From_Servant_To_Reference => True);
-
---       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
-
       PolyORB.ORB.Create_Reference
         (PolyORB.Setup.The_ORB, Oid'Access, TID, P_Result);
       --  Obtain object reference.
@@ -623,23 +606,14 @@ package body PortableServer.POA is
 
    function Reference_To_Id
      (Self : Ref;
-      Reference : CORBA.Object.Ref'Class) return ObjectId
-   is
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-      --  Skel : PolyORB.POA.Skeleton_Ptr;
+      Reference : CORBA.Object.Ref'Class)
+     return ObjectId is
 
    begin
---       Skel := PolyORB.POA.Ref_To_Skeleton (Reference);
---       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
---          raise WrongAdapter;
---       end if;
+      --  XXX does someone know a better implementation ?
 
---       return Skel.Object_Id;
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Reference_To_Id (Self, Reference);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      return Servant_To_Id
+        (Self, Reference_To_Servant (Self, Reference));
    end Reference_To_Id;
 
    --------------------------
@@ -666,20 +640,7 @@ package body PortableServer.POA is
       --  is castable to PolyORB.Servants.Servant_Access.
 
       return Servant (CORBA.Impl.To_CORBA_Servant
-        (PolyORB.Servants.Servant_Access (The_Servant)));
-
---       Skel := PolyORB.POA.Ref_To_Skeleton (Reference);
---       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
---          raise WrongAdapter;
---       end if;
-
---       if POA.Servant_Policy /= RETAIN
---         and then POA.Request_Processing_Policy /= USE_DEFAULT_SERVANT
---       then
---          raise WrongPolicy;
---       end if;
-
---       return PolyORB.POA.Skeleton_To_Servant (POA, Skel);
+                      (PolyORB.Servants.Servant_Access (The_Servant)));
    end Reference_To_Servant;
 
    -------------------
@@ -693,24 +654,11 @@ package body PortableServer.POA is
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
-      --  Skel : PolyORB.POA.Skeleton_Ptr;
 
    begin
---       if POA.Servant_Policy /= RETAIN then
---          raise WrongPolicy;
---       end if;
-
---       Skel := PolyORB.POA.Id_To_Skeleton (POA, Oid);
---       if Skel.P_Servant = null then
---          raise PortableServer.POA.ObjectNotActive;
---       end if;
-
---       return Skel.P_Servant;
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Id_To_Servant (Self, Oid);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      return Servant (CORBA.Impl.To_CORBA_Servant
+                      (PolyORB.POA.Id_To_Servant
+                       (POA, PolyORB.Objects.Object_Id (Oid))));
    end Id_To_Servant;
 
    ---------------------
@@ -718,29 +666,13 @@ package body PortableServer.POA is
    ---------------------
 
    function Id_To_Reference
-     (Self : Ref; Oid : ObjectId)
-     return CORBA.Object.Ref
-   is
-      POA  : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
-      --  Skel : PolyORB.POA.Skeleton_Ptr;
-
+     (Self : Ref;
+      Oid : ObjectId)
+     return CORBA.Object.Ref is
    begin
---       if POA.Servant_Policy /= RETAIN then
---          raise WrongPolicy;
---       end if;
 
---       Skel := PolyORB.POA.Id_To_Skeleton (POA, Oid);
---       if Skel.P_Servant = null then
---          raise PortableServer.POA.ObjectNotActive;
---       end if;
-
---       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Id_To_Reference (Self, Oid);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      return Servant_To_Reference
+        (Self, Id_To_Servant (Self, Oid));
    end Id_To_Reference;
 
 end PortableServer.POA;

@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS = -I support
 
-corba_dir =
+corba_dir = corba
 dsa_dir   = acats
 moma_dir  =
 

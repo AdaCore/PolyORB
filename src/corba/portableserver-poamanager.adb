@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#6 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#7 $
 
 with PolyORB.Exceptions;
 with PolyORB.Smart_Pointers;
@@ -38,6 +38,19 @@ with PolyORB.Smart_Pointers;
 package body PortableServer.POAManager is
 
    use PolyORB.POA_Manager;
+
+   function To_POA_Manager (Self : Ref) return POAManager_Access;
+   --  Convert a Ref to the designated POAManager_Access.  Check the
+   --  reference points to a non null POAM, the type of the referenced
+   --  object (else BAD_PARAM is raised).  Check that the POAM is
+   --  active (else AdapterInactive is raised).
+
+   function To_Active_POA_Manager (Self : Ref) return POAManager_Access;
+   --  Same as above spec. Ensure that the designated POAM is active.
+
+   -----------------
+   -- Get_Members --
+   -----------------
 
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
@@ -52,10 +65,12 @@ package body PortableServer.POAManager is
         (CORBA.IDL_Exception_Members with null record);
    end Get_Members;
 
+   --------------------
+   -- To_POA_Manager --
+   --------------------
 
-   function To_POA_Manager (Self : Ref) return POAManager_Access;
-
-   function To_POA_Manager (Self : Ref) return POAManager_Access
+   function To_POA_Manager  (Self : Ref)
+                            return POAManager_Access
    is
       Res : constant PolyORB.Smart_Pointers.Entity_Ptr := Entity_Of (Self);
    begin
@@ -67,16 +82,12 @@ package body PortableServer.POAManager is
       return POAManager_Access (Res);
    end To_POA_Manager;
 
-   function To_Active_POA_Manager
-     (Self : Ref)
-     return POAManager_Access;
-   --  Convert a Ref to the designated POAManager_Access.
-   --  Check the type of the referenced object (else BAD_PARAM is raised).
-   --  Check that the POAM is active (else AdapterInactive is raised).
+   ---------------------------
+   -- To_Active_POA_Manager --
+   ---------------------------
 
-   function To_Active_POA_Manager
-     (Self : Ref)
-     return POAManager_Access
+   function To_Active_POA_Manager (Self : Ref)
+                                  return POAManager_Access
    is
       Res : constant POAManager_Access := To_POA_Manager (Self);
    begin
@@ -87,28 +98,52 @@ package body PortableServer.POAManager is
       return Res;
    end To_Active_POA_Manager;
 
-   procedure Activate (Self : Ref) is
+   --------------
+   -- Activate --
+   --------------
+
+   procedure Activate (Self : Ref)
+   is
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
+
    begin
       Activate (POA_Manager);
    end Activate;
 
-   procedure Hold_Requests (Self : Ref; Wait_For_Completion : CORBA.Boolean)
+   -------------------
+   -- Hold_Requests --
+   -------------------
+
+   procedure Hold_Requests
+     (Self : Ref;
+      Wait_For_Completion : CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
+
    begin
       Hold_Requests (POA_Manager, Wait_For_Completion);
    end Hold_Requests;
 
-   procedure Discard_Requests (Self : Ref; Wait_For_Completion : CORBA.Boolean)
+   ----------------------
+   -- Discard_Requests --
+   ----------------------
+
+   procedure Discard_Requests
+     (Self : Ref;
+      Wait_For_Completion : CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
+
    begin
       Discard_Requests (POA_Manager, Wait_For_Completion);
    end Discard_Requests;
+
+   ----------------
+   -- Deactivate --
+   ----------------
 
    procedure Deactivate
      (Self : in Ref;
@@ -117,14 +152,21 @@ package body PortableServer.POAManager is
    is
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
+
    begin
       Deactivate (POA_Manager, Etherealize_Objects, Wait_For_Completion);
    end Deactivate;
 
-   function Get_State (Self : Ref) return State
+   ---------------
+   -- Get_State --
+   ---------------
+
+   function Get_State (Self : Ref)
+                      return State
    is
       POA_Manager : constant POAManager_Access
         := To_POA_Manager (Self);
+
    begin
       return Get_State (POA_Manager.all);
    end Get_State;

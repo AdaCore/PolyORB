@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,6 +55,10 @@ package body PolyORB.References.Binding is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ----------
+   -- Bind --
+   ----------
+
    procedure Bind
      (R          : Ref'Class;
       Local_ORB  : ORB.ORB_Access;
@@ -80,6 +84,7 @@ package body PolyORB.References.Binding is
       Existing_Profile : Binding_Data.Profile_Access;
    begin
       pragma Debug (O ("Bind: enter"));
+
       if Is_Nil (R) then
          raise Invalid_Reference;
       end if;
@@ -229,6 +234,10 @@ package body PolyORB.References.Binding is
       end;
    end Bind;
 
+   -------------------------
+   -- Find_Tagged_Profile --
+   -------------------------
+
    function Find_Tagged_Profile
      (R      : Ref;
       Tag    : Binding_Data.Profile_Tag;
@@ -270,6 +279,10 @@ package body PolyORB.References.Binding is
 
       end;
    end Find_Tagged_Profile;
+
+   ------------------------
+   -- Get_Tagged_Profile --
+   ------------------------
 
    procedure Get_Tagged_Profile
      (R         :     Ref;

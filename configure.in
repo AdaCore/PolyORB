@@ -309,7 +309,10 @@ AC_OUTPUT([Makefile
 	   examples/corba/random/Makefile
 	   examples/dsa/Makefile examples/bbs/Makefile
            examples/moma/Makefile examples/polyorb/Makefile
-	   testsuite/Makefile testsuite/core/Makefile
+	   testsuite/Makefile 
+	   testsuite/corba/Makefile
+	   testsuite/corba/portableserver/Makefile
+	   testsuite/core/Makefile
 	   testsuite/core/dynamic_dict/Makefile
 	   testsuite/core/fixed_point/Makefile
 	   testsuite/core/initialization/Makefile

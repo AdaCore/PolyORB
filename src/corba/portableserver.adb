@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,6 +65,7 @@ package body PortableServer is
 
    begin
       pragma Debug (O ("Execute_Servant: enter"));
+
       if Msg in Execute_Request then
          declare
             use PolyORB.Requests;
@@ -83,9 +84,11 @@ package body PortableServer is
             pragma Debug (O ("Execute_Servant: leave"));
             return Executed_Request'(Req => R);
          end;
+
       else
          pragma Debug (O ("Execute_Servant: bad message, leave"));
          raise PolyORB.Components.Unhandled_Message;
+
       end if;
    end Execute_Servant;
 
@@ -113,6 +116,7 @@ package body PortableServer is
      return POA_Forward.Ref is
    begin
       raise PolyORB.Not_Implemented;
+
       pragma Warnings (Off);
       return Get_Default_POA (For_Servant);
       --  "Possible infinite recursion".
@@ -190,12 +194,13 @@ package body PortableServer is
    is
       use Skeleton_Lists;
    begin
-      pragma Debug (O ("Register_Skeleton enter"));
+      pragma Debug (O ("Register_Skeleton: Enter."));
 
       Prepend (All_Skeletons,
                (Type_Id    => Type_Id,
                 Is_A       => Is_A,
                 Dispatcher => Dispatcher));
+
       pragma Debug (O ("Registered : type_id = " &
                        CORBA.To_Standard_String (Type_Id)));
 
@@ -210,10 +215,12 @@ package body PortableServer is
      return CORBA.RepositoryId is
    begin
       return Find_Info (For_Servant).Type_Id;
+
    exception
       when Skeleton_Unknown =>
          return CORBA.To_CORBA_String
            (PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT"));
+
       when others =>
          raise;
    end Get_Type_Id;

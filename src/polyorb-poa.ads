@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract interface for the POA.
+--  Abstract interface for the POA Object Adapter..
+
+--  This package provides a higher level abstraction of a PolyORB's
+--  Object Adapter as defined in PolyORB.Obj_Adapters, which is
+--  notionnaly equivalent to CORBA's POA.
+
+--  PolyORB's POA can be accessed through two different interfaces.
+--   - a CORBA-like interface', which encompasses CORBA POA API;
+--   - the PolyORB Obj_Adapter interface, as defined in PolyORB.Obj_Adapters.
+
+--  Thus, an implementation of a this POA interface must implement both the
+--  CORBA-like POA interface and the PolyORB Obj_Adapter interface.
 
 --  $Id$
 
@@ -63,17 +74,18 @@ package PolyORB.POA is
    use PolyORB.POA_Policies.Implicit_Activation_Policy;
    use PolyORB.POA_Types;
 
-   --  Unit has no proper body: no elab control necessary.
-
-   Invalid_Object_Id : exception renames PolyORB.POA_Types.Invalid_Object_Id;
-   Invalid_Method    : exception renames PolyORB.POA_Types.Invalid_Method;
+   ---------------------------
+   -- POA Obj_Adapter type. --
+   ---------------------------
 
    type Obj_Adapter is abstract new PolyORB.POA_Types.Obj_Adapter with
       record
          Name                       : Types.String;
-         POA_Manager                : PolyORB.POA_Manager.Ref;
          Boot_Time                  : Time_Stamp;
          Absolute_Address           : Types.String;
+
+         POA_Manager                : PolyORB.POA_Manager.Ref;
+         --  POA Manager attached to this POA.
 
          Active_Object_Map          : PolyORB.Object_Maps.Object_Map_Access;
          --  The active object map (NULL if the policies used for this POA
@@ -97,7 +109,7 @@ package PolyORB.POA is
 
          Children : POAList_Access;
          --  XXX should use a hash table instead.
-         --  All subPOAs of this POA.
+         --  All child-POAs of this POA.
 
          Children_Lock              : Tasking.Rw_Locks.Rw_Lock_Access;
          Map_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
@@ -110,9 +122,9 @@ package PolyORB.POA is
    --  XXX Part of this should be private (locks, active object map, father...)
    --  The policies are used by all corba-policy-*, we can keep them public
 
-   --------------------------------------------------
-   --  Procedures and functions required by CORBA  --
-   --------------------------------------------------
+   ------------------------------
+   -- CORBA-like POA interface --
+   ------------------------------
 
    function Create_POA
      (Self         : access Obj_Adapter;
@@ -122,12 +134,21 @@ package PolyORB.POA is
      return Obj_Adapter_Access
       is abstract;
    --  Create a POA given its name and a list of policies
-   --  Policies are optionnal : defaults values are provided
+   --  Policies are optionnal : defaults values are provided.
+   --  Compability of 'Policies' is checked.
+
+   function Find_POA
+     (Self : access Obj_Adapter;
+      Name :        Types.String)
+     return Obj_Adapter_Access
+      is abstract;
+   --  Starting from given POA, looks for the POA in all the descendancy whose
+   --  name is Name. Returns null if not found.
 
    procedure Destroy
      (Self                : in out Obj_Adapter_Access;
-      Etherealize_Objects : in     Boolean;
-      Wait_For_Completion : in     Boolean)
+      Etherealize_Objects : in     Types.Boolean;
+      Wait_For_Completion : in     Types.Boolean)
       is abstract;
    --  Destroys recursively the POA and all his descendants
 
@@ -192,9 +213,9 @@ package PolyORB.POA is
    --  Otherwise:
    --    Raises ObjectNotActive
 
-   --------------------------------------------------------
-   -- Functions and procedures not in the CORBA standard --
-   --------------------------------------------------------
+   -----------------------
+   -- Utility functions --
+   -----------------------
 
    procedure Copy_Obj_Adapter
      (From : in     Obj_Adapter;
@@ -207,30 +228,35 @@ package PolyORB.POA is
      (Self       : access Obj_Adapter;
       Child_Name :        Types.String)
      is abstract;
-   --  XXX documentation?
+   --  Remove a child POA from Self's list of children
+   --  Doesn't lock the list of children
 
    function Oid_To_Rel_URI
      (OA : access Obj_Adapter;
       Id : access Object_Id)
      return Types.String;
+   --  Convert an object id to its representation as a relative URI.
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
       URI : Types.String)
      return Object_Id_Access;
+   --  Convert an object id from its representation as a relative URI.
 
-   Invalid_Name : exception;
+   Invalid_Object_Id : exception renames PolyORB.POA_Types.Invalid_Object_Id;
+   Invalid_Method    : exception renames PolyORB.POA_Types.Invalid_Method;
 
-   Invalid_Policy : exception;
-   Adapter_Inactive : exception;
+   Invalid_Name           : exception;
+   Invalid_Policy         : exception;
+   Adapter_Inactive       : exception;
    Adapter_Already_Exists : exception;
-   Servant_Not_Active : exception;
+   Servant_Not_Active     : exception;
    Servant_Already_Active : exception;
-   Transient : exception;
-   Bad_Param : exception;
-   Object_Already_Active : exception;
-   Object_Not_Active : exception;
-   Object_Not_Exist : exception;
+   Transient              : exception;
+   Bad_Param              : exception;
+   Object_Already_Active  : exception;
+   Object_Not_Active      : exception;
+   Object_Not_Exist       : exception;
    --  Inspired from equivalent CORBA POA exceptions.
 
 end PolyORB.POA;

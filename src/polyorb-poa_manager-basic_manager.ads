@@ -34,8 +34,6 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
 with PolyORB.Components;
 with PolyORB.Objects.Interface;
 with PolyORB.POA_Types;
@@ -99,9 +97,9 @@ package PolyORB.POA_Manager.Basic_Manager is
       OA   :        Obj_Adapter_Access)
      return PolyORB.Servants.Servant_Access;
 
-   ---------------------------------------------------
-   --  Servant used to implement the holding state  --
-   ---------------------------------------------------
+   -----------------------------------
+   --  Holding state implementation --
+   -----------------------------------
 
    --  When the POAManager is in the HOLDING state:
    --    A new entry to the queue is created, along with a Hold_Servant
@@ -122,9 +120,8 @@ package PolyORB.POA_Manager.Basic_Manager is
      (Obj : access Hold_Servant;
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
-
+   --  Implementation of the Hold_Servant servant.
 private
-
 
    package Requests_Queue_P is new PolyORB.Sequences.Unbounded
      (Execute_Request);
@@ -133,31 +130,31 @@ private
    type Basic_POA_Manager is new POAManager with
       record
          Usage_Count     : Integer := 0;
+         --  XXX bad name.
+         --  Number of POA managed by the POA Manager.
+
          Holded_Requests : Requests_Queue;
+         --  List of holded requests.
+
          PM_Hold_Servant : Hold_Servant_Access := null;
+         --  Reference to the holding servant.
+
          State_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
-         --  Lock the state
+         --  Lock the state.
+
          Count_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
-         --  Lock on the usage counter
+         --  Lock on the usage counter.
+
          POAs_Lock       : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
-         --  Lock on the sequence of managed POAs
+         --  Lock on the sequence of managed POAs.
+
          Queue_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
-         --  Lock on the queue of pending requests
+         --  Lock on the queue of pending requests.
       end record;
-
-   procedure Inc_Usage_Counter (Self : access Basic_POA_Manager);
-
-   procedure Dec_Usage_Counter (Self : access Basic_POA_Manager);
 
    type Hold_Servant is new PolyORB.Servants.Servant with
       record
          PM : Basic_POA_Manager_Access := null;
       end record;
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Basic_POA_Manager, Basic_POA_Manager_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Hold_Servant, Hold_Servant_Access);
 
 end PolyORB.POA_Manager.Basic_Manager;

@@ -36,10 +36,10 @@
 
 --  $Id$
 
-with PolyORB.Dynamic_Dict;
 with PolyORB.Objects;
 pragma Warnings (Off, PolyORB.Objects);
 --  Required in child units.
+
 with PolyORB.Sequences.Unbounded;
 
 package PolyORB.POA_Policies is
@@ -55,13 +55,11 @@ package PolyORB.POA_Policies is
 
    type AllPolicies is array (1 .. 7) of Policy_Access;
 
-   package Policy_Repository is new PolyORB.Dynamic_Dict
-     (Value => PolyORB.POA_Policies.Policy_Access, No_Value => null);
-
    function Policy_Id (Self : Policy) return String is abstract;
+   --  Return the name of a Policy.
 
    procedure Check_Compatibility
-     (Self     : Policy;
+     (Self             : Policy;
       Other_Policies   : AllPolicies)
       is abstract;
    --  Check the compatibility of the current policy with the

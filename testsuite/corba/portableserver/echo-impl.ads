@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . C O R B A _ P . S E R V E R _ T O O L S          --
+--                            E C H O . I M P L                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,51 +30,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper functions for CORBA servers.
+--  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.ads#1 $
 
---  XXX The Initiatie Server and stuff related to the Root POA should
---  be placed in the CORBA app. personnality init. process !!
+with CORBA;
+with PortableServer;
 
---  $Id$
+package Echo.Impl is
+   --  My own implementation of echo object.
+   --  This is simply used to define the operations.
 
-with CORBA.Object;
-with PortableServer.POA;
+   type Object is new PortableServer.Servant_Base with record
+      Msg : CORBA.String;
+   end record;
 
-package PolyORB.CORBA_P.Server_Tools is
+   type Object_Acc is access Object;
 
-   pragma Elaborate_Body;
+   function EchoString (Self : access Object; Mesg : in CORBA.String)
+                        return CORBA.String;
 
-   type Hook_Type is access procedure;
-   Initiate_Server_Hook : Hook_Type;
-   --  Access to a procedure to be called upon start up.
-   --  See Initiate_Server for more details.
-
-   procedure Initiate_Server (Start_New_Task : Boolean := False);
-   --  Start a new ORB, and initialize the Root POA.
-   --  If 'Start_New_Task' is True, a new task will be created and
-   --  control will be returned to the caller.  Otherwise, the ORB
-   --  will be executing in the current context.
-   --  If the Initiate_Server_Hook variable is not null, the
-   --  designated procedure will be called after initializing the ORB,
-   --  prior to entering the server loop.
-
-   function Get_Root_POA return PortableServer.POA.Ref;
-   --  Return the Root_POA attached to the current ORB instance.
-
-   procedure Initiate_Servant
-     (S : in PortableServer.Servant;
-      R : out CORBA.Object.Ref'Class);
-   --  Initiate a servant: register a servant to the Root POA.
-   --  If the Root POA has not been initialized, initialize it.
-
-   procedure Reference_To_Servant
-     (R : in CORBA.Object.Ref'Class;
-      S : out PortableServer.Servant);
-   --  Convert a CORBA.Object.Ref into a PortableServer.Servant.
-
-   procedure Servant_To_Reference
-     (S : in PortableServer.Servant;
-      R : out CORBA.Object.Ref'Class);
-   --  Convert a PortableServer.Servant into CORBA.Object.Ref.
-
-end PolyORB.CORBA_P.Server_Tools;
+end Echo.Impl;

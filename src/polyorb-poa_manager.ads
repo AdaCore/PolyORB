@@ -54,9 +54,9 @@ package PolyORB.POA_Manager is
 
    Invalid_Obj_Adapter : exception;
 
-   ----------------------------------------------------------------------
-   --  Procedures and functions to implement the POAManager interface  --
-   ----------------------------------------------------------------------
+   --------------------------------------------------------------------
+   -- Procedures and functions to implement the POAManager interface --
+   --------------------------------------------------------------------
 
    procedure Activate
      (Self : access POAManager)
@@ -83,9 +83,9 @@ package PolyORB.POA_Manager is
      return State
       is abstract;
 
-   ---------------------------------------------------------------
-   --  Procedures and functions specific to the implementation  --
-   ---------------------------------------------------------------
+   -------------------------------------------------------------
+   -- Procedures and functions specific to the implementation --
+   -------------------------------------------------------------
 
    procedure Create
      (M : access POAManager)

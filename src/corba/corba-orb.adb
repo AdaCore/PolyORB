@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -71,9 +71,14 @@ package body CORBA.ORB is
      (Value => CORBA.Object.Ref, No_Value => Nil_Ref);
    --  For initial references.
 
-   procedure Initialize;
-   --  Perform internal initialization: setup initial references.
-   --  Called from within the initialization framework.
+   procedure Register_Initial_Reference
+     (Identifier : ObjectId;
+      IOR        : String);
+   --  Register an initial reference from an IOR given
+   --  through the configuration subsystem.
+
+   Initialized : Boolean := False;
+   --  True iff the CORBA personality has been initialized.
 
    ---------------------
    -- Create_Alias_TC --
@@ -322,12 +327,6 @@ package body CORBA.ORB is
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
-      IOR        : String);
-   --  Register an initial reference from an IOR given
-   --  through the configuration subsystem.
-
-   procedure Register_Initial_Reference
-     (Identifier : ObjectId;
       IOR        : String)
    is
       Ref : CORBA.Object.Ref;
@@ -424,35 +423,6 @@ package body CORBA.ORB is
    -- Initialize --
    ----------------
 
-   Initialized : Boolean := False;
-
-   procedure Initialize is
-      RootPOA : CORBA.Object.Ref;
-   begin
-      if Initialized then
-         return;
-      end if;
-
-      CORBA.Object.Set
-        (RootPOA, PolyORB.Smart_Pointers.Entity_Ptr
-           (Object_Adapter (The_ORB)));
-      Register_Initial_Reference
-        (To_CORBA_String ("RootPOA"), RootPOA);
-
-      declare
-         Naming_IOR : constant Standard.String
-           := PolyORB.Configuration.Get_Conf
-           (Section => "corba", Key => "naming_ior", Default => "");
-      begin
-         if Naming_IOR /= "" then
-            Register_Initial_Reference
-              (To_CORBA_String ("NamingService"),
-               To_CORBA_String (Naming_IOR));
-         end if;
-      end;
-      Initialized := True;
-   end Initialize;
-
    procedure Initialize (ORB_Name : in Standard.String)
    is
       pragma Warnings (Off);
@@ -490,6 +460,46 @@ package body CORBA.ORB is
 
       return Result;
    end Create_Reference;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+      RootPOA : CORBA.Object.Ref;
+   begin
+      if Initialized then
+         return;
+      end if;
+
+      --  Register initial reference for "RootPOA".
+
+      --- XXX FIX ME, requires to solve a chicken and egg problem
+
+      CORBA.Object.Set
+        (RootPOA, PolyORB.Smart_Pointers.Entity_Ptr
+           (Object_Adapter (The_ORB)));
+      Register_Initial_Reference
+        (To_CORBA_String ("RootPOA"), RootPOA);
+
+      --  Register initial reference for "NamingService".
+
+      declare
+         Naming_IOR : constant Standard.String
+           := PolyORB.Configuration.Get_Conf
+           (Section => "corba", Key => "naming_ior", Default => "");
+      begin
+         if Naming_IOR /= "" then
+            Register_Initial_Reference
+              (To_CORBA_String ("NamingService"),
+               To_CORBA_String (Naming_IOR));
+         end if;
+      end;
+
+      Initialized := True;
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Utils.Strings;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,7 @@
 ------------------------------------------------------------------------------
 
 --  $Id$
+--  with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.POA;
@@ -55,9 +56,21 @@ package body PolyORB.POA_Manager.Basic_Manager is
    --  Etherealize the objects of the associated POAs
    --  (in case a Servant Manager is used with a RETAIN policy)
 
+   procedure Inc_Usage_Counter (Self : access Basic_POA_Manager);
+   --  Increment POA Manager Usage Counter.
+
+   procedure Dec_Usage_Counter (Self : access Basic_POA_Manager);
+   --  Decrement POA Manager Usage Counter.
+
    procedure Destroy_If_Unused (Self : in out Basic_POA_Manager);
    --  Destroy the POAManager if it is no longer used by any POA,
    --  and the POAManager has been created only for
+
+   --  procedure Free is new Ada.Unchecked_Deallocation
+   --  (Basic_POA_Manager, Basic_POA_Manager_Access);
+
+   --  procedure Free is new Ada.Unchecked_Deallocation
+   --    (Hold_Servant, Hold_Servant_Access);
 
    --------------
    -- Activate --
@@ -66,50 +79,65 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Activate
      (Self : access Basic_POA_Manager)
    is
-      --  use PolyORB.ORB;
       use PolyORB.Setup;
       use PolyORB.Components;
       use PolyORB.ORB.Interface;
       use Requests_Queue_P;
+
    begin
       pragma Debug (O ("Activate POAManager"));
+
       Lock_W (Self.State_Lock);
+
+      --  Test invocation validity.
+
       if Self.Current_State = INACTIVE then
+
+         --  If the POAManager state is 'inactive', raise an exception.
+
          Unlock_W (Self.State_Lock);
          raise PolyORB.POA.Adapter_Inactive;
+
       else
+
+         --  else set the POAManager state to 'active'
+
          Self.Current_State := ACTIVE;
          Unlock_W (Self.State_Lock);
       end if;
-      if Self.PM_Hold_Servant /= null then
+
+      --  If we were holding requests, reemit them.
+
+      if Self.PM_Hold_Servant = null then
+         pragma Debug (O ("No hold servant !"));
+         null;
+      end if;
+
+      if Self.PM_Hold_Servant /= null
+        and then Length (Self.Holded_Requests) > 0 then
+
+         pragma Debug (O ("Number of requests to reemit"
+                          & Integer'Image (Length (Self.Holded_Requests))));
+
          declare
             R : Execute_Request;
+            N : constant Natural := Length (Self.Holded_Requests);
+            All_Requests : Element_Array (1 .. N);
          begin
-            pragma Debug (O (Integer'Image (Length
-                                            (Self.Holded_Requests))));
-            if Length (Self.Holded_Requests) > 0 then
-               declare
-                  N : constant Natural := Length (Self.Holded_Requests);
-                  All_Requests : Element_Array (1 .. N);
-               begin
-                  Lock_W (Self.Queue_Lock);
-                  All_Requests := To_Element_Array (Self.Holded_Requests);
-                  Delete (Self.Holded_Requests,
-                          1,
-                          N);
-                  Unlock_W (Self.Queue_Lock);
+            Lock_W (Self.Queue_Lock);
+            All_Requests := To_Element_Array (Self.Holded_Requests);
+            Delete (Self.Holded_Requests, 1, N);
+            Unlock_W (Self.Queue_Lock);
 
-                  for I in 1 .. N loop
-                     R := All_Requests (I);
-                     Emit_No_Reply (Component_Access (PolyORB.Setup.The_ORB),
-                                    Queue_Request'
-                                    (Request   => R.Req,
-                                     Requestor => R.Req.Requesting_Component));
-                  end loop;
-               end;
-               pragma Debug (O ("Activate : Exit loop"));
-            end if;
+            for I in 1 .. N loop
+               R := All_Requests (I);
+               Emit_No_Reply (Component_Access (PolyORB.Setup.The_ORB),
+                              Queue_Request'
+                              (Request   => R.Req,
+                               Requestor => R.Req.Requesting_Component));
+            end loop;
          end;
+         pragma Debug (O ("Activate : Exit loop"));
       end if;
    end Activate;
 
@@ -124,15 +152,28 @@ package body PolyORB.POA_Manager.Basic_Manager is
    begin
       pragma Debug (O ("Hold requests, Wait_For_Completion is "
                        & Boolean'Image (Wait_For_Completion)));
+
       Lock_W (Self.State_Lock);
+
+      --  Test invocation validity.
+
       if Self.Current_State = INACTIVE then
+
+         --  If the POAManager state is 'inactive', raise an exception.
+
          Unlock_W (Self.State_Lock);
          raise PolyORB.POA.Adapter_Inactive;
       else
+
+         --  else set the POAManager state to 'holding'
+
          Self.Current_State := HOLDING;
-         null;
+         Unlock_W (Self.State_Lock);
       end if;
-      Unlock_W (Self.State_Lock);
+
+      --  Wait for the completion of the different request invocation.
+      --  XXX To be implemented
+      --  Illogical M. Kirk, this should be _at the beginning_ of the function.
 
       if Wait_For_Completion then
          Do_Wait_For_Completion (Self);
@@ -150,15 +191,28 @@ package body PolyORB.POA_Manager.Basic_Manager is
    begin
       pragma Debug (O ("Discard requests, Wait_For_Completion is "
                        & Boolean'Image (Wait_For_Completion)));
+
       Lock_W (Self.State_Lock);
+
+      --  Test invocation validity.
+
       if Self.Current_State = INACTIVE then
+
+         --  If the POAManager state is 'inactive', raise an exception.
+
          Unlock_W (Self.State_Lock);
          raise PolyORB.POA.Adapter_Inactive;
+
       else
+
+         --  else set the POAManager state to 'discarding'
+
          Self.Current_State := DISCARDING;
-         null;
+         Unlock_W (Self.State_Lock);
       end if;
-      Unlock_W (Self.State_Lock);
+
+      --  Wait for the completion of the different request invocation.
+      --  XXX To be implemented
 
       if Wait_For_Completion then
          Do_Wait_For_Completion (Self);
@@ -175,22 +229,37 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Wait_For_Completion :        Boolean)
    is
    begin
-      pragma Debug (O ("Hold requests, Wait_For_Completion is "
+      pragma Debug (O ("Deactivate: Wait_For_Completion is "
                        & Boolean'Image (Wait_For_Completion)
                        & ", Etherealize_Objects is "
                        & Boolean'Image (Etherealize_Objects)));
+
       Lock_W (Self.State_Lock);
+
+      --  Test invocation validity.
+
       if Self.Current_State = INACTIVE then
+
+         --  If the POAManager state is 'inactive', raise an exception.
+
          Unlock_W (Self.State_Lock);
          raise PolyORB.POA.Adapter_Inactive;
       else
+
+         --  else set the POAManager state to 'inactive'
+
          Self.Current_State := INACTIVE;
+         Unlock_W (Self.State_Lock);
       end if;
-      Unlock_W (Self.State_Lock);
+
+      --  XXX to be implemented
 
       if Etherealize_Objects then
          Do_Etherealize_Objects (Self);
       end if;
+
+      --  XXX to be implemented
+
       if Wait_For_Completion then
          Do_Wait_For_Completion (Self);
       end if;
@@ -201,11 +270,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
    ---------------
 
    function Get_State (Self : Basic_POA_Manager)
-                      return State
-   is
+                      return State is
    begin
       pragma Debug (O ("POAManager state is "
                        & State'Image (Self.Current_State)));
+
       return Self.Current_State;
    end Get_State;
 
@@ -216,21 +285,25 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Create (M : access Basic_POA_Manager)
    is
       use PolyORB.POA_Types.POA_Sequences;
+
    begin
       pragma Debug (O ("Create a new Basic_POA_Manager"));
+      --  XXX could we assume 'M' is a real empty access to a
+      --  Basic_POA ?  if 'yes', no need to w/ lock , if 'no', should
+      --  deallocate some structs before ...
+
       Create (M.State_Lock);
       Create (M.Count_Lock);
       Create (M.POAs_Lock);
       Create (M.Queue_Lock);
 
-      Lock_W (M.POAs_Lock);
+      --  Lock_W (M.POAs_Lock);
       M.Managed_POAs := new POAList;
-      Unlock_W (M.POAs_Lock);
+      --  Unlock_W (M.POAs_Lock);
 
-      Lock_W (M.State_Lock);
+      --  Lock_W (M.State_Lock);
       M.Current_State := HOLDING;
-      Unlock_W (M.State_Lock);
-
+      --  Unlock_W (M.State_Lock);
    end Create;
 
    ------------------
@@ -244,7 +317,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
       use PolyORB.POA_Types.POA_Sequences;
    begin
       pragma Debug (O ("Register a new POA"));
+
+      --  XXX to be reimplemented using a hash table.
+
       Lock_W (Self.POAs_Lock);
+
       for I in 1 .. Length (Sequence (Self.Managed_POAs.all)) loop
          if Element_Of (Sequence (Self.Managed_POAs.all), I) = null then
             Replace_Element (Sequence (Self.Managed_POAs.all), I, OA);
@@ -253,8 +330,10 @@ package body PolyORB.POA_Manager.Basic_Manager is
             return;
          end if;
       end loop;
+
       Append (Sequence (Self.Managed_POAs.all), OA);
       Unlock_W (Self.POAs_Lock);
+
       Inc_Usage_Counter (Self);
    end Register_POA;
 
@@ -270,7 +349,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
       A_Child : Obj_Adapter_Access;
    begin
       pragma Debug (O ("Remove a POA: enter"));
+
+      --  XXX to be reimplemented using a hash table.
+
       Lock_W (Self.POAs_Lock);
+
       for I in 1 .. Length (Sequence (Self.Managed_POAs.all)) loop
          A_Child := Element_Of (Sequence (Self.Managed_POAs.all), I);
          if A_Child = OA then
@@ -282,6 +365,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
             return;
          end if;
       end loop;
+
       Unlock_W (Self.POAs_Lock);
 
       raise Invalid_Obj_Adapter;
@@ -296,18 +380,22 @@ package body PolyORB.POA_Manager.Basic_Manager is
       OA   :        Obj_Adapter_Access)
      return Servants.Servant_Access
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
+   begin
       pragma Debug (O ("Get a Hold_Servant"));
+
       Lock_W (Self.State_Lock);
+
       if Self.PM_Hold_Servant = null then
          Self.PM_Hold_Servant := new Hold_Servant;
          Self.PM_Hold_Servant.PM := Basic_POA_Manager_Access (Self);
       end if;
+
       Unlock_W (Self.State_Lock);
+
       return Servants.Servant_Access (Self.PM_Hold_Servant);
    end Get_Hold_Servant;
 
@@ -316,12 +404,12 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -----------------------
 
    procedure Inc_Usage_Counter
-     (Self : access Basic_POA_Manager)
-   is
+     (Self : access Basic_POA_Manager) is
    begin
       Lock_W (Self.Count_Lock);
       Self.Usage_Count := Self.Usage_Count + 1;
       Unlock_W (Self.Count_Lock);
+
       pragma Debug (O ("Increase usage to "
                        & Integer'Image (Self.Usage_Count)));
    end Inc_Usage_Counter;
@@ -331,12 +419,12 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -----------------------
 
    procedure Dec_Usage_Counter
-     (Self : access Basic_POA_Manager)
-   is
+     (Self : access Basic_POA_Manager) is
    begin
       Lock_W (Self.Count_Lock);
       Self.Usage_Count := Self.Usage_Count - 1;
       Unlock_W (Self.Count_Lock);
+
       pragma Debug (O ("Decrease usage to "
                        & Integer'Image (Self.Usage_Count)));
    end Dec_Usage_Counter;
@@ -348,12 +436,13 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Do_Wait_For_Completion
      (Self : access Basic_POA_Manager)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      --  ??? What's this thing about the threads ? Ignored for now.
-      --  ??? Iterates through the POAs to wait for completion
+
+   begin
+      --  XXX What's this thing about the threads ? Ignored for now.
+      --  XXX Iterates through the POAs to wait for completion
       null;
    end Do_Wait_For_Completion;
 
@@ -364,12 +453,13 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Do_Etherealize_Objects
      (Self : access Basic_POA_Manager)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       null;
-      --  ??? To be implemented
+      --  XXX To be implemented
    end Do_Etherealize_Objects;
 
    -----------------------
@@ -380,6 +470,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
      (Self : in out Basic_POA_Manager) is
    begin
       Lock_R (Self.Count_Lock);
+
       if Self.Usage_Count = 0 then
          pragma Debug (O ("POAManager is no longer used, destroying it"));
          Unlock_R (Self.Count_Lock);
@@ -392,15 +483,20 @@ package body PolyORB.POA_Manager.Basic_Manager is
       else
          Unlock_R (Self.Count_Lock);
       end if;
+
    exception
       when others =>
          pragma Debug (O ("Destroy_If_Unused: got exception"));
          raise;
    end Destroy_If_Unused;
 
-   --------------------
-   -- Handle_Message --
-   --------------------
+   -----------------------------------
+   --  Holding state implementation --
+   -----------------------------------
+
+   ---------------------
+   -- Execute_Servant --
+   ---------------------
 
    function Execute_Servant
      (Obj : access Hold_Servant;
@@ -408,20 +504,23 @@ package body PolyORB.POA_Manager.Basic_Manager is
      return PolyORB.Components.Message'Class
    is
       use Requests_Queue_P;
-      S            : Hold_Servant_Access;
-      Null_Message : PolyORB.Components.Null_Message;
-   begin
-      pragma Debug (O ("Hold Servant queues message"));
 
-      S := Hold_Servant_Access (Obj);
+      S            : Hold_Servant_Access := Hold_Servant_Access (Obj);
+      Null_Message : PolyORB.Components.Null_Message;
+
+   begin
       if Msg in Execute_Request then
          Lock_W (S.PM.Queue_Lock);
+
+         pragma Debug (O ("Hold Servant queues message"));
          Append (S.PM.Holded_Requests, Execute_Request (Msg));
+
          Unlock_W (S.PM.Queue_Lock);
       else
-         pragma Debug (O (" Message not in Execute_Request"));
+         pragma Debug (O ("Message not in Execute_Request"));
          raise PolyORB.Components.Unhandled_Message;
       end if;
+
       return Null_Message;
    end Execute_Servant;
 

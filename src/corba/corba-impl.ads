@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,6 +68,7 @@ private
    function "=" (X, Y : Implementation) return Boolean;
    --  ??? XXX Why does the compiler require the presence of this operator?
    --  As a descendant of Component, Implementation is a limited type!
+
    function Execute_Servant
      (Self : access Implementation;
       Msg  : PolyORB.Components.Message'Class)

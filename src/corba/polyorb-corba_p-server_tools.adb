@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -93,12 +93,12 @@ package body PolyORB.CORBA_P.Server_Tools is
 
       pragma Debug (O ("Initializing root POA..."));
       Root_POA_Object := new POA.Basic_POA.Basic_Obj_Adapter;
-      POA.Basic_POA.Create
-        (Basic_Obj_Adapter (Root_POA_Object.all)'Access);
+      POA.Create (Root_POA_Object);
 
-      ORB.Set_Object_Adapter
-        (Setup.The_ORB, Obj_Adapters.Obj_Adapter_Access (Root_POA_Object));
       --  Link object adapter with ORB.
+      ORB.Set_Object_Adapter
+        (Setup.The_ORB,
+         PolyORB.Obj_Adapters.Obj_Adapter_Access (Root_POA_Object));
 
       PortableServer.POA.Set
         (Root_POA, Smart_Pointers.Entity_Ptr (Root_POA_Object));
@@ -106,6 +106,20 @@ package body PolyORB.CORBA_P.Server_Tools is
       Setup.Proxies_POA (Root_POA_Object);
 
    end Initiate_RootPOA;
+
+   ------------------
+   -- Get_Root_POA --
+   ------------------
+
+   function Get_Root_POA
+     return PortableServer.POA.Ref is
+   begin
+      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
+         Initiate_RootPOA;
+      end if;
+
+      return Root_POA;
+   end Get_Root_POA;
 
    ---------------------
    -- Initiate_Server --
@@ -148,10 +162,12 @@ package body PolyORB.CORBA_P.Server_Tools is
 
       pragma Debug (O ("Initiate_Servant : ready to "
                        & "call CORBA.Object.Set"));
+
       CORBA.Object.Set
         (CORBA.Object.Ref (R),
          CORBA.Object.Object_Of
          (PortableServer.POA.Servant_To_Reference (Root_POA, S)));
+
       pragma Debug (O ("Initiate_Servant : end"));
    end Initiate_Servant;
 

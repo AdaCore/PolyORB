@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,27 +32,31 @@
 
 --  Basic POA implementation.
 
+--  As an implementation package of abstract functions defined in
+--  PolyORB.POA, this package provides an implementation for both the
+--  CORBA-like POA API (defined in PolyORB.POA) and PolyORB Obj_Adapter
+--  (defined in PolyORB.Obj_Adapters) upon which the Basic POA depends.
+
 --  $Id$
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Objects;
-with PolyORB.Servants;
 with PolyORB.POA_Policies;
 with PolyORB.References;
+with PolyORB.Servants;
 
 package PolyORB.POA.Basic_POA is
 
    pragma Elaborate_Body;
 
-   type Basic_Obj_Adapter is new POA.Obj_Adapter
-     with private;
+   type Basic_Obj_Adapter is new POA.Obj_Adapter with private;
    type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
    --  The POA object
 
-   --------------------------------------------------
-   --  Procedures and functions required by CORBA  --
-   --------------------------------------------------
+   ---------------------------------------------
+   -- CORBA-like POA interface implementation --
+   ---------------------------------------------
 
    function Create_POA
      (Self         : access Basic_Obj_Adapter;
@@ -60,13 +64,16 @@ package PolyORB.POA.Basic_POA is
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList)
      return Obj_Adapter_Access;
-   --  Create a POA given its name and a list of policies
-   --  Policies are optionnal : defaults values are provided
+
+   function Find_POA
+     (Self : access Basic_Obj_Adapter;
+      Name :        Types.String)
+     return Obj_Adapter_Access;
 
    procedure Destroy
      (Self                : in out Obj_Adapter_Access;
-      Etherealize_Objects : in     Boolean;
-      Wait_For_Completion : in     Boolean);
+      Etherealize_Objects : in     Types.Boolean;
+      Wait_For_Completion : in     Types.Boolean);
 
    function Create_Object_Identification
      (Self : access Basic_Obj_Adapter;
@@ -93,9 +100,9 @@ package PolyORB.POA.Basic_POA is
       Oid  :        Object_Id)
      return Servants.Servant_Access;
 
-   --------------------------------------------------------
-   --  Functions and procedures to interface with PolyORB --
-   --------------------------------------------------------
+   --------------------------------------------------
+   -- PolyORB Obj_Adapter interface implementation --
+   --------------------------------------------------
 
    procedure Create
      (OA : access Basic_Obj_Adapter);
@@ -140,9 +147,9 @@ package PolyORB.POA.Basic_POA is
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access);
 
-   -------------------------------------------------
-   --  Utilities, neither in CORBA nor in PolyORB  --
-   -------------------------------------------------
+   ----------------------
+   -- Utility function --
+   ----------------------
 
    procedure Copy_Obj_Adapter
      (From : in     Basic_Obj_Adapter;
@@ -151,8 +158,6 @@ package PolyORB.POA.Basic_POA is
    procedure Remove_POA_By_Name
      (Self       : access Basic_Obj_Adapter;
       Child_Name :        Types.String);
-   --  Remove a child POA from Self's list of children
-   --  Doesn't lock the list of children
 
    --------------------------------
    -- Proxy namespace management --
