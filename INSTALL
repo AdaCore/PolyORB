@@ -48,11 +48,12 @@ Ada 95 compiler: GNAT 3.15a (or the public release 3.15p) or later.
 Optional: XmlAda (http://libre.act-europe.fr/xmlada/) if you want to
 build the SOAP protocol personality.
 
-Note: per construction, the macro used to detect your GNAT compiler
-looks first to the executables 'gnatgcc', then 'adagcc' and finally to
-'gcc' to find out which Ada compiler to use. You should be very
-careful with your path and executables if you have multiple GNAT
-versions installed.
+Note: per construction, the macro 'configure' uses to find your GNAT
+compiler looks first to the executables 'gnatgcc', then 'adagcc' and
+finally to 'gcc' to find out which Ada compiler to use. You should be
+very careful with your path and executables if you have multiple GNAT
+versions installed. See below explanations on the ADA environment
+variable if you need to override the default guess.
 
 Build instructions
 ------------------
@@ -75,25 +76,40 @@ If you want to choose another prefix than /usr/local, give configure a
 Note: at this time, you MUST use GNU make to compile this software.
 
 Available options for the 'configure' script include:
-  --with-appli-perso=".." : application personalities to build, among
-                            CORBA, DSA, MOMA
+
+  --with-appli-perso="...": application personalities to build
+      Available personalities: CORBA, DSA, MOMA
       e.g.   --with-appli-perso="corba moma" to build both the CORBA 
              and MOMA personnalities
 
-  --with-proto-perso=".." : personalities to build, among
-                            GIOP, SOAP, SRP
+  --with-proto-perso="...": personalities to build
+      Available personalities: GIOP, SOAP, SRP
       e.g.   --with-proto-perso="giop soap" to build both the GIOP 
              and SOAP personnalities
 
-  --with-services=".." : CORBA COS services to build : event, ir, naming, time
-      e.g.  --with-services="event naming" to build only COS Event and COS Naming.	
-
-  --enable-shared : build shared libraries.
-  --enable-debug  : enable debugging information generation and supplementary
-                    runtime checks.
+  --with-services="...": CORBA COS services to build
+      Available services: event, ir, naming, time
+      e.g.  --with-services="event naming" to build only
+      COS Event and COS Naming.	
 
 By default, only the CORBA and GIOP personalities are built, no CORBA
 Services are built.
+
+  --enable-shared: build shared libraries.
+
+  --enable-debug:  enable debugging information generation and supplementary
+                   runtime checks.
+
+The following environment variables can be used to override configure's
+guess at what compilers to use:
+  CC:  the C compiler
+  ADA: the Ada 95 compiler
+
+For example, if you have two versions of GNAT installed and available
+in your PATH, and configure picks the wrong one, you can indicate
+what compiler should be used with the following syntax:
+
+ADA=/path/to/good/compiler/gcc ./configure [options]
 
 Platform notes
 --------------
