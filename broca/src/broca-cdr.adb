@@ -1418,7 +1418,6 @@ package body Broca.CDR is
 
    procedure Unmarshall_To_Any (Buffer : access Buffer_Type;
                                 Result : in out CORBA.Any) is
-      Any_Type : TypeCode.Object := Get_Type (Result);
       Tc : CORBA.TypeCode.Object := Get_Precise_Type (Result);
       Is_Empty : Boolean := CORBA.Is_Empty (Result);
       use CORBA;
