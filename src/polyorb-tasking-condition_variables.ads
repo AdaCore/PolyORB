@@ -32,8 +32,8 @@
 
 --  Implementation of a POSIX-like condition variables
 
---  A complete implementation of this package is provided for all
---  tasking profiles.
+--  A complete implementation of this package is provided for each
+--  tasking profile.
 
 --  $Id$
 
@@ -57,34 +57,32 @@ package PolyORB.Tasking.Condition_Variables is
      (C : in out Condition_Type;
       M : access Mutex_Type'Class)
       is abstract;
-   --  This function waits for Condition_Type C to be notified. When
-   --  called, it atomically (1) releases the associated Mutex_Type M
-   --  (which the caller must hold while evaluating the condition
-   --  expression) and (2) goes to sleep awaiting a subsequent
-   --  notification from another thread (via the Signal or Broadcast
-   --  operations described next). M will be locked when
-   --  Wait returns.
+   --  Wait for a notification on condition variable C.
+   --  This procedure atomically:
+   --    (1) leaves the critical section protected by M (which the
+   --         caller must own);
+   --    (2) blocks until a subsequent notification from another
+   --        task (via the Signal or Broadcast operations described below);
+   --  On return, M is owned again.
 
    procedure Broadcast
      (C : in out Condition_Type)
       is abstract;
-   --  This procedure unblocks all the threads waiting on condition variable C.
+   --  Unblock all tasks blocked on C.
 
    procedure Signal
      (C : in out Condition_Type)
       is abstract;
-   --  This procedure unblocks one thread waiting on condition variable C.
+   --  Unblock one task blocked on C.
 
    -----------------------
    -- Condition_Factory --
    -----------------------
 
    type Condition_Factory_Type is abstract tagged limited null record;
-   --  This type is a factory for all synchronisation types.
+   --  Factory of condition variables.
    --  A subclass of this factory exists for every tasking profile:
    --  Full Tasking, Ravenscar and No Tasking.
-   --  This type provides functionalities for creating mutexes and condition
-   --  variables corresponding with the chosen tasking profile.
 
    type Condition_Factory_Access is access all Condition_Factory_Type'Class;
 
@@ -95,7 +93,7 @@ package PolyORB.Tasking.Condition_Variables is
       is abstract;
    --  Create a new condition variable, or get a preallocated one.
    --  Name will be used to get the configuration of this
-   --  mutex from the configuration module.
+   --  condition variable from the configuration module.
 
    procedure Destroy
      (MF : in out Condition_Factory_Type;
