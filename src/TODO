@@ -6,6 +6,9 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* See whether Buffers.Set_Initial_Position can be made private
+  or moved to unit body.
+
 * Support logging to syslog (also for Java ?)
 * Unified runtime configuration file (modifications to Droopi.Log).
 

@@ -291,6 +291,15 @@ package Droopi.Representations.CDR is
    --  Prepare Buffer to receive marshalled data
    --  that will be turned into an Encapsulation.
 
+   procedure Decapsulate
+     (Octets : access Encapsulation;
+      Buffer : access Buffer_Type);
+   --  Initialize a buffer with an Octet_Array
+   --  corresponding to an Encapsulation.
+   --  Buffer must be a fresh, empty buffer.
+   --  The lifespan of the actual Octets array
+   --  shall be no less than that of Buffer.
+
    --  Marshalling and unmashalling of object references
    --  (but not valuetypes)
 

@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#8 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#9 $
 
 with System;
 --  For bit-order information.
@@ -118,15 +118,6 @@ package Droopi.Buffers is
      return Encapsulation;
    --  Create an Octet_Array corresponding to Buffer
    --  as an encapsulation.
-
-   procedure Decapsulate
-     (Octets : access Encapsulation;
-      Buffer : access Buffer_Type);
-   --  Initialize a buffer with an Octet_Array
-   --  corresponding to an Encapsulation.
-   --  Buffer must be a fresh, empty buffer.
-   --  The lifespan of the actual Octets array
-   --  shall be no less than that of Buffer.
 
    ------------------------------
    -- The CDR view of a buffer --

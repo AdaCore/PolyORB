@@ -81,8 +81,6 @@ package body Droopi.Representations.CDR is
    --  Size octets from it.
    --  The data is returned in big-endian byte order.
 
-
-
    procedure Align_Marshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Stream_Element_Array;
@@ -2475,6 +2473,32 @@ package body Droopi.Representations.CDR is
                 CORBA.Boolean
                 (Endianness (Buffer.all) = Host_Order));
    end Start_Encapsulation;
+
+   procedure Decapsulate
+     (Octets : access Encapsulation;
+      Buffer : access Buffer_Type)
+   is
+      Endianness : Endianness_Type;
+      Z : constant Zone_Access
+        := Zone_Access'(Octets.all'Unchecked_Access);
+   begin
+      if CORBA.Boolean'Val
+        (CORBA.Octet (Octets (Octets'First))) then
+         Endianness := Little_Endian;
+      else
+         Endianness := Big_Endian;
+      end if;
+
+      Initialize_Buffer
+        (Buffer               => Buffer,
+         Size                 => Octets'Length - 1,
+         Data                 =>
+           (Zone   => Z,
+            Offset => Z'First + 1),
+         --  Bypass runtime accessibility check.
+         Endianness           => Endianness,
+         Initial_CDR_Position => 1);
+   end Decapsulate;
 
    --------------
    -- Marshall --

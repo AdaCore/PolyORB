@@ -175,30 +175,6 @@ package body Droopi.Buffers is
       return Result;
    end Encapsulate;
 
-   procedure Decapsulate
-     (Octets : access Encapsulation;
-      Buffer : access Buffer_Type)
-   is
-      Endianness : Endianness_Type;
-   begin
-      raise Program_Error;
-      --  This is CORBA-specific and must be moved out of Droopi.Buffers.
-
---        if CORBA.Boolean'Val
---          (CORBA.Octet (Octets (Octets'First))) then
---           Endianness := Little_Endian;
---        else
---           Endianness := Big_Endian;
---        end if;
---
---        Initialize_Buffer
---          (Buffer               => Buffer,
---           Size                 => Octets'Length - 1,
---           Data                 => Octets (Octets'First + 1)'Address,
---           Endianness           => Endianness,
---           Initial_CDR_Position => 1);
-   end Decapsulate;
-
    ------------------------------
    -- The CDR view of a buffer --
    ------------------------------
@@ -692,7 +668,6 @@ package body Droopi.Buffers is
               - Vecs (Index).Iov_Len;
             Index := Index + 1;
          end loop;
-
          pragma Assert (Offset_Remainder + Size <= Vecs (Index).Iov_Len);
 
          Data := Vecs (Index).Iov_Base + Offset_Remainder;
