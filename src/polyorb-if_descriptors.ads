@@ -48,6 +48,8 @@ package PolyORB.If_Descriptors is
      with private;
    type If_Descriptor_Access is access all If_Descriptor'Class;
 
+   Default_If_Descriptor : If_Descriptor_Access;
+
    function Get_Empty_Arg_List
      (If_Desc : access If_Descriptor;
       Object  :        PolyORB.References.Ref;

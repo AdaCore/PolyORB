@@ -207,6 +207,10 @@ package body PolyORB.References is
       RS : constant Reference_Info_Access := Ref_Info_Of (Source);
    begin
       RD.Binding_Object_Ref := RS.Binding_Object_Ref;
+      if RD.Type_Id'Length = 0 then
+         Free (RD.Type_Id);
+         RD.Type_Id := new String'(RS.Type_Id.all);
+      end if;
    end Share_Binding_Info;
 
 end PolyORB.References;

@@ -239,7 +239,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       Buffers.Release_Contents (S.In_Buf.all);
 
       Components.Emit_No_Reply
-        (S.Server,
+        (R.Requesting_Component,
          Objects.Interface.Executed_Request'(Req => R));
    end Process_Reply;
 

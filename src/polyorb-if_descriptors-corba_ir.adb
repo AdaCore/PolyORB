@@ -37,6 +37,9 @@
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.IR_Tools;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Types;
 
 with CORBA.Repository_Root;
@@ -45,10 +48,17 @@ with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Contained.Helper;
 with CORBA.Repository_Root.InterfaceDef;
 with CORBA.Repository_Root.InterfaceDef.Helper;
+with CORBA.Repository_Root.Repository;
 
 package body PolyORB.If_Descriptors.CORBA_IR is
 
+   use PolyORB.Log;
    use CORBA.Repository_Root;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.if_descriptors.corba_ir");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    package ContainedSeq_Seq renames
      IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
@@ -68,10 +78,21 @@ package body PolyORB.If_Descriptors.CORBA_IR is
 
    function Corresponding_InterfaceDef
      (Object : PolyORB.References.Ref)
-     return InterfaceDef.Ref is
+     return InterfaceDef.Ref
+   is
+      RId : constant String
+        := References.Type_Id_Of (Object);
    begin
+--       return InterfaceDef.Helper.To_Ref
+--         (CORBA.Object.get_interface (To_CORBA_Ref (Object));
+      pragma Debug
+        (O ("Corresponding_IfDef for " & RId));
       return InterfaceDef.Helper.To_Ref
-        (CORBA.Object.get_interface (To_CORBA_Ref (Object));
+        (Repository.lookup_id
+         (CORBA_P.IR_Tools.Get_IR_Root,
+          CORBA.To_CORBA_String (RId)));
+      --  XXX actually we should do a call to get_interface here,
+      --  and use Lookup_Id or whatever only on the /server/.
    end Corresponding_InterfaceDef;
 
    function Find_Operation
@@ -165,6 +186,10 @@ package body PolyORB.If_Descriptors.CORBA_IR is
         (Corresponding_InterfaceDef (Object),
          CORBA.Identifier'(CORBA.To_CORBA_String (Method)));
    begin
+      pragma Debug
+        (O ("Get_Empty_Result: TC is of kind "
+            & PolyORB.Any.TCKind'Image
+            (PolyORB.Any.TypeCode.Kind (Oper.result))));
       return Any.Get_Empty_Any (Oper.result);
    end Get_Empty_Result;
 

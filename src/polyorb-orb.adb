@@ -833,7 +833,7 @@ package body PolyORB.ORB is
             else
                Request_Job (J.all).Requestor := QR.Requestor;
             end if;
-
+            Req.Requesting_Component := Request_Job (J.all).Requestor;
             Queue_Job (ORB.Job_Queue, J);
             pragma Debug (O ("Queue_Request: leave"));
          end;
@@ -877,6 +877,10 @@ package body PolyORB.ORB is
                      Update
                        (Watcher (Req.Requesting_Task.all));
                end case;
+            else
+               O ("ARGH! No requesting task,"
+                  & " discarding Executed_Request.", Error);
+               null;
             end if;
          end;
 

@@ -38,10 +38,12 @@ with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Filters.Interface;
+with PolyORB.If_Descriptors;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects.Interface;
 with PolyORB.Protocols.Interface;
+with PolyORB.Types;
 
 package body PolyORB.Protocols is
 
@@ -122,17 +124,28 @@ package body PolyORB.Protocols is
 
             declare
                use Protocols.Interface;
+               use PolyORB.If_Descriptors;
 
-               Args : Any.NVList.Ref;
+               Desc : If_Descriptor_Access
+                 renames Default_If_Descriptor;
+
+               Args : Any.NVList.Ref
+                 := Get_Empty_Arg_List
+                 (Desc, Req.Target,
+                  Types.To_Standard_String (Req.Operation));
+
                Reply : constant Components.Message'Class
                  := Components.Emit
                  (Req.Deferred_Arguments_Session,
                   Unmarshall_Arguments'(Args => Args));
+
             begin
                pragma Assert (Reply in Unmarshalled_Arguments);
                pragma Debug (O ("Unmarshalled deferred arguments"));
-               Args := Unmarshalled_Arguments (Reply).Args;
-               Req.Args := Args;
+               Req.Args := Unmarshalled_Arguments (Reply).Args;
+               Req.Result.Argument := Get_Empty_Result
+                 (Desc, Req.Target,
+                  Types.To_Standard_String (Req.Operation));
                Req.Deferred_Arguments_Session := null;
                pragma Debug (O ("Proxying request: " & Image (Req.all)));
             end;

@@ -138,6 +138,7 @@ package PolyORB.Requests is
 
       Completed : aliased Boolean := False;
       Requesting_Task : aliased Task_Info.Task_Info_Access;
+      Requesting_Component : Components.Component_Access;
 
       Notepad : Annotations.Notepad;
       --  Request objects are manipulated by both the

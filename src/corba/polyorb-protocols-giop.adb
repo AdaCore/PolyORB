@@ -1528,7 +1528,7 @@ package body PolyORB.Protocols.GIOP is
               (Ses, Current_Req.Req.Args, PolyORB.Any.ARG_OUT);
 
             Emit_No_Reply
-              (Component_Access (ORB),
+              (Current_Req.Req.Requesting_Component,
                Objects.Interface.Executed_Request'
                (Req => Current_Req.Req));
 
