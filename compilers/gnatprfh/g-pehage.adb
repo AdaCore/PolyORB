@@ -1135,7 +1135,8 @@ package body GNAT.Perfect_Hash.Generators is
       Len  : constant Natural := Value'Length;
    begin
       Word (1 .. Len) := Value (Value'First .. Value'First + Len - 1);
-      WT.Set_Item (NK, Word);
+      WT.Set_Last (NK);
+      WT.Table (NK) := Word;
       NK := NK + 1;
       NV := Natural (Float (NK) * K2V);
       if MKL < Len then
