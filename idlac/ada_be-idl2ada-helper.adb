@@ -96,6 +96,14 @@ package body Ada_Be.Idl2Ada.Helper is
                PL (CU, "  return " & Type_Name & ";");
             end;
 
+            --  TypeCode
+            NL (CU);
+            PL (CU, Ada_TC_Name (Node)
+                & " : CORBA.TypeCode.Object := ");
+            II (CU);
+            PL (CU, "CORBA.TypeCode.TC_ObjRef;");
+            DI (CU);
+
             --  From_Any
             NL (CU);
             Gen_From_Any_Profile (CU, Node);
@@ -105,6 +113,10 @@ package body Ada_Be.Idl2Ada.Helper is
             NL (CU);
             Gen_To_Any_Profile (CU, Node);
             PL (CU, ";");
+
+            --  to fill in the typecode TC_<name of the type>
+            Add_Elaborate_Body (CU);
+            Add_With (CU, "CORBA");
 
          when K_Enum =>
             --  TypeCode
@@ -289,6 +301,30 @@ package body Ada_Be.Idl2Ada.Helper is
                 & "(CORBA.Object.Ref (Item));");
             DI (CU);
             PL (CU, "end To_Any;");
+
+            --  to fill in the typecode TC_<name of the type>
+            Divert (CU, Elaboration);
+            NL (CU);
+            PL (CU, "declare");
+            II (CU);
+            PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+                & Ada_Name (Node)
+                & """);");
+            PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+                & Idl_Repository_Id (Node)
+                & """);");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any (Name));");
+            PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any (Id));");
+            DI (CU);
+            PL (CU, "end;");
+            Divert (CU, Visible_Declarations);
 
          when K_Enum =>
             --  From_Any
@@ -870,12 +906,12 @@ package body Ada_Be.Idl2Ada.Helper is
       Prefix : constant String := "TC_";
    begin
       case NK is
---          when
---            K_Interface         |
---            K_Forward_Interface |
---            K_ValueType         |
---            K_Forward_ValueType =>
---       return Prefix & Ada_Name (Node) & "." & Ada_Type_Defining_Name (Node);
+         when
+           K_Interface         |
+           K_Forward_Interface =>
+            --          K_ValueType         |
+            --          K_Forward_ValueType =>
+            return Prefix & Ada_Name (Node);
 
 --          when K_Sequence_Instance =>
 --             return Ada_Full_Name (Node) & ".Sequence";

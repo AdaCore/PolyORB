@@ -586,7 +586,7 @@ package body Ada_Be.Idl2Ada is
                PL (Skel_Body, "procedure GIOP_Dispatch");
                PL (Skel_Body, "  (Obj : PortableServer.Servant;");
                II (Skel_Body);
-               PL (Skel_Body, "Operation : String;");
+               PL (Skel_Body, "Operation : Standard.String;");
                PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
                PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
                PL (Skel_Body,
@@ -608,7 +608,7 @@ package body Ada_Be.Idl2Ada is
                PL (Skel_Body, "procedure GIOP_Dispatch");
                PL (Skel_Body, "  (Obj : PortableServer.Servant;");
                II (Skel_Body);
-               PL (Skel_Body, "Operation : String;");
+               PL (Skel_Body, "Operation : Standard.String;");
                PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
                PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
                PL (Skel_Body,
