@@ -14,4 +14,4 @@ SUBDIRS = utils core @APPLI_DIRS@
 CLEANFILES = config-stamp
 
 run_tests:
-	utils/test_driver -full scenarios -output file
+	utils/test_driver -full $(srcdir)/testsuite/scenarios -output file
