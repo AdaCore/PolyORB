@@ -4,6 +4,7 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Tags;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -19,6 +20,7 @@ package body PolyORB.References is
 
    procedure Create_Reference
      (Profiles : Profile_Array;
+      Type_Id  : String;
       R        : out Ref) is
    begin
       if Profiles'Length = 0 then
@@ -28,6 +30,7 @@ package body PolyORB.References is
             RIP : constant Entity_Ptr := new Reference_Info;
             TRIP : Reference_Info renames Reference_Info (RIP.all);
          begin
+            TRIP.Type_Id  := new String'(Type_Id);
             TRIP.Profiles := Profile_Seqs.To_Sequence (Profiles);
             Set (R, RIP);
          end;
@@ -42,11 +45,27 @@ package body PolyORB.References is
       if RIP = null
         or else not (RIP.all in Reference_Info'Class) then
          raise Constraint_Error;
+         --  XXX should this be allowed? (implicit export)
       end if;
 
       return Profile_Seqs.To_Element_Array
         (Reference_Info (RIP.all).Profiles);
    end Profiles_Of;
+
+   function Type_Id_Of (R : Ref) return String
+   is
+      RIP : constant Entity_Ptr
+        := Entity_Of (R);
+   begin
+      if RIP = null
+        or else not (RIP.all in Reference_Info'Class) then
+         raise Constraint_Error;
+         --  XXX should this be allowed? (denoted entity
+         --  could have an intrinsic type).
+      end if;
+
+      return Reference_Info (RIP.all).Type_Id.all;
+   end Type_Id_Of;
 
    function Image (R : Ref) return String
    is
@@ -65,11 +84,15 @@ package body PolyORB.References is
       return To_String (Res);
    end Image;
 
+   procedure Free is new Ada.Unchecked_Deallocation
+     (String, String_Ptr);
+
    procedure Finalize (RI : in out Reference_Info)
    is
       Profiles : Profile_Array
         := Profile_Seqs.To_Element_Array (RI.Profiles);
    begin
+      Free (RI.Type_Id);
       for I in Profiles'Range loop
          pragma Debug
            (O ("Destroying profile of type "
