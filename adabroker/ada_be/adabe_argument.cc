@@ -11,7 +11,7 @@ adabe_argument::adabe_argument(AST_Argument::Direction d, AST_Type *ft, UTL_Scop
 void
 adabe_argument::produce_ads(dep_list with, string &body, string &previous)
 {
-  compute_ada_names();
+  compute_ada_name();
   String += get_ada_local_name() + " :";
   switch (pd_direction) {
   case dir_IN :

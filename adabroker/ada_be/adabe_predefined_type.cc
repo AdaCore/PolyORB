@@ -3,8 +3,7 @@
 adabe_predefined_type::adabe_predefined_type(AST_PredefinedType::PredefinedType t, UTL_ScopedName *n, UTL_StrList *p)
   : AST_PredefinedType(t, sn, p),
     AST_Decl(AST_Decl::NT_pre_defined, sn, p),
-    adabe_name(),
-
+    adabe_name()
 {
 }
 

@@ -15,7 +15,7 @@ adabe_union::produce_ads(dep_list with, string &body, string &previous)
   ///////////WARNING//////////////
   //  the type of the discriminant should be check. From this type result a specific solution  
 
-  compute_ada_names();
+  compute_ada_name();
   body += "   type " + get_ada_local_name();
   disc_type()->compute_ada_names();
   name = get_ada_local_name();
@@ -26,12 +26,10 @@ adabe_union::produce_ads(dep_list with, string &body, string &previous)
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
-      INDENT(body);
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_UnionBranch)
 	adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
-      i.next();
     }
   body += "      end case; \n"
   body += "   end record; \n";
@@ -61,11 +59,11 @@ adabe_union::produce_ads(dep_list with, string &body, string &previous)
 */
 
 void
-adabe_structure::produce_marshal_ads(dep_list with, string &body, string &previous);
+adabe_structure::produce_marshal_ads(dep_list with, string &body, string &previous)
 {
 }
 void
-adabe_structure::produce_marshal_adb(dep_list with, string &body, string &previous);
+adabe_structure::produce_marshal_adb(dep_list with, string &body, string &previous)
 {
 }
 
@@ -74,7 +72,7 @@ adabe_union::dump_name(dep_list with, string &body, string &previous)
 {
   if (!is_imported(with))
     {
-      if (!is_already_defined)
+      if (!is_already_defined())
 	{
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);
@@ -88,6 +86,7 @@ adabe_union::dump_name(dep_list with, string &body, string &previous)
 IMPL_NARROW_METHODS1(adabe_union, AST_Union)
 IMPL_NARROW_FROM_DECL(adabe_union)
 IMPL_NARROW_FROM_SCOPE(adabe_union)
+
 
 
 

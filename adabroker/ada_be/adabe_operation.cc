@@ -13,7 +13,7 @@ adabe_operation::adabe_operation(AST_Type *rt, AST_Operation::Flags fl,
 void
 adabe_operation::produce_ads(dep_list with,string &body, string &previous)
 {
-  compute_ada_names();
+  compute_ada_name();
   switch (pd_flags) {
   case OP_noflags :
   case OP_idempotent :

@@ -11,7 +11,7 @@ adabe_typedef::adabe_typedef(AST_Type *bt, UTL_ScopedName *n, UTL_StrList *p)
 void
 adabe_typedef::produce_ads(dep_list with, string &body, string &previous)
 {
-  compute_ada_names();
+  compute_ada_name();
   body += "   type" + get_ada_local_name() + "is new ";
   AST_Decl *b  base_type();
   string name =  adabe_name::narrow_from_decl(b)->dump_name(with, &body, &previous); //virtual method
@@ -51,11 +51,11 @@ adabe_typedef::produce_ads(dep_list with, string &body, string &previous)
 */
 
 void
-adabe_typedef::produce_marshal_ads(dep_list with, string &body, string &previous);
+adabe_typedef::produce_marshal_ads(dep_list with, string &body, string &previous)
 {
 }
 void
-adabe_typedef::produce_marshal_adb(dep_list with, string &body, string &previous);
+adabe_typedef::produce_marshal_adb(dep_list with, string &body, string &previous)
 {
 }
 
@@ -66,7 +66,7 @@ adabe_typedef::dump_name(dep_list with, string &body, string &previous)
 {
   if (!is_imported(with))
     {
-      if (!is_already_defined)
+      if (!is_already_defined())
 	{
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);

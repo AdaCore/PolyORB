@@ -12,7 +12,7 @@ adabe_attribute::adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, U
 void
 adabe_attribute::produce_ads(dep_list with, string &body, string &previous)
 {
-  compute_ada_names();
+  compute_ada_name();
   body += "   function get_" + get_ada_local_name() +"(Self : in Ref) return "; 
   AST_Decl *d = field_type();
   string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);

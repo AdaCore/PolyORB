@@ -1,4 +1,3 @@
-// File module.cc
 #include <adabe.h>
 
 IMPL_NARROW_METHODS1(adabe_module, AST_Module);

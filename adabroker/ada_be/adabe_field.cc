@@ -10,7 +10,7 @@ adabe_field::adabe_field(UTL_ScopedName *n, UTL_StrList *p)
 void
 adabe_field::produce_ads(dep_list with, string &body, string &previous) 
 {
-  compute_ada_names();
+  compute_ada_name();
   body += "      " + get_ada_local_name();
   body += " : ";
   AST_Decl *b = field_type();
@@ -40,7 +40,9 @@ adabe_field::produce_ads(dep_list with, string &body, string &previous)
 */
 
 void
-adabe_field::produce_marshal_adb(dep_list with, string &body, string &previous){};
+adabe_field::produce_marshal_adb(dep_list with, string &body, string &previous)
+{
+}
   
 IMPL_NARROW_METHODS1(adabe_field, AST_Field)
 IMPL_NARROW_FROM_DECL(adabe_field)

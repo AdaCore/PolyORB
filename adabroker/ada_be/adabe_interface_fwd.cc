@@ -10,7 +10,7 @@ adabe_interface_fwd(UTL_ScopedName *n, UTL_StrList *p)
 void
 adabe_interface_fwd::produce_ads(dep_list with, string &body, string &previous)
 {
-  compute_ada_names();
+  compute_ada_name();
   full_definition()->set_ada_name(get_ada_local_name()); 
   full_definition()->set_ada_full_name(get_ada_full_name());
   string file_name = get_ada_full_name() + "-forward.ads";

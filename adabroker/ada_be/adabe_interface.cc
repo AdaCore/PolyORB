@@ -18,7 +18,7 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
   string tmp = "";
   adabe_interface * inher;
   with.add("Corba.Object");
-  if (!pd_is_imported) ada_name.compute();  // forwarded then defined
+  if (!pd_is_imported) compute_ada_name();  // forwarded then defined
   body += "package " + get_ada_full_name() + " is /n";
   if (pd_n_inherits == 0) body += "   type Ref is new Corba.Object.Ref ";
 
@@ -148,7 +148,6 @@ adabe_interface::produce_impl_ads(dep_list with, string &body, string &previous)
   string tmp = "";
   adabe_interface * inher;
   with.add("Corba.Object");
-  if (!pd_is_imported) ada_name.compute();  // forwarded then defined
   body += "package " + get_ada_full_name() + "_impl is /n";
   if (pd_n_inherits == 0) body += "   type Object is new Corba.Object.Object ";
 
@@ -310,6 +309,16 @@ adabe_interface::produce_proxies_ads(dep_list with ; string &body ;string &previ
   body += "private \n";
   body += Sprivate;
   body += "end " + get_ada_full_name() + ".Skeleton ;\n";
+}
+
+void
+adabe_interface::produce_skel_adb(dep_list with, string &body, string &previous)
+{
+}
+
+void
+adabe_interface::produce_proxies_adb(dep_list with ; string &body ;string &previous)
+{
 }
 
 IMPL_NARROW_METHODS1(adabe_interface, AST_Interface)

@@ -1,5 +1,5 @@
 CXXSRCS       = \
-		adabe_root.cc\
+		adabe_struct.cc\
 		adabe_name.cc\
 		adabe_module.cc\
 		adabe_array.cc\
@@ -8,11 +8,13 @@ CXXSRCS       = \
 		adabe_exception.cc\
 		adabe_string.cc\
 		adabe_constant.cc\
-		adabe_string_list.cc
+		adabe_string_list.cc\
+		adabe_root.cc\
+		adabe_UnionBranch.cc
 
 
 OBJS         = \
-		adabe_root.o\
+		adabe_struct.o\
 		adabe_module.o\
 		adabe_name.o\
 		adabe_array.o\
@@ -20,7 +22,9 @@ OBJS         = \
 		adabe_enum_val.o\
 		adabe_string.o\
 		adabe_constant.o\
-		adabe_string_list.o
+		adabe_string_list.o\
+		adabe_root.o\
+		adabe_UnionBranch.o
 
 DIR_CPPFLAGS = -I. -I../include $(patsubst %,-I%/../include,$(VPATH)) -I../omniORB2_be
 

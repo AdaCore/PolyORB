@@ -18,18 +18,18 @@ adabe_union_branch::adabe_union_branch(AST_UnionLabel *lab, AST_Type *ft, UTL_Sc
 void
 adabe_union_branch::produce_ads(dep_list with, string &body, string &previous, AST_ConcreteType *concrete)
 {
-  body += "         when ";
-  if (label()->label_kind() != UL_default)
+  body += "      when ";
+  if (label()->label_kind() != AST_UnionLabel::UL_default)
     {
-      body += produce_disc_value(concrete, label()->label_value());
+      body += produce_disc_value(concrete, label()->label_val());
       body += " => \n";
     }
-  else if (branche->label()->label_kind() == UL_default)
+  else if (label()->label_kind() == AST_UnionLabel::UL_default)
     {
       body += "others ";
       body += "=> \n";
     }
-  adabe_field.produce_ads(with, body, previous);   
+  adabe_field::produce_ads(with, body, previous);   
 }
 
 /*
@@ -42,7 +42,7 @@ adabe_union_branch::produce_ads(dep_list with, string &body, string &previous, A
 */ 
 
 void
-adabe_union_branch::produce_marshal_adb(dep_list with, string &body, string &previous);
+adabe_union_branch::produce_marshal_adb(dep_list with, string &body, string &previous)
 {
 }
 

@@ -1,6 +1,6 @@
 #include <adabe.h>
 
-adabe_structure::adabe_structure(UTL_ScopedName *n, UTL_StrList *p);
+adabe_structure::adabe_structure(UTL_ScopedName *n, UTL_StrList *p)
 	    : AST_Decl(AST_Decl::NT_struct, n, p),
 	      UTL_Scope(AST_Decl::NT_struct),
 	      adabe_name()
@@ -10,7 +10,7 @@ adabe_structure::adabe_structure(UTL_ScopedName *n, UTL_StrList *p);
 void
 adabe_structure::produce_ads(dep_list with, string &body, string &previous)
 {
-  compute_ada_names();
+  compute_ada_name();
   body += "   type " + get_ada_local_name() + "is record\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
@@ -67,11 +67,11 @@ adabe_structure::produce_ads(dep_list with, string &body, string &previous)
 */
 
 void
-adabe_structure::produce_marshal_ads(dep_list with, string &body, string &previous);
+adabe_structure::produce_marshal_ads(dep_list with, string &body, string &previous)
 {
 }
 void
-adabe_structure::produce_marshal_adb(dep_list with, string &body, string &previous);
+adabe_structure::produce_marshal_adb(dep_list with, string &body, string &previous)
 {
 }
 
@@ -80,7 +80,7 @@ adabe_structure::dump_name(dep_list with, string &body, string &previous)
 {
   if (!is_imported(with))
     {
-      if (!is_already_defined)
+      if (!is_already_defined())
 	{
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);

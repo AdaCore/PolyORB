@@ -22,9 +22,9 @@
 #ifndef _ADABE_CLASSES_H_
 #define _ADABE_CLASSES_H_
 
-#include <idl_extern.hh>
 #include <string>
 #include <idl.hh>
+#include <idl_extern.hh>
 
 class string_list
 {
@@ -57,7 +57,7 @@ class adabe_name : public virtual AST_Decl
 // Abstract class, root from the adabe classes
 {
 public:
-  adabe_name(AST_Decl::NodeType t,UTL_ScopedName* n, UTL_StrList* p);
+  adabe_name(void);
 
   string get_ada_local_name(void); 
   // give the local ADA name of the AST node
@@ -118,7 +118,6 @@ public:
 
   
  private:
-  adabe_name();
   string pd_ada_local_name;        // the local name of the type or identifier
   string pd_ada_full_name;         // the full name ...
   bool pd_defined_type;            // is the type already defined
