@@ -1,9 +1,12 @@
+--  The CORBA Dynamic Invocation Interface.
+
 --  $Id$
+
+with Droopi.Requests;
 
 with CORBA.Context;
 with CORBA.NVList;
-
-with Droopi.Requests;
+with CORBA.Object;
 
 package body CORBA.Request is
 
@@ -17,11 +20,12 @@ package body CORBA.Request is
       Req_Flags : in     Flags) is
    begin
       Droopi.Requests.Create_Request
-        (Target    => Self,
-         Operation => Operation,
-         Arg_List  => Arg_List,
+        (Target    => CORBA.Object.To_Droopi_Ref
+         (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
+         Operation => To_Standard_String (Operation),
+         Arg_List  => CORBA.NVList.To_Droopi_Ref (Arg_List),
          Result    => Result,
-         Req       => Object.The_Request);
+         Req       => Request.The_Request);
       --  XXX Some arguments are not taken into account!
    end Create_Request;
 

@@ -7,7 +7,11 @@ with Droopi.References;
 
 package CORBA.ORB is
 
-   package Octet_Sequence is new Sequences.Unbounded (Octet);
+   pragma Elaborate_Body;
+
+   package Octet_Sequence is
+      new Sequences.Unbounded (Octet);
+
    type ServiceDetail is record
       Service_Detail_Type : ServiceDetailType;
       Service_Detail      : Octet_Sequence.Sequence;

@@ -1,4 +1,6 @@
 with Droopi.Objects;
+with Droopi.Smart_Pointers;
+with Droopi.References.IOR;
 
 with CORBA.AbstractBase;
 with CORBA.Context;
@@ -9,7 +11,8 @@ with CORBA.Request;
 
 package CORBA.Object is
 
-   --  type Ref is new Droopi.Smart_Pointers.Ref with private;
+   --  pragma Elaborate_Body;
+
    type Ref is new CORBA.AbstractBase.Ref with private;
 
    --  Requires CORBA.InterfaceDef to be implemented.
@@ -56,7 +59,8 @@ package CORBA.Object is
 
    function Hash
      (Self    : Ref;
-      Maximum : CORBA.Unsigned_Long) return CORBA.Unsigned_Long;
+      Maximum : CORBA.Unsigned_Long)
+     return CORBA.Unsigned_Long;
 
 --    --  ??? The following subprogram is declared a function in
 --    --  the Ada Language Mapping specification.
@@ -86,9 +90,17 @@ package CORBA.Object is
    --   with a CORBA.Object.Ref. This can be done only when R designates
    --   an object located on this middleware instance.
 
+   function To_Droopi_Ref
+     (R : in Ref)
+     return Droopi.References.Ref;
+
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
+
+   type Reference_Info is new Droopi.Smart_Pointers.Entity with record
+      IOR : Droopi.References.IOR.IOR_Type;
+   end record;
 
 end CORBA.Object;
 

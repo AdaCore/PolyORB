@@ -1,3 +1,5 @@
+--  The CORBA Dynamic Invocation Interface.
+
 --  $Id$
 
 with CORBA.AbstractBase;
@@ -10,7 +12,7 @@ with Droopi.Requests;
 
 package CORBA.Request is
 
-   pragma Elaborate_Body;
+   --  pragma Elaborate_Body;
 
    type Object is limited private;
 

@@ -187,4 +187,22 @@ package body CORBA.Object is
       return Internal_Object_Access (Entity_Of (R)).The_Object.all;
    end To_Droopi_Object;
 
+   function To_Droopi_Ref
+     (R : in Ref)
+     return Droopi.References.Ref
+   is
+      E : constant Droopi.Smart_Pointers.Entity_Ptr
+        := Entity_Of (R);
+   begin
+      if E.all in Reference_Info then
+         return Reference_Info (E.all).IOR.Ref;
+      else
+         --  Must "export" (in the Jonathan sense)
+         --  this interface to make it remotely
+         --  callable, i.e. must construct or retrieve
+         --  a Droopi.References.Reference for this entity.
+         raise Droopi.Not_Implemented;
+      end if;
+   end To_Droopi_Ref;
+
 end CORBA.Object;

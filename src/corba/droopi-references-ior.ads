@@ -1,8 +1,8 @@
 --  Representation of object references as typed
 --  Interoperable Object References.
 
---  An IOR aggregates the identification of an interface
---  and a set of profiles designating an object that supports
+--  An IOR aggregates the identification of an interface (i.e. a type
+--  identifier) and a set of profiles designating an object that supports
 --  this interface. An IOR can be converted to a stringified
 --  representation by marshalling it according to CDR, and converting
 --  the resulting stream element array into a string of hexadecimal digits.
@@ -12,6 +12,7 @@
 with CORBA;
 
 with Droopi.Buffers;      use Droopi.Buffers;
+
 with Sequences.Unbounded;
 
 package Droopi.References.IOR is
@@ -31,7 +32,12 @@ package Droopi.References.IOR is
       Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
    end record;
 
-   package Profile_Record_Seq is new Sequences.Unbounded (Profile_Record);
+   package Profile_Record_Seq is
+      new Sequences.Unbounded (Profile_Record);
+
+   --  An object reference (whose supported interface is not
+   --  reflected by its Ada type) and the associated type information
+   --  (within the IDL typing model).
 
    type IOR_Type is record
       Ref : Droopi.References.Ref;
@@ -63,8 +69,6 @@ package Droopi.References.IOR is
      (Profile                 : in Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
-
-
 
    --   Callbacks : array (Tag_Internet_IOP .. Tag_Multiple_Components)
    --   of Profile_Record;

@@ -14,7 +14,8 @@ CFLAGS+=	-g -gnatao
 TESTS=	droopi-test-no_tasking \
 	droopi-test-thread_pool \
 	droopi-test-no_tasking_poa \
-	droopi-test-thread_pool_poa
+	droopi-test-thread_pool_poa \
+	dynclient
 
 
 all: $(TESTS)
