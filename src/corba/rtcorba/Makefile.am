@@ -20,7 +20,8 @@ ADA_SPECS_WITH_BODY = \
 		rtcorba-prioritymodelpolicy.ads \
 		rtcorba-prioritytransform.ads \
 		rtcorba-threadpoolpolicy.ads \
-		rtportableserver-poa.ads
+		rtportableserver-poa.ads \
+		rtportableserver-poa-helper.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-rtcorba_p.ads \

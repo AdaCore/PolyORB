@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 R T P O R T A B L E S E R V E R . P O A                  --
+--          R T P O R T A B L E S E R V E R . P O A . H E L P E R           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -39,53 +39,15 @@
 --  $Id$
 
 with CORBA.Object;
-with PortableServer.POA;
-with RTCORBA;
 
-package RTPortableServer.POA is
+package RTPortableServer.POA.Helper is
 
-   --  Implementation Note: RT-CORBA specifications states these
-   --  functions may fail and raise CORBA.BAD_PARAM if the priority
-   --  parameter doest not match the priority configuration for
-   --  ressources assigned to the POA.
-   --
-   --  As a consequence, PolyORB will raise BAD_PARAM if either the
-   --  POA doest not support a ThreadPoolPolicy or if the set up of
-   --  attached ThreadPoolPolicy doest not match the priority
-   --  parameter.
+   function Unchecked_To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTPortableServer.POA.Local_Ref;
 
-   type Local_Ref is new PortableServer.POA.Ref with private;
+   function To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTPortableServer.POA.Local_Ref;
 
-   function Create_Reference_With_Priority
-     (Self      : in Local_Ref;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
-
-   function Create_Reference_With_Id_And_Priority
-     (Self      : in Local_Ref;
-      Oid       : in PortableServer.ObjectId;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
-
-   function Activate_Object_With_Priority
-     (Self       : in Local_Ref;
-      P_Servant  : in PortableServer.Servant;
-      Priority   : in RTCORBA.Priority)
-     return PortableServer.ObjectId;
-
-   procedure Activate_Object_With_Id_And_Priority
-     (Self      : in Local_Ref;
-      Oid       : in PortableServer.ObjectId;
-      P_Servant : in PortableServer.Servant;
-      Priority  : in RTCORBA.Priority);
-
-   Repository_Id : constant Standard.String
-     := "IDL:RTPortableServer/POA:1.0";
-
-private
-
-   type Local_Ref is new PortableServer.POA.Ref with null record;
-
-end RTPortableServer.POA;
+end RTPortableServer.POA.Helper;

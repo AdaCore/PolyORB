@@ -2,16 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 R T P O R T A B L E S E R V E R . P O A                  --
+--          R T P O R T A B L E S E R V E R . P O A . H E L P E R           --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
---                                                                          --
--- This specification is derived from the CORBA Specification, and adapted  --
--- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,54 +33,41 @@
 
 --  $Id$
 
-with CORBA.Object;
-with PortableServer.POA;
-with RTCORBA;
+with PolyORB.RT_POA;
 
-package RTPortableServer.POA is
+package body RTPortableServer.POA.Helper is
 
-   --  Implementation Note: RT-CORBA specifications states these
-   --  functions may fail and raise CORBA.BAD_PARAM if the priority
-   --  parameter doest not match the priority configuration for
-   --  ressources assigned to the POA.
-   --
-   --  As a consequence, PolyORB will raise BAD_PARAM if either the
-   --  POA doest not support a ThreadPoolPolicy or if the set up of
-   --  attached ThreadPoolPolicy doest not match the priority
-   --  parameter.
+   ----------------------------
+   -- Unchecked_To_Local_Ref --
+   ----------------------------
 
-   type Local_Ref is new PortableServer.POA.Ref with private;
+   function Unchecked_To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTPortableServer.POA.Local_Ref
+   is
+      Result : RTPortableServer.POA.Local_Ref;
 
-   function Create_Reference_With_Priority
-     (Self      : in Local_Ref;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
+   begin
+      Set (Result, CORBA.Object.Object_Of (The_Ref));
 
-   function Create_Reference_With_Id_And_Priority
-     (Self      : in Local_Ref;
-      Oid       : in PortableServer.ObjectId;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
+      return Result;
+   end Unchecked_To_Local_Ref;
 
-   function Activate_Object_With_Priority
-     (Self       : in Local_Ref;
-      P_Servant  : in PortableServer.Servant;
-      Priority   : in RTCORBA.Priority)
-     return PortableServer.ObjectId;
+   ------------------
+   -- To_Local_Ref --
+   ------------------
 
-   procedure Activate_Object_With_Id_And_Priority
-     (Self      : in Local_Ref;
-      Oid       : in PortableServer.ObjectId;
-      P_Servant : in PortableServer.Servant;
-      Priority  : in RTCORBA.Priority);
+   function To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTPortableServer.POA.Local_Ref
+   is
+   begin
+      if CORBA.Object.Entity_Of (The_Ref).all
+        not in PolyORB.RT_POA.RT_Obj_Adapter'Class then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
 
-   Repository_Id : constant Standard.String
-     := "IDL:RTPortableServer/POA:1.0";
+      return Unchecked_To_Local_Ref (The_Ref);
+   end To_Local_Ref;
 
-private
-
-   type Local_Ref is new PortableServer.POA.Ref with null record;
-
-end RTPortableServer.POA;
+end RTPortableServer.POA.Helper;

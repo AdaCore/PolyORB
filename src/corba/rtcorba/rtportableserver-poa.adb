@@ -51,32 +51,17 @@ package body RTPortableServer.POA is
 
    use PolyORB.Tasking.Priorities;
 
-   function To_RT_POA (Self : Ref) return PolyORB.RT_POA.RT_Obj_Adapter_Access;
+   function To_RT_POA
+     (Self : Local_Ref)
+     return PolyORB.RT_POA.RT_Obj_Adapter_Access;
    --  Convert a Ref to a CORBA RTPOA to a PolyORB RTPOA
-
-   ------------
-   -- To_Ref --
-   ------------
-
-   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref is
-      Result : Ref;
-
-   begin
-      if CORBA.Object.Entity_Of (Self).all
-        not in PolyORB.RT_POA.RT_Obj_Adapter'Class then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      Set (Result, CORBA.Object.Entity_Of (Self));
-      return Result;
-   end To_Ref;
 
    ---------------
    -- To_RT_POA --
    ---------------
 
    function To_RT_POA
-     (Self : Ref)
+     (Self : Local_Ref)
      return PolyORB.RT_POA.RT_Obj_Adapter_Access
    is
       use PolyORB.Smart_Pointers;
@@ -109,7 +94,7 @@ package body RTPortableServer.POA is
    ------------------------------------
 
    function Create_Reference_With_Priority
-     (Self      : in Ref;
+     (Self      : in Local_Ref;
       Intf      : in CORBA.RepositoryId;
       Priority  : in RTCORBA.Priority)
      return CORBA.Object.Ref
@@ -161,7 +146,7 @@ package body RTPortableServer.POA is
    -------------------------------------------
 
    function Create_Reference_With_Id_And_Priority
-     (Self      : in Ref;
+     (Self      : in Local_Ref;
       Oid       : in PortableServer.ObjectId;
       Intf      : in CORBA.RepositoryId;
       Priority  : in RTCORBA.Priority)
@@ -219,7 +204,7 @@ package body RTPortableServer.POA is
    -----------------------------------
 
    function Activate_Object_With_Priority
-     (Self       : in Ref;
+     (Self       : in Local_Ref;
       P_Servant  : in PortableServer.Servant;
       Priority   : in RTCORBA.Priority)
      return PortableServer.ObjectId
@@ -262,7 +247,7 @@ package body RTPortableServer.POA is
    ------------------------------------------
 
    procedure Activate_Object_With_Id_And_Priority
-     (Self      : in Ref;
+     (Self      : in Local_Ref;
       Oid       : in PortableServer.ObjectId;
       P_Servant : in PortableServer.Servant;
       Priority  : in RTCORBA.Priority)

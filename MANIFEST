@@ -674,6 +674,8 @@ src/corba/rtcorba/rtcorba-threadpoolpolicy.adb
 src/corba/rtcorba/rtcorba-threadpoolpolicy.ads
 src/corba/rtcorba/rtcorba.adb
 src/corba/rtcorba/rtcorba.ads
+src/corba/rtcorba/rtportableserver-poa-helper.adb
+src/corba/rtcorba/rtportableserver-poa-helper.ads
 src/corba/rtcorba/rtportableserver-poa.adb
 src/corba/rtcorba/rtportableserver-poa.ads
 src/corba/rtcorba/rtportableserver.ads

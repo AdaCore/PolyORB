@@ -47,7 +47,7 @@ with RTCORBA.PriorityMapping.Linear;
 with RTCORBA.PriorityModelPolicy;
 with RTCORBA.ThreadpoolPolicy;
 
-with RTPortableServer.POA;
+with RTPortableServer.POA.Helper;
 
 with PolyORB.RTCORBA_P.Setup;
 
@@ -139,7 +139,7 @@ begin
       procedure Test_SERVER_DECLARED_1 is
          Obj_Server : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
          Priority_Model_Policy_Ref_Server : RTCORBA.PriorityModelPolicy.Ref;
-         Child_POA_Server : RTPortableServer.POA.Ref;
+         Child_POA_Server : RTPortableServer.POA.Local_Ref;
          Policies_Server : CORBA.Policy.PolicyList;
          Ref_Server : CORBA.Object.Ref;
 
@@ -161,7 +161,7 @@ begin
          Append (Policies_Server,
                  CORBA.Policy.Ref (Priority_Model_Policy_Ref_Server));
 
-         Child_POA_Server := RTPortableServer.POA.To_Ref
+         Child_POA_Server := RTPortableServer.POA.Helper.To_Local_Ref
            (PortableServer.POA.Create_POA
             (Root_POA,
              CORBA.To_CORBA_String ("Child_POA_Server"),
@@ -293,7 +293,7 @@ begin
       procedure Test_SERVER_DECLARED_2 is
          Obj_Server : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
          Priority_Model_Policy_Ref_Server : RTCORBA.PriorityModelPolicy.Ref;
-         Child_POA_Server : RTPortableServer.POA.Ref;
+         Child_POA_Server : RTPortableServer.POA.Local_Ref;
          Policies_Server : CORBA.Policy.PolicyList;
          Ref_Server : CORBA.Object.Ref;
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
@@ -350,7 +350,7 @@ begin
 
          Output ("NO_IMPLICIT_ACTIVATION policy declared", True);
 
-         Child_POA_Server := RTPortableServer.POA.To_Ref
+         Child_POA_Server := RTPortableServer.POA.Helper.To_Local_Ref
            (PortableServer.POA.Create_POA
             (Root_POA,
              CORBA.To_CORBA_String ("Child_POA_Server"),
@@ -474,7 +474,7 @@ begin
       procedure Test_CLIENT_PROPAGATED_1 is
          Obj_Client : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
          Priority_Model_Policy_Ref_Client : RTCORBA.PriorityModelPolicy.Ref;
-         Child_POA_Client : RTPortableServer.POA.Ref;
+         Child_POA_Client : RTPortableServer.POA.Local_Ref;
          Policies_Client : CORBA.Policy.PolicyList;
          Ref_Client : CORBA.Object.Ref;
 
@@ -496,7 +496,7 @@ begin
          Append (Policies_Client,
                  CORBA.Policy.Ref (Priority_Model_Policy_Ref_Client));
 
-         Child_POA_Client := RTPortableServer.POA.To_Ref
+         Child_POA_Client := RTPortableServer.POA.Helper.To_Local_Ref
            (PortableServer.POA.Create_POA
             (Root_POA,
              CORBA.To_CORBA_String ("Child_POA_Client"),
@@ -605,7 +605,7 @@ begin
       procedure Test_CLIENT_PROPAGATED_2 is
          Obj_Client : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
          Priority_Model_Policy_Ref_Client : RTCORBA.PriorityModelPolicy.Ref;
-         Child_POA_Client : RTPortableServer.POA.Ref;
+         Child_POA_Client : RTPortableServer.POA.Local_Ref;
          Policies_Client : CORBA.Policy.PolicyList;
          Ref_Client : CORBA.Object.Ref;
 
@@ -636,7 +636,7 @@ begin
 
          Output ("NO_IMPLICIT_ACTIVATION policy declared", True);
 
-         Child_POA_Client := RTPortableServer.POA.To_Ref
+         Child_POA_Client := RTPortableServer.POA.Helper.To_Local_Ref
            (PortableServer.POA.Create_POA
             (Root_POA,
              CORBA.To_CORBA_String ("Child_POA_Client"),

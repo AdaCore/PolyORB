@@ -47,7 +47,7 @@ with RTCORBA.PriorityMapping.Linear;
 with RTCORBA.PriorityModelPolicy;
 with RTCORBA.ThreadpoolPolicy;
 
-with RTPortableServer.POA;
+with RTPortableServer.POA.Helper;
 
 with PolyORB.RTCORBA_P.Setup;
 
@@ -256,7 +256,7 @@ begin
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
          Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Ref;
          Policies : CORBA.Policy.PolicyList;
-         Child_POA_Server : RTPortableServer.POA.Ref;
+         Child_POA_Server : RTPortableServer.POA.Local_Ref;
 
          Ref_Server : CORBA.Object.Ref;
 
@@ -300,7 +300,7 @@ begin
          Append (Policies,
                  CORBA.Policy.Ref (Thread_Pool_Policy_Ref));
 
-         Child_POA_Server := RTPortableServer.POA.To_Ref
+         Child_POA_Server := RTPortableServer.POA.Helper.To_Local_Ref
            (PortableServer.POA.Create_POA
             (Root_POA,
              CORBA.To_CORBA_String ("Child_POA_Server"),

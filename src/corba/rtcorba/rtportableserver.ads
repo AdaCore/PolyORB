@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -41,5 +41,8 @@
 package RTPortableServer is
 
    pragma Pure (RTPortableServer);
+
+   Repository_Id : constant Standard.String
+     := "IDL:RTPortableServer:1.0";
 
 end RTPortableServer;
