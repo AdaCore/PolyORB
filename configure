@@ -1107,8 +1107,8 @@ ac_given_INSTALL="$INSTALL"
 trap 'rm -fr `echo "Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile
-           Examples/Makefile
            Examples/check-config
+           Examples/Makefile
            Examples/Prime/Makefile
            Examples/RACW/Makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
@@ -1176,8 +1176,8 @@ cat >> $CONFIG_STATUS <<EOF
 CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile
-           Examples/Makefile
            Examples/check-config
+           Examples/Makefile
            Examples/Prime/Makefile
            Examples/RACW/Makefile"}
 EOF

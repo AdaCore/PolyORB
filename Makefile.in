@@ -6,7 +6,7 @@
 
 #
 
-# $Id: Makefile.am,v 1.1 1996/07/01 15:43:19 tardieu Exp $
+# $Id: Makefile.am,v 1.1 1996/08/12 07:40:54 tardieu Exp $
 
 #
 
@@ -47,8 +47,8 @@ transform = @program_transform_name@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = Dist Garlic
 mkinstalldirs = $(top_srcdir)/mkinstalldirs
-DIST_COMMON = README ChangeLog INSTALL Makefile.am Makefile.in NEWS \
-README TODO config.guess config.sub configure configure.in install-sh \
+DIST_COMMON = README ChangeLog INSTALL Makefile.am Makefile.in README \
+TODO config.guess config.sub configure configure.in install-sh \
 mkinstalldirs
 
 

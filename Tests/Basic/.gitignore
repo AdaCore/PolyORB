@@ -1,10 +1,11 @@
-b_*.cfg
 *.ali
-test_basic
-test_basic.cfg
+b_*.cfg
 bin
-dsa
 caller
+dsa
 part1
 part2
 receiver
+t_b.cfg
+test_basic
+test_basic.cfg
