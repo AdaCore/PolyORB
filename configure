@@ -1027,10 +1027,10 @@ echo "configure:1023: checking for GNAT sources" >&5
     GNAT_SOURCE=../ada
     echo "$ac_t""ada" 1>&6
   elif test -f $srcdir/gnat/osint.ads; then
-    GNAT_SOURCE=$srcdir/gnat
+    GNAT_SOURCE=\${top_srcdir}/gnat
     echo "$ac_t""$srcdir/gnat" 1>&6
   elif test -f $srcdir/ada/osint.ads; then
-    GNAT_SOURCE=$srcdir/ada
+    GNAT_SOURCE=\${top_srcdir}/ada
     echo "$ac_t""$srcdir/ada" 1>&6
   else
     { echo "configure: error: no sources found" 1>&2; exit 1; }

@@ -74,10 +74,10 @@ AC_DEFUN([AC_GNAT_SOURCE],
     GNAT_SOURCE=../ada
     AC_MSG_RESULT(ada)
   elif test -f $srcdir/gnat/osint.ads; then
-    GNAT_SOURCE=$srcdir/gnat
+    GNAT_SOURCE=[\${top_srcdir}/gnat]
     AC_MSG_RESULT($srcdir/gnat)
   elif test -f $srcdir/ada/osint.ads; then
-    GNAT_SOURCE=$srcdir/ada
+    GNAT_SOURCE=[\${top_srcdir}/ada]
     AC_MSG_RESULT($srcdir/ada)
   else
     AC_MSG_ERROR([no sources found])

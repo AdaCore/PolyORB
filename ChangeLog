@@ -1,3 +1,8 @@
+	* configure.in: Test for non-blocking I/Os when compiling the TCP
+	  module to avoid sometimes trying to compile a non-compilable file.
+
+Wed Feb 12 10:49:41 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
 	* README (Introduction): Typo.
 
 Tue Feb 11 10:18:20 1997  Laurent Pautet <pautet@inf.enst.fr>
