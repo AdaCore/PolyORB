@@ -8,7 +8,7 @@
  	"elaboration" for debugging purpose. Adapt Makefile to work for
  	other Make and not only GNUMake.
 
-	* s-ganata.adb, s-ganata.ads: Substitute Free by Destroy. Remove
+	* s-ganata.adb, s-ganata.ads: Replace Free by Destroy. Remove
  	elaboration code and add procedure Initialize.
 
 	* s-ganobl.adb, s-ganobl.ads: Add procedures Initialize and
@@ -19,17 +19,17 @@
  	then reused in another connection. Receive operations were not
  	resumed by the close operation but were consuming the data from
  	the newly created connection. Update protected types due to
- 	changes above. Substitute TCP by Tcp.
+ 	changes above. Replace TCP by Tcp.
 
 	* s-gaphlo.adb, s-gaphlo.ads: New procedures Add_Missing_Locations
  	Add_First_Missing_Location and To_Location. Remove protocol
  	registration procedure and shutdown procedure (redundant with
- 	System.Garlic.Protocols procedures). Substitute Free by Destroy.
+ 	System.Garlic.Protocols procedures). Replace Free by Destroy.
 
 	* s-gaplsp.ads.in: Split Default_Boot_Server into a
  	Default_Protocol_Name and a Default_Protocol_Data.
 
-	* s-gaprco.adb.in: Substitute TCP by Tcp. Rewrite protocol
+	* s-gaprco.adb.in: Replace TCP by Tcp. Rewrite protocol
 	registration.
 
 	* s-gaprco.ads: Move protocol table and bounds into
@@ -49,7 +49,7 @@
 
 	* s-gargro.adb: Minor reformating.
 
-	* s-garhea.adb, s-garhea.ads: Substitute Soft_Shutdown by
+	* s-garhea.adb, s-garhea.ads: Replace Soft_Shutdown by
  	Activate_Shutdown. Only the environment task can shutdown the
  	partition. Any other task will set Shutdown_Activated to true and
  	the environment will wake up to do its job. All Shutdown
@@ -60,14 +60,14 @@
  	partition. This info was missing previously because TCP was the
  	default protocol.
 
-	* s-garnam.adb: Substitute Free by Destroy. Minor reformating.
+	* s-garnam.adb: Replace Free by Destroy. Minor reformating.
 	Move type String_Array to Garlic.Utils.
 
-	* s-garopt.adb, s-garopt.ads: Substitute Boot_Server by
+	* s-garopt.adb, s-garopt.ads: Replace Boot_Server by
  	Boot_Location. Boot_Server becomes obsolete but is still
  	supported. Handle the case where both a boot location and a self
  	location are specified on the boot partition. Boot locations are
- 	appended to the self location of the boot partition. Substitute
+ 	appended to the self location of the boot partition. Replace
  	Free by Destroy. Self_Location and Boot_Location are now
  	String_Array_Access instead of String_Access. This enables
  	multiple locations.
@@ -91,7 +91,7 @@
  	were supposed to return only one location but which now return an
  	array of locations.
 
-	* s-garpro.adb, s-garpro.ads: Substitute Get_Info into Get_Data to
+	* s-garpro.adb, s-garpro.ads: Replace Get_Info by Get_Data to
  	have consistent notations. Add Register and Shutdown
  	procedures. Remove redundant code from other units and locate
  	these procedures in a more appropriate unit. Revisit the
@@ -104,7 +104,7 @@
 
 	* s-garrem.adb, s-garrem.ads: Minor reformating.
 
-	* s-garrep.adb: Update due to changes above. Substitute Get_Info
+	* s-garrep.adb: Update due to changes above. Replace Get_Info
 	by Get_Data. Update Initialize (see s-garpro.ads). Revisit
 	Shutdown to ensure synchronous shutdown.
 
@@ -131,7 +131,7 @@
 	* s-gartab.adb, s-gartab.ads: Add Initialize procedure for each
 	generic package.
 
-	* s-gartcp.adb, s-gartcp.ads: Substitute TCP by Tcp. Substitute
+	* s-gartcp.adb, s-gartcp.ads: Replace TCP by Tcp. Replace
  	Get_Info by Get_Data and return an array of locations. Revisit
  	Set_Boot_Data and Initialize to accept several self locations and
  	several boot locations. Initialize TCP_Operations - because when
@@ -642,10 +642,10 @@
 
         * s-garuti.adb: Define No_Version which is the initialized value
         of a watcher and which can no longer be reached once this watcher
-        is used. Substitute Commit by Lookup. Add a function "<" for
+        is used. Replace Commit by Lookup. Add a function "<" for
         Version_Id.
 
-        * s-gartab.adb, s-gartcp.adb, s-garuti.ads, s-rpc.adb: Substitute
+        * s-gartab.adb, s-gartcp.adb, s-garuti.ads, s-rpc.adb: Replace
         Commit by Lookup.
 
 1999-01-25  Laurent Pautet  <pautet@scapin.enst.fr>
