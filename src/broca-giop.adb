@@ -354,6 +354,7 @@ package body Broca.GIOP is
       Request_Id         : CORBA.Unsigned_Long;
       Header_Correct     : Boolean;
    begin
+      pragma Debug (O ("Send_Request_Send : Enter"));
       --  Add GIOP header.
       Marshall_GIOP_Header
         (Header_Buffer'Access,
@@ -361,10 +362,12 @@ package body Broca.GIOP is
          Length (Handler.Buffer'Access));
       Prepend (Header_Buffer, Handler.Buffer'Access);
 
+      pragma Debug (O ("Send_Request_Send : about to send request"));
       --  1.3 Send request.
       IOP.Send (Handler.Connection, Handler.Buffer'Access);
       Release (Handler.Buffer);
 
+      pragma Debug (O ("Send_Request_Send : request sent"));
       if not Reponse_Expected then
          IOP.Release (Handler.Connection);
          Result := Sr_No_Reply;
@@ -374,7 +377,7 @@ package body Broca.GIOP is
       --  1.4 Receive reply
       --  1.4.1 the message header
 
-      pragma Debug (O ("Receive answer ..."));
+      pragma Debug (O ("Send_Request_Send : Receive answer ..."));
       declare
          Message_Header : Broca.Opaque.Octet_Array_Ptr
            := IOP.Receive (Handler.Connection,
@@ -382,7 +385,7 @@ package body Broca.GIOP is
          Message_Header_Buffer : aliased Buffer_Type;
          Endianness : Endianness_Type;
       begin
-         pragma Debug (O ("Receive answer done"));
+         pragma Debug (O ("Send_Request_Send : Receive answer done"));
 
          if CORBA.Boolean'Val
            (CORBA.Octet (Message_Header
@@ -415,6 +418,7 @@ package body Broca.GIOP is
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
+      pragma Debug (O ("Send_Request_Send : about to receive reply"));
       --  1.4.5 Receive the reply header and body.
       Handler.Data.Message_Body :=
         IOP.Receive (Handler.Connection,
@@ -451,6 +455,7 @@ package body Broca.GIOP is
             Broca.Exceptions.Raise_Comm_Failure;
          end if;
 
+         pragma Debug (O ("Send_Request_Send : checking reply status"));
          --  Reply status
          Reply_Status := Unmarshall (Message_Body_Buffer'Access);
          case Reply_Status is

@@ -2,9 +2,9 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---           S E Q U E N C E S . U N B O U N D E D . S E A R C H            --
+--                 C O R B A . E X C E P T I O N L I S T                    --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
@@ -31,81 +31,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body Sequences.Unbounded.Search is
+with CORBA.AbstractBase;
+with CORBA.Impl;
+with Sequences.Unbounded;
+pragma Elaborate_All (Sequences.Unbounded);
 
-   -----------
-   -- Count --
-   -----------
+package CORBA.ExceptionList is
 
-   function Count
-     (Haystack : in Sequence;
-      Needle   : in Needle_Type)
-     return Natural
-   is
-      Times  : Natural := 0;
+   type Ref is new CORBA.AbstractBase.Ref with null record;
+   Nil_Ref : constant Ref;
 
-   begin
-      for Index in 1 .. Haystack.Length loop
-         if Match (Haystack.Content (Index), Needle) then
-            Times := Times + 1;
-         end if;
-      end loop;
+   type Object is new CORBA.Impl.Object with private;
+   type Object_Ptr is access all Object;
 
-      return Times;
-   end Count;
+   procedure Finalize (Obj : in out Object);
 
-   -----------
-   -- Index --
-   -----------
+   function Get_Count
+     (Self : in Ref)
+     return CORBA.Unsigned_Long;
 
-   function Index
-     (Haystack : Sequences.Unbounded.Sequence;
-      Needle   : Needle_Type;
-      Going    : Direction := Forward)
-     return Natural
-   is
-      Shift  : Integer;
-      From   : Natural;
-      To     : Natural;
+   procedure Add
+     (Self : in Ref;
+      Exc : in CORBA.TypeCode.Object);
 
-   begin
-      if Going = Forward then
-         Shift := 1;
-         From  := 1;
-         To    := Haystack.Length + 1;
-      else
-         Shift := -1;
-         From  := Haystack.Length;
-         To    := 0;
-      end if;
+   function Item
+     (Self : in Ref;
+      Index : in CORBA.Unsigned_Long)
+     return CORBA.TypeCode.Object;
 
-      while From /= To loop
-         if Match (Haystack.Content (From), Needle) then
-            return From;
-         end if;
-         From := From + Shift;
-      end loop;
+   procedure Remove
+     (Self : in Ref;
+      Index : in CORBA.Unsigned_Long);
 
-      --  No match
-      return 0;
-   end Index;
+   function Create_Object return Object_Ptr;
 
-   ------------------
-   -- Sub_Sequence --
-   ------------------
-   function Sub_Sequence
-     (Haystack : Sequence;
-      Needle   : Needle_Type)
-      return Sequence
-   is
-      Result : Sequence := Null_Sequence;
-   begin
-      for Index in 1 .. Haystack.Length loop
-         if Match (Haystack.Content (Index), Needle) then
-            Append (Result, Haystack.Content (Index));
-         end if;
-      end loop;
+   function Search_Exception_Id
+     (Self : in Ref;
+      Name : in CORBA.RepositoryId)
+     return CORBA.Unsigned_Long;
 
-      return Result;
-   end Sub_Sequence;
-end Sequences.Unbounded.Search;
+private
+   --  The actual implementation of an ExceptionList:
+   --  a list of TypeCode
+   package Exception_Sequence is new Sequences.Unbounded
+     (CORBA.TypeCode.Object);
+
+   type Object is new CORBA.Impl.Object with record
+     List : Exception_Sequence.Sequence := Exception_Sequence.Null_Sequence;
+   end record;
+
+   Nil_Ref : constant Ref
+     := (CORBA.AbstractBase.Ref with null record);
+end CORBA.ExceptionList;

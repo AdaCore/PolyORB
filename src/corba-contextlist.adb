@@ -2,9 +2,9 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---           S E Q U E N C E S . U N B O U N D E D . S E A R C H            --
+--                 C O R B A . E X C E P T I O N L I S T                    --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
@@ -31,81 +31,73 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body Sequences.Unbounded.Search is
+package body CORBA.ContextList is
 
-   -----------
-   -- Count --
-   -----------
-
-   function Count
-     (Haystack : in Sequence;
-      Needle   : in Needle_Type)
-     return Natural
-   is
-      Times  : Natural := 0;
-
+   ----------------
+   --  Finalize  --
+   ----------------
+   procedure Finalize (Obj : in out Object) is
    begin
-      for Index in 1 .. Haystack.Length loop
-         if Match (Haystack.Content (Index), Needle) then
-            Times := Times + 1;
-         end if;
-      end loop;
+      Context_Sequence.Delete (Obj.List,
+                               1,
+                               Context_Sequence.Length (Obj.List));
+   end Finalize;
 
-      return Times;
-   end Count;
+   -----------------
+   --  Get_Count  --
+   -----------------
+   function Get_Count
+     (Self : in Ref)
+      return CORBA.Unsigned_Long is
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+   begin
+      return CORBA.Unsigned_Long (Context_Sequence.Length (Obj.List));
+   end Get_Count;
 
    -----------
-   -- Index --
+   --  Add  --
    -----------
-
-   function Index
-     (Haystack : Sequences.Unbounded.Sequence;
-      Needle   : Needle_Type;
-      Going    : Direction := Forward)
-     return Natural
-   is
-      Shift  : Integer;
-      From   : Natural;
-      To     : Natural;
-
+   procedure Add
+     (Self : in Ref;
+      Exc : in CORBA.String) is
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
-      if Going = Forward then
-         Shift := 1;
-         From  := 1;
-         To    := Haystack.Length + 1;
-      else
-         Shift := -1;
-         From  := Haystack.Length;
-         To    := 0;
-      end if;
+      Context_Sequence.Append (Obj.List, Exc);
+   end Add;
 
-      while From /= To loop
-         if Match (Haystack.Content (From), Needle) then
-            return From;
-         end if;
-         From := From + Shift;
-      end loop;
-
-      --  No match
-      return 0;
-   end Index;
-
-   ------------------
-   -- Sub_Sequence --
-   ------------------
-   function Sub_Sequence
-     (Haystack : Sequence;
-      Needle   : Needle_Type)
-      return Sequence
-   is
-      Result : Sequence := Null_Sequence;
+   ----------
+   -- Item --
+   ----------
+   function Item
+     (Self : in Ref;
+      Index : in CORBA.Unsigned_Long)
+      return CORBA.String is
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
-      for Index in 1 .. Haystack.Length loop
-         if Match (Haystack.Content (Index), Needle) then
-            Append (Result, Haystack.Content (Index));
-         end if;
-      end loop;
+      return Context_Sequence.Element_Of (Obj.List, Positive (Index));
+   end Item;
 
-      return Result;
-   end Sub_Sequence;
-end Sequences.Unbounded.Search;
+   --------------
+   --  Remove  --
+   --------------
+   procedure Remove
+     (Self : in Ref;
+      Index : in CORBA.Unsigned_Long) is
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+   begin
+      Context_Sequence.Delete (Obj.List, Positive (Index), 1);
+   end Remove;
+
+   -------------------
+   -- Create_Object --
+   -------------------
+   function Create_Object return Object_Ptr
+   is
+      Actual_Ref : constant CORBA.ContextList.Object_Ptr
+        := new Object;
+   begin
+      Actual_Ref.List := Context_Sequence.Null_Sequence;
+      return Actual_Ref;
+   end Create_Object;
+
+end CORBA.ContextList;

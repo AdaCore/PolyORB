@@ -36,6 +36,7 @@ with CORBA.Object;
 with CORBA.Sequences.Unbounded;
 pragma Elaborate_All (CORBA.Sequences.Unbounded);
 with CORBA.NVList;
+with CORBA.ExceptionList;
 
 package CORBA.ORB is
 
@@ -97,5 +98,10 @@ package CORBA.ORB is
    procedure Create_List
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref);
+
+   --  creation of an empty ExceptionList
+   --  Note that the count parameter is useless
+   procedure Create_List
+     (New_List :    out CORBA.ExceptionList.Ref);
 
 end CORBA.ORB;

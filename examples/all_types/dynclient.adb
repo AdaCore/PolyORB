@@ -37,6 +37,8 @@ with CORBA.Object.Helper;
 with CORBA.Context;
 with CORBA.Request;
 with CORBA.NVList;
+with CORBA.ContextList;
+with CORBA.ExceptionList;
 with CORBA.ORB;
 
 with Report;    use Report;
@@ -66,7 +68,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -105,7 +106,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -144,7 +144,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -183,7 +182,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -222,7 +220,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -261,7 +258,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -300,7 +296,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -339,7 +334,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -378,7 +372,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -417,7 +410,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -456,7 +448,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.Object.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -496,7 +487,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -536,7 +526,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -576,7 +565,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -616,7 +604,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -656,7 +643,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -696,7 +682,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -736,7 +721,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -776,7 +760,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -816,7 +799,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -855,7 +837,6 @@ procedure DynClient is
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
-      CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
@@ -935,6 +916,48 @@ procedure DynClient is
       return CORBA.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
    end Get_Counter;
+
+   procedure TestException
+     (Self : in CORBA.Object.Ref;
+      Arg : in CORBA.Long) is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("testException");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Excp_List : CORBA.ExceptionList.Ref;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result : CORBA.NamedValue;
+   begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      Argument := CORBA.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  creating the exception list
+      CORBA.ORB.Create_List (Excp_List);
+      CORBA.ExceptionList.Add (Excp_List,
+                               All_Types.Helper.TC_My_Exception_Members);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Excp_List,
+                                   CORBA.ContextList.Nil_Ref,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+   end TestException;
 
 begin
    if Ada.Command_Line.Argument_Count < 1 then
@@ -1068,6 +1091,28 @@ begin
       begin
          Output ("test read-only attribute",
                  Counter_Second_Value = Counter_First_Value + 1);
+      end;
+
+      --  Exceptions
+      declare
+         Ok : Boolean;
+      begin
+         Ok := False;
+         declare
+            Member : UserUnknownException_Members;
+            Info : CORBA.Long;
+         begin
+            testException (Myall_types, 2485);
+         exception
+            when E : UserUnknownException =>
+               Get_Members (E, Member);
+               Info := From_Any
+                 (Get_Aggregate_Element (Member.IDL_Exception,
+                                         CORBA.TC_Long,
+                                         CORBA.Unsigned_Long (0)));
+               Ok := (Info = 2485);
+         end;
+         Output ("test exception", Ok);
       end;
 
       exit when One_Shot;

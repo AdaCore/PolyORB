@@ -98,6 +98,17 @@ package body CORBA.ORB is
          CORBA.Impl.Object_Ptr (CORBA.NVList.Create_Object));
    end Create_List;
 
+   -----------------
+   -- Create_List --
+   -----------------
+   procedure Create_List
+      (New_List :    out CORBA.ExceptionList.Ref) is
+   begin
+      CORBA.ExceptionList.Set
+        (New_List,
+         CORBA.Impl.Object_Ptr (CORBA.ExceptionList.Create_Object));
+   end Create_List;
+
 end CORBA.ORB;
 
 
