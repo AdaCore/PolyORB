@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              POLYORB.TASKING.PROFILES.RAVENSCAR.CALENDAR                 --
+--            P O L Y O R B . U T I L S . R T _ C A L E N D A R             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2003 Free Software Foundation, Inc.              --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with Ada.Unchecked_Deallocation;
 with Ada.Real_Time;
 
@@ -39,7 +41,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Utils.Strings;
 with Ada.Unchecked_Conversion;
 
-package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
+package body PolyORB.Utils.RT_Calendar is
 
    function To_Duration is new Ada.Unchecked_Conversion
      (Ada.Real_Time.Time,  Duration);
@@ -85,6 +87,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
    --  mktime returns -1 in case the calendar time given by components of
    --  TM.all cannot be represented.
 
+
    Unix_Year_Min : constant := 1970;
    Unix_Year_Max : constant := 2038;
 
@@ -101,22 +104,22 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
    Seconds_In_4_YearsD : constant Duration := Duration (Seconds_In_4_Years);
 
    procedure Free is new Ada.Unchecked_Deallocation
-     (Ravenscar_Time_Type, Ravenscar_Time_Type_Access);
+     (RT_Time_Type, RT_Time_Type_Access);
 
    ------------
    -- Create --
    ------------
 
-   function Create (CF : access Ravenscar_Clock_Factory)
+   function Create (CF : access RT_Clock_Factory)
                    return Time_Type_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (CF);
       pragma Warnings (On);
 
-      New_Time : Ravenscar_Time_Type_Access;
+      New_Time : RT_Time_Type_Access;
    begin
-      New_Time := new Ravenscar_Time_Type;
+      New_Time := new RT_Time_Type;
       return New_Time.all'Access;
    end Create;
 
@@ -124,14 +127,14 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
    -- Destroy --
    -------------
 
-   procedure Destroy (CF : access Ravenscar_Clock_Factory;
+   procedure Destroy (CF : access RT_Clock_Factory;
                       Clock : in out Time_Type_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (CF);
       pragma Warnings (On);
    begin
-      Free (Ravenscar_Time_Type_Access (Clock));
+      Free (RT_Time_Type_Access (Clock));
    end Destroy;
 
    -----------
@@ -139,7 +142,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
    -----------
 
    procedure Split
-     (Date    : Ravenscar_Time_Type;
+     (Date    : RT_Time_Type;
       Year    : out Year_Number;
       Month   : out Month_Number;
       Day     : out Day_Number;
@@ -281,7 +284,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
       Month   : Month_Number;
       Day     : Day_Number;
       Seconds : Day_Duration := 0.0)
-     return    Ravenscar_Time_Type
+     return    RT_Time_Type
       is
       Result_Secs : aliased time_t;
       TM_Val      : aliased tm;
@@ -352,7 +355,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
 
       declare
          use Ada.Real_Time;
-         Result : Ravenscar_Time_Type;
+         Result : RT_Time_Type;
       begin
          Result.Time := To_Time (Duration (Result_Secs) +
                                  Duration_Adjust +
@@ -366,7 +369,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
    -- Year --
    ----------
 
-   function Year (Date : Ravenscar_Time_Type) return Year_Number is
+   function Year (Date : RT_Time_Type) return Year_Number is
       DY : Year_Number;
       DM : Month_Number;
       DD : Day_Number;
@@ -381,7 +384,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
    -- Day --
    ---------
 
-   function Day (Date : Ravenscar_Time_Type) return Day_Number is
+   function Day (Date : RT_Time_Type) return Day_Number is
       DY : Year_Number;
       DM : Month_Number;
       DD : Day_Number;
@@ -396,7 +399,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
    -- Month --
    -----------
 
-   function Month (Date : Ravenscar_Time_Type) return Month_Number is
+   function Month (Date : RT_Time_Type) return Month_Number is
       DY : Year_Number;
       DM : Month_Number;
       DD : Day_Number;
@@ -411,7 +414,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
    -- Seconds --
    -------------
 
-   function Seconds (Date : Ravenscar_Time_Type) return Day_Duration is
+   function Seconds (Date : RT_Time_Type) return Day_Duration is
       DY : Year_Number;
       DM : Month_Number;
       DD : Day_Number;
@@ -422,37 +425,54 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
       return DS;
    end Seconds;
 
-   function "+" (Left : Ravenscar_Time_Type; Right : Duration)
-                return Ravenscar_Time_Type
+
+   -----------
+   -- Clock --
+   -----------
+
+   function Clock (CF : access RT_Clock_Factory)
+                     return Time_Type'Class
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (CF);
+      pragma Warnings (On);
+      Result : RT_Time_Type;
+   begin
+      Result.Time := Ada.Real_Time.Clock;
+      return Result;
+   end Clock;
+
+   function "+" (Left : RT_Time_Type; Right : Duration)
+                return RT_Time_Type
    is
       use Ada.Real_Time;
-      Result : Ravenscar_Time_Type;
+      Result : RT_Time_Type;
    begin
       Result.Time := Left.Time + To_Time_Span (Right);
       return Result;
    end "+";
 
-   function "+" (Left : Duration; Right : Ravenscar_Time_Type)
-                return Ravenscar_Time_Type
+   function "+" (Left : Duration; Right : RT_Time_Type)
+                return RT_Time_Type
    is
       use Ada.Real_Time;
-      Result : Ravenscar_Time_Type;
+      Result : RT_Time_Type;
    begin
       Result.Time := To_Time_Span (Left) + Right.Time;
       return Result;
    end "+";
 
-   function "-" (Left : Ravenscar_Time_Type; Right : Duration)
-                return Ravenscar_Time_Type
+   function "-" (Left : RT_Time_Type; Right : Duration)
+                return RT_Time_Type
    is
       use Ada.Real_Time;
-      Result : Ravenscar_Time_Type;
+      Result : RT_Time_Type;
    begin
       Result.Time := Left.Time - To_Time_Span (Right);
       return Result;
    end "-";
 
-   function "-" (Left : Ravenscar_Time_Type; Right : Ravenscar_Time_Type)
+   function "-" (Left : RT_Time_Type; Right : RT_Time_Type)
                 return Duration
    is
       use Ada.Real_Time;
@@ -462,49 +482,33 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
       return Result;
    end "-";
 
-   function "<"  (Left, Right : Ravenscar_Time_Type) return Boolean
+   function "<"  (Left, Right : RT_Time_Type) return Boolean
    is
       use Ada.Real_Time;
    begin
       return Left.Time < Right.Time;
    end "<";
 
-   function "<=" (Left, Right : Ravenscar_Time_Type) return Boolean
+   function "<=" (Left, Right : RT_Time_Type) return Boolean
    is
       use Ada.Real_Time;
    begin
       return Left.Time <= Right.Time;
    end "<=";
 
-   function ">"  (Left, Right : Ravenscar_Time_Type) return Boolean
+   function ">"  (Left, Right : RT_Time_Type) return Boolean
    is
       use Ada.Real_Time;
    begin
       return Left.Time > Right.Time;
    end ">";
 
-   function ">=" (Left, Right : Ravenscar_Time_Type) return Boolean
+   function ">=" (Left, Right : RT_Time_Type) return Boolean
    is
       use Ada.Real_Time;
    begin
       return Left.Time >= Right.Time;
    end ">=";
-
-   -----------
-   -- Clock --
-   -----------
-
-   function Clock (CF : access Ravenscar_Clock_Factory)
-                     return Time_Type'Class
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (CF);
-      pragma Warnings (On);
-      Result : Ravenscar_Time_Type;
-   begin
-      Result.Time := Ada.Real_Time.Clock;
-      return Result;
-   end Clock;
 
    ----------------
    -- Initialize --
@@ -513,7 +517,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
    procedure Initialize is
    begin
       PolyORB.Calendar.Register_Clock_Factory
-        (The_Ravenscar_Clock_Factory'Access);
+        (The_RT_Clock_Factory'Access);
    end Initialize;
 
    use PolyORB.Initialization;
@@ -523,9 +527,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Calendar is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.ravenscar.calendar",
+      (Name => +"tasking.profiles.full_tasking.calendar",
        Conflicts => Empty,
        Depends => Empty,
        Provides => +"calendar",
        Init => Initialize'Access));
-end PolyORB.Tasking.Profiles.Ravenscar.Calendar;
+end PolyORB.Utils.RT_Calendar;

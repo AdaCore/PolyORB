@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             POLYORB.TASKING.PROFILES.FULL_TASKING.CALENDAR               --
+--            P O L Y O R B . U T I L S . R T _ C A L E N D A R             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2003 Free Software Foundation, Inc.              --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,70 +31,75 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
+--  WARNING: This package relies on Ada.Real_Time, which will load the
+--  ada tasking libraries
+
 with PolyORB.Calendar; use PolyORB.Calendar;
 with Ada.Real_Time;
 
-package PolyORB.Tasking.Profiles.Full_Tasking.Calendar is
+package PolyORB.Utils.RT_Calendar is
 
    procedure Initialize;
    --  Initializes this package
 
-   type Full_Tasking_Time_Type is new Time_Type with private;
-   type Full_Tasking_Time_Type_Access is access all Full_Tasking_Time_Type;
+   type RT_Time_Type is new Time_Type with private;
+   type RT_Time_Type_Access is access all RT_Time_Type;
 
-   type Full_Tasking_Clock_Factory is new Clock_Factory_Type with null record;
+   type RT_Clock_Factory is new Clock_Factory_Type with null record;
 
-   function Create (CF : access Full_Tasking_Clock_Factory)
+   function Create (CF : access RT_Clock_Factory)
                    return Time_Type_Access;
 
-   function Clock (CF : access Full_Tasking_Clock_Factory)
+   function Clock (CF : access RT_Clock_Factory)
                      return Time_Type'Class;
 
-   procedure Destroy (CF : access Full_Tasking_Clock_Factory;
+   procedure Destroy (CF : access RT_Clock_Factory;
                       Clock : in out Time_Type_Access);
 
    procedure Split
-     (Date    : Full_Tasking_Time_Type;
+     (Date    : RT_Time_Type;
       Year    : out Year_Number;
       Month   : out Month_Number;
       Day     : out Day_Number;
       Seconds : out Day_Duration);
 
-   function Year    (Date : Full_Tasking_Time_Type) return Year_Number;
-   function Month   (Date : Full_Tasking_Time_Type) return Month_Number;
-   function Day     (Date : Full_Tasking_Time_Type) return Day_Number;
-   function Seconds (Date : Full_Tasking_Time_Type) return Day_Duration;
+   function Year    (Date : RT_Time_Type) return Year_Number;
+   function Month   (Date : RT_Time_Type) return Month_Number;
+   function Day     (Date : RT_Time_Type) return Day_Number;
+   function Seconds (Date : RT_Time_Type) return Day_Duration;
 
    function Time_Of
      (Year    : Year_Number;
       Month   : Month_Number;
       Day     : Day_Number;
       Seconds : Day_Duration := 0.0)
-      return    Full_Tasking_Time_Type;
+      return    RT_Time_Type;
 
-   function "+" (Left : Full_Tasking_Time_Type; Right : Duration)
-                return Full_Tasking_Time_Type;
-   function "+" (Left : Duration; Right : Full_Tasking_Time_Type)
-                return Full_Tasking_Time_Type;
-   function "-" (Left : Full_Tasking_Time_Type; Right : Duration)
-                return Full_Tasking_Time_Type;
-   function "-" (Left : Full_Tasking_Time_Type; Right : Full_Tasking_Time_Type)
+   function "+" (Left : RT_Time_Type; Right : Duration)
+                return RT_Time_Type;
+   function "+" (Left : Duration; Right : RT_Time_Type)
+                return RT_Time_Type;
+   function "-" (Left : RT_Time_Type; Right : Duration)
+                return RT_Time_Type;
+   function "-" (Left : RT_Time_Type; Right : RT_Time_Type)
                 return Duration;
 
-   function "<"  (Left, Right : Full_Tasking_Time_Type) return Boolean;
-   function "<=" (Left, Right : Full_Tasking_Time_Type) return Boolean;
-   function ">"  (Left, Right : Full_Tasking_Time_Type) return Boolean;
-   function ">=" (Left, Right : Full_Tasking_Time_Type) return Boolean;
+   function "<"  (Left, Right : RT_Time_Type) return Boolean;
+   function "<=" (Left, Right : RT_Time_Type) return Boolean;
+   function ">"  (Left, Right : RT_Time_Type) return Boolean;
+   function ">=" (Left, Right : RT_Time_Type) return Boolean;
 
-   type Full_Tasking_Clock_Factory_Access is
-     access all Full_Tasking_Clock_Factory;
+   type RT_Clock_Factory_Access is
+     access all RT_Clock_Factory;
 
-   The_Full_Tasking_Clock_Factory : aliased Full_Tasking_Clock_Factory;
+   The_RT_Clock_Factory : aliased RT_Clock_Factory;
 
 private
 
-   type Full_Tasking_Time_Type is new Time_Type with record
+   type RT_Time_Type is new Time_Type with record
       Time : Ada.Real_Time.Time;
    end record;
 
-end PolyORB.Tasking.Profiles.Full_Tasking.Calendar;
+end PolyORB.Utils.RT_Calendar;

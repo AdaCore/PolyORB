@@ -39,9 +39,9 @@ with System;
 with PolyORB.Tasking.Profiles.Ravenscar.Threads;
 with PolyORB.Tasking.Profiles.Ravenscar.Mutexes;
 with PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
-with PolyORB.Tasking.Profiles.Ravenscar.Calendar;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Ravenscar.Calendar);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.Ravenscar.Calendar);
+with PolyORB.Utils.RT_Calendar;
+pragma Elaborate_All (PolyORB.Utils.RT_Calendar);
+pragma Warnings (Off, PolyORB.Utils.RT_Calendar);
 
 generic
    Number_Of_Application_Tasks    : Integer;

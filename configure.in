@@ -158,8 +158,9 @@ AC_SUBST(SERVICE_LIST)
 ##########################################
 
 soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/{print "yes"}'`
+soap_enabled=`echo ${APPLI_LIST} | ${AWK} '/aws/{print "yes"}'`
 
-if test x$soap_enabled = xyes
+if test x$soap_enabled = xyes -o xaws_enabled=xyes
 then
    AC_MSG_CHECKING([tools libraries])
    LIBS_LIST="${LIBS_LIST} web_common"
@@ -464,6 +465,7 @@ AC_OUTPUT([
 	src/giop/miop/Makefile
 	src/moma/Makefile
 	src/web_common/Makefile
+	src/aws/Makefile
 	src/soap/Makefile
 	src/srp/Makefile
 	src/polyorb-setup-client.adb
@@ -492,6 +494,7 @@ AC_OUTPUT([
 	examples/dsa/Makefile
 	examples/bbs/Makefile
 	examples/moma/Makefile
+	examples/aws/Makefile
 	examples/polyorb/Makefile
 	testsuite/Makefile
 	testsuite/corba/Makefile
