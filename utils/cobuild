@@ -2,33 +2,50 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#22 $
+# $Id: //droopi/main/utils/cobuild#23 $
 
-PROJECT=DROOPI
-GNUMAKE=gmake
-export GNUMAKE
+###################################################
+# Usage information
+###################################################
 
 usage () {
-  echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
+  echo "Usage: $0 -m EMAIL_ADDRESS -i SOURCE_DIR -o OUTPUT_DIR -p PROJECT -r [cvs | p4] [ -c CHANGELIST ]"
+  echo "  A notification e-mail will be sent to EMAIL_ADDRESS"
+  echo "  Source code is in SOURCE_DIR"
   echo "  Build is done in OUTPUT_DIR/build"
   echo "  Install is done in OUTPUT_DIR/install"
+  echo " "
+  echo "  PROJECT is the name of the project to be built"
+  echo "  cvs : retrieve PROJECT from CVS repository"
+  echo "  p4  : retrieve PROJECT from Perforce repository"
+  echo "    CHANGELIST indicates Perforce changelist to consider for building"
   exit 1
 }
 
-while getopts C:c:o:m: opt
+###################################################
+# Parse commande line
+###################################################
+
+while getopts c:i:o:m:p:r: opt
 do
   case $opt in
-    C)
-      CLIENT_TOP=$OPTARG
-      ;;
     c)
       CHANGELIST="$OPTARG"
       ;;
+    i)
+      SOURCE_DIR=$OPTARG
+      ;;
     o)
-      OUTDIR=$OPTARG
+      OUTPUT_DIR=$OPTARG
       ;;
     m)
       MAILTO=$OPTARG
+      ;;
+    p)
+      PROJECT=$OPTARG  
+      ;;
+    r)
+      USE_REPOSITORY=$OPTARG
       ;;
     *)
       usage
@@ -36,40 +53,54 @@ do
    esac
 done
 
-if [ "x$OUTDIR" = "x" ]
+if [ "x$OUTPUT_DIR" = "x" ]
 then
   usage
 fi
 
-if [ "x$CLIENT_TOP" = "x" ]
+if [ "x$SOURCE_DIR" = "x" ]
 then
   usage
 fi
 
 : ${MAILTO:=root}
 
-P4CONFIG=.p4
-TMPDIR=/var/tmp
+###################################################
+# Setup environment
+###################################################
 
-export P4CONFIG MAILTO OUTDIR CLIENT_TOP TMPDIR
+if [ "x$USE_REPOSITORY" = "xp4" ]
+then
+    P4CONFIG=.p4
+    export P4CONFIG
+fi
+
+TMPDIR=/var/tmp
+GNUMAKE=gmake
+
+export MAILTO OUTPUT_DIR SOURCE_DIR TMPDIR GNUMAKE
 
 set -e
 umask 022
 
-PIDFILE=$OUTDIR/build.pid
-CHGFILE=$OUTDIR/build.change
-LOGFILE=$OUTDIR/build.log
+PIDFILE=$OUTPUT_DIR/build.pid
+CHGFILE=$OUTPUT_DIR/build.change
+LOGFILE=$OUTPUT_DIR/build.log
 
-# Take mutex
+###################################################
+# Prepare build
+###################################################
+
+# Take mutex.
 
 lockfile $PIDFILE.lock
 trap 'rm -f $PIDFILE.lock' 0
 
 # Determine change level to be built.
 
-cd $CLIENT_TOP
+cd $SOURCE_DIR
 
-if [ "x$CHANGELIST" = x ]
+if [ "x$USE_REPOSITORY" = "xp4" -a "x$CHANGELIST" = x ]
 then
   CHANGELIST=`p4 changes -m 1 ... | awk '{print \$2}'`
 fi
@@ -103,9 +134,27 @@ exec > $LOGFILE 2>&1
 echo "---------- Starting build of ${PROJECT} ch. ${CHANGELIST}: `date`"
 echo "---------- Syncing"
 
+###################################################
+# Update files
+###################################################
+
+if [ "x$USE_REPOSITORY" = "xp4" ]
+then
+echo "Syncing from Perforce repository"
 #p4 sync "#none"
-#rm -fr $CLIENT_TOP/*
+#rm -fr $SOURCE_DIR/*
 p4 sync @$CHANGELIST
+fi
+
+if [ "x$USE_REPOSITORY" = "xcvs" ]
+then
+echo "Syncing from CVS repository"
+cvs update -d -C
+fi
+
+###################################################
+# Launch build process
+###################################################
 
 /usr/local/bin/rungroup /bin/sh -c '(
   set -e
@@ -113,16 +162,16 @@ p4 sync @$CHANGELIST
 
   echo "---------- Building"
   [ -x ./support/reconfig ] && ./support/reconfig
-  cd $OUTDIR
+  cd $OUTPUT_DIR
   mkdir build > /dev/null 2>&1 || true
   mkdir install > /dev/null 2>&1 || true
   cd build
 
-  if [ -x $CLIENT_TOP/configure ]
+  if [ -x $SOURCE_DIR/configure ]
   then
-    $CLIENT_TOP/configure --disable-shared --enable-debug \
+    $SOURCE_DIR/configure --disable-shared --enable-debug \
        --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
-       --with-services="naming ir event time" --prefix=$OUTDIR/install
+       --with-services="naming ir event time" --prefix=$OUTPUT_DIR/install
   fi && ${GNUMAKE} && ${GNUMAKE} install && cd examples && ${GNUMAKE} \
   && cd ../testsuite && ${GNUMAKE}
   RC=$?
@@ -136,6 +185,10 @@ THISPID=$!
 echo $THISPID > $PIDFILE
 echo $CHANGELIST > $CHGFILE
 
+###################################################
+# Analyze build output
+###################################################
+
 trap '' 0
 rm -f $PIDFILE.lock
 
@@ -148,8 +201,7 @@ if [ $RC = 0 ]
 then
   echo "---------- Build completed successfully: `date`"
   STATUS="completed"
-  OUTPATH=`echo $OUTDIR | sed 's,/usr/home,/infres,'`
-  MSG="Build completed successfully.\\nSee details at $OUTPATH/build.log"
+  MSG="Build completed successfully.\\nSee details at $OUTPUT_DIR/build.log"
   SUCCESS=true
 elif [ $RC -ge 128 ]
 then
@@ -166,7 +218,7 @@ if $SUCCESS
 then
   echo -e "$MSG" | Mail -s "${PROJECT} build $CHANGELIST $STATUS" $MAILTO
 else
-  cat $OUTDIR/build.log | Mail -s "${PROJECT} BUILD $CHANGELIST FAILED" $MAILTO
+  cat $OUTPUT_DIR/build.log | Mail -s "${PROJECT} BUILD $CHANGELIST FAILED" $MAILTO
 fi
 
 lockfile $PIDFILE.lock
