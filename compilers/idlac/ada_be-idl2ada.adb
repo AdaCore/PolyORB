@@ -1804,7 +1804,11 @@ package body Ada_Be.Idl2Ada is
             end if;
 
          when K_Const_Dcl =>
+
             NL (CU);
+            Put (CU, "use type ");
+            Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
+            PL (CU, ";");
             Put (CU, Name (Node) & " : constant ");
             Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
             NL (CU);
@@ -2549,7 +2553,7 @@ package body Ada_Be.Idl2Ada is
             Put (CU, Img (Boolean_Value (Node)));
 
          when K_Lit_Enum =>
-            Put (CU, Ada_Name (Enum_Value (Node)));
+            Put (CU, Ada_Full_Name (Enum_Value (Node)));
 
          when K_Primary_Expr =>
             Gen_Node_Default (CU, Operand (Node));
