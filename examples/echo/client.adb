@@ -28,13 +28,13 @@ procedure Client is
 
 begin
 
-   Put_Line("Starting client") ;
+   Put_Line("main : Starting client") ;
 
    Orb := Corba.Orb.Orb_Init("omniORB2") ;
-   Put_Line("ORB initialized") ;
+   Put_Line("main : ORB initialized") ;
 
    Boa := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-   Put_Line("BOA initialized") ;
+   Put_Line("main : BOA initialized") ;
 
 
 
@@ -49,12 +49,19 @@ begin
 
    -- getting the Corba.Object
    Corba.Orb.String_To_Object(IOR, myecho) ;
+   Put_Line("main : Got the Corba.Object") ;
 
    -- checking if it worked
    if Corba.Object.Is_Nil(myecho) then
-      Put_Line("cannot invoke on a nil reference") ;
+      Put_Line("main : cannot invoke on a nil reference") ;
       return ;
    end if ;
+   Put_Line("main : Ok : Corba.Object is not nil") ;
+
+   Put_Line(Corba.To_Standard_String(Corba.Orb.Object_To_String(Myecho))) ;
+
+   Put_Line("enough for this test") ;
+   return ;
 
    -- sending message
    Sent_Msg := Corba.To_Corba_String("Hello World !") ;

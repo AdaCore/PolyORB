@@ -11,11 +11,13 @@
 ----------------------------------------------------------------------------
 
 with Ada.exceptions ;
-with Omniproxycallwrapper ;
+-- with Omniproxycallwrapper ;
 with Echo.Proxies ;
 with Corba.Object ; use Corba.Object ;
 with Corba ;
 use type Corba.String ;
+
+with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body Echo is
 
@@ -58,11 +60,14 @@ package body Echo is
             Ex_Bd : Corba.Ex_Body := (0, Corba.Completed_No) ;
             begin
                null ;
---               Corba.Raise_Corba_Exception(Corba.Inv_Objref'Identity,Ex_Bd);
+               Corba.Raise_Corba_Exception(Corba.Inv_Objref'Identity,Ex_Bd);
             end ;
       end if ;
+      Output(Debug, "Echo.echoString : creating call desc") ;
       Opcd := Echo.Proxies.Create(Message) ;
-      OmniProxyCallWrapper.Invoke(Self, Opcd) ;
+      Output(Debug, "Echo.echoString : call desc created, invoking method") ;
+      -- OmniProxyCallWrapper.Invoke(Self, Opcd) ;
+      Output(Debug, "Echo.echoString : method echoString invoked") ;
       Result := Echo.Proxies.Get_Result(Opcd) ;
       Echo.Proxies.Free(Opcd) ;
       return Result ;

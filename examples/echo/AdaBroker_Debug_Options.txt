@@ -5,4 +5,6 @@
 # however, it must have been compiled with -gnata
 
 # for package Corba.Orb
-corba.orb
+#corba.orb
+#corba.object
+echo

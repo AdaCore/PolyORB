@@ -11,7 +11,12 @@
 
 with Corba, Corba.Object ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package Echo is
+
+   Debug : constant Boolean := Adabroker_Debug.Is_Active("echo") ;
 
    --------------------------------------------------
    ----                spec                      ----

@@ -19,9 +19,11 @@ begin
    Put_Line("starting server") ;
 
    Orb := Corba.Orb.Orb_Init("omniORB2") ;
-   Put_Line("ORB initialized") ;
+   Put_Line("main : ORB initialized") ;
 
-   Boa := Corba.Orb.Boa_Init("omniORB2_BOA") ;
-   Put_Line("BOA initialized") ;
+   Boa := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
+   Put_Line("main : BOA initialized") ;
+
+
 
 end ;
