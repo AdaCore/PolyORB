@@ -694,39 +694,40 @@ package body PolyORB.Representations.CDR is
             raise PolyORB.Not_Implemented;
 
          when Tk_Value =>
-            --  declare
-            --     Nb: PolyORB.Types.Unsigned_Long;
-            --     Value_Modifier, Value_TypeCode,
-            --         Value_Visibility : PolyORB.Any.Any;
-            --  begin
-            --    pragma Debug
-            --        (O ("Marshall_From_Any : dealing with a value"));
-            --    Value_Modifier:= PolyORB.Any.Get_Aggregate_Element
-            --         (Data,
-            --          PolyORB.Any.TypeCode.Type_Modifier(Data_Type),
-            --          PolyORB.Types.Unsigned_Long(0));
-            --  pragma Debug (0 ("Marshall_From_Any: got the value_modifier"));
-            --    Marshall_From_Any(Buffer,Val_Modifier);
-            --    Nb := PolyORB.Any.Get_Aggregate_Count(Data);
-            --    if Nb>1 then
-            --     while I<Nb-1 loop
+            declare
+               --  Aggregate_Nb, Member_Nb : PolyORB.Types.Unsigned_Long;
+               --  Value_Modifier, Value_Type,
+               --      Value_Visibility : PolyORB.Any.Any;
+               --  Already_Marshalled : False_Seq := Empty_Seq;
+            begin
+               --  pragma Debug
+               --    (O ("Marshall_From_Any : dealing with a value"));
+               --  Marshall (Buffer, Default_Value_Tag);
 
-            --       Value_Value:= PolyORB.Any.Get_Aggregate_Element
-            --         (Data,
-            --          PolyORB.Any.TypeCode.Member_Type (Data_Type, I),
-            --          I);
-            --       I:=I+1;
-            --       Value_Visibility:=  PolyORB.Any.Get_Aggregate_Element
-            --         (Data,
-            --          PolyORB.Any.TypeCode.Member_Visibility(Data_Type, I),
-            --          I);
-            --       Marshall_From_Any(Buffer, Value);
-            --       I:=I+2;
-
-            --     end loop;
-            --    end if;
-            --   end;
-            raise PolyORB.Not_Implemented;
+               --  Aggregate_Nb := PolyORB.Any.Get_Aggregate_Count (Data);
+               --  Member_Nb := (Aggregate_Nb - 3) / 3;
+               --  I := 5;
+               --  J := 0;
+               --  while (J < Member_Nb) loop
+               --     Member_Value := PolyORB.Any.Get_Aggregate_Element
+               --       (Data,
+               --      PolyORB.Any.TypeCode.Member_Type (Data_Type, I + 3 * J),
+               --        J);
+               --     declare
+               --        Member_Type : constant PolyORB.Any.TypeCode.Object
+               --          := PolyORB.Any.Get_Unwound_Type (Member_Value);
+               --     begin
+               --        case PolyORB.Any.TypeCode.Kind (Member_Type) is
+               --           when Tk_Value =>
+               --              Marshall_From_Any
+               --                (Buffer, Value, Already_Marshalled, 0);
+               --           when others =>
+               --              Marshall_From_Any (Buffer, Value);
+               --        end case;
+               --     end;
+               --  end loop;
+               raise PolyORB.Not_Implemented;
+            end;
 
 
          when Tk_Valuebox =>
@@ -753,6 +754,53 @@ package body PolyORB.Representations.CDR is
       end case;
       pragma Debug (O ("Marshall_From_Any : end"));
    end Marshall_From_Any;
+
+
+   --  procedure Marshall_From_Any
+   --    (Buffer          : access Buffer_Type;
+   --     Data            : in     PolyORB.Any.Any;
+   --     Marshalled_List : in out False_List;
+   --     Depth           : in     PolyORB.Types.Long)
+   --  is
+   --     Success : Boolean;
+   --  begin
+   --     Success := Marshall_Indirection (Buffer, Data, Already_Marshalled);
+   --     if not Success then
+   --        declare
+   --           Aggregate_Nb, Member_Nb : PolyORB.Types.Unsigned_Long;
+   --           Value : PolyORB.Any.Any;
+   --        begin
+   --           pragma Debug
+   --             (O ("Marshall_From_Any : dealing with a value"));
+   --           Marshall (Buffer, Default_Value_Tag);
+
+   --           Aggregate_Nb := PolyORB.Any.Get_Aggregate_Count(Data);
+   --           Member_Nb := (Aggregate_Nb - 3) / 3;
+   --           I := 5;
+   --           J := 0;
+   --           while (J < Member_Nb) loop
+   --              Member_Value := PolyORB.Any.Get_Aggregate_Element
+   --                (Data,
+   --                 PolyORB.Any.TypeCode.Member_Type (Data_Type, I + 3 * J),
+   --                 J);
+   --              declare
+   --                 Member_Type : constant PolyORB.Any.TypeCode.Object
+   --                    := PolyORB.Any.Get_Unwound_Type (Member_Value);
+   --              begin
+   --                 case PolyORB.Any.TypeCode.Kind (Member_Type) is
+   --                    when Tk_Value =>
+   --                       Marshall_From_Any
+   --                         (Buffer, To_Real (Value),
+   --                          Marshalled_List, Depth + 1);
+   --                    when others =>
+   --                       Marshall_From_Any (Buffer, Member_Value);
+   --                 end case;
+   --              end;
+   --           end loop;
+   --        end;
+   --     end if;
+   --  end Marshall_From_Any;
+
 
    procedure Marshall
      (Buffer : access Buffer_Type;

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#35 $
+--  $Id: //droopi/main/src/polyorb-any.adb#36 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1317,7 +1317,6 @@ package body PolyORB.Any is
 
    end TypeCode;
 
-
    -----------
    --  Any  --
    -----------
@@ -1409,6 +1408,9 @@ package body PolyORB.Any is
             return Long_Long'Image (From_Any (A));
          when Tk_Ulonglong =>
             return Unsigned_Long_Long'Image (From_Any (A));
+         when Tk_Value =>
+            return "<Any:" & Image (A.The_Type) & ":"
+                   & System.Address_Image (A.The_Value.all'Address) & ">";
          when others =>
             return "<Any:" & Image (A.The_Type) & ">";
       end case;
@@ -1514,8 +1516,19 @@ package body PolyORB.Any is
                L : constant TypeCode.Object := From_Any (Left);
                R : constant TypeCode.Object := From_Any (Right);
             begin
-               pragma Debug (O ("Equal (Any, TypeCode) : end"));
-               return TypeCode.Equal (R, L);
+               if TypeCode.Kind (R) = Tk_Value then
+                  pragma Debug (O ("Equal (Any, TypeCode) :" &
+                                   " Skipping Tk_Value" &
+                                   " typecode comparison"));
+                  --  TODO Call a different equality procedure
+                  --  to accomodate eventual circular references in
+                  --  typecodes
+                  pragma Debug (O ("Equal (Any, TypeCode) : end"));
+                  return True;
+               else
+                  pragma Debug (O ("Equal (Any, TypeCode) : end"));
+                  return TypeCode.Equal (R, L);
+               end if;
             end;
          when Tk_Principal =>
             --  FIXME : to be done
@@ -1689,6 +1702,19 @@ package body PolyORB.Any is
             return True;
       end case;
    end "=";
+
+   function Compare_Any_Contents (Left : in Any; Right : in Any)
+     return Boolean
+   is
+      C_Left, C_Right : Any_Content_Ptr_Ptr;
+   begin
+      C_Left := Get_Value_Ptr (Left);
+      C_Right := Get_Value_Ptr (Right);
+      pragma Debug (O ("Compare: " & System.Address_Image (C_Left.all'Address)
+                    & " = " & System.Address_Image (C_Right.all'Address)));
+
+      return C_Left = C_Right;
+   end Compare_Any_Contents;
 
    -----------------------------------
    --  To_Any conversion functions  --

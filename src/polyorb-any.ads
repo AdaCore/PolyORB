@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#21 $
+--  $Id: //droopi/main/src/polyorb-any.ads#22 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -504,6 +504,10 @@ package PolyORB.Any is
 
    function Equal (Left, Right : in Any) return Boolean
      renames "=";
+
+   function Compare_Any_Contents (Left : in Any; Right : in Any)
+     return Boolean;
+   --  Check if two Anys are pointing to the same content object.
 
    function To_Any (Item : in Types.Short)              return Any;
    function To_Any (Item : in Types.Long)               return Any;
