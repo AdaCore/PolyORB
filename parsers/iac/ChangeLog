@@ -1,3 +1,7 @@
+2004-06-30  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-generator.adb: Minor reformatting.
+
 2004-06-30  Saber Souli <souli@enst.fr>
 
 	* backend-be_ada.adb : Generate assignment statement, and record

@@ -161,10 +161,12 @@ package body Backend.BE_Ada.Generator is
    begin
       Generate (Defining_Identifier (N));
       Write_Space;
-      Write (Tok_Colon);
-      Write (Tok_Equal);
-      Write_Space;
+      Write (Tok_Colon_Equal);
+      Write_Eol;
+      Increment_Indentation;
+      Write_Indentation (-1);
       Generate (Expression (N));
+      Decrement_Indentation;
    end Generate_Assignment_Statement;
 
 
@@ -391,11 +393,11 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Generate (Object_Definition (N));
       if Present (Expression (N)) then
+         Write_Space;
+         Write (Tok_Colon_Equal);
          Write_Eol;
          Increment_Indentation;
          Write_Indentation (-1);
-         Write (Tok_Colon_Equal);
-         Write_Space;
          Generate (Expression (N));
          Decrement_Indentation;
       end if;
@@ -581,7 +583,6 @@ package body Backend.BE_Ada.Generator is
       M : Node_Id;
    begin
       L := Component_Association_List (N);
-      Increment_Indentation;
       Write (Tok_Left_Paren);
       if not Is_Empty (L) then
          M := First_Node (L);
@@ -594,7 +595,6 @@ package body Backend.BE_Ada.Generator is
          end loop;
       end if;
       Write (Tok_Right_Paren);
-      Decrement_Indentation;
    end Generate_Record_Aggregate;
 
    --------------------------------
