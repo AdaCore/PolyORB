@@ -41,6 +41,7 @@ with PolyORB.Log;
 
 package body PolyORB.Filters is
 
+   use PolyORB.Components;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters");

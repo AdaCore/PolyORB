@@ -38,6 +38,10 @@ package PolyORB.ORB.No_Tasking is
 
    pragma Elaborate_Body;
 
+   use PolyORB.Components;
+   use PolyORB.Jobs;
+   use PolyORB.Transport;
+
    ---------------------------------------------------------
    -- Simple policy for configuration without any tasking --
    ---------------------------------------------------------

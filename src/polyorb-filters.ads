@@ -50,25 +50,27 @@
 
 --  $Id$
 
-with PolyORB.Components; use PolyORB.Components;
+with PolyORB.Components;
 
 package PolyORB.Filters is
 
    --  Body requires child unit PolyORB.Filters.Interface:
    --  no elab control pragma.
 
+   package PC renames PolyORB.Components;
+
    ----------------------------------------------------
    -- A Filter is a component that forwards messages --
    -- across a stack.                                --
    ----------------------------------------------------
 
-   type Filter is abstract new Component with private;
+   type Filter is abstract new PC.Component with private;
    type Filter_Access is access all Filter'Class;
 
-   procedure Connect_Lower (F : access Filter; Lower : Component_Access);
-   function Lower (F : access Filter) return Component_Access;
+   procedure Connect_Lower (F : access Filter; Lower : PC.Component_Access);
+   function Lower (F : access Filter) return PC.Component_Access;
 
-   function Upper (F : access Filter) return Component_Access;
+   function Upper (F : access Filter) return PC.Component_Access;
 
    procedure Finalize (F : in out Filter);
    --  Destroy Filter and all of its UPPER components in the stack.
@@ -96,8 +98,8 @@ package PolyORB.Filters is
 
    function Handle_Message
      (F : access Factory;
-      Msg : Message'Class)
-     return Message'Class;
+      Msg : PC.Message'Class)
+     return PC.Message'Class;
 
    procedure Chain_Factories (Factories : Factory_Array);
    --  Chain Factories into a Factory_Chain.
@@ -110,9 +112,9 @@ package PolyORB.Filters is
 
 private
 
-   type Filter is abstract new Component with record
-      Lower  : Component_Access;
-      Upper  : Component_Access;
+   type Filter is abstract new PC.Component with record
+      Lower  : PC.Component_Access;
+      Upper  : PC.Component_Access;
    end record;
 
    type Factory is abstract new Filter with null record;

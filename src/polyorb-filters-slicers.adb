@@ -43,6 +43,7 @@ package body PolyORB.Filters.Slicers is
    use Ada.Streams;
 
    use PolyORB.Buffers;
+   use PolyORB.Components;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
 

@@ -39,7 +39,6 @@ with Ada.Unchecked_Conversion;
 with AWS.MIME;
 with AWS.Response;
 
-with PolyORB.Components;
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Headers;
@@ -55,6 +54,7 @@ package body PolyORB.Filters.HTTP is
    use Ada.Streams;
 
    use PolyORB.Buffers;
+   use PolyORB.Components;
    use PolyORB.Filters.AWS_Interface;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;

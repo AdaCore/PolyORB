@@ -55,11 +55,14 @@ with PolyORB.Transport;
 
 package PolyORB.ORB is
 
-   use PolyORB.Asynch_Ev;
-   use PolyORB.Transport;
-   use PolyORB.Components;
+   package PAE renames PolyORB.Asynch_Ev;
+   package PBD renames PolyORB.Binding_Data;
+   package PC  renames PolyORB.Components;
+   package PF  renames PolyORB.Filters;
+   package PJ  renames PolyORB.Jobs;
+   package PT  renames PolyORB.Transport;
 
-   type Request_Job is new Jobs.Job with private;
+   type Request_Job is new PJ.Job with private;
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -81,15 +84,15 @@ package PolyORB.ORB is
    ----------------------------------------
 
    procedure Run_And_Free_Job
-     (J : in out Jobs.Job_Access);
+     (J : in out PJ.Job_Access);
    --  Execute job J in the context of tasking policy P.
    --  J is ran in the context of the calling task, except in
    --  cases where the policy mandates otherwise.
    --  J is freed afterwards.
 
    function Duplicate_Request_Job
-     (RJ : access Jobs.Job'Class)
-     return Jobs.Job_Access;
+     (RJ : access PJ.Job'Class)
+     return PJ.Job_Access;
    --  Create a copy of RJ, a Request_Job, so it can be stored
    --  for later execution.
 
@@ -107,8 +110,8 @@ package PolyORB.ORB is
    -------------------------------
 
    type Active_Connection is record
-      AES : Asynch_Ev_Source_Access;
-      TE  : Transport_Endpoint_Access;
+      AES : PAE.Asynch_Ev_Source_Access;
+      TE  : PT.Transport_Endpoint_Access;
    end record;
 
    --  Abstract primitives of Tasking_Policy_Type (need to
@@ -123,7 +126,7 @@ package PolyORB.ORB is
 
    procedure Handle_Close_Server_Connection
      (P   : access Tasking_Policy_Type;
-      TE  :        Transport_Endpoint_Access) is abstract;
+      TE  :        PT.Transport_Endpoint_Access) is abstract;
    --  Do necessary processing when a connection is closed
 
    procedure Handle_New_Client_Connection
@@ -154,7 +157,7 @@ package PolyORB.ORB is
    procedure Queue_Request_To_Handler
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
-      Msg : Message'Class) is abstract;
+      Msg : PolyORB.Components.Message'Class) is abstract;
    --  Assign the handling of a Request (i.e. an upcall to
    --  an application object) to the appropriate task.
    --  XXX It looks like this is implemented in exactly identical terms
@@ -215,9 +218,9 @@ package PolyORB.ORB is
 
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
-      TAP   : Transport_Access_Point_Access;
-      Chain : Filters.Factory_Access;
-      PF    : Binding_Data.Profile_Factory_Access);
+      TAP   : PT.Transport_Access_Point_Access;
+      Chain : PF.Factory_Access;
+      PF    : PBD.Profile_Factory_Access);
    --  Register a newly-created transport access point with
    --  ORB. When a connection is received on TAP, a filter
    --  chain is instanciated using Chain, and associated
@@ -233,8 +236,8 @@ package PolyORB.ORB is
 
    procedure Register_Endpoint
      (ORB          : access ORB_Type;
-      TE           :        Transport_Endpoint_Access;
-      Filter_Stack :        Filters.Filter_Access;
+      TE           :        PT.Transport_Endpoint_Access;
+      Filter_Stack :        PF.Filter_Access;
       Role         :        Endpoint_Role);
    --  Register a newly-created transport endpoint with ORB.
    --  A filter chain is instanciated using Chain, and associated
@@ -271,7 +274,7 @@ private
    -- Job type for method execution requests --
    --------------------------------------------
 
-   type Request_Job is new Jobs.Job with record
+   type Request_Job is new PJ.Job with record
       ORB       : ORB_Access;
       Request   : Requests.Request_Access;
       Requestor : Components.Component_Access;
@@ -299,7 +302,7 @@ private
    procedure Handle_Event
      (H   : access AES_Event_Handler;
       ORB :        ORB_Access;
-      AES : in out Asynch_Ev.Asynch_Ev_Source_Access)
+      AES : in out PAE.Asynch_Ev_Source_Access)
       is abstract;
    --  Handle an event that has occurred on this asynchronous
    --  event source. If AES is null on exit, then the asynchronous
@@ -324,11 +327,11 @@ private
    type Tasking_Policy_Type is abstract tagged limited null record;
 
    package Monitor_Seqs is new PolyORB.Sequences.Unbounded
-     (Asynch_Ev.Asynch_Ev_Monitor_Access);
+     (PAE.Asynch_Ev_Monitor_Access);
    subtype Monitor_Seq is Monitor_Seqs.Sequence;
 
    package TAP_Seqs is new PolyORB.Sequences.Unbounded
-     (Transport.Transport_Access_Point_Access);
+     (PT.Transport_Access_Point_Access);
    subtype TAP_Seq is TAP_Seqs.Sequence;
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
@@ -347,7 +350,7 @@ private
       Shutdown   : Boolean := False;
       --  Set to True when ORB shutdown has been requested.
 
-      Job_Queue  : Jobs.Job_Queue_Access;
+      Job_Queue  : PJ.Job_Queue_Access;
       --  The queue of jobs to be processed by ORB tasks.
 
       Idle_Tasks : PolyORB.Tasking.Watchers.Watcher_Access;
@@ -381,7 +384,7 @@ private
       --  considered, and while it is being considered
       --  no AES may be destroyed.
 
-      Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
+      Selector : PAE.Asynch_Ev_Monitor_Access;
       --  The asynchronous event monitor on which this ORB is
       --  currently waiting for events.
       --  XXX This is very wrong as is: there might be
