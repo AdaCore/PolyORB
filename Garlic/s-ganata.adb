@@ -33,9 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Debug; use System.Garlic.Debug;
+with System.Garlic.Debug;      use System.Garlic.Debug;
+with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 with System.Garlic.Table;
-with System.Garlic.Utils; use System.Garlic.Utils;
+with System.Garlic.Utils;      use System.Garlic.Utils;
 
 package body System.Garlic.Name_Table is
 
@@ -105,6 +106,8 @@ package body System.Garlic.Name_Table is
    --  This is the table that is referenced by Name_Id entries. It
    --  contains one entry for each unique name in the table.
 
+   Mutex : Mutex_Access;
+
    ---------
    -- Get --
    ---------
@@ -115,6 +118,7 @@ package body System.Garlic.Name_Table is
       I : Name_Id;
       N : Node_Type;
    begin
+      Enter (Mutex);
 
       --  Set to the first entry whose hash value matches S hash code
 
@@ -126,9 +130,10 @@ package body System.Garlic.Name_Table is
          --  Check whether the string of this entry matches with S
 
          if N.Length = L
-           and then
-           Table (Natural (N.First) .. Natural (N.First) + L - 1) = S
+           and then Table (Natural (N.First) .. Natural (N.First) + L - 1) = S
          then
+            Leave (Mutex);
+
             return I;
          end if;
 
@@ -160,6 +165,8 @@ package body System.Garlic.Name_Table is
       Table (Last + 1 .. Last + L) := S;
       Last := Last + L;
 
+      Leave (Mutex);
+
       return I;
    end Get;
 
@@ -168,20 +175,31 @@ package body System.Garlic.Name_Table is
    ---------
 
    function Get (N : Name_Id) return String is
-      F : constant Natural := Natural (Nodes.Table (N).First);
-      L : constant Natural := Nodes.Table (N).Length;
-
    begin
-      return Table (F .. F + L - 1);
+      Enter (Mutex);
+      declare
+         F : constant Natural := Natural (Nodes.Table (N).First);
+         L : constant Natural := Nodes.Table (N).Length;
+         S : constant String  := Table (F .. F + L - 1);
+      begin
+         Leave (Mutex);
+
+         return S;
+      end;
    end Get;
 
    --------------
    -- Get_Info --
    --------------
 
-   function Get_Info (N : Name_Id) return Integer is
+   function Get_Info (N : Name_Id) return Integer
+   is
+      Info : Integer;
    begin
-      return Nodes.Table (N).Info;
+      Enter (Mutex);
+      Info := Nodes.Table (N).Info;
+      Leave (Mutex);
+      return Info;
    end Get_Info;
 
    ----------
@@ -205,6 +223,7 @@ package body System.Garlic.Name_Table is
 
    procedure Initialize is
    begin
+      Create (Mutex);
       Nodes.Initialize;
    end Initialize;
 
@@ -223,7 +242,9 @@ package body System.Garlic.Name_Table is
 
    procedure Set_Info (N : Name_Id; I : Integer) is
    begin
+      Enter (Mutex);
       Nodes.Table (N).Info := I;
+      Leave (Mutex);
    end Set_Info;
 
    ----------------
