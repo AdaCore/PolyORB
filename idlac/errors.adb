@@ -286,7 +286,7 @@ package body Errors is
       L : Natural := 0;
    begin
       for I in S'Range loop
-         if S (I) = Ascii.HT then
+         if S (I) = ASCII.HT then
             for J in 1 .. 8 - (L mod 8) loop
                L := L + 1;
                R (L) := ' ';

@@ -777,9 +777,10 @@ package body Idl_Fe.Parser is
             begin
                Loc := Get_Previous_Token_Location;
                Loc.Col := Loc.Col + 7;
-               Errors.Error ("Identifier expected. ",
-                                    Errors.Error,
-                                    Loc);
+               Errors.Error
+                 ("Identifier expected in module.",
+                  Errors.Error,
+                  Loc);
             end;
             Result := No_Node;
             Success := False;
@@ -2742,9 +2743,10 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Identifier then
-         Errors.Error ("Identifier expected.",
-                                     Errors.Error,
-                                     Get_Token_Location);
+         Errors.Error
+           ("Identifier expected in constant declaration.",
+            Errors.Error,
+            Get_Token_Location);
          Success := False;
          return;
       else
@@ -4818,9 +4820,10 @@ package body Idl_Fe.Parser is
    begin
       pragma Debug (O2 ("parse_declarator: enter"));
       if Get_Token /= T_Identifier then
-         Errors.Error ("Identifier expected.",
-                              Errors.Error,
-                              Get_Token_Location);
+         Errors.Error
+           ("Identifier expected in declarator.",
+            Errors.Error,
+            Get_Token_Location);
          Success := False;
          Result := No_Node;
          return;
@@ -4845,9 +4848,10 @@ package body Idl_Fe.Parser is
                                       Success : out Boolean) is
    begin
       if Get_Token /= T_Identifier then
-         Errors.Error ("Identifier expected.",
-                              Errors.Error,
-                              Get_Token_Location);
+         Errors.Error
+           ("Identifier expected in simple declarator.",
+            Errors.Error,
+            Get_Token_Location);
          Success := False;
          return;
       else
@@ -5768,11 +5772,13 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Element_Spec;
 
-   -----------------------
-   --  Parse_Enum_Type  --
-   -----------------------
-   procedure Parse_Enum_Type (Result : out Node_Id;
-                              Success : out Boolean) is
+   ---------------------
+   -- Parse_Enum_Type --
+   ---------------------
+
+   procedure Parse_Enum_Type
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
       Next_Token;
       if Get_Token /= T_Identifier then
@@ -5782,7 +5788,7 @@ package body Idl_Fe.Parser is
             Loc := Get_Previous_Token_Location;
             Loc.Col := Loc.Col + 5;
             Errors.Error
-              ("identifier expected in enumeration " &
+              ("Identifier expected in enumeration " &
                "definition.",
                Errors.Error,
                Loc);
@@ -5791,9 +5797,12 @@ package body Idl_Fe.Parser is
             return;
          end;
       end if;
+
       Result := Make_Enum (Get_Token_Location);
       Set_Enumerators (Result, Nil_List);
-      --  Is there a previous definition
+
+      --  Is there a previous definition?
+
       if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          declare
             Definition : constant Identifier_Definition_Acc
@@ -5806,15 +5815,15 @@ package body Idl_Fe.Parser is
                (Get_Location (Definition.Node)),
                Errors.Error,
                Get_Token_Location);
-            return;
          end;
-      else
-         if not Add_Identifier (Result, Get_Token_String) then
-            raise Errors.Internal_Error;
-         end if;
-         Set_Default_Repository_Id (Result);
-
+         return;
       end if;
+
+      if not Add_Identifier (Result, Get_Token_String) then
+         raise Errors.Internal_Error;
+      end if;
+      Set_Default_Repository_Id (Result);
+
       Next_Token;
       if Get_Token /= T_Left_Cbracket then
          declare
@@ -5831,6 +5840,7 @@ package body Idl_Fe.Parser is
             return;
          end;
       end if;
+
       Next_Token;
       if Get_Token = T_Right_Cbracket then
          Errors.Error
@@ -5838,55 +5848,54 @@ package body Idl_Fe.Parser is
             "an enumeration may not be empty.",
             Errors.Error,
             Get_Token_Location);
-      else
-         declare
-            Enum : Node_Id;
-         begin
-            Parse_Enumerator (Enum, Success);
-            if not Success then
-               Go_To_End_Of_Enumeration;
-               return;
-            end if;
-            Set_Enumerators (Result, Append_Node (Enumerators (Result), Enum));
-         end;
-         declare
-            Count : Long_Long_Integer := 1;
-         begin
-            while Get_Token = T_Comma or
-              Get_Token = T_Pragma loop
-               declare
-                  Enum : Node_Id;
-               begin
-                  if Get_Token = T_Pragma then
-                     Parse_Pragma (Enum, Success);
-                     if Success then
-                        Set_Enumerators (Result,
-                                         Append_Node (Enumerators (Result),
-                                                      Enum));
-                     end if;
-                  else
-                     Next_Token;
-                     Parse_Enumerator (Enum, Success);
-                     if not Success then
-                        Go_To_End_Of_Enumeration;
-                        return;
-                     end if;
-                     Count := Count + 1;
-                     if Count = Idl_Enum_Max + 1 then
-                        Errors.Error
-                          ("two much possible values in this " &
-                           "enumeration : maximum is 2^32.",
-                           Errors.Error,
-                           Get_Token_Location);
-                     end if;
-                     Set_Enumerators (Result,
-                                      Append_Node (Enumerators (Result),
-                                                   Enum));
-                  end if;
-               end;
-            end loop;
-         end;
+         Next_Token;
+         return;
       end if;
+
+      declare
+         Count : Long_Long_Integer := 1;
+      begin
+         loop
+            declare
+               Enum : Node_Id;
+            begin
+               if Get_Token = T_Pragma then
+                  Parse_Pragma (Enum, Success);
+                  if Success then
+                     Set_Enumerators
+                       (Result, Append_Node
+                        (Enumerators (Result),
+                         Enum));
+                  end if;
+               else
+                  Parse_Enumerator (Enum, Success);
+
+                  if not Success then
+                     Go_To_End_Of_Enumeration;
+                     return;
+                  end if;
+                  Count := Count + 1;
+                  if Count = Idl_Enum_Max + 1 then
+                     Errors.Error
+                       ("two much possible values in this " &
+                        "enumeration : maximum is 2^32.",
+                        Errors.Error,
+                        Get_Token_Location);
+                  end if;
+                  Set_Enumerators
+                    (Result,
+                     Append_Node (Enumerators (Result), Enum));
+
+                  if Get_Token = T_Comma then
+                     Next_Token;
+                  elsif Get_Token /= T_Pragma then
+                     exit;
+                  end if;
+               end if;
+            end;
+         end loop;
+      end;
+
       if Get_Token /= T_Right_Cbracket then
          Errors.Error
            ("'}' expected at the end of enumeration " &
@@ -5930,10 +5939,12 @@ package body Idl_Fe.Parser is
          Result := No_Node;
          return;
       end if;
+
       if Get_Token /= T_Identifier then
-         Errors.Error ("Identifier expected.",
-                              Errors.Error,
-                              Get_Token_Location);
+         Errors.Error
+           ("Identifier expected in enumerator.",
+            Errors.Error,
+            Get_Token_Location);
          Success := False;
          return;
       else
