@@ -336,6 +336,7 @@ package body Corba.Object is
    procedure Internal_Copy(From : in Ref'Class ;
                            To : out Ref'Class) is
    begin
+      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy")) ;
       Finalize(To) ;
       To.Omniobj := From.Omniobj ;
       To.Dynamic_Type := From.Dynamic_Type ;
