@@ -30,13 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A Message_Consumer object is the client view of the message receiving
---  process. It is the facade to all communications carried out with
---  a message pool to receive messages; it contains the stub to access
---  'Message_Consumer' servants (see MOMA.Provider for more details).
+--  A Message_Handler object is the client view of the message handling
+--  process. It is the facade used to define the callback behavior and
+--  procedures, and provides templates ; it contains the stub to access
+--  'Message_Handler' servants (see MOMA.Provider for more details).
 
---  NOTE: A MOMA client must use only this package to receive messages from a
---  message pool.
+--  NOTE: A MOMA client must use only this package to get a callback for the
+--  messages it receives.
 
 --  $Id: //droopi/main/src/moma/moma-message_handlers.ads
 
@@ -52,12 +52,14 @@ package MOMA.Message_Handlers is
    use MOMA.Types;
 
    type Message_Handler is private;
-   --  Self_Ref
-   --  Message_Cons
-   --  Handler_Procedure
-   --  Notifier_Procedure
-   --  Behavior
-   --  XXX Add comments about the various attributes.
+   --  Self_Ref is the reference to the Message_Handler Servant.
+   --  Message_Cons is the Message_Consumer associated to the Message_Handler.
+   --  Behavior is the callback behavior, which changes are passed to the
+   --  Message_Consumer actual servant.
+   --  Handler_Procedure is the procedure called when a message is received by
+   --  the Message_Consumer actual Servant when the behavior is Handle.
+   --  Notifier_Procedure is the procedure called when a message is received
+   --  by the Message_Consumer actual Servant when the behavior is Notify.
 
    type Message_Handler_Acc is access Message_Handler;
 
@@ -72,23 +74,16 @@ package MOMA.Message_Handlers is
    --  The procedure to be called when a message is received, if the behavior
    --  is Notify.
 
-   procedure Initialize (
-      Self                : in out Message_Handler_Acc;
+   function Create_Handler
+     (Session             : MOMA.Sessions.Session;
       Message_Cons        : MOMA.Message_Consumers.Message_Consumer_Acc;
-      Self_Ref            : PolyORB.References.Ref;
       Notifier_Procedure  : Notifier := null;
       Handler_Procedure   : Handler := null;
-      Behavior            : MOMA.Types.Call_Back_Behavior := None);
-   --  Initialize the Message_Handler and return its Reference.
-   --  If the behavior is Handle and no Handler_Procedure is provided, the
-   --  incoming messages will be lost.
-
-   function Create_Handler
-     (Session        : MOMA.Sessions.Session;
-      Message_Cons   : MOMA.Message_Consumers.Message_Consumer_Acc)
+      Behavior            : MOMA.Types.Call_Back_Behavior := None)
       return MOMA.Message_Handlers.Message_Handler_Acc;
    --  Create a Message Handler associated to the specified Message consumer.
-   --  Must set the Handler and Notifier procedures afterwards.
+   --  If the behavior is Handle and no Handler_Procedure is provided, the
+   --  incoming messages will be lost.
 
    function  Get_Handler (Self : access Message_Handler)
       return Handler;

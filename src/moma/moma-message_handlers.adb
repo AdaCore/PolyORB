@@ -68,11 +68,14 @@ package body MOMA.Message_Handlers is
    ---------------------
 
    function Create_Handler
-     (Session        : MOMA.Sessions.Session;
-      Message_Cons   : MOMA.Message_Consumers.Message_Consumer_Acc)
+     (Session             : MOMA.Sessions.Session;
+      Message_Cons        : MOMA.Message_Consumers.Message_Consumer_Acc;
+      Notifier_Procedure  : Notifier := null;
+      Handler_Procedure   : Handler := null;
+      Behavior            : MOMA.Types.Call_Back_Behavior := None)
       return MOMA.Message_Handlers.Message_Handler_Acc
    is
-      Handler : MOMA.Message_Handlers.Message_Handler_Acc :=
+      Self    : MOMA.Message_Handlers.Message_Handler_Acc :=
          new MOMA.Message_Handlers.Message_Handler;
       Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
          new MOMA.Provider.Message_Handler.Object;
@@ -83,15 +86,20 @@ package body MOMA.Message_Handlers is
       pragma Warnings (On);
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA.
-      --  XXX XXX (same as in Create_Consumer)
       Initiate_Servant (Servant,
                         MOMA.Provider.Message_Handler.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
                         Servant_Ref);
-      MOMA.Message_Handlers.Initialize (
-         Handler, Message_Cons, Servant_Ref, null, null);
-      MOMA.Provider.Message_Handler.Initialize (Servant, Handler);
-      return Handler;
+      Self.Message_Cons := Message_Cons;
+      Self.Servant_Ref := Servant_Ref;
+      Self.Handler_Procedure := Handler_Procedure;
+      Self.Notifier_Procedure := Notifier_Procedure;
+      Self.Behavior := Behavior;
+      MOMA.Provider.Message_Handler.Initialize (Servant, Self);
+      if Behavior /= None then
+         Register_To_Servant (Self);
+      end if;
+      return Self;
    end Create_Handler;
 
    -----------------
@@ -115,29 +123,6 @@ package body MOMA.Message_Handlers is
    begin
       return Self.Notifier_Procedure;
    end Get_Notifier;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize (
-      Self                : in out Message_Handler_Acc;
-      Message_Cons        : MOMA.Message_Consumers.Message_Consumer_Acc;
-      Self_Ref            : PolyORB.References.Ref;
-      Notifier_Procedure  : Notifier := null;
-      Handler_Procedure   : Handler := null;
-      Behavior            : MOMA.Types.Call_Back_Behavior := None)
-   is
-   begin
-      Self.Message_Cons := Message_Cons;
-      Self.Servant_Ref := Self_Ref;
-      Self.Handler_Procedure := Handler_Procedure;
-      Self.Notifier_Procedure := Notifier_Procedure;
-      Self.Behavior := Behavior;
-      if Behavior /= None then
-         Register_To_Servant (Self);
-      end if;
-   end Initialize;
 
    -------------------------
    -- Register_To_Servant --
