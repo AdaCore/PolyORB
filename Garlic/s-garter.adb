@@ -39,9 +39,8 @@ with System.Garlic.Options;
 with System.Garlic.Priorities;
 with System.Garlic.Utils;
 with System.RPC; use System.RPC;
-with System.Tasking.Utilities; use System.Tasking, System.Tasking.Utilities;
+with System.Tasking;
 pragma Elaborate_All (System.Tasking);
-pragma Elaborate_All (System.Tasking.Utilities);
 
 package body System.Garlic.Termination is
 
@@ -183,13 +182,8 @@ package body System.Garlic.Termination is
    ---------------------------
 
    function Get_Active_Task_Count return Natural is
-      Environment_Task_Count : Natural := 1;
    begin
-      if Environment_Task.State = Master_Completion_Sleep then
-         Environment_Task_Count := 0;
-      end if;
-      return Environment_Task.Awake_Count - Count.Get
-        - Independent_Task_Count - (1 - Environment_Task_Count);
+      return Environment_Task.Awake_Count - Count.Get;
    end Get_Active_Task_Count;
 
    ------------------------------
