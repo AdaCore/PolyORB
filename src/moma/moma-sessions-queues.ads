@@ -42,21 +42,21 @@ with PolyORB.References;
 
 package MOMA.Sessions.Queues is
 
-   type Queue is new Session with null record;
+   type Session_Queue is new Session with null record;
 
    function Create_Destination (Name   : MOMA.Types.String;
                                 Remote : PolyORB.References.Ref)
                                 return MOMA.Destinations.Destination;
    --  Create a destination whose target is the Remote reference (currently a
-   --  message pool)
+   --  message pool).
 
    function Create_Session (Connection       : MOMA.Connections.Queues.Queue;
                             Transacted       : Boolean;
                             Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
-                            return MOMA.Sessions.Queues.Queue;
+                            return MOMA.Sessions.Queues.Session_Queue;
    --  Create a session from a Connection.
 
-   function Create_Receiver (Self : Queue;
+   function Create_Receiver (Self : Session_Queue;
                              Dest : MOMA.Destinations.Destination)
                              return MOMA.Message_Consumers.Queues.Queue;
 
@@ -64,7 +64,7 @@ package MOMA.Sessions.Queues is
                              Message_Selector : MOMA.Types.String)
                              return MOMA.Message_Consumers.Queues.Queue;
 
-   function Create_Sender (Self : Queue;
+   function Create_Sender (Self : Session_Queue;
                            Dest : MOMA.Destinations.Destination)
                            return MOMA.Message_Producers.Queues.Queue;
    --  Create a 'sender', a message producer, its destination is a MOM object.

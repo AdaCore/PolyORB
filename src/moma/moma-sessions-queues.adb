@@ -64,7 +64,7 @@ package body MOMA.Sessions.Queues is
                                 return MOMA.Destinations.Destination
    is
    begin
-      return Create (Name, Remote);
+      return MOMA.Destinations.Create (Name, Remote);
    end Create_Destination;
 
    --------------------
@@ -74,17 +74,17 @@ package body MOMA.Sessions.Queues is
    function Create_Session (Connection       : MOMA.Connections.Queues.Queue;
                             Transacted       : Boolean;
                             Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
-                            return MOMA.Sessions.Queues.Queue
+                            return MOMA.Sessions.Queues.Session_Queue
    is
-      Queue : MOMA.Sessions.Queues.Queue;
+      Session : MOMA.Sessions.Queues.Session_Queue;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Connection);
       pragma Warnings (On);
       --  XXX ??? Why
-      Queue.Transacted := Transacted;
-      Queue.Acknowledge_Mode := Acknowledge_Mode;
-      return Queue;
+      Session.Transacted := Transacted;
+      Session.Acknowledge_Mode := Acknowledge_Mode;
+      return Session;
    end Create_Session;
 
    ---------------------
@@ -92,7 +92,7 @@ package body MOMA.Sessions.Queues is
    ---------------------
 
    function Create_Receiver
-     (Self  : Queue;
+     (Self  : Session_Queue;
       Dest  : MOMA.Destinations.Destination)
       return MOMA.Message_Consumers.Queues.Queue
    is
@@ -101,7 +101,7 @@ package body MOMA.Sessions.Queues is
 
       MOMA_Ref : PolyORB.References.Ref;
 
-      Queue : MOMA.Message_Consumers.Queues.Queue;
+      Consumer : MOMA.Message_Consumers.Queues.Queue;
 
    begin
       pragma Warnings (Off);
@@ -112,16 +112,16 @@ package body MOMA.Sessions.Queues is
 
       MOMA_Obj.Remote_Ref := Get_Ref (Dest);
       Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Producer.If_Desc,
+                        MOMA.Provider.Message_Consumer.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
                         MOMA_Ref);
 
-      Set_Destination (Queue, Dest);
-      Set_Ref (Message_Consumer (Queue), MOMA_Ref);
+      Set_Destination (Consumer, Dest);
+      Set_Ref (Message_Consumer (Consumer), MOMA_Ref);
       --  XXX Is it really useful to have the Ref to the remote queue in the
-      --  Message_Producer itself ? By construction, this ref is encapsulated
-      --  in the MOMA.Provider.Message_Producer.Object ....
-      return Queue;
+      --  Message_Consumer itself ? By construction, this ref is encapsulated
+      --  in the MOMA.Provider.Message_Consumer.Object ....
+      return Consumer;
    end Create_Receiver;
 
    ---------------------
@@ -145,7 +145,7 @@ package body MOMA.Sessions.Queues is
    -------------------
 
    function Create_Sender
-     (Self : Queue;
+     (Self : Session_Queue;
       Dest : MOMA.Destinations.Destination)
       return MOMA.Message_Producers.Queues.Queue
    is

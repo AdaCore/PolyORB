@@ -91,7 +91,7 @@ procedure Client is
    Pool_Ref           : PolyORB.References.Ref;
    MOMA_Factory       : Connection_Factory_Queue;
    MOMA_Connection    : MOMA.Connections.Queues.Queue;
-   MOMA_Session       : MOMA.Sessions.Queues.Queue;
+   MOMA_Session       : MOMA.Sessions.Queues.Session_Queue;
    MOMA_Destination   : MOMA.Destinations.Destination;
    MOMA_Producer      : MOMA.Message_Producers.Queues.Queue;
    MOMA_Consumer      : MOMA.Message_Consumers.Queues.Queue;
