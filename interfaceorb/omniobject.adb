@@ -69,6 +69,16 @@ package body OmniObject is
    end ;
 
 
+    -- Get_Profile_List
+   -------------------
+   function Get_Profile_List (Obj : in Implemented_Object)
+                              return Iop.Tagged_Profile_List is
+   begin
+      return Omniobject.Get_Profile_List (Obj.Omniobj.all) ;
+      -- calls the corresponding function on the underlying omniobject
+   end ;
+
+
    -- Initialize
    -------------
    procedure Initialize (Self: in out Implemented_Object) is
@@ -275,6 +285,28 @@ package body OmniObject is
       else
          return Object_To_String(Self.Omniobj) ;
       end if ;
+   end ;
+
+
+   -- C_Get_Profile_List
+   ---------------------
+   function C_Get_Profile_List (Self : in Object'Class)
+                                return System.Address ;
+   pragma Import (CPP,C_Get_Profile_List,"iopProfiles__14Ada_OmniObject") ;
+   -- returns the Profile list of an object
+   -- wrapper around C function Ada_OmniObject::iopProfiles()
+   -- (see Ada_OmniObject.hh)
+
+   -- Get_Profile_List
+   -------------------
+   function Get_Profile_List (Self : in Object'Class)
+                              return Iop.Tagged_Profile_List is
+      result : System.Address ;
+   begin
+      -- calls the C function ...
+      Result := C_Get_Profile_List (Self) ;
+      -- ... and transforms the result in an Ada type
+      return Iop.Tagged_Profile_List (Result) ;
    end ;
 
 

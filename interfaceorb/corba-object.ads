@@ -10,6 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
+with Iop ;
 with Omniobject ;
 
 -- with Omniobjectmanager, Omniropeandkey ;
@@ -89,6 +90,10 @@ package Corba.Object is
                                To : out CORBA.Object.Ref'class) ;
    -- creates an object out of an IOR
 
+   function Get_Profile_List (Obj : in Ref)
+                              return Iop.Tagged_Profile_List ;
+   -- return the Profile_List of an Object
+
    --------------------------------------------------
    ---        omniORB specific                    ---
    --------------------------------------------------
@@ -99,7 +104,7 @@ package Corba.Object is
    -- must be called when elaborating each package
    -- where a descendant of Corba.Object.Ref is defined
 
-      procedure Object_Is_Ready(Self : in Ref'Class) ;
+   procedure Object_Is_Ready(Self : in Ref'Class) ;
    -- calls the C++ function omni::objectIsReady
    -- has to be done when an object has been created
    -- to register it into the ORB
@@ -240,28 +245,3 @@ private
 
 
 end Corba.Object ;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -204,6 +204,17 @@ package body Corba.Object is
 
    end ;
 
+
+   -- Get_Profile_List
+   -------------------
+   function Get_Profile_List (Obj : in Ref)
+                              return Iop.Tagged_Profile_List is
+   begin
+      return Omniobject.Get_Profile_List (Obj.Omniobj.all) ;
+      -- calls the corresponding function on the underlying omniobject
+   end ;
+
+
     --------------------------------------------------
     ---        omniORB specific                    ---
     --------------------------------------------------

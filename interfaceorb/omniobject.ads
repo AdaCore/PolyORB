@@ -121,6 +121,9 @@ package OmniObject is
    -- It is implemented in the sub-classes of omniObject
    -- this function on this object should never be called
 
+   function Get_Profile_List (Obj : in Implemented_Object)
+                              return Iop.Tagged_Profile_List ;
+   -- return the Profile_List of an Object
 
 
    -----------------------------------------------
@@ -170,6 +173,10 @@ package OmniObject is
    function Object_To_String(Obj_ptr : in Object_Ptr) return Corba.String ;
    -- returns the IOR for this object
    -- Obj can be null
+
+   function Get_Profile_List (Self : in Object'Class)
+                              return Iop.Tagged_Profile_List ;
+   -- returns the Profile list of an object
 
 private
 

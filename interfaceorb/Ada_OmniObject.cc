@@ -194,3 +194,15 @@ Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr) {
   }
 }
 
+
+IOP::TaggedProfileList*
+Ada_OmniObject::iopProfiles() {
+  if (Init_Ok) {
+    // if Initialisation was made then call the corresponding
+    // function on C_OmniObject
+    return C_OmniObject->iopProfiles();
+  } else {
+    // else raise an Ada Exception
+    raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
+  }
+}

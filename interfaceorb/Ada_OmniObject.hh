@@ -94,6 +94,11 @@ public:
   // this function calls omni::objectToString
   // on the underlying object
 
+  IOP::TaggedProfileList* iopProfiles() ; 
+  // this function calls omniobject::iopProfiles()
+  // on the underlying object
+  
+  
 private:
   void* ada_pointer ;
   // This pointer is only used by the Ada side of this object
