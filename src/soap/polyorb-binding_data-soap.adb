@@ -146,7 +146,7 @@ package body PolyORB.Binding_Data.SOAP is
      (Profile : SOAP_Profile_Type)
      return Profile_Preference is
    begin
-      return Preference_Default;
+      return Preference_Default + 1;
    end Get_Profile_Preference;
 
    procedure Create_Factory
