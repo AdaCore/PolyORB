@@ -185,8 +185,8 @@ package body PolyORB.Configuration is
    is
       VV : constant String := To_Lower (V);
    begin
-      if V'Length > 0 then
-         case V (V'First) is
+      if VV'Length > 0 then
+         case VV (VV'First) is
             when '0' | 'n' =>
                return False;
             when '1' | 'y' =>
@@ -218,7 +218,7 @@ package body PolyORB.Configuration is
          end case;
       end if;
       raise Constraint_Error;
-      --  return False;
+
    end To_Boolean;
 
    --------------
