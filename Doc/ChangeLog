@@ -1,11 +1,12 @@
 Sun Apr 13 16:48:54 1997  Laurent Pautet  <pautet@dorine.enst.fr>
 
-	* glade_ug.texi: Starting GLADE User Guide (texinfo).
+	* glade_ug.texi: Starting GLADE User Guide (texinfo). user_guide.html
+     should be removed.
 
 Thu Apr 10 22:31:39 1997  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* user_guide.txt: Add documentation on the default installed
- 	filter and the default used filter.
+ 	filter and the default used filter. 
 
 Wed Feb 12 10:50:01 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
