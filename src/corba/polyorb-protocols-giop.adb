@@ -113,15 +113,27 @@ package body PolyORB.Protocols.GIOP is
    --  Subprograms related to the global Request_Id counter.
    --  (actually used only on the GIOP client side).
 
+   ----------------
+   -- Initialize --
+   ----------------
+
    procedure Initialize is
    begin
       Create (Counter_Lock);
    end Initialize;
 
+   --------------
+   -- Finalize --
+   --------------
+
    procedure Finalize is
    begin
       Destroy (Counter_Lock);
    end Finalize;
+
+   ---------------------
+   -- Gest_Request_Id --
+   ---------------------
 
    function Get_Request_Id return Types.Unsigned_Long
    is
@@ -194,6 +206,9 @@ package body PolyORB.Protocols.GIOP is
          4 => Loc_System_Exception,
          5 => Loc_Needs_Addressing_Mode);
 
+   ---------------
+   -- To_buffer --
+   ---------------
 
    --  Utility function for testing.
 
@@ -231,12 +246,9 @@ package body PolyORB.Protocols.GIOP is
 
    end To_Buffer;
 
-   --------------------------------
-   -- Marshalling Messages Types --
-   --------------------------------
-
-   --  Implementations
-
+   --------------
+   -- Marshall --
+   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -245,14 +257,12 @@ package body PolyORB.Protocols.GIOP is
       Marshall (Buffer, MsgType_To_Octet (Value));
    end Marshall;
 
-
    procedure Marshall
      (Buffer : access Buffer_Type;
       Value  : in Reply_Status_Type) is
    begin
       Marshall (Buffer, ReplyStatusType_To_Unsigned_Long (Value));
    end Marshall;
-
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -261,6 +271,9 @@ package body PolyORB.Protocols.GIOP is
       Marshall (Buffer, LocateStatusType_To_Unsigned_Long (Value));
    end Marshall;
 
+   ----------------
+   -- Unmarshall --
+   ----------------
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -269,14 +282,12 @@ package body PolyORB.Protocols.GIOP is
       return Octet_To_MsgType (Unmarshall (Buffer));
    end Unmarshall;
 
-
    function Unmarshall
      (Buffer : access Buffer_Type)
      return Reply_Status_Type is
    begin
       return Unsigned_Long_To_ReplyStatusType (Unmarshall (Buffer));
    end Unmarshall;
-
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -331,7 +342,7 @@ package body PolyORB.Protocols.GIOP is
    --  will be considered.
 
    -----------------------------
-   -- Cancel_Request_Marshall --
+   -- Marshall_Cancel_Request --
    -----------------------------
 
    procedure Marshall_Cancel_Request
@@ -345,7 +356,7 @@ package body PolyORB.Protocols.GIOP is
    end Marshall_Cancel_Request;
 
    -----------------------------
-   -- Locate_Request_Marshall --
+   -- Marshall_Locate_Request --
    -----------------------------
 
    procedure Marshall_Locate_Request
@@ -364,9 +375,9 @@ package body PolyORB.Protocols.GIOP is
 
    end  Marshall_Locate_Request;
 
-   ----------------------------
-   --- Marshall Locate Reply --
-   ----------------------------
+   ---------------------------
+   -- Marshall_Locate_Reply --
+   ---------------------------
 
    procedure  Marshall_Locate_Reply
      (Buffer         : access Buffer_Type;
@@ -401,7 +412,6 @@ package body PolyORB.Protocols.GIOP is
       Message_Endianness     : Endianness_Type;
       Endianness             : Endianness_Type;
       Flags                  : Types.Octet;
-
 
    begin
 
@@ -456,7 +466,6 @@ package body PolyORB.Protocols.GIOP is
          Fragment_Next := Is_Set (Flags, Fragment_Bit);
       end if;
 
-
       --  Message type
       Message_Type := Unmarshall (Buffer);
 
@@ -480,9 +489,9 @@ package body PolyORB.Protocols.GIOP is
       --  aligned.
    end Unmarshall_GIOP_Header;
 
-   --------------------------------
+   -------------------------------
    -- Unmarshall_Locate_Message --
-   --------------------------------
+   -------------------------------
 
    procedure Unmarshall_Locate_Request
      (Buffer        : access Buffer_Type;
@@ -497,9 +506,9 @@ package body PolyORB.Protocols.GIOP is
         (Stream_Element_Array' (Unmarshall (Buffer)));
    end Unmarshall_Locate_Request;
 
-   ------------------------------
-   --  Unmarshall_Locate_Reply --
-   ------------------------------
+   -----------------------------
+   -- Unmarshall_Locate_Reply --
+   -----------------------------
 
    procedure Unmarshall_Locate_Reply
      (Buffer        : access Buffer_Type;
@@ -521,7 +530,8 @@ package body PolyORB.Protocols.GIOP is
      (Ses                    : access GIOP_Session;
       Pend_Req               : access Pending_Request;
       Response_Expected      : in Boolean;
-      Fragment_Next          : out Boolean)
+      Fragment_Next          : out Boolean;
+      Sync_Type              : in Sync_Scope)
    is
       use Internals;
       use Internals.NV_Sequence;
@@ -530,7 +540,6 @@ package body PolyORB.Protocols.GIOP is
       Header_Space  : constant Reservation
         := Reserve (Ses.Buffer_Out, Message_Header_Size);
       Header_Buffer : Buffer_Access := new Buffer_Type;
-      Sync          : Sync_Scope;
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
 
@@ -560,12 +569,6 @@ package body PolyORB.Protocols.GIOP is
          when 2 =>
             --  GIOP 1.2
 
-            if Response_Expected then
-               Sync := WITH_TARGET;
-            else
-               Sync := NONE;
-            end if;
-
             pragma Debug
               (O (Image (IIOP_Profile_Type
                          (Pend_Req.Target_Profile.all))));
@@ -581,7 +584,7 @@ package body PolyORB.Protocols.GIOP is
                   Target_Address'
                   (Address_Type => Key_Addr,
                    Object_Key   => Oid),
-                  Sync,
+                  Sync_Type,
                   To_Standard_String (Pend_Req.Req.Operation));
             end;
          when others =>
@@ -657,6 +660,7 @@ package body PolyORB.Protocols.GIOP is
          when 2 =>
             GIOP.GIOP_1_2.Marshall_No_Exception
               (Ses.Buffer_Out, Request_Id);
+
          when others =>
             Release (Header_Buffer);
             raise GIOP_Error;
@@ -681,13 +685,12 @@ package body PolyORB.Protocols.GIOP is
 
       case Ses.Minor_Version is
          when 0 =>
-
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Reply, Length (Ses.Buffer_Out));
+               GIOP.Reply,
+               Length (Ses.Buffer_Out));
 
          when 1 =>
-
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Reply,
@@ -736,7 +739,6 @@ package body PolyORB.Protocols.GIOP is
 
       case Ses.Minor_Version is
          when 0 =>
-
             GIOP.GIOP_1_0.Marshall_Exception
               (Ses.Buffer_Out, Request_Id,
                Exception_Type, Occurence);
@@ -746,7 +748,6 @@ package body PolyORB.Protocols.GIOP is
                GIOP.Reply, Length (Ses.Buffer_Out));
 
          when 1 =>
-
             GIOP.GIOP_1_1.Marshall_Exception
               (Ses.Buffer_Out,
                Request_Id,
@@ -763,7 +764,6 @@ package body PolyORB.Protocols.GIOP is
                Fragment_Next);
 
          when 2 =>
-
             GIOP.GIOP_1_2.Marshall_Exception
               (Ses.Buffer_Out,
                Request_Id,
@@ -789,9 +789,9 @@ package body PolyORB.Protocols.GIOP is
 
    end Exception_Reply;
 
-   ----------------------
-   -- Location Forward --
-   ----------------------
+   ----------------------------
+   -- Location_Forward_Reply --
+   ----------------------------
 
    procedure Location_Forward_Reply
      (Ses             : access GIOP_Session;
@@ -812,7 +812,6 @@ package body PolyORB.Protocols.GIOP is
 
       case Ses.Minor_Version is
          when 0 =>
-
             GIOP.GIOP_1_0.Marshall_Location_Forward
               (Ses.Buffer_Out, Request_Id,
                Forward_Ref);
@@ -823,7 +822,6 @@ package body PolyORB.Protocols.GIOP is
                Length (Ses.Buffer_Out));
 
          when 1 =>
-
             GIOP.GIOP_1_1.Marshall_Location_Forward
               (Ses.Buffer_Out, Request_Id,
                Forward_Ref);
@@ -840,7 +838,6 @@ package body PolyORB.Protocols.GIOP is
                Fragment_Next);
 
          when 2 =>
-
             GIOP.GIOP_1_2.Marshall_Location_Forward
               (Ses.Buffer_Out, Request_Id,
                GIOP.Location_Forward,
@@ -866,10 +863,9 @@ package body PolyORB.Protocols.GIOP is
       Release (Header_Buffer);
    end Location_Forward_Reply;
 
-
-   ----------------------------------
-   -- Need_Addressing_Mode_Message --
-   ----------------------------------
+   -----------------------------------
+   -- Needs_Addressing_Mode_Message --
+   -----------------------------------
 
    procedure Needs_Addressing_Mode_Message
      (Ses             : access GIOP_Session;
@@ -920,9 +916,9 @@ package body PolyORB.Protocols.GIOP is
    begin
 
       Get_Note (Request.Notepad, N);
+
       case Ses.Minor_Version is
          when 0 =>
-
             GIOP.Marshall_Cancel_Request
               (Ses.Buffer_Out, Request_Id);
             GIOP.GIOP_1_0.Marshall_GIOP_Header
@@ -930,7 +926,6 @@ package body PolyORB.Protocols.GIOP is
                GIOP.Cancel_Request, Length (Ses.Buffer_Out));
 
          when 1 =>
-
             GIOP.Marshall_Cancel_Request
               (Ses.Buffer_Out, Request_Id);
             GIOP.GIOP_1_1.Marshall_GIOP_Header
@@ -939,7 +934,6 @@ package body PolyORB.Protocols.GIOP is
                False);
 
          when 2 =>
-
             GIOP.Marshall_Cancel_Request
               (Ses.Buffer_Out, Request_Id);
             GIOP.GIOP_1_2.Marshall_GIOP_Header
@@ -955,7 +949,6 @@ package body PolyORB.Protocols.GIOP is
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
    end Cancel_Request_Message;
-
 
    ----------------------------
    -- Locate_Request_Message --
@@ -1062,7 +1055,6 @@ package body PolyORB.Protocols.GIOP is
 
       case Ses.Minor_Version is
          when 0 =>
-
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Locate_Reply, Length (Ses.Buffer_Out));
@@ -1116,7 +1108,6 @@ package body PolyORB.Protocols.GIOP is
       return null;
    end Select_Profile;
 
-
    -------------------
    -- Store Profile --
    -------------------
@@ -1132,15 +1123,19 @@ package body PolyORB.Protocols.GIOP is
       Ses.Current_Profile := Profile;
    end Store_Profile;
 
-   --------------
-   -- Finalize --
-   --------------
+   ----------------
+   -- Initialize --
+   ----------------
 
    procedure Initialize (S : in out GIOP_Session) is
    begin
       S.Buffer_In  := new Buffer_Type;
       S.Buffer_Out := new Buffer_Type;
    end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
 
    procedure Finalize (S : in out GIOP_Session) is
    begin
@@ -1201,6 +1196,10 @@ package body PolyORB.Protocols.GIOP is
       Append (Ses.Pending_Rq, Pending);
    end Store_Request;
 
+   -----------------
+   -- Set_Version --
+   -----------------
+
    procedure Set_Version
      (S             : access GIOP_Session;
       Major_Version :        Types.Octet;
@@ -1210,6 +1209,9 @@ package body PolyORB.Protocols.GIOP is
       S.Minor_Version := Minor_Version;
    end Set_Version;
 
+   ----------------------------
+   -- Marshall_Argument_List --
+   ----------------------------
 
    procedure Marshall_Argument_List
      (Ses : access GIOP_Session;
@@ -1235,6 +1237,10 @@ package body PolyORB.Protocols.GIOP is
          end if;
       end loop;
    end Marshall_Argument_List;
+
+   ------------------------------
+   -- Unmarshall_Argument_List --
+   ------------------------------
 
    procedure Unmarshall_Argument_List
      (Ses : access GIOP_Session;
@@ -1273,6 +1279,10 @@ package body PolyORB.Protocols.GIOP is
       end loop;
    end Unmarshall_Argument_List;
 
+   ---------------------------------
+   -- Handle_Unmarshall_Arguments --
+   ---------------------------------
+
    procedure Handle_Unmarshall_Arguments
      (Ses : access GIOP_Session;
       Args : in out Any.NVList.Ref)
@@ -1300,11 +1310,13 @@ package body PolyORB.Protocols.GIOP is
 
       Request_Id        :  Types.Unsigned_Long;
       Response_Expected :  Boolean;
+      Sync_Type         :  Sync_Scope := NONE;
       Object_Key        :  Objects.Object_Id_Access;
       Operation         :  Types.String;
 
-      Req    : Request_Access;
-      Args   : Any.NVList.Ref;
+      Req       : Request_Access;
+      Req_Flags : Flags := 0;
+      Args      : Any.NVList.Ref;
 
       Result : Any.NamedValue;
       --  Dummy NamedValue for Create_Request; the actual Result
@@ -1328,6 +1340,10 @@ package body PolyORB.Protocols.GIOP is
                Object_Key,
                Operation);
 
+            if not Response_Expected then
+               Req_Flags := Sync_With_Target;
+            end if;
+
          when 1 =>
             GIOP.GIOP_1_1.Unmarshall_Request_Message
               (Ses.Buffer_In,
@@ -1336,16 +1352,30 @@ package body PolyORB.Protocols.GIOP is
                Object_Key,
                Operation);
 
+            if not Response_Expected then
+               Req_Flags := Sync_With_Target;
+            end if;
+
          when 2 =>
             GIOP.GIOP_1_2.Unmarshall_Request_Message
               (Ses.Buffer_In,
                Request_Id,
                Response_Expected,
+               Sync_Type,
                Target_Ref,
                Operation);
 
             if Target_Ref.Address_Type = Key_Addr then
                Object_Key := Target_Ref.Object_Key;
+            end if;
+
+            if not Response_Expected then
+               case Sync_Type is
+                  when WITH_TRANSPORT => Req_Flags := Sync_With_Transport;
+                  when WITH_SERVER    => Req_Flags := Sync_With_Server;
+                  when WITH_TARGET    => Req_Flags := Sync_With_Target;
+                  when others         => null;
+               end case;
             end if;
 
          when others =>
@@ -1413,7 +1443,8 @@ package body PolyORB.Protocols.GIOP is
          Arg_List  => Args,
          Result    => Result,
          Deferred_Arguments_Session => Deferred_Arguments_Session,
-         Req       => Req);
+         Req       => Req,
+         Req_Flags => Req_Flags);
 
       Set_Note
         (Req.Notepad, Request_Note'(Annotations.Note with Id => Request_Id));
@@ -1426,9 +1457,9 @@ package body PolyORB.Protocols.GIOP is
       Free (Object_Key);
    end Request_Received;
 
-   --------------------
-   -- Reply_Received --
-   --------------------
+   ----------------------------------------
+   -- Unmarshall_System_Exception_To_Any --
+   ----------------------------------------
 
    procedure Unmarshall_System_Exception_To_Any
      (Buffer : Buffer_Access;
@@ -1445,6 +1476,10 @@ package body PolyORB.Protocols.GIOP is
       Unmarshall_To_Any
         (Buffer, Info);
    end Unmarshall_System_Exception_To_Any;
+
+   --------------------
+   -- Reply_Received --
+   --------------------
 
    procedure Reply_Received
      (Ses : access GIOP_Session)
@@ -1608,7 +1643,6 @@ package body PolyORB.Protocols.GIOP is
       end case;
    end Reply_Received;
 
-
    ----------------------------
    -- Locate_Request_Receive --
    ----------------------------
@@ -1675,6 +1709,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Filters.Interface;
       use PolyORB.Objects;
       use PolyORB.Requests;
+      use Pend_Req_Seq;
 
       Fragment_Next  : Boolean := False;
       Current_Req    : aliased Pending_Request;
@@ -1719,7 +1754,31 @@ package body PolyORB.Protocols.GIOP is
             return;
          end if;
       else
-         Request_Message (S, Current_Req'Access, True, Fragment_Next);
+         if Is_Set (Sync_None, R.Req_Flags) then
+            Request_Message (S, Current_Req'Access,
+                             False, Fragment_Next, NONE);
+
+            Delete (S.Pending_Rq, Length (S.Pending_Rq), 1);
+            --  XXX Is it safe to destroy the pending request at this stage ?
+            --  Is anyone still referencing it at this point ?
+
+         elsif Is_Set (Sync_With_Transport, R.Req_Flags) then
+            Request_Message (S, Current_Req'Access,
+                             False, Fragment_Next, WITH_TRANSPORT);
+
+            Delete (S.Pending_Rq, Length (S.Pending_Rq), 1);
+            --  XXX Is it safe to destroy the pending request at this stage ?
+            --  Is anyone still referencing it at this point ?
+
+         elsif Is_Set (Sync_With_Server, R.Req_Flags) then
+            Request_Message (S, Current_Req'Access,
+                             False, Fragment_Next, WITH_SERVER);
+
+         elsif Is_Set (Sync_With_Target, R.Req_Flags) then
+            Request_Message (S, Current_Req'Access,
+                             True, Fragment_Next, WITH_TARGET);
+         end if;
+
          S.Object_Found := True;
          S.Nbr_Tries := 0;
       end if;
@@ -2045,11 +2104,19 @@ package body PolyORB.Protocols.GIOP is
       end if;
    end Handle_Data_Indication;
 
+   -----------------------
+   -- Handle_Disconnect --
+   -----------------------
+
    procedure Handle_Disconnect (S : access GIOP_Session) is
    begin
       Release (S.Buffer_In);
       Release (S.Buffer_Out);
    end Handle_Disconnect;
+
+   ---------
+   -- Set --
+   ---------
 
    procedure Set
      (Bit_Field : in out Types.Octet;
@@ -2062,6 +2129,10 @@ package body PolyORB.Protocols.GIOP is
          Bit_Field := Bit_Field and not (2 ** Bit_Order);
       end if;
    end Set;
+
+   ------------
+   -- Is_Set --
+   ------------
 
    function Is_Set
      (Bit_Field : Types.Octet;

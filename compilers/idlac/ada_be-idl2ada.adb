@@ -2114,7 +2114,15 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref ("
                       & T_Excp_List & "),");
                end if;
-               PL (CU, "Req       => " & T_Request & ");");
+
+               if Response_Expected then
+                  PL (CU, "Req       => " & T_Request & ");");
+               else
+                  PL (CU, "Req       => " & T_Request & ",");
+                  PL (CU, "Req_Flags => " &
+                      "PolyORB.Requests.Sync_With_Transport);");
+               end if;
+
                DI (CU);
 
                NL (CU);

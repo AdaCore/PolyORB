@@ -320,9 +320,10 @@ private
 
    procedure Request_Message
      (Ses               : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
+      Pend_Req          : access Pending_Request;
       Response_Expected : in Boolean;
-      Fragment_Next     : out Boolean);
+      Fragment_Next     : out Boolean;
+      Sync_Type         : in Sync_Scope);
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
@@ -351,13 +352,11 @@ private
      (Ses             : access GIOP_Session;
       Request         : Requests.Request_Access);
 
-
    procedure Locate_Request_Message
      (Ses             : access GIOP_Session;
       Request         : Requests.Request_Access;
       Object_Key      : access Objects.Object_Id;
       Fragment_Next   : out Boolean);
-
 
    procedure Locate_Reply_Message
      (Ses             : access GIOP_Session;

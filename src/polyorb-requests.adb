@@ -77,7 +77,12 @@ package body PolyORB.Requests is
       Res.Result    := Result;
       Res.Result.Arg_Modes := Any.ARG_OUT;
       Res.Exc_List  := Exc_List;
-      Res.Req_Flags := Req_Flags;
+
+      if Req_Flags = 0 then
+         Res.Req_Flags := Default_Flags;
+      else
+         Res.Req_Flags := Req_Flags;
+      end if;
 
       Req := Res;
    end Create_Request;
@@ -104,7 +109,6 @@ package body PolyORB.Requests is
          Queue_Request'
          (Request   => Self,
           Requestor => null));
-      --  XXX Only synchronous requests are supported!
 
       --  Execute the ORB until the request is completed.
       ORB.Run
@@ -174,7 +178,6 @@ package body PolyORB.Requests is
       --  should be made to reconcile argument names and argument types
       --  (tricky. See how Ada compilers do parameter reconciliation with
       --  support for both named and positional parameter associations.)
-
 
       for Dst_Arg_Index in 1 .. Get_Count (Dst_Args) loop
          --  Index in Args (application layer arguments)

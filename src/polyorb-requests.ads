@@ -45,29 +45,24 @@ with PolyORB.References;
 with PolyORB.Storage_Pools;
 with PolyORB.Task_Info;
 with PolyORB.Types;
+with PolyORB.Utils.Simple_Flags;
 
 package PolyORB.Requests is
-
-   -------------
-   -- Request --
-   -------------
 
    subtype Operation_Id is String;
    --  XXX or Types.Identifier??
 
-   type Flags is new Types.Unsigned_Long;
+   type Flags is new PolyORB.Utils.Simple_Flags.Flags;
 
    ------------------------------------------
    -- Synchronisation of request execution --
    ------------------------------------------
 
-   type Synchronisation_Scope is
-     (None,
-      With_Transport,
-      With_Server,
-      With_Target);
-   --  A 'synchronistaion scope' value is associated with
-   --  each request object.
+   Sync_None           : constant Flags;
+   Sync_With_Transport : constant Flags;
+   Sync_With_Server    : constant Flags;
+   Sync_With_Target    : constant Flags;
+   --  Flags to be used for member Req_Flags of request.
 
    --  When a request is not synchronised, the middleware returns
    --  to the caller before passing the request to the transport
@@ -85,6 +80,13 @@ package PolyORB.Requests is
    --  When a request is synchronised With_Target, the middlware
    --  does not return to the caller before receinving a confirmation
    --  that the request has been executed by the target object.
+
+   -------------
+   -- Request --
+   -------------
+
+   Default_Flags       : constant Flags;
+   --  Default flag for member Req_Flags of request.
 
    type Request is limited record
       --  Ctx        : CORBA.Context.Ref;
@@ -223,4 +225,10 @@ package PolyORB.Requests is
    --  protocol arguments list P_Args (either from a request, on server
    --  side, or for a reply, on client side) into A_Args.
 
+private
+   Sync_None           : constant Flags := 1;
+   Sync_With_Transport : constant Flags := 2;
+   Sync_With_Server    : constant Flags := 4;
+   Sync_With_Target    : constant Flags := 8;
+   Default_Flags       : constant Flags := Sync_With_Target;
 end PolyORB.Requests;

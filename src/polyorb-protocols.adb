@@ -60,10 +60,18 @@ package body PolyORB.Protocols is
    procedure Free is new Ada.Unchecked_Deallocation
      (Session'Class, Session_Access);
 
+   ---------------------
+   -- Destroy_Session --
+   ---------------------
+
    procedure Destroy_Session (S : in out Session_Access) is
    begin
       Free (S);
    end Destroy_Session;
+
+   ---------------------------------
+   -- Handle_Unmarshall_Arguments --
+   ---------------------------------
 
    procedure Handle_Unmarshall_Arguments
      (S    : access Session;
@@ -73,6 +81,10 @@ package body PolyORB.Protocols is
       --  By default: no support for deferred arguments
       --  unmarshalling.
    end Handle_Unmarshall_Arguments;
+
+   --------------------
+   -- Handle_Message --
+   --------------------
 
    function Handle_Message
      (Sess : access Session;
@@ -154,13 +166,28 @@ package body PolyORB.Protocols is
          Invoke_Request
            (Session_Access (Sess), Req, Execute_Request (S).Pro);
 
+         --  At this point, the request has been sent to the server
+         --  'With_Transport' synchronisation policy has been completed.
+
+         if Is_Set (Sync_With_Transport, Req.Req_Flags) then
+            Req.Completed := True;
+         end if;
+
       elsif S in Executed_Request then
          declare
             Req : Request_Access
               := Executed_Request (S).Req;
          begin
-            Send_Reply (Session_Access (Sess), Req);
-            Destroy_Request (Req);
+            --  Send reply only if expected.
+            if Is_Set (Sync_With_Target, Req.Req_Flags) then
+               Send_Reply (Session_Access (Sess), Req);
+               Destroy_Request (Req);
+
+            elsif Is_Set (Sync_With_Server, Req.Req_Flags) then
+               Send_Reply (Session_Access (Sess), Req);
+
+               --   XXX The request has been deleted otherwise
+            end if;
          end;
 
       elsif S in Disconnect_Request then

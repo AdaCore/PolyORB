@@ -644,6 +644,8 @@ src/polyorb-utils-buffers.adb
 src/polyorb-utils-buffers.ads
 src/polyorb-utils-chained_lists.adb
 src/polyorb-utils-chained_lists.ads
+src/polyorb-utils-simple_flags.adb
+src/polyorb-utils-simple_flags.ads
 src/polyorb-utils-srp.adb
 src/polyorb-utils-srp.ads
 src/polyorb-utils-strings-lists.adb

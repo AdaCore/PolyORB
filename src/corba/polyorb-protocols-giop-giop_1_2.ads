@@ -98,6 +98,7 @@ package PolyORB.Protocols.GIOP.GIOP_1_2 is
      (Buffer            : access Buffers.Buffer_Type;
       Request_Id        : out Types.Unsigned_Long;
       Response_Expected : out Boolean;
+      Sync_Type         : out Sync_Scope;
       Target_Ref        : out Target_Address_Access;
       Operation         : out Types.String);
    --  Storage for Target_Ref is dynamically allocated,
