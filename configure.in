@@ -64,7 +64,7 @@ AM_CONDITIONAL(ENABLE_IR, test x$ir_enabled = xyes)
 AC_MSG_RESULT($ir_enabled)
 if test x"$ir_enabled" = xyes -a x"$corba_enabled" != xyes
 then
-	AC_MSG_ERROR("Error : CORBA IR requires CORBA to be built !")
+	AC_MSG_ERROR("CORBA IR requires CORBA to be built")
 fi
 
 #
@@ -133,7 +133,7 @@ AM_CONDITIONAL(ENABLE_SOAP, test x$soap_enabled = xyes)
 AC_MSG_RESULT($soap_enabled)
 if test x"$soap_enabled" = xyes -a x"$has_xmlada" != xyes
 then
-	AC_MSG_ERROR("Error : XML/Ada is required to build SOAP personality !")
+	AC_MSG_ERROR("XML/Ada is required to build SOAP personality")
 fi
 
 IS_SOAP=$soap_enabled
