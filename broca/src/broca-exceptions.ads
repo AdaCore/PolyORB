@@ -4,6 +4,26 @@ with CORBA; use CORBA;
 with Broca.Types; use Broca.Types;
 
 package Broca.Exceptions is
+   -----------------------------------------
+   --  Declarations for user exceptions.  --
+   -----------------------------------------
+
+   type IDL_Exception_Members_Acc is
+      access all CORBA.IDL_Exception_Members'Class;
+
+   --  Extract members from an exception occurence.
+   procedure User_Get_Members
+     (Occurrence : Ada.Exceptions.Exception_Occurrence;
+      Members : out CORBA.IDL_Exception_Members'Class);
+
+   --  Raise an user exception.
+   procedure User_Raise_Exception
+     (Id : Ada.Exceptions.Exception_Id; Members : IDL_Exception_Members_Acc);
+
+   -------------------------------------------
+   --  Declarations for system exceptions.  --
+   -------------------------------------------
+
    --  Raise CORBA.bad_param with minor = 0.
    procedure Raise_Bad_Param (Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_Param);

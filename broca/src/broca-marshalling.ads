@@ -30,6 +30,11 @@ package Broca.Marshalling is
                                  Source : in out Buffer_Descriptor;
                                  Length : Buffer_Index_Type);
 
+   --  Return true if BUFFER can be interpreted as STR.
+   --  The string is not unmarshalled.
+   function Marshall_Compare (Stream : in Buffer_Descriptor;
+                              Str : in String) return Boolean;
+
    --  Skip a string in a buffer.
    procedure Unmarshall_Skip_String (Buffer : in out Buffer_Descriptor);
 
@@ -66,6 +71,8 @@ package Broca.Marshalling is
    --  For an Ada string.
    procedure Marshall_Size
      (Stream : in out Buffer_Descriptor; Val : String);
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Long);
 
    --  For an outcoming stream, allocate the buffer and clear pos.
    procedure Allocate_Buffer (Stream : in out Buffer_Descriptor);

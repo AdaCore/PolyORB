@@ -31,6 +31,8 @@ package body Server is
             Flag_Ignore_Next := False;
             if Argument (I) = "-v" then
                Flag_Verbose := True;
+            elsif Argument (I) = "--no-wall" then
+               Flag_Wall := False;
             elsif Argument (I) = "--discard" then
                Flag_Discard := True;
             elsif Argument (I) = "--delay" then

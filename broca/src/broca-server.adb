@@ -1,5 +1,6 @@
 with System;
 with Ada.Unchecked_Deallocation;
+with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with CORBA; use CORBA;
@@ -11,6 +12,7 @@ with Broca.Giop;
 with Broca.Orb;
 with Broca.Stream;
 with Broca.Flags;
+with Broca.Locks;
 pragma Elaborate_All (Broca.Orb);
 
 package body Broca.Server is
@@ -826,6 +828,8 @@ package body Broca.Server is
       Message_Type : CORBA.Octet;
       Message_Size : CORBA.Unsigned_Long;
       Request_Id : CORBA.Unsigned_Long;
+      Operation : CORBA.String;
+      Principal : CORBA.String;
       Poa : Broca.Poa.POA_Object_Access;
       Poa_State : Broca.Poa.Processing_State_Type;
       Key : Buffer_Descriptor;
@@ -1005,7 +1009,6 @@ package body Broca.Server is
 
       type Server_Task_Array is array (Natural range <>) of Server_Task_Type;
       Server_Taks : Server_Task_Array (1 .. Broca.Flags.Nbr_Server_Tasks - 1);
-      pragma Warnings (Off, Server_Taks);
    begin
       Serv;
    end Run;

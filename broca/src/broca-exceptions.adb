@@ -1,10 +1,38 @@
 with System.Storage_Elements;
+with Ada.Task_Attributes;
 with Ada.Strings.Unbounded;
 with Ada.Exceptions; use Ada.Exceptions;
 with CORBA; use CORBA;
 with Broca.Marshalling;
 
 package body Broca.Exceptions is
+   --  User exception members of a user raised CORBA exception are stored
+   --  as a task attribute.
+   --  As a result, the user is *not* allowed to save an exception with
+   --  primitives such as Save_Occurence.
+   package Exception_Attribute is new Ada.Task_Attributes
+     (Attribute => IDL_Exception_Members_Acc,
+      Initial_Value => null);
+
+   --  Extract members from an exception occurence.
+   procedure User_Get_Members
+     (Occurrence : Ada.Exceptions.Exception_Occurrence;
+      Members : out CORBA.IDL_Exception_Members'Class) is
+   begin
+      Members := Exception_Attribute.Value.all;
+   end User_Get_Members;
+
+   procedure User_Raise_Exception
+     (Id : Ada.Exceptions.Exception_Id; Members : IDL_Exception_Members_Acc) is
+   begin
+      --  FIXME: free previous member.
+      Exception_Attribute.Set_Value (Members);
+
+      --  Raise the exception.
+      Ada.Exceptions.Raise_Exception (Id);
+   end User_Raise_Exception;
+
+
    --  Raises the corresponding exception CORBA exception and stores its
    --  member so that it can be retrieved with Get_Members
    procedure Raise_Exception

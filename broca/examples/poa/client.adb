@@ -10,7 +10,7 @@ procedure Client is
    --  Orb : CORBA.Orb.Object := CORBA.Orb.Orb_Init("broca");
 
    --  Initialisation of the BOA
---   Boa : CORBA.Boa.Object := CORBA.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
+   --   Boa : CORBA.Boa.Object := CORBA.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
 
    Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
 
@@ -53,5 +53,12 @@ exception
          Put (Unsigned_Long'Image (Memb.Minor));
          Put (", completion status: ");
          Put_Line (Completion_Status'Image (Memb.Completed));
+      end;
+   when E : Echo.no_walls =>
+      declare
+         Memb : Echo.no_walls_Members;
+      begin
+         Echo.Get_Members (E, Memb);
+         Put_Line ("sorry, no wall." & CORBA.Unsigned_Long'Image (Memb.one));
       end;
 end Client;

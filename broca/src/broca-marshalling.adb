@@ -74,6 +74,33 @@ package body Broca.Marshalling is
       Target.Little_Endian := Source.Little_Endian;
    end Unmarshall_Extract;
 
+   --  Return true if BUFFER can be interpreted as STR.
+   --  The string is not unmarshalled.
+   function Marshall_Compare (Stream : in Buffer_Descriptor;
+                              Str : in String) return Boolean
+   is
+      use CORBA;
+      Buffer : Buffer_Descriptor;
+      Length : CORBA.Unsigned_Long;
+      Pos : Buffer_Index_Type;
+      C : Character;
+   begin
+      --  FIXME: not as efficient as possible.
+      Buffer := Stream;
+      Unmarshall (Buffer, Length);
+      Pos := Buffer.Pos;
+      if Length /= Str'Length + 1 then
+         return False;
+      end if;
+      for I in 0 .. Unsigned_Long'Pos (Length - 2) loop
+         C := Character'Val (Stream.Buffer (Pos + Buffer_Index_Type (I)));
+         if C /= Str (Str'First + I) then
+            return False;
+         end if;
+      end loop;
+      return True;
+   end Marshall_Compare;
+
    --  Skip a string in a buffer.
    procedure Unmarshall_Skip_String (Buffer : in out Buffer_Descriptor)
    is
@@ -209,6 +236,12 @@ package body Broca.Marshalling is
    begin
       Marshall_Align_4 (Stream);
       Stream.Pos := Stream.Pos + 4 + Buffer_Index_Type (Val'Length) + 1;
+   end Marshall_Size;
+
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Long) is
+   begin
+      Marshall_Size_Unsigned_Long (Stream);
    end Marshall_Size;
 
    --  Allocate or reallocate Stream.Buffer to that its length is at least

@@ -16,6 +16,9 @@ package Server is
      PortableServer.USE_ACTIVE_OBJECT_MAP_ONLY;
    Flag_Ior_File : String_Acc := null;
 
+   --  If set, there is a wall to echo your string.
+   Flag_Wall : Boolean := True;
+
 
    --  If True, the POA managing the echo servant has single_thread policy.
    Flag_Serial : Boolean := False;
