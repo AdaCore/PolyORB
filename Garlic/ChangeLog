@@ -1,3 +1,21 @@
+1998-04-20  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-ganobl.adb: Get Use_Poll from s-gtplsp.ads instead of
+	s-garthi.ads.
+
+	* s-garthi.ads: Move Use_Poll from here to s-gtplsp.ads when the
+	platform uses the non-blocking alternative.
+
+	* 5?gtplsp.ads: Define Use_Poll when needed.
+
+	* 5wgtplsp.ads: Add a pragma Elaborate_Body to force body
+	elaboration.
+
+	* 5wgtplsp.adb: Windows NT specific package body.
+
+	* Makefile.am (s-gtplsp.o): Specific trick needed to compile under 
+	Windows NT.
+
 1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* 5lgarthi.ads, 5wgarthi.ads: Add Select sys call. Add a constant

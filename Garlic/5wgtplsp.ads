@@ -33,13 +33,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Thin;
+with Interfaces.C;
+with System.Garlic.Non_Blocking;
 
 private package System.Garlic.TCP.Platform_Specific is
 
-   --  Windows NT version of this package.
+   pragma Elaborate_Body;
 
-   package Net renames System.Garlic.Thin;
+   --  Windows NT version of this package
+
+   package Net renames System.Garlic.Non_Blocking;
+
+   Use_Poll : constant Boolean := False;
 
 private
 
@@ -49,13 +54,15 @@ private
 
    WS_Version : constant := 16#0101#;
 
-   function WSAStartup (WS_Version     : in Integer;
-                        WSADataAddress : in System.Address)
-                        return Integer;
+   function WSAStartup (WS_Version     : Interfaces.C.int;
+                        WSADataAddress : System.Address)
+     return Interfaces.C.int;
    pragma Import (Stdcall, WSAStartup);
 
-   --  start the winsock service
-   Retcode : Integer := WSAStartup (WS_Version, WSAData_Dummy'Address);
-   pragma Assert (Retcode = 0);
+   --  Start the winsock service
+
+   Retcode : constant Interfaces.C.int :=
+     WSAStartup (WS_Version, WSAData_Dummy'Address);
+   pragma Assert (Interfaces.C.int."=" (Retcode, 0));
 
 end System.Garlic.TCP.Platform_Specific;

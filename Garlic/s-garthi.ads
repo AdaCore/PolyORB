@@ -65,8 +65,6 @@ package System.Garlic.Thin is
 
    Immediat : constant Timeval := (0, 0);
 
-   Use_Poll : constant Boolean := True;
-
    type Int_Access is access all C.int;
    pragma Convention (C, Int_Access);
    --  Access to C integers

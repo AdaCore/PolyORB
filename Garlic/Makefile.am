@@ -16,13 +16,13 @@ INCFLAGS           = -I. -I${srcdir}
 
 GNATMAKE     = gnatmake
 
-PLATFORM           = @PLATFORM_SPECIFIC@
+PLATFORM            = @PLATFORM_SPECIFIC@
 
-TCP_PLATFORM       = 5${PLATFORM}gtplsp.ads
-CONSTANTS_PLATFORM = ${srcdir}/5${PLATFORM}garcon.ads
+TCP_PLATFORM_SOURCE = @TCP_PLATFORM_SOURCE@
 
-THIN_PLATFORM      = ${srcdir}/5${PLATFORM}garthi.ads
-THIN_GENERIC       = ${srcdir}/5lgarthi.ads
+TCP_PLATFORM        = 5${PLATFORM}gtplsp.ads
+TCP_PLATFORM_BODY   = 5${PLATFORM}gtplsp.adb
+CONSTANTS_PLATFORM  = ${srcdir}/5${PLATFORM}garcon.ads
 
 EXTRA_LIBS = @EXTRA_LIBS@
 
@@ -32,7 +32,7 @@ s-garnam.o\
 s-garrem.o
 
 LAUNCHINGSOURCES = \
-        ./s-gaplsp.ads                        \
+          s-gaplsp.ads                        \
 ${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
 ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 
@@ -41,7 +41,7 @@ s-gtplsp.o\
 s-gartcp.o
 
 TCPSOURCES = \
-        ./s-gtplsp.ads                        \
+          s-gtplsp.ads ${TCP_PLATFORM_SOURCE} \
 ${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
 
 NOBLTCPOBJECTS = \
@@ -92,7 +92,7 @@ COMMONSOURCES = \
 ${srcdir}/s-galiop.ads \
 ${srcdir}/s-garthi.ads \
 ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
-        ./s-garcon.ads                        \
+          s-garcon.ads                        \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
 ${srcdir}/s-garfil.ads ${srcdir}/s-garfil.adb \
 ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
@@ -137,10 +137,13 @@ $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaprco.adb s-galiop.ads\
-	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads\
-	inlining gnatlib/*
+	s-garser.adb s-gaplsp.ads ${FILTERSOBJECTS} split s-rpcdum.ads\
+	inlining gnatlib/* ${TCP_PLATFORM_SOURCE}
 
 SUFFIXES = .adb .ads .ali .o .xrb
+
+s-gtplsp.o: ${TCP_PLATFORM_SOURCE}
+	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} ${TCP_PLATFORM_SOURCE}
 
 %.o: %.adb
 	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
@@ -177,12 +180,8 @@ s-galiop.ads:
 s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
 
-s-garthi.ads: Makefile
-	if test -f ${THIN_PLATFORM}; then \
-	  cp ${THIN_PLATFORM} s-garthi.ads; \
-	else \
-	  cp ${THIN_GENERIC} s-garthi.ads; \
-	fi
+s-gtplsp.adb: ${srcdir}/${TCP_PLATFORM_BODY}
+	cp ${srcdir}/${TCP_PLATFORM_BODY} s-gtplsp.adb
 
 split: ${srcdir}/split.adb
 	$(GNATMAKE) -m -o split ${srcdir}/split.adb

@@ -33,16 +33,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;            use Ada.Exceptions;
+with Ada.Exceptions;                      use Ada.Exceptions;
 with Ada.Interrupts.Names;
-with GNAT.OS_Lib;               use GNAT.OS_Lib;
-with System.Garlic.Constants;   use System.Garlic.Constants;
-with System.Garlic.Debug;       use System.Garlic.Debug;
-with System.Garlic.Heart;       use System.Garlic.Heart;
+with GNAT.OS_Lib;                         use GNAT.OS_Lib;
+with System.Garlic.Constants;             use System.Garlic.Constants;
+with System.Garlic.Debug;                 use System.Garlic.Debug;
+with System.Garlic.Heart;                 use System.Garlic.Heart;
 with System.Garlic.Priorities;
 with System.Garlic.TCP;
 pragma Elaborate (System.Garlic.TCP);
-with System.Garlic.Thin;        use System.Garlic.Thin;
+with System.Garlic.TCP.Platform_Specific;
+with System.Garlic.Thin;                  use System.Garlic.Thin;
 with System.Garlic.Termination;
 
 package body System.Garlic.Non_Blocking is
@@ -421,7 +422,7 @@ package body System.Garlic.Non_Blocking is
 
                if RFD (I) or else WFD (I) then
 
-                  if Use_Poll then
+                  if Platform_Specific.Use_Poll then
 
                      --  There is something to do on this file descriptor
 

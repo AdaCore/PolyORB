@@ -41,4 +41,6 @@ private package System.Garlic.TCP.Platform_Specific is
 
    package Net renames System.Garlic.Non_Blocking;
 
+   Use_Poll : constant Boolean := True;
+
 end System.Garlic.TCP.Platform_Specific;
