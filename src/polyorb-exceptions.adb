@@ -706,7 +706,12 @@ package body PolyORB.Exceptions is
       Members : System_Exception_Members;
       TC      : TypeCode.Object;
       Result  : Any.Any;
+
    begin
+      pragma Debug (O ("To_Any: "& Exception_Name (E)));
+      pragma Debug (O (Exception_Message (E)));
+      pragma Debug (O (Exception_Information (E)));
+
       begin
          Name := Occurrence_To_Name (E);
          Get_Members (E, Members);
