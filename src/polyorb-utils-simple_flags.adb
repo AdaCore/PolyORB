@@ -41,7 +41,6 @@ package body PolyORB.Utils.Simple_Flags is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.utils.simple_flags");
---     ("polyorb.utils.simple_flags" & Bit_Count'Image (Bit_Count'Last));
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -53,18 +52,14 @@ package body PolyORB.Utils.Simple_Flags is
      (N : Bit_Count)
      return Flags_Type
    is
-      Temp : Flags_Type := 1;
    begin
-      for K in 0 .. (N - 1) loop
-         Temp := Temp * 2;
-      end loop;
       pragma Debug (O ("Max bit"
                        & Bit_Count'Image (Bit_Count'Last)
                        & "; Mask for "
                        & Bit_Count'Image (N)
                        & " : "
-                       & Flags_Type'Image (Temp)));
-      return Temp;
+                       & Flags_Type'Image (Shift_Left (1, Natural (N)))));
+      return Shift_Left (1, Natural (N));
    end Mask;
 
    ------------

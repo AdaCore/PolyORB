@@ -115,7 +115,7 @@ package PolyORB.Protocols.GIOP is
 private
 
    package Octet_Flags is
-      new PolyORB.Utils.Simple_Flags (Types.Octet);
+      new PolyORB.Utils.Simple_Flags (Types.Octet, Types.Shift_Left);
 
    type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
 

@@ -98,7 +98,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use Representations.CDR;
       use Octet_Flags;
       Flags : Types.Octet := 0;
-
    begin
 
       --  1.2.1 The message header.

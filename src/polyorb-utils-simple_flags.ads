@@ -37,9 +37,13 @@
 
 generic
    type Flags_Type is mod <>;
+   with function Shift_Left
+     (Value : Flags_Type;
+      N     : Natural)
+     return Flags_Type;
 package PolyORB.Utils.Simple_Flags is
 
-   type Bit_Count is new Integer range 0 .. (Flags_Type'Size - 1);
+   type Bit_Count is new Natural range 0 .. (Flags_Type'Size - 1);
 
    function Mask
      (N : Bit_Count)
@@ -81,6 +85,6 @@ package PolyORB.Utils.Simple_Flags is
      (Flag_Field : in out Flags_Type;
       N          : Bit_Count;
       Value      : Boolean);
-   --  Set the N bit of Flag_Field to Value
+   --  Set bit N of Flag_Field to Value
 
 end PolyORB.Utils.Simple_Flags;

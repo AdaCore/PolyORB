@@ -51,7 +51,7 @@ package PolyORB.Requests is
    type Flags is new Types.Unsigned_Long;
 
    package Unsigned_Long_Flags is
-      new PolyORB.Utils.Simple_Flags (Flags);
+      new PolyORB.Utils.Simple_Flags (Flags, Shift_Left);
 
    ------------------------------------------
    -- Synchronisation of request execution --
@@ -223,10 +223,18 @@ package PolyORB.Requests is
    --  side, or for a reply, on client side) into A_Args.
 
 private
+
+   function Shift_Left
+     (Value : Flags;
+      N     : Natural)
+     return Flags;
+   pragma Inline (Shift_Left);
+
    Sync_None           : constant Flags := 1;
    Sync_With_Transport : constant Flags := 2;
    Sync_With_Server    : constant Flags := 4;
    Sync_With_Target    : constant Flags := 8;
    Sync_Call_Back      : constant Flags := 16;
    Default_Flags       : constant Flags := Sync_With_Target;
+
 end PolyORB.Requests;

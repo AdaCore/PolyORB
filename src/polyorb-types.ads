@@ -170,7 +170,33 @@ package PolyORB.Types is
    --  does not return to the caller before receinving a confirmation
    --  that the request has been executed by the target object.
 
+   -------------------------------
+   -- Shift functions for flags --
+   -------------------------------
+
+   function Shift_Left
+     (Value : Octet;
+      N     : Natural)
+     return Octet;
+
+   function Shift_Left
+     (Value : Unsigned_Short;
+      N     : Natural)
+     return Unsigned_Short;
+
+   function Shift_Left
+     (Value : Unsigned_Long;
+      N     : Natural)
+     return Unsigned_Long;
+
+   function Shift_Left
+     (Value : Unsigned_Long_Long;
+      N     : Natural)
+     return Unsigned_Long_Long;
+
 private
+
+   pragma Inline (Shift_Left);
 
    pragma Inline (To_PolyORB_String);
    pragma Inline (To_Standard_String);

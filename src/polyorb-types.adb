@@ -76,5 +76,52 @@ package body PolyORB.Types is
          (Source));
    end To_Standard_Wide_String;
 
+   -------------------------------
+   -- Shift functions for flags --
+   -------------------------------
+
+   function Shift_Left
+     (Value : Octet;
+      N     : Natural)
+     return Octet
+   is
+      Result : constant Interfaces.Unsigned_8
+        := Interfaces.Shift_Left (Interfaces.Unsigned_8 (Value), N);
+   begin
+      return Octet (Result);
+   end Shift_Left;
+
+   function Shift_Left
+     (Value : Unsigned_Short;
+      N     : Natural)
+     return Unsigned_Short
+   is
+      Result : constant Interfaces.Unsigned_16
+        := Interfaces.Shift_Left (Interfaces.Unsigned_16 (Value), N);
+   begin
+      return Unsigned_Short (Result);
+   end Shift_Left;
+
+   function Shift_Left
+     (Value : Unsigned_Long;
+      N     : Natural)
+     return Unsigned_Long
+   is
+      Result : constant Interfaces.Unsigned_32
+        := Interfaces.Shift_Left (Interfaces.Unsigned_32 (Value), N);
+   begin
+      return Unsigned_Long (Result);
+   end Shift_Left;
+
+   function Shift_Left
+     (Value : Unsigned_Long_Long;
+      N     : Natural)
+     return Unsigned_Long_Long
+   is
+      Result : constant Interfaces.Unsigned_64
+        := Interfaces.Shift_Left (Interfaces.Unsigned_64 (Value), N);
+   begin
+      return Unsigned_Long_Long (Result);
+   end Shift_Left;
 
 end PolyORB.Types;
