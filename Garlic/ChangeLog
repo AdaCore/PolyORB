@@ -1,3 +1,35 @@
+2000-10-20  Pascal Obry  <obry@gnat.com>
+
+	* Makefile.in: add support for platform specific
+	Garlic.Thin unit.
+	
+	* s-garthi.ads: Fd_Set is now a private type as there is different
+	implementation under NT and UNIX we do not want to deal with this
+	data directly.
+	(Timeval_Unit): New type. This is the type used for timeval
+	record.
+	(Clear): New procedure.
+	(Set): New procedure.
+	(Is_Set): New procedure.
+
+	* s-garthi.adb: Add routine header for Shutdown and
+	Initialize. Implement Clear, Set and Is_Set.
+
+	* s-gaprtc.adb: Do not use directly the Fd_Set record, use Clear,
+	Set and Is_Set services. Timeval field are converted from Integer
+	to Timeval_Unit (instead of C.int).
+	
+	* s-ganobl.adb: Do not use directly the Fd_Set record, use Clear,
+	Set and Is_Set services.
+	(Selection_Type): removes 5 unused variables (found by code reading).
+
+	* 5wgtplsp.ads: Removes most code from here (moved to 5wgarthi).
+
+	* 5wgtplsp.adb: This unit has been removed. All the wrappers are
+	not needed now with the NT Garlic.Thin implementation.
+
+	* 5wgarthi.ads, 5wgarthi.adb: New units. NT specific Garlic.Thin unit.
+	
 2000-10-05  Laurent Pautet  <pautet@arlequin>
 
 	* 5wgtplsp.adb: Reimplement C_Select for NT.

@@ -1,3 +1,8 @@
+2000-10-20  Pascal Obry  <obry@gnat.com>
+
+	* configure, configure.in: add support for platform specific
+	Garlic.Thin unit.
+	
 2000-09-21  Laurent Pautet  <pautet@arlequin>
 
 	* MANIFEST: Add the missing gnat files needed to deal with source
