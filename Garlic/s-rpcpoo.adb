@@ -438,6 +438,7 @@ package body System.RPC.Pool is
 
       procedure Shutdown is
       begin
+         pragma Debug (D (D_Debug, "Free_Tasks.Shutdown called"));
          Shutdown_In_Progress := True;
       end Shutdown;
 
@@ -474,6 +475,7 @@ package body System.RPC.Pool is
 
    procedure Shutdown is
    begin
+      pragma Debug (D (D_Debug, "Shutdown called"));
       Free (Task_Manager);
       Free_Tasks.Shutdown;
    end Shutdown;

@@ -49,4 +49,14 @@ package body System.RPC.Initialization is
       Stream_IO.Initialize;
    end Initialize;
 
+   --------------
+   -- Shutdown --
+   --------------
+
+   procedure Shutdown is
+   begin
+      RPC.Shutdown;
+      Pool.Shutdown;
+   end Shutdown;
+
 end System.RPC.Initialization;

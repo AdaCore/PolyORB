@@ -33,14 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
+with Interfaces.C.Pointers;
 with Interfaces.C.Strings;
-with System.Garlic.Pointers;
 
 package System.Garlic.Thin is
 
    package C renames Interfaces.C;
    package Strings renames C.Strings;
+   generic package Pointers renames C.Pointers;
 
    use type C.int;
    --  This is an ugly hack to be able to declare the Failure constant
@@ -209,16 +209,16 @@ package System.Garlic.Thin is
       Length   : C.int;
       Typ      : C.int)
       return Hostent_Access;
-   
+
    function C_Gethostbyname
      (Name : Strings.chars_ptr)
       return Hostent_Access;
-   
+
    function C_Gethostname
      (Name    : Strings.chars_ptr;
       Namelen : C.int)
       return C.int;
-   
+
    function C_Getpeername
      (S       : C.int;
       Name    : Sockaddr_Access;

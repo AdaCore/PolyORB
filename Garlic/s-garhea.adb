@@ -43,6 +43,7 @@ with System.Garlic.Streams;     use System.Garlic.Streams;
 with System.Garlic.Termination;
 with System.Garlic.Trace;       use System.Garlic.Trace;
 with System.Garlic.Utils;
+with System.RPC.Initialization;
 with System.Standard_Library;
 
 package body System.Garlic.Heart is
@@ -1042,8 +1043,7 @@ package body System.Garlic.Heart is
       pragma Debug
         (D (D_Communication,
             "It seems that partition" & Partition'Img & " is dead"));
-      if Is_Boot_Partition and then
-        Shutdown_Policy = Shutdown_On_Any_Partition_Error then
+      if Shutdown_Policy = Shutdown_On_Any_Partition_Error then
          pragma Debug
             (D (D_Communication, "Due to the policy, I will shutdown"));
          Soft_Shutdown;
@@ -1168,10 +1168,11 @@ package body System.Garlic.Heart is
 
    procedure Shutdown is
    begin
+      Shutdown_Keeper.Signal;
       Trace.Shutdown;
       Termination.Shutdown;
       Physical_Location.Shutdown;
-      Shutdown_Keeper.Signal;
+      RPC.Initialization.Shutdown;
       Free (Local_Partition_ID);
       Free (Partition_Map);
       Free (Partition_ID_Allocation);
@@ -1219,6 +1220,7 @@ package body System.Garlic.Heart is
 
    procedure Soft_Shutdown is
    begin
+      Shutdown_Keeper.Signal;
       if Is_Boot_Partition then
          for Partition in
            Server_Partition_ID + 1 .. Partition_ID_Allocation.Latest loop

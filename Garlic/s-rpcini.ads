@@ -35,9 +35,11 @@
 
 package System.RPC.Initialization is
 
-   --  This package initializes all the private children package of
-   --  System.RPC and System.RPC itself.
+   --  This package initializes and shuts down all the private child
+   --  packages of System.RPC as well as System.RPC itself.
 
    procedure Initialize;
+
+   procedure Shutdown;
 
 end System.RPC.Initialization;

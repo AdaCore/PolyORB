@@ -142,10 +142,6 @@ package body System.RPC is
       Params    : access System.RPC.Params_Stream_Type);
    --  Receive data.
 
-   procedure Shutdown;
-   task Shutdown_Waiter;
-   --  Shutdown mechanism.
-
    procedure Partition_Error_Notification
      (Partition : in System.RPC.Partition_ID);
    --  Call this procedure to unblock tasks waiting for RPC results from
@@ -594,30 +590,10 @@ package body System.RPC is
 
    procedure Shutdown is
    begin
+      pragma Debug (D (D_Debug, "Shutdown has been called"));
       Free (Request_Id_Server);
       Free (Result_Watcher);
-      Pool.Shutdown;
    end Shutdown;
-
-   ---------------------
-   -- Shutdown_Waiter --
-   ---------------------
-
-   task body Shutdown_Waiter is
-   begin
-      select
-         Shutdown_Keeper.Wait;
-         pragma Debug
-           (D (D_Debug, "Shutdown Waiter exiting because of Shutdown_Keeper"));
-         raise Communication_Error;
-      then abort
-         Wait_Until_Elaboration_Is_Terminated;
-      end select;
-      System.Garlic.Termination.Add_Non_Terminating_Task;
-      Shutdown_Keeper.Wait;
-      Shutdown;
-      System.Garlic.Termination.Sub_Non_Terminating_Task;
-   end Shutdown_Waiter;
 
    -----------
    -- Write --

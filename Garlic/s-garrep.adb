@@ -66,10 +66,9 @@ package body System.Garlic.Replay is
    Trace_File : File_Type;
    --  Where to read the traces.
 
-   task Engine is
+   task type Engine_Type is
       pragma Storage_Size (3_000_000);
-      entry Start;
-   end Engine;
+   end Engine_Type;
    --  Reads and delivers the messages from the trace file.
 
    ------------
@@ -83,6 +82,55 @@ package body System.Garlic.Replay is
       Register_Protocol (Self);
       return Self;
    end Create;
+
+   -----------------
+   -- Engine_Type --
+   -----------------
+
+   task body Engine_Type is
+   begin
+      pragma Debug (D (D_Debug, "Replay engine started"));
+
+      select
+         Heart.Shutdown_Keeper.Wait;
+         pragma Debug
+           (D (D_Debug, "Replay engine shutdown"));
+
+      then abort
+         while not End_Of_File (Trace_File) loop
+
+            --  Read a new trace from file (new incoming message).
+
+            declare
+               Trace : constant Trace_Type :=
+                  Trace_Type'Input (Stream (Trace_File));
+
+            begin
+               pragma Debug
+                  (D (D_Debug,
+                      "Read trace from partition" & Trace.PID'Img &
+                      " of length" & Trace.Data'Length'Img));
+
+               --  The message should arrive at about the same time as
+               --  during the recorded execution.
+
+               declare
+                  Latency : Duration := To_Duration (Trace.Time);
+               begin
+                  pragma Debug
+                    (D (D_Debug, "Replay network latency" & Latency'Img));
+                  delay Latency;
+               end;
+
+               --  Deliver message.
+
+               Has_Arrived (Trace.PID, Trace.Data);
+            end;
+         end loop;
+      end select;
+
+      Soft_Shutdown;
+   end Engine_Type;
 
    --------------
    -- Get_Info --
@@ -128,9 +176,9 @@ package body System.Garlic.Replay is
      (Protocol         : access Replay_Protocol;
       Is_Boot_Protocol : in Boolean := False;
       Boot_Data        : in String  := "";
-      Is_Master        : in Boolean := False) is
+      Is_Master        : in Boolean := False)
+   is
       Partition : System.RPC.Partition_ID;
-
    begin
       --  Replay protocol is always loaded because its activation
       --  is determined at run-time. It should be activated here when
@@ -158,7 +206,14 @@ package body System.Garlic.Replay is
             Set_My_Partition_ID (Partition);
          end if;
 
-         Engine.Start;
+         --  We create an unnamed task on which we keep no reference
+
+         declare
+            type Engine_Type_Access is access Engine_Type;
+            Engine : Engine_Type_Access;
+         begin
+            Engine := new Engine_Type;
+         end;
 
       end if;
 
@@ -175,61 +230,6 @@ package body System.Garlic.Replay is
          Close (Trace_File);
       end if;
    end Shutdown;
-
-   ------------
-   -- Engine --
-   ------------
-
-   task body Engine is
-   begin
-      select
-         accept Start;
-      or
-         terminate;
-      end select;
-
-      pragma Debug (D (D_Debug, "Replay engine started"));
-
-      select
-         Heart.Shutdown_Keeper.Wait;
-         pragma Debug
-           (D (D_Debug, "Replay engine shutdown"));
-
-      then abort
-         while not End_Of_File (Trace_File) loop
-
-            --  Read a new trace from file (new incoming message).
-
-            declare
-               Trace : constant Trace_Type :=
-                  Trace_Type'Input (Stream (Trace_File));
-
-            begin
-               pragma Debug
-                  (D (D_Debug,
-                      "Read trace from partition" & Trace.PID'Img &
-                      " of length" & Trace.Data'Length'Img));
-
-               --  The message should arrive at about the same time as
-               --  during the recorded execution.
-
-               declare
-                  Latency : Duration := To_Duration (Trace.Time);
-               begin
-                  pragma Debug
-                    (D (D_Debug, "Replay network latency" & Latency'Img));
-                  delay Latency;
-               end;
-
-               --  Deliver message.
-
-               Has_Arrived (Trace.PID, Trace.Data);
-            end;
-         end loop;
-      end select;
-
-      Soft_Shutdown;
-   end Engine;
 
 end System.Garlic.Replay;
 

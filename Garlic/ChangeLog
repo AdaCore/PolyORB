@@ -1,3 +1,29 @@
+1997-12-09  Samuel Tardieu <sam@inf.enst.fr>
+
+        * s-gaphlo.adb: Add debugging information.
+
+        * s-gartcp.adb: Better debugging messages.
+
+        * Makefile.am (s-gafizi.o): Get rid of s-garpoi.ad[bs].
+
+        * s-rpcini.ads: (Shutdown): new procedure.
+
+        * s-rpcini.adb: (Shutdown): new procedure.
+
+        * s-rpc.ads: Export Shutdown procedure.
+
+        * s-rpc.adb: (Shutdown_Waiter): now useless task removed.
+
+        * s-garthi.ads: Use Interfaces.C.Pointers rather than
+        System.Garlic.Pointers now that we can have use clauses in a
+        generic body used in a system spec.
+
+        * s-garrep.adb: Do not create any replay task if the replay
+        protocol is not in use.
+
+        * s-garhea.adb: Shutdown the partition in any case if a partition
+        fails and the policy is Shutdown_On_Any_Partition_Error.
+
 1997-12-09  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuti.adb, s-garuti.ads: Add critical section utilities.

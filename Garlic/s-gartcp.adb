@@ -261,7 +261,7 @@ package body System.Garlic.TCP is
                pragma Debug (D (D_Debug, "Open code received"));
                null;
             elsif Code = Quit_Code then
-               pragma Debug (D (D_Debug, "Quit code received"));
+               pragma Debug (D (D_Debug, "Quitting accept handler"));
                Raise_Communication_Error ("Quit code received");
             else
                pragma Debug (D (D_Debug,
@@ -515,7 +515,7 @@ package body System.Garlic.TCP is
                   pragma Debug (D (D_Debug, "Received a data code"));
                   null;
                elsif Code = Quit_Code then
-                  pragma Debug (D (D_Debug, "Received a quit code"));
+                  pragma Debug (D (D_Debug, "Quitting one incoming handler"));
                   Raise_Communication_Error ("Received a quit code");
                else
                   pragma Debug (D (D_Debug, "Received unknown code: " &
@@ -588,12 +588,17 @@ package body System.Garlic.TCP is
               (D (D_Garlic,
                   "Task dying before determining remote Partition_ID"));
             null;
-         else
+         elsif not Shutdown_Keeper.Is_In_Progress then
             pragma Debug
               (D (D_Garlic,
                   "Signaling that partition" & Partition'Img &
                   " is now unavailable"));
             Remote_Partition_Error (Partition);
+         else
+            pragma Debug (D (D_Garlic,
+                             "Partition" & Partition'Img &
+                             " is now unavailable (because of shutdown)"));
+            null;
          end if;
 
       when others =>
@@ -969,6 +974,8 @@ package body System.Garlic.TCP is
       Data : Host_Data;
    begin
 
+      pragma Debug (D (D_Debug, "Initiating connections shutdown"));
+
       --  The following loop tries to send a QUIT message to any known
       --  partition so that it releases its socket to be able to perform
       --  the shutdown operation on its end.
@@ -984,6 +991,8 @@ package body System.Garlic.TCP is
          end if;
       end loop;
 
+      pragma Debug (D (D_Debug, "Sending a close message to myself"));
+
       --  Send the same message on a new connection to the partition itself
       --  so that the accept gets the message.
 
@@ -996,6 +1005,9 @@ package body System.Garlic.TCP is
       end;
 
       Free (Partition_Map);
+
+      pragma Debug (D (D_Debug, "Shutdown completed"));
+
    end Shutdown;
 
    ----------------
