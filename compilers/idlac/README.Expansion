@@ -1,5 +1,5 @@
-Expansion should be done
-------------------------
+The following expansion occurs on the IDL tree
+----------------------------------------------
 
 - <fixed_type_specs>
   a simple typedef:
