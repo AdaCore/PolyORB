@@ -32,6 +32,8 @@
 
 with Ada.Tags;
 
+with PolyORB.Exceptions;
+
 with PolyORB.POA;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 
@@ -43,7 +45,8 @@ is
    -- Create --
    ------------
 
-   function Create return Active_Map_Only_Policy_Access is
+   function Create
+     return Active_Map_Only_Policy_Access is
    begin
       return new Active_Map_Only_Policy;
    end Create;
@@ -62,6 +65,7 @@ is
 
       use Ada.Tags;
 
+      use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Servant_Retention_Policy;
       use PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 
@@ -73,7 +77,7 @@ is
          if Other_Policies (J).all in ServantRetentionPolicy'Class
          and then Other_Policies (J).all'Tag /= Retain_Policy'Tag
          then
-            raise PolyORB.POA.Invalid_Policy;
+            Raise_Invalid_Policy;
             --  XXX we may raise an exception, but should we ?
          end if;
       end loop;
@@ -121,6 +125,7 @@ is
       U_Oid : Unmarshalled_Oid)
      return Servants.Servant_Access
    is
+      use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Servant_Retention_Policy;
       use type PolyORB.Servants.Servant_Access;
 
@@ -138,8 +143,9 @@ is
       --  on-the-fly or use a default servant.
 
       if Servant = null then
-         raise PolyORB.POA.Object_Not_Active;
+         Raise_Object_Not_Active;
       end if;
+
       return Servant;
    end Id_To_Servant;
 

@@ -30,6 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Exceptions;
 with PolyORB.Objects;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
@@ -99,7 +100,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
         := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
       if Hint = null then
-         raise PolyORB.POA.Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
 
       return PolyORB.POA_Types.Create_Id
@@ -140,7 +141,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
 
    begin
       if U_Oid.System_Generated then
-         raise PolyORB.POA.Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
    end Ensure_Oid_Origin;
 

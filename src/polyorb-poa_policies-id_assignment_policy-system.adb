@@ -32,13 +32,13 @@
 
 with Ada.Unchecked_Conversion;
 
+with PolyORB.Exceptions;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Types;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Types;
-with PolyORB.Utils;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
@@ -144,12 +144,12 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          exception
             when others =>
                Unlock_W (POA.Map_Lock);
-               raise PolyORB.POA.Invalid_Policy;
+               PolyORB.Exceptions.Raise_Invalid_Policy;
          end;
          Unlock_W (POA.Map_Lock);
 
          if The_Entry = null then
-            raise PolyORB.POA.Invalid_Policy;
+            PolyORB.Exceptions.Raise_Invalid_Policy;
             --  Could not determine the slot associated with
             --  this index.
             --  XXX if this is a POA with the PERSISTENT lifespan
@@ -197,7 +197,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    begin
       if not U_Oid.System_Generated then
-         raise PolyORB.POA.Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
       end if;
    end Ensure_Oid_Origin;
 

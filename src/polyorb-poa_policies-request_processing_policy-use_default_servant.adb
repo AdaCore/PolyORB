@@ -29,6 +29,7 @@
 
 with Ada.Tags;
 
+with PolyORB.Exceptions;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
 
@@ -69,7 +70,7 @@ is
          if Other_Policies (J).all in IdUniquenessPolicy'Class
            and then Other_Policies (J).all'Tag
            /= Multiple_Id_Policy'Tag then
-               raise PolyORB.POA.Invalid_Policy;
+               PolyORB.Exceptions.Raise_Invalid_Policy;
                --  XXX we may raise an exception, but should we ?
          end if;
       end loop;

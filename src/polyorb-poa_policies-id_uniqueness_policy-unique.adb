@@ -32,6 +32,7 @@
 
 with Ada.Tags;
 
+with PolyORB.Exceptions;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
@@ -40,6 +41,7 @@ with PolyORB.Tasking.Rw_Locks;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
+   use PolyORB.Exceptions;
    use PolyORB.Object_Maps;
    use PolyORB.POA_Policies.Implicit_Activation_Policy;
    use PolyORB.Tasking.Rw_Locks;
@@ -65,10 +67,10 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      use Ada.Tags;
+
       use PolyORB.POA_Policies.Servant_Retention_Policy;
       use PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
-
-      use Ada.Tags;
 
    begin
       --  Unique_Id and Non_Retain policies are not compatible.
@@ -77,7 +79,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
          if Other_Policies (J).all in ServantRetentionPolicy'Class
            and then Other_Policies (J).all'Tag = Non_Retain_Policy'Tag
          then
-            raise PolyORB.POA.Invalid_Policy;
+            Raise_Invalid_Policy;
             --  XXX we may raise an exception, but should we ?
          end if;
       end loop;
@@ -122,7 +124,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
          if Is_Servant_In (POA.Active_Object_Map.all, P_Servant) then
             Unlock_R (POA.Map_Lock);
-            raise PolyORB.POA.Servant_Already_Active;
+            Raise_Servant_Already_Active;
          end if;
 
          Unlock_R (POA.Map_Lock);

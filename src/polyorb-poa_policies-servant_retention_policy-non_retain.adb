@@ -32,7 +32,7 @@
 
 with Ada.Tags;
 
-with PolyORB.POA;
+with PolyORB.Exceptions;
 with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
@@ -76,7 +76,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
          if Other_Policies (J).all in RequestProcessingPolicy'Class
            and then Other_Policies (J).all'Tag
            /= Use_Default_Servant_Policy'Tag then
-               raise PolyORB.POA.Invalid_Policy;
+               PolyORB.Exceptions.Raise_Invalid_Policy;
                --  XXX we may raise an exception, but should we ?
          end if;
       end loop;

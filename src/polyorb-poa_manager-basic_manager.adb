@@ -34,14 +34,15 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Log;
-with PolyORB.POA;
 with PolyORB.Components;
-with PolyORB.Setup;
+with PolyORB.Exceptions;
+with PolyORB.Log;
 with PolyORB.ORB.Interface;
+with PolyORB.Setup;
 
 package body PolyORB.POA_Manager.Basic_Manager is
 
+   use PolyORB.Exceptions;
    use PolyORB.Log;
    use PolyORB.Tasking.Rw_Locks;
 
@@ -91,7 +92,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
          --  If the POAManager state is 'inactive', raise an exception.
 
          Unlock_W (Self.State_Lock);
-         raise PolyORB.POA.Adapter_Inactive;
+         Raise_Adapter_Inactive;
 
       else
 
@@ -131,7 +132,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
          --  If the POAManager state is 'inactive', raise an exception.
 
          Unlock_W (Self.State_Lock);
-         raise PolyORB.POA.Adapter_Inactive;
+         Raise_Adapter_Inactive;
       else
 
          --  else set the POAManager state to 'holding'
@@ -169,7 +170,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
          --  If the POAManager state is 'inactive', raise an exception.
 
          Unlock_W (Self.State_Lock);
-         raise PolyORB.POA.Adapter_Inactive;
+         Raise_Adapter_Inactive;
 
       else
 
@@ -207,10 +208,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       if Self.Current_State = INACTIVE then
 
-         --  If the POAManager state is 'inactive', raise an exception.
+         --  If the POAManager state is 'inactive', nothing to do.
 
          Unlock_W (Self.State_Lock);
-         raise PolyORB.POA.Adapter_Inactive;
       else
 
          --  else set the POAManager state to 'inactive'
@@ -278,9 +278,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       Lock_W (Self.POAs_Lock);
 
-      for I in 1 .. Length (Sequence (Self.Managed_POAs.all)) loop
-         if Element_Of (Sequence (Self.Managed_POAs.all), I) = null then
-            Replace_Element (Sequence (Self.Managed_POAs.all), I, OA);
+      for J in 1 .. Length (Sequence (Self.Managed_POAs.all)) loop
+         if Element_Of (Sequence (Self.Managed_POAs.all), J) = null then
+            Replace_Element (Sequence (Self.Managed_POAs.all), J, OA);
             Unlock_W (Self.POAs_Lock);
             Inc_Usage_Counter (Self);
             return;
@@ -310,10 +310,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       Lock_W (Self.POAs_Lock);
 
-      for I in 1 .. Length (Sequence (Self.Managed_POAs.all)) loop
-         A_Child := Element_Of (Sequence (Self.Managed_POAs.all), I);
+      for J in 1 .. Length (Sequence (Self.Managed_POAs.all)) loop
+         A_Child := Element_Of (Sequence (Self.Managed_POAs.all), J);
+
          if A_Child = OA then
-            Replace_Element (Sequence (Self.Managed_POAs.all), I, null);
+            Replace_Element (Sequence (Self.Managed_POAs.all), J, null);
             Unlock_W (Self.POAs_Lock);
             Dec_Usage_Counter (Self);
             Destroy_If_Unused (Self.all);
@@ -489,8 +490,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Delete (Self.Holded_Requests, 1, N);
       Unlock_W (Self.Queue_Lock);
 
-      for I in 1 .. N loop
-         R := All_Requests (I);
+      for J in 1 .. N loop
+         R := All_Requests (J);
          Emit_No_Reply (Component_Access (PolyORB.Setup.The_ORB),
                         Queue_Request'
                         (Request   => R.Req,

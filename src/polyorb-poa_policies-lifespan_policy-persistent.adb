@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA;
+with PolyORB.Exceptions;
 with PolyORB.Types;
 
 package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
@@ -112,7 +112,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
 
    begin
       if U_Oid.Persistency_Flag /= 0 then
-         raise PolyORB.POA.Object_Not_Exist;
+         PolyORB.Exceptions.Raise_Object_Not_Exist;
       end if;
    end Ensure_Lifespan;
 

@@ -30,16 +30,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Exceptions;
 with PolyORB.Object_Maps;
-with PolyORB.Tasking.Rw_Locks;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy;
 with PolyORB.POA_Policies.Lifespan_Policy;
+with PolyORB.Tasking.Rw_Locks;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
-   use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Object_Maps;
+   use PolyORB.Tasking.Rw_Locks;
 
    ------------
    -- Create --
@@ -109,6 +110,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
         (POA.Id_Uniqueness_Policy.all, OA, P_Servant);
 
       Lock_W (POA.Map_Lock);
+
       declare
          The_Entry : Object_Map_Entry_Access
            := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
@@ -132,6 +134,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
          end if;
          The_Entry.Servant := P_Servant;
       end;
+
       Unlock_W (POA.Map_Lock);
    end Retain_Servant_Association;
 
@@ -159,7 +162,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       Unlock_W (POA.Map_Lock);
 
       if An_Entry = null then
-         raise PolyORB.POA.Object_Not_Active;
+         PolyORB.Exceptions.Raise_Object_Not_Active;
       end if;
 
       --  Free the Unmarshalled_Oid_Access and the entry.
