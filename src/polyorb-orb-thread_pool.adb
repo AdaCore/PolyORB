@@ -75,6 +75,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    task type Pool_Thread is
       entry Start (N : in Natural);
+      pragma Storage_Size (131072);
    end Pool_Thread;
    type Pool_Thread_Access is access Pool_Thread;
 

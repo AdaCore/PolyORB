@@ -503,6 +503,7 @@ package body PolyORB.Protected_Objects is
 
    task type Generic_Task is
       entry Start (Main : Parameterless_Procedure);
+      pragma Storage_Size (131072);
    end Generic_Task;
 
    task body Generic_Task is
