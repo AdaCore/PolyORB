@@ -308,25 +308,43 @@ We now give a more detailed description of these functional areas:
 
 \item[Binding]\mbox{}
 
-  %% XXX TBD.
+  %% XXX Warning: revoir la notion de surrogate vs. binding object
+  %%   il n'est pas certain du tout que la terminologie utilisée
+  %%   ici soit conforme à celle d'objectweb.
   \begin{description}
   \item[Definition]
-  The binding service consists in associating a transport connection
-  (as defined by the following Transport service) with an object
-  reference, and to create a client-side surrogate of the actual
-  designated object. This surrogate processes method calls performed
-  using the object reference by forwarding them as invocation request
-  messages to the target object.
+  When a method is to be invoked on a remote object, a transport
+  connection is established using a transport access point address
+  from an object reference. The Binding service is used to associate
+  object reference data with an open transport endpoint with suitable
+  parameters. 
+
+  When an incoming request is to be processed on the local node
+  (or forwarded to another node), the binding service is also
+  used to determine which actual object (or surrogate) is to
+  be used as the target for the request delivery.
+
+  The Binding service thus represents the association of interacting
+  objects with message transport resources. This definition was
+  proposed by the ObjectWeb framework~\cite{dangtran97:jonathan}.
 
   \item[Properties]
-  Implicit or explicit binding.
+  The binding operation may be implicit (allowing methods to
+  be invoked transparently on remote object with no explicit
+  connection set up visible to the user), or explicit. Explicit
+  binding allows the user to control specific details of the
+  transport connection setup.
 
   \item[Rationale]
-  Stefani \& Shapiro. Allow flexible control of the transport
-  connection establishment, eg QoS.
-
-  %%  XXX éviter les répétitions par rapport à l'autre endroit
-  %%     où on cause de ce service.
+  
+  Distribution requires separation of abstract references that
+  designate ``logical'' objects from the actual structures that
+  implement them (which are language and operating system
+  structures). Each particular language and operating system
+  has specific features that allow one to associate identifiers
+  with actual implementation structures~; in order to construct
+  transparent distributed systems, it is necessary to devise
+  a mechanisme that will encapsulate these features.
 
   \end{description}
 
@@ -810,15 +828,15 @@ Ce service est réalisé en concrétisant un certain nombre de classes abstraites~:
 
 %%  XXX à compléter !
 
-\subsection{Binding} % XXX traduction !
+\subsection{Liaisons}
 
-\funcfig{binding}{Fonction \emph{binding}}
+\funcfig{binding}{Fonction \emph{liaisons}}
 
 \emph{Fonction faisant intervenir seulement la couche protocolaire.
 Cf. figure \ref{fig:func-binding}.}
 
 Étant donnée une référence désignant un objet distant, le service
-de binding a pour rôle de créer, sur un client, une structure qui
+de liaison (\empg{binding}) a pour rôle de créer, sur un client, une structure qui
 représente l'objet désigné, et qui est capable de traiter des appels
 de méthode (en les transmettant à l'objet réel). Cette structure,
 appelée \emph{subrogé} de l'objet réel, encapsule l'association de
@@ -832,26 +850,6 @@ de méthode. Il peut aussi être explicite, lorsque l'utilisateur souhaite
 contrôler certains aspects de l'établissement de la connexion, par exemple
 pour choisir des paramètres de qualité de service à négocier avec
 le réseau.
-
-%  The transport objects
-%  are associated within a client-side construct. This construct
-%  is the result of \emph{binding} the object reference to the
-%  transport connection; it can process method invocations (by
-%  forwarding them to the actual object through the connection).
-%  It can therefore be construed as representing the called object:
-%  it is a \emph{surrogate} of the server object on the client side.
-
-%  The binding operation can be implicit or explicit. It is implicit
-%  when it is conducted
-%  by the middleware as a consequence of the caller performing a
-%  method invocation on a yet unbound reference. This is the most
-%  common case in distributed object platforms such as CORBA
-%  or Java/RMI. It can also be explicit when it is controlled
-%  by actions of the user. In the case of an explicit binding of
-%  an object reference to a transport object, the user can control
-%  parameters of the transport connection, such as the negociation
-%  of a level of quality of service.
-
 
 \subsection{Représentation}
 
