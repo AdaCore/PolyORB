@@ -1,3 +1,10 @@
+2003-11-17  Laurent Pautet  <pautet@enst.fr>
+
+	* xe_check.adb: Fix the fix previously done. We report an error
+	when the protocol major name is a Name_Id containing an empty
+	string (it cannot be equal to No_Name as assumed in the first fix).
+	Fix for B725-G04.
+
 2003-11-11  Laurent Pautet  <pautet@enst.fr>
 
 	* b_xe_defs.adb: Add -I arguments to both binder and compiler list
