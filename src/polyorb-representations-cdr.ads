@@ -141,8 +141,6 @@ package PolyORB.Representations.CDR is
       return CDR_Representation_Access;
    --  Create Representation object for requested version
 
-private
-
    --  'Any' type
 
    procedure Marshall
@@ -154,6 +152,8 @@ private
      (Buffer         : access Buffers.Buffer_Type;
       Representation : in     CDR_Representation'Class)
       return PolyORB.Any.Any;
+
+private
 
    --  'TypeCode.Object' type
 

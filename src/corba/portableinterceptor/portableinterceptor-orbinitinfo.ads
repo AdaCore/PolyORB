@@ -36,10 +36,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with Ada.Exceptions;
 
 with CORBA.Object;
 
+with IOP.CodecFactory;
 with PortableInterceptor.ClientRequestInterceptor;
 with PortableInterceptor.ServerRequestInterceptor;
 
@@ -84,9 +87,9 @@ package PortableInterceptor.ORBInitInfo is
      (Self : in Local_Ref)
       return CORBA.String;
 
---   function Get_Codec_Factory
---     (Self : in Local_Ref)
---      return IOP.CodecFactory.Local_Ref;
+   function Get_Codec_Factory
+     (Self : in Local_Ref)
+      return IOP.CodecFactory.Local_Ref;
 
    procedure Register_Initial_Reference
      (Self : in Local_Ref;

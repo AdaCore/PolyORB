@@ -508,6 +508,17 @@ src/corba/polyorb-sequences-unbounded-corba_helper.ads
 src/corba/portableinterceptor/Makefile.am
 src/corba/portableinterceptor/Makefile.in
 src/corba/portableinterceptor/dynamic.ads
+src/corba/portableinterceptor/iop-codec-impl.adb
+src/corba/portableinterceptor/iop-codec-impl.ads
+src/corba/portableinterceptor/iop-codec.adb
+src/corba/portableinterceptor/iop-codec.ads
+src/corba/portableinterceptor/iop-codecfactory-helper.adb
+src/corba/portableinterceptor/iop-codecfactory-helper.ads
+src/corba/portableinterceptor/iop-codecfactory-impl.adb
+src/corba/portableinterceptor/iop-codecfactory-impl.ads
+src/corba/portableinterceptor/iop-codecfactory.adb
+src/corba/portableinterceptor/iop-codecfactory.ads
+src/corba/portableinterceptor/iop.ads
 src/corba/portableinterceptor/polyorb-corba_p-interceptors.adb
 src/corba/portableinterceptor/polyorb-corba_p-interceptors.ads
 src/corba/portableinterceptor/polyorb-corba_p-interceptors_slots.adb

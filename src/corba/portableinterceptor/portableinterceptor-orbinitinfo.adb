@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with CORBA;
 
 with PortableInterceptor.ORBInitInfo.Impl;
@@ -117,6 +119,25 @@ package body PortableInterceptor.ORBInitInfo is
       return PortableInterceptor.ORBInitInfo.Impl.Allocate_Slot_Id
         (PortableInterceptor.ORBInitInfo.Impl.Object_Ptr (Entity_Of (Self)));
    end Allocate_Slot_Id;
+
+   -----------------------
+   -- Get_Codec_Factory --
+   -----------------------
+
+   function Get_Codec_Factory
+     (Self : in Local_Ref)
+      return IOP.CodecFactory.Local_Ref
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+
+   begin
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return PortableInterceptor.ORBInitInfo.Impl.Get_Codec_Factory
+        (PortableInterceptor.ORBInitInfo.Impl.Object_Ptr (Entity_Of (Self)));
+   end Get_Codec_Factory;
 
    -----------------
    -- Get_Members --

@@ -31,9 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
+with PolyORB.CORBA_P.Initial_References;
 with PolyORB.Exceptions;
+
+with IOP.CodecFactory.Helper;
 
 package body PortableInterceptor.ORBInitInfo.Impl is
 
@@ -144,6 +149,22 @@ package body PortableInterceptor.ORBInitInfo.Impl is
 
       return PolyORB.CORBA_P.Interceptors_Slots.Allocate_Slot_Id;
    end Allocate_Slot_Id;
+
+   -----------------------
+   -- Get_Codec_Factory --
+   -----------------------
+
+   function Get_Codec_Factory
+     (Self : access Object)
+      return IOP.CodecFactory.Local_Ref
+   is
+      pragma Unreferenced (Self);
+   begin
+      return
+        IOP.CodecFactory.Helper.To_Local_Ref
+          (PolyORB.CORBA_P.Initial_References.Resolve_Initial_References
+           ("CodecFactory"));
+   end Get_Codec_Factory;
 
    ----------------
    -- Get_ORB_Id --

@@ -5,6 +5,11 @@ include $(srcdir)/../../Makefile.common
 alidir = $(includedir)/polyorb/corba/portableinterceptor
 
 ADA_SPECS_WITH_BODY = \
+	iop-codec.ads \
+	iop-codec-impl.ads \
+	iop-codecfactory.ads \
+	iop-codecfactory-helper.ads \
+	iop-codecfactory-impl.ads \
 	polyorb-corba_p-interceptors.ads \
 	polyorb-corba_p-interceptors_slots.ads \
 	portableinterceptor.ads \
@@ -32,7 +37,8 @@ ADA_SPECS_WITH_BODY = \
         portableinterceptor-serverrequestinterceptor-impl.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
-	dynamic.ads
+	dynamic.ads \
+	iop.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
