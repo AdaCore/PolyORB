@@ -151,6 +151,13 @@ package body CORBA.Object is
       Release (Droopi.Smart_Pointers.Ref (Self));
    end Release;
 
+   function  Object_To_String
+     (Obj : in CORBA.Object.Ref'Class)
+     return CORBA.String is
+   begin
+      return CORBA.ORB.Object_To_String (Obj);
+   end Object_To_String;
+
 --    --------------------------
 --    -- Set_Policy_Overrides --
 --    --------------------------

@@ -77,6 +77,10 @@ package CORBA.Object is
    --       (Self : Ref)
    --       return CORBA.DomainManager.DomainManagerList;
 
+   function  Object_To_String
+     (Obj : in CORBA.Object.Ref'Class)
+     return CORBA.String;
+
    function To_Droopi_Object
      (R : in Ref)
      return Droopi.Objects.Object_Id;
@@ -96,5 +100,7 @@ package CORBA.Object is
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
+
+   pragma Inline (Object_To_String);
 
 end CORBA.Object;

@@ -26,27 +26,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Delegated_Server;
-
 with Echo.Impl;
 
 with CORBA;
 with CORBA.Object;
 
-with Broca.Server_Tools; use Broca.Server_Tools;
-pragma Elaborate (Broca.Server_Tools);
+with Droopi.CORBA_P.Server_Tools; use Droopi.CORBA_P.Server_Tools;
+pragma Elaborate (Droopi.CORBA_P.Server_Tools);
 
 with GNAT.Command_Line;  use GNAT.Command_Line;
 with Ada.Text_IO;
 
-with PortableServer;
+--  with PortableServer;
 
-with Broca.Naming_Tools; use Broca.Naming_Tools;
+--  with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 procedure Server is
    Ref             : CORBA.Object.Ref;
-   Register_Server : Boolean := False;
-   Use_Delegate    : Boolean := False;
+   --  Register_Server : Boolean := False;
+   --  Use_Delegate    : Boolean := False;
+
 begin
 
    --  Parse command line
@@ -54,37 +53,38 @@ begin
    loop
       case Getopt ("d s") is
          when ASCII.NUL => exit;
-         when 'd'       => Use_Delegate := True;
-         when 's'       => Register_Server := True;
+         --  when 'd'       => Use_Delegate := True;
+         --  when 's'       => Register_Server := True;
          when others    => raise Program_Error;
       end case;
    end loop;
 
    --  Should we use the Delegate or the regular version?
 
-   if Use_Delegate then
-      Initiate_Servant
-        (PortableServer.Servant
-         (Delegated_Server.Delegated.Create (Delegated_Server.Dummy'Access)),
-         Ref);
-   else
-      Initiate_Servant (new Echo.Impl.Object, Ref);
-   end if;
+--    if Use_Delegate then
+--       Initiate_Servant
+--         (PortableServer.Servant
+--          (Delegated_Server.Delegated.Create
+--           (Delegated_Server.Dummy'Access)),
+--          Ref);
+--    else
+   Initiate_Servant (new Echo.Impl.Object, Ref);
+   --  end if;
 
    --  If the server is to be registered, check whether there is a name
    --  given on the command line, use "echo" otherwise.
 
-   if Register_Server then
-      declare
-         Name : constant String := Get_Argument;
-      begin
-         if Name = "" then
-            Register ("echo", Ref);
-         else
-            Register (Name, Ref);
-         end if;
-      end;
-   end if;
+--   if Register_Server then
+--      declare
+--         Name : constant String := Get_Argument;
+--      begin
+--         if Name = "" then
+--            Register ("echo", Ref);
+--         else
+--            Register (Name, Ref);
+--         end if;
+--      end;
+--   end if;
 
    --  Print IOR so that we can give it to a client
 

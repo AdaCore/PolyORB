@@ -26,21 +26,24 @@ pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.CORBA_P.Server_Tools is
 
+   use Droopi.Log;
+
    package L is new Droopi.Log.Facility_Log ("droopi.corba_p.server_tools");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
    Root_POA : PortableServer.POA.Ref;
 
-   task type ORBTask is
-      pragma Storage_Size (Droopi.CORBA_P.Parameters.Server_Tasks_Storage_Size);
-   end ORBTask;
-   type ORBTaskPtr is access ORBTask;
+--    task type ORBTask is
+--       pragma Storage_Size
+--         (Droopi.CORBA_P.Parameters.Server_Tasks_Storage_Size);
+--    end ORBTask;
+--    type ORBTaskPtr is access ORBTask;
 
-   task body ORBTask is
-   begin
-      CORBA.ORB.Run;
-   end ORBTask;
+--    task body ORBTask is
+--    begin
+--       CORBA.ORB.Run;
+--    end ORBTask;
 
    procedure Initiate_RootPOA;
 
@@ -65,7 +68,7 @@ package body Droopi.CORBA_P.Server_Tools is
          new Droopi.ORB.Task_Policies.No_Tasking);
       Initialize_Test_Access_Points;
       Setup.Test_CORBA.Initialize_CORBA_Test_Object;
-   end;
+   end Ensure_Setup;
 
    ----------------------
    -- Initiate_RootPOA --
@@ -88,7 +91,7 @@ package body Droopi.CORBA_P.Server_Tools is
 
    procedure Initiate_Server (Start_New_Task : Boolean := True)
    is
-      ORBMainLoop : ORBTaskPtr;
+      --  ORBMainLoop : ORBTaskPtr;
    begin
       Ensure_Setup;
 
@@ -99,11 +102,11 @@ package body Droopi.CORBA_P.Server_Tools is
       PortableServer.POAManager.Activate
         (PortableServer.POA.Get_The_POAManager (Root_POA));
 
-      if Start_New_Task then
-         ORBMainLoop := new ORBTask;
-      else
-         CORBA.ORB.Run;
-      end if;
+      --  if Start_New_Task then
+      --     ORBMainLoop := new ORBTask;
+      --  else
+      CORBA.ORB.Run;
+      --  end if;
    end Initiate_Server;
 
    ----------------------
