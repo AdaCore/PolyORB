@@ -3,12 +3,12 @@
 
 --  $Id$
 
-with Droopi.Asynchronous_Events.Sockets;
+with Droopi.Asynch_Ev.Sockets;
 with Droopi.Log;
 
 package body Droopi.Transport.Sockets is
 
-   use Droopi.Asynchronous_Events.Sockets;
+   use Droopi.Asynch_Ev.Sockets;
    use Droopi.Log;
 
    package L is new Droopi.Log.Facility_Log ("droopi.transport.sockets");
@@ -17,7 +17,7 @@ package body Droopi.Transport.Sockets is
 
    function Create_Event_Source
      (TAP : Socket_Access_Point)
-     return Asynchronous_Event_Source_Access is
+     return Asynch_Ev_Source_Access is
    begin
       return Create_Event_Source (TAP.Socket);
    end Create_Event_Source;
@@ -38,7 +38,7 @@ package body Droopi.Transport.Sockets is
 
    function Create_Event_Source
      (TE : Socket_Endpoint)
-     return Asynchronous_Event_Source_Access is
+     return Asynch_Ev_Source_Access is
    begin
       return Create_Event_Source (TE.Socket);
    end Create_Event_Source;

@@ -12,7 +12,7 @@ with Droopi.Transport;
 package body Droopi.ORB is
 
    use Droopi.Annotations;
-   use Droopi.Asynchronous_Events;
+   use Droopi.Asynch_Ev;
    use Droopi.Components;
    use Droopi.Filters;
    use Droopi.Jobs;
@@ -131,12 +131,12 @@ package body Droopi.ORB is
 
    procedure Handle_Event
      (ORB : access ORB_Type;
-      AES : Asynchronous_Event_Source_Access);
+      AES : Asynch_Ev_Source_Access);
    --  Process an event that occurred on AES.
 
    procedure Handle_Event
      (ORB : access ORB_Type;
-      AES : Asynchronous_Event_Source_Access)
+      AES : Asynch_Ev_Source_Access)
    is
       Note : ORB_Note;
    begin
@@ -145,7 +145,7 @@ package body Droopi.ORB is
          when A_TAP_AES =>
             declare
                New_TE     : Transport_Endpoint_Access;
-               New_AES    : Asynchronous_Event_Source_Access;
+               New_AES    : Asynch_Ev_Source_Access;
                New_Filter : Filter_Access;
             begin
                Accept_Connection (Note.D.TAP.all, New_TE);
@@ -216,7 +216,7 @@ package body Droopi.ORB is
                Leave (ORB.ORB_Lock.all);
 
                if Monitors'Length = 1 then
-                  Timeout := Droopi.Asynchronous_Events.Forever;
+                  Timeout := Droopi.Asynch_Ev.Forever;
                else
                   Timeout := 0.0;
                end if;
@@ -362,7 +362,7 @@ package body Droopi.ORB is
 
    procedure Insert_Source
      (ORB : access ORB_Type;
-      AES : Asynchronous_Event_Source_Access) is
+      AES : Asynch_Ev_Source_Access) is
    begin
       pragma Assert (AES /= null);
 
@@ -383,7 +383,7 @@ package body Droopi.ORB is
 
          if not Success then
             declare
-               New_AEM : constant Asynchronous_Event_Monitor_Access
+               New_AEM : constant Asynch_Ev_Monitor_Access
                  := AEM_Factory_Of (AES.all).all;
             begin
                Create (New_AEM.all);
@@ -402,7 +402,7 @@ package body Droopi.ORB is
 
    procedure Delete_Source
      (ORB : access ORB_Type;
-      AES : Asynchronous_Event_Source_Access) is
+      AES : Asynch_Ev_Source_Access) is
    begin
       Enter (ORB.ORB_Lock.all);
 

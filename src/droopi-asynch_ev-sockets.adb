@@ -6,13 +6,13 @@ with Ada.Unchecked_Deallocation;
 
 with Droopi.Log;
 
-package body Droopi.Asynchronous_Events.Sockets is
+package body Droopi.Asynch_Ev.Sockets is
 
    use Droopi.Log;
    use Droopi.Sockets;
 
    package L is new Droopi.Log.Facility_Log
-     ("droopi.asynchronous_events.sockets");
+     ("droopi.asynch_ev.sockets");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -36,7 +36,7 @@ package body Droopi.Asynchronous_Events.Sockets is
 
    procedure Register_Source
      (AEM     : in out Socket_Event_Monitor;
-      AES     : Asynchronous_Event_Source_Access;
+      AES     : Asynch_Ev_Source_Access;
       Success : out Boolean) is
    begin
       Success := False;
@@ -50,7 +50,7 @@ package body Droopi.Asynchronous_Events.Sockets is
 
    procedure Unregister_Source
      (AEM : in out Socket_Event_Monitor;
-      AES : Asynchronous_Event_Source_Access) is
+      AES : Asynch_Ev_Source_Access) is
    begin
       raise Not_Implemented;
       --  XXX unimplemented.
@@ -84,7 +84,7 @@ package body Droopi.Asynchronous_Events.Sockets is
 
       pragma Debug (O ("Checking selector..."));
 
-      if T = Asynchronous_Events.Forever then
+      if T = Asynch_Ev.Forever then
          --  Convert special value of Timeout.
          T := Droopi.Sockets.Forever;
       end if;
@@ -140,9 +140,9 @@ package body Droopi.Asynchronous_Events.Sockets is
 
    function Create_Event_Source
      (Socket : Droopi.Sockets.Socket_Type)
-     return Asynchronous_Event_Source_Access
+     return Asynch_Ev_Source_Access
    is
-      Result : constant Asynchronous_Event_Source_Access
+      Result : constant Asynch_Ev_Source_Access
         := new Socket_Event_Source;
    begin
       Socket_Event_Source (Result.all).Socket := Socket;
@@ -150,10 +150,10 @@ package body Droopi.Asynchronous_Events.Sockets is
    end Create_Event_Source;
 
    function Create_Socket_Event_Monitor
-     return Asynchronous_Event_Monitor_Access;
+     return Asynch_Ev_Monitor_Access;
 
    function Create_Socket_Event_Monitor
-     return Asynchronous_Event_Monitor_Access is
+     return Asynch_Ev_Monitor_Access is
    begin
       return new Socket_Event_Monitor;
    end Create_Socket_Event_Monitor;
@@ -164,4 +164,4 @@ package body Droopi.Asynchronous_Events.Sockets is
       return Create_Socket_Event_Monitor'Access;
    end AEM_Factory_Of;
 
-end Droopi.Asynchronous_Events.Sockets;
+end Droopi.Asynch_Ev.Sockets;

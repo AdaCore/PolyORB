@@ -5,7 +5,7 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with Droopi.Asynchronous_Events; use Droopi.Asynchronous_Events;
+with Droopi.Asynch_Ev; use Droopi.Asynch_Ev;
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Components; use Droopi.Components;
 
@@ -19,7 +19,7 @@ package Droopi.Transport is
 
    function Create_Event_Source
      (TAP : Transport_Access_Point)
-     return Asynchronous_Event_Source_Access
+     return Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TAP as an asyncrhonous event source.
 
@@ -61,7 +61,7 @@ package Droopi.Transport is
 
    function Create_Event_Source
      (TE : Transport_Endpoint)
-     return Asynchronous_Event_Source_Access
+     return Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TE as an asyncrhonous event source.
 

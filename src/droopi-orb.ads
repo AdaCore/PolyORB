@@ -4,7 +4,7 @@
 
 with Sequences.Unbounded;
 
-with Droopi.Asynchronous_Events;
+with Droopi.Asynch_Ev;
 with Droopi.Jobs;
 with Droopi.Requests;
 with Droopi.Schedulers;
@@ -13,7 +13,7 @@ with Droopi.Transport;
 
 package Droopi.ORB is
 
-   use Droopi.Asynchronous_Events;
+   use Droopi.Asynch_Ev;
    use Droopi.Schedulers;
    use Droopi.Transport;
 
@@ -41,11 +41,11 @@ package Droopi.ORB is
    type ORB_Access is access all ORB_Type;
 
    package Monitor_Seqs is new Sequences.Unbounded
-     (Asynchronous_Events.Asynchronous_Event_Monitor_Access);
+     (Asynch_Ev.Asynch_Ev_Monitor_Access);
    subtype Monitor_Seq is Monitor_Seqs.Sequence;
 
    type Active_Connection is record
-      AES : Asynchronous_Event_Source_Access;
+      AES : Asynch_Ev_Source_Access;
       TE  : Transport_Endpoint_Access;
    end record;
 
@@ -109,13 +109,13 @@ package Droopi.ORB is
 
    procedure Insert_Source
      (ORB : access ORB_Type;
-      AES : Asynchronous_Event_Source_Access);
+      AES : Asynch_Ev_Source_Access);
    --  Insert AES in the set of asynchronous event sources
    --  monitored by ORB.
 
    procedure Delete_Source
      (ORB : access ORB_Type;
-      AES : Asynchronous_Event_Source_Access);
+      AES : Asynch_Ev_Source_Access);
    --  Delete AES from the set of asynchronous event sources
    --  monitored by ORB.
 
@@ -162,7 +162,7 @@ private
       --  True if, and only if, one task is blocked waiting
       --  for external events on ORB_Sockets.
 
-      Selector : Asynchronous_Events.Asynchronous_Event_Monitor_Access;
+      Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
    end record;
 
 end Droopi.ORB;

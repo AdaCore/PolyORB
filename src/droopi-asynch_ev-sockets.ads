@@ -4,23 +4,23 @@
 
 with Droopi.Sockets;
 
-package Droopi.Asynchronous_Events.Sockets is
+package Droopi.Asynch_Ev.Sockets is
 
    pragma Elaborate_Body;
 
-   type Socket_Event_Monitor is new Asynchronous_Event_Monitor with private;
+   type Socket_Event_Monitor is new Asynch_Ev_Monitor with private;
 
    procedure Create (AEM : out Socket_Event_Monitor);
    procedure Destroy (AEM : in out Socket_Event_Monitor);
 
    procedure Register_Source
      (AEM     : in out Socket_Event_Monitor;
-      AES     : Asynchronous_Event_Source_Access;
+      AES     : Asynch_Ev_Source_Access;
       Success : out Boolean);
 
    procedure Unregister_Source
      (AEM : in out Socket_Event_Monitor;
-      AES : Asynchronous_Event_Source_Access);
+      AES : Asynch_Ev_Source_Access);
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;
@@ -32,21 +32,21 @@ package Droopi.Asynchronous_Events.Sockets is
 
    function Create_Event_Source
      (Socket : Droopi.Sockets.Socket_Type)
-     return Asynchronous_Event_Source_Access;
+     return Asynch_Ev_Source_Access;
 
    function AEM_Factory_Of (AES : Socket_Event_Source)
      return AEM_Factory;
 
 private
 
-   type Socket_Event_Source is new Asynchronous_Event_Source
+   type Socket_Event_Source is new Asynch_Ev_Source
      with record
         Socket : Droopi.Sockets.Socket_Type;
      end record;
 
-   type Socket_Event_Monitor is new Asynchronous_Event_Monitor
+   type Socket_Event_Monitor is new Asynch_Ev_Monitor
      with record
         Selector : Droopi.Sockets.Selector_Access;
      end record;
 
-end Droopi.Asynchronous_Events.Sockets;
+end Droopi.Asynch_Ev.Sockets;
