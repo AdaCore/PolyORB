@@ -47,8 +47,8 @@ package PolyORB.Protocols.GIOP.Common is
         (Buffer : access PolyORB.Buffers.Buffer_Type;
          Index  :        Target_Type);
    procedure Generic_Marshall
-        (Buffer : access PolyORB.Buffers.Buffer_Type;
-         Val    :        Table_Type);
+     (Buffer : access PolyORB.Buffers.Buffer_Type;
+      Val    :        Table_Type);
 
    ------------------------
    -- Generic Unmarshall --
@@ -79,6 +79,7 @@ package PolyORB.Protocols.GIOP.Common is
    procedure Marshall
      (Buffer : access PolyORB.Buffers.Buffer_Type;
       Val    :        Reply_Status_Type);
+
    function Unmarshall
      (Buffer : access PolyORB.Buffers.Buffer_Type)
      return Reply_Status_Type;
@@ -104,6 +105,7 @@ package PolyORB.Protocols.GIOP.Common is
    procedure Marshall
      (Buffer : access PolyORB.Buffers.Buffer_Type;
       Val    :        Locate_Reply_Type);
+
    function Unmarshall
      (Buffer : access PolyORB.Buffers.Buffer_Type)
      return Locate_Reply_Type;
