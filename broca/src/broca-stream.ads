@@ -22,19 +22,20 @@ package Broca.Stream is
    --  Send a buffer to a stream.
    --  All the buffer (from 0 to BUFFER.POS - 1) is sent.
    --  In case of failure, connection_closed is raised.
-   procedure Send (Stream : access Stream_Type;
-                   Buffer : in Buffer_Descriptor) is abstract;
+   procedure Send
+     (Stream : access Stream_Type;
+      Buffer : in out Buffer_Descriptor) is abstract;
 
    --  Become an exclusif owner for sending data to the stream.
    --  Can queue the task.
    procedure Lock_Send (Stream : access Stream_Type);
    procedure Unlock_Send (Stream : access Stream_Type);
 
-   --  Receive data from a stream.
-   --  Exactly stream.Pos bytes are expected.
-   --  Can raise connection_closed.
-   procedure Receive (Stream : access Stream_Type;
-                      Buffer : in out Buffer_Descriptor) is abstract;
+   --  Receive data from a stream. Fill exactly buffer. Can raise
+   --  connection_closed.
+   procedure Receive
+     (Stream : access Stream_Type;
+      Buffer : in out Buffer_Descriptor) is abstract;
 
    --  Become an exclusif owner for receiving data from the stream.
    --  Can queue the task.
@@ -52,10 +53,15 @@ package Broca.Stream is
      record
         Fd : Interfaces.C.int;
      end record;
-   procedure Send (Stream : access Fd_Stream_Type;
-                   Buffer : in Buffer_Descriptor);
-   procedure Receive (Stream : access Fd_Stream_Type;
-                      Buffer : in out Buffer_Descriptor);
+
+   procedure Send
+     (Stream : access Fd_Stream_Type;
+      Buffer : in out Buffer_Descriptor);
+
+   procedure Receive
+     (Stream : access Fd_Stream_Type;
+      Buffer : in out Buffer_Descriptor);
+
    function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Acc;
 
 end Broca.Stream;

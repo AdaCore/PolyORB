@@ -870,8 +870,10 @@ package body Broca.Server is
 
    --  Handle A GIOP message coming from stream STREAM.
    --  BUFFER must contain an unprocessed message header.
-   procedure Handle_Message (Stream : Broca.Stream.Stream_Acc;
-                             Buffer : in out Buffer_Descriptor) is
+   procedure Handle_Message
+     (Stream : in Broca.Stream.Stream_Acc;
+      Buffer : in out Buffer_Descriptor)
+   is
       use Broca.Poa;
       use Broca.Marshalling;
       use Broca.Giop;
@@ -887,15 +889,12 @@ package body Broca.Server is
       Unmarshall_GIOP_Header (Buffer, Message_Type, Message_Size);
 
       --  Receive body of the message.
-      Allocate_Buffer_And_Set_Pos
-        (Tmp, Buffer_Index_Type (Message_Size));
-      Receive (Stream, Tmp);
+      Allocate_Buffer_And_Clear_Pos
+        (Buffer, Buffer_Index_Type (Message_Size) + Message_Header_Size);
+      Skip_Bytes (Buffer, Message_Header_Size);
+
+      Receive (Stream, Buffer);
       Unlock_Receive (Stream);
-      Allocate_Buffer_And_Set_Pos
-        (Buffer, Buffer_Index_Type (Message_Size + Message_Header_Size));
-      Buffer.Buffer (Message_Header_Size .. Buffer.Pos - 1) := Tmp.Buffer.all;
-      Buffer.Pos := Message_Header_Size;
-      Free (Tmp.Buffer);
 
       case Message_Type is
          when Broca.Giop.Request =>

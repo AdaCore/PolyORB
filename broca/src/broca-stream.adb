@@ -30,38 +30,50 @@ package body Broca.Stream is
 
    procedure Send
      (Stream : access Fd_Stream_Type;
-      Buffer : in Buffer_Descriptor)
+      Buffer : in out Buffer_Descriptor)
    is
       use Sockets.Thin;
       use Interfaces.C;
-      Len : Interfaces.C.int;
+      Length : Buffer_Index_Type := Size (Buffer);
+      Bytes  : Buffer_Type (0 .. Length - 1);
+      Result : Interfaces.C.Int;
    begin
       Stream.Lock_S.Check_Owner;
-      Len := Interfaces.C.int (Buffer.Pos);
-      if C_Send (Stream.Fd, Buffer.Buffer.all'Address, Len, 0) /= Len then
+      Read (Buffer, Bytes);
+      pragma Debug (O ("Dump outgoing buffer of length" & Length'Img));
+      Broca.Buffers.Dump (Bytes);
+      Result := C_Send
+        (Stream.Fd,
+         Bytes'Address,
+         Interfaces.C.Int (Length), 0);
+      if Result /= Interfaces.C.Int (Length) then
          raise Connection_Closed;
       end if;
-      pragma Debug (O ("Dump outgoing buffer if size" & Len'Img));
-      Broca.Buffers.Dump (Buffer.Buffer (0 .. Buffer.Pos - 1));
    end Send;
 
    procedure Receive
-     (Stream : access Fd_Stream_Type; Buffer : in out Buffer_Descriptor)
+     (Stream : access Fd_Stream_Type;
+      Buffer : in out Buffer_Descriptor)
    is
       use Sockets.Thin;
       use Interfaces.C;
-      Len : Interfaces.C.int;
+      Length : Buffer_Index_Type := Size_Left (Buffer);
+      Bytes  : Buffer_Type (0 .. Length - 1);
+      Result : Interfaces.C.Int;
    begin
       Stream.Lock_R.Check_Owner;
-      Len := Interfaces.C.int (Buffer.Pos);
-      Len := C_Recv (Stream.Fd, Buffer.Buffer.all'Address, Len, 0);
-      if Len < 0 then
+      Result := C_Recv
+        (Stream.Fd,
+         Bytes'Address,
+         Interfaces.C.Int (Length), 0);
+
+      if Result /=  Interfaces.C.Int (Length) then
          raise Connection_Closed;
-      else
-         Buffer.Pos := Buffer_Index_Type (Len);
       end if;
-      pragma Debug (O ("Dump incoming buffer of length" & Len'Img));
-      Broca.Buffers.Dump (Buffer.Buffer (0 .. Buffer.Pos - 1));
+      Write (Buffer, Bytes);
+
+      pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
+      Broca.Buffers.Dump (Bytes);
    end Receive;
 
    function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Acc is
