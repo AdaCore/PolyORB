@@ -963,17 +963,8 @@ package body System.Garlic.Heart is
            Protocols.Unused_Space + Header'Length + Filtered_Data'Length;
          Packet : aliased Ada.Streams.Stream_Element_Array :=
            (1 .. Length => 0);
-
-         --  We can't just declare 'Packet' with the correct size here:
-         --  this would make Packet's type a constrained subtype, while
-         --  the 'Send' below expects an access to an unconstrained
-         --  subtype. Result: since the two types do not "statically
-         --  match" (RM 4.9.1), the parameter types are different, and
-         --  the compiler will issue an error message in the call to
-         --  'Protocols.Send' below.
-
       begin
-         --  Stuff the opcode (unfiltered) in front of the data.
+         --  Stuff the opcode (unfiltered) in front of the data
          Packet
            (Packet'First + Protocols.Unused_Space ..
             Packet'First + Protocols.Unused_Space + Header'Length - 1) :=
@@ -987,7 +978,14 @@ package body System.Garlic.Heart is
            (D (D_Debug, "Sending an operation with opcode " & Operation'Img));
          pragma Debug (D (D_Debug, "Dumping outgoing stream"));
          pragma Debug (Dump (D_Debug, Packet, Private_Debug_Key));
-         Protocols.Send (Protocol, Partition, Packet'Access);
+         if Partition /= Get_My_Partition_ID_Immediately then
+            Protocols.Send (Protocol, Partition, Packet'Access);
+         else
+            pragma Debug (D (D_Debug, "Handling All_Calls_Remote case"));
+            Has_Arrived (Partition,
+                         Packet (Packet'First + Protocols.Unused_Space ..
+                                 Packet'Last));
+         end if;
       end;
    end Send;
 
