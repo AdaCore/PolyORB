@@ -218,6 +218,15 @@ package body Exp_Dist is
    --  at the beginning of the list and constrained ones are put after. If
    --  there are no parameters, an empty list is returned.
 
+   function Build_Remote_Subprogram_Proxy_Type
+     (Loc            : Source_Ptr;
+      ACR_Expression : Node_Id := Empty)
+     return Node_Id;
+   --  Build and return a tagged record type definition for an RCI
+   --  subprogram proxy type.
+   --  ACR_Expression is an optional default initialization value for
+   --  the All_Calls_Remote component.
+
    procedure Add_Calling_Stubs_To_Declarations
      (Pkg_Spec : in Node_Id;
       Decls    : in List_Id);
@@ -1026,14 +1035,14 @@ package body Exp_Dist is
 
       Append_List_To (Stub_Statements,
         Build_Get_Unique_RP_Call (Loc, Stubbed_Result, Stub_Type));
-      --  XXX Houston we have a problem. Here, the Asynchronous flag
-      --  in the stub type is set if, and only if, the RACW type has
-      --  a pragma Asynchronous. This is incorrect for RACWs that
+      --  ??? Issue with asynchronous calls here: the Asynchronous
+      --  flag is set on the stub type if, and only if, the RACW type
+      --  has a pragma Asynchronous. This is incorrect for RACWs that
       --  implement RAS types, because in that case the /designated
       --  subprogram/ (not the type) might be asynchronous, and
       --  that causes the stub to need to be asynchronous too.
-      --  The solution is to transport a RAS as a struct containing
-      --  a Ref and an asynchronous flag, and to properly alter
+      --  A solution is to transport a RAS as a struct containing
+      --  a RACW and an asynchronous flag, and to properly alter
       --  the Asynchronous component in the stub type in the RAS's
       --  _From_Any TSS.
 
@@ -1064,19 +1073,7 @@ package body Exp_Dist is
                 Defining_Identifier =>
                   Proxy_Type,
                 Type_Definition     =>
-                  Make_Record_Definition (Loc,
-                    Tagged_Present  => True,
-                    Limited_Present => True,
-                    Component_List  =>
-                      Make_Component_List (Loc,
-                        Component_Items => New_List (
-                          Make_Component_Declaration (Loc,
-                            Make_Defining_Identifier (Loc,
-                              Name_All_Calls_Remote),
-                            Make_Component_Definition (Loc,
-                              Subtype_Indication =>
-                                New_Occurrence_Of (
-                                  Standard_Boolean, Loc))))))),
+                  Build_Remote_Subprogram_Proxy_Type (Loc)),
 
               Make_Full_Type_Declaration (Loc,
                 Defining_Identifier =>
@@ -2203,9 +2200,7 @@ package body Exp_Dist is
           Parameter_Associations => New_List (
             New_Occurrence_Of (Subp_Ref, Loc),
             New_Occurrence_Of (Is_Local, Loc),
-            Make_Selected_Component (Loc,
-              Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
-              Selector_Name => Make_Identifier (Loc, Name_Addr)))));
+            New_Occurrence_Of (Local_Addr, Loc))));
 
       --  Note: Here we assume that the Fat_Type is a record
       --  containing just a pointer to a proxy or stub object.
@@ -2818,7 +2813,7 @@ package body Exp_Dist is
       --  private
 
       --  type subpP is tagged limited record
-      --     A : Boolean := [All_Calls_Remote?];
+      --     All_Calls_Remote : Boolean := [All_Calls_Remote?];
       --  end record;
 
       Append_To (Pvt_Decls,
@@ -2826,19 +2821,8 @@ package body Exp_Dist is
           Defining_Identifier =>
             Proxy_Type_Full_View,
           Type_Definition     =>
-            Make_Record_Definition (Loc,
-              Tagged_Present  => True,
-              Limited_Present => True,
-              Component_List  =>
-                Make_Component_List (Loc,
-                  Component_Items => New_List (
-                    Make_Component_Declaration (Loc,
-                      Make_Defining_Identifier (Loc,
-                        Name_All_Calls_Remote),
-                      Make_Component_Definition (Loc,
-                        Subtype_Indication =>
-                          New_Occurrence_Of (Standard_Boolean, Loc)),
-                      New_Occurrence_Of (All_Calls_Remote_E, Loc)))))));
+            Build_Remote_Subprogram_Proxy_Type (Loc,
+              New_Occurrence_Of (All_Calls_Remote_E, Loc))));
 
       Set_Comes_From_Source (Proxy_Type_Full_View, True);
       --  Trick semantic analysis into swapping the public and
@@ -3509,15 +3493,6 @@ package body Exp_Dist is
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
-                        Make_Defining_Identifier (Loc, Name_Addr),
-                      Component_Definition =>
-                        Make_Component_Definition (Loc,
-                          Aliased_Present    => False,
-                          Subtype_Indication =>
-                            New_Occurrence_Of (RTE (RE_Address), Loc))),
-
-                    Make_Component_Declaration (Loc,
-                      Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Asynchronous),
                       Component_Definition =>
                         Make_Component_Definition (Loc,
@@ -4145,6 +4120,40 @@ package body Exp_Dist is
       Append_To (L, Reg);
       Analyze (Reg);
    end Build_Passive_Partition_Stub;
+
+   ----------------------------------------
+   -- Build_Remote_Subprogram_Proxy_Type --
+   ----------------------------------------
+
+   function Build_Remote_Subprogram_Proxy_Type
+     (Loc            : Source_Ptr;
+      ACR_Expression : Node_Id := Empty)
+     return Node_Id is
+   begin
+      return
+        Make_Record_Definition (Loc,
+          Tagged_Present  => True,
+          Limited_Present => True,
+          Component_List  =>
+            Make_Component_List (Loc,
+
+              Component_Items => New_List (
+                Make_Component_Declaration (Loc,
+                  Make_Defining_Identifier (Loc,
+                    Name_All_Calls_Remote),
+                  Make_Component_Definition (Loc,
+                    Subtype_Indication =>
+                      New_Occurrence_Of (Standard_Boolean, Loc)),
+                  ACR_Expression),
+
+                Make_Component_Declaration (Loc,
+                  Make_Defining_Identifier (Loc,
+                    Name_Stub),
+                  Make_Component_Definition (Loc,
+                    Subtype_Indication =>
+                      New_Occurrence_Of (RTE (RE_Address), Loc)),
+                  New_Occurrence_Of (RTE (RE_Null_Address), Loc)))));
+   end Build_Remote_Subprogram_Proxy_Type;
 
    -----------------------------
    -- Build_RPC_Receiver_Body --

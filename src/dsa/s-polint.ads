@@ -199,12 +199,6 @@ package System.PolyORB_Interface is
       --  the designated tagged type).
       --  Target must be a pointer to References.Reference_Info.
 
-      Addr         : System.Address := System.Null_Address;
-      --  If this stub is for a remote access-to-subprogram type
-      --  that designates a local subprogram, then this field
-      --  is set to that subprogram proxy's address, else it is
-      --  Null_Address.
-
       Asynchronous : Boolean;
    end record;
    type RACW_Stub_Type_Access is access all RACW_Stub_Type;
@@ -215,10 +209,12 @@ package System.PolyORB_Interface is
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
    --  Get a unique pointer on a remote object. On entry, Handler
-   --  is expected to be a pointer to a local variable; on exist,
-   --  it is a pointer to a variable allocated on the heap (either
-   --  a newly allocated instance, or a previous existing instance
-   --  for the same remote object).
+   --  is expected to be a pointer to a local variable of any stub
+   --  type compatible with RACW_Stub_Type; on exit, it is a pointer
+   --  to a variable allocated on the heap (either a newly allocated
+   --  instance, or a previous existing instance for the same remote
+   --  object). Note that newly-allocated stubs are always of type
+   --  RACW_Stub_Type, so a tag fixup is required afterwards.
 
    function To_PolyORB_String (S : String)
      return PolyORB.Types.Identifier
