@@ -34,9 +34,9 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Exceptions;        use System.Garlic.Exceptions;
 with System.Garlic.Group;             use System.Garlic.Group;
 with System.Garlic.Heart;             use System.Garlic.Heart;
-with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
 with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Partitions;        use System.Garlic.Partitions;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
@@ -66,7 +66,7 @@ package body System.Garlic.Partitions is
       Mem_Locations  : String_Access;
       Termination    : Types.Termination_Type;
       Reconnection   : Types.Reconnection_Type;
-      Has_Light_PCS  : Boolean;
+      Is_Pure_Client  : Boolean;
       Is_Boot_Mirror : Boolean;
       Boot_Partition : Types.Partition_ID;
       Online         : Boolean;
@@ -81,7 +81,7 @@ package body System.Garlic.Partitions is
    --  Mem_Locations  : memory locations for passive partition
    --  Termination    : termination policy to adopt for this partition
    --  Reconnection   : reconnection policy to adopt for this partition
-   --  Has_Light_PCS  : true for a partition which does not receive request
+   --  Is_Pure_Client : true for a partition which does not receive request
    --  Is_Boot_Mirror : true for a partition which has a copy of PID table
    --  Boot_Partition : pid of the partition used to boot a partition
    --  Online         : a communication link has been established
@@ -103,11 +103,11 @@ package body System.Garlic.Partitions is
       Mem_Locations  => null,
       Termination    => Types.Global_Termination,
       Reconnection   => Types.Reject_On_Restart,
-      Has_Light_PCS  => False,
+      Is_Pure_Client => False,
       Is_Boot_Mirror => False,
       Boot_Partition => Types.Null_PID,
       Online         => False,
-      Status         => Types.None);
+      Status         => None);
 
    type Request_Kind is
       (Compute_Partition_ID,
@@ -148,7 +148,7 @@ package body System.Garlic.Partitions is
    Allocator_Mutex : Soft_Links.Mutex_Access;
    --  Critical section for PID allocator.
 
-   Allocator_Ready : Soft_Links.Barrier_Access;
+   Allocator_Watcher : Soft_Links.Watcher_Access;
    --  Allocating a partition id can generate a group
    --  communication. We block until we have a reply from the other
    --  boot mirrors.
@@ -239,17 +239,18 @@ package body System.Garlic.Partitions is
       Name : String := "")
      return Partition_ID
    is
-      Info : Partition_Info;
-      PID  : Partition_ID := Null_PID;
+      Info    : Partition_Info;
+      PID     : Partition_ID := Null_PID;
+      Passive : constant Boolean := (Name'Length /= 0);
 
    begin
       Partitions.Enter;
 
       --  Special case for passive partitions. We use the partition
-      --  name as a key to resolve pid allocation conflits. Note that
+      --  name as a key to resolve pid allocation conflicts. Note that
       --  a null name denotes an active partition.
 
-      if Name'Length /= 0 then
+      if Passive then
          for P in First_PID .. Partitions.Last loop
             Info := Partitions.Get_Component (P);
             if Info.Allocated
@@ -277,7 +278,7 @@ package body System.Garlic.Partitions is
                --  is not cached except in this table.
 
             elsif Info.Status = Dead
-              and then Info.Has_Light_PCS
+              and then Info.Is_Pure_Client
             then
                pragma Debug (D ("Recycle a dead partition"));
                PID := P;
@@ -292,8 +293,8 @@ package body System.Garlic.Partitions is
       if PID /= Null_PID then
          Info.Status         := None;
 
-         if Info.Partition_Name = null
-           and then Name'Length /= 0
+         if Passive
+           and then Info.Partition_Name = null
          then
             Info.Partition_Name := new String'(Name);
          end if;
@@ -314,8 +315,9 @@ package body System.Garlic.Partitions is
       Name      : in String := "";
       Error     : in out Error_Type)
    is
-      Query : aliased Params_Stream_Type (0);
-      PID   : Partition_ID;
+      Query   : aliased Params_Stream_Type (0);
+      PID     : Partition_ID;
+      Version : Version_Id;
 
    begin
       loop
@@ -332,9 +334,10 @@ package body System.Garlic.Partitions is
          Request_Type'Output (Query'Access, (Compute_Partition_ID, PID));
          String'Output (Query'Access, Name);
 
+         Soft_Links.Lookup (Allocator_Watcher, Version);
          Broadcast (Partition_Operation, Query'Access);
 
-         Soft_Links.Wait (Allocator_Ready);
+         Soft_Links.Differ (Allocator_Watcher, Version);
 
          --  If the allocated value has changed, there was a
          --  conflict. So, make another pass to check that all boot
@@ -395,7 +398,7 @@ package body System.Garlic.Partitions is
             Info.Mem_Locations  := new String'(Mem_Locations);
             Info.Termination    := Local_Termination;
             Info.Reconnection   := Reject_On_Restart;
-            Info.Has_Light_PCS  := True;
+            Info.Is_Pure_Client := True;
             Info.Is_Boot_Mirror := False;
             Info.Status         := Done;
             Partitions.Set_Component (PID, Info);
@@ -428,7 +431,7 @@ package body System.Garlic.Partitions is
             Mem_Locations  => Locs,
             Termination    => Local_Termination,
             Reconnection   => Reject_On_Restart,
-            Has_Light_PCS  => True,
+            Is_Pure_Client => True,
             Is_Boot_Mirror => False,
             Error          => Error);
 
@@ -525,7 +528,7 @@ package body System.Garlic.Partitions is
       D ("  Reconnection   " & Info.Reconnection'Img, Key);
       D ("  Is_Boot_Mirror " & Info.Is_Boot_Mirror'Img, Key);
       D ("  Boot_Partition"  & Info.Boot_Partition'Img, Key);
-      D ("  Online         "  & Info.Online'Img, Key);
+      D ("  Online         " & Info.Online'Img, Key);
       D ("  Status         " & Status_Type'Image (Info.Status), Key);
    end Dump_Partition_Info;
 
@@ -559,7 +562,7 @@ package body System.Garlic.Partitions is
    procedure Get_Boot_Partition
      (Partition      : in Types.Partition_ID;
       Boot_Partition : out Types.Partition_ID;
-      Error          : in out Utils.Error_Type)
+      Error          : in out Error_Type)
    is
       Info : Partition_Info;
 
@@ -582,51 +585,11 @@ package body System.Garlic.Partitions is
    begin
       Get_Partition_Info (Partition, Info, Error);
       if Info.Mem_Locations = null then
-         Throw (Error, "cannot locate partition" & Partition'Img);
-
+         Throw (Error, "no data location available");
       else
          Location := Info.Mem_Locations;
       end if;
    end Get_Mem_Location;
-
-   ----------------------
-   -- Get_Net_Location --
-   ----------------------
-
-   procedure Get_Net_Location
-     (Partition : in Partition_ID;
-      Location  : out Location_Type;
-      Error     : in out Error_Type)
-   is
-      Info : Partition_Info;
-
-   begin
-      Get_Partition_Info (Partition, Info, Error);
-      if Info.Net_Loc_In_Use = Null_Location then
-         Throw (Error, "cannot locate partition" & Partition'Img);
-
-      else
-         Location := Info.Net_Loc_In_Use;
-      end if;
-   end Get_Net_Location;
-
-   --------------
-   -- Get_Name --
-   --------------
-
-   procedure Get_Name
-     (Partition : in Partition_ID;
-      Name      : out Name_Id;
-      Error     : in out Error_Type)
-   is
-      N : String_Access;
-
-   begin
-      Get_Name (Partition, N, Error);
-      if not Found (Error) then
-         Name := Get (N.all);
-      end if;
-   end Get_Name;
 
    --------------
    -- Get_Name --
@@ -643,6 +606,27 @@ package body System.Garlic.Partitions is
       Get_Partition_Info (Partition, Info, Error);
       Name := Info.Partition_Name;
    end Get_Name;
+
+   ----------------------
+   -- Get_Net_Location --
+   ----------------------
+
+   procedure Get_Net_Location
+     (Partition : in Partition_ID;
+      Location  : out Location_Type;
+      Error     : in out Error_Type)
+   is
+      Info : Partition_Info;
+
+   begin
+      Get_Partition_Info (Partition, Info, Error);
+      if Info.Net_Loc_In_Use = Null_Location then
+         Throw (Error, "no network location");
+
+      else
+         Location := Info.Net_Loc_In_Use;
+      end if;
+   end Get_Net_Location;
 
    ------------------------
    -- Get_Partition_Info --
@@ -670,13 +654,12 @@ package body System.Garlic.Partitions is
          pragma Debug
            (D ("Looking for information on partition" & Partition'Img));
 
-         Partitions.Enter;
-         Current := Partitions.Get_Component (Partition);
-
          --  Note that Current can be updated between the two Get_Component
          --  calls. For this reason, there is another loop exit at the end
          --  of this block.
 
+         Partitions.Enter;
+         Current := Partitions.Get_Component (Partition);
          if Current.Status = None
            and then not Options.Is_Boot_Server
          then
@@ -687,7 +670,6 @@ package body System.Garlic.Partitions is
                Request_Type'Output (Query'Access, Pull_Table);
             end if;
          end if;
-
          Partitions.Leave (Version);
 
          if not Empty (Query'Access) then
@@ -718,7 +700,7 @@ package body System.Garlic.Partitions is
       Get_Partition_Info (Partition, Info, Error);
       Result := Get_Protocol (Info.Net_Loc_In_Use);
       if Result = null then
-         Throw (Error, "protocol not available anymore");
+         Throw (Error, "no protocol avaible");
       else
          Protocol := Result;
       end if;
@@ -746,14 +728,7 @@ package body System.Garlic.Partitions is
 
    function Global_Termination_Partitions return Partition_List is
    begin
-      Partitions.Enter;
-      declare
-         Result : constant Partition_List :=
-           Matching_Partitions (Has_Global_Termination'Access);
-      begin
-         Partitions.Leave;
-         return Result;
-      end;
+      return Matching_Partitions (Has_Global_Termination'Access);
    end Global_Termination_Partitions;
 
    ------------------------------
@@ -798,8 +773,8 @@ package body System.Garlic.Partitions is
 
       if Request.Kind = Define_New_Partition then
          declare
-            Active : Boolean := Boolean'Input (Query);
-            Name   : String  := String'Input (Query);
+            Active : constant Boolean := Boolean'Input (Query);
+            Name   : constant String  := String'Input (Query);
 
          begin
             if Active then
@@ -1061,7 +1036,7 @@ package body System.Garlic.Partitions is
    begin
       Partitions.Initialize;
       Soft_Links.Create (Allocator_Mutex);
-      Soft_Links.Create (Allocator_Ready);
+      Soft_Links.Create (Allocator_Watcher);
    end Initialize;
 
    --------------------------
@@ -1121,9 +1096,11 @@ package body System.Garlic.Partitions is
          end if;
 
       elsif Partition /= Boot_PID then
+         --  FIXME: The test should be Partition = Boot_PID.
          --  This can happen when we did not succeed to find a new
          --  boot mirror. In this case, the current partition is going
-         --  to terminate. We do not need to broadcast the invalidation.
+         --  to terminate. We do not need to broadcast the
+         --  invalidation.
 
          Request_Type'Output (Query'Access, (Push_Partition_Table, Partition));
          Write_Partitions    (Query'Access);
@@ -1172,14 +1149,7 @@ package body System.Garlic.Partitions is
 
    function Known_Partitions return Partition_List is
    begin
-      Partitions.Enter;
-      declare
-         Result : constant Partition_List :=
-           Matching_Partitions (Is_Known'Access);
-      begin
-         Partitions.Leave;
-         return Result;
-      end;
+      return Matching_Partitions (Is_Known'Access);
    end Known_Partitions;
 
    ----------------------------------
@@ -1188,14 +1158,7 @@ package body System.Garlic.Partitions is
 
    function Local_Termination_Partitions return Partition_List is
    begin
-      Partitions.Enter;
-      declare
-         Result : constant Partition_List :=
-           Matching_Partitions (Has_Local_Termination'Access);
-      begin
-         Partitions.Leave;
-         return Result;
-      end;
+      return Matching_Partitions (Has_Local_Termination'Access);
    end Local_Termination_Partitions;
 
    -------------------------
@@ -1212,6 +1175,7 @@ package body System.Garlic.Partitions is
       Info   : Partition_Info;
 
    begin
+      Partitions.Enter;
       for PID in First_PID .. Partitions.Last loop
          Info := Partitions.Get_Component (PID);
          if Match (Info) then
@@ -1219,6 +1183,7 @@ package body System.Garlic.Partitions is
             Index := Index + 1;
          end if;
       end loop;
+      Partitions.Leave;
       return Result (Natural (First_PID) .. Index - 1);
    end Matching_Partitions;
 
@@ -1242,6 +1207,7 @@ package body System.Garlic.Partitions is
       Partitions.Enter;
       for P in Self_PID + 1 .. Partitions.Last loop
          Info := Partitions.Get_Component (P);
+         --  FIXME: Done => Allocated
          if Info.Allocated
            and then Info.Status = Done
            and then Info.Is_Boot_Mirror
@@ -1272,14 +1238,7 @@ package body System.Garlic.Partitions is
 
    function Online_Partitions return Partition_List is
    begin
-      Partitions.Enter;
-      declare
-         Result : constant Partition_List :=
-           Matching_Partitions (Is_Online'Access);
-      begin
-         Partitions.Leave;
-         return Result;
-      end;
+      return Matching_Partitions (Is_Online'Access);
    end Online_Partitions;
 
    --------------------
@@ -1297,78 +1256,80 @@ package body System.Garlic.Partitions is
       Mem_Locations  : String            := String'Input (Stream);
       Termination    : Termination_Type  := Termination_Type'Input (Stream);
       Reconnection   : Reconnection_Type := Reconnection_Type'Input (Stream);
-      Has_Light_PCS  : Boolean           := Boolean'Input (Stream);
+      Is_Pure_Client : Boolean           := Boolean'Input (Stream);
       Is_Boot_Mirror : Boolean           := Boolean'Input (Stream);
       Boot_Partition : Partition_ID      := Partition_ID'Input (Stream);
       Status         : Status_Type       := Status_Type'Input (Stream);
 
    begin
-      if not Info.Allocated
-        or else Info.Status /= Dead
+      if Info.Allocated
+        and then Info.Status = Dead
       then
-         if Status = Dead then
-            Destroy (Info.Partition_Name);
-            Destroy (Info.Net_Locations);
-            Destroy (Info.Mem_Locations);
-            Destroy (Info.Net_Loc_In_Use);
+         return;
+      end if;
 
-         else
-            if Info.Mem_Locations = null then
-               Info.Mem_Locations := new String'(Mem_Locations);
-            end if;
+      if Status = Dead then
+         Destroy (Info.Partition_Name);
+         Destroy (Info.Net_Locations);
+         Destroy (Info.Mem_Locations);
+         Destroy (Info.Net_Loc_In_Use);
 
-            if Info.Net_Locations = null then
+      else
+         if Info.Mem_Locations = null then
+            Info.Mem_Locations := new String'(Mem_Locations);
+         end if;
 
-               --  It is the first time we hear about this partition
+         if Info.Net_Locations = null then
 
-               if Options.Execution_Mode = Replay_Mode then
-                  Info.Net_Locations := new String'("replay://");
-                  Info.Net_Loc_In_Use := To_Location (Info.Net_Locations.all);
+            --  It is the first time we hear about this partition
+
+            if Options.Execution_Mode = Replay_Mode then
+               Info.Net_Locations := new String'("replay://");
+               Info.Net_Loc_In_Use := To_Location (Info.Net_Locations.all);
 
                --  We already know about this partition but we have no
                --  info on it.
 
-               elsif Net_Locations /= "" then
-                  Info.Net_Locations := new String'(Net_Locations);
-                  declare
-                     SA : String_Array_Access
-                       := Split_String (Info.Net_Locations.all);
-                     UL : Location_Type;
-                  begin
-                     --  Try to find a usable location. If we cannot
-                     --  agree on a location, then keep using the
-                     --  current protocol initialized by
-                     --  Analyze_Stream - the protocol used during the
-                     --  first connection with us. If this partition
-                     --  has no connection with us, then do nothing
-                     --  and hope that we will not try to connect it.
+            elsif Net_Locations /= "" then
+               Info.Net_Locations := new String'(Net_Locations);
+               declare
+                  SA : String_Array_Access
+                    := Split_String (Info.Net_Locations.all);
+                  UL : Location_Type;
+               begin
+                  --  Try to find a usable location. If we cannot
+                  --  agree on a location, then keep using the
+                  --  current protocol initialized by
+                  --  Analyze_Stream - the protocol used during the
+                  --  first connection with us. If this partition
+                  --  has no connection with us, then do nothing
+                  --  and hope that we will not try to connect it.
 
-                     for N in SA'Range loop
-                        UL := To_Location (SA (N).all);
-                        if Get_Protocol (UL) /= null
-                          and then Get_Data (UL) /= null
-                        then
-                           Info.Net_Loc_In_Use := UL;
-                           exit;
-                        end if;
-                     end loop;
-                  end;
-               end if;
+                  for N in SA'Range loop
+                     UL := To_Location (SA (N).all);
+                     if Get_Protocol (UL) /= null
+                       and then Get_Data (UL)'Length /= 0
+                     then
+                        Info.Net_Loc_In_Use := UL;
+                        exit;
+                     end if;
+                  end loop;
+               end;
             end if;
          end if;
-         if Info.Partition_Name = null then
-            Info.Partition_Name := new String'(Name);
-         end if;
-         Info.Allocated      := True;
-         Info.Is_Active_Part := Active;
-         Info.Termination    := Termination;
-         Info.Reconnection   := Reconnection;
-         Info.Has_Light_PCS  := Has_Light_PCS;
-         Info.Is_Boot_Mirror := Is_Boot_Mirror;
-         Info.Status         := Status;
-         if Boot_Partition /= Null_PID then
-            Info.Boot_Partition := Boot_Partition;
-         end if;
+      end if;
+      if Info.Partition_Name = null then
+         Info.Partition_Name := new String'(Name);
+      end if;
+      Info.Allocated      := True;
+      Info.Is_Active_Part := Active;
+      Info.Termination    := Termination;
+      Info.Reconnection   := Reconnection;
+      Info.Is_Pure_Client := Is_Pure_Client;
+      Info.Is_Boot_Mirror := Is_Boot_Mirror;
+      Info.Status         := Status;
+      if Boot_Partition /= Null_PID then
+         Info.Boot_Partition := Boot_Partition;
       end if;
    exception when others =>
       Throw (Error, "Data error in Partitions.Read_Partition");
@@ -1431,7 +1392,7 @@ package body System.Garlic.Partitions is
       Mem_Locations  : in String_Access;
       Termination    : in Termination_Type;
       Reconnection   : in Reconnection_Type;
-      Has_Light_PCS  : in Boolean;
+      Is_Pure_Client : in Boolean;
       Is_Boot_Mirror : in Boolean;
       Error          : in out Error_Type)
    is
@@ -1465,7 +1426,7 @@ package body System.Garlic.Partitions is
          Mem_Locations  => Mem_Locations,
          Termination    => Termination,
          Reconnection   => Reconnection,
-         Has_Light_PCS  => Can_Have_A_Light_Runtime,
+         Is_Pure_Client => Is_Pure_Client,
          Is_Boot_Mirror => Is_Boot_Mirror,
          Boot_Partition => Null_PID,
          Online         => False,
@@ -1492,7 +1453,7 @@ package body System.Garlic.Partitions is
          Mem_Locations  => null,
          Termination    => Global_Termination,
          Reconnection   => Reject_On_Restart,
-         Has_Light_PCS  => False,
+         Is_Pure_Client => False,
          Is_Boot_Mirror => True,
          Boot_Partition => Null_PID,
          Online         => False,
@@ -1599,7 +1560,7 @@ package body System.Garlic.Partitions is
 
       if From = Self_PID then
          Allocator_Value := PID;
-         Soft_Links.Signal (Allocator_Ready);
+         Soft_Links.Update (Allocator_Watcher);
       end if;
    end Validate_PID;
 
@@ -1638,7 +1599,7 @@ package body System.Garlic.Partitions is
 
       Termination_Type'Write  (Stream, Info.Termination);
       Reconnection_Type'Write (Stream, Info.Reconnection);
-      Boolean'Write           (Stream, Info.Has_Light_PCS);
+      Boolean'Write           (Stream, Info.Is_Pure_Client);
       Boolean'Write           (Stream, Info.Is_Boot_Mirror);
       Partition_ID'Write      (Stream, Info.Boot_Partition);
       Status_Type'Write       (Stream, Info.Status);

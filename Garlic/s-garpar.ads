@@ -34,19 +34,19 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;
-with System.Garlic.Name_Table;
+with System.Garlic.Exceptions;
 with System.Garlic.Physical_Location;
 with System.Garlic.Protocols;
 with System.Garlic.Streams;
-with System.Garlic.Types;
 with System.Garlic.Utils;
+with System.Garlic.Types;
 
 package System.Garlic.Partitions is
 
    procedure Allocate_PID
      (Partition : out Types.Partition_ID;
       Name      : in String := "";
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
    --  Allocate a new partition ID. This can need the agreement of the
    --  boot mirrors group. When Name is empty string, the partition is
    --  active because the name of an active partition is not meaningful.
@@ -55,7 +55,7 @@ package System.Garlic.Partitions is
      (Partition      : out Types.Partition_ID;
       Partition_Name : in String;
       Mem_Locations  : in String;
-      Error          : in out Utils.Error_Type);
+      Error          : in out Exceptions.Error_Type);
 
    function Get_Boot_Locations return String;
    --  This function returns all the coordinates of the boot server
@@ -63,36 +63,31 @@ package System.Garlic.Partitions is
    procedure Get_Boot_Partition
      (Partition      : in Types.Partition_ID;
       Boot_Partition : out Types.Partition_ID;
-      Error          : in out Utils.Error_Type);
+      Error          : in out Exceptions.Error_Type);
    --  Return the pid of the partition used to boot Partition.
 
    procedure Get_Net_Location
      (Partition : in Types.Partition_ID;
       Location  : out Physical_Location.Location_Type;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
    --  Return the location of a partition
 
    procedure Get_Mem_Location
      (Partition : in Types.Partition_ID;
       Location  : out Utils.String_Access;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
    --  Return the location of a partition
 
    procedure Get_Name
      (Partition : in Types.Partition_ID;
-      Name      : out Name_Table.Name_Id;
-      Error     : in out Utils.Error_Type);
-
-   procedure Get_Name
-     (Partition : in Types.Partition_ID;
       Name      : out Utils.String_Access;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
    --  Return the name of a partition in its coded or plaintext form
 
    procedure Get_Protocol
      (Partition : in Types.Partition_ID;
       Protocol  : out Protocols.Protocol_Access;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
    pragma Inline (Get_Protocol);
    --  Same as above. But for boot partition, then get protocol from
    --  boot server option.
@@ -100,7 +95,7 @@ package System.Garlic.Partitions is
    procedure Get_Reconnection_Policy
      (Partition    : in Types.Partition_ID;
       Reconnection : out Types.Reconnection_Type;
-      Error        : in out Utils.Error_Type);
+      Error        : in out Exceptions.Error_Type);
    --  Return policy to use when reconnecting to Partition
 
    function Global_Termination_Partitions return Types.Partition_List;
@@ -123,7 +118,7 @@ package System.Garlic.Partitions is
      (Partition : in Types.Partition_ID;
       Query     : access Streams.Params_Stream_Type;
       Reply     : access Streams.Params_Stream_Type;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
    --  Handle Partition_Service operations
 
    procedure Initialize;
@@ -151,9 +146,9 @@ package System.Garlic.Partitions is
       Mem_Locations  : in Utils.String_Access;
       Termination    : in Types.Termination_Type;
       Reconnection   : in Types.Reconnection_Type;
-      Has_Light_PCS  : in Boolean;
+      Is_Pure_Client : in Boolean;
       Is_Boot_Mirror : in Boolean;
-      Error          : in out Utils.Error_Type);
+      Error          : in out Exceptions.Error_Type);
    --  Send a boot registration to boot server.  We will send a
    --  Define_New_Partition request to the boot partition. This is step
    --  1. This will cause a dialog to be established and a new Partition_ID
