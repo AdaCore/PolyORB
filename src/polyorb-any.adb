@@ -304,7 +304,8 @@ package body PolyORB.Any is
 
    --  A list of Any contents (for construction of aggregates)
 
-   package Content_Lists is new PolyORB.Utils.Chained_Lists (Any_Content_Ptr);
+   package Content_Lists is
+     new PolyORB.Utils.Chained_Lists (Any_Container_Ptr);
    subtype Content_List is Content_Lists.List;
 
    --  For complex types that could be defined in Idl a content_aggregate
@@ -328,7 +329,7 @@ package body PolyORB.Any is
    --     - for Valuebox : XXX
    --     - for Abstract_Interface : XXX
 
-   type Content_Array is array (Natural range <>) of Any_Content_Ptr;
+   type Content_Array is array (Natural range <>) of Any_Container_Ptr;
    type Content_Array_Access is access all Content_Array;
 
    function Duplicate (Contents : Content_Array_Access)
@@ -3153,10 +3154,9 @@ package body PolyORB.Any is
       if CA_Ptr.V.Frozen then
          raise Program_Error;
       end if;
-
-      Content_Lists.Append
-        (CA_Ptr.V.Mutable_Value,
-         Duplicate (Element_Container.The_Value));
+      Smart_Pointers.Inc_Usage (
+        Smart_Pointers.Entity_Ptr (Element_Container));
+      Content_Lists.Append (CA_Ptr.V.Mutable_Value, Element_Container);
 
       pragma Debug (O ("Add_Aggregate_Element : end"));
    end Add_Aggregate_Element;
@@ -3171,6 +3171,7 @@ package body PolyORB.Any is
       Index : Unsigned_Long)
      return Any
    is
+      pragma Unreferenced (Tc);
       Value_Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Value));
       CA_Ptr : constant Content_Aggregate_Ptr
@@ -3191,14 +3192,9 @@ package body PolyORB.Any is
                        & Unsigned_Long'Image
                        (Get_Aggregate_Count (Value))));
 
-      Set_Value
-        (Result,
-         Duplicate
-         (CA_Ptr.V.Value (CA_Ptr.V.Value'First + Natural (Index))));
-      --  XXX VASTLY INEFFICIENT!!! Should not duplicate the value, but
-      --  instead return it by-reference!!!
-      Set_Type (Result, Tc);
-
+      Set (Result,
+        Smart_Pointers.Entity_Ptr (
+          CA_Ptr.V.Value (CA_Ptr.V.Value'First + Natural (Index))));
       pragma Debug (O ("Get_Aggregate_Element : end"));
       return Result;
    end Get_Aggregate_Element;
@@ -3263,15 +3259,16 @@ package body PolyORB.Any is
    is
       use Content_Lists;
 
-      I : Iterator := First (List);
+      It : Iterator := First (List);
    begin
       pragma Debug (O2 ("Deep_Deallocate : enter"));
 
-      while not Last (I) loop
-         pragma Debug (O2 ("Deep_Deallocate: object type is "
-                           & Content_External_Tag (Value (I).all.all)));
-         Deallocate (Value (I).all);
-         Next (I);
+      while not Last (It) loop
+         --  pragma Debug (O2 ("Deep_Deallocate: object type is "
+         --                    & Content_External_Tag (Value (It).all.all)));
+         Smart_Pointers.Dec_Usage (
+           Smart_Pointers.Entity_Ptr (Value (It).all));
+         Next (It);
       end loop;
 
       Deallocate (List);
@@ -3287,9 +3284,7 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deep_Deallocate(A): enter"));
 
       for J in List'Range loop
-         pragma Debug (O2 ("Deep_Deallocate: object type is "
-                           & Content_External_Tag (List (J).all)));
-         Deallocate (List (J));
+         Smart_Pointers.Dec_Usage (Smart_Pointers.Entity_Ptr (List (J)));
       end loop;
 
       Deallocate (List);
@@ -3530,11 +3525,11 @@ package body PolyORB.Any is
      return Content_Array_Access
    is
       Result : constant Content_Array_Access
-        := new Content_Array (Contents'Range);
+        := new Content_Array'(Contents.all);
    begin
       pragma Debug (O ("Duplicate (Content_List): enter"));
       for J in Contents'Range loop
-         Result (J) := Duplicate (Contents (J));
+         Smart_Pointers.Inc_Usage (Smart_Pointers.Entity_Ptr (Result (J)));
       end loop;
       pragma Debug (O ("Duplicate (Content_List): leave"));
       return Result;
