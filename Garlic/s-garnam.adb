@@ -34,10 +34,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with GNAT.OS_Lib;             use GNAT.Os_Lib;
 with Interfaces.C;            use Interfaces.C;
 with Interfaces.C.Strings;    use Interfaces.C.Strings;
 with System.Garlic.Constants; use System.Garlic.Constants;
-with System.Garlic.OS_Lib;    use System.Garlic.OS_Lib;
 with System.Garlic.Utils;     use System.Garlic.Utils;
 with Unchecked_Conversion;
 with Unchecked_Deallocation;
@@ -60,7 +60,7 @@ package body System.Garlic.Naming is
    --  Parse an entry
 
    procedure Raise_Naming_Error
-     (Errno   : in C.Int;
+     (Errno   : in Integer;
       Message : in String);
    --  Raise the exception Naming_Error with an appropriate error message
 
@@ -146,7 +146,7 @@ package body System.Garlic.Naming is
    begin
       if Res = Failure then
          Free (Buff);
-         Raise_Naming_Error (C_Errno, "");
+         Raise_Naming_Error (Errno, "");
       end if;
       declare
          Result : constant String := Value (Buffer);
@@ -199,7 +199,7 @@ package body System.Garlic.Naming is
       Free (C_Name);
       if Res = null then
          Get_Host_Mutex.Leave;
-         Raise_Naming_Error (C_Errno, Name);
+         Raise_Naming_Error (Errno, Name);
       end if;
       declare
          Result : constant Host_Entry := Parse_Entry (Res.all);
@@ -229,7 +229,7 @@ package body System.Garlic.Naming is
                               Af_Inet);
       if Res = null then
          Get_Host_Mutex.Leave;
-         Raise_Naming_Error (C_Errno, Image (Addr));
+         Raise_Naming_Error (Errno, Image (Addr));
       end if;
       declare
          Result : constant Host_Entry := Parse_Entry (Res.all);
@@ -332,7 +332,7 @@ package body System.Garlic.Naming is
    ------------------------
 
    procedure Raise_Naming_Error
-     (Errno   : in C.Int;
+     (Errno   : in Integer;
       Message : in String)
    is
 
@@ -351,7 +351,7 @@ package body System.Garlic.Naming is
             when No_Recovery    => return "No recovery";
             when No_Address     => return "No address";
             when others         => return "Unknown error" &
-                                          C.Int'Image (Errno);
+                                          Integer'Image (Errno);
          end case;
       end Error_Message;
 

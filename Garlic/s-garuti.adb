@@ -34,8 +34,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+with GNAT.OS_Lib;                use GNAT.OS_Lib;
 with Interfaces.C;               use Interfaces.C;
-with System.Garlic.OS_Lib;       use System.Garlic.OS_Lib;
 with System.RPC;                 use System.RPC;
 
 package body System.Garlic.Utils is
@@ -233,7 +233,7 @@ package body System.Garlic.Utils is
 
    procedure Raise_With_Errno (Id : in Exception_Id) is
    begin
-      Raise_Exception (Id, "Error" & int'Image (C_Errno));
+      Raise_Exception (Id, "Error" & Integer'Image (Errno));
    end Raise_With_Errno;
 
    --------------
