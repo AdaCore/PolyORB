@@ -1769,9 +1769,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Octet then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+--      Any_Value.Any_Lock.Lock_W;
       Content_Octet_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+--      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1784,9 +1784,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Short then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Short_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
       pragma Debug (O ("Set_Any_Value : the any value is "
                        & CORBA.Short'Image
                        (Content_Short_Ptr
@@ -1803,9 +1803,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Long then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Long_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1818,9 +1818,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Long_Long then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Long_Long_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1833,9 +1833,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Unsigned_Short then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_UShort_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1848,9 +1848,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Unsigned_Long then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_ULong_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1863,9 +1863,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Unsigned_Long_Long then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_ULong_Long_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1878,9 +1878,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Boolean then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Boolean_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1893,9 +1893,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Char then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Char_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1908,9 +1908,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Wchar then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Wchar_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1923,9 +1923,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_String then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_String_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1938,9 +1938,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Wide_String then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Wide_String_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1953,9 +1953,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Float then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Float_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1968,9 +1968,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Double then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Double_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1983,9 +1983,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Long_Double then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Long_Double_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1998,9 +1998,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_TypeCode then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_TypeCode_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -2013,9 +2013,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Any then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+      --  Any_Value.Any_Lock.Lock_W;
       Content_Any_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+      --  Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------------
@@ -2040,7 +2040,7 @@ package body CORBA is
       Cl : Content_List;
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
-      --  LOCK
+--      Value.Any_Lock.Lock_W;
       Cl := Content_Aggregate_Ptr (Value.The_Value).Value;
       pragma Debug (O ("Add_Aggregate_Element : element kind is "
                        & CORBA.TCKind'Image
@@ -2057,7 +2057,7 @@ package body CORBA is
          Cl.Next := new Content_Cell' (Duplicate (Element.The_Value),
                                        Null_Content_List);
       end if;
-      --  UNLOCK
+--      Value.Any_Lock.Unlock_W;
       pragma Debug (O ("Add_Aggregate_Element : end"));
    end Add_Aggregate_Element;
 
@@ -2072,7 +2072,7 @@ package body CORBA is
       Ptr : Content_List;
    begin
       pragma Debug (O ("Get_Aggregate_Element : enter"));
-      --  LOCK
+--      Value.Any_Lock.Lock_R;
       Ptr := Content_Aggregate_Ptr (Value.The_Value).Value;
       pragma Debug (O ("Get_Aggregate_Element : Index = "
                        & CORBA.Unsigned_Long'Image (Index)
@@ -2088,7 +2088,7 @@ package body CORBA is
       pragma Assert (Ptr /= null);
       pragma Assert (Ptr.The_Value /= null);
       Result.The_Value := Duplicate (Ptr.The_Value);
-      --  UNLOCK
+--      Value.Any_Lock.Unlock_R;
       Set_Type (Result, Tc);
       pragma Debug (O ("Get_Aggregate_Element : end"));
       return Result;
@@ -2356,7 +2356,8 @@ package body CORBA is
    procedure Initialize (Object : in out Any) is
    begin
       pragma Debug (O2 ("Initialize"));
-      null;
+      Object.Ref_Counter := new Natural'(0);
+--    Object.Any_Lock := new Broca.Locks.Rw_Lock_Type;
    end Initialize;
 
    --------------
@@ -2368,14 +2369,14 @@ package body CORBA is
       if Object.As_Reference then
          Inc_Usage (Object);
       else
-         --  LOCK
+--         Object.Any_Lock.Lock_W;
          if Object.The_Value /= Null_Content_Ptr then
             pragma Debug (O ("object type is "
                              & Ada.Tags.External_Tag (Object.The_Value'Tag)));
             Object.The_Value := Duplicate (Object.The_Value);
             Object.Ref_Counter := new Natural'(1);
          end if;
-         --  UNLOCK
+--         Object.Any_Lock.Unlock_W;
       end if;
       pragma Debug (O ("Adjust : end"));
    end Adjust;
@@ -2396,9 +2397,9 @@ package body CORBA is
    -----------------
    procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr) is
    begin
-      --  LOCK
+--      Obj.Any_Lock.Lock_W;
       Obj.The_Value := The_Value;
-      --  UNLOCK
+--      Obj.Any_Lock.Unlock_W;
    end Set_Value;
 
    -------------------
@@ -2406,29 +2407,33 @@ package body CORBA is
    -------------------
    procedure Set_Counter (Obj : in out Any; The_Counter : in Natural_Ptr) is
    begin
-      --  LOCK
+--      Obj.Any_Lock.Lock_W;
       Obj.Ref_Counter := The_Counter;
-      --  UNLOCK
+--      Obj.Any_Lock.Unlock_W;
    end Set_Counter;
 
    -----------------
    --  Get_Value  --
    -----------------
    function Get_Value (Obj : Any) return Any_Content_Ptr is
+      Content : Any_Content_Ptr;
    begin
-      --  LOCK
-      return Obj.The_Value;
-      --  UNLOCK
+--      Obj.Any_Lock.Lock_R;
+      Content := Obj.The_Value;
+--      Obj.Any_Lock.Unlock_R;
+      return Content;
    end Get_Value;
 
    -------------------
    --  Get_Counter  --
    -------------------
    function Get_Counter (Obj : Any) return Natural_Ptr is
+      Counter : Natural_Ptr;
    begin
-      --  LOCK
-      return Obj.Ref_Counter;
-      --  UNLOCK
+--      Obj.Any_Lock.Lock_R;
+      Counter := Obj.Ref_Counter;
+--      Obj.Any_Lock.Unlock_R;
+      return Counter;
    end Get_Counter;
 
    -----------------
@@ -2436,9 +2441,9 @@ package body CORBA is
    -----------------
    procedure Inc_Usage (Obj : in Any) is
    begin
-      --  LOCK
+--      Obj.Any_Lock.Lock_W;
       Obj.Ref_Counter.all := Obj.Ref_Counter.all + 1;
-      --  UNLOCK
+--      Obj.Any_Lock.Unlock_W;
    end Inc_Usage;
 
    -----------------
@@ -2446,16 +2451,29 @@ package body CORBA is
    -----------------
    procedure Dec_Usage (Obj : in out Any) is
    begin
-      --  LOCK
+      pragma Debug (O ("Dec_Usage : enter"));
+      pragma Debug (O2 ("Dec_Usage"));
+--      Obj.Any_Lock.Lock_W;
+      pragma Debug (O ("Dec_Usage : lock placed"));
       if Obj.Ref_Counter.all > 1 then
          Obj.Ref_Counter.all := Obj.Ref_Counter.all - 1;
+         pragma Debug (O ("Dec_Usage : counter decremented"));
+--         Obj.Any_Lock.Unlock_W;
+         pragma Debug (O ("Dec_Usage : lock released"));
       else
          if Obj.The_Value /= Null_Content_Ptr then
             Deallocate (Obj.The_Value);
             Deallocate (Obj.Ref_Counter);
+            pragma Debug (O ("Dec_Usage : counter deallocated"));
+--            Obj.Any_Lock.Unlock_W;
+            pragma Debug (O ("Dec_Usage : lock released"));
+            Deallocate (Obj.Any_Lock);
+--         else
+--            Obj.Any_Lock.Unlock_W;
+--            pragma Debug (O ("Dec_Usage : lock released"));
          end if;
       end if;
-      --  UNLOCK
+      pragma Debug (O ("Dec_Usage : end"));
    end Dec_Usage;
 
 end CORBA;

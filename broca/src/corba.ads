@@ -37,6 +37,7 @@ with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
 with Ada.Unchecked_Deallocation;
 with Interfaces;
+with Broca.Locks;
 
 package CORBA is
 
@@ -1087,6 +1088,11 @@ private
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Natural, Natural_Ptr);
 
+   --  a lock for the Any
+   type Rw_Lock_Type_Ptr is access all Broca.Locks.Rw_Lock_Type;
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Broca.Locks.Rw_Lock_Type, Rw_Lock_Type_Ptr);
+
    --  The actual Any type
    --  The first two fields are clear, the third one tells whether
    --  the Any has a semantic of reference or of value and the last
@@ -1095,7 +1101,8 @@ private
       The_Value : Any_Content_Ptr;
       The_Type  : CORBA.TypeCode.Object;
       As_Reference : Boolean := False;
-      Ref_Counter : Natural_Ptr := new Natural'(0);
+      Ref_Counter : Natural_Ptr;
+      Any_Lock : Rw_Lock_Type_Ptr;
    end record;
 
    --  Some methods to deal with the Any fields.

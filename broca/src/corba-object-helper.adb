@@ -68,9 +68,9 @@ package body CORBA.Object.Helper is
       if Get_Type (Any_Value) /= CORBA.TC_ObjRef then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  LOCK
+--      Any_Value.Any_Lock.Lock_W;
       Content_ObjRef_Ptr (Any_Value.The_Value).Value := Value;
-      --  UNLOCK
+--      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
 end CORBA.Object.Helper;

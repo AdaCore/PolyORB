@@ -38,8 +38,8 @@ with Ada.Text_IO;
 
 procedure Server is
    Ref : CORBA.Object.Ref;
-
 begin
+   Ada.Text_IO.Put_Line ("Server begins here");
    Initiate_Servant (new all_types.Impl.Object, Ref);
    Ada.Text_IO.Put_Line
      ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &

@@ -1707,17 +1707,20 @@ package body Broca.RootPOA is
 
 begin
    --  Build the default POAManager.
+   pragma Debug (O ("elaboration begins here"));
 
    --  9.3.2  Processing States
    --  The RootPOA is therefore initially in the holding state.
 
    Default_POA_Manager := new POA_Manager_Type;
    Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Default_POA_Manager));
+   pragma Debug (O ("Default POA Manager created"));
 
    --  Build the ghost POA manager.
 
    Ghost_POA_Manager := new POA_Manager_Type;
    Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Ghost_POA_Manager));
+   pragma Debug (O ("Ghost POA Manager created"));
 
    --  Build the RootPOA.
 

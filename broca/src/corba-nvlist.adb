@@ -91,7 +91,7 @@ package body CORBA.NVList is
                        & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
                        & Positive'Image (Get_Counter (Item).all)));
-      --  LOCK Item
+--      Item.Any_Lock.Lock_W;
       Item.Ref_Counter.all := Item.Ref_Counter.all + 1;
       Add_Item (Self, (Name => Item_Name,
                        Argument => (Ada.Finalization.Controlled
@@ -99,9 +99,10 @@ package body CORBA.NVList is
                                     The_Value => Item.The_Value,
                                     The_Type => Item.The_Type,
                                     As_Reference => True,
-                                    Ref_Counter => Item.Ref_Counter),
+                                    Ref_Counter => Item.Ref_Counter,
+                                    Any_Lock => Item.Any_Lock),
                        Arg_Modes => Item_Flags));
-      --  UNLOCK
+--      Item.Any_Lock.Unlock_W;
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
                        & Positive'Image (Get_Counter (Item).all)));
       pragma Debug (O ("Add_Item (4 params) : end"));

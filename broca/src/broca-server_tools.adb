@@ -10,6 +10,8 @@ with Broca.RootPOA;
 pragma Elaborate (Broca.RootPOA);
 pragma Elaborate_All (PortableServer.POA);
 
+with Broca.Debug;
+
 package body Broca.Server_Tools is
 
    Root_POA : PortableServer.POA.Ref;
@@ -25,6 +27,14 @@ package body Broca.Server_Tools is
    end ORBTask;
 
    procedure Initiate_RootPOA;
+
+   -----------
+   -- Debug --
+   -----------
+
+   Flag : constant Natural
+     := Broca.Debug.Is_Active ("broca.server_tools");
+   procedure O is new Broca.Debug.Output (Flag);
 
    ----------------------
    -- Initiate_RootPOA --
@@ -64,14 +74,17 @@ package body Broca.Server_Tools is
      (S : in PortableServer.Servant;
       R : out CORBA.Object.Ref'Class) is
    begin
+      pragma Debug (O ("Initiate_Servant : enter"));
       if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
       end if;
-
+      pragma Debug (O ("Initiate_Servant : ready to "
+                       & "call Corba.Object.Set"));
       CORBA.Object.Set
         (CORBA.Object.Ref (R),
          CORBA.Object.Object_Of
          (PortableServer.POA.Servant_To_Reference (Root_POA, S)));
+      pragma Debug (O ("Initiate_Servant : end"));
    end Initiate_Servant;
 
    --------------------------
