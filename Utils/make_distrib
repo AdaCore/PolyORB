@@ -106,19 +106,20 @@ sleep 1
 find . -name stamp-h.in -exec touch {} \;
 sleep 1
 find . -name config.h.in -exec touch {} \;
-cd Doc
-make release
-cd ..
-echo Adapting modes
-chmod -R og=u-w .
+echo "" >Doc/MANIFEST
+if [ `domainname` = gnat.com ]; then
+  rsh -n plym "cd `pwd`/Doc; make release"
+fi
 flist=""
+for i in `cat Doc/MANIFEST`; do
+  flist="${flist} ${dir}/Doc/${i}"
+done
 echo Packaging
 for i in `cat MANIFEST`; do
   flist="${flist} ${dir}/${i}"
 done
-for i in `cat Doc/MANIFEST`; do
-  flist="${flist} ${dir}/Doc/${i}"
-done
+echo Adapting modes
+chmod -R og=u-w .
 cd ..
 tar cvf ${dir}.tar ${flist}
 gzip --best ${dir}.tar
