@@ -1,8 +1,43 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                            GLADE COMPONENTS                              --
+--                                                                          --
+--   S Y S T E M . G A R L I C . P R O T O C O L S . T C P . S E R V E R    --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--                            $Revision$
+--                                                                          --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--                                                                          --
+-- GARLIC is free software;  you can redistribute it and/or modify it under --
+-- terms of the  GNU General Public License  as published by the Free Soft- --
+-- ware Foundation;  either version 2,  or (at your option)  any later ver- --
+-- sion.  GARLIC is distributed  in the hope that  it will be  useful,  but --
+-- WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHANTABI- --
+-- LITY or  FITNESS FOR A PARTICULAR PURPOSE.  See the  GNU General Public  --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License  distributed with GARLIC;  see file COPYING.  If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--               GLADE  is maintained by ACT Europe.                        --
+--               (email: glade-report@act-europe.fr)                        --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with Ada.Exceptions;                      use Ada.Exceptions;
 
-with System.Garlic.Debug;                 use System.Garlic.Debug;
-with System.Garlic.Priorities;
 with GNAT.Sockets;                        use GNAT.Sockets;
+
+with System.Garlic.Debug;                 use System.Garlic.Debug;
 with System.Garlic.Soft_Links;            use System.Garlic.Soft_Links;
 with System.Garlic.Protocols.Xyz;         use System.Garlic.Protocols.Xyz;
 with System.Garlic.Types;                 use System.Garlic.Types;
@@ -25,7 +60,7 @@ package body System.Garlic.Protocols.Xyz.Server is
      (Incoming : in Natural);
 
    task type Accept_Handler is
-      pragma Priority (Priorities.RPC_Priority);
+      pragma Priority (System.Priority'Last);
       entry Initialize (My_Index : in Natural);
    end Accept_Handler;
    type Accept_Access is access Accept_Handler;
@@ -36,7 +71,7 @@ package body System.Garlic.Protocols.Xyz.Server is
    type Connect_Record;
    type Connect_Access is access Connect_Record;
    task type Connect_Handler is
-      pragma Priority (Priorities.RPC_Priority);
+      pragma Priority (System.Priority'Last);
       entry Initialize
         (My_Peer : Socket_Type;
          My_PID  : Partition_ID;

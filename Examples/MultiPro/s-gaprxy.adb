@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -139,6 +139,9 @@ package body System.Garlic.Protocols.Xyz is
    --  Read a stream element count from a file descriptor and check that
    --  it is valid.
 
+   procedure Close_Socket_Ignoring_Error (S : Socket_Type);
+   --  Close socket and ignore any exception.
+
    function To_Stream_Element_Array (Count : Stream_Element_Count)
      return SEC_Stream;
    --  Return the stream element array corresponding to this count
@@ -217,7 +220,7 @@ package body System.Garlic.Protocols.Xyz is
                   --  is still local to acceptor.
 
                   pragma Debug (D ("Accept Handler: receive junk banner"));
-                  Close_Socket (Peer);
+                  Close_Socket_Ignoring_Error (Peer);
 
                when Data_Banner =>
                   --  Get a new task to handle this new connection
@@ -231,7 +234,7 @@ package body System.Garlic.Protocols.Xyz is
                   --  is still local to acceptor.
 
                   pragma Debug (D ("Accept Handler: receive quit banner"));
-                  Close_Socket (Peer);
+                  Close_Socket_Ignoring_Error (Peer);
                   exit;
             end case;
          end;
@@ -249,7 +252,7 @@ package body System.Garlic.Protocols.Xyz is
 
       Outgoings.Enter;
       if Incomings (Incoming).Socket /= No_Socket then
-         Close_Socket (Incomings (Incoming).Socket);
+         Close_Socket_Ignoring_Error (Incomings (Incoming).Socket);
          Incomings (Incoming).Socket := No_Socket;
          Outgoings.Update;
       end if;
@@ -285,6 +288,17 @@ package body System.Garlic.Protocols.Xyz is
       pragma Debug (D ("Protocol xyz activated"));
    end Activate;
 
+   ---------------------------------
+   -- Close_Socket_Ignoring_Error --
+   ---------------------------------
+
+   procedure Close_Socket_Ignoring_Error (S : Socket_Type) is
+   begin
+      Close_Socket (S);
+   exception when others =>
+      null;
+   end Close_Socket_Ignoring_Error;
+
    ------------
    -- Create --
    ------------
@@ -314,7 +328,7 @@ package body System.Garlic.Protocols.Xyz is
       exception when Socket_Error =>
          pragma Debug (D ("Cannot connect to " & Image (Sock_Addr)));
          if Peer /= No_Socket then
-            Close_Socket (Peer);
+            Close_Socket_Ignoring_Error (Peer);
          end if;
          Peer := No_Socket;
       end;
@@ -344,7 +358,7 @@ package body System.Garlic.Protocols.Xyz is
       begin
          Bind_Socket (Self.Socket, Self.Sock_Addr);
       exception when Socket_Error =>
-         Close_Socket (Self.Socket);
+         Close_Socket_Ignoring_Error (Self.Socket);
          Self.Socket := No_Socket;
          Throw (Error, "Do_Listen: xyz bind error");
          return;
@@ -353,7 +367,7 @@ package body System.Garlic.Protocols.Xyz is
       begin
          Listen_Socket (Self.Socket);
       exception when Socket_Error =>
-         Close_Socket (Self.Socket);
+         Close_Socket_Ignoring_Error (Self.Socket);
          Self.Socket := No_Socket;
          Throw (Error, "Do_Listen: xyz listen error");
          return;
@@ -364,7 +378,7 @@ package body System.Garlic.Protocols.Xyz is
             Self.Any_Port       := True;
             Self.Sock_Addr.Port := Get_Socket_Name (Self.Socket).Port;
          exception when Socket_Error =>
-            Close_Socket (Self.Socket);
+            Close_Socket_Ignoring_Error (Self.Socket);
             Self.Socket := No_Socket;
             Throw (Error, "Do_Listen: xyz getsockname error");
             return;
@@ -508,7 +522,7 @@ package body System.Garlic.Protocols.Xyz is
 
             begin
                Index := I;
-               Close_Socket (Incomings (I).Socket);
+               Close_Socket_Ignoring_Error (Incomings (I).Socket);
             exception when others =>
                null;
             end;
@@ -684,7 +698,7 @@ package body System.Garlic.Protocols.Xyz is
             PID  := O;
             Receive_One_Stream (Info.Socket, PID, Error);
             if Found (Error) then
-               Close_Socket (Info.Socket);
+               Close_Socket_Ignoring_Error (Info.Socket);
                Info.Socket := No_Socket;
                Outgoings.Set_Component (PID, Info);
                Set_Online (PID, False);
@@ -849,7 +863,7 @@ package body System.Garlic.Protocols.Xyz is
          Outgoings.Enter;
          Info := Outgoings.Get_Component (PID);
          if Info.Socket /= No_Socket then
-            Close_Socket (Info.Socket);
+            Close_Socket_Ignoring_Error (Info.Socket);
             Info.Socket := No_Socket;
             Outgoings.Set_Component (PID, Info);
             Set_Online (PID, False);
@@ -894,17 +908,15 @@ package body System.Garlic.Protocols.Xyz is
       Count    : Stream_Element_Count;
       Location : Location_Type;
    begin
+      Outgoings.Enter;
       Info := Outgoings.Get_Component (Partition);
       if Info.Socket = No_Socket then
          Get_Net_Location (Partition, Location, Error);
          if Found (Error) then
+            Outgoings.Leave;
             return;
          end if;
-      end if;
 
-      Outgoings.Enter;
-      Info := Outgoings.Get_Component (Partition);
-      if Info.Socket = No_Socket then
          Info.Sock_Addr := Value (Get_Data (Location));
 
          if Info.Sock_Addr = No_Sock_Addr then
@@ -980,7 +992,7 @@ package body System.Garlic.Protocols.Xyz is
 
          Info := Outgoings.Get_Component (Partition);
          if Info.Socket /= No_Socket then
-            Close_Socket (Info.Socket);
+            Close_Socket_Ignoring_Error (Info.Socket);
             Outgoings.Set_Component (Partition, Info);
             Set_Online (Partition, False);
             Outgoings.Update;
@@ -1111,7 +1123,7 @@ package body System.Garlic.Protocols.Xyz is
 
             delay Polling;
 
-            Close_Socket (Socket);
+            Close_Socket_Ignoring_Error (Socket);
             Count := Count + 1;
          end if;
       end loop;
@@ -1158,7 +1170,7 @@ package body System.Garlic.Protocols.Xyz is
 
             pragma Debug (D ("Shutdown connector " & Image (Info.Socket)));
 
-            Close_Socket (Info.Socket);
+            Close_Socket_Ignoring_Error (Info.Socket);
             Info.Socket := No_Socket;
             Outgoings.Set_Component (P, Info);
          end if;
