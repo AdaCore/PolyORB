@@ -822,6 +822,8 @@ src/polyorb-representations-cdr.ads
 src/polyorb-representations-test.adb
 src/polyorb-representations-test.ads
 src/polyorb-representations.ads
+src/polyorb-request_scheduler.adb
+src/polyorb-request_scheduler.ads
 src/polyorb-requests.adb
 src/polyorb-requests.ads
 src/polyorb-sequences-bounded-helper.adb

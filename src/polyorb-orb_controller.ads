@@ -38,6 +38,7 @@
 with PolyORB.Asynch_Ev;
 with PolyORB.Jobs;
 with PolyORB.References;
+with PolyORB.Request_Scheduler;
 with PolyORB.Task_Info;
 with PolyORB.Tasking.Threads;
 
@@ -58,6 +59,7 @@ package PolyORB.ORB_Controller is
    package PAE renames PolyORB.Asynch_Ev;
    package PJ  renames PolyORB.Jobs;
    package PR  renames PolyORB.References;
+   package PRS renames PolyORB.Request_Scheduler;
    package PTI renames PolyORB.Task_Info;
    package PT  renames PolyORB.Tasking.Threads;
 
@@ -131,7 +133,8 @@ package PolyORB.ORB_Controller is
    -- ORB_Controller --
    --------------------
 
-   type ORB_Controller is abstract tagged limited private;
+   type ORB_Controller (RS : PRS.Request_Scheduler_Access) is
+     abstract tagged limited private;
 
    type ORB_Controller_Access is access all ORB_Controller'Class;
 
@@ -232,7 +235,8 @@ private
    function Status (O : access ORB_Controller) return String;
    --  Output status of task running Broker, for debugging purpose.
 
-   type ORB_Controller is abstract tagged limited record
+   type ORB_Controller (RS : PRS.Request_Scheduler_Access)
+     is abstract tagged limited record
 
          -----------------------------
          -- Controller global state --
@@ -265,7 +269,7 @@ private
          Shutdown : Boolean := False;
          --  True iff ORB is to be shutdown
 
-   end record;
+     end record;
 
    End_Of_Check_Sources_E : constant Event (End_Of_Check_Sources)
      := Event'(Kind => End_Of_Check_Sources);

@@ -164,6 +164,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       E :        Event)
    is
       use type PAE.Asynch_Ev_Monitor_Access;
+      use type PRS.Request_Scheduler_Access;
       use type PolyORB.Tasking.Threads.Thread_Id;
 
    begin
@@ -280,22 +281,28 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          when Queue_Request_Job =>
 
-            --  Queue event to main job queue
-
-            if Attributes.Value.TI = Current_Task
-              and then Attributes.Value.Job = null
+            if O.RS = null
+              or else not PRS.Try_Queue_Request_Job
+              (O.RS, E.Request_Job, E.Target)
             then
 
-               --  Queue event directly into task attribute
-               pragma Debug (O1 ("Queue request in task area"));
+               --  Queue event to main job queue
 
-               Attributes.Set_Value
-                 (LF_Task_Attribute'(Attributes.Value.TI, E.Request_Job));
+               if Attributes.Value.TI = Current_Task
+                 and then Attributes.Value.Job = null
+               then
 
-            else
-               O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
-               PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-               Try_Allocate_One_Task (O);
+                  --  Queue event directly into task attribute
+                  pragma Debug (O1 ("Queue request in task area"));
+
+                  Attributes.Set_Value
+                    (LF_Task_Attribute'(Attributes.Value.TI, E.Request_Job));
+
+               else
+                  O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
+                  PJ.Queue_Job (O.Job_Queue, E.Request_Job);
+                  Try_Allocate_One_Task (O);
+               end if;
             end if;
 
          when Request_Result_Ready =>
@@ -642,8 +649,8 @@ package body PolyORB.ORB_Controller.Leader_Followers is
       pragma Unreferenced (OCF);
       pragma Warnings (On);
 
-      OC : constant ORB_Controller_Leader_Followers_Access
-        := new ORB_Controller_Leader_Followers;
+      OC : ORB_Controller_Leader_Followers_Access;
+      RS : PRS.Request_Scheduler_Access;
 
       Polling_Interval : constant Natural
         := Get_Conf ("orb_controller",
@@ -656,6 +663,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
                      0);
 
    begin
+      PRS.Create (RS);
+      OC := new ORB_Controller_Leader_Followers (RS);
+
       Create (OC.ORB_Lock);
       Create (OC.Polling_Completed);
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;

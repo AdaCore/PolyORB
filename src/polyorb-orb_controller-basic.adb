@@ -152,6 +152,7 @@ package body PolyORB.ORB_Controller.Basic is
       E :        Event)
    is
       use type PAE.Asynch_Ev_Monitor_Access;
+      use type PRS.Request_Scheduler_Access;
 
    begin
       pragma Debug (O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
@@ -245,13 +246,18 @@ package body PolyORB.ORB_Controller.Basic is
 
          when Queue_Request_Job =>
 
-            --  Default: Queue request to main job queue
+            if O.RS = null
+              or else not PRS.Try_Queue_Request_Job
+              (O.RS, E.Request_Job, E.Target)
+            then
+               --  Default: Queue request to main job queue
 
-            pragma Debug (O1 ("Queue Request_Job to default queue"));
+               pragma Debug (O1 ("Queue Request_Job to default queue"));
 
-            O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
-            PJ.Queue_Job (O.Job_Queue, E.Request_Job);
-            Try_Allocate_One_Task (O);
+               O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
+               PJ.Queue_Job (O.Job_Queue, E.Request_Job);
+               Try_Allocate_One_Task (O);
+            end if;
 
          when Request_Result_Ready =>
 
@@ -600,6 +606,7 @@ package body PolyORB.ORB_Controller.Basic is
       pragma Warnings (On);
 
       OC : ORB_Controller_Basic_Access;
+      RS : PRS.Request_Scheduler_Access;
 
       Polling_Interval : constant Natural
         := Get_Conf ("orb_controller",
@@ -612,9 +619,12 @@ package body PolyORB.ORB_Controller.Basic is
                      0);
 
    begin
-      OC := new ORB_Controller_Basic;
+      PRS.Create (RS);
+      OC := new ORB_Controller_Basic (RS);
+
       Create (OC.ORB_Lock);
       Create (OC.Polling_Completed);
+
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;
 
       if Polling_Interval = 0 then

@@ -192,6 +192,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
          when Queue_Request_Job =>
 
+            --  XXX Should we allow the use of a request scheduler for
+            --  this policy ?
+
             --  Queue event to main job queue
 
             O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs + 1;
@@ -372,10 +375,13 @@ package body PolyORB.ORB_Controller.No_Tasking is
       pragma Unreferenced (OCF);
       pragma Warnings (On);
 
-      OC : constant ORB_Controller_No_Tasking_Access
-        := new ORB_Controller_No_Tasking;
+      OC : ORB_Controller_No_Tasking_Access;
+      RS : PRS.Request_Scheduler_Access;
 
    begin
+      PRS.Create (RS);
+      OC := new ORB_Controller_No_Tasking (RS);
+
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;
 
       return ORB_Controller_Access (OC);
