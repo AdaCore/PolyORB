@@ -354,6 +354,7 @@ AC_OUTPUT([Makefile
            Examples/Filters/Makefile
            Examples/Messages/Makefile
            Examples/MultiPro/Makefile
+           Examples/DSMStorage/Makefile
            Examples/MultiSto/Makefile
            Examples/Reconnection/Makefile
            Examples/LightBank/Makefile])
