@@ -126,6 +126,22 @@ package body Ada_Be.Idl2Ada is
       Delegate_Body : in out Compilation_Unit);
    --  Generates the Delegate child package
 
+   procedure Gen_Operation_Body_Prologue
+     (CU : in out Compilation_Unit;
+      Response_Expected : Boolean;
+      Operation_Id_Expr : String);
+   --  Generate the prologue of an operation stub
+   --  body (from common variable declarations to
+   --  marshalling of request body, inclusive.)
+
+   procedure Gen_Operation_Send_Request
+     (CU : in out Compilation_Unit;
+      Response_Expected : Boolean);
+   --  Generate a call to Send_Request_Send for
+   --  an operation stub body, and the Sr_Forward
+   --  and Sr_No_Reply alternatives of the subsequent
+   --  case on the returned status.
+
    ------------------------
    -- Helper subprograms --
    ------------------------
@@ -788,14 +804,14 @@ package body Ada_Be.Idl2Ada is
    begin
       pragma Assert ((NK = K_Interface)
                      or (NK = K_ValueType));
+
+      --  Declaration
+
       Add_With (Stubs_Spec, "CORBA",
                 Use_It => False,
                 Elab_Control => Elaborate_All);
+
       NL (Stubs_Spec);
-      PL (Stubs_Spec, T_Repository_Id
-          & " : constant CORBA.RepositoryId");
-      PL (Stubs_Spec, "  := CORBA.To_CORBA_String ("""
-          & Idl_Repository_Id (Node) & """);");
       PL (Stubs_Spec, "function Is_A");
       PL (Stubs_Spec, "  (Self : "
           & Ada_Type_Defining_Name (Node)
@@ -805,10 +821,21 @@ package body Ada_Be.Idl2Ada is
 
       Divert (Stubs_Spec, Private_Declarations);
       NL (Stubs_Spec);
+      PL (Stubs_Spec, T_Repository_Id
+          & " : constant CORBA.RepositoryId");
+      PL (Stubs_Spec, "  := CORBA.To_CORBA_String ("""
+          & Idl_Repository_Id (Node) & """);");
+
+      NL (Stubs_Spec);
       PL (Stubs_Spec, "function Is_A");
       PL (Stubs_Spec, "  (Type_Id : CORBA.RepositoryId)");
       PL (Stubs_Spec, "  return CORBA.Boolean;");
       Divert (Stubs_Spec, Visible_Declarations);
+
+      --  Implementation
+
+      Add_With (Stubs_Body, "Broca.Repository");
+      Add_With (Stubs_Body, "Broca.Object");
 
       NL (Stubs_Body);
       PL (Stubs_Body, "--  The visible Is_A object reference");
@@ -822,18 +849,30 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Body, "   Type_Id : CORBA.RepositoryId)");
       PL (Stubs_Body, "  return CORBA.Boolean");
       PL (Stubs_Body, "is");
+      II (Stubs_Body);
+      PL (Stubs_Body, "use Broca.Repository;");
+      DI (Stubs_Body);
       PL (Stubs_Body, "begin");
       II (Stubs_Body);
-      PL (Stubs_Body, "return Is_A (Type_Id);");
-      DI (Stubs_Body);
-      PL (Stubs_Body, "end Is_A;");
+      PL (Stubs_Body, "return False");
       NL (Stubs_Body);
+      PL (Stubs_Body, "  or else Is_A (Type_Id)");
+      PL (Stubs_Body,
+          "  --  Locally check class membership for this interface");
+      NL (Stubs_Body);
+      PL (Stubs_Body, "  or else CORBA.Object.Is_A");
+      PL (Stubs_Body, "           (CORBA.Object.Ref (Self), Type_Id);");
+      PL (Stubs_Body,
+          "  --  Fall back to a remote membership check (may involve");
+      PL (Stubs_Body,
+          "  --  an actual request invocation on Self).");
+      NL (Stubs_Body);
+      PL (Stubs_Body, "end Is_A;");
 
       NL (Stubs_Body);
       PL (Stubs_Body, "--  The internal Is_A implementation for");
       PL (Stubs_Body, "--  this interface.");
       NL (Stubs_Body);
-      Add_With (Stubs_Body, "Broca.Repository");
       PL (Stubs_Body, "function Is_A");
       PL (Stubs_Body, "  (Type_Id : CORBA.RepositoryId)");
       PL (Stubs_Body, "  return CORBA.Boolean");
@@ -862,12 +901,6 @@ package body Ada_Be.Idl2Ada is
       else
          PL (Stubs_Body, "      (""IDL:omg.org/CORBA/ValueBase:1.0""))))");
       end if;
-      --  XXX remove: There is no repositoryid for AbstractBase
-      --    because neither CORBA::Object nor CORBA::ValueBase derive
-      --    from it.
---       PL (Stubs_Body, "  or else Type_Id =");
---       PL (Stubs_Body, "    CORBA.To_CORBA_String");
---       PL (Stubs_Body, "      (""IDL:omg.org/CORBA/AbstractBase:1.0"")");
 
       --  ... and for all of its ancestor types.
 
@@ -890,7 +923,8 @@ package body Ada_Be.Idl2Ada is
       end;
 
       PL (Stubs_Body, "  or else False;");
-      DI (Stubs_Body);
+      NL (Stubs_Body);
+
       PL (Stubs_Body, "end Is_A;");
    end Gen_Is_A_Stubs;
 
@@ -1795,7 +1829,6 @@ package body Ada_Be.Idl2Ada is
                Add_With (CU, "CORBA",
                          Use_It    => False,
                          Elab_Control => Elaborate_All);
-               Add_With (CU, "Broca.GIOP");
                Add_With (CU, "Broca.Object");
                Add_With (CU, "Broca.Exceptions");
 
@@ -1805,38 +1838,21 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "  := CORBA.To_CORBA_String ("""
                    & Idl_Operation_Id (Node) & """);");
 
-               Gen_Operation_Profile (CU,
-                                      "in "
-                                      & Ada_Type_Defining_Name
-                                      (Parent_Scope (Node)),
-                                      Node);
+               Gen_Operation_Profile
+                 (CU, Ada_Type_Defining_Name (Parent_Scope (Node)), Node);
+
                NL (CU);
                PL (CU, "is");
                II (CU);
-               PL (CU, T_Handler & " : Broca.GIOP.Request_Handler;");
-               PL (CU, T_Send_Request_Result & " : "
-                   & "Broca.GIOP.Send_Request_Result_Type;");
                if Kind (O_Type) /= K_Void then
                   Add_With_Stream (CU, O_Type);
                   PL (CU, T_Returns & " : " & Ada_Type_Name (O_Type) & ";");
                end if;
-               DI (CU);
-               PL (CU, "begin");
-               II (CU);
 
-               PL (CU, "if Is_Nil (Self) then");
-               II (CU);
-               PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
-               DI (CU);
-               PL (CU, "end if;");
-
-               PL (CU, "loop");
-               II (CU);
-               PL (CU, "Broca.GIOP.Send_Request_Marshall");
-               PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
-               PL (CU, "   (Object_Of (Self)), "
-                   & Img (Response_Expected)
-                   & ", " & O_Name & "_Operation);");
+               Gen_Operation_Body_Prologue
+                 (CU,
+                  Response_Expected,
+                  O_Name & "_Operation");
 
                declare
                   It   : Node_Iterator;
@@ -1861,8 +1877,8 @@ package body Ada_Be.Idl2Ada is
                            PL (CU, "  ("
                                & T_Handler & ".Buffer'Access, ");
                            if Is_Interface_Type (Param_Type (P_Node)) then
-                              --  The formal is class-wide: type cast it before
-                              --  use.
+                              --  The formal is class-wide:
+                              --  type cast it before use.
                               PL (CU, "   "
                                   & Ada_Type_Name (Param_Type (P_Node)));
                               PL (CU, "     ("
@@ -1877,23 +1893,10 @@ package body Ada_Be.Idl2Ada is
                   end loop;
                end;
 
-               NL (CU);
-               PL (CU, "Broca.GIOP.Send_Request_Send");
-               PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
-               PL (CU, "   (Object_Of (Self)), "
-                   & Img (Response_Expected)
-                   & ", " & T_Send_Request_Result & ");");
-               PL (CU, "case " & T_Send_Request_Result & " is");
-               II (CU);
+               Gen_Operation_Send_Request (CU, Response_Expected);
+
                PL (CU, "when Broca.GIOP.Sr_Reply =>");
                II (CU);
-
-               if Kind (O_Type) /= K_Void then
-                  NL (CU);
-                  PL (CU, "--  Unmarshall return value.");
-                  PL (CU, T_Returns & " := Unmarshall (" & T_Handler &
-                      ".Buffer'Access);");
-               end if;
 
                if Response_Expected then
                   declare
@@ -1901,6 +1904,13 @@ package body Ada_Be.Idl2Ada is
                      P_Node : Node_Id;
                      First  : Boolean := True;
                   begin
+                     if Kind (O_Type) /= K_Void then
+                        NL (CU);
+                        PL (CU, "--  Unmarshall return value.");
+                        PL (CU, T_Returns & " := Unmarshall (" & T_Handler &
+                            ".Buffer'Access);");
+                     end if;
+
                      Init (It, Parameters (Node));
                      while not Is_End (It) loop
                         Get_Next_Node (It, P_Node);
@@ -1937,17 +1947,6 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "raise Program_Error;");
                end if;
 
-               DI (CU);
-               PL (CU, "when Broca.GIOP.Sr_No_Reply =>");
-               II (CU);
-               --  XXX ??? What's this ? FIXME.
-               PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
-
-               if Response_Expected then
-                  PL (CU, "raise Program_Error;");
-               else
-                  PL (CU, "return;");
-               end if;
                DI (CU);
                PL (CU, "when Broca.GIOP.Sr_User_Exception =>");
                II (CU);
@@ -2020,10 +2019,6 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "end;");
                end if;
 
-               DI (CU);
-               PL (CU, "when Broca.GIOP.Sr_Forward =>");
-               II (CU);
-               PL (CU, "null;");
                DI (CU);
                DI (CU);
                PL (CU, "end case;");
@@ -2685,6 +2680,67 @@ package body Ada_Be.Idl2Ada is
             null;
       end case;
    end Gen_Delegate;
+
+   procedure Gen_Operation_Body_Prologue
+     (CU : in out Compilation_Unit;
+      Response_Expected : Boolean;
+      Operation_Id_Expr : String) is
+   begin
+      PL (CU, T_Handler & " : Broca.GIOP.Request_Handler;");
+      PL (CU, T_Send_Request_Result & " : "
+          & "Broca.GIOP.Send_Request_Result_Type;");
+
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+
+      PL (CU, "if Is_Nil (Self) then");
+      II (CU);
+      PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
+      DI (CU);
+      PL (CU, "end if;");
+      NL (CU);
+      PL (CU, "loop");
+      II (CU);
+      PL (CU, "Broca.GIOP.Send_Request_Marshall");
+      PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
+      PL (CU, "   (Object_Of (Self)), "
+          & Img (Response_Expected)
+          & ", " & Operation_Id_Expr & ");");
+   end Gen_Operation_Body_Prologue;
+
+   procedure Gen_Operation_Send_Request
+     (CU : in out Compilation_Unit;
+      Response_Expected : Boolean) is
+   begin
+      Add_With (CU, "Broca.GIOP");
+
+      NL (CU);
+      PL (CU, "Broca.GIOP.Send_Request_Send");
+      PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
+      PL (CU, "   (Object_Of (Self)), "
+          & Img (Response_Expected)
+          & ", " & T_Send_Request_Result & ");");
+      PL (CU, "case " & T_Send_Request_Result & " is");
+      II (CU);
+      PL (CU, "when Broca.GIOP.Sr_No_Reply =>");
+      II (CU);
+      PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
+
+      if Response_Expected then
+         PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
+         PL (CU, "raise Program_Error;");
+      else
+         PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
+         PL (CU, "return;");
+      end if;
+      DI (CU);
+      PL (CU, "when Broca.GIOP.Sr_Forward =>");
+      II (CU);
+      PL (CU, "null;");
+      DI (CU);
+
+   end Gen_Operation_Send_Request;
 
    procedure Gen_Constant_Value
      (CU : in out Compilation_Unit;

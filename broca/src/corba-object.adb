@@ -35,25 +35,97 @@ with Broca.IOR;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.CDR;     use Broca.CDR;
 
+with Broca.Repository;
+with Broca.GIOP;
+with Broca.Exceptions;
+with Broca.Object;
+
 package body CORBA.Object is
 
-   ------------
-   --  Is_A  --
-   ------------
+   ----------
+   -- Is_A --
+   ----------
+
    function Is_A
      (Self : Ref;
       Type_Id : CORBA.RepositoryId)
       return CORBA.Boolean
    is
       use CORBA;
-   begin
-      return Type_Id = CORBA.To_CORBA_String
-        ("IDL:omg.org/CORBA/Object:1.0")
-        or else Type_Id = CORBA.To_CORBA_String
-        ("IDL:omg.org/CORBA/AbstactBase:1.0")
-        or else False;
-   end Is_A;
+      use Broca.Repository;
 
+   begin
+      --  Any object Is_A CORBA::Object.
+
+      if Is_Equivalent
+        (Type_Id,
+         CORBA.To_CORBA_String
+         ("IDL:omg.org/CORBA/Object:1.0"))
+      then
+         return True;
+      end if;
+
+      --  Any object is of the class of its
+      --  actual type.
+
+      if Is_Equivalent
+        (CORBA.RepositoryId
+         (Broca.Object.Object_Ptr
+          (Object_Of (Self)).Type_Id),
+         Type_Id)
+      then
+         return True;
+      end if;
+
+      --  If class membership cannot be determined locally,
+      --  perform a remote call on the object.
+
+      --  Some of this code is replicated from the generated
+      --  stubs code for object operations.
+
+      declare
+         Returns : CORBA.Boolean;
+         is_a_Operation : constant CORBA.Identifier
+           := CORBA.To_CORBA_String ("_is_a");
+         Handler : Broca.GIOP.Request_Handler;
+         Send_Request_Result : Broca.GIOP.Send_Request_Result_Type;
+      begin
+         if Is_Nil (Self) then
+            Broca.Exceptions.Raise_Inv_Objref;
+         end if;
+
+         loop
+            Broca.GIOP.Send_Request_Marshall
+              (Handler, Broca.Object.Object_Ptr
+               (Object_Of (Self)), True, is_a_Operation);
+            Marshall
+              (Handler.Buffer'Access,
+               Type_Id);
+
+            Broca.GIOP.Send_Request_Send
+              (Handler, Broca.Object.Object_Ptr
+               (Object_Of (Self)), True, Send_Request_Result);
+            case Send_Request_Result is
+               when Broca.GIOP.Sr_No_Reply =>
+                  Broca.GIOP.Release (Handler);
+                  Broca.GIOP.Release (Handler);
+                  raise Program_Error;
+               when Broca.GIOP.Sr_Forward =>
+                  null;
+               when Broca.GIOP.Sr_Reply =>
+
+                  --  Unmarshall return value.
+                  Returns := Unmarshall (Handler.Buffer'Access);
+
+                  Broca.GIOP.Release (Handler);
+                  return Returns;
+               when Broca.GIOP.Sr_User_Exception =>
+                  Broca.GIOP.Release (Handler);
+                  raise Program_Error;
+            end case;
+         end loop;
+      end;
+   end Is_A;
 
    ----------------------
    -- Object_To_String --
