@@ -4,4 +4,4 @@ autoconf
 automake
 (cd compilers/idlac && python make_nodes.py nodes.txt > xxx \
  && gnatchop -w xxx && rm -f xxx)
-(cd src/soap && gen_keywords polyorb-http_methods.ads)
+(cd src/soap && sh gen_keywords polyorb-http_methods.ads)
