@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -70,7 +70,6 @@ package body Dynamic_Proxy is
       Self.Op_Name := Op;
       Self.Op_Type := Ot;
       Self.Args := Args;
---      NVList.Revert (Self.Args);
       Self.Private_Result := Res;
 
       --  to fix : exceptions are currently not supported in DII
@@ -133,6 +132,7 @@ package body Dynamic_Proxy is
       pragma Debug (O ("entering Align_Size with " & S_Tmp'Img));
       NVList.Start (It, Self.Args);
       while not NVList.Done (It) loop
+         pragma Debug (O ("reading an element in args NVList for align"));
          Nv := NVList.Get (It);
          --  we are only interested in IN/INOUT args
          if (Nv.Arg_Modes = CORBA.ARG_IN
@@ -204,6 +204,8 @@ package body Dynamic_Proxy is
                while not CORBA.NVList.Done (It) loop
                   --  we are only interested in OUT/INOUT args
                   Nv := CORBA.NVList.Get (It);
+                  pragma Debug (O ("param name is : " &
+                                   CORBA.To_Standard_String (Nv.Name)));
                   if (Nv.Arg_Modes = CORBA.ARG_OUT
                       or Nv.Arg_Modes = CORBA.ARG_INOUT) then
                      pragma Debug
