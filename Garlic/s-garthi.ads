@@ -36,6 +36,7 @@
 with Interfaces.C.Pointers;
 pragma Warnings (Off, Interfaces.C.Pointers);
 with Interfaces.C.Strings;
+with System.Garlic.Constants;
 
 package System.Garlic.Thin is
 
@@ -120,7 +121,7 @@ package System.Garlic.Thin is
    --  Access to socket address
 
    type Sockaddr_In is record
-      Sin_Family : C.unsigned_short;
+      Sin_Family : C.unsigned_short      := Constants.Af_Inet;
       Sin_Port   : C.unsigned_short      := 0;
       Sin_Addr   : In_Addr               := Inaddr_Any;
       Sin_Zero   : C.char_array (1 .. 8) := (others => C.char'Val (0));
@@ -191,13 +192,13 @@ package System.Garlic.Thin is
 
    function C_Accept
      (S       : C.int;
-      Addr    : Sockaddr_Access;
+      Addr    : System.Address;
       Addrlen : access C.int)
       return C.int;
 
    function C_Bind
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : C.int)
       return C.int;
 
@@ -205,7 +206,7 @@ package System.Garlic.Thin is
 
    function C_Connect
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : C.int)
       return C.int;
 
@@ -234,7 +235,7 @@ package System.Garlic.Thin is
 
    function C_Getpeername
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : access C.int)
      return C.int;
 
@@ -242,7 +243,7 @@ package System.Garlic.Thin is
 
    function C_Getsockname
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : access C.int)
       return C.int;
 
@@ -327,7 +328,7 @@ package System.Garlic.Thin is
 
    function C_Recv
      (S     : C.int;
-      Buf   : Strings.chars_ptr;
+      Buf   : System.Address;
       Len   : C.int;
       Flags : C.int)
      return C.int;
@@ -357,7 +358,7 @@ package System.Garlic.Thin is
 
    function C_Send
      (S     : C.int;
-      Buf   : Strings.chars_ptr;
+      Buf   : System.Address;
       Len   : C.int;
       Flags : C.int)
      return C.int;
