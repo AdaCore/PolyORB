@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Debug;
 with System.Garlic.Name_Table;
 with System.Garlic.Physical_Location;
 with System.Garlic.Protocols;
@@ -188,7 +189,8 @@ package System.Garlic.Partitions is
    --  Resume tasks waiting for an update of partition info table to
    --  ensure shutdown.
 
-   procedure Dump_Partition_Table (Force : Boolean := False);
+   procedure Dump_Partition_Table
+     (Key : in Debug.Debug_Key := Debug.Always);
    --  Dump partition table on standard output for debugging purpose
 
 end System.Garlic.Partitions;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -164,9 +164,9 @@ package body System.Garlic.Partitions is
    --  passive partitions because they are unique.
 
    procedure Dump_Partition_Info
-     (PID   : in Types.Partition_ID;
-      Info  : in Partition_Info;
-      Force : in Boolean := False);
+     (PID  : in Types.Partition_ID;
+      Info : in Partition_Info;
+      Key  : in Debug_Key);
    --  Dump a summary of all the information we have on a partition
 
    procedure Get_Partition_Info
@@ -411,7 +411,7 @@ package body System.Garlic.Partitions is
             Broadcast (Partition_Operation, Query'Access);
          end if;
 
-         pragma Debug (Dump_Partition_Table);
+         pragma Debug (Dump_Partition_Table (Private_Debug_Key));
 
       else
          Name := new String'(Partition_Name);
@@ -475,18 +475,13 @@ package body System.Garlic.Partitions is
    -------------------------
 
    procedure Dump_Partition_Info
-     (PID   : in Partition_ID;
-      Info  : in Partition_Info;
-      Force : in Boolean := False)
+     (PID  : in Partition_ID;
+      Info : in Partition_Info;
+      Key  : in Debug_Key)
    is
-      Key : Debug_Key := Private_Debug_Key;
       Any : String_Array_Access;
 
    begin
-      if Force then
-         Key := Always;
-      end if;
-
       D ("* Partition" & PID'Img, Key);
       if Info.Partition_Name /= null then
          D ("  Partition_Name " & Info.Partition_Name.all, Key);
@@ -538,17 +533,13 @@ package body System.Garlic.Partitions is
    -- Dump_Partition_Table --
    --------------------------
 
-   procedure Dump_Partition_Table (Force : in Boolean := False)
-   is
-      Key  : Debug_Key      := Private_Debug_Key;
+   procedure Dump_Partition_Table
+     (Key : in Debug_Key := Debug.Always) is
    begin
-      if Force then
-         Key := Always;
-      end if;
       D ("Partition Info Table", Key);
       D ("--------------------", Key);
       for P in First_PID .. Partitions.Last loop
-         Dump_Partition_Info (P, Partitions.Get_Component (P), Force);
+         Dump_Partition_Info (P, Partitions.Get_Component (P), Key);
       end loop;
    end Dump_Partition_Table;
 
@@ -1004,7 +995,7 @@ package body System.Garlic.Partitions is
 
       Partitions.Leave;
 
-      pragma Debug (Dump_Partition_Table);
+      pragma Debug (Dump_Partition_Table (Private_Debug_Key));
 
       --  We have to leave the critical section to send messages to
       --  other partitions. This prevents potential deadlocks
@@ -1152,7 +1143,7 @@ package body System.Garlic.Partitions is
          Send_Boot_Server (Partition_Operation, Query'Access, Error);
       end if;
 
-      pragma Debug (Dump_Partition_Table);
+      pragma Debug (Dump_Partition_Table (Private_Debug_Key));
    end Invalidate_Partition;
 
    --------------
