@@ -32,7 +32,7 @@ New Functionnalities
 Bug Fixes
 ---------
 
-*   A race condition is the stream storage pool has been fixed.
+*   A race condition in the stream storage pool has been fixed.
 
 Changes since GLADE 3.12a
 =========================
