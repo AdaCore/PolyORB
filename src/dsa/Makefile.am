@@ -7,8 +7,10 @@ alidir = $(libdir)/polyorb-dsa
 ADA_SPECS_WITH_BODY = \
 	s-polint.ads \
 	polyorb-dsa_p-exceptions.ads \
-	polyorb-dsa_p-partitions.ads \
 	polyorb-poa_config-racws.ads
+
+# polyorb-dsa_p-partitions.ads is an RCI unit, needs to be compiled
+# with different options for partition server and clients.
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	polyorb-dsa_p.ads
