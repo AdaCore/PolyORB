@@ -1,11 +1,12 @@
 with Namet;  use Namet;
+with Output; use Output;
 with Types;  use Types;
 
 with GNAT.Table;
 
 package body Values is
 
-   Hex      : constant String := "0123456789abcdef";
+   Hex      : constant String := "0123456789ABCDEF";
 
    package VT is
       new GNAT.Table (Value_Type, Value_Id, No_Value + 1, 10, 10);
@@ -13,6 +14,9 @@ package body Values is
    subtype ULL is Unsigned_Long_Long;
 
    procedure Add_ULL_To_Name_Buffer (U : ULL; B : ULL);
+   procedure Normalize_Fixed_Point_Value (V : in out Value_Type);
+
+   Max : constant Unsigned_Long_Long := LULL / 10;
 
    ----------------------------
    -- Add_ULL_To_Name_Buffer --
@@ -54,7 +58,7 @@ package body Values is
             if V.Sign < 0 then
                Add_Char_To_Name_Buffer ('-');
             elsif V.Base = 16 then
-               Add_Str_To_Name_Buffer ("0x");
+               Add_Str_To_Name_Buffer ("0X");
             elsif V.Base = 8 then
                Add_Char_To_Name_Buffer ('0');
             end if;
@@ -64,10 +68,12 @@ package body Values is
             if V.Sign < 0 then
                Add_Char_To_Name_Buffer ('-');
             end if;
-            Add_ULL_To_Name_Buffer  (V.IVal / 10 ** Natural (V.Point), 10);
-            Add_Char_To_Name_Buffer ('.');
-            Add_ULL_To_Name_Buffer  (V.IVal mod 10 ** Natural (V.Point), 10);
-            Add_Char_To_Name_Buffer ('d');
+            Add_ULL_To_Name_Buffer  (V.IVal / 10 ** Natural (V.Scale), 10);
+            if V.Scale > 0 then
+               Add_Char_To_Name_Buffer ('.');
+               Add_ULL_To_Name_Buffer (V.IVal mod 10 ** Natural (V.Scale), 10);
+            end if;
+            Add_Char_To_Name_Buffer ('D');
 
          when T_Floating_Point_Literal =>
             Add_Str_To_Name_Buffer (Long_Long_Float'Image (V.FVal));
@@ -157,11 +163,12 @@ package body Values is
    function New_Fixed_Point_Value
      (Value : Unsigned_Long_Long;
       Sign  : Short_Short;
-      Point : Unsigned_Short_Short)
+      Total : Unsigned_Short_Short;
+      Scale : Unsigned_Short_Short)
      return Value_Id is
    begin
       return New_Value
-        (Value_Type'(T_Fixed_Point_Literal, Value, Sign, Point));
+        (Value_Type'(T_Fixed_Point_Literal, Value, Sign, Total, Scale));
    end New_Fixed_Point_Value;
 
    ------------------------------
@@ -213,6 +220,19 @@ package body Values is
       VT.Table (V) := Value;
       return V;
    end New_Value;
+
+   ---------------------------------
+   -- Normalize_Fixed_Point_Value --
+   ---------------------------------
+
+   procedure Normalize_Fixed_Point_Value (V : in out Value_Type) is
+   begin
+      while V.Scale > 0 and then V.IVal mod 10 = 0 loop
+         V.IVal  := V.IVal / 10;
+         V.Scale := V.Scale - 1;
+         V.Total := V.Total - 1;
+      end loop;
+   end Normalize_Fixed_Point_Value;
 
    -----------
    -- "not" --
@@ -287,7 +307,9 @@ package body Values is
 
    function "+" (L, R : Value_Type) return Value_Type
    is
-      V : Value_Type := R;
+      V  : Value_Type := R;
+      NL : Value_Type := L;
+      NR : Value_Type := R;
    begin
       case R.T is
          when T_Integer_Literal =>
@@ -296,15 +318,32 @@ package body Values is
             end if;
             if L.Sign = R.Sign then
                V.IVal := L.IVal + R.IVal;
+            elsif R.IVal <= L.IVal then
+               V.Sign := L.Sign;
+               V.IVal := L.IVal - R.IVal;
             else
-               if R.IVal <= L.IVal then
-                  V.Sign := L.Sign;
-                  V.IVal := L.IVal - R.IVal;
-               else
-                  V.Sign := -L.Sign;
-                  V.IVal := R.IVal - L.IVal;
-               end if;
+               V.Sign := -L.Sign;
+               V.IVal := R.IVal - L.IVal;
             end if;
+
+         when T_Fixed_Point_Literal =>
+            if NL.Scale > NR.Scale then
+               NR.IVal := NR.IVal * 10 ** Integer (L.Scale - R.Scale);
+               V.Scale := NL.Scale;
+            else
+               NL.IVal := L.IVal * 10 ** Integer (R.Scale - L.Scale);
+               V.Scale := NR.Scale;
+            end if;
+            if NL.Sign = NR.Sign then
+               V.IVal := NL.IVal + NR.IVal;
+            elsif NR.IVal <= NL.IVal then
+               V.Sign := NL.Sign;
+               V.IVal := NL.IVal - NR.IVal;
+            else
+               V.Sign := -NL.Sign;
+               V.IVal := NR.IVal - NL.IVal;
+            end if;
+            Normalize_Fixed_Point_Value (V);
 
          when T_Floating_Point_Literal =>
             V.FVal := L.FVal + R.FVal;
@@ -344,7 +383,8 @@ package body Values is
 
    function "/" (L, R : Value_Type) return Value_Type
    is
-      V : Value_Type := L;
+      V  : Value_Type := L;
+      NL : Value_Type := L;
    begin
       case V.T is
          when T_Integer_Literal =>
@@ -356,6 +396,37 @@ package body Values is
 
          when T_Floating_Point_Literal =>
             V.FVal := L.FVal / R.FVal;
+
+         when T_Fixed_Point_Literal =>
+            while NL.IVal < Max loop
+               NL.IVal  := NL.IVal * 10;
+               NL.Total := NL.Total + 1;
+               NL.Scale := NL.Scale + 1;
+            end loop;
+            Write_Str ("NL.Total "); Write_Int (Int (NL.Total)); Write_Eol;
+            Write_Str ("NL.Scale "); Write_Int (Int (NL.Scale)); Write_Eol;
+            V.Sign   := L.Sign * R.Sign;
+            V.IVal   := NL.IVal / R.IVal;
+            declare
+               Q : Unsigned_Long_Long := V.IVal / 10;
+            begin
+               V.Total := 1;
+               while Q /= 0 loop
+                  Q := Q / 10;
+                  V.Total := V.Total + 1;
+               end loop;
+            end;
+            V.Scale := NL.Scale - R.Scale;
+            --  Write_Str ("Value "); Write_Int (Int (V.IVal));
+            Write_Str ("L.Total "); Write_Int (Int (L.Total)); Write_Eol;
+            Write_Str ("L.Scale "); Write_Int (Int (L.Scale)); Write_Eol;
+            Write_Str ("R.Total "); Write_Int (Int (R.Total)); Write_Eol;
+            Write_Str ("R.Scale "); Write_Int (Int (R.Scale)); Write_Eol;
+            Write_Str ("V.Total "); Write_Int (Int (V.Total)); Write_Eol;
+            Write_Str ("V.Scale "); Write_Int (Int (V.Scale)); Write_Eol;
+            Normalize_Fixed_Point_Value (V);
+            Write_Str ("V.Total "); Write_Int (Int (V.Total)); Write_Eol;
+            Write_Str ("V.Scale "); Write_Int (Int (V.Scale)); Write_Eol;
 
          when others =>
             return Void;
@@ -378,6 +449,13 @@ package body Values is
             end if;
             V.Sign := L.Sign * R.Sign;
             V.IVal := L.IVal * R.IVal;
+
+         when T_Fixed_Point_Literal =>
+            V.Sign  := L.Sign * R.Sign;
+            V.IVal  := L.IVal * R.IVal;
+            V.Total := L.Total + R.Total;
+            V.Scale := L.Scale + R.Scale;
+            Normalize_Fixed_Point_Value (V);
 
          when T_Floating_Point_Literal =>
             V.FVal := L.FVal * R.FVal;

@@ -13,7 +13,8 @@ package Values is
                when T_Integer_Literal =>
                   Base : Unsigned_Short_Short;
                when T_Fixed_Point_Literal =>
-                  Point : Unsigned_Short_Short;
+                  Total : Unsigned_Short_Short;
+                  Scale : Unsigned_Short_Short;
                when others =>
                   null;
             end case;
@@ -57,7 +58,8 @@ package Values is
    function New_Fixed_Point_Value
      (Value : Unsigned_Long_Long;
       Sign  : Short_Short;
-      Point : Unsigned_Short_Short)
+      Total : Unsigned_Short_Short;
+      Scale : Unsigned_Short_Short)
      return Value_Id;
 
    function New_Floating_Point_Value

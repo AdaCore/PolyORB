@@ -800,6 +800,7 @@ package body Lexer is
       Fraction_Part  : Unsigned_Long_Long := 0;
       Exponent_Part  : Unsigned_Long_Long := 0;
       Exponent_Sign  : Short_Short := 1;
+      Point_Location : Text_Ptr    := 0;
    begin
       Token := T_Error;
       Integer_Literal_Base := 10;
@@ -853,6 +854,7 @@ package body Lexer is
       --  Read the fraction part.
 
       if C = '.' then
+         Point_Location := Token_Location.Scan;
          Token_Location.Scan := Token_Location.Scan + 1;
          if Buffer (Token_Location.Scan) in '0' .. '9' then
             Scan_Integer_Literal_Value (10);
@@ -893,6 +895,12 @@ package body Lexer is
       --  Skip fixed literal suffix
 
       elsif C = 'd' then
+         if Point_Location = 0 then
+            Decimal_Point_Position := 0;
+         else
+            Decimal_Point_Position :=
+              Unsigned_Short_Short (Token_Location.Scan - Point_Location - 1);
+         end if;
          Token_Location.Scan := Token_Location.Scan + 1;
       end if;
 
@@ -933,7 +941,7 @@ package body Lexer is
 
       Set_Dnat_To_Name_Buffer (Dnat (Integer_Part));
 
-      if Token /= T_Integer_Literal then
+      if Token = T_Floating_Point_Literal then
          Add_Char_To_Name_Buffer ('.');
          Add_Dnat_To_Name_Buffer (Dnat (Fraction_Part));
 
@@ -948,9 +956,12 @@ package body Lexer is
          Float_Literal_Value
            := Long_Long_Float'Value (Name_Buffer (1 .. Name_Len));
 
-         if Token = T_Fixed_Point_Literal then
-            Add_Char_To_Name_Buffer ('D');
+      elsif Token = T_Fixed_Point_Literal then
+         if Decimal_Point_Position /= 0 then
+            Add_Dnat_To_Name_Buffer (Dnat (Fraction_Part));
          end if;
+         Integer_Literal_Value :=
+           Unsigned_Long_Long'Value (Name_Buffer (1 .. Name_Len));
       end if;
 
       Token_Name := Name_Find;

@@ -497,9 +497,11 @@ package body Parser is
                  New_Node (K_Fixed_Point_Literal, Token_Location);
                Set_Value
                  (Expression,
-                  New_Fixed_Point_Value (Value => Integer_Literal_Value,
-                                         Sign  => 1,
-                                         Point => Decimal_Point_Position));
+                  New_Fixed_Point_Value
+                  (Value => Integer_Literal_Value,
+                   Sign  => 1,
+                   Total => Unsigned_Short_Short (Name_Len),
+                   Scale => Decimal_Point_Position));
 
             when T_Boolean_Literal    =>
                Scan_Token;  --  past literal
@@ -1127,7 +1129,15 @@ package body Parser is
          if Token = T_Error then
             return No_Node;
          end if;
-         Set_N_Digits (Node, Token_Name);
+         if Integer_Literal_Sign < 0
+           or else Integer_Literal_Value = 0
+           or else Integer_Literal_Value > 31
+         then
+            Error_Loc (1) := Token_Location;
+            DE ("fixed point values must have between 1 and 31 digits");
+            return No_Node;
+         end if;
+         Set_N_Total (Node, Int (Integer_Literal_Value));
 
          Scan_Token (T_Comma);
          if Token = T_Error then
@@ -1138,7 +1148,20 @@ package body Parser is
          if Token = T_Error then
             return No_Node;
          end if;
-         Set_N_Delta (Node, Token_Name);
+         if Integer_Literal_Sign < 0
+           or else Integer_Literal_Value = 0
+           or else Integer_Literal_Value > 31
+         then
+            Error_Loc (1) := Token_Location;
+            DE ("fixed point values must have between 1 and 31 digits");
+            return No_Node;
+         end if;
+         if N_Total (Node) < Int (Integer_Literal_Value) then
+            Error_Loc (1) := Token_Location;
+            DE ("fixed point scale factor is greater than number of digits");
+            return No_Node;
+         end if;
+         Set_N_Scale (Node, Int (Integer_Literal_Value));
 
          Scan_Token (T_Greater);
          if Token = T_Error then
@@ -2033,6 +2056,7 @@ package body Parser is
             return P_Sequence_Type;
 
          when others =>
+            Unexpected_Token (Token, "type specifier");
             return No_Node;
       end case;
    end P_Simple_Type_Spec;
