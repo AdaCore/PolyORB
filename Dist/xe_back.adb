@@ -1106,6 +1106,15 @@ package body XE_Back is
 
    end Initialize;
 
+   -----------------
+   -- Is_RCI_Unit --
+   -----------------
+
+   function Is_RCI_Unit (U : ALI.Unit_Id) return Boolean is
+   begin
+      return Units.Table (U).RCI;
+   end Is_RCI_Unit;
+
    -----------------------
    -- Is_RCI_Or_SP_Unit --
    -----------------------
