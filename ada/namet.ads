@@ -141,6 +141,11 @@ package Namet is
    --  and Name_Len is set. It is an error to call Get_Name_String with one
    --  of the special name Id values (No_Name, Error_Name, or Child_Name).
 
+   procedure Get_Name_String_And_Append (Id : Name_Id);
+   --  Like Get_Name_String but the resulting characters are appended to
+   --  the current contents of the entry stored in Name_Buffer, and Name_Len
+   --  is incremented to include the added characters.
+
    procedure Get_Decoded_Name_String (Id : Name_Id);
    --  Same calling sequence an interface as Get_Name_String, except that the
    --  result is decoded, so that upper half characters and wide characters
@@ -203,7 +208,8 @@ package Namet is
    --  Returns true if C is a suitable character for using as a prefix or a
    --  suffix of an internally generated name, i.e. it is an upper case letter
    --  other than one of the ones used for encoding source names (currently
-   --  the set of reserved letters is O, Q, U, W)
+   --  the set of reserved letters is O, Q, U, W) and also returns False for
+   --  the letter X, which is reserved for debug output (see Exp_Dbug).
 
    function Is_Internal_Name (Id : Name_Id) return Boolean;
    --  Returns True if the name is an internal name (i.e. contains a character

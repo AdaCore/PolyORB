@@ -21,6 +21,13 @@
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
 -- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
 --                                                                          --
@@ -647,7 +654,6 @@ package body Osint is
    ---------------------
 
    function Executable_Name (Name : File_Name_Type) return File_Name_Type is
-      J           : Positive;
       Exec_Suffix : String_Access;
 
    begin
@@ -659,11 +665,9 @@ package body Osint is
       Get_Name_String (Name);
       Exec_Suffix := Get_Executable_Suffix;
 
-      J := Exec_Suffix.all'First;
-      while Exec_Suffix.all (J) /= ASCII.Nul loop
+      for J in Exec_Suffix.all'Range loop
          Name_Len := Name_Len + 1;
          Name_Buffer (Name_Len) := Exec_Suffix.all (J);
-         J := J + 1;
       end loop;
 
       return Name_Enter;
@@ -894,7 +898,6 @@ package body Osint is
    ----------------------
 
    function Object_File_Name (N : File_Name_Type) return File_Name_Type is
-      J             : Positive;
       Object_Suffix : String_Access;
 
    begin
@@ -906,11 +909,9 @@ package body Osint is
       Name_Len := Name_Len - ALI_Suffix'Length - 1;
       Object_Suffix := Get_Object_Suffix;
 
-      J := Object_Suffix.all'First;
-      while Object_Suffix.all (J) /= ASCII.Nul loop
+      for J in Object_Suffix.all'Range loop
          Name_Len := Name_Len + 1;
          Name_Buffer (Name_Len) := Object_Suffix.all (J);
-         J := J + 1;
       end loop;
 
       return Name_Enter;
@@ -1146,6 +1147,7 @@ package body Osint is
 
             elsif Argv (2) /= 'j'
               and then Argv (2) /= 'd'
+              and then Argv (2 .. Argv'Last) /= "M"
               and then (Argv'Length > 2 or else Argv (2) not in 'a' .. 'z')
             then
                Add_Switch (Argv, Compiler);

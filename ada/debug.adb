@@ -42,7 +42,7 @@ package body Debug is
    --  Debug flags for compiler (GNAT1 and GNATF)
 
    --  da   Generate messages tracking semantic analyzer progress
-   --  db
+   --  db   Show encoding of type names for debug output
    --  dc   List names of units as they are compiled
    --  dd   Dynamic allocation of tables messages generated
    --  de   List the entity table
@@ -164,6 +164,10 @@ package body Debug is
    --       is output showing each node as it gets analyzed, expanded,
    --       resolved, or evaluated. This option is useful for finding out
    --       exactly where a bomb during semantic analysis is occurring.
+
+   --  db   In Exp_Dbug, certain type names are encoded to include debugging
+   --       information. This debug switch causes lines to be output showing
+   --       the encodings used.
 
    --  dc   List names of units as they are compiled. One line of output will
    --       be generated at the start of compiling each unit (package or

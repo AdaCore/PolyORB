@@ -50,27 +50,27 @@ package body Opt is
       Tree_Read_Char (Identifier_Character_Set);
       Tree_Read_Int  (Maximum_File_Name_Length);
       Tree_Read_Data (Suppress_Options'Address,
-                      Suppress_Record'Size / Storage_Unit);
+                      Suppress_Record'Object_Size / Storage_Unit);
       Tree_Read_Bool (Verbose_Mode);
       Tree_Read_Data (Warning_Mode'Address,
-                      Warning_Mode_Type'Size / Storage_Unit);
+                      Warning_Mode_Type'Object_Size / Storage_Unit);
       Tree_Read_Bool (Ada_83_Switch);
       Tree_Read_Bool (All_Errors_Mode);
       Tree_Read_Bool (Assertions_Enabled);
       Tree_Read_Bool (Full_List);
       Tree_Read_Data (Distribution_Stub_Mode'Address,
-                      Distribution_Stub_Mode_Type'Size / Storage_Unit);
+                      Distribution_Stub_Mode_Type'Object_Size / Storage_Unit);
       Tree_Read_Bool (Immediate_Errors);
       Tree_Read_Bool (Inline_Active);
       Tree_Read_Bool (List_Units);
       Tree_Read_Data (Operating_Mode'Address,
-                      Operating_Mode_Type'Size / Storage_Unit);
+                      Operating_Mode_Type'Object_Size / Storage_Unit);
       Tree_Read_Bool (Software_Overflow_Checking);
       Tree_Read_Bool (Style_Check);
       Tree_Read_Bool (Try_Semantics);
       Tree_Read_Bool (RM_Column_Check);
       Tree_Read_Data (Wide_Character_Encoding_Method'Address,
-                      WC_Encoding_Method'Size / Storage_Unit);
+                      WC_Encoding_Method'Object_Size / Storage_Unit);
       Tree_Read_Bool (Upper_Half_Encoding);
    end Tree_Read;
 
@@ -85,27 +85,27 @@ package body Opt is
       Tree_Write_Char (Identifier_Character_Set);
       Tree_Write_Int  (Maximum_File_Name_Length);
       Tree_Write_Data (Suppress_Options'Address,
-                       Suppress_Record'Size / Storage_Unit);
+                       Suppress_Record'Object_Size / Storage_Unit);
       Tree_Write_Bool (Verbose_Mode);
       Tree_Write_Data (Warning_Mode'Address,
-                       Warning_Mode_Type'Size / Storage_Unit);
+                       Warning_Mode_Type'Object_Size / Storage_Unit);
       Tree_Write_Bool (Ada_83_Switch);
       Tree_Write_Bool (All_Errors_Mode);
       Tree_Write_Bool (Assertions_Enabled);
       Tree_Write_Bool (Full_List);
       Tree_Write_Data (Distribution_Stub_Mode'Address,
-                       Distribution_Stub_Mode_Type'Size / Storage_Unit);
+                       Distribution_Stub_Mode_Type'Object_Size / Storage_Unit);
       Tree_Write_Bool (Immediate_Errors);
       Tree_Write_Bool (Inline_Active);
       Tree_Write_Bool (List_Units);
       Tree_Write_Data (Operating_Mode'Address,
-                       Operating_Mode_Type'Size / Storage_Unit);
+                       Operating_Mode_Type'Object_Size / Storage_Unit);
       Tree_Write_Bool (Software_Overflow_Checking);
       Tree_Write_Bool (Style_Check);
       Tree_Write_Bool (Try_Semantics);
       Tree_Write_Bool (RM_Column_Check);
       Tree_Write_Data (Wide_Character_Encoding_Method'Address,
-                       WC_Encoding_Method'Size / Storage_Unit);
+                       WC_Encoding_Method'Object_Size / Storage_Unit);
       Tree_Write_Bool (Upper_Half_Encoding);
    end Tree_Write;
 

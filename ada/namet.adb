@@ -417,10 +417,28 @@ package body Namet is
       S := Name_Entries.Table (Id).Name_Chars_Index;
       Name_Len := Natural (Name_Entries.Table (Id).Name_Len);
 
-      for I in 1 .. Name_Len loop
-         Name_Buffer (I) := Name_Chars.Table (S + Int (I));
+      for J in 1 .. Name_Len loop
+         Name_Buffer (J) := Name_Chars.Table (S + Int (J));
       end loop;
    end Get_Name_String;
+
+   --------------------------------
+   -- Get_Name_String_And_Append --
+   --------------------------------
+
+   procedure Get_Name_String_And_Append (Id : Name_Id) is
+      S : Int;
+
+   begin
+      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
+
+      S := Name_Entries.Table (Id).Name_Chars_Index;
+
+      for J in 1 .. Natural (Name_Entries.Table (Id).Name_Len) loop
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := Name_Chars.Table (S + Int (J));
+      end loop;
+   end Get_Name_String_And_Append;
 
    -----------------------------
    -- Get_Decoded_Name_String --
@@ -663,7 +681,8 @@ package body Namet is
         and then C /= 'O'
         and then C /= 'Q'
         and then C /= 'U'
-        and then C /= 'W';
+        and then C /= 'W'
+        and then C /= 'X';
    end Is_OK_Internal_Letter;
 
    --------------------
@@ -913,8 +932,9 @@ package body Namet is
       Name_Chars.Tree_Read;
       Name_Entries.Tree_Read;
 
-      Tree_Read_Data (Hash_Table'Address,
-                      Hash_Table'Length * (Name_Id'Size / Storage_Unit));
+      Tree_Read_Data
+        (Hash_Table'Address,
+         Hash_Table'Length * (Hash_Table'Component_Size / Storage_Unit));
    end Tree_Read;
 
    ----------------
@@ -928,7 +948,7 @@ package body Namet is
 
       Tree_Write_Data
         (Hash_Table'Address,
-         Hash_Table'Length * (Name_Id'Size / Storage_Unit));
+         Hash_Table'Length * (Hash_Table'Component_Size / Storage_Unit));
    end Tree_Write;
 
    -----------------

@@ -313,8 +313,6 @@ package body Switch is
                Full_List := True;
             elsif Program = Binder then
                Elab_Order_Output := True;
-            elsif Program = Make then
-               List_Dependencies := True;
             else
                raise Bad_Switch;
             end if;
@@ -326,6 +324,17 @@ package body Switch is
 
             if Program = Compiler or else Program = Binder then
                Maximum_Errors := Scan_Int;
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for -M switch
+
+         elsif C = 'M' then
+            Ptr := Ptr + 1;
+
+            if Program = Make then
+               List_Dependencies := True;
             else
                raise Bad_Switch;
             end if;

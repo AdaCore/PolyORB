@@ -1185,10 +1185,10 @@ package body Make is
          Write_Str ("k       Keep going after compilation errors");
          Write_Eol;
 
-         --  Line for -l
+         --  Line for -M
 
          Write_Switch_Char;
-         Write_Str ("l       List object file dependences for Makefile");
+         Write_Str ("M       List object file dependences for Makefile");
          Write_Eol;
 
          --  Line for -n
