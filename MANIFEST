@@ -619,6 +619,8 @@ src/corba/polyorb-corba_p-adapteractivator.adb
 src/corba/polyorb-corba_p-adapteractivator.ads
 src/corba/polyorb-corba_p-corbaloc.adb
 src/corba/polyorb-corba_p-corbaloc.ads
+src/corba/polyorb-corba_p-domain_management.adb
+src/corba/polyorb-corba_p-domain_management.ads
 src/corba/polyorb-corba_p-exceptions.adb
 src/corba/polyorb-corba_p-exceptions.ads
 src/corba/polyorb-corba_p-initial_references.adb
