@@ -44,6 +44,7 @@ with System.Garlic.Heart;                 use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Partitions;            use System.Garlic.Partitions;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
+with System.Garlic.Platform_Specific;
 with System.Garlic.Protocols;             use System.Garlic.Protocols;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
@@ -445,7 +446,7 @@ package body System.Garlic.Protocols.Xyz is
       if not Initialized then
          pragma Debug (D ("Initialize GNAT.sockets for protocol xyz"));
          Outgoings.Initialize;
-         GNAT.Sockets.Initialize;
+         GNAT.Sockets.Initialize (Platform_Specific.Process_Blocking_IO);
          Initialized := True;
       end if;
 
@@ -1036,7 +1037,7 @@ package body System.Garlic.Protocols.Xyz is
       if not Initialized then
          pragma Debug (D ("Initialize protocol xyz"));
          Outgoings.Initialize;
-         GNAT.Sockets.Initialize;
+         GNAT.Sockets.Initialize (Platform_Specific.Process_Blocking_IO);
          Initialized := True;
       end if;
 
