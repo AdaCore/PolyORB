@@ -120,7 +120,7 @@ package body System.Partition_Interface is
    --  Opcode of requests exchanged between the boot server cache and
    --  the slave caches.
 
-   procedure Public_RPC_Receiver
+   procedure Public_Message_Receiver
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
       Params    : access Params_Stream_Type);
@@ -451,11 +451,11 @@ package body System.Partition_Interface is
       Receiver (Params, Result);
    end Partition_RPC_Receiver;
 
-   -------------------------
-   -- Public_RPC_Receiver --
-   -------------------------
+   -----------------------------
+   -- Public_Message_Receiver --
+   -----------------------------
 
-   procedure Public_RPC_Receiver
+   procedure Public_Message_Receiver
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
       Params    : access Params_Stream_Type) is
@@ -568,7 +568,7 @@ package body System.Partition_Interface is
       end case;
       Free (Name);
 
-   end Public_RPC_Receiver;
+   end Public_Message_Receiver;
 
    --------------
    -- RCI_Info --
@@ -798,7 +798,7 @@ package body System.Partition_Interface is
    end Get_Local_Partition_ID;
 
 begin
-   Receive (Name_Service, Public_RPC_Receiver'Access);
+   Receive (Name_Service, Public_Message_Receiver'Access);
 end System.Partition_Interface;
 
 
