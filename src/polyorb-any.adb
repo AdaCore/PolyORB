@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#46 $
+--  $Id: //droopi/main/src/polyorb-any.adb#47 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -3228,7 +3228,7 @@ package body PolyORB.Any is
       else
          pragma Debug (O2 ("Dec_Usage: about to release the any"));
 
-         TypeCode.Destroy_TypeCode (Obj.The_Type);
+         --  TypeCode.Destroy_TypeCode (Obj.The_Type);
          pragma Debug (O2 ("Dec_Usage: typecode deallocated"));
 
          if Obj.The_Value.all /= null then
