@@ -132,9 +132,9 @@ package body Broca.Server is
 
    --  Marshall procedure are called only by Build_IOR.
    --  The POA must be locked to prevent any destruction.
-   procedure Marshall_Size_Object_Key
+   procedure Compute_New_Size
      (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Access);
-   procedure Marshall_Object_Key
+   procedure Marshall
      (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Access);
 
    --  Decode (unmarshall) an object_key.
@@ -145,13 +145,13 @@ package body Broca.Server is
    --
    --  After the call, POA, if not null, has been link_lock.lock_R.
    --  POA_STATE is the state of the POA.
-   procedure Unmarshall_Object_Key
+   procedure Unmarshall
      (Buffer : in out Buffer_Descriptor;
       POA : out Broca.POA.POA_Object_Access;
       POA_State : out Broca.POA.Processing_State_Type;
       Key : in out Buffer_Descriptor);
 
-   procedure Marshall_Size_Object_Key
+   procedure Compute_New_Size
      (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Access) is
       use Broca.Marshalling;
       use Broca.POA;
@@ -179,15 +179,15 @@ package body Broca.Server is
          end loop;
          Align_Size (Buffer, 4);
       end if;
-   end Marshall_Size_Object_Key;
+   end Compute_New_Size;
 
    --  Create an object_key.
-   procedure Marshall_Object_Key
+   procedure Marshall
      (Buffer : in out Buffer_Descriptor;
       POA : Broca.POA.POA_Object_Access;
       Num : Natural);
 
-   procedure Marshall_Object_Key
+   procedure Marshall
      (Buffer : in out Buffer_Descriptor;
       POA : Broca.POA.POA_Object_Access;
       Num : Natural)
@@ -199,21 +199,21 @@ package body Broca.Server is
          --  The RootPOA was reached.
          Marshall (Buffer, CORBA.Unsigned_Long (Num));
       else
-         Marshall_Object_Key (Buffer, POA.Parent, Num + 1);
+         Marshall (Buffer, POA.Parent, Num + 1);
          Marshall (Buffer, POA.Name);
          if Num = 0 then
             Align_Size (Buffer, 4);
          end if;
       end if;
-   end Marshall_Object_Key;
+   end Marshall;
 
-   procedure Marshall_Object_Key
+   procedure Marshall
      (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Access)
    is
       use Broca.Marshalling;
       use PortableServer;
    begin
-      pragma Debug (O ("Marshall_Object_Key : enter"));
+      pragma Debug (O ("Marshall : enter"));
       if POA.Lifespan_Policy = PortableServer.TRANSIENT then
          Marshall (Buffer, CORBA.Unsigned_Long'(0));
       else
@@ -224,15 +224,15 @@ package body Broca.Server is
       if POA.Lifespan_Policy = PortableServer.TRANSIENT then
          Marshall (Buffer, CORBA.Unsigned_Long'(0));
       else
-         Marshall_Object_Key (Buffer, POA, 0);
+         Marshall (Buffer, POA, 0);
       end if;
-   end Marshall_Object_Key;
+   end Marshall;
 
-   procedure Unmarshall_Object_Key
-     (Buffer : in out Buffer_Descriptor;
-      POA : out Broca.POA.POA_Object_Access;
+   procedure Unmarshall
+     (Buffer    : in out Buffer_Descriptor;
+      POA       : out Broca.POA.POA_Object_Access;
       POA_State : out Broca.POA.Processing_State_Type;
-      Key : in out Buffer_Descriptor)
+      Key       : in out Buffer_Descriptor)
    is
       use Broca.Marshalling;
       use Broca.POA;
@@ -250,7 +250,7 @@ package body Broca.Server is
       Length    : Buffer_Index_Type;
       Size      : Buffer_Index_Type;
    begin
-      pragma Debug (O ("Unmarshall_Object_Key : enter"));
+      pragma Debug (O ("Unmarshall : enter"));
 
       --  Length of POA ref
       Unmarshall (Buffer, CORBA.Unsigned_Long (Length));
@@ -259,7 +259,7 @@ package body Broca.Server is
       --  The contents of an object key must be interpreted
       --  with the endianness of its creator.
       --  The endianness of the message must be restored
-      --  when leaving Unmarshall_Object_Key. To exit
+      --  when leaving Unmarshall. To exit
       --  this function, use
       --    goto Restore_Endianness_And_Return;
       Endianess := Get_Endianess (Buffer);
@@ -359,7 +359,7 @@ package body Broca.Server is
 
       <<Restore_Endianness_And_Return>> Set_Endianess (Buffer, Endianess);
       return;
-   end Unmarshall_Object_Key;
+   end Unmarshall;
 
    --------------------------------------------------------------------------
 
@@ -782,7 +782,7 @@ package body Broca.Server is
 
       --  Object key
       pragma Debug (O ("Handle_Request : unmarshalling key"));
-      Unmarshall_Object_Key (Buffer, POA, POA_State, Key);
+      Unmarshall (Buffer, POA, POA_State, Key);
 
       case POA_State is
          when Active =>
@@ -800,7 +800,7 @@ package body Broca.Server is
             begin
                --  This unlock_R the POA.
                pragma Debug (O ("Handle_Request : invoking"));
-               Broca.POA.Giop_Invoke
+               Broca.POA.GIOP_Invoke
                  (POA, Key, CORBA.Identifier (Operation),
                   Request_Id, Reponse_Expected, Buffer);
             exception
@@ -924,7 +924,7 @@ package body Broca.Server is
             Unmarshall (Buffer, Request_Id);
 
             --  Object key
-            Unmarshall_Object_Key (Buffer, POA, POA_State, Key);
+            Unmarshall (Buffer, POA, POA_State, Key);
             POA.Link_Lock.Unlock_R;
 
             --  FIXME.
@@ -958,7 +958,7 @@ package body Broca.Server is
       Server_Table.Register (Server, Id);
    end Register;
 
-   procedure Build_Ior (Target : out Broca.Buffers.Buffer_Descriptor;
+   procedure Build_IOR (Target : out Broca.Buffers.Buffer_Descriptor;
                         Type_Id : CORBA.RepositoryId;
                         POA : Broca.POA.POA_Object_Access;
                         Key : Broca.Buffers.Buffer_Descriptor) is
@@ -977,14 +977,14 @@ package body Broca.Server is
 
       --  Create Object_Key.
       Compute_New_Size (Object_Key, UL_Size, UL_Size);
-      Marshall_Size_Object_Key (Object_Key, POA);
+      Compute_New_Size (Object_Key, POA);
       Compute_New_Size (Object_Key, Key);
 
       Length := CORBA.Unsigned_Long (Size (Object_Key) - UL_Size);
 
       Allocate_Buffer (Object_Key);
       Marshall (Object_Key, Length);
-      Marshall_Object_Key (Object_Key, POA);
+      Marshall (Object_Key, POA);
       Append_Buffer (Object_Key, Key);
       POA.Link_Lock.Unlock_R;
 
@@ -1030,13 +1030,13 @@ package body Broca.Server is
       Destroy (Object_Key);
 
       Target := IOR;
-   end Build_Ior;
+   end Build_IOR;
 
    --  Create an ORB server.
-   type This_Orb_Type is new Broca.ORB.Orb_Type with null record;
-   procedure Run (ORB : in out This_Orb_Type);
+   type This_ORB_Type is new Broca.ORB.ORB_Type with null record;
+   procedure Run (ORB : in out This_ORB_Type);
    procedure POA_State_Changed
-     (ORB : in out This_Orb_Type; POA : Broca.POA.POA_Object_Access);
+     (ORB : in out This_ORB_Type; POA : Broca.POA.POA_Object_Access);
 
    procedure Serv;
 
@@ -1057,7 +1057,7 @@ package body Broca.Server is
          Ada.Text_IO.Put_Line ("ORB task Server shut down");
    end Serv;
 
-   procedure Run (ORB : in out This_Orb_Type) is
+   procedure Run (ORB : in out This_ORB_Type) is
       task type Server_Task_Type is
       end Server_Task_Type;
 
@@ -1073,7 +1073,7 @@ package body Broca.Server is
    end Run;
 
    procedure POA_State_Changed
-     (ORB : in out This_Orb_Type; POA : Broca.POA.POA_Object_Access)
+     (ORB : in out This_ORB_Type; POA : Broca.POA.POA_Object_Access)
    is
    begin
       Log ("unqueue requests");
@@ -1090,6 +1090,6 @@ package body Broca.Server is
    end Request_Cleanup;
 
 begin
-   Broca.ORB.Register_Orb
-     (new This_Orb_Type'(Broca.ORB.Orb_Type with null record));
+   Broca.ORB.Register_ORB
+     (new This_ORB_Type'(Broca.ORB.ORB_Type with null record));
 end Broca.Server;

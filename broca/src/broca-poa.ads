@@ -223,7 +223,7 @@ package Broca.POA is
    --  the POA.
    --  Requests_lock must have been already lock_r and is unlock_R before
    --  returning.
-   procedure Giop_Invoke
+   procedure GIOP_Invoke
      (Self : access POA_Object;
       Key : in out Broca.Buffers.Buffer_Descriptor;
       Operation : CORBA.Identifier;

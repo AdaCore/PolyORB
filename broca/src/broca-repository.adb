@@ -4,50 +4,53 @@ with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Repository is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.repository");
    procedure O is new Broca.Debug.Output (Flag);
 
-   --  Single linked list of all classes.
-   Classes : Object_Class_Ptr;
+   --  Single linked list of all the factories.
+   Factories : Factory_Ptr;
 
-   --  Add a new class to the repository.
-   procedure Register (Class : Object_Class_Ptr) is
+   --  Add a new factory to the repository.
+   procedure Register (Factory : in Factory_Ptr) is
    begin
-      pragma Debug (O ("Register : enter"));
       pragma Debug
-        (O ("Create_Ref : Repository_Id = " &
-            CORBA.To_Standard_String (CORBA.String (Class.all.Type_Id))));
-      --  Simply add it to the list.
-      Class.Next := Classes;
-      Classes := Class;
+        (O ("Register new factory " &
+            CORBA.To_Standard_String (CORBA.String (Factory.all.Type_Id))));
+
+      Factory.Next := Factories;
+      Factories := Factory;
    end Register;
 
-   ----------------
-   -- Create_Ref --
-   ----------------
+   ------------
+   -- Create --
+   ------------
 
-   function Create_Ref
+   function Create
      (Type_Id : CORBA.RepositoryId)
      return CORBA.Object.Ref'Class
    is
-      El : Object_Class_Ptr;
-      Res : CORBA.Object.Ref;
+      Factory   : Factory_Ptr;
+      Reference : CORBA.Object.Ref;
    begin
-      pragma Debug (O ("Create_Ref : enter"));
-      pragma Debug (O ("Create_Ref : Repository_Id = " &
+      pragma Debug (O ("Create new object of type " &
                        CORBA.To_Standard_String (CORBA.String (Type_Id))));
-      El := Classes;
-      while El /= null loop
-         if El.Type_Id = Type_Id then
-            return Create_Object (El);
+
+      Factory := Factories;
+      while Factory /= null loop
+         if Factory.Type_Id = Type_Id then
+            return Create (Factory);
          end if;
-         El := El.Next;
+         Factory := Factory.Next;
       end loop;
+
       --  Return a null object.
-      pragma Debug (O ("Create_ref : Object type not found"));
-      CORBA.Object.Set (Res, null);
-      return Res;
-   end Create_Ref;
+      pragma Debug (O ("Cannot create object of this type"));
+      CORBA.Object.Set (Reference, null);
+      return Reference;
+
+   end Create;
+
 end Broca.Repository;
 
 

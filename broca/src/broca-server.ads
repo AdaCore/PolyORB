@@ -81,7 +81,7 @@ package Broca.Server is
    --  This procedure builds an IOR.
    --  It can return a null_string if there is no profiles for this object.
    --  KEY is only the key for the POA, not the full object key.
-   procedure Build_Ior (Target : out Broca.Buffers.Buffer_Descriptor;
+   procedure Build_IOR (Target : out Broca.Buffers.Buffer_Descriptor;
                         Type_Id : CORBA.RepositoryId;
                         POA : Broca.POA.POA_Object_Access;
                         Key : Broca.Buffers.Buffer_Descriptor);

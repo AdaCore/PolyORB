@@ -1,3 +1,10 @@
+1999-08-30  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* broca-repository.adb: Call a Class a Factory because it is a
+ 	Factory.
+
+	* all files: Minor reformatting.
+
 1999-08-26  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* broca-server.adb: Deallocate Key in Unmarshall_Object_Key
