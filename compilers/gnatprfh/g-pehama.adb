@@ -1,5 +1,4 @@
 with Ada.Command_Line; use Ada.Command_Line;
-with Ada.Exceptions;   use Ada.Exceptions;
 with Ada.Text_IO;      use Ada.Text_IO;
 
 with GNAT.Perfect_Hash.Generators; use GNAT.Perfect_Hash.Generators;
@@ -31,7 +30,8 @@ procedure GNAT.Perfect_Hash.Main is
    procedure Check (B : Boolean) is
    begin
       if not B then
-         Raise_Exception (Program_Error'Identity, "cannot parse command line");
+         Put_Line (Standard_Error, "cannot parse command line");
+         raise Program_Error;
       end if;
    end Check;
 
@@ -50,34 +50,38 @@ procedure GNAT.Perfect_Hash.Main is
 
          begin
             if Arg (1) = Flag then
-               Check ((Len /= 1));
+               if Len = 1 then
+                  Check ((Filename = null));
+                  Filename := new String'("");
 
-               case Arg (2) is
-                  when '-' =>
-                     Check ((Len = 2));
-                     Flag := ASCII.NUL;
+               else
+                  case Arg (2) is
+                     when '-' =>
+                        Check ((Len = 2));
+                        Flag := ASCII.NUL;
 
-                  when 'v' =>
-                     Check ((Len = 2));
-                     Verbose := True;
+                     when 'v' =>
+                        Check ((Len = 2));
+                        Verbose := True;
 
-                  when 's' =>
-                     Check ((Position = null));
-                     Position := new String'(Arg (3 .. Len));
+                     when 's' =>
+                        Check ((Position = null));
+                        Position := new String'(Arg (3 .. Len));
 
-                  when 'p' =>
-                     Check ((Pkg_Name = null));
-                     Pkg_Name := new String'(Arg (3 .. Len));
+                     when 'p' =>
+                        Check ((Pkg_Name = null));
+                        Pkg_Name := new String'(Arg (3 .. Len));
 
-                  when 'm' =>
-                     Optim := Memory_Space;
+                     when 'm' =>
+                        Optim := Memory_Space;
 
-                  when 'c' =>
-                     Optim := CPU_Time;
+                     when 'c' =>
+                        Optim := CPU_Time;
 
-                  when others =>
-                     null;
-               end case;
+                     when others =>
+                        null;
+                  end case;
+               end if;
 
             else
                Check ((Filename = null));
@@ -101,27 +105,31 @@ begin
    Parse_Command_Line;
 
    if Filename = null then
-      Put_Line ("Usage: grmphf opts name");
-      New_Line;
-      Put_Line ("   name is a filename of words");
-      New_Line;
-      Put_Line ("grmphf switches:");
-      Put_Line ("  -v       Verbose mode");
-      Put_Line ("  -sRANGE  Char selection");
-      Put_Line ("  -pNAME   Package name");
-      Put_Line ("  -c       CPU time optimization");
-      Put_Line ("  -m       Memory space optimization");
+      Put_Line (Standard_Error, "Usage: grmphf opts name");
+      New_Line (Standard_Error);
+      Put_Line (Standard_Error, "   name is a filename of words");
+      New_Line (Standard_Error);
+      Put_Line (Standard_Error, "grmphf switches:");
+      Put_Line (Standard_Error, "  -        Standard input");
+      Put_Line (Standard_Error, "  -v       Verbose mode");
+      Put_Line (Standard_Error, "  -sRANGE  Char selection");
+      Put_Line (Standard_Error, "  -pNAME   Package name");
+      Put_Line (Standard_Error, "  -c       CPU time optimization");
+      Put_Line (Standard_Error, "  -m       Memory space optimization");
       return;
    end if;
 
    Initialize (4321, K_To_V, Optim);
 
-   Open (File, In_File, Filename.all);
-   while not End_Of_File (File) loop
-      Get_Line (File, Buffer, Last);
+   if Filename'Length /= 0 then
+      Open (File, In_File, Filename.all);
+      Set_Input (File);
+   end if;
+
+   while not End_Of_File (Current_Input) loop
+      Get_Line (Buffer, Last);
       Insert (Buffer (1 .. Last));
    end loop;
-   Close (File);
 
    Compute (Position.all);
    Produce (Pkg_Name.all);
