@@ -347,7 +347,7 @@ package body System.PolyORB_Interface is
 
                   Arg_Name_n  : constant PolyORB.Types.Identifier :=
                     To_PolyORB_String ("n");
-                  Argument_n  : Any :=
+                  Argument_n  : constant Any :=
                     CosNaming.Helper.To_Any (n);
 
                   Result      : Object_Ref;
