@@ -12,6 +12,7 @@ with Droopi.Protocols.GIOP;
 with Droopi.Protocols;
 with Droopi.Representations.CDR;
 with Droopi.Filters;
+with Droopi.Filters.Slicers;
 with Droopi.Sockets;
 with Droopi.Objects;
 
@@ -63,20 +64,19 @@ package body Droopi.Binding_Data.IIOP is
    procedure Bind_Profile
      (Profile : IIOP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
-      Session : out Components.Component_Access)
+      Filt    : out Components.Component_Access)
    is
+      use Droopi.Components;
       use Droopi.Protocols;
       use Droopi.Protocols.GIOP;
       use Droopi.Sockets;
       use Droopi.Filters;
+      use Droopi.Filters.Slicers;
 
       Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
-      Pro : aliased GIOP_Protocol;
-      --  Slicer_Fact : Factory_Access  := new Slicer_Factory;
-      Ses         : Session_Access;
-      --  Sli_Filter  : Filter_Access;
-      --  ORB         : ORB_Access;
+      Pro  : aliased GIOP_Protocol;
+      Sli  : aliased Slicer_Factory;
 
    begin
 
@@ -84,18 +84,11 @@ package body Droopi.Binding_Data.IIOP is
       Connect_Socket (Sock, Remote_Addr);
       TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), Sock);
-      Create (Pro'Access, Filters.Filter_Access (Ses));
 
-      --  ORB := ORB_Access(Session(Ses.all).Server);
+      Chain_Factories ((0 => Sli'Unchecked_Access,
+                        1 => Pro'Unchecked_Access));
 
-      --  Connect Session to Slicer
-      --  Sli_Filter := TE.Upper;
-      --  Connect_Lower (Session, Component_Access (Sli_Filter));
-      --  Connect (Sli_Filter.Upper,  Component_Access (Session));
-
-      Session := null;
-      --  XXX Session must be an access to the lowest filter in
-      --  the stack (=> the Slicer).
+      Filt := Component_Access (Create_Filter_Chain (Sli'Unchecked_Access));
 
       --  The caller will invoke Register_Endpoint on TE.
    end Bind_Profile;

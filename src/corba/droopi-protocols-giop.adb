@@ -1270,7 +1270,6 @@ package body Droopi.Protocols.GIOP is
       use Droopi.Objects;
 
       Fragment_Next  : Boolean := False;
-      Data_Send      : Data_Out;
 
    begin
 
@@ -1309,14 +1308,11 @@ package body Droopi.Protocols.GIOP is
 
 
       --  Sending the message
-
       --  Sending the data to lower layers
-      Data_Send.Out_Buf := S.Buffer_In;
-      --  Handle_Message (S, Data_Send);
+      Emit_No_Reply (Lower (S), Data_Out' (Out_Buf => S.Buffer_Out));
 
       --  Expecting data
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
-
 
    end Invoke_Request;
 
@@ -1330,7 +1326,7 @@ package body Droopi.Protocols.GIOP is
       R :  Requests.Request)
    is
       use Droopi.Filters.Interface;
-      Data_Send     : Data_Out;
+
    begin
       if S.Role  = Server then
          raise GIOP_Error;
@@ -1340,8 +1336,8 @@ package body Droopi.Protocols.GIOP is
       Cancel_Request_Message (S);
 
       --  Sending the message
-      Data_Send.Out_Buf := S.Buffer_Out;
-      --  Handle_Message (S, Data_Send);
+      --  Sending the data to lower layers
+      Emit_No_Reply (Lower (S), Data_Out' (Out_Buf => S.Buffer_Out));
 
       --  Expecting data
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
@@ -1361,7 +1357,6 @@ package body Droopi.Protocols.GIOP is
       use Representations.CDR;
       use Droopi.Filters.Interface;
 
-      Data_Send     : Data_Out;
       Fragment_Next : Boolean := False;
 
    begin
@@ -1375,8 +1370,7 @@ package body Droopi.Protocols.GIOP is
       No_Exception_Reply (S, Pend_Req.Request_Id, Fragment_Next);
 
       --  Sending the message
-      Data_Send.Out_Buf := S.Buffer_Out;
-      --  Handle_Message (S, Data_Send);
+      Emit_No_Reply (Lower (S), Data_Out' (Out_Buf => S.Buffer_Out));
 
       --  Expecting data
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
@@ -1392,16 +1386,14 @@ package body Droopi.Protocols.GIOP is
    is
 
    begin
-
-      pragma Debug (O ("Received new connection to echo service..."));
-      Expect_Data (S, S.Buffer_In, Message_Header_Size);
-
+      pragma Debug (O ("Received new connection ..."));
+      null;
    end Handle_Connect_Indication;
 
    procedure Handle_Connect_Confirmation (S : access GIOP_Session) is
    begin
+      pragma Debug (O (" Connection established to server ..."));
       null;
-      --  No setup is necessary for newly-created client connections.
    end Handle_Connect_Confirmation;
 
 
