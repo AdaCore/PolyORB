@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,6 +36,7 @@
 with Ada.Streams;
 
 with PolyORB.Buffers;
+with PolyORB.Objects;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
 
@@ -79,8 +80,7 @@ package PolyORB.GIOP_P.Tagged_Components is
    Null_Tagged_Component_List : constant Tagged_Component_List;
    --  Empty list
 
-   procedure Release_Contents
-     (List : Tagged_Component_List);
+   procedure Release_Contents (List : Tagged_Component_List);
    --  Free memory for all tags in list
 
    procedure Marshall_Tagged_Component
@@ -99,6 +99,12 @@ package PolyORB.GIOP_P.Tagged_Components is
      return Tagged_Component_Access;
    --  Search and return a component in a tagged component list
 
+   function Fetch_Components
+     (Oid : access PolyORB.Objects.Object_Id)
+     return Tagged_Component_List;
+   --  Return a Tagget_Component_List of all tagged components
+   --  configured for object represented by Oid.
+
    procedure Add
      (List : in out Tagged_Component_List;
       C    :        Tagged_Component_Access);
@@ -108,14 +114,20 @@ package PolyORB.GIOP_P.Tagged_Components is
    -- Register components --
    -------------------------
 
-   type New_Component_Func_Access is access
+   type New_Empty_Component_Func_Access is access
      function return Tagged_Component_Access;
 
+   type Fetch_Component_Func_Access is access
+     function (Oid : access PolyORB.Objects.Object_Id)
+              return Tagged_Component_Access;
+
    procedure Register
-     (Tag : Tag_Value;
-      F   : New_Component_Func_Access);
+     (Tag                 : Tag_Value;
+      New_Empty_Component : New_Empty_Component_Func_Access;
+      Fetch_Component     : Fetch_Component_Func_Access);
    --  Register a new kind of tagged component
    --  This procedure must be called to activate a new kind of components
+
 
    -----------------------
    -- Unknown Component --

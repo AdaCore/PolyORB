@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,31 +37,76 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
+with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Tagged_Components.Policies is
 
+   use Ada.Streams;
    use PolyORB.Representations.CDR;
-   use Policy_Value_Seq;
 
-   ----------------------
-   -- Create_Component --
-   ----------------------
+   package Sub_Component_Allocator_Lists is
+      new PolyORB.Utils.Chained_Lists (Fetch_Sub_Component_Func_Access);
 
-   function Create_Component
-     return Tagged_Component_Access;
+   Sub_Component_Allocators : Sub_Component_Allocator_Lists.List;
 
-   function Create_Component
-     return Tagged_Component_Access is
+   ----------------------------
+   -- Create_Empty_Component --
+   ----------------------------
+
+   function Create_Empty_Component return Tagged_Component_Access;
+
+   function Create_Empty_Component return Tagged_Component_Access is
    begin
       return new TC_Policies;
-   end Create_Component;
+   end Create_Empty_Component;
+
+   ---------------------
+   -- Fetch_Component --
+   ---------------------
+
+   function Fetch_Component
+     (Oid : access PolyORB.Objects.Object_Id)
+     return Tagged_Component_Access;
+
+   function Fetch_Component
+     (Oid : access PolyORB.Objects.Object_Id)
+     return Tagged_Component_Access
+   is
+      use Sub_Component_Allocator_Lists;
+      use type PolyORB.Types.Unsigned_Long;
+
+      It : Iterator := First (Sub_Component_Allocators);
+
+      Result : Tagged_Component_Access;
+      Policy : Policy_Value;
+
+   begin
+      while not Last (It) loop
+         Policy := Value (It).all (Oid);
+
+         if Policy.P_Type /= Invalid_Policy_Type then
+            if Result = null then
+               Result := new TC_Policies;
+            end if;
+
+            Policy_Value_Seq.Append
+              (TC_Policies (Result.all).Policies,
+               Policy);
+         end if;
+         Next (It);
+      end loop;
+
+      return Result;
+   end Fetch_Component;
 
    --------------
    -- Marshall --
    --------------
 
    procedure Marshall (C : access TC_Policies; Buffer : access Buffer_Type) is
+      use Policy_Value_Seq;
+
       It : Iterator := First (C.Policies);
 
    begin
@@ -89,6 +134,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
       Buffer : access Buffer_Type)
    is
       use Ada.Streams;
+      use Policy_Value_Seq;
 
       Length : PolyORB.Types.Unsigned_Long;
 
@@ -117,6 +163,8 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
       procedure Free is
          new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
 
+      use Policy_Value_Seq;
+
       CC : TC_Policies_Access := TC_Policies_Access (C);
       It : Iterator := First (C.Policies);
 
@@ -130,6 +178,19 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
       Free (CC);
    end Release_Contents;
 
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register
+     (Fetch_Sub_Component : Fetch_Sub_Component_Func_Access)
+   is
+      use Sub_Component_Allocator_Lists;
+
+   begin
+      Append (Sub_Component_Allocators, Fetch_Sub_Component);
+   end Register;
+
    ----------------
    -- Initialize --
    ----------------
@@ -138,7 +199,9 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
 
    procedure Initialize is
    begin
-      Register (Tag_Policies, Create_Component'Access);
+      Register (Tag_Policies,
+                Create_Empty_Component'Access,
+                Fetch_Component'Access);
    end Initialize;
 
    use PolyORB.Initialization;

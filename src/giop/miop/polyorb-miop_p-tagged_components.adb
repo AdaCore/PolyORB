@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . M I O P _ P . T A G G E D _ C O M P O N E N T S     --
+--     P O L Y O R B . M I O P _ P . T A G G E D _ C O M P O N E N T S      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 2003 Free Software Foundation, Inc.            --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -234,7 +234,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
 
    procedure Initialize is
    begin
-      Register (Tag_Group, Create_Component'Access);
+      Register (Tag_Group, Create_Component'Access, null);
    end Initialize;
 
    use PolyORB.Initialization;

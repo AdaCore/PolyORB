@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,13 +53,19 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    type Bind_Tag is record
       Tag  : Tag_Value;
-      Func : New_Component_Func_Access;
+      New_Empty_Component : New_Empty_Component_Func_Access;
+      Fetch_Component : Fetch_Component_Func_Access;
    end record;
 
    Binding_List : array (1 .. 10) of Bind_Tag;
    --  XXX augment array size if there is more components types
 
    Bind_Index   : Natural := 0;
+
+   function Get_New_Empty_Component
+     (Tag : Tag_Value)
+     return Tagged_Component_Access;
+   --  Return new empty tagged component whith tag Tag
 
    ----------------------
    -- Release_Contents --
@@ -83,13 +89,13 @@ package body PolyORB.GIOP_P.Tagged_Components is
    --------------
 
    procedure Register
-     (Tag : Tag_Value;
-      F   : New_Component_Func_Access)
+     (Tag             : Tag_Value;
+      New_Empty_Component   : New_Empty_Component_Func_Access;
+      Fetch_Component : Fetch_Component_Func_Access)
    is
       use type PolyORB.Types.Unsigned_Long;
 
    begin
-
       --  Check if this Tag has already been registered.
 
       for J in 1 .. Bind_Index loop
@@ -105,7 +111,10 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
       --  Register tag.
 
-      Binding_List (Bind_Index) := Bind_Tag'(Tag => Tag, Func => F);
+      Binding_List (Bind_Index)
+        := Bind_Tag'(Tag => Tag,
+                     New_Empty_Component => New_Empty_Component,
+                     Fetch_Component => Fetch_Component);
    end Register;
 
    -------------------------------
@@ -147,15 +156,11 @@ package body PolyORB.GIOP_P.Tagged_Components is
       end loop;
    end Marshall_Tagged_Component;
 
-   -----------------------
-   -- Get_New_Component --
-   -----------------------
+   -----------------------------
+   -- Get_New_Empty_Component --
+   -----------------------------
 
-   function Get_New_Component
-     (Tag : Tag_Value)
-     return Tagged_Component_Access;
-
-   function Get_New_Component
+   function Get_New_Empty_Component
      (Tag : Tag_Value)
      return Tagged_Component_Access
    is
@@ -166,14 +171,14 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
       for J in 1 .. Bind_Index loop
          if Binding_List (J).Tag = Tag then
-            return Binding_List (J).Func.all;
+            return Binding_List (J).New_Empty_Component.all;
          end if;
       end loop;
 
       pragma Debug (O ("Tag not found, return unknown component"));
 
       return new TC_Unknown_Component;
-   end Get_New_Component;
+   end Get_New_Empty_Component;
 
    ---------------------------------
    -- Unmarshall_Tagged_Component --
@@ -202,7 +207,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
       for J in 1 .. Len loop
          Temp_Tag  := Unmarshall (Buffer);
          Tag := Tag_Value (Temp_Tag);
-         C := Get_New_Component (Tag);
+         C := Get_New_Empty_Component (Tag);
          if C.all in TC_Unknown_Component then
             TC_Unknown_Component (C.all).Unknown_Tag := Tag;
             Unmarshall (C, Buffer);
@@ -249,6 +254,29 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
       return null;
    end Get_Component;
+
+   ----------------------
+   -- Fetch_Components --
+   ----------------------
+
+   function Fetch_Components
+     (Oid : access PolyORB.Objects.Object_Id)
+     return Tagged_Component_List
+   is
+      Result : Tagged_Component_List;
+      New_Component : Tagged_Component_Access;
+   begin
+      for J in 1 .. Bind_Index loop
+         if Binding_List (J).Fetch_Component /= null then
+            New_Component := Binding_List (J).Fetch_Component.all (Oid);
+            if New_Component /= null then
+               Append (Result, New_Component);
+            end if;
+         end if;
+      end loop;
+
+      return Result;
+   end Fetch_Components;
 
    ---------
    -- Add --
