@@ -526,7 +526,9 @@ package body Exp_Dist is
 
       --  Support for generating DSA code that uses the GARLIC PCS
 
-      --  Specs need commenting here ???
+      --  The subprograms below provide the GARLIC versions of
+      --  the corresponding Specific_<subprogram> routine declared
+      --  above.
 
       procedure Add_RACW_Features
         (RACW_Type         : Entity_Id;
@@ -559,6 +561,10 @@ package body Exp_Dist is
 
       --  Support for generating DSA code that uses the PolyORB PCS
 
+      --  The subprograms below provide the PolyORB versions of
+      --  the corresponding Specific_<subprogram> routine declared
+      --  above.
+
       procedure Add_RACW_Features
         (RACW_Type         : Entity_Id;
          Desig             : Entity_Id;
@@ -584,6 +590,9 @@ package body Exp_Dist is
       --  Make a subprogram specification for an RPC receiver,
       --  with the given defining unit name and formal parameters.
 
+      pragma Warnings (Off);
+      pragma Unreferenced (Build_RPC_Receiver_Specification);
+      --  XXX PolyORB support is not completely included yet
       package Helpers is
 
          --  Routines to build distribtion helper subprograms for user-defined
@@ -5072,7 +5081,7 @@ package body Exp_Dist is
          Stub_Type           : Entity_Id;
          Stub_Type_Access    : Entity_Id;
          Declarations        : List_Id);
-      --  Add the From_Any TSS for this RACW type.
+      --  Add the From_Any TSS for this RACW type
 
       procedure Add_RACW_To_Any
         (Designated_Type  : Entity_Id;
@@ -5080,28 +5089,28 @@ package body Exp_Dist is
          Stub_Type        : Entity_Id;
          Stub_Type_Access : Entity_Id;
          Declarations     : List_Id);
-      --  Add the To_Any TSS for this RACW type.
+      --  Add the To_Any TSS for this RACW type
 
       procedure Add_RACW_TypeCode
         (Designated_Type  : Entity_Id;
          RACW_Type        : Entity_Id;
          Declarations     : List_Id);
-      --  Add the TypeCode TSS for this RACW type.
+      --  Add the TypeCode TSS for this RACW type
 
       procedure Add_RAS_From_Any
         (RAS_Type     : Entity_Id;
          Declarations : List_Id);
-      --  Add the From_Any TSS for this RAS type.
+      --  Add the From_Any TSS for this RAS type
 
       procedure Add_RAS_To_Any
         (RAS_Type        : Entity_Id;
          Declarations    : List_Id);
-      --  Add the To_Any TSS for this RAS type.
+      --  Add the To_Any TSS for this RAS type
 
       procedure Add_RAS_TypeCode
         (RAS_Type        : Entity_Id;
          Declarations    : List_Id);
-      --  Add the TypeCode TSS for this RAS type.
+      --  Add the TypeCode TSS for this RAS type
 
       procedure Add_RAS_Access_TSS (N : Node_Id);
       --  Add a subprogram body for RAS Access TSS
@@ -5258,10 +5267,12 @@ package body Exp_Dist is
              Defining_Identifier => Addr,
              Object_Definition =>
                New_Occurrence_Of (RTE (RE_Address), Loc)));
-         Set_Etype (Stubbed_Result, Stub_Type_Access);
-         --  Build_Get_Unique_RP_Call needs the type of Stubbed_Result.
 
-         --  If the ref Is_Nil, return a null pointer.
+         --  Build_Get_Unique_RP_Call needs the type of Stubbed_Result
+
+         Set_Etype (Stubbed_Result, Stub_Type_Access);
+
+         --  If the ref Is_Nil, return a null pointer
 
          Statements := New_List (
            Make_Implicit_If_Statement (RACW_Type,
@@ -5287,7 +5298,7 @@ package body Exp_Dist is
 
          --  If the object is located on another partition, then a stub
          --  object will be created with all the information needed to
-         --  rebuild the real object at the other end. This stanza
+         --  rebuild the real object at the other end. This fragment
          --  is always used in the case of RAS types, for which a
          --  stub is required even for local subprograms.
 
@@ -5744,6 +5755,9 @@ package body Exp_Dist is
          Fnam := Make_Defining_Identifier (
            Loc, New_Internal_Name ('T'));
 
+         --  The spec for this subprogram has a dummy 'access RACW'
+         --  argument, which serves only for overloading purposes.
+
          Func_Spec :=
            Make_Function_Specification (Loc,
              Defining_Unit_Name =>
@@ -5760,6 +5774,7 @@ package body Exp_Dist is
          --  Dummy 'access RACW' argument, just for overload.
 
          Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+
          --  NOTE: The usage occurrences of RACW_Parameter must
          --  refer to the entity in the declaration spec, not those
          --  of the body spec.
@@ -6405,6 +6420,9 @@ package body Exp_Dist is
          Fnam := Make_Defining_Identifier (
            Loc, New_Internal_Name ('T'));
 
+         --  This subprogram has a dummy 'access RAS' argument,
+         --  which serves only for overloading purposes.
+
          Func_Spec :=
            Make_Function_Specification (Loc,
              Defining_Unit_Name =>
@@ -6421,6 +6439,7 @@ package body Exp_Dist is
          --  Dummy 'access RAS' argument, just for overload.
 
          Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+
          --  NOTE: The usage occurrences of RAS_Parameter must
          --  refer to the entity in the declaration spec, not those
          --  of the body spec.
@@ -6583,14 +6602,14 @@ package body Exp_Dist is
          --  for typecode TC, returning the Idx'th element.
 
          generic
-              Subprogram : Entity_Id;
-            --  Reference location for constructed nodes.
+            Subprogram : Entity_Id;
+            --  Reference location for constructed nodes
 
             Arry : Entity_Id;
-            --  For 'Range and Etype.
+            --  For 'Range and Etype
 
             Indices : List_Id;
-            --  For the construction of the innermost element expression.
+            --  For the construction of the innermost element expression
 
             with procedure Add_Process_Element
               (Stmts   : List_Id;
@@ -6612,8 +6631,8 @@ package body Exp_Dist is
          --  appended to Stmts.
 
          generic
-              Rec : Entity_Id;
-            --  The record entity being dealt with.
+            Rec : Entity_Id;
+            --  The record entity being dealt with
 
             with procedure Add_Process_Element
               (Stmts     : List_Id;
@@ -6819,7 +6838,7 @@ package body Exp_Dist is
 
             pragma Assert
               (not (Is_Remote_Access_To_Class_Wide_Type (Typ)));
-            --  This is taken care of by Exp_Dist.Add_RACW_From_Any.
+            --  This is taken care of by Exp_Dist.Add_RACW_From_Any
 
             if Is_Derived_Type (Typ)
               and then not Is_Tagged_Type (Typ)
@@ -6887,7 +6906,7 @@ package body Exp_Dist is
                      begin
                         if Nkind (Field) = N_Defining_Identifier then
 
-                           --  A regular component.
+                           --  A regular component
 
                            Append_To (Stmts,
                              Make_Assignment_Statement (Loc,
@@ -6907,7 +6926,7 @@ package body Exp_Dist is
                                    Decls)));
                         else
 
-                           --  A variant part.
+                           --  A variant part
 
                            declare
                               Variant : Node_Id;
@@ -7300,7 +7319,7 @@ package body Exp_Dist is
 
             else
 
-               --  Default: type is represented as an opaque sequence of bytes.
+               --  Default: type is represented as an opaque sequence of bytes
 
                declare
                   Strm : constant Entity_Id := Make_Defining_Identifier (Loc,
@@ -7660,7 +7679,7 @@ package body Exp_Dist is
                      begin
                         if Nkind (Field) = N_Defining_Identifier then
 
-                           --  A regular component.
+                           --  A regular component
 
                            Field_Ref := Make_Selected_Component (Loc,
                              Prefix => New_Occurrence_Of (Rec, Loc),
@@ -8133,6 +8152,9 @@ package body Exp_Dist is
                         Make_Access_To_Object_Definition (Loc,
                           Subtype_Indication =>
                             New_Occurrence_Of (U_Type, Loc))));
+
+                  --  Declare a variable here to force proper freezing of Tnam
+
                   Append_To (Decls,
                     Make_Object_Declaration (Loc,
                       Defining_Identifier => Pnam,
@@ -8275,17 +8297,17 @@ package body Exp_Dist is
             procedure Add_String_Parameter
               (S              : String_Id;
                Parameter_List : List_Id);
-            --  Add a literal for S to Parameters.
+            --  Add a literal for S to Parameters
 
             procedure Add_TypeCode_Parameter
               (TC_Node        : Node_Id;
                Parameter_List : List_Id);
-            --  Add the typecode for Typ to Parameters.
+            --  Add the typecode for Typ to Parameters
 
             procedure Add_Long_Parameter
               (Expr_Node      : Node_Id;
                Parameter_List : List_Id);
-            --  Add a signed long integer expression to Parameters.
+            --  Add a signed long integer expression to Parameters
 
             procedure Initialize_Parameter_List
               (Name_String    : String_Id;
@@ -8297,7 +8319,7 @@ package body Exp_Dist is
             function Make_Constructed_TypeCode
               (Kind       : Entity_Id;
                Parameters : List_Id) return Node_Id;
-            --  Call TC_Build with the given kind and parameters.
+            --  Call TC_Build with the given kind and parameters
 
             procedure Return_Constructed_TypeCode (Kind : Entity_Id);
             --  Make a return statement that calls TC_Build with
@@ -8419,7 +8441,7 @@ package body Exp_Dist is
             begin
                if Nkind (Field) = N_Defining_Identifier then
 
-                  --  A regular component.
+                  --  A regular component
 
                   Add_TypeCode_Parameter (
                     Build_TypeCode_Call (Loc, Etype (Field), Decls), Params);
@@ -8428,7 +8450,7 @@ package body Exp_Dist is
 
                else
 
-                  --  A variant part.
+                  --  A variant part
 
                   declare
                      Discriminant_Type : constant Entity_Id
@@ -8486,6 +8508,9 @@ package body Exp_Dist is
                        (Name_Str, Name_Str, Union_TC_Params);
 
                      Add_String_Parameter (Name_Str, Params);
+
+                     --  Add union in enclosing parameter list
+
                      Add_TypeCode_Parameter
                        (Make_Constructed_TypeCode
                         (RTE (RE_TC_Union), Union_TC_Params),
@@ -8733,7 +8758,7 @@ package body Exp_Dist is
          begin
             Proc :=  TSS (Base_Type (Typ), Nam);
 
-            --  Check first if there is a TSS given for the type itself.
+            --  Check first if there is a TSS given for the type itself
 
             if Present (Proc) then
                return Proc;
@@ -8760,7 +8785,7 @@ package body Exp_Dist is
                end if;
             end if;
 
-            --  If nothing else, use the TSS of the root type.
+            --  If nothing else, use the TSS of the root type
 
             return TSS (Base_Type (Underlying_Type (Typ)), Nam);
          end Find_Inherited_TSS;
@@ -8855,7 +8880,7 @@ package body Exp_Dist is
          begin
             if Depth > Ndim then
 
-               --  Processing for one element of an array.
+               --  Processing for one element of an array
 
                declare
                   Element_Expr : constant Node_Id
@@ -8999,7 +9024,7 @@ package body Exp_Dist is
                  Any     => Any,
                  Counter => Counter,
                  Datum   => New_Occurrence_Of (Inner_Any, Loc));
-               --  Link outer and inner any.
+               --  Link outer and inner any
 
                Append_To (Stmts,
                  Make_Block_Statement (Loc,
