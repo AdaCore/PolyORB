@@ -62,9 +62,14 @@ package body Test_Suite.Test_Case.Local is
         := "./" & To_String (Test_To_Run.Exec.Command);
 
       Test_Result : Boolean;
+
    begin
       Log (Output, "Launching test: " & To_String (Test_To_Run.Id));
       Separator (Output);
+
+      --  Reset POLYORB_CONF
+
+      Setenv ("POLYORB_CONF", " ");
 
       --  Launch Test
 
