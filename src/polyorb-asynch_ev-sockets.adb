@@ -60,7 +60,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    end Destroy;
 
    procedure Register_Source
-     (AEM     : in out Socket_Event_Monitor;
+     (AEM     : access Socket_Event_Monitor;
       AES     : Asynch_Ev_Source_Access;
       Success : out Boolean) is
    begin
@@ -70,6 +70,7 @@ package body PolyORB.Asynch_Ev.Sockets is
       end if;
 
       Source_Seqs.Append (AEM.Sources, AES);
+      AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
       Success := True;
    end Register_Source;
 

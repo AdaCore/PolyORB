@@ -90,7 +90,7 @@ package PolyORB.Asynch_Ev is
    --  Finalize.
 
    procedure Register_Source
-     (AEM     : in out Asynch_Ev_Monitor;
+     (AEM     : access Asynch_Ev_Monitor;
       AES     : Asynch_Ev_Source_Access;
       Success : out Boolean)
      is abstract;
@@ -136,6 +136,11 @@ private
 
    type Asynch_Ev_Source is abstract tagged limited record
       Monitor : Asynch_Ev_Monitor_Access;
+      --  The AEM with which this source was registered.
+      --  A concrete implementation of Register_Source returning
+      --  with Success = True must set this member of its AES
+      --  argument to the value of its AEM argument.
+
       Notes   : aliased Annotations.Notepad;
    end record;
 

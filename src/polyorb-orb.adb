@@ -644,7 +644,7 @@ package body PolyORB.ORB is
       begin
          Success := False;
          for I in Monitors'Range loop
-            Register_Source (Monitors (I).all, AES, Success);
+            Register_Source (Monitors (I), AES, Success);
             exit when Success;
          end loop;
 
@@ -655,7 +655,7 @@ package body PolyORB.ORB is
             begin
                Create (New_AEM.all);
                Append (ORB.Monitors, New_AEM);
-               Register_Source (New_AEM.all, AES, Success);
+               Register_Source (New_AEM, AES, Success);
                pragma Assert (Success);
             end;
          end if;
@@ -864,6 +864,7 @@ package body PolyORB.ORB is
             Note : TE_Note;
          begin
             Get_Note (Notepad_Of (TE).all, Note);
+            AES := Note.AES;
 
             if AES /= null then
                Delete_Source (ORB, AES);

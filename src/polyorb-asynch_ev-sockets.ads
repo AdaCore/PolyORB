@@ -48,7 +48,7 @@ package PolyORB.Asynch_Ev.Sockets is
    type Socket_Event_Source is new Asynch_Ev_Source with private;
 
    procedure Register_Source
-     (AEM     : in out Socket_Event_Monitor;
+     (AEM     : access Socket_Event_Monitor;
       AES     : Asynch_Ev_Source_Access;
       Success : out Boolean);
 
