@@ -108,6 +108,7 @@ ${srcdir}/s-garser.ads ${srcdir}/s-garser.adb \
 ${srcdir}/s-garlic.ads                        \
 ${srcdir}/s-garopt.ads ${srcdir}/s-garopt.adb \
 ${srcdir}/s-garpro.ads                        \
+${srcdir}/s-garpri.ads                        \
 ${srcdir}/s-garpoi.ads ${srcdir}/s-garpoi.adb \
 ${srcdir}/s-garpro.ads ${srcdir}/s-garpro.adb \
 ${srcdir}/s-garsta.ads ${srcdir}/s-garsta.adb \
