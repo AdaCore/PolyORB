@@ -63,21 +63,34 @@ package body System.Partition_Interface is
       new Ada.Unchecked_Deallocation (Unit_Name, Unit_Name_Access);
 
    protected type Cache_Type is
+
       procedure Get_RCI_Data
         (Receiver  : out RPC_Receiver;
          Partition : out Partition_ID;
          Done      : out Boolean);
+      --  Return Receiver and Partition if stored in the cache.
+
       procedure Set_RCI_Data
         (Receiver  : in RPC_Receiver;
          Partition : in Partition_ID);
+      --  Store Receiver and Partition in the cache.
+
       procedure Unset_RCI_Data;
+      --  Invalidate the cache.
+
       procedure Set_RCI_Name (Name : in Unit_Name);
+      --  Set the unit name that it protects.
+
       function  Get_RCI_Name return Unit_Name_Access;
+      --  Return the unit name that it protects.
+
    private
+
       Cache_Consistent : Boolean := False;
       Active_Partition : Partition_ID;
       Package_Receiver : RPC_Receiver;
       RCI_Package_Name : Unit_Name_Access;
+
    end Cache_Type;
    type Cache_Access is access Cache_Type;
 
@@ -97,21 +110,21 @@ package body System.Partition_Interface is
       Requests  : Requests_Type := (others => False);
       Next      : Unit_Info_Access;
    end record;
+   --  A hash table would be more efficient but do we really need it ?
 
    Unit_Info_Root : Unit_Info_Access := null;
 
    Units_Keeper : Semaphore_Access := new Semaphore_Type;
 
    type Name_Opcode is (Get_Unit_Info, Set_Unit_Info, Unset_Unit_Info);
-   --  Opcode to discuss.
-
-   Public_Receiver_Is_Installed : Boolean := False;
+   --  Opcode of requests exchanged between the boot server cache and
+   --  the slave caches.
 
    procedure Public_RPC_Receiver
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
       Params    : access Params_Stream_Type);
-   --  Receive data.
+   --  Global message receiver.
 
    procedure Partition_RPC_Receiver
      (Params : access Params_Stream_Type;
@@ -357,14 +370,24 @@ package body System.Partition_Interface is
          Partition_RPC_Receiver_Installed := True;
       end if;
 
+      --  Loop while info are not available.
       loop
+
          pragma Debug (D (D_RNS, "Get info from " & Name.all));
          begin
+
+            --  We don't want to be aborted since we are going to
+            --  lock some resources.
             pragma Abort_Defer;
+
             Units_Keeper.Lock;
             Unit   := Find (Name);
             Status := Unit.Status;
+
             if Unit.Status = Unknown then
+
+               --  If not on boot server, send a request.
+
                if not Is_Boot_Partition then
                   declare
                      Params : aliased Params_Stream_Type (0);
@@ -376,9 +399,17 @@ package body System.Partition_Interface is
                      Unit.Status := Queried;
                   end;
                end if;
+
+               --  Depending on who is calling this procedure, the cache has
+               --  been allocated or not. If this is the case, update it.
+
                if Cache /= null then
                   Unit.Cache  := Cache;
                end if;
+
+            --  When info are available, update Unit.Cache if needed,
+            --  unlock the resource and exit the loop.
+
             elsif Status = Known then
                pragma Debug (D (D_RNS, "Query locally for " & Name.all));
                if Unit.Cache = null then
@@ -387,9 +418,16 @@ package body System.Partition_Interface is
                Units_Keeper.Unlock (Unmodified);
                exit;
             end if;
+
+            --  If the status is queried or unknown, then unlock the
+            --  the resource and suspend execution until a unit has
+            --  been updated.
+
             Units_Keeper.Unlock (Wait_Until_Modified);
             pragma Debug (D (D_RNS, "Resume request for " & Name.all));
+
          end;
+
       end loop;
 
       if Unit.Cache /= null then
@@ -438,34 +476,51 @@ package body System.Partition_Interface is
 
       pragma Debug (D (D_Debug, "Request " & Code'Img & " for " & Name.all));
 
+      --  Dispatch accoring to opcode.
+
       case Code is
 
+         --  This code is executed on the boot server.
+
          when Get_Unit_Info =>
+
             Units_Keeper.Lock;
+
             pragma Debug (D (D_RNS, "Get request on " & Name.all));
             Info := Find (Name);
+
             if Info.Status = Known then
                pragma Debug (D (D_RNS, "Send info on " & Name.all));
                Send_Unit_Info (Partition, Info);
+
             else
                pragma Debug (D (D_RNS, "Queue request on " & Name.all));
                Info.Requests (Partition) := True;
                Info.Pending := True;
             end if;
+
             Units_Keeper.Unlock (Unmodified);
 
          when Set_Unit_Info =>
+
             Units_Keeper.Lock;
+
             pragma Debug (D (D_RNS, "Set request on " & Name.all));
+
             Info := Find (Name);
             Partition_ID'Read (Params, Info.Partition);
+
             if not Info.Partition'Valid then
                pragma Debug (D (D_Debug, "Invalid partition ID received"));
                raise Constraint_Error;
             end if;
+
             RPC_Receiver'Read (Params, Info.Receiver);
             Info.Version := new String'(String'Input (Params));
             Info.Status := Known;
+
+            --  Requests are pending only on the boot server.
+
             if Info.Pending then
                pragma Debug
                  (D (D_RNS, "Answer to pending requests on " & Name.all));
@@ -477,25 +532,37 @@ package body System.Partition_Interface is
                end loop;
                Info.Pending := False;
             end if;
+
             Units_Keeper.Unlock (Modified);
 
+
+
          when Unset_Unit_Info =>
+
+            --  When a unit is no longer available because the partition
+            --  has crashed, remove it from the cache.
+
             declare
                Partition : Partition_ID;
                Receiver  : RPC_Receiver;
                Version   : String_Access;
             begin
+
                Units_Keeper.Lock;
                pragma Debug (D (D_RNS, "Unset info on " & Name.all));
                Info := Find (Name);
                Partition_ID'Read (Params, Partition);
+
                if Info.Partition = Partition then
                   Info.Status := Unknown;
                   Units_Keeper.Unlock (Modified);
+
                else
                   pragma Debug (D (D_RNS, "Invalid unset for " & Name.all));
                   Units_Keeper.Unlock (Unmodified);
+
                end if;
+
             end;
 
       end case;
@@ -541,6 +608,8 @@ package body System.Partition_Interface is
       Version  : in String := "") is
 
       --  This procedure should not be aborted at this stage.
+      --  Resources are locked and data should be kept consistent
+      --  between tables.
 
       Info : Unit_Info_Access;
       Unit : Unit_Name_Access;
@@ -557,15 +626,21 @@ package body System.Partition_Interface is
 
       Unit           := new Unit_Name'(To_Lower (Name));
       Units_Keeper.Lock;
+
       pragma Debug (D (D_RNS, "Register package " & Unit.all));
+
       Info           := Find (Unit);
       Info.Partition := Get_My_Partition_ID;
       Info.Receiver  := Receiver;
       Info.Version   := new String'(Version);
       Info.Status    := Known;
+
+      --  Query the boot server.
       if not Is_Boot_Partition then
          pragma Debug (D (D_RNS, "Send RNS info on " & Unit.all));
          Send_Unit_Info (Get_Boot_Server, Info);
+
+      --  This code is executed only by the boot server.
       elsif Info.Pending then
          pragma Debug (D (D_RNS, "Answer pending requests on " & Unit.all));
          for P in Partition_ID loop
@@ -576,6 +651,9 @@ package body System.Partition_Interface is
          end loop;
          Info.Pending := False;
       end if;
+
+      --  We signal the modification to unblock tasks waiting for
+      --  a modification (Wait_Until_Modified).
       Units_Keeper.Unlock (Modified);
       Free (Unit);
 
@@ -721,7 +799,6 @@ package body System.Partition_Interface is
 
 begin
    Receive (Name_Service, Public_RPC_Receiver'Access);
-   Public_Receiver_Is_Installed := True;
 end System.Partition_Interface;
 
 
