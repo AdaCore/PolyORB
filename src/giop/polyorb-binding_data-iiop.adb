@@ -65,36 +65,37 @@ package body PolyORB.Binding_Data.IIOP is
      renames L.Output;
 
    procedure Marshall_Socket
-        (Buffer   : access Buffer_Type;
-         Sock     : Sockets.Sock_Addr_Type);
+     (Buffer : access Buffer_Type;
+      Sock   :        Sockets.Sock_Addr_Type);
 
    procedure Unmarshall_Socket
-    (Buffer   : access Buffer_Type;
-     Sock     : out Sockets.Sock_Addr_Type);
+     (Buffer : access Buffer_Type;
+      Sock   : out    Sockets.Sock_Addr_Type);
+
+   procedure Marshall_Tagged_Component
+     (Buffer     : access Buffer_Type;
+      Components : Component_Seq.Sequence);
+
+   function Unmarshall_Tagged_Component
+     (Buffer : access Buffer_Type)
+     return Component_Seq.Sequence;
 
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for IIOP profiles.
 
-   procedure Initialize is
-      Preference_Offset : constant String
-        := PolyORB.Configuration.Get_Conf
-        (Section => "corba",
-         Key     => "polyorb.binding_data.iiop.preference",
-         Default => "0");
-   begin
-      Preference := Preference_Default + Profile_Preference'Value
-        (Preference_Offset);
-      Register
-       (Tag_Internet_IOP,
-        Marshall_IIOP_Profile_Body'Access,
-        Unmarshall_IIOP_Profile_Body'Access);
-   end Initialize;
+   ----------------
+   -- Initialize --
+   ----------------
 
    procedure Initialize (P : in out IIOP_Profile_Type) is
    begin
       P.Object_Id := null;
    end Initialize;
+
+   ------------
+   -- Adjust --
+   ------------
 
    procedure Adjust (P : in out IIOP_Profile_Type) is
    begin
@@ -103,10 +104,18 @@ package body PolyORB.Binding_Data.IIOP is
       end if;
    end Adjust;
 
+   --------------
+   -- Finalize --
+   --------------
+
    procedure Finalize (P : in out IIOP_Profile_Type) is
    begin
       Free (P.Object_Id);
    end Finalize;
+
+   ------------------
+   -- Bind_Profile --
+   ------------------
 
    function Bind_Profile
      (Profile : IIOP_Profile_Type;
@@ -128,7 +137,7 @@ package body PolyORB.Binding_Data.IIOP is
       Sli  : aliased Slicer_Factory;
       Prof : constant Profile_Access := new IIOP_Profile_Type;
       --  This Profile_Access is stored in the created
-      --  GIOP_Session, and free'd when the session is finalised.
+      --  GIOP_Session, and free'd when the session is finalized.
 
       Filter : Filters.Filter_Access;
 
@@ -137,6 +146,7 @@ package body PolyORB.Binding_Data.IIOP is
 
    begin
       pragma Debug (O ("Bind IIOP profile: enter"));
+
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
       Create (Socket_Endpoint (TE.all), Sock);
@@ -164,8 +174,8 @@ package body PolyORB.Binding_Data.IIOP is
 
       declare
          S : GIOP_Session
-           renames GIOP_Session
-           (Upper (Filter).all);
+           renames GIOP_Session (Upper (Filter).all);
+
       begin
          Set_Version
            (S'Access,
@@ -175,6 +185,10 @@ package body PolyORB.Binding_Data.IIOP is
          return S'Access;
       end;
    end Bind_Profile;
+
+   ---------------------
+   -- Get_Profile_Tag --
+   ---------------------
 
    function Get_Profile_Tag
      (Profile : IIOP_Profile_Type)
@@ -187,6 +201,10 @@ package body PolyORB.Binding_Data.IIOP is
       return Tag_Internet_IOP;
    end Get_Profile_Tag;
 
+   ----------------------------
+   -- Get_Profile_Preference --
+   ----------------------------
+
    function Get_Profile_Preference
      (Profile : IIOP_Profile_Type)
      return Profile_Preference
@@ -198,10 +216,14 @@ package body PolyORB.Binding_Data.IIOP is
       return Preference;
    end Get_Profile_Preference;
 
+   --------------------
+   -- Create_Factory --
+   --------------------
+
    procedure Create_Factory
      (PF  : out IIOP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
-      ORB : Components.Component_Access)
+      TAP :     Transport.Transport_Access_Point_Access;
+      ORB :     Components.Component_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (ORB);
@@ -210,9 +232,13 @@ package body PolyORB.Binding_Data.IIOP is
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;
 
+   --------------------
+   -- Create_Profile --
+   --------------------
+
    function Create_Profile
      (PF  : access IIOP_Profile_Factory;
-      Oid : Objects.Object_Id)
+      Oid :        Objects.Object_Id)
      return Profile_Access
    is
       use PolyORB.Transport.Sockets;
@@ -224,11 +250,15 @@ package body PolyORB.Binding_Data.IIOP is
       TResult : IIOP_Profile_Type
         renames IIOP_Profile_Type (Result.all);
    begin
-      TResult.Object_Id := new Object_Id'(Oid);
-      TResult.Address   := PF.Address;
-      TResult.Components := Null_Sequence;
-      return  Result;
+      TResult.Object_Id  := new Object_Id'(Oid);
+      TResult.Address    := PF.Address;
+      TResult.Components := Component_Seq.Null_Sequence;
+      return Result;
    end Create_Profile;
+
+   ----------------------
+   -- Is_Local_Profile --
+   ----------------------
 
    function Is_Local_Profile
      (PF : access IIOP_Profile_Factory;
@@ -247,20 +277,19 @@ package body PolyORB.Binding_Data.IIOP is
 
    procedure Marshall_IIOP_Profile_Body
      (Buf     : access Buffer_Type;
-      Profile : Profile_Access)
+      Profile :        Profile_Access)
    is
-
       IIOP_Profile : IIOP_Profile_Type renames IIOP_Profile_Type (Profile.all);
+
       Profile_Body : Buffer_Access := new Buffer_Type;
 
    begin
-
       --  A TAG_INTERNET_IOP Profile Body is an encapsulation.
       Start_Encapsulation (Profile_Body);
 
       --  Version
-      Marshall (Profile_Body, IIOP_Major_Version);
-      Marshall (Profile_Body, IIOP_Minor_Version);
+      Marshall (Profile_Body, IIOP_Profile.Major_Version);
+      Marshall (Profile_Body, IIOP_Profile.Minor_Version);
 
       --  Marshalling of a Socket
       Marshall_Socket (Profile_Body, IIOP_Profile.Address);
@@ -270,8 +299,8 @@ package body PolyORB.Binding_Data.IIOP is
         (Profile_Body, Stream_Element_Array
          (IIOP_Profile.Object_Id.all));
 
-      --  Marshall the tagged components (none for now).
-      Marshall (Profile_Body, Types.Unsigned_Long'(0));
+      --  Marshall the tagged components.
+      Marshall_Tagged_Component (Profile_Body, IIOP_Profile.Components);
 
       --  Marshall the Profile_Body into IOR.
       Marshall (Buf, Encapsulate (Profile_Body));
@@ -287,28 +316,27 @@ package body PolyORB.Binding_Data.IIOP is
      (Buffer       : access Buffer_Type)
      return Profile_Access
    is
+      Result  : constant Profile_Access := new IIOP_Profile_Type;
+      TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
+
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
-      --  Length         : CORBA.Long;
-      Result         : constant Profile_Access := new IIOP_Profile_Type;
-      TResult        : IIOP_Profile_Type
-        renames IIOP_Profile_Type (Result.all);
-
 
    begin
       pragma Debug (O ("Unmarshall_IIOP_Profile_body: enter"));
       Decapsulate (Profile_Body'Access, Profile_Buffer);
 
-      TResult.Major_Version  := Unmarshall (Profile_Buffer);
-      TResult.Minor_Version  := Unmarshall (Profile_Buffer);
+      TResult.Major_Version := Unmarshall (Profile_Buffer);
+      TResult.Minor_Version := Unmarshall (Profile_Buffer);
       pragma Debug
         (O ("  Version = " & TResult.Major_Version'Img & "."
             & TResult.Minor_Version'Img));
 
       Unmarshall_Socket (Profile_Buffer, TResult.Address);
       pragma Debug (O ("  Address = " & Sockets.Image (TResult.Address)));
+
       declare
-         Str  : aliased constant Stream_Element_Array :=
+         Str : aliased constant Stream_Element_Array :=
            Unmarshall (Profile_Buffer);
       begin
          TResult.Object_Id := new Object_Id'(Object_Id (Str));
@@ -318,20 +346,24 @@ package body PolyORB.Binding_Data.IIOP is
          end if;
       end;
       Release (Profile_Buffer);
-      pragma Debug (O ("Unmarshall_IIOP_Profile_body: leave"));
-      return Result;
 
+      pragma Debug (O ("Unmarshall_IIOP_Profile_body: leave"));
+
+      return Result;
    end Unmarshall_IIOP_Profile_Body;
+
+   ---------------------
+   -- Marshall_Socket --
+   ---------------------
 
    procedure Marshall_Socket
      (Buffer : access Buffer_Type;
-      Sock   : Sockets.Sock_Addr_Type)
+      Sock   :        Sockets.Sock_Addr_Type)
    is
       use PolyORB.Sockets;
 
       Str  : constant Types.String := To_PolyORB_String (Image (Sock.Addr));
    begin
-
       --  Marshalling of the Host as a string
       Marshall (Buffer, Str);
 
@@ -340,62 +372,73 @@ package body PolyORB.Binding_Data.IIOP is
 
    end Marshall_Socket;
 
+   -----------------------
+   -- Unmarshall_Socket --
+   -----------------------
 
    procedure Unmarshall_Socket
     (Buffer : access Buffer_Type;
-     Sock   : out Sockets.Sock_Addr_Type)
+     Sock   : out    Sockets.Sock_Addr_Type)
    is
       use PolyORB.Sockets;
 
       Addr_Image : constant Standard.String
         := PolyORB.Types.To_Standard_String
         (PolyORB.Types.String'(Unmarshall (Buffer)));
-      Port : Types.Unsigned_Short;
-   begin
 
+      Port : constant Types.Unsigned_Short := Unmarshall (Buffer);
+   begin
       --  Unmarshalling of the Host
       Sock.Addr := Inet_Addr (Addr_Image);
 
       --  Unmarshalling of the port
-      Port := Unmarshall (Buffer);
       Sock.Port := Port_Type (Port);
 
    end Unmarshall_Socket;
 
+   -------------------------------
+   -- Marshall_Tagged_Component --
+   -------------------------------
 
    procedure Marshall_Tagged_Component
-     (Buffer         : access Buffer_Type;
-      Components     : Component_Seq.Sequence)
-
+     (Buffer     : access Buffer_Type;
+      Components : Component_Seq.Sequence)
    is
       use Component_Seq;
+
    begin
-
       Marshall (Buffer,  Types.Unsigned_Long (Length (Components)));
-      for I in 1 .. Length (Components) loop
-         Marshall (Buffer, Element_Of (Components, I).Tag);
-         Marshall (Buffer, Element_Of (Components, I).Component_Data.all);
-      end loop;
 
+      for J in 1 .. Length (Components) loop
+         Marshall (Buffer, Element_Of (Components, J).Tag);
+         Marshall (Buffer, Element_Of (Components, J).Component_Data.all);
+      end loop;
    end Marshall_Tagged_Component;
 
+   ---------------------------------
+   -- Unmarshall_Tagged_Component --
+   ---------------------------------
 
-   function  Unmarshall_Tagged_Component
+   function Unmarshall_Tagged_Component
      (Buffer   : access Buffer_Type)
      return Component_Seq.Sequence
    is
       use Component_Seq;
-      Comp        : Tagged_Component;
-      Components  : Component_Seq.Sequence := Null_Sequence;
-      Len         : Types.Unsigned_Long;
+
+      Comp       : Tagged_Component;
+      Components : Component_Seq.Sequence := Null_Sequence;
+      Len        : Types.Unsigned_Long;
    begin
       Len := Unmarshall (Buffer);
-      for I in 1 .. Len loop
+
+      for J in 1 .. Len loop
          Comp.Tag  := Unmarshall (Buffer);
-         Comp.Component_Data := new Stream_Element_Array'(Unmarshall
-                            (Buffer));
+         Comp.Component_Data
+           := new Stream_Element_Array'(Unmarshall (Buffer));
+
          Append (Components, Comp);
       end loop;
+
       return Components;
    end Unmarshall_Tagged_Component;
 
@@ -403,12 +446,36 @@ package body PolyORB.Binding_Data.IIOP is
    -- Image --
    -----------
 
-   function Image (Prof : IIOP_Profile_Type) return String is
+   function Image (Prof : IIOP_Profile_Type)
+                  return String
+   is
       use PolyORB.Sockets;
+
    begin
       return "Address : " & Image (Prof.Address) &
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+      Preference_Offset : constant String
+        := PolyORB.Configuration.Get_Conf
+        (Section => "corba",
+         Key     => "polyorb.binding_data.iiop.preference",
+         Default => "0");
+   begin
+      Preference := Preference_Default + Profile_Preference'Value
+        (Preference_Offset);
+      Register
+       (Tag_Internet_IOP,
+        Marshall_IIOP_Profile_Body'Access,
+        Unmarshall_IIOP_Profile_Body'Access);
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
