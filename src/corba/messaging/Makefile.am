@@ -4,7 +4,10 @@ include $(srcdir)/../../Makefile.common
 
 alidir = $(includedir)/polyorb/corba/messaging
 
-ADA_SPECS = \
+ADA_SPECS_WITH_BODY = \
+	messaging-helper.ads
+
+ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	messaging.ads
 
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)

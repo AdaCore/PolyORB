@@ -476,6 +476,8 @@ src/corba/corba.adb
 src/corba/corba.ads
 src/corba/messaging/Makefile.am
 src/corba/messaging/Makefile.in
+src/corba/messaging/messaging-helper.adb
+src/corba/messaging/messaging-helper.ads
 src/corba/messaging/messaging.ads
 src/corba/polyorb-corba_p-adapteractivator.adb
 src/corba/polyorb-corba_p-adapteractivator.ads
