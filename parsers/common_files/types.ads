@@ -160,11 +160,9 @@ pragma Preelaborate (Types);
    No_Node : constant Node_Id := 0;
 
    function Present (E : Node_Id) return Boolean;
-   pragma Inline (Present);
    --  Return true when E is not No_Node
 
    function No (E : Node_Id) return Boolean;
-   pragma Inline (No);
    --  Return true when E is No_Node
 
    procedure Dummy (E : Node_Id);
