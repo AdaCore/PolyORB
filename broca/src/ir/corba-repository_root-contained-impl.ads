@@ -126,6 +126,9 @@ package CORBA.Repository_Root.Contained.Impl is
    function Contents (In_Seq : Contained_Seq.Sequence;
                       Limit_Type : DefinitionKind) return ContainedSeq;
 
+   --  This procedure removes the twins
+   procedure Simplify_ContainedSeq (In_Seq : in out ContainedSeq);
+
    --  A usefull function to transform a Contained_Seq.Sequence into a ContainedSeq
    function To_ContainedSeq
      (In_Seq : Contained_Seq.Sequence)

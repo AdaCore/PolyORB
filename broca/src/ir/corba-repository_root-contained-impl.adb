@@ -23,6 +23,7 @@ with CORBA.Repository_Root.Repository.Impl;
 
 with Broca.Exceptions;
 with Broca.Debug;
+with Sequences;
 
 
 package body CORBA.Repository_Root.Contained.Impl is
@@ -117,6 +118,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          end if;
       end;
    end Change_Absolute_Name;
+
 
    -----------------
    --  To_Object  --
@@ -626,6 +628,37 @@ package body CORBA.Repository_Root.Contained.Impl is
    ------------------------
    -- A Seq of contained --
    ------------------------
+
+
+   ------------------------------
+   --  Simplify_Contained_Seq  --
+   ------------------------------
+   procedure Simplify_ContainedSeq (In_Seq : in out ContainedSeq)
+   is
+      Cont_Array : Contained_For_Seq.Element_Array
+        := Contained_For_Seq.To_Element_Array
+        (Contained_For_Seq.Sequence (In_Seq));
+   begin
+      for I in Cont_Array'Range loop
+         for J in (I + 1) .. (Cont_Array'Last) loop
+            if To_Object (Cont_Array (I)) = To_Object (Cont_Array (J)) then
+               declare
+                  Ind : Natural;
+                  Del_Array : Contained_For_Seq.Element_Array (1 .. 1);
+               begin
+                  Del_Array (1) := Cont_Array (J);
+                  Ind := Contained_For_Seq.Index
+                    (Contained_For_Seq.Sequence (In_Seq),
+                     Del_Array,
+                     Sequences.Backward);
+                  Contained_For_Seq.Delete (Contained_For_Seq.Sequence (In_Seq),
+                                            Ind,
+                                            Ind);
+               end;
+            end if;
+         end loop;
+      end loop;
+   end;
 
    -----------------
    --  Lookup_id  --

@@ -388,6 +388,9 @@ package body CORBA.Repository_Root.Container.Impl is
          end case;
       end if;
 
+      --  remove the twins (in case of a diamond inheritance)
+      Contained.Impl.Simplify_ContainedSeq (Result);
+
       return Result;
    end contents;
 
@@ -554,7 +557,8 @@ package body CORBA.Repository_Root.Container.Impl is
          end;
       end if;
 
-      --  FIXME>>>>>>>>>  remove the TWINS
+      --  remove the twins (in case of a diamond inheritance)
+      Contained.Impl.Simplify_ContainedSeq (Result);
 
       return Result;
    end lookup_name;
