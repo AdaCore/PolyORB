@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -95,45 +95,47 @@ package body System.Garlic.Replay is
    begin
       pragma Debug (D (D_Debug, "Replay engine started"));
 
-      select
-         Heart.Shutdown_Keeper.Wait;
-         pragma Debug
-           (D (D_Debug, "Replay engine shutdown"));
+      while not End_Of_File (Trace_File) loop
 
-      then abort
-         while not End_Of_File (Trace_File) loop
+         --  Read a new trace from file (new incoming message)
 
-            --  Read a new trace from file (new incoming message)
+         declare
+            Trace : constant Trace_Type :=
+              Trace_Type'Input (Stream (Trace_File));
+
+         begin
+            pragma Debug
+              (D (D_Debug,
+                  "Read trace from partition" & Trace.PID'Img &
+                  " of length" & Trace.Data'Length'Img));
+
+            --  The message should arrive at about the same time as
+            --  during the recorded execution.
 
             declare
-               Trace : constant Trace_Type :=
-                  Trace_Type'Input (Stream (Trace_File));
-
+               Latency : Duration := To_Duration (Trace.Time);
             begin
                pragma Debug
-                  (D (D_Debug,
-                      "Read trace from partition" & Trace.PID'Img &
-                      " of length" & Trace.Data'Length'Img));
-
-               --  The message should arrive at about the same time as
-               --  during the recorded execution.
-
-               declare
-                  Latency : Duration := To_Duration (Trace.Time);
-               begin
-                  pragma Debug
-                    (D (D_Debug, "Replay network latency" & Latency'Img));
-                  delay Latency;
-               end;
-
-               --  Deliver message
-
-               Has_Arrived (Trace.PID, Trace.Data);
+                 (D (D_Debug, "Replay network latency" & Latency'Img));
+               delay Latency;
             end;
-         end loop;
-      end select;
 
-      Soft_Shutdown;
+            --  Deliver message
+
+            Has_Arrived (Trace.PID, Trace.Data);
+
+            pragma Debug (D (D_Debug, "Message delivered"));
+         end;
+      end loop;
+
+      --  When the partition is the boot partition, the trace file
+      --  receives no QUIT request and exits the loop above when no
+      --  incoming message is available. Thus, the replay has to
+      --  initiate the shutdown itself.
+
+      if Is_Boot_Partition then
+         Soft_Shutdown;
+      end if;
    end Engine_Type;
 
    --------------
