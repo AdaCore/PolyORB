@@ -943,6 +943,9 @@ testsuite/core/chained_lists/test000.adb
 testsuite/core/dynamic_dict/Makefile.am
 testsuite/core/dynamic_dict/Makefile.in
 testsuite/core/dynamic_dict/test000.adb
+testsuite/core/fixed_point/test000.adb
+testsuite/core/fixed_point/Makefile.am
+testsuite/core/fixed_point/Makefile.in
 testsuite/core/initialization/Makefile.am
 testsuite/core/initialization/Makefile.in
 testsuite/core/initialization/test000.adb
