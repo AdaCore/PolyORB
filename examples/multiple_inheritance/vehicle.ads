@@ -35,7 +35,7 @@ package Vehicle is
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
 
-   procedure AdaBroker_Cast_To_Parent(Real_Object: in Ref;
+   procedure AdaBroker_Cast_To_Parent(Real_Ref: in Ref;
                                       Result: out Corba.Object.Ref'Class) ;
 
 

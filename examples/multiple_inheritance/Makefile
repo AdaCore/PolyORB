@@ -1,9 +1,13 @@
 GNATGCC = gnatgcc
 DO_NOT_LINK = -c
+BIND = gnatbind
+LINK = gnatlink
 
-ADABROKER_INCLUDES = -I../../InterfaceORB
+ADABROKER_INCLUDES = ../../InterfaceORB
 
-main: vehicle.o tank.o weapon.o
+client: vehicle.o weapon.o tank.o client.o 
+	$(BIND) -I$(ADABROKER_INCLUDES) client.ali
+	$(LINK)  client.ali
 
 clean:
 	rm *.ali *.o
@@ -11,10 +15,13 @@ clean:
 .SUFFIXES: .adb .o
 
 .adb.o:
-	$(GNATGCC)  $(DO_NOT_LINK) $(ADABROKER_INCLUDES) $<
+	$(GNATGCC)  $(DO_NOT_LINK) -I$(ADABROKER_INCLUDES) $<
 
-vehicle.o : vehicle.ads vehicle.adb
+vehicle.o : vehicle.ads vehicle.adb $(ADABROKER_INCLUDES)
 
-weapon.o : weapon.ads weapon.adb
+weapon.o : weapon.ads weapon.adb $(ADABROKER_INCLUDES)
 
-tank.o: vehicle.ads weapon.ads tank.ads tank.adb
+tank.o: vehicle.ads weapon.ads tank.ads tank.adb $(ADABROKER_INCLUDES)
+
+client.o: $(ADABROKER_INCLUDES) .
+
