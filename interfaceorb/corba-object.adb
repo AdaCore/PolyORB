@@ -1,612 +1,650 @@
------------------------------------------------------------------------
------------------------------------------------------------------------
-----                                                               ----
-----                         AdaBroker                             ----
-----                                                               ----
-----                   package Corba.Object                        ----
-----                                                               ----
-----                                                               ----
-----   Copyright (C) 1999 ENST                                     ----
-----                                                               ----
-----   This file is part of the AdaBroker library                  ----
-----                                                               ----
-----   The AdaBroker library is free software; you can             ----
-----   redistribute it and/or modify it under the terms of the     ----
-----   GNU Library General Public License as published by the      ----
-----   Free Software Foundation; either version 2 of the License,  ----
-----   or (at your option) any later version.                      ----
-----                                                               ----
-----   This library is distributed in the hope that it will be     ----
-----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
-----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
-----   PURPOSE.  See the GNU Library General Public License for    ----
-----   more details.                                               ----
-----                                                               ----
-----   You should have received a copy of the GNU Library General  ----
-----   Public License along with this library; if not, write to    ----
-----   the Free Software Foundation, Inc., 59 Temple Place -       ----
-----   Suite 330, Boston, MA 02111-1307, USA                       ----
-----                                                               ----
-----                                                               ----
-----                                                               ----
-----   Description                                                 ----
-----   -----------                                                 ----
-----                                                               ----
-----   This package corresponds to the CORBA 2.0 specification.    ----
-----   It contains the definition of type Corba.Object.Ref,        ----
-----   which is the base class of all proxy objects                ----
-----                                                               ----
-----                                                               ----
-----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/28/99                                          ----
-----                                                               ----
------------------------------------------------------------------------
------------------------------------------------------------------------
+--  This package corresponds to the CORBA 2.0 specification. It contains
+--  the definition of type CORBA.Object.Ref, which is the base class of all
+--  proxy objects
 
+with Ada.Exceptions;
 
-with Ada.Exceptions ;
-with Iop ;
-with Omniobject ;
-use type Omniobject.Object_Ptr ;
-with Omniropeandkey ; use Omniropeandkey ;
+with Interfaces.C.Strings;
 
-with Adabroker_Debug ; use Adabroker_Debug ;
+with IOP;
+with OmniObject;
+with OmniRopeAndKey; use OmniRopeAndKey;
 
-package body Corba.Object is
+with Adabroker_Debug;
+use Adabroker_Debug;
+pragma Elaborate (Adabroker_Debug);
 
-   --------------------------------------------------
-   ---        CORBA 2.2 specifications            ---
-   --------------------------------------------------
+package body CORBA.Object is
 
-   -- Is_Nil
-   ---------
-   function Is_Nil(Self: in Ref) return Boolean is
+   Debug : constant Boolean := Adabroker_Debug.Is_Active("corba.object");
+
+   use type Omniobject.Object_Ptr;
+
+   ------------
+   -- Is_Nil --
+   ------------
+
+   function Is_Nil (Self : in Ref) return Boolean is
    begin
-      return  Self.Omniobj = null ;
-   end ;
+      return  Self.Omniobj = null;
+   end Is_Nil;
 
+   -------------
+   -- Release --
+   -------------
 
-   -- Release
-   ----------
    procedure Release (Self : in out Ref'class) is
    begin
-      Finalize(Self) ;
-   end ;
+      Finalize (Self);
+   end Release;
 
+   ----------
+   -- Is_A --
+   ----------
 
-   -- Is_A
-   -------
-   function Is_A(Self: in Ref ;
-                 Logical_Type_Id : in Corba.String)
-                 return Corba.Boolean is
+   function Is_A
+     (Self            : in Ref;
+      Logical_Type_Id : in CORBA.String)
+      return CORBA.Boolean is
    begin
-      return (Repository_Id = Logical_Type_Id) ;
-   end ;
+      return (Repository_Id = Logical_Type_Id);
+   end Is_A;
 
+   ----------
+   -- Is_A --
+   ----------
 
-   -- Is_A
-   -------
-   function Is_A(Logical_Type_Id : in Corba.String)
-                 return Corba.Boolean is
+   function Is_A
+     (Logical_Type_Id : in CORBA.String)
+      return CORBA.Boolean is
    begin
-      return (Repository_Id = Logical_Type_Id) ;
-   end ;
+      return (Repository_Id = Logical_Type_Id);
+   end Is_A;
 
+   ------------------
+   -- Non_Existent --
+   ------------------
 
-   -- Non_Existent
-   ---------------
-   function Non_Existent(Self : in Ref) return Corba.Boolean is
+   function Non_Existent (Self : in Ref) return CORBA.Boolean is
    begin
-      if Is_Nil(self) then
-         return True ;
-      end if ;
-      return Omniobject.Non_Existent(Self.Omniobj.all) ;
-   end ;
+      if Is_Nil (Self) then
+         return True;
+      end if;
+      return OmniObject.Non_Existent (Self.Omniobj.all);
+   end Non_Existent;
 
+   -------------------
+   -- Is_Equivalent --
+   -------------------
 
-   -- Is_Equivalent
-   ----------------
-   function Is_Equivalent(Self : in Ref ;
-                          Other : in Ref)
-                          return Corba.Boolean is
-      Rak : Omniropeandkey.Controlled_Wrapper ;
-      Other_Rak : Omniropeandkey.Controlled_Wrapper ;
-      S1, S2 : Corba.Boolean ;
+   function Is_Equivalent
+     (Self  : in Ref;
+      Other : in Ref)
+      return CORBA.Boolean
+   is
+      Rak       : OmniRopeAndKey.Controlled_Wrapper;
+      Other_Rak : Omniropeandkey.Controlled_Wrapper;
+      S1, S2    : CORBA.Boolean;
    begin
-      -- this is copied from corbaObject.cc L160.
-      -- Here, Refs are proxy objects
-      OmniObject.Get_Rope_And_Key(Self.Omniobj.all, Rak.Real, S1) ;
-      Omniobject.Get_Rope_And_Key(Other.Omniobj.all, Other_Rak.Real, S2) ;
-      return S1 and S2 and (Rak.Real = Other_Rak.Real) ;
-   end;
+      --  This is copied from corbaObject.cc L160. Here, Refs are proxy
+      --  objects
+      OmniObject.Get_Rope_And_Key (Self.Omniobj.all,  Rak.Real, S1);
+      Omniobject.Get_Rope_And_Key (Other.Omniobj.all, Other_Rak.Real, S2);
 
+      return S1 and S2 and (Rak.Real = Other_Rak.Real);
+   end Is_Equivalent;
 
-   -- Hash
-   -------
-   function Hash(Self : in Ref ;
-                 Maximum : in Corba.Unsigned_long)
-                 return Corba.Unsigned_Long is
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash
+     (Self    : in Ref;
+      Maximum : in CORBA.Unsigned_long)
+      return CORBA.Unsigned_Long
+   is
    begin
-      if Is_Nil(Self) then
-         Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
-                                        "Cannot call function hash on a nil reference") ;
-      end if ;
-      return Omniobject.Hash(Self.Omniobj.all, Maximum) ;
-   end ;
+      if Is_Nil (Self) then
+         Ada.Exceptions.Raise_Exception
+           (Constraint_Error'Identity,
+            "Cannot call function hash on a nil reference");
+      end if;
+      return OmniObject.Hash(Self.Omniobj.all, Maximum);
+   end Hash;
 
+   -----------
+   -- To_Ref --
+   ------------
 
-    -- To_Ref
-    ---------
-    function To_Ref(The_Ref : in Ref'Class) return Ref is
-    begin
-       return Ref(The_Ref) ;
-    end ;
-
-
-    --------------------------------------------------
-    ---     dynamic typing of objects              ---
-    --------------------------------------------------
-
-
-   type Cell ;
-   type Cell_Ptr is access all Cell ;
-   type Cell is  record
-      ID : Corba.String ;
-      Value : Corba.Object.Constant_Ref_Ptr ;
-      Next : Cell_Ptr ;
-   end record ;
-
---   protected Pd_List is
---      procedure Register (RepoId : in Corba.String ;
---                          Dyn_Type : in Corba.Object.Constant_Ref_Ptr);
---      function Get_Dynamic_Type_From_Repository_Id (RepoID : in Corba.String)
---                                                    return Corba.Object.Constant_Ref_Ptr ;
---   private
-      List : Cell_Ptr := null ;
---   end Pd_List;
-   -- This is a static list that contains all the
-   -- pairs (repoID, static object ref)
-   -- So it is protected to be thread-safe
-
-   -- Free : free the memory
-   procedure Free is new Ada.Unchecked_Deallocation(Cell, Cell_Ptr) ;
-
-
---   protected body Pd_List is
-
-      -- Register :
-      -------------
-      procedure Register (RepoId : in Corba.String ;
-                          Dyn_Type : in Corba.Object.Constant_Ref_Ptr) is
-         Temp : Cell_Ptr ;
-      begin
-         pragma Debug(Output(Debug,"Registering "
-                             & To_Standard_String(RepoId)
-                             & " in the dynamic type list")) ;
-         -- makes a new cell ...
-         Temp := new Cell'(ID => RepoID,
-                           Value => Dyn_Type,
-                           Next => List) ;
-         -- ... and add it in front of the list
-         List := Temp ;
-      end ;
-
-
-      -- Get_Dynamic_Type_From_Repository_Id
-      --------------------------------------
-      function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
-                                                   return Corba.Object.Constant_Ref_Ptr is
-         Temp : Cell_Ptr := List ;
-      begin
-         loop
-            if Temp = null then
-               Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity,
-                                               "Corba.Get_Dynamic_Type_From_Repository_Id"
-                                               & Corba.CRLF
-                                               & "No match found for "
-                                               & Corba.To_Standard_String(RepoId)) ;
-            else if Temp.all.ID = repoID then
-               return Temp.all.Value ;
-            else
-               Temp := Temp.all.Next ;
-            end if ;
-         end if ;
-         end loop ;
-      end ;
-
---   end Pd_List ;
-
-
---   procedure Register (RepoId : in Corba.String ;
---                       Dyn_Type : in Corba.Object.Constant_Ref_Ptr) is
---   begin
---      Pd_List.
---      Register (RepoId, Dyn_Type) ;
---   end ;
-
-
-   --------------------------------------------------
-   ---        AdaBroker  specific                 ---
-   --------------------------------------------------
-
-   -- Free
-   -------
-   procedure Free(Self : in out Ref_Ptr) is
+   function To_Ref (The_Ref : in Ref'Class) return Ref is
    begin
-      Private_Free(Self) ;
-   end;
+      return Ref (The_Ref);
+   end To_Ref;
 
 
-   -- Get_Repository_Id
-   --------------------
-   function Get_Repository_Id(Self : in Ref) return Corba.String is
-   begin
-      return Repository_Id ;
-   end ;
+   -------------------------------
+   -- dynamic typing of objects --
+   -------------------------------
 
+   type Cell;
+   type Cell_Ptr is access all Cell;
+   type Cell is record
+      ID    : CORBA.String;
+      Value : CORBA.Object.Constant_Ref_Ptr;
+      Next  : Cell_Ptr;
+   end record;
+   List : Cell_Ptr := null;
 
-   -- Get_Nil_Ref
+   --  Warning : should be protected.
+
+   procedure Free is new Ada.Unchecked_Deallocation (Cell, Cell_Ptr);
+
    --------------
---   function Get_Nil_Ref(Self : in Ref) return Constant_Ref_Ptr is
---   begin
---      return Nil_Ref'Access ;
---   end ;
+   -- Register --
+   --------------
 
-
-
-   -- Get_OmniObject_Ptr
-   ---------------------
-   function Get_OmniObject_Ptr (Self : in Ref'Class)
-                                return Omniobject.Object_Ptr is
+   procedure Register
+     (Repoid   : in CORBA.String;
+      Dyn_Type : in CORBA.Object.Constant_Ref_Ptr)
+   is
+      Tmp : Cell_Ptr;
    begin
-      return Self.Omniobj ;
-   end ;
+      pragma Debug
+        (Output (Debug,
+          "Registering " & To_Standard_String (Repoid) &
+                 " in the dynamic type list"));
 
+      Tmp  := new Cell'(Repoid, Dyn_Type, List);
+      List := Tmp;
+   end;
 
-   -- Object_To_String
-   -------------------
-   function Object_To_String (Self : in Ref'class)
-                              return CORBA.String is
+   -----------------------------------------
+   -- Get_Dynamic_Type_From_Repository_Id --
+   -----------------------------------------
+
+   function Get_Dynamic_Type_From_Repository_Id
+     (Repoid : in CORBA.String)
+      return CORBA.Object.Constant_Ref_Ptr
+   is
+      Tmp : Cell_Ptr := List;
    begin
-      if Is_Nil(Self) then
-         return Omniobject.Object_To_String(null) ;
-      else
-         return Omniobject.Object_To_String(Self.Omniobj) ;
-      end if ;
-   end ;
+      loop
+         if Tmp = null then
+            Ada.Exceptions.Raise_Exception
+              (AdaBroker_Fatal_Error'Identity,
+               "CORBA.Get_Dynamic_Type_From_Repository_Id" &
+               CORBA.CRLF &
+               "No match found for " &
+               CORBA.To_Standard_String (Repoid));
 
-
-   -- String_To_Object
-   -------------------
-   procedure String_to_Object (From : in CORBA.String;
-                               To : out CORBA.Object.Ref'class) is
-      RepoId : Corba.String ;
-      Most_Derived_Type : Constant_Ref_Ptr ;
-   begin
-      -- Get the omniobject
-      To.Omniobj:= Omniobject.String_To_Object(From) ;
-
-      -- if the result is correct
-      if not (To.Omniobj = null) then
-
-         -- just print a message to tell if the C++ object is a proxy or a local object
-         if  Omniobject.Is_Proxy(To.Omniobj.all) then
-            pragma Debug(Output(Debug, "Corba.Object.String_To_Object :  creating Ref with local object inside")) ;
-            null ;
+         elsif Tmp.all.ID = Repoid then
+            return Tmp.all.Value;
          else
-            pragma Debug(Output(Debug, "Corba.Object.String_To_Object :  creating Ref with local object inside")) ;
-            null ;
-         end if ;
+            Tmp := Tmp.all.Next;
+         end if;
+      end loop;
+   end Get_Dynamic_Type_From_Repository_Id;
 
-         -- check if the omniobject we got can be put into
-         -- To (type implied the repoId)
-         RepoId := Omniobject.Get_Repository_Id(To.Omniobj.all) ;
+   -------------------------
+   -- AdaBroker  specific --
+   -------------------------
 
-         pragma Debug(Output(Debug,
-                             "Corba.Object.String_To_Object : repoid = "
-                             & Corba.To_Standard_String(RepoId))) ;
+   ----------
+   -- Free --
+   ----------
 
-         Most_Derived_Type := --Pd_List.
-           Get_Dynamic_Type_From_Repository_Id(Repoid) ;
-         -- dyn_type is now an object of the most derived type
-         -- of the new created object
+   procedure Free (Self : in out Ref_Ptr) is
+   begin
+      Private_Free (Self);
+   end;
 
-         if Is_A(Most_Derived_Type.all, Get_Repository_Id(To)) then
-            To.Dynamic_Type := Most_Derived_Type ;
-            return ;
-         end if ;
-      end if ;
+   -----------------------
+   -- Get_Repository_Id --
+   -----------------------
 
-      -- otherwise, the operation is illegal return Nil_Ref
-      -- in the right class
-      To.Omniobj := null ;
-      To.Dynamic_Type := null ;
+   function Get_Repository_Id
+     (Self : in Ref) return CORBA.String is
+   begin
+      return Repository_Id;
+   end Get_Repository_Id;
 
-   end ;
+   ------------------------
+   -- Get_OmniObject_Ptr --
+   ------------------------
 
+   function Get_OmniObject_Ptr
+     (Self : in Ref'Class)
+      return Omniobject.Object_Ptr
+   is
+   begin
+      return Self.Omniobj;
+   end Get_OmniObject_Ptr;
 
-
-   --  Get_Dynamic_Type
    ----------------------
-   function Get_Dynamic_Type(Self: in Ref) return Ref'Class is
+   -- Object_To_String --
+   ----------------------
+
+   function Object_To_String
+     (Self : in Ref'class)
+      return CORBA.String is
    begin
-      if Is_Nil(Self) then
-         Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
-                                        "Get_Dynamic_Type should not be called on a nil reference"
-                                        & Corba.CRLF
-                                        & "Use Is_nil first to check that your object is not a nil reference") ;
+      if Is_Nil (Self) then
+         return OmniObject.Object_To_String (null);
       else
-         return Self.Dynamic_Type.all ;
-      end if ;
-   end ;
+         return OmniObject.Object_To_String (Self.Omniobj);
+      end if;
+   end Object_To_String;
 
+   ----------------------
+   -- String_To_Object --
+   ----------------------
 
-   -- Internal_Copy
-   ----------------
-   procedure Internal_Copy(From : in Ref'Class ;
-                           To : in out Ref'Class) is
+   procedure String_To_Object
+     (From : in CORBA.String;
+      To   : out CORBA.Object.Ref'class)
+   is
+      Repoid            : CORBA.String;
+      Most_Derived_Type : Constant_Ref_Ptr;
    begin
-      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Ref) : entering ...")) ;
-      Finalize(To) ;
-      To.Omniobj := From.Omniobj ;
-      To.Dynamic_Type := From.Dynamic_Type ;
-      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Ref) : adjusting ...")) ;
-      Adjust(To) ;
-      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Ref) : exiting ... OK")) ;
-   end ;
+      --  Get the omniobject
+      To.Omniobj := OmniObject.String_To_Object (From);
 
+      --  If the result is correct
+      if To.Omniobj /= null then
 
-   -- Internal_Copy
-   ----------------
-   procedure Internal_Copy(From : in Omniobject.Implemented_Object'Class ;
-                           Dyn_Type : in Constant_Ref_Ptr ;
-                           To : in out Ref'Class) is
+         --  Just print a message to tell if the C++ object is a proxy or a
+         --  local object
+
+         if  Omniobject.Is_Proxy (To.Omniobj.all) then
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.Object.String_To_Object :" &
+                       " creating Ref with local object inside"));
+            null;
+         else
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.Object.String_To_Object :" &
+                       " creating Ref with local object inside"));
+            null;
+         end if;
+
+         --  Check if the omniobject we got can be put into To (type
+         --  implied the repoId)
+         Repoid := OmniObject.Get_Repository_Id (To.Omniobj.all);
+
+         pragma Debug
+           (Output (Debug,
+                    "CORBA.Object.String_To_Object : repoid = "
+                    & CORBA.To_Standard_String(RepoId)));
+
+         Most_Derived_Type :=
+           Get_Dynamic_Type_From_Repository_Id (Repoid);
+
+         --  Dyn_type is now an object of the most derived type of the new
+         --  created object
+
+         if Is_A (Most_Derived_Type.all, Get_Repository_Id (To)) then
+            To.Dynamic_Type := Most_Derived_Type;
+            return;
+         end if;
+      end if;
+
+      --  Otherwise, the operation is illegal return Nil_Ref in the right
+      --  class
+
+      To.Omniobj      := null;
+      To.Dynamic_Type := null;
+   end String_To_Object;
+
+   ----------------------
+   -- Get_Dynamic_Type --
+   ----------------------
+
+   function Get_Dynamic_Type
+     (Self: in Ref)
+      return Ref'Class is
    begin
-      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Impl) : entering ...")) ;
-      Finalize(To) ;
-      To.Omniobj := Omniobject.Get_Object_Ptr(From) ;
-      To.Dynamic_Type := Dyn_Type ;
-      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Impl) : adjusting ...")) ;
-      Adjust(To) ;
-      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy(Impl) : exiting ... OK")) ;
-   end ;
+      if Is_Nil (Self) then
+         Ada.Exceptions.Raise_Exception
+           (Constraint_Error'Identity,
+            "Get_Dynamic_Type should not be called on a nil reference" &
+            CORBA.CRLF &
+            "Use Is_nil first to check your object is not a nil reference");
+      else
+         return Self.Dynamic_Type.all;
+      end if;
+   end Get_Dynamic_Type;
 
-
-   --------------------------------------------------
-   ---   registering new interfaces into the ORB  ---
-   --------------------------------------------------
-
-
-    -- C_Create_Proxy_Object_Factory
-   ---------------------------------
-   procedure C_Create_Proxy_Object_Factory(RepoID : in Interfaces.C.Strings.Chars_ptr) ;
-   pragma Import (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCc") ;
-   -- corresponds to
-   -- void createProxyObjectFactory(const char* repoID)
-   -- see proxyObjectFactory_C2Ada.hh
-
-
-   -- Create_Proxy_Object_Factory
-   ------------------------------
-   procedure Create_Proxy_Object_Factory(RepoID : in Corba.String) is
-      C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
-      Tmp : Standard.String := Corba.To_Standard_String(RepoId) ;
-   begin
-      C_Repoid := Interfaces.C.Strings.New_String(Tmp) ;
-      -- never deallocated because it is stored in a global
-      -- variable in omniORB (proxyStubs)
-      C_Create_Proxy_Object_Factory(C_RepoId) ;
-   end ;
-
-
-   --------------------------------------------------
-   ---       Marshalling operators                ---
-   --------------------------------------------------
-
-
-   -- Create_Ref
-   -------------
-   procedure Create_Ref(Most_Derived_Repoid : in Corba.String ;
-                        Profiles : in Iop.Tagged_Profile_List ;
-                        Release : in Corba.Boolean ;
-                        To : in out Ref'Class ) is
-      Most_Derived_Type : Constant_Ref_Ptr ;
-   begin
-      -- check if the omniobject we got can be put into
-      -- To (type implied the repoId)
-      Most_Derived_Type :=
-        Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
-      -- most_derived_type is now an object of the most derived type
-      -- of the new created object
-      if Is_A(Most_Derived_Type.all, Get_Repository_Id(To)) then
-
-         -- Get the omniobject
-         To.Omniobj := Omniobject.Create_Omniobject(Most_Derived_Repoid,
-                                                    Profiles,
-                                                    Release) ;
-         -- if the result is correct
-         if not (To.Omniobj = null) then
-            To.Dynamic_Type := --Pd_List.
-              Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
-            return ;
-         end if ;
-      end if ;
-
-      -- otherwise, the operation is illegal return Nil_Ref
-      -- in the right class
-      pragma Debug(Output(Debug,"Corba.Object.Create_Ref : cannot put a "
-                          & Corba.To_Standard_String(Most_Derived_Repoid)
-                          & "In a "
-                          &  Corba.To_Standard_String(Get_Repository_Id(To)))) ;
-      To.Omniobj := null ;
-      To.Dynamic_Type := null ;
-
-   end ;
-
-
-   -- Get_Profile_List
    -------------------
-   function Get_Profile_List (Obj : in Ref'Class)
-                              return Iop.Tagged_Profile_List is
+   -- Internal_Copy --
+   -------------------
+
+   procedure Internal_Copy
+     (From : in Ref'Class;
+      To   : in out Ref'Class) is
    begin
-      return Omniobject.Get_Profile_List (Obj.Omniobj.all) ;
-      -- calls the corresponding function on the underlying omniobject
-   end ;
+      pragma Debug
+        (Output (Debug, "CORBA.Object.Internal_Copy(Ref) : entering ..."));
 
+      Finalize (To);
+      To.Omniobj      := From.Omniobj;
+      To.Dynamic_Type := From.Dynamic_Type;
 
-   -- Align_Size
-   -------------
-   function Align_Size (Obj : in Ref'Class ;
-                        Initial_Offset : in Corba.Unsigned_Long)
-                        return Corba.Unsigned_Long is
+      pragma Debug
+        (Output (Debug, "CORBA.Object.Internal_Copy(Ref) : adjusting ..."));
+
+      Adjust(To);
+
+      pragma Debug
+        (Output (Debug,"CORBA.Object.Internal_Copy(Ref) : exiting ... OK"));
+   end Internal_Copy;
+
+   -------------------
+   -- Internal_Copy --
+   -------------------
+
+   procedure Internal_Copy
+     (From     : in OmniObject.Implemented_Object'Class;
+      Dyn_Type : in Constant_Ref_Ptr;
+      To       : in out Ref'Class)
+   is
    begin
-      -- calls the corresponding function on the underlying omniobject
-      return Omniobject.Align_Size (Obj.Omniobj, Initial_Offset) ;
-   end ;
+      pragma Debug
+        (Output (Debug, "CORBA.Object.Internal_Copy(Impl) : entering ..."));
 
+      Finalize (To);
+      To.Omniobj      := OmniObject.Get_Object_Ptr (From);
+      To.Dynamic_Type := Dyn_Type;
 
-   -- Marshall
-   -----------
-   procedure Marshall (Obj : in Ref'Class ;
-                       S : in out NetBufferedStream.Object'Class) is
+      pragma Debug
+        (Output (Debug, "CORBA.Object.Internal_Copy(Impl) : adjusting ..."));
+
+      Adjust (To);
+
+      pragma Debug
+        (Output (Debug, "CORBA.Object.Internal_Copy(Impl) : exiting ... OK"));
+   end Internal_Copy;
+
+   ---------------------------------------------
+   -- registering new interfaces into the ORB --
+   ---------------------------------------------
+
+   -----------------------------------
+   -- C_Create_Proxy_Object_Factory --
+   -----------------------------------
+
+   procedure C_Create_Proxy_Object_Factory
+     (Repoid : in Interfaces.C.Strings.Chars_ptr);
+   pragma Import
+     (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCc");
+   --  Corresponds to void createProxyObjectFactory(const char* repoID) see
+   --  proxyObjectFactory_C2Ada.hh
+
+   ---------------------------------
+   -- Create_Proxy_Object_Factory --
+   ---------------------------------
+
+   procedure Create_Proxy_Object_Factory
+     (Repoid : in CORBA.String)
+   is
+      C_Repoid : Interfaces.C.Strings.Chars_Ptr;
+      Tmp      : Standard.String := CORBA.To_Standard_String (RepoId);
    begin
-      -- calls the corresponding function on the underlying omniobject
-      Omniobject.Marshall (Obj.Omniobj,S) ;
-   end ;
+      C_Repoid := Interfaces.C.Strings.New_String (Tmp);
 
+      --  Never deallocated because it is stored in a global variable in
+      --  omniORB (proxyStubs)
+      C_Create_Proxy_Object_Factory (C_Repoid);
+   end Create_Proxy_Object_Factory;
 
-   -- Marshall
-   -----------
-   procedure Marshall (Obj : in Ref'Class ;
-                       S : in out MemBufferedStream.Object'Class) is
+   ---------------------------
+   -- Marshalling operators --
+   ---------------------------
+
+   ----------------
+   -- Create_Ref --
+   ----------------
+
+   procedure Create_Ref
+     (Most_Derived_Repoid : in CORBA.String;
+      Profiles            : in IOP.Tagged_Profile_List;
+      Release             : in CORBA.Boolean;
+      To                  : in out Ref'Class )
+   is
+      Most_Derived_Type : Constant_Ref_Ptr;
    begin
-      -- calls the corresponding function on the underlying omniobject
-      Omniobject.Marshall (Obj.Omniobj,S) ;
-   end ;
+      --  Check if the omniobject we got can be put into To (type implied
+      --  the Repoid)
 
+      Most_Derived_Type :=
+        Get_Dynamic_Type_From_Repository_Id (Most_Derived_Repoid);
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (Obj : out Ref'Class ;
-                         S : in out NetBufferedStream.Object'Class) is
-      Repo_ID : Corba.String ;
-      Iop_List : Iop.Tagged_Profile_List ;
-      Tmp : Ref'Class := Corba.Object.Nil_Ref ;
+      --  Most_Derived_Type is now an object of the most derived type of
+      --  the new created object
+
+      if Is_A (Most_Derived_Type.all, Get_Repository_Id (To)) then
+
+         --  Get the OmniObject
+         To.Omniobj := OmniObject.Create_Omniobject
+           (Most_Derived_Repoid,
+            Profiles,
+            Release);
+
+         --  If the result is correct
+         if To.Omniobj /= null then
+            To.Dynamic_Type :=
+              Get_Dynamic_Type_From_Repository_Id (Most_Derived_Repoid);
+            return;
+         end if;
+      end if;
+
+      --  The operation is illegal return Nil_Ref in the right class
+      pragma Debug
+        (Output (Debug,
+                 "CORBA.Object.Create_Ref : cannot put a " &
+                 CORBA.To_Standard_String (Most_Derived_Repoid) &
+                 "In a " & CORBA.To_Standard_String (Get_Repository_Id (To))));
+      To.Omniobj      := null;
+      To.Dynamic_Type := null;
+   end;
+
+   ----------------------
+   -- Get_Profile_List --
+   ----------------------
+
+   function Get_Profile_List
+     (Obj : in Ref'Class)
+      return IOP.Tagged_Profile_List
+   is
    begin
-      pragma Debug(Output(Debug,"Corba.Object.Unmarshall : unmarshalling "
-                          & To_Standard_String(Get_Repository_Id(Obj)))) ;
-      -- first unmarshall the Repo_Id
-      NetBufferedStream.UnMarshall (Repo_ID,S) ;
-      pragma Debug(Output(Debug,"Corba.Object.Unmarshall : found "
-                          & To_Standard_String(Repo_ID))) ;
-      -- then the profile list
-      Iop.UnMarshall (Iop_List,S) ;
-      pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Iop_List unmarshalled")) ;
-      -- and at last create the object reference to be returned
-      if (Iop.Length(Iop_List) = Corba.Unsigned_Long (0))
-        and (Corba.Length (Repo_ID) = Corba.Unsigned_Long (0)) then
-         -- either a nil object reference
-         Obj := Tmp ;
-         pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Nil Ref created")) ;
+      return Omniobject.Get_Profile_List (Obj.Omniobj.all);
+      --  Calls the corresponding function on the underlying omniobject
+   end Get_Profile_List;
+
+   ----------------
+   -- Align_Size --
+   ----------------
+
+   function Align_Size
+     (Obj            : in Ref'Class;
+      Initial_Offset : in CORBA.Unsigned_Long)
+      return CORBA.Unsigned_Long
+   is
+   begin
+      --  Calls the corresponding function on the underlying omniobject
+      return OmniObject.Align_Size (Obj.Omniobj, Initial_Offset);
+   end Align_Size;
+
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Obj : in Ref'Class;
+      S   : in out NetBufferedStream.Object'Class) is
+   begin
+      --  Calls the corresponding function on the underlying omniobject
+      OmniObject.Marshall (Obj.Omniobj, S);
+   end;
+
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Obj : in Ref'Class;
+      S   : in out MemBufferedStream.Object'Class)
+   is
+   begin
+      --  Calls the corresponding function on the underlying omniobject
+      OmniObject.Marshall (Obj.Omniobj,S);
+   end Marshall;
+
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (Obj : out Ref'Class;
+      S   : in out NetBufferedStream.Object'Class)
+   is
+      Repoid : CORBA.String;
+      List   : IOP.Tagged_Profile_List;
+      Tmp    : Ref'Class := CORBA.Object.Nil_Ref;
+   begin
+      pragma Debug
+        (Output (Debug,
+                 "CORBA.Object.Unmarshall : unmarshalling " &
+                 To_Standard_String (Get_Repository_Id (Obj))));
+
+      --  First unmarshall the Repoid
+      NetBufferedStream.Unmarshall (Repoid, S);
+
+      pragma Debug
+        (Output (Debug,
+                 "CORBA.Object.Unmarshall : found " &
+                 To_Standard_String (Repoid)));
+
+      --  Then the profile list
+      IOP.Unmarshall (List, S);
+      pragma Debug
+        (Output (Debug,
+                 "CORBA.Object.Unmarshall : IOP_List unmarshalled"));
+
+      --  And at last create the object reference to be returned
+      if IOP.Length (List) = CORBA.Unsigned_Long (0)
+        and then CORBA.Length (Repoid) = CORBA.Unsigned_Long (0)
+      then
+         pragma Debug (Output (Debug,
+                               "CORBA.Object.Unmarshall : Nil Ref created"));
+
+         --  Either a nil object reference
+         Obj := Tmp;
       else
-         -- or a real object reference
-         pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Creating Ref")) ;
-         Corba.Object.Create_Ref (Repo_ID,Iop_List,True,Obj) ;
-         pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Ref created")) ;
-         if Is_Nil(Obj) then
-            pragma Debug(Output(Debug,"Corba.Object.Unmarshall : WARNING : Created Nil Ref")) ;
-            null ;
-         end if ;
-      end if ;
-   end ;
+         pragma Debug (Output (Debug,
+                               "CORBA.Object.Unmarshall : Creating Ref"));
 
+         --  Or a real object reference
+         CORBA.Object.Create_Ref (Repoid, List, True, Obj);
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (Obj : out Ref'Class ;
-                         S : in out MemBufferedStream.Object'Class) is
-      Repo_ID : Corba.String ;
-      Iop_List : Iop.Tagged_Profile_List ;
-      Tmp : Ref'Class := Corba.Object.Nil_Ref ;
+         pragma Debug (Output (Debug,
+                               "CORBA.Object.Unmarshall : Ref created"));
+         if Is_Nil (Obj) then
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.Object.Unmarshall : WARNING : Created Nil Ref"));
+            null;
+         end if;
+      end if;
+   end Unmarshall;
+
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (Obj : out Ref'Class;
+      S   : in out MemBufferedStream.Object'Class) is
+      Repoid : CORBA.String;
+      List   : IOP.Tagged_Profile_List;
+      Tmp    : Ref'Class := CORBA.Object.Nil_Ref;
    begin
-      -- first unmarshall the Repo_Id
-      MemBufferedStream.UnMarshall (Repo_ID,S) ;
-      -- then the profile list
-      Iop.UnMarshall (Iop_List,S) ;
-            -- and at last create the object reference to be returned
-      if Iop.Length(Iop_List) = Corba.Unsigned_Long (0)
-        and Corba.Length (Repo_ID) = Corba.Unsigned_Long (0) then
-         -- either a nil object reference
-         Obj := Tmp ;
+      --  First unmarshall the Repo_Id
+      MemBufferedStream.Unmarshall (Repoid, S);
+
+      --  Then the profile list
+      IOP.Unmarshall (List, S);
+
+      --  at last create the object reference to be returned
+      if IOP.Length (List) = CORBA.Unsigned_Long (0)
+        and then CORBA.Length (Repoid) = CORBA.Unsigned_Long (0)
+      then
+         --  a nil object reference
+         Obj := Tmp;
       else
-         -- or a real object reference
-         Corba.Object.Create_Ref (Repo_ID,Iop_List,True,Obj) ;
-      end if ;
-   end ;
+         --  a real object reference
+         CORBA.Object.Create_Ref (Repoid, List, True, Obj);
+      end if;
+   end Unmarshall;
 
+   ----------------
+   -- Initialize --
+   ----------------
 
-
-   --------------------------------------------------
-   ---          controlling functions             ---
-   --------------------------------------------------
-
-   -- Initialize
-   -------------
-   procedure Initialize(Self : in out Ref) is
+   procedure Initialize (Self : in out Ref) is
    begin
-      pragma Debug(Output(Debug_Fin,"Corba.Object.Initialize")) ;
-      Self.Omniobj := null ;
-      Self.Dynamic_Type := null ;
-   end ;
+      pragma Debug (Output (Debug, "CORBA.Object.Initialize"));
+      Self.Omniobj      := null;
+      Self.Dynamic_Type := null;
+   end Initialize;
 
-   -- Adjust
-   ---------
-   procedure Adjust (Self: in out Ref) is
-   begin
-      pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : entering ...")) ;
-      if not Is_Nil(Self) then
-         pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : not nil -> duplicating  ...")) ;
-         Self.Omniobj := Omniobject.Omniobject_Duplicate(Self.Omniobj) ;
-      end if ;
-      pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : exiting ... OK")) ;
-   end ;
+     ------------
+     -- Adjust --
+     ------------
 
+     procedure Adjust (Self : in out Ref) is
+     begin
+     pragma Debug (Output (Debug, "CORBA.Object.Adjust : entering ..."));
+     if not Is_Nil (Self) then
+        pragma Debug
+          (Output (Debug, "CORBA.Object.Adjust : not nil -> duplicating"));
 
-   -- Finalize
-   -----------
-   procedure Finalize (Self: in out Ref) is
-   begin
-      pragma Debug(Output(Debug_Fin,"Corba.Object.Finalize : start")) ;
-      if not Is_Nil(Self) then
-         pragma Debug(Output(Debug_Fin,"Corba.Object.Finalize : finalizing non nil Ref")) ;
-         Omniobject.Omniobject_Destructor(Self.Omniobj) ;
-         Self.Omniobj := null ;
-         Self.Dynamic_Type := null ;
-      else
-         pragma Debug(Output(Debug_Fin,"Corba.Object.Finalize : You tried to finalize nil ref !")) ;
-         null ;
-      end if ;
-      pragma Debug(Output(Debug_Fin,"Corba.Object.Finalize : done")) ;
-   end ;
+        Self.Omniobj := OmniObject.OmniObject_Duplicate(Self.Omniobj);
+     end if;
+     pragma Debug (Output( Debug,"CORBA.Object.Adjust : exiting ... OK"));
+     end Adjust;
 
+     --------------
+     -- Finalize --
+     --------------
 
+     procedure Finalize (Self: in out Ref) is
+     begin
+        pragma Debug (Output (Debug, "CORBA.Object.Finalize : start"));
 
+        if not Is_Nil (Self) then
+           pragma Debug
+             (Output (Debug,
+                      "CORBA.Object.Finalize : finalizing non nil Ref"));
+
+           OmniObject.OmniObject_Destructor (Self.Omniobj);
+
+           Self.Omniobj      := null;
+           Self.Dynamic_Type := null;
+        else
+           pragma Debug
+             (Output (Debug,
+                      "CORBA.Object.Finalize : cannot finalize nil ref"));
+           null;
+        end if;
+        pragma Debug (Output (Debug, "CORBA.Object.Finalize : done"));
+     end Finalize;
 
 begin
 
-   --Pd_List.
-   Register(Repository_Id, Nil_Ref'Access) ;
-   -- registers the fact that a new IDL interface : the root of all the others
-   -- can be used in the program
+   Register (Repository_Id, Nil_Ref'Access);
+   --  Registers the fact that a new IDL interface : the root of all the
+   --  others can be used in the program
 
-end Corba.Object ;
-
-
-
-
-
-
-
-
-
-
+end CORBA.Object;

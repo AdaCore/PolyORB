@@ -1,129 +1,111 @@
------------------------------------------------------------------------
------------------------------------------------------------------------
-----                                                               ----
-----                         AdaBroker                             ----
-----                                                               ----
-----                       package Corba                           ----
-----                                                               ----
-----                                                               ----
-----   Copyright (C) 1999 ENST                                     ----
-----                                                               ----
-----   This file is part of the AdaBroker library                  ----
-----                                                               ----
-----   The AdaBroker library is free software; you can             ----
-----   redistribute it and/or modify it under the terms of the     ----
-----   GNU Library General Public License as published by the      ----
-----   Free Software Foundation; either version 2 of the License,  ----
-----   or (at your option) any later version.                      ----
-----                                                               ----
-----   This library is distributed in the hope that it will be     ----
-----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
-----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
-----   PURPOSE.  See the GNU Library General Public License for    ----
-----   more details.                                               ----
-----                                                               ----
-----   You should have received a copy of the GNU Library General  ----
-----   Public License along with this library; if not, write to    ----
-----   the Free Software Foundation, Inc., 59 Temple Place -       ----
-----   Suite 330, Boston, MA 02111-1307, USA                       ----
-----                                                               ----
-----                                                               ----
-----                                                               ----
-----   Description                                                 ----
-----   -----------                                                 ----
-----                                                               ----
-----     This package deffines all general types and associated    ----
-----   functions used in AdaBroker.                                ----
-----     The first part is the definition of corba types out of    ----
-----   Ada ones. Pointers on these types are also defined as well  ----
-----   as the associated free functions.                           ----
-----     Then, the corba exception type is defined and all corba   ----
-----   system exceptions.                                          ----
-----     At last, some OmniOrb or AdaBroker specific exceptions    ----
-----   and functions are defined.                                  ----
-----                                                               ----
-----                                                               ----
-----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/28/99                                          ----
-----                                                               ----
------------------------------------------------------------------------
------------------------------------------------------------------------
+with CORBA.Exceptions;
 
+with Adabroker_Debug;
+use  Adabroker_Debug;
+pragma Elaborate (Adabroker_Debug);
 
-with Corba.Exceptions ;
+package body CORBA is
 
-with Text_Io ; use Text_Io ;
-with Adabroker_Debug ; use Adabroker_Debug ;
+   Debug : constant Boolean := Adabroker_Debug.Is_Active ("corba");
 
-package body Corba is
-
-   -----------------------------------------------------------
-   ----           Exceptions in spec                       ---
-   -----------------------------------------------------------
-
-   -- GetMembers
-   -------------
-   procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
-                          To : out Ex_Body) is
-   begin
-      -- calls the correponding procedure in Corba.Exception
-      pragma Debug(Output(Corba_debug,"corba.get_members begin")) ;
-      Corba.Exceptions.Get_Members (From,To) ;
-      pragma Debug(Output(Corba_debug,"corba.get_members end")) ;
-   end ;
-
-
-   -- Raise_Corba_Exception
    ------------------------
-   procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
-                                   Excp_Memb: in Idl_Exception_Members'Class) is
+   -- Exceptions in spec --
+   ------------------------
+
+   ----------------
+   -- GetMembers --
+   ----------------
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out Ex_Body)
+   is
    begin
-      -- calls the correponding procedure in Corba.Exception
-      Corba.Exceptions.Raise_Corba_Exception(Excp, Excp_Memb) ;
-   end ;
+      --  Calls the correponding procedure in CORBA.Exception
+      pragma Debug (Output (Debug, "corba.get_members enter"));
+      CORBA.Exceptions.Get_Members (From, To);
+      pragma Debug (Output (Debug, "corba.get_members leave"));
+   end Get_Members;
 
+   ---------------------------
+   -- Raise_CORBA_Exception --
+   ---------------------------
 
-   -----------------------------------------------------------
-   ----        not in spec, AdaBroker specific             ---
-   -----------------------------------------------------------
+   procedure Raise_CORBA_Exception
+     (Excp      : in Ada.Exceptions.Exception_Id;
+      Excp_Memb : in IDL_Exception_Members'Class)
+   is
+   begin
+      --  Calls the correponding procedure in CORBA.Exception
+      CORBA.Exceptions.Raise_CORBA_Exception (Excp, Excp_Memb);
+   end Raise_CORBA_Exception;
 
-   -- To_Corba_String
-   ------------------
-    function To_Corba_String(S: in Standard.String) return Corba.String is
-    begin
-       return Corba.String(Ada.Strings.Unbounded.To_Unbounded_String(S)) ;
-    end ;
+   ------------------------
+   -- AdaBroker specific --
+   ------------------------
 
+   ---------------------
+   -- To_CORBA_String --
+   ---------------------
 
-    -- To_Standard_String
-    ---------------------
-    function To_Standard_String(S: in Corba.String) return Standard.String is
-    begin
-       return Ada.Strings.Unbounded.To_String(Ada.Strings.Unbounded.Unbounded_String(S)) ;
-    end;
+   function To_CORBA_String
+     (S : in Standard.String)
+      return CORBA.String is
+   begin
+      return CORBA.String (Ada.Strings.Unbounded.To_Unbounded_String (S));
+   end To_CORBA_String;
 
+   ------------------------
+   -- To_Standard_String --
+   ------------------------
 
-    -- To_Corba_String
-    ------------------
-    function To_Corba_String(S: in Constants.Exception_Id) return Corba.String is
-    begin
-       return Corba.String(Ada.Strings.Unbounded.To_Unbounded_String(Standard.String(S))) ;
-    end ;
+   function To_Standard_String
+     (S : in CORBA.String)
+      return Standard.String
+   is
+   begin
+      return Ada.Strings.Unbounded.To_String
+        (Ada.Strings.Unbounded.Unbounded_String (S));
+   end To_Standard_String;
 
-    -- To_Exception_Id
-    ------------------
-    function To_Exception_Id(S: in Corba.String) return Constants.Exception_Id is
-    begin
-       return Constants.Exception_Id(To_Standard_String(S)) ;
-    end ;
+   ---------------------
+   -- To_CORBA_String --
+   ---------------------
 
+   function To_CORBA_String
+     (S : in Constants.Exception_Id)
+      return CORBA.String
+   is
+   begin
+      return CORBA.String
+        (Ada.Strings.Unbounded.To_Unbounded_String
+         (Standard.String (S)));
+   end To_CORBA_String;
 
-    -- Length
-    ---------
-    function Length(Str : in Corba.String) return Corba.Unsigned_Long is
-    begin
-       return Corba.Unsigned_Long(Ada.Strings.Unbounded.
-                                  Length(Ada.Strings.Unbounded.Unbounded_String(Str))) ;
-    end ;
+   ---------------------
+   -- To_Exception_Id --
+   ---------------------
 
-end Corba ;
+   function To_Exception_Id
+     (S : in CORBA.String)
+      return Constants.Exception_Id
+   is
+   begin
+      return Constants.Exception_Id (To_Standard_String (S));
+   end To_Exception_Id;
+
+   ------------
+   -- Length --
+   ------------
+
+   function Length
+     (S : in CORBA.String)
+      return CORBA.Unsigned_Long
+   is
+   begin
+      return CORBA.Unsigned_Long
+        (Ada.Strings.Unbounded.Length
+         (Ada.Strings.Unbounded.Unbounded_String (S)));
+   end Length;
+
+end CORBA;

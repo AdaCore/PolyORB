@@ -59,6 +59,8 @@ with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body Corba.Exceptions is
 
+   Debug : constant Boolean := Adabroker_Debug.Is_Active("corba-exceptions") ;
+
    type ID_Num is mod 65000 ;
    ID_Number : ID_Num := 0;
    -- Number of exceptions raised until now
@@ -110,7 +112,9 @@ package body Corba.Exceptions is
                      ID_V : in Standard.String) is
          Temp : Cell_Ptr ;
       begin
-         pragma Debug(Output(Corba_Exceptions_Debug,"corba-exception put, member type : " & Ada.Tags.External_Tag(V'Tag)));
+         pragma Debug
+           (Output (Debug, "corba-exception put, member type : " &
+                    Ada.Tags.External_Tag (V'Tag)));
          -- makes a new cell ...
          Temp := new Cell'(N => ID_V'Length,
                            Value => new Idl_Exception_Members'Class'(V),
@@ -134,23 +138,28 @@ package body Corba.Exceptions is
          if Temp = null
          then
             -- raise an Ada Exception AdaBroker_Fatal_Error
-            pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get temp = null ****")) ;
-            Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity,
-                                            "Corba.exceptions.Get (Standard.String)"
-                                            & Corba.CRLF
-                                            & "Member associated to exception "
-                                            & Ada.Exceptions.Exception_Name (From)
-                                            & " not found.") ;
+            pragma Debug
+              (Output (Debug, "corba.exceptions.get temp = null ****")) ;
+            Ada.Exceptions.Raise_Exception
+              (AdaBroker_Fatal_Error'Identity,
+               "Corba.exceptions.Get (Standard.String)" & Corba.CRLF &
+               "Member associated to exception " &
+               Ada.Exceptions.Exception_Name (From) &
+               " not found.") ;
          else
             loop
-               pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get another loop")) ;
+               pragma Debug
+                 (Output (Debug, "corba.exceptions.get another loop")) ;
+
                if Temp.all.ID = ID
                then
                   declare
                      -- we found the member associated to From
                      Member : Idl_Exception_Members'Class := Temp.all.Value.all ;
                   begin
-                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get found the right member")) ;
+                     pragma Debug
+                       (Output (Debug,
+                                "corba.exceptions.get found the right member")) ;
                      -- we can suppress the correponding cell
                      if Old_Temp = null
                      then
@@ -161,16 +170,16 @@ package body Corba.Exceptions is
                         Old_Temp.all.Next := Temp.all.Next ;
                      end if ;
                      -- and free the memory
-                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get frees temp.all.value")) ;
+                     pragma Debug(Output(Debug,"corba.exceptions.get frees temp.all.value")) ;
                      Free (Temp.all.Value) ;
-                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get frees temp")) ;
+                     pragma Debug(Output(Debug,"corba.exceptions.get frees temp")) ;
                      Free (Temp) ;
-                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get frees completed")) ;
-                     pragma Debug(Output(Corba_Exceptions_Debug,"result type : " & Ada.Tags.External_Tag(Result'Tag))) ;
-                     pragma Debug(Output(Corba_Exceptions_Debug,"member type : " & Ada.Tags.External_Tag(Member'Tag))) ;
+                     pragma Debug(Output(Debug,"corba.exceptions.get frees completed")) ;
+                     pragma Debug(Output(Debug,"result type : " & Ada.Tags.External_Tag(Result'Tag))) ;
+                     pragma Debug(Output(Debug,"member type : " & Ada.Tags.External_Tag(Member'Tag))) ;
                      -- at last, return the result
                      Result := Member ;
-                     pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get goes out")) ;
+                     pragma Debug(Output(Debug,"corba.exceptions.get goes out")) ;
                      return ;
                   end ;
                else
@@ -178,7 +187,7 @@ package body Corba.Exceptions is
                   if Temp.all.Next = null
                   then
                   -- raise an Ada Exception AdaBroker_Fatal_Error
-                  pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get member not found ****")) ;
+                  pragma Debug(Output(Debug,"corba.exceptions.get member not found ****")) ;
                   Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity,
                                                   "Corba.exceptions.Get (Standard.String)"
                                                   & Corba.CRLF
@@ -202,10 +211,10 @@ package body Corba.Exceptions is
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
                           To : out Idl_Exception_Members'Class) is
    begin
-      pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get_member calls get")) ;
+      pragma Debug(Output(Debug,"corba.exceptions.get_member calls get")) ;
 --      Member_List.
       Get (From, To) ;
-      pragma Debug(Output(Corba_Exceptions_Debug,"corba.exceptions.get_member goes out")) ;
+      pragma Debug(Output(Debug,"corba.exceptions.get_member goes out")) ;
    end ;
 
 

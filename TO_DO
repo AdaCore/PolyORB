@@ -1,9 +1,13 @@
 Here are the main points to fit in the AdaBroker project in
 order of increasing importance (in terms of work) :
 
+- Installation : compute automatically constants (constants.ads) and
+  change its name.
+
+- Installation : create an unit to include linker options automatically.
+
 - omniowproxycalldesc are not used, we always use omniproxycalldesc.
   The generated code compiles with warnings. But it works !
-
 
 - The naming service example does not use contexts.
   It could be interessant to add them. You will maybe
