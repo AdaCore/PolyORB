@@ -8,8 +8,6 @@ pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Marshalling is
 
-   use type CORBA.Octet;
-
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.marshalling");
    procedure O is new Broca.Debug.Output (Flag);
 
@@ -182,7 +180,7 @@ package body Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Octet) is
    begin
-      Res := Stream.Buffer (Stream.Pos);
+      Res := CORBA.Octet (Stream.Buffer (Stream.Pos));
       Stream.Pos := Stream.Pos + 1;
    end Unmarshall;
 
@@ -491,7 +489,7 @@ package body Broca.Marshalling is
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Octet) is
    begin
-      Stream.Buffer (Stream.Pos) := Val;
+      Stream.Buffer (Stream.Pos) := Element (Val);
       Stream.Pos := Stream.Pos + 1;
    end Marshall;
 
@@ -564,16 +562,17 @@ package body Broca.Marshalling is
    end Marshall;
 
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.String) is
-      use Ada.Strings.Unbounded;
+     (Stream : in out Buffer_Descriptor; Val : CORBA.String)
+   is
+      package U renames Ada.Strings.Unbounded;
       Val_Length : Natural;
    begin
-      Val_Length := Length (Unbounded_String (Val));
+      Val_Length := U.Length (U.Unbounded_String (Val));
       Marshall (Stream, CORBA.Unsigned_Long (Val_Length + 1));
       for I in 0 .. Val_Length - 1 loop
          --  Low bound is 1.
          Stream.Buffer (Stream.Pos + Buffer_Index_Type (I)) :=
-           Character'Pos (Element (Unbounded_String (Val), 1 + I));
+           Character'Pos (U.Element (U.Unbounded_String (Val), 1 + I));
       end loop;
       Stream.Buffer (Stream.Pos + Buffer_Index_Type (Val_Length)) := 0;
 

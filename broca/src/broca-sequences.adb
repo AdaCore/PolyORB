@@ -32,7 +32,7 @@ package body Broca.Sequences is
       for I in 0 .. Length - 1 loop
          --  Low bound is 1.
          Stream.Buffer (Stream.Pos + Buffer_Index_Type (I)) :=
-           CORBA.Octet (IDL_SEQUENCE_Octet.Element_Of (Seq_Octet, 1 + I));
+           Types.Element (IDL_SEQUENCE_Octet.Element_Of (Seq_Octet, 1 + I));
       end loop;
       Stream.Pos := Stream.Pos + Buffer_Index_Type (Length);
    end Marshall;
