@@ -1662,7 +1662,7 @@ begin
        Conflicts => Empty,
        Depends   => +"orb"
        & "poa_config.racws?"   --  XXX see note in the header concerning OAs
-       & "object_adapter"
+       & "object_adapter?"
        & "naming.Helper"
        & "naming.NamingContext.Helper"
        & "tasking.mutexes"

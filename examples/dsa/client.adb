@@ -47,7 +47,6 @@ with System.RPC;
 pragma Warnings (Off);
 with PolyORB.ORB.No_Tasking;
 with PolyORB.ORB;
-with PolyORB.Setup;
 with PolyORB.Setup.Client;
 pragma Warnings (On);
 
