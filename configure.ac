@@ -602,3 +602,5 @@ do
 done
 rm -f support/native-adacompiler
 ln -f support/adacompiler support/native-adacompiler
+rm -f support/native-linker
+ln -f support/linker support/native-linker
