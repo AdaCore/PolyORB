@@ -57,7 +57,7 @@ with PolyORB.POA.Basic_POA; use PolyORB.POA.Basic_POA;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Setup.Test; use PolyORB.Setup.Test;
-
+with PolyORB.Types;
 with PolyORB.POA_Config;
 with PolyORB.POA_Config.Minimum;
 with PolyORB.POA_Manager;
@@ -91,20 +91,23 @@ package body PolyORB.Setup.Test_CORBA is
           (POA.Obj_Adapter (Obj_Adapter.all).POA_Manager)));
 
       declare
-         My_Id : constant Objects.Object_Id_Access
-           := new Objects.Object_Id'
-           (PolyORB.Obj_Adapters.Export
-            (PolyORB.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter),
-             PolyORB.Objects.Servant_Access (My_Servant)));
-         --  XXX memory leak
+         My_Id : aliased Objects.Object_Id
+           := PolyORB.Obj_Adapters.Export
+           (PolyORB.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter),
+            PolyORB.Objects.Servant_Access (My_Servant));
          --  Register it with the SOA.
 
       begin
-         Create_Reference (The_ORB, My_Id, "IDL:Echo:1.0", My_Ref);
+         Put_Line ("Registered object: " & PolyORB.Objects.Image (My_Id));
+         Create_Reference
+           (The_ORB, My_Id'Access, "IDL:Echo:1.0", My_Ref);
          --  Obtain object reference.
 
-         Put_Line ("Registered object: " & PolyORB.Objects.Image (My_Id.all));
          Put_Line ("Reference is     : " & References.Image (My_Ref));
+         Put_Line ("URI is           : "
+                   & PolyORB.Types.To_Standard_String
+                   (PolyORB.POA_Types.Oid_To_Rel_URI
+                    (Obj_Adapter, My_Id)));
          begin
             Put_Line ("IOR is           : "
                       & CORBA.To_Standard_String

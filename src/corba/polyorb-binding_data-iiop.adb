@@ -42,10 +42,7 @@ with PolyORB.Protocols;
 with PolyORB.Representations.CDR;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
-with PolyORB.Sockets;
-with PolyORB.Objects;
 with PolyORB.References.IOR;
-with PolyORB.Types;
 
 with Sequences.Unbounded;
 
