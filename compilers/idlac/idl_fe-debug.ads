@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,27 +26,27 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This is a debugging package for AdaBroker.
+--  This is a debugging package for IDL-Ada Compiler.
 --
---  with Adabroker.Debug;
---  pragma Elaborate(Adabroker.Debug);
+--  with Idl_Fe.Debug;
+--  pragma Elaborate(Idl_Fe.Debug);
 --
---  Flag : constant Natural := Adabroker.Debug.Is_Active ("specific_name");
---  procedure O is new AdaBroker.Debug.Output (Flag);
+--  Flag : constant Natural := Idl_Fe.Debug.Is_Active ("specific_name");
+--  procedure O is new Idl_Fe.Debug.Output (Flag);
 --
 --  and then :
 --
 --  pragma Debug (O ("debugging info"));
 --
---  The output will be done if "adabroker.deb" file contains
+--  The output will be done if "idl_fe.opt" file contains
 --  a line with "specific_name"
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-debug.ads#2 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-debug.ads#3 $
 
 package Idl_Fe.Debug is
 
