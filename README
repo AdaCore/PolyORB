@@ -11,15 +11,17 @@ Installation :
   you use another version of omniORB, update the config.mk file in
   AdaBroker/config)
 
-- run 'make export'. It will compile the AdaBroker libraries and
+- run 'make export'. It will produce AdaBroker libraries and
   adabroker executable. The installation procedure is similar to
   omniORB installation procedure. For instance, adabroker executable
   is installed in omniORB_2.7.1/bin/<platform>. Same thing for
-  libraries and ali files (installed in omniORB_2.7.1/lib/<platform>.
+  libraries and ali files which are installed in
+  omniORB_2.7.1/lib/<platform>.
 
-- go to AdaBroker/Examples and run 'make' to build examples.
+- go to AdaBroker/Examples directory and run 'make' to build examples.
 
-- note that AdaBroker works with EGCS only.
+- note that AdaBroker works with EGCS only because it deals with C++
+  exceptions in a MT environment.
 
 Usage :
 -------
@@ -41,6 +43,26 @@ Usage :
 
 - myinterface-stream.ads, myinterface-stream.adb : they contain
   subprograms to marshall types according to the GIOP protocol.
+
+
+Features :
+----------
+
+- Most of the CORBA features are implemented except dynamic invocation.
+  AdaBroker/Examples provides several examples of the available features.
+
+- This release has been successfully tested on Linux (RedHat and Debian) and
+  Solaris.
+
+- Ada Tasking works on Solaris but not on Linux.
+
+- If you need to debug AdaBroker, you can create a file adabroker.deb in
+  your current directory. This file should contain lines with package
+  names you want to debug. For instance, corba.orb will enable debug
+  messages from package CORBA.ORB. If you want to debug C++ files, you
+  can set the environment variable TRACELEVEL to a given naturel depending
+  on how much detailed you want the output to be.
+
 
 Bug reports:
 ------------
