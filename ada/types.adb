@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
---     Copyright (C) 1992,1993,1994,1995 Free Software Foundation, Inc.     --
+--   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,6 +35,70 @@
 
 package body Types is
 
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      --  The following test deals with year 2000 problems. Consider any
+      --  date before 700101 to be in the next century.
+
+      if Left (1) in '7' .. '9' and then Right (1) in '0' .. '6' then
+         return True;
+
+      elsif Left (1) in '0' .. '6' and then Right (1) in '7' .. '9' then
+         return False;
+
+      --  If not year 2000 special case, then use standard string comparison.
+      --  Note that this has the right semantics for Empty_Time_Stamp.
+
+      else
+         return String (Left) < String (Right);
+      end if;
+   end "<";
+
+   ----------
+   -- "<=" --
+   ----------
+
+   function "<=" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      --  The following test deals with year 2000 problems. Consider any
+      --  date before 700101 to be in the next century.
+
+      if Left (1) in '7' .. '9' and then Right (1) in '0' .. '6' then
+         return True;
+
+      elsif Left (1) in '0' .. '6' and then Right (1) in '7' .. '9' then
+         return False;
+
+      --  If not year 2000 special case, then use standard string comparison.
+      --  Note that this has the right semantics for Empty_Time_Stamp.
+
+      else
+         return String (Left) <= String (Right);
+      end if;
+   end "<=";
+
+   ---------
+   -- ">" --
+   ---------
+
+   function ">" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      return not (Left <= Right);
+   end ">";
+
+   ----------
+   -- ">=" --
+   ----------
+
+   function ">=" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      return not (Left < Right);
+   end ">=";
+
    -------------------
    -- Get_Char_Code --
    -------------------
@@ -54,6 +118,26 @@ package body Types is
    begin
       return Character'Val (C);
    end Get_Character;
+
+   --------------------
+   -- Get_Hex_String --
+   --------------------
+
+   subtype Wordh is Word range 0 .. 15;
+   Hex : constant array (Wordh) of Character := "0123456789ABCDEF";
+
+   function Get_Hex_String (W : Word) return Word_Hex_String is
+      X  : Word := W;
+      WS : Word_Hex_String;
+
+   begin
+      for J in reverse 1 .. 8 loop
+         WS (J) := Hex (X mod 16);
+         X := X / 16;
+      end loop;
+
+      return WS;
+   end Get_Hex_String;
 
    ------------------------
    -- In_Character_Range --

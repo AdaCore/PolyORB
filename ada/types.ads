@@ -58,7 +58,6 @@ package Types is
    -------------------------------
 
    type Int is range -2 ** 31 .. +2 ** 31 - 1;
-
    --  Signed 32-bit integer
 
    subtype Nat is Int range 0 .. Int'Last;
@@ -67,6 +66,9 @@ package Types is
    subtype Pos is Int range 1 .. Int'Last;
    --  Positive Int values
 
+   type Word is mod 2 ** 32;
+   --  Unsigned 32-bit integer
+
    type Short is range -32768 .. +32767;
    for Short'Size use 16;
    --  16-bit signed integer
@@ -74,6 +76,9 @@ package Types is
    type Byte is mod 2 ** 8;
    for Byte'Size use 8;
    --  8-bit unsigned integer
+
+   type size_t is mod 2 ** Standard'Address_Size;
+   --  Memory size value, for use in calls to C routines
 
    --------------------------------------
    -- 8-Bit Character and String Types --
@@ -110,6 +115,13 @@ package Types is
 
    procedure Free is new Unchecked_Deallocation (String, String_Ptr);
    --  Procedure for freeing dynamically allocated String values
+
+   subtype Word_Hex_String is String (1 .. 8);
+   --  Type used to represent Word value as 8 hex digits, with upper case
+   --  letters for the alphabetic cases.
+
+   function Get_Hex_String (W : Word) return Word_Hex_String;
+   --  Convert word value to 8-character hex string
 
    -----------------------------------------
    -- Types Used for Text Buffer Handling --
@@ -545,23 +557,14 @@ package Types is
    No_Source_File : constant Source_File_Index := 0;
    --  Value used to indicate no source file present
 
-   type Lines_Table_Type is array (Nat range <>) of Source_Ptr;
+   type Lines_Table_Type is array (Pos) of Source_Ptr;
    --  Type used for lines table. The entries are indexed by physical line
    --  numbers. The values are the starting Source_Ptr values for the start
-   --  of the corresponding physical line.
+   --  of the corresponding physical line. Note that we make this a bogus
+   --  big array, sized as required, so that we avoid the use of fat pointers.
 
    type Lines_Table_Ptr is access all Lines_Table_Type;
    --  Type used for pointers to line tables
-
-   procedure Free_Lines is new Unchecked_Deallocation
-     (Lines_Table_Type, Lines_Table_Ptr);
-   --  Procedure for freeing dynamically allocated Lines_Tables
-
-   Time_Stamp_Length : constant := 12;
-   --  Length of time stamp value
-
-   subtype Time_Stamp_Type is String (1 .. Time_Stamp_Length);
-   --  Type used to represent time stamp (see body of Lib.Writ for details)
 
    subtype File_Name_Type is Name_Id;
    --  File names are stored in the names table and this synonym is used to
@@ -574,6 +577,49 @@ package Types is
    subtype Unit_Name_Type is Name_Id;
    --  Unit names are stored in the names table and this synonym is used to
    --  indicate that a Name_Id value is being used to hold a unit name.
+
+   -----------------------------------
+   -- Representation of Time Stamps --
+   -----------------------------------
+
+   --  All compiled units are marked with a time stamp which is derived from
+   --  the source file (we assume that the host system has the concept of a
+   --  file time stamp which is modified when a file is modified). These
+   --  time stamps are used to ensure consistency of the set of units that
+   --  constitutes a library. Time stamps are 12 character strings with
+   --  with the following format:
+
+   --     YYMMDDHHMMSS
+
+   --       YY     year (2 low order digits)
+   --       MM     month (2 digits 01-12)
+   --       DD     day (2 digits 01-31)
+   --       HH     hour (2 digits 00-23)
+   --       MM     minutes (2 digits 00-59)
+   --       SS     seconds (2 digits 00-59)
+
+   --  In the case of Unix systems (and other systems which keep the time in
+   --  GMT), the time stamp is the GMT time of the file, not the local time.
+   --  This solves problems in using libraries across networks with clients
+   --  spread across multiple time-zones.
+
+   Time_Stamp_Length : constant := 12;
+   --  Length of time stamp value
+
+   type Time_Stamp_Type is new String (1 .. Time_Stamp_Length);
+   --  Type used to represent time stamp
+
+   Empty_Time_Stamp : constant Time_Stamp_Type := (others => ' ');
+   --  Type used to represent an empty or missing time stamp.
+
+   function "<"  (Left, Right : Time_Stamp_Type) return Boolean;
+   function "<=" (Left, Right : Time_Stamp_Type) return Boolean;
+   function ">"  (Left, Right : Time_Stamp_Type) return Boolean;
+   function ">=" (Left, Right : Time_Stamp_Type) return Boolean;
+   --  These comparison functions compare dates where less than means earlier
+   --  than. We can't quite use straight string comparisons because of year
+   --  2000 problems with the two digit date. The Empty_Time_Stamp value
+   --  looks less than any non-empty time stamp to these comparison routines.
 
    -----------------------------------------------
    -- Types used for Pragma Suppress Management --

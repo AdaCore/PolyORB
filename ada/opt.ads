@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -111,12 +111,6 @@ package Opt is
    --  GNATMAKE
    --  Set to True to skip bind and link step.
 
-   Look_In_Primary_Dir : Boolean := True;
-   --  GNAT, GNATF, GNATBIND, GNATMAKE
-   --  Set to False if a -I- was present on the command line.
-   --  When True we are allowed to look in the primary directory to locate
-   --  other source or library files.
-
    type Distribution_Stub_Mode_Type is
    --  GNAT
      (No_Stubs,
@@ -184,6 +178,10 @@ package Opt is
    --  GNAT, GNATF
    --  True if compiling in GNAT system mode (-g switch set)
 
+   Horrible_Elab_Order : Boolean := False;
+   --  GNATBIND
+   --  True if horrible elaboration order is to be chosen (-h switch set)
+
    Identifier_Character_Set : Character;
    --  GNAT, GNATF
    --  This variable indicates the character set to be used for identifiers.
@@ -220,6 +218,12 @@ package Opt is
    --  for now is not to inline across module boundaries.
    --  Used by GNAT1, ignored by GNATF.
 
+   Inline_All : Boolean := False;
+   --  GNAT, GNATF
+   --  Set True to activate Inline processing across modules for all
+   --  subprograms, regardless of individual pragmas.
+   --  Used by GNAT1, ignored by GNATF.
+
    Keep_Going : Boolean := False;
    --  GNATMAKE
    --  When True signals gnatmake to ignore compilation errors and keep
@@ -234,6 +238,19 @@ package Opt is
    --  When True gnatmake verifies that the objects are up to date and
    --  outputs the list of object dependencies. This list can be used
    --  directly in a Makefile.
+
+   Locking_Policy : Character := ' ';
+   --  GNAT1, GNATF, GNATBIND
+   --  Set to ' ' for the default case (no locking policy specified). Reset to
+   --  first character (upper case) of locking policy name if a valid pragma
+   --  Locking_Policy is encountered. In the binder, this is set to a non-blank
+   --  value if any unit specifies a policy.
+
+   Look_In_Primary_Dir : Boolean := True;
+   --  GNAT, GNATF, GNATBIND, GNATMAKE
+   --  Set to False if a -I- was present on the command line.
+   --  When True we are allowed to look in the primary directory to locate
+   --  other source or library files.
 
    Maximum_Errors : Int := 9999;
    --  GNAT, GNATF, GNATBIND
@@ -270,11 +287,12 @@ package Opt is
    --  GNATBIND
    --  Set to True when the output C filename is given with option -o
 
-   Queuing_Policy : Character := 'F';
+   Queuing_Policy : Character := ' ';
    --  GNAT1, GNATF, GNATBIND
-   --  Set to 'F' for FIFO. Reset to 'P' if a pragma Queuing_Policy applies
-   --  that specifies Priority_Queuing as the queuing policy. In the binder,
-   --  set if any unit specified priority queuing.
+   --  Set to ' ' for the default case (no queuing policy specified). Reset to
+   --  Reset to first character (upper case) of locking policy name if a valid
+   --  Queuing_Policy pragma is encountered. In the binder, this is set to a
+   --  non-blank value if any unit specifies a policy.
 
    Quiet_Output : Boolean := False;
    --  GNATMAKE
@@ -329,6 +347,20 @@ package Opt is
    --  pragma Suppress at the outer level of each unit compiled. Note that
    --  these suppress actions can be overridden by the use of the Unsuppress
    --  pragma. This variable is initialized by Osint.Initialize.
+
+   Table_Factor : Int := 1;
+   --  Factor by which all initial table sizes set in Alloc are multiplied.
+   --  Used in Table to calculate initial table sizes (the initial table
+   --  size is the value in Alloc, used as the Table_Initial parameter
+   --  value, multiplied by the factor given here. The default value is
+   --  used if no -gnatT switch appears.
+
+   Task_Dispatching_Policy : Character := ' ';
+   --  GNAT1, GNATF, GNATBIND
+   --  Set to ' ' for the default case (no task dispatching policy specified).
+   --  Reset to first character (upper case) of task dispatching policy name
+   --  if a valid Task_Dispatching_Policy pragma is encountered. In the binder,
+   --  this is set to a non-blank value if any unit specifies a policy.
 
    Tasking_Used : Boolean := False;
    --  Set True if any tasking construct is encountered. Used to activate the

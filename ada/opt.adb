@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---     Copyright (C) 1992,1993,1994,1995 Free Software Foundation, Inc.     --
+--          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -62,6 +62,7 @@ package body Opt is
                       Distribution_Stub_Mode_Type'Object_Size / Storage_Unit);
       Tree_Read_Bool (Immediate_Errors);
       Tree_Read_Bool (Inline_Active);
+      Tree_Read_Bool (Inline_All);
       Tree_Read_Bool (List_Units);
       Tree_Read_Data (Operating_Mode'Address,
                       Operating_Mode_Type'Object_Size / Storage_Unit);
@@ -97,6 +98,7 @@ package body Opt is
                        Distribution_Stub_Mode_Type'Object_Size / Storage_Unit);
       Tree_Write_Bool (Immediate_Errors);
       Tree_Write_Bool (Inline_Active);
+      Tree_Write_Bool (Inline_All);
       Tree_Write_Bool (List_Units);
       Tree_Write_Data (Operating_Mode'Address,
                        Operating_Mode_Type'Object_Size / Storage_Unit);

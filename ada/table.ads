@@ -57,14 +57,16 @@ package Table is
 
    --    Table : array (Table_Low_Bound .. <>) of Table_Component_Type;
 
-   --  The Table_Initial and Table_Increment values control the allocation of
-   --  the table. When the table is first allocated, the Table_Initial value
-   --  controls the actual size of the allocated table. The Table_Increment
-   --  value is a percentage value used to determine the increase in the table
-   --  size (e.g. 100 = increase table size by 100%, i.e. double it). The
-   --  Table_Name parameter is simply use in debug output messages it has no
-   --  other usage, and is not referenced in non-debugging mode. A value of
-   --  zero for Table_Increment means that no table expansion is allowed.
+   --  The Table_Initial values controls the allocation of the table when it
+   --  is first allocated, either by default, or by an explicit Init call.
+   --  The value used is Opt.Table_Factor * Table_Initial.
+
+   --  The Table_Increment value controls the amount of increase, if the
+   --  table has to be increased in size. The value given is a percentage
+   --  value (e.g. 100 = increase table size by 100%, i.e. double it).
+
+   --  The Table_Name parameter is simply use in debug output messages it has
+   --  no other usage, and is not referenced in non-debugging mode.
 
    --  The Last and Set_Last subprograms provide control over the current
    --  logical allocation. They are quite efficient, so they can be used
@@ -95,6 +97,16 @@ package Table is
    --  of the allocated table may be larger than this). The program may only
    --  access and modify Table entries in the range First .. Last.
 
+   Locked : Boolean := False;
+   --  Table expansion is permitted only if this switch is set to False. A
+   --  client may set Locked to True, in which case any attempt to expand
+   --  the table will cause an assertion failure. Note that while a table
+   --  is locked, its address in memory remains fixed and unchanging. This
+   --  feature is used to control table expansion during Gigi processing.
+   --  Gigi assumes that tables other than the Uint and Ureal tables do
+   --  not move during processing, which means that they cannot be expanded.
+   --  The Locked flag is used to enforce this restriction.
+
    procedure Init;
    --  This procedure allocates a new table of size Initial (freeing any
    --  previously allocated larger table). It is not necessary to call
@@ -108,6 +120,12 @@ package Table is
    --  can then be used as a subscript for Table. Note that the only way to
    --  modify Last is to call the Set_Last procedure. Last must always be
    --  used to determine the logically last entry.
+
+   procedure Release;
+   --  Storage is allocated in chunks according to the values given in the
+   --  Initial and Increment parameters. A call to Release releases all
+   --  storage that is allocated, but is not logically part of the current
+   --  array value. Current array values are not affected by this call.
 
    First : constant Table_Index_Type := Table_Low_Bound;
    --  Export First as synonym for Low_Bound (to be parallel with use of Last)

@@ -74,6 +74,7 @@ package ALI is
    --  Indicator of whether unit can be used as main program
 
    type ALIs_Record is record
+
       Afile : File_Name_Type;
       --  Name of ALI file
 
@@ -116,10 +117,24 @@ package ALI is
       --  line. A value of -1 indicates that no T=xxx parameter was found,
       --  or no M line was present.
 
+      Locking_Policy : Character;
+      --  Indicates locking policy for units in this file. Space means
+      --  tasking was not used, or that no Locking_Policy pragma was
+      --  present or that this is a language defined unit. Otherwise set
+      --  to first character (upper case) of policy name.
+
       Queuing_Policy : Character;
-      --  Indicates queueuing policy for units in this file. Space means
-      --  tasking was not used, so policy is irrelevant, otherwise set to
-      --  'F' for FIFO, and 'P' for priority queueing.
+      --  Indicates queuing policy for units in this file. Space means
+      --  tasking was not used, or that no Queuing_Policy pragma was
+      --  present or that this is a language defined unit. Otherwise set
+      --  to first character (upper case) of policy name.
+
+      Task_Dispatching_Policy : Character;
+      --  Indicates task dispatching policy for units in this file. Space
+      --  means tasking was not used, or that no Task_Dispatching_Policy
+      --  pragma was present or that this is a language defined unit.
+      --  Otherwise set to first character (upper case) of policy name.
+
 
    end record;
 
@@ -156,6 +171,7 @@ package ALI is
    --  Version string, taken from unit record
 
    type Unit_Record is record
+
       My_ALI : ALI_Id;
       --  Corresponding ALI entry
 
@@ -229,6 +245,7 @@ package ALI is
    --  Id of first actual entry in table
 
    type With_Record is record
+
       Uname : Unit_Name_Type;
       --  Name of Unit
 
@@ -285,11 +302,20 @@ package ALI is
    --  Id of first actual entry in table
 
    type Sdep_Record is record
+
       Sfile : File_Name_Type;
       --  Name of source file
 
       Stamp : Time_Stamp_Type;
       --  Time stamp value
+
+      Checksum_Present : Boolean;
+      --  Indicates if checksum is present. This can eventually be removed
+      --  when we always have checksums present (i.e. from 3.08 on) ???
+
+      Checksum : Word;
+      --  Checksum value if present
+
    end record;
 
    package Sdep is new Table (
@@ -300,9 +326,9 @@ package ALI is
      Table_Increment      => 200,
      Table_Name           => "Sdep");
 
-   -----------------------------
-   -- Source File Table Table --
-   -----------------------------
+   -----------------------
+   -- Source File Table --
+   -----------------------
 
    --  A source file table entry is built for every source file that is
    --  in the source dependency table of any of the ALI files that make
@@ -315,6 +341,7 @@ package ALI is
    --  Id of first actual entry in table
 
    type Source_Record is record
+
       Sfile : File_Name_Type;
       --  Name of source file
 
@@ -328,6 +355,33 @@ package ALI is
       --  This flag is set to True if the corresponding source file was
       --  located and the Stamp value was set from the actual source file.
       --  It is always false if Check_Source_Files is not set.
+
+      All_Timestamps_Match : Boolean;
+      --  This flag is set only if all files referencing this source file
+      --  have a matching time stamp, and also, if Source_Found is True,
+      --  then the stamp of the source file also matches. If this flag is
+      --  True, then checksums for this file are never referenced. We only
+      --  use checksums if there are time stamp mismatches.
+
+      All_Checksums_Match : Boolean;
+      --  This flag is set only if all files referencing this source file
+      --  have checksums, and if all these checksums match. If this flag
+      --  is set to True, then the binder will ignore a timestamp mismatch.
+      --  An absent checksum causes this flag to be set False, and a mismatch
+      --  of checksums also causes it to be set False. The checksum of the
+      --  actual source file (if Source_Found is True) is included only if
+      --  All_Timestamps_Match is False (since checksums are only interesting
+      --  if we have time stamp mismatches, and we want to avoid computing the
+      --  checksum of the source file if it is not needed.)
+
+      Checksum : Word;
+      --  If no dependency line has a checksum for this source file (i.e. the
+      --  corresponding entries in the source dependency records all have the
+      --  Checksum_Present flag set False), then this field is undefined. If
+      --  at least one dependency entry has a checksum present, then this
+      --  field contains one of the possible checksum values that has been
+      --  seen. This is used to set All_Checksums_Match properly.
+
    end record;
 
    package Source is new Table (
@@ -369,7 +423,7 @@ package ALI is
    --  is generated, and the program is terminated.
 
    procedure Set_Source_Table (A : ALI_Id);
-   --  Build source table corresponding to the ALI file whose id is A.
+   --  Build source table entry corresponding to the ALI file whose id is A.
 
    procedure Set_Source_Table;
    --  Build the entire source table.

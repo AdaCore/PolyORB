@@ -103,12 +103,11 @@
 --  Of course there is no guarantee that this algorithm results in uniquely
 --  crunched names (nor, obviously, is there any algorithm which would do so)
 --  In fact we run into such a case in the standard library routines with
---  children of Text_IO.Wide_Text_IO, so a special rule is applied to deal
---  with this clash, namely the prefix ada-text_io-wide_text_io- is replaced
---  by a-wt- and then the normal crunching rules are applied, so that for
---  example, the unit:
+--  children of Wide_Text_IO, so a special rule is applied to deal with this
+--  clash, namely the prefix ada-wide_text_io- is replaced by a-wt- and then
+--  the normal crunching rules are applied, so that for example, the unit:
 
---    Ada.Text_IO.Wide_Text_IO.Float_IO
+--    Ada.Wide_Text_IO.Float_IO
 
 --  has the file name
 

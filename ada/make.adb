@@ -26,18 +26,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with ALI;           use ALI;
+with ALI;      use ALI;
 with Csets;
 with Debug;
-with Fname;         use Fname;
-with Namet;         use Namet;
+with Fname;    use Fname;
+with Hostparm; use Hostparm;
+with Namet;    use Namet;
 with Opt;
-with Osint;         use Osint;
-with GNAT.OS_Lib;   use GNAT.OS_Lib;
+with Osint;    use Osint;
 with Gnatvsn;
-with Output;        use Output;
+with Output;   use Output;
+with Switch;   use Switch;
 with Table;
-with Types;         use Types;
+with Types;    use Types;
+
+with Ada.Command_Line; use Ada.Command_Line;
+with GNAT.OS_Lib;      use GNAT.OS_Lib;
 
 package body Make is
 
@@ -49,7 +53,7 @@ package body Make is
    -------------------------------------
 
    --  The Q is used in Compile_Sources below. Its implementation uses the
-   --  GNAT generic package Table (basically an extensible array).  Q_Front
+   --  GNAT generic package Table (basically an extensible array). Q_Front
    --  points to the first valid element in the Q, whereas Q.First is the first
    --  element ever enqueued, while Q.Last - 1 is the last element in the Q.
    --
@@ -65,7 +69,7 @@ package body Make is
    --  in the Q. When the Q is intialized Q_Front = Q.First = Q.Last.
    --  After Compile_Sources has terminated its execution, Q_Front = Q.Last
    --  and the elements contained between Q.Front and Q.Last-1 are those that
-   --  were explored and thus marked by Compile_Sources.  Whenever the Q is
+   --  were explored and thus marked by Compile_Sources. Whenever the Q is
    --  reinitialized, the elements between Q.First and Q.Last - 1 are unmarked.
 
    procedure Init_Q;
@@ -150,8 +154,41 @@ package body Make is
    --  If the verbose flag is set prints the corresponding message.
    --  Created to print longer messages with time stamps information.
 
+   -----------------------
+   -- Gnatmake Routines --
+   -----------------------
+
+   package Ada_Lib_Search_Directories is new Table (
+     Table_Component_Type => String_Ptr,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 10,
+     Table_Increment      => 100,
+     Table_Name           => "Osint.Ada_Lib_Search_Directories");
+   --  Table of names of directories containing Ada libraries.  This table
+   --  is set in Osint.Initialize upon encounter of an "-Adir" switch and is
+   --  searched in routine Belongs_To_Ada_Library which is invoked by Gnatmake.
+   --  See the spec for Belongs_To_Ada_Library to see what an Ada library
+   --  directory is.
+
+   procedure Add_Ada_Lib_Search_Dir (Dir : String);
+   --  Add Dir at the end of the Ada library file search path
+
+   function Ada_Library_Lookup (File : File_Name_Type) return File_Name_Type;
+   --  Given an ali file File, this routine returns the its full name (ie
+   --  including the directory) of File, if File is in some Ada library
+   --  directory.  An Ada library directory is a directory containing ali
+   --  and object files but no source files for the bodies (the specs can be
+   --  in the same or some other directory). These directories are specified
+   --  in the Gnatmake command line with the switch "-Adir" (to specify the
+   --  spec location -Idir cab be used).  Gnatmake skips the missing sources
+   --  whose ali are in Ada library directories. For an explanation of why
+   --  Gnatmake behaves that way, see the spec of Make.Compile_Sources.
+   --  The directory lookup penalty is incurred every single time this
+   --  routine is called.
+
    ----------------------------------------------------
-   -- Compiler, Binder & Linker Variables & Routines --
+   -- Compiler, Binder & Linker Data and Subprograms --
    ----------------------------------------------------
 
    Gcc       : String_Access := GNAT.OS_Lib.Locate_Exec_On_Path ("gcc");
@@ -169,8 +206,8 @@ package body Make is
    --  Set to True if name of commands should be output on stderr.
 
    procedure Display (Program : String; Args : Argument_List);
-   --  Displays Program followed by the arguments in Args if
-   --  variable Display_Executed_Programs is set.
+   --  Displays Program followed by the arguments in Args if variable
+   --  Display_Executed_Programs is set. The lower bound of Args must be 1.
 
    procedure Check
      (Lib_File  : File_Name_Type;
@@ -180,9 +217,73 @@ package body Make is
    --  Determines whether the library file Lib_File is up-to-date or not.
    --  The full name (with path information) of the object file
    --  corresponding to Lib_File is returned in O_File. Its time stamp is
-   --  saved in O_Stamp. Ali is the ALI_Id corresponding to Lib_File.  If
+   --  saved in O_Stamp. Ali is the ALI_Id corresponding to Lib_File. If
    --  Lib_File in not up-to-date, then the coresponding source file needs
    --  to be recompiled. In this case Ali = No_ALI_Id.
+
+   ------------------------
+   -- Ada_Library_Lookup --
+   ------------------------
+
+   function Ada_Library_Lookup (File : File_Name_Type) return File_Name_Type is
+
+      function Lookup (F : String_Ptr; D : String_Ptr) return File_Name_Type;
+      --  Returns the full name of file F if F is in directory D.
+
+      function Lookup (F : String_Ptr; D : String_Ptr) return File_Name_Type is
+         Name : String (1 .. D'Length + F'Length);
+
+      begin
+         Name (1 .. D'Length) := D.all;
+         Name (D'Length + 1 .. D'Length + F'Length) := F.all;
+
+         if Is_Regular_File (Name) then
+            Name_Len := Name'Last;
+            Name_Buffer (1 .. Name_Len) := Name;
+            return Name_Enter;
+         else
+            return No_File;
+         end if;
+      end Lookup;
+
+   --  Start of processing for Ada_Library_Lookup
+
+   begin
+      Get_Name_String (File);
+
+      declare
+         F : String_Ptr := new String'(Name_Buffer (1 .. Name_Len));
+         File_Name : File_Name_Type;
+
+      begin
+         for D in
+           Ada_Lib_Search_Directories.First .. Ada_Lib_Search_Directories.Last
+         loop
+            File_Name := Lookup (F, Ada_Lib_Search_Directories.Table (D));
+
+            if File_Name /= No_File then
+               return File_Name;
+            end if;
+         end loop;
+      end;
+
+      return No_File;
+   end Ada_Library_Lookup;
+
+   ----------------------------
+   -- Add_Ada_Lib_Search_Dir --
+   ----------------------------
+
+   procedure Add_Ada_Lib_Search_Dir (Dir : String) is
+   begin
+      if Dir'Length = 0 then
+         Fail ("missing external Ada library directory name");
+      end if;
+
+      Ada_Lib_Search_Directories.Increment_Last;
+      Ada_Lib_Search_Directories.Table (Ada_Lib_Search_Directories.Last) :=
+        Normalize_Directory_Name (Dir);
+   end Add_Ada_Lib_Search_Dir;
 
    ------------
    -- Append --
@@ -201,16 +302,18 @@ package body Make is
    ----------
 
    procedure Bind (Ali_File : File_Name_Type; Args : Argument_List) is
-      Bind_Args : Argument_List (Args'First .. Args'Last + 2);
+      Bind_Args : Argument_List (1 .. Args'Last + 2);
       Bind_Last : Integer;
       Success   : Boolean;
 
    begin
+      pragma Assert (Args'First = 1);
+
       --  Optimize the simple case where the gnatbind command line looks like
       --     gnatbind -aO. -I- file.ali   --into->   gnatbind file.adb
 
       if Args'Length = 2
-        and then Args (Args'First).all = "-aO."
+        and then Args (Args'First).all = "-aO" & Normalized_CWD
         and then Args (Args'Last).all = "-I-"
         and then Ali_File = Strip_Directory (Ali_File)
       then
@@ -251,7 +354,6 @@ package body Make is
       O_File    : out File_Name_Type;
       O_Stamp   : out Time_Stamp_Type)
    is
-
       function First_New_Spec (A : ALI_Id) return File_Name_Type;
       --  Looks in the with table entries of A and returns the spec file name
       --  of the first withed unit (subprogram) for which no spec existed when
@@ -262,7 +364,7 @@ package body Make is
       --  **WARNING** in the event of Uname format modifications, one *MUST*
       --  make sure this function is also updated.
       --
-      --  ??? This function should really be in ali.adb and use Uname
+      --  Note: This function should really be in ali.adb and use Uname
       --  services, but this causes the whole compiler to be dragged along
       --  for gnatbind and gnatmake.
 
@@ -338,7 +440,9 @@ package body Make is
          return Spec_File_Name;
       end First_New_Spec;
 
-      --  Local variables of Check
+      ---------------------------------
+      -- Data declarations for Check --
+      ---------------------------------
 
       Full_Lib_File    : File_Name_Type;
       --  Full name of current library file
@@ -365,7 +469,7 @@ package body Make is
       Source_Name : Name_Id;
       Text : Text_Buffer_Ptr;
 
-   --  Start processing of Check
+   --  Start of processing for Check
 
    begin
       pragma Assert (Lib_File /= No_File);
@@ -392,14 +496,15 @@ package body Make is
          elsif Obj_Stamp (Obj_Stamp'First) = ' ' then
             Verbose_Msg (Full_Obj_File, "missing.");
          else
-            Verbose_Msg (Full_Lib_File, "(", Lib_Stamp, ") newer than",
-                         Full_Obj_File, "(", Obj_Stamp, ")");
+            Verbose_Msg
+              (Full_Lib_File, "(", String (Lib_Stamp), ") newer than",
+               Full_Obj_File, "(", String (Obj_Stamp), ")");
          end if;
 
       else
          Ali := Scan_ALI (Lib_File, Text);
 
-         --  get the source files and their time stamps. Note that some
+         --  Get the source files and their time stamps. Note that some
          --  sources may be missing if Ali is out-of-date.
 
          Set_Source_Table (Ali);
@@ -453,12 +558,9 @@ package body Make is
       Initialize_Ali_Data   : Boolean  := True;
       Max_Process           : Positive := 1)
    is
-      Empty_Time_Stamp : constant String := "            ";
-      --  The empty time stamp
-
       function Compile (S : Name_Id) return Process_Id;
       --  Compiles S using Args above. If S is a GNAT predefined source
-      --  "-gnatg" is added to Args.  Non blocking call. Returns The
+      --  "-gnatg" is added to Args. Non blocking call. Returns The
       --  Process_Id of the process spawned to execute the compile.
 
       type Compilation_Data is record
@@ -479,7 +581,7 @@ package body Make is
       --  are compiling and the name of its library file L.
 
       procedure Await_Compile (S, L : out File_Name_Type; OK : out Boolean);
-      --  Awaits that an outstanding compilation process terminates.  When
+      --  Awaits that an outstanding compilation process terminates. When
       --  it does set S to the name of the Source file that was compiled and
       --  L the name of its library file. Note that this time stamp can be
       --  used to check whether the compilation did generate an object
@@ -613,6 +715,9 @@ package body Make is
 
       function Compile (S : Name_Id) return Process_Id is
 
+         Comp_Args : Argument_List (Args'First .. Args'Last + 5);
+         Comp_Last : Integer;
+
          function Ada_File_Name (Name : Name_Id) return Boolean;
          --  Returns True if Name is the name of an ada source file (i.e. it
          --  has an extension recognized as Ada by default by the gcc driver)
@@ -628,11 +733,6 @@ package body Make is
                         or else Name_Buffer (Name_Len) = 'a');
          end Ada_File_Name;
 
-         --  Variables local to Compile
-
-         Comp_Args : Argument_List (Args'First .. Args'Last + 5);
-         Comp_Last : Integer;
-
       --  Start of processing for Compile
 
       begin
@@ -641,7 +741,7 @@ package body Make is
          --  Optimize the simple case where the gcc command line looks like
          --     gcc -c -I. ... -I- file.adb  --into->  gcc -c ... file.adb
 
-         if Args (Args'First).all = "-I."
+         if Args (Args'First).all = "-I" & Normalized_CWD
            and then Args (Args'Last).all = "-I-"
            and then S = Strip_Directory (S)
          then
@@ -760,7 +860,9 @@ package body Make is
          Good_Ali.Table (Good_Ali.Last) := A;
       end Record_Good_Ali;
 
-      --  Compile_Sources Variables
+      --------------------------
+      -- Compile_Sources Data --
+      --------------------------
 
       Source_File      : File_Name_Type;
       --  Current source file
@@ -793,9 +895,11 @@ package body Make is
       Pid  : Process_Id;
       Text : Text_Buffer_Ptr;
 
-   --  Start of Processing for Compile_Sources
+   --  Start of processing for Compile_Sources
 
    begin
+      pragma Assert (Args'First = 1);
+
       --  Package and Queue initializations.
 
       Good_Ali.Init;
@@ -852,7 +956,7 @@ package body Make is
             Source_File      := Extract_From_Q;
             Full_Source_File := Osint.Full_Source_Name (Source_File);
             Lib_File         := Osint.Lib_File_Name (Source_File);
-            Ada_Lib_File     := Osint.Ada_Library_Lookup (Lib_File);
+            Ada_Lib_File     := Ada_Library_Lookup (Lib_File);
 
             --  If the library file is is an Ada library skip it
 
@@ -954,7 +1058,7 @@ package body Make is
          end if;
 
          --  PHASE 3: Check if we recorded good Ali files. If yes process
-         --  them now in the order in which they have been recorded.  There
+         --  them now in the order in which they have been recorded. There
          --  are two occasions in which we record good ali files. The first is
          --  in phase 1 when, after scanning an existing Ali file we realise
          --  it is up-to-date, the second instance is after a successful
@@ -1003,7 +1107,7 @@ package body Make is
 
       end loop Make_Loop;
 
-      --  if any compilation failed report it
+      --  If any compilation failed, report it
 
       if Compilations_Failed then
          List_Bad_Compilations;
@@ -1023,6 +1127,8 @@ package body Make is
 
    procedure Display (Program : String; Args : Argument_List) is
    begin
+      pragma Assert (Args'First = 1);
+
       if Display_Executed_Programs then
          Write_Str (Program);
 
@@ -1112,13 +1218,160 @@ package body Make is
 
    procedure Gnatmake is
 
+      Main_Name : Name_Id;
+      --  The name of the input compilation unit or of the source containing it
+
+      Main_Source_File : File_Name_Type;
+      --  The actual source file corresponding to Main_Name
+
+      Is_Main_Unit : Boolean;
+      --  If True the Main_Source_File can be a main unit.
+
+      Main_Ali_File : File_Name_Type;
+      --  The ali file corresponding to Main_Source_File
+
+      File_Name_Seen : Boolean := False;
+      --  Set to true after having seen at least one file name.
+      --  Used in Scan_Make_Arg only, but must be a global variable.
+
+      File_Name : String_Ptr;
+      --  As arguments are scanned in Initialize, filenames are stored
+      --  in this array. The string does not contain a terminating NUL.
+
+      Output_Filename_Seen : Boolean := False;
+      --  Set to True after having scanned the file_name for
+      --  switch "-o file_name"
+
+      type Make_Program_Type is (None, Compiler, Binder, Linker);
+
+      Program_Args : Make_Program_Type := None;
+      --  Used to indicate if we are scanning gcc, gnatbind, or gnatbl
+      --  options within the gnatmake command line.
+      --  Used in Scan_Make_Arg only, but must be a global variable.
+
+      Next_Arg : Positive;
+
+      -----------------------
+      -- Local Subprograms --
+      -----------------------
+
+      procedure Add_Switch
+        (S   : String;
+         T   : Make_Program_Type);
+      procedure Add_Switch
+        (S1  : String;
+         S2  : String;
+         T   : Make_Program_Type;
+         Pos : Integer);
+      procedure Add_Switch
+        (S1  : String;
+         S2  : String;
+         T   : Make_Program_Type);
+      --  Make invokes one of three programs (the compiler, the binder or the
+      --  linker). For the sake of convenience, some program specific switches
+      --  can be passed directly on the gnatmake commande line, hence they need
+      --  to be recorded so that gnamake can pass them to the right program.
+      --  In the above calls, S is a switch to be added, or S1 and S2 are two
+      --  separate switches to be added at the end of the command line for T.
+      --  If Pos is set then the switch is inserted in position Pos in the
+      --  command line (thus shifting the position of all other switches).
+      --  Pos must be a valid switch position).
+      --
+      --  Note from RBKD, it would be cleaner to have one procedure with some
+      --  default parameters (null for S2 and -1 for Pos for example) ???
+
       procedure Makeusg;
       --  Outputs gnatmake usage information.
+
+      procedure Scan_Make_Arg (Argv : String);
+      --  Scan make arguments. Argv is a single argument to be processed.
 
       function To_Lower (Name : Name_Id) return Name_Id;
       --  If Name does not have upper case characters, Name is returned,
       --  otherwise this routine creates and returns a new lower case
       --  version of Name.
+
+      ----------------
+      -- Add_Switch --
+      ----------------
+
+      procedure Add_Switch (S : String; T : Make_Program_Type) is
+      begin
+         case T is
+            when Compiler =>
+               Gcc_Switches.Increment_Last;
+               Gcc_Switches.Table (Gcc_Switches.Last) := new String'(S);
+
+            when Binder   =>
+               Binder_Switches.Increment_Last;
+               Binder_Switches.Table (Binder_Switches.Last) := new String'(S);
+
+            when Linker   =>
+               Linker_Switches.Increment_Last;
+               Linker_Switches.Table (Linker_Switches.Last) := new String'(S);
+
+            when None =>
+               pragma Assert (False);
+               null;
+         end case;
+      end Add_Switch;
+
+      ----------------
+      -- Add_Switch --
+      ----------------
+
+      procedure Add_Switch
+        (S1, S2 : String; T : Make_Program_Type; Pos : Integer) is
+         Tmp : String (1 .. S1'Length + S2'Length);
+      begin
+         Tmp (1 .. S1'Length) := S1;
+         Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
+         case T is
+            when Compiler =>
+               pragma Assert
+                 (Gcc_Switches.First <= Pos and Pos <= Gcc_Switches.Last);
+
+               Gcc_Switches.Increment_Last;
+               for J in reverse Pos + 1 .. Gcc_Switches.Last loop
+                  Gcc_Switches.Table (J) := Gcc_Switches.Table (J - 1);
+               end loop;
+
+               Gcc_Switches.Table (Pos) := new String'(Tmp);
+
+            when Binder   =>
+               pragma Assert
+                 (Binder_Switches.First <= Pos
+                    and Pos <= Binder_Switches.Last);
+
+               Binder_Switches.Increment_Last;
+               for J in reverse Pos + 1 .. Binder_Switches.Last loop
+                  Binder_Switches.Table (J) := Binder_Switches.Table (J - 1);
+               end loop;
+
+               Binder_Switches.Table (Pos) := new String'(Tmp);
+
+            --  For the time being this facility is not available for the
+            --  linker but can be trivially implemented.
+
+            when others =>
+               pragma Assert (False);
+               null;
+         end case;
+
+      end Add_Switch;
+
+      ----------------
+      -- Add_Switch --
+      ----------------
+
+      procedure Add_Switch (S1, S2 : String; T : Make_Program_Type) is
+         Tmp : String (1 .. S1'Length + S2'Length);
+
+      begin
+         Tmp (1 .. S1'Length) := S1;
+         Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
+         Add_Switch (Tmp, T);
+      end Add_Switch;
 
       -------------
       -- Makeusg --
@@ -1306,30 +1559,174 @@ package body Make is
       begin
          Get_Name_String (Name);
 
-         for I in 1 .. Name_Len loop
-            if Csets.Is_Upper_Case_Letter (Name_Buffer (I)) then
-               Name_Buffer (I) := Csets.Fold_Lower (Name_Buffer (I));
+         for J in 1 .. Name_Len loop
+            if Csets.Is_Upper_Case_Letter (Name_Buffer (J)) then
+               Name_Buffer (J) := Csets.Fold_Lower (Name_Buffer (J));
             end if;
          end loop;
 
          return Name_Enter;
       end To_Lower;
 
-      ------------------------
-      -- Gnatmake Variables --
-      ------------------------
+      -------------------
+      -- Scan_Make_Arg --
+      -------------------
 
-      Main_Name : Name_Id;
-      --  The name of the input compilation unit or of the source containing it
+      procedure Scan_Make_Arg (Argv : String) is
+      begin
+         pragma Assert (Argv'First = 1);
 
-      Main_Source_File : File_Name_Type;
-      --  The actual source file corresponding to Main_Name
+         if Argv'Length = 0 then
+            return;
+         end if;
 
-      Is_Main_Unit : Boolean;
-      --  If True the Main_Source_File can be a main unit.
+         --  If the previous switch has set the Output_Filename_Present
+         --  flag (that is we have seen a -o), then the next argument is
+         --  the name of the output executable.
 
-      Main_Ali_File : File_Name_Type;
-      --  The ali file corresponding to Main_Source_File
+         if Opt.Output_Filename_Present and then not Output_Filename_Seen then
+            Output_Filename_Seen := True;
+
+            if Argv (1) = Switch_Character or else Argv (1) = '-' then
+               Fail ("Output filename missing after -o");
+            else
+               Add_Switch ("-o", Linker);
+               Add_Switch (Argv, Linker);
+            end if;
+
+         --  Then check if we are dealing with a -cargs, -bargs or -largs
+
+         elsif (Argv (1) = Switch_Character or else Argv (1) = '-')
+           and then (Argv (2 .. Argv'Last) = "cargs"
+                      or else Argv (2 .. Argv'Last) = "bargs"
+                      or else Argv (2 .. Argv'Last) = "largs")
+         then
+            if not File_Name_Seen then
+               Fail ("-cargs, -bargs, -largs ",
+                     "must appear after unit or file name");
+            end if;
+
+            case Argv (2) is
+               when 'c' => Program_Args := Compiler;
+               when 'b' => Program_Args := Binder;
+               when 'l' => Program_Args := Linker;
+
+               when others =>
+                  pragma Assert (False);
+                  null;
+            end case;
+
+         --  A special test is needed for the -o switch within a -largs
+         --  since that is another way to specify the name of the final
+         --  executable.
+
+         elsif Program_Args = Linker
+           and then (Argv (1) = Switch_Character or else Argv (1) = '-')
+           and then Argv (2 .. Argv'Last) = "o"
+         then
+            Fail ("Switch -o not allowed within a -largs. Use -o directly.");
+
+         --  Check to see if we are reading switches after a -cargs,
+         --  -bargs or -largs switch. If yes save it.
+
+         elsif Program_Args /= None then
+            Add_Switch (Argv, Program_Args);
+
+         --  If we have seen a regular switch process it
+
+         elsif Argv (1) = Switch_Character or else Argv (1) = '-' then
+
+            if Argv'Length = 1 then
+               Fail ("switch character cannot be followed by a blank");
+
+            --  -I-
+
+            elsif Argv (2 .. Argv'Last) = "I-" then
+               Opt.Look_In_Primary_Dir := False;
+
+            --  Forbid  -?-  or  -??-  where ? is any character
+
+            elsif (Argv'Length = 3 and then Argv (3) = '-')
+              or else (Argv'Length = 4 and then Argv (4) = '-')
+            then
+               Fail ("Trailing ""-"" at the end of ", Argv, " forbidden.");
+
+            --  -Idir
+
+            elsif Argv (2) = 'I' then
+               Add_Src_Search_Dir (Argv (3 .. Argv'Last));
+               Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
+               Add_Switch (Argv, Compiler);
+               Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
+               --  No need to pass any source dir to the binder
+               --  since gnatmake call it with the -x flag
+               --  (ie do not check source time stamp)
+
+            --  -aIdir (to gcc this is like a -I switch)
+
+            elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aI" then
+               Add_Src_Search_Dir (Argv (4 .. Argv'Last));
+               Add_Switch ("-I", Argv (4 .. Argv'Last), Compiler);
+
+            --  -aOdir
+
+            elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aO" then
+               Add_Lib_Search_Dir (Argv (4 .. Argv'Last));
+               Add_Switch (Argv, Binder);
+
+            --  -aLdir (to gnatbind this is like a -aO switch)
+
+            elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aL" then
+               Add_Ada_Lib_Search_Dir (Argv (4 .. Argv'Last));
+               Add_Switch ("-aO", Argv (4 .. Argv'Last), Binder);
+
+            --  -Adir (to gnatbind this is like a -aO switch, to gcc like a -I)
+
+            elsif Argv (2) = 'A' then
+               Add_Src_Search_Dir (Argv (3 .. Argv'Last));
+               Add_Ada_Lib_Search_Dir (Argv (3 .. Argv'Last));
+               Add_Switch ("-I", Argv (3 .. Argv'Last), Compiler);
+               Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
+
+            --  -Ldir
+
+            elsif Argv (2) = 'L' then
+               Add_Switch (Argv, Linker);
+
+            --  -g
+
+            elsif Argv (2) = 'g'
+              and then (Argv'Last = 2
+                        or else Argv (3) in '0' .. '3')
+            then
+               Add_Switch (Argv, Compiler);
+               Add_Switch (Argv, Linker);
+
+            --  By default all switches with more than one character
+            --  or one character switches which are not in 'a' .. 'z'
+            --  are passed to the compiler, unless we are dealing
+            --  with a -jnum switch or a debug switch (starts with 'd')
+
+            elsif Argv (2) /= 'j'
+              and then Argv (2) /= 'd'
+              and then Argv (2 .. Argv'Last) /= "M"
+              and then (Argv'Length > 2 or else Argv (2) not in 'a' .. 'z')
+            then
+               Add_Switch (Argv, Compiler);
+
+            --  All other options are handled by Scan_Switches.
+
+            else
+               Scan_Switches (Argv);
+            end if;
+
+         --  If not a switch it must be a file name
+
+         else
+            File_Name_Seen := True;
+            Set_Main_File_Name (Argv);
+         end if;
+      end Scan_Make_Arg;
 
    --  Start of processing for Gnatmake
 
@@ -1349,6 +1746,21 @@ package body Make is
 
       Output.Set_Standard_Error;
       Osint.Initialize (Osint.Make); --  Reads gnatmake switches
+
+      Gcc_Switches.Init;
+      Binder_Switches.Init;
+      Linker_Switches.Init;
+      Ada_Lib_Search_Directories.Init;
+
+      Next_Arg := 1;
+      Scan_Args : loop
+         exit when Next_Arg > Argument_Count;
+         Scan_Make_Arg (Argument (Next_Arg));
+         Next_Arg := Next_Arg + 1;
+      end loop Scan_Args;
+
+      Osint.Add_Default_Search_Dirs;
+
       Csets.Initialize;
       Namet.Initialize;
 
@@ -1389,7 +1801,27 @@ package body Make is
       --  Note that Osint.Next_Main_Source will always return the (possibly
       --  abbreviated file) without any directory information.
 
-      Main_Name := Osint.Next_Main_Source;
+      Main_Name := Next_Main_Source;
+
+      Add_Switch ("-I-", Compiler);
+      Add_Switch ("-I-", Binder);
+
+      if Opt.Look_In_Primary_Dir then
+
+         Add_Switch
+           ("-I",
+            Normalize_Directory_Name
+              (Get_Primary_Src_Search_Directory.all).all,
+            Compiler,
+            Pos => Gcc_Switches.First);
+
+         Add_Switch
+           ("-aO",
+            Normalized_CWD,
+            Binder,
+            Pos => Binder_Switches.First);
+
+      end if;
 
       --  If the input name to gnatmake has a suffix, then use it as is
 
@@ -1404,7 +1836,7 @@ package body Make is
             Fail ("error, cannot use -I- if full file name is given.");
          end if;
 
-      --  otherwise try to attach it an .adb or .ads suffix
+      --  Otherwise try to attach it an .adb or .ads suffix
 
       else
          Main_Source_File := Append (Main_Name, ".adb");
@@ -1432,7 +1864,7 @@ package body Make is
       --  Here is where the make process is started
 
       Recursive_Compilation_Step : declare
-         Args : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
+         Args : Argument_List (1 .. Gcc_Switches.Last);
 
          First_Compiled_File : Name_Id;
 
@@ -1445,20 +1877,20 @@ package body Make is
          --  Executable is the final executable program.
 
       begin
-         for J in Gcc_Switches.First .. Gcc_Switches.Last loop
+         for J in 1 .. Gcc_Switches.Last loop
             Args (J) := Gcc_Switches.Table (J);
          end loop;
 
          --  Look inside the linker switches to see if the name of the final
          --  executable program was specified.
 
-         for I in Linker_Switches.First .. Linker_Switches.Last loop
-            if Linker_Switches.Table (I).all = Exec_Name_Flag.all then
-               pragma Assert (I < Linker_Switches.Last);
+         for J in Linker_Switches.First .. Linker_Switches.Last loop
+            if Linker_Switches.Table (J).all = Exec_Name_Flag.all then
+               pragma Assert (J < Linker_Switches.Last);
 
-               Name_Len := Linker_Switches.Table (I + 1)'Length;
+               Name_Len := Linker_Switches.Table (J + 1)'Length;
                Name_Buffer (1 .. Name_Len) :=
-                 Linker_Switches.Table (I + 1).all;
+                 Linker_Switches.Table (J + 1).all;
 
                Executable := Name_Enter;
             end if;
@@ -1530,9 +1962,10 @@ package body Make is
                else
                   Verbose_Msg (Executable, "obsolete.", Ind => No_Indent);
                   Verbose_Msg (Youngest_Obj_File,
-                               "(", Youngest_Obj_Stamp, ") newer than",
+                               "(", String (Youngest_Obj_Stamp),
+                               ") newer than",
                                Executable,
-                               "(", Executable_Stamp, ")");
+                               "(", String (Executable_Stamp), ")");
                end if;
             end if;
          end if;

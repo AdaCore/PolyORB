@@ -50,7 +50,7 @@ package body Debug is
    --  dg   Print source from tree (generated code only)
    --  dh   Generate listing showing loading of name table hash chains
    --  di   Generate messages for visibility linking/delinking
-   --  dj   Juxtapose itype declarations in listed source
+   --  dj
    --  dk   Generate GNATBUG message on abort, even if previous errors
    --  dl   Generate unit load trace messages
    --  dm   Allow VMS features even if not OpenVMS version
@@ -74,7 +74,7 @@ package body Debug is
    --  d4   Inhibit automatic krunch of predefined library unit files
    --  d5   Debug output for tree read/write
    --  d6   Default access unconstrained to thin pointers
-   --  d7   Do not output versoin & file time stamp in -gnatv or -gnatl mode
+   --  d7   Do not output version & file time stamp in -gnatv or -gnatl mode
    --  d8   Force opposite endianness in packed stuff
    --  d9
 
@@ -196,11 +196,6 @@ package body Debug is
 
    --  di   Generate messages for visibility linking/delinking
 
-   --  dj   Normally the generated source listing does not include itypes,
-   --       since they greatly confuse the listing. This debug switch causes
-   --       the itypes to be listed right next ("juxtaposed") to the construct
-   --       to which the itype is attached.
-
    --  dk   Immediate kill on abort. Normally on an abort (i.e. a call to
    --       Comperr.Compiler_Abort), the GNATBUG message is not given if
    --       there is a previous error. This debug switch bypasses this test
@@ -216,6 +211,7 @@ package body Debug is
    --       flag allows acceptance of these features in non OpenVMS ports.
    --       Of course they may not have any useful effect, and in particular
    --       attempting to generate code with this flag set may blow up.
+   --       The flag also forces the use of 64-bits for Long_Integer.
 
    --  dn   Generate messages for node/list allocation. Each time a node or
    --       list header is allocated, a line of output is generated. Certain

@@ -42,6 +42,7 @@
 --  physical line sequence. See Skip_Line_Terminators procedure for a full
 --  description of the difference between logical and physical lines.
 
+with Alloc;
 with Casing; use Casing;
 with Table;
 with Types;  use Types;
@@ -122,6 +123,10 @@ package Sinput is
    --    Time stamp of the source file. Set by Sinput.L.Load_Source_File,
    --    and cannot be subsequently changed.
 
+   --  Source_Checksum : Word;
+   --    Computed checksum for contents of source file. See separate section
+   --    later on in this spec for a description of the checksum algorithm.
+
    --  Num_Source_Lines : Nat
    --    Number of source lines in the file. While a file is being read,
    --    it is the number of lines so far scanned. Read only for clients.
@@ -161,6 +166,7 @@ package Sinput is
    function Num_Source_Lines  (S : Source_File_Index) return Nat;
    function Reference_Name    (S : Source_File_Index) return File_Name_Type;
    function Full_Ref_Name     (S : Source_File_Index) return File_Name_Type;
+   function Source_Checksum   (S : Source_File_Index) return Word;
    function Source_Text       (S : Source_File_Index) return Source_Buffer_Ptr;
    function Source_First      (S : Source_File_Index) return Source_Ptr;
    function Source_Last       (S : Source_File_Index) return Source_Ptr;
@@ -182,6 +188,50 @@ package Sinput is
 
    function Num_Source_Files return Nat;
    --  Number of source file table entries
+
+   procedure Initialize;
+   --  Initialize internal tables
+
+   procedure Lock;
+   --  Lock internal tables
+
+   -----------------------
+   -- Checksum Handling --
+   -----------------------
+
+   --  As a source file is scanned, a checksum is computed by taking all the
+   --  non-blank characters in the file, excluding comment characters, the
+   --  minus-minus sequence starting a comment, and all control characters
+   --  except ESC.
+
+   --  These characters are used to compute a 31-bit checksum which is stored
+   --  in the variable Scans.Checksum, as follows:
+
+   --    If a character, C, is not part of a wide character sequence, then
+   --    either the character itself, or its lower case equivalent if it
+   --    is a letter outside a string literal is used in the computation:
+
+   --      Checksum := Checksum + Checksum + Character'Pos (C);
+   --      if Checksum > 16#8000_0000# then
+   --         Checksum := (Checksum + 1) and 16#7FFF_FFFF#;
+   --      end if;
+
+   --    For a wide character sequence, the checksum is computed using the
+   --    corresponding character code value C, as follows:
+
+   --      Checksum := Checksum + Checksum + Char_Code'Pos (C);
+   --      if Checksum > 16#8000_0000# then
+   --         Checksum := (Checksum + 1) and 16#7FFF_FFFF#;
+   --      end if;
+
+   --  This algorithm ensures that the checksum includes all semantically
+   --  significant aspects of the program represented by the source file,
+   --  but is insensitive to layout, presence or contents of comments, wide
+   --  character representation method, or casing conventions outside strings.
+
+   --  Scans.Checksum is initialized to zero at the start of scanning a file,
+   --  and copied into the Source_Checksum field of the file table entry when
+   --  the end of file is encountered.
 
    -------------------------------------
    -- Handling Generic Instantiations --
@@ -354,6 +404,10 @@ private
    pragma Inline (Template);
    pragma Inline (Time_Stamp);
 
+   -----------------------
+   -- Source_File Table --
+   -----------------------
+
    type Source_File_Record is record
 
       File_Name : File_Name_Type;
@@ -392,6 +446,9 @@ private
 
       Time_Stamp : Time_Stamp_Type;
       --  Time stamp of the source file
+
+      Source_Checksum : Word;
+      --  Computed checksum for source file
 
       Num_Source_Lines : Nat;
       --  Number of entries in Lines_Table, i.e. the subscript of the last
@@ -434,14 +491,25 @@ private
       --  Note: the lines table for an instantiation entry refers to the
       --  original line numbers of the template see Sinput_L for details.
 
+      Lines_Table_Max : Pos;
+      --  Maximum subscript currently allocated in Lines_Table
+
    end record;
 
    package Source_File is new Table (
      Table_Component_Type => Source_File_Record,
      Table_Index_Type     => Source_File_Index,
      Table_Low_Bound      => 1,
-     Table_Initial        => 50,
-     Table_Increment      => 100,
+     Table_Initial        => Alloc.Source_File_Initial,
+     Table_Increment      => Alloc.Source_File_Increment,
      Table_Name           => "Source_File");
+
+   -----------------
+   -- Subprograms --
+   -----------------
+
+   procedure Alloc_Lines_Table (X : Source_File_Index; New_Max : Pos);
+   --  Allocate or reallocate the lines table for the given source
+   --  file so that it can accomodate at least New_Max lines.
 
 end Sinput;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                            --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -69,12 +69,12 @@ package body Switch is
       --  always case sensitive and therefore not folded to upper case since
       --  that is the convention in GCC.
 
-      function Scan_Int return Pos;
+      function Scan_Pos return Pos;
       --  Scan positive integer parameter for switch. On entry, Ptr points
       --  just past the switch character, on exit it points past the last
       --  digit of the integer value.
 
-      function Scan_Int return Pos is
+      function Scan_Pos return Pos is
          Val : Int := 0;
 
       begin
@@ -87,13 +87,13 @@ package body Switch is
               Character'Pos (Switches (Ptr)) - Character'Pos ('0');
             Ptr := Ptr + 1;
 
-            if Val > Switch_Max_Value then
+            if Val = 0 or else Val > Switch_Max_Value then
                raise Bad_Switch_Value;
             end if;
          end loop;
 
          return Val;
-      end Scan_Int;
+      end Scan_Pos;
 
    --  Start of processing for Scan_Switches
 
@@ -217,10 +217,29 @@ package body Switch is
             elsif Program = Make then
                raise Bad_Switch;
 
-            --  Is this right for the binder ???
+            --  Ignore -g<0-3> and -g on binder, does nothing (not needed
+            --  at all by the binder but it is friendly to allow the debug
+            --  switch on all the compile commands).
 
             elsif Program = Binder then
-               null;
+               if Ptr <= Max then
+                  C := Switches (Ptr);
+                  if C in '0' .. '3' then
+                     Ptr := Ptr + 1;
+                  end if;
+               end if;
+            end if;
+
+         --  Processing for -h switch
+
+         elsif C = 'h' then
+            Ptr := Ptr + 1;
+
+            if Program = Binder then
+               Horrible_Elab_Order := True;
+
+            else
+               raise Bad_Switch;
             end if;
 
          --  Processing for -i switch
@@ -259,34 +278,8 @@ package body Switch is
          elsif C = 'j' then
             Ptr := Ptr + 1;
 
-            if Program = Compiler then
-               for J in WC_Encoding_Method loop
-                  if Switches (Ptr) = WC_Encoding_Letters (J) then
-                     Wide_Character_Encoding_Method := J;
-                     exit;
-
-                  elsif J = WC_Encoding_Method'Last then
-                     raise Bad_Switch;
-                  end if;
-               end loop;
-
-               Upper_Half_Encoding :=
-                 Wide_Character_Encoding_Method in
-                   WC_Upper_Half_Encoding_Method;
-
-               Ptr := Ptr + 1;
-
-            elsif Program = Make then
-               declare
-                  Tmp : Int := Scan_Int;
-
-               begin
-                  if Tmp < 1 then
-                     Tmp := 1;
-                  end if;
-                  Maximum_Processes := Positive (Tmp);
-               end;
-
+            if Program = Make then
+               Maximum_Processes := Positive (Scan_Pos);
             else
                raise Bad_Switch;
             end if;
@@ -297,7 +290,7 @@ package body Switch is
             Ptr := Ptr + 1;
 
             if Program = Compiler then
-               Maximum_File_Name_Length := Scan_Int;
+               Maximum_File_Name_Length := Scan_Pos;
             elsif Program = Make then
                Keep_Going := True;
             else
@@ -323,7 +316,7 @@ package body Switch is
             Ptr := Ptr + 1;
 
             if Program = Compiler or else Program = Binder then
-               Maximum_Errors := Scan_Int;
+               Maximum_Errors := Scan_Pos;
             else
                raise Bad_Switch;
             end if;
@@ -350,6 +343,17 @@ package body Switch is
                Bind_Main_Program := False;
             elsif Program = Make then
                Dont_Execute := True;
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for -N switch
+
+         elsif C = 'N' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               Inline_All := True;
             else
                raise Bad_Switch;
             end if;
@@ -447,6 +451,17 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
+         --  Processing for -T switch
+
+         elsif C = 'T' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler or else Program = Binder then
+               Table_Factor := Scan_Pos;
+            else
+               raise Bad_Switch;
+            end if;
+
          --  Processing for -u switch
 
          elsif C = 'u' then
@@ -486,6 +501,35 @@ package body Switch is
                   when others =>
                      raise Bad_Switch;
                end case;
+
+               Ptr := Ptr + 1;
+
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for -W switch
+
+         elsif C = 'W' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler
+              or else Program = Make
+              or else Program = Binder
+            then
+               for J in WC_Encoding_Method loop
+                  if Switches (Ptr) = WC_Encoding_Letters (J) then
+                     Wide_Character_Encoding_Method := J;
+                     exit;
+
+                  elsif J = WC_Encoding_Method'Last then
+                     raise Bad_Switch;
+                  end if;
+               end loop;
+
+               Upper_Half_Encoding :=
+                 Wide_Character_Encoding_Method in
+                   WC_Upper_Half_Encoding_Method;
 
                Ptr := Ptr + 1;
 

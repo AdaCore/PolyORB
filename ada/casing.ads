@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---     Copyright (C) 1992,1993,1994,1995 Free Software Foundation, Inc.     --
+--   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -80,8 +80,7 @@ package Casing is
    pragma Inline (Set_All_Upper_Case);
    --  This procedure is called with an identifier name stored in Name_Buffer.
    --  On return, the identifier is converted to all upper case. The call is
-   --  equivalent to Set_Casing (All_Upper_Case). It is provided separately
-   --  as a convenience for Gigi, which does not have Casing_Type available.
+   --  equivalent to Set_Casing (All_Upper_Case).
 
    --  See also Scn.Determine_Token_Casing
 

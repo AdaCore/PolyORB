@@ -81,11 +81,6 @@ package body Osint is
    --  and if this is detected, the file being written is deleted, and a
    --  fatal error is signalled.
 
-   function Normalize_Directory_Name (Directory : String) return String_Ptr;
-   --  Verify and normalize a directory name. If directory name is invalid,
-   --  this will return an empty string. Otherwise it will insure a trailing
-   --  slash and make other normalizations.
-
    function More_Files return Boolean;
    --  Implements More_Source_Files and More_Lib_Files.
 
@@ -103,40 +98,6 @@ package body Osint is
    --  Primary_Directory. Returns File_Name_Type of the full file name if
    --  found, No_File if file not found.
 
-   type Make_Program_Type is (None, Compiler, Binder, Linker);
-   procedure Add_Switch (S : String; T : Make_Program_Type);
-   procedure Add_Switch (S : String; T : Make_Program_Type; Pos : Integer);
-   procedure Add_Switch (S1, S2 : String; T : Make_Program_Type);
-   --  gnatmake invokes one of 3 programs: the compiler, the binder or the
-   --  linker. For convenience's sake certain parameters for these programs
-   --  are passed directly in gnatmake's commande line, hence they need to
-   --  be recorded so that gnamake can pass them to the right
-   --  program. Depending on the procedure invoked S1 & S2 or S is the
-   --  switch to record at the end of T's command line. If Pos is set, then
-   --  the switch is inserted in position Pos in the command line (thus
-   --  shifting the position of all other switches). Pos must be a valid
-   --  switch position.
-
-   -------------------------
-   -- Command Line Access --
-   -------------------------
-
-   --  Direct interface to command line parameters. (We don't want to use
-   --  the predefined command line package because it defines functions
-   --  returning string)
-
-   function Arg_Count return Natural;
-   pragma Import (C, Arg_Count, "arg_count");
-   --  Get number of arguments (note: optional globbing may be enabled)
-
-   procedure Fill_Arg (A : System.Address; Arg_Num : Integer);
-   pragma Import (C, Fill_Arg, "fill_arg");
-   --  Store one argument
-
-   function Len_Arg (Arg_Num : Integer) return Integer;
-   pragma Import (C, Len_Arg, "len_arg");
-   --  Get length of argument
-
    ------------------------------
    -- Other Local Declarations --
    ------------------------------
@@ -146,9 +107,6 @@ package body Osint is
 
    EOL : constant Character := Ascii.LF;
    --  End of line character
-
-   Empty_Time_Stamp : constant String := "            ";
-   --  The empty time stamp
 
    Argument_Count : constant Integer := Arg_Count - 1;
    --  Number of arguments (excluding program name)
@@ -212,7 +170,7 @@ package body Osint is
      Table_Component_Type => String_Ptr,
      Table_Index_Type     => Natural,
      Table_Low_Bound      => Primary_Directory,
-     Table_Initial        => 12,
+     Table_Initial        => 10,
      Table_Increment      => 100,
      Table_Name           => "Osint.Src_Search_Directories");
    --  Table of names of directories in which to search for source (Compiler)
@@ -223,26 +181,13 @@ package body Osint is
      Table_Component_Type => String_Ptr,
      Table_Index_Type     => Natural,
      Table_Low_Bound      => Primary_Directory,
-     Table_Initial        => 12,
+     Table_Initial        => 10,
      Table_Increment      => 100,
      Table_Name           => "Osint.Lib_Search_Directories");
    --  Table of names of directories in which to search for library (Binder)
    --  files. This table is filled in the order in which the directories are
    --  to be searched and then used in that order. The reason for having two
    --  distinct tables is that we need them both in gnatmake.
-
-   package Ada_Lib_Search_Directories is new Table (
-     Table_Component_Type => String_Ptr,
-     Table_Index_Type     => Integer,
-     Table_Low_Bound      => 1,
-     Table_Initial        => 12,
-     Table_Increment      => 100,
-     Table_Name           => "Osint.Ada_Lib_Search_Directories");
-   --  Table of names of directories containing Ada libraries.  This table
-   --  is set in Osint.Initialize upon encounter of an "-Adir" switch and is
-   --  searched in routine Belongs_To_Ada_Library which is invoked by Gnatmake.
-   --  See the spec for Belongs_To_Ada_Library to see what an Ada library
-   --  directory is.
 
    ---------------------
    -- File Hash Table --
@@ -302,130 +247,34 @@ package body Osint is
    --  available.
 
    ------------------------
-   -- Ada_Library_Lookup --
+   -- Add_Lib_Search_Dir --
    ------------------------
 
-   function Ada_Library_Lookup (File : File_Name_Type) return File_Name_Type is
-
-      function Lookup (F : String_Ptr; D : String_Ptr) return File_Name_Type;
-      --  Returns the full name of file F if F is in directory D.
-
-      function Lookup (F : String_Ptr; D : String_Ptr) return File_Name_Type is
-         Name : String (1 .. D'Length + F'Length);
-
-      begin
-         Name (1 .. D'Length) := D.all;
-         Name (D'Length + 1 .. D'Length + F'Length) := F.all;
-
-         if Is_Regular_File (Name) then
-            Name_Len := Name'Last;
-            Name_Buffer (1 .. Name_Len) := Name;
-            return Name_Enter;
-         else
-            return No_File;
-         end if;
-      end Lookup;
-
-   --  begin of Ada_Library_Lookup
-
+   procedure Add_Lib_Search_Dir (Dir : String) is
    begin
-      Get_Name_String (File);
+      if Dir'Length = 0 then
+         Fail ("missing library directory name");
+      end if;
 
-      declare
-         F : String_Ptr := new String'(Name_Buffer (1 .. Name_Len));
-         File_Name : File_Name_Type;
+      Lib_Search_Directories.Increment_Last;
+      Lib_Search_Directories.Table (Lib_Search_Directories.Last) :=
+        Normalize_Directory_Name (Dir);
+   end Add_Lib_Search_Dir;
 
-      begin
-         for D in
-           Ada_Lib_Search_Directories.First .. Ada_Lib_Search_Directories.Last
-         loop
-            File_Name := Lookup (F, Ada_Lib_Search_Directories.Table (D));
+   ------------------------
+   -- Add_Src_Search_Dir --
+   ------------------------
 
-            if File_Name /= No_File then
-               return File_Name;
-            end if;
-         end loop;
-      end;
-
-      return No_File;
-   end Ada_Library_Lookup;
-
-   ----------------
-   -- Add_Switch --
-   ----------------
-
-   procedure Add_Switch (S : String; T : Make_Program_Type) is
+   procedure Add_Src_Search_Dir (Dir : String) is
    begin
-      case T is
-         when Compiler =>
-            Gcc_Switches.Increment_Last;
-            Gcc_Switches.Table (Gcc_Switches.Last) := new String'(S);
+      if Dir'Length = 0 then
+         Fail ("missing source directory name");
+      end if;
 
-         when Binder   =>
-            Binder_Switches.Increment_Last;
-            Binder_Switches.Table (Binder_Switches.Last) := new String'(S);
-
-         when Linker   =>
-            Linker_Switches.Increment_Last;
-            Linker_Switches.Table (Linker_Switches.Last) := new String'(S);
-
-         when None =>
-            pragma Assert (False);
-            null;
-      end case;
-   end Add_Switch;
-
-   ----------------
-   -- Add_Switch --
-   ----------------
-
-   procedure Add_Switch (S : String; T : Make_Program_Type; Pos : Integer) is
-   begin
-      case T is
-         when Compiler =>
-            pragma Assert
-              (Gcc_Switches.First <= Pos and Pos <= Gcc_Switches.Last);
-
-            Gcc_Switches.Increment_Last;
-            for J in reverse Pos + 1 .. Gcc_Switches.Last loop
-               Gcc_Switches.Table (J) := Gcc_Switches.Table (J - 1);
-            end loop;
-
-            Gcc_Switches.Table (Pos) := new String'(S);
-
-         when Binder   =>
-            pragma Assert
-              (Binder_Switches.First <= Pos and Pos <= Binder_Switches.Last);
-
-            Binder_Switches.Increment_Last;
-            for J in reverse Pos + 1 .. Binder_Switches.Last loop
-               Binder_Switches.Table (J) := Binder_Switches.Table (J - 1);
-            end loop;
-
-            Binder_Switches.Table (Pos) := new String'(S);
-
-         --  For the time being this facility is not available for the linker
-         --  but can be trivially implemented.
-
-         when others =>
-            pragma Assert (False);
-            null;
-      end case;
-
-   end Add_Switch;
-
-   ----------------
-   -- Add_Switch --
-   ----------------
-
-   procedure Add_Switch (S1, S2 : String; T : Make_Program_Type) is
-      Tmp : String (1 .. S1'Length + S2'Length);
-
-   begin
-      Tmp (1 .. S1'Length) := S1;
-      Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
-      Add_Switch (Tmp, T);
-   end Add_Switch;
+      Src_Search_Directories.Increment_Last;
+      Src_Search_Directories.Table (Src_Search_Directories.Last) :=
+        Normalize_Directory_Name (Dir);
+   end Add_Src_Search_Dir;
 
    -------------------------
    -- Close_Binder_Output --
@@ -472,7 +321,7 @@ package body Osint is
    -- Create_Binder_Output --
    --------------------------
 
-   procedure Create_Binder_Output is
+   procedure Create_Binder_Output (Output_Filename : String) is
       File_Name : String_Ptr;
       Findex1   : Natural;
       Findex2   : Natural;
@@ -481,8 +330,8 @@ package body Osint is
    begin
       pragma Assert (In_Binder);
 
-      if Output_Filename /= null then
-         Name_Buffer (Output_Filename'Range) := Output_Filename.all;
+      if Output_Filename /= "" then
+         Name_Buffer (Output_Filename'Range) := Output_Filename;
          Name_Buffer (Output_Filename'Last + 1) := Ascii.NUL;
          Name_Len := Output_Filename'Last;
 
@@ -922,19 +771,6 @@ package body Osint is
    ----------------
 
    procedure Initialize (P : Program_Type) is
-      File_Name_Seen : Boolean := False;
-      --  Set to true after having seen at least one file name.
-      --  Used in Scan_Make_Args only, but must be a global variable.
-
-      Output_Filename_Seen : Boolean := False;
-      --  Set to True after having scanned the file_name for
-      --  switch "-o file_name"
-
-      Program_Args : Make_Program_Type := None;
-      --  Used to indicate if we are scanning gcc, gnatbind, or gnatbl
-      --  options within the gnatmake command line.
-      --  Used in Scan_Make_Args only, but must be a global variable.
-
       function Get_Default_Identifier_Character_Set return Character;
       pragma Import (C, Get_Default_Identifier_Character_Set,
                        "Get_Default_Identifier_Character_Set");
@@ -947,230 +783,11 @@ package body Osint is
                     "Get_Maximum_File_Name_Length");
       --  Function to get maximum file name length for system
 
-      procedure Add_Src_Search_Dir (Dir : String);
-      --  Add Dir at the end of the source file search path.
-
-      procedure Add_Lib_Search_Dir (Dir : String);
-      --  Add Dir at the end of the library file search path.
-
-      procedure Add_Ada_Lib_Search_Dir (Dir : String);
-      --  Add Dir at the end of the Ada library search path.
-
-      procedure Scan_Make_Args (Argv : String);
-      --  The code that recognizes some gnatmake switches is here.  It would
-      --  be cleaner to put such code in a separate routine in package Make
-      --  and have Osint.Initialize call such routine.  Unfortunately this
-      --  would make Osint depend on Make, which is undesirable since for
-      --  gnatbind or gnat itself this would force us to link modules which
-      --  are never executed.
-
-      ----------------------------
-      -- Add_Ada_Lib_Search_Dir --
-      ----------------------------
-
-      procedure Add_Ada_Lib_Search_Dir (Dir : String) is
-      begin
-         if Dir'Length = 0 then
-            Fail ("missing external Ada library directory name");
-         end if;
-
-         Ada_Lib_Search_Directories.Increment_Last;
-         Ada_Lib_Search_Directories.Table (Ada_Lib_Search_Directories.Last) :=
-           Normalize_Directory_Name (Dir);
-      end Add_Ada_Lib_Search_Dir;
-
-      ------------------------
-      -- Add_Lib_Search_Dir --
-      ------------------------
-
-      procedure Add_Lib_Search_Dir (Dir : String) is
-      begin
-         if Dir'Length = 0 then
-            Fail ("missing library directory name");
-         end if;
-
-         Lib_Search_Directories.Increment_Last;
-         Lib_Search_Directories.Table (Lib_Search_Directories.Last) :=
-           Normalize_Directory_Name (Dir);
-      end Add_Lib_Search_Dir;
-
-      ------------------------
-      -- Add_Src_Search_Dir --
-      ------------------------
-
-      procedure Add_Src_Search_Dir (Dir : String) is
-      begin
-         if Dir'Length = 0 then
-            Fail ("missing source directory name");
-         end if;
-
-         Src_Search_Directories.Increment_Last;
-         Src_Search_Directories.Table (Src_Search_Directories.Last) :=
-           Normalize_Directory_Name (Dir);
-      end Add_Src_Search_Dir;
-
-      --------------------
-      -- Scan_Make_Args --
-      --------------------
-
-      procedure Scan_Make_Args (Argv : String) is
-      begin
-         pragma Assert (Argv'First = 1);
-
-         if Argv'Length = 0 then
-            return;
-         end if;
-
-         --  If the previous switch has set the Output_Filename_Present
-         --  flag (that is we have seen a -o), then the next argument is
-         --  the name of the output executable.
-
-         if Output_Filename_Present and then not Output_Filename_Seen then
-            Output_Filename_Seen := True;
-
-            if Argv (1) = Switch_Character or else Argv (1) = '-' then
-               Fail ("Output filename missing after -o");
-            else
-               Add_Switch ("-o", Linker);
-               Add_Switch (Argv, Linker);
-            end if;
-
-         --  Then check if we are dealing with a -cargs, -bargs or -largs
-
-         elsif (Argv (1) = Switch_Character or else Argv (1) = '-')
-           and then (Argv (2 .. Argv'Last) = "cargs"
-                      or else Argv (2 .. Argv'Last) = "bargs"
-                      or else Argv (2 .. Argv'Last) = "largs")
-         then
-            if not File_Name_Seen then
-               Fail ("-cargs, -bargs, -largs ",
-                     "must appear after unit or file name");
-            end if;
-
-            case Argv (2) is
-               when 'c' => Program_Args := Compiler;
-               when 'b' => Program_Args := Binder;
-               when 'l' => Program_Args := Linker;
-
-               when others =>
-                  pragma Assert (False);
-                  null;
-            end case;
-
-         --  A special test is needed for the -o switch within a -largs
-         --  since that is another way to specify the name of the final
-         --  executable.
-
-         elsif Program_Args = Linker
-           and then (Argv (1) = Switch_Character or else Argv (1) = '-')
-           and then Argv (2 .. Argv'Last) = "o"
-         then
-            Fail ("Switch -o not allowed within a -largs. Use -o directly.");
-
-         --  Check to see if we are reading switches after a -cargs,
-         --  -bargs or -largs switch. If yes save it.
-
-         elsif Program_Args /= None then
-            Add_Switch (Argv, Program_Args);
-
-         --  If we have seen a regular switch process it
-
-         elsif Argv (1) = Switch_Character or else Argv (1) = '-' then
-
-            if Argv'Length = 1 then
-               Fail ("switch character cannot be followed by a blank");
-
-            --  -I-
-
-            elsif Argv (2 .. Argv'Last) = "I-" then
-               Opt.Look_In_Primary_Dir := False;
-
-            --  Forbid  -?-  or  -??-  where ? is any character
-
-            elsif (Argv'Length = 3 and then Argv (3) = '-')
-              or else (Argv'Length = 4 and then Argv (4) = '-')
-            then
-               Fail ("Trailing ""-"" at the end of ", Argv, " forbidden.");
-
-            --  -Idir
-
-            elsif Argv (2) = 'I' then
-               Add_Src_Search_Dir (Argv (3 .. Argv'Last));
-               Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
-               Add_Switch (Argv, Compiler);
-               Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
-               --  No need to pass any source dir to the binder
-               --  since gnatmake call it with the -x flag
-               --  (ie do not check source time stamp)
-
-            --  -aIdir (to gcc this is like a -I switch)
-
-            elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aI" then
-               Add_Src_Search_Dir (Argv (4 .. Argv'Last));
-               Add_Switch ("-I", Argv (4 .. Argv'Last), Compiler);
-
-            --  -aOdir
-
-            elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aO" then
-               Add_Lib_Search_Dir (Argv (4 .. Argv'Last));
-               Add_Switch (Argv, Binder);
-
-            --  -aLdir (to gnatbind this is like a -aO switch)
-
-            elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aL" then
-               Add_Ada_Lib_Search_Dir (Argv (4 .. Argv'Last));
-               Add_Switch ("-aO", Argv (4 .. Argv'Last), Binder);
-
-            --  -Adir (to gnatbind this is like a -aO switch, to gcc like a -I)
-
-            elsif Argv (2) = 'A' then
-               Add_Src_Search_Dir (Argv (3 .. Argv'Last));
-               Add_Ada_Lib_Search_Dir (Argv (3 .. Argv'Last));
-               Add_Switch ("-I", Argv (3 .. Argv'Last), Compiler);
-               Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
-
-            --  -Ldir
-
-            elsif Argv (2) = 'L' then
-               Add_Switch (Argv, Linker);
-
-            --  -g
-
-            elsif Argv (2 .. Argv'Last) = "g" then
-               Add_Switch (Argv, Compiler);
-               Add_Switch (Argv, Linker);
-
-            --  By default all switches with more than one character
-            --  or one character switches which are not in 'a' .. 'z'
-            --  are passed to the compiler, unless we are dealing
-            --  with a -jnum switch or a debug switch (starts with 'd')
-
-            elsif Argv (2) /= 'j'
-              and then Argv (2) /= 'd'
-              and then Argv (2 .. Argv'Last) /= "M"
-              and then (Argv'Length > 2 or else Argv (2) not in 'a' .. 'z')
-            then
-               Add_Switch (Argv, Compiler);
-
-            --  All other options are handled by Scan_Switches.
-
-            else
-               Scan_Switches (Argv);
-            end if;
-
-         --  If not a switch it must be a file name
-
-         else
-            File_Name_Seen := True;
-            Number_File_Names := Number_File_Names + 1;
-            File_Names (Number_File_Names) := new String'(Argv);
-         end if;
-      end Scan_Make_Args;
-
-      --  Initialize variables
-
-      Search_Path : String_Access;
-      Next_Arg    : Positive;
+      procedure Adjust_OS_Resource_Limits;
+      pragma Import (C, Adjust_OS_Resource_Limits,
+                        "adjust_os_resource_limits");
+      --  Procedure to make system specific adjustments to make GNAT
+      --  run better.
 
    --  Begin of Initialize
 
@@ -1183,17 +800,12 @@ package body Osint is
          when Make     => In_Make     := True;
       end case;
 
+      if In_Compiler then
+         Adjust_OS_Resource_Limits;
+      end if;
+
       Src_Search_Directories.Init;
       Lib_Search_Directories.Init;
-
-      --  Needed only for gnatmake
-
-      if Program = Make then
-         Gcc_Switches.Init;
-         Binder_Switches.Init;
-         Linker_Switches.Init;
-         Ada_Lib_Search_Directories.Init;
-      end if;
 
       Identifier_Character_Set := Get_Default_Identifier_Character_Set;
       Maximum_File_Name_Length := Get_Maximum_File_Name_Length;
@@ -1238,10 +850,27 @@ package body Osint is
       Lib_Search_Directories.Set_Last (Primary_Directory);
       Lib_Search_Directories.Table (Primary_Directory) := new String'("");
 
+   end Initialize;
+
+   ------------------------
+   -- Scan_Compiler_Args --
+   ------------------------
+
+   procedure Scan_Compiler_Args is
+      Output_Filename_Seen : Boolean := False;
+      --  Set to True after having scanned the file_name for
+      --  switch "-o file_name"
+
+      Next_Arg    : Positive;
+
+   begin
       --  Loop through command line arguments, storing them for later access
 
       Next_Arg := 1;
       Scan_Args : loop
+
+         exit when not In_Compiler;
+
          if Next_Arg > Argument_Count
            and then Output_Filename_Present
            and then not Output_Filename_Seen
@@ -1257,14 +886,11 @@ package body Osint is
          begin
             Fill_Arg (Next_Argv'Address, Next_Arg);
 
-            if Program = Make then
-               Scan_Make_Args (Next_Argv);
-
             --  If the previous switch has set the Output_Filename_Present
             --  flag (that is we have seen a -o), then the next argument is
             --  the name of the output file.
 
-            elsif Output_Filename_Present
+            if Output_Filename_Present
               and then not Output_Filename_Seen
             then
                Output_Filename_Seen := True;
@@ -1326,6 +952,58 @@ package body Osint is
          Next_Arg := Next_Arg + 1;
       end loop Scan_Args;
 
+   end Scan_Compiler_Args;
+
+   -----------------------------
+   -- Add_Default_Search_Dirs --
+   -----------------------------
+
+   procedure Add_Default_Search_Dirs is
+      procedure Add_Search_Dir (Search_Path           : String_Access;
+                                Additional_Source_Dir : Boolean);
+
+      procedure Add_Search_Dir (Search_Path           : String_Access;
+                                Additional_Source_Dir : Boolean)
+      is
+         Lower_Bound : Positive := 1;
+         Upper_Bound : Positive;
+
+      begin
+         loop
+            while Lower_Bound <= Search_Path'Last
+              and then Search_Path.all (Lower_Bound) = Path_Separator
+            loop
+               Lower_Bound := Lower_Bound + 1;
+            end loop;
+
+            exit when Lower_Bound > Search_Path'Last;
+
+            Upper_Bound := Lower_Bound;
+            while Upper_Bound <= Search_Path'Last
+              and then Search_Path.all (Upper_Bound) /= Path_Separator
+            loop
+               Upper_Bound := Upper_Bound + 1;
+            end loop;
+
+            if Additional_Source_Dir then
+               Add_Src_Search_Dir
+                 (Search_Path.all (Lower_Bound .. Upper_Bound - 1));
+            else
+               Add_Lib_Search_Dir
+                 (Search_Path.all (Lower_Bound .. Upper_Bound - 1));
+            end if;
+
+            Lower_Bound := Upper_Bound + 1;
+         end loop;
+      end Add_Search_Dir;
+
+      --  Initialize variables
+
+      Search_Path : String_Access;
+
+   --  Begin of Add_Default_Search_Dirs
+
+   begin
       --  After the locations specified on the command line, the next places
       --  to look for files are the directories specified by the appropriate
       --  environment variable. Get this value, extract the directory names
@@ -1340,52 +1018,16 @@ package body Osint is
          end if;
 
          if Search_Path'Length > 0 then
-            declare
-               Lower_Bound : Positive := 1;
-               Upper_Bound : Positive;
-
-            begin
-               loop
-                  while Lower_Bound <= Search_Path'Last
-                    and then Search_Path.all (Lower_Bound) = Path_Separator
-                  loop
-                     Lower_Bound := Lower_Bound + 1;
-                  end loop;
-
-                  exit when Lower_Bound > Search_Path'Last;
-
-                  Upper_Bound := Lower_Bound;
-                  while Upper_Bound <= Search_Path'Last
-                    and then Search_Path.all (Upper_Bound) /= Path_Separator
-                  loop
-                     Upper_Bound := Upper_Bound + 1;
-                  end loop;
-
-                  if Additional_Source_Dir then
-                     Add_Src_Search_Dir
-                       (Search_Path.all (Lower_Bound .. Upper_Bound - 1));
-                  else
-                     Add_Lib_Search_Dir
-                       (Search_Path.all (Lower_Bound .. Upper_Bound - 1));
-                  end if;
-
-                  Lower_Bound := Upper_Bound + 1;
-               end loop;
-            end;
+            Add_Search_Dir (Search_Path, Additional_Source_Dir);
          end if;
       end loop;
 
       --  The last place to look are the defaults.
 
-      Src_Search_Directories.Increment_Last;
-      Lib_Search_Directories.Increment_Last;
+      Add_Search_Dir (String_Access (Include_Dir_Default_Name), True);
+      Add_Search_Dir (String_Access (Object_Dir_Default_Name), False);
 
-      Src_Search_Directories.Table (Src_Search_Directories.Last) :=
-                                             Include_Dir_Default_Name;
-      Lib_Search_Directories.Table (Lib_Search_Directories.Last) :=
-                                             Object_Dir_Default_Name;
-
-   end Initialize;
+   end Add_Default_Search_Dirs;
 
    -------------------
    -- Lib_File_Name --
@@ -1476,7 +1118,9 @@ package body Osint is
       Fptr := File_Name'First;
 
       for J in reverse File_Name'Range loop
-         if File_Name (J) = Directory_Separator then
+         if File_Name (J) = Directory_Separator
+           or else File_Name (J) = '/'
+         then
             if J = File_Name'Last then
                Fail ("File name missing");
             end if;
@@ -1496,7 +1140,6 @@ package body Osint is
       elsif In_Binder then
 
          Dir_Name := Normalize_Directory_Name (Dir_Name.all);
-
          Lib_Search_Directories.Table (Primary_Directory) := Dir_Name;
       else
          pragma Assert (False);
@@ -1527,40 +1170,30 @@ package body Osint is
    function Next_Main_Source return File_Name_Type is
       Main_File : File_Name_Type := Next_Main_File;
 
-      Dir_Len : Positive;
-      Tmp     : String_Access;
-
    begin
       pragma Assert (In_Compiler or else In_Make);
 
-      --  If we are in gnatmake now it is time to set the entries
-      --  of the source and library search parths for gcc and gnatbind
-      --  so that they are identical to gnatmake's.
-
-      if In_Make then
-         Add_Switch ("-I-", Compiler);
-         Add_Switch ("-I-", Binder);
-
-         if Opt.Look_In_Primary_Dir then
-
-            Dir_Len := Src_Search_Directories.Table (Primary_Directory)'Length;
-
-            if Dir_Len = 0 then
-               Add_Switch ("-I.", Compiler, Pos => Gcc_Switches.First);
-            else
-               Tmp := new String (1 .. Dir_Len + 2);
-               Tmp (1 .. 2)        := "-I";
-               Tmp (3 .. Tmp'Last) :=
-                 Src_Search_Directories.Table (Primary_Directory).all;
-               Add_Switch (Tmp.all, Compiler, Pos => Gcc_Switches.First);
-            end if;
-
-            Add_Switch ("-aO.", Binder, Pos => Binder_Switches.First);
-         end if;
-      end if;
-
       return Main_File;
    end Next_Main_Source;
+
+   --------------------------------------
+   -- Get_Primary_Src_Search_Directory --
+   --------------------------------------
+
+   function Get_Primary_Src_Search_Directory return String_Ptr is
+   begin
+      return Src_Search_Directories.Table (Primary_Directory);
+   end Get_Primary_Src_Search_Directory;
+
+   ------------------------
+   -- Set_Main_File_Name --
+   ------------------------
+
+   procedure Set_Main_File_Name (Name : String) is
+   begin
+      Number_File_Names := Number_File_Names + 1;
+      File_Names (Number_File_Names) := new String'(Name);
+   end Set_Main_File_Name;
 
    ------------------------------
    -- Normalize_Directory_Name --
@@ -1573,7 +1206,9 @@ package body Osint is
       --  For now this just insures that the string is terminated with
       --  the directory separator character. Add more later?
 
-      if Directory (Directory'Last) = Directory_Separator then
+      if Directory (Directory'Last) = Directory_Separator
+        or else Directory (Directory'Last) = '/'
+      then
          Result := new String'(Directory);
 
       elsif Directory'Length = 0 then
@@ -1945,7 +1580,9 @@ package body Osint is
 
       begin
          for J in reverse S'Range loop
-            if S (J) = Directory_Separator then
+            if S (J) = Directory_Separator
+              or else S (J) = '/'
+            then
                Fptr := J + 1;
                exit;
             end if;
@@ -2076,9 +1713,45 @@ package body Osint is
 
    procedure Write_Program_Name is
       Command_Name : String (1 .. Len_Arg (0));
+      Cindex1 : Integer := Command_Name'First;
+      Cindex2 : Integer := Command_Name'Last;
+
    begin
+
       Fill_Arg (Command_Name'Address, 0);
-      Write_Str (Command_Name);
+
+      --  The program name might be specified by a full path name. However,
+      --  we don't want to print that all out in an error message, so the
+      --  path might need to be stripped away. In addition to the default
+      --  directory_separator allow the '/' to act as separator since this
+      --  is allowed in MS-DOS, Windows 95/NT, and OS2 ports.  In addition,
+      --  convert the name to lower case so error messages are the same on
+      --  all systems.
+
+      for I in reverse Cindex1 .. Cindex2 loop
+         if Command_Name (I) = Directory_Separator
+           or else Command_Name (I) = '/'
+         then
+            Cindex1 := I + 1;
+            exit;
+         end if;
+      end loop;
+
+      for I in reverse Cindex1 .. Cindex2 loop
+         if Command_Name (I) = '.' then
+            Cindex2 := I - 1;
+            exit;
+         end if;
+      end loop;
+
+      for I in Cindex1 .. Cindex2 loop
+         if Command_Name (I) in 'A' .. 'Z' then
+            Command_Name (I) :=
+              Character'Val (Character'Pos (Command_Name (I)) + 32);
+         end if;
+      end loop;
+
+      Write_Str (Command_Name (Cindex1 .. Cindex2));
    end Write_Program_Name;
 
    ----------------------

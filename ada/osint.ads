@@ -48,7 +48,9 @@ package Osint is
 --  and the EOF character at the end of a file is optional.
 
    --  The 3 following packages are used to store gcc, gnatbind and gnatbl
-   --  switches passed on the gnatmake command line.
+   --  switches passed on the gnatmake command line. Note that the lower
+   --  bounds definitely need to be 1 to match the requirement that the
+   --  argument array prepared for Spawn must have a lower bound of 1.
 
    package Gcc_Switches is new Table (
      Table_Component_Type => String_Access,
@@ -74,6 +76,24 @@ package Osint is
      Table_Increment      => 100,
      Table_Name           => "Osint.Linker_Switches");
 
+   procedure Add_Src_Search_Dir (Dir : String);
+   --  Add Dir at the end of the source file search path
+
+   procedure Add_Lib_Search_Dir (Dir : String);
+   --  Add Dir at the end of the library file search path
+
+   function Get_Primary_Src_Search_Directory return String_Ptr;
+   --  Retrieved the primary directory (directory containing the main source
+   --   file for Gnatmake.
+
+   procedure Set_Main_File_Name (Name : String);
+   --  Set the main file name for Gnatmake.
+
+   function Normalize_Directory_Name (Directory : String) return String_Ptr;
+   --  Verify and normalize a directory name. If directory name is invalid,
+   --  this will return an empty string. Otherwise it will insure a trailing
+   --  slash and make other normalizations.
+
    function Get_Switch_Character return Character;
    pragma Import (C, Get_Switch_Character,
                     "Get_Switch_Character");
@@ -97,6 +117,10 @@ package Osint is
    Program : Program_Type;
    --  Program currently running (set by Initialize below)
 
+   procedure Add_Default_Search_Dirs;
+   --  This routine adds the default search dirs indicated by the
+   --  environment variables and sdefault package.
+
    procedure Initialize (P : Program_Type);
    --  This routine scans parameters and initializes for the first call to
    --  Next_Main_Source (Compiler or Make) or Next_Main_Lib_File (Binder).
@@ -111,6 +135,9 @@ package Osint is
    --  the implementation and provide for opening only one file.
    --  The parameter P is the program (Compiler, Binder or Make) that is
    --  actually running.
+
+   procedure Scan_Compiler_Args;
+   --  Scans and processes the arguments passed to the compiler.
 
    procedure Write_Program_Name;
    --  Writes name of program as invoked to standard output
@@ -390,7 +417,7 @@ package Osint is
    --  containing the binder output. The format of this file is described
    --  in the package Bindfmt.
 
-   procedure Create_Binder_Output;
+   procedure Create_Binder_Output (Output_Filename : String);
    --  Creates the binder output file corresponding to the library information
    --  file for the main program (i.e. for the file returned by the previous
    --  call to Next_Main_Lib_File).
@@ -406,23 +433,6 @@ package Osint is
    procedure Close_Binder_Output;
    --  Closes the file created by Create_Binder_Output, flushing any
    --  buffers etc from writes by Write_Binder_Info.
-
-   -----------------------
-   -- Gnatmake Routines --
-   -----------------------
-
-   function Ada_Library_Lookup (File : File_Name_Type) return File_Name_Type;
-   --  Given an ali file File, this routine returns the its full name (ie
-   --  including the directory) of File, if File is in some Ada library
-   --  directory.  An Ada library directory is a directory containing ali
-   --  and object files but no source files for the bodies (the specs can be
-   --  in the same or some other directory). These directories are specified
-   --  in the Gnatmake command line with the switch "-Adir" (to specify the
-   --  spec location -Idir cab be used).  Gnatmake skips the missing sources
-   --  whose ali are in Ada library directories. For an explanation of why
-   --  Gnatmake behaves that way, see the spec of Make.Compile_Sources.
-   --  The directory lookup penalty is incurred every single time this
-   --  routine is called.
 
    -----------------
    -- Xref Output --
@@ -502,5 +512,25 @@ package Osint is
    --  A call to Exit_Program terminates execution with the given status.
    --  A status of zero indicates normal completion, a non-zero status
    --  indicates abnormal termination.
+
+   -------------------------
+   -- Command Line Access --
+   -------------------------
+
+   --  Direct interface to command line parameters. (We don't want to use
+   --  the predefined command line package because it defines functions
+   --  returning string)
+
+   function Arg_Count return Natural;
+   pragma Import (C, Arg_Count, "arg_count");
+   --  Get number of arguments (note: optional globbing may be enabled)
+
+   procedure Fill_Arg (A : System.Address; Arg_Num : Integer);
+   pragma Import (C, Fill_Arg, "fill_arg");
+   --  Store one argument
+
+   function Len_Arg (Arg_Num : Integer) return Integer;
+   pragma Import (C, Len_Arg, "len_arg");
+   --  Get length of argument
 
 end Osint;

@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Alloc;    use Alloc;
+with Alloc;
 with Debug;    use Debug;
 with Krunch;
 with Namet;    use Namet;
@@ -58,8 +58,8 @@ package body Fname is
      Table_Component_Type => SFN_Entry,
      Table_Index_Type     => Int,
      Table_Low_Bound      => 0,
-     Table_Initial        => Alloc_SFN_Table_Initial,
-     Table_Increment      => Alloc_SFN_Table_Increment,
+     Table_Initial        => Alloc.SFN_Table_Initial,
+     Table_Increment      => Alloc.SFN_Table_Increment,
      Table_Name           => "SFN_Table");
 
    type SFN_Header_Num is range 0 .. 100;
@@ -228,6 +228,16 @@ package body Fname is
       SFN_Table.Init;
    end Initialize;
 
+   ----------
+   -- Lock --
+   ----------
+
+   procedure Lock is
+   begin
+      SFN_Table.Locked := True;
+      SFN_Table.Release;
+   end Lock;
+
    -----------------------------
    -- Is_Predefined_File_Name --
    -----------------------------
@@ -235,22 +245,32 @@ package body Fname is
    --  This should really be a test of unit name, given the possibility of
    --  pragma Source_File_Name setting arbitrary file names for any files???
 
-   function Is_Predefined_File_Name (Fname : File_Name_Type) return Boolean is
+   function Is_Predefined_File_Name
+     (Fname              : File_Name_Type;
+      Renamings_Included : Boolean := True)
+      return               Boolean
+   is
       subtype Str8 is String (1 .. 8);
 
       Predef_Names : array (1 .. 12) of Str8 :=
-         ("ada     ",       -- Ada
-          "calendar",       -- Calendar
-          "direc_io",       -- Direct_IO
-          "gnat    ",       -- GNAT
-          "interfac",       -- Interfaces
-          "ioexcept",       -- IO_Exceptions
-          "machcode",       -- Machine_Code
-          "sequenio",       -- Sequential_IO
-          "system  ",       -- System
-          "text_io ",       -- Text_IO
-          "unchconv",       -- Unchecked_Conversion
-          "unchdeal");      -- Unchecked_Deallocation
+        ("ada     ",       -- Ada
+         "calendar",       -- Calendar
+         "gnat    ",       -- GNAT
+         "interfac",       -- Interfaces
+         "system  ",       -- System
+         "machcode",       -- Machine_Code
+         "unchconv",       -- Unchecked_Conversion
+         "unchdeal",       -- Unchecked_Deallocation
+
+         --  Remaining entries are only considered if Renamings_Included true
+
+         "direc_io",       -- Direct_IO
+         "ioexcept",       -- IO_Exceptions
+         "sequenio",       -- Sequential_IO
+         "text_io ");      -- Text_IO
+
+         Num_Entries : constant Natural :=
+                         8 + 4 * Boolean'Pos (Renamings_Included);
 
    begin
       --  Get file name, removing the extension (if any)
@@ -290,14 +310,13 @@ package body Fname is
          Name_Buffer (Name_Len) := ' ';
       end loop;
 
-      for J in 1 .. 12 loop
+      for J in 1 .. Num_Entries loop
          if Name_Buffer (1 .. 8) = Predef_Names (J) then
             return True;
          end if;
       end loop;
 
       return False;
-
    end Is_Predefined_File_Name;
 
    -------------------

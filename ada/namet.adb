@@ -37,7 +37,7 @@
 --  source file must be properly reflected in the C header file a-namet.h
 --  which is created manually from namet.ads and namet.adb.
 
-with Alloc;    use Alloc;
+with Alloc;
 with Debug;    use Debug;
 with Output;   use Output;
 with Tree_IO;  use Tree_IO;
@@ -54,8 +54,8 @@ package body Namet is
      Table_Component_Type => Character,
      Table_Index_Type     => Int,
      Table_Low_Bound      => 0,
-     Table_Initial        => Alloc_Name_Chars_Initial,
-     Table_Increment      => Alloc_Name_Chars_Increment,
+     Table_Initial        => Alloc.Name_Chars_Initial,
+     Table_Increment      => Alloc.Name_Chars_Increment,
      Table_Name           => "Name_Chars");
 
    type Name_Entry is record
@@ -85,9 +85,18 @@ package body Namet is
      Table_Component_Type => Name_Entry,
      Table_Index_Type     => Name_Id,
      Table_Low_Bound      => First_Name_Id,
-     Table_Initial        => Alloc_Names_Initial,
-     Table_Increment      => Alloc_Names_Increment,
+     Table_Initial        => Alloc.Names_Initial,
+     Table_Increment      => Alloc.Names_Increment,
      Table_Name           => "Name_Entries");
+
+   Name_Chars_Reserve   : constant := 5000;
+   Name_Entries_Reserve : constant := 100;
+   --  The names table is locked during gigi processing, since gigi assumes
+   --  that the table does not move. After returning from gigi, the names
+   --  table is unlocked again, since writing library file information needs
+   --  to generate some extra names. To avoid the inefficiency of always
+   --  reallocating during this second unlocked phase, we reserve a bit of
+   --  extra space before doing the release call.
 
    Hash_Num : constant Int := 2**12;
    --  Number of headers in the hash table. Current hash algorithm is closely
@@ -694,6 +703,20 @@ package body Namet is
       return Int (Name_Entries.Table (Id).Name_Len);
    end Length_Of_Name;
 
+   ----------
+   -- Lock --
+   ----------
+
+   procedure Lock is
+   begin
+      Name_Chars.Set_Last (Name_Chars.Last + Name_Chars_Reserve);
+      Name_Entries.Set_Last (Name_Entries.Last + Name_Entries_Reserve);
+      Name_Chars.Locked := True;
+      Name_Entries.Locked := True;
+      Name_Chars.Release;
+      Name_Entries.Release;
+   end Lock;
+
    ------------------------
    -- Name_Chars_Address --
    ------------------------
@@ -951,9 +974,33 @@ package body Namet is
          Hash_Table'Length * (Hash_Table'Component_Size / Storage_Unit));
    end Tree_Write;
 
-   -----------------
-   --  Write_Name --
-   -----------------
+   ------------
+   -- Unlock --
+   ------------
+
+   procedure Unlock is
+   begin
+      Name_Chars.Set_Last (Name_Chars.Last - Name_Chars_Reserve);
+      Name_Entries.Set_Last (Name_Entries.Last - Name_Entries_Reserve);
+      Name_Chars.Locked := False;
+      Name_Entries.Locked := False;
+      Name_Chars.Release;
+      Name_Entries.Release;
+   end Unlock;
+
+   --------
+   -- wn --
+   --------
+
+   procedure wn (Id : Name_Id) is
+   begin
+      Write_Name (Id);
+      Write_Eol;
+   end wn;
+
+   ----------------
+   -- Write_Name --
+   ----------------
 
    procedure Write_Name (Id : Name_Id) is
    begin

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---     Copyright (C) 1992,1993,1994,1995 Free Software Foundation, Inc.     --
+--   Copyright (C) 1992,1993,1994,1995,1997 Free Software Foundation, Inc.  --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -55,9 +55,11 @@ package Make is
 
    procedure Bind (Ali_File : File_Name_Type; Args : Argument_List);
    --  Binds Ali_File. Args are the arguments to pass to the binder.
+   --  Args must have a lower bound of 1.
 
    procedure Link (Ali_File : File_Name_Type; Args : Argument_List);
    --  Links Ali_File. Args are the arguments to pass to the linker.
+   --  Args must have a lower bound of 1.
 
    procedure Compile_Sources
      (Main_Source           : File_Name_Type;
@@ -80,34 +82,45 @@ package Make is
    --  *exactly* the same. The default directory must also be the same.
    --
    --    Args contains the arguments to use during the compilations.
+   --    The lower bound of Args must be 1.
+   --
    --    First_Compiled_File is set to the name of the first file that is
-   --      compiled or that needs to be compiled. This is set to No_Name if no
-   --      compilations were needed.
+   --    compiled or that needs to be compiled. This is set to No_Name if no
+   --    compilations were needed.
+   --
    --    Most_Recent_Obj_File is set to the full name of the most recent
-   --      object file found when no compilations are needed, that is when
-   --      First_Compiled_File is set to No_Name. When First_Compiled_File
-   --      is set then Most_Recent_Obj_File is set to No_Name.
+   --    object file found when no compilations are needed, that is when
+   --    First_Compiled_File is set to No_Name. When First_Compiled_File
+   --    is set then Most_Recent_Obj_File is set to No_Name.
+   --
    --    Most_Recent_Obj_Stamp is the time stamp of Most_Recent_Obj_File.
+   --
    --    Main_Unit is set to True if Main_Source can be a main unit.
-   --      If Dont_Execute is False and First_Compiled_File /= No_Name
-   --      the value of Main_Unit is always False.
+   --    If Dont_Execute is False and First_Compiled_File /= No_Name
+   --    the value of Main_Unit is always False.
+   --
    --    Check_Internal_Files set it to True to compile GNAT predefined files.
-   --      When compiling GNAT predifined files the "-gnatg" flag is used.
+   --    When compiling GNAT predifined files the "-gnatg" flag is used.
+   --
    --    Dont_Execute set it to True to find out the first source that needs
-   --      to be recompiled, but without recompiling it. This file is saved
-   --      in First_Compiled_File.
+   --    to be recompiled, but without recompiling it. This file is saved
+   --    in First_Compiled_File.
+   --
    --    Force_Compilations forces all compilations no matter what but
-   --      recompiles GNAT predifined files only if Check_Internal_Files
-   --      is set.
+   --    recompiles GNAT predifined files only if Check_Internal_Files
+   --    is set.
+   --
    --    Keep_Going when True keep compiling even in the presence of
-   --      compilation errors.
+   --    compilation errors.
+   --
    --    Initialize_Ali_Data set it to True when you want to intialize Ali
-   --      data-structures. This is what you should do most of the time.
-   --      (especially the first time around when you call this routine).
-   --      You set this parameter to False when you want to preserve previously
-   --      recorded Ali file data.
+   --    data-structures. This is what you should do most of the time.
+   --    (especially the first time around when you call this routine).
+   --    This parameter is set to False to preserve previously recorded
+   --    Ali file data.
+   --
    --    Max_Process is the maximum number of processes that should be spawned
-   --      to carry out compilations.
+   --    to carry out compilations.
    --
    --  Flags in Package Opt Affecting Compile_Sources
    --  -----------------------------------------------
@@ -161,7 +174,7 @@ package Make is
    --     already in charge of catching any potential inconsistencies.
    --
    --  3. Look into the W section of unit.ali and insert into the Q all
-   --     unmarked source files.  Mark all files newly inserted in the Q.
+   --     unmarked source files. Mark all files newly inserted in the Q.
    --     Specifically, assuming that the W section looks like
    --
    --     W types%s               types.adb               types.ali
@@ -180,15 +193,15 @@ package Make is
    --
    --  Note that the above algorithm works because the units withed in
    --  subunits are transitively included in the W section (with section) of
-   --  the main unit.  Likewise the withed units in a generic body needed
+   --  the main unit. Likewise the withed units in a generic body needed
    --  during a compilation are also transitively included in the W section
    --  of the originally compiled file.
 
    procedure Gnatmake;
-   --  The driver of gnatmake. This routine puts it all together.  This
-   --  utility can be used to automatically (re)compile (using
+   --  The driver of gnatmake. This routine puts it all together.
+   --  This utility can be used to automatically (re)compile (using
    --  Compile_Sources), bind (using Bind) and link (using Link) a set of
-   --  ada sources.  For more information on gnatmake and its precise usage
+   --  ada sources. For more information on gnatmake and its precise usage
    --  please refer to the gnat documentation.
    --
    --  Flags in Package Opt Affecting Gnatmake

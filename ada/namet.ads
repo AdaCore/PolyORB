@@ -126,6 +126,7 @@ package Namet is
    --  Length of name stored in Name_Buffer. Used as an input parameter for
    --  Name_Find, and as an output value by Get_Name_String, or Write_Name.
 
+
    -----------------
    -- Subprograms --
    -----------------
@@ -165,6 +166,15 @@ package Namet is
    --  Initializes the names table, including initializing the first 26
    --  entries in the table (for the 1-character lower case names a-z)
    --  Note that Initialize must not be called if Tree_Read is used.
+
+   procedure Lock;
+   --  Lock name table before calling back end. Space for up to 10 extra
+   --  names and 1000 extra characters is reserved before the table is locked.
+
+   procedure Unlock;
+   --  Unlocks the name table to allow use of the 10 extra names and 1000
+   --  extra characters reserved by the Lock call. See gnat1drv for details
+   --  of the need for this.
 
    function Length_Of_Name (Id : Name_Id) return Nat;
    pragma Inline (Length_Of_Name);
@@ -267,6 +277,10 @@ package Namet is
    --  Name_Len are set as for a call to Get_Name_String. The name is written
    --  in encoded form (i.e. including Uhh, Whhh, Qx, _op as they appear in
    --  the name table). If Id is Error_Name, or No_Name, no text is output.
+
+   procedure wn (Id : Name_Id);
+   --  Like Write_Name, but includes new line at end. Intended for use
+   --  from the debugger only.
 
    procedure Write_Name_Decoded (Id : Name_Id);
    --  Like Write_Name, except that the name written is the decoded name, as

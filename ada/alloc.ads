@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---     Copyright (C) 1992,1993,1994,1995 Free Software Foundation, Inc.     --
+--   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,108 +33,102 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package Alloc is
-
 --  This package contains definitions for initial sizes and growth increments
 --  for the various dynamic arrays used for principle compiler data strcutures.
 --  The indicated initial size is allocated for the start of each file, and
 --  the increment factor is a percentage used to increase the table size when
 --  it needs expanding (e.g. a value of 100 = 100% increase = double)
 
-   Alloc_Elists_Initial : constant := 1_000;
-   --  Initial allocation in Elist headers for tree (Elists)
+--  Note: the initial values here are multiplied by Table_Factor, as set
+--  by the -gnatTnn switch. This variable is defined in Opt, as is the
+--  default value for the table factor.
 
-   Alloc_Elists_Increment : constant := 150;
-   --  Incremental allocation factor for Elist headers table (Elists)
+package Alloc is
 
-   Alloc_Elmts_Initial : constant := 4_000;
-   --  Initial allocation in Elmts table (Elists)
+   --  The comment shows the unit in which the table is defined
 
-   Alloc_Elmts_Increment : constant := 150;
-   --  Incremental allocation factor for Elmts table (Elists)
+   All_Interp_Initial               : constant := 1_000;   -- Sem_Type
+   All_Interp_Increment             : constant := 100;
 
-   Alloc_Feature_List_Initial : constant := 100;
-   --  Initial allocation for Feature_List table (Features)
+   Elists_Initial                   : constant := 200;     -- Elists
+   Elists_Increment                 : constant := 100;
 
-   Alloc_Feature_List_Increment : constant := 300;
-   --  Incremental allocation factor for Feature_List table (Features)
+   Elmts_Initial                    : constant := 1_200;   -- Elists
+   Elmts_Increment                  : constant := 100;
 
-   Alloc_Hash_Sub_Initial : constant := 2048;
-   --  Initial allocation in tree substitution hash table (Atree)
+   Entity_Suppress_Initial          : constant := 100;     -- Sem
+   Entity_Suppress_Increment        : constant := 200;
 
-   Alloc_Hash_Sub_Increment : constant := 300;
-   --  Incremental allocation factor in tree substitution hash table (Atree)
+   Feature_List_Initial             : constant := 5;       -- Features
+   Feature_List_Increment           : constant := 300;
 
-   Alloc_Lines_Initial : constant := 4_000;
-   --  Initial allocation for lines table (Lib, Lib.Load)
+   Inlined_Initial                  : constant := 100;     -- Inline
+   Inlined_Increment                : constant := 100;
 
-   Alloc_Lines_Increment : constant := 150;
-   --  Incremental allocation factor for lines table (Sinput)
+   Inlined_Bodies_Initial           : constant := 50;      -- Inline
+   Inlined_Bodies_Increment         : constant := 200;
 
-   Alloc_Lists_Initial : constant := 4_000;
-   --  Initial allocation in list headers for tree (Nlists)
+   Interp_Map_Initial               : constant := 200;     -- Sem_Type
+   Interp_Map_Increment             : constant := 100;
 
-   Alloc_Lists_Increment : constant := 200;
-   --  Incremental allocation factor for list table (Nlists)
+   Lines_Initial                    : constant := 500;     -- Sinput
+   Lines_Increment                  : constant := 150;
 
-   Alloc_Name_Chars_Initial : constant := 64_000;
-   --  Initial allocation for name characters table (Namet)
+   Linker_Option_Lines_Initial      : constant := 5;       -- Lib
+   Linker_Option_Lines_Increment    : constant := 200;
 
-   Alloc_Name_Chars_Increment : constant := 100;
-   --  Incremental allocation factor for name characters table (Namet)
+   Lists_Initial                    : constant := 4_000;   -- Nlists
+   Lists_Increment                  : constant := 200;
 
-   Alloc_Names_Initial : constant := 4_000;
-   --  Initial allocation of entries in names table (Namet)
+   Load_Stack_Initial               : constant := 10;      -- Lib
+   Load_Stack_Increment             : constant := 100;
 
-   Alloc_Names_Increment : constant := 100;
-   --  Incremental allocation factor of entries in names table (Namet)
+   Name_Chars_Initial               : constant := 50_000;  -- Namet
+   Name_Chars_Increment             : constant := 100;
 
-   Alloc_Nodes_Initial : constant := 8_000;
-   --  Initial allocation in nodes for tree (Atree)
+   Names_Initial                    : constant := 6_000;   -- Namet
+   Names_Increment                  : constant := 100;
 
-   Alloc_Nodes_Increment : constant := 200;
-   --  Incremental allocation factor for nodes table (Atree)
+   Nodes_Initial                    : constant := 50_000;  -- Atree
+   Nodes_Increment                  : constant := 100;
 
-   Alloc_SFN_Table_Initial : constant := 50;
-   --  Initial allocation in entries for source file name table (Fname)
+   Orig_Nodes_Initial               : constant := 50_000;  -- Atree
+   Orig_Nodes_Increment             : constant := 100;
 
-   Alloc_SFN_Table_Increment : constant := 200;
-   --  Incremental allocatoin factor for source file name table (Fname)
+   Pending_Instantiations_Initial   : constant := 10;      -- Inline
+   Pending_Instantiations_Increment : constant := 100;
 
-   Alloc_String_Chars_Initial : constant := 64_000;
-   --  Initial allocation for name characters table (Stringt)
+   Scope_Stack_Initial              : constant := 10;      -- Sem
+   Scope_Stack_Increment            : constant := 200;
 
-   Alloc_String_Chars_Increment : constant := 150;
-   --  Incremental allocation factor for name characters table (Stringt)
+   SFN_Table_Initial                : constant := 10;      -- Fname
+   SFN_Table_Increment              : constant := 200;
 
-   Alloc_Strings_Initial : constant := 500;
-   --  Initial allocation of entries in names table (Stringt)
+   Source_File_Initial              : constant := 10;      -- Sinput
+   Source_File_Increment            : constant := 200;
 
-   Alloc_Strings_Increment : constant := 150;
-   --  Incremental allocation factor of entries in names table (Stringt)
+   String_Chars_Initial             : constant := 2_500;   -- Stringt
+   String_Chars_Increment           : constant := 150;
 
-   Alloc_Udigits_Initial : constant := 50_000;
-   --  Initial allocation for Uint digits table (Uintp)
+   Strings_Initial                  : constant := 5_00;    -- Stringt
+   Strings_Increment                : constant := 150;
 
-   Alloc_Udigits_Increment : constant := 100;
-   --  Incremental allocation factor Uint digits table (Uintp)
+   Successors_Initial               : constant := 2_00;    -- Inline
+   Successors_Increment             : constant := 100;
 
-   Alloc_Uints_Initial : constant := 20_000;
-   --  Initial allocation for uint table in digits (Uintp)
+   Udigits_Initial                  : constant := 10_000;  -- Uintp
+   Udigits_Increment                : constant := 100;
 
-   Alloc_Uints_Increment : constant := 100;
-   --  Incremental allocation factor for Uint table in digits (Uintp)
+   Uints_Initial                    : constant := 5_000;   -- Uintp
+   Uints_Increment                  : constant := 100;
 
-   Alloc_Ureals_Initial : constant := 2000;
-   --  Initial allocation for universal real table in entries (Urealp)
+   Units_Initial                    : constant := 30;      -- Lib
+   Units_Increment                  : constant := 100;
 
-   Alloc_Ureals_Increment : constant := 100;
-   --  Incremental allocation factor for universal real table (Urealp)
+   Ureals_Initial                   : constant := 200;     -- Urealp
+   Ureals_Increment                 : constant := 100;
 
-   Alloc_With_List_Initial : constant := 100;
-   --  Initial allocation for With_List table (Features)
-
-   Alloc_With_List_Increment : constant := 300;
-   --  Incremental allocation factor for With_List table (Features)
+   With_List_Initial                : constant := 10;      -- Features
+   With_List_Increment              : constant := 300;
 
 end Alloc;

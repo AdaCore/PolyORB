@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
---     Copyright (C) 1992,1993,1994,1995 Free Software Foundation, Inc.     --
+--   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -193,7 +193,10 @@ package body Tree_IO is
    --------------------
 
    procedure Tree_Read_Data (Addr : Address; Length : Int) is
+
       type S is array (Pos) of Byte;
+      --  This is a big array, for which we have to suppress the warning
+
       type SP is access all S;
 
       function To_SP is new Unchecked_Conversion (Address, SP);
@@ -246,7 +249,7 @@ package body Tree_IO is
                Write_Str ("==>    uncompressed:  ");
                Write_Int (Int (C));
                Write_Str (", starting at ");
-               Write_Int (OP - 1);
+               Write_Int (OP);
                Write_Eol;
             end if;
 
@@ -414,6 +417,8 @@ package body Tree_IO is
    procedure Tree_Write_Data (Addr : Address; Length : Int) is
 
       type S is array (Pos) of Byte;
+      --  This is a big array, for which we have to suppress the warning
+
       type SP is access all S;
 
       function To_SP is new Unchecked_Conversion (Address, SP);

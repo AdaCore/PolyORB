@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,15 +33,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Hostparm;
 package body Output is
 
-   Current_Column : Int := 1;
+   Current_Column : Pos := 1;
    --  Current column number
 
    Current_FD : File_Descriptor := Standout;
    --  File descriptor for current output
 
    Saved_FD : File_Descriptor;
+
+   Buffer_Max : constant := 8192;
+   Buffer     : String (1 .. Buffer_Max + 1);
+   --  Buffer used to build output line. Note that the reason we do line
+   --  buffering is that on VMS, this works better with certain file formats,
+   --  where writing pieces separately results in separate lines. Note that
+   --  the +1 here ensures there is always space for the terminating LF.
+
+   Buffer_Count : Natural := 0;
+   --  Count of number of characters stored in Buffer
+
+   -----------------------
+   -- Local Subprograms --
+   -----------------------
+
+   procedure Write_Buffer;
+   --  Write contents of buffer if last character is a line feed, or if
+   --  we are on a system other than VMS. As noted above, we buffer up
+   --  lines on VMS, since this works better for certain file formats.
 
    -------------
    --  Column --
@@ -89,20 +109,42 @@ package body Output is
       Current_FD := Standout;
    end Set_Standard_Output;
 
+   ------------------
+   -- Write_Buffer --
+   ------------------
+
+   procedure Write_Buffer is
+   begin
+      if Buffer (Buffer_Count) = Ascii.LF
+        or else not Hostparm.OpenVMS
+      then
+         if Buffer_Count /=
+              Write (Current_FD, Buffer'Address, Buffer_Count)
+         then
+            Set_Standard_Error;
+            Write_Str ("fatal error: disk full");
+            OS_Exit (2);
+         end if;
+
+         Buffer_Count := 0;
+      end if;
+   end Write_Buffer;
+
    ----------------
    -- Write_Char --
    ----------------
 
    procedure Write_Char (C : Character) is
    begin
-      if 1 = Write (Current_FD, C'Address, 1) then
-         Current_Column := Current_Column + 1;
-
-      else
-         Set_Standard_Error;
-         Write_Str ("fatal error: disk full");
-         OS_Exit (2);
+      if Buffer_Count >= Buffer_Max then
+         raise Constraint_Error;
       end if;
+
+      Buffer_Count := Buffer_Count + 1;
+      Buffer (Buffer_Count) := C;
+      Write_Buffer;
+
+      Current_Column := Current_Column + 1;
    end Write_Char;
 
    ---------------
@@ -111,7 +153,10 @@ package body Output is
 
    procedure Write_Eol is
    begin
-      Write_Char (Ascii.LF);
+      Buffer_Count := Buffer_Count + 1;
+      Buffer (Buffer_Count) := Ascii.LF;
+      Write_Buffer;
+
       Current_Column := 1;
    end Write_Eol;
 
@@ -141,15 +186,17 @@ package body Output is
 
    procedure Write_Str (S : String) is
    begin
-      if S'Length = Write (Current_FD, S'Address, S'Length) then
-         Current_Column := Current_Column + S'Length;
-
-      else
-         Set_Standard_Error;
-         Write_Str ("fatal error: disk full");
-         OS_Exit (2);
+      if Buffer_Count + S'Length >= Buffer_Max then
+         raise Constraint_Error;
       end if;
 
+      for I in S'Range loop
+         Buffer_Count := Buffer_Count + 1;
+         Buffer (Buffer_Count) := S (I);
+      end loop;
+
+      Write_Buffer;
+      Current_Column := Current_Column + S'Length;
    end Write_Str;
 
    --------------------------

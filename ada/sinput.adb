@@ -33,13 +33,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Alloc;   use Alloc;
 with Debug;   use Debug;
 with Namet;   use Namet;
 with Output;  use Output;
+with Scans;   use Scans;
 with Tree_IO; use Tree_IO;
-
 with System;  use System;
+
 with Unchecked_Conversion;
 
 package body Sinput is
@@ -55,6 +55,48 @@ package body Sinput is
    pragma Inline (Line_Offset);
    --  This value is never referenced directly by clients (who should use
    --  the Logical_To_Physical or Physical_To_Logical functions instead).
+
+   -----------------------
+   -- Alloc_Lines_Table --
+   -----------------------
+
+   procedure Alloc_Lines_Table (X : Source_File_Index; New_Max : Pos) is
+
+      function realloc
+        (memblock : Lines_Table_Ptr;
+         size     : size_t)
+         return     Lines_Table_Ptr;
+      pragma Import (C, realloc);
+
+      function malloc
+        (size     : size_t)
+         return     Lines_Table_Ptr;
+      pragma Import (C, malloc);
+
+      New_Table : Lines_Table_Ptr;
+
+      New_Size : constant size_t :=
+                   size_t (New_Max * Lines_Table_Type'Component_Size /
+                                                             Storage_Unit);
+
+   begin
+      if Source_File.Table (X).Lines_Table = null then
+         New_Table := malloc (New_Size);
+      else
+         New_Table :=
+           realloc
+             (memblock => Source_File.Table (X).Lines_Table,
+              size     => New_Size);
+      end if;
+
+      if New_Table = null then
+         raise Storage_Error;
+      else
+         Source_File.Table (X).Lines_Table     := New_Table;
+         Source_File.Table (X).Lines_Table_Max := New_Max;
+      end if;
+
+   end Alloc_Lines_Table;
 
    -----------------
    -- Backup_Line --
@@ -230,6 +272,25 @@ package body Sinput is
       pragma Assert (False);
       raise Program_Error;
    end Get_Source_File_Index;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Source_File.Init;
+   end Initialize;
+
+   ----------
+   -- Lock --
+   ----------
+
+   procedure Lock is
+   begin
+      Source_File.Locked := True;
+      Source_File.Release;
+   end Lock;
 
    ----------------------
    -- Last_Source_File --
@@ -407,11 +468,8 @@ package body Sinput is
       --  the instantiation case, so we need not worry about Sloc adjustment.
 
       declare
-         Lines_Table : Lines_Table_Ptr :=
-           Source_File.Table (Current_Source_File).Lines_Table;
-
-         Num_Source_Lines : Nat :=
-           Source_File.Table (Current_Source_File).Num_Source_Lines;
+         S : Source_File_Record
+               renames Source_File.Table (Current_Source_File);
 
       begin
          Physical := True;
@@ -421,39 +479,27 @@ package body Sinput is
          --  entry may have already been made on the previous forward scan).
 
          if Source (P) /= EOF
-           and then P > Lines_Table (Num_Source_Lines)
+           and then P > S.Lines_Table (S.Num_Source_Lines)
          then
             --  Reallocate the lines table if it has got too large. Note that
             --  we don't use the normal Table package mechanism because we
             --  have several of these tables, one for each source file.
 
-            if Num_Source_Lines = Lines_Table'Last then
+            if S.Num_Source_Lines = S.Lines_Table_Max then
+               Alloc_Lines_Table
+                 (Current_Source_File,
+                  S.Num_Source_Lines *
+                    ((100 + Alloc.Lines_Increment) / 100));
 
-               declare
-                  New_Lines_Table : Lines_Table_Ptr :=
-                     new Lines_Table_Type
-                       (1 .. Num_Source_Lines *
-                               (100 + Alloc_Lines_Increment) / 100);
-               begin
-                  if Debug_Flag_D then
-                     Write_Str ("--> Allocating new lines table, size = ");
-                     Write_Int (Int (New_Lines_Table'Last));
-                     Write_Eol;
-                  end if;
-
-                  New_Lines_Table (1 .. Lines_Table'Last) :=
-                    Lines_Table (1 .. Lines_Table'Last);
-                  Free_Lines (Lines_Table);
-                  Lines_Table := New_Lines_Table;
-                  Source_File.Table (Current_Source_File).Lines_Table :=
-                    Lines_Table;
-               end;
+               if Debug_Flag_D then
+                  Write_Str ("--> Reallocating lines table, size = ");
+                  Write_Int (S.Lines_Table_Max);
+                  Write_Eol;
+               end if;
             end if;
 
-            Num_Source_Lines := Num_Source_Lines + 1;
-            Lines_Table (Num_Source_Lines) := P;
-            Source_File.Table (Current_Source_File).Num_Source_Lines :=
-              Num_Source_Lines;
+            S.Num_Source_Lines := S.Num_Source_Lines + 1;
+            S.Lines_Table (S.Num_Source_Lines) := P;
          end if;
       end;
    end Skip_Line_Terminators;
@@ -464,7 +510,6 @@ package body Sinput is
 
    procedure Tree_Read is
    begin
-      Debug_Flag_5 := True;
       Source_File.Tree_Read;
 
       --  The pointers we read in there for the source buffer and lines
@@ -515,10 +560,8 @@ package body Sinput is
             --  Normal case (non-instantiation)
 
             else
-               --  Allocate lines table, and read in the lines table data. Note
-               --  that we assume that a source pointer is four bytes, which is
-
-               S.Lines_Table := new Lines_Table_Type (1 .. S.Num_Source_Lines);
+               S.Lines_Table := null;
+               Alloc_Lines_Table (J, S.Num_Source_Lines);
 
                for J in 1 .. S.Num_Source_Lines loop
                   Tree_Read_Int (Int (S.Lines_Table (J)));
@@ -547,7 +590,6 @@ package body Sinput is
             end if;
          end;
       end loop;
-      Debug_Flag_5 := False;
    end Tree_Read;
 
    ----------------
@@ -556,7 +598,6 @@ package body Sinput is
 
    procedure Tree_Write is
    begin
-      Debug_Flag_5 := True;
       Source_File.Tree_Write;
 
       --  The pointers we wrote out there for the source buffer and lines
@@ -588,7 +629,6 @@ package body Sinput is
             end if;
          end;
       end loop;
-      Debug_Flag_5 := False;
    end Tree_Write;
 
    --------------------
@@ -709,6 +749,11 @@ package body Sinput is
    begin
       return Source_File.Table (S).Reference_Name;
    end Reference_Name;
+
+   function Source_Checksum (S : Source_File_Index) return Word is
+   begin
+      return Source_File.Table (S).Source_Checksum;
+   end Source_Checksum;
 
    function Source_First (S : Source_File_Index) return Source_Ptr is
    begin

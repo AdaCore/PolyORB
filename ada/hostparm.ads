@@ -45,14 +45,24 @@ pragma Pure (Hostparm);
    --  flag, which should be sorted out some time??? For now we have no cross
    --  compilers with OpenVMS as the target so there is no confusion.
 
+   Long_Integer_Size : constant := 0;
+   --  This is the length of the long integer type in bits. A value of
+   --  zero means that the length is to be taken from the C type long.
+   --  Otherwise a non-zero length overrides the C length. This is used
+   --  for the Alpha VMS port, where Long_Integer is 64 bits, even though
+   --  the C long type remains at 32 bits. This is really a target flag,
+   --  which should be sorted out some time??? For now we have no cross
+   --  compilers with OpenVMS as the target, so there is no confusion
+
    Normalized_CWD : constant String := "./";
    --  Normalized string to access current directory
 
    Max_Line_Length : constant := 255;
    --  Maximum source line length. This can be set to any value up to
    --  2**15 - 1, a limit imposed by the assumption that column numbers
-   --  can be stored in 16 bits (see Types.Column_Number). The value of
-   --  200 is the minimum value required (RM 2.2(15)).
+   --  can be stored in 16 bits (see Types.Column_Number). A value of
+   --  200 is the minimum value required (RM 2.2(15)), but we use 255
+   --  for most GNAT targets since this is DEC Ada compatible.
 
    Max_Name_Length : constant := 1024;
    --  Maximum length of unit name (including all dots, and " (spec)") and

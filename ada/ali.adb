@@ -502,24 +502,42 @@ package body ALI is
          C := Getc;
       end loop Arg_Loop;
 
-      --  Acquire queuing policy line if present
+      --  Acquire tasking policy line if present
 
-      if C = 'Q' then
-         Checkc (' ');
+      ALIs.Table (Id).Queuing_Policy          := ' ';
+      ALIs.Table (Id).Locking_Policy          := ' ';
+      ALIs.Table (Id).Task_Dispatching_Policy := ' ';
 
-         C := Getc;
-         ALIs.Table (Id).Queuing_Policy := C;
+      if C = 'P' then
+         while not At_Eol loop
+            Checkc (' ');
 
-         if C = 'P' then
-            Queuing_Policy := 'P';
-         end if;
+            case Getc is
 
-         Skip_Space;
+               when 'L' =>
+                  Checkc ('=');
+                  Locking_Policy := Getc;
+                  ALIs.Table (Id).Locking_Policy := Locking_Policy;
+
+               when 'Q' =>
+                  Checkc ('=');
+                  Queuing_Policy := Getc;
+                  ALIs.Table (Id).Queuing_Policy := Queuing_Policy;
+
+               when 'T' =>
+                  Checkc ('=');
+                  Task_Dispatching_Policy := Getc;
+                  ALIs.Table (Id).Task_Dispatching_Policy :=
+                    Task_Dispatching_Policy;
+
+               when others =>
+                  Fatal_Error;
+
+            end case;
+         end loop;
+
          Skip_Eol;
          C := Getc;
-
-      else
-         ALIs.Table (Id).Queuing_Policy := ' ';
       end if;
 
       --  Loop to acquire unit entries
@@ -814,6 +832,45 @@ package body ALI is
          Sdep.Table (Sdep.Last).Sfile := Get_Name;
          Sdep.Table (Sdep.Last).Stamp := Get_Stamp;
 
+         --  Check for version number present, and if so store it
+
+         Skip_Space;
+
+         declare
+            Ctr : Natural;
+            Chk : Word;
+
+         begin
+            Ctr := 0;
+            Chk := 0;
+
+            loop
+               exit when At_Eol or else Ctr = 8;
+
+               if Nextc in '0' .. '9' then
+                  Chk := Chk * 16 +
+                           Character'Pos (Nextc) - Character'Pos ('0');
+
+               elsif Nextc in 'A' .. 'F' then
+                  Chk := Chk * 16 +
+                           Character'Pos (Nextc) - Character'Pos ('A') + 10;
+
+               else
+                  exit;
+               end if;
+
+               Ctr := Ctr + 1;
+               P := P + 1;
+            end loop;
+
+            if Ctr = 8 and then At_End_Of_Field then
+               Sdep.Table (Sdep.Last).Checksum_Present := True;
+               Sdep.Table (Sdep.Last).Checksum         := Chk;
+            else
+               Sdep.Table (Sdep.Last).Checksum_Present := False;
+            end if;
+         end;
+
          --  Skip comments after stamp
 
          while not At_Eol loop
@@ -838,8 +895,8 @@ package body ALI is
    ----------------------
 
    procedure Set_Source_Table (A : ALI_Id) is
-      F : File_Name_Type;
-      S : Source_Id;
+      F     : File_Name_Type;
+      S     : Source_Id;
       Stamp : Time_Stamp_Type;
 
    begin
@@ -856,8 +913,16 @@ package body ALI is
             S := Source.Last;
             Set_Name_Table_Info (F, Int (S));
             Source.Table (S).Sfile := F;
+            Source.Table (S).All_Timestamps_Match := True;
 
-            --  In check source files mode, try to get stamp from file
+            --  Initialize checksum fields
+
+            Source.Table (S).Checksum :=
+              Sdep.Table (D).Checksum;
+            Source.Table (S).All_Checksums_Match :=
+              Sdep.Table (D).Checksum_Present;
+
+            --  In check source files mode, try to get time stamp from file
 
             if Check_Source_Files then
                Stamp := Source_File_Stamp (F);
@@ -900,29 +965,58 @@ package body ALI is
          else
             S := Source_Id (Get_Name_Table_Info (F));
 
-            --  If stamp was set from source file don't touch it. Otherwise
-            --  update the stamp if the current reference in the Sdep entry
-            --  is later than the current entry in the source table unless
-            --  we find the corresponding source file and its time stamp
-            --  matches the earlier one.
+            --  Update checksum flag
 
-            if not Source.Table (S).Source_Found
-              and then Sdep.Table (D).Stamp /= Source.Table (S).Stamp
+            if not Sdep.Table (D).Checksum_Present
+              or else Sdep.Table (D).Checksum /= Source.Table (S).Checksum
             then
-               Stamp := Source_File_Stamp (F);
+               Source.Table (S).All_Checksums_Match := False;
+            end if;
 
-               if Stamp = Source.Table (S).Stamp then
-                  null;
-               elsif Stamp = Sdep.Table (D).Stamp
-                 or else Sdep.Table (D).Stamp > Source.Table (S).Stamp
-               then
-                  Source.Table (S).Stamp := Sdep.Table (D).Stamp;
+            --  Check for time stamp mismatch
+
+            if Sdep.Table (D).Stamp /= Source.Table (S).Stamp then
+               Source.Table (S).All_Timestamps_Match := False;
+
+               --  When we have a time stamp mismatch, we go look for the
+               --  source file even if Check_Source_Files is false, since
+               --  if we find it, then we can use it to resolve which of the
+               --  two timestamps in the ALI files is likely to be correct.
+
+               if not Check_Source_Files then
+                  Stamp := Source_File_Stamp (F);
+
+                  if Stamp (Stamp'First) /= ' ' then
+                     Source.Table (S).Stamp := Stamp;
+                     Source.Table (S).Source_Found := True;
+                  end if;
                end if;
 
-               if Stamp = Source.Table (S).Stamp then
-                  Source.Table (S).Source_Found := True;
+               --  If the stamp in the source table entry was set from the
+               --  source file, then we do not change it (the stamp in the
+               --  source file is always taken as the "right" one).
+
+               if Source.Table (S).Source_Found then
+                  null;
+
+               --  Otherwise, we have no source file available, so we guess
+               --  that the later of the two timestamps is the right one.
+               --  Note that this guess only affects which error messages
+               --  are issued later on, not correct functionality.
+
+               else
+                  if Sdep.Table (D).Stamp > Source.Table (S).Stamp then
+                     Source.Table (S).Stamp := Sdep.Table (D).Stamp;
+                  end if;
                end if;
             end if;
+         end if;
+
+         --  Here to set the checksum value in the source table if necessary
+
+         if Sdep.Table (D).Checksum_Present then
+            S := Source_Id (Get_Name_Table_Info (F));
+            Source.Table (S).Checksum := Sdep.Table (D).Checksum;
          end if;
 
       end loop Sdep_Loop;

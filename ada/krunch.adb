@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
---     Copyright (C) 1992,1993,1994,1995 Free Software Foundation, Inc.     --
+--   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Hostparm;
 procedure Krunch
   (Buffer    : in out String;
    Len       : in out Natural;
@@ -56,13 +57,13 @@ begin
       Curlen := Len;
       Krlen := Maxlen;
 
-   elsif Len >= 26
-     and then Buffer (1 .. 25) = "ada-text_io-wide_text_io-"
+   elsif Len >= 18
+     and then Buffer (1 .. 17) = "ada-wide_text_io-"
    then
       Startloc := 3;
       Buffer (2 .. 5) := "-wt-";
-      Buffer (6 .. Len - 20) := Buffer (26 .. Len);
-      Curlen := Len - 20;
+      Buffer (6 .. Len - 12) := Buffer (18 .. Len);
+      Curlen := Len - 12;
       Krlen  := 8;
 
    elsif Len >= 4 and then Buffer (1 .. 4) = "ada-" then
@@ -108,14 +109,20 @@ begin
    --  Special case of a child unit whose parent unit is a single letter that
    --  is A, G, I, or S. In order to prevent confusion with krunched names
    --  of predefined units use a tilde rather than a minus as the second
-   --  character of the file name.
+   --  character of the file name.  On VMS a tilde is an illegal character
+   --  in a file name, so a dollar_sign is used instead.
 
    elsif Len > 1
      and then Buffer (2) = '-'
      and then (B1 = 'a' or else B1 = 'g' or else B1 = 'i' or else B1 = 's')
      and then Len <= Maxlen
    then
-      Buffer (2) := '~';
+      if Hostparm.OpenVMS then
+         Buffer (2) := '$';
+      else
+         Buffer (2) := '~';
+      end if;
+
       return;
 
    --  Normal case, not a predefined file

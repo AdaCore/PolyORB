@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Debug;   use Debug;
+with Opt;
 with Output;  use Output;
 with System;  use System;
 with Tree_IO; use Tree_IO;
@@ -57,7 +58,9 @@ package body Table is
    -----------------------
 
    procedure Reallocate;
-   --  Reallocate and extend the existing table
+   --  Reallocate the existing table according to the current value stored
+   --  in Max. Works correctly to do an initial allocation if the table
+   --  is currently null.
 
    --------------
    -- Allocate --
@@ -107,29 +110,23 @@ package body Table is
 
    begin
       Last_Val := Min - 1;
-      Max      := Min + Table_Initial - 1;
+      Max      := Min + (Table_Initial * Opt.Table_Factor) - 1;
       Length   := Max - Min + 1;
 
       --  If table is same size as before (happens when table is never
-      --  expanded which is a common case), then simply reuse it, else free
-      --  the old table and allocate a new one of the proper size.
+      --  expanded which is a common case), then simply reuse it. Note
+      --  that this also means that an explicit Init call right after
+      --  the implicit one in the package body is harmless.
 
-      if Old_Length /= Length then
-         Free (Table);
+      if Old_Length = Length then
+         return;
 
-         declare
-            subtype Local_Table is
-              Table_Type (Table_Index_Type (Min) .. Table_Index_Type (Max));
-            type Local_Table_Ptr is access all Local_Table;
-            Tmp : Local_Table_Ptr;
+      --  Otherwise we can use Reallocate to get a table of the right size.
+      --  Note that Reallocate works fine to allocate a table of the right
+      --  initial size when it is first allocated.
 
-            function To_Table_Ptr is
-              new Unchecked_Conversion (Local_Table_Ptr, Table_Ptr);
-
-         begin
-            Tmp := new Local_Table;
-            Table := To_Table_Ptr (Tmp);
-         end;
+      else
+         Reallocate;
       end if;
    end Init;
 
@@ -147,57 +144,66 @@ package body Table is
    ----------------
 
    procedure Reallocate is
-      Old_Table : Table_Ptr := Table;
-      Old_Max   : Int := Max;
+
+      function realloc
+        (memblock : Table_Ptr;
+         size     : size_t)
+         return     Table_Ptr;
+      pragma Import (C, realloc);
+
+      function malloc
+        (size     : size_t)
+         return     Table_Ptr;
+      pragma Import (C, malloc);
+
+      New_Size : size_t;
 
    begin
-      if Table_Increment = 0 then
-         Write_Str ("Fatal error, table ");
-         Write_Str (Table_Name);
-         Write_Str (" capacity exceeded");
-         Write_Eol;
-         raise Unrecoverable_Error;
+      if Max < Last_Val then
+         pragma Assert (not Locked);
+
+         while Max < Last_Val loop
+            Length := Length * (100 + Table_Increment) / 100;
+            Max := Min + Length - 1;
+         end loop;
+
+         if Debug_Flag_D then
+            Write_Str ("--> Allocating new ");
+            Write_Str (Table_Name);
+            Write_Str (" table, size = ");
+            Write_Int (Max - Min + 1);
+            Write_Eol;
+         end if;
       end if;
 
-      while Max < Last_Val loop
-         Length := Length * (100 + Table_Increment) / 100;
-         Max := Min + Length - 1;
-      end loop;
+      New_Size :=
+        size_t ((Max - Min + 1) * (Table.all'Component_Size / Storage_Unit));
 
-      declare
-         subtype Local_Table is
-           Table_Type (Table_Index_Type (Min) .. Table_Index_Type (Max));
-         type Local_Table_Ptr is access all Local_Table;
-         Tmp : Local_Table_Ptr;
-
-         --  We allocate an array of the bounds we want (Local_Table) and
-         --  then use unchecked conversion to convert this to the fake
-         --  pointer to giant array type that we use for access. This is
-         --  done to allow efficient thin pointer access to the table with
-         --  a fixed and known lower bound.
-
-         function To_Table_Ptr is
-           new Unchecked_Conversion (Local_Table_Ptr, Table_Ptr);
-
-      begin
-         Tmp   := new Local_Table;
-         Table := To_Table_Ptr (Tmp);
-      end;
-
-      if Debug_Flag_D then
-         Write_Str ("--> Allocating new ");
-         Write_Str (Table_Name);
-         Write_Str (" table, size = ");
-         Write_Int (Max - Min + 1);
-         Write_Eol;
+      if Table = null then
+         Table := malloc (New_Size);
+      else
+         Table :=
+           realloc
+             (memblock => Table,
+              size     => New_Size);
       end if;
 
-      for J in Min .. Old_Max loop
-         Table (Table_Index_Type (J)) := Old_Table (Table_Index_Type (J));
-      end loop;
+      if Length /= 0 and then Table = null then
+         raise Storage_Error;
+      end if;
 
-      Free (Old_Table);
    end Reallocate;
+
+   -------------
+   -- Release --
+   -------------
+
+   procedure Release is
+   begin
+      Length := Last_Val - Int (Table_Low_Bound) + 1;
+      Max    := Last_Val;
+      Reallocate;
+   end Release;
 
    -------------
    -- Restore --
@@ -254,12 +260,15 @@ package body Table is
    -- Tree_Read --
    ---------------
 
-   procedure Tree_Read is
-      N : Int;
+   --  Note: we allocate only the space required to accomodate the data
+   --  actually written, which means that a Tree_Write/Tree_Read sequence
+   --  does an implicit Release.
 
+   procedure Tree_Read is
    begin
-      Tree_Read_Int (N);
-      Set_Last (Table_Index_Type (N));
+      Tree_Read_Int (Max);
+      Last_Val := Max;
+      Reallocate;
 
       Tree_Read_Data
         (Table (First)'Address,
@@ -271,8 +280,10 @@ package body Table is
    -- Tree_Write --
    ----------------
 
-   procedure Tree_Write is
+   --  Note: we write out only the currently valid data, not the entire
+   --  contents of the allocated array. See note above on Tree_Read.
 
+   procedure Tree_Write is
    begin
       Tree_Write_Int (Int (Last));
       Tree_Write_Data
