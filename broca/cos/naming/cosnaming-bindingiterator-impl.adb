@@ -8,6 +8,8 @@ with GNAT.Task_Lock; use GNAT.Task_Lock;
 
 package body CosNaming.BindingIterator.Impl is
 
+   Null_Binding : constant Binding := (To_Sequence (0), Nobject);
+
    procedure Free is
       new Ada.Unchecked_Deallocation
      (Bindings.Element_Array, Binding_Element_Array_Ptr);
@@ -28,6 +30,7 @@ package body CosNaming.BindingIterator.Impl is
          Returns := True;
 
       else
+         B := Null_Binding;
          Returns := False;
       end if;
       Unlock;

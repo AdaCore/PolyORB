@@ -1,13 +1,15 @@
 with CORBA;
 with CORBA.ORB;
 
+with Broca.Basic_Startup;
+
 with PortableServer.POA;
 
 with CosNaming.BindingIterator;
 with CosNaming.BindingIterator.Impl;
 with CosNaming.BindingIterator.Helper;
-with CosNaming.NamingContext.Skel;
 with CosNaming.NamingContext.Helper;
+with CosNaming.NamingContext.Skel;
 pragma Elaborate (CosNaming.NamingContext.Skel);
 
 with GNAT.HTable;
@@ -16,7 +18,11 @@ with GNAT.Task_Lock; use GNAT.Task_Lock;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 
+with Ada.Text_IO;
+
 package body CosNaming.NamingContext.Impl is
+
+   Debug : constant Boolean := False;
 
    Null_NC : constant NameComponent
      := (Istring (Ada.Strings.Unbounded.Null_Unbounded_String),
@@ -42,16 +48,21 @@ package body CosNaming.NamingContext.Impl is
       N   : NameComponent)
      return String;
 
+   procedure Append_BO_To_NC
+     (NC  : in NamingContext_Ptr;
+      Id  : in String;
+      BN  : in NameComponent;
+      BT  : in BindingType;
+      Obj : in CORBA.Object.Ref);
+
+   procedure Display_NC
+     (Text : in String;
+      NC   : in NamingContext_Ptr);
+
    function Look_For_BO_In_NC
      (NC : NamingContext_Ptr;
       Id : String)
      return Bounded_Object_Ptr;
-
-   procedure Append_BO_To_NC
-     (NC  : in NamingContext_Ptr;
-      Id  : in String;
-      BT  : in BindingType;
-      Obj : in CORBA.Object.Ref);
 
    procedure Parse
      (Self : access Object;
@@ -71,17 +82,13 @@ package body CosNaming.NamingContext.Impl is
 
    Seed : NC_Id := (others => 'A');
 
-   Root_POA : constant PortableServer.POA.Ref
-     := PortableServer.POA.To_Ref
-          (CORBA.ORB.Resolve_Initial_References
-           (CORBA.ORB.ObjectId (To_CORBA_String ("RootPOA"))));
-
    --------------
    -- Allocate --
    --------------
 
    function Allocate return NC_Id is
       N : Natural := NC_Id_Size;
+      I : NC_Id   := Seed;
 
    begin
       while N > 0 loop
@@ -101,7 +108,7 @@ package body CosNaming.NamingContext.Impl is
          Seed (N) := 'A';
       end loop;
 
-      return Seed;
+      return I;
    end Allocate;
 
    -------------
@@ -186,6 +193,7 @@ package body CosNaming.NamingContext.Impl is
       Id : String)
      return Bounded_Object_Ptr is
    begin
+      Display_NC ("look for """ & Id & """", NC);
       return BOHT.Get (Id'Unrestricted_Access);
    end Look_For_BO_In_NC;
 
@@ -212,6 +220,7 @@ package body CosNaming.NamingContext.Impl is
    procedure Append_BO_To_NC
      (NC  : in NamingContext_Ptr;
       Id  : in String;
+      BN  : in NameComponent;
       BT  : in BindingType;
       Obj : in CORBA.Object.Ref)
    is
@@ -220,7 +229,9 @@ package body CosNaming.NamingContext.Impl is
    begin
       Valid (NC, True);
 
-      BOHT.Set (Id'Unrestricted_Access, BO);
+      Display_NC ("register """ & Id & """ in naming context", NC);
+      BOHT.Set (new String'(Id), BO);
+      BO.BN  := BN;
       BO.BT  := BT;
       BO.Obj := Obj;
       BO.NC  := NC;
@@ -233,7 +244,39 @@ package body CosNaming.NamingContext.Impl is
          BO.Prev.Next := BO;
          NC.Tail      := BO;
       end if;
+      Display_NC ("append """ & Id & """ to naming context", NC);
    end Append_BO_To_NC;
+
+   ----------------
+   -- Display_NC --
+   ----------------
+
+   procedure Display_NC
+     (Text : in String;
+      NC   : in NamingContext_Ptr)
+   is
+      BO : Bounded_Object_Ptr;
+
+   begin
+      if not Debug then
+         return;
+      end if;
+
+      Ada.Text_IO.Put_Line (Text);
+
+      BO := NC.Head;
+      while BO /= null loop
+         Ada.Text_IO.Put (String (NC.Id));
+         Ada.Text_IO.Put (" ... ");
+         Ada.Text_IO.Put (To_Standard_String (BO.BN.Id));
+         Ada.Text_IO.Put (Ascii.HT);
+         Ada.Text_IO.Put (To_Standard_String (BO.BN.Kind));
+         Ada.Text_IO.Put (Ascii.HT);
+         Ada.Text_IO.Put (BO.BT'Img);
+         Ada.Text_IO.New_Line;
+         BO := BO.Next;
+      end loop;
+   end Display_NC;
 
    -----------------------
    -- Remove_BO_From_NC --
@@ -263,6 +306,7 @@ package body CosNaming.NamingContext.Impl is
          BOHT.Set (BON'Unrestricted_Access, null);
       end;
       Free (BO);
+      Display_NC ("remove object from naming context", NC);
    end Remove_BO_From_NC;
 
    -----------
@@ -332,7 +376,7 @@ package body CosNaming.NamingContext.Impl is
                raise AlreadyBound;
             end if;
 
-            Append_BO_To_NC (Self.Self, BON, NObject, Obj);
+            Append_BO_To_NC (Self.Self, BON, Last, NObject, Obj);
             Unlock;
          end;
       end if;
@@ -376,7 +420,7 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             Remove_BO_From_NC (Self.Self, BO);
-            Append_BO_To_NC   (Self.Self, BON, NObject, Obj);
+            Append_BO_To_NC   (Self.Self, BON, Last, NObject, Obj);
             Unlock;
          end;
       end if;
@@ -412,7 +456,8 @@ package body CosNaming.NamingContext.Impl is
                raise AlreadyBound;
             end if;
 
-            Append_BO_To_NC (Self.Self, BON, NContext, CORBA.Object.Ref (NC));
+            Append_BO_To_NC
+              (Self.Self, BON, Last, NContext, CORBA.Object.Ref (NC));
             Unlock;
          end;
       end if;
@@ -456,7 +501,8 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             Remove_BO_From_NC (Self.Self, BO);
-            Append_BO_To_NC (Self.Self, BON, NContext, CORBA.Object.Ref (NC));
+            Append_BO_To_NC
+              (Self.Self, BON, Last, NContext, CORBA.Object.Ref (NC));
             Unlock;
          end;
       end if;
@@ -547,21 +593,27 @@ package body CosNaming.NamingContext.Impl is
 
    function New_Context
      (Self : access Object)
+     return CosNaming.NamingContext.Ref is
+   begin
+      return New_Context;
+   end New_Context;
+
+   -----------------
+   -- New_Context --
+   -----------------
+
+   function New_Context
      return CosNaming.NamingContext.Ref
    is
-      Ctx : NamingContext_Ptr;
-      Oid : PortableServer.ObjectId;
+      Obj : NamingContext_Ptr;
+      Ref : CORBA.Object.Ref;
 
    begin
-      Ctx      := new Object;
-      Ctx.Self := Ctx;
-
-      Oid := PortableServer.POA.Activate_Object
-        (Root_POA, PortableServer.Servant (Ctx));
-
-      return NamingContext.Helper.To_Ref
-        (PortableServer.POA.Servant_To_Reference
-         (Root_POA, PortableServer.Servant (Ctx)));
+      Obj      := new Object;
+      Obj.Self := Obj;
+      Obj.Id   := Allocate;
+      Broca.Basic_Startup.Initiate_Servant (PortableServer.Servant (Obj), Ref);
+      return NamingContext.Helper.To_Ref (Ref);
    end New_Context;
 
    ----------------------
@@ -620,6 +672,7 @@ package body CosNaming.NamingContext.Impl is
       Head : Bounded_Object_Ptr;
       Iter : BindingIterator_Ptr;
       Oid  : PortableServer.ObjectId;
+      Ref  : CORBA.Object.Ref;
 
    begin
       Valid (Self.Self);
@@ -647,7 +700,7 @@ package body CosNaming.NamingContext.Impl is
       end if;
 
       Iter       := new CosNaming.BindingIterator.Impl.Object;
-      Iter.Index := 1;
+      Iter.Index := Size + 1;
       Iter.Table := new Bindings.Element_Array (1 .. Len);
 
       for I in Iter.Table'Range loop
@@ -657,13 +710,10 @@ package body CosNaming.NamingContext.Impl is
 
       Unlock;
 
-      Oid := PortableServer.POA.Activate_Object
-        (Root_POA, PortableServer.Servant (Iter));
-
-       BI := BindingIterator.Convert_Forward.To_Forward
-        (BindingIterator.Helper.To_Ref
-         (PortableServer.POA.Servant_To_Reference
-          (Root_POA, PortableServer.Servant (Iter))));
+      Broca.Basic_Startup.Initiate_Servant
+        (PortableServer.Servant (Iter), Ref);
+      BI := BindingIterator.Convert_Forward.To_Forward
+        (BindingIterator.Helper.To_Ref (Ref));
    end List;
 
 end CosNaming.NamingContext.Impl;
