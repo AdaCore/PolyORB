@@ -121,9 +121,8 @@ package body PolyORB.Object_Maps.System is
          end;
       end if;
 
-      --  Add complete object map entry.
+      --  Add new object map entry.
 
-      pragma Assert (Obj.Servant /= null);
       Replace_Element (O_Map.System_Map, 1 + Index - Elts'First, Obj);
 
       pragma Debug (O ("Add: leave"));
