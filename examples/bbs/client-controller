@@ -7,41 +7,68 @@
 ab_names=/infres/shalmaneser/quinot/projects/droopi/cos/naming/ab_names
 serverp=/infres/shalmaneser/quinot/projects/droopi/examples/bbs/serverp
 evolutedp=/infres/ir10/astre/quinot/polyorb-sparc/build/examples/bbs/evolutedp
-cliout=/infres/ir10/astre/quinot/polyorb-sparc/output
+output=/infres/ir10/astre/quinot/polyorb-sparc/output
 
-$ab_names > ab_names.out &
-ab_names_pid=$!
-sleep 1
-. ab_names.out
-export POLYORB_CORBA_NAMING_IOR
-
-$serverp > serverp.out &
-serverp_pid=$!
+export POLYORB_CONF=
 
 Revolutedp_pids=""
 clinumber=0
 
 hosts=fadette:valjean:cyrano:esmeralda2:lantier:donjuan:blizzard:candide:gavroche:aurelien:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:
 #nadja:goriot:esmeralda:javert:fracasse:
+
 nmax=`echo $hosts | tr -cd : | wc -c`
+size=100
+count=100
+
+while getopts s:c: opt; do
+  case "$opt" in
+    s) size=$OPTARG ;;
+    c) count=$OPTARG ;;
+    *) echo "invalid parameter"; exit 1;;
+  esac
+done
+
+now=`date +"%F_%T" | tr -d :`
+output=$output/$now
+mkdir $output
+
+echo "size=$size" > $output/00PARAMETERS
+echo "count=$count" >> $output/00PARAMETERS
+echo "nmax=$nmax" >> $output/00PARAMETERS
+
+trap 'kill $ab_names_pid $serverp_pid $Revoleted_pids' 0 2 15
+
+$ab_names > $output/ab_names.out &
+ab_names_pid=$!
+sleep 1
+. $output/ab_names.out
+export POLYORB_CORBA_NAMING_IOR
+
+$serverp > $output/serverp.out 2>&1 &
+serverp_pid=$!
 
 while [ "$hosts" != "" ]; do
   ctl=/tmp/cli${clinumber}_ctl
   rm -f $ctl
   mkfifo $ctl
   eval `echo $hosts | sed 's/^\([^:]*\):\(.*\)$/host=\1;hosts=\2/'`
-  host=`eval echo \\\$host_$clinumber`
   ssh $host "POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
+    POLYORB_CONF= \
     LD_LIBRARY_PATH=/usr/local/lib \
-    $evolutedp -n $nmax -c 100 -s $size TEST_$clinumber \
-      > $cliout/cli$clinumber-$host" < $ctl &
+    $evolutedp -n $nmax -c $count -s $size TEST_$clinumber \
+      > $output/cli$clinumber-$host 2>&1" < $ctl &
   Revolutedp_pids="$Revolutedp_pids $!"
   echo "" > $ctl
   eval "cli_host_$clinumber=$h"
   clinumber=`expr $clinumber + 1`
 done
 
-sleep 20
+while [ "`grep -L Ready $output/cli*`" != "" ]; do
+  echo "Waiting for clients to become ready."
+  sleep 5
+done
+
 date
 i=0
 while [ $i -lt $clinumber ]; do
