@@ -39,17 +39,22 @@ package System.Garlic.Name_Table is
    Null_Name  : constant Name_Id;
    First_Name : constant Name_Id;
 
-   --  These subprograms need documentation ???
-
    function  Get (S : String)  return Name_Id;
+   --  Save this string in name table and return its name id.
+   --  Create a new entry if this string is not already in name table.
+   --  Otherwise, return the old entry.
+
    function  Get (N : Name_Id) return String;
+   --  Return the string corresponding to N.
 
    function  Get_Info (N : Name_Id) return Integer;
    procedure Set_Info (N : Name_Id; I : Integer);
+   --  To each entry in the name table corresponds a field Info.
+   --  The previous procedures allow to get and set this field.
 
 private
 
-   Null_Name  : constant Name_Id := Name_Id'First;
-   First_Name : constant Name_Id := Name_Id'Succ (Null_Name);
+   Null_Name  : constant Name_Id := 0;
+   First_Name : constant Name_Id := 1_000_000;
 
 end System.Garlic.Name_Table;

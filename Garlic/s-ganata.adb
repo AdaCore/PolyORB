@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -34,10 +34,21 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Utils; use System.Garlic.Utils;
+with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Table;
+with System.Garlic.Types;        use System.Garlic.Types;
 
 package body System.Garlic.Name_Table is
+
+   use Ascii;
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("NAMES", "(s-ganata): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    Size  : constant := 2 ** 9;
    --  Size of actual string names table
@@ -121,7 +132,9 @@ package body System.Garlic.Name_Table is
       I : Name_Id;
       N : Node_Type;
    begin
-      --  Set to the first entry whose hash value matches S hash code
+      pragma Debug (D (D_Debug, "Looking for entry for name `" & S & "'"));
+
+      --  Set to the first entry whose hash value matches S hash code.
 
       I := Hash_Nodes (H);
 
@@ -131,6 +144,9 @@ package body System.Garlic.Name_Table is
          --  Check whether the string of this entry matches with S
 
          if N.Length = L and then Table (N.First .. N.First + L - 1) = S then
+            pragma Debug
+              (D (D_Debug, "Use old entry for name `" & S & "'"));
+
             return I;
          end if;
 
@@ -140,6 +156,8 @@ package body System.Garlic.Name_Table is
       --  Check whether the table is large enough or not
 
       if Max < Last + L then
+         pragma Debug (D (D_Debug, "Reallocate name table"));
+
          declare
             Old : String_Access := Table;
          begin
@@ -155,7 +173,8 @@ package body System.Garlic.Name_Table is
          end;
       end if;
 
-      --  Enter the name in the first entry whose hash code matches S
+      --  Enter the name in the first entry whose hash code matches S.
+      pragma Debug (D (D_Debug, "Use new entry for name `" & S & "'"));
 
       I := Nodes.Allocate;
 
