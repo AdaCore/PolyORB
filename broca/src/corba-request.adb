@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-
 with Broca.GIOP;
 with Broca.CDR;
 with Broca.Exceptions;
@@ -65,8 +63,7 @@ package body CORBA.Request is
      (Self         : in out Object;
       Invoke_Flags : in     Flags  := 0)
    is
-      Target_Ref : CORBA.Object.Ref
-        := CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self.Target));
+      Target_Ref : CORBA.AbstractBase.Ref := Self.Target;
       Handler : Broca.GIOP.Request_Handler;
       Send_Request_Result : Broca.GIOP.Send_Request_Result_Type;
    begin

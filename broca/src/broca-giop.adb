@@ -293,7 +293,7 @@ package body Broca.GIOP is
 
    procedure Send_Request_Marshall
      (Handler           : in out Request_Handler;
-      Target_Ref        : in CORBA.Object.Ref'Class;
+      Target_Ref        : in CORBA.AbstractBase.Ref'Class;
       Response_Expected : in Boolean;
       Operation         : in CORBA.Identifier)
    is
@@ -301,7 +301,7 @@ package body Broca.GIOP is
 
       Target : constant Broca.Object.Object_Ptr
         := Broca.Object.Object_Ptr
-        (CORBA.Object.Object_Of (Target_Ref));
+        (CORBA.AbstractBase.Object_Of (Target_Ref));
    begin
       Handler.Profile := Object.Find_Profile (Target);
       Handler.Connection := IOP.Find_Connection (Handler.Profile);
@@ -338,7 +338,7 @@ package body Broca.GIOP is
 
    procedure Send_Request_Send
      (Handler          : in out Request_Handler;
-      Target_Ref       : in out CORBA.Object.Ref'Class;
+      Target_Ref       : in out CORBA.AbstractBase.Ref'Class;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type)
    is
@@ -472,13 +472,13 @@ package body Broca.GIOP is
                  (O ("Send_Request_Send : Received Location_Forward"));
 
                declare
-                  New_Ref : CORBA.Object.Ref;
+                  New_Ref : CORBA.AbstractBase.Ref;
                begin
                   Broca.CDR.Unmarshall
                     (Message_Body_Buffer'Access,
                      New_Ref);
-                  CORBA.Object.Set
-                    (Target_Ref, CORBA.Object.Object_Of (New_Ref));
+                  CORBA.AbstractBase.Set
+                    (Target_Ref, CORBA.AbstractBase.Object_Of (New_Ref));
                end;
                Result := Sr_Forward;
                Release (Handler);

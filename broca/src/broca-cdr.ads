@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+with CORBA.AbstractBase;
 with CORBA.Object;
 
 with Broca.Opaque; use Broca.Opaque;
@@ -316,15 +317,14 @@ package Broca.CDR is
    --  (but not valuetypes)
    --  The two procedures are used for all object references,
    --  including Valuetypes.
-   --  The function is only used for CORBA.Object.Ref and none of its
-   --  descendants.
+
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Object.Ref'Class);
+      Data   : in CORBA.AbstractBase.Ref'Class);
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data : in out CORBA.Object.Ref'Class);
+      Data : in out CORBA.AbstractBase.Ref'Class);
 
    function Unmarshall
      (Buffer : access Buffer_Type)

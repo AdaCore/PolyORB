@@ -2333,9 +2333,9 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Object.Ref'Class) is
+      Data : in CORBA.AbstractBase.Ref'Class) is
    begin
-      if CORBA.Object.Is_Nil (Data) then
+      if CORBA.AbstractBase.Is_Nil (Data) then
          Broca.Exceptions.Raise_Marshal;
       end if;
 
@@ -2343,7 +2343,7 @@ package body Broca.CDR is
       --  object.
       declare
          P : constant CORBA.Impl.Object_Ptr
-           := CORBA.Object.Object_Of (Data);
+           := CORBA.AbstractBase.Object_Of (Data);
       begin
          CORBA.Impl.Marshall
            (Buffer,
@@ -2357,13 +2357,13 @@ package body Broca.CDR is
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data : in out CORBA.Object.Ref'Class) is
+      Data : in out CORBA.AbstractBase.Ref'Class) is
       Obj : constant Broca.Object.Object_Ptr
         := new Broca.Object.Object_Type;
    begin
       Broca.Object.Unmarshall
         (Buffer, Broca.Object.Object_Type (Obj.all));
-      CORBA.Object.Set (Data, CORBA.Impl.Object_Ptr (Obj));
+      CORBA.AbstractBase.Set (Data, CORBA.Impl.Object_Ptr (Obj));
    end Unmarshall;
 
    ----------------
@@ -2378,7 +2378,6 @@ package body Broca.CDR is
       Unmarshall (Buffer, New_Ref);
       return New_Ref;
    end Unmarshall;
-
 
    -----------------
    -- Fixed_Point --

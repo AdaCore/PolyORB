@@ -905,7 +905,7 @@ package body Broca.Server is
       --  identifier.
       begin
          Start_Encapsulation (Object_Key_Buffer'Access);
-         Marshall (Object_Key_Buffer'Access, POA);
+         Broca.Server.Marshall (Object_Key_Buffer'Access, POA);
          Marshall (Object_Key_Buffer'Access, Key);
       exception
          when others =>

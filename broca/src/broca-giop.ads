@@ -33,6 +33,7 @@
 
 with CORBA;
 with CORBA.Object;
+with CORBA.AbstractBase;
 
 with Broca.Opaque;
 with Broca.Buffers;
@@ -100,6 +101,8 @@ package Broca.GIOP is
      (Buffer     : access Buffers.Buffer_Type;
       Request_Id : in CORBA.Unsigned_Long;
       Reference  : in CORBA.Object.Ref);
+   --  FIXME: What is the purpose of this procedure?
+   --    Should it take a CORBA.AbstractBase.Ref instead?
 
    function Unmarshall
      (Buffer : access Buffers.Buffer_Type)
@@ -138,7 +141,7 @@ package Broca.GIOP is
 
    procedure Send_Request_Marshall
      (Handler           : in out Request_Handler;
-      Target_Ref        : in CORBA.Object.Ref'Class;
+      Target_Ref        : in CORBA.AbstractBase.Ref'Class;
       Response_Expected : in Boolean;
       Operation         : in CORBA.Identifier);
    --  Send a request.
@@ -151,7 +154,7 @@ package Broca.GIOP is
 
    procedure Send_Request_Send
      (Handler          : in out Request_Handler;
-      Target_Ref       : in out CORBA.Object.Ref'Class;
+      Target_Ref       : in out CORBA.AbstractBase.Ref'Class;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type);
 
