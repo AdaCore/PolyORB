@@ -82,6 +82,10 @@ package body PolyORB.Protocols.SOAP_Pr is
      (Proto   : access SOAP_Protocol;
       Session : out Filter_Access)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Proto);
+      pragma Warnings (On);
+
       Result : constant Filter_Access
         := new SOAP_Session;
    begin

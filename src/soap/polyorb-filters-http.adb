@@ -124,6 +124,9 @@ package body PolyORB.Filters.HTTP is
      (Fact   : access HTTP_Filter_Factory;
       Filt   : out Filter_Access)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Fact);
+      pragma Warnings (On);
       Res : constant Filter_Access := new HTTP_Filter;
    begin
       Filt := Res;
@@ -1072,6 +1075,9 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       RD : AWS.Response.Data)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (RD);
+      pragma Warnings (On);
    begin
       --  Put_Line (F, Header (H_Date, To_HTTP_Date (OS_Lib.GMT_Clock)));
       Put_Line (F, Header (H_Server, "PolyORB"));

@@ -146,14 +146,22 @@ package body PolyORB.Binding_Data.SOAP is
 
    function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)
-     return Profile_Tag is
+     return Profile_Tag
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
    begin
       return Tag_SOAP;
    end Get_Profile_Tag;
 
    function Get_Profile_Preference
      (Profile : SOAP_Profile_Type)
-     return Profile_Preference is
+     return Profile_Preference
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
    begin
       return Preference;
    end Get_Profile_Preference;

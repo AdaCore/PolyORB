@@ -66,7 +66,11 @@ package body SOAP.Message.Response is
    -- Is_Error --
    --------------
 
-   function Is_Error (R : in Object) return Boolean is
+   function Is_Error (R : in Object) return Boolean
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
    begin
       return False;
    end Is_Error;

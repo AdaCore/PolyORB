@@ -50,7 +50,6 @@ pragma Warnings (Off, CosNaming.NamingContext.Skel);
 
 with GNAT.HTable;
 
-with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
@@ -65,10 +64,6 @@ package body CosNaming.NamingContext.Impl is
    type String_Access is access String;
 
    package Names renames IDL_SEQUENCE_CosNaming_NameComponent;
-
-   Null_NC : constant NameComponent
-     := (Istring (Ada.Strings.Unbounded.Null_Unbounded_String),
-         Istring (Ada.Strings.Unbounded.Null_Unbounded_String));
 
    Null_Name : constant Name := Name (Names.Null_Sequence);
 
@@ -606,8 +601,11 @@ package body CosNaming.NamingContext.Impl is
      (Self : access Object)
      return NamingContext.Ref
    is
-      My_Ref : NamingContext.Ref;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
 
+      My_Ref : NamingContext.Ref;
    begin
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Create), My_Ref);

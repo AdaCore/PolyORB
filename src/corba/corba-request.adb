@@ -56,6 +56,11 @@ package body CORBA.Request is
       Request   :    out Object;
       Req_Flags : in     Flags)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced
+        (Ctx,
+         Req_Flags);
+      pragma Warnings (On);
       --  PResult : PolyORB.Any.NamedValue;
       --  for PResult'Address use Result'Address;
       --  pragma Import (Ada, PResult);
@@ -91,6 +96,13 @@ package body CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced
+        (Ctx,
+         Exc_List,
+         Ctxt_List,
+         Req_Flags);
+      pragma Warnings (On);
 --       PResult : PolyORB.Any.NamedValue;
 --       for PResult'Address use Result'Address;
 --       pragma Import (Ada, PResult);
@@ -110,7 +122,11 @@ package body CORBA.Request is
 
    procedure Invoke
      (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0) is
+      Invoke_Flags : in     Flags  := 0)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Invoke_Flags);
+      pragma Warnings (On);
    begin
       PolyORB.Requests.Invoke (Self.The_Request);
       --  XXX Some arguments are not taken into account!

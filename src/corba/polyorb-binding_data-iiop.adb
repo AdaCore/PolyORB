@@ -159,14 +159,22 @@ package body PolyORB.Binding_Data.IIOP is
 
    function Get_Profile_Tag
      (Profile : IIOP_Profile_Type)
-     return Profile_Tag is
+     return Profile_Tag
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
    begin
       return Tag_Internet_IOP;
    end Get_Profile_Tag;
 
    function Get_Profile_Preference
      (Profile : IIOP_Profile_Type)
-     return Profile_Preference is
+     return Profile_Preference
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
    begin
       return Preference;
    end Get_Profile_Preference;
@@ -174,7 +182,11 @@ package body PolyORB.Binding_Data.IIOP is
    procedure Create_Factory
      (PF  : out IIOP_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
-      ORB : Components.Component_Access) is
+      ORB : Components.Component_Access)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
    begin
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;
@@ -185,6 +197,10 @@ package body PolyORB.Binding_Data.IIOP is
       Oid : Objects.Object_Id)
      return Profile_Access
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (PF);
+      pragma Warnings (On);
+
       use PolyORB.Transport.Sockets;
       use Component_Seq;
 

@@ -66,8 +66,14 @@ package body PolyORB.Transport is
       raise Unhandled_Message;
       --  Small is beautiful.
 
+      pragma Warnings (Off);
+      --  Recent GNAT versions emit a warning for possible
+      --  infinite recursion here.
+
       return Handle_Message (TAP, Msg);
       --  Keep the compiler happy.
+
+      pragma Warnings (On);
    end Handle_Message;
 
    procedure Connect_Upper

@@ -73,7 +73,11 @@ package body CORBA.NVList is
       return CORBA.Long (PolyORB.Any.NVList.Get_Count (To_PolyORB_Ref (Self)));
    end Get_Count;
 
-   procedure Free (Self : Ref) is
+   procedure Free (Self : Ref)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       null;
    end Free;

@@ -181,10 +181,10 @@ procedure Test_Naming is
 
    begin
       if Length (N) = 1 then
-         return From (S);
+         return From (S, Sep);
       else
          return CosNaming.NamingContext.Helper.To_Ref
-           (resolve (From (S), Name'(Head (N, Length (N) - 1, Null_NC))));
+           (resolve (From (S, Sep), Name'(Head (N, Length (N) - 1, Null_NC))));
       end if;
    end Parent;
 
@@ -213,7 +213,8 @@ procedure Test_Naming is
       Sep : in Character := '/')
      return NamingContext.Ref is
    begin
-      return NamingContext.Helper.To_Ref (resolve (From (S), To_Name (S)));
+      return NamingContext.Helper.To_Ref
+        (resolve (From (S, Sep), To_Name (S, Sep)));
    exception
       when others =>
          Ada.Text_IO.Put_Line ("No such directory " & S);
@@ -241,7 +242,7 @@ procedure Test_Naming is
       Sep : Character := '/')
      return CORBA.Object.Ref is
    begin
-      return resolve (From (S), To_Name (S));
+      return resolve (From (S, Sep), To_Name (S, Sep));
    exception
       when others =>
          Ada.Text_IO.Put_Line ("No such object " & S);

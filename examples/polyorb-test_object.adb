@@ -71,7 +71,11 @@ package body PolyORB.Test_Object is
      (O : My_Object;
       S : Types.String;
       T : Types.Long)
-     return Types.String is
+     return Types.String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (O);
+      pragma Warnings (On);
    begin
       pragma Debug
         (L.Output ("waitAndEchoString is being executed with arguments "
@@ -86,7 +90,11 @@ package body PolyORB.Test_Object is
    function echoString
      (O : My_Object;
       S : Types.String)
-     return Types.String is
+     return Types.String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (O);
+      pragma Warnings (On);
    begin
 --  pragma Debug (O ("echoString is being executed with argument: " & S));
       return S;
@@ -95,7 +103,11 @@ package body PolyORB.Test_Object is
    function echoInteger
      (O : My_Object;
       I : Types.Long)
-     return Types.Long is
+     return Types.Long
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (O);
+      pragma Warnings (On);
    begin
 --  pragma Debug (O ("Echo_Integer is being executed with argument"
 --                   & Integer'Image (I)));

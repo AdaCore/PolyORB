@@ -58,8 +58,6 @@ package body SOAP.Message.XML is
 
    NL         : constant String := ASCII.CR & ASCII.LF;
 
-   Max_Object_Size : constant := 250;
-
    XML_Header : constant String := "<?xml version=""1.0""?>";
 
    URL_Enc    : constant String := "http://schemas.xmlsoap.org/soap/encoding/";
@@ -82,6 +80,9 @@ package body SOAP.Message.XML is
    End_Body        : constant String := "</SOAP-ENV:Body>";
 
    Start_Fault_Env : constant String := "<SOAP-ENV:Fault>";
+   pragma Warnings (Off);
+   pragma Unreferenced (Start_Fault_Env);
+   pragma Warnings (On);
 
    type Array_State is
      (Void, A_Undefined, A_Int, A_Short, A_UInt, A_UShort,

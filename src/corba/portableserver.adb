@@ -107,7 +107,10 @@ package body PortableServer is
      return POA_Forward.Ref is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Get_Default_POA (For_Servant);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Get_Default_POA;
 
    procedure Get_Members

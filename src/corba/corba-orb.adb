@@ -94,7 +94,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Alias_Tc (Id, Name, Original_Type);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Alias_Tc;
 
    ---------------------
@@ -108,7 +111,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Array_Tc (Length, Element_Type);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Array_Tc;
 
    ---------------------
@@ -122,7 +128,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Fixed_Tc (IDL_Digits, scale);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Fixed_Tc;
 
    -------------------------
@@ -136,7 +145,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Interface_Tc (Id, Name);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Interface_Tc;
 
    -----------------
@@ -169,7 +181,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Native_Tc (Id, Name);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Native_Tc;
 
    -------------------
@@ -195,7 +210,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Recursive_Sequence_Tc (Bound, Offset);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Recursive_Sequence_Tc;
 
    ------------------------
@@ -209,7 +227,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Sequence_Tc (Bound, Element_Type);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Sequence_Tc;
 
    ----------------------
@@ -222,7 +243,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_String_Tc (Bound);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_String_Tc;
 
    -----------------------
@@ -235,7 +259,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Wstring_Tc (Bound);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Wstring_Tc;
 
    -------------------------
@@ -247,7 +274,10 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Get_Default_Context;
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Get_Default_Context;
 
    -----------------------------
@@ -270,7 +300,10 @@ package body CORBA.ORB is
    function List_Initial_Services return ObjectIdList is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return List_Initial_Services;
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end List_Initial_Services;
 
    ------------------
@@ -391,7 +424,12 @@ package body CORBA.ORB is
    -- Initialize --
    ----------------
 
-   procedure Initialize (ORB_Name : in Standard.String) is
+   procedure Initialize (ORB_Name : in Standard.String)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (ORB_Name);
+      pragma Warnings (On);
+
       RootPOA : CORBA.Object.Ref;
    begin
       CORBA.Object.Set

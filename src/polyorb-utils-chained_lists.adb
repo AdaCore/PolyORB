@@ -142,8 +142,6 @@ package body PolyORB.Utils.Chained_Lists is
    end "&";
 
    procedure Free is new Ada.Unchecked_Deallocation
-     (T, Element_Access);
-   procedure Free is new Ada.Unchecked_Deallocation
      (Node, Node_Access);
 
    procedure Deallocate (L : in out Node_Access);

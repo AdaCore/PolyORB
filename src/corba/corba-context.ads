@@ -65,13 +65,12 @@ package CORBA.Context is
       Child_Ctx :    out Ref);
 
    procedure Delete
-     (Self       : in Ref;
-      Del_Flagfs : in Flags);
+     (Self      : in Ref;
+      Del_Flags : in Flags);
 
 private
 
    type Ref is null record;
    Nil_Ref : constant Ref := (null record);
-
 
 end CORBA.Context;

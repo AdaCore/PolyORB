@@ -79,6 +79,9 @@ package body CORBA.Test_Object is
       S : CORBA.String)
      return CORBA.String
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (O);
+      pragma Warnings (On);
    begin
       pragma Debug (Output ("echoString is being executed with argument: "
                             & CORBA.To_Standard_String (S)));
@@ -90,6 +93,9 @@ package body CORBA.Test_Object is
       I : CORBA.Long)
      return CORBA.Long
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (O);
+      pragma Warnings (On);
    begin
       pragma Debug
         (Output ("Echo_Integer is being executed with argument" & I'Img));

@@ -418,6 +418,8 @@ src/polyorb-buffers.adb
 src/polyorb-buffers.ads
 src/polyorb-components.adb
 src/polyorb-components.ads
+src/polyorb-configuration.adb
+src/polyorb-configuration.ads
 src/polyorb-constants.ads
 src/polyorb-dict.adb
 src/polyorb-dict.ads

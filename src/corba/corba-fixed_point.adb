@@ -50,6 +50,9 @@ package body CORBA.Fixed_Point is
    package L is new PolyORB.Log.Facility_Log ("corba.fixed_point");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   pragma Warnings (Off);
+   pragma Unreferenced (O);
+   pragma Warnings (On);
 
    ---------------------
    -- this is to help --
@@ -125,7 +128,10 @@ package body CORBA.Fixed_Point is
 --          raise CORBA.Bad_TypeCode;
 --       end;
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return From_Any (Item);
+      --  "Possible infinite recursion" warning.
+      pragma Warnings (On);
    end From_Any;
 
 end CORBA.Fixed_Point;

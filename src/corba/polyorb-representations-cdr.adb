@@ -141,6 +141,9 @@ package body PolyORB.Representations.CDR is
    subtype Double_Buf is Stream_Element_Array (1 .. 8);
    --  FIXME LONG DOUBLE
    subtype Long_Double_Buf is  Stream_Element_Array (1 .. 12);
+   pragma Warnings (Off);
+   pragma Unreferenced (Long_Double_Buf);
+   pragma Warnings (On);
 
    function To_Unsigned_Long is
       new Ada.Unchecked_Conversion
@@ -1408,10 +1411,13 @@ package body PolyORB.Representations.CDR is
       --  Octets : constant Stream_Element_Array :=
       --  Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 8);
    begin
-      --  raise Not_Implemented;
       --  pragma Debug (O ("Unmarshall (LongDouble) : enter & end"));
       --  return To_Long_Double (Long_Double_Buf (Octets));
-      return PolyORB.Types.Long_Double (0);
+      raise Not_Implemented;
+      pragma Warnings (Off);
+      return Unmarshall (Buffer);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Unmarshall;
 
    function Unmarshall

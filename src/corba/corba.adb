@@ -30,29 +30,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#13 $
+--  $Id: //droopi/main/src/corba/corba.adb#14 $
 
 with Ada.Characters.Handling;
 
 with PolyORB.CORBA_P.Exceptions;
 
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
-
 with PolyORB.Types;
 
 package body CORBA is
 
-   use PolyORB.Log;
    use PolyORB.Any;
-
-   package L is new PolyORB.Log.Facility_Log ("corba");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
-
-   package L2 is new PolyORB.Log.Facility_Log ("corba_refcnt");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L2.Output;
 
    ---------------------------------
    -- String conversion functions --
@@ -101,33 +89,44 @@ package body CORBA is
 
 
    ----------------------
-   -- other exceptions --
+   -- Other exceptions --
    ----------------------
 
-   ------------------
-   --  Get_Members --
-   ------------------
+   -----------------
+   -- Get_Members --
+   -----------------
+
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InvalidName_Members) is
+      To : out InvalidName_Members)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (From);
+      pragma Warnings (On);
    begin
       To := InvalidName_Members'(IDL_Exception_Members with null record);
    end Get_Members;
 
-   ------------------
-   --  Get_Members --
-   ------------------
+   -----------------
+   -- Get_Members --
+   -----------------
+
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InconsistentTypeCode_Members) is
+      To : out InconsistentTypeCode_Members)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (From);
+      pragma Warnings (On);
    begin
       To := InconsistentTypeCode_Members'
         (IDL_Exception_Members with null record);
    end Get_Members;
 
-   ------------------
-   --  Get_Members --
-   ------------------
+   -----------------
+   -- Get_Members --
+   -----------------
+
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
       To : out PolicyError_Members)
@@ -136,11 +135,9 @@ package body CORBA is
       PolyORB.CORBA_P.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
-
-
-   -------------------
-   --  Get_Members  --
-   -------------------
+   -----------------
+   -- Get_Members --
+   -----------------
 
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;

@@ -34,8 +34,13 @@ pragma Warnings (Off, Echo.Skel);
 
 package body Echo.Impl is
 
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String is
+   function EchoString
+     (Self : access Object; Mesg : in CORBA.String)
+     return CORBA.String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       Ada.Text_IO.Put_Line
         ("Echoing string: « " & CORBA.To_Standard_String (Mesg)

@@ -54,6 +54,9 @@ package body CORBA.Object is
    package L is new PolyORB.Log.Facility_Log ("corba.object");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   pragma Warnings (Off);
+   pragma Unreferenced (O);
+   pragma Warnings (On);
 
    type Internal_Object is new PolyORB.Smart_Pointers.Entity with record
       The_Object : PolyORB.Objects.Object_Id_Access;
@@ -140,7 +143,10 @@ package body CORBA.Object is
    function Non_Existent (Self : Ref) return CORBA.Boolean is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Non_Existent (Self);
+      --  "Possible infinite recursion"
+      pragma Warnings (On);
    end Non_Existent;
 
    --------------------

@@ -301,9 +301,10 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Locate_Request_Receive
      (Ses : access GIOP_Session);
-
-   procedure Initialize_Factory
-     (Prof_Factory : in out Binding_Data.Profile_Factory_Access);
+   pragma Warnings (Off);
+   pragma Unreferenced (Locate_Request_Receive);
+   --  XXX Should be referenced in receive dispatch procedure!
+   pragma Warnings (On);
 
    procedure Marshall_Argument_List
      (Ses : access GIOP_Session;
@@ -1577,18 +1578,6 @@ package body PolyORB.Protocols.GIOP is
 
    end Locate_Request_Receive;
 
-
-   ------------------------------------
-   -- Initialize the Profile_Factory --
-   ------------------------------------
-
-   procedure Initialize_Factory
-     (Prof_Factory : in out Binding_Data.Profile_Factory_Access)
-   is
-   begin
-      Prof_Factory := new Binding_Data.IIOP.IIOP_Profile_Factory;
-   end Initialize_Factory;
-
    -------------------------
    -- Visible subprograms --
    -------------------------
@@ -1601,7 +1590,9 @@ package body PolyORB.Protocols.GIOP is
      (Proto   : access GIOP_Protocol;
       Session : out Filter_Access)
    is
-
+      pragma Warnings (Off);
+      pragma Unreferenced (Proto);
+      pragma Warnings (On);
    begin
       Session := new GIOP_Session;
       Set_Allocation_Class (Session.all, Dynamic);
@@ -1616,6 +1607,10 @@ package body PolyORB.Protocols.GIOP is
       R   : Requests.Request_Access;
       Pro : access Binding_Data.Profile_Type'Class)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Pro);
+      pragma Warnings (On);
+
       use Buffers;
       use Binding_Data.IIOP;
       use PolyORB.Filters.Interface;
@@ -1772,6 +1767,10 @@ package body PolyORB.Protocols.GIOP is
      (S : access GIOP_Session;
       Data_Amount : Stream_Element_Count)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Data_Amount);
+      pragma Warnings (On);
+
       use Binding_Data.IIOP;
       use Objects;
       use ORB;

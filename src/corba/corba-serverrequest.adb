@@ -76,7 +76,11 @@ package body CORBA.ServerRequest is
       end if;
    end Set_Result;
 
-   procedure Set_Exception (Obj : Object; Val : Any) is
+   procedure Set_Exception (Obj : Object; Val : Any)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Obj);
+      pragma Warnings (On);
    begin
       pragma Debug
         (O ("Server notifies exception: " & Image (Val)));
