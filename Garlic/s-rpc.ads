@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+
 with System.Garlic.Streams;
 with System.Garlic.Types;
 
@@ -90,10 +91,15 @@ private
         X : aliased System.Garlic.Streams.Params_Stream_Type (Initial_Size);
    end record;
 
-   type RPC_Id is mod 2 ** 8;
-   --  The RPC_Id identifies the request being sent
+   type Session_Type is mod 2 ** 8;
+   No_Session : constant Session_Type := Session_Type'First;
 
-   APC : constant RPC_Id := RPC_Id'First;
+   procedure Allocate
+     (Session   : out Session_Type;
+      Partition : in Partition_ID);
+
+   procedure Deallocate
+     (Session   : in Session_Type);
 
    type RPC_Opcode is (RPC_Query,
                        RPC_Reply,
@@ -104,10 +110,12 @@ private
 
    type RPC_Header (Kind : RPC_Opcode) is record
       case Kind is
-         when RPC_Query | RPC_Reply |
-           Abortion_Query | Abortion_Reply =>
-            RPC : RPC_Id;
-         when APC_Query =>
+         when RPC_Query      |
+              RPC_Reply      |
+              Abortion_Query |
+              Abortion_Reply =>
+            Session : Session_Type;
+         when APC_Query      =>
             null;
       end case;
    end record;
@@ -121,14 +129,15 @@ private
    --  Wait for partition to be established
 
    type Allocate_Task_Procedure is access procedure
-     (PID    : in System.Garlic.Types.Partition_ID;
-      RPC    : in System.RPC.RPC_Id;
-      Params : in System.Garlic.Streams.Params_Stream_Access;
-      Async  : in Boolean);
+     (Partition : in System.Garlic.Types.Partition_ID;
+      Session   : in System.RPC.Session_Type;
+      Stamp     : in System.Garlic.Types.Stamp_Type;
+      Params    : in System.Garlic.Streams.Params_Stream_Access;
+      Async     : in Boolean);
 
    type Abort_Task_Procedure is access procedure
-     (PID : in System.Garlic.Types.Partition_ID;
-      RPC : in System.RPC.RPC_Id);
+     (Partition : in System.Garlic.Types.Partition_ID;
+      Session   : in System.RPC.Session_Type);
 
    type Parameterless_Procedure is access procedure;
 
@@ -139,9 +148,9 @@ private
       Shutdown      : in Parameterless_Procedure);
 
    procedure Finalize
-     (PID  : in System.Garlic.Types.Partition_ID;
-      Wait : in Boolean;
-      Key  : in Natural);
+     (Partition : in System.Garlic.Types.Partition_ID;
+      Waiting   : in Boolean;
+      Session   : in Session_Type);
    --  Handle abortion from Do_RPC
 
 end System.RPC;
