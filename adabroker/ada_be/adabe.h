@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.56 $
+//                            $Revision: 1.57 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -33,10 +33,9 @@
 #ifndef _ADABE_CLASSES_H_
 #define _ADABE_CLASSES_H_
 
-#include <string>
-#include <stream.h> 
 #include <idl.hh>
 #include <idl_extern.hh>
+#include <string>
 #include "debug.h"
 
 string spaces (int n, char d);

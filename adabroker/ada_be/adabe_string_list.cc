@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.11 $
+//                            $Revision: 1.12 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -31,8 +31,8 @@
 //                                                                          //
 //--------------------------------------------------------------------------//
 #define DEFAULT_SIZE 4
-#include <string>
 #include <adabe.h>
+#include <string>
 
 adabe_string_list::adabe_string_list () {
   nb_item_in_list = 0;
