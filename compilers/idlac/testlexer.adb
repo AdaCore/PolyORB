@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,22 +31,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/testlexer.adb#2 $
+--  $Id: //droopi/main/compilers/idlac/testlexer.adb#3 $
 
 with Ada.Text_IO;
 with GNAT.Command_Line;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Errors;
 
-procedure testlexer is
+procedure Testlexer is
 
    use Idl_Fe.Lexer.Lexer_State;
 
    Token : Idl_Fe.Lexer.Idl_Token;
 begin
-   Idl_Fe.Lexer.Initialize (GNAT.Command_Line.Get_Argument,
-                            True,
-                            True);
+   Idl_Fe.Lexer.Initialize (GNAT.Command_Line.Get_Argument);
 
    loop
       Token := Get_Next_Token;
@@ -76,4 +74,4 @@ begin
 exception
    when Errors.Fatal_Error =>
       null;
-end testlexer;
+end Testlexer;
