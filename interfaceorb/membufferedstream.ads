@@ -103,13 +103,6 @@ package MemBufferedStream is
    -- UnMarshalls a Corba.Char from a membufferedstream object
 
 
-   function Align_Size (A : in Corba.Char ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long;
-   -- Compute the size needed to marshall A into S
-
-
    procedure Marshall (A : in Corba.Boolean ;
                        S : in out Object'Class);
    -- Marshalls a Corba.Boolean into a membufferedstream object
@@ -118,13 +111,6 @@ package MemBufferedStream is
    procedure UnMarshall (A : out Corba.Boolean ;
                          S : in out Object'Class);
    -- UnMarshalls a Corba.Boolean from a membufferedstream object
-
-
-   function Align_Size (A : in Corba.Boolean ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
 
 
    procedure Marshall (A : in Corba.Short ;
@@ -137,13 +123,6 @@ package MemBufferedStream is
    -- UnMarshalls a Corba.Short from a membufferedstream object
 
 
-   function Align_Size (A : in Corba.Short ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
-
-
    procedure Marshall (A : in Corba.Unsigned_Short ;
                        S : in out Object'Class);
    -- Marshalls a Corba.Unsigned_Short into a membufferedstream object
@@ -152,13 +131,6 @@ package MemBufferedStream is
    procedure UnMarshall (A : out Corba.Unsigned_Short ;
                          S : in out Object'Class);
    -- UnMarshalls a Corba.Unsigned_Short from a membufferedstream object
-
-
-   function Align_Size (A : in Corba.Unsigned_Short ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
 
 
    procedure Marshall (A : in Corba.Long ;
@@ -171,13 +143,6 @@ package MemBufferedStream is
    -- UnMarshalls a Corba.Long from a membufferedstream object
 
 
-   function Align_Size (A : in Corba.Long ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
-
-
    procedure Marshall (A : in Corba.Unsigned_Long ;
                        S : in out Object'Class);
    -- Marshalls a Corba.Unsigned_Long into a membufferedstream object
@@ -186,13 +151,6 @@ package MemBufferedStream is
    procedure UnMarshall (A : out Corba.Unsigned_Long ;
                          S : in out Object'Class);
    -- UnMarshalls a Corba.Unsigned_Long from a membufferedstream object
-
-
-   function Align_Size (A : in Corba.Unsigned_Long ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
 
 
    procedure Marshall (A : in Corba.Float ;
@@ -205,13 +163,6 @@ package MemBufferedStream is
    -- UnMarshalls a Corba.Float from a membufferedstream object
 
 
-   function Align_Size (A : in Corba.Float ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
-
-
    procedure Marshall (A : in Corba.Double ;
                        S : in out Object'Class);
    -- Marshalls a Corba.Double into a membufferedstream object
@@ -220,13 +171,6 @@ package MemBufferedStream is
    procedure UnMarshall (A : out Corba.Double ;
                          S : in out Object'Class);
    -- UnMarshalls a Corba.Double from a membufferedstream object
-
-
-   function Align_Size (A : in Corba.Double ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
 
 
    procedure Marshall (A : in Corba.String ;
@@ -239,12 +183,6 @@ package MemBufferedStream is
    -- UnMarshalls a Corba.String from a membufferedstream object
 
 
-   function Align_Size (A : in Corba.String ;
-                        Initial_Offset : in Corba.Unsigned_Long)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
-
-
    procedure Marshall (A : in Corba.Completion_Status ;
                        S : in out Object'Class);
    -- Marshalls a Corba.Completion_Status into a netbufferedstream object
@@ -255,13 +193,6 @@ package MemBufferedStream is
    -- UnMarshalls a Corba.Completion_Status from a netbufferedstream object
 
 
-   function Align_Size (A : in Corba.Completion_Status ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
-
-
    procedure Marshall (A : in Corba.Ex_Body'Class ;
                        S : in out Object'Class);
    -- Marshalls a Corba system exception into a membufferedstream object
@@ -270,13 +201,6 @@ package MemBufferedStream is
    procedure UnMarshall (A : out Corba.Ex_Body'Class ;
                          S : in out Object'Class);
    -- UnMarshalls a Corba system exception from a membufferedstream object
-
-
-   function Align_Size (A : in Corba.Ex_Body ;
-                        Initial_Offset : in Corba.Unsigned_Long ;
-                        N : in Corba.Unsigned_Long := 1)
-                        return Corba.Unsigned_Long ;
-   -- Compute the size needed to marshall A into S
 
 
 private
