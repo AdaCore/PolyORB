@@ -32,7 +32,6 @@
 
 --  $Id$
 
-with Ada.Exceptions;
 with Ada.Tags;
 
 with PolyORB.Log;
@@ -3164,11 +3163,6 @@ package body PolyORB.Any is
 
       Dec_Usage (Object);
       pragma Debug (O2 ("Finalize: end"));
-   exception
-      when E : others =>
-         pragma Debug (O2 ("Finalize: got exception."));
-         pragma Debug (O2 (Ada.Exceptions.Exception_Information (E)));
-         raise;
    end Finalize;
 
    ---------------

@@ -30,9 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#19 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#20 $
 
-with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
@@ -54,26 +53,12 @@ package body PolyORB.Smart_Pointers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize is
-   begin
-      Destroy (Counter_Lock);
-
-   exception
-      when E : others =>
-         pragma Debug (O ("Finalize: caught "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
-   end Finalize;
-
    ---------------
    -- Inc_Usage --
    ---------------
 
-   procedure Inc_Usage (Obj : Entity_Ptr) is
+   procedure Inc_Usage
+     (Obj : Entity_Ptr) is
    begin
       pragma Assert (Obj.Counter /= -1);
 
@@ -88,18 +73,14 @@ package body PolyORB.Smart_Pointers is
       Obj.Counter := Obj.Counter + 1;
       Leave (Counter_Lock);
 
-   exception
-      when E : others =>
-         pragma Debug (O ("Inc_Usage: caught "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
    end Inc_Usage;
 
    ---------------
    -- Dec_Usage --
    ---------------
 
-   procedure Dec_Usage (Obj : in out Entity_Ptr)
+   procedure Dec_Usage
+     (Obj : in out Entity_Ptr)
    is
       procedure Free is new Ada.Unchecked_Deallocation
         (Non_Controlled_Entity'Class, Entity_Ptr);
@@ -153,12 +134,15 @@ package body PolyORB.Smart_Pointers is
    -- Initialize --
    ----------------
 
-   procedure Initialize (X : in out Entity_Controller) is
+   procedure Initialize
+     (X : in out Entity_Controller) is
    begin
       Initialize (X.E.all);
    end Initialize;
 
-   procedure Initialize (X : in out Entity) is
+   procedure Initialize
+     (X : in out Entity)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (X);
       pragma Warnings (On);
@@ -171,35 +155,28 @@ package body PolyORB.Smart_Pointers is
    -- Finalize --
    --------------
 
-   procedure Finalize (X : in out Entity_Controller) is
+   procedure Finalize
+     (X : in out Entity_Controller) is
    begin
       Finalize (X.E.all);
-
-   exception
-      when E : others =>
-         pragma Debug (O ("Finalize: caught "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
    end Finalize;
 
-   procedure Finalize (X : in out Non_Controlled_Entity) is
+   procedure Finalize
+     (X : in out Non_Controlled_Entity)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (X);
       pragma Warnings (On);
    begin
       null;
-   exception
-      when E : others =>
-         pragma Debug (O ("Finalize: caught "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
    end Finalize;
 
    ----------------
    -- Initialize --
    ----------------
 
-   procedure Initialize (The_Ref : in out Ref) is
+   procedure Initialize
+     (The_Ref : in out Ref) is
    begin
       pragma Assert (The_Ref.A_Ref = null);
       pragma Debug (O ("Initialized a Ref"));
@@ -210,7 +187,8 @@ package body PolyORB.Smart_Pointers is
    -- Adjust --
    ------------
 
-   procedure Adjust (The_Ref : in out Ref) is
+   procedure Adjust
+     (The_Ref : in out Ref) is
    begin
       pragma Debug (O ("Adjust: enter"));
 
@@ -227,7 +205,8 @@ package body PolyORB.Smart_Pointers is
    -- Finalize --
    --------------
 
-   procedure Finalize (The_Ref : in out Ref) is
+   procedure Finalize
+     (The_Ref : in out Ref) is
    begin
       pragma Debug (O ("Finalize: enter, The_Ref is a "
                        & Ada.Tags.External_Tag
@@ -242,18 +221,15 @@ package body PolyORB.Smart_Pointers is
 
       The_Ref.A_Ref := null;
       pragma Debug (O ("Finalize: leave"));
-   exception
-      when E : others =>
-         pragma Debug (O ("Finalize: caught "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
    end Finalize;
 
    ------------
    -- Is_Nil --
    ------------
 
-   function Is_Nil (The_Ref : Ref) return Boolean is
+   function Is_Nil
+     (The_Ref : Ref)
+     return Boolean is
    begin
       return The_Ref.A_Ref = null;
    end Is_Nil;
@@ -262,7 +238,8 @@ package body PolyORB.Smart_Pointers is
    -- Release --
    -------------
 
-   procedure Release (The_Ref : in out Ref) is
+   procedure Release
+     (The_Ref : in out Ref) is
    begin
       The_Ref := (Ada.Finalization.Controlled with A_Ref => null);
    end Release;
@@ -271,7 +248,8 @@ package body PolyORB.Smart_Pointers is
    -- Entity_Of --
    ---------------
 
-   function Entity_Of (The_Ref : Ref) return Entity_Ptr is
+   function Entity_Of
+     (The_Ref : Ref) return Entity_Ptr is
    begin
       return The_Ref.A_Ref;
    end Entity_Of;

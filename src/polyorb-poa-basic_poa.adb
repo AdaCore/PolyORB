@@ -675,10 +675,6 @@ package body PolyORB.POA.Basic_POA is
 
       --  XXX Add code for Etherealize_Objects and Wait_For_Completion ???
 
-   exception
-      when others =>
-         pragma Debug (O ("Got exception when destroying POA: " & Name));
-         raise;
    end Destroy;
 
    ----------------------------------

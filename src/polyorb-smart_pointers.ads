@@ -30,17 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.ads#8 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.ads#9 $
 
 with Ada.Finalization;
 
 package PolyORB.Smart_Pointers is
 
    pragma Elaborate_Body;
-
-   procedure Finalize;
-   --  Finalize subsystem.
-   --  XXX what is the use of this function ???
 
    ------------
    -- Entity --

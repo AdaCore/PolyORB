@@ -32,8 +32,6 @@
 
 --  $Id$
 
-with Ada.Exceptions;
-
 with PolyORB.Sequences.Unbounded.Search;
 
 with PolyORB.Log;
@@ -51,7 +49,8 @@ package body PolyORB.Any.ExceptionList is
    -- Finalize --
    --------------
 
-   procedure Finalize (Obj : in out Object) is
+   procedure Finalize
+     (Obj : in out Object) is
    begin
       pragma Debug (O ("Finalize : enter"));
       pragma Debug (O ("length" &
@@ -59,11 +58,6 @@ package body PolyORB.Any.ExceptionList is
       Exception_Sequences.Delete
         (Obj.List, 1, Exception_Sequences.Length (Obj.List));
       pragma Debug (O ("Finalize : leave"));
-   exception
-      when E : others =>
-         pragma Debug (O ("Finalize: caught "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
    end Finalize;
 
    ---------------
@@ -72,7 +66,8 @@ package body PolyORB.Any.ExceptionList is
 
    function Get_Count
      (Self : in Ref)
-      return PolyORB.Types.Unsigned_Long is
+     return PolyORB.Types.Unsigned_Long
+   is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       if Obj = null then
@@ -88,7 +83,7 @@ package body PolyORB.Any.ExceptionList is
 
    procedure Add
      (Self : in Ref;
-      Exc : in PolyORB.Any.TypeCode.Object)
+      Exc  : in PolyORB.Any.TypeCode.Object)
    is
       Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
@@ -100,7 +95,7 @@ package body PolyORB.Any.ExceptionList is
    ----------
 
    function Item
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in PolyORB.Types.Unsigned_Long)
       return PolyORB.Any.TypeCode.Object
    is
@@ -114,7 +109,7 @@ package body PolyORB.Any.ExceptionList is
    ------------
 
    procedure Remove
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in PolyORB.Types.Unsigned_Long)
    is
       Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
@@ -137,7 +132,9 @@ package body PolyORB.Any.ExceptionList is
    -- Create_List --
    -----------------
 
-   procedure Create_List (Self : out Ref) is
+   procedure Create_List
+     (Self : out Ref)
+   is
       Result : Ref;
    begin
       Set (Result, PolyORB.Smart_Pointers.Entity_Ptr (Create_Object));

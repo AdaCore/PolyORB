@@ -32,7 +32,6 @@
 
 --  $Id$
 
-with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Components;
@@ -272,14 +271,8 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    begin
       if Msg in Interface.Queue_Request then
-         begin
-            Emit_No_Reply
-              (Component_Access (ORB), Msg);
-         exception
-            when E : others =>
-               O ("Got exception while sending request_to_handler");
-               O (Ada.Exceptions.Exception_Information (E));
-         end;
+         Emit_No_Reply
+           (Component_Access (ORB), Msg);
       else
          pragma Debug (O ("Queue Request To Handler"));
          raise Unhandled_Message;
@@ -367,10 +360,6 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
                        & " stopped"));
-   exception
-      when E : others =>
-         O ("Got exception in thread " & Image (Current_Task));
-         O (Ada.Exceptions.Exception_Information (E));
    end Session_Thread;
 
    ----------------
