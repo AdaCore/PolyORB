@@ -14,9 +14,11 @@ with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.WstringDef;
 with CORBA.Repository_Root.StringDef;
 with CORBA.Repository_Root.PrimitiveDef;
+with CORBA.Repository_Root.PrimitiveDef.Impl;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.Repository.Skel;
+with CORBA.Repository_Root.IRObject.Impl;
 
 package body CORBA.Repository_Root.Repository.Impl is
 
@@ -62,16 +64,75 @@ package body CORBA.Repository_Root.Repository.Impl is
    end get_canonical_typecode;
 
 
+   ---------------------
+   --  get_primitive  --
+   ---------------------
    function get_primitive
      (Self : access Object;
       kind : in CORBA.Repository_Root.PrimitiveKind)
      return CORBA.Repository_Root.PrimitiveDef.Ref
    is
       Result : CORBA.Repository_Root.PrimitiveDef.Ref;
+      Obj : PrimitiveDef.Impl.Object_Ptr := new PrimitiveDef.Impl.Object;
+      IDL_Type : CORBA.TypeCode.Object;
    begin
+      --  Create the appropriate TypeCode
+      case kind is
+         when Pk_Null =>
+            IDL_Type := TC_Null;
+         when Pk_Void =>
+            IDL_Type := TC_Void;
+         when Pk_Short =>
+            IDL_Type := TC_Short;
+         when Pk_Long =>
+            IDL_Type := TC_Long;
+         when Pk_Ushort =>
+            IDL_Type := TC_Unsigned_Short;
+         when Pk_Ulong =>
+            IDL_Type := TC_Unsigned_Long;
+         when Pk_Float =>
+            IDL_Type := TC_Float;
+         when Pk_Double =>
+            IDL_Type := TC_Double;
+         when Pk_Boolean =>
+            IDL_Type := TC_Boolean;
+         when Pk_Char =>
+            IDL_Type := TC_Char;
+         when Pk_Octet =>
+            IDL_Type := TC_Octet;
+         when Pk_Any =>
+            IDL_Type := TC_Any;
+         when Pk_TypeCode =>
+            IDL_Type := TC_TypeCode;
+         when Pk_Principal =>
+            IDL_Type := CORBA.TypeCode.TC_Principal;
+         when Pk_String =>
+            IDL_Type := TC_String;
+         when Pk_Objref =>
+            IDL_Type := TC_ObjRef;
+         when Pk_Longlong =>
+            IDL_Type := TC_Long_Long;
+         when Pk_Ulonglong =>
+            IDL_Type := TC_Unsigned_Long_Long;
+         when Pk_Longdouble =>
+            IDL_Type := TC_Long_Double;
+         when Pk_Wchar =>
+            IDL_Type := TC_Wchar;
+         when Pk_Wstring =>
+            IDL_Type := TC_Wide_String;
+         when Pk_Value_Base =>
+            IDL_Type := CORBA.TypeCode.TC_Value;
+      end case;
 
-      --  Insert implementation of get_primitive
-
+      --  initialize the object
+      PrimitiveDef.Impl.Init (Obj,
+                              IRObject.Impl.Object_Ptr (Obj),
+                              Dk_Primitive,
+                              IDL_Type,
+                              Kind);
+      --  create the ref
+      PrimitiveDef.Set (Result,
+                        CORBA.Impl.Object_Ptr (Obj));
       return Result;
    end get_primitive;
 

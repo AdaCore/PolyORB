@@ -5,6 +5,7 @@
 
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
+with Broca.Repository;
 with CORBA.AbstractBase;
 with CORBA.Impl;
 
@@ -637,11 +638,12 @@ package body CORBA.Repository_Root.Contained.Impl is
       Container_Object : Container.Impl.Object_Ptr;
       Cont_Array : Contained_Seq.Element_Array
         := Contained_Seq.To_Element_Array (In_Seq);
+      use Broca.Repository;
    begin
 
       for I in Cont_Array'Range loop
          exit when Result /= null;
-         if Cont_Array (I).Id = Search_Id then
+         if Is_Equivalent (Cont_Array (I).Id, Search_Id) then
             Result := Cont_Array (I);
          else
             Container.Impl.To_Container (Get_Real_Object (Cont_Array (I)),
