@@ -96,8 +96,7 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_Repository_Id
      (Node : in Node_Id;
       Spec : in out Compilation_Unit);
-   --  generates the RepositoryId for
-   --  an interface or valuetype
+   --  Generate the RepositoryId for an interface or valuetype
 
    procedure Gen_Is_A
      (Node       : in Node_Id;
@@ -246,12 +245,15 @@ package body Ada_Be.Idl2Ada is
         := New_Package (Skel_Name, Unit_Body);
 
    begin
-      --  ValueType reference type.
+
+      --  ValueType reference type
+
       Gen_Object_Reference_Declaration
         (Stubs_Spec, Node);
       Gen_Repository_Id (Node, Stubs_Spec);
 
       if not Abst (Node) then
+         NL (Stubs_Spec);
          PL (Stubs_Spec, "Null_Value : constant Value_Ref;");
          Divert (Stubs_Spec, Private_Declarations);
          PL (Stubs_Spec, "Null_Value : constant Value_ref");
@@ -848,7 +850,6 @@ package body Ada_Be.Idl2Ada is
       PL (Spec, Repository_Id_Name (Node)
           & " : constant Standard.String");
       PL (Spec, "  := """ & Idl_Repository_Id (Node) & """;");
-      NL (Spec);
    end Gen_Repository_Id;
 
    --------------
