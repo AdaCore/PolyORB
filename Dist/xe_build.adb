@@ -45,8 +45,6 @@ with XE_Usage;
 
 procedure XE_Build is
 
-   Suffix    : constant String := ".cfg";
-
 begin
 
    XE_Utils.Initialize;
@@ -72,7 +70,7 @@ begin
       declare
          N : Name_Id := Next_Main_Source;
          L : Integer;
-         S : Integer := Suffix'Length;
+         S : Integer := Get_Conf_Suffix'Length;
       begin
 
          Get_Name_String (N);
@@ -80,11 +78,13 @@ begin
 
          --  Remove suffix if needed.
 
-         if L > S and then Name_Buffer (L - S + 1 .. L) = Suffix then
+         if L > S
+           and then Name_Buffer (L - S + 1 .. L) = Get_Conf_Suffix
+         then
             L := L - S;
             N := Name_Find;
          else
-            Name_Buffer (L + 1 .. L + S) := Suffix;
+            Name_Buffer (L + 1 .. L + S) := Get_Conf_Suffix;
             Name_Len := L + S;
             N := Name_Find;
          end if;
@@ -114,7 +114,7 @@ begin
       if Configuration /= Name_Find then
          if not Quiet_Mode then
             Message ("configuration file name should be",
-                     Quote (Configuration & Str_To_Id (Suffix)));
+                     Quote (Configuration & Cfg_Suffix));
          end if;
          raise Fatal_Error;
       end if;
