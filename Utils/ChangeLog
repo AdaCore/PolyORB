@@ -1,3 +1,7 @@
+1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* VERSION.INFO (glade_version): Bump version to 2.02-beta.
+
 1998-01-26  Laurent Guerby <guerby@gnat.com>
 
 	* make_distrib: Implement new -n flag.
