@@ -1,3 +1,9 @@
+1998-01-26  Laurent Guerby <guerby@gnat.com>
+
+	* make_distrib: Implement new -n flag.
+
+	* VERSION.INFO: Take the GNAT version from gnatvsn.ads.
+
 1998-01-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* make_distrib: Remove references to glade_version.txt
