@@ -38,6 +38,7 @@ with Ada.Streams;              use Ada.Streams;
 
 with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Heart;      use System.Garlic.Heart;
+with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Types;      use System.Garlic.Types;
@@ -104,8 +105,9 @@ package body System.Garlic.Storages.Dsm is
    procedure Complete_Request
      (Var_Data : in out DSM_Data_Type) is
    begin
-      pragma Debug (D ("complete request"));
+      pragma Debug (D ("leave variable mutex for " & Var_Data.Name.all));
       Leave (Var_Data.Mutex);
+      pragma Debug (D ("complete request"));
    end Complete_Request;
 
    --------------------
@@ -119,8 +121,9 @@ package body System.Garlic.Storages.Dsm is
    is
       pragma Unreferenced (Storage);
 
-      Error : aliased Error_Type;
-      Pkg   : DSM_Data_Access;
+      Error  : aliased Error_Type;
+      Active : Boolean;
+      Pkg    : DSM_Data_Access;
 
    begin
       Pkg      := new DSM_Data_Type;
@@ -131,6 +134,18 @@ package body System.Garlic.Storages.Dsm is
       Get_Partition (Get_Unit_Id (Pkg_Name), Pkg.Owner, Error);
       if Found (Error) then
          Raise_Communication_Error (Content (Error'Access));
+      end if;
+
+      Get_Is_Active_Partition (Pkg.Owner, Active, Error);
+      if Found (Error) then
+         Raise_Communication_Error (Content (Error'Access));
+
+      elsif not Active then
+         pragma Debug (D (DSM_Storage_Name & " cannot create storage for " &
+                          Pkg_Name & " on passive partition"));
+         Raise_Communication_Error
+           (DSM_Storage_Name & " cannot create storage for " &
+            Pkg_Name & " on passive partition");
       end if;
 
       if Pkg.Owner = Self_PID then
@@ -241,6 +256,7 @@ package body System.Garlic.Storages.Dsm is
          Update (Var_Data.Watcher);
 
       else
+         pragma Debug (D ("enter variable mutex for " & Var_Data.Name.all));
          Enter (Var_Data.Mutex);
          if Request.Kind = Cancel_Rqst then
             if Var_Data.Status /= None then
@@ -296,6 +312,7 @@ package body System.Garlic.Storages.Dsm is
                Var_Data.Owner := Request.Reply_To;
             end if;
          end if;
+         pragma Debug (D ("leave variable mutex for " & Var_Data.Name.all));
          Leave (Var_Data.Mutex);
       end if;
    end Handle_Request;
@@ -387,6 +404,7 @@ package body System.Garlic.Storages.Dsm is
       Error   : aliased Error_Type;
 
    begin
+      pragma Debug (D ("enter variable mutex for " & Var_Data.Name.all));
       Enter (Var_Data.Mutex);
       pragma Debug (D ("initiate request with mode " & Request'Img));
       case Request is
@@ -429,7 +447,8 @@ package body System.Garlic.Storages.Dsm is
       end case;
       Var_Data.Offset := 0;
       Success := (Var_Data.Stream /= null);
-      if Var_Data.Stream = null then
+      if Var_Data.Stream = null and then Request = Read then
+         pragma Debug (D ("leave variable mutex for " & Var_Data.Name.all));
          Leave (Var_Data.Mutex);
       end if;
    end Initiate_Request;
