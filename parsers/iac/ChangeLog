@@ -1,3 +1,37 @@
+2004-05-31  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* analyzer.adb: Do not try to analyze predefined types. Add
+	location to error message when invalid constant type
+	detected. Expand enumerators as constants and do not cause new
+	errors when enumeration type is incorrect. Re-implement attributes
+	and operations inheritance and other inherited entities visibility
+	as overloading declarations were not properly detected. Skip
+	scoped name analyzis when attribute Reference is already set.
+  
+	* scopes.adb, scopes.ads: Clarify some routines and add
+	comments. Fix bugs in special scoping of type names due to a
+	misunderstanding of the document. Re-implement scoping.
+
+	* debug.adb: Filter new attributes.
+
+	* parser.adb: Adapt code to new scoped name and identifier
+	constructors signature.
+
+	* nutils.adb, nutils.ads: Add a function to detect a non module
+	entity (different from specification or module). Enrich scoped
+	name and identifier constructors with new attributes (needed for
+	expansion).
+
+	* nodes.idl: Add Potential_Scope to deal with type names. Make
+	nodes Simple_Declarator and Complex_Declarator contiguous.
+
+2004-05-30  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* debug.adb: Filter some more attributes.
+
+	* backend-be_idl.adb: Fix output for raises clause in an operation
+	declaration and for no-parameter operation declaration.
+
 2004-05-26  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* lexer.adb: Scan properly identifier. Do not return a token
