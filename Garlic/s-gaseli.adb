@@ -29,7 +29,7 @@
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
 --               GLADE  is maintained by ACT Europe.                        --
---            (email:distribution@act-europe.gnat.com).                     --
+--               (email: glade-report@act-europe.fr)                        --
 --                                                                          --
 ------------------------------------------------------------------------------
 

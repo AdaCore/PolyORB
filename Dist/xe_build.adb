@@ -21,8 +21,8 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---                 GLADE is maintained by ACT Europe.                       --
---            (email:distribution@act-europe.gnat.com).                     --
+--                 GLADE  is maintained by ACT Europe.                      --
+--                 (email: glade-report@act-europe.fr)                      --
 --                                                                          --
 ------------------------------------------------------------------------------
 
