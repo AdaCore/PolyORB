@@ -26,13 +26,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with ALI;              use ALI;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
+with GNAT.Table;
+
+with ALI;              use ALI;
 with Hostparm;         use Hostparm;
 with Krunch;
 with Namet;            use Namet;
 with Osint;            use Osint;
-with Table;
 with Types;            use Types;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
@@ -59,13 +60,12 @@ package body XE_Stubs is
    Partition_Main_File   : Types.File_Name_Type;
    Partition_Main_Name   : Types.File_Name_Type;
 
-   package Callers  is new Table.Table
+   package Callers  is new GNAT.Table
      (Table_Component_Type => Unit_Id,
       Table_Index_Type     => Natural,
       Table_Low_Bound      => 1,
       Table_Initial        => 20,
-      Table_Increment      => 100,
-      Table_Name           => "Callers");
+      Table_Increment      => 100);
 
    function C (X : Pkg; S : String) return Name_Id;
    function C (X : Pkg; N : Name_Id := No_Name) return Name_Id;

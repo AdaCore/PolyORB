@@ -28,7 +28,7 @@
 
 with Namet;        use Namet;
 with Output;       use Output;
-with Table;
+with GNAT.Table;
 with Types;        use Types;
 with XE_Utils;     use XE_Utils;
 
@@ -107,13 +107,12 @@ package body XE is
    N_Anonymous_Variable : Int := 0;
    --  Count the number of created anonymous variables.
 
-   package Nodes is new Table.Table
+   package Nodes is new GNAT.Table
      (Table_Component_Type => Node_Type,
       Table_Index_Type     => Node_Id,
       Table_Low_Bound      => First_Node,
       Table_Initial        => 200,
-      Table_Increment      => 100,
-      Table_Name           => "Nodes");
+      Table_Increment      => 100);
 
    procedure Create_Node
      (Node : out Node_Id;

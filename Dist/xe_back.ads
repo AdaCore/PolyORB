@@ -26,8 +26,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.Table;
+
 with ALI;
-with Table;
 with Types;
 with XE;
 
@@ -204,45 +205,40 @@ package XE_Back is
 
    -- Tables --
 
-   package Partitions  is new Table.Table
+   package Partitions  is new GNAT.Table
      (Table_Component_Type => Partition_Type,
       Table_Index_Type     => PID_Type,
       Table_Low_Bound      => First_PID,
       Table_Initial        => 20,
-      Table_Increment      => 10,
-      Table_Name           => "Partition");
+      Table_Increment      => 10);
 
-   package Hosts  is new Table.Table
+   package Hosts  is new GNAT.Table
      (Table_Component_Type => Host_Type,
       Table_Index_Type     => HID_Type,
       Table_Low_Bound      => First_HID,
       Table_Initial        => 20,
-      Table_Increment      => 10,
-      Table_Name           => "Host");
+      Table_Increment      => 10);
 
-   package Channels  is new Table.Table
+   package Channels  is new GNAT.Table
      (Table_Component_Type => Channel_Type,
       Table_Index_Type     => CID_Type,
       Table_Low_Bound      => First_CID,
       Table_Initial        => 20,
-      Table_Increment      => 10,
-      Table_Name           => "Channel");
+      Table_Increment      => 10);
 
-   package CUnits is new Table.Table
+   package CUnits is new GNAT.Table
      (Table_Component_Type => Conf_Unit_Type,
       Table_Index_Type     => CUID_Type,
       Table_Low_Bound      => First_CUID,
       Table_Initial        => 200,
-      Table_Increment      => 100,
-      Table_Name           => "CUnits");
+      Table_Increment      => 100);
 
-   package Locations is new Table.Table
+   package Locations is new GNAT.Table
      (Table_Component_Type => Location_Type,
       Table_Index_Type     => LID_Type,
       Table_Low_Bound      => First_LID,
       Table_Initial        => 20,
-      Table_Increment      => 10,
-      Table_Name           => "Locations");
+      Table_Increment      => 10);
 
    Configuration   : Types.Name_Id := Types.No_Name;
    --  Name of the configuration.

@@ -26,15 +26,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.OS_Lib;      use GNAT.OS_Lib;
+with GNAT.Table;
+
 with ALI;              use ALI;
 with ALI.Util;         use ALI.Util;
 with Fname;            use Fname;
-with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Make;             use Make;
 with Namet;            use Namet;
 with Opt;
 with Osint;
-with Table;
 with Types;            use Types;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
@@ -48,13 +49,12 @@ package body XE_Check is
          Fatal : Boolean;
       end record;
 
-   package Compilation_Jobs  is new Table.Table
+   package Compilation_Jobs  is new GNAT.Table
      (Table_Component_Type => Compilation_Job,
       Table_Index_Type     => Natural,
       Table_Low_Bound      => 1,
       Table_Initial        => 20,
-      Table_Increment      => 100,
-      Table_Name           => "Compilation_Jobs");
+      Table_Increment      => 100);
 
    Arguments    : Argument_List_Access;
    Old_Obj_Chk  : Boolean;

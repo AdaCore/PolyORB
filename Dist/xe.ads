@@ -27,8 +27,8 @@
 ------------------------------------------------------------------------------
 
 with GNAT.OS_Lib;
+with GNAT.Table;
 
-with Table;
 with Types;
 
 package XE is
@@ -264,29 +264,26 @@ package XE is
    Termination_Img     : array (Termination_Type) of Types.Name_Id;
    Boolean_Img         : array (Boolean_Type) of Types.Name_Id;
 
-   package Compiler_Switches is new Table.Table (
+   package Compiler_Switches is new GNAT.Table (
      Table_Component_Type => GNAT.OS_Lib.String_Access,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,
      Table_Initial        => 20,
-     Table_Increment      => 100,
-     Table_Name           => "XE.Compiler_Switches");
+     Table_Increment      => 100);
 
-   package Binder_Switches is new Table.Table (
+   package Binder_Switches is new GNAT.Table (
      Table_Component_Type => GNAT.OS_Lib.String_Access,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,
      Table_Initial        => 20,
-     Table_Increment      => 100,
-     Table_Name           => "XE.Binder_Switches");
+     Table_Increment      => 100);
 
-   package Linker_Switches is new Table.Table (
+   package Linker_Switches is new GNAT.Table (
      Table_Component_Type => GNAT.OS_Lib.String_Access,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,
      Table_Initial        => 20,
-     Table_Increment      => 100,
-     Table_Name           => "XE.Linker_Switches");
+     Table_Increment      => 100);
 
 
    procedure Add_Configuration_Declaration

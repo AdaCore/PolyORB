@@ -620,6 +620,22 @@ package body XE_Back is
       return ALI_Id (Info);
    end Get_ALI_Id;
 
+   -------------------------
+   -- Get_Allow_Light_PCS --
+   -------------------------
+
+   function Get_Allow_Light_PCS (P : PID_Type) return Boolean_Type is
+      Allow_Light_PCS : Boolean_Type;
+
+   begin
+      Allow_Light_PCS := Partitions.Table (P).Allow_Light_PCS;
+      if Allow_Light_PCS = Bunknown then
+         Allow_Light_PCS
+           := Partitions.Table (Default_Partition).Allow_Light_PCS;
+      end if;
+      return Allow_Light_PCS;
+   end Get_Allow_Light_PCS;
+
    -------------
    -- Get_CID --
    -------------
@@ -784,31 +800,6 @@ package body XE_Back is
       return Dir (DSA_Dir, Configuration, Partitions.Table (P).Name);
    end Get_Internal_Dir;
 
-   ---------------------
-   -- Get_RCI_Or_RACW --
-   ---------------------
-
-   function Get_RCI_Or_RACW (P : PID_Type) return Boolean is
-   begin
-      return Partitions.Table (P).RCI_Or_RACW;
-   end Get_RCI_Or_RACW;
-
-   -------------------------
-   -- Get_Allow_Light_PCS --
-   -------------------------
-
-   function Get_Allow_Light_PCS (P : PID_Type) return Boolean_Type is
-      Allow_Light_PCS : Boolean_Type;
-
-   begin
-      Allow_Light_PCS := Partitions.Table (P).Allow_Light_PCS;
-      if Allow_Light_PCS = Bunknown then
-         Allow_Light_PCS
-           := Partitions.Table (Default_Partition).Allow_Light_PCS;
-      end if;
-      return Allow_Light_PCS;
-   end Get_Allow_Light_PCS;
-
    -------------------------
    -- Get_Main_Subprogram --
    -------------------------
@@ -872,9 +863,9 @@ package body XE_Back is
       end if;
    end Get_PID;
 
-   ----------------------
-   -- Get_Reconnection --
-   ----------------------
+   ------------------
+   -- Get_Priority --
+   ------------------
 
    function Get_Priority (P : PID_Type) return Priority_Type is
       Priority : Priority_Type;
@@ -901,6 +892,15 @@ package body XE_Back is
       end if;
       return L;
    end Get_Protocol;
+
+   ---------------------
+   -- Get_RCI_Or_RACW --
+   ---------------------
+
+   function Get_RCI_Or_RACW (P : PID_Type) return Boolean is
+   begin
+      return Partitions.Table (P).RCI_Or_RACW;
+   end Get_RCI_Or_RACW;
 
    ----------------------
    -- Get_Reconnection --
@@ -1106,15 +1106,6 @@ package body XE_Back is
 
    end Initialize;
 
-   -----------------
-   -- Is_RCI_Unit --
-   -----------------
-
-   function Is_RCI_Unit (U : ALI.Unit_Id) return Boolean is
-   begin
-      return Units.Table (U).RCI;
-   end Is_RCI_Unit;
-
    -----------------------
    -- Is_RCI_Or_SP_Unit --
    -----------------------
@@ -1123,6 +1114,15 @@ package body XE_Back is
    begin
       return Units.Table (U).RCI or else Units.Table (U).Shared_Passive;
    end Is_RCI_Or_SP_Unit;
+
+   -----------------
+   -- Is_RCI_Unit --
+   -----------------
+
+   function Is_RCI_Unit (U : ALI.Unit_Id) return Boolean is
+   begin
+      return Units.Table (U).RCI;
+   end Is_RCI_Unit;
 
    ------------
    -- Is_Set --
@@ -1171,6 +1171,17 @@ package body XE_Back is
    begin
       Set_Name_Table_Info (N, Int (A));
    end Set_ALI_Id;
+
+   -------------------------
+   -- Set_Allow_Light_PCS --
+   -------------------------
+
+   procedure Set_Allow_Light_PCS
+     (P : in PID_Type;
+      B : in XE.Boolean_Type) is
+   begin
+      Partitions.Table (P).Allow_Light_PCS := B;
+   end Set_Allow_Light_PCS;
 
    ---------------------------
    -- Set_Channel_Attribute --
@@ -1278,26 +1289,6 @@ package body XE_Back is
    begin
       Set_Name_Table_Info (N, Int (H));
    end Set_HID;
-
-   -------------------------
-   -- Set_Allow_Light_PCS --
-   -------------------------
-
-   procedure Set_Allow_Light_PCS
-     (P : in PID_Type;
-      B : in XE.Boolean_Type) is
-   begin
-      Partitions.Table (P).Allow_Light_PCS := B;
-   end Set_Allow_Light_PCS;
-
-   ---------------------
-   -- Set_RCI_Or_RACW --
-   ---------------------
-
-   procedure Set_RCI_Or_RACW (P : PID_Type; B : Boolean) is
-   begin
-      Partitions.Table (P).RCI_Or_RACW := B;
-   end Set_RCI_Or_RACW;
 
    -----------------------------
    -- Set_Partition_Attribute --
@@ -1830,6 +1821,15 @@ package body XE_Back is
    begin
       Partitions.Table (P).Priority := X;
    end Set_Priority;
+
+   ---------------------
+   -- Set_RCI_Or_RACW --
+   ---------------------
+
+   procedure Set_RCI_Or_RACW (P : PID_Type; B : Boolean) is
+   begin
+      Partitions.Table (P).RCI_Or_RACW := B;
+   end Set_RCI_Or_RACW;
 
    ----------------------
    -- Set_Reconnection --

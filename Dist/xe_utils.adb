@@ -31,7 +31,6 @@ with Unchecked_Deallocation;
 with ALI;                        use ALI;
 with GNAT.OS_Lib;                use GNAT.OS_Lib;
 with GNAT.Directory_Operations;  use GNAT.Directory_Operations;
-with Csets;                      use Csets;
 with Debug;                      use Debug;
 with Fname;                      use Fname;
 with Fname.SF;
@@ -42,9 +41,7 @@ with Namet;                      use Namet;
 with Opt;
 with Osint;                      use Osint;
 with Output;                     use Output;
-with Prj;
 with SFN_Scan;
-with Snames;
 with Types;                      use Types;
 with XE;                         use XE;
 with XE_Defs;                    use XE_Defs;
@@ -52,7 +49,7 @@ with XE_Sysdep;                  use XE_Sysdep;
 
 with Ada.Command_Line;           use Ada.Command_Line;
 
-pragma Elaborate_All (Csets, Debug, Make, Namet, Opt, Osint, Output);
+pragma Elaborate_All (Debug, Make, Namet, Opt, Osint, Output);
 
 package body XE_Utils is
 
@@ -824,6 +821,7 @@ package body XE_Utils is
 
    procedure Initialize is
    begin
+
       --  Default initialization of the flags affecting gnatdist
 
       Opt.Check_Readonly_Files     := False;
@@ -841,16 +839,7 @@ package body XE_Utils is
 
       Osint.Exec_Name := new String'("gnatmake");
 
-      Make.Gcc_Switches.Init;
-      Make.Binder_Switches.Init;
-      Make.Linker_Switches.Init;
-
-      Csets.Initialize;
-      Namet.Initialize;
-
-      Snames.Initialize;
-
-      Prj.Initialize;
+      Make.Initialize;
 
       GNATLib_Compile_Flag := new String'("-gnatg");
       Cfg_Suffix           := Str_To_Id (Get_Conf_Suffix);

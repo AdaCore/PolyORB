@@ -26,13 +26,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with ALI;              use ALI;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
+with GNAT.Table;
+
+with ALI;              use ALI;
 with Hostparm;         use Hostparm;
 with Krunch;
 with Namet;            use Namet;
 with Osint;            use Osint;
-with Table;
 with Types;            use Types;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
@@ -54,13 +55,12 @@ package body XE_Stubs is
    Storage_Config_File   : Types.File_Name_Type;
    Storage_Config_Name   : Types.File_Name_Type;
 
-   package Callers  is new Table.Table
+   package Callers  is new GNAT.Table
      (Table_Component_Type => Unit_Id,
       Table_Index_Type     => Natural,
       Table_Low_Bound      => 1,
       Table_Initial        => 20,
-      Table_Increment      => 100,
-      Table_Name           => "Callers");
+      Table_Increment      => 100);
 
    procedure Add_Protocol
      (First : in out LID_Type;
@@ -1546,6 +1546,100 @@ package body XE_Stubs is
       return U_To_N (Units.Table (U).Uname);
    end Name;
 
+   ---------
+   -- PCS --
+   ---------
+
+   function PCS (X : String) return Name_Id is
+   begin
+      return PCS (Str_To_Id (X));
+   end PCS;
+
+   ---------
+   -- PCS --
+   ---------
+
+   function PCS (N : Name_Id) return Name_Id is
+      CN : constant Name_Id := C (N);
+   begin
+      Get_Name_String (PCS_Name);
+      Add_Char_To_Name_Buffer ('.');
+      Get_Name_String_And_Append (CN);
+      return Name_Find;
+   end PCS;
+
+   --------------------
+   -- PCS_Initialize --
+   --------------------
+
+   function PCS_Initialize (N : Name_Id) return String is
+   begin
+      Get_Name_String (PCS (N));
+      Add_Str_To_Name_Buffer (".Initialize");
+      return Name_Buffer (1 .. Name_Len);
+   end PCS_Initialize;
+
+   ----------
+   -- PCSF --
+   ----------
+
+   function PCSF (N : Name_Id) return Name_Id is
+      CN : constant Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Filters.");
+      Get_Name_String_And_Append (CN);
+      return PCS (Name_Find);
+   end PCSF;
+
+   ---------------------
+   -- PCSF_Initialize --
+   ---------------------
+
+   function PCSF_Initialize (N : Name_Id) return String is
+   begin
+      Get_Name_String (PCSF (N));
+      Add_Str_To_Name_Buffer (".Initialize");
+      return Name_Buffer (1 .. Name_Len);
+   end PCSF_Initialize;
+
+   ----------
+   -- PCSP --
+   ----------
+
+   function PCSP (N : Name_Id) return Name_Id is
+      CN : constant Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Protocols.");
+      Get_Name_String_And_Append (CN);
+      return PCS (Name_Find);
+   end PCSP;
+
+   ----------
+   -- PCSS --
+   ----------
+
+   function PCSS (N : Name_Id) return Name_Id is
+      CN : constant Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Storages.");
+      Get_Name_String_And_Append (CN);
+      return PCS (Name_Find);
+   end PCSS;
+
+   ---------------------
+   -- PCSS_Initialize --
+   ---------------------
+
+   function PCSS_Initialize (N : Name_Id) return String is
+   begin
+      Get_Name_String (PCSS (N));
+      Add_Str_To_Name_Buffer (".Initialize");
+      return Name_Buffer (1 .. Name_Len);
+   end PCSS_Initialize;
+
    -----------------------
    -- Rebuild_Partition --
    -----------------------
@@ -1709,99 +1803,5 @@ package body XE_Stubs is
       Get_Name_String_And_Append (N);
       return Name_Find;
    end S;
-
-   --------
-   -- PCS --
-   --------
-
-   function PCS (X : String) return Name_Id is
-   begin
-      return PCS (Str_To_Id (X));
-   end PCS;
-
-   ---------
-   -- PCS --
-   ---------
-
-   function PCS (N : Name_Id) return Name_Id is
-      CN : constant Name_Id := C (N);
-   begin
-      Get_Name_String (PCS_Name);
-      Add_Char_To_Name_Buffer ('.');
-      Get_Name_String_And_Append (CN);
-      return Name_Find;
-   end PCS;
-
-   ----------
-   -- PCSP --
-   ----------
-
-   function PCSP (N : Name_Id) return Name_Id is
-      CN : constant Name_Id := C (N);
-   begin
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("Protocols.");
-      Get_Name_String_And_Append (CN);
-      return PCS (Name_Find);
-   end PCSP;
-
-   ----------
-   -- PCSF --
-   ----------
-
-   function PCSF (N : Name_Id) return Name_Id is
-      CN : constant Name_Id := C (N);
-   begin
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("Filters.");
-      Get_Name_String_And_Append (CN);
-      return PCS (Name_Find);
-   end PCSF;
-
-   ----------
-   -- PCSS --
-   ----------
-
-   function PCSS (N : Name_Id) return Name_Id is
-      CN : constant Name_Id := C (N);
-   begin
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("Storages.");
-      Get_Name_String_And_Append (CN);
-      return PCS (Name_Find);
-   end PCSS;
-
-   -------------------
-   -- PCS_Initialize --
-   -------------------
-
-   function PCS_Initialize (N : Name_Id) return String is
-   begin
-      Get_Name_String (PCS (N));
-      Add_Str_To_Name_Buffer (".Initialize");
-      return Name_Buffer (1 .. Name_Len);
-   end PCS_Initialize;
-
-   --------------------
-   -- PCSF_Initialize --
-   --------------------
-
-   function PCSF_Initialize (N : Name_Id) return String is
-   begin
-      Get_Name_String (PCSF (N));
-      Add_Str_To_Name_Buffer (".Initialize");
-      return Name_Buffer (1 .. Name_Len);
-   end PCSF_Initialize;
-
-   --------------------
-   -- PCSS_Initialize --
-   --------------------
-
-   function PCSS_Initialize (N : Name_Id) return String is
-   begin
-      Get_Name_String (PCSS (N));
-      Add_Str_To_Name_Buffer (".Initialize");
-      return Name_Buffer (1 .. Name_Len);
-   end PCSS_Initialize;
 
 end XE_Stubs;
