@@ -38,6 +38,14 @@ with Ada.Streams;
 with System.Garlic.Physical_Location;
 with System.RPC;
 
+--  XXXXX These ones should not be needed, but the binder needs them
+
+with System.Tasking.Initialization;
+with System.Tasking.Protected_Objects;
+pragma Elaborate_All (System.Tasking);
+pragma Elaborate_All (System.Tasking.Initialization);
+pragma Elaborate_All (System.Tasking.Protected_Objects);
+
 package System.Garlic.Heart is
 
    Null_Partition_ID : constant System.RPC.Partition_ID;

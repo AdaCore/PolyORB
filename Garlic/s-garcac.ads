@@ -33,6 +33,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  XXXXX These ones should not be needed, but the binder does not act
+--        correctly when expanding trees coming from a "predefined" generic
+--        package
+
+with System.Tasking.Initialization;
+with System.Tasking.Protected_Objects;
+pragma Elaborate_All (System.Tasking);
+pragma Elaborate_All (System.Tasking.Initialization);
+pragma Elaborate_All (System.Tasking.Protected_Objects);
+
 package System.Garlic.Caching is
 
    generic
