@@ -105,11 +105,11 @@ RSH = @RSH@
 srcdir = @srcdir@
 
 bin_PROGRAMS = gnatdist
-gnatdist_DEPENDENCIES = xe_defs.o sdefault.o
+gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.o sdefault.o
 gnatdist_SOURCES = 
 gnatdist_LDADD = 
 
-CLEANFILES = *.ali gnatdist$(EXEEXT) xe_defs.adb sdefault.adb
+CLEANFILES = *.ali gnatdist$(EXEEXT) xe_defs.adb xe_sysdep.adb sdefault.adb
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
 CONFIG_HEADER = ../Garlic/config.h
 CONFIG_CLEAN_FILES = 
@@ -281,9 +281,17 @@ gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
 	$(GNATMAKE) -m $(GNATFLAGS) -I. -I$(srcdir) -I$(GNATSRC) \
 	   $(srcdir)/xe_build.adb -o gnatdist$(EXEEXT)
 
+xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
+	@echo Selecting xe_sysdep.adb
+	@if [ "$(PSNAME)" = "Windows NT" ]; then \
+		cp xe_sysdep-nt.adb xe_sysdep.adb; \
+	else \
+		cp xe_sysdep-std.adb xe_sysdep.adb; \
+	fi
+
 xe_defs.adb: Makefile
 	@echo Generating xe_defs.adb
-	@if [ "$PSNAME" = "Windows NT" ]; then \
+	@if [ "$(PSNAME)" = "Windows NT" ]; then \
 	   echo "with XE_Reg;" >xe_defs.adb;\
 	   echo "package body XE_Defs is" >>xe_defs.adb;\
 	   echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb;\
@@ -322,6 +330,9 @@ xe_defs.adb: Makefile
 
 xe_defs.o: xe_defs.ads xe_defs.adb
 	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_defs.adb
+
+xe_sysdep.o: xe_sysdep.ads xe_sysdep.adb
+	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_sysdep.adb
 
 sdefault.adb: $(srcdir)/config.sdefault
 	@if [ -f $(GNATSRC)/sdefault.adb ]; then \
