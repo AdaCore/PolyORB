@@ -52,9 +52,9 @@ with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 
-with PolyORB.ORB_Controller.Basic;
-pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
-pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+with PolyORB.ORB_Controller.Workers;
+pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
+pragma Elaborate_All (PolyORB.ORB_Controller.Workers);
 
 with PolyORB.Setup.Tasking.No_Tasking;
 pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);

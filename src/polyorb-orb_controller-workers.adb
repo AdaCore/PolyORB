@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . O R B _ C O N T R O L L E R . B A S I C          --
+--       P O L Y O R B . O R B _ C O N T R O L L E R . W O R K E R S        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ with PolyORB.Log;
 with PolyORB.Parameters;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.ORB_Controller.Basic is
+package body PolyORB.ORB_Controller.Workers is
 
    use PolyORB.Log;
    use PolyORB.Task_Info;
@@ -56,7 +56,7 @@ package body PolyORB.ORB_Controller.Basic is
    procedure O2 (Message : in String; Level : Log_Level := Debug)
      renames L2.Output;
 
-   procedure Try_Allocate_One_Task (O : access ORB_Controller_Basic);
+   procedure Try_Allocate_One_Task (O : access ORB_Controller_Workers);
    --  Awake one idle task, if any. Else do nothing
 
    -------------------
@@ -64,7 +64,7 @@ package body PolyORB.ORB_Controller.Basic is
    -------------------
 
    procedure Register_Task
-     (O  : access ORB_Controller_Basic;
+     (O  : access ORB_Controller_Workers;
       TI :        PTI.Task_Info_Access)
    is
    begin
@@ -84,7 +84,7 @@ package body PolyORB.ORB_Controller.Basic is
    -- Disable_Polling --
    ---------------------
 
-   procedure Disable_Polling (O : access ORB_Controller_Basic) is
+   procedure Disable_Polling (O : access ORB_Controller_Workers) is
    begin
 
       --  Force all tasks currently waiting on event sources to abort
@@ -112,7 +112,7 @@ package body PolyORB.ORB_Controller.Basic is
    -- Enable_Polling --
    --------------------
 
-   procedure Enable_Polling (O : access ORB_Controller_Basic) is
+   procedure Enable_Polling (O : access ORB_Controller_Workers) is
    begin
       pragma Debug (O1 ("Enable_Polling"));
 
@@ -129,7 +129,7 @@ package body PolyORB.ORB_Controller.Basic is
    ------------------
 
    procedure Notify_Event
-     (O : access ORB_Controller_Basic;
+     (O : access ORB_Controller_Workers;
       E :        Event)
    is
       use type PAE.Asynch_Ev_Monitor_Access;
@@ -326,7 +326,7 @@ package body PolyORB.ORB_Controller.Basic is
    -------------------
 
    procedure Schedule_Task
-     (O  : access ORB_Controller_Basic;
+     (O  : access ORB_Controller_Workers;
       TI :        PTI.Task_Info_Access)
    is
    begin
@@ -404,7 +404,7 @@ package body PolyORB.ORB_Controller.Basic is
    ---------------------
 
    procedure Unregister_Task
-     (O  : access ORB_Controller_Basic;
+     (O  : access ORB_Controller_Workers;
       TI :        PTI.Task_Info_Access)
    is
    begin
@@ -424,7 +424,7 @@ package body PolyORB.ORB_Controller.Basic is
    -- Try_Allocate_One_Task --
    ---------------------------
 
-   procedure Try_Allocate_One_Task (O : access ORB_Controller_Basic) is
+   procedure Try_Allocate_One_Task (O : access ORB_Controller_Workers) is
    begin
 
       pragma Debug (O1 ("Try_Allocate_One_Task: enter"));
@@ -454,7 +454,7 @@ package body PolyORB.ORB_Controller.Basic is
    -- Enter_ORB_Critical_Section --
    --------------------------------
 
-   procedure Enter_ORB_Critical_Section (O : access ORB_Controller_Basic) is
+   procedure Enter_ORB_Critical_Section (O : access ORB_Controller_Workers) is
    begin
       PTM.Enter (O.ORB_Lock);
    end Enter_ORB_Critical_Section;
@@ -463,7 +463,7 @@ package body PolyORB.ORB_Controller.Basic is
    -- Leave_ORB_Critical_Section --
    --------------------------------
 
-   procedure Leave_ORB_Critical_Section (O : access ORB_Controller_Basic) is
+   procedure Leave_ORB_Critical_Section (O : access ORB_Controller_Workers) is
    begin
       PTM.Leave (O.ORB_Lock);
    end Leave_ORB_Critical_Section;
@@ -473,7 +473,7 @@ package body PolyORB.ORB_Controller.Basic is
    ----------------------
 
    function Is_A_Job_Pending
-     (O : access ORB_Controller_Basic)
+     (O : access ORB_Controller_Workers)
      return Boolean
    is
    begin
@@ -485,7 +485,7 @@ package body PolyORB.ORB_Controller.Basic is
    ---------------------
 
    function Get_Pending_Job
-     (O : access ORB_Controller_Basic)
+     (O : access ORB_Controller_Workers)
      return PJ.Job_Access
    is
    begin
@@ -500,7 +500,7 @@ package body PolyORB.ORB_Controller.Basic is
    ------------------
 
    function Get_Monitors
-     (O : access ORB_Controller_Basic)
+     (O : access ORB_Controller_Workers)
      return Monitor_Array
    is
       use type PAE.Asynch_Ev_Monitor_Access;
@@ -518,7 +518,7 @@ package body PolyORB.ORB_Controller.Basic is
    ------------
 
    function Create
-     (OCF : access ORB_Controller_Basic_Factory)
+     (OCF : access ORB_Controller_Workers_Factory)
      return ORB_Controller_Access
    is
       use PolyORB.Parameters;
@@ -527,7 +527,7 @@ package body PolyORB.ORB_Controller.Basic is
       pragma Unreferenced (OCF);
       pragma Warnings (On);
 
-      OC : ORB_Controller_Basic_Access;
+      OC : ORB_Controller_Workers_Access;
       RS : PRS.Request_Scheduler_Access;
 
       Polling_Interval : constant Natural
@@ -542,7 +542,7 @@ package body PolyORB.ORB_Controller.Basic is
 
    begin
       PRS.Create (RS);
-      OC := new ORB_Controller_Basic (RS);
+      OC := new ORB_Controller_Workers (RS);
 
       OC.Idle_Tasks := new Idle_Tasks_Manager;
 
@@ -584,7 +584,7 @@ package body PolyORB.ORB_Controller.Basic is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"orb_controller.basic",
+      (Name      => +"orb_controller.workers",
        Conflicts => Empty,
        Depends   => +"tasking.condition_variables"
        & "tasking.mutexes"
@@ -592,4 +592,4 @@ begin
        Provides  => +"orb_controller",
        Implicit  => False,
        Init      => Initialize'Access));
-end PolyORB.ORB_Controller.Basic;
+end PolyORB.ORB_Controller.Workers;

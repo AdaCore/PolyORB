@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#54 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#55 $
 
 @include version.texi
 
@@ -1368,10 +1368,10 @@ middleware configurations; the middleware task executes the following
 loop: process internal jobs, then monitor I/Os.
 
 @c -------------------------------------------------------------------
-@subsection Basic
+@subsection Workers
 @c -------------------------------------------------------------------
 
-The Basic ORB Controller policy is a simple controller policy: all
+The Workers ORB Controller policy is a simple controller policy: all
 tasks are equal, they may alternatively and randomly process requests
 or wait for I/O sources.
 

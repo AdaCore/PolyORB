@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,9 +38,9 @@ with PolyORB.ORB.Thread_Per_Session;
 pragma Elaborate_All (PolyORB.ORB.Thread_Per_Session);
 pragma Warnings (Off, PolyORB.ORB.Thread_Per_Session);
 
-with PolyORB.ORB_Controller.Basic;
-pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
-pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+with PolyORB.ORB_Controller.Workers;
+pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
+pragma Elaborate_All (PolyORB.ORB_Controller.Workers);
 
 with PolyORB.Setup.Server;
 pragma Elaborate_All (PolyORB.Setup.Server);

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . O R B _ C O N T R O L L E R . B A S I C          --
+--       P O L Y O R B . O R B _ C O N T R O L L E R . W O R K E R S        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Basic ORB Controller for PolyORB ORB main loop.
+--  Workers ORB Controller for PolyORB ORB main loop.
 
 --  It is an all-purpose ORB Controller implementation
 
@@ -43,53 +43,54 @@ with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Idle_Tasks_Managers;
 with PolyORB.Tasking.Mutexes;
 
-package PolyORB.ORB_Controller.Basic is
+package PolyORB.ORB_Controller.Workers is
 
-   type ORB_Controller_Basic is new ORB_Controller with private;
+   type ORB_Controller_Workers is new ORB_Controller with private;
 
-   type ORB_Controller_Basic_Access is access all ORB_Controller_Basic'Class;
+   type ORB_Controller_Workers_Access is
+     access all ORB_Controller_Workers'Class;
 
    procedure Register_Task
-     (O  : access ORB_Controller_Basic;
+     (O  : access ORB_Controller_Workers;
       TI :        PTI.Task_Info_Access);
 
    procedure Unregister_Task
-     (O  : access ORB_Controller_Basic;
+     (O  : access ORB_Controller_Workers;
       TI :        PTI.Task_Info_Access);
 
    procedure Notify_Event
-     (O : access ORB_Controller_Basic;
+     (O : access ORB_Controller_Workers;
       E :        Event);
 
    procedure Schedule_Task
-     (O  : access ORB_Controller_Basic;
+     (O  : access ORB_Controller_Workers;
       TI :        PTI.Task_Info_Access);
 
-   procedure Disable_Polling (O : access ORB_Controller_Basic);
+   procedure Disable_Polling (O : access ORB_Controller_Workers);
 
-   procedure Enable_Polling (O : access ORB_Controller_Basic);
+   procedure Enable_Polling (O : access ORB_Controller_Workers);
 
-   procedure Enter_ORB_Critical_Section (O : access ORB_Controller_Basic);
+   procedure Enter_ORB_Critical_Section (O : access ORB_Controller_Workers);
 
-   procedure Leave_ORB_Critical_Section (O : access ORB_Controller_Basic);
+   procedure Leave_ORB_Critical_Section (O : access ORB_Controller_Workers);
 
    function Is_A_Job_Pending
-     (O : access ORB_Controller_Basic)
+     (O : access ORB_Controller_Workers)
      return Boolean;
 
    function Get_Pending_Job
-     (O : access ORB_Controller_Basic)
+     (O : access ORB_Controller_Workers)
      return PJ.Job_Access;
 
    function Get_Monitors
-     (O : access ORB_Controller_Basic)
+     (O : access ORB_Controller_Workers)
      return Monitor_Array;
 
-   type ORB_Controller_Basic_Factory is
+   type ORB_Controller_Workers_Factory is
      new ORB_Controller_Factory with private;
 
    function Create
-     (OCF : access ORB_Controller_Basic_Factory)
+     (OCF : access ORB_Controller_Workers_Factory)
      return ORB_Controller_Access;
 
 private
@@ -98,7 +99,7 @@ private
    package PTCV renames PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Idle_Tasks_Managers;
 
-   type ORB_Controller_Basic is new ORB_Controller with record
+   type ORB_Controller_Workers is new ORB_Controller with record
 
       ORB_Lock : PTM.Mutex_Access;
       --  Mutex used to enforce ORB critical section
@@ -135,10 +136,10 @@ private
       Counter : Natural := 0;
    end record;
 
-   type ORB_Controller_Basic_Factory is
+   type ORB_Controller_Workers_Factory is
      new ORB_Controller_Factory with null record;
 
    OCF : constant ORB_Controller_Factory_Access
-     := new ORB_Controller_Basic_Factory;
+     := new ORB_Controller_Workers_Factory;
 
-end PolyORB.ORB_Controller.Basic;
+end PolyORB.ORB_Controller.Workers;

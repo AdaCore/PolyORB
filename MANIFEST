@@ -1076,14 +1076,14 @@ src/polyorb-orb-thread_pool.adb
 src/polyorb-orb-thread_pool.ads
 src/polyorb-orb.adb
 src/polyorb-orb.ads
-src/polyorb-orb_controller-basic.adb
-src/polyorb-orb_controller-basic.ads
 src/polyorb-orb_controller-half_sync_half_async.adb
 src/polyorb-orb_controller-half_sync_half_async.ads
 src/polyorb-orb_controller-leader_followers.adb
 src/polyorb-orb_controller-leader_followers.ads
 src/polyorb-orb_controller-no_tasking.adb
 src/polyorb-orb_controller-no_tasking.ads
+src/polyorb-orb_controller-workers.adb
+src/polyorb-orb_controller-workers.ads
 src/polyorb-orb_controller.adb
 src/polyorb-orb_controller.ads
 src/polyorb-parameters-environment.adb
