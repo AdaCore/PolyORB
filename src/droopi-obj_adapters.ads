@@ -44,10 +44,21 @@ package Droopi.Obj_Adapters is
    --  Return the signature of the given method, so the protocol layer
    --  can unmarshall the message into a Request object.
 
-   function Resolve
+   function Find_Servant
      (OA : Obj_Adapter;
       Id : Object_Id)
      return Objects.Servant_Access is abstract;
+   --  Retrieve the servant managed by OA for logical object Id.
+   --  The servant that incarnates the object is return.
+
+   procedure Release_Servant
+     (OA : Obj_Adapter;
+      Id : Object_Id;
+      Servant : in out Servant_Access) is abstract;
+   --  Signal to OA that a Servant previously obtained using
+   --  Find_Servant won't be used by the client anymore. This
+   --  may cause the servant to be destroyed if so is OA's
+   --  policy.
 
 private
 

@@ -71,7 +71,7 @@ package body Droopi.Obj_Adapters.Simple is
       raise Not_Implemented;
    end Unexport;
 
-   function Resolve
+   function Find_Servant
      (OA  : Simple_Obj_Adapter;
       Id  : Object_Id)
      return Servant_Access
@@ -83,6 +83,15 @@ package body Droopi.Obj_Adapters.Simple is
                             (Simple_OA_Oid (Id))).Servant;
       Leave (OA.Lock);
       return Result;
-   end Resolve;
+   end Find_Servant;
+
+   procedure Release_Servant
+     (OA : Simple_Obj_Adapter;
+      Id : Object_Id;
+      Servant : in out Servant_Access) is
+   begin
+      --  SOA: do nothing.
+      Servant := null;
+   end Release_Servant;
 
 end Droopi.Obj_Adapters.Simple;

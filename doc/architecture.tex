@@ -859,8 +859,16 @@ d'un certain nombre de classes abstraites.
 \item[Asynch\_Event\_Source] une source d'événements externes
   asynchrones, par exemple un descripteur de fichier qui peut
   participer à un appel à \emph{select(2)}~;
-\item[Transport\_Access\_Point] \textbf{TODO}
-  %% XXX TODO
+\item[Transport\_Access\_Point] un objet susceptible de recevoir
+  des connexions d'un ORB extérieur, et de créer un canal
+  de communication lorsqu'une connexion est reçue.
+  L'objet qui concrétise un TE peut également être vu comme une source
+  d'événements asynchrones (\emph{AES\_View})~; l'interface
+  \emph{Transport\_Access\_Point} est la vue de cet objet qui est présentée
+  aux couches supérieures du module de communication, tandis que la vue
+  \emph{Asynchronous\_Event\_Source} présentée à l'ordonnanceur.
+  Un TAP est doté d'une \emph{adresse} qui permet de le repérer sans
+  ambiguïté au sein d'un domaine de communication.
 \item[Transport\_Endpoint] une extrémité d'un canal de communication
   permettant d'échanger des messages avec un autre ORB.
   L'objet qui concrétise un TE peut également être vu comme une source
@@ -890,8 +898,16 @@ Les sections suivantes présentent plus en détail chacun de ces objets.
 
 \subsubsection{Asynchronous event source (AES)}
 
-%%  XXX TODO
-\textbf{TODO}
+Tout objet susceptible de générer spontanément (de façon asynchrone)
+des événements devant donner lieu à traitement par une activité de l'ORB.
+
+Exemple~: un descripteur de fichier (peut participer à un appel
+  système \emph{poll}).
+
+Une AES est enregistrée auprès d'un moniteur
+(AEM, \emph{Asynchronous\_Event\_Monitor}) qui permet à l'ORB
+de savoir si un événement s'est produit, ou d'attendre qu'un
+événement se produise.
 
 \subsubsection{Transport access point (TAP)}
 
