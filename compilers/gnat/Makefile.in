@@ -1,20 +1,20 @@
 # Makefile for GNU Ada Compiler (GNAT).
 #   Copyright (C) 1994-2003 Free Software Foundation, Inc.
 
-#This file is part of GNU CC.
+#This file is part of GCC.
 
-#GNU CC is free software; you can redistribute it and/or modify
+#GCC is free software; you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
 #the Free Software Foundation; either version 2, or (at your option)
 #any later version.
 
-#GNU CC is distributed in the hope that it will be useful,
+#GCC is distributed in the hope that it will be useful,
 #but WITHOUT ANY WARRANTY; without even the implied warranty of
 #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #GNU General Public License for more details.
 
 #You should have received a copy of the GNU General Public License
-#along with GNU CC; see the file COPYING.  If not, write to
+#along with GCC; see the file COPYING.  If not, write to
 #the Free Software Foundation, 59 Temple Place - Suite 330, 
 #Boston, MA 02111-1307, USA.
 
@@ -409,7 +409,7 @@ GNATMAKE_OBJS = ctrl_c.o ali.o ali-util.o s-casuti.o \
  rident.o scans.o scng.o sdefault.o sfn_scan.o s-purexc.o s-htable.o \
  sinput.o sinput-c.o sinput-p.o \
  snames.o stand.o stringt.o styleg.o stylesw.o validsw.o switch.o switch-m.o \
- table.o targparm.o tree_io.o types.o \
+ table.o targparm.o tempdir.o tree_io.o types.o \
  uintp.o urealp.o usage.o widechar.o ../../prefix.o \
  $(EXTRA_GNATMAKE_OBJS)
 
@@ -689,10 +689,8 @@ ifeq ($(strip $(filter-out powerpc% wrs vxworksae,$(targ))),)
   s-osinte.ads<5zosinte.ads \
   s-osprim.adb<5zosprim.adb \
   s-parame.ads<5yparame.ads \
-  s-secsta.adb<5ysecsta.adb \
   s-taprop.adb<5ztaprop.adb \
   s-taspri.ads<5ztaspri.ads \
-  s-tassta.adb<5ytassta.adb \
   s-tpopsp.adb<5ztpopsp.adb \
   s-vxwork.ads<5pvxwork.ads \
   g-soccon.ads<3zsoccon.ads \
@@ -746,7 +744,7 @@ endif
 
 ifeq ($(strip $(filter-out powerpc% unknown elf,$(targ))),)
   EXTRA_HIE_NONE_TARGET_PAIRS= \
-  system.ads<5ysystem.ads
+  system.ads<59system.ads
 
   LIBGNAT_TARGET_PAIRS = \
   $(HIE_NONE_TARGET_PAIRS) \
@@ -775,7 +773,7 @@ ifeq ($(strip $(filter-out sparc% wrs vx%,$(targ))),)
   g-socthi.adb<3zsocthi.adb
 
   # system.ads differs between sparc64 and sparc32
-  ifeq ($(strip $(filter-out sparc64,$(targ))),)
+  ifeq ($(strip $(filter-out sparc64 wrs vx%,$(targ))),)
   LIBGNAT_TARGET_PAIRS += system.ads<5csystem.ads
   else
   LIBGNAT_TARGET_PAIRS += system.ads<5rsystem.ads
@@ -844,7 +842,7 @@ ifeq ($(strip $(filter-out sparc sun solaris%,$(targ))),)
   s-intman.adb<5sintman.adb \
   s-osinte.adb<5sosinte.adb \
   s-osinte.ads<5sosinte.ads \
-  s-osprim.adb<5posprim.adb \
+  s-osprim.adb<5sosprim.adb \
   s-parame.adb<5sparame.adb \
   s-taprop.adb<5staprop.adb \
   s-tasinf.adb<5stasinf.adb \
@@ -873,7 +871,7 @@ ifeq ($(strip $(filter-out sparc sun solaris%,$(targ))),)
     s-intman.adb<5sintman.adb \
     s-osinte.adb<7sosinte.adb \
     s-osinte.ads<5tosinte.ads \
-    s-osprim.adb<5posprim.adb \
+    s-osprim.adb<5sosprim.adb \
     s-taprop.adb<7staprop.adb \
     s-taspri.ads<7staspri.ads \
     s-tpopsp.adb<7stpopsp.adb \
@@ -891,7 +889,7 @@ ifeq ($(strip $(filter-out sparc sun solaris%,$(targ))),)
     s-intman.adb<7sintman.adb \
     s-osinte.adb<5iosinte.adb \
     s-osinte.ads<54osinte.ads \
-    s-osprim.adb<5posprim.adb \
+    s-osprim.adb<5sosprim.adb \
     s-taprop.adb<7staprop.adb \
     s-taspri.ads<7staspri.ads \
     s-tpopsp.adb<5atpopsp.adb \
@@ -909,7 +907,7 @@ ifeq ($(strip $(filter-out sparc sun solaris%,$(targ))),)
     s-intman.adb<5sintman.adb \
     s-osinte.adb<5sosinte.adb \
     s-osinte.ads<5sosinte.ads \
-    s-osprim.adb<5posprim.adb \
+    s-osprim.adb<5sosprim.adb \
     s-parame.adb<5sparame.adb \
     s-taprop.adb<5staprop.adb \
     s-tasinf.adb<5stasinf.adb \
@@ -932,7 +930,7 @@ ifeq ($(strip $(filter-out %86 solaris2%,$(arch) $(osys))),)
   s-mastop.adb<5omastop.adb \
   s-osinte.adb<5sosinte.adb \
   s-osinte.ads<5sosinte.ads \
-  s-osprim.adb<5posprim.adb \
+  s-osprim.adb<5sosprim.adb \
   s-parame.adb<5sparame.adb \
   s-taprop.adb<5staprop.adb \
   s-tasinf.adb<5stasinf.adb \
@@ -1143,7 +1141,7 @@ ifeq ($(strip $(filter-out lynxos,$(osys))),)
     s-taprop.adb<56taprop.adb \
     s-taspri.ads<56taspri.ads \
     s-tpopsp.adb<5atpopsp.adb \
-    system.ads<52system.ads
+    system.ads<58system.ads
 
     PREFIX_OBJS=$(PREFIX_REAL_OBJS)
 
@@ -1158,7 +1156,7 @@ ifeq ($(strip $(filter-out lynxos,$(osys))),)
     s-taprop.adb<7staprop.adb \
     s-taspri.ads<7staspri.ads \
     s-tpopsp.adb<7stpopsp.adb \
-    system.ads<52system.ads
+    system.ads<57system.ads
 
     ifeq ($(strip $(filter-out pthread PTHREAD,$(THREAD_KIND))),)
       LIBGNAT_TARGET_PAIRS = \
@@ -1171,7 +1169,7 @@ ifeq ($(strip $(filter-out lynxos,$(osys))),)
       s-taprop.adb<56taprop.adb \
       s-taspri.ads<56taspri.ads \
       s-tpopsp.adb<5atpopsp.adb \
-      system.ads<52system.ads
+      system.ads<57system.ads
     endif
 
   endif
@@ -1250,6 +1248,7 @@ endif
   g-expect.adb<3vexpect.adb \
   g-soccon.ads<3vsoccon.ads \
   g-socthi.ads<3vsocthi.ads \
+  g-socthi.adb<3vsocthi.adb \
   i-cstrea.adb<6vcstrea.adb \
   i-cpp.adb<6vcpp.adb \
   interfac.ads<6vinterf.ads \
@@ -1270,6 +1269,8 @@ endif
   s-vaflop.adb<5vvaflop.adb \
   system.ads<5xsystem.ads   \
   $(LIBGNAT_TARGET_PAIRS_AUX)
+
+  TOOLS_TARGET_PAIRS=mlib-tgt.adb<5vml-tgt.adb
 
   GNATLIB_SHARED=gnatlib-shared-vms
   EXTRA_LIBGNAT_SRCS=vmshandler.asm
@@ -1345,7 +1346,8 @@ endif
 LIBGNAT_SRCS = ada.h adaint.c adaint.h argv.c cio.c cstreams.c \
   errno.c exit.c cal.c ctrl_c.c \
   raise.h raise.c sysdep.c types.h aux-io.c init.c \
-  final.c tracebak.c expect.c mkdir.c socket.c $(EXTRA_LIBGNAT_SRCS)
+  final.c tracebak.c tb-alvms.c tb-alvxw.c expect.c mkdir.c socket.c \
+  $(EXTRA_LIBGNAT_SRCS)
 
 LIBGNAT_OBJS = adaint.o argv.o cio.o cstreams.o ctrl_c.o errno.o exit.o \
   raise.o sysdep.o aux-io.o init.o cal.o final.o \
@@ -1744,7 +1746,6 @@ install-gnatlib: ../stamp-gnatlib
 	-$(MKDIR) $(ADA_SHARE_MAKE_DIR)
 	-$(INSTALL_DATA) rts/Makefile.prolog $(ADA_SHARE_MAKE_DIR)
 	-$(INSTALL_DATA) rts/Makefile.generic $(ADA_SHARE_MAKE_DIR)
-	-$(INSTALL_DATA) rts/Makefile.adalib $(ADA_RTL_OBJ_DIR)
 	for file in rts/*.ali; do \
 	    $(INSTALL_DATA) $$file $(ADA_RTL_OBJ_DIR); \
 	done
@@ -1877,7 +1878,7 @@ prepare-rts:
 	$(ECHO) "      \"rts-$(RTS_NAME)_source_list.txt\";" \
 		>>rts-$(RTS_NAME)/$(RTS_NAME).gpr
 	$(ECHO) "   package Builder is" >>rts-$(RTS_NAME)/$(RTS_NAME).gpr
-	$(ECHO) "     for Default_Switches (\"Ada\") use (\"-a\");" \
+	$(ECHO) "     for Default_Switches (\"Ada\") use (\"-a\" $(RTS_BUILD_FLAGS));" \
 		 >>rts-$(RTS_NAME)/$(RTS_NAME).gpr
 	$(ECHO) "  end Builder;" >>rts-$(RTS_NAME)/$(RTS_NAME).gpr
 	$(ECHO) "  package Compiler is" >> rts-$(RTS_NAME)/$(RTS_NAME).gpr
@@ -1899,7 +1900,11 @@ prepare-rts:
 	$(foreach PAIR,$(RTS_TARGET_PAIRS), \
 	    $(CP) $(fsrcpfx)$(word 2,$(subst <, ,$(PAIR))) \
 	            rts-$(RTS_NAME)/adainclude/$(word 1,$(subst <, ,$(PAIR)));)
-# change system.High_Integrity_Mode to true for the none & ravenscar rts
+# Build the ZFP runtime in No_Run_Time mode
+        ifeq ($(filter-out zfp,$(RTS_NAME)),)
+	  echo "pragma No_Run_Time;" > rts-$(RTS_NAME)/adalib/gnat.adc
+        endif
+# Change system.High_Integrity_Mode to true for the none & ravenscar rts
         ifeq ($(filter-out none ravenscar,$(RTS_NAME)),)
 	  sed -e $(HIE_SUBST) rts-$(RTS_NAME)/adainclude/system.ads \
 	      > dummy
@@ -1908,6 +1913,16 @@ prepare-rts:
 
 install-rts: force
 	$(CP) -r rts-$(RTS_NAME) $(libsubdir)/
+
+rts-zfp: force
+	$(MAKE) $(FLAGS_TO_PASS) prepare-rts \
+	   RTS_NAME=zfp RTS_SRCS="$(HIE_SOURCES)" \
+	   RTS_BUILD_FLAGS=", \\\"-gnatec=gnat.adc\\\"" \
+	   RTS_TARGET_PAIRS="$(HIE_NONE_TARGET_PAIRS)" \
+	   COMPILABLE_SOURCES="$(COMPILABLE_HIE_SOURCES)" 
+	-$(GNATMAKE) -Prts-zfp/zfp.gpr --GCC="../../../xgcc -B../../../"
+	$(RM) rts-zfp/adalib/*.o
+	$(CHMOD) a-wx rts-zfp/adalib/*.ali
 
 rts-none: force
 	$(MAKE) $(FLAGS_TO_PASS) prepare-rts \
@@ -1926,75 +1941,6 @@ rts-ravenscar: force
 	-$(GNATMAKE) -Prts-ravenscar/ravenscar.gpr \
 	   --GCC="../../../xgcc -B../../../"
 	$(CHMOD) a-wx rts-ravenscar/adalib/*.ali
-
-internal-hielib: ../stamp-gnatlib1
-	sed -e 's/High_Integrity_Mode.*/High_Integrity_Mode       : constant Boolean := True;/' rts/system.ads > rts/s.ads
-	$(MV) rts/s.ads rts/system.ads
-	$(MAKE) -C rts CC="../../xgcc -B../../" \
-	  ADA_INCLUDES="" VPATH="" \
-	  CFLAGS="$(GNATLIBCFLAGS)" \
-	  ADAFLAGS="$(GNATLIBFLAGS)" \
-	  srcdir=$(fsrcdir) \
-	  -f ../Makefile \
-	  $(HIE_OBJS)
-	$(CHMOD) a-wx rts/*.ali
-	$(RM) $(addprefix rts/,$(HIE_OBJS))
-	touch ../stamp-gnatlib
-
-hielib:
-	$(MAKE) ADA_INCLUDE_SRCS="$(HIE_SOURCES)" LIBGNAT_SRCS="" \
-	  LIBGNAT_TARGET_PAIRS="a-except.ads<1aexcept.ads \
-	    a-except.adb<1aexcept.adb \
-	    a-tags.adb<1atags.adb \
-	    s-secsta.ads<1ssecsta.ads \
-	    s-secsta.adb<1ssecsta.adb \
-	    i-c.ads<1ic.ads" internal-hielib
-
-internal-ravenlib: ../stamp-gnatlib1
-	sed -e 's/High_Integrity_Mode.*/High_Integrity_Mode       : constant Boolean := True;/' rts/system.ads > rts/s.ads
-	$(MV) rts/s.ads rts/system.ads
-	$(MAKE) -C rts CC="../../xgcc -B../../" \
-	  ADA_INCLUDES="" VPATH="" \
-	  CFLAGS="$(GNATLIBCFLAGS)" \
-	  ADAFLAGS="$(GNATLIBFLAGS)" \
-	  srcdir=$(fsrcdir) \
-	  -f ../Makefile \
-	  $(RAVEN_OBJS)
-	$(CHMOD) a-wx rts/*.ali
-	touch ../stamp-gnatlib
-
-# Target for building a ravenscar run time for VxWorks/Cert PPC
-ravenppclib:
-	$(MAKE) ADA_INCLUDE_SRCS="$(RAVEN_SOURCES)" LIBGNAT_SRCS="" \
-	  LIBGNAT_TARGET_PAIRS="a-except.ads<1aexcept.ads \
-	    a-except.adb<1aexcept.adb \
-	    a-tags.adb<1atags.adb \
-	    s-secsta.ads<1ssecsta.ads \
-	    s-secsta.adb<1ssecsta.adb \
-	    i-c.ads<1ic.ads           \
-	    a-reatim.ads<1areatim.ads \
-	    a-reatim.adb<1areatim.adb \
-	    a-retide.adb<1aretide.adb \
-	    a-interr.adb<1ainterr.adb \
-	    s-interr.ads<1sinterr.ads \
-	    s-interr.adb<1sinterr.adb \
-	    s-taskin.ads<1staskin.ads \
-	    s-taskin.adb<1staskin.adb \
-	    s-tarest.adb<1starest.adb \
-	    s-tposen.ads<1stposen.ads \
-	    s-tposen.adb<1stposen.adb \
-	    s-osinte.adb<1sosinte.adb \
-	    s-taprop.ads<1staprop.ads \
-	    s-taprop.adb<1staprop.adb \
-	    a-sytaco.ads<1asytaco.ads \
-	    a-sytaco.adb<1asytaco.adb \
-	    a-intnam.ads<4zintnam.ads \
-	    s-osinte.adb<5zosinte.adb \
-	    s-osinte.ads<5zosinte.ads \
-	    s-parame.ads<5zparame.ads \
-	    s-taspri.ads<5ztaspri.ads \
-	    s-vxwork.ads<5pvxwork.ads \
-	    system.ads<5ysystem.ads" internal-ravenlib
 
 # Warning: this target assumes that LIBRARY_VERSION has been set correctly.
 gnatlib-shared-default:
@@ -2182,14 +2128,16 @@ s-assert.o  : s-assert.adb s-assert.ads a-except.ads
 	$(CC) -c $(ALL_ADAFLAGS) $(FORCE_DEBUG_ADAFLAGS) -O2 $(ADA_INCLUDES) \
 	      $< $(OUTPUT_OPTION)
 
+# dependencies for windows specific tool (mdll)
+
 mdll.o : mdll.adb mdll.ads mdll-fil.ads mdll-utl.ads
-	$(CC) -c $(ALL_ADAFLAGS) -O2 $(ADA_INCLUDES) $< $(OUTPUT_OPTION)
+	$(CC) -c $(ALL_ADAFLAGS) $(ADA_INCLUDES) $< $(OUTPUT_OPTION)
 
 mdll-fil.o : mdll-fil.adb mdll.ads mdll-fil.ads
-	$(CC) -c $(ALL_ADAFLAGS) -O2 $(ADA_INCLUDES) $< $(OUTPUT_OPTION)
+	$(CC) -c $(ALL_ADAFLAGS) $(ADA_INCLUDES) $< $(OUTPUT_OPTION)
 
 mdll-utl.o : mdll-utl.adb mdll.ads mdll-utl.ads sdefault.ads types.ads
-	$(CC) -c $(ALL_ADAFLAGS) -O2 $(ADA_INCLUDES) $< $(OUTPUT_OPTION)
+	$(CC) -c $(ALL_ADAFLAGS) $(ADA_INCLUDES) $< $(OUTPUT_OPTION)
   
 # force debugging information and no optimization on s-memory.o so that it 
 # is always possible to set breakpoint on __gnat_malloc and __gnat_free
@@ -2250,7 +2198,7 @@ raise.o   : raise.c raise.h
 
 # Need to keep the frame pointer in this file to pop the stack properly on
 # some targets.
-tracebak.o  : tracebak.c
+tracebak.o  : tracebak.c tb-alvms.c tb-alvxw.c
 	$(CC) -c $(ALL_CFLAGS) $(ADA_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
 	      -fno-omit-frame-pointer $< $(OUTPUT_OPTION)
 
@@ -2415,8 +2363,9 @@ checks.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    checks.ads checks.adb debug.ads einfo.ads einfo.adb elists.ads \
    elists.adb err_vars.ads errout.ads erroutc.ads eval_fat.ads \
    exp_ch11.ads exp_ch2.ads exp_ch7.ads exp_util.ads exp_util.adb \
-   freeze.ads get_targ.ads gnat.ads g-htable.ads g-os_lib.ads g-string.ads \
-   gnatvsn.ads hostparm.ads inline.ads itypes.ads lib.ads namet.ads \
+   fname.ads freeze.ads get_targ.ads gnat.ads g-hesora.ads g-htable.ads \
+   g-os_lib.ads g-string.ads gnatvsn.ads hostparm.ads inline.ads \
+   itypes.ads lib.ads lib.adb lib-list.adb lib-sort.adb namet.ads \
    nlists.ads nlists.adb nmake.ads nmake.adb opt.ads output.ads \
    restrict.ads rident.ads rtsfind.ads sem.ads sem_cat.ads sem_ch8.ads \
    sem_eval.ads sem_eval.adb sem_res.ads sem_type.ads sem_util.ads \
@@ -2425,7 +2374,8 @@ checks.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    s-memory.ads s-secsta.ads s-soflin.ads s-stache.ads s-stalib.ads \
    s-stoele.ads s-stoele.adb s-unstyp.ads s-wchcon.ads table.ads table.adb \
    targparm.ads tbuild.ads tbuild.adb tree_io.ads ttypes.ads types.ads \
-   uintp.ads uintp.adb unchconv.ads unchdeal.ads urealp.ads validsw.ads 
+   uintp.ads uintp.adb uname.ads unchconv.ads unchdeal.ads urealp.ads \
+   validsw.ads 
 
 comperr.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    comperr.ads comperr.adb debug.ads einfo.ads einfo.adb elists.ads \
@@ -2440,9 +2390,9 @@ comperr.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    tree_io.ads treepr.ads types.ads uintp.ads uintp.adb uname.ads \
    unchconv.ads unchdeal.ads urealp.ads 
 
-csets.o : csets.ads csets.adb gnatvsn.ads hostparm.ads opt.ads system.ads \
-   s-exctab.ads s-stalib.ads s-unstyp.ads s-wchcon.ads types.ads \
-   unchconv.ads unchdeal.ads 
+csets.o : csets.ads csets.adb gnat.ads g-string.ads gnatvsn.ads \
+   hostparm.ads opt.ads system.ads s-exctab.ads s-stalib.ads s-unstyp.ads \
+   s-wchcon.ads types.ads unchconv.ads unchdeal.ads 
 
 cstand.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    checks.ads csets.ads cstand.ads cstand.adb debug.ads einfo.ads \
@@ -2853,9 +2803,9 @@ exp_imgv.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
 exp_intr.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    checks.ads csets.ads debug.ads einfo.ads einfo.adb elists.ads \
    err_vars.ads errout.ads erroutc.ads exp_ch11.ads exp_ch4.ads \
-   exp_ch7.ads exp_ch9.ads exp_code.ads exp_fixd.ads exp_intr.ads \
-   exp_intr.adb exp_util.ads exp_util.adb fname.ads fname-uf.ads \
-   freeze.ads get_targ.ads gnat.ads g-htable.ads g-os_lib.ads g-string.ads \
+   exp_ch7.ads exp_code.ads exp_fixd.ads exp_intr.ads exp_intr.adb \
+   exp_util.ads exp_util.adb fname.ads fname-uf.ads freeze.ads \
+   get_targ.ads gnat.ads g-htable.ads g-os_lib.ads g-string.ads \
    gnatvsn.ads hostparm.ads inline.ads interfac.ads itypes.ads lib.ads \
    lib-xref.ads namet.ads namet.adb nlists.ads nlists.adb nmake.ads \
    nmake.adb opt.ads output.ads restrict.ads restrict.adb rident.ads \
@@ -3077,10 +3027,10 @@ gnat1drv.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb \
 
 gnatbind.o : ada.ads a-except.ads ali.ads ali-util.ads alloc.ads \
    bcheck.ads binde.ads binderr.ads bindgen.ads bindusg.ads butil.ads \
-   casing.ads csets.ads debug.ads gnat.ads g-htable.ads g-os_lib.ads \
-   g-string.ads gnatbind.ads gnatbind.adb gnatvsn.ads hostparm.ads \
-   namet.ads opt.ads osint.ads osint-b.ads output.ads rident.ads \
-   switch.ads switch-b.ads system.ads s-exctab.ads s-htable.ads \
+   casing.ads csets.ads debug.ads fmap.ads gnat.ads g-htable.ads \
+   g-os_lib.ads g-string.ads gnatbind.ads gnatbind.adb gnatvsn.ads \
+   hostparm.ads namet.ads opt.ads osint.ads osint-b.ads output.ads \
+   rident.ads switch.ads switch-b.ads system.ads s-exctab.ads s-htable.ads \
    s-memory.ads s-secsta.ads s-soflin.ads s-stache.ads s-stalib.ads \
    s-stoele.ads s-stoele.adb s-strops.ads s-unstyp.ads s-wchcon.ads \
    table.ads table.adb targparm.ads tree_io.ads types.ads unchconv.ads \
@@ -3517,17 +3467,17 @@ sem_attr.o : ada.ads a-charac.ads a-chlat1.ads a-except.ads alloc.ads \
    g-htable.ads g-os_lib.ads g-string.ads gnatvsn.ads hostparm.ads \
    inline.ads itypes.ads lib.ads lib-xref.ads namet.ads nlists.ads \
    nlists.adb nmake.ads nmake.adb opt.ads output.ads restrict.ads \
-   rident.ads rtsfind.ads sem.ads sem_attr.ads sem_attr.adb sem_cat.ads \
-   sem_ch6.ads sem_ch8.ads sem_dist.ads sem_eval.ads sem_eval.adb \
-   sem_res.ads sem_type.ads sem_util.ads sem_warn.ads sinfo.ads sinfo.adb \
-   sinput.ads sinput.adb snames.ads snames.adb sprint.ads stand.ads \
-   stringt.ads stringt.adb system.ads s-carun8.ads s-exctab.ads \
-   s-exctab.adb s-htable.ads s-imgenu.ads s-memory.ads s-secsta.ads \
-   s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb \
-   s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads tbuild.ads \
-   tbuild.adb tree_io.ads ttypef.ads ttypes.ads types.ads types.adb \
-   uintp.ads uintp.adb unchconv.ads unchdeal.ads urealp.ads urealp.adb \
-   validsw.ads widechar.ads 
+   rident.ads rtsfind.ads sdefault.ads sem.ads sem_attr.ads sem_attr.adb \
+   sem_cat.ads sem_ch6.ads sem_ch8.ads sem_dist.ads sem_eval.ads \
+   sem_eval.adb sem_res.ads sem_type.ads sem_util.ads sem_warn.ads \
+   sinfo.ads sinfo.adb sinput.ads sinput.adb snames.ads snames.adb \
+   sprint.ads stand.ads stringt.ads stringt.adb system.ads s-carun8.ads \
+   s-exctab.ads s-exctab.adb s-htable.ads s-imgenu.ads s-memory.ads \
+   s-secsta.ads s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads \
+   s-stoele.adb s-unstyp.ads s-wchcon.ads table.ads table.adb targparm.ads \
+   tbuild.ads tbuild.adb tree_io.ads ttypef.ads ttypes.ads types.ads \
+   types.adb uintp.ads uintp.adb unchconv.ads unchdeal.ads urealp.ads \
+   urealp.adb validsw.ads widechar.ads 
 
 sem_case.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    debug.ads einfo.ads einfo.adb elists.ads err_vars.ads errout.ads \
@@ -4115,9 +4065,9 @@ styleg.o : ada.ads a-except.ads alloc.ads casing.ads csets.ads debug.ads \
    s-stalib.ads s-unstyp.ads s-wchcon.ads table.ads table.adb tree_io.ads \
    types.ads uintp.ads unchconv.ads unchdeal.ads urealp.ads 
 
-stylesw.o : gnatvsn.ads hostparm.ads opt.ads stylesw.ads stylesw.adb \
-   system.ads s-exctab.ads s-stalib.ads s-unstyp.ads s-wchcon.ads \
-   types.ads unchconv.ads unchdeal.ads 
+stylesw.o : gnat.ads g-string.ads gnatvsn.ads hostparm.ads opt.ads \
+   stylesw.ads stylesw.adb system.ads s-exctab.ads s-stalib.ads \
+   s-unstyp.ads s-wchcon.ads types.ads unchconv.ads unchdeal.ads 
 
 switch-b.o : ada.ads a-except.ads debug.ads gnat.ads g-os_lib.ads \
    g-string.ads gnatvsn.ads hostparm.ads opt.ads osint.ads switch.ads \
@@ -4234,14 +4184,14 @@ usage.o : ada.ads a-except.ads alloc.ads debug.ads gnat.ads g-os_lib.ads \
    s-unstyp.ads s-wchcon.ads table.ads table.adb tree_io.ads types.ads \
    unchconv.ads unchdeal.ads usage.ads usage.adb 
 
-validsw.o : gnatvsn.ads hostparm.ads opt.ads system.ads s-exctab.ads \
-   s-stalib.ads s-unstyp.ads s-wchcon.ads types.ads unchconv.ads \
-   unchdeal.ads validsw.ads validsw.adb 
+validsw.o : gnat.ads g-string.ads gnatvsn.ads hostparm.ads opt.ads \
+   system.ads s-exctab.ads s-stalib.ads s-unstyp.ads s-wchcon.ads \
+   types.ads unchconv.ads unchdeal.ads validsw.ads validsw.adb 
 
-widechar.o : ada.ads a-except.ads gnatvsn.ads hostparm.ads interfac.ads \
-   opt.ads system.ads s-exctab.ads s-soflin.ads s-stache.ads s-stalib.ads \
-   s-stoele.ads s-stoele.adb s-unstyp.ads s-wchcnv.ads s-wchcnv.adb \
-   s-wchcon.ads s-wchjis.ads types.ads unchconv.ads unchdeal.ads \
-   widechar.ads widechar.adb 
+widechar.o : ada.ads a-except.ads gnat.ads g-string.ads gnatvsn.ads \
+   hostparm.ads interfac.ads opt.ads system.ads s-exctab.ads s-soflin.ads \
+   s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb s-unstyp.ads \
+   s-wchcnv.ads s-wchcnv.adb s-wchcon.ads s-wchjis.ads types.ads \
+   unchconv.ads unchdeal.ads widechar.ads widechar.adb 
 
 # end of regular dependencies

@@ -374,6 +374,13 @@ package body Sem_Ch7 is
 
       Check_References (Body_Id);
 
+      --  For a generic unit, check that the formal parameters are referenced,
+      --  and that local variables are used, as for regular packages.
+
+      if Ekind (Spec_Id) = E_Generic_Package then
+         Check_References (Spec_Id);
+      end if;
+
       --  The processing so far has made all entities of the package body
       --  public (i.e. externally visible to the linker). This is in general
       --  necessary, since inlined or generic bodies, for which code is

@@ -3980,13 +3980,17 @@ package body Exp_Dist is
       L        : List_Id;
       Reg      : Node_Id;
       Loc      : constant Source_Ptr := Sloc (U);
-      Dist_OK  : Entity_Id;
 
    begin
       --  Verify that the implementation supports distribution, by accessing
       --  a type defined in the proper version of system.rpc
 
-      Dist_OK := RTE (RE_Params_Stream_Type);
+      declare
+         Dist_OK : Entity_Id;
+         pragma Warnings (Off, Dist_OK);
+      begin
+         Dist_OK := RTE (RE_Params_Stream_Type);
+      end;
 
       --  Use body if present, spec otherwise
 
@@ -4154,8 +4158,10 @@ package body Exp_Dist is
       procedure Insert_Partition_Check (Parameter : in Node_Id) is
          Parameter_Entity  : constant Entity_Id :=
                                Defining_Identifier (Parameter);
-         Designated_Object : Node_Id;
          Condition         : Node_Id;
+         Designated_Object : Node_Id;
+         pragma Warnings (Off, Designated_Object);
+         --  Is it really right that this is unreferenced ???
 
       begin
          --  The expression that will be built is of the form:

@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $LastChangedRevision$
---                                                                          --
---          Copyright (C) 1992-2002, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2003, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -277,7 +275,6 @@ package body Sem_Dist is
 
       Rewrite (N, Convert_To (Typ, Get_Pt_Id_Call));
       Analyze_And_Resolve (N, Typ);
-
    end Process_Partition_Id;
 
    ----------------------------------
@@ -530,7 +527,6 @@ package body Sem_Dist is
 
          Add_RAST_Features (Parent (User_Type));
       end if;
-
    end Process_Remote_AST_Declaration;
 
    -----------------------

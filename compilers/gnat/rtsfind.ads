@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1992-2002, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2003, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -188,26 +188,14 @@ package Rtsfind is
       System_Compare_Array_Unsigned_8,
       System_Exception_Table,
       System_Exceptions,
-      System_Exn_Flt,
       System_Exn_Int,
-      System_Exn_LFlt,
-      System_Exn_LInt,
       System_Exn_LLF,
       System_Exn_LLI,
-      System_Exn_SFlt,
-      System_Exn_SInt,
-      System_Exn_SSI,
-      System_Exp_Flt,
       System_Exp_Int,
-      System_Exp_LFlt,
       System_Exp_LInt,
-      System_Exp_LLF,
       System_Exp_LLI,
       System_Exp_LLU,
       System_Exp_Mod,
-      System_Exp_SFlt,
-      System_Exp_SInt,
-      System_Exp_SSI,
       System_Exp_Uns,
       System_Fat_Flt,
       System_Fat_LFlt,
@@ -635,45 +623,19 @@ package Rtsfind is
      RE_Subprogram_Descriptors_Record,   -- System.Exceptions
      RE_Subprogram_Descriptors_Ptr,      -- System.Exceptions
 
-     RE_Exn_Float,                       -- System.Exn_Flt
-
      RE_Exn_Integer,                     -- System.Exn_Int
-
-     RE_Exn_Long_Float,                  -- System.Exn_LFlt
-
-     RE_Exn_Long_Integer,                -- System.Exn_LInt
 
      RE_Exn_Long_Long_Float,             -- System.Exn_LLF
 
      RE_Exn_Long_Long_Integer,           -- System.Exn_LLI
 
-     RE_Exn_Short_Float,                 -- System.Exn_SFlt
-
-     RE_Exn_Short_Integer,               -- System.Exn_SInt
-
-     RE_Exn_Short_Short_Integer,         -- System.Exn_SSI
-
-     RE_Exp_Float,                       -- System.Exp_Flt
-
      RE_Exp_Integer,                     -- System.Exp_Int
-
-     RE_Exp_Long_Float,                  -- System.Exp_LFlt
-
-     RE_Exp_Long_Integer,                -- System.Exp_LInt
-
-     RE_Exp_Long_Long_Float,             -- System.Exp_LLF
 
      RE_Exp_Long_Long_Integer,           -- System.Exp_LLI
 
      RE_Exp_Long_Long_Unsigned,          -- System.Exp_LLU
 
      RE_Exp_Modular,                     -- System.Exp_Mod
-
-     RE_Exp_Short_Float,                 -- System.Exp_SFlt
-
-     RE_Exp_Short_Integer,               -- System.Exp_SInt
-
-     RE_Exp_Short_Short_Integer,         -- System.Exp_SSI
 
      RE_Exp_Unsigned,                    -- System.Exp_Uns
 
@@ -1710,45 +1672,19 @@ package Rtsfind is
      RE_Subprogram_Descriptors_Record    => System_Exceptions,
      RE_Subprogram_Descriptors_Ptr       => System_Exceptions,
 
-     RE_Exn_Float                        => System_Exn_Flt,
-
      RE_Exn_Integer                      => System_Exn_Int,
-
-     RE_Exn_Long_Float                   => System_Exn_LFlt,
-
-     RE_Exn_Long_Integer                 => System_Exn_LInt,
 
      RE_Exn_Long_Long_Float              => System_Exn_LLF,
 
      RE_Exn_Long_Long_Integer            => System_Exn_LLI,
 
-     RE_Exn_Short_Float                  => System_Exn_SFlt,
-
-     RE_Exn_Short_Integer                => System_Exn_SInt,
-
-     RE_Exn_Short_Short_Integer          => System_Exn_SSI,
-
-     RE_Exp_Float                        => System_Exp_Flt,
-
      RE_Exp_Integer                      => System_Exp_Int,
-
-     RE_Exp_Long_Float                   => System_Exp_LFlt,
-
-     RE_Exp_Long_Integer                 => System_Exp_LInt,
-
-     RE_Exp_Long_Long_Float              => System_Exp_LLF,
 
      RE_Exp_Long_Long_Integer            => System_Exp_LLI,
 
      RE_Exp_Long_Long_Unsigned           => System_Exp_LLU,
 
      RE_Exp_Modular                      => System_Exp_Mod,
-
-     RE_Exp_Short_Float                  => System_Exp_SFlt,
-
-     RE_Exp_Short_Integer                => System_Exp_SInt,
-
-     RE_Exp_Short_Short_Integer          => System_Exp_SSI,
 
      RE_Exp_Unsigned                     => System_Exp_Uns,
 
@@ -2625,19 +2561,56 @@ package Rtsfind is
    --  Part of the job of Rtsfind is to enforce high integrity restrictions
    --  in high integrity mode. This is done by monitoring implicit access to
    --  the run time library requested by calls to the RTE function. A call
-   --  may be invalid in high integrity mode for any one of the following
-   --  three reasons
+   --  may be invalid in high integrity mode for either of the following
+   --  two reasons:
 
    --     1. File in which entity lives is not present in run-time library
    --     2. File is present, but entity is not defined in the file
-   --     3. Entity is defined in the file but not marked High_Integrity
 
-   --  In any of these cases, appropriate error messages are generated,
-   --  and in cases 1 and 2, an exception is raised to notify the caller
-   --  that the run-time entity could not be obtained.
+   --  In normal mode, either or these two situations is a fatal error
+   --  that indicates that the run-time library is incorrectly configured,
+   --  and a fatal error message is issued to signal this error.
 
-   High_Integrity_Violations : Nat := 0;
-   --  Count of high integrity violations so far
+   --  In high integrity mode, either of these two situations indicates
+   --  simply that the corresponding operation is not available in high
+   --  integrity mode. This is not a configuration error, but rather just
+   --  a programming error. This programming error is signalled by raising
+   --  the exception RE_Not_Available. The caller must respond to this
+   --  exception by posting an appropriate error message.
+
+   ----------------------
+   -- No_Run_Time_Mode --
+   ----------------------
+
+   --  For backwards compatibility with previous versions of GNAT, the
+   --  compiler recognizes the pragma No_Run_Time. This provides a special
+   --  version of high integrity mode that operates with the standard
+   --  run-time library, but allows only a subset of entities to be
+   --  accessed. If any other entity is accessed, then it is treated
+   --  as a high integrity violation, and the exception RE_Not_Availble
+   --  is raised.
+
+   --  The following array defines the set of units that contain entities
+   --  that can be referenced in No_Run_Time mode. For each of these units,
+   --  all entities defined in the unit can be used in this mode.
+
+   OK_No_Run_Time_Unit : constant array (RTU_Id) of Boolean :=
+     (Ada_Exceptions          => True,
+      Ada_Tags                => True,
+      Interfaces              => True,
+      System                  => True,
+      System_Parameters       => True,
+      System_Fat_Flt          => True,
+      System_Fat_LFlt         => True,
+      System_Fat_LLF          => True,
+      System_Fat_SFlt         => True,
+      System_HIE_Back_End     => True,
+      System_Machine_Code     => True,
+      System_Secondary_Stack  => True,
+      System_Storage_Elements => True,
+      System_Task_Info        => True,
+      System_Unsigned_Types   => True,
+      others                  => False);
 
    -----------------
    -- Subprograms --
