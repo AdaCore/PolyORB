@@ -1060,8 +1060,11 @@ package body Backend.BE_Ada.Generator is
       E : constant Node_Id := Expression (N);
    begin
       Write (Tok_Return);
-      Write_Space;
-      Generate (E);
+
+      if Present (E) then
+         Write_Space;
+         Generate (E);
+      end if;
    end Generate_Return_Statement;
    ------------------------------
    -- Generate_Subprogram_Call --

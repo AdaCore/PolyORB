@@ -1,3 +1,12 @@
+2004-08-17  souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-stubs.adb: Add operations marshaller bodies. 
+
+	* backend-be_ada-runtime.ads: Correct some runtimes entities
+	(Module_Info, Empty). 	
+
+	* backend-be_ada-skels.adb: Invoke Is_A function. 
+
 2004-08-13  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* mknodes.adb: Add an optimization flag which allows to remove the
@@ -6,24 +15,35 @@
 
 2004-08-13    Saber Souli <souli@enst.fr>
 
-	* backend-be_ada.ads: Generate Implementation package by default. Because skels body use implementations specs.   
+	* backend-be_ada-runtime.ads: Correct some runtimes entities
+	(Module_Info, Empty). 	
 
-2004-08-12    Saber Souli <souli@enst.fr>
+	* backend-be_ada-skels.adb: Invoke Is_A function. 
+
+2004-08-13  Saber Souli <souli@enst.fr>
+
+	* backend-be_ada.ads: Generate Implementation package by
+	default. Because skels  body use implementations specs.   
+
+2004-08-12  Saber Souli <souli@enst.fr>
 
 	* backend-be_ada-runtime.adb: Declare CORRBA.Internals as subunit.
 
-	* backend-be_ada-nutils.adb: Modify the suffix of variables used in subprograms variables, from "_U" to "_Ü".  
+	* backend-be_ada-nutils.adb: Modify the suffix of variables used
+	in subprograms  variables, from "_U" to "_Ü".  
 
 	* backend-be_ada-helpers.adb: Add "_Ü" as suffix to variables in for statements.
 
 	* backend-be_ada-generator.adb: Delete a useless semicolon in if_statements. 
 	
 
-2004-08-11    Saber Souli <souli@enst.fr>
+2004-08-11  Saber Souli <souli@enst.fr>
 
-	* backend-be_ada-skels.adb: Remove useless subprogram Add_Underscore, use Add_Suffix_To_Name instead. Use Add_Prefix_To_Name.
+	* backend-be_ada-skels.adb: Remove useless subprogram
+	Add_Underscore, use  Add_Suffix_To_Name instead. Use Add_Prefix_To_Name.
 
-	* backend-be_ada-idl_to_ada.adb:Modify Map_IDL_Unit (do not generate implementation package and skels for abstact interface).  
+	* backend-be_ada-idl_to_ada.adb: Modify Map_IDL_Unit (do not
+	generate implementation  package and skels for abstact interface).  
 
 2004-08-10  Saber Souli  <souli@neraka.enst.fr>
 

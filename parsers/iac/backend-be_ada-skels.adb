@@ -1,3 +1,4 @@
+with Namet;  use Namet;
 with Values; use Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;
@@ -7,6 +8,7 @@ with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
+
 --  with Backend.BE_Ada.Debug;     use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Skels is
@@ -106,6 +108,7 @@ package body Backend.BE_Ada.Skels is
       function Gen_Invoke_Part (S : Node_Id) return Node_Id;
       procedure Invoke_Declaration (L : List_Id);
       function Invoke_Spec return Node_Id;
+      function Is_A_Invoke_Part return Node_Id;
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -287,13 +290,13 @@ package body Backend.BE_Ada.Skels is
            (Defining_Identifier =>
               Make_Defining_Identifier (VN (V_Operation)),
             Constant_Present    => True,
-            Object_Definition   => RE (RE_String_0),
+            Object_Definition   => RE (RE_String_2),
             Expression          => N);
          Append_Node_To_List (N, L);
          N := Make_Object_Declaration
            (Defining_Identifier =>
               Make_Defining_Identifier (VN (V_Argument_List)),
-            Object_Definition   => RE (RE_Ref_3));
+            Object_Definition   => RE (RE_Ref_4));
          Append_Node_To_List (N, L);
       end Invoke_Declaration;
 
@@ -322,6 +325,115 @@ package body Backend.BE_Ada.Skels is
             No_Node);
          return N;
       end Invoke_Spec;
+
+      ----------------------
+      -- Is_A_Invoke_Part --
+      ----------------------
+
+      function Is_A_Invoke_Part return Node_Id is
+         C                : Node_Id;
+         N                : Node_Id;
+         Declarative_Part : constant List_Id := New_List (K_List_Id);
+         Statements       : constant List_Id := New_List (K_List_Id);
+         Param            : constant String := "Type_Id";
+         Param_Name       : Name_Id;
+         New_Name         : Name_Id;
+         P                : List_Id;
+      begin
+         P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
+         Set_Str_To_Name_Buffer (Param);
+         Param_Name := Name_Find;
+         N :=  Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (Param_Name),
+            Object_Definition   =>
+              RE (RE_String_0));
+         Append_Node_To_List (N, Declarative_Part);
+         C := Make_Subprogram_Call
+           (Defining_Identifier   => RE (RE_To_CORBA_String),
+            Actual_Parameter_Part =>
+              Make_List_Id (Make_Literal
+                            (New_String_Value (Param_Name, False))));
+         New_Name := Add_Prefix_To_Name ("Arg_Name_U_", Param_Name);
+         Append_Node_To_List (Make_Designator (New_Name), P);
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (New_Name),
+            Constant_Present => False,
+            Object_Definition => RE (RE_Identifier_0),
+            Expression => C);
+         Append_Node_To_List (N, Declarative_Part);
+
+         C := Make_Subprogram_Call
+           (RE (RE_To_Any_0), Make_List_Id (Make_Designator (Param_Name)));
+         New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
+         Append_Node_To_List (Make_Designator (New_Name), P);
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (New_Name),
+            Constant_Present => False,
+            Object_Definition => RE (RE_Any),
+            Expression => C);
+         Append_Node_To_List (N, Declarative_Part);
+         Append_Node_To_List (RE (RE_ARG_IN_0), P);
+
+         N := Make_Subprogram_Call
+           (RE (RE_Add_Item_0),
+            P);
+         Append_Node_To_List (N, Statements);
+         N := Make_Subprogram_Call
+           (RE (RE_Arguments),
+            Make_List_Id
+            (Make_Designator (PN (P_Request)),
+             Make_Designator (VN (V_Argument_List))));
+         Append_Node_To_List (N, Statements);
+
+         New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
+         C := RE (RE_From_Any_0);
+         N := Make_Assignment_Statement
+           (Make_Defining_Identifier (Param_Name),
+            Make_Subprogram_Call
+            (C, Make_List_Id (Make_Designator (New_Name))));
+         Append_Node_To_List (N, Statements);
+
+         --  Call Implementation
+
+         N := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (VN (V_Result)),
+            Object_Definition =>
+              RE (RE_Boolean));
+         Append_Node_To_List (N, Declarative_Part);
+
+         C := Expand_Designator (Main_Package (Current_Entity));
+         N := Make_Designator (SN (S_Is_A));
+         Set_Parent_Unit_Name (N, C);
+         C := Make_Subprogram_Call
+           (RE (RE_To_Standard_String),
+            Make_List_Id (Make_Designator (Param_Name)));
+         N := Make_Subprogram_Call
+           (N,
+            Make_List_Id (C));
+         N := Make_Assignment_Statement
+           (Make_Defining_Identifier (VN (V_Result)),
+            N);
+         Append_Node_To_List (N, Statements);
+         C := Make_Subprogram_Call
+           (RE (RE_To_Any_0),
+            Make_List_Id (Make_Designator (VN (V_Result))));
+         N := Make_Subprogram_Call
+           (RE (RE_Set_Result),
+            Make_List_Id
+            (Make_Designator (PN (P_Request)),
+             C));
+         Append_Node_To_List (N, Statements);
+         N := Make_Return_Statement (No_Node);
+         Append_Node_To_List (N, Statements);
+         N := Make_Block_Statement
+           (Declarative_Part => Declarative_Part,
+            Statements       =>
+              Make_List_Id (New_Node (K_Null_Statement))); -- Bugs
+
+         return N;
+      end Is_A_Invoke_Part;
 
       -----------
       -- Visit --
@@ -415,6 +527,8 @@ package body Backend.BE_Ada.Skels is
             Make_Literal
             (New_String_Value
              (Add_Prefix_To_Name ("_", SN (S_Is_A)), False)));
+         N := Is_A_Invoke_Part;
+         Append_Node_To_List (N, Then_Statements);
          N := Make_If_Statement
            (C,
             Then_Statements,

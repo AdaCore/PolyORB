@@ -901,8 +901,8 @@ package body Backend.BE_Ada.Helpers is
          begin
             Spec := Helper_Node (BE_Node (Identifier (E)));
             Spec := Next_Node (Next_Node (Spec));
-            Spec := (Next_Node (Next_Node (Spec)));
             Helper_Name := BEN.Name (Defining_Identifier (Spec));
+            Spec := Next_Node (Next_Node (Spec));
             N := Make_Subprogram_Call
               (RE (RE_Ref_2),
                Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
@@ -915,7 +915,7 @@ package body Backend.BE_Ada.Helpers is
             N := Make_Subprogram_Call
               (RE (RE_Set_Type),
                Make_List_Id (Make_Defining_Identifier (PN (P_A)),
-                             Make_Defining_Identifier (Helper_Name)));
+                             Make_Designator (Helper_Name)));
             Append_Node_To_List (N, S);
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_A)));
@@ -1374,8 +1374,7 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List (N, Statements);
          N := Make_Subprogram_Call
            (RE (RE_Raise_Bad_Param),
-            Make_List_Id (Make_Defining_Identifier
-                          (PN (P_Default_Sys_Member))));
+            Make_List_Id (RE (RE_Default_Sys_Member)));
          Append_Node_To_List (N, Statements);
          N := Make_Subprogram_Implementation
            (Spec, No_List, Statements);

@@ -159,7 +159,6 @@ package Backend.BE_Ada.Nutils is
       P_Arg_Modes,
       P_Argument,
       P_Conflicts,
-      P_Default_Sys_Member,
       P_Depends,
       P_Exception_Info,
       P_From,

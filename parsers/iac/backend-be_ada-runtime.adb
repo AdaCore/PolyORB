@@ -88,6 +88,7 @@ package body Backend.BE_Ada.Runtime is
       Register_Casing_Rule ("CORBA");
       Register_Casing_Rule ("NamedValue");
       Register_Casing_Rule ("NVList");
+      Register_Casing_Rule ("ORB");
       Register_Casing_Rule ("PolyORB");
       Register_Casing_Rule ("PortableServer");
       Register_Casing_Rule ("ServerRequest");

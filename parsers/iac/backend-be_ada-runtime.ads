@@ -29,6 +29,9 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB_CORBA_P_Exceptions,
       RU_PolyORB_Requests,
       RU_PolyORB_Types,
+      RU_PolyORB_Utils,
+      RU_PolyORB_Utils_Strings,
+      RU_PolyORB_Utils_Strings_Lists,
       RU_PortableServer,
       RU_Standard);
 
@@ -37,9 +40,7 @@ package Backend.BE_Ada.Runtime is
    type RE_Id is
      (RE_Ref_0,                     --  Ref
       RE_To_Any_1,                  --  To_Any
-      RE_Empty,                     --  Empty
       RE_False,                     --  False
-      RE_Module_Info,               --  Module_Info
       RE_True,                      --  True
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
@@ -49,8 +50,8 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Void,                   --  CORBA.TC_Void
       RE_Any,                       --  CORBA.Any
       RE_To_Any_0,                  --  CORBA.To_Any
-      RE_From_Any_0,                  --  CORBA.From_Any
-      RE_Get_Empty_Any,           --  CORBA.Get_Empty_Any
+      RE_From_Any_0,                --  CORBA.From_Any
+      RE_Get_Empty_Any,             --  CORBA.Get_Empty_Any
       RE_Identifier_0,              --  CORBA.Identifier
       RE_Is_Equivalent,             --  CORBA.Is_Equivalent
       RE_Float,                     --  CORBA.Float
@@ -96,6 +97,7 @@ package Backend.BE_Ada.Runtime is
       RE_To_CORBA_Any,              --  CORBA.Internals.To_CORBA_Any
       RE_To_PolyORB_Any,            --  CORBA.Internals.To_PolyORB_Any
       RE_Add_Item_0,                --  CORBA.NVList.Add_Item
+      RE_Ref_4,                     --  CORBA.NVList.Ref
       RE_Is_Nil,                    --  CORBA.Object.Is_Nil
       RE_Ref_2,                     --  CORBA.Object.Ref
       RE_Object_Of,                 --  CORBA.Object.Object_Of
@@ -111,19 +113,21 @@ package Backend.BE_Ada.Runtime is
       RE_Arguments,                 --  CORBA.ServerRequest.Arguments
       RE_Object_Ptr,                --  CORBA.ServerRequest.Object_ptr
       RE_Operation,                 --  CORBA.ServerRequest.Operation
+      RE_Set_Result,                --  CORBA.ServerRequest.Set_Result
       RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Is_Empty,                  --  PolyORB.Any.Is_Empty
-      RE_ARG_IN_1,                    --  PolyORB.Any.ARG_IN
-      RE_ARG_OUT_1,                   --  PolyORB.Any.ARG_OUT
-      RE_ARG_INOUT_1,                 --  PolyORB.Any.ARG_INOUT
+      RE_ARG_IN_1,                  --  PolyORB.Any.ARG_IN
+      RE_ARG_OUT_1,                 --  PolyORB.Any.ARG_OUT
+      RE_ARG_INOUT_1,               --  PolyORB.Any.ARG_INOUT
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
-      RE_Add_Item_1,                  --  PolyORB.Any.NVList.Add_Item
+      RE_Add_Item_1,                --  PolyORB.Any.NVList.Add_Item
       RE_TC_Object,                 --  PolyORB.Any.TypeCode.TC_Object
       RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
       RE_TC_Enum,                   --  PolyORB.Any.TypeCode.TC_Enum
       RE_TC_Struct,                 --  PolyORB.Any.TypeCode.TC_Struct
       RE_TC_Array,                  --  PolyORB.Any.TypeCode.TC_Array
+      RE_Module_Info,               --  PolyORB.Initialization.Module_Info
       RE_Register_Module,           --  PolyORB.Initialization.Register_Module
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Create_Request,            --  PolyORB.Requests.Create_Request
@@ -135,6 +139,7 @@ package Backend.BE_Ada.Runtime is
                                     --     Interceptors_Hooks.Client_Invoke
       RE_Raise_From_Any,            --  PolyORB.CORBA_P.
                                     --     Exceptions.Raise_From_Any
+      RE_Empty,                     --  PolyORB.Utils.Strings.Lists.Empty
       RE_Servant,                   --  PortableServer.Servant
       RE_Servant_Base,              --  PortableServer.Servant_Base
       RE_String_2);                  --  Standard.String
@@ -142,10 +147,7 @@ package Backend.BE_Ada.Runtime is
    RE_Unit_Table : constant array (RE_Id) of RU_Id
      := (RE_Ref_0                   => RU_Null,
          RE_To_Any_1                => RU_Null,
-
-         RE_Empty                   => RU_Null,
          RE_False                   => RU_Null,
-         RE_Module_Info             => RU_Null,
          RE_True                    => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
          RE_ARG_IN_0                => RU_CORBA,
@@ -202,6 +204,7 @@ package Backend.BE_Ada.Runtime is
          RE_To_CORBA_Any            => RU_CORBA_Internals,
          RE_To_PolyORB_Any          => RU_CORBA_Internals,
          RE_Add_Item_0              => RU_CORBA_NVList,
+         RE_Ref_4                   => RU_CORBA_NVList,
          RE_Ref_2                   => RU_CORBA_Object,
          RE_Object_Of               => RU_CORBA_Object,
          RE_Is_A                    => RU_CORBA_Object,
@@ -231,13 +234,16 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Struct               => RU_PolyORB_Any_TypeCode,
          RE_Raise_From_Any          => RU_PolyORB_CORBA_P_Exceptions,
          RE_Client_Invoke           => RU_PolyORB_CORBA_P_Interceptors_Hooks,
+         RE_Module_Info             => RU_PolyORB_Initialization,
          RE_Register_Module         => RU_PolyORB_Initialization,
          RE_Request_Access          => RU_PolyORB_Requests,
          RE_Create_Request          => RU_PolyORB_Requests,
          RE_Destroy_Request         => RU_PolyORB_Requests,
          RE_Flags                   => RU_PolyORB_Requests,
+         RE_Set_Result              => RU_PolyORB_Requests,
          RE_Identifier              => RU_PolyORB_Types,
          RE_To_PolyORB_String       => RU_PolyORB_Types,
+         RE_Empty                   => RU_PolyORB_Utils_Strings_Lists,
          RE_Servant                 => RU_PortableServer,
          RE_Servant_Base            => RU_PortableServer,
          RE_String_2                => RU_Standard);

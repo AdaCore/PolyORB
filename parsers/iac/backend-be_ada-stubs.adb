@@ -30,7 +30,6 @@ package body Backend.BE_Ada.Stubs is
    function Local_Is_A_Body (E : Node_Id) return Node_Id;
    function Local_Is_A_Spec return Node_Id;
    function Visible_Is_A_Body return Node_Id;
-   function Visible_Is_A_Spec return Node_Id;
 
    package body Package_Spec is
 
@@ -875,10 +874,17 @@ package body Backend.BE_Ada.Stubs is
             N := RE (RE_From_Any_0);
          else
             N := Identifier (FE_Node (Return_T));
-            N := Helper_Node
-              (BE_Node (Identifier (Reference (Corresponding_Entity (N)))));
-            N := Expand_Designator (Next_Node (N));
+
+            if Kind (FE_Node (Return_T)) = K_Scoped_Name then
+               N := Helper_Node
+                 (BE_Node (Identifier (Reference (Corresponding_Entity (N)))));
+            else
+               N := Helper_Node (BE_Node (N));
+            end if;
+
+               N := Expand_Designator (Next_Node (N));
          end if;
+
          C := Make_Subprogram_Call
            (RE (RE_To_CORBA_Any),
             Make_List_Id (Copy_Node (C)));
