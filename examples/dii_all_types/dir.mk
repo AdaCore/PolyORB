@@ -8,4 +8,4 @@ IDL_INTERFACE = all_types
 GENERATED_FILES =
 
 clean::
-	-rm -f *.o *.ali *~ dii_client  $(GENERATED_FILES)
+	-rm -f *.c *.o *.ali *~ dii_client  $(GENERATED_FILES)

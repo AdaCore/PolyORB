@@ -164,15 +164,10 @@ begin
       Output ("test string", X = Y);
    end;
 
-   --  EXCEPTIONS TESTS TO DO HERE
-
-   --  union
+   -- union
    declare
-      X : Helper.Example := (Switch => 2, Flags => True);
-      Y : Helper.Example := (Switch => 2, Flags => False);
-      Tc : TypeCode.Object;
-      The_Any : Any;
-      Res_Any : Any;
+      X : Helper.Example := (Switch => 2, Flags => False);
+      Y : Helper.Example := (Switch => 1, Counter => 2706);
    begin
       X_Any := Helper.To_Any (X);
       Y_Any := Helper.To_Any (Y);
@@ -180,6 +175,20 @@ begin
       Y := Helper.From_Any (Y_Any);
       Output ("test union", X = Y);
    end;
+
+
+   --  simple_array
+   declare
+      X : Helper.Simple_Array := (0,1,2,3,4,5,6,7,8,9);
+      Y : Helper.Simple_Array := (9,9,9,9,9,9,9,9,9,9);
+   begin
+      X_Any := Helper.To_Any (X);
+      Y_Any := Helper.To_Any (Y);
+      Invoker.Run ("echoArray", Server, Ctx, X_Any, Y_Any);
+      Y := Helper.From_Any (Y_Any);
+      Output ("test simple array", X = Y);
+   end;
+
 
    --  simple structure
    declare
@@ -208,22 +217,24 @@ begin
    --  sequences
    declare
       Tc : TypeCode.Object;
-      Len : Unsigned_Long;
-      The_Any : Any;
+      Arg_Any, Res_Any : Any;
    begin
-      --  build the argument
-      TypeCode.Set (Tc, Tk_Sequence);
-      Len := Unsigned_Long (10);
-      for I in reverse 1 .. Len loop
-         TypeCode.Add_Parameter (Tc, To_Any (Short (I)));
+      --  build the typecode
+      TypeCode.Set(Tc, Tk_Sequence);
+      TypeCode.Add_Parameter
+        (Tc, TypeCode.To_Any (TypeCode.TC_Short));  --  type of elements
+      TypeCode.Add_Parameter
+        (Tc, To_Any (CORBA.Unsigned_Long (0)));  --  unbounded sequence
+      --  build the any
+      Arg_Any := Prepare_Any_From_Agregate_Tc (Tc);
+      for I in 0 .. 9 loop
+         Add_Agregate_Any_Member (Arg_Any, To_Any (CORBA.Short (I)));
       end loop;
-      TypeCode.Add_Parameter (Tc, To_Any (Len));
-      SetAny (The_Any, Tc);
-      Argument := (To_CORBA_String ("arg"), The_Any, 0, ARG_IN);
+      --  build the argument
+      Argument := (To_CORBA_String ("arg"), Arg_Any, 0, ARG_IN);
       --  build shell for the returned value
-      Result := Argument;
-      Result.Name := To_CORBA_String ("res");
-      Result.Arg_Modes := ARG_OUT;
+      Res_Any := Prepare_Any_From_Agregate_Tc (Tc);
+      Result := (To_CORBA_String ("res"), Res_Any, 0, ARG_OUT);
       --  build an invoke request
       Create_Request (Server,
                       Ctx,
@@ -233,27 +244,29 @@ begin
                       Rq,
                       0,
                       Returns);
+      --  add argument
       Request.Add_Arg (Rq, Argument);
+      --  invoke
       Request.Invoke (Rq, 0);
+      --  get result
       Result :=  Request.Return_Value (Rq);
       --  check result
       declare
-         Any_Res : Any := Result.Argument;
-         Tc_Res : TypeCode.Object := Get_Type (Any_Res);
-         Len_Res : CORBA.Unsigned_Long :=
-           From_Any (TypeCode.Parameter (Tc_Res, 0));
+         Len_Res : CORBA.Long :=
+           Any_Agregate_Size (Result.Argument);
          Ok_Res : CORBA.Boolean := True;
       begin
-         for I in 1 .. Len_Res loop
+         for I in 0 .. Len_Res - 1 loop
             Ok_Res := Ok_Res
-              and Short (I) = From_Any (TypeCode.Parameter (Tc_Res,
-                                                            CORBA.Long (I)));
+              and Short (I) =
+              From_Any (Get_Any_Agregate_Member (Result.Argument,
+                                                 TypeCode.TC_Short,
+                                                 I));
          end loop;
-         Output ("test sequence",
-                 TypeCode.Kind (Tc_Res) = Tk_Sequence
-                 and Ok_Res = True);
+         Output ("test sequence", Ok_Res);
       end;
    end;
+
 
    --  arrays (1)
    declare
@@ -272,6 +285,7 @@ begin
       Y := Helper.From_Any (Y_Any);
       Output ("test array (1)", X = Y);
    end;
+
 
    --  array (2)
    declare
@@ -332,6 +346,5 @@ begin
       Y := Object.From_Any (Y_Any);
       Output ("test reference", Is_Equivalent (X, Y));
    end;
-
 
 end Dii_Client;
