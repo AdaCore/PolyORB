@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#16 $
+;;; $Id: //droopi/main/utils/update-headers.el#17 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -104,6 +104,7 @@
 ;	  (re-search-forward "^[a-z]")
 ;	  (beginning-of-line)
 ;	  (insert (concat "--  $" "Id:$\n\n"))))))
+))
 
 ;;
 ;; insert-secondary-header: add secondary header if necessary
