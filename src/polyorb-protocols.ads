@@ -79,9 +79,10 @@ package PolyORB.Protocols is
    --  Destroy the session associated with S, return any associated
    --  resources to the system, and assign null to S.
 
-   ---------------------------------------------------
-   -- Primitives needed  with some tasking policies --
-   ---------------------------------------------------
+   --------------------------------------------------
+   -- Primitives needed with some tasking policies --
+   --------------------------------------------------
+
    procedure Set_Request_Watcher
      (S : in Session_Access;
       W : PolyORB.Soft_Links.Watcher_Access);

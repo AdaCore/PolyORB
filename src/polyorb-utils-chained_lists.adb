@@ -37,15 +37,11 @@
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Chained_Lists is
-   ----------
-   -- Free --
-   ----------
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Node, Node_Access);
 
    ------------
    -- Append --
    ------------
+
    procedure Append (L : in out List; I : T) is
       N : constant Node_Access := new Node'(Next => null, Value => I);
    begin
@@ -61,6 +57,7 @@ package body PolyORB.Utils.Chained_Lists is
    ----------------
    -- Deallocate --
    ----------------
+
    procedure Deallocate (L : in out Node_Access);
 
    procedure Deallocate (L : in out Node_Access) is
@@ -80,6 +77,7 @@ package body PolyORB.Utils.Chained_Lists is
    -------------
    -- Element --
    -------------
+
    function Element (L : List; Index : Natural) return Element_Access
    is
       N : Node_Access := L.First;
@@ -98,6 +96,7 @@ package body PolyORB.Utils.Chained_Lists is
    ---------------------
    -- Extract_Element --
    ---------------------
+
    procedure Extract_Element
      (L      : in out List;
       Index  : Natural;
@@ -135,14 +134,23 @@ package body PolyORB.Utils.Chained_Lists is
    -----------
    -- First --
    -----------
+
    function First (L : List) return Iterator is
    begin
       return Iterator (L.First);
    end First;
 
    ----------
+   -- Free --
+   ----------
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Node, Node_Access);
+
+   ----------
    -- Last --
    ----------
+
    function Last (I : Iterator) return Boolean is
    begin
       return I = null;
@@ -151,6 +159,7 @@ package body PolyORB.Utils.Chained_Lists is
    ------------
    -- Length --
    ------------
+
    function Length (L : List) return Natural is
       N : Node_Access := L.First;
       C : Natural := 0;
@@ -165,6 +174,7 @@ package body PolyORB.Utils.Chained_Lists is
    ----------
    -- Next --
    ----------
+
    procedure Next (I : in out Iterator) is
    begin
       I := Iterator (I.Next);
@@ -173,6 +183,7 @@ package body PolyORB.Utils.Chained_Lists is
    -------------
    -- Prepend --
    -------------
+
    procedure Prepend (L : in out List; I : T) is
    begin
       L.First := new Node'(Next => L.First, Value => I);
@@ -184,23 +195,26 @@ package body PolyORB.Utils.Chained_Lists is
    -----------
    -- Value --
    -----------
+
    function Value (I : Iterator) return Element_Access is
    begin
       return I.Value'Access;
    end Value;
 
-   ----------------
-   -- + Function --
-   ----------------
+   ---------
+   -- "+" --
+   ---------
+
    function "+" (I : T) return List is
       N : constant Node_Access := new Node'(Next => null, Value => I);
    begin
       return List'(First => N, Last => N);
    end "+";
 
-   -----------------
-   -- & Functions --
-   -----------------
+   ---------
+   -- "&" --
+   ---------
+
    function "&" (I : T; L : List) return List is
       LL : List := L;
    begin

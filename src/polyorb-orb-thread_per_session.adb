@@ -63,7 +63,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.ORB.Interface;
 
    package L is new PolyORB.Log.Facility_Log
-     ("polyorb.orb.tasking_policies");
+     ("polyorb.orb.thread_per_session");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -76,9 +76,6 @@ package body PolyORB.ORB.Thread_Per_Session is
    end Session_Thread;
 
    type Session_Thread_Access is access Session_Thread;
-
-
-
 
    ----------------------------------
    -- Handle_New_Server_Connection --
@@ -167,7 +164,6 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    N : Natural := 0;
    --  For debugging purposes.
-
 
    ------------------------------
    -- Queue_Request_To_Handler --
