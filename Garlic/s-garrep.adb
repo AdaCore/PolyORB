@@ -69,6 +69,7 @@ package body System.Garlic.Replay is
    task type Engine_Type is
       pragma Storage_Size (3_000_000);
    end Engine_Type;
+   type Engine_Type_Access is access Engine_Type;
    --  Reads and delivers the messages from the trace file.
 
    ------------
@@ -178,6 +179,7 @@ package body System.Garlic.Replay is
       Boot_Data        : in String  := "";
       Is_Master        : in Boolean := False)
    is
+      Engine    : Engine_Type_Access;
       Partition : System.RPC.Partition_ID;
    begin
       --  Replay protocol is always loaded because its activation
@@ -207,13 +209,7 @@ package body System.Garlic.Replay is
          end if;
 
          --  We create an unnamed task on which we keep no reference
-
-         declare
-            type Engine_Type_Access is access Engine_Type;
-            Engine : Engine_Type_Access;
-         begin
-            Engine := new Engine_Type;
-         end;
+         Engine := new Engine_Type;
 
       end if;
 
