@@ -1,4 +1,4 @@
-TODO for Droopi
+TODO for PolyORB
 ---------------
 
 $Id$
@@ -6,56 +6,51 @@ $Id$
 Items still requiring attention
 -------------------------------
 
-* Fix memory leaks.
+* Fix memory leaks (to be checked with Debug_Pools disabled!)
 
 * Factor out common code between different versions of
-  Droopi.Binding_Data.*
+  PolyORB.Binding_Data.*. Possibly create a notion of
+  Transport_Access_Point_Name with a bind() primitive operation
+  that returns a Transport_Endpoint. Integrate that as a
+  Binding_Object_Fragment_Factory (extension of the notion
+  of Filter_Factory to fragments of binding objects that are
+  not filter).
 
-* Exception support
-
-* Dynamic Task Pool threading policy.
-
-* Architecture and documentation:
-  Define a typical usage case for the interoperability
-  feature, demonstrating how DROOPI allows to do the same
-  as CIAO *and more* (ie the case must include a cross-model
-  callback).
+* Exception support: separate personality-specific (CORBA)
+  code from generic code. Check proper implementation of
+  DSA exception. Document mapping between both models.
 
 * Ada 95 DSA personality:
-  -> define targets and milestones (RCI support, partial RT
-     support (eg only constrained types), full RT support,
-     SP support)
-  -> define an interface with the compiler and with user code
-     (ie the interface of stub and skeleton objects).
+  -> Asynchronous
+  -> RACW 'Read/'Write
+  -> From_Any and To_Any for tagged records and variant records.
    
-* General run-time configuration mechanism (config file, eg to
-  set the preference for each profile type, and to integrate the
-  configuration of the logging subsystem into a more general config
-  manager).
-
 * Bind-time configuration tool (to help the user generate a configuration
   package suited to his needs.)
+
+* Run-time configuration of loaded functionality (using Adaplugins ?)
 
 * See whether Buffers.Set_Initial_Position can be made private
   or moved to unit body.
 
 * Support logging to syslog (also for Java ?)
 
-* Droopi.Buffers: remove mentions of CDR.
-* Droopi.Buffers: remove mention of sockets.
-
-* Different tasking configurations
-  -> A single-task client configuration.
-  -> A multi-tasking server configuration.
-  -> A multi-tasking client configuration.
+* PolyORB.Buffers: remove mentions of CDR.
+* PolyORB.Buffers: remove mention of sockets.
+* PolyORB.Buffers: Zero-copy buffers.
 
 * Configuration of memory allocation:
+  -> real-time allocator?
   -> usage of Storage_Pools?
   -> static allocation?
-  -> real-time allocator?
   -> smart resource management (garbage collection, system audit...)?
 
   See Allocator abstract class in Quarterware.
+
+* HTTP protocol (to be used with Minimal_Servant to compose a
+  web server).
+
+* CSTA protocol (for telephony applications.)
 
 * Alternative implementations of transport endpoints:
 
@@ -82,7 +77,7 @@ Items processed
   chunk, and advance the current position by the exact
   size of the received data (2770).
 
-* Rework Droopi.ORB event handling:
+* Rework PolyORB.ORB event handling:
   The event handling loop must occur within the critical
   section (because it must mask certain sockets).
   Jobs should be created for each event, which will be
@@ -102,9 +97,9 @@ Items processed
   For a profile to be used when creating and parsing IORs,
   its tag must be registered.
 
-* Move CORBA.POA to Droopi.<something> (3329).
+* Move CORBA.POA to PolyORB.<something> (3329).
 
-* Make Droopi.References.Ref a Smart_Pointers.Entity
+* Make PolyORB.References.Ref a Smart_Pointers.Entity
   so the list of profiles can be free'd when not used
   anymore.
 
