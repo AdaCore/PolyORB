@@ -1,10 +1,10 @@
 all:: client serverp
 
 client:: $(CORBA_LIB_DEPEND) ada
-	$(GNATMAKE) $(GNATMAKE_FLAGS) -i client.adb
+	$(GNATMAKE) $(BROCA_FLAGS) -i client.adb
 
 server:: $(CORBA_LIB_DEPEND) ada
-	$(GNATMAKE) $(GNATMAKE_FLAGS) -i server.adb
+	$(GNATMAKE) $(BROCA_FLAGS) -i server.adb
 
 
 IDL_INTERFACE = echo
