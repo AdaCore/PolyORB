@@ -50,9 +50,9 @@ package body PolyORB.Tasking.Semaphores is
 
    procedure Create (S : out Semaphore_Access) is
       Result                : Semaphore;
-      The_Mutex_Factory     : PTM.Mutex_Factory_Access
+      The_Mutex_Factory     : constant PTM.Mutex_Factory_Access
         := PTM.Get_Mutex_Factory;
-      The_Condition_Factory : PTCV.Condition_Factory_Access
+      The_Condition_Factory : constant PTCV.Condition_Factory_Access
         := PTCV.Get_Condition_Factory;
    begin
       Result.Value := 0;
@@ -62,9 +62,9 @@ package body PolyORB.Tasking.Semaphores is
    end Create;
 
    procedure Destroy (S : in out Semaphore_Access) is
-      The_Mutex_Factory     : PTM.Mutex_Factory_Access
+      The_Mutex_Factory     : constant PTM.Mutex_Factory_Access
         := PTM.Get_Mutex_Factory;
-      The_Condition_Factory : PTCV.Condition_Factory_Access
+      The_Condition_Factory : constant PTCV.Condition_Factory_Access
         := PTCV.Get_Condition_Factory;
    begin
       PTM.Destroy (The_Mutex_Factory.all, S.Mutex);
