@@ -42,18 +42,18 @@ package Ada_Be.Idl2Ada is
    --  is emitted on standard output (e. g. for use
    --  with GNATCHOP).
 
-private
-
-   function Ada_Type_Name (Node : Node_Id) return String;
-   --  The name of the Ada type that maps Node.
-   --  This is the fully qualified name.
-
    function Ada_Type_Defining_Name
      (Node : Node_Id)
      return String;
    --  The defining name of the Ada type that maps Node
    --  (a K_Interface or K_ValueType).
    --  This is not the fully qualified name.
+
+private
+
+   function Ada_Type_Name (Node : Node_Id) return String;
+   --  The name of the Ada type that maps Node.
+   --  This is the fully qualified name.
 
    function Ada_Operation_Name
      (Node : Node_Id)

@@ -88,6 +88,7 @@ package body Ada_Be.Source_Streams is
         := Unit.Library_Unit_Name.all;
    begin
       if False
+        or else Dep = "Standard"
         or else Dep = LU_Name
         or else Is_Ancestor (Dep, LU_Name)
       then

@@ -24,9 +24,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Errors;
+--  $Id: //droopi/main/compilers/idlac/idl_fe-types.ads#2 $
+
 with Ada.Unchecked_Deallocation;
 with Interfaces;
+
+with Errors;
 
 package Idl_Fe.Types is
 
