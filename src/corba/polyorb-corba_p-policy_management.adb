@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Exceptions;
 
 package body PolyORB.CORBA_P.Policy_Management is
