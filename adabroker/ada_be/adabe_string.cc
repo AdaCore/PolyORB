@@ -85,7 +85,7 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += " ;\n";
   body += "      S : in out Giop_C.Object) is \n\n";
   body += "   begin\n";
-  body += "      Marshall (Corba.String(A); S);";
+  body += "      UnMarshall (Corba.String(A); S);";
   body += "   end UnMarshall\n";
 
   body += "   function Align_Size (A : in";

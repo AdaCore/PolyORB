@@ -51,11 +51,60 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
 void
 adabe_array::produce_marshal_ads(dep_list& with,string &body, string &previous)
 {
+  body += "   procedure Marshall (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   procedure UnMarshall (A : out ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   function Align_Size (A : in";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "               N : in Corba.Unsigned_Long := 1)\n";
+  body += "               return Corba.Unsigned_Long ;\n\n\n";
+
 }
 
 void
 adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
 {
+  body += "   procedure Marshall (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) is\n";
+  body += "    i:Integer;\n";
+  body += "   begin\n";
+  body += "     for i in A'range loop \n";
+  body += "      Marshall (A(i); S); \n";
+  body += "     end loop;\n ";
+  body += "   end Marshall\n";
+
+  body += "   procedure UnMarshall (A : out ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) is \n\n";
+  body += "    i:Integer;\n";
+  body += "   begin\n";
+  body += "     for i in A'range loop \n";
+  body += "      UnMarshall (A(i); S);\n";
+  body += "     end loop;\n ";
+  body += "   end UnMarshall\n";
+
+  body += "   function Align_Size (A : in";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "               N : in Corba.Unsigned_Long := 1)\n";
+  body += "               return Corba.Unsigned_Long ;\n\n\n";
+  body += "   begin\n";
+  body += "      return Align_Size (A'First;Initial_Offset; N*A'Length);\n";
+  body += "   end Align_Size\n";
+
 }
 
 string adabe_array::dump_name(dep_list& with,string &body, string &previous) 

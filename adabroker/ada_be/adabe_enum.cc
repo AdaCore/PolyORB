@@ -65,8 +65,6 @@ adabe_enum::produce_marshal_ads(dep_list& with, string &body, string &previous)
 void 
 adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
-  string tmp="";
-
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
@@ -80,7 +78,7 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += " ;\n";
   body += "      S : in out Giop_C.Object) is \n\n";
   body += "   begin\n";
-  body += "      Marshall (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A)); S);";
+  body += "      UnMarshall (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A)); S);";
   body += "   end UnMarshall\n";
 
   body += "   function Align_Size (A : in";
@@ -90,7 +88,7 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += "               N : in Corba.Unsigned_Long := 1)\n";
   body += "               return Corba.Unsigned_Long ;\n\n\n"; /*"Align_Size("+ get_ada_local_name ()+ ", Tmp) ;\n";*/
   body += "   begin\n";
-  body += "      return Align_Size (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A));Initial_Offset;N);
+  body += "      return Align_Size (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A));Initial_Offset;N);";
   body += "   end Align_Size\n";
 
 }
