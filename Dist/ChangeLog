@@ -25,8 +25,6 @@
 	the command line (mostly related to project files). Introduce a
 	machinery to deal with temporary files.
 
-	
-
 2004-08-13  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_utils.adb: Close Dup'ed files.
