@@ -115,14 +115,8 @@ package body System.Garlic.Protocols.Tcp is
    No_Tasking_Receive_Selector : Selector_Type;
    --  Selector for Receive (no-tasking case).
 
---    procedure Read_Stamp
---      (Peer   : in Socket_Type;
---       Error  : in out Error_Type);
---    procedure Write_Stamp
---      (Data   : access Stream_Element_Array;
---       First  : in out Stream_Element_Count);
---    --  In debug mode, a stamp is associated to a RPC in order to make
---    --  performance tests. These primitives aloow to transmit the stamp.
+   procedure Initialize;
+   --  Initialize TCP package
 
    procedure Read_Banner
      (Peer   : in Socket_Type;
@@ -440,6 +434,19 @@ package body System.Garlic.Protocols.Tcp is
    -- Initialize --
    ----------------
 
+   procedure Initialize is
+   begin
+      pragma Debug (D ("Initialize protocol tcp"));
+      Outgoings.Initialize;
+      GNAT.Sockets.Initialize (Platform_Specific.Process_Blocking_IO);
+      Create_Selector (No_Tasking_Receive_Selector);
+      Initialized := True;
+   end Initialize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
    procedure Initialize
      (Protocol  : access TCP_Protocol;
       Self_Data : in String;
@@ -473,13 +480,8 @@ package body System.Garlic.Protocols.Tcp is
       --  performed.
 
       Performed := False;
-
       if not Initialized then
-         pragma Debug (D ("Initialize GNAT.Sockets for protocol tcp"));
-         Outgoings.Initialize;
-         GNAT.Sockets.Initialize (Platform_Specific.Process_Blocking_IO);
-         Create_Selector (No_Tasking_Receive_Selector);
-         Initialized := True;
+         Tcp.Initialize;
       end if;
 
       if Self_Data'Length /= 0 then
@@ -1094,10 +1096,7 @@ package body System.Garlic.Protocols.Tcp is
       pragma Unreferenced (Error);
    begin
       if not Initialized then
-         pragma Debug (D ("Initialize protocol tcp"));
-         Outgoings.Initialize;
-         GNAT.Sockets.Initialize (Platform_Specific.Process_Blocking_IO);
-         Initialized := True;
+         Tcp.Initialize;
       end if;
 
       pragma Debug (D ("Setting boot data for protocol tcp"));
