@@ -38,6 +38,9 @@ with CORBA.Impl;
 
 with Broca.Buffers;
 
+with Sequences.Unbounded;
+pragma Elaborate_All (Sequences.Unbounded);
+
 package CORBA.NVList is
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
@@ -93,17 +96,10 @@ private
 
    --  The actual implementation of an NVList:
    --  a list of NamedValues.
-
-   type NV_Cell;
-   type NV_List is access all NV_Cell;
-   type NV_Cell is record
-      NV : NamedValue;
-      Next : NV_List;
-   end record;
-   Null_NVList : constant NV_List := null;
+   package NV_Sequence is new Sequences.Unbounded (CORBA.NamedValue);
 
    type Object is new CORBA.Impl.Object with record
-      List : NV_List;
+      List : NV_Sequence.Sequence := NV_Sequence.Null_Sequence;
    end record;
 
    Nil_Ref : constant Ref

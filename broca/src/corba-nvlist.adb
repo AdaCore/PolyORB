@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
 
 with Broca.CDR;
 with Broca.Debug;
@@ -43,36 +42,6 @@ package body CORBA.NVList is
      := Broca.Debug.Is_Active ("corba.nvlist");
    procedure O is new Broca.Debug.Output (Flag);
 
-   -------------------------------
-   -- Internal support routines --
-   -------------------------------
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation (NV_Cell, NV_List);
-   procedure Free_All_List (List : in out NV_List);
-   --  Deallocate the storage associated with an NV_List
-
-   function Length
-     (List : in NV_List)
-     return CORBA.Long;
-   --  Return the length of an NV_List
-
-   procedure Add_Cell
-     (List : in out NV_List;
-      NV : in NamedValue);
-   --  Add a NamedValue to an NV_List
-
-   function Get_Last_Cell
-     (List : NV_List)
-     return NV_List;
-   --  Get the last cell of an NV_List.
-   --  List shall not be null.
-
-   procedure Set_Last_Cell
-     (List : in NV_List;
-      NV   : in NamedValue);
-   --  Set the value of List to NV and its Next field to null.
-
    --------------
    -- Finalize --
    --------------
@@ -80,7 +49,9 @@ package body CORBA.NVList is
    procedure Finalize (Obj : in out Object) is
    begin
       pragma Debug (O ("Finalize: enter"));
-      Free_All_List (Obj.List);
+      NV_Sequence.Delete (Obj.List,
+                          1,
+                          NV_Sequence.Length (Obj.List));
       pragma Debug (O ("Finalize: end"));
    end Finalize;
 
@@ -144,28 +115,16 @@ package body CORBA.NVList is
      (Self : Ref;
       Item : NamedValue)
    is
-      Actual_Ref : Object_Ptr := Object_Ptr (Object_Of (Self));
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
       pragma Debug (O ("Add_Item (2 params) : enter"));
       pragma Debug (O ("Add_Item (2 params) : ref_counter = "
                        & Positive'Image (Item.Argument.Ref_Counter.all)));
-      Add_Cell (Actual_Ref.List, Item);
+      NV_Sequence.Append (Obj.List, Item);
       pragma Debug (O ("Add_Item (2 params) : ref_counter = "
                        & Positive'Image (Item.Argument.Ref_Counter.all)));
       pragma Debug (O ("Add_Item (2 params) : end"));
    end Add_Item;
-
-   -------------------
-   -- Create_Object --
-   -------------------
-
-   function Create_Object return Object_Ptr
-   is
-      Actual_Ref : constant CORBA.NVList.Object_Ptr := new Object;
-   begin
-      Actual_Ref.List := Null_NVList;
-      return Actual_Ref;
-   end Create_Object;
 
    ----------
    -- Free --
@@ -182,9 +141,9 @@ package body CORBA.NVList is
 
    function Get_Count (Self : Ref) return CORBA.Long
    is
-      Actual_Ref : Object_Ptr := Object_Ptr (Object_Of (Self));
+      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
-      return Length (Actual_Ref.List);
+      return CORBA.Long (NV_Sequence.Length (Obj.List));
    end Get_Count;
 
    --------------
@@ -196,22 +155,21 @@ package body CORBA.NVList is
       Data   : Ref) is
       Actual_Ref : constant Object_Ptr
         := Object_Ptr (Object_Of (Data));
-
-      List : NV_List := Actual_Ref.List;
+      List : NV_Sequence.Element_Array :=
+        NV_Sequence.To_Element_Array (Actual_Ref.List);
    begin
       pragma Debug (O ("Marshall : enter"));
-      while List /= Null_NVList loop
+      for Index in List'Range loop
          pragma Debug (O ("Marshall : dealing with a named value"));
-         if List.NV.Arg_Modes = CORBA.ARG_IN or
-           List.NV.Arg_Modes = CORBA.ARG_INOUT then
+         if List (Index).Arg_Modes = CORBA.ARG_IN or
+           List (Index).Arg_Modes = CORBA.ARG_INOUT then
             pragma Debug (O ("Marshall : marshalling a named value"));
             pragma Debug
               (O ("Marshall : NV type is "
                   & Ada.Tags.External_Tag
-                  (Get_Value (List.NV.Argument).all'Tag)));
-            Broca.CDR.Marshall (Buffer, List.NV);
+                  (Get_Value (List (Index).Argument).all'Tag)));
+            Broca.CDR.Marshall (Buffer, List (Index));
          end if;
-         List := List.Next;
       end loop;
       pragma Debug (O ("Marshall : end"));
    end Marshall;
@@ -226,132 +184,43 @@ package body CORBA.NVList is
    is
       Actual_Ref : constant Object_Ptr
         := Object_Ptr (Object_Of (Data));
-      List : NV_List := Actual_Ref.List;
-
+      List : NV_Sequence.Element_Array :=
+        NV_Sequence.To_Element_Array (Actual_Ref.List);
    begin
-
       pragma Debug (O ("Unmarshall : enter"));
-
-      while List /= Null_NVList loop
-         if List.NV.Arg_Modes = CORBA.ARG_OUT or
-           List.NV.Arg_Modes = CORBA.ARG_INOUT then
+      for Index in List'Range loop
+         if List (Index).Arg_Modes = CORBA.ARG_OUT or
+           List (Index).Arg_Modes = CORBA.ARG_INOUT then
             pragma Debug (O ("Unmarshall : about to unmarshall a NamedValue"));
             pragma Debug (O ("Unmarshall : is_empty := "
                              & Boolean'Image (CORBA.Is_Empty
-                                              (List.NV.Argument))));
-            Broca.CDR.Unmarshall (Buffer, List.NV);
+                                              (List (Index).Argument))));
+            Broca.CDR.Unmarshall (Buffer, List (Index));
             pragma Debug (O ("Unmarshall : is_empty := "
                              & Boolean'Image (CORBA.Is_Empty
-                                              (List.NV.Argument))));
+                                              (List (Index).Argument))));
             pragma Debug (O ("Unmarshall : kind is "
                              & CORBA.TCKind'Image
                              (CORBA.TypeCode.Kind
-                              (CORBA.Get_Type (List.NV.Argument)))));
+                              (CORBA.Get_Type (List (Index).Argument)))));
             pragma Debug (O ("Unmarshall : value kind is "
                              & Ada.Tags.External_Tag
-                              (Get_Value (List.NV.Argument).all'Tag)));
+                              (Get_Value (List (Index).Argument).all'Tag)));
          end if;
-         List := List.Next;
       end loop;
-
       pragma Debug (O ("Unmarshall : end"));
    end Unmarshall;
 
-   ----------------------------------------
-   -- Implementation of the private part --
-   ----------------------------------------
-
    -------------------
-   -- Get_Last_Cell --
+   -- Create_Object --
    -------------------
-
-   function Get_Last_Cell (List : NV_List) return NV_List is
-   begin
-      if List.Next = Null_NVList then
-         return List;
-      else
-         return Get_Last_Cell (List.Next);
-      end if;
-   end Get_Last_Cell;
-
-   -------------------
-   -- Set_Last_Cell --
-   -------------------
-
-   procedure Set_Last_Cell
-     (List : in NV_List;
-      NV : in NamedValue) is
-   begin
-      pragma Debug (O ("Set_Last_Cell: about to assign NV"));
-      List.NV := NV;
-      pragma Debug
-        (O ("Set_Last_Cell: NV type is "
-            & Ada.Tags.External_Tag
-            (Get_Value (List.NV.Argument).all'Tag)));
-      pragma Debug (O ("Set_Last_Cell: NV assigned"));
-      List.Next := Null_NVList;
-   end Set_Last_Cell;
-
-   --------------
-   -- Add_Cell --
-   --------------
-
-   procedure Add_Cell
-     (List : in out NV_List;
-      NV : in NamedValue) is
-   begin
-      pragma Debug (O ("Add_Cell : enter"));
-      pragma Debug (O ("Add_Cell : length of the list is : " &
-                       Long'Image (Length (List))));
-
-      if List = Null_NVList then
-         List := new NV_Cell;
-         pragma Debug (O ("Add_Cell : new cell created"));
-         Set_Last_Cell (List, NV);
-      else
-         declare
-            Last_Cell : NV_List := Get_Last_Cell (List);
-         begin
-            Last_Cell.Next := new NV_Cell;
-            pragma Debug (O ("Add_Cell : new cell created"));
-            Set_Last_Cell (Last_Cell.Next, NV);
-         end;
-      end if;
-
-      pragma Debug (O ("Add_Cell : length of the list is : " &
-                       Long'Image (Length (List))));
-      pragma Debug (O ("Add_Cell : end"));
-   end Add_Cell;
-
-   -------------------
-   -- Free_All_List --
-   -------------------
-
-   procedure Free_All_List (List : in out NV_List)
+   function Create_Object return Object_Ptr
    is
-      Old_List : NV_List;
+      Actual_Ref : constant CORBA.NVList.Object_Ptr
+        := new Object;
    begin
-      while List /= Null_NVList loop
-         Old_List := List;
-         List := List.Next;
-         Free (Old_List);
-      end loop;
-   end Free_All_List;
-
-   ------------
-   -- Length --
-   ------------
-
-   function Length (List : in NV_List) return CORBA.Long is
-      Result : CORBA.Long := 0;
-      Current_Cell : NV_List := List;
-   begin
-      while Current_Cell /= Null_NVList loop
-         Result := Result + 1;
-         Current_Cell := Current_Cell.Next;
-      end loop;
-      return Result;
-   end Length;
-
+      Actual_Ref.List := NV_Sequence.Null_Sequence;
+      return Actual_Ref;
+   end Create_Object;
 
 end CORBA.NVList;
