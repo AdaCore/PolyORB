@@ -35,7 +35,7 @@
 
 with System.Garlic.Non_Blocking;
 
-private package System.Garlic.TCP.Platform_Specific is
+package System.Garlic.TCP.Platform_Specific is
 
    --  SGI version of this package.
 

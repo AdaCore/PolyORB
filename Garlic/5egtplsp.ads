@@ -35,7 +35,7 @@
 
 with System.Garlic.Thin;
 
-private package System.Garlic.TCP.Platform_Specific is
+package System.Garlic.TCP.Platform_Specific is
 
    --  Empty version of this package.
 
