@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#2 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#3 $
 
 with Asis;       use Asis;
 
@@ -33,7 +33,7 @@ package CIAO.Translator.Maps is
    -------------------------------------------
 
    function IDL_Module_Name (Library_Unit : Compilation_Unit)
-     return Program_Text;
+     return String;
 
    ---------------------------------------------------------
    -- Relative_Scoped_Name                                --
@@ -53,7 +53,7 @@ package CIAO.Translator.Maps is
    ----------------------------------------------
 
    function Operator_Symbol_Identifier (Op : Program_Text)
-     return Program_Text;
+     return String;
 
    ----------------------------------------------
    -- Character_Literal_Identifier             --
@@ -62,7 +62,7 @@ package CIAO.Translator.Maps is
    ----------------------------------------------
 
    function Character_Literal_Identifier (Ch : Program_Text)
-     return Program_Text;
+     return String;
 
    ---------------------------------------------------
    -- Base_Type                                     --

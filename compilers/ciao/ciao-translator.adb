@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#2 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#3 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_Io;  use Ada.Wide_Text_Io;
@@ -188,10 +188,10 @@ package body CIAO.Translator is
      (Element : in Asis.Element;
       Control : in out Traverse_Control;
       State   : in out Translator_State);
-   procedure Process_Expression
-     (Element : in Asis.Element;
-      Control : in out Traverse_Control;
-      State   : in out Translator_State);
+--    procedure Process_Expression
+--      (Element : in Asis.Element;
+--       Control : in out Traverse_Control;
+--       State   : in out Translator_State);
    procedure Process_Type_Definition
      (Element : in Asis.Element;
       Control : in out Traverse_Control;
@@ -208,13 +208,19 @@ package body CIAO.Translator is
      return String;
    --  Return the IDL representation of Name.
 
-   procedure Translate_Defining_Name
-     (Name    : in Asis.Defining_Name;
-      State   : in out Translator_State);
+--    procedure Translate_Defining_Name
+--      (Name    : in Asis.Defining_Name;
+--       State   : in out Translator_State);
 
-   procedure Translate_Subtype_Mark
-     (Exp     : in Asis.Expression;
-      State   : in out Translator_State);
+--    procedure Translate_Subtype_Mark
+--      (Exp     : in Asis.Expression;
+--       State   : in out Translator_State);
+
+   function Translate_Subtype_Mark
+     (Exp : in Asis.Expression)
+     return Node_Id;
+   --  Return the node id corresponding to the definition of
+   --  the type denoted by subtype_mark Exp.
 
    procedure Translate_Discriminant_Part
      (Def     : in Asis.Definition;
@@ -228,6 +234,15 @@ package body CIAO.Translator is
      (Specification    : in Asis.Definition;
       Is_Implicit_Self : in Boolean;
       State            : in out Translator_State);
+
+   function New_Opaque_Type return Node_Id;
+   --  Return a new node corresponding to the type to be
+   --  assigned to opaque entities.
+
+   function New_Opaque_Type return Node_Id is
+   begin
+      return Make_Native (No_Location);
+   end New_Opaque_Type;
 
    ---------------------------------------------------------------
    -- Pre_Translate_Element                                     --
@@ -257,7 +272,14 @@ package body CIAO.Translator is
             Control := Abandon_Children;
 
          when A_Defining_Name =>
-            Translate_Defining_Name (Element, State);
+            declare
+               Success : Boolean;
+            begin
+               Success := Add_Identifier
+                 (State.Current_Node, Map_Defining_Name (Element));
+               pragma Assert (Success);
+            end;
+
             Control := Abandon_Children;
 
          when A_Declaration =>
@@ -265,7 +287,16 @@ package body CIAO.Translator is
          when A_Definition =>
             Process_Definition (Element, Control, State);
          when An_Expression =>
-            Process_Expression (Element, Control, State);
+            --  In this version of CIAO, whenever an expression
+            --  can be encountered, it is a usage occurrence of
+            --  a name and should have been replaced by a pointer
+            --  to the translation of the corresponding entity's
+            --  definition. Expressions are therefore never
+            --  encountererd in the implicit traversal.
+            Raise_Translation_Error
+              (Element, "Unexpected element (An_Expression).");
+
+            --  Process_Expression (Element, Control, State);
          when An_Association =>
             -- XXX
             null;
@@ -289,7 +320,7 @@ package body CIAO.Translator is
 
       use Asis.Definitions;
 
-      Node             : Node_Id;
+      Node             : Node_Id := No_Node;
       DK               : constant Declaration_Kinds
         := Declaration_Kind (Element);
       Defining_Names   : constant Defining_Name_List
@@ -417,10 +448,8 @@ package body CIAO.Translator is
          if  Is_Nil (Result_Profile) then
             Value_Type_Node := Make_Void (No_Location);
          else
-            Value_Type_Node
-              := Get_Translation
-              (Corresponding_Entity_Name_Definition
-               (Result_Profile));
+            Value_Type_Node := Translate_Subtype_Mark
+              (Result_Profile);
          end if;
 
          Set_Operation_Type (Op_Node, Value_Type_Node);
@@ -465,6 +494,9 @@ package body CIAO.Translator is
 --       end Get_Constants_Interface;
 
    begin
+
+      --  Process_Declaration
+
       case DK is
          when
            An_Ordinary_Type_Declaration |                -- 3.2.1(3)
@@ -489,78 +521,110 @@ package body CIAO.Translator is
                then
                   --  This is the definition of a Remote Access to
                   --  Subprogram type.
-                  declare
-                     Interface_Node : Node_Id;
-                     Interface_Dcl_Node : Node_Id;
-                  begin
-                     Interface_Node := Make_Interface (No_Location);
-                     Append_Node_To_Contents
-                       (State.Current_Node,
-                        Interface_Node);
-                     Success := Add_Identifier
-                       (Interface_Node,
-                        Map_Defining_Name
-                        (Defining_Names (Defining_Names'First)));
-                     pragma Assert (Success);
-                     State.Current_Node := Interface_Node;
+                  Node := Make_Interface (No_Location);
+                  Append_Node_To_Contents
+                    (State.Current_Node,
+                     Node);
+                  Success := Add_Identifier
+                    (Node, Map_Defining_Name
+                     (Defining_Names (Defining_Names'First)));
+                  pragma Assert (Success);
+                  State.Current_Node := Node;
 
-                     case Access_Type_Kind (Type_Definition) is
-                        when
-                          An_Access_To_Procedure           |
-                          An_Access_To_Protected_Procedure =>
-                           Process_Operation_Declaration
-                             (State,
-                              Access_To_Subprogram_Parameter_Profile
-                              (Type_Definition));
-                        when
-                          An_Access_To_Function           |
-                          An_Access_To_Protected_Function =>
-                           Process_Operation_Declaration
-                             (State,
-                              Access_To_Subprogram_Parameter_Profile
-                              (Type_Definition),
-                              Result_Profile =>
-                                Access_To_Function_Result_Profile
-                              (Type_Definition));
-                        when others =>
-                           --  This cannot happen because we checked that
-                           --  Access_Kind in Access_To_Subprogram_Definition
-                           raise ASIS_Failed;
-                     end case;
-                     Success := Add_Identifier (State.Current_Node, "Call");
-                     pragma Assert (Success);
+                  case Access_Type_Kind (Type_Definition) is
+                     when
+                       An_Access_To_Procedure           |
+                       An_Access_To_Protected_Procedure =>
+                        Process_Operation_Declaration
+                          (State,
+                           Access_To_Subprogram_Parameter_Profile
+                           (Type_Definition));
+                     when
+                       An_Access_To_Function           |
+                       An_Access_To_Protected_Function =>
+                        Process_Operation_Declaration
+                          (State,
+                           Access_To_Subprogram_Parameter_Profile
+                           (Type_Definition),
+                           Result_Profile =>
+                             Access_To_Function_Result_Profile
+                           (Type_Definition));
+                     when others =>
+                        --  This cannot happen because we checked that
+                        --  Access_Kind in Access_To_Subprogram_Definition
+                        raise ASIS_Failed;
+                  end case;
+                  Success := Add_Identifier (State.Current_Node, "Call");
+                  pragma Assert (Success);
 
-                     Set_Translation (Element, State.Current_Node);
-                     --  The translation of a RAS declaration is
-                     --  an <op_dcl>.
-                  end;
+                  Set_Translation (Element, State.Current_Node);
+                  --  The translation of a RAS declaration is
+                  --  an <op_dcl>.
                else
                   --  This is the definition of a normal type.
-                  declare
-                     Type_Dcl_Node        : Node_Id;
-                     Declarator_Node      : Node_Id;
-                     Success : Boolean;
-                  begin
-                     Type_Dcl_Node := Make_Type_Declarator (No_Location);
-                     Append_Node_To_Contents (Type_Dcl_Node, State.Current_Node);
-                     Set_Translation (Element, Type_Dcl_Node);
+
+                  Node := No_Node;
+
+                  case Type_Kind (Type_Definition) is
+                     when An_Enumeration_Type_Definition =>
+                        Node := Make_Enum (No_Location);
+                        Success := Add_Identifier
+                          (Node, Map_Defining_Name (Defining_Name));
+
+                     when A_Record_Type_Definition =>
+                        if not Is_Limited_Type (Element) then
+                           Node := Make_Struct (No_Location);
+                           Success := Add_Identifier
+                             (Node, Map_Defining_Name (Defining_Name));
+                        end if;
+
+                     when
+                       A_Constrained_Array_Definition    |
+                       An_Unconstrained_Array_Definition =>
+
+                        if not Is_Limited_Type (Element) then
+                           Node := Make_Struct (No_Location);
+                           Success := Add_Identifier
+                             (Node, Map_Defining_Name(Defining_Name));
+                        end if;
+
+                     when others =>
+                        null;
+                  end case;
+
+                  if Node /= No_Node then
+                     pragma Assert (Success);
+                     Append_Node_To_Contents (State.Current_Node, Node);
+                     State.Current_Node := Node;
+
+                     --  Process children recursively.
+                     return;
+
+                  else
+
+                     --  A non-enumerated type.
+
+                     Node := Make_Type_Declarator (No_Location);
+                     Append_Node_To_Contents (Node, State.Current_Node);
+                     Set_Translation (Element, Node);
                      --  The translation of a type declaration is
                      --  a <type_dcl>.
 
-                     Declarator_Node := Make_Declarator (No_Location);
-                     Set_Parent (Declarator_Node, Type_Dcl_Node);
-                     Set_Declarators
-                       (Type_Dcl_Node,
-                        Append_Node
-                        (Declarators (Type_Dcl_Node),
-                         Declarator_Node));
+                     declare
+                        Declarator_Node : constant Node_Id
+                          := Make_Declarator (No_Location);
+                     begin
+                        Set_Parent (Declarator_Node, Node);
+                        Set_Declarators
+                          (Node, Append_Node (Declarators (Node),
+                                              Declarator_Node));
 
-                     if False
-                       --  For now, we cannot determine the bounds of a
-                       --  static constrained array.
-                       and then Definition_Kind (Type_Definition) = A_Type_Definition
-                       and then Type_Kind (Type_Definition) = A_Constrained_Array_Definition
-                     then
+                        if False
+                          --  For now, we cannot determine the bounds of a
+                          --  static constrained array.
+                          and then Definition_Kind (Type_Definition) = A_Type_Definition
+                          and then Type_Kind (Type_Definition) = A_Constrained_Array_Definition
+                        then
 --                         Node := New_Node (N_Array_Declarator);
 --                         Set_Parent (Node, Declarator_Node);
 --                         Set_Specific_Declarator (Declarator_Node, Node);
@@ -568,27 +632,28 @@ package body CIAO.Translator is
 --                         State.Current_Node := Node;
 --                         Translate_Defining_Name (Defining_Name, State);
 
-                        --  Here we should process the array dimensions
+                           --  Here we should process the array dimensions
 
-                        raise Program_Error;
-                     else
-                        Success := Add_Identifier
-                          (Declarator_Node, Map_Defining_Name (Defining_Name));
-                        pragma Assert (Success);
-                     end if;
+                           raise Program_Error;
+                        else
+                           Success := Add_Identifier
+                             (Declarator_Node, Map_Defining_Name (Defining_Name));
+                           pragma Assert (Success);
+                        end if;
+                     end;
 
                      --  known_discriminant_part is not processed now.
                      if DK = A_Subtype_Declaration then
                         Set_T_Type
-                          (Type_Dcl_Node,
-                           Get_Translation
-                           (Corresponding_Entity_Name_Definition
-                            (Type_Definition)));
+                          (Node, Translate_Subtype_Mark (Type_Definition));
+                        --  XXX TQ 20011207 are we sure that Type_Definition
+                        --  is An_Expression which is a subtype_mark?
                      else
-                        State.Current_Node := Type_Dcl_Node;
-                        Translate_Type_Definition (Type_Definition, State);
+                        State.Current_Node := Node;
+                        Translate_Type_Definition
+                          (Type_Definition, State);
                      end if;
-                  end;
+                  end if;
                end if;
 
                State.Current_Node := Old_Current_Node;
@@ -792,14 +857,16 @@ package body CIAO.Translator is
             raise Not_Implemented;
 
          when An_Enumeration_Literal_Specification =>    -- 3.5.1(3)
+            pragma Assert (Kind (State.Current_Node) = K_Enum);
+
             declare
-               Enumerator_Node : Node_Id;
+               Enumerator_Node : constant Node_Id
+                 := Make_Enumerator (No_Location);
                Success : Boolean;
             begin
                pragma Assert (Defining_Names'Length = 1);
                --  Only one defining_name in an enumeration_literal_specification.
 
-               Enumerator_Node := Make_Enumerator (No_Location);
                Set_Enumerators
                  (State.Current_Node,
                   Append_Node
@@ -818,6 +885,8 @@ package body CIAO.Translator is
          when
            A_Discriminant_Specification |                -- 3.7(5)
            A_Component_Declaration      =>               -- 3.8(6)
+            pragma Assert (Kind (State.Current_Node) = K_Struct);
+
             declare
                Component_Subtype_Mark : Asis.Expression;
                Declarator_Node        : Node_Id;
@@ -847,10 +916,8 @@ package body CIAO.Translator is
                end loop;
 
                Set_M_Type
-                 (Node,
-                  Get_Translation
-                  (Corresponding_Entity_Name_Definition
-                   (Component_Subtype_Mark)));
+                 (Node, Translate_Subtype_Mark
+                   (Component_Subtype_Mark));
 
                State.Current_Node := Old_Current_Node;
 
@@ -994,9 +1061,7 @@ package body CIAO.Translator is
                      pragma Assert (Success);
 
                      Set_Param_Type
-                       (Node, Get_Translation
-                        (Corresponding_Entity_Name_Definition
-                         (Subtype_Mark)));
+                       (Node, Translate_Subtype_Mark (Subtype_Mark));
 
                      State.Current_Node := Old_Current_Node;
 
@@ -1271,141 +1336,142 @@ package body CIAO.Translator is
         (Element, "Unexpected standard type definition.");
    end Base_Type_For_Standard_Definition;
 
-   procedure Process_Expression
-     (Element : in Asis.Element;
-      Control : in out Traverse_Control;
-      State   : in out Translator_State) is
-      EK : constant Asis.Expression_Kinds
-        := Expression_Kind (Element);
-   begin
-      case EK is
-         when Not_An_Expression =>                -- An unexpected element
-            Raise_Translation_Error
-              (Element, "Unexpected element (Not_An_Expression).");
+--    procedure Process_Expression
+--      (Element : in Asis.Element;
+--       Control : in out Traverse_Control;
+--       State   : in out Translator_State) is
+--       EK : constant Asis.Expression_Kinds
+--         := Expression_Kind (Element);
+--    begin
+--       case EK is
+--          when Not_An_Expression =>                -- An unexpected element
+--             Raise_Translation_Error
+--               (Element, "Unexpected element (Not_An_Expression).");
 
-         when
-           An_Identifier        |                 -- 4.1
-           A_Selected_Component =>                -- 4.1.3
-            --  The expression shall be translated as
-            --  a <scoped_name>. State.Current_Node shall
-            --  accept a <scoped_name> subnode.
-            declare
+--          when
+--            An_Identifier        |                 -- 4.1
+--            A_Selected_Component =>                -- 4.1.3
+--             --  The expression shall be translated as
+--             --  a <scoped_name>. State.Current_Node shall
+--             --  accept a <scoped_name> subnode.
+--             declare
 
-               use Asis.Compilation_Units;
+--                use Asis.Compilation_Units;
 
-               Name_Definition : constant Asis.Element
-                 := Corresponding_Entity_Name_Definition (Element);
-               Origin          : constant Compilation_Unit :=
-                 Enclosing_Compilation_Unit (Name_Definition);
-               --  The library unit where the name is declared.
-               Node : Node_Id;
-            begin
-               if Is_Nil (Corresponding_Parent_Declaration (Origin)) then
-                  --  Element is a subtype_mark that denotes a type
-                  --  declared in predefined package Standard.
-                  Node := Base_Type_For_Standard_Definition (Type_Declaration_View
-                                                         (Enclosing_Element
-                                                          (Name_Definition)));
-                  Set_Base_Type_Spec (State.Current_Node, Node);
-                  Set_Parent (Node, State.Current_Node);
-               else
-                  declare
-                     Include_Node : constant Node_Id
-                       := Get_Translation (Unit_Declaration (Origin));
-                  begin
-                     if Include_Node /= Empty
-                       and then Node_Kind (Include_Node) = N_Preprocessor_Include
-                     then
-                        Set_Unit_Used (Include_Node, True);
-                     end if;
-                     Node := Relative_Scoped_Name
-                       (Denoted_Definition => Name_Definition,
-                        Referer            => Element);
-                     Set_Scoped_Name (State.Current_Node, Node);
-                     Set_Parent (Node, State.Current_Node);
-                  end;
-               end if;
+--                Name_Definition : constant Asis.Element
+--                  := Corresponding_Entity_Name_Definition (Element);
+--                Origin          : constant Compilation_Unit :=
+--                  Enclosing_Compilation_Unit (Name_Definition);
+--                --  The library unit where the name is declared.
+--                Node : Node_Id;
+--             begin
+--                if Is_Nil (Corresponding_Parent_Declaration (Origin)) then
+--                   --  Element is a subtype_mark that denotes a type
+--                   --  declared in predefined package Standard.
+--                   Node := Base_Type_For_Standard_Definition (Type_Declaration_View
+--                                                          (Enclosing_Element
+--                                                           (Name_Definition)));
+--                   Set_Base_Type_Spec (State.Current_Node, Node);
+--                   Set_Parent (Node, State.Current_Node);
+--                else
+--                   declare
+--                      Include_Node : constant Node_Id
+--                        := Get_Translation (Unit_Declaration (Origin));
+--                   begin
+--                      if Include_Node /= Empty
+--                        and then Node_Kind (Include_Node) = N_Preprocessor_Include
+--                      then
+--                         Set_Unit_Used (Include_Node, True);
+--                      end if;
+--                      Node := Relative_Scoped_Name
+--                        (Denoted_Definition => Name_Definition,
+--                         Referer            => Element);
+--                      Set_Scoped_Name (State.Current_Node, Node);
+--                      Set_Parent (Node, State.Current_Node);
+--                   end;
+--                end if;
 
-               Control := Abandon_Children;
-               --  Children were processed explicitly.
-            end;
+--                Control := Abandon_Children;
+--                --  Children were processed explicitly.
+--             end;
 
-         when An_Attribute_Reference =>           -- 4.1.4
-            case Attribute_Kind (Element) is
-               when
-                 A_Base_Attribute  |
-                 A_Class_Attribute =>
-                  Translate_Subtype_Mark (Prefix (Element), State);
+--          when An_Attribute_Reference =>           -- 4.1.4
+--             case Attribute_Kind (Element) is
+--                when
+--                  A_Base_Attribute  |
+--                  A_Class_Attribute =>
+--                   Translate_Subtype_Mark (Prefix (Element), State);
 
-                  Control := Abandon_Children;
-                  --  Children were processed explicitly.
-               when others =>
-                  Raise_Translation_Error
-                    (Element, "Unexpected element (An_Attribute_Reference).");
-            end case;
+--                   Control := Abandon_Children;
+--                   --  Children were processed explicitly.
+--                when others =>
+--                   Raise_Translation_Error
+--                     (Element, "Unexpected element (An_Attribute_Reference).");
+--             end case;
 
-         ------------------------------------------------------
-         -- All other Expression_Kinds are inappropriate.    --
-         -- Encountering one of these cases denotes a bug in --
-         -- either the Ada/ASIS environment or CIAO.         --
-         ------------------------------------------------------
+--          ------------------------------------------------------
+--          -- All other Expression_Kinds are inappropriate.    --
+--          -- Encountering one of these cases denotes a bug in --
+--          -- either the Ada/ASIS environment or CIAO.         --
+--          ------------------------------------------------------
 
-         when
-           An_Integer_Literal     |               -- 2.4
-           A_Real_Literal         |               -- 2.4.1
-           A_String_Literal       |               -- 2.6
-           A_Character_Literal    |               -- 4.1
-           An_Enumeration_Literal |               -- 4.1
-           A_Null_Literal         =>              -- 4.4
-            Raise_Translation_Error
-              (Element, "Unexpected element (a literal).");
+--          when
+--            An_Integer_Literal     |               -- 2.4
+--            A_Real_Literal         |               -- 2.4.1
+--            A_String_Literal       |               -- 2.6
+--            A_Character_Literal    |               -- 4.1
+--            An_Enumeration_Literal |               -- 4.1
+--            A_Null_Literal         =>              -- 4.4
+--             Raise_Translation_Error
+--               (Element, "Unexpected element (a literal).");
 
-         when
-           An_Operator_Symbol      |              -- 4.1
-           A_Function_Call         =>             -- 4.1
-            Raise_Translation_Error
-              (Element, "Unexpected element (a function or operator).");
+--          when
+--            An_Operator_Symbol      |              -- 4.1
+--            A_Function_Call         =>             -- 4.1
+--             Raise_Translation_Error
+--               (Element, "Unexpected element (a function or operator).");
 
-         when
-           An_Explicit_Dereference |              -- 4.1
-           An_Indexed_Component |                 -- 4.1.1
-           A_Slice              =>                -- 4.1.2
-            Raise_Translation_Error
-              (Element, "Unexpected element (an indexed reference or explicit dereference).");
+--          when
+--            An_Explicit_Dereference |              -- 4.1
+--            An_Indexed_Component |                 -- 4.1.1
+--            A_Slice              =>                -- 4.1.2
+--             Raise_Translation_Error
+--               (Element, "Unexpected element (an indexed reference or explicit dereference).");
 
-         when
-           A_Record_Aggregate           |         -- 4.3
-           An_Extension_Aggregate       |         -- 4.3
-           A_Positional_Array_Aggregate |         -- 4.3
-           A_Named_Array_Aggregate      =>        -- 4.3
-            Raise_Translation_Error
-              (Element, "Unexpected element (an aggregate).");
+--          when
+--            A_Record_Aggregate           |         -- 4.3
+--            An_Extension_Aggregate       |         -- 4.3
+--            A_Positional_Array_Aggregate |         -- 4.3
+--            A_Named_Array_Aggregate      =>        -- 4.3
+--             Raise_Translation_Error
+--               (Element, "Unexpected element (an aggregate).");
 
-         when
-           An_And_Then_Short_Circuit      |       -- 4.4
-           An_Or_Else_Short_Circuit       |       -- 4.4
-           An_In_Range_Membership_Test    |       -- 4.4
-           A_Not_In_Range_Membership_Test |       -- 4.4
-           An_In_Type_Membership_Test     |       -- 4.4
-           A_Not_In_Type_Membership_Test  |       -- 4.4
-           A_Parenthesized_Expression     |       -- 4.4
-           A_Type_Conversion              |       -- 4.6
-           A_Qualified_Expression         =>      -- 4.7
-            Raise_Translation_Error
-              (Element, "Unexpected element (An_Expression).");
+--          when
+--            An_And_Then_Short_Circuit      |       -- 4.4
+--            An_Or_Else_Short_Circuit       |       -- 4.4
+--            An_In_Range_Membership_Test    |       -- 4.4
+--            A_Not_In_Range_Membership_Test |       -- 4.4
+--            An_In_Type_Membership_Test     |       -- 4.4
+--            A_Not_In_Type_Membership_Test  |       -- 4.4
+--            A_Parenthesized_Expression     |       -- 4.4
+--            A_Type_Conversion              |       -- 4.6
+--            A_Qualified_Expression         =>      -- 4.7
+--             Raise_Translation_Error
+--               (Element, "Unexpected element (An_Expression).");
 
-         when
-           An_Allocation_From_Subtype |           -- 4.8
-           An_Allocation_From_Qualified_Expression => -- 4.8
-            Raise_Translation_Error
-              (Element, "Unexpected element (an allocator).");
-      end case;
-   end Process_Expression;
+--          when
+--            An_Allocation_From_Subtype |           -- 4.8
+--            An_Allocation_From_Qualified_Expression => -- 4.8
+--             Raise_Translation_Error
+--               (Element, "Unexpected element (an allocator).");
+--       end case;
+--    end Process_Expression;
 
    procedure Process_Type_Definition
      (Element : in Asis.Element;
       Control : in out Traverse_Control;
-      State   : in out Translator_State) is
+      State   : in out Translator_State)
+   is
       Type_Spec_Node   : Node_Id;
       Old_Current_Node : constant Node_Id
         := State.Current_Node;
@@ -1425,36 +1491,18 @@ package body CIAO.Translator is
               (Element, "Unexpected implicit element (A_Root_Type_Definition).");
 
          when A_Derived_Type_Definition =>             -- 3.4(2)
-            Type_Spec_Node := Insert_New_Simple_Type_Spec (State.Current_Node);
 
-            State.Current_Node := Specific_Type_Spec (Type_Spec_Node);
-            Translate_Subtype_Mark
-              (Asis.Definitions.Subtype_Mark
-               (Asis.Definitions.Parent_Subtype_Indication (Element)), State);
-            State.Current_Node := Old_Current_Node;
+            Set_T_Type
+            (State.Current_Node, Translate_Subtype_Mark
+             (Asis.Definitions.Subtype_Mark
+              (Asis.Definitions.Parent_Subtype_Indication
+               (Element))));
 
             Control := Abandon_Children;
             --  Children were processed explicitly.
 
          when An_Enumeration_Type_Definition =>        -- 3.5.1(2)
-            declare
-               Enum_Type_Node  : Node_Id;
-               Type_Identifier : Name_Id;
-            begin
-               Type_Spec_Node := Insert_New_Constructed_Type (State.Current_Node);
-
-               Enum_Type_Node := New_Node (N_Enum_Type);
-               Set_Parent (Enum_Type_Node, Specific_Type_Spec (Type_Spec_Node));
-               Set_Structure (Specific_Type_Spec (Type_Spec_Node), Enum_Type_Node);
-
-               Type_Identifier := IDL_Syntax.Name
-                 (Specific_Declarator (First (Declarators (State.Current_Node))));
-
-               Set_Name (Enum_Type_Node, New_Constructed_Type_Identifier (Type_Identifier, "enum"));
-
-               Set_Previous_Current_Node (Element, State.Current_Node);
-               State.Current_Node := Enum_Type_Node;
-            end;
+            null;
             --  Process all children recursively.
 
          when
@@ -1463,19 +1511,10 @@ package body CIAO.Translator is
            A_Floating_Point_Definition        |        -- 3.5.7(2)
            An_Ordinary_Fixed_Point_Definition |        -- 3.5.9(3)
            A_Decimal_Fixed_Point_Definition   =>       -- 3.5.9(6)
-            declare
-               STS_Node : Node_Id;
-               BTS_Node : Node_Id;
-            begin
-               Type_Spec_Node := Insert_New_Simple_Type_Spec (State.Current_Node);
 
-               STS_Node := Specific_Type_Spec (Type_Spec_Node);
-
-               BTS_Node := Base_Type_For_Standard_Definition (Element);
-
-               Set_Base_Type_Spec (STS_Node, BTS_Node);
-               Set_Parent (BTS_Node, STS_Node);
-            end;
+            Set_T_Type
+            (State.Current_Node,
+             Base_Type_For_Standard_Definition (Element));
 
             Control := Abandon_Children;
             --  Children were processed explicitly.
@@ -1486,22 +1525,33 @@ package body CIAO.Translator is
             declare
                Component_Subtype_Mark : constant Asis.Expression
                  := Asis.Definitions.Subtype_Mark
-                  (Component_Subtype_Indication
-                   (Array_Component_Definition (Element)));
+                 (Component_Subtype_Indication
+                  (Array_Component_Definition (Element)));
             begin
-               if Is_Limited_Type (Corresponding_Entity_Name_Declaration (Component_Subtype_Mark)) then
-                  Type_Spec_Node := Insert_New_Opaque_Type (State.Current_Node);
+               if Is_Limited_Type
+                 (Corresponding_Entity_Name_Declaration
+                  (Component_Subtype_Mark)) then
+
+                  --  Current_Node is a typedef
+
+                  Set_T_Type (State.Current_Node, New_Opaque_Type);
+
                else
+
+                  --  Current_Node is a struct that will hold
+                  --  a member array containing array bounds,
+                  --  and a member sequence containing array values.
+
                   declare
                      Dimensions        : Natural;
-                     Parent_Node       : Node_Id;
-                     Struct_Type_Node  : Node_Id;
+                     Struct_Type_Node  : constant Node_Id
+                       := State.Current_Node;
                      Member_Node       : Node_Id;
                      Declarator_Node   : Node_Id;
                      S_Declarator_Node : Node_Id;
                      Member_Type_Node  : Node_Id;
-
-                     Type_Identifier   : Name_Id;
+                     Parent_Node       : Node_Id;
+                     Success           : Boolean;
                   begin
                      if TK = An_Unconstrained_Array_Definition then
                         Dimensions := Index_Subtype_Definitions (Element)'Length;
@@ -1509,64 +1559,56 @@ package body CIAO.Translator is
                         Dimensions := Discrete_Subtype_Definitions (Element)'Length;
                      end if;
 
-                     Type_Spec_Node := Insert_New_Constructed_Type (State.Current_Node);
-
-                     Struct_Type_Node := New_Node (N_Struct_Type);
-                     Set_Parent (Struct_Type_Node, Specific_Type_Spec (Type_Spec_Node));
-                     Set_Structure (Specific_Type_Spec (Type_Spec_Node), Struct_Type_Node);
-
-                     Type_Identifier := IDL_Syntax.Name
-                       (Specific_Declarator (First (Declarators (State.Current_Node))));
-
-                     Set_Name (Struct_Type_Node, New_Constructed_Type_Identifier
-                               (Type_Identifier, "struct"));
+                     --  State.Current_Node is the <struct>
+                     --  associated with this type.
 
                      ----------------------------------------------------------
                      -- <member>: unsigned long long Low_Bound;              --
                      --        OR unsigned long long Low_Bounds[DIMENSIONS]; --
                      ----------------------------------------------------------
 
-                     Member_Node := Insert_New_Member (Struct_Type_Node);
+                     Member_Node := Make_Member (No_Location);
+                     Set_Members
+                       (Struct_Type_Node,
+                        Append_Node
+                        (Members (Struct_Type_Node),
+                         Member_Node));
+                     Set_M_Type (Member_Node, Base_Type (Root_Integer));
 
-                     Declarator_Node := New_Node (N_Declarator);
+                     Declarator_Node := Make_Declarator (No_Location);
                      Set_Parent (Declarator_Node, Member_Node);
-                     Add_Declarator (Member_Node, Declarator_Node);
+                     Set_Decl
+                       (Member_Node,
+                        Append_Node
+                        (Decl (Member_Node),
+                         Declarator_Node));
 
                      if Dimensions = 1 then
-                        S_Declarator_Node := New_Node (N_Simple_Declarator);
-                        Set_Name (S_Declarator_Node, New_Name ("Low_Bound"));
+                        Success := Add_Identifier
+                          (Declarator_Node, "Low_Bound");
+                        pragma Assert (Success);
                      else
                         declare
                            Size_Node : Node_Id;
                         begin
-                           S_Declarator_Node := New_Node (N_Array_Declarator);
-                           Set_Name (S_Declarator_Node, New_Name ("Low_Bounds"));
+                           Success := Add_Identifier
+                             (Declarator_Node, "Low_Bounds");
+                           pragma Assert (Success);
 
-                           Size_Node := New_Node (N_Fixed_Array_Size);
-                           Add_Fixed_Array_Size (S_Declarator_Node, Size_Node);
-                           Set_Parent (Size_Node, S_Declarator_Node);
+                           Size_Node := Make_Lit_Integer (No_Location);
+                           Set_Expr_Value
+                             (Size_Node, new Constant_Value
+                              (Kind => C_General_Integer));
+                           Expr_Value (Size_Node).Integer_Value
+                             := Long_Long_Integer (Dimensions);
+                           Set_Array_Bounds
+                             (Declarator_Node,
+                              Append_Node
+                              (Array_Bounds (Declarator_Node),
+                               Size_Node));
 
-                           Set_Size_Value (Size_Node, Unbiased_Uint (Dimensions));
                         end;
                      end if;
-
-                     Set_Parent (S_Declarator_Node, Declarator_Node);
-                     Set_Specific_Declarator
-                       (Declarator_Node, S_Declarator_Node);
-
-                     --  Set type of member to unsigned long long.
-                     declare
-                        TS_Node : Node_Id;
-                        STS_Node : Node_Id;
-                        BTS_Node : Node_Id;
-                     begin
-                        TS_Node := Insert_New_Simple_Type_Spec (Member_Node);
-                        STS_Node := Specific_Type_Spec (TS_Node);
-                        BTS_Node := New_Base_Type (Base_Type (Root_Integer));
-
-                        Set_Base_Type_Spec (STS_Node, BTS_Node);
-                        Set_Parent (BTS_Node, STS_Node);
-                     end;
 
                      -----------------------------------------------------------
                      -- <member>: sequence<sequence<...<TYPE>>> Array_Values; --
@@ -1576,42 +1618,48 @@ package body CIAO.Translator is
                      -- sequences.                                            --
                      -----------------------------------------------------------
 
-                     Member_Node := Insert_New_Member (Struct_Type_Node);
+                     Member_Node := Make_Member (No_Location);
+                     Set_Members
+                       (Struct_Type_Node,
+                        Append_Node
+                        (Members (Struct_Type_Node),
+                         Member_Node));
+                     Set_M_Type (Member_Node, Base_Type (Root_Integer));
 
-                     Declarator_Node := New_Node (N_Declarator);
+                     Declarator_Node := Make_Declarator (No_Location);
                      Set_Parent (Declarator_Node, Member_Node);
-                     Add_Declarator (Member_Node, Declarator_Node);
+                     Set_Decl
+                       (Member_Node,
+                        Append_Node
+                        (Decl (Member_Node),
+                         Declarator_Node));
 
-                     S_Declarator_Node := New_Node (N_Simple_Declarator);
-                     Set_Parent (S_Declarator_Node, Declarator_Node);
-                     Set_Specific_Declarator
-                       (Declarator_Node, S_Declarator_Node);
+                     Success := Add_Identifier
+                       (Declarator_Node, "Array_Values");
+                     pragma Assert (Success);
 
-                     Set_Name (S_Declarator_Node, New_Name ("Array_Values"));
-
-                     Member_Type_Node := Insert_New_Simple_Type_Spec (Member_Node);
-
-                     Parent_Node := Specific_Type_Spec (Member_Type_Node);
+                     Parent_Node := Member_Node;
                      for I in 1 .. Dimensions loop
                         declare
                            Sequence_Node : Node_Id;
                         begin
-                           Sequence_Node := New_Node (N_Sequence_Type);
-                           Set_Template_Type_Spec (Parent_Node, Sequence_Node);
-                           Set_Parent (Sequence_Node, Parent_Node);
+                           Sequence_Node := Make_Sequence (No_Location);
 
-                           Parent_Node := New_Node (N_Simple_Type_Spec);
-                           Set_Specific_Type_Spec (Sequence_Node, Parent_Node);
-                           Set_Parent (Parent_Node, Sequence_Node);
+                           if Parent_Node = Member_Node then
+                              Set_M_Type (Parent_Node, Sequence_Node);
+                           else
+                              Set_Sequence_Type (Parent_Node, Sequence_Node);
+                           end if;
                         end;
                      end loop;
 
-                     --  Parent_Node is <simple_type_spec> in innermost sequence.
+                     --  Parent_Node is innermost sequence.
 
-                     State.Current_Node := Parent_Node;
-                     Translate_Subtype_Mark (Component_Subtype_Mark, State);
+                     Set_Sequence_Type
+                       (Parent_Node, Translate_Subtype_Mark
+                         (Component_Subtype_Mark));
+
                      State.Current_Node := Old_Current_Node;
-
                   end;
                end if;
 
@@ -1620,72 +1668,58 @@ package body CIAO.Translator is
             end;
 
          when A_Record_Type_Definition =>              -- 3.8(2)
-            if Trait_Kind (Element) = A_Limited_Trait then
-               Type_Spec_Node := Insert_New_Opaque_Type (State.Current_Node);
+            if Kind (State.Current_Node) = K_Type_Declarator then
+               --  This is a limited record, mapped as a typedef
+               --  to an opaque type (whereas a non-limited record
+               --  is mapped to a struct).
+               --  (the test above is equivalent to Is_Limited_Type
+               --  (Enclosing_Declaration (Element)) ).
+               Set_T_Type (State.Current_Node, New_Opaque_Type);
 
                Control := Abandon_Children;
                --  Children not processed (the mapping is opaque).
-            else
-               declare
-                  Struct_Type_Node : Node_Id;
-                  Type_Identifier  : Name_Id;
-                  --  The first <identifier> of the <type_declarator>
 
-                  Discriminant_Part : constant Asis.Definition
-                    := Declarations.Discriminant_Part
-                    (Enclosing_Element (Element));
-               begin
-                  Type_Spec_Node := Insert_New_Constructed_Type (State.Current_Node);
-
-                  Struct_Type_Node := New_Node (N_Struct_Type);
-                  Set_Parent (Struct_Type_Node, Specific_Type_Spec (Type_Spec_Node));
-                  Set_Structure (Specific_Type_Spec (Type_Spec_Node), Struct_Type_Node);
-
-                  Type_Identifier := IDL_Syntax.Name
-                    (Specific_Declarator (First (Declarators (State.Current_Node))));
-
-                  Set_Name (Struct_Type_Node, New_Constructed_Type_Identifier
-                            (Type_Identifier, "struct"));
-
-                  Set_Previous_Current_Node (Element, State.Current_Node);
-                  State.Current_Node := Struct_Type_Node;
-
-                  if not Is_Nil (Discriminant_Part) then
-                     Translate_Discriminant_Part (Discriminant_Part, State);
-                  end if;
-               end;
+               return;
             end if;
-            --  Process all children recursively.
+
+            declare
+               Discriminant_Part : constant Asis.Definition
+                 := Declarations.Discriminant_Part
+                 (Enclosing_Element (Element));
+            begin
+               if not Is_Nil (Discriminant_Part) then
+                  Translate_Discriminant_Part
+                    (Discriminant_Part, State);
+               end if;
+
+               --  Process all children recursively.
+            end;
 
          when
            A_Tagged_Record_Type_Definition       |     -- 3.8(2)
            A_Derived_Record_Extension_Definition =>    -- 3.4(2)
-            Type_Spec_Node := Insert_New_Opaque_Type (State.Current_Node);
 
-            Control := Abandon_Children;
-            --  Children were processed explicitly
+              Set_T_Type (State.Current_Node, New_Opaque_Type);
+
+              Control := Abandon_Children;
+              --  Children were processed explicitly
 
          when An_Access_Type_Definition =>             -- 3.10(2)
             --  This is the definition of a Remote Access to Class-Wide type.
             --  (RAS were processed in Process_Declaration directly; other
             --  access-to-object types are not allowed in the visible part
-            --  of a DSA package).
+            --  of a declared pure, RT or RCI package).
             declare
                Designated_Subtype : constant Asis.Expression
                  := Asis.Definitions.Subtype_Mark
                  (Asis.Definitions.Access_To_Object_Definition (Element));
             begin
-               Type_Spec_Node := Insert_New_Simple_Type_Spec (State.Current_Node);
-
-               State.Current_Node := Specific_Type_Spec (Type_Spec_Node);
                pragma Assert (True
                  and then Expression_Kind (Designated_Subtype) = An_Attribute_Reference
                  and then Attribute_Kind (Designated_Subtype) = A_Class_Attribute);
-               Translate_Subtype_Mark (Prefix (Designated_Subtype), State);
-               State.Current_Node := Old_Current_Node;
-
-               Set_Type_Spec (State.Current_Node, Type_Spec_Node);
-               Set_Parent (Type_Spec_Node, State.Current_Node);
+               Set_T_Type
+                 (State.Current_Node, Translate_Subtype_Mark
+                  (Prefix (Designated_Subtype)));
 
                Control := Abandon_Children;
                --  Child elements were processed explicitly.
@@ -1704,7 +1738,7 @@ package body CIAO.Translator is
         (Enclosing_Element (Name),
          Unit_Declaration (Enclosing_Compilation_Unit (Name)))
       then
-         return Enclosing_Compilation_Unit (Name);
+         return IDL_Module_Name (Enclosing_Compilation_Unit (Name));
       else
          case Defining_Name_Kind (Name) is
             when Not_A_Defining_Name =>
@@ -1713,7 +1747,7 @@ package body CIAO.Translator is
             when
               A_Defining_Identifier |
               A_Defining_Enumeration_Literal =>
-               return Name_Image;
+               return To_String (Name_Image);
 
             when A_Defining_Character_Literal =>
                return Maps.Character_Literal_Identifier (Name_Image);
@@ -1729,27 +1763,34 @@ package body CIAO.Translator is
       end if;
    end Map_Defining_Name;
 
-   procedure Translate_Defining_Name
-     (Name    : in Asis.Defining_Name;
-      State   : in out Translator_State)
-   is
-      IDL_Name : Name_Id;
-      Name_Image : constant Program_Text
-        := Declarations.Defining_Name_Image (Name);
-   begin
-      Add_Identifier (State.Current_Node, Map_Defining_Name (Name));
-   end Translate_Defining_Name;
+--    procedure Translate_Defining_Name
+--      (Name    : in Asis.Defining_Name;
+--       State   : in out Translator_State)
+--    is
+--       Success :
+--       Name_Image : constant Program_Text
+--         := Declarations.Defining_Name_Image (Name);
+--    begin
+--       Add_Identifier (State.Current_Node, Map_Defining_Name (Name));
+--    end Translate_Defining_Name;
 
-   procedure Translate_Subtype_Mark
-     (Exp     : in Asis.Expression;
-      State   : in out Translator_State) is
-      Control : Traverse_Control := Continue;
-      Current_Pass : constant Translation_Pass
-        := State.Pass;
+--    procedure Translate_Subtype_Mark
+--      (Exp     : in Asis.Expression;
+--       State   : in out Translator_State) is
+--       Control : Traverse_Control := Continue;
+--       Current_Pass : constant Translation_Pass
+--         := State.Pass;
+--    begin
+--       State.Pass := Translate_Subtype_Mark;
+--       Translate_Tree (Exp, Control, State);
+--       State.Pass := Current_Pass;
+--    end Translate_Subtype_Mark;
+
+   function Translate_Subtype_Mark (Exp : in Asis.Expression)
+     return Node_Id is
    begin
-      State.Pass := Translate_Subtype_Mark;
-      Translate_Tree (Exp, Control, State);
-      State.Pass := Current_Pass;
+      return Get_Translation
+        (Corresponding_Entity_Name_Definition (Exp));
    end Translate_Subtype_Mark;
 
    procedure Translate_Discriminant_Part
@@ -1808,7 +1849,7 @@ package body CIAO.Translator is
       Previous_Current_Node : constant Node_Id
         := Get_Previous_Current_Node (Element);
    begin
-      if Previous_Current_Node /= Empty then
+      if Previous_Current_Node /= No_Node then
          State.Current_Node := Previous_Current_Node;
       end if;
    end Post_Translate_Element;
@@ -1856,22 +1897,14 @@ package body CIAO.Translator is
                              := Translate
                              (Enclosing_Compilation_Unit (Unit_Declaration));
                         begin
-                           Include_Node := New_Include_Directive;
-                           Set_Parent (Include_Node, State.Current_Node);
-                           Add_Directive (State.Current_Node, Include_Node);
-                           Set_Translated_Unit (Include_Node, Unit_Translation);
+                           Include_Node := Make_Ben_Idl_File (No_Location);
+                           Append_Node_To_Contents (State.Current_Node, Include_Node);
 
+                           Set_Contents
+                             (Include_Node, Contents (Unit_Translation));
                            Set_Translation (Unit_Declaration, Include_Node);
                            --  The translation of the declaration of a withed
                            --  unit is a #include preprocessor directive node.
-
-                           Set_Name (Include_Node, New_Name
-                                     (To_Wide_String
-                                      (IDL_File_Name
-                                       (Ada_File_Name
-                                        (Asis.Compilation_Units.Unit_Full_Name
-                                         (Enclosing_Compilation_Unit
-                                          (Unit_Declaration)))))));
                         end;
                      end loop;
                   end;
@@ -1887,20 +1920,23 @@ package body CIAO.Translator is
       --  its parent.
       if Defining_Name_Kind (Name) = A_Defining_Expanded_Name then
          declare
+            Unit_Declaration : constant Asis.Declaration
+              := Corresponding_Entity_Name_Declaration
+              (Defining_Prefix (Name));
+            Unit_Translation : constant Node_Id
+              := Translate
+              (Enclosing_Compilation_Unit (Unit_Declaration));
+
             Include_Node : Node_Id;
          begin
-            Include_Node := New_Include_Directive;
-            Set_Parent (Include_Node, State.Current_Node);
-            Add_Directive (State.Current_Node, Include_Node);
+            Include_Node := Make_Ben_Idl_File (No_Location);
+            Append_Node_To_Contents (State.Current_Node, Include_Node);
 
-            Set_Name (Include_Node, New_Name
-                      (To_Wide_String
-                       (IDL_File_Name
-                        (Ada_File_Name
-                         (Asis.Compilation_Units.Unit_Full_Name
-                          (Enclosing_Compilation_Unit
-                           (Corresponding_Entity_Name_Declaration
-                            (Defining_Prefix (Name)))))))));
+            Set_Contents
+              (Include_Node, Contents (Unit_Translation));
+            Set_Translation (Unit_Declaration, Include_Node);
+            --  The translation of the declaration of a withed
+            --  unit is a #include preprocessor directive node.
          end;
       end if;
 
@@ -1919,10 +1955,14 @@ package body CIAO.Translator is
       declare
          D : constant Declaration
            := Unit_Declaration (LU);
-
+         N : constant Node_Id := Get_Translation (D);
          C : Traverse_Control := Continue;
          S : Translator_State;
       begin
+         if N /= No_Node then
+            --  Unit already translated.
+            return N;
+         end if;
          Initialize_Translator_State
            (Category => Category,
             State    => S);
