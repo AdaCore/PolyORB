@@ -44,7 +44,7 @@ procedure Evoluted is
       Set_Exit_Status (1);
    end Usage;
 
-   Is_Test : Boolean;
+   Is_Test : Boolean := False;
    Message_Count : Integer;
    Message_Size : Integer;
    Nmax : Integer;
