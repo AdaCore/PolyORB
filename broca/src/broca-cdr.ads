@@ -211,6 +211,26 @@ package Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data   : access CORBA.ValueModifier);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.ValueModifier);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.ValueModifier;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Visibility);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Visibility);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Visibility;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : access CORBA.Any);
    procedure Marshall
      (Buffer : access Buffer_Type;

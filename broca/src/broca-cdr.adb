@@ -322,6 +322,20 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data : in CORBA.ValueModifier) is
+   begin
+      Marshall (Buffer, CORBA.Short (Data));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data : in CORBA.Visibility) is
+   begin
+      Marshall (Buffer, CORBA.Short (Data));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data : in CORBA.Any) is
    begin
       null;
@@ -330,6 +344,7 @@ package body Broca.CDR is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data : in CORBA.TypeCode.Object) is
+      Complex_Buffer : aliased Buffer_Type;
    begin
       case CORBA.Typecode.Kind (Data) is
          when Tk_Null =>
@@ -366,28 +381,124 @@ package body Broca.CDR is
             Marshall (Buffer, CORBA.TypeCode.Name (Data));
          when Tk_Struct =>
             Marshall (Buffer, CORBA.Unsigned_Long'(15));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Id (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Name (Data));
+            declare
+               Nb : CORBA.Unsigned_Long :=
+                 CORBA.TypeCode.Parameter_Count (Data);
+            begin
+               Marshall (Complex_Buffer'Access, Nb);
+               for I in 0 .. Nb - 1 loop
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Name (Data, I));
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Type (Data, I));
+               end loop;
+            end;
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_Union =>
             Marshall (Buffer, CORBA.Unsigned_Long'(16));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Id (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Name (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Discriminator_Type (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Default_Index (Data));
+            declare
+               Nb : CORBA.Unsigned_Long :=
+                 CORBA.TypeCode.Parameter_Count (Data);
+            begin
+               Marshall (Complex_Buffer'Access, Nb);
+               for I in 0 .. Nb - 1 loop
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Label (Data, I));
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Name (Data, I));
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Type (Data, I));
+               end loop;
+            end;
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_Enum =>
             Marshall (Buffer, CORBA.Unsigned_Long'(17));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Id (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Name (Data));
+            declare
+               Nb : CORBA.Unsigned_Long :=
+                 CORBA.TypeCode.Parameter_Count (Data);
+            begin
+               Marshall (Complex_Buffer'Access, Nb);
+               for I in 0 .. Nb - 1 loop
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Name (Data, I));
+               end loop;
+            end;
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_String =>
             Marshall (Buffer, CORBA.Unsigned_Long'(18));
             Marshall (Buffer, CORBA.TypeCode.Length (Data));
          when Tk_Sequence =>
             Marshall (Buffer, CORBA.Unsigned_Long'(19));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Content_Type (Data));
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Length (Data));
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_Array =>
             Marshall (Buffer, CORBA.Unsigned_Long'(20));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Content_Type (Data));
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Length (Data));
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_Alias =>
             Marshall (Buffer, CORBA.Unsigned_Long'(21));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Id (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Name (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Content_Type (Data));
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_Except =>
             Marshall (Buffer, CORBA.Unsigned_Long'(22));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Id (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Name (Data));
+            declare
+               Nb : CORBA.Unsigned_Long :=
+                 CORBA.TypeCode.Parameter_Count (Data);
+            begin
+               Marshall (Complex_Buffer'Access, Nb);
+               for I in 0 .. Nb - 1 loop
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Name (Data, I));
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Type (Data, I));
+               end loop;
+            end;
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_Longlong =>
             Marshall (Buffer, CORBA.Unsigned_Long'(23));
          when Tk_Ulonglong =>
@@ -405,16 +516,60 @@ package body Broca.CDR is
             Marshall (Buffer, CORBA.TypeCode.Fixed_Scale (Data));
          when Tk_Value =>
             Marshall (Buffer, CORBA.Unsigned_Long'(29));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Id (Data));
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Name (Data));
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Type_Modifier (Data));
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Concrete_Base_Type (Data));
+            declare
+               Nb : CORBA.Unsigned_Long :=
+                 CORBA.TypeCode.Parameter_Count (Data);
+            begin
+               Marshall (Complex_Buffer'Access, Nb);
+               for I in 0 .. Nb - 1 loop
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Name (Data, I));
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Type (Data, I));
+                  Marshall (Complex_Buffer'Access,
+                            CORBA.TypeCode.Member_Visibility (Data, I));
+               end loop;
+            end;
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_Valuebox =>
             Marshall (Buffer, CORBA.Unsigned_Long'(30));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Id (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Name (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Content_Type (Data));
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_Native =>
             Marshall (Buffer, CORBA.Unsigned_Long'(31));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Id (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Name (Data));
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
          when Tk_Abstract_Interface =>
             Marshall (Buffer, CORBA.Unsigned_Long'(32));
-            --  FIXME : not terminated
+            Start_Encapsulation (Complex_Buffer'Access);
+            Marshall (Complex_Buffer'Access,
+                      CORBA.TypeCode.Id (Data));
+            Marshall (Complex_Buffer'Access
+                      , CORBA.TypeCode.Name (Data));
+            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Release (Complex_Buffer);
       end case;
    end Marshall;
 
@@ -556,6 +711,20 @@ package body Broca.CDR is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access CORBA.RepositoryId) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.ValueModifier) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Visibility) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
@@ -745,6 +914,20 @@ package body Broca.CDR is
       Result : CORBA.String := Unmarshall (Buffer);
    begin
       return CORBA.RepositoryId (Result);
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.ValueModifier is
+      Result : CORBA.Short := Unmarshall (Buffer);
+   begin
+      return CORBA.ValueModifier (Result);
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Visibility is
+      Result : CORBA.Short := Unmarshall (Buffer);
+   begin
+      return CORBA.Visibility (Result);
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
