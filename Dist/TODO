@@ -1,14 +1,10 @@
 CLADS : Configuration Language for Ada Distributed System
 
-* Directory hierarchy should take into account the configuration name.
-  
 * Env. variable like GCC_PREFIX for GNATDIST.
 
 * Handle or not rule E.5 (21) (pragma ...).
 
 * Get -j parameter from command line and use it
-
-* Improve generation, compilation and link steps
 
 * Define "plateforms" or groupe of partitions in the configuration language
      PLATEFORM_NAME:
