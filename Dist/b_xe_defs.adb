@@ -219,29 +219,49 @@ begin
    Put_Line (0, "pragma Style_Checks (Off);");
    if Windows_NT then
       Put_Line (0, "with XE_Reg;");
+      Put_Line (0, "with GNAT.Strings;");
+      Put_Line (0, "use type GNAT.Strings.String_Access;");
    end if;
    Put_Line (0, "with XE; use XE;");
    Put_Line (0, "package body XE_Defs is");
    Put_Line (1, "procedure Initialize is");
    Put_Line (1, "begin");
+
+   if Windows_NT then
+      Put_Line (2, "if XE_Reg.Get_Garlic_Dir /= null then");
+      Put_Line (3, "Compiler_Switches.Append");
+      Put_Line (4, "(new String'(""-I"" & XE_Reg.Get_Garlic_Dir.all));");
+      Put_Line (2, "end if;");
+   end if;
+
    for I in Compiler_Switches.First .. Compiler_Switches.Last loop
       Put_Line (2, "Compiler_Switches.Append");
       Put      (3, "(new String'(""");
       Put      (Compiler_Switches.Table (I).all);
       Put_Line ("""));");
    end loop;
+
+   if Windows_NT then
+      Put_Line (2, "if XE_Reg.Get_Garlic_Dir /= null then");
+      Put_Line (3, "Binder_Switches.Append");
+      Put_Line (4, "(new String'(""-I"" & XE_Reg.Get_Garlic_Dir.all));");
+      Put_Line (2, "end if;");
+   end if;
+
    for I in Binder_Switches.First .. Binder_Switches.Last loop
       Put_Line (2, "Binder_Switches.Append");
       Put      (3, "(new String'(""");
       Put      (Binder_Switches.Table (I).all);
       Put_Line ("""));");
    end loop;
+
    for I in Linker_Switches.First .. Linker_Switches.Last loop
       Put_Line (2, "Linker_Switches.Append");
       Put      (3, "(new String'(""");
       Put      (Linker_Switches.Table (I).all);
       Put_Line ("""));");
    end loop;
+
    Put_Line (1, "end Initialize;");
    Generate_Function ("Get_Rsh_Command", RSH_CMD);
    Generate_Function ("Get_Rsh_Options", RSH_OPT);
@@ -252,4 +272,3 @@ begin
    Generate_Function ("Get_Def_Protocol_Name", DEF_PROTOCOL_NAME);
    Put_Line (0, "end XE_Defs;");
 end B_XE_Defs;
-
