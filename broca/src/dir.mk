@@ -72,7 +72,7 @@ allsrc: force $(ADA_SPECS) $(ADA_IMPLS) $(BROCA_ADASOCKET)/sockets.ads
 	$(GNATMAKE) $(BROCA_FLAGS) allsrc; \
 
 clean::
-	$(RM) *.o *.ali *~ *.c
+	$(RM) *.o *.ali *~ b~*.ad[sb]
 	$(RM) allsrc
 	$(RM) $(lib)
 
