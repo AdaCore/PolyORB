@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#10 $
+;;; $Id: //droopi/main/utils/update-headers.el#11 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -26,7 +26,7 @@
        (setq base_date "")
      )
 
-    ; delette previous header box, if any.
+    ; delete previous header box, if any.
     (goto-char (point-min))
     (next-line 1)
     (if (re-search-forward "^----------" nil t)
