@@ -1,4 +1,5 @@
 with Ada.Text_IO;
+with GNAT.OS_Lib;
 
 package body Idl_Fe.Errors is
 
@@ -21,14 +22,28 @@ package body Idl_Fe.Errors is
    function Display_Location (Loc : in Location) return String is
    begin
       if Loc.Filename /= null then
+         if Loc.Dirname /= null then
+            return "line " &
+              Nat_To_String (Loc.Line) &
+              ", column " &
+              Nat_To_String (Loc.Col) &
+              " of file " &
+              Loc.Dirname.all &
+              GNAT.OS_Lib.Directory_Separator &
+              Loc.Filename.all;
+         else
+            return "line " &
+              Nat_To_String (Loc.Line) &
+              ", column " &
+              Nat_To_String (Loc.Col) &
+              " of file " &
+              Loc.Filename.all;
+         end if;
+      else
          return "line " &
            Nat_To_String (Loc.Line) &
            ", column " &
-           Nat_To_String (Loc.Col) &
-           " of file " &
-           Loc.Filename.all;
-      else
-         return "line 0, column 0";
+           Nat_To_String (Loc.Col);
       end if;
    end Display_Location;
 

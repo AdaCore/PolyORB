@@ -268,6 +268,17 @@ private
    --  of the new line
    procedure Set_Mark;
 
+   --  Sets the mark on the char following the current one.
+   procedure Set_Mark_On_Next_Char;
+
+   --  Sets another mark in the text.
+   --  If the line changes, the mark is replaced at the beginning
+   --  of the new line
+   procedure Set_End_Mark;
+
+   --  Sets the second mark on the char before the current one.
+   procedure Set_End_Mark_On_Previous_Char;
+
    --  gets the text from the mark to the current position
    function Get_Marked_Text return String;
 

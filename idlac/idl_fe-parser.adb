@@ -7,8 +7,6 @@ with Idl_Fe.Errors;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
---  with Ada.Text_IO;
-
 package body Idl_Fe.Parser is
 
    --------------
@@ -57,7 +55,7 @@ package body Idl_Fe.Parser is
    Token_Buffer : array (Buffer_Index) of Idl_Token
      := (others => T_Error);
    Location_Buffer : array (Buffer_Index) of Idl_Fe.Errors.Location
-     := (others => (Filename => null, Line => 0, Col => 0));
+     := (others => (Dirname => null, Filename => null, Line => 0, Col => 0));
    String_Buffer : array (Buffer_Index) of String_Ptr
      := (others => null);
 
@@ -886,7 +884,7 @@ package body Idl_Fe.Parser is
    begin
       Success := True;
       loop
-         exit when Get_Token = T_Right_Cbracket;
+         exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
          Parse_Export (Result, Export_Success);
          if not Export_Success then
             pragma Debug (O ("Parse_Interface_Body : Export_Success = false"));
@@ -973,7 +971,8 @@ package body Idl_Fe.Parser is
             Set_Value (Res, Name);
             pragma Debug (O ("Parse_Scoped_Name : Set_S_Type if " &
                              "simple identifier"));
-            if Kind (Name) = K_Declarator then
+            if Kind (Name) = K_Declarator and then
+              Kind (Parent (Name)) = K_Type_Declarator then
                pragma Debug (O ("Parse_Scoped_Name : the scoped" &
                                 " name is defined in a declarator"));
                if Kind (T_Type (Parent (Name))) = K_Scoped_Name then
@@ -984,7 +983,7 @@ package body Idl_Fe.Parser is
             else
                pragma Debug (O ("Parse_Scoped_Name : the scoped" &
                                 " name is not defined in a declarator"));
-               Set_S_Type (Res, (Name));
+               Set_S_Type (Res, No_Node);
             end if;
             Success := True;
             Result := Res;
@@ -1065,14 +1064,15 @@ package body Idl_Fe.Parser is
          raise Idl_Fe.Errors.Internal_Error;
       end if;
       Set_Value (Res, Name);
-      if Kind (Name) = K_Declarator then
+      if Kind (Name) = K_Declarator and then
+        Kind (Parent (Name)) = K_Type_Declarator then
          if Kind (T_Type (Parent (Name))) = K_Scoped_Name then
             Set_S_Type (Res, S_Type (T_Type (Parent (Name))));
          else
             Set_S_Type (Res, T_Type (Parent (Name)));
          end if;
       else
-         Set_S_Type (Res, (Name));
+         Set_S_Type (Res, No_Node);
       end if;
       Success := True;
       Result := Res;
@@ -1373,6 +1373,10 @@ package body Idl_Fe.Parser is
             Parse_Value_Inheritance_Spec (Result, Inherit_Success);
             if not Inherit_Success then
                Go_To_Next_Left_Cbracket;
+               if Get_Token = T_Eof then
+                  Success := False;
+                  return;
+               end if;
             end if;
          end;
       end if;
@@ -1409,6 +1413,10 @@ package body Idl_Fe.Parser is
             end if;
             if not Element_Success then
                Go_To_Next_Value_Element;
+               if Get_Token = T_Eof then
+                  Success := False;
+                  return;
+               end if;
             else
                Set_Contents (Result, Append_Node (Contents (Result), Element));
             end if;
@@ -2045,6 +2053,10 @@ package body Idl_Fe.Parser is
             Pop_Scope;
             if not Decls_Success then
                Go_To_Next_Right_Paren;
+               if Get_Token = T_Eof then
+                  Success := False;
+                  return;
+               end if;
             else
                if Get_Token /= T_Right_Paren then
                   Idl_Fe.Errors.Parser_Error ("missing ')' at the end of " &
@@ -4136,7 +4148,7 @@ package body Idl_Fe.Parser is
                Append_Node (Result, Member);
             end if;
          end;
-         exit when Get_Token = T_Right_Cbracket;
+         exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
       end loop;
          Success := True;
          return;
@@ -4467,7 +4479,7 @@ package body Idl_Fe.Parser is
                end if;
             end if;
          end;
-         exit when Get_Token = T_Right_Cbracket;
+         exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
       end loop;
 --      Release_All_Used_Values;
       Success := True;
@@ -4542,7 +4554,6 @@ package body Idl_Fe.Parser is
            ("';' expected at the end of case clause.",
             Idl_Fe.Errors.Error,
             Get_Token_Location);
-         Success := False;
       else
          Next_Token;
       end if;
@@ -4590,7 +4601,6 @@ package body Idl_Fe.Parser is
            ("':' expected at the end of case label.",
             Idl_Fe.Errors.Error,
             Get_Token_Location);
-         Success := False;
       else
          Next_Token;
       end if;
@@ -5082,6 +5092,10 @@ package body Idl_Fe.Parser is
             Parse_Member (Mem, Mem_Success);
             if not Mem_Success then
                Go_To_Next_Member;
+               if Get_Token = T_Eof then
+                  Success := False;
+                  return;
+               end if;
             else
                Set_Members (Result, Append_Node (Members (Result), Mem));
             end if;
@@ -6640,9 +6654,9 @@ package body Idl_Fe.Parser is
    end Go_To_Next_Definition;
 
 
-   -----------------------------
-   --  Go_To_Next_L_Cbracket  --
-   -----------------------------
+   --------------------------------
+   --  Go_To_Next_Left_Cbracket  --
+   --------------------------------
    procedure Go_To_Next_Left_Cbracket is
    begin
       while Get_Token /= T_Eof and Get_Token /= T_Left_Cbracket loop
@@ -6651,9 +6665,9 @@ package body Idl_Fe.Parser is
       pragma Debug (O ("Go_To_Next_Left_CBracket : end"));
    end Go_To_Next_Left_Cbracket;
 
-   -----------------------------
-   --  Go_To_Next_R_Cbracket  --
-   -----------------------------
+   ---------------------------------
+   --  Go_To_Next_Right_Cbracket  --
+   ---------------------------------
    procedure Go_To_Next_Right_Cbracket is
    begin
       while Get_Token /= T_Eof and Get_Token /= T_Right_Cbracket loop
@@ -6745,9 +6759,11 @@ package body Idl_Fe.Parser is
    -------------------------
    procedure Go_To_End_Of_Case is
    begin
-      --  FIXME : to be improved
+      --  goes to the next clause (T_Case or T_Default) or
+      --  to the next right cbracket (if it was the last clause)
       while Get_Token /= T_Case and
-        Get_Token /= T_Default loop
+        Get_Token /= T_Default and
+        Get_Token /= T_Right_Cbracket loop
          Next_Token;
       end loop;
    end Go_To_End_Of_Case;
@@ -6757,7 +6773,11 @@ package body Idl_Fe.Parser is
    -------------------------------
    procedure Go_To_End_Of_Case_Label is
    begin
-      null;
+      --  basically goes to the next colon and consumes it
+      while Get_Token /= T_Colon loop
+         Next_Token;
+      end loop;
+      Next_Token;
    end Go_To_End_Of_Case_Label;
 
 

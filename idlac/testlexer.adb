@@ -1,13 +1,14 @@
 with Ada.Text_IO;
 with GNAT.Command_Line;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
+with Idl_Fe.Errors;
 
 procedure testlexer is
    Token : Idl_Fe.Lexer.Idl_Token;
 begin
    Idl_Fe.Lexer.Initialize (GNAT.Command_Line.Get_Argument,
-                      True,
-                      True);
+                            True,
+                            True);
 
    loop
       Token := Get_Next_Token;
@@ -42,4 +43,7 @@ begin
       Ada.Text_IO.Put_Line ("");
       exit when Token = T_Eof;
    end loop;
+exception
+   when Idl_Fe.Errors.Fatal_Error =>
+      null;
 end testlexer;
