@@ -31,6 +31,8 @@ Dist/xe_lead.adb
 Dist/xe_lead.ads
 Dist/xe_parse.adb
 Dist/xe_parse.ads
+Dist/xe_reg.ads
+Dist/xe_reg.adb
 Dist/xe_scan.adb
 Dist/xe_scan.ads
 Dist/xe_stdcnf.adb
