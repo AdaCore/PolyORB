@@ -14,7 +14,7 @@ package body Broca.Refs is
 
    Counter_Global_Lock : Broca.Locks.Mutex_Type;
 
-   procedure Free is new Ada.Unchecked_Deallocation (Ref_Type'Class, Ref_Acc);
+   procedure Free is new Ada.Unchecked_Deallocation (Ref_Type'Class, Ref_Ptr);
 
    -------------------
    -- Disable_Usage --
@@ -29,7 +29,11 @@ package body Broca.Refs is
       end if;
    end Disable_Usage;
 
-   procedure Inc_Usage (Obj : Ref_Acc) is
+   ---------------
+   -- Inc_Usage --
+   ---------------
+
+   procedure Inc_Usage (Obj : in Ref_Ptr) is
    begin
       if Obj.Counter /= -1 then
          Counter_Global_Lock.Lock;
@@ -38,24 +42,37 @@ package body Broca.Refs is
       end if;
    end Inc_Usage;
 
-   procedure Dec_Usage (Obj : in out Ref_Acc) is
+   ---------------
+   -- Dec_Usage --
+   ---------------
+
+   procedure Dec_Usage (Obj : in out Ref_Ptr) is
    begin
       if Obj.Counter /= -1 then
          Counter_Global_Lock.Lock;
          Obj.Counter := Obj.Counter - 1;
          Counter_Global_Lock.Unlock;
          if Obj.Counter = 0 then
-            pragma Debug (O ("dec_usage: deallocate " &
-                             Ada.Tags.External_Tag (Obj.all'Tag)));
+            pragma Debug
+              (O ("dec_usage: deallocate " &
+                  Ada.Tags.External_Tag (Obj.all'Tag)));
             Free (Obj);
          end if;
       end if;
    end Dec_Usage;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
    procedure Initialize (Object : in out Ref) is
    begin
       null;
    end Initialize;
+
+   ------------
+   -- Adjust --
+   ------------
 
    procedure Adjust (Object : in out Ref) is
    begin
@@ -63,6 +80,10 @@ package body Broca.Refs is
          Inc_Usage (Object.A_Ref);
       end if;
    end Adjust;
+
+   --------------
+   -- Finalize --
+   --------------
 
    procedure Finalize (Object : in out Ref) is
    begin
@@ -125,7 +146,7 @@ package body Broca.Refs is
    -- Get --
    ---------
 
-   function Get (Self : Ref) return Ref_Acc is
+   function Get (Self : Ref) return Ref_Ptr is
    begin
       return Self.A_Ref;
    end Get;
@@ -134,7 +155,7 @@ package body Broca.Refs is
    -- Set --
    ---------
 
-   procedure Set (Self : in out Ref; Referenced : Ref_Acc) is
+   procedure Set (Self : in out Ref; Referenced : Ref_Ptr) is
    begin
       if Self.A_Ref /= null then
          Dec_Usage (Self.A_Ref);
