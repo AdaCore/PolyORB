@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#13 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#14 $
 
 with System;
 --  For bit-order information.
@@ -411,7 +411,7 @@ private
       type Iovec_Array is array (Positive range <>) of aliased Iovec;
       type Iovec_Array_Access is access all Iovec_Array;
 
-      Prealloc_Size : constant := 16;
+      Prealloc_Size : constant := 8;
       --  The number of slots in the preallocated iovec array.
 
       type Iovec_Pool_Type is record

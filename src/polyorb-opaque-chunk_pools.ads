@@ -32,7 +32,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#6 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#7 $
 
 with Ada.Finalization;
 
@@ -53,7 +53,7 @@ package PolyORB.Opaque.Chunk_Pools is
      new Ada.Finalization.Limited_Controlled with private;
    type Chunk_Access is access all Chunk;
 
-   Default_Chunk_Size : constant Ada.Streams.Stream_Element_Count := 4096;
+   Default_Chunk_Size : constant Ada.Streams.Stream_Element_Count := 512;
 
    type Pool_Type is limited private;
    --  A Pool of chunks with one preallocated chunk and a
