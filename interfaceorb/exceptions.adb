@@ -48,7 +48,6 @@
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
-
 package body Exceptions is
 
 
@@ -78,50 +77,9 @@ package body Exceptions is
    end ;
 
 
-   --------------------------------------------------
-   ---       UNKNOWN Exception                    ---
-   --------------------------------------------------
-
-
-   -- C_Raise_C_UNKNOWN_Exception
-   -------------------------------
-  procedure C_Raise_C_UNKNOWN_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
-                                          Pd_Status : in Interfaces.C.Int) ;
-   pragma Import (Cpp,C_Raise_C_UNKNOWN_Exception,"Raise_C_UNKNOWN_Exception__FUlQ25CORBA16CompletionStatus");
-   -- Wrapped around C function Raise_C_UNKNOWN_Exception
-   -- declared in Ada_exceptions.hh
-   -- Called by Ada code.
-   -- Handles in C a Corba exception that was raised in Ada.
-
-
-   -- Raise_C_UNKNOWN_Exception
-   ----------------------------
-   procedure Raise_C_UNKNOWN_Exception (E : in Ada.Exceptions.Exception_Occurrence) is
-      Member : Corba.Unknown_Members ;
-      C_Minor : Interfaces.C.Unsigned_Long ;
-      C_Status : Interfaces.C.Int ;
-   begin
-      -- transforms the arguments in a C type ...
-      Corba.Get_Members (E,Member) ;
-      C_Minor := Interfaces.C.Unsigned_Long (Member.Minor) ;
-      C_Status := Status_To_Int (Member.Completed) ;
-      -- ... and calls the C procedure
-      C_Raise_C_UNKNOWN_Exception (C_Minor, C_Status) ;
-   end ;
-
-
-   -- Raise_Ada_UNKNOWN_Exception
-   ------------------------------
-   procedure Raise_Ada_UNKNOWN_Exception (Pd_Minor : in Corba.Unsigned_Long ;
-                                          Pd_Status : in Corba.Completion_Status) is
-   begin
-      -- creates a new exception member with parameters
-      -- and raises the exception
-      Corba.Raise_Corba_Exception (Corba.Unknown'Identity,
-                                   Corba.Unknown_Members'(Minor => Pd_Minor ,
-                                    Completed => Pd_Status)) ;
-   end ;
-
+   -----------------------------------
+   -- Handling of UNKNOWN exception --
+   -----------------------------------
 
    -- C_Raise_Ada_UNKNOWN_Exception
    --------------------------------
@@ -133,11 +91,422 @@ package body Exceptions is
       -- transforms the arguments in a Ada type ...
       Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
       Ada_Pd_Status := Int_To_Status (Pd_Status) ;
-      -- ... and calls the C procedure
-      Raise_Ada_UNKNOWN_Exception (Ada_Pd_Minor,Ada_Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Unknown'Identity,
+                                   Corba.Unknown_Members'(Minor => Ada_Pd_Minor ,
+                                                          Completed => Ada_Pd_Status)) ;
    end ;
 
 
 
+   -------------------------------------------------------
+   -- And now the same methods for the other exceptions --
+   -------------------------------------------------------
+
+   procedure C_Raise_Ada_BAD_PARAM_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                              Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Bad_Param'Identity,
+                                   Corba.Bad_Param_Members'(Minor => Ada_Pd_Minor ,
+                                                            Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_NO_MEMORY_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                              Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.No_Memory'Identity,
+                                   Corba.No_Memory_Members'(Minor => Ada_Pd_Minor ,
+                                                            Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_IMP_LIMIT_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                              Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Imp_Limit'Identity,
+                                   Corba.Imp_Limit_Members'(Minor => Ada_Pd_Minor ,
+                                                            Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_COMM_FAILURE_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                 Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
+                                   Corba.Comm_Failure_Members'(Minor => Ada_Pd_Minor ,
+                                                               Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_INV_OBJREF_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                               Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Inv_Objref'Identity,
+                                   Corba.Inv_Objref_Members'(Minor => Ada_Pd_Minor ,
+                                                             Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_OBJECT_NOT_EXIST_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                     Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Object_Not_Exist'Identity,
+                                   Corba.Object_Not_Exist_Members'(Minor => Ada_Pd_Minor ,
+                                                                   Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_NO_PERMISSION_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                  Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.No_Permission'Identity,
+                                   Corba.No_Permission_Members'(Minor => Ada_Pd_Minor ,
+                                                                Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_INTERNAL_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                             Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Internal'Identity,
+                                   Corba.Internal_Members'(Minor => Ada_Pd_Minor ,
+                                                           Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_MARSHAL_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                            Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Marshal'Identity,
+                                   Corba.Marshal_Members'(Minor => Ada_Pd_Minor ,
+                                                          Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_INITIALIZATION_FAILURE_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                           Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Initialization_Failure'Identity,
+                                   Corba.Initialization_Failure_Members'(Minor => Ada_Pd_Minor ,
+                                                                         Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_NO_IMPLEMENT_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                 Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.No_Implement'Identity,
+                                   Corba.No_Implement_Members'(Minor => Ada_Pd_Minor ,
+                                                               Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_BAD_TYPECODE_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                 Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Bad_Typecode'Identity,
+                                   Corba.Bad_Typecode_Members'(Minor => Ada_Pd_Minor ,
+                                                               Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_BAD_OPERATION_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                  Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Bad_Operation'Identity,
+                                   Corba.Bad_Operation_Members'(Minor => Ada_Pd_Minor ,
+                                                                Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_NO_RESOURCES_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                 Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.No_Resources'Identity,
+                                   Corba.No_Resources_Members'(Minor => Ada_Pd_Minor ,
+                                                               Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_NO_RESPONSE_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.No_Response'Identity,
+                                   Corba.No_Response_Members'(Minor => Ada_Pd_Minor ,
+                                                              Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_PERSIST_STORE_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                  Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Persist_store'Identity,
+                                   Corba.Persist_store_Members'(Minor => Ada_Pd_Minor ,
+                                                                Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_BAD_INV_ORDER_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                  Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Bad_Inv_Order'Identity,
+                                   Corba.Bad_Inv_Order_Members'(Minor => Ada_Pd_Minor ,
+                                                                Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_TRANSIENT_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                              Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Transient'Identity,
+                                   Corba.Transient_Members'(Minor => Ada_Pd_Minor ,
+                                                            Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_FREE_MEM_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                             Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Free_Mem'Identity,
+                                   Corba.Free_Mem_Members'(Minor => Ada_Pd_Minor ,
+                                                           Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_INV_IDENT_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                              Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Inv_Ident'Identity,
+                                   Corba.Inv_Ident_Members'(Minor => Ada_Pd_Minor ,
+                                                            Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_INV_FLAG_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                             Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Inv_Flag'Identity,
+                                   Corba.Inv_Flag_Members'(Minor => Ada_Pd_Minor ,
+                                                           Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_INTF_REPOS_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                               Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Intf_Repos'Identity,
+                                   Corba.Intf_Repos_Members'(Minor => Ada_Pd_Minor ,
+                                                             Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_BAD_CONTEXT_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Bad_Context'Identity,
+                                   Corba.Bad_Context_Members'(Minor => Ada_Pd_Minor ,
+                                                              Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_OBJ_ADAPTER_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Obj_Adapter'Identity,
+                                   Corba.Obj_Adapter_Members'(Minor => Ada_Pd_Minor ,
+                                                              Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_DATA_CONVERSION_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                    Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Data_Conversion'Identity,
+                                   Corba.Data_Conversion_Members'(Minor => Ada_Pd_Minor ,
+                                                                  Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_TRANSACTION_REQUIRED_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                         Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Transaction_Required'Identity,
+                                   Corba.Transaction_Required_Members'(Minor => Ada_Pd_Minor ,
+                                                                       Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_TRANSACTION_ROLLEDBACK_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                           Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Transaction_Rolledback'Identity,
+                                   Corba.Transaction_Rolledback_Members'(Minor => Ada_Pd_Minor ,
+                                                                         Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_INVALID_TRANSACTION_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                        Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Invalid_Transaction'Identity,
+                                   Corba.Invalid_Transaction_Members'(Minor => Ada_Pd_Minor ,
+                                                                      Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_WRONG_TRANSACTION_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                                      Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.Wrong_Transaction'Identity,
+                                   Corba.Wrong_Transaction_Members'(Minor => Ada_Pd_Minor ,
+                                                                    Completed => Ada_Pd_Status)) ;
+   end ;
 
 end Exceptions ;

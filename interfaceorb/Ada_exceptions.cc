@@ -48,7 +48,9 @@
 
 #include "Ada_exceptions.hh"
 
-//#define DEF_EXCEPTION(name)
+///////////////////////////////////
+// Handling of UNKNOWN exception //
+///////////////////////////////////
 
 // Raise_Corba_Exception
 //----------------------
@@ -60,49 +62,204 @@ void Raise_Corba_Exception (CORBA::UNKNOWN e)
 };
 
 
-// Raise_C_UNKNOWN_Exception
-//---------------------------
-void Raise_C_UNKNOWN_Exception (CORBA::ULong pd_minor,
-				CORBA::CompletionStatus pd_status)
+
+///////////////////////////////////////////////////////
+// And now the same methods for the other exceptions //
+///////////////////////////////////////////////////////
+
+void Raise_Corba_Exception (CORBA::BAD_PARAM e)
 {
-  CORBA::UNKNOWN *e = new CORBA::UNKNOWN (pd_minor, pd_status);
-  printf ("Je suis la\n");
-  e->_raise ();
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_BAD_PARAM_Exception (pd_minor, pd_status) ;
 };
 
-/*
+void Raise_Corba_Exception (CORBA::NO_MEMORY e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_NO_MEMORY_Exception (pd_minor, pd_status) ;
+};
 
-DEF_EXCEPTION (UNKNOWN);
-DEF_EXCEPTION (BAD_PARAM);
-DEF_EXCEPTION (NO_MEMORY);
-DEF_EXCEPTION (IMP_LIMIT);
-DEF_EXCEPTION (COMM_FAILURE);
-DEF_EXCEPTION (INV_OBJREF);
-DEF_EXCEPTION (OBJECT_NOT_EXIST);
-DEF_EXCEPTION (NO_PERMISSION);
-DEF_EXCEPTION (INTERNAL);
-DEF_EXCEPTION (MARSHAL);
-DEF_EXCEPTION (INITIALIZE);
-DEF_EXCEPTION (NO_IMPLEMENT);
-DEF_EXCEPTION (BAD_TYPECODE);
-DEF_EXCEPTION (BAD_OPERATION);
-DEF_EXCEPTION (NO_RESOURCES);
-DEF_EXCEPTION (NO_RESPONSE);
-DEF_EXCEPTION (PERSIST_STORE);
-DEF_EXCEPTION (BAD_INV_ORDER);
-DEF_EXCEPTION (TRANSIENT);
-DEF_EXCEPTION (FREE_MEM);
-DEF_EXCEPTION (INV_IDENT);
-DEF_EXCEPTION (INV_FLAG);
-DEF_EXCEPTION (INTF_REPOS);
-DEF_EXCEPTION (BAD_CONTEXT);
-DEF_EXCEPTION (OBJ_ADAPTER);
-DEF_EXCEPTION (DATA_CONVERSION);
-DEF_EXCEPTION (TRANSACTION_REQUIRED);
-DEF_EXCEPTION (TRANSACTION_ROLLEDBACK);
-DEF_EXCEPTION (INVALID_TRANSACTION);
-DEF_EXCEPTION (WRONG_TRANSACTION);
+void Raise_Corba_Exception (CORBA::IMP_LIMIT e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_IMP_LIMIT_Exception (pd_minor, pd_status) ;
+};
 
+void Raise_Corba_Exception (CORBA::COMM_FAILURE e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_COMM_FAILURE_Exception (pd_minor, pd_status) ;
+};
 
-#undef DEF_EXCEPTION
-*/
+void Raise_Corba_Exception (CORBA::INV_OBJREF e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_INV_OBJREF_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::OBJECT_NOT_EXIST e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_OBJECT_NOT_EXIST_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::NO_PERMISSION e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_NO_PERMISSION_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::INTERNAL e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_INTERNAL_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::INITIALIZE e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_INITIALIZE_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::NO_IMPLEMENT e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_NO_IMPLEMENT_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::BAD_TYPECODE e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_BAD_TYPECODE_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::BAD_OPERATION e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_BAD_OPERATION_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::NO_RESOURCES e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_NO_RESOURCES_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::NO_RESPONSE e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_NO_RESPONSE_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::PERSIST_STORE e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_PERSIST_STORE_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::BAD_INV_ORDER e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_BAD_INV_ORDER_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::TRANSIENT e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_TRANSIENT_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::FREE_MEM e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_FREE_MEM_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::INV_IDENT e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_INV_IDENT_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::INV_FLAG e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_INV_FLAG_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::INTF_REPOS e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_INTF_REPOS_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::BAD_CONTEXT e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_BAD_CONTEXT_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::OBJ_ADAPTER e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_OBJ_ADAPTER_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::DATA_CONVERSION e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_DATA_CONVERSION_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::TRANSACTION_REQUIRED e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_TRANSACTION_REQUIRED_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::TRANSACTION_ROLLEDBACK e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_TRANSACTION_ROLLEDBACK_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::INVALID_TRANSACTION e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_INVALID_TRANSACTION_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_Corba_Exception (CORBA::WRONG_TRANSACTION e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_WRONG_TRANSACTION_Exception (pd_minor, pd_status) ;
+};
+

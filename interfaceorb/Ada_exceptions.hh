@@ -48,56 +48,166 @@
 
 #include <omniORB2/CORBA.h>
 
-//#define DEF_EXCEPTION(name)
+///////////////////////////////////
+// Handling of UNKNOWN exception //
+///////////////////////////////////
 
 void Raise_Corba_Exception (CORBA::UNKNOWN e);
-// These methods are called by C code for raising Corba exception
-// in Ada code. They use Raise_Ada_Exception to handle the exceptions
+// This method is called by C code for raising Corba exception
+// in Ada code. It uses Raise_Ada_Exception to handle the exceptions
 
 extern void Raise_Ada_UNKNOWN_Exception (CORBA::ULong pd_minor,
 					 CORBA::CompletionStatus pd_status) ;
 // called by C code (Raise_Corba_Exception to be exact).
 // Handles in Ada a Corba exception that was raised in C.
 
-void Raise_C_UNKNOWN_Exception (CORBA::ULong pd_minor,
-				CORBA::CompletionStatus pd_status) ;
-// called by Ada code.
-// Handles in C a Corba exception that was raised in Ada.
 
 
-/*
-				 
-DEF_EXCEPTION (UNKNOWN);
-DEF_EXCEPTION (BAD_PARAM);
-DEF_EXCEPTION (NO_MEMORY);
-DEF_EXCEPTION (IMP_LIMIT);
-DEF_EXCEPTION (COMM_FAILURE);
-DEF_EXCEPTION (INV_OBJREF);
-DEF_EXCEPTION (OBJECT_NOT_EXIST);
-DEF_EXCEPTION (NO_PERMISSION);
-DEF_EXCEPTION (INTERNAL);
-DEF_EXCEPTION (MARSHAL);
-DEF_EXCEPTION (INITIALIZE);
-DEF_EXCEPTION (NO_IMPLEMENT);
-DEF_EXCEPTION (BAD_TYPECODE);
-DEF_EXCEPTION (BAD_OPERATION);
-DEF_EXCEPTION (NO_RESOURCES);
-DEF_EXCEPTION (NO_RESPONSE);
-DEF_EXCEPTION (PERSIST_STORE);
-DEF_EXCEPTION (BAD_INV_ORDER);
-DEF_EXCEPTION (TRANSIENT);
-DEF_EXCEPTION (FREE_MEM);
-DEF_EXCEPTION (INV_IDENT);
-DEF_EXCEPTION (INV_FLAG);
-DEF_EXCEPTION (INTF_REPOS);
-DEF_EXCEPTION (BAD_CONTEXT);
-DEF_EXCEPTION (OBJ_ADAPTER);
-DEF_EXCEPTION (DATA_CONVERSION);
-DEF_EXCEPTION (TRANSACTION_REQUIRED);
-DEF_EXCEPTION (TRANSACTION_ROLLEDBACK);
-DEF_EXCEPTION (INVALID_TRANSACTION);
-DEF_EXCEPTION (WRONG_TRANSACTION);
+///////////////////////////////////////////////////////
+// And now the same methods for the other exceptions //
+///////////////////////////////////////////////////////
 
+void Raise_Corba_Exception (CORBA::BAD_PARAM e);
 
-#undef DEF_EXCEPTION
-*/
+extern void Raise_Ada_BAD_PARAM_Exception (CORBA::ULong pd_minor,
+					   CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::NO_MEMORY e);
+
+extern void Raise_Ada_NO_MEMORY_Exception (CORBA::ULong pd_minor,
+					   CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::IMP_LIMIT e);
+
+extern void Raise_Ada_IMP_LIMIT_Exception (CORBA::ULong pd_minor,
+					   CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::COMM_FAILURE e);
+
+extern void Raise_Ada_COMM_FAILURE_Exception (CORBA::ULong pd_minor,
+					      CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::INV_OBJREF e);
+
+extern void Raise_Ada_INV_OBJREF_Exception (CORBA::ULong pd_minor,
+					    CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::OBJECT_NOT_EXIST e);
+
+extern void Raise_Ada_OBJECT_NOT_EXIST_Exception (CORBA::ULong pd_minor,
+						  CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::NO_PERMISSION e);
+
+extern void Raise_Ada_NO_PERMISSION_Exception (CORBA::ULong pd_minor,
+					       CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::INTERNAL e);
+
+extern void Raise_Ada_INTERNAL_Exception (CORBA::ULong pd_minor,
+					  CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::MARSHAL e);
+
+extern void Raise_Ada_MARSHAL_Exception (CORBA::ULong pd_minor,
+					 CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::INITIALIZE e);
+
+extern void Raise_Ada_INITIALIZE_Exception (CORBA::ULong pd_minor,
+					    CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::NO_IMPLEMENT e);
+
+extern void Raise_Ada_NO_IMPLEMENT_Exception (CORBA::ULong pd_minor,
+					      CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::BAD_TYPECODE e);
+
+extern void Raise_Ada_BAD_TYPECODE_Exception (CORBA::ULong pd_minor,
+					      CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::BAD_OPERATION e);
+
+extern void Raise_Ada_BAD_OPERATION_Exception (CORBA::ULong pd_minor,
+					       CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::NO_RESOURCES e);
+
+extern void Raise_Ada_NO_RESOURCES_Exception (CORBA::ULong pd_minor,
+					      CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::NO_RESPONSE e);
+
+extern void Raise_Ada_NO_RESPONSE_Exception (CORBA::ULong pd_minor,
+					     CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::PERSIST_STORE e);
+
+extern void Raise_Ada_PERSIST_STORE_Exception (CORBA::ULong pd_minor,
+					       CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::BAD_INV_ORDER e);
+
+extern void Raise_Ada_BAD_INV_ORDER_Exception (CORBA::ULong pd_minor,
+					       CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::TRANSIENT e);
+
+extern void Raise_Ada_TRANSIENT_Exception (CORBA::ULong pd_minor,
+					   CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::FREE_MEM e);
+
+extern void Raise_Ada_FREE_MEM_Exception (CORBA::ULong pd_minor,
+					  CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::INV_IDENT e);
+
+extern void Raise_Ada_INV_IDENT_Exception (CORBA::ULong pd_minor,
+					   CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::INV_FLAG e);
+
+extern void Raise_Ada_INV_FLAG_Exception (CORBA::ULong pd_minor,
+					  CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::INTF_REPOS e);
+
+extern void Raise_Ada_INTF_REPOS_Exception (CORBA::ULong pd_minor,
+					    CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::BAD_CONTEXT e);
+
+extern void Raise_Ada_BAD_CONTEXT_Exception (CORBA::ULong pd_minor,
+					     CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::OBJ_ADAPTER e);
+
+extern void Raise_Ada_OBJ_ADAPTER_Exception (CORBA::ULong pd_minor,
+					     CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::DATA_CONVERSION e);
+
+extern void Raise_Ada_DATA_CONVERSION_Exception (CORBA::ULong pd_minor,
+						 CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::TRANSACTION_REQUIRED e);
+
+extern void Raise_Ada_TRANSACTION_REQUIRED_Exception (CORBA::ULong pd_minor,
+						      CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::TRANSACTION_ROLLEDBACK e);
+
+extern void Raise_Ada_TRANSACTION_ROLLEDBACK_Exception (CORBA::ULong pd_minor,
+							CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::INVALID_TRANSACTION e);
+
+extern void Raise_Ada_INVALID_TRANSACTION_Exception (CORBA::ULong pd_minor,
+						     CORBA::CompletionStatus pd_status) ;
+
+void Raise_Corba_Exception (CORBA::WRONG_TRANSACTION e);
+
+extern void Raise_Ada_WRONG_TRANSACTION_Exception (CORBA::ULong pd_minor,
+						   CORBA::CompletionStatus pd_status) ;

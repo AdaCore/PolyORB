@@ -48,7 +48,9 @@
 
 
 #include "Ada_Giop_c.hh"
-#include <omniORB2/CORBA.h>
+#include "Ada_exceptions.hh"
+//#include <omniORB2/CORBA.h>
+
 
 // Default Constructor
 //--------------------
@@ -97,15 +99,20 @@ Ada_Giop_c::InitialiseRequest(const void          *objkey,
 void
 Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 {
-  if (Init_Ok) {
-    // if Initialisation was made then call the corresponding
-    // function on C_Object
-    GIOP::ReplyStatusType tmp = ((GIOP_C *) C_Object)->ReceiveReply();
-    cerr << "tmp = " << tmp << endl;
-    result = tmp;
-  } else {
-    // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_Giop_c::ReceiveReply without initialising object.");
+  try {
+    if (Init_Ok) {
+      throw CORBA::UNKNOWN(0,CORBA::COMPLETED_MAYBE);
+      // if Initialisation was made then call the corresponding
+      // function on C_Object
+      GIOP::ReplyStatusType tmp = ((GIOP_C *) C_Object)->ReceiveReply();
+      cerr << "tmp = " << tmp << endl;
+      result = tmp;
+    } else {
+      // else raise an Ada Exception
+      raise_ada_exception ("Call of Ada_Giop_c::ReceiveReply without initialising object.");
+    }
+  } catch (CORBA::UNKNOWN &e) {
+    Raise_Corba_Exception (e);
   }
 };
 

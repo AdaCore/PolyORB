@@ -72,7 +72,8 @@ Ada_Corba_Orb.o : Ada_Corba_Orb.hh Ada_Corba_Orb.cc
 Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh exceptions.ads \
 exceptions.adb
 
-Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc Ada_netBufferedStream.hh
+Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc Ada_netBufferedStream.hh \
+Ada_exceptions.hh
 
 Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc Ada_netBufferedStream.hh
 

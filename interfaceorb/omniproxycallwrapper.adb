@@ -61,7 +61,6 @@ with Omniobject ; use type Omniobject.Object_Ptr ;
 with Sys_Dep ;
 with Rope ;
 
-
 with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body omniProxyCallWrapper is
