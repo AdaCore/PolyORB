@@ -4,9 +4,10 @@ package body MOMA.Message_Consumers.Topics is
    --  Get_Topic Function --
    -------------------------
    function Get_Topic return MOMA.Destinations.Topics.Topic is
-      Temp : MOMA.Destinations.Topics.Topic;
    begin
-      return Temp;
+      pragma Warnings (Off);
+      return Get_Topic;
+      pragma Warnings (On);
    end Get_Topic;
 
    ----------------------------

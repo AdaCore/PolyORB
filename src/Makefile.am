@@ -263,7 +263,6 @@ polyorb-types.lo:polyorb-types.adb polyorb-types.ads polyorb.ads
 polyorb-utils-buffers.lo:polyorb-buffers.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-sockets.ads polyorb-utils-buffers.adb polyorb-utils-buffers.ads polyorb-utils.ads polyorb.ads 
 polyorb-utils-chained_lists.lo:polyorb-utils-chained_lists.adb polyorb-utils-chained_lists.ads polyorb-utils.ads polyorb.ads 
 polyorb-utils-dynamic_tables.lo:polyorb-utils-dynamic_tables.adb polyorb-utils-dynamic_tables.ads polyorb-utils.ads polyorb.ads 
-polyorb-utils-htable.lo:polyorb-utils.ads polyorb.ads 
 polyorb-utils-htables-perfect.lo:polyorb-utils-dynamic_tables.adb polyorb-utils-dynamic_tables.ads polyorb-utils-htables-perfect.adb polyorb-utils-htables-perfect.ads polyorb-utils-htables.ads polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads 
 polyorb-utils-htables.lo:polyorb-utils-dynamic_tables.adb polyorb-utils-dynamic_tables.ads polyorb-utils-htables.adb polyorb-utils-htables.ads polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads 
 polyorb-utils-simple_flags.lo:polyorb-log.adb polyorb-log.ads polyorb-types.ads polyorb-utils-simple_flags.adb polyorb-utils-simple_flags.ads polyorb-utils.ads polyorb.ads 

@@ -46,9 +46,10 @@ package body MOMA.Message_Consumers.Queues is
    ------------------------
 
    function Get_Queue return MOMA.Destinations.Queues.Queue is
-      Temp : MOMA.Destinations.Queues.Queue;
    begin
-      return Temp;
+      pragma Warnings (Off);
+      return Get_Queue;
+      pragma Warnings (On);
    end Get_Queue;
 
    -------------
@@ -103,7 +104,7 @@ package body MOMA.Message_Consumers.Queues is
       pragma Warnings (Off);
       pragma Unreferenced (Timeout);
       pragma Warnings (On);
-      
+
       return Temp;
    end Receive;
 
@@ -112,9 +113,10 @@ package body MOMA.Message_Consumers.Queues is
    ----------------------
 
    function Receive_No_Wait return MOMA.Messages.Message is
-      Temp : MOMA.Messages.Message;
    begin
-      return Temp;
+      pragma Warnings (Off);
+      return Receive_No_Wait;
+      pragma Warnings (On);
    end Receive_No_Wait;
 
 

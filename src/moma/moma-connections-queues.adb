@@ -41,13 +41,10 @@ package body MOMA.Connections.Queues is
    function Create_Consumer (Queue : Destinations.Queues.Queue;
                              Message_Selector : String)
                             return Message_Consumers.Queues.Queue is
-      Temp : Message_Consumers.Queues.Queue;
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Queue);
-      pragma Unreferenced (Message_Selector);
+      return Create_Consumer (Queue, Message_Selector);
       pragma Warnings (On);
-      return Temp;
    end Create_Consumer;
 
 

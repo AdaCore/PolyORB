@@ -93,7 +93,9 @@ package body PolyORB.MOMA_P.Tools is
       If_Desc : in     PolyORB.Obj_Adapters.Simple.Interface_Description;
       Ref     : out    PolyORB.References.Ref)
    is
-      Servant : PolyORB.Servants.Servant_Access := To_PolyORB_Servant (Obj);
+      Servant : constant PolyORB.Servants.Servant_Access
+        := To_PolyORB_Servant (Obj);
+
       Obj_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
    begin
       Initialize_OA;
