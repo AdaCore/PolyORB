@@ -37,12 +37,14 @@ with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
 with PolyORB.Requests;
+with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 
 package body PolyORB.POA_Manager.Basic_Manager is
 
    use PolyORB.Errors;
    use PolyORB.Log;
+   use PolyORB.Servants.Iface;
    use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log
@@ -69,12 +71,13 @@ package body PolyORB.POA_Manager.Basic_Manager is
      (Self  : access Basic_POA_Manager;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      use Requests_Queue_P;
+      use Requests_Queues;
 
    begin
       pragma Debug (O ("Activate POAManager: enter"));
-
       Enter (Self.Lock);
+      pragma Debug (O ("Activate POAManager: locked, state is "
+        & Self.Current_State'Img));
 
       --  Test invocation validity
 
@@ -95,12 +98,12 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       --  If we were holding requests, reemit them
 
+      pragma Debug (O ("Activate POAManager: checking for held requests"));
       if Self.PM_Hold_Servant /= null
-        and then Length (Self.Held_Requests) > 0
+        and then not Is_Empty (Self.Held_Requests)
       then
          Reemit_Requests (Self);
       end if;
-
       Leave (Self.Lock);
       pragma Debug (O ("Activate POAManager: leave"));
    end Activate;
@@ -231,11 +234,12 @@ package body PolyORB.POA_Manager.Basic_Manager is
    ------------
 
    procedure Create (M : access Basic_POA_Manager) is
+      use Requests_Queues;
    begin
       pragma Debug (O ("Create a new Basic_POA_Manager"));
 
       Create (M.Lock);
-
+      pragma Assert (M.Held_Requests = Empty);
       M.Current_State := HOLDING;
    end Create;
 
@@ -357,13 +361,13 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    procedure Finalize (Self : in out Basic_POA_Manager) is
       use PolyORB.Requests;
-      use Requests_Queue_P;
+      use Requests_Queues;
       use POA_Lists;
 
       procedure Free is new Ada.Unchecked_Deallocation
         (Hold_Servant, Hold_Servant_Access);
 
-      R : Execute_Request;
+      R : Request_Access;
 
    begin
       pragma Debug (O ("POAManager is no longer used, destroying it"));
@@ -376,9 +380,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       Deallocate (Self.Managed_POAs);
 
-      while Self.Held_Requests /= Requests_Queue_P.Empty loop
+      while Self.Held_Requests /= Requests_Queues.Empty loop
          Extract_First (Self.Held_Requests, R);
-         Destroy_Request (R.Req);
+         Destroy_Request (R);
       end loop;
 
       Deallocate (Self.Held_Requests);
@@ -397,20 +401,20 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Reemit_Requests (Self : access Basic_POA_Manager) is
       use PolyORB.Components;
       use PolyORB.ORB.Iface;
-      use Requests_Queue_P;
+      use Requests_Queues;
 
-      R : Execute_Request;
+      R : Request_Access;
 
    begin
-      pragma Debug (O ("Number of requests to reemit"
+      pragma Debug (O ("Number of requests to reemit:"
                        & Integer'Image (Length (Self.Held_Requests))));
 
-      while Self.Held_Requests /= Empty loop
+      while not Is_Empty (Self.Held_Requests) loop
          Extract_First (Self.Held_Requests, R);
          Emit_No_Reply (Component_Access (PolyORB.Setup.The_ORB),
                         Queue_Request'
-                        (Request   => R.Req,
-                         Requestor => R.Req.Requesting_Component));
+                        (Request   => R,
+                         Requestor => R.Requesting_Component));
       end loop;
    end Reemit_Requests;
 
@@ -423,21 +427,19 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
-      use Requests_Queue_P;
+      use Requests_Queues;
 
       S            : constant Hold_Servant_Access := Hold_Servant_Access (Obj);
       Null_Message : PolyORB.Components.Null_Message;
 
    begin
       if Msg in Execute_Request then
+         pragma Debug (O ("Hold_Servant: Queuing request"));
          Enter (S.PM.Lock);
-
-         pragma Debug (O ("Hold Servant queues message"));
-         Append (S.PM.Held_Requests, Execute_Request (Msg));
-
+         Append (S.PM.Held_Requests, Execute_Request (Msg).Req);
          Leave (S.PM.Lock);
       else
-         pragma Debug (O ("Message not in Execute_Request"));
+         pragma Debug (O ("Hold_Servant: Message not in Execute_Request"));
          raise Program_Error;
       end if;
 

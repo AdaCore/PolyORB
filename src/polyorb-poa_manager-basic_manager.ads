@@ -35,7 +35,7 @@
 
 with PolyORB.Components;
 with PolyORB.POA_Types;
-with PolyORB.Servants.Iface;
+with PolyORB.Requests;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
 
@@ -44,7 +44,7 @@ package PolyORB.POA_Manager.Basic_Manager is
    pragma Elaborate_Body;
 
    use PolyORB.POA_Types;
-   use PolyORB.Servants.Iface;
+   use PolyORB.Requests;
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
@@ -123,9 +123,9 @@ private
       new PolyORB.Utils.Chained_Lists (Obj_Adapter_Access, "=", True);
    subtype POAList is POA_Lists.List;
 
-   package Requests_Queue_P is
-      new PolyORB.Utils.Chained_Lists (Execute_Request);
-   subtype Requests_Queue is Requests_Queue_P.List;
+   package Requests_Queues is
+      new PolyORB.Utils.Chained_Lists (Request_Access);
+   subtype Requests_Queue is Requests_Queues.List;
 
    type Basic_POA_Manager is new POAManager with record
       Current_State : State;
@@ -138,7 +138,7 @@ private
       PM_Hold_Servant : Hold_Servant_Access := null;
       --  Reference to the holding servant
 
-      Held_Requests : Requests_Queue;
+      Held_Requests : Requests_Queue := Requests_Queues.Empty;
       --  List of requests held by the POAManager
    end record;
 
