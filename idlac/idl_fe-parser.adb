@@ -14,18 +14,21 @@ package body Idl_Fe.Parser is
    --   Debug  --
    --------------
 
-   Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.parser");
+   Flag : constant Natural
+     := Idl_Fe.Debug.Is_Active ("idl_fe.parser");
    procedure O is new Idl_Fe.Debug.Output (Flag);
 
    ---------------------
    --  Initialization --
    ---------------------
 
-   procedure Initialize (Filename : in String;
-                         Preprocess : in Boolean;
-                         Keep_Temporary_Files : in Boolean) is
+   procedure Initialize
+     (Filename : in String;
+      Preprocess : in Boolean;
+      Keep_Temporary_Files : in Boolean) is
    begin
-      Idl_Fe.Lexer.Initialize (Filename, Preprocess, Keep_Temporary_Files);
+      Idl_Fe.Lexer.Initialize
+        (Filename, Preprocess, Keep_Temporary_Files);
    end Initialize;
 
 
@@ -1005,23 +1008,39 @@ package body Idl_Fe.Parser is
 
          if Get_Token /= T_Colon_Colon then
             Set_Value (Res, A_Name);
-            pragma Debug (O ("Parse_Scoped_Name : Set_S_Type if " &
-                             "simple identifier"));
+
             if Kind (A_Name) = K_Declarator
               and then Kind (Parent (A_Name)) = K_Type_Declarator
             then
                pragma Debug (O ("Parse_Scoped_Name : the scoped" &
-                                " name is defined in a declarator"));
+                                " name is defined in a typedef"));
                if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
                   Set_S_Type (Res, S_Type (T_Type (Parent (A_Name))));
                else
                   Set_S_Type (Res, T_Type (Parent (A_Name)));
                end if;
+            elsif Kind (A_Name) = K_Struct
+              or else Kind (A_Name) = K_Union
+              or else Kind (A_Name) = K_Enum
+              or else Kind (A_Name) = K_Interface
+              or else Kind (A_Name) = K_ValueType
+              or else Kind (A_Name) = K_Forward_Interface
+              or else Kind (A_Name) = K_Forward_ValueType
+            then
+               Set_S_Type (Res, A_Name);
             else
                pragma Debug (O ("Parse_Scoped_Name : the scoped" &
-                                " name is not defined in a declarator"));
+                                " name does not denote a type"));
                Set_S_Type (Res, No_Node);
             end if;
+
+            --  FIXME: This is wrong.
+            --  It is legitimate to reference the name of an
+            --  interface from within its own definition, as
+            --  in:
+            --  interface I {
+            --    I echoRef (in I arg);
+            --  };
 
             if Get_Current_Scope = A_Name then
                declare
