@@ -70,6 +70,7 @@ procedure B_XE_Defs is
    --  Store the flags once parsed
    RSH_CMD           : String_Access;
    RSH_OPT           : String_Access;
+   PCS_NAME          : String_Access;
    DEF_STORAGE_DATA  : String_Access;
    DEF_STORAGE_NAME  : String_Access;
    DEF_PROTOCOL_DATA : String_Access;
@@ -189,6 +190,9 @@ begin
          elsif Match (A, "DEFPROTOCOLNAME") then
             DEF_PROTOCOL_NAME := new String'(Remove (A, "DEFPROTOCOLDATA"));
 
+         elsif Match (A, "PCS_NAME") then
+            PCS_NAME := new String'(Remove (A, "PCS_NAME"));
+
          elsif Match (A, "Windows/NT") then
             Windows_NT := True;
 
@@ -232,6 +236,7 @@ begin
    Put_Line (1, "end Initialize;");
    Generate_Function ("Get_Rsh_Command", RSH_CMD);
    Generate_Function ("Get_Rsh_Options", RSH_OPT);
+   Generate_Function ("Get_PCS_Name", PCS_NAME);
    Generate_Function ("Get_Def_Storage_Data", DEF_STORAGE_DATA);
    Generate_Function ("Get_Def_Storage_Name", DEF_STORAGE_NAME);
    Generate_Function ("Get_Def_Protocol_Data", DEF_PROTOCOL_DATA);

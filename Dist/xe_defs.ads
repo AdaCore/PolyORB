@@ -37,5 +37,6 @@ package XE_Defs is
    function Get_Def_Storage_Name return String;
    function Get_Def_Protocol_Data return String;
    function Get_Def_Protocol_Name return String;
+   function Get_PCS_Name return String;
 
 end XE_Defs;
