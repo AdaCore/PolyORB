@@ -34,10 +34,8 @@
 --  $Id$
 
 with PolyORB.Log;
-with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
-with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.RT_POA.Basic_RT_POA is
@@ -69,24 +67,6 @@ package body PolyORB.RT_POA.Basic_RT_POA is
      (OA       : access Basic_RT_Obj_Adapter;
       Policies :        POA_Policies.PolicyList);
    --  Set OA policies from the values in Policies.
-
-   function To_Non_RT_POA
-     (Self : access Basic_RT_Obj_Adapter)
-     return PolyORB.POA.Obj_Adapter_Access;
-   pragma Inline (To_Non_RT_POA);
-   --  Return Non_RT_POA attached to Self
-
-   -------------------
-   -- To_Non_RT_POA --
-   -------------------
-
-   function To_Non_RT_POA
-     (Self : access Basic_RT_Obj_Adapter)
-     return PolyORB.POA.Obj_Adapter_Access
-   is
-   begin
-      return PolyORB.POA.Obj_Adapter_Access (Entity_Of (Self.Non_RT_POA));
-   end To_Non_RT_POA;
 
    ------------------
    -- Set_Policies --
@@ -149,246 +129,23 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    is
       use PolyORB.Exceptions;
 
-      Non_RT_POA : PolyORB.POA.Obj_Adapter_Access;
-
    begin
-      Create_POA (To_Non_RT_POA (Self),
-                  Adapter_Name,
-                  A_POAManager,
-                  Policies,
-                  Non_RT_POA,
-                  Error);
+      POA := new Basic_RT_Obj_Adapter;
+
+      Initialize_POA
+        (PolyORB.POA.Obj_Adapter (Self.all)'Access,
+         Adapter_Name,
+         A_POAManager,
+         Policies,
+         PolyORB.POA.Obj_Adapter_Access (POA),
+         Error);
 
       if Found (Error) then
          return;
       end if;
 
-      POA := new Basic_RT_Obj_Adapter;
       Set_Policies (Basic_RT_Obj_Adapter (POA.all)'Access, Policies);
-
-      Set (Basic_RT_Obj_Adapter (POA.all).Non_RT_POA,
-           Smart_Pointers.Entity_Ptr (Non_RT_POA));
-      POA.POA_Manager
-        := To_Non_RT_POA (Basic_RT_Obj_Adapter (POA.all)'Access).POA_Manager;
    end Create_POA;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy
-     (Self                : access Basic_RT_Obj_Adapter;
-      Etherealize_Objects : in     Types.Boolean;
-      Wait_For_Completion : in     Types.Boolean)
-   is
-   begin
-      Destroy (To_Non_RT_POA (Self), Etherealize_Objects, Wait_For_Completion);
-   end Destroy;
-
-   ----------------------------------
-   -- Create_Object_Identification --
-   ----------------------------------
-
-   procedure Create_Object_Identification
-     (Self  : access Basic_RT_Obj_Adapter;
-      Hint  :        Object_Id_Access;
-      U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Create_Object_Identification (To_Non_RT_POA (Self), Hint, U_Oid, Error);
-   end Create_Object_Identification;
-
-   ---------------------
-   -- Activate_Object --
-   ---------------------
-
-   procedure Activate_Object
-     (Self      : access Basic_RT_Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access;
-      Hint      :        Object_Id_Access;
-      U_Oid     :    out Unmarshalled_Oid;
-      Error     : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Activate_Object (To_Non_RT_POA (Self), P_Servant, Hint, U_Oid, Error);
-   end Activate_Object;
-
-   -----------------------
-   -- Deactivate_Object --
-   -----------------------
-
-   procedure Deactivate_Object
-     (Self  : access Basic_RT_Obj_Adapter;
-      Oid   : in     Object_Id;
-      Error : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Deactivate_Object (To_Non_RT_POA (Self), Oid, Error);
-   end Deactivate_Object;
-
-   -------------------
-   -- Servant_To_Id --
-   -------------------
-
-   procedure Servant_To_Id
-     (Self      : access Basic_RT_Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access;
-      Oid       :    out Object_Id_Access;
-      Error     : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Servant_To_Id (To_Non_RT_POA (Self), P_Servant, Oid, Error);
-   end Servant_To_Id;
-
-   -------------------
-   -- Id_To_Servant --
-   -------------------
-
-   procedure Id_To_Servant
-     (Self    : access Basic_RT_Obj_Adapter;
-      Oid     :        Object_Id;
-      Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Id_To_Servant (To_Non_RT_POA (Self), Oid, Servant, Error);
-   end Id_To_Servant;
-
-   --------------
-   -- Find_POA --
-   --------------
-
-   procedure Find_POA
-     (Self        : access Basic_RT_Obj_Adapter;
-      Name        :        String;
-      Activate_It :        Boolean;
-      POA         :    out PolyORB.POA.Obj_Adapter_Access;
-      Error       : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Find_POA (To_Non_RT_POA (Self), Name, Activate_It, POA, Error);
-   end Find_POA;
-
-   -----------------
-   -- Get_Servant --
-   -----------------
-
-   procedure Get_Servant
-     (Self    : access Basic_RT_Obj_Adapter;
-      Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Get_Servant (To_Non_RT_POA (Self), Servant, Error);
-   end Get_Servant;
-
-   -----------------
-   -- Set_Servant --
-   -----------------
-
-   procedure Set_Servant
-     (Self    : access Basic_RT_Obj_Adapter;
-      Servant :        Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Set_Servant (To_Non_RT_POA (Self), Servant, Error);
-   end Set_Servant;
-
-   -------------------------
-   -- Get_Servant_Manager --
-   -------------------------
-
-   procedure Get_Servant_Manager
-     (Self    : access Basic_RT_Obj_Adapter;
-      Manager :    out ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Get_Servant_Manager (To_Non_RT_POA (Self), Manager, Error);
-   end Get_Servant_Manager;
-
-   -------------------------
-   -- Set_Servant_Manager --
-   -------------------------
-
-   procedure Set_Servant_Manager
-     (Self    : access Basic_RT_Obj_Adapter;
-      Manager :        ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Set_Servant_Manager (To_Non_RT_POA (Self), Manager, Error);
-   end Set_Servant_Manager;
-
-   ----------------------
-   -- Get_The_Children --
-   ----------------------
-
-   procedure Get_The_Children
-     (Self     : access Basic_RT_Obj_Adapter;
-      Children :    out POAList)
-   is
-   begin
-      Get_The_Children (To_Non_RT_POA (Self), Children);
-   end Get_The_Children;
-
-   ----------------------
-   -- Copy_Obj_Adapter --
-   ----------------------
-
-   procedure Copy_Obj_Adapter
-     (From : in     Basic_RT_Obj_Adapter;
-      To   : access Basic_RT_Obj_Adapter)
-   is
-      use PolyORB.POA.Basic_POA;
-
-   begin
-      PolyORB.POA.Basic_POA.Copy_Obj_Adapter
-        (Basic_Obj_Adapter (Entity_Of (From.Non_RT_POA).all),
-         Basic_Obj_Adapter (To_Non_RT_POA (To).all)'Access);
-   end Copy_Obj_Adapter;
-
-   ------------------------
-   -- Remove_POA_By_Name --
-   ------------------------
-
-   procedure Remove_POA_By_Name
-     (Self       : access Basic_RT_Obj_Adapter;
-      Child_Name :        Types.String)
-   is
-   begin
-      Remove_POA_By_Name (To_Non_RT_POA (Self), Child_Name);
-   end Remove_POA_By_Name;
-
-   --------------------------------------------------
-   -- PolyORB Obj_Adapter interface implementation --
-   --------------------------------------------------
-
-   ------------
-   -- Create --
-   ------------
-
-   procedure Create (OA : access Basic_RT_Obj_Adapter) is
-      Non_RT_POA : constant PolyORB.POA_Types.Obj_Adapter_Access
-        := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-
-   begin
-      Create (Non_RT_POA);
-      Set (OA.Non_RT_POA, Smart_Pointers.Entity_Ptr (Non_RT_POA));
-
-      OA.POA_Manager := To_Non_RT_POA (OA).POA_Manager;
-   end Create;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy (OA : access Basic_RT_Obj_Adapter) is
-   begin
-      Destroy (To_Non_RT_POA (OA));
-   end Destroy;
 
    ------------
    -- Export --
@@ -408,7 +165,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
 
       --  Export servant
 
-      Export (To_Non_RT_POA (OA), Obj, Key, Oid, Error);
+      Export (PolyORB.POA.Obj_Adapter (OA.all)'Access, Obj,
+              Key, Oid, Error);
 
       if Found (Error) then
          return;
@@ -485,128 +243,6 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          Error);
    end Get_Scheduling_Parameters;
 
-   --------------
-   -- Unexport --
-   --------------
-
-   procedure Unexport
-     (OA    : access Basic_RT_Obj_Adapter;
-      Id    :        Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Unexport (To_Non_RT_POA (OA), Id, Error);
-   end Unexport;
-
-   ----------------
-   -- Object_Key --
-   ----------------
-
-   procedure Object_Key
-     (OA      : access Basic_RT_Obj_Adapter;
-      Id      :        Objects.Object_Id_Access;
-      User_Id :    out Objects.Object_Id_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Object_Key (To_Non_RT_POA (OA), Id, User_Id, Error);
-   end Object_Key;
-
-   ------------------------
-   -- Get_Empty_Arg_List --
-   ------------------------
-
-   function Get_Empty_Arg_List
-     (OA     : access Basic_RT_Obj_Adapter;
-      Oid    : access Objects.Object_Id;
-      Method :        String)
-     return Any.NVList.Ref
-   is
-   begin
-      return Get_Empty_Arg_List (To_Non_RT_POA (OA), Oid, Method);
-   end Get_Empty_Arg_List;
-
-   ----------------------
-   -- Get_Empty_Result --
-   ----------------------
-
-   function Get_Empty_Result
-     (OA     : access Basic_RT_Obj_Adapter;
-      Oid    : access Objects.Object_Id;
-      Method :        String)
-     return Any.Any
-   is
-   begin
-      return Get_Empty_Result (To_Non_RT_POA (OA), Oid, Method);
-   end Get_Empty_Result;
-
-   ------------------
-   -- Find_Servant --
-   ------------------
-
-   procedure Find_Servant
-     (OA      : access Basic_RT_Obj_Adapter;
-      Id      : access Objects.Object_Id;
-      Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      Find_Servant (To_Non_RT_POA (OA), Id, Servant, Error);
-   end Find_Servant;
-
-   ---------------------
-   -- Release_Servant --
-   ---------------------
-
-   procedure Release_Servant
-     (OA      : access Basic_RT_Obj_Adapter;
-      Id      : access Objects.Object_Id;
-      Servant : in out Servants.Servant_Access)
-   is
-   begin
-      Release_Servant (To_Non_RT_POA (OA), Id, Servant);
-   end Release_Servant;
-
-   ------------------
-   -- Is_Proxy_Oid --
-   ------------------
-
-   function Is_Proxy_Oid
-     (OA  : access Basic_RT_Obj_Adapter;
-      Oid : access Objects.Object_Id)
-     return Boolean
-   is
-   begin
-      return Is_Proxy_Oid (To_Non_RT_POA (OA), Oid);
-   end Is_Proxy_Oid;
-
-   ------------------
-   -- To_Proxy_Oid --
-   ------------------
-
-   procedure To_Proxy_Oid
-     (OA    : access Basic_RT_Obj_Adapter;
-      R     :        References.Ref;
-      Oid   :    out Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
-   is
-   begin
-      To_Proxy_Oid (To_Non_RT_POA (OA), R, Oid, Error);
-   end To_Proxy_Oid;
-
-   ------------------
-   -- Proxy_To_Ref --
-   ------------------
-
-   function Proxy_To_Ref
-     (OA  : access Basic_RT_Obj_Adapter;
-      Oid : access Objects.Object_Id)
-     return References.Ref
-   is
-   begin
-      return Proxy_To_Ref (To_Non_RT_POA (OA), Oid);
-   end Proxy_To_Ref;
-
    ------------------------------------------------
    -- CORBA-like RT POA interface implementation --
    ------------------------------------------------
@@ -630,7 +266,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       --  Check Self's policies are correct
 
       Ensure_No_Implicit_Activation
-        (To_Non_RT_POA (Self).Implicit_Activation_Policy.all,
+        (Self.Implicit_Activation_Policy.all,
          Error);
 
       if Found (Error) then
@@ -657,7 +293,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          return;
       end if;
 
-      Create_Object_Identification (To_Non_RT_POA (Self), Hint, U_Oid, Error);
+      Create_Object_Identification (Self, Hint, U_Oid, Error);
 
       Append
         (Shadow_Oids,
@@ -689,7 +325,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       --  Check Self's policies are correct
 
       Ensure_No_Implicit_Activation
-        (To_Non_RT_POA (Self).Implicit_Activation_Policy.all,
+        (Self.Implicit_Activation_Policy.all,
          Error);
 
       if Found (Error) then
