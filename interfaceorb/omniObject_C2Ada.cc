@@ -51,7 +51,7 @@
 
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
-//#define DEBUG
+#define DEBUG
 
 
 
@@ -108,6 +108,11 @@ omniObject_C2Ada::dispatch(GIOP_S &giop_s,
 
 #ifdef DEBUG
   cerr << "omniObject_C2Ada::dispatch : call the Ada code" << endl ;
+  if (Ada_OmniObject_Pointer == 0) {
+    cerr << "omniObject_C2Ada::dispatch : Ada_OmniObject_Pointer not null" << endl ;
+  } else {
+    cerr << "omniObject_C2Ada::dispatch : Ada_OmniObject_Pointer *IS* null" << endl ;
+  }
 #endif
 
   Ada_OmniObject_Pointer->dispatch(ada_giop_s,
@@ -115,6 +120,9 @@ omniObject_C2Ada::dispatch(GIOP_S &giop_s,
 				   response_expected,
 				   success);
 
+#ifdef DEBUG
+  cerr << "omniObject_C2Ada::dispatch : returning successfully from Ada code" << endl ;
+#endif
   return success ;
   // calls dispatch on the Ada_OmniObject pointed by Ada_OmniObject_Pointer
   // This function allows the C code to call the Ada function dispatch

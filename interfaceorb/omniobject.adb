@@ -802,14 +802,17 @@ package body OmniObject is
          Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
                                         "Omniobject.Dispatch should not be called on a proxy object") ;
       else
-         pragma Debug(Output(Omniobject,
-                             "Omniobject.Dispatch : making dispatching call")) ;
          begin
+            pragma Debug(Output(Omniobject,
+                                "Omniobject.Dispatch : making dispatching call")) ;
             Self.Implobj.all.Dispatch(Self.Implobj,
                                       Orls,
                                       Orl_Op,
                                       Orl_Response_Expected,
                                       success) ;
+
+            pragma Debug(Output(Omniobject,
+                                "Omniobject.Dispatch : finished dispatching call")) ;
             return ;
          exception
             when E : Corba.Unknown =>
@@ -937,6 +940,7 @@ package body OmniObject is
                 Ada_Success) ;
       -- ... and transforms the result into a C type
       Success := Sys_Dep.Boolean_Ada_To_C (Ada_Success) ;
+      pragma Debug(Output(Omniobject,"Omniobject.C_Dispatch : Exiting successfully ...")) ;
    end ;
 
 
