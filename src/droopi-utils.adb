@@ -61,9 +61,9 @@ package body Droopi.Utils is
    begin
       for I in A'Range loop
          S (S'First + 2 * Integer (I - A'First))
-           := Hex (Integer (I) / 16);
+           := Hex (Integer (A (I)) / 16);
          S (S'First + 2 * Integer (I - A'First) + 1)
-           := Hex (Integer (I) mod 16);
+           := Hex (Integer (A (I)) mod 16);
       end loop;
       return S;
    end To_String;
