@@ -1,3 +1,9 @@
+2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Add types.adb.
+
+	* Makefile.am, Makefile.in: Remove RCS keyword.
+
 2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* MANIFEST, configure.in: Add examples MultiSto and MultiPro.
