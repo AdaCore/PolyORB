@@ -20,12 +20,10 @@ package Droopi.Filters is
    --------------------------------------------------------
    -- Filters communicate by exchanging Data_Units,      --
    -- defined in child package Droopi.Filters.Interface. --
+   --                                                    --
+   -- Filters can be chained. A chain of filters is      --
+   -- created from a chain of filter factories.          --
    --------------------------------------------------------
-
-   ---------------------------------------------------
-   -- Filters can be chained. A chain of filters is --
-   -- created from a chain of filter factories.     --
-   ---------------------------------------------------
 
    type Factory is abstract new Filter with private;
    type Factory_Access is access all Factory'Class;
