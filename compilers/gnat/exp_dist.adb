@@ -92,7 +92,8 @@ package body Exp_Dist is
    -----------------------
 
    function Hash (F : Entity_Id) return Hash_Index;
-   function Hash (F : Name_Id) return Hash_Index;
+   function Hash (F : Name_Id)   return Hash_Index;
+   --  Comment required ???
 
    procedure Add_RAS_Proxy_And_Analyze
      (Decls              :     List_Id;
@@ -141,27 +142,25 @@ package body Exp_Dist is
    --  Name_Id encountered so far in a given context (an interface).
 
    function Get_Subprogram_Ids (Def : Entity_Id) return Subprogram_Identifiers;
-   function Get_Subprogram_Id (Def : Entity_Id) return String_Id;
-   function Get_Subprogram_Id (Def : Entity_Id) return Int;
+   function Get_Subprogram_Id  (Def : Entity_Id) return String_Id;
+   function Get_Subprogram_Id  (Def : Entity_Id) return Int;
    --  Given a subprogram defined in a RCI package, get its distribution
    --  subprogram identifiers (the distribution identifiers are a unique
    --  subprogram number, and the non-qualified subprogram name, in the
    --  casing used for the subprogram declaration; if the name is overloaded,
    --  a double underscore and a serial number are appended.
-
+   --
    --  The integer identifier is used to perform remote calls with GARLIC;
    --  the string identifier is used in the case of PolyORB.
    --
-   --  Although the PolyORB DSA receiving stubs will make a caseless
-   --  comparison when receiving a call, the calling stubs
-   --  will create requests with the exact casing of the
-   --  defining unit name of the called subprogram, so
-   --  as to allow calls to subprograms on distributed
-   --  nodes that do distinguish between casings.
+   --  Although the PolyORB DSA receiving stubs will make a caseless comparison
+   --  when receiving a call, the calling stubs will create requests with the
+   --  exact casing of the defining unit name of the called subprogram, so as
+   --  to allow calls to subprograms on distributed nodes that do distinguish
+   --  between casings.
    --
-   --  NOTE: Another design would be to allow a representation
-   --  clause on subprogram specs:
-   --  for Subp'Distribution_Identifier use "fooBar";
+   --  NOTE: Another design would be to allow a representation clause on
+   --  subprogram specs: for Subp'Distribution_Identifier use "fooBar";
 
    pragma Warnings (Off, Get_Subprogram_Id);
    --  One homonym only is unreferenced (specific to the GARLIC version)
@@ -170,10 +169,9 @@ package body Exp_Dist is
      (Loc       : Source_Ptr;
       Pointer   : Entity_Id;
       Stub_Type : Entity_Id) return List_Id;
-   --  Build a call to Get_Unique_Remote_Pointer (Pointer),
-   --  followed by a tag fixup (Get_Unique_Remote_Pointer may have
-   --  changed Pointer'Tag to RACW_Stub_Type'Tag, while the desired
-   --  tag is that of Stub_Type).
+   --  Build a call to Get_Unique_Remote_Pointer (Pointer), followed by a
+   --  tag fixup (Get_Unique_Remote_Pointer may have changed Pointer'Tag to
+   --  RACW_Stub_Type'Tag, while the desired tag is that of Stub_Type).
 
    procedure Build_General_Calling_Stubs
      (Decls                     : List_Id;
@@ -500,8 +498,8 @@ package body Exp_Dist is
    --  Add the TypeCode TSS for this RAS type.
 
    procedure Assign_Subprogram_Identifier
-     (Def :     Entity_Id;
-      Spn :     Int;
+     (Def : Entity_Id;
+      Spn : Int;
       Id  : out String_Id);
    --  Determine the distribution subprogram identifier to
    --  be used for remote subprogram Def, return it in Id and
@@ -3351,14 +3349,15 @@ package body Exp_Dist is
    ----------------------------------
 
    procedure Assign_Subprogram_Identifier
-     (Def :     Entity_Id;
-      Spn :     Int;
+     (Def : Entity_Id;
+      Spn : Int;
       Id  : out String_Id)
    is
-      N    : constant Name_Id := Chars (Def);
+      N : constant Name_Id := Chars (Def);
 
       Overload_Order : constant Int :=
-        Overload_Counter_Table.Get (N) + 1;
+                         Overload_Counter_Table.Get (N) + 1;
+
    begin
       Overload_Counter_Table.Set (N, Overload_Order);
 
@@ -5177,7 +5176,7 @@ package body Exp_Dist is
      (Def : Entity_Id) return Subprogram_Identifiers
    is
       Result : Subprogram_Identifiers :=
-        Subprogram_Identifier_Table.Get (Def);
+                 Subprogram_Identifier_Table.Get (Def);
 
       Current_Declaration : Node_Id;
       Current_Subp        : Entity_Id;
@@ -5185,39 +5184,42 @@ package body Exp_Dist is
       Current_Subp_Number : Int := First_RCI_Subprogram_Id;
    begin
       if Result.Str_Identifier = No_String then
-         --  We are looking up this subprogram's identifier
-         --  outside of the context of generating calling
-         --  or receiving stubs; hence, we are processing
-         --  a 'Access attribute_reference for an RCI subprogram,
+
+         --  We are looking up this subprogram's identifier outside of the
+         --  context of generating calling or receiving stubs. Hence we are
+         --  processing an 'Access attribute_reference for an RCI subprogram,
          --  for the purpose of obtaining a RAS value.
 
          pragma Assert
            (Is_Remote_Call_Interface (Scope (Def))
               and then
-              (Nkind (Parent (Def)) = N_Procedure_Specification
-                 or else
-               Nkind (Parent (Def)) = N_Function_Specification));
+               (Nkind (Parent (Def)) = N_Procedure_Specification
+                  or else
+                Nkind (Parent (Def)) = N_Function_Specification));
 
          Current_Declaration :=
            First (Visible_Declarations
              (Package_Specification_Of_Scope (Scope (Def))));
-
          while Current_Declaration /= Empty loop
             if Nkind (Current_Declaration) = N_Subprogram_Declaration
               and then Comes_From_Source (Current_Declaration)
             then
                Current_Subp := Defining_Unit_Name (Specification (
                  Current_Declaration));
-               Assign_Subprogram_Identifier (
-                 Current_Subp, Current_Subp_Number, Current_Subp_Str);
+               Assign_Subprogram_Identifier
+                 (Current_Subp, Current_Subp_Number, Current_Subp_Str);
+
                if Current_Subp = Def then
                   Result := (Current_Subp_Str, Current_Subp_Number);
                end if;
+
                Current_Subp_Number := Current_Subp_Number + 1;
             end if;
+
             Next (Current_Declaration);
          end loop;
       end if;
+
       pragma Assert (Result.Str_Identifier /= No_String);
       return Result;
    end Get_Subprogram_Ids;
