@@ -1,0 +1,375 @@
+//
+// File: FT.idl
+// CORBA 3.0 Chapter 23
+
+#ifndef _FT_IDL_
+#define _FT_IDL_
+
+#ifdef _PRE_3_0_COMPILER_
+#pragma prefix "omg.org"
+#include <TimeBase.idl>
+#include <CosNaming.idl>
+#include <CosEventComm.idl>
+#include <CosNotification.idl>
+#include <IOP.idl>
+#include <GIOP.idl>
+#include <orb.idl>
+#else
+//PolyORB:NI:import ::TimeBase;
+//PolyORB:NI:import ::CosNaming;
+//PolyORB:NI:import ::CosEventComm;
+//PolyORB:NI:import ::CosNotification;
+//PolyORB:NI:import ::IOP;
+//PolyORB:NI:import ::GIOP;
+//PolyORB:NI:import ::CORBA;
+#endif // _PRE_3_0_COMPILER_
+
+//PolyORB:NI:module FT {
+//PolyORB:NI:#ifndef _PRE_3_0_COMPILER_
+//PolyORB:NI:    typeprefix FT "omg.org";
+//PolyORB:NI:#endif // _PRE_3_0_COMPILER_
+//PolyORB:NI:
+//PolyORB:NI:    // Specification for Interoperable Object Group References
+//PolyORB:NI:    typedef string FTDomainId;
+//PolyORB:NI:    typedef unsigned long long ObjectGroupId;
+//PolyORB:NI:    typedef unsigned long ObjectGroupRefVersion;
+//PolyORB:NI:
+//PolyORB:NI:    struct TagFTGroupTaggedComponent { // tag = TAG_FT_GROUP;
+//PolyORB:NI:	GIOP::Version		     version;
+//PolyORB:NI:	FTDomainId		     ft_domain_id;
+//PolyORB:NI:	ObjectGroupId		     object_group_id;
+//PolyORB:NI:	ObjectGroupRefVersion	     object_group_ref_version;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    struct TagFTPrimaryTaggedComponent { // tag = TAG_FT_PRIMARY;
+//PolyORB:NI:	boolean			      primary;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    // Specification for Most Recent Object Group Reference
+//PolyORB:NI:    struct FTGroupVersionServiceContext { //context_id = FT_GROUP_VERSION;
+//PolyORB:NI:	ObjectGroupRefVersion		object_group_ref_version;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    // Specification for Transparent Reinvocation
+//PolyORB:NI:    const CORBA::PolicyType REQUEST_DURATION_POLICY = 47;
+//PolyORB:NI:					
+//PolyORB:NI:    struct FTRequestServiceContext { // context_id = FT_REQUEST;
+//PolyORB:NI:	string				client_id;
+//PolyORB:NI:	long				retention_id;
+//PolyORB:NI:	TimeBase::TimeT			expiration_time;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    interface RequestDurationPolicy : CORBA::Policy {
+//PolyORB:NI:	readonly attribute TimeBase::TimeT request_duration_value;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    // Specification for Transport Heartbeats
+//PolyORB:NI:    const CORBA::PolicyType HEARTBEAT_POLICY = 48;
+//PolyORB:NI:    const CORBA::PolicyType HEARTBEAT_ENABLED_POLICY =  49;
+//PolyORB:NI:
+//PolyORB:NI:    struct TagFTHeartbeatEnabledTaggedComponent { 
+//PolyORB:NI:					// tag = TAG_FT_HEARTBEAT_ENABLED;
+//PolyORB:NI:	boolean				heartbeat_enabled;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    struct HeartbeatPolicyValue {
+//PolyORB:NI:	boolean				heartbeat;
+//PolyORB:NI:	TimeBase::TimeT			heartbeat_interval;
+//PolyORB:NI:	TimeBase::TimeT			heartbeat_timeout;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    interface HeartbeatPolicy : CORBA::Policy {
+//PolyORB:NI:	readonly attribute HeartbeatPolicyValue heartbeat_policy_value;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    interface HeartbeatEnabledPolicy : CORBA::Policy {
+//PolyORB:NI:	readonly attribute boolean heartbeat_enabled_policy_value;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    // Specification of Common Types and Exceptions for ReplicationManager
+//PolyORB:NI:    interface GenericFactory;
+//PolyORB:NI:    interface FaultNotifier;
+//PolyORB:NI:
+//PolyORB:NI:    typedef CORBA::RepositoryId TypeId;
+//PolyORB:NI:    typedef Object ObjectGroup;
+//PolyORB:NI:
+//PolyORB:NI:    typedef CosNaming::Name Name;
+//PolyORB:NI:    typedef any Value;
+//PolyORB:NI:
+//PolyORB:NI:    struct Property {
+//PolyORB:NI:	Name	    nam;
+//PolyORB:NI:	Value	    val;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    typedef sequence<Property> Properties;
+//PolyORB:NI:
+//PolyORB:NI:    typedef Name Location;
+//PolyORB:NI:    typedef sequence<Location> Locations;
+//PolyORB:NI:    typedef Properties Criteria;
+//PolyORB:NI:
+//PolyORB:NI:    struct FactoryInfo {
+//PolyORB:NI:	GenericFactory	the_factory;
+//PolyORB:NI:	Location	the_location;
+//PolyORB:NI:	Criteria	the_criteria;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    typedef sequence<FactoryInfo>  FactoryInfos;
+//PolyORB:NI:
+//PolyORB:NI:    typedef unsigned short ReplicationStyleValue;
+//PolyORB:NI:    const ReplicationStyleValue		STATELESS	= 0;
+//PolyORB:NI:    const ReplicationStyleValue		COLD_PASSIVE	= 1;
+//PolyORB:NI:    const ReplicationStyleValue		WARM_PASSIVE	= 2;
+//PolyORB:NI:    const ReplicationStyleValue		ACTIVE		= 3;
+//PolyORB:NI:    const ReplicationStyleValue		ACTIVE_WITH_VOTING = 4;
+//PolyORB:NI:
+//PolyORB:NI:    typedef unsigned short MembershipStyleValue;
+//PolyORB:NI:    const MembershipStyleValue		MEMB_APP_CTRL	= 0;
+//PolyORB:NI:    const MembershipStyleValue		MEMB_INF_CTRL	= 1;
+//PolyORB:NI:
+//PolyORB:NI:    typedef unsigned short ConsistencyStyleValue; 
+//PolyORB:NI:    const ConsistencyStyleValue		CONS_APP_CTRL	= 0;
+//PolyORB:NI:    const ConsistencyStyleValue		CONS_INF_CTRL	= 1;
+//PolyORB:NI:
+//PolyORB:NI:    typedef unsigned short FaultMonitoringStyleValue;
+//PolyORB:NI:    const FaultMonitoringStyleValue	PULL		= 0;
+//PolyORB:NI:    const FaultMonitoringStyleValue	PUSH		= 1;
+//PolyORB:NI:    const FaultMonitoringStyleValue	NOT_MONITORED	= 2;
+//PolyORB:NI:
+//PolyORB:NI:    typedef unsigned short FaultMonitoringGranularityValue;
+//PolyORB:NI:    const FaultMonitoringGranularityValue MEMB		= 0;
+//PolyORB:NI:    const FaultMonitoringGranularityValue LOC		= 1;
+//PolyORB:NI:    const FaultMonitoringGranularityValue LOC_AND_TYPE	= 2;
+//PolyORB:NI:
+//PolyORB:NI:    typedef FactoryInfos FactoriesValue;
+//PolyORB:NI:
+//PolyORB:NI:    typedef unsigned short InitialNumberReplicasValue;
+//PolyORB:NI:    typedef unsigned short MinimumNumberReplicasValue;
+//PolyORB:NI:
+//PolyORB:NI:    struct FaultMonitoringIntervalAndTimeoutValue {
+//PolyORB:NI:	TimeBase::TimeT   monitoring_interval;
+//PolyORB:NI:	TimeBase::TimeT   timeout;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    typedef TimeBase::TimeT CheckpointIntervalValue;
+//PolyORB:NI:					
+//PolyORB:NI:    exception InterfaceNotFound {};
+//PolyORB:NI:    exception ObjectGroupNotFound {};
+//PolyORB:NI:    exception MemberNotFound {};
+//PolyORB:NI:    exception ObjectNotFound {};
+//PolyORB:NI:    exception MemberAlreadyPresent {};
+//PolyORB:NI:    exception BadReplicationStyle {};
+//PolyORB:NI:    exception ObjectNotCreated {};
+//PolyORB:NI:    exception ObjectNotAdded {};
+//PolyORB:NI:    exception PrimaryNotSet {};
+//PolyORB:NI:    exception UnsupportedProperty {
+//PolyORB:NI:	Name  nam;
+//PolyORB:NI:	Value val;
+//PolyORB:NI:    };
+//PolyORB:NI:    exception InvalidProperty {
+//PolyORB:NI:	Name  nam;
+//PolyORB:NI:	Value val;
+//PolyORB:NI:    };
+//PolyORB:NI:    exception NoFactory {
+//PolyORB:NI:	Location	the_location;
+//PolyORB:NI:	TypeId		type_id;
+//PolyORB:NI:    };
+//PolyORB:NI:    exception InvalidCriteria {
+//PolyORB:NI:	Criteria invalid_criteria;
+//PolyORB:NI:    };
+//PolyORB:NI:    exception CannotMeetCriteria {
+//PolyORB:NI:	Criteria unmet_criteria;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    // Specification of PropertyManager Interface 
+//PolyORB:NI:    // which ReplicationManager Inherits
+//PolyORB:NI:    interface PropertyManager {
+//PolyORB:NI:	void set_default_properties(in Properties props)
+//PolyORB:NI:	     raises (InvalidProperty,
+//PolyORB:NI:		    UnsupportedProperty);
+//PolyORB:NI:
+//PolyORB:NI:	Properties get_default_properties();
+//PolyORB:NI:
+//PolyORB:NI:	void remove_default_properties(in Properties props)
+//PolyORB:NI:	     raises (InvalidProperty,
+//PolyORB:NI:		    UnsupportedProperty);
+//PolyORB:NI:
+//PolyORB:NI:	void set_type_properties(
+//PolyORB:NI:	     in TypeId type_id,
+//PolyORB:NI:	     in Properties overrides)
+//PolyORB:NI:	     raises (InvalidProperty,
+//PolyORB:NI:		    UnsupportedProperty);
+//PolyORB:NI:
+//PolyORB:NI:	Properties get_type_properties(in TypeId type_id);
+//PolyORB:NI:
+//PolyORB:NI:	void remove_type_properties(
+//PolyORB:NI:	     in TypeId type_id,
+//PolyORB:NI:	     in Properties props)
+//PolyORB:NI:	     raises (InvalidProperty,
+//PolyORB:NI:		    UnsupportedProperty);
+//PolyORB:NI:
+//PolyORB:NI:	void set_properties_dynamically(
+//PolyORB:NI:	     in ObjectGroup object_group,
+//PolyORB:NI:	     in Properties overrides)
+//PolyORB:NI:	     raises(ObjectGroupNotFound,
+//PolyORB:NI:		   InvalidProperty,
+//PolyORB:NI:		   UnsupportedProperty);
+//PolyORB:NI:
+//PolyORB:NI:	Properties get_properties(in ObjectGroup object_group)
+//PolyORB:NI:	     raises(ObjectGroupNotFound);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:
+//PolyORB:NI:    // Specification of ObjectGroupManager Interface
+//PolyORB:NI:    // which ReplicationManager Inherits
+//PolyORB:NI:    interface ObjectGroupManager {
+//PolyORB:NI:	ObjectGroup create_member(
+//PolyORB:NI:	    in ObjectGroup object_group,
+//PolyORB:NI:	    in Location the_location,
+//PolyORB:NI:	    in TypeId type_id, 
+//PolyORB:NI:	    in Criteria the_criteria)
+//PolyORB:NI:	raises(ObjectGroupNotFound,
+//PolyORB:NI:		MemberAlreadyPresent,
+//PolyORB:NI:		NoFactory,
+//PolyORB:NI:		ObjectNotCreated,
+//PolyORB:NI:		InvalidCriteria,
+//PolyORB:NI:		CannotMeetCriteria);
+//PolyORB:NI:						
+//PolyORB:NI:	ObjectGroup add_member(
+//PolyORB:NI:	    in ObjectGroup object_group,
+//PolyORB:NI:	    in Location the_location,
+//PolyORB:NI:	    in Object member)
+//PolyORB:NI:	    raises(ObjectGroupNotFound,
+//PolyORB:NI:		   MemberAlreadyPresent,
+//PolyORB:NI:		   ObjectNotAdded);
+//PolyORB:NI:
+//PolyORB:NI:	ObjectGroup remove_member(
+//PolyORB:NI:	    in ObjectGroup object_group,
+//PolyORB:NI:	    in Location the_location)
+//PolyORB:NI:	    raises(ObjectGroupNotFound,
+//PolyORB:NI:		   MemberNotFound);
+//PolyORB:NI:						
+//PolyORB:NI:	ObjectGroup set_primary_member(
+//PolyORB:NI:            in ObjectGroup object_group,
+//PolyORB:NI:	    in Location the_location)
+//PolyORB:NI:	    raises(ObjectGroupNotFound,
+//PolyORB:NI:		   MemberNotFound,
+//PolyORB:NI:		   PrimaryNotSet,
+//PolyORB:NI:		   BadReplicationStyle);
+//PolyORB:NI:						
+//PolyORB:NI:	Locations locations_of_members(
+//PolyORB:NI:	    in ObjectGroup object_group)
+//PolyORB:NI:	    raises(ObjectGroupNotFound);
+//PolyORB:NI:						
+//PolyORB:NI:	ObjectGroupId get_object_group_id(
+//PolyORB:NI:	    in ObjectGroup object_group)
+//PolyORB:NI:	    raises(ObjectGroupNotFound);
+//PolyORB:NI:
+//PolyORB:NI:	ObjectGroup get_object_group_ref(
+//PolyORB:NI:	    in ObjectGroup object_group)
+//PolyORB:NI:	    raises(ObjectGroupNotFound);
+//PolyORB:NI:
+//PolyORB:NI:	Object get_member_ref(
+//PolyORB:NI:	    in ObjectGroup object_group,
+//PolyORB:NI:	    in Location loc)
+//PolyORB:NI:	raises(ObjectGroupNotFound,
+//PolyORB:NI:	       MemberNotFound);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    // Specification of GenericFactory Interface
+//PolyORB:NI:    // which ReplicationManager Inherits and Application Objects Implement
+//PolyORB:NI:    interface GenericFactory {
+//PolyORB:NI:        typedef any FactoryCreationId; 
+//PolyORB:NI:	Object create_object(in TypeId type_id, 
+//PolyORB:NI:	    in Criteria the_criteria,
+//PolyORB:NI:	    out FactoryCreationId factory_creation_id)
+//PolyORB:NI:	    raises (NoFactory,
+//PolyORB:NI:		ObjectNotCreated,
+//PolyORB:NI:		InvalidCriteria,
+//PolyORB:NI:		InvalidProperty,
+//PolyORB:NI:		CannotMeetCriteria);
+//PolyORB:NI:
+//PolyORB:NI:	void delete_object(
+//PolyORB:NI:	     in FactoryCreationId factory_creation_id)
+//PolyORB:NI:	     raises (ObjectNotFound);
+//PolyORB:NI:	};
+//PolyORB:NI:
+//PolyORB:NI:    // Specification of ReplicationManager Interface
+//PolyORB:NI:    interface ReplicationManager : PropertyManager, 
+//PolyORB:NI:				   ObjectGroupManager,
+//PolyORB:NI:				   GenericFactory {
+//PolyORB:NI:	void register_fault_notifier(
+//PolyORB:NI:	    in FaultNotifier fault_notifier);
+//PolyORB:NI:
+//PolyORB:NI:	FaultNotifier get_fault_notifier()
+//PolyORB:NI:	    raises (InterfaceNotFound);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    // Specifications for Fault Management 
+//PolyORB:NI:    // Specification of PullMonitorable Interface
+//PolyORB:NI:    // which Application Objects Inherit
+//PolyORB:NI:    interface PullMonitorable {
+//PolyORB:NI:	boolean is_alive(); 
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    // Specification of FaultNotifier Interface
+//PolyORB:NI:    interface FaultNotifier {
+//PolyORB:NI:	typedef unsigned long long ConsumerId;
+//PolyORB:NI:
+//PolyORB:NI:	void push_structured_fault(
+//PolyORB:NI:	    in CosNotification::StructuredEvent event);
+//PolyORB:NI:
+//PolyORB:NI:	void push_sequence_fault(
+//PolyORB:NI:	    in CosNotification::EventBatch events);
+//PolyORB:NI:
+//PolyORB:NI:	ConsumerId connect_structured_fault_consumer(
+//PolyORB:NI:	    in CosNotifyComm::StructuredPushConsumer push_consumer);
+//PolyORB:NI:
+//PolyORB:NI:	ConsumerId connect_sequence_fault_consumer(
+//PolyORB:NI:	    in CosNotifyComm::SequencePushConsumer push_consumer);
+//PolyORB:NI:  
+//PolyORB:NI:	void disconnect_consumer( 
+//PolyORB:NI:	    in ConsumerId connection)
+//PolyORB:NI:	    raises(CosEventComm::Disconnected);
+//PolyORB:NI:
+//PolyORB:NI:        void replace_constraint(
+//PolyORB:NI:            in ConsumerId connection,
+//PolyORB:NI:            in CosNotification::EventTypeSeq event_types,
+//PolyORB:NI:            in string constr_expr);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:
+//PolyORB:NI:    // Specifications for Logging and Recovery
+//PolyORB:NI:    typedef sequence<octet> State;
+//PolyORB:NI:
+//PolyORB:NI:    exception NoStateAvailable {};
+//PolyORB:NI:    exception InvalidState {};
+//PolyORB:NI:    exception NoUpdateAvailable {};
+//PolyORB:NI:    exception InvalidUpdate {};
+//PolyORB:NI:
+//PolyORB:NI:    // Specification of Checkpointable Interface
+//PolyORB:NI:    // which Updateable and Application Objects Inherit
+//PolyORB:NI:    interface Checkpointable {
+//PolyORB:NI:	State  get_state()
+//PolyORB:NI:	    raises(NoStateAvailable);
+//PolyORB:NI:
+//PolyORB:NI:	void set_state(in State s)
+//PolyORB:NI:	    raises(InvalidState);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    // Specification of Updateable Interface
+//PolyORB:NI:    // which Application Objects Inherit
+//PolyORB:NI:    interface Updateable : Checkpointable {
+//PolyORB:NI:	State  get_update() 
+//PolyORB:NI:	    raises(NoUpdateAvailable);
+//PolyORB:NI:
+//PolyORB:NI:	void set_update(in State s)
+//PolyORB:NI:	     raises(InvalidUpdate);
+//PolyORB:NI:    };
+//PolyORB:NI:};
+#endif          // for #ifndef _FT_IDL_
+
+
+
+
+
+	

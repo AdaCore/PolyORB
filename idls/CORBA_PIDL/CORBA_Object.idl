@@ -1,0 +1,71 @@
+// File: CORBA_Object.idl
+// CORBA 3.0, Chapter 4
+
+    //PIDL
+    struct NamedValue { 
+        Identifier      name;       // argument name
+        any             argument;   // argument
+        long            len;        // length/count of argument value
+        Flags           arg_modes;  // argument mode flags
+    };
+
+    enum SetOverrideType {SET_OVERRIDE, ADD_OVERRIDE};
+
+    interface Object {                  // PIDL
+
+        InterfaceDef get_interface ();
+
+        boolean is_nil();
+
+//PolyORB:NI:        Object duplicate ();
+
+        void release ();
+
+        boolean is_a (
+            in string               logical_type_id
+        );
+
+        boolean non_existent();
+
+        boolean is_equivalent (
+            in Object               other_object
+        );
+
+        unsigned long hash(
+            in unsigned long        maximum
+        );
+
+        void create_request (           
+            in    Context           ctx,
+            in    Identifier        operation,
+            in    NVList            arg_list,
+            inout NamedValue        result,
+            out   Request           request,
+            in    Flags             req_flag
+        );
+
+//PolyORB:NI:        Policy get_policy (
+//PolyORB:NI:            in PolicyType           policy_type
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        DomainManagersList get_domain_managers ();
+//PolyORB:NI:
+//PolyORB:NI:        Object set_policy_overrides(
+//PolyORB:NI:            in PolicyList           policies,
+//PolyORB:NI:            in SetOverrideType      set_add
+//PolyORB:NI:        ) raises(InvalidPolicies);
+//PolyORB:NI:
+//PolyORB:NI:        Policy get_client_policy(
+//PolyORB:NI:            in PolicyType           type
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        PolicyList get_policy_overrides(
+//PolyORB:NI:            in PolicyTypeSeq        types
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        boolean validate_connection(
+//PolyORB:NI:            out PolicyList          inconsistent_policies
+//PolyORB:NI:        );
+//PolyORB:NI:
+//PolyORB:NI:        Object get_component ();
+    };

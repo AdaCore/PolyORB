@@ -145,7 +145,8 @@ GEN= \
 	$(GEN_SPECS_WITH_BODY)
 
 $(GEN): $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(IDLAC)
-	$(IDLAC) -I$(top_srcdir)/idls/CORBA_IDL orb.idl
+	$(IDLAC) -I$(top_srcdir)/idls/CORBA_IDL \
+		-I$(top_srcdir)/idls/CORBA_PIDL orb.idl
 	$(RM) corba-repository_root.ads
 
 $(GEN_BODIES): $(GEN)

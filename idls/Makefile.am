@@ -1,1 +1,1 @@
-SUBDIRS = CORBA_IDL cos
+SUBDIRS = CORBA_IDL CORBA_PIDL Interop Misc cos

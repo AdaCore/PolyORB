@@ -1,0 +1,323 @@
+// File: DynamicAny.idl
+// CORBA 3.0, Chapter 9
+
+#ifndef _DYNAMIC_ANY_IDL_
+#define _DYNAMIC_ANY_IDL_
+
+#ifdef _PRE_3_0_COMPILER_ 
+#pragma prefix "omg.org"
+#include <orb.idl>
+#else
+import ::CORBA;
+#endif // _PRE_3_0_COMPILER_
+
+//PolyORB:NI:module DynamicAny {
+//PolyORB:NI:
+//PolyORB:NI:#ifndef _PRE_3_0_COMPILER_ 
+//PolyORB:NI:    typeprefix DynamicAny "omg.org";
+//PolyORB:NI:#endif // _PRE_3_0_COMPILER_
+//PolyORB:NI:
+//PolyORB:NI:    local interface DynAny {
+//PolyORB:NI:        exception InvalidValue {};
+//PolyORB:NI:        exception TypeMismatch {};
+//PolyORB:NI:                
+//PolyORB:NI:        CORBA::TypeCode type();
+//PolyORB:NI:
+//PolyORB:NI:        void assign(        in DynAny   dyn_any)   
+//PolyORB:NI:	  raises(TypeMismatch);
+//PolyORB:NI:        void from_any(      in any      value)      
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        any to_any();
+//PolyORB:NI:
+//PolyORB:NI:        boolean equal(      in DynAny   dyn_any);
+//PolyORB:NI:
+//PolyORB:NI:        void destroy();
+//PolyORB:NI:        DynAny copy();
+//PolyORB:NI:
+//PolyORB:NI:        void insert_boolean(in boolean  value)      
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_octet(  in octet    value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_char(   in char     value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_short(  in short    value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_ushort( in unsigned short 
+//PolyORB:NI:                                        value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_long(   in long     value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_ulong(  in unsigned long 
+//PolyORB:NI:                                        value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_float(  in float    value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_double( in double   value)      
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_string( in string   value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_reference(in Object value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_typecode(in CORBA::TypeCode 
+//PolyORB:NI:                                        value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_longlong(in long long value)   
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_ulonglong(in unsigned long long 
+//PolyORB:NI:                                        value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_longdouble(in long double 
+//PolyORB:NI:                                        value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_wchar(  in wchar    value)      
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_wstring(in wstring  value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_any(    in any      value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_dyn_any(in DynAny   value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_val(    in ValueBase value)     
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:
+//PolyORB:NI:        boolean         get_boolean()               
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        octet           get_octet()                 
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        char            get_char()                 
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        short           get_short()                 
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        unsigned short  get_ushort()                
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        long            get_long()                  
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        unsigned long   get_ulong()                
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        float           get_float()                 
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        double          get_double()                
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        string          get_string()               
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        Object          get_reference()            
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::TypeCode get_typecode()             
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        long long       get_longlong()             
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        unsigned long long get_ulonglong()          
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        long double     get_longdouble()            
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        wchar           get_wchar()                
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        wstring         get_wstring()              
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        any             get_any()                   
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        DynAny          get_dyn_any()               
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        ValueBase       get_val()                   
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:
+//PolyORB:NI:        boolean         seek(in long index);
+//PolyORB:NI:        void            rewind();
+//PolyORB:NI:        boolean         next();
+//PolyORB:NI:        unsigned long   component_count();
+//PolyORB:NI:        DynAny          current_component()        
+//PolyORB:NI:	  raises(TypeMismatch);
+//PolyORB:NI:
+//PolyORB:NI:        void insert_abstract(in CORBA::AbstractBase value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::AbstractBase get_abstract()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:
+//PolyORB:NI:        void insert_boolean_seq(in CORBA::BooleanSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_octet_seq(in CORBA::OctetSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_char_seq(in CORBA::CharSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_short_seq(in CORBA::ShortSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_ushort_seq(in CORBA::UShortSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_long_seq(in CORBA::LongSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_ulong_seq(in CORBA::ULongSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_float_seq(in CORBA::FloatSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_double_seq(in CORBA::DoubleSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_longlong_seq(in CORBA::LongLongSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_ulonglong_seq(in CORBA::ULongLongSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_longdouble_seq(in CORBA::LongDoubleSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        void insert_wchar_seq(in CORBA::WCharSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::BooleanSeq get_boolean_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::OctetSeq get_octet_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::CharSeq get_char_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::ShortSeq get_short_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::UShortSeq get_ushort_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::LongSeq get_long_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::ULongSeq get_ulong_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::FloatSeq get_float_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::DoubleSeq get_double_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::LongLongSeq get_longlong_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::ULongLongSeq get_ulonglong_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::LongDoubleSeq get_longdouble_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::WCharSeq get_wchar_seq()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:    };
+//PolyORB:NI:    
+//PolyORB:NI:    local interface DynFixed : DynAny {
+//PolyORB:NI:        string          get_value();
+//PolyORB:NI:        boolean         set_value(in string val)    
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:    };
+//PolyORB:NI:    
+//PolyORB:NI:    local interface DynEnum : DynAny {
+//PolyORB:NI:        string          get_as_string();
+//PolyORB:NI:        void            set_as_string(in string value) 
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:        unsigned long   get_as_ulong();
+//PolyORB:NI:        void            set_as_ulong( in unsigned long value) 
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:    };
+//PolyORB:NI:    typedef string FieldName;
+//PolyORB:NI:    struct NameValuePair {
+//PolyORB:NI:        FieldName   id;
+//PolyORB:NI:        any         value;
+//PolyORB:NI:    };
+//PolyORB:NI:    
+//PolyORB:NI:    typedef sequence<NameValuePair> NameValuePairSeq;
+//PolyORB:NI:    struct NameDynAnyPair {
+//PolyORB:NI:        FieldName   id;
+//PolyORB:NI:        DynAny      value;
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    typedef sequence<NameDynAnyPair> NameDynAnyPairSeq;
+//PolyORB:NI:    local interface DynStruct : DynAny {
+//PolyORB:NI:        FieldName           current_member_name()  
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::TCKind       current_member_kind()   
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        NameValuePairSeq    get_members();
+//PolyORB:NI:        void                set_members(in NameValuePairSeq value)    
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        NameDynAnyPairSeq   get_members_as_dyn_any();
+//PolyORB:NI:        void  set_members_as_dyn_any(in NameDynAnyPairSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    local interface DynUnion : DynAny {
+//PolyORB:NI:        DynAny              get_discriminator();
+//PolyORB:NI:        void                set_discriminator(in DynAny d) 
+//PolyORB:NI:	  raises(TypeMismatch);
+//PolyORB:NI:        void                set_to_default_member() 
+//PolyORB:NI:	  raises(TypeMismatch);
+//PolyORB:NI:        void                set_to_no_active_member() 
+//PolyORB:NI:	  raises(TypeMismatch);
+//PolyORB:NI:        boolean             has_no_active_member();
+//PolyORB:NI:        CORBA::TCKind       discriminator_kind();
+//PolyORB:NI:        DynAny              member()               
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:        FieldName           member_name()          
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:        CORBA::TCKind       member_kind()           
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:    };
+//PolyORB:NI:    
+//PolyORB:NI:    typedef sequence<any>    AnySeq;
+//PolyORB:NI:    typedef sequence<DynAny> DynAnySeq;
+//PolyORB:NI:    local interface DynSequence : DynAny {
+//PolyORB:NI:        unsigned long       get_length();
+//PolyORB:NI:        void                set_length(in unsigned long len) 
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:        AnySeq              get_elements();
+//PolyORB:NI:        void                set_elements(in AnySeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        DynAnySeq           get_elements_as_dyn_any();
+//PolyORB:NI:        void                set_elements_as_dyn_any(in DynAnySeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    local interface DynArray : DynAny {
+//PolyORB:NI:        AnySeq              get_elements();
+//PolyORB:NI:        void                set_elements(in AnySeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        DynAnySeq           get_elements_as_dyn_any();
+//PolyORB:NI:        void                set_elements_as_dyn_any(in DynAnySeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:    };
+//PolyORB:NI:    
+//PolyORB:NI:    local interface DynValueCommon : DynAny {
+//PolyORB:NI:        boolean             is_null();
+//PolyORB:NI:        void                set_to_null();
+//PolyORB:NI:        void                set_to_value();
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    local interface DynValue : DynValueCommon {
+//PolyORB:NI:        FieldName           current_member_name()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        CORBA::TCKind       current_member_kind()
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        NameValuePairSeq    get_members()
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:        void                set_members(in NameValuePairSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        NameDynAnyPairSeq   get_members_as_dyn_any()
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:        void                set_members_as_dyn_any(in NameDynAnyPairSeq value)
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    local interface DynValueBox : DynValueCommon {
+//PolyORB:NI:        any                 get_boxed_value()
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:        void                set_boxed_value(in any boxed) 
+//PolyORB:NI:	  raises(TypeMismatch, InvalidValue);
+//PolyORB:NI:        DynAny              get_boxed_value_as_dyn_any()
+//PolyORB:NI:	  raises(InvalidValue);
+//PolyORB:NI:        void                set_boxed_value_as_dyn_any(in DynAny boxed)
+//PolyORB:NI:	  raises(TypeMismatch);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:    exception MustTruncate { };
+//PolyORB:NI:
+//PolyORB:NI:    local interface DynAnyFactory {
+//PolyORB:NI:        exception InconsistentTypeCode {};
+//PolyORB:NI:        DynAny create_dyn_any(in any value)
+//PolyORB:NI:	  raises(InconsistentTypeCode);
+//PolyORB:NI:        DynAny create_dyn_any_from_type_code(in CORBA::TypeCode type)
+//PolyORB:NI:	  raises(InconsistentTypeCode);
+//PolyORB:NI:        DynAny create_dyn_any_without_truncation(in any value)
+//PolyORB:NI:	  raises(InconsistentTypeCode, MustTruncate);
+//PolyORB:NI:        DynAnySeq create_multiple_dyn_anys(
+//PolyORB:NI:	  in AnySeq values,
+//PolyORB:NI:	  in boolean allow_truncate)
+//PolyORB:NI:	raises(InconsistentTypeCode, MustTruncate);
+//PolyORB:NI:        AnySeq create_multiple_anys(in DynAnySeq values);
+//PolyORB:NI:    };
+//PolyORB:NI:
+//PolyORB:NI:
+//PolyORB:NI:
+//PolyORB:NI:}; // module DynamicAny
+#endif // _DYNAMIC_ANY_IDL_
