@@ -1,3 +1,13 @@
+2004-08-11  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* configure.in, configure: do not take care of the presence of
+	gnat sources anymore.
+	Part of the work for CA22-003.
+
+	* MANIFEST: remove gnat sources from distribution and add new Dist
+	sources.
+	Part of the work for CA22-003.
+
 2004-02-14  Pascal Obry  <obry@gnat.com>
 
 	* aclocal.m4, configure:
