@@ -117,7 +117,7 @@ package Droopi.ORB is
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
       TAP   : Transport_Access_Point_Access;
-      Chain : Filters.Factory_Chain_Access);
+      Chain : Filters.Factory_Access);
    --  Register a newly-created transport access point with
    --  ORB. When a connection is received on TAP, a filter
    --  chain is instanciated using Chain, and associated
@@ -128,7 +128,7 @@ package Droopi.ORB is
    procedure Register_Endpoint
      (ORB   : access ORB_Type;
       TE    : Transport_Endpoint_Access;
-      Chain : Filters.Factory_Chain_Access;
+      Chain : Filters.Factory_Access;
       Role  : Endpoint_Role);
    --  Register a newly-created transport endpoint with ORB.
    --  A filter chain is instanciated using Chain, and associated

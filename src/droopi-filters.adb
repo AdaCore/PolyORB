@@ -2,6 +2,8 @@
 
 --  $Id$
 
+with Droopi.Filters.Interface;
+
 package body Droopi.Filters is
 
    procedure Connect_Lower (F : access Filter; Lower : Component_Access) is
@@ -14,23 +16,57 @@ package body Droopi.Filters is
       return F.Lower;
    end Lower;
 
-   function Create_Filter_Chain (FChain : Factory_Chain_Access)
+   function Handle_Message
+     (F : access Factory;
+      Msg : Message'Class)
+     return Message'Class is
+   begin
+      if Msg in Interface.Create_Filter_Chain then
+         return Interface.Created_Filter_Chain'
+           (Filter_Chain => Create_Filter_Chain (F));
+      else
+         raise Unhandled_Message;
+      end if;
+   end Handle_Message;
+
+   procedure Chain_Factories (Factories : Factory_Array) is
+   begin
+      for I in Factories'First .. Factories'Last - 1 loop
+         Connect
+           (Factories (I).Upper,
+            Component_Access (Factories (I + 1)));
+      end loop;
+
+      Factories (Factories'Last).Upper := null;
+   end Chain_Factories;
+
+   function Create_Filter_Chain (FChain : access Factory)
      return Filter_Access
    is
       F : Filter_Access;
    begin
-      pragma Assert (FChain /= null);
-
-      Create (Fact => FChain.This, Filt => F);
+      Create (Fact => Factory'Class (FChain.all)'Access, Filt => F);
       --  Create new filter.
 
       if FChain.Upper /= null then
          declare
-            Upper : constant Filter_Access
-              := Create_Filter_Chain (FChain.Upper);
+            Reply : constant Message'Class
+              := Emit
+              (FChain.Upper,
+               Interface.Create_Filter_Chain'(null record));
          begin
-            Connect (F.Upper, Component_Access (Upper));
-            Connect_Lower (Upper, Component_Access (F));
+            if not (Reply in Interface.Created_Filter_Chain) then
+               raise Unhandled_Message;
+            end if;
+
+            declare
+               Upper : constant Filter_Access
+                 := Interface.Created_Filter_Chain
+                 (Reply).Filter_Chain;
+            begin
+               Connect (F.Upper, Component_Access (Upper));
+               Connect_Lower (Upper, Component_Access (F));
+            end;
          end;
       end if;
       return F;

@@ -115,7 +115,7 @@ package body Droopi.ORB is
             TAP : Transport_Access_Point_Access;
             --  Factory of Transport_Endpoint components.
 
-            Filter_Factory_Chain : Filters.Factory_Chain_Access;
+            Filter_Factory_Chain : Filters.Factory_Access;
             --  Factory of Filter (protocol stack) components.
 
          when A_TE_AES =>
@@ -318,7 +318,7 @@ package body Droopi.ORB is
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
       TAP   : Transport_Access_Point_Access;
-      Chain : Filters.Factory_Chain_Access)
+      Chain : Filters.Factory_Access)
    is
       New_AES : Asynch_Ev_Source_Access;
    begin
@@ -341,7 +341,7 @@ package body Droopi.ORB is
    procedure Register_Endpoint
      (ORB   : access ORB_Type;
       TE    : Transport_Endpoint_Access;
-      Chain : Filters.Factory_Chain_Access;
+      Chain : Filters.Factory_Access;
       Role  : Endpoint_Role)
    is
       New_AES    : Asynch_Ev_Source_Access;
@@ -496,7 +496,7 @@ package body Droopi.ORB is
 
             Emit_No_Reply (J.Requestor, Result);
             --  XXX Should that be Emit? Should there be a reply
-            --      from session ?
+            --      from Requestor?
 
             --  Warning! Destroy_Request will be called soon:
             --  the requestor must not depend on it persisting

@@ -9,9 +9,19 @@ with Droopi.Components; use Droopi.Components;
 
 package Droopi.Filters.Interface is
 
-   --------------------------------------------------
-   -- Filters communicate by exchanging Interface --
-   --------------------------------------------------
+   -----------------------------
+   -- Filter_Factory messages --
+   -----------------------------
+
+   type Create_Filter_Chain is new Message with null record;
+
+   type Created_Filter_Chain is new Message with record
+      Filter_Chain : Filter_Access;
+   end record;
+
+   ---------------------
+   -- Filter messages --
+   ---------------------
 
    type Root_Data_Unit is abstract new Message with null record;
    subtype Data_Unit is Root_Data_Unit'Class;

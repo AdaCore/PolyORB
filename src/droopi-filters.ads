@@ -6,8 +6,6 @@ with Droopi.Components; use Droopi.Components;
 
 package Droopi.Filters is
 
-   pragma Elaborate_Body;
-
    ----------------------------------------------------
    -- A Filter is a component that forwards messages --
    -- across a stack.                                --
@@ -29,24 +27,32 @@ package Droopi.Filters is
    -- created from a chain of filter factories.     --
    ---------------------------------------------------
 
-   type Factory is abstract tagged limited private;
+   type Factory is abstract new Filter with private;
    type Factory_Access is access all Factory'Class;
+
+   type Factory_Array is array (Integer range <>)
+     of Factory_Access;
 
    procedure Create
      (Fact : access Factory;
       Filt : out Filter_Access)
       is abstract;
+   --  Each filter factory implements a Create operation that
+   --  instanciates the corresponding filter.
 
-   type Factory_Chain;
-   type Factory_Chain_Access is access all Factory_Chain;
+   function Handle_Message
+     (F : access Factory;
+      Msg : Message'Class)
+     return Message'Class;
 
-   type Factory_Chain is record
-      This  : Factory_Access;
-      Upper : Factory_Chain_Access;
-   end record;
+   procedure Chain_Factories (Factories : Factory_Array);
+   --  Chain Factories into a Factory_Chain.
 
-   function Create_Filter_Chain (FChain : Factory_Chain_Access)
+   function Create_Filter_Chain (FChain : access Factory)
      return Filter_Access;
+   --  Invoke the factory chain starting with Head, to create
+   --  a chain of filters. The head of the created filter chain
+   --  is returned.
 
 private
 
@@ -55,6 +61,6 @@ private
       Upper  : Component_Access;
    end record;
 
-   type Factory is abstract tagged limited null record;
+   type Factory is abstract new Filter with null record;
 
 end Droopi.Filters;
