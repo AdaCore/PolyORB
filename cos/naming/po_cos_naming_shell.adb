@@ -347,12 +347,14 @@ procedure PO_COS_Naming_Shell is
 
    procedure Cmd_Line_Usage is
    begin
-      Ada.Text_IO.Put_Line ("test_naming_corba_i [-s] [-i] [-I <IOR>] [-n]");
-      Ada.Text_IO.Put_Line (" -s register Root directory initial reference");
+      Ada.Text_IO.Put_Line ("po_cos_naming_shell [-s] [-i] [-I <IOR>] [-n]");
+      Ada.Text_IO.Put_Line (" -s register root directory initial reference");
       Ada.Text_IO.Put_Line (" -i retrieve root directory initial reference");
       Ada.Text_IO.Put_Line (" -I <IOR>, use object denoted by IOR as"
                             & " root directory");
       Ada.Text_IO.Put_Line (" -n retrieve root directory by name");
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put_Line ("Note: if no Root is provided, create a new one");
    end Cmd_Line_Usage;
 
    --  Start of processing for Test_Naming_CORBA_I
