@@ -13,7 +13,7 @@
 # Current version
 #
 glade_version='2.01w'
-gnat_version='3.11w'
+gnat_version=`sed -n -e '/Gnat_Vers/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
 
 #
 # files hold the list of files in which substitutions will occur
