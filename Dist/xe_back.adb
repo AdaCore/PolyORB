@@ -174,13 +174,13 @@ package body XE_Back is
    procedure Build_New_Host
      (Subprogram : in Subprogram_Id;
       Host_Entry : out Host_Id) is
-      Host : Host_Id := Null_Host;
+      Host : Host_Id;
       Name : Name_Id;
    begin
 
       Host := Get_Host (Node_Id (Subprogram));
 
-      if Host = Wrong_Host then
+      if Host = Null_Host then
          Hosts.Increment_Last;
          Host := Hosts.Last;
          Name := Get_Node_Name (Node_Id (Subprogram));
@@ -309,12 +309,11 @@ package body XE_Back is
       else
          raise Parsing_Error;
       end if;
-      case Info is
-         when Host_First .. Host_Last =>
-            return Host_Id (Info);
-         when others =>
-            return Wrong_Host;
-      end case;
+      if Info in Int (Host_Id'First) .. Int (Host_Id'Last) then
+         return Host_Id (Info);
+      else
+         return Null_Host;
+      end if;
    end Get_Host;
 
    ---------------------------
@@ -735,10 +734,7 @@ package body XE_Back is
 
          when Pragma_Version =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Version_Checks := Convert (Get_Variable_Mark (Value));
-
-         when Pragma_Unknown =>
-            null;
+            Version_Checks := (Get_Variable_Mark (Value) /= 0);
 
       end case;
 
@@ -751,22 +747,31 @@ package body XE_Back is
    procedure Set_Type_Attribute
      (Pre_Type : in Type_Id) is
       Component_Node : Component_Id;
+      Pre_Type_Id    : Predefined_Type;
    begin
 
-      --  Some attribute apply to type ... in our case, Partition is
-      --  the only type concerned.
+      if Get_Array_Element_Type (Pre_Type) /= Null_Type then
+         Pre_Type_Id := Convert (Get_Type_Mark (Pre_Type));
+         First_Type_Component (Pre_Type, Component_Node);
+         while Component_Node /= Null_Component loop
+            if Is_Component_An_Attribute (Component_Node) and then
+              Has_Component_A_Value (Component_Node) then
+               case Pre_Type_Id is
+                  when Pre_Type_Partition =>
+                     Set_Partition_Attribute
+                       (Attribute_Id (Component_Node), Null_PID);
 
-      if Pre_Type /= Partition_Type_Node then
-         return;
+                  when Pre_Type_Channel   =>
+                     Set_Channel_Attribute
+                       (Attribute_Id (Component_Node), Null_CID);
+
+                  when others =>
+                     null;
+               end case;
+            end if;
+            Next_Type_Component (Component_Node);
+         end loop;
       end if;
-
-      First_Type_Component (Pre_Type, Component_Node);
-      while Component_Node /= Null_Component loop
-         if Is_Component_An_Attribute (Component_Node) then
-            Set_Partition_Attribute (Attribute_Id (Component_Node), Null_PID);
-         end if;
-         Next_Type_Component (Component_Node);
-      end loop;
 
    end Set_Type_Attribute;
 

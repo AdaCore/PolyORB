@@ -28,8 +28,10 @@
 
 package XE_Parse is
 
-   procedure Parse;
-
    procedure Initialize;
+   --  Elaboration code.
+
+   procedure Parse;
+   --  Main procedure.
 
 end XE_Parse;

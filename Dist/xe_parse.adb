@@ -26,14 +26,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Namet;            use Namet;
 with Osint;            use Osint;
 with Output;           use Output;
-with Namet;            use Namet;
+with Table;
 with Types;
+with XE;               use XE;
 with XE_Scan;          use XE_Scan;
 with XE_Utils;         use XE_Utils;
-with XE;               use XE;
-with Table;
 
 package body XE_Parse is
 
@@ -52,12 +52,154 @@ package body XE_Parse is
    Unique     : constant Boolean := True;
    Not_Unique : constant Boolean := False;
 
+   procedure Append_Declaration
+     (Configuration_Node : in Configuration_Id;
+      Declaration_Node   : in Node_Id)
+     renames XE.Add_Configuration_Declaration;
+   --  Shorcut.
+
+   procedure Associate_Actual_To_Formal
+     (Subprogram_Node : in Subprogram_Id);
+   --  Parse a subprogram call and associate actual parameters to formal
+   --  parameters.
+
+   procedure Declare_Literal
+     (Literal_Name : in  Name_Id;
+      Literal_Type : in  Type_Id;
+      Literal_Sloc : in  Location_Type;
+      Literal_Node : out Variable_Id);
+   --  Declare a new literal.
+
+   procedure Declare_Procedure_Call
+     (Subprogram_Node : in Subprogram_Id);
+   --  Declare a call to a procedure. A statement node is created and
+   --  contains an entire copy of the subprogram node.
+
+   procedure Declare_Subprogram
+     (Subprogram_Name  : in  Name_Id;
+      Is_A_Procedure   : in  Boolean;
+      Subprogram_Sloc  : in  Location_Type;
+      Subprogram_Node  : out Subprogram_Id);
+   --  Declare a subprogram into the configuration context. This subprogram
+   --  is possibly a function. At this point, the subprogram has no
+   --  parameter.
+
+   procedure Declare_Subprogram_Parameter
+     (Parameter_Name  : in  Name_Id;
+      Para_Type_Node  : in  Type_Id;
+      Subprogram_Node : in  Subprogram_Id;
+      Parameter_Sloc  : in  Location_Type;
+      Parameter_Node  : out Parameter_Id);
+   --  Declare a parameter for a subprogram. The last parameter corresponds
+   --  to a returned value when the subprogram is a function.
+
+   procedure Declare_Type
+     (Conf_Node : in  Configuration_Id;
+      Type_Name : in  Name_Id;
+      Type_Kind : in  Predefined_Type;
+      Elmt_Type : in  Type_Id;
+      Is_A_List : in  Boolean;
+      Is_Frozen : in  Boolean;
+      Type_Sloc : in  Location_Type;
+      Type_Node : out Type_Id);
+   --  Declare a new type into the configuration context. If a non null
+   --  element type is provided, then it is an array. If Is_A_List is set,
+   --  then this array is unbounded.
+
+   procedure Declare_Type_Attribute
+     (Type_Node          : in Type_Id;
+      Attribute_Name     : in Name_Id;
+      Attr_Type_Node     : in Type_Id;
+      Attribute_Kind     : in Attribute_Type;
+      Attribute_Sloc     : in Location_Type;
+      Attribute_Node     : out Attribute_Id);
+   --  Declare an attribute for a given type. This procedure creates a
+   --  component of type Attr_Type_Node and includes it in the type
+   --  component list.
+
+   procedure Declare_Type_Component
+     (Type_Node          : in Type_Id;
+      Component_Name     : in Name_Id;
+      Comp_Type_Node     : in Type_Id;
+      Component_Sloc     : in Location_Type;
+      Component_Node     : out Component_Id);
+   --  Declare a component for a given type. This procedure creates a
+   --  component of type Comp_Type_Node and includes it in the type
+   --  component list.
+
+   procedure Declare_Variable
+     (Conf_Node     : in  Configuration_Id;
+      Variable_Name : in  Name_Id;
+      Variable_Type : in  Type_Id;
+      Is_Unique     : in  Boolean;
+      Variable_Sloc : in  Location_Type;
+      Variable_Node : out Variable_Id);
+   --  Declare a new variable into the configuration context. This variable
+   --  of name Variable_Name is of type Variable_Type. Is_Unique prevents
+   --  from multiple declarations.
+
+   procedure Declare_Variable_Component
+     (Variable_Node      : in Variable_Id;
+      Component_Name     : in Name_Id;
+      Component_Type     : in Type_Id;
+      Component_Value    : in Variable_Id;
+      Is_An_Attribute    : in Boolean;
+      Component_Sloc     : in Location_Type;
+      Component_Node     : out Component_Id);
+   --  Add a component for a given variable. This component is possibly an
+   --  attribute and is initialized to Component_Value.  The component type
+   --  is given by Component_Type.
+
+   procedure Duplicate_Component
+     (Source : in Component_Id;
+      Target : out Component_Id);
+   --  Duplicate component, attribute or not, but do not duplicate
+   --  component value.
+
+   procedure Duplicate_Variable
+     (Source, Target : in Variable_Id);
+   --  Duplicate all the content except attributes.
+
    procedure Exit_On_Parsing_Error;
    --  Print configuration if verbose_mode and then raise Parsing_Error.
 
-   procedure Print_Configuration;
-   --  Print node tree for debugging purpose. The global variable
-   --  Configuration_Node is used as tree root.
+   procedure Has_Not_Been_Already_Declared
+     (Declaration_Name : in Name_Id;
+      Declaration_Sloc : in Location_Type);
+   --  Check that such a declaration has not already been done.
+
+   function Is_Expression_Of_Type
+     (Expr_Node : Node_Id;
+      Type_Node : Type_Id)
+      return Boolean;
+   --  When Expr_Node is a variable, compares the given type and the
+   --  variable type. When Expr_Node is a function, compares the given type
+   --  and the type of the returned parameter.
+
+
+   function  Match    (L : Token_List_Type) return Boolean;
+   procedure No_Match (L : in Token_List_Type);
+   procedure No_Match (T : in Token_Type);
+   --  Utilities.
+
+   procedure P_Aggregate_Assignement
+     (Variable_Node   : in Variable_Id);
+   --  Parse an aggregat assignement.
+
+   procedure P_Configuration_Body;
+   procedure P_Configuration_Declaration;
+   procedure P_Configuration_End;
+   procedure P_Full_Ada_Identifier;
+   --  Parser utilities.
+
+   procedure P_Function_Declaration;
+   procedure P_Pragma;
+   procedure P_Procedure_Declaration;
+   procedure P_Representation_Clause;
+   procedure P_Variable_List_Declaration
+     (Previous_Name   : in Name_Id;
+      Previous_Sloc   : in Location_Type);
+   --  Parse a list of identifiers.
 
    procedure Print
      (Node : in Node_Id;
@@ -68,13 +210,11 @@ package body XE_Parse is
      (Node : in Type_Id;
       Head : in String);
    --  Print a type node with its component and attributes.
-   --  Attributes are printed with their values.
 
    procedure Print
      (Node : in Variable_Id;
       Head : in String);
    --  Print a variable node with its values and its attributes.
-   --  Attributes are printed with their values.
 
    procedure Print
      (Node : in Parameter_Id;
@@ -96,67 +236,84 @@ package body XE_Parse is
    procedure Print
      (Node : in Statement_Id;
       Head : in String);
-   --  Print a statement node. This procedure currently doesn't print
-   --  the actual parameters.
+   --  Print a statement node.
 
    procedure Print
      (Node : in Configuration_Id;
       Head : in String);
    --  Print a configuration node.
 
-   procedure Set_Node_Location
-     (Node     : in Node_Id;
-      Location : in Location_Type);
-   --  Set SLOC node to Location.
+   procedure Print;
+   --  Print node tree for debugging purpose. The global variable
+   --  Configuration_Node is used as tree root.
 
-   procedure Has_Not_Been_Already_Declared
-     (Declaration_Name : in Name_Id;
-      Declaration_Sloc : in Location_Type);
-   --  Check that this declaration is not already present.
-
-   procedure Search_Declaration
-     (Declaration_Name : in  Name_Id;
-      Declaration_Node : out Node_Id);
-   --  Search for the first occurrence of a declaration of name
-   --  Declaration_Name. If unsuccessful, returns Null_Node.
-
-   procedure Search_Subprogram
-     (Subprogram_Name : in  Name_Id;
-      Subprogram_Node : out Subprogram_Id);
-   --  Search for the first occurrence of a subprogram of name
-   --  Subprogram_Name. If unsuccessful, returns Null_Subprogram.
-
-   procedure Search_Type
-     (Type_Name : in  Name_Id;
-      Type_Kind : out Predefined_Type;
-      Type_Node : out Type_Id);
-   --  Search for the first occurrence of a type of name Type_Name.
-   --  If unsuccessful, returns Null_Type. If successful, Type_Kind
-   --  is set to its predefined type enumeration litteral. Otherwise,
-   --  it is set to Pre_Type_Unknown.
-
-   procedure Search_Pragma
-     (Pragma_Name : in  Name_Id;
-      Pragma_Kind : out Pragma_Type;
-      Pragma_Node : out Subprogram_Id);
-   --  Search for the first occurrence of a pragma of name Pragma_Name.
-   --  If unsuccessful, returns Null_Pragma. If successful, Pragma_Kind
-   --  is set to its pragma type enumeration litteral. Otherwise,
-   --  it is set to Pragma_Unknown.
+   procedure Search_Actual_Parameter
+     (Actual_Name : in  Name_Id;
+      Actual_Type : in  Type_Id;
+      Actual_Node : out Variable_Id);
+   --  Similar to Search_Variable but check name *and* type.
 
    procedure Search_Component
      (Component_Name : in  Name_Id;
       Type_Node      : in  Type_Id;
       Component_Node : out Component_Id);
-   --  Search for the first occurrence of a component of name Component_Name
-   --  in a type Type_Node. If unsuccessful, returns Null_Component.
+   --  Search for the first occurrence of a component Component_Name in a
+   --  type Type_Node. If unsuccessful, returns Null_Component.
 
    procedure Search_Component
      (Component_Name : in  Name_Id;
       Variable_Node  : in  Variable_Id;
       Component_Node : out Component_Id);
-   --  Search for the first occurrence of a component of name Component_Name
-   --  in a variable Variable_Node. If unsuccessful, returns Null_Component.
+   --  Search for the first occurrence of a component Component_Name in a
+   --  variable Variable_Node. If unsuccessful, returns Null_Component.
+
+   procedure Search_Declaration
+     (Declaration_Name : in  Name_Id;
+      Declaration_Node : out Node_Id);
+   --  Search for the first occurrence of a declaration
+   --  Declaration_Name. If unsuccessful, returns Null_Node.
+
+   procedure Search_Function_Returned_Parameter
+     (Function_Node  : in Subprogram_Id;
+      Parameter_Node : out Parameter_Id);
+   --  Search for the last parameter of this subprogram. This is by
+   --  convention the returned parameter.
+
+   type Convention_Type is (Named, Positional);
+   procedure Search_Matching_Parameter
+     (Subprogram_Node : in Subprogram_Id;
+      Convention      : in Convention_Type;
+      Formal_Name     : in out Name_Id;
+      Parameter_Node  : in out Parameter_Id);
+   --  Search for a formal parameter that has no actual associated
+   --  parameter. This choice should follow Convention requirements. If
+   --  Convention is Named, then returns Parameter_Node of name
+   --  Formal_Name. If is Positional, returns the next unmatched parameter
+   --  and returns also its name in Formal_Name.
+
+   procedure Search_Pragma
+     (Pragma_Name : in  Name_Id;
+      Pragma_Kind : out Pragma_Type;
+      Pragma_Node : out Subprogram_Id);
+   --  Search for the first occurrence of a pragma Pragma_Name. If
+   --  unsuccessful, returns Null_Pragma. If successful, Pragma_Kind is set
+   --  to its corresponding litteral. Otherwise, it is set to
+   --  Pragma_Unknown.
+
+   procedure Search_Subprogram
+     (Subprogram_Name : in  Name_Id;
+      Subprogram_Node : out Subprogram_Id);
+   --  Search for the first occurrence of a subprogram Subprogram_Name. If
+   --  unsuccessful, returns Null_Subprogram.
+
+   procedure Search_Type
+     (Type_Name : in  Name_Id;
+      Type_Kind : out Predefined_Type;
+      Type_Node : out Type_Id);
+   --  Search for the first occurrence of a type Type_Name. If
+   --  unsuccessful, returns Null_Type. If successful, Type_Kind is set to
+   --  its corresponding litteral. Otherwise, it is set to
+   --  Pre_Type_Unknown.
 
    procedure Search_Unused_Component
      (Variable_Node  : in  Variable_Id;
@@ -169,38 +326,41 @@ package body XE_Parse is
    procedure Search_Variable
      (Variable_Name : in  Name_Id;
       Variable_Node : out Variable_Id);
-   --  Search for the first occurrence of a variable of name
-   --  Variable_Name. If unsuccessful, returns Null_Variable.
+   --  Search for the first occurrence of a variable Variable_Name. If
+   --  unsuccessful, returns Null_Variable.
 
-   procedure Search_Actual_Parameter
-     (Actual_Name : in  Name_Id;
-      Actual_Type : in  Type_Id;
-      Actual_Node : out Variable_Id);
-   --  Similar to Search_Variable but with a additional restrictions.
-   --  Variable_Node type should be Actual_Type.
+   procedure Set_Node_Location
+     (Node     : in Node_Id;
+      Location : in Location_Type);
+   --  Set SLOC node to Location.
 
-   type Convention_Type is (Named, Positional);
-   procedure Search_Matching_Parameter
-     (Subprogram_Node : in Subprogram_Id;
-      Convention      : in Convention_Type;
-      Formal_Name     : in out Name_Id;
-      Parameter_Node  : in out Parameter_Id);
-   --  Search for a formal parameter that has no actual associated parameter.
-   --  This choice should follow Convention requirements. If Convention
-   --  is Named, then returns Parameter_Node of name Formal_Name. If
-   --  is Positional, returns the next unmatched parameter and returns
-   --  also its name in Formal_Name.
+   procedure T_Apostrophe;
+   procedure T_Arrow;
+   procedure T_Colon;
+   procedure T_Colon_Equal;
+   procedure T_Comma;
+   procedure T_Configuration;
+   procedure T_Dot;
+   procedure T_End;
+   procedure T_EOF;
+   procedure T_For;
+   procedure T_Function;
+   procedure T_Identifier;
+   procedure T_In;
+   procedure T_Is;
+   procedure T_Left_Paren;
+   procedure T_Pragma;
+   procedure T_Procedure;
+   procedure T_Return;
+   --  Token management.
 
-   procedure Search_Function_Returned_Parameter
-     (Function_Node  : in Subprogram_Id;
-      Parameter_Node : out Parameter_Id);
-   --  Search for the last parameter of this subprogram. This is by
-   --  convention the returned parameter.
-
-   procedure Append_Declaration
-     (Configuration_Node : in Configuration_Id;
-      Declaration_Node   : in Node_Id)
-     renames XE.Append_Configuration_Declaration;
+   procedure T_Right_Paren;
+   procedure T_Semicolon;
+   procedure T_String_Literal;
+   procedure T_Use;
+   procedure Take_Token (T : in Token_Type);
+   procedure Take_Token (L : in Token_List_Type);
+   --  Utilities.
 
    procedure Unmark_Subprogram_Parameters
      (Subprogram_Node : in Subprogram_Id;
@@ -214,211 +374,8 @@ package body XE_Parse is
       Variable_Type : in  Type_Id;
       Variable_Node : out Variable_Id);
    --  Update an old variable into the configuration context. This variable
-   --  of name Variable_Name has a corresponding type, indicated by the
-   --  type node Variable_Type.
-
-   procedure Declare_Type
-     (Conf_Node : in  Configuration_Id;
-      Type_Name : in  Name_Id;
-      Type_Kind : in  Predefined_Type;
-      Elmt_Type : in  Type_Id;
-      Is_A_List : in  Boolean;
-      Is_Frozen : in  Boolean;
-      Type_Sloc : in  Location_Type;
-      Type_Node : out Type_Id);
-   --  Declare a new type into the configuration context. Provide the
-   --  type name. If a non null element type is provided, then it is
-   --  an array. If Is_A_List is set, then this array is unbounded.
-
-   procedure Declare_Literal
-     (Literal_Name : in  Name_Id;
-      Literal_Type : in  Type_Id;
-      Literal_Sloc : in  Location_Type;
-      Literal_Node : out Variable_Id);
-   --  Declare a new literal.
-
-   procedure Declare_Variable
-     (Conf_Node     : in  Configuration_Id;
-      Variable_Name : in  Name_Id;
-      Variable_Type : in  Type_Id;
-      Is_Unique     : in  Boolean;
-      Variable_Sloc : in  Location_Type;
-      Variable_Node : out Variable_Id);
-   --  Declare a new variable into the configuration context. This variable
-   --  of name Variable_Name has a corresponding type, indicated by the
-   --  type node Variable_Type.
-
-   procedure Declare_Component
-     (Type_Node          : in Type_Id;
-      Component_Name     : in Name_Id;
-      Comp_Type_Node     : in Type_Id;
-      Component_Sloc     : in Location_Type;
-      Component_Node     : out Component_Id);
-   --  Declare a component for a given type. This procedure creates
-   --  a component of type Comp_Type_Node and includes it in the type
-   --  component list.
-
-   procedure Declare_Attribute
-     (Type_Node          : in Type_Id;
-      Attribute_Name     : in Name_Id;
-      Attr_Type_Node     : in Type_Id;
-      Attribute_Kind     : in Attribute_Type;
-      Attribute_Sloc     : in Location_Type;
-      Attribute_Node     : out Attribute_Id);
-   --  Declare an attribute for a given type. This procedure creates
-   --  a component of type Attr_Type_Node and includes it in the type
-   --  component list.
-
-   procedure Declare_Attribute
-     (Variable_Node      : in Variable_Id;
-      Attribute_Name     : in Name_Id;
-      Attribute_Sloc     : in Location_Type;
-      Attribute_Node     : out Attribute_Id);
-   --  Declare an attribute for a given variable. This procedure creates
-   --  a copy of the attribute that can be found into the variable type node.
-
-   procedure Declare_Component
-     (Variable_Node      : in Variable_Id;
-      Component_Name     : in Name_Id;
-      Component_Type     : in Type_Id;
-      Component_Value    : in Variable_Id;
-      Is_An_Attribute    : in Boolean;
-      Component_Sloc     : in Location_Type;
-      Component_Node     : out Component_Id);
-   --  Declare a component for a given variable. This component is
-   --  possibly an attribute and is initialized to Component_Value.
-   --  The component type is given by Component_Type.
-
-   procedure Declare_Subprogram
-     (Subprogram_Name  : in  Name_Id;
-      Is_A_Procedure   : in  Boolean;
-      Subprogram_Sloc  : in  Location_Type;
-      Subprogram_Node  : out Subprogram_Id);
-   --  Declare a subprogram into the configuration context. This subprogram
-   --  is possibly a function. At this point, the subprogram has no
-   --  parameter.
-
-   procedure Declare_Subprogram_Parameter
-     (Parameter_Name  : in  Name_Id;
-      Para_Type_Node  : in  Type_Id;
-      Subprogram_Node : in  Subprogram_Id;
-      Parameter_Sloc  : in  Location_Type;
-      Parameter_Node  : out Parameter_Id);
-   --  Declare a parameter for a declared subprogram. The last parameter
-   --  corresponds to a returned value when the subprogram is a function.
-
-   procedure Declare_Procedure_Call
-     (Subprogram_Node : in Subprogram_Id);
-   --  Declare a call to a procedure. A statement node is created and
-   --  contains an entire copy of the subprogram node.
-
-   procedure Assign_Variable
-     (Source, Target : in Variable_Id);
-   --  Mostly, assign a formal parameter to a given value in case
-   --  of a procedure call.
-
-   function Is_Expression_Of_Type
-     (Expr_Node : in Node_Id;
-      Type_Node : in Type_Id)
-      return Boolean;
-   --  When Expr_Node is a variable, compares the given type and the
-   --  variable type. When Expr_Node is a function, compares the given
-   --  type and the type of the returned parameter.
-
-
-   procedure Take_Token (T : Token_Type);
-   procedure Take_Token (L : Token_List_Type);
-
-   function  Match (L : Token_List_Type) return Boolean;
-
-   procedure No_Match (L : Token_List_Type);
-   procedure No_Match (T : Token_Type);
-
-   procedure T_String_Literal;
-   procedure T_Identifier;
-   procedure T_Dot;
-   procedure T_Apostrophe;
-   procedure T_Left_Paren;
-   procedure T_Right_Paren;
-   procedure T_Comma;
-   procedure T_Colon_Equal;
-   procedure T_Colon;
-   procedure T_Configuration;
-   procedure T_Pragma;
-   procedure T_Procedure;
-   procedure T_Is;
-   procedure T_In;
-   procedure T_For;
-   procedure T_Use;
-   procedure T_Function;
-   procedure T_End;
-   procedure T_Arrow;
-   procedure T_EOF;
-   procedure T_Semicolon;
-   procedure T_Return;
-
-   procedure P_Configuration_Declaration;
-   procedure P_Configuration_Body;
-   procedure P_Configuration_End;
-   procedure P_Procedure_Declaration;
-   procedure P_Function_Declaration;
-   procedure P_Pragma;
-   procedure P_Representation_Clause;
-   procedure P_Full_Ada_Identifier;
-
-   procedure P_Aggregate_Assignement
-     (Variable_Node   : in Variable_Id);
-   procedure Associate_Actual_To_Formal
-     (Subprogram_Node : in Subprogram_Id);
-   procedure P_Variable_List_Declaration
-     (Previous_Name   : in Name_Id;
-      Previous_Sloc   : in Location_Type);
-
-
-   ---------------------
-   -- Assign_Variable --
-   ---------------------
-
-   procedure Assign_Variable
-     (Source, Target : Variable_Id) is
-      C : Component_Id;
-      X : Component_Id;
-      V : Variable_Id;
-      T : Type_Id;
-      N : Name_Id;
-   begin
-      pragma Assert (Get_Variable_Type (Source) = Get_Variable_Type (Target));
-
-      T := Get_Variable_Type (Source);
-
-      --  Do we need to assign a element list or a single element ?
-
-      if Get_Array_Element_Type (T) /= Null_Type then
-
-         --  Assign a list ...
-
-         First_Variable_Component (Source, C);
-
-         --  As a naming convention, we use the keyword
-         --  for a anonymous component name.
-
-         N := Component_Unit;
-         while C /= Null_Component loop
-            if not Is_Component_An_Attribute (C) then
-               V := Variable_Id (Get_Component_Value (C));
-               T := Get_Variable_Type (V);
-               Declare_Component (Target, N, T, V, False, Null_Location, X);
-            end if;
-            Next_Variable_Component (C);
-         end loop;
-
-      --  Assign a single element.
-
-      else
-         Set_Variable_Value (Target, Source);
-      end if;
-
-   end Assign_Variable;
+   --  Variable_Name has a corresponding type, indicated by the type node
+   --  Variable_Type. This procedure is used for a list of identifiers.
 
    --------------------------------
    -- Associate_Actual_To_Formal --
@@ -530,7 +487,7 @@ package body XE_Parse is
             --  Mark the matching parameter and set its value to actual
             --  parameter value.
 
-            Assign_Variable (Actual_Node, Variable_Id (Formal_Node));
+            Duplicate_Variable (Actual_Node, Variable_Id (Formal_Node));
 
             --  There is one less parameter to match.
 
@@ -560,143 +517,6 @@ package body XE_Parse is
       T_Semicolon;
 
    end Associate_Actual_To_Formal;
-
-   -----------------------
-   -- Declare_Attribute --
-   -----------------------
-
-   procedure Declare_Attribute
-     (Variable_Node      : in Variable_Id;
-      Attribute_Name     : in Name_Id;
-      Attribute_Sloc     : in Location_Type;
-      Attribute_Node     : out Attribute_Id) is
-      A : Component_Id;
-      T : Type_Id;
-      K : Int;
-      N : Name_Id;
-   begin
-
-      --  Attributes are always prefixed by Attribute_Prefix.
-
-      N := Attribute_Prefix & Attribute_Name;
-
-      --  Is this attribute a legal attribute for varaible type ?
-
-      T := Get_Variable_Type (Variable_Node);
-      Search_Component (N, T, A);
-      if A = Null_Component then
-         Write_Location (Get_Token_Location);
-         Write_Str ("no such attribute for variable");
-         Write_Eol;
-         Exit_On_Parsing_Error;
-      end if;
-
-      --  Make a copy of the type attribute.
-
-      T := Get_Component_Type   (A);
-      K := Get_Component_Mark   (A);
-      Create_Component          (A, N);
-      Set_Component_Type        (A, T);
-      Component_Is_An_Attribute (A, True);
-      Add_Variable_Component    (Variable_Node, A);
-      Set_Component_Mark        (Component_Id (A), K);
-      Set_Node_Location         (Node_Id (A), Attribute_Sloc);
-      Attribute_Node            := Attribute_Id (A);
-
-   end Declare_Attribute;
-
-   -----------------------
-   -- Declare_Attribute --
-   -----------------------
-
-   procedure Declare_Attribute
-     (Type_Node          : in Type_Id;
-      Attribute_Name     : in Name_Id;
-      Attr_Type_Node     : in Type_Id;
-      Attribute_Kind     : in Attribute_Type;
-      Attribute_Sloc     : in Location_Type;
-      Attribute_Node     : out Attribute_Id) is
-      A : Attribute_Id;
-   begin
-
-      Declare_Component
-        (Type_Node,
-         Attribute_Prefix & Attribute_Name,
-         Attr_Type_Node,
-         Attribute_Sloc,
-         Component_Id (A));
-      Component_Is_An_Attribute (Component_Id (A), True);
-      Set_Component_Mark        (Component_Id (A), Convert (Attribute_Kind));
-      Attribute_Node := A;
-
-   end Declare_Attribute;
-
-   -----------------------
-   -- Declare_Component --
-   -----------------------
-
-   procedure Declare_Component
-     (Type_Node          : in Type_Id;
-      Component_Name     : in Name_Id;
-      Comp_Type_Node     : in Type_Id;
-      Component_Sloc     : in Location_Type;
-      Component_Node     : out Component_Id) is
-      C : Component_Id;
-   begin
-
-      Create_Component          (C, Component_Name);
-      Set_Component_Type        (C, Comp_Type_Node);
-      Component_Is_An_Attribute (C, False);
-      Add_Type_Component        (Type_Node, C);
-      Set_Node_Location         (Node_Id (C), Component_Sloc);
-      Component_Node            := C;
-
-   end Declare_Component;
-
-   -----------------------
-   -- Declare_Component --
-   -----------------------
-
-   procedure Declare_Component
-     (Variable_Node      : in Variable_Id;
-      Component_Name     : in Name_Id;
-      Component_Type     : in Type_Id;
-      Component_Value    : in Variable_Id;
-      Is_An_Attribute    : in Boolean;
-      Component_Sloc     : in Location_Type;
-      Component_Node     : out Component_Id) is
-      C : Component_Id;
-      T : Type_Id;
-      N : Name_Id;
-   begin
-
-      T := Get_Variable_Type (Variable_Node);
-      if Get_Array_Element_Type (T) = Null_Type then
-         N := Get_Node_Name (Node_Id (T));
-         Write_Location (Component_Sloc);
-         Write_Str  ("illegal operation for type ");
-         Write_Name (N);
-         Write_Eol;
-         Exit_On_Parsing_Error;
-      elsif Is_Array_A_List (T) or else Is_An_Attribute then
-         Create_Component          (C, Component_Name);
-         Set_Component_Type        (C, Component_Type);
-      else
-         Search_Unused_Component (Variable_Node, T, C);
-         if C /= Null_Component then
-            Write_Location (Component_Sloc);
-            Write_Str  ("too many components for record aggregate");
-            Write_Eol;
-            Exit_On_Parsing_Error;
-         end if;
-      end if;
-      Component_Is_An_Attribute (C, Is_An_Attribute);
-      Set_Component_Value       (C, Node_Id (Component_Value));
-      Add_Variable_Component    (Variable_Node, C);
-      Set_Node_Location         (Node_Id (C), Component_Sloc);
-      Component_Node            := C;
-
-   end Declare_Component;
 
    ---------------------
    -- Declare_Literal --
@@ -751,7 +571,7 @@ package body XE_Parse is
         (New_Subprogram,
          Is_Subprogram_A_Procedure (Old_Subprogram));
 
-      --  ... even parameter nodes ...
+      --  ... parameter nodes ...
 
       First_Subprogram_Parameter
         (Old_Subprogram,
@@ -770,7 +590,7 @@ package body XE_Parse is
          --  and assign the formal parameters as they were during
          --  the parameter matching phase.
 
-         Assign_Variable
+         Duplicate_Variable
            (Get_Variable_Value (Variable_Id (Old_Parameter)),
             Variable_Id (New_Parameter));
 
@@ -877,6 +697,56 @@ package body XE_Parse is
 
    end Declare_Type;
 
+   ----------------------------
+   -- Declare_Type_Attribute --
+   ----------------------------
+
+   procedure Declare_Type_Attribute
+     (Type_Node          : in Type_Id;
+      Attribute_Name     : in Name_Id;
+      Attr_Type_Node     : in Type_Id;
+      Attribute_Kind     : in Attribute_Type;
+      Attribute_Sloc     : in Location_Type;
+      Attribute_Node     : out Attribute_Id) is
+      A : Attribute_Id;
+   begin
+
+      --  An attribute is stored as a component and marked as an attribute.
+
+      Declare_Type_Component
+        (Type_Node,
+         Attribute_Prefix & Attribute_Name,
+         Attr_Type_Node,
+         Attribute_Sloc,
+         Component_Id (A));
+
+      Set_Component_Mark        (Component_Id (A), Int (Attribute_Kind));
+      Attribute_Node := A;
+
+   end Declare_Type_Attribute;
+
+   ----------------------------
+   -- Declare_Type_Component --
+   ----------------------------
+
+   procedure Declare_Type_Component
+     (Type_Node          : in Type_Id;
+      Component_Name     : in Name_Id;
+      Comp_Type_Node     : in Type_Id;
+      Component_Sloc     : in Location_Type;
+      Component_Node     : out Component_Id) is
+      C : Component_Id;
+   begin
+
+      Create_Component          (C, Component_Name);
+      Set_Component_Type        (C, Comp_Type_Node);
+      Component_Is_An_Attribute (C, False);
+      Add_Type_Component        (Type_Node, C);
+      Set_Node_Location         (Node_Id (C), Component_Sloc);
+      Component_Node            := C;
+
+   end Declare_Type_Component;
+
    ----------------------
    -- Declare_Variable --
    ----------------------
@@ -889,18 +759,121 @@ package body XE_Parse is
       Variable_Sloc : in  Location_Type;
       Variable_Node : out Variable_Id) is
       V : Variable_Id;
+      C : Component_Id;
+      X : Component_Id;
    begin
 
       if Is_Unique then
          Has_Not_Been_Already_Declared (Variable_Name, Variable_Sloc);
       end if;
+
       Create_Variable    (V, Variable_Name);
       Append_Declaration (Conf_Node, Node_Id (V));
       Set_Variable_Type  (V, Variable_Type);
+
+      --  This type is structured, duplicate the structure.
+      if Get_Array_Element_Type (Variable_Type) /= Null_Type and then
+        not Is_Array_A_List (Variable_Type) then
+         First_Type_Component (Variable_Type, C);
+         while C /= Null_Component loop
+            if not Is_Component_An_Attribute (C) then
+               Duplicate_Component (C, X);
+               Add_Variable_Component (V, C);
+            end if;
+            Next_Type_Component (C);
+         end loop;
+      end if;
+
       Set_Node_Location  (Node_Id (V), Variable_Sloc);
       Variable_Node := V;
 
    end Declare_Variable;
+
+   --------------------------------
+   -- Declare_Variable_Component --
+   --------------------------------
+
+   procedure Declare_Variable_Component
+     (Variable_Node      : in Variable_Id;
+      Component_Name     : in Name_Id;
+      Component_Type     : in Type_Id;
+      Component_Value    : in Variable_Id;
+      Is_An_Attribute    : in Boolean;
+      Component_Sloc     : in Location_Type;
+      Component_Node     : out Component_Id) is
+      C : Component_Id;
+   begin
+
+      Create_Component          (C, Component_Name);
+      Set_Component_Type        (C, Component_Type);
+      Component_Is_An_Attribute (C, Is_An_Attribute);
+      Set_Component_Value       (C, Node_Id (Component_Value));
+      Add_Variable_Component    (Variable_Node, C);
+      Set_Node_Location         (Node_Id (C), Component_Sloc);
+      Component_Node            := C;
+
+   end Declare_Variable_Component;
+
+   -------------------------
+   -- Duplicate_Component --
+   -------------------------
+
+   procedure Duplicate_Component
+     (Source : in Component_Id;
+      Target : out Component_Id) is
+      C : Component_Id;
+      N : Name_Id;
+      T : Type_Id;
+      M : Int;
+   begin
+      N := Get_Node_Name (Node_Id (Source));
+      T := Get_Component_Type (Source);
+      M := Get_Component_Mark (Source);
+      Create_Component   (C, N);
+      Set_Component_Type (C, T);
+      Set_Component_Mark (C, M);
+      Target := C;
+   end Duplicate_Component;
+
+   ------------------------
+   -- Duplicate_Variable --
+   ------------------------
+
+   procedure Duplicate_Variable
+     (Source, Target : in Variable_Id) is
+      C : Component_Id;
+      T : Type_Id;
+      X : Component_Id;
+      V : Variable_Id;
+   begin
+      pragma Assert (Get_Variable_Type (Source) = Get_Variable_Type (Target));
+
+      T := Get_Variable_Type (Source);
+
+      --  Do we need to assign a element list or a single element ?
+
+      if Get_Array_Element_Type (T) /= Null_Type then
+
+         --  Assign a list ...
+
+         First_Variable_Component (Source, C);
+         while C /= Null_Component loop
+            if not Is_Component_An_Attribute (C) then
+               Duplicate_Component (C, X);
+               Add_Variable_Component (Target, C);
+               V := Variable_Id (Get_Component_Value (C));
+               Set_Component_Value (X, Node_Id (V));
+            end if;
+            Next_Variable_Component (C);
+         end loop;
+
+      else
+         --  Assign a single element.
+
+         Set_Variable_Value (Target, Source);
+      end if;
+
+   end Duplicate_Variable;
 
    ---------------------------
    -- Exit_On_Parsing_Error --
@@ -908,7 +881,7 @@ package body XE_Parse is
 
    procedure Exit_On_Parsing_Error is
    begin
-      Print_Configuration;
+      Print;
       raise Parsing_Error;
    end Exit_On_Parsing_Error;
 
@@ -924,9 +897,7 @@ package body XE_Parse is
       Search_Declaration (Declaration_Name, Node);
       if Node = Null_Node then
          return;
-      elsif Is_Variable (Node) and then
-         Convert (Get_Type_Mark (Get_Variable_Type (Variable_Id (Node)))) /=
-         Pre_Type_Unknown then
+      elsif Is_Variable (Node) then
          return;
       end if;
       Write_Location (Declaration_Sloc);
@@ -1072,21 +1043,19 @@ package body XE_Parse is
          Type_Sloc    => Null_Location,
          Type_Node    => Host_Function_Type_Node);
 
-      Declare_Component
+      Declare_Type_Component
         (Type_Node        => Host_Function_Type_Node,
          Component_Name   => Sub_Prog_Param,
          Comp_Type_Node   => String_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
 
-      Declare_Component
+      Declare_Type_Component
         (Type_Node        => Host_Function_Type_Node,
          Component_Name   => Returned_Param,
          Comp_Type_Node   => String_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
-
-      Print_Configuration;
 
       --  type type__main_procedure (standard)
       --     procedure P
@@ -1130,7 +1099,7 @@ package body XE_Parse is
       --  Legal attribute : 'Storage_Dir
       --  Legal attribute : 'Command_Line
 
-      Declare_Attribute
+      Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("main"),
          Attr_Type_Node => Main_Procedure_Type_Node,
@@ -1138,7 +1107,7 @@ package body XE_Parse is
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
-      Declare_Attribute
+      Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("host"),
          Attr_Type_Node => String_Type_Node,
@@ -1146,7 +1115,7 @@ package body XE_Parse is
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
-      Declare_Attribute
+      Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("storage_dir"),
          Attr_Type_Node => String_Type_Node,
@@ -1154,7 +1123,7 @@ package body XE_Parse is
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
-      Declare_Attribute
+      Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("command_line"),
          Attr_Type_Node => String_Type_Node,
@@ -1162,7 +1131,7 @@ package body XE_Parse is
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
-      Declare_Attribute
+      Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("termination"),
          Attr_Type_Node => Integer_Type_Node,
@@ -1182,21 +1151,21 @@ package body XE_Parse is
          Type_Sloc    => Null_Location,
          Type_Node    => Channel_Type_Node);
 
-      Declare_Component
+      Declare_Type_Component
         (Type_Node        => Channel_Type_Node,
          Component_Name   => Str_To_Id ("partition_1"),
          Comp_Type_Node   => Partition_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
 
-      Declare_Component
+      Declare_Type_Component
         (Type_Node        => Channel_Type_Node,
          Component_Name   => Str_To_Id ("partition_2"),
          Comp_Type_Node   => Partition_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
 
-      Declare_Attribute
+      Declare_Type_Attribute
         (Type_Node        => Channel_Type_Node,
          Attribute_Name   => Str_To_Id ("filter"),
          Attr_Type_Node   => String_Type_Node,
@@ -1390,7 +1359,7 @@ package body XE_Parse is
          Null_Location,
          Parameter_Node);
 
-      Print_Configuration;
+      Print;
 
    end Initialize;
 
@@ -1568,17 +1537,39 @@ package body XE_Parse is
 
          end if;
 
-         --  As a naming convention, we use the keyword Component_Unit
-         --  as a anonymous component name.
+         if Is_Array_A_List (Variable_Type) then
 
-         Declare_Component
-           (Variable_Node      => Variable_Node,
-            Component_Name     => Component_Unit,
-            Component_Type     => List_Element_Type,
-            Component_Value    => Expression_Node,
-            Is_An_Attribute    => False,
-            Component_Sloc     => Expression_Sloc,
-            Component_Node     => List_Element_Node);
+            --  As a naming convention, we use the keyword Component_Unit
+            --  as a anonymous component name.
+
+            Declare_Variable_Component
+              (Variable_Node      => Variable_Node,
+               Component_Name     => Component_Unit,
+               Component_Type     => List_Element_Type,
+               Component_Value    => Expression_Node,
+               Is_An_Attribute    => False,
+               Component_Sloc     => Expression_Sloc,
+               Component_Node     => List_Element_Node);
+
+         else
+
+            Search_Unused_Component
+              (Variable_Node,
+               List_Element_Type,
+               List_Element_Node);
+
+            if List_Element_Node = Null_Component then
+               Write_Location (Expression_Sloc);
+               Write_Str  ("too many components for record aggregate");
+               Write_Eol;
+               Exit_On_Parsing_Error;
+            end if;
+
+            Set_Component_Value
+              (List_Element_Node,
+               Node_Id (Expression_Node));
+
+         end if;
 
          Take_Token ((Tok_Comma, Tok_Right_Paren));
          exit when Token = Tok_Right_Paren;
@@ -1858,7 +1849,7 @@ package body XE_Parse is
       --  Is this pragma a legal pragma.
 
       Search_Pragma (Pragma_Name, Pragma_Kind, Pragma_Node);
-      if Pragma_Kind = Pragma_Unknown then
+      if Pragma_Node = Null_Subprogram then
          Write_Location (Get_Token_Location);
          Write_Str  ("unrecognized pragma """);
          Write_Name (Token_Name);
@@ -1965,7 +1956,7 @@ package body XE_Parse is
             --  As a naming convention, we use the keyword Procedure_Unit
             --  to indicate a main subprogram.
 
-            Declare_Component
+            Declare_Variable_Component
               (Variable_Node      => Partition_Node,
                Component_Name     => Procedure_Unit,
                Component_Type     => Ada_Unit_Type_Node,
@@ -2002,9 +1993,8 @@ package body XE_Parse is
       Direct_Node : Node_Id;
       Direct_Type : Type_Id;
       Attr_Name   : Name_Id;
-      Attr_Node   : Attribute_Id;
       Attr_Type   : Type_Id;
-      Comp_Node   : Component_Id;
+      Attr_Node   : Component_Id;
       Expr_Name   : Name_Id;
       Expr_Node   : Node_Id;
       Expr_Sloc   : Location_Type;
@@ -2064,12 +2054,12 @@ package body XE_Parse is
       Search_Component
         (Attribute_Prefix & Attr_Name,
          Direct_Type,
-         Comp_Node);
+         Attr_Node);
 
       --  Check that this attribute is a legal attribute for the given type.
 
-      if Comp_Node = Null_Component or else
-         not Is_Component_An_Attribute (Comp_Node) then
+      if Attr_Node = Null_Component or else
+         not Is_Component_An_Attribute (Attr_Node) then
          Write_Location (Get_Token_Location);
          Write_Str  ("unrecognized attribute """);
          Write_Name (Attr_Name);
@@ -2078,17 +2068,7 @@ package body XE_Parse is
          Exit_On_Parsing_Error;
       end if;
 
-      --  If variable, duplicate attribute for the variable only.
-
-      if not Is_A_Type then
-         Declare_Attribute
-           (Variable_Id (Direct_Node),
-            Attr_Name,
-            Get_Token_Location,
-            Attr_Node);
-      else
-         Attr_Node := Attribute_Id (Comp_Node);
-      end if;
+      Attr_Name := Attribute_Prefix & Attr_Name;
 
       T_Use;
       Take_Token ((Tok_Identifier, Tok_String_Literal));
@@ -2118,7 +2098,7 @@ package body XE_Parse is
          end if;
       end if;
 
-      Attr_Type := Get_Component_Type (Component_Id (Attr_Node));
+      Attr_Type := Get_Component_Type (Attr_Node);
 
       --  Check that the expression has the correct type.
 
@@ -2131,9 +2111,23 @@ package body XE_Parse is
          Exit_On_Parsing_Error;
       end if;
 
-      --  Set attribute to the given value.
+      if Is_A_Type then
 
-      Set_Component_Value (Component_Id (Attr_Node), Expr_Node);
+         --  Set attribute to the given value.
+         Set_Component_Value (Attr_Node, Expr_Node);
+
+      else
+
+         Declare_Variable_Component
+           (Variable_Id (Direct_Node),
+            Attr_Name,
+            Attr_Type,
+            Variable_Id (Expr_Node),
+            True,
+            Expr_Sloc,
+            Attr_Node);
+
+      end if;
 
       T_Semicolon;
 
@@ -2194,7 +2188,7 @@ package body XE_Parse is
          --  If previous variable has been initialized, initialize
          --  this newly declared variable as well.
 
-         Assign_Variable (Variable_Node, Previous_Node);
+         Duplicate_Variable (Variable_Node, Previous_Node);
 
       else
 
@@ -2296,7 +2290,7 @@ package body XE_Parse is
 
       T_EOF;
 
-      Print_Configuration;
+      Print;
 
    end Parse;
 
@@ -2362,6 +2356,13 @@ package body XE_Parse is
       Write_Int (Get_Type_Mark (Node));
       Write_Eol;
       if Get_Array_Element_Type (Node) /= Null_Type then
+         Write_Str  ("List : ");
+         if Is_Array_A_List (Node) then
+            Write_Str  ("true");
+         else
+            Write_Str ("false");
+         end if;
+         Write_Eol;
          First_Type_Component (Node, C);
          if C /= Null_Component then
             Write_Str  (Head);
@@ -2547,11 +2548,11 @@ package body XE_Parse is
       end if;
    end Print;
 
-   -------------------------
-   -- Print_Configuration --
-   -------------------------
+   -----------
+   -- Print --
+   -----------
 
-   procedure Print_Configuration is
+   procedure Print is
       Node : Node_Id;
    begin
       if Debug_Mode then
@@ -2564,7 +2565,7 @@ package body XE_Parse is
          First_Configuration_Declaration (Configuration_Node, Node);
          Print (Node, "");
       end if;
-   end Print_Configuration;
+   end Print;
 
    -----------------------------
    -- Search_Actual_Parameter --
@@ -2734,9 +2735,7 @@ package body XE_Parse is
    begin
 
       Search_Subprogram (Pragma_Name, Node);
-      if Node = Null_Subprogram then
-         Pragma_Kind := Pragma_Unknown;
-      else
+      if Node /= Null_Subprogram then
          Pragma_Kind := Convert (Get_Subprogram_Mark (Node));
       end if;
       Pragma_Node := Node;
@@ -2781,8 +2780,6 @@ package body XE_Parse is
       Type_Node := Type_Id (Node);
       if Node /= Null_Node then
          Type_Kind := Convert (Get_Type_Mark (Type_Id (Node)));
-      else
-         Type_Kind := Pre_Type_Unknown;
       end if;
 
    end Search_Type;

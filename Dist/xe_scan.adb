@@ -42,64 +42,7 @@ package body XE_Scan is
    Up_To_Low : constant := Character'Pos ('A') - Character'Pos ('a');
 
    procedure New_Line;
-
-   procedure Write_Token (T : Token_Type) is
-   begin
-      case T is
-         when Tok_String_Literal =>
-            Write_Str ("string literal");
-         when Tok_Identifier =>
-            Write_Str ("identifier");
-         when Tok_Dot =>
-            Write_Str (""".""");
-         when Tok_Apostrophe =>
-            Write_Str ("""'""");
-         when Tok_Left_Paren =>
-            Write_Str ("""(""");
-         when Tok_Right_Paren =>
-            Write_Str (""")""");
-         when Tok_Comma =>
-            Write_Str (""",""");
-         when Tok_Colon_Equal =>
-            Write_Str (""":=""");
-         when Tok_Colon =>
-            Write_Str (""":""");
-         when Tok_Configuration =>
-            Write_Str ("""configuration""");
-         when Tok_Pragma =>
-            Write_Str ("""pragma""");
-         when Tok_Procedure =>
-            Write_Str ("""procedure""");
-         when Tok_Is =>
-            Write_Str ("""is""");
-         when Tok_In =>
-            Write_Str ("""in""");
-         when Tok_For =>
-            Write_Str ("""for""");
-         when Tok_Use =>
-            Write_Str ("""use""");
-         when Tok_Null =>
-            Write_Str ("""null""");
-         when Tok_Function =>
-            Write_Str ("""function""");
-         when Tok_End =>
-            Write_Str ("""end""");
-         when Tok_Begin =>
-            Write_Str ("""begin""");
-         when Tok_Arrow =>
-            Write_Str ("""=>""");
-         when Tok_EOF =>
-            Write_Str ("end of file");
-         when Tok_Semicolon =>
-            Write_Str (""";""");
-         when Tok_Return =>
-            Write_Str ("""return""");
-         when Tok_Unknown =>
-            Write_Str ("");
-         when Tok_Reserved =>
-            raise Scanning_Error;
-      end case;
-   end Write_Token;
+   --  Update SLOC.
 
    ------------------------
    -- Get_Token_Location --
@@ -485,5 +428,67 @@ package body XE_Scan is
       Write_Int (Int (Where.Last - Where.First) + 1);
       Write_Str (": ");
    end Write_Location;
+
+   -----------------
+   -- Write_Token --
+   -----------------
+
+   procedure Write_Token (T : in Token_Type) is
+   begin
+      case T is
+         when Tok_String_Literal =>
+            Write_Str ("string literal");
+         when Tok_Identifier =>
+            Write_Str ("identifier");
+         when Tok_Dot =>
+            Write_Str (""".""");
+         when Tok_Apostrophe =>
+            Write_Str ("""'""");
+         when Tok_Left_Paren =>
+            Write_Str ("""(""");
+         when Tok_Right_Paren =>
+            Write_Str (""")""");
+         when Tok_Comma =>
+            Write_Str (""",""");
+         when Tok_Colon_Equal =>
+            Write_Str (""":=""");
+         when Tok_Colon =>
+            Write_Str (""":""");
+         when Tok_Configuration =>
+            Write_Str ("""configuration""");
+         when Tok_Pragma =>
+            Write_Str ("""pragma""");
+         when Tok_Procedure =>
+            Write_Str ("""procedure""");
+         when Tok_Is =>
+            Write_Str ("""is""");
+         when Tok_In =>
+            Write_Str ("""in""");
+         when Tok_For =>
+            Write_Str ("""for""");
+         when Tok_Use =>
+            Write_Str ("""use""");
+         when Tok_Null =>
+            Write_Str ("""null""");
+         when Tok_Function =>
+            Write_Str ("""function""");
+         when Tok_End =>
+            Write_Str ("""end""");
+         when Tok_Begin =>
+            Write_Str ("""begin""");
+         when Tok_Arrow =>
+            Write_Str ("""=>""");
+         when Tok_EOF =>
+            Write_Str ("end of file");
+         when Tok_Semicolon =>
+            Write_Str (""";""");
+         when Tok_Return =>
+            Write_Str ("""return""");
+         when Tok_Unknown =>
+            Write_Str ("");
+         when Tok_Reserved =>
+            raise Scanning_Error;
+      end case;
+   end Write_Token;
 
 end XE_Scan;

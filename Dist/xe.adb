@@ -73,9 +73,9 @@ package body XE is
       end record;
 
    --  list
-   --     node_1 : next declaration head
-   --     node_2 : declaration head
-   --     node_3 : declaration tail
+   --     node_1 : next declaration
+   --     node_2 : list head
+   --     node_3 : list tail
    --     flag_1 : list or array
    --     value  : declaration list | parameter list | component list
    --  subprogram
@@ -83,18 +83,18 @@ package body XE is
    --     node_2 : unused
    --     node_3 : parameter list
    --     flag_1 : is a procedure
-   --     value  : unused
+   --     value  : used when pragma
    --  type
    --     node_1 : next declaration
    --     node_2 : array element type when type is a list
-   --     node_3 : component list | unused
-   --     flag_1 : self declared
+   --     node_3 : component list
+   --     flag_1 : auto. allocation
    --     value  : predefined_type'pos
    --  variable
    --     node_1 : next declaration
    --     node_2 : variable type
-   --     node_3 : component list | unused
-   --     flag_1 : is structured
+   --     node_3 : component list
+   --     flag_1 : unused
    --     value  : enumeration type value
    --  component
    --     node_1 : next component
@@ -105,22 +105,25 @@ package body XE is
    --  statement
    --     node_1 : next declaration
    --     node_2 : subprogram call
+   --     node_3 : unused
+   --     flag_1 : unused
+   --     value  : unused
 
    function Is_Of_Kind
-     (Node : in Node_Id;
-      Kind : in Node_Kind)
+     (Node : Node_Id;
+      Kind : Node_Kind)
      return Boolean;
 
    function Is_Component_List
-     (Node : in Node_Id)
-     return Boolean;
-
-   function Is_Parameter_List
-     (Node : in Node_Id)
+     (Node : Node_Id)
      return Boolean;
 
    function Is_Declaration_List
-     (Node : in Node_Id)
+     (Node : Node_Id)
+     return Boolean;
+
+   function Is_Parameter_List
+     (Node : Node_Id)
      return Boolean;
 
    procedure Create_Node
@@ -137,7 +140,7 @@ package body XE is
       Table_Low_Bound      => First_Node,
       Table_Initial        => 200,
       Table_Increment      => 100,
-      Table_Name           => "Node_Table");
+      Table_Name           => "Nodes");
 
    Context_Root_Node   : Node_Id := Null_Node;
    Function_Type_Node  : Node_Id := Null_Node;
@@ -151,7 +154,17 @@ package body XE is
      (Partition : in Partition_Name_Type; To : in CID_Type) is
       PID : PID_Type := Get_PID (Partition);
    begin
-      if PID > Channels.Table (To).Lower then
+      if Verbose_Mode then
+         Write_Program_Name;
+         Write_Str  (": add partition ");
+         Write_Name (Partition);
+         Write_Str  (" to channel ");
+         Write_Name (Channels.Table (To).Name);
+         Write_Eol;
+      end if;
+      if Channels.Table (To).Lower = Null_PID then
+         Channels.Table (To).Lower := PID;
+      elsif PID > Channels.Table (To).Lower then
          Channels.Table (To).Upper := PID;
       else
          Channels.Table (To).Upper := Channels.Table (To).Lower;
@@ -175,16 +188,6 @@ package body XE is
          Write_Str  (" on partition ");
          Write_Name (Partitions.Table (To).Name);
          Write_Eol;
-      end if;
-
-      --  The configured unit name should not be a partition name.
-      if Get_PID (CU) = Wrong_PID then
-         Write_Program_Name;
-         Write_Str  (": symbol ");
-         Write_Name (CU);
-         Write_Str  (" is already used");
-         Write_Eol;
-         raise Parsing_Error;
       end if;
 
       --  Mark this configured unit as already partitioned.
@@ -299,11 +302,11 @@ package body XE is
       return False;
    end Already_Loaded;
 
-   --------------------------------------
-   -- Append_Configuration_Declaration --
-   --------------------------------------
+   -----------------------------------
+   -- Add_Configuration_Declaration --
+   -----------------------------------
 
-   procedure Append_Configuration_Declaration
+   procedure Add_Configuration_Declaration
      (Configuration_Node : in Configuration_Id;
       Declaration_Node   : in Node_Id) is
       Conf : Node_Id := Node_Id (Configuration_Node);
@@ -329,7 +332,7 @@ package body XE is
             Nodes.Table (Back).Node_1 := Conf;
          end if;
       end if;
-   end Append_Configuration_Declaration;
+   end Add_Configuration_Declaration;
 
    -----------------------------
    -- Component_Is_An_Attribute --
@@ -348,36 +351,20 @@ package body XE is
    -- Convert --
    -------------
 
-   function Convert (Item : Boolean) return Int is
+   function Convert (Item : Attribute_Type) return Int is
    begin
-      return Int (Boolean'Pos (Item));
+      return Int (Item);
    end Convert;
 
    -------------
    -- Convert --
    -------------
 
-   function Convert (Item : Int) return Boolean is
+   function Convert (Item : Int) return Attribute_Type is
    begin
-      return Boolean'Val (Item);
-   end Convert;
-
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (Item : Starter_Method_Type) return Int is
-   begin
-      return Int (Starter_Method_Type'Pos (Item));
-   end Convert;
-
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (Item : Int) return Starter_Method_Type is
-   begin
-      return Starter_Method_Type'Val (Item);
+      pragma Assert
+        (Item in Int (Attribute_Type'First) .. Int (Attribute_Type'Last));
+      return Attribute_Type (Item);
    end Convert;
 
    -------------
@@ -386,7 +373,7 @@ package body XE is
 
    function Convert (Item : Import_Method_Type) return Int is
    begin
-      return Int (Import_Method_Type'Pos (Item));
+      return Int (Item);
    end Convert;
 
    -------------
@@ -395,7 +382,31 @@ package body XE is
 
    function Convert (Item : Int) return Import_Method_Type is
    begin
-      return Import_Method_Type'Val (Item);
+      pragma Assert
+        (Item in
+         Int (Import_Method_Type'First) ..
+         Int (Import_Method_Type'Last));
+      return Import_Method_Type (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Pragma_Type) return Int is
+   begin
+      return Int (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Int) return Pragma_Type is
+   begin
+      pragma Assert
+        (Item in Int (Pragma_Type'First) .. Int (Pragma_Type'Last));
+      return Pragma_Type (Item);
    end Convert;
 
    -------------
@@ -404,9 +415,7 @@ package body XE is
 
    function Convert (Item : Predefined_Type) return Int is
    begin
-      return Int (Wrong_Pre_Type) +
-             Int (Predefined_Type'Pos (Item) -
-                  Predefined_Type'Pos (Predefined_Type'First));
+      return Int (Item);
    end Convert;
 
    -------------
@@ -415,20 +424,58 @@ package body XE is
 
    function Convert (Item : Int) return Predefined_Type is
    begin
-      if Item > Pre_Type_Last or else
-         Item < Pre_Type_First then
-         return Pre_Type_Unknown;
-      else
-         return Predefined_Type'Val
-           (Item - Pre_Type_Wrong +
-            Int (Predefined_Type'Pos (Predefined_Type'First)));
-      end if;
+      pragma Assert
+        (Item in Int (Predefined_Type'First) .. Int (Predefined_Type'Last));
+      return Predefined_Type (Item);
    end Convert;
 
    -------------
    -- Convert --
    -------------
 
+   function Convert (Item : Starter_Method_Type) return Int is
+   begin
+      return Int (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Int) return Starter_Method_Type is
+   begin
+      pragma Assert
+        (Item in
+         Int (Starter_Method_Type'First) ..
+         Int (Starter_Method_Type'Last));
+      return Starter_Method_Type (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Termination_Type) return Int is
+   begin
+      return Int (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Int) return Termination_Type is
+   begin
+      pragma Assert
+        (Item in
+         Int (Termination_Type'First) ..
+         Int (Termination_Type'Last));
+      return Termination_Type (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
    function Convert (Item : List_Kind) return Int is
    begin
       return Int (List_Kind'Pos (Item));
@@ -441,60 +488,6 @@ package body XE is
    function Convert (Item : Int) return List_Kind is
    begin
       return List_Kind'Val (Item);
-   end Convert;
-
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (Item : Attribute_Type) return Int is
-   begin
-      return Int (Wrong_Attribute) +
-             Int (Attribute_Type'Pos (Item) -
-                  Attribute_Type'Pos (Attribute_Type'First));
-   end Convert;
-
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (Item : Int) return Attribute_Type is
-   begin
-      if Item > Attr_Last or else
-         Item < Attr_First then
-         return Attribute_Unknown;
-      else
-         return Attribute_Type'Val
-           (Item - Attr_Wrong +
-            Int (Attribute_Type'Pos (Attribute_Type'First)));
-      end if;
-   end Convert;
-
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (Item : Pragma_Type) return Int is
-   begin
-      return Int (Wrong_Pragma) +
-             Int (Pragma_Type'Pos (Item) -
-                  Pragma_Type'Pos (Pragma_Type'First));
-   end Convert;
-
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (Item : Int) return Pragma_Type is
-   begin
-      if Item > Prag_Last or else
-         Item < Prag_First then
-         return Pragma_Unknown;
-      else
-         return Pragma_Type'Val
-           (Item - Prag_Wrong +
-            Int (Pragma_Type'Pos (Pragma_Type'First)));
-      end if;
    end Convert;
 
    ------------------
@@ -606,8 +599,10 @@ package body XE is
    procedure Create_Component
      (Component_Node : out Component_Id;
       Component_Name : in  Name_Id) is
+      Node : Node_Id;
    begin
-      Create_Node (Node_Id (Component_Node), Component_Name, K_Component);
+      Create_Node (Node, Component_Name, K_Component);
+      Component_Node := Component_Id (Node);
    end Create_Component;
 
    --------------------------
@@ -876,14 +871,11 @@ package body XE is
       Info : Int;
    begin
       Info := Get_Name_Table_Info (N);
-      case Info is
-         when 0 | CID_Null =>
-            return Null_CID;
-         when CID_First .. CID_Last =>
-            return CID_Type (Info);
-         when others =>
-            return Wrong_CID;
-      end case;
+      if Info in Int (CID_Type'First) .. Int (CID_Type'Last) then
+         return CID_Type (Info);
+      else
+         return Null_CID;
+      end if;
    end Get_CID;
 
    ----------------------
@@ -941,23 +933,35 @@ package body XE is
       return Nodes.Table (Node).Node_3;
    end Get_Component_Value;
 
-   -------------
+   --------------
    -- Get_CUID --
-   -------------
+   --------------
 
    function Get_CUID (N : Name_Id) return CUID_Type is
       Info : Int;
    begin
       Info := Get_Name_Table_Info (N);
-      case Info is
-         when 0 | CUID_Null =>
-            return Null_CUID;
-         when CUID_First .. CUID_Last =>
-            return CUID_Type (Info);
-         when others =>
-            return Wrong_CUID;
-      end case;
+      if Info in Int (CUID_Type'First) .. Int (CUID_Type'Last) then
+         return CUID_Type (Info);
+      else
+         return Null_CUID;
+      end if;
    end Get_CUID;
+
+   ----------------
+   -- Get_Filter --
+   ----------------
+
+   function Get_Filter          (C : CID_Type) return Name_Id is
+      F : Name_Id := Channels.Table (C).Filter;
+   begin
+
+      if F = No_Filter_Name then
+         F := Default_Filter;
+      end if;
+      return F;
+
+   end Get_Filter;
 
    --------------
    -- Get_Host --
@@ -1097,14 +1101,11 @@ package body XE is
       Info : Int;
    begin
       Info := Get_Name_Table_Info (N);
-      case Info is
-         when 0 | PID_Null =>
-            return Null_PID;
-         when PID_First .. PID_Last =>
-            return PID_Type (Info);
-         when others =>
-            return Wrong_PID;
-      end case;
+      if Info in Int (PID_Type'First) .. Int (PID_Type'Last) then
+         return PID_Type (Info);
+      else
+         return Null_PID;
+      end if;
    end Get_PID;
 
    -----------------------
@@ -1197,14 +1198,11 @@ package body XE is
       Info : Int;
    begin
       Info := Get_Name_Table_Info (N);
-      case Info is
-         when Tkn_First .. Tkn_Last =>
-            return Token_Type'Val
-              (Info - Int (Wrong_Token) +
-               Int (Token_Type'Pos (Token_Type'First)));
-         when others =>
-            return Tok_Unknown;
-      end case;
+      if Info in Int (Token_Type'First) .. Int (Token_Type'Last) then
+         return Token_Type (Info);
+      else
+         return Tok_Unknown;
+      end if;
    end Get_Token;
 
    -------------------
@@ -1307,10 +1305,13 @@ package body XE is
      (Array_Type_Node   : in Type_Id)
       return Boolean is
       Node : Node_Id := Node_Id (Array_Type_Node);
+      List : Node_Id;
    begin
       pragma Assert (Is_Type (Node));
       pragma Assert (Get_Array_Element_Type (Array_Type_Node) /= Null_Type);
-      return Nodes.Table (Node).Flag_1;
+      List := Nodes.Table (Node).Node_3;
+      pragma Assert (Is_Component_List (List));
+      return Nodes.Table (List).Flag_1;
    end Is_Array_A_List;
 
    ------------------
@@ -1702,15 +1703,11 @@ package body XE is
 
    procedure Set_Token (N : String; T : Token_Type) is
       Name  : Name_Id;
-      Index : Int;
    begin
-      Index := Int (Wrong_Token) +
-               Int (Token_Type'Pos (T) -
-                    Token_Type'Pos (Token_Type'First));
       Name_Len := N'Length;
       Name_Buffer (1 .. Name_Len) := N;
       Name := Name_Find;
-      Set_Name_Table_Info (Name, Index);
+      Set_Name_Table_Info (Name, Int (T));
       Reserved (T) := True;
    end Set_Token;
 
@@ -1920,6 +1917,36 @@ package body XE is
       end loop;
       Write_Str (" -------------------------------");
       Write_Eol;
+      if Channels.First <= Channels.Last then
+         Write_Eol;
+         declare
+            P : PID_Type;
+            F : Name_Id;
+         begin
+            for C in Channels.First .. Channels.Last loop
+               Write_Str  ("Channel ");
+               Write_Name (Channels.Table (C).Name);
+               Write_Eol;
+               Write_Str     ("   Partition 1 : ");
+               P := Channels.Table (C).Lower;
+               Write_Name (Partitions.Table (P).Name);
+               Write_Eol;
+               Write_Str     ("   Partition 2 : ");
+               P := Channels.Table (C).Upper;
+               Write_Name (Partitions.Table (P).Name);
+               Write_Eol;
+               F := Get_Filter (C);
+               if F /= No_Filter_Name then
+                  Write_Str  ("   Filter      : ");
+                  Write_Name (F);
+                  Write_Eol;
+               end if;
+               Write_Eol;
+            end loop;
+         end;
+         Write_Str (" -------------------------------");
+         Write_Eol;
+      end if;
 
    end Show_Configuration;
 
