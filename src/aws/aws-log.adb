@@ -30,7 +30,7 @@
 
 --  $Id$
 
----  @@@ uses ada.calendar
+--  @@@ uses ada.calendar
 
 with Ada.Calendar;
 with Ada.Command_Line;
