@@ -18,7 +18,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-platform=letter  Select another platform's specific files (debug)"
 ac_help="$ac_help
-  --enable-nonblockingio  Force to simulate thread blocking io"
+  --enable-nonblockingio  Force emulation of thread blocking I/O"
 ac_help="$ac_help
   --with-rshcmd=command   Set alternate remote shell command"
 ac_help="$ac_help
@@ -1363,7 +1363,7 @@ else
   if { (eval echo configure:1364: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
     for file in conftest.*; do
       case $file in
-      *.c | *.o | *.obj) ;;
+      *.c | *.C | *.o | *.obj) ;;
       *) ac_cv_exeext=`echo $file | sed -e s/conftest//` ;;
       esac
     done
@@ -1765,8 +1765,8 @@ echo "$ac_t""$PSNAME" 1>&6
 #
 # Select blocking IO policy (process or thread blocking IO)
 #
-echo $ac_n "checking simulate thread blocking io""... $ac_c" 1>&6
-echo "configure:1770: checking simulate thread blocking io" >&5
+echo $ac_n "checking need to emulate thread blocking I/O""... $ac_c" 1>&6
+echo "configure:1770: checking need to emulate thread blocking I/O" >&5
 # Check whether --enable-non-blocking-io or --disable-non-blocking-io was given.
 if test "${enable_non_blocking_io+set}" = set; then
   enableval="$enable_non_blocking_io"
