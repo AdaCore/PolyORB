@@ -11,6 +11,7 @@
 
 @title GLADE User's Guide
 @subtitle GLADE, GNAT Library for Ada Distributed Environment
+@subtitle GLADE Version 3.12
 @subtitle @today
 @author Laurent Pautet, Samuel Tardieu
 
@@ -31,13 +32,11 @@ to the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 @end titlepage
 
-@c @ifinfo
+@ifinfo
 @node Top, About This Guide, (dir), (dir)
 @top GLADE User Guide
 
 GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
-
-@c @end ifinfo
 
 @menu
 * About This Guide::            
@@ -46,6 +45,7 @@ GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 * Getting Started With GLADE::  
 * DSA and CORBA::               
 @end menu
+@end ifinfo
 
 @node About This Guide, Introduction to Distributed Systems, Top, Top
 @unnumbered About This Guide
@@ -848,7 +848,7 @@ can happen when both All_Calls_Remote and
 Asynchronous features are used at the same time (see @ref{Pragma
 Asynchronous} for an example). Another circumstance occur when the
 marshalling operations raise an exception. In the following example,
-when unit ACRRCI is a All_Calls_Remote package, the program raises
+when unit ACRRCI is a All_@-Calls_@-Remote package, the program raises
 Program_Error. When unit ACRRCI is no longer a All_Calls_Remote package, 
 then the program completes silently.
 
@@ -1198,9 +1198,8 @@ user may want to use different distributed configurations depending on load
 and other characteristics of the computing environment.
 
 If a list of partitions is provided on the command line of the gnatdist
-command, only these
-partitions will be built. In the following configuration example, the
-user can type :
+command, only these partitions will be built. In the following
+configuration example, the user can type :
 
 @smallexample
 

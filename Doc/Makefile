@@ -1,6 +1,9 @@
 CP = /bin/cp
 SED = /bin/sed
 
+VERSION=3.12
+RELEASE=glade-$(VERSION)-doc
+
 CFGFILES=\
 myconfig.cfg
 
@@ -70,7 +73,6 @@ idl.sed
 TEXIFILES = $(ADAFILES:=.texi) $(CFGFILES:=.texi) $(IDLFILES:=.texi)
 
 JPGFILES = $(FIGFILES:=.jpg)
-PDFFILES = $(FIGFILES:=.pdf)
 EPSFILES = $(FIGFILES:=.eps)
 TXTFILES = $(FIGFILES:=.txt)
 
@@ -82,8 +84,10 @@ default: $(GUIDE).ps
 
 all: $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).txt
 
+$(GUIDE).texi:  $(TEXIFILES)
+
 $(GUIDE).html: $(GUIDE).texi $(JPGFILES) $(SEDFILES)
-	makeinfo --html $(GUIDE).texi
+	makeinfo --html --ifinfo $(GUIDE).texi
 
 $(GUIDE).info: $(GUIDE).texi $(SEDFILES)
 	makeinfo $(GUIDE).texi
@@ -133,8 +137,13 @@ clean:
 	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.html *.pdf
 	rm -f *.jpg *.cp *.info *.pg *.toc *.vr *.fn *.ky *.tp *~
 	rm -f *.*.texi *.info-* $(GUIDE).txt *.tmp
+	rm -fr glade-doc
 
-release:
-	tar cf glade-doc.tar $(TXTFILES) $(TEXIFILES) $(GUIDE).ps \
-		$(GUIDE).info $(GUIDE).html $(GUIDE).txt
-	gzip glade-doc.tar
+release: all
+	rm -fr $(RELEASE)
+	mkdir $(RELEASE)
+	mkdir $(RELEASE)/src
+	cp $(TXTFILES) $(TEXIFILES) $(FIGFILES) $(RELEASE)/src
+	cp $(GUIDE).ps $(GUIDE).info* $(GUIDE).html $(GUIDE).txt $(RELEASE)
+	tar cf $(RELEASE).tar $(RELEASE)
+	gzip $(RELEASE).tar
