@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -211,6 +211,7 @@ begin
         (Use_Mapping => Ada_Be.Mappings.CORBA.The_CORBA_Mapping,
          Node        => Rep,
          Implement   => Generate_Impl_Template,
+         Intf_Repo   => True,
          To_Stdout   => To_Stdout);
    end if;
 

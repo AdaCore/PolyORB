@@ -11,7 +11,7 @@
 --  Ada'95 distributed systems annex  --
 --  Objects                           --
 ----------------------------------------
---  Copyright (c) 1999                --
+--  Copyright (c) 1999-2002           --
 --  École nationale supérieure des    --
 --  télécommunications                --
 ----------------------------------------
@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#17 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#18 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -1058,6 +1058,7 @@ package body CIAO.Translator is
                   Success := Add_Identifier
                     (Node, Map_Defining_Name (Defining_Name));
                   pragma Assert (Success);
+                  Set_Translation (Element, Node);
 
                   Push_Scope (Node);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,12 +34,15 @@ package Ada_Be.Idl2Ada is
      (Use_Mapping :    Ada_Be.Mappings.Mapping_Type'Class;
       Node        : in Node_Id;
       Implement   :    Boolean                            := False;
+      Intf_Repo   :    Boolean                            := False;
       To_Stdout   :    Boolean                            := False);
    --  Generate the Ada mapping of the IDL tree
    --  rooted at Node.
    --  If Implement is true, produce only a template
    --  for the Impl package of each interface, to
    --  be completed by the user.
+   --  If Intf_Repo is true, also produce CORBA
+   --  Interface Repository packages.
    --  If To_Stdout is true, all produced source code
    --  is emitted on standard output (e. g. for use
    --  with GNATCHOP).

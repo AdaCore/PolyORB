@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,21 +78,24 @@ package body Ada_Be.Idl2Ada is
    -------------------------------------------------
 
    procedure Gen_Scope
-     (Node : Node_Id;
+     (Node      : Node_Id;
       Implement : Boolean;
+      Intf_Repo : Boolean;
       To_Stdout : Boolean);
    --  Generate all the files for scope Node.
    --  The implementation templates for interfaces is
    --  generated only if Implement is true.
 
    procedure Gen_Value_Scope
-     (Node : Node_Id;
+     (Node      : Node_Id;
       Implement : Boolean;
+      Intf_Repo : Boolean;
       To_Stdout : Boolean);
 
    procedure Gen_Interface_Module_Scope
-     (Node : Node_Id;
+     (Node      : Node_Id;
       Implement : Boolean;
+      Intf_Repo : Boolean;
       To_Stdout : Boolean);
 
    procedure Gen_ValueType_Stubs_Body
@@ -182,6 +185,7 @@ package body Ada_Be.Idl2Ada is
      (Use_Mapping :    Ada_Be.Mappings.Mapping_Type'Class;
       Node        : in Node_Id;
       Implement   :    Boolean                            := False;
+      Intf_Repo   :    Boolean                            := False;
       To_Stdout   :    Boolean                            := False)
    is
       S_Node : Node_Id;
@@ -194,7 +198,7 @@ package body Ada_Be.Idl2Ada is
       Init (It, Contents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, S_Node);
-         Gen_Scope (S_Node, Implement, To_Stdout);
+         Gen_Scope (S_Node, Implement, Intf_Repo, To_Stdout);
       end loop;
 
    end Generate;
@@ -204,19 +208,20 @@ package body Ada_Be.Idl2Ada is
    ---------------
 
    procedure Gen_Scope
-     (Node : Node_Id;
+     (Node      : Node_Id;
       Implement : Boolean;
+      Intf_Repo : Boolean;
       To_Stdout : Boolean) is
    begin
       case Kind (Node) is
          when K_ValueType =>
-            Gen_Value_Scope (Node, Implement, To_Stdout);
+            Gen_Value_Scope (Node, Implement, Intf_Repo, To_Stdout);
 
          when
            K_Ben_Idl_File |
            K_Module       |
            K_Interface    =>
-            Gen_Interface_Module_Scope (Node, Implement, To_Stdout);
+            Gen_Interface_Module_Scope (Node, Implement, Intf_Repo, To_Stdout);
 
          when others =>
             raise Program_Error;
@@ -229,8 +234,9 @@ package body Ada_Be.Idl2Ada is
    ---------------------
 
    procedure Gen_Value_Scope
-     (Node : Node_Id;
+     (Node      : Node_Id;
       Implement : Boolean;
+      Intf_Repo : Boolean;
       To_Stdout : Boolean)
    is
       Stubs_Name : constant String
@@ -319,10 +325,12 @@ package body Ada_Be.Idl2Ada is
       Helper.Gen_Node_Spec (Helper_Spec, Node);
       Helper.Gen_Node_Body (Helper_Body, Node);
 
-      IR_Info.Gen_Spec_Prelude (IR_Info_Spec);
-      IR_Info.Gen_Body_Prelude (IR_Info_Body);
-      IR_Info.Gen_Node_Spec (IR_Info_Spec, Node);
-      IR_Info.Gen_Node_Body (IR_Info_Body, Node);
+      if Intf_Repo then
+         IR_Info.Gen_Spec_Prelude (IR_Info_Spec);
+         IR_Info.Gen_Body_Prelude (IR_Info_Body);
+         IR_Info.Gen_Node_Spec (IR_Info_Spec, Node);
+         IR_Info.Gen_Node_Body (IR_Info_Body, Node);
+      end if;
 
       --  Skel package
       Skel.Gen_Node_Spec (Skel_Spec, Skeleton, Node);
@@ -341,7 +349,7 @@ package body Ada_Be.Idl2Ada is
                              & Node_Kind'Image (Kind (Export_Node))));
 
             if Is_Gen_Scope (Export_Node) then
-               Gen_Scope (Export_Node, Implement, To_Stdout);
+               Gen_Scope (Export_Node, Implement, Intf_Repo, To_Stdout);
             else
                pragma Debug (O ("Gen_Node_Stubs_Spec"));
                Gen_Node_Stubs_Spec (Stubs_Spec, Export_Node);
@@ -383,7 +391,9 @@ package body Ada_Be.Idl2Ada is
 
       Helper.Gen_Spec_Postlude (Helper_Spec);
       Helper.Gen_Body_Postlude (Helper_Body);
-      IR_Info.Gen_Body_Postlude (IR_Info_Body);
+      if Intf_Repo then
+         IR_Info.Gen_Body_Postlude (IR_Info_Body);
+      end if;
 
       if not Is_Empty (Supports (Node)) then
          Skel.Gen_Body_Common_End (Skel_Body, Skeleton, Node);
@@ -397,8 +407,10 @@ package body Ada_Be.Idl2Ada is
          Generate (Stubs_Body, False, To_Stdout);
          Generate (Helper_Spec, False, To_Stdout);
          Generate (Helper_Body, False, To_Stdout);
-         Generate (IR_Info_Spec, False, To_Stdout);
-         Generate (IR_Info_Body, False, To_Stdout);
+         if Intf_Repo then
+            Generate (IR_Info_Spec, False, To_Stdout);
+            Generate (IR_Info_Body, False, To_Stdout);
+         end if;
          Generate (Value_Skel_Spec, False, To_Stdout);
          Generate (Value_Skel_Body, False, To_Stdout);
          Generate (Skel_Spec, False, To_Stdout);
@@ -578,6 +590,7 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_Interface_Module_Scope
      (Node      : Node_Id;
       Implement : Boolean;
+      Intf_Repo : Boolean;
       To_Stdout : Boolean)
    is
       Stubs_Name    : constant String
@@ -619,8 +632,10 @@ package body Ada_Be.Idl2Ada is
       --  Work-around for GNAT bug 9530-011.
 
       Helper.Gen_Body_Prelude (Helper_Body);
-      IR_Info.Gen_Spec_Prelude (IR_Info_Spec);
-      IR_Info.Gen_Body_Prelude (IR_Info_Body);
+      if Intf_Repo then
+         IR_Info.Gen_Spec_Prelude (IR_Info_Spec);
+         IR_Info.Gen_Body_Prelude (IR_Info_Body);
+      end if;
 
       case Kind (Node) is
          when K_ValueType =>
@@ -660,7 +675,7 @@ package body Ada_Be.Idl2Ada is
                             & " is defined in a child unit.");
 
                      end if;
-                     Gen_Scope (Decl_Node, Implement, To_Stdout);
+                     Gen_Scope (Decl_Node, Implement, Intf_Repo, To_Stdout);
                   else
                      if Kind (Decl_Node) = K_Forward_Interface then
                         --  in case of a forward declaration
@@ -687,8 +702,10 @@ package body Ada_Be.Idl2Ada is
                      Helper.Gen_Node_Spec (Helper_Spec, Decl_Node);
                      Helper.Gen_Node_Body (Helper_Body, Decl_Node);
 
-                     IR_Info.Gen_Node_Spec (IR_Info_Spec, Decl_Node);
-                     IR_Info.Gen_Node_Body (IR_Info_Body, Decl_Node);
+                     if Intf_Repo then
+                        IR_Info.Gen_Node_Spec (IR_Info_Spec, Decl_Node);
+                        IR_Info.Gen_Node_Body (IR_Info_Body, Decl_Node);
+                     end if;
                   end if;
 
                end loop;
@@ -783,7 +800,7 @@ package body Ada_Be.Idl2Ada is
                while not Is_End (It) loop
                   Get_Next_Node (It, Export_Node);
                   if Is_Gen_Scope (Export_Node) then
-                     Gen_Scope (Export_Node, Implement, To_Stdout);
+                     Gen_Scope (Export_Node, Implement, Intf_Repo, To_Stdout);
                   else
                      Gen_Node_Stubs_Spec
                        (Stubs_Spec, Export_Node);
@@ -821,8 +838,10 @@ package body Ada_Be.Idl2Ada is
                      Helper.Gen_Node_Spec (Helper_Spec, Export_Node);
                      Helper.Gen_Node_Body (Helper_Body, Export_Node);
 
-                     IR_Info.Gen_Node_Spec (IR_Info_Spec, Export_Node);
-                     IR_Info.Gen_Node_Body (IR_Info_Body, Export_Node);
+                     if Intf_Repo then
+                        IR_Info.Gen_Node_Spec (IR_Info_Spec, Export_Node);
+                        IR_Info.Gen_Node_Body (IR_Info_Body, Export_Node);
+                     end if;
                   end if;
 
                   --  Methods inherited from parents other that
@@ -840,8 +859,10 @@ package body Ada_Be.Idl2Ada is
             Helper.Gen_Node_Spec (Helper_Spec, Node);
             Helper.Gen_Node_Body (Helper_Body, Node);
 
-            IR_Info.Gen_Node_Spec (IR_Info_Spec, Node);
-            IR_Info.Gen_Node_Body (IR_Info_Body, Node);
+            if Intf_Repo then
+               IR_Info.Gen_Node_Spec (IR_Info_Spec, Node);
+               IR_Info.Gen_Node_Body (IR_Info_Body, Node);
+            end if;
 
             Gen_Convert_Forward_Declaration (Stubs_Spec, Node);
 
@@ -861,7 +882,9 @@ package body Ada_Be.Idl2Ada is
 
       Helper.Gen_Spec_Postlude (Helper_Spec);
       Helper.Gen_Body_Postlude (Helper_Body);
-      IR_Info.Gen_Body_Postlude (IR_Info_Body);
+      if Intf_Repo then
+         IR_Info.Gen_Body_Postlude (IR_Info_Body);
+      end if;
 
       if Kind (Node) = K_Ben_Idl_File
         and then Is_Unknown (Node) then
@@ -891,8 +914,10 @@ package body Ada_Be.Idl2Ada is
             Generate (Stubs_Body, False, To_Stdout);
             Generate (Helper_Spec, False, To_Stdout);
             Generate (Helper_Body, False, To_Stdout);
-            Generate (IR_Info_Spec, False, To_Stdout);
-            Generate (IR_Info_Body, False, To_Stdout);
+            if Intf_Repo then
+               Generate (IR_Info_Spec, False, To_Stdout);
+               Generate (IR_Info_Body, False, To_Stdout);
+            end if;
             if not Is_Abstract_Node then
                Generate (Skel_Spec, False, To_Stdout);
                Generate (Skel_Body, False, To_Stdout);

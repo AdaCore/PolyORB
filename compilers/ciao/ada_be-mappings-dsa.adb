@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -127,8 +127,12 @@ package body Ada_Be.Mappings.DSA is
       Node : Idl_Fe.Types.Node_Id)
      return String is
    begin
-      return Library_Unit_Name (Self, Node) & ".Stubs";
+      return Library_Unit_Name (Self, Node) & "_Stubs";
    end Client_Stubs_Unit_Name;
+
+   -------------------
+   -- Map_Type_Name --
+   -------------------
 
    procedure Map_Type_Name
      (Self : access DSA_Mapping_Type;
@@ -238,5 +242,17 @@ package body Ada_Be.Mappings.DSA is
 
       end case;
    end Map_Type_Name;
+
+   ---------------------------
+   -- Server_Skel_Unit_Name --
+   ---------------------------
+
+   function Server_Skel_Unit_Name
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String is
+   begin
+      return Ada_Name (Node) & "_RPC_Receiver";
+   end Server_Skel_Unit_Name;
 
 end Ada_Be.Mappings.DSA;
