@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -70,7 +70,7 @@ package body CORBA.Request is
       Op_Type   : Operation_Type;
    begin
       --  set a proxy for the operation
-      if CORBA.TypeCode.Kind (Get_Type (Self.Result.Argument)) =  Tk_Void then
+      if CORBA.TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
          Op_Type := Operation_Procedure;
       else
          Op_Type := Operation_Function;

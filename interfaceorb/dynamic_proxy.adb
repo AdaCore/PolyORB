@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -111,15 +111,16 @@ package body Dynamic_Proxy is
    --  Align_Size  --
    ------------------
 
+
+
    function Align_Size
      (Self    : in Operation_Proxy;
       Size_In : in Unsigned_Long)
       return Unsigned_Long
    is
+      S_Tmp : Unsigned_Long := Size_In;
       It    : NVList.Iterator;
       Nv    : NamedValue;
-      S_Tmp : Unsigned_Long := Size_In;
-      Tck   : TCKind;
    begin
       pragma Debug (O ("entering Align_Size with " & S_Tmp'Img));
       NVList.Start (It, Self.Args);
@@ -130,85 +131,8 @@ package body Dynamic_Proxy is
              or Nv.Arg_Modes = CORBA.ARG_INOUT) then
             pragma Debug (O ("aligning size for "
                              & CORBA.To_Standard_String (Nv.Name)));
-            Tck := TypeCode.Kind (Get_Type (Nv.Argument));
-            case Tck is
-               when Tk_Boolean =>
-                  declare
-                  Tmp : CORBA.Boolean := From_Any (Nv.Argument);
-                  begin
-                     S_Tmp :=
-                       AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-                  end;
-               when Tk_Char =>
-                  declare
-                     Tmp : CORBA.Char := From_Any (Nv.Argument);
-               begin
-                  S_Tmp :=
-                    AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-               end;
-               when Tk_Short =>
-                  declare
-                     Tmp : CORBA.Short := From_Any (Nv.Argument);
-                  begin
-                     S_Tmp :=
-                       AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-                  end;
-               when Tk_Ushort =>
-                  declare
-                     Tmp : CORBA.Unsigned_Short := From_Any (Nv.Argument);
-                  begin
-                     S_Tmp :=
-                       AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-                  end;
-               when Tk_Long =>
-                  declare
-                     Tmp : CORBA.Long := From_Any (Nv.Argument);
-                  begin
-                     S_Tmp :=
-                       AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-                  end;
-               when Tk_Ulong =>
-               declare
-                  Tmp : CORBA.Unsigned_Long := From_Any (Nv.Argument);
-               begin
-                  S_Tmp :=
-                    AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-               end;
-               when Tk_Float =>
-                  declare
-                     Tmp : CORBA.Float := From_Any (Nv.Argument);
-                  begin
-                     S_Tmp :=
-                       AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-                  end;
-               when Tk_Double =>
-               declare
-                  Tmp : CORBA.Double := From_Any (Nv.Argument);
-               begin
-                  S_Tmp :=
-                    AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-               end;
-               when Tk_Octet =>
-                  declare
-                     Tmp : CORBA.Octet := From_Any (Nv.Argument);
-                  begin
-                     S_Tmp :=
-                       AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-                  end;
-               when Tk_String =>
-                  declare
-                     Tmp : CORBA.String := From_Any (Nv.Argument);
-                  begin
-                     S_Tmp :=
-                       AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
-                  end;
-               when Tk_Any =>
-                  null;
-                  --  ?
-               when others =>
-               --  should never be reached ?
-                  null;
-            end case;
+
+            S_Tmp := Align_From_Any (Nv.Argument, S_Tmp);
          end if;
          NVList.Next (It);
       end loop;
@@ -226,7 +150,6 @@ package body Dynamic_Proxy is
    is
       It  : NVList.Iterator;
       Nv  : NamedValue;
-      Tck : TCKind;
    begin
       pragma Debug (O ("entering Marshal_Arguments"));
       --  assumes that the arguments are in a correct order in the list
@@ -238,76 +161,7 @@ package body Dynamic_Proxy is
              or Nv.Arg_Modes = CORBA.ARG_INOUT) then
             pragma Debug (O ("marshalling "
                              & CORBA.To_Standard_String (Nv.Name)));
-            Tck := TypeCode.Kind (Get_Type (Nv.Argument));
-            case Tck is
-               when Tk_Boolean =>
-                  declare
-                     Tmp : CORBA.Boolean := From_Any (Nv.Argument);
-                  begin
-                     AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-                  end;
-               when Tk_Char =>
-                  declare
-                     Tmp : CORBA.Char := From_Any (Nv.Argument);
-                  begin
-                     AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-                  end;
-               when Tk_Short =>
-               declare
-                  Tmp : CORBA.Short := From_Any (Nv.Argument);
-               begin
-                  AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-               end;
-               when Tk_Ushort =>
-                  declare
-                     Tmp : CORBA.Unsigned_Short := From_Any (Nv.Argument);
-                  begin
-                     AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-                  end;
-               when Tk_Long =>
-                  declare
-                     Tmp : CORBA.Long := From_Any (Nv.Argument);
-                  begin
-                     AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-                  end;
-               when Tk_Ulong =>
-                  declare
-                     Tmp : CORBA.Unsigned_Long := From_Any (Nv.Argument);
-                  begin
-                     AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-                  end;
-               when Tk_Float =>
-                  declare
-                     Tmp : CORBA.Float := From_Any (Nv.Argument);
-                  begin
-                     AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-                  end;
-               when Tk_Double =>
-                  declare
-                     Tmp : CORBA.Double := From_Any (Nv.Argument);
-                  begin
-                     AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-                  end;
-               when Tk_Octet =>
-                  declare
-                     Tmp : CORBA.Octet := From_Any (Nv.Argument);
-                  begin
-                     AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-                  end;
-               when Tk_String =>
-                  declare
-                     Tmp : CORBA.String := From_Any (Nv.Argument);
-                  begin
-                     AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
-                  end;
-               when Tk_Any =>
-                  null;
-                  --  ?
-               when others =>
-                  --  should never be reached ?
-                  null;
-            end case;
-            --  not done for completion_status (useless), sys_exception_member
+            Marshall_From_Any (Nv.Argument, GIOP_Client);
          end if;
          NVList.Next (It);
       end loop;
@@ -328,13 +182,11 @@ package body Dynamic_Proxy is
       case Self.Op_Type is
          when Operation_Function =>
             pragma Debug (O ("operation is a function"));
-            Unmarshal_Returned_Value (Self,
-                                      GIOP_Client,
-                                      A,
-                                      TypeCode.Kind
-                                      (Get_Type
-                                       (Self.Private_Result.Argument)));
-            Self.Private_Result.Argument := A;
+            Unmarshall_To_Any (GIOP_Client,
+                               Self.Private_Result.Argument,
+                               TypeCode.Kind
+                               (Get_Type
+                                (Self.Private_Result.Argument)));
          when Operation_Procedure =>
             pragma Debug (O ("operation is a procedure"));
             declare
@@ -350,11 +202,10 @@ package body Dynamic_Proxy is
                      pragma Debug
                        (O ("unmarshalling "
                            & CORBA.To_Standard_String (Nv.Name)));
-                     Unmarshal_Returned_Value (Self,
-                                               GIOP_Client,
-                                               A,
-                                               TypeCode.Kind
-                                               (Get_Type (Nv.Argument)));
+                     Unmarshall_To_Any (GIOP_Client,
+                                        A,
+                                        TypeCode.Kind
+                                        (Get_Type (Nv.Argument)));
                      CORBA.NVList.Set_Argument (It, A);
                   end if;
                   CORBA.NVList.Next (It);
@@ -363,11 +214,200 @@ package body Dynamic_Proxy is
       end case;
    end Unmarshal_Returned_Values;
 
-   procedure Unmarshal_Returned_Value
-     (Self        : in     Operation_Proxy;
-      GIOP_Client : in out AdaBroker.GIOP_C.Object;
+
+   function Align_From_Any
+     (A       : in Any;
+      Size_In : in Unsigned_Long)
+      return Unsigned_Long
+   is
+      S_Tmp : Unsigned_Long := Size_In;
+      Tc    : TypeCode.Object := Get_Type (A);
+      Tck   : TCKind := TypeCode.Kind (Tc);
+   begin
+      case Tck is
+         when Tk_Boolean =>
+            declare
+               Tmp : CORBA.Boolean := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Char =>
+            declare
+               Tmp : CORBA.Char := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Short =>
+            declare
+               Tmp : CORBA.Short := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Ushort =>
+            declare
+               Tmp : CORBA.Unsigned_Short := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Long =>
+            declare
+               Tmp : CORBA.Long := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Ulong =>
+            declare
+               Tmp : CORBA.Unsigned_Long := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Float =>
+            declare
+               Tmp : CORBA.Float := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Double =>
+            declare
+               Tmp : CORBA.Double := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Octet =>
+            declare
+               Tmp : CORBA.Octet := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_String =>
+            declare
+               Tmp : CORBA.String := From_Any (A);
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Union =>
+            --  the type code contains a list of 2 anys
+            --  the first one acontains the value
+            --  the second contains the discriminant
+            declare
+               Actual_Value : CORBA.Any := TypeCode.Parameter (Tc, 0);
+               Discriminant : CORBA.Any := TypeCode.Parameter (Tc, 1);
+            begin
+               S_Tmp := Align_From_Any (Discriminant, S_Tmp);
+               S_Tmp := Align_From_Any (Actual_Value, S_Tmp);
+            end;
+         when Tk_Any =>
+            null;
+            --  ?
+         when others =>
+            --  should never be reached ?
+            null;
+      end case;
+      return S_Tmp;
+   end Align_From_Any;
+
+   procedure Marshall_From_Any
+     (A           : in      Any;
+      GIOP_Client : in out AdaBroker.GIOP_C.Object)
+   is
+      Tc    : TypeCode.Object := Get_Type (A);
+      Tck   : TCKind := TypeCode.Kind (Tc);
+   begin
+      case Tck is
+         when Tk_Boolean =>
+            declare
+               Tmp : CORBA.Boolean := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Char =>
+            declare
+               Tmp : CORBA.Char := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Short =>
+            declare
+               Tmp : CORBA.Short := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Ushort =>
+            declare
+               Tmp : CORBA.Unsigned_Short := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Long =>
+            declare
+               Tmp : CORBA.Long := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Ulong =>
+            declare
+               Tmp : CORBA.Unsigned_Long := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Float =>
+            declare
+               Tmp : CORBA.Float := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Double =>
+            declare
+               Tmp : CORBA.Double := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Octet =>
+            declare
+               Tmp : CORBA.Octet := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_String =>
+            declare
+               Tmp : CORBA.String := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Union =>
+            --  the type code contains a list of 2 anys
+            --  the first one acontains the value
+            --  the second contains the discriminant
+            declare
+               Actual_Value : CORBA.Any := TypeCode.Parameter (Tc, 0);
+               Discriminant : CORBA.Any := TypeCode.Parameter (Tc, 1);
+            begin
+               Marshall_From_Any (Discriminant, GIOP_Client);
+               Marshall_From_Any (Actual_Value, GIOP_Client);
+            end;
+         when Tk_Any =>
+            null;
+            --  ?
+         when others =>
+            --  should never be reached ?
+            null;
+      end case;
+   end Marshall_From_Any;
+
+   procedure Unmarshall_To_Any
+     (GIOP_Client : in out AdaBroker.GIOP_C.Object;
       A           :    out Any;
-      Tck         : in     TCKind)
+      Tck         : TCKind)
    is
    begin
       case Tck is
@@ -441,6 +481,9 @@ package body Dynamic_Proxy is
                AdaBroker.NetBufferedStream.Unmarshall (Tmp, GIOP_Client);
                A := To_Any (Tmp);
             end;
+         when Tk_Union =>
+--            Discrimant : Any :=
+            null;
          when Tk_Any =>
             null;
             --  ?
@@ -448,7 +491,7 @@ package body Dynamic_Proxy is
                --  should never be reached ?
                null;
       end case;
-   end Unmarshal_Returned_Value;
+   end Unmarshall_To_Any;
 
 
 end Dynamic_Proxy;

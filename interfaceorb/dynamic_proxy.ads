@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -90,11 +90,26 @@ package Dynamic_Proxy is
 
 private
 
-   procedure Unmarshal_Returned_Value
-     (Self        : in     Operation_Proxy;
-      GIOP_Client : in out AdaBroker.GIOP_C.Object;
+   function Align_From_Any
+     (A       : in Any;
+      Size_In : in Unsigned_Long)
+      return Unsigned_Long;
+   --  Computes recusively the size needed to marshall the content of an Any
+   --  Called by Align_Size
+
+   procedure Marshall_From_Any
+     (A           : in      Any;
+      GIOP_Client : in out AdaBroker.GIOP_C.Object);
+   --  Marshalls recursively the content of an Any
+   --  Called by Marshal_Arguments
+
+   procedure Unmarshall_To_Any
+     (GIOP_Client : in out AdaBroker.GIOP_C.Object;
       A           :    out Any;
       Tck         : in     TCKind);
+--      Tck         : in     TCKind);
+   --  Creates an Any from the given typecode and the unmarshalled things
+   --  Called by Unmarshal_Returned_Values
 
    type Operation_Proxy is  new AdaBroker.OmniProxyCallDesc.Object with
       record
