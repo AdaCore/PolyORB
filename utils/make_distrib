@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#3 $
+# $Id: //droopi/main/utils/make_distrib#4 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -72,13 +72,13 @@ else
   cd ${dir}
 fi
 if [ -f utils/VERSION.INFO ]; then
-  echo "Sourcing version file, then deleting it"
+  echo "Calling version file, then deleting it"
   if $s; then
     echo "(with no implicit version information)"
-    . utils/VERSION.INFO
+    sh utils/VERSION.INFO
   else
     echo "(with version information derived from ${dir})"
-    . utils/VERSION.INFO ${dir}
+    sh utils/VERSION.INFO ${dir}
   fi
   rm -f utils/VERSION.INFO
 else

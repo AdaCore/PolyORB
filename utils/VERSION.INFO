@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# VERSION.INFO,v 1.11 1996/05/24 14:05:48 tardieu Exp
+#
+# This file will perform version substitution when building a release. It
+# has to be tagged "to_be_released" and to be kept in synch as new releases
+# appear.
+#
+# DO NOT CALL THIS FILE EXPLICITLY. IT WILL BE CALLED BY THE make_distrib
+# program.
+
+#
+# If there is an argument on the command line, use it for the version number
+#
+
+if [ "x$1" != "x" ]
+then
+  polyorb_version=`echo $1 | sed -e 's/^[^-]*-//'`
+else
+  #gnat_version=`sed -n -e '/Gnat_Vers/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
+  polyorb_version=`grep ^AM_INIT_AUTOMAKE configure.in | sed  's/AM_INIT_AUTOMAKE([^,]*,\(.*\))/\1/'`
+fi
+
+#
+# files hold the list of files in which substitutions will occur
+#
+#files="README INSTALL Dist/xe_usage.adb Doc/install_guide.txt"
+files="README"
+
+#
+# Do the job
+#
+for i in ${files}; do
+  mv $i $i.orig.$$
+  sed -e "s/@polyorb_version@/${polyorb_version}/g" < $i.orig.$$ \
+    > $i
+  rm -f $i.orig.$$
+done
