@@ -397,7 +397,7 @@ package body System.RPC is
       begin
          for Id in Request_Id'First .. Latest loop
             if Destination (Id) = Partition then
-               pragma Warnings (Off);  --  ???
+               pragma Warnings (Off);  -- ??? To be checked
                Result_Watcher.Raise_Error (Id);
                pragma Warnings (On);
                Free (Id);
@@ -462,7 +462,7 @@ package body System.RPC is
       begin
          Get (Id, Tmp);
          Streams.Deallocate (Tmp.Result);
-         pragma Warnings (Off);  --  ???
+         pragma Warnings (Off);  -- ??? To be checked
          Request_Id_Server.Free (Id);
          pragma Warnings (On);
       end Free;

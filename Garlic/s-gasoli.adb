@@ -33,9 +33,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with GNAT.IO; --  Help to debug this package.
+with System.Garlic.Debug; use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 
 package body System.Garlic.Soft_Links is
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GASOLI", "(s-gasoli): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    generic
       Name : String;
@@ -60,10 +69,10 @@ package body System.Garlic.Soft_Links is
       procedure Call is
       begin
          if Var /= null then
-            --  GNAT.IO.Put_Line (Name & ": exec call");
+            pragma Debug (D (D_Debug, Name & ": exec call"));
             Var.all;
          else
-            --  GNAT.IO.Put_Line (Name & ": fake call");
+            pragma Debug (D (D_Debug, Name & ": fake call"));
             null;
          end if;
       end Call;
@@ -74,7 +83,7 @@ package body System.Garlic.Soft_Links is
 
       procedure Register (P : in Parameterless_Procedure) is
       begin
-         --  GNAT.IO.Put_Line (Name & ": register");
+         pragma Debug (D (D_Debug, Name & ": register"));
          Var := P;
       end Register;
 
@@ -132,6 +141,28 @@ package body System.Garlic.Soft_Links is
      renames P_Global_Termination.Register;
    procedure Global_Termination
      renames P_Global_Termination.Call;
+
+   -------------------------------
+   -- Critical section handling --
+   -------------------------------
+
+   package P_Enter_Critical_Section is new Proc ("Enter_Critical_Section");
+   procedure Register_Enter_Critical_Section
+     (P : in Parameterless_Procedure)
+     renames P_Enter_Critical_Section.Register;
+   procedure Enter_Critical_Section
+     renames P_Enter_Critical_Section.Call;
+
+   package P_Leave_Critical_Section is new Proc ("Leave_Critical_Section");
+   procedure Register_Leave_Critical_Section
+     (P : in Parameterless_Procedure)
+     renames P_Leave_Critical_Section.Register;
+   procedure Leave_Critical_Section
+     renames P_Leave_Critical_Section.Call;
+
+   -------------------------
+   -- Shutdown mechanisms --
+   -------------------------
 
    package P_RPC_Shutdown is new Proc ("RPC_Shutdown");
    procedure Register_RPC_Shutdown

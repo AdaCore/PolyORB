@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Interfaces;
 with System.RPC;
 
 package System.Partition_Interface is
@@ -49,8 +50,8 @@ package System.Partition_Interface is
 
    type RACW_Stub_Type is tagged record
       Origin       : RPC.Partition_ID;
-      Receiver     : RPC.RPC_Receiver;
-      Addr         : System.Address;
+      Receiver     : Interfaces.Unsigned_64;
+      Addr         : Interfaces.Unsigned_64;
       Asynchronous : Boolean;
    end record;
    type RACW_Stub_Type_Access is access RACW_Stub_Type;
@@ -82,7 +83,7 @@ package System.Partition_Interface is
 
    function Get_RCI_Package_Receiver
      (Name : Unit_Name)
-      return System.RPC.RPC_Receiver;
+      return Interfaces.Unsigned_64;
    --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver
 
    procedure Register_Receiving_Stub
@@ -105,8 +106,11 @@ package System.Partition_Interface is
       Name_Is_Host : in Boolean;
       General_Name : in String;
       Command_Line : in String);
-   --  Part_Or_Host is either a partition name or a host name depending
-   --  on Name_Is_Host.
+   --  General_Name represents the name of the machine or the name of the
+   --  partition (depending on the value of Name_Is_Host). Command_Line
+   --  holds the extra options that will be given on the command line.
+   --  Rsh_Command is typically "rsh", that will be used to launch the
+   --  other partition.
 
    procedure Raise_Program_Error_For_E_4_18;
    --  Raise Program_Error with an error message explaining why it has been
@@ -116,16 +120,10 @@ package System.Partition_Interface is
    generic
       RCI_Name : String;
    package RCI_Info is
-      function Get_RCI_Package_Receiver return RPC.RPC_Receiver;
+      function Get_RCI_Package_Receiver return Interfaces.Unsigned_64;
       function Get_Active_Partition_ID return RPC.Partition_ID;
    end RCI_Info;
    --  RCI package information caching
-
-   function Register_Address (Addr : System.Address) return Natural;
-   --  Register an address and return a unique number corresponding to it
-
-   function Get_Address (Handle : Natural) return System.Address;
-   --  Get the address associated to this handle
 
    procedure Run (Main : in Main_Subprogram_Type := null);
    --  Run the main subprogram

@@ -16,6 +16,7 @@
 (setenv "S_GARTRA")
 (setenv "S_GARUNI")
 (setenv "S_GASELI")
+(setenv "S_GASOLI")
 (setenv "S_PARINT")
 (setenv "S_RPC")
 (setenv "S_RPCPOO")

@@ -44,12 +44,12 @@ with System.Garlic.Utils;
 --  These ones should not be needed, but the binder needs them to get a
 --  correct dependencies order ???
 
-pragma Warnings (Off);
 with System.Tasking.Initialization;
 pragma Elaborate_All (System.Tasking.Initialization);
+pragma Warnings (Off, System.Tasking.Initialization);
 with System.Tasking.Protected_Objects;
 pragma Elaborate_All (System.Tasking.Protected_Objects);
-pragma Warnings (On);
+pragma Warnings (Off, System.Tasking.Protected_Objects);
 
 package System.Garlic.Heart is
 

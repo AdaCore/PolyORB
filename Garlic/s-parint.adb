@@ -37,36 +37,35 @@ with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
-with GNAT.HTable;           use GNAT.HTable;
+with GNAT.HTable;              use GNAT.HTable;
 with GNAT.Table;
 
-with System.Garlic.Debug;   use System.Garlic.Debug;
+with System.Garlic.Debug;      use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 
-with System.Garlic.Heart;   use System.Garlic.Heart;
+with System.Garlic.Heart;      use System.Garlic.Heart;
 pragma Elaborate (System.Garlic.Heart);
 
-with System.Garlic.Options; use System.Garlic.Options;
-with System.Garlic.Remote;  use System.Garlic.Remote;
+with System.Garlic.Options;    use System.Garlic.Options;
+with System.Garlic.Remote;     use System.Garlic.Remote;
 
 with System.Garlic.Soft_Links;
 pragma Elaborate (System.Garlic.Soft_Links);
 
-pragma Warnings (Off);
 with System.Garlic.Startup;
 pragma Elaborate (System.Garlic.Startup);
-pragma Warnings (On);
+pragma Warnings (Off, System.Garlic.Startup);
 
-with System.Garlic.Streams; use System.Garlic.Streams;
+with System.Garlic.Streams;    use System.Garlic.Streams;
 pragma Elaborate (System.Garlic.Streams);
 
-with System.Garlic.Types;   use System.Garlic.Types;
+with System.Garlic.Types;      use System.Garlic.Types;
 pragma Elaborate (System.Garlic.Types);
 
-with System.Garlic.Units;   use System.Garlic.Units;
+with System.Garlic.Units;      use System.Garlic.Units;
 pragma Elaborate (System.Garlic.Units);
 
-with System.Garlic.Utils;   use System.Garlic.Utils;
+with System.Garlic.Utils;      use System.Garlic.Utils;
 pragma Elaborate (System.Garlic.Utils);
 
 with System.RPC;
@@ -89,6 +88,10 @@ package body System.Partition_Interface is
    function Convert is
      new Ada.Unchecked_Conversion
      (RPC.RPC_Receiver, RPC_Receiver);
+
+   function Convert is
+      new Ada.Unchecked_Conversion
+     (RPC.RPC_Receiver, System.Address);
 
    procedure Complete_Termination (Termination : Termination_Type);
    --  Select the correct soft link
@@ -116,7 +119,7 @@ package body System.Partition_Interface is
 
    Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
    Get_Unit_Request : constant Request_Type :=
-     (Get_Unit, Local_Partition, null, null, null);
+     (Get_Unit, Local_Partition, 0, null, null);
 
    type Hash_Index is range 0 .. 100;
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
@@ -234,15 +237,14 @@ package body System.Partition_Interface is
 
    function Get_Active_Partition_ID
      (Name : Unit_Name)
-      return RPC.Partition_ID is
+      return RPC.Partition_ID
+   is
       N : String := Name;
       U : Unit_Id;
-
    begin
       To_Lower (N);
       U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
-
       Units.Apply (U, Get_Unit_Request, Process'Access);
       return RPC.Partition_ID (Units.Get_Component (U).Partition);
    end Get_Active_Partition_ID;
@@ -253,34 +255,17 @@ package body System.Partition_Interface is
 
    function Get_Active_Version
      (Name : Unit_Name)
-      return String is
+      return String
+   is
       N : String := Name;
       U : Unit_Id;
-
    begin
       To_Lower (N);
       U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Version"));
-
       Units.Apply (U, Get_Unit_Request, Process'Access);
       return Units.Get_Component (U).Version.all;
    end Get_Active_Version;
-
-   -----------------
-   -- Get_Address --
-   -----------------
-
-   function Get_Address (Handle : Natural) return Address is
-      Result : Address;
-   begin
-      if Handle = 0 then
-         return Null_Address;
-      end if;
-      Enter (Global_Mutex);
-      Result := Address_Table.Table (Handle);
-      Leave (Global_Mutex);
-      return Result;
-   end Get_Address;
 
    ----------------------------
    -- Get_Local_Partition_ID --
@@ -309,17 +294,17 @@ package body System.Partition_Interface is
 
    function Get_RCI_Package_Receiver
      (Name : Unit_Name)
-      return RPC.RPC_Receiver is
+      return Interfaces.Unsigned_64
+   is
       N : String := Name;
       U : Unit_Id;
-
    begin
       To_Lower (N);
       U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
 
       Units.Apply (U, Get_Unit_Request, Process'Access);
-      return Convert (Units.Get_Component (U).Receiver);
+      return Units.Get_Component (U).Receiver;
    end Get_RCI_Package_Receiver;
 
    -------------------------------
@@ -327,7 +312,8 @@ package body System.Partition_Interface is
    -------------------------------
 
    procedure Get_Unique_Remote_Pointer
-     (Handler : in out RACW_Stub_Type_Access) is
+     (Handler : in out RACW_Stub_Type_Access)
+   is
       Answer : constant RACW_Stub_Type_Access := Objects_HTable.Get (Handler);
    begin
       if Answer = null then
@@ -360,8 +346,7 @@ package body System.Partition_Interface is
    -- Invalidate_Receiving_Stub --
    -------------------------------
 
-   procedure Invalidate_Receiving_Stub
-     (Name : in Unit_Name) is
+   procedure Invalidate_Receiving_Stub (Name : in Unit_Name) is
    begin
       null;
    end Invalidate_Receiving_Stub;
@@ -374,7 +359,8 @@ package body System.Partition_Interface is
      (Rsh_Command  : in String;
       Name_Is_Host : in Boolean;
       General_Name : in String;
-      Command_Line : in String) is
+      Command_Line : in String)
+   is
    begin
       if not Nolaunch then
          if Name_Is_Host then
@@ -393,9 +379,9 @@ package body System.Partition_Interface is
      (N       : in Unit_Id;
       Request : in Request_Type;
       Unit    : in out Unit_Type;
-      Status  : out Status_Type) is
+      Status  : out Status_Type)
+   is
       Server : Partition_ID := Get_Boot_Server;
-
    begin
       case Request.Command is
          when Get_Unit =>
@@ -508,18 +494,18 @@ package body System.Partition_Interface is
    procedure Public_Message_Receiver
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
-      Params    : access Params_Stream_Type) is
+      Params    : access Params_Stream_Type)
+   is
       R : Request_Type;
       U : Unit_Id;
       N : Unit_Name := Unit_Name'(Unit_Name'Input (Params));
-
    begin
       U := Units.Get_Index (N);
 
       Request_Id'Read (Params, R.Command);
       if R.Command = Set_Unit then
          Partition_ID'Read (Params, R.Partition);
-         RPC_Receiver'Read (Params, R.Receiver);
+         Interfaces.Unsigned_64'Read (Params, R.Receiver);
          R.Version := new String'(String'Input (Params));
       else
          R.Partition := Partition;
@@ -544,27 +530,6 @@ package body System.Partition_Interface is
         "Illegal usage of remote access to class-wide type. See RM E.4(18)");
    end Raise_Program_Error_For_E_4_18;
 
-   ----------------------
-   -- Register_Address --
-   ----------------------
-
-   function Register_Address (Addr : Address) return Natural is
-      Index  : Natural;
-   begin
-      if Addr = Null_Address then
-         return 0;
-      end if;
-      Enter (Global_Mutex);
-      Index := Address_HTable.Get (Addr);
-      if Index = 0 then
-         Index := Address_Table.Allocate;
-         Address_HTable.Set (Addr, Index);
-         Address_Table.Table (Index) := Addr;
-      end if;
-      Leave (Global_Mutex);
-      return Index;
-   end Register_Address;
-
    -----------------------------
    -- Register_Receiving_Stub --
    -----------------------------
@@ -572,16 +537,15 @@ package body System.Partition_Interface is
    procedure Register_Receiving_Stub
      (Name     : in Unit_Name;
       Receiver : in RPC.RPC_Receiver;
-      Version  : in String := "") is
+      Version  : in String := "")
+   is
       Uname   : String := Name;
       Request : Request_Type
         := (Set_Unit, Local_Partition,
-            Convert (Receiver),
+            Interfaces.Unsigned_64 (System.Address'(Convert (Receiver))),
             new String'(Version), null);
-
    begin
       pragma Debug (D (D_Debug, "Request Register_Receiving_Stub"));
-
       To_Lower (Uname);
       Units.Apply (Units.Get_Index (Uname), Request, Process'Access);
    end Register_Receiving_Stub;
@@ -596,21 +560,20 @@ package body System.Partition_Interface is
       Name    : String       := RCI_Name;
       Uname   : Unit_Id;
 
-      Request : Request_Type := (Get_Unit, Local_Partition, null, null, Cache);
+      Request : Request_Type := (Get_Unit, Local_Partition, 0, null, Cache);
 
       -----------------------------
       -- Get_Active_Partition_ID --
       -----------------------------
 
-      function Get_Active_Partition_ID return RPC.Partition_ID is
+      function Get_Active_Partition_ID return RPC.Partition_ID
+      is
          Unit : Unit_Type;
          Done : Boolean;
-
       begin
          Cache.Get_RCI_Data (Unit.Receiver, Unit.Partition, Done);
          if not Done then
             pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
-
             Units.Apply (Uname, Request, Process'Access);
             Unit := Units.Get_Component (Uname);
             Cache.Set_RCI_Data (Unit.Receiver, Unit.Partition);
@@ -622,10 +585,10 @@ package body System.Partition_Interface is
       -- Get_RCI_Package_Receiver --
       ------------------------------
 
-      function Get_RCI_Package_Receiver return RPC.RPC_Receiver is
+      function Get_RCI_Package_Receiver return Interfaces.Unsigned_64
+      is
          Unit : Unit_Type;
          Done : Boolean;
-
       begin
          Cache.Get_RCI_Data (Unit.Receiver, Unit.Partition, Done);
          if not Done then
@@ -634,7 +597,7 @@ package body System.Partition_Interface is
             Units.Apply (Uname, Request, Process'Access);
             Cache.Set_RCI_Data (Unit.Receiver, Unit.Partition);
          end if;
-         return Convert (Unit.Receiver);
+         return Unit.Receiver;
       end Get_RCI_Package_Receiver;
 
    begin
@@ -652,9 +615,7 @@ package body System.Partition_Interface is
       Message : String_Access;
       Caller  : Caller_List := Callers;
       Dummy   : Caller_List;
-
    begin
-
       pragma Debug (D (D_Debug, "Complete elaboration"));
       System.Garlic.Heart.Complete_Elaboration;
 
@@ -695,12 +656,12 @@ package body System.Partition_Interface is
       pragma Debug (D (D_Debug, "Complete termination"));
       Complete_Termination (Garlic.Options.Termination);
 
-   exception when others =>
-      pragma Debug (D (D_Debug,
-                       "Complete termination after handling exception"));
-      Complete_Termination (Garlic.Options.Termination);
-      raise;
-
+   exception
+      when others =>
+         pragma Debug (D (D_Debug,
+                          "Complete termination after handling exception"));
+         Complete_Termination (Garlic.Options.Termination);
+         raise;
    end Run;
 
    ----------
@@ -710,10 +671,10 @@ package body System.Partition_Interface is
    procedure Send
      (Partition : in Partition_ID;
       Request   : in Request_Type;
-      Unit      : in Unit_Id) is
+      Unit      : in Unit_Id)
+   is
       Params : aliased Params_Stream_Type (0);
       Name   : String := Units.Get_Name (Unit);
-
    begin
       pragma Debug
         (D (D_RNS,
@@ -725,8 +686,8 @@ package body System.Partition_Interface is
       Request_Id'Write (Params'Access, Request.Command);
       if Request.Command = Set_Unit then
          Partition_ID'Write (Params'Access, Request.Partition);
-         RPC_Receiver'Write (Params'Access, Request.Receiver);
-         String'Output      (Params'Access, Request.Version.all);
+         Interfaces.Unsigned_64'Write (Params'Access, Request.Receiver);
+         String'Output (Params'Access, Request.Version.all);
       end if;
 
       Send (Partition, Name_Service, Params'Access);

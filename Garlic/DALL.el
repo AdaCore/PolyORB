@@ -16,6 +16,7 @@
 (setenv "S_GARTRA" "C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y")
 (setenv "S_GARUNI" "C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y")
 (setenv "S_GASELI" "C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y")
+(setenv "S_GASOLI" "C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y")
 (setenv "S_PARINT" "C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y")
 (setenv "S_RPC" "C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y")
 (setenv "S_RPCPOO" "C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y")

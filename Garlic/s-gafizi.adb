@@ -36,10 +36,9 @@
 with Ada.Streams;           use Ada.Streams;
 with Interfaces.C;
 
-pragma Warnings (Off);
 with System.Garlic.Filters;
 pragma Elaborate (System.Garlic.Filters);
-pragma Warnings (On);
+pragma Warnings (Off, System.Garlic.Filters);
 
 with System.Garlic.Debug; use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);

@@ -2,9 +2,9 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---           S Y S T E M . G A R L I C . F I L T E R S . N O N E            --
+--                S Y S T E M . G A R L I C . L O C K I N G                 --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
@@ -33,79 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams; use Ada.Streams;
+package System.Garlic.Locking is
 
-with System.Garlic.Streams; use System.Garlic.Streams;
+   --  This package defines a global lock to be used throughout Garlic for
+   --  coarse grain locking. It is used through soft-links, which means that
+   --  if this package is not part of the application, the operations
+   --  Enter_Critical_Section and Leave_Critical_Section will be no-ops,
+   --  which is what we want.
 
-package body System.Garlic.Filters.None is
+   pragma Elaborate_Body;
 
-   None_Filter : aliased None_Filter_Type;
-   --  Dummy instance of None_Filter, only used for dispatching
-
-   ---------------------
-   -- Filter_Incoming --
-   ---------------------
-
-   function Filter_Incoming
-     (Filter : in None_Filter_Type;
-      Params : in Filter_Params_Access;
-      Stream : in Ada.Streams.Stream_Element_Array)
-      return Stream_Element_Access is
-   begin
-      return new Stream_Element_Array'(Stream);
-   end Filter_Incoming;
-
-   ---------------------
-   -- Filter_Outgoing --
-   ---------------------
-
-   function Filter_Outgoing
-     (Filter : in     None_Filter_Type;
-      Params : in     Filter_Params_Access;
-      Stream : access System.RPC.Params_Stream_Type)
-      return Stream_Element_Access is
-   begin
-      return To_Stream_Element_Access (Stream);
-   end Filter_Outgoing;
-
-   ------------------------
-   -- Filter_Params_Read --
-   ------------------------
-
-   function Filter_Params_Read
-     (Filter : None_Filter_Type;
-      Stream : Ada.Streams.Stream_Element_Array)
-      return Filter_Params_Access is
-   begin
-      return null;
-   end Filter_Params_Read;
-
-   -------------------------
-   -- Filter_Params_Write --
-   -------------------------
-
-   function Filter_Params_Write
-     (Filter : None_Filter_Type;
-      Params : Filter_Params_Access) return Stream_Element_Access is
-   begin
-      return null;
-   end Filter_Params_Write;
-
-   ---------------------
-   -- Generate_Params --
-   ---------------------
-
-   procedure Generate_Params
-     (Filter          : in  None_Filter_Type;
-      Public_Params   : out Filter_Params_Access;
-      Private_Params  : out Filter_Params_Access;
-      Exchange_Params : out Boolean) is
-   begin
-      Public_Params   := null;
-      Private_Params  := null;
-      Exchange_Params := False;
-   end Generate_Params;
-
-begin
-   Register_Filter (null, "none");
-end System.Garlic.Filters.None;
+end System.Garlic.Locking;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---           S Y S T E M . G A R L I C . F I L T E R S . N O N E            --
+--                S Y S T E M . G A R L I C . L O C K I N G                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -33,79 +33,102 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Task_Identification;  use Ada.Task_Identification;
+with System.Garlic.Soft_Links;
+pragma Elaborate_All (System.Garlic.Soft_Links);
 
-with System.Garlic.Streams; use System.Garlic.Streams;
+package body System.Garlic.Locking is
 
-package body System.Garlic.Filters.None is
+   procedure Enter_Critical_Section;
+   procedure Leave_Critical_Section;
+   --  Procedures that will be registered through the soft-links mechanism
 
-   None_Filter : aliased None_Filter_Type;
-   --  Dummy instance of None_Filter, only used for dispatching
+   protected Lock is
+      entry Enter (Id : in Task_Id);
+      --  Enter the critical section
 
-   ---------------------
-   -- Filter_Incoming --
-   ---------------------
+      procedure Leave (Id : in Task_Id);
+      --  Leave the critical section
 
-   function Filter_Incoming
-     (Filter : in None_Filter_Type;
-      Params : in Filter_Params_Access;
-      Stream : in Ada.Streams.Stream_Element_Array)
-      return Stream_Element_Access is
+   private
+      entry Enter_Wait (Id : in Task_Id);
+      --  Enter the critical section whenever it is not locked at all
+
+      Lock_Level : Natural := 0;
+      --  Number of levels of locks, 0 means unlocked
+
+      Lock_Owner : Task_Id;
+      --  Task locking the critical section
+   end Lock;
+
+   ----------------------------
+   -- Enter_Critical_Section --
+   ----------------------------
+
+   procedure Enter_Critical_Section is
    begin
-      return new Stream_Element_Array'(Stream);
-   end Filter_Incoming;
+      Lock.Enter (Current_Task);
+   end Enter_Critical_Section;
 
-   ---------------------
-   -- Filter_Outgoing --
-   ---------------------
+   ----------------------------
+   -- Leave_Critical_Section --
+   ----------------------------
 
-   function Filter_Outgoing
-     (Filter : in     None_Filter_Type;
-      Params : in     Filter_Params_Access;
-      Stream : access System.RPC.Params_Stream_Type)
-      return Stream_Element_Access is
+   procedure Leave_Critical_Section is
    begin
-      return To_Stream_Element_Access (Stream);
-   end Filter_Outgoing;
+      Lock.Leave (Current_Task);
+   end Leave_Critical_Section;
 
-   ------------------------
-   -- Filter_Params_Read --
-   ------------------------
+   ----------
+   -- Lock --
+   ----------
 
-   function Filter_Params_Read
-     (Filter : None_Filter_Type;
-      Stream : Ada.Streams.Stream_Element_Array)
-      return Filter_Params_Access is
-   begin
-      return null;
-   end Filter_Params_Read;
+   protected body Lock is
 
-   -------------------------
-   -- Filter_Params_Write --
-   -------------------------
+      -----------
+      -- Enter --
+      -----------
 
-   function Filter_Params_Write
-     (Filter : None_Filter_Type;
-      Params : Filter_Params_Access) return Stream_Element_Access is
-   begin
-      return null;
-   end Filter_Params_Write;
+      entry Enter (Id : in Task_Id) when True is
+      begin
+         if Lock_Level > 0 and then Id = Lock_Owner then
 
-   ---------------------
-   -- Generate_Params --
-   ---------------------
+            --  The task already has one or more locks on this object. In this
+            --  case, we just need to increase the lock level.
 
-   procedure Generate_Params
-     (Filter          : in  None_Filter_Type;
-      Public_Params   : out Filter_Params_Access;
-      Private_Params  : out Filter_Params_Access;
-      Exchange_Params : out Boolean) is
-   begin
-      Public_Params   := null;
-      Private_Params  := null;
-      Exchange_Params := False;
-   end Generate_Params;
+            Lock_Level := Lock_Level + 1;
+         else
+            requeue Enter_Wait with abort;
+         end if;
+      end Enter;
+
+      ----------------
+      -- Enter_Wait --
+      ----------------
+
+      entry Enter_Wait (Id : in Task_Id) when Lock_Level = 0 is
+      begin
+         Lock_Level := 1;
+         Lock_Owner := Id;
+      end Enter_Wait;
+
+      -----------
+      -- Leave --
+      -----------
+
+      procedure Leave (Id : in Task_Id) is
+      begin
+         pragma Assert (Id = Lock_Owner);
+         if Lock_Level > 0 then
+            Lock_Level := Lock_Level - 1;
+         else
+            raise Program_Error;
+         end if;
+      end Leave;
+
+   end Lock;
 
 begin
-   Register_Filter (null, "none");
-end System.Garlic.Filters.None;
+   Soft_Links.Register_Enter_Critical_Section (Enter_Critical_Section'Access);
+   Soft_Links.Register_Leave_Critical_Section (Leave_Critical_Section'Access);
+end System.Garlic.Locking;

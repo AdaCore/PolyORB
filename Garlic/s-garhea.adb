@@ -52,9 +52,8 @@ with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;
 with System.Standard_Library;
 
-pragma Warnings (Off);
 with System.Garlic.Linker_Options;
-pragma Warnings (On);
+pragma Warnings (Off, System.Garlic.Linker_Options);
 
 package body System.Garlic.Heart is
 

@@ -1,24 +1,63 @@
+1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am (inlining): Look for lines beginning by D when
+	looking for dependencies, thus avoiding useless recompilations in
+	the case of a non-inlined library.
+	Add System.Garlic.Locking.
+
+	* s-gardeb.adb: Style fixes, subprograms reordering.
+	Remove useless pragma Elaborate_All on predefined pure package.
+
+	* s-gasoli.adb: Use System.Garlic.Debug instead of GNAT.IO
+	directly.
+
+	* s-gasoli.ads: Due to the use of System.Garlic.Debug from within
+	the body, change Preelaborate into Elaborate_Body.
+
+	* Many files: refine pragma Warnings to include only the name of
+	the subunits for which we do not want warnings.
+
+	* s-parint.adb: Adapt to the new stubs format.
+	Remove useless subprograms Register_Address and Get_Address.
+	Style fixes.
+
+	* s-garuni.ads, s-garuni.adb: Likewise.
+
+	* s-garloc.ads, s-garloc.adb: New package.
+
+	* s-gasoli.ads: Add new softlinks for critical sections.
+
+	* s-parint.adb: Use new softlinks. Minor reformatting.
+
+	* s-gartab.adb: Use new softlinks.
+
+	* s-rpc.adb: Style fixes.
+
+	* s-garuti.ads, s-garuti.adb: Remove Global_Mutex which is not
+	used anymore.
+
+	* DALL, UNDALL, DALL.rc, UNDALL.rc, DALL.el, UNDALL.el: Add entry
+	for SOFTLINKS, the debugging key for s-gasoli.adb.
+	
 1998-08-03  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* DALL, UNDALL, DALL.rc, UNDALL.rc, DALL.el, UNDALL.el: Update due 
 	to last changes.
 	
-	* s-gardeb.adb: Fix a warning. In fact, gnat is over pessimistic.
+	* s-gardeb.adb: Fix a warning. In fact, GNAT is over pessimistic.
 	Fix a wrong comparison.
+	Check RTS_Sanity_Dir and create termination sanity file. Two new
+	procedures have been created: Create_Termination_Sanity_File and
+	Delete_Termination_Sanity_File. Create_Termination_Sanity_File is
+	executed during System.Garlic.Debug elaboration.
 	
 	* s-gaplsp.ads.in: Add a new variable RTS_Sanity_Directory which
 	is used when --with-sanity=dir is activated.
 
-	* s-gardeb.adb: Check RTS_Sanity_Dir and create termination sanity
- 	file. Two new procedures have been created:
- 	Create_Termination_Sanity_File and Delete_Termination_Sanity_File.
-  	Create_Termination_Sanity_File is executed during s-gardeb
- 	elaboration.
-
 	* s-garhea.adb: Execute Delete_Termination_Sanity_File when the
 	termination is completed (shutdown).
 
-	* all files: With System.Garlic.Debug when needed and elaborate it
+	* All files: With System.Garlic.Debug when needed and elaborate it
  	first to ensure that the sanity files are created at the very
  	beginning of the elaboration. Change also debugging env. variable
 	to adopt a standard naming. A package s-abcdef has now a debugging 

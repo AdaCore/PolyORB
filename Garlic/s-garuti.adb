@@ -202,6 +202,4 @@ package body System.Garlic.Utils is
       end loop;
    end To_Lower;
 
-begin
-   Global_Mutex := Allocate;
 end System.Garlic.Utils;

@@ -16,6 +16,7 @@ export S_GARTER=
 export S_GARTRA=
 export S_GARUNI=
 export S_GASELI=
+export S_GASOLI=
 export S_PARINT=
 export S_RPC=
 export S_RPCPOO=

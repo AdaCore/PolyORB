@@ -35,7 +35,7 @@
 
 package System.Garlic.Soft_Links is
 
-   pragma Preelaborate;
+   pragma Elaborate_Body;
 
    --  This package allows soft links to be defined and later called if they
    --  have been installed. The purpose of this is to be able not to register
@@ -81,6 +81,22 @@ package System.Garlic.Soft_Links is
    procedure Register_Global_Termination
      (P : in Parameterless_Procedure);
    procedure Global_Termination;
+
+   -------------------------------
+   -- Critical section handling --
+   -------------------------------
+
+   procedure Register_Enter_Critical_Section
+     (P : in Parameterless_Procedure);
+   procedure Enter_Critical_Section;
+
+   procedure Register_Leave_Critical_Section
+     (P : in Parameterless_Procedure);
+   procedure Leave_Critical_Section;
+
+   -------------------------
+   -- Shutdown mechanisms --
+   -------------------------
 
    procedure Register_RPC_Shutdown
      (P : in Parameterless_Procedure);

@@ -115,8 +115,4 @@ package System.Garlic.Utils is
    --  Leave one level of critical section. S is used by inner mutex when
    --  leaving first level of critical section.
 
-   Global_Mutex : Adv_Mutex_Access;
-   --  Global mutex to be used for coarse grained locking. Justified in
-   --  every case ???
-
 end System.Garlic.Utils;

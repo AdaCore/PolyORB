@@ -36,6 +36,7 @@
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Utils;        use System.Garlic.Utils;
 with System.Garlic.Name_Table;   use System.Garlic.Name_Table;
+with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 
@@ -183,9 +184,9 @@ package body System.Garlic.Table is
          Check (N);
          loop
             Local_Mutex.Enter;
-            Enter (Global_Mutex);
+            Enter_Critical_Section;
             Process (N, Parameter, Table (N), Status);
-            Leave (Global_Mutex);
+            Leave_Critical_Section;
             Local_Mutex.Leave (Status);
 
             --  Loop when the subprogram execution has been postponed
@@ -201,9 +202,9 @@ package body System.Garlic.Table is
       procedure Check (N : Index_Type) is
          Error : Boolean;
       begin
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Error := (Allocate (N) = Null_Index);
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
 
          if Error then
             raise Constraint_Error;
@@ -220,9 +221,9 @@ package body System.Garlic.Table is
          pragma Abort_Defer;
 
          Check (N);
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Component := Table (N);
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
 
          return Component;
       end Get_Component;
@@ -238,7 +239,7 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Name  := Get (S);
          Info  := Get_Info (Name);
          if Info = 0 then
@@ -253,7 +254,7 @@ package body System.Garlic.Table is
          else
             Index := Index_Type'Val (Info);
          end if;
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
 
          return Index;
       end Get_Index;
@@ -267,13 +268,13 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          if Max < N or else Usage (N).Free then
             Name := Null_Name;
          else
             Name := Usage (N).Name;
          end if;
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
 
          return Get (Name);
       end Get_Name;
@@ -287,9 +288,9 @@ package body System.Garlic.Table is
          pragma Abort_Defer;
 
          Check (N);
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Table (N) := C;
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
       end Set_Component;
 
       --------------
@@ -301,10 +302,10 @@ package body System.Garlic.Table is
          pragma Abort_Defer;
 
          Check (N);
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Usage (N).Name := Get (S);
          Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
       end Set_Name;
 
    begin
@@ -430,9 +431,9 @@ package body System.Garlic.Table is
       procedure Check (N : Index_Type) is
          Error : Boolean;
       begin
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Error := (Allocate (N) = Null_Index);
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
 
          if Error then
             raise Constraint_Error;
@@ -449,9 +450,9 @@ package body System.Garlic.Table is
          pragma Abort_Defer;
 
          Check (N);
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Component := Table (N);
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
 
          return Component;
       end Get_Component;
@@ -467,7 +468,7 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Name  := Get (S);
          Info  := Get_Info (Name);
          if Info = 0 then
@@ -482,7 +483,7 @@ package body System.Garlic.Table is
          else
             Index := Index_Type'Val (Info);
          end if;
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
 
          return Index;
       end Get_Index;
@@ -496,13 +497,13 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          if Max < N or else Usage (N).Free then
             Name := Null_Name;
          else
             Name := Usage (N).Name;
          end if;
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
 
          return Get (Name);
       end Get_Name;
@@ -516,9 +517,9 @@ package body System.Garlic.Table is
          pragma Abort_Defer;
 
          Check (N);
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Table (N) := C;
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
       end Set_Component;
 
       --------------
@@ -530,10 +531,10 @@ package body System.Garlic.Table is
          pragma Abort_Defer;
 
          Check (N);
-         Enter (Global_Mutex);
+         Enter_Critical_Section;
          Usage (N).Name := Get (S);
          Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
-         Leave (Global_Mutex);
+         Leave_Critical_Section;
       end Set_Name;
 
    begin

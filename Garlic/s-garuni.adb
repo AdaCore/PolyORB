@@ -60,13 +60,13 @@ package body System.Garlic.Units is
       ------------------
 
       procedure Get_RCI_Data
-        (Receiver  : out RPC_Receiver;
+        (Receiver  : out Interfaces.Unsigned_64;
          Partition : out Types.Partition_ID;
          Done      : out Boolean) is
       begin
          if not Cache_Consistent then
             Done      := False;
-            Receiver  := null;
+            Receiver  := 0;
             Partition := Types.Partition_ID'First;
          else
             Done      := True;
@@ -80,7 +80,7 @@ package body System.Garlic.Units is
       ------------------
 
       procedure Set_RCI_Data
-        (Receiver  : in RPC_Receiver;
+        (Receiver  : in Interfaces.Unsigned_64;
          Partition : in Types.Partition_ID) is
       begin
          Cache_Consistent := True;

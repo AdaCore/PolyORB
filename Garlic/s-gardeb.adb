@@ -44,7 +44,6 @@ with GNAT.OS_Lib;                     use GNAT.OS_Lib;
 pragma Elaborate_All (GNAT.OS_Lib);
 
 with Interfaces.C;                    use Interfaces.C;
-pragma Elaborate_All (Interfaces.C);
 
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
 pragma Elaborate_All (System.Garlic.Platform_Specific);
@@ -58,23 +57,23 @@ package body System.Garlic.Debug is
    --  body should not be much work.
 
    Not_Debugging : constant Debug_Key := 0;
-   --  This value is used when we are not debugging.
+   --  This value is used when we are not debugging
 
    Current : Debug_Key := 0;
-   --  The current debug key.
+   --  The current debug key
 
    Flags_Map : array (Debug_Key range 1 .. Max_Debugs,
                       Debug_Level) of Boolean :=
      (others => (others => False));
-   --  Map of flags.
+   --  Map of flags
 
    Banner_Map : array (Debug_Key range 1 .. Max_Debugs)
      of String_Access;
-   --  Map of banners.
+   --  Map of banners
 
    Reverse_Character_Map : array (Character) of Debug_Level
      := (others => No_Debug);
-   --  Map characters on debug levels.
+   --  Map characters on debug levels
 
    protected Semaphore is
       entry P;
@@ -82,7 +81,7 @@ package body System.Garlic.Debug is
    private
       Free : Boolean := True;
    end Semaphore;
-   --  The semaphore object which protects outputs from being mixed.
+   --  The semaphore object which protects outputs from being mixed
 
    Termination_Filename : String_Access;
    --  Termination temp filename
@@ -92,32 +91,6 @@ package body System.Garlic.Debug is
    --  partition has cleanly terminated. This feature is used to detect
    --  incorrect termination.
 
-   ---------------
-   -- Semaphore --
-   ---------------
-
-   protected body Semaphore is
-
-      -------
-      -- P --
-      -------
-
-      entry P when Free is
-      begin
-         Free := False;
-      end P;
-
-      -------
-      -- V --
-      -------
-
-      procedure V is
-      begin
-         Free := True;
-      end V;
-
-   end Semaphore;
-
    ----------------
    -- Debug_Mode --
    ----------------
@@ -125,36 +98,65 @@ package body System.Garlic.Debug is
    function Debug_Mode
      (Level : Debug_Level;
       Key   : Debug_Key)
-      return Boolean
-   is
+      return Boolean is
    begin
       return Key /= Not_Debugging and then Flags_Map (Key, Level);
    end Debug_Mode;
 
-   ----------------------
-   -- Print_Debug_Info --
-   ----------------------
+   -------------------------------------
+   --  Create_Termination_Sanity_File --
+   -------------------------------------
 
-   procedure Print_Debug_Info
-     (Level   : in Debug_Level;
-      Message : in String;
-      Key     : in Debug_Key) is
-      Banner : String_Access;
-      Flag   : Boolean;
+   procedure Create_Termination_Sanity_File
+   is
+      Dir : String renames RTS_Sanity_Directory;
+
+      function Getpid return int;
+      pragma Import (C, Getpid, "getpid");
+
+      Name : String (1 .. 32);
+      Last : Natural := 0;
+
+      procedure Write_Pid (Pid : int);
+      procedure Write_Pid (Pid : int)
+      is
+      begin
+         if Pid > 9 then
+            Write_Pid (Pid / 10);
+         end if;
+
+         Last := Last + 1;
+         Name (Last) := Character'Val ((Pid mod 10) + Character'Pos ('0'));
+      end Write_Pid;
 
    begin
-      if Key /= Not_Debugging then
-         Banner := Banner_Map (Key);
-         Flag   := Flags_Map (Key, Level);
-         if Flag then
-            pragma Assert (Banner /= null);
-            Semaphore.P;
-            GNAT.IO.Put (Banner.all);
-            GNAT.IO.Put_Line (Message);
-            Semaphore.V;
-         end if;
+      if Dir'Length /= 0 and then Dir (Dir'Last) /= Directory_Separator then
+         Last := Last + 1;
+         Name (Last) := Directory_Separator;
       end if;
-   end Print_Debug_Info;
+
+      Write_Pid (Getpid);
+
+      Last := Last + 4;
+      Name (Last - 3 .. Last) := ".dsa";
+
+      Last := Last + 1;
+      Name (Last) := Ascii.NUL;
+
+      Termination_Filename := new String'(Dir & Name (1 .. Last));
+
+      Termination_Sanity_FD :=
+        Create_New_File (Termination_Filename.all'Address, Binary);
+
+      if Termination_Sanity_FD = Invalid_FD then
+         GNAT.IO.Put_Line
+           ("Cannot create termination sanity file " &
+            Termination_Filename.all);
+         raise Program_Error;
+      end if;
+
+      Close (Termination_Sanity_FD);
+   end Create_Termination_Sanity_File;
 
    ----------------------
    -- Debug_Initialize --
@@ -192,75 +194,68 @@ package body System.Garlic.Debug is
       return Current;
    end Debug_Initialize;
 
-   -------------------------------------
-   --  Create_Termination_Sanity_File --
-   -------------------------------------
-
-   procedure Create_Termination_Sanity_File is
-
-      Dir : String renames RTS_Sanity_Directory;
-
-      function Getpid return int;
-      pragma Import (C, Getpid, "getpid");
-
-      Name : String (1 .. 32);
-      Last : Natural := 0;
-
-      procedure Write_Pid (Pid : int);
-      procedure Write_Pid (Pid : int)
-      is
-      begin
-         if Pid > 9 then
-            Write_Pid (Pid / 10);
-         end if;
-
-         Last := Last + 1;
-         Name (Last) := Character'Val ((Pid mod 10) + Character'Pos ('0'));
-      end Write_Pid;
-
-   begin
-
-      if Dir'Length /= 0 and then Dir (Dir'Last) /= Directory_Separator then
-         Last := Last + 1;
-         Name (Last) := Directory_Separator;
-      end if;
-
-      Write_Pid (Getpid);
-
-      Last := Last + 4;
-      Name (Last - 3 .. Last) := ".dsa";
-
-      Last := Last + 1;
-      Name (Last) := Ascii.NUL;
-
-      Termination_Filename := new String'(Dir & Name (1 .. Last));
-
-      Termination_Sanity_FD :=
-        Create_New_File (Termination_Filename.all'Address, Binary);
-
-      if Termination_Sanity_FD = Invalid_FD then
-         GNAT.IO.Put_Line
-           ("Cannot create termination sanity file " &
-            Termination_Filename.all);
-         raise Program_Error;
-      end if;
-
-      Close (Termination_Sanity_FD);
-   end Create_Termination_Sanity_File;
-
    ------------------------------------
    -- Delete_Termination_Sanity_File --
    ------------------------------------
 
    procedure Delete_Termination_Sanity_File is
       Success : Boolean;
-
    begin
       if Termination_Sanity_FD /= Invalid_FD then
          Delete_File (Termination_Filename.all'Address, Success);
       end if;
    end Delete_Termination_Sanity_File;
 
+   ----------------------
+   -- Print_Debug_Info --
+   ----------------------
+
+   procedure Print_Debug_Info
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key) is
+      Banner : String_Access;
+      Flag   : Boolean;
+
+   begin
+      if Key /= Not_Debugging then
+         Banner := Banner_Map (Key);
+         Flag   := Flags_Map (Key, Level);
+         if Flag then
+            pragma Assert (Banner /= null);
+            Semaphore.P;
+            GNAT.IO.Put (Banner.all);
+            GNAT.IO.Put_Line (Message);
+            Semaphore.V;
+         end if;
+      end if;
+   end Print_Debug_Info;
+
+   ---------------
+   -- Semaphore --
+   ---------------
+
+   protected body Semaphore is
+
+      -------
+      -- P --
+      -------
+
+      entry P when Free is
+      begin
+         Free := False;
+      end P;
+
+      -------
+      -- V --
+      -------
+
+      procedure V is
+      begin
+         Free := True;
+      end V;
+
+   end Semaphore;
 
 begin
    for Level in Debug_Level loop

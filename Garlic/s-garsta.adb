@@ -151,15 +151,13 @@ begin
       declare
          --  First, let boot server know about this partition
 
-         pragma Warnings (Off);
          P : constant Types.Partition_ID := Get_My_Partition_ID;
-         pragma Warnings (On);
+         pragma Warnings (Off, P);
 
          --  Then, let this partition know about boot server
 
-         pragma Warnings (Off);
          D : constant String := Heart.Name (Get_Boot_Server);
-         pragma Warnings (On);
+         pragma Warnings (Off, D);
       begin
          null;
       end;
