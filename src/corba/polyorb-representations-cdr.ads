@@ -360,7 +360,7 @@ package PolyORB.Representations.CDR is
      (Buffer : access Buffer_Type)
      return CORBA.Object.Ref;
 
-   -- Marshalling of octets sequences.
+   --  Marshalling of octets sequences.
 
    procedure Marshall
      (Buffer : access Buffer_Type;
