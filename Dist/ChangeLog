@@ -1,3 +1,9 @@
+1998-07-22  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Use Global_Termination to trigger global
+ 	termination at the end of the main subprogram of the main
+ 	partition.
+
 1998-07-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Move Sam's 1998-06-16 fix to the right
