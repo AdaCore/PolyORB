@@ -23,6 +23,9 @@
 #include <adabe.h>
 
 
+////////////////////////////////////////////////////////////////////////
+////////////////      constructor    ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 adabe_attribute::adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p)
   : AST_Attribute(ro,ft,n,p),
     AST_Field(AST_Decl::NT_attr,ft,n,p),
@@ -31,6 +34,9 @@ adabe_attribute::adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, U
 {  
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_ads     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
 {
@@ -52,6 +58,9 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
     } else body += "\n";
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_adb     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 {
@@ -90,6 +99,9 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_impl_ads     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_impl_ads(dep_list& with, string &body, string &previous)
 {
@@ -110,6 +122,9 @@ adabe_attribute::produce_impl_ads(dep_list& with, string &body, string &previous
   
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_impl_adb     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
@@ -133,6 +148,9 @@ adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous
     } 
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_proxies_ads     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &private_definition)
 {  
@@ -179,6 +197,9 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
 }
 
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_proxies_adb     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &private_definition)
 {
@@ -271,6 +292,9 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
 }
 
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_skel_adb     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_definition)
 {
@@ -330,6 +354,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += "            Mesg : ";
       body += full_type_name;
       body += " ;\n";
+      body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
       body += "         begin\n";
       
       body += "            -- unmarshalls arguments\n";
@@ -345,6 +370,10 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += name;
       body += "(Self,Mesg) ;\n";
       
+      body += "            -- compute the size of the replied message\n";
+      body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
+      body += "            -- Initialisation of the reply\n";
+      body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
       body += "            -- inform the orb\n";
       body += "            Giop_S.Reply_Completed (Orls) ;\n";
       
@@ -355,6 +384,9 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_marshal_adb     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_marshal_adb(dep_list &with, string &body, string &previous)
 {
@@ -371,6 +403,9 @@ adabe_attribute::produce_marshal_adb(dep_list &with, string &body, string &previ
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     miscellaneous           ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 IMPL_NARROW_METHODS1(adabe_attribute, AST_Attribute)
 IMPL_NARROW_FROM_DECL(adabe_attribute)
 IMPL_NARROW_FROM_SCOPE(adabe_attribute)
