@@ -2,6 +2,8 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
+alidir = $(includedir)/polyorb/corba/cos
+
 corba_exe=server client print
 
 PROGS= @APPLI_EXES@ @SERVICE_EXES@
@@ -203,6 +205,8 @@ $(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
 	@chmod +x $(srcdir)/typecode.sh
 	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN)
 
+install-data-local:
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	for f in $(srcdir)/corba*.ad[bs] corba*.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
+
 DISTCLEANFILES += ${GEN}
-
-

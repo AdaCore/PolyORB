@@ -1,5 +1,7 @@
 include $(srcdir)/../../Makefile.common
 
+alidir = $(includedir)/polyorb/corba/cos
+
 CosEventChannelAdmin_IDL=$(srcdir)/CosEventChannelAdmin.idl
 CosEventComm_IDL=$(srcdir)/CosEventComm.idl
 
@@ -205,3 +207,7 @@ $(CosTypedEventComm_GEN): stamp-gen-CosTypedEventComm
 stamp-gen-CosTypedEventComm: $(CosTypedEventComm_IDL) $(IDLAC)
 	$(IDLAC) $(CosTypedEventComm_IDL) -I$(srcdir)
 	touch $@
+
+install-data-local:
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	for f in $(srcdir)/*.ad[bs] *.ali *.idl; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done

@@ -17,6 +17,12 @@ do
  polyorb_dir="$polyorb_dir -I${includedir}/polyorb/${P}"
  polyorb_lib="$polyorb_lib -lpolyorb-${P}"
 
+ if [ "x$P" = "xcorba" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos"
+   polyorb_lib="$polyorb_lib"
+ fi 
+
  if [ "x$P" = "xaws" ]
  then
    polyorb_dir="$polyorb_dir -I${includedir}/polyorb/web_common"

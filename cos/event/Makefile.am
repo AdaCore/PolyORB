@@ -2,6 +2,8 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
+alidir = $(includedir)/polyorb/corba/cos
+
 corba_exe=test_event typedtest_event
 
 COS_GNATMAKE_FLAGS = \
@@ -77,3 +79,6 @@ stamp-gen: $(IDL) $(IDLAC)
 	$(IDLAC) $(IDL)
 	touch stamp-gen
 
+install-data-local:
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	for f in $(srcdir)/cos*.ad[bs] cos*.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done

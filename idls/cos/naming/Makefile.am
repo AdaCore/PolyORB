@@ -1,5 +1,7 @@
 include $(srcdir)/../../Makefile.common
 
+alidir = $(includedir)/polyorb/corba/cos
+
 CosNaming_IDL=$(srcdir)/CosNaming.idl
 CosNaming_GEN= \
   cosnaming-bindingiterator-helper.adb \
@@ -34,3 +36,7 @@ $(CosNaming_GEN): stamp-gen
 stamp-gen: $(CosNaming_IDL) $(IDLAC)
 	$(IDLAC) $(CosNaming_IDL) -I$(srcdir)
 	touch $@
+
+install-data-local:
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	for f in $(srcdir)/*.ad[bs] *.ali *.idl; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done

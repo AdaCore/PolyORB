@@ -1,5 +1,7 @@
 include $(srcdir)/../../Makefile.common
 
+alidir = $(includedir)/polyorb/corba/cos
+
 CosTime_IDL=$(srcdir)/CosTime.idl
 CosTime_GEN= \
   costime-helper.adb \
@@ -49,3 +51,7 @@ $(CosTime_GEN): stamp-gen
 stamp-gen: $(CosTime_IDL) $(IDLAC)
 	$(IDLAC) $(CosTime_IDL) -I$(srcdir)
 	touch $@
+
+install-data-local:
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	for f in $(srcdir)/*.ad[bs] *.ali *.idl; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
