@@ -1,3 +1,7 @@
+Sat Nov 23 13:31:14 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* VERSION.INFO: Updated for dsa 1.04 (gnat 3.07).
+
 Fri Oct 18 16:42:20 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* update-headers.el: The function update-headers can now be used
