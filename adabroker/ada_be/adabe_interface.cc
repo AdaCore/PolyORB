@@ -497,9 +497,38 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
 }
 
 void
-adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previous)
+adabe_interface::produce_proxies_adb(dep_list with, string &body, string &previous)
 {
+  body += "package body " + get_ada_full_name() + ".Proxies is \n";
+ 
+  ////////////////////////////// Mapping the object factory ////////////////////////
+
+  string Sprivate = "";
+  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+  while (!i.is_done())
+    {
+      AST_Decl *d = i.item();
+      switch(d->node_type())
+	{
+	case AST_Decl::NT_attr:
+	case AST_Decl::NT_op:
+	  {
+	    string tmp1 = "";
+	    string tmp2 = "";	    
+	    adabe_name::narrow_from_decl(d)->produce_proxies_adb(with, tmp1, tmp2);
+	    body += tmp1;
+	    Sprivate += tmp2;	
+	  }
+	  break;
+	default:break;	
+	}
+      i.next();
+    }
+  body += "private \n";
+  body += Sprivate;
+  body += "end " + get_ada_full_name() + ".Proxies ;\n";
 }
+
 
 void
 adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previous)

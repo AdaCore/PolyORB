@@ -94,43 +94,109 @@ adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous
 }
 
 void
-adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &private_definition)
+adabe_attribute::produce_proxies_ads(dep_list with, string &body, string &private_definition)
 {  
   AST_Decl *d = field_type();
-  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, private_definition);
-  body += "   type get_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private;\n";
-  body += "   function Create() return get_" + get_ada_local_name() +"_Proxy ;\n";
-  body += "   procedure Free(Self : in out get_" + get_ada_local_name() + "_Proxy);\n";
-  body += "   function Aligned_Size(Self : in get_" + get_ada_local_name() + "_Proxy ; Size_In : in Corba.Unsigned_Long)";
-  body += " return Corba.Unsigned_Long ;\n";
-  body += "   procedure Marshal_Arguments(Self : in get_" + get_ada_local_name() + "_Proxy ; Giop_Client : in out Giop_C.Object);\n";
-  body += "   procedure Unmarshal_Returned_Values(Self : in out get_" + get_ada_local_name() + "_Proxy ; Giop_Client : in Giop_C.Object);\n";
-  body += "   function Get_Result (Self : in get_" + get_ada_local_name() + "_Proxy ) return ";
-  body += name + "; \n";
+  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, private_definition);
+  body += "   type get_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private;\n\n";
+  body += "   procedure Init(Self : in out get_" + get_ada_local_name() + "_Proxy) ;\n\n";
+  body += "   function Operation(Self : in get_" + get_ada_local_name() + "_Proxy)\n";
+  body += "                      return CORBA.String ;\n\n" ;
+  body += "   procedure Unmarshal_Returned_Values(Self : in out get_" + get_ada_local_name() + "_Proxy ;\n";
+  body += "                                       Giop_Client : in Giop_C.Object);\n\n";
+  body += "   function Get_Result (Self : in get_" + get_ada_local_name() + "_Proxy )\n";
+  body += "                        return " +  name + "; \n\n\n";
 
   private_definition += "   type get_" + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
   private_definition += "      Result : " + name + "_Ptr := null;\n";
-  private_definition += "   end record ;\n";
+  private_definition += "   end record ;\n\n";
+  private_definition += "   procedure Finalize (Self : in out " + get_ada_local_name() + "_Proxy) ;\n\n";
   
   if (!readonly())
     {
       body += "   type set_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private ;\n";
-      body += "   function Create(Arg : in " + name + ") return set_" + get_ada_local_name() +"_Proxy ;\n";
-      body += "   procedure Free(Self : in out get_" + get_ada_local_name() + "_Proxy);\n";
-      body += "   function Aligned_Size(Self : in get_" + get_ada_local_name() + "_Proxy ; Size_In : in Corba.Unsigned_Long)";
-      body += " return Corba.Unsigned_Long ;\n";
-      body += "   procedure Marshal_Arguments(Self : in get_" + get_ada_local_name() + "_Proxy ; Giop_Client : in out Giop_C.Object);\n";
-      body += "   procedure Unmarshal_Returned_Values(Self : in out get_" + get_ada_local_name() + "_Proxy ; Giop_Client : in Giop_C.Object);\n";
+      body += "   procedure Init(Self : in out set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                  Arg : in " + name + ") ;\n\n";
+      body += "   function Operation(Self : in set_" + get_ada_local_name() + "_Proxy)\n";
+      body += "                      return CORBA.String ;\n\n" ;
+      body += "   function Aligned_Size(Self : in set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                         Size_In : in Corba.Unsigned_Long)\n";
+      body += "                         return Corba.Unsigned_Long ;\n\n";
+      body += "   procedure Marshal_Arguments(Self : in set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                               Giop_Client : in out Giop_C.Object);\n\n";
+      body += "   procedure Unmarshal_Returned_Values(Self : in out set_" + set_ada_local_name() + "_Proxy ;\n";
+      body += "                                       Giop_Client : in Giop_C.Object) ;\n\n";
+
       private_definition += "   type set_" + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
       private_definition += "      Arg : " + name + "_Ptr := null;\n";
-      private_definition += "end record ;\n";
+      private_definition += "   end record ;\n";
+      private_definition += "   procedure Finalize (Self : in out " + get_ada_local_name() + "_Proxy) ;\n\n";
     }  
 }
 
+
 void
-adabe_attribute::produce_proxies_adb(dep_list& with, string &body, string &private_definition)
+adabe_attribute::produce_proxies_adb(dep_list with, string &body, string &private_definition)
 {
+  AST_Decl *d = field_type();
+  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, private_definition);
+  body += "   procedure Init(Self : in out get_" + get_ada_local_name() + "_Proxy) is\n";
+  body += "   begin\n";
+  body += "      Set_User_Exceptions(Self, False) ;\n";
+  body += "   end ;\n\n\n";
+  body += "   function Operation(Self : in get_" + get_ada_local_name() + "_Proxy)\n";
+  body += "                      return CORBA.String is\n";
+  body += "   begin\n";
+  body += "      return Corba.To_Corba_String(\"" + get_ada_local_name() + "\") ;\n";
+  body += "   end ;\n\n\n";
+  body += "   procedure Unmarshal_Returned_Values(Self : in out get_" + get_ada_local_name() + "_Proxy ;\n";
+  body += "                                       Giop_Client : in Giop_C.Object) is\n";
+  body += "      Result : " + name + " ;\n";
+  body += "   begin\n";
+  body += "      Unmarshall(Result, Giop_client) ;\n";
+  body += "      Self.Result := new " + name + "'(Result) ;\n";
+  body += "   end ;\n\n\n" ;
+  body += "   function Get_Result (Self : in get_" + get_ada_local_name() + "_Proxy )\n";
+  body += "                        return " +  name + " is \n";
+  body += "   begin\n";
+  body += "      return Self.Result.all ;\n";
+  body += "   end ;\n\n\n";
+  body += "   procedure Finalize (Self : in out " + get_ada_local_name() + "_Proxy) is\n";
+  body += "   begin\n";
+  body += "      Free(Self.Result) ;\n";
+  body += "   end ;\n\n\n";
+
+  if (!readonly())
+    {
+      body += "   procedure Init(Self : in out set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                  Arg : in " + name + ") is\n";
+      body += "   begin\n";
+      body += "      Set_User_Exceptions(Self, False) ;\n";
+      body += "      Self.Arg := new " + name + "'(Arg) ;\n";
+      body += "   end ;\n\n\n";
+      body += "   function Operation(Self : in get_" + get_ada_local_name() + "_Proxy)\n";
+      body += "                      return CORBA.String is\n";
+      body += "   begin\n";
+      body += "      return Corba.To_Corba_String(\"" + get_ada_local_name() + "\") ;\n";
+      body += "   end ;\n\n\n";
+      body += "   function Aligned_Size(Self : in set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                         Size_In : in Corba.Unsigned_Long)\n";
+      body += "                         return Corba.Unsigned_Long is\n";
+      body += "   begin\n";
+      body += "      return Align_Size(Self.Arg.all, Size_In) ;\n";
+      body += "   end ;\n\n\n";
+      body += "   procedure Marshal_Arguments(Self : in set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                               Giop_Client : in out Giop_C.Object);\n\n";
+      body += "   begin\n";
+      body += "      Marshall(Self.Arg.all, Giop_client) ;\n";
+      body += "   end ;\n\n\n";
+      body += "   procedure Finalize (Self : in out " + get_ada_local_name() + "_Proxy) ;\n\n"
+      body += "   begin\n";
+      body += "      Free(Self.Arg) ;\n";
+      body += "   end ;\n\n\n";
+    }  
 }
+
 
 void
 adabe_attribute::produce_skeleton_adb(dep_list& with, string &body, string &private_definition)

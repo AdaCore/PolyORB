@@ -261,55 +261,151 @@ void
 adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &private_definition)
 {
   string name = get_ada_full_name();
-  string way;
-  way = "IN";
-  body += "   type " + name + "_Proxy is new OmniProxyCallDesc.Object with private ;\n";
-  body += "   function Create(";
+  string in_decls = "";
+  string fields = "";
+  boolean no_in := true;
+  boolean no_out := false;
+  // first process each argument
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_argument)
-	 dynamic_cast<adabe_name *>(d)->produce_proxies_ads(with, body, way); //add the ", "
+	 dynamic_cast<adabe_name *>(d)->produce_proxies_ads(with, in_decls, no_in, no_out, fields);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
-  if (body[body.length()-1] != '(') body = body.substr(0,body.length()-3); //to remove the last ", "
-  body += ") return " + name +"_Proxy ;\n";
-  body += "   procedure Free(Self : in out " + name + "_Proxy);\n";
-  body += "   function Aligned_Size(Self : in " + name + "_Proxy ; Size_In : in Corba.Unsigned_Long)";
-  body += " return Corba.Unsigned_Long ;\n";
-  body += "   procedure Marshal_Arguments(Self : in " + name + "_Proxy ; Giop_Client : in out Giop_C.Object);\n";
-  body += "   procedure Unmarshal_Returned_Values(Self : in out " + name + "_Proxy ; Giop_Client : in Giop_C.Object);\n";
-  if (is_function())
-    {
-      body += "   function Get_Result (Self : in " + name + "_Proxy ) return ";
-      AST_Decl *b = return_type();
-      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, body, private_definition) + "; \n"; 
-    }
+  in_decls += ") ;\n\n";
+
+  // get the type of the result
+  AST_Decl *b = return_type();
+  string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, body, private_definition) + "; \n"; 
+
+  // produce functions
+  body += "   type " + name + "_Proxy is new OmniProxyCallDesc.Object with private ;\n\n";
+  body += "   procedure Init(Self : in out get_" + get_ada_local_name() + "_Proxy";
+  body += in_decls;  
+  body += "   function Operation(Self : in get_" + get_ada_local_name() + "_Proxy)\n";
+  body += "                      return CORBA.String ;\n\n" ;
+  if (!no_in) {
+      body += "   function Aligned_Size(Self : in set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                         Size_In : in Corba.Unsigned_Long)\n";
+      body += "                         return Corba.Unsigned_Long ;\n\n";
+      body += "   procedure Marshal_Arguments(Self : in set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                               Giop_Client : in out Giop_C.Object) ;\n\n";
+  }
+  if ((!no_out) || (is_function())) {
+  body += "   procedure Unmarshal_Returned_Values(Self : in out get_" + get_ada_local_name() + "_Proxy ;\n";
+  body += "                                       Giop_Client : in Giop_C.Object) ;\n\n";
+  }
+  if (is_function()) {
+  body += "   function Get_Result (Self : in get_" + get_ada_local_name() + "_Proxy )\n";
+  body += "                        return " +  result_name + "; \n\n\n";
+  }
+
   private_definition += "   type " + name + "_Proxy is new OmniProxyCallDesc.Object with record \n";
-  UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
-  while (!j.is_done())
-    {
-      AST_Decl *e = j.item();
-      if (e->node_type() == AST_Decl::NT_argument)
-	 dynamic_cast<adabe_name *>(e)->produce_proxies_adb(with, private_definition, private_definition);
-      else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
-      j.next();
-    }
+  private_definition += fields;
   if (is_function())
     {
       private_definition += "      Private_Result : ";
-      AST_Decl *c = return_type();
-      body +=  dynamic_cast<adabe_name *>(c)->dump_name(with, body, private_definition);
-      body += "_Ptr := null;\n";
+      body += result_name + "_Ptr := null;\n";
     }
   private_definition += "   end record; \n ;";
+  private_definition += "   procedure Finalize(Self : in out " + name + "_Proxy) ;\n\n";
 }
 
 void
 adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &private_definition)
 {
+  string name = get_ada_full_name();
+  string in_decls = "";
+  string init = "";
+  string align_size := "";
+  string marshall := "";
+  string unmarshall_decls := "";
+  string unmarshall := "";
+  string finalize := "";
+  boolean no_in := true;
+  boolean no_out := false;
+  // First process each argument
+  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+  while (!i.is_done())
+    {
+      AST_Decl *d = i.item();
+      if (d->node_type() == AST_Decl::NT_argument)
+	 dynamic_cast<adabe_name *>(d)->produce_proxies_adb(with, in_decls, no_in, no_out, init, align_size, marshall, unmarshall_decls, unmarshall, finalize);
+      else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
+      i.next();
+    }
+  in_decls += ") is\n";
+
+  // get the type of the result
+  AST_Decl *b = return_type();
+  string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, body, private_definition) + "; \n"; 
+
+  // produce functions
+  body += "   procedure Init(Self : in out get_" + get_ada_local_name() + "_Proxy";
+  body += in_decls;
+  body += "      begin\n";
+  body += "      Set_User_Exceptions(Self, False) ;\n";
+  body += init;
+  body += "   end ;\n\n\n";
+  
+  body += "   function Operation(Self : in get_" + get_ada_local_name() + "_Proxy)\n";
+  body += "                      return CORBA.String is\n";
+  body += "   begin\n";
+  body += "      return Corba.To_Corba_String(\"" + get_ada_local_name() + "\") ;\n";
+  body += "   end ;\n\n\n";
+
+  if (!no_in) {
+      body += "   function Aligned_Size(Self : in set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                         Size_In : in Corba.Unsigned_Long)\n";
+      body += "                         return Corba.Unsigned_Long is\n";
+      body += "      Tmp : Corba.Unsigned_Long := Size_In ;\n";
+      body += "   begin\n";
+      body += align_size;
+      body += "      return Tmp ;\n";
+      body += "   end ;\n\n\n";
+
+      body += "   procedure Marshal_Arguments(Self : in set_" + get_ada_local_name() + "_Proxy ;\n";
+      body += "                               Giop_Client : in out Giop_C.Object) is\n";
+      body += "   begin\n";
+      body += marshall;
+      body += "   end ;\n\n\n";      
+  }
+  if ((!no_out) || (is_function())) {
+  body += "   procedure Unmarshal_Returned_Values(Self : in out get_" + get_ada_local_name() + "_Proxy ;\n";
+  body += "                                       Giop_Client : in Giop_C.Object) is\n";
+  body += unmarshall_decls;
+  if (is_function()) {
+    body += "      Result : " + name + " ;\n";
+  }
+  body += "   begin\n";
+  body += unmarshall;
+  if (is_function()) {
+    body += "      Unmarshall(Result, Giop_client) ;\n";
+    body += "      Self.Result := new " + name + "'(Result) ;\n";
+  }
+  body += "   end ;\n\n\n";      
+  }
+  
+  if (is_function()) {
+  body += "   function Get_Result (Self : in get_" + get_ada_local_name() + "_Proxy )\n";
+  body += "                        return " +  result_name + " is\n";
+  body += "   begin\n";
+  body += "      return Self.Result.all ;\n";
+  body += "   end ;\n\n\n";
+  }
+
+  body += "   procedure Finalize(Self : in out " + name + "_Proxy) is\n";
+  body += "   begin\n";
+  body += finalize;
+  if (is_function()) {
+    body += "      Free(Self.Result) ;\n";
+  } else if (no_in && no_out) {
+    body += "      null ;\n";
+  }
+  body += "   end ;\n\n\n";
 }
 
 void
