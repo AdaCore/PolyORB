@@ -32,6 +32,7 @@ with Text_IO; use Text_IO;
 with CORBA; use CORBA;
 with CORBA.ORB;
 with CORBA.Repository_Root; use CORBA.Repository_Root;
+with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.Repository;
 with CORBA.Repository_Root.Container;
 with CORBA.Repository_Root.Container.Helper;
@@ -45,6 +46,79 @@ with CORBA.Repository_Root.ValueDef.Helper;
 
 procedure Client is
 
+   procedure Print_Description (Des : Contained.Description;
+                                Inc : Standard.String) is
+   begin
+      case Des.Kind is
+         when
+           Dk_Repository |
+           Dk_Primitive  |
+           Dk_String     |
+           Dk_Sequence   |
+           Dk_Array      |
+           Dk_Wstring    |
+           Dk_Fixed      |
+           Dk_Typedef    |
+           Dk_All        |
+           Dk_None       =>
+            null;
+         when
+           --  child objects
+           Dk_Attribute  |
+           Dk_Constant   |
+           Dk_Operation  |
+           Dk_ValueMember =>
+            null;
+         when
+           Dk_Alias      |
+           Dk_Struct     |
+           Dk_Union      |
+           Dk_Enum       |
+           Dk_ValueBox   |
+           dk_Native =>
+            declare
+               D : TypeDescription :=
+                 Helper.From_Any (Des.Value);
+            begin
+               Put_Line (Inc & "TC_Type :" &
+                         TCKind'Image
+                         (TypeCode.Kind (D.IDL_Type)));
+            end;
+         when
+           Dk_Exception  =>
+            declare
+               D : ExceptionDescription :=
+                 Helper.From_Any (Des.Value);
+            begin
+               null;
+            end;
+         when
+           Dk_Module     =>
+            declare
+               D : ModuleDescription :=
+                 Helper.From_Any (Des.Value);
+            begin
+               null;
+            end;
+         when
+           Dk_Value      =>
+            declare
+               D : ValueDescription :=
+                 Helper.From_Any (Des.Value);
+            begin
+               null;
+            end;
+         when
+           Dk_Interface  =>
+            declare
+               D : InterfaceDescription :=
+                 Helper.From_Any (Des.Value);
+            begin
+               null;
+            end;
+      end case;
+   end;
+
    procedure Print_Content (In_Seq : ContainedSeq;
                             Inc : Standard.String) is
 
@@ -54,6 +128,7 @@ procedure Client is
         := Contained_For_Seq.To_Element_Array
         (Contained_For_Seq.Sequence (In_Seq));
       use Contained;
+      Descri : Contained.Description;
    begin
       for I in Cont_Array'Range loop
          declare
@@ -75,6 +150,9 @@ procedure Client is
                       CORBA.To_Standard_String
                       (CORBA.String
                        (Get_Absolute_Name (The_Ref))));
+            Descri := Contained.Describe (The_Ref);
+            Put_Line ("Before print_description");
+            Print_Description (Descri, Inc);
             Put_Line (" ");
 
             --  recursivity

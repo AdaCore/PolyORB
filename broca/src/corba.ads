@@ -768,6 +768,10 @@ package CORBA is
 
    function Get_Type (The_Any : in Any) return TypeCode.Object;
 
+   --  not in spec : returns the most precise type of an Any. It
+   --  means that it removes any alias level
+   function Get_Precise_Type (The_Any : in Any) return TypeCode.Object;
+
    --  not in spec : change the type of an any without changing its
    --  value : to be used carefully
    procedure Set_Type (The_Any : in out Any;
