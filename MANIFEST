@@ -255,6 +255,8 @@ Garlic/zlib/zutil.c
 Garlic/zlib/zutil.h
 ada/a-comlin.adb
 ada/a-comlin.ads
+ada/a-except.adb
+ada/a-except.ads
 ada/ada.ads
 ada/ali.adb
 ada/ali.ads
@@ -263,12 +265,16 @@ ada/binderr.adb
 ada/binderr.ads
 ada/butil.adb
 ada/butil.ads
+ada/casing.adb
+ada/casing.ads
 ada/csets.adb
 ada/csets.ads
 ada/debug.adb
 ada/debug.ads
 ada/fname.adb
 ada/fname.ads
+ada/g-hesora.adb
+ada/g-hesora.ads
 ada/g-htable.adb
 ada/g-htable.ads
 ada/g-os_lib.adb
