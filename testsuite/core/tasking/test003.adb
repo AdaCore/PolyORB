@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Condition variables testsuite.
+--  Advanced mutexes testsuite.
 
 --  $Id$
 
