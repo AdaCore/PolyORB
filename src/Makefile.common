@@ -6,15 +6,15 @@
 GNATFLAGS+=	-gnatg
 
 depend:
-	for d in $(SUBDIRS);do \
-		(cd $$d; \
-		 ${MAKE} depend-local; \
-		 if [ "$$d" != "." ]; then \
-		   ${MAKE} depend; \
-		 fi); \
-	done
+	for d in $(SUBDIRS);do ( \
+		if [ "$$d" != "." ]; then \
+		  cd $$d; \
+		  ${MAKE} depend; \
+		fi \
+	); done; \
+	${MAKE} depend-local
 
 depend-local: all
-	$(top_srcdir)/support/mkdep $(ADAFLAGS) $(srcdir)
+	$(top_srcdir)/support/mkdep "$(srcdir)" "$(builddir)" "$(top_srcdir)" "$(top_builddir)" $(ADAFLAGS)
 
 include $(top_srcdir)/Makefile.common

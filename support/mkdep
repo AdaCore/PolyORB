@@ -5,13 +5,38 @@
 #
 
 unset LANG LC_ALL LC_COLLATE
-PREFIXLIST=
+
+if [ -x /usr/ucb/echo ]; then
+  ucbecho=/usr/ucb/echo
+else
+  ucbecho=echo
+fi
+
+srcdir=`cd ${1:-.} && /bin/pwd`; shift
+builddir=`cd ${1:-.} && /bin/pwd`; shift
+top_srcdir=`cd ${1:-.} && /bin/pwd`; shift
+top_builddir=`cd ${1:-.} && /bin/pwd`; shift
+
+PREFIXLIST=":"
+
+addprefix() {
+  case "${PREFIXLIST}" in
+    *:${1}:*)
+      ;;
+    *)
+      PREFIXLIST="${PREFIXLIST}${1}:"
+      ;;
+  esac
+}
+
+addprefix "${srcdir}"
+addprefix "${builddir}"
 
 while true
 do
   case "$1" in
     -I*)
-      PREFIXLIST="${PREFIXLIST}"`echo "$1" | sed 's/^-I//'`:
+      addprefix `cd "${1#-I}" && /bin/pwd`
       shift
       ;;
     -*)
@@ -22,35 +47,63 @@ do
       ;;
   esac
 done
+PREFIXLIST=${PREFIXLIST#:}
+PREFIXLIST=${PREFIXLIST%:}
 
-PREFIX=$1
+expand_dep() {
+  case "${1}" in
+    ${top_srcdir}/*)
+      echo "${1#${top_srcdir}/}"
+      ;;
+    ${top_builddir}/*)
+      echo "${1#${top_builddir}/}"
+      ;;
+    *)
+      ;;
+  esac
+}
 
-FNAME=${PREFIX}/Makefile.am
+genlist=`sed -n -e '/^AC_OUTPUT/,/^\]/s/[ 	]*//p' \
+  < ${top_srcdir}/configure.in | tr '
+' ':'`
+makefile=${srcdir}/Makefile.am
 MKDEP="### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###"
-rm -f $FNAME.bak
-cp $FNAME $FNAME.bak
-(sed -e "/$MKDEP/,\$d" < $FNAME.bak
+rm -f ${makefile}.bak
+cp ${makefile} ${makefile}.bak
+(sed -e "/$MKDEP/,\$d" < ${makefile}.bak
 echo $MKDEP
-for k in *.ali; do
-  i=`echo $k | sed -e 's/\.ali$//'`
+IFS=":${IFS}"
+for alifile in *.ali; do
+  echo "Processing ${alifile}..." > /dev/stderr
+  i="${alifile%.ali}"
   withlist=
-  for j in `sed -n -e '/^D /p' $k | awk '{print $2}'`; do
-    if [ -f ${PREFIX}/$j ]; then
-      withlist="$withlist $j"
-    else
-      saveIFS="${IFS}"
-      IFS=": "
-      for p in `echo ${PREFIXLIST}`
-      do
-        if [ -f ${p}/${j} ]; then
-          withlist="$withlist ${p}/${j}"
-        fi
-      done
-      IFS="${saveIFS}"
-    fi
+  while read key unit rest; do
+    case "${key}" in
+      D)
+        for dir in `echo ${PREFIXLIST}`; do
+          if [ -f ${dir}/${unit} ]; then
+            withlist="${withlist}:`expand_dep \"${dir}/${unit}\"`"
+            break
+          fi
+        done
+        ;;
+      *)
+        ;;
+    esac
+  done < ${alifile}
+  ${ucbecho} -n "${i}.lo:"
+  withlist="${withlist#:}"
+  echo "${withlist}" | tr ':' '
+' | sort | uniq | while read dep; do
+    case "${genlist}:" in
+      *:${dep}:*)
+        ${ucbecho} -n " \$(top_builddir)/${dep}"
+        ;;
+      *)
+        ${ucbecho} -n " \$(top_srcdir)/${dep}"
+        ;;
+    esac
   done
-  if [ "x$withlist" != x ]; then
-    echo "${i}.lo:`echo $withlist | tr ' ' '\n' | sort | tr '\n' ' '`"
-  fi
+  echo ""
 done
-) > $FNAME
+) > ${makefile}
