@@ -30,6 +30,7 @@ s-garcon.ads
 s-garser.adb
 s-gatcop.ads
 s-gtplsp.ads
+s-garrem.adb
 split
 stamp-h
 test_startup
