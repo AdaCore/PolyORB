@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
 with System.Garlic.Protocols;
 with System.Garlic.Types;
 
@@ -128,16 +127,14 @@ private
 
    type Location_Type is access Location_Body;
 
-   procedure Location_Read_Attribute
-     (P : access Ada.Streams.Root_Stream_Type'Class;
-      L : out Location_Type);
+   function String_To_Location (S : String) return Location_Type
+     renames To_Location;
+   --  This function renames To_Location because pragma Stream_Convert does
+   --  not support overloaded functions.
 
-   procedure Location_Write_Attribute
-     (P : access Ada.Streams.Root_Stream_Type'Class;
-      L : in Location_Type);
-
-   for Location_Type'Read  use Location_Read_Attribute;
-   for Location_Type'Write use Location_Write_Attribute;
+   pragma Stream_Convert (Entity => Location_Type,
+                          Read   => String_To_Location,
+                          Write  => To_String);
 
    Null_Location : constant Location_Type := null;
 

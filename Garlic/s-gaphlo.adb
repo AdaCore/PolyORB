@@ -133,31 +133,6 @@ package body System.Garlic.Physical_Location is
       return L.Protocol;
    end Get_Protocol;
 
-   -----------------------------
-   -- Location_Read_Attribute --
-   -----------------------------
-
-   procedure Location_Read_Attribute
-     (P : access Ada.Streams.Root_Stream_Type'Class;
-      L : out Location_Type)
-   is
-      Text : constant String := String'Input (P);
-   begin
-      L := To_Location (Text);
-   end Location_Read_Attribute;
-
-   ------------------------------
-   -- Location_Write_Attribute --
-   ------------------------------
-
-   procedure Location_Write_Attribute
-     (P : access Ada.Streams.Root_Stream_Type'Class;
-      L : in Location_Type)
-   is
-   begin
-      String'Output (P, To_String (L));
-   end Location_Write_Attribute;
-
    ---------------------
    -- Lookup_Protocol --
    ---------------------
