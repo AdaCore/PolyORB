@@ -39,6 +39,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.References.URI is
 
@@ -57,12 +58,21 @@ package body PolyORB.References.URI is
       String_To_Profile_Body : String_To_Profile_Body_Type;
    end record;
 
-   package Profile_Record_Seq is
-      new PolyORB.Sequences.Unbounded (Profile_Record);
+   function "=" (A, B : Profile_Record) return Boolean;
 
-   use Profile_Record_Seq;
+   function "=" (A, B : Profile_Record) return Boolean is
+      use PolyORB.Types;
 
-   Callbacks : Profile_Record_Seq.Sequence;
+   begin
+      return A.Tag = B.Tag;
+   end "=";
+
+   package Profile_Record_List is
+      new PolyORB.Utils.Chained_Lists (Profile_Record, "=");
+
+   use Profile_Record_List;
+
+   Callbacks : Profile_Record_List.List;
 
    Null_String : constant Types.String
      := PolyORB.Types.To_PolyORB_String ("");
@@ -114,8 +124,10 @@ package body PolyORB.References.URI is
      return Types.String
    is
       use PolyORB.Types;
+      use Profile_Record_List;
 
-      T : Profile_Tag;
+      T    : Profile_Tag;
+      Iter : Iterator := First (Callbacks);
    begin
       pragma Assert (P /= null);
       pragma Debug (O ("Profile to string with tag:"
@@ -123,9 +135,9 @@ package body PolyORB.References.URI is
 
       T := Get_Profile_Tag (P.all);
 
-      for J in 1 .. Length (Callbacks) loop
+      while Iter /= Last (Callbacks) loop
          declare
-            Info : constant Profile_Record := Element_Of (Callbacks, J);
+            Info : constant Profile_Record := Value (Iter).all;
          begin
             if T = Info.Tag then
                declare
@@ -142,6 +154,8 @@ package body PolyORB.References.URI is
                end;
             end if;
          end;
+
+         Next (Iter);
       end loop;
 
       pragma Debug (O ("Profile not ok"));
@@ -157,25 +171,29 @@ package body PolyORB.References.URI is
      return Binding_Data.Profile_Access
    is
       use PolyORB.Types;
+      use Profile_Record_List;
 
+      Iter : Iterator := First (Callbacks);
    begin
       pragma Debug (O ("String_To_Profile: enter with "
                        & To_Standard_String (Str)));
 
-      for J in 1 .. Length (Callbacks) loop
+      while Iter /= Last (Callbacks) loop
          declare
-            Ident : Types.String
-              renames Element_Of (Callbacks, J).Proto_Ident;
+            Ident : Types.String renames Value (Iter).Proto_Ident;
          begin
             if Length (Str) > Length (Ident)
               and then To_String (Str) (1 .. Length (Ident)) = Ident then
                pragma Debug
                  (O ("Try to unmarshall profile with profile factory tag "
-                     & Profile_Tag'Image (Element_Of (Callbacks, J).Tag)));
-               return Element_Of (Callbacks, J).String_To_Profile_Body (Str);
+                     & Profile_Tag'Image (Value (Iter).Tag)));
+               return Value (Iter).String_To_Profile_Body (Str);
             end if;
          end;
+
+         Next (Iter);
       end loop;
+
       pragma Debug (O ("Profile not found for : "
                        & To_Standard_String (Str)));
       return null;
@@ -324,11 +342,15 @@ package body PolyORB.References.URI is
 
    procedure Initialize is
       use PolyORB.Types;
+      use Profile_Record_List;
+
+      Iter : Iterator := First (Callbacks);
    begin
-      for J in 1 .. Length (Callbacks) loop
+      while Iter /= Last (Callbacks) loop
          Register_String_To_Object
-           (PolyORB.Types.To_String (Element_Of (Callbacks, J).Proto_Ident),
+           (PolyORB.Types.To_String (Value (Iter).Proto_Ident),
             String_To_Object'Access);
+         Next (Iter);
       end loop;
    end Initialize;
 
@@ -339,8 +361,8 @@ begin
    Register_Module
      (Module_Info'
       (Name      => +"references.uri",
-       Conflicts => Empty,
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
        Depends   => +"binding_factories",
-       Provides  => Empty,
+       Provides  => PolyORB.Initialization.String_Lists.Empty,
        Init      => Initialize'Access));
 end PolyORB.References.URI;
