@@ -501,7 +501,6 @@ package body OmniObject is
    --          miscellaneous                    --
    -----------------------------------------------
 
-
    -- C_Get_Rope_And_Key
    ---------------------
    procedure C_Get_Rope_And_Key (Self : in Object'Class ;

@@ -46,6 +46,9 @@
 -----------------------------------------------------------------------
 
 with Ada.Exceptions ;
+with Ada.Unchecked_Conversion ;
+with Interfaces.C ;
+with System ;
 
 with Corba, Corba.Object, Corba.Exceptions ;
 with Giop ;
@@ -54,6 +57,7 @@ with Giop_C ;
 with Netbufferedstream ;
 with Omniproxycalldesc ;
 with Omniobject ; use type Omniobject.Object_Ptr ;
+with Sys_Dep ;
 
 
 package body omniProxyCallWrapper is
@@ -66,9 +70,6 @@ package body omniProxyCallWrapper is
    --
    -- Does not take into account :
    --   - omniORB's tracelevel
-   --
-   -- Remember to implement the exception handlers
-   -- and the infinite loop
    --
    ----------------
    procedure Invoke (Obj : in Corba.Object.Ref'Class ;
@@ -253,7 +254,7 @@ package body omniProxyCallWrapper is
                if Is_Fwd then
                   Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
                end if ;
-               if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+               if Omni_Call_Transient_Exception_Handler
                  (OmniObj_Ptr.all,Retries,Member.Minor, Member.Completed) then
                   declare
                     Member2 : Corba.Transient_Members := (Member.Minor,
@@ -264,7 +265,7 @@ package body omniProxyCallWrapper is
                   end ;
                end if ;
             else
-               if Corba.Exceptions.Omni_Comm_Failure_Exception_Handler
+               if Omni_Comm_Failure_Exception_Handler
                  (OmniObj_Ptr.all,Retries,Member.Minor,Member.Completed) then
                   Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
                                                Member) ;
@@ -276,7 +277,7 @@ package body omniProxyCallWrapper is
          declare
             Member : Corba.Transient_Members ;
          begin
-            if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+            if Omni_Call_Transient_Exception_Handler
               (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                Corba.Raise_Corba_Exception (Corba.Transient'Identity,
                                             Member) ;
@@ -291,7 +292,7 @@ package body omniProxyCallWrapper is
                -- if Is_Fwd = True, we have to reset the rope and the key
                -- of the object according to IOP profile.
                Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
-               if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+               if Omni_Call_Transient_Exception_Handler
                  (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                   declare
                      Member2 : Corba.Transient_Members := (Member.Minor,
@@ -302,7 +303,7 @@ package body omniProxyCallWrapper is
                   end ;
                end if ;
             else
-               if Corba.Exceptions.Omni_System_Exception_Handler
+               if Omni_System_Exception_Handler
                  (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                   Corba.Raise_Corba_Exception (Corba.Object_Not_Exist'Identity,
                                                Member) ;
@@ -336,7 +337,7 @@ package body omniProxyCallWrapper is
          declare
             Member : Corba.Inv_Objref_Members ;
          begin
-            if Corba.Exceptions.Omni_System_Exception_Handler
+            if Omni_System_Exception_Handler
               (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
                                             Member) ;
@@ -443,7 +444,7 @@ package body omniProxyCallWrapper is
                if Is_Fwd then
                   Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
                end if ;
-               if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+               if Omni_Call_Transient_Exception_Handler
                  (OmniObj_Ptr.all,Retries,Member.Minor, Member.Completed) then
                   declare
                     Member2 : Corba.Transient_Members := (Member.Minor,
@@ -454,7 +455,7 @@ package body omniProxyCallWrapper is
                   end ;
                end if ;
             else
-               if Corba.Exceptions.Omni_Comm_Failure_Exception_Handler
+               if Omni_Comm_Failure_Exception_Handler
                  (OmniObj_Ptr.all,Retries,Member.Minor,Member.Completed) then
                   Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
                                                Member) ;
@@ -466,7 +467,7 @@ package body omniProxyCallWrapper is
          declare
             Member : Corba.Transient_Members ;
          begin
-            if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+            if Omni_Call_Transient_Exception_Handler
               (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                Corba.Raise_Corba_Exception (Corba.Transient'Identity,
                                             Member) ;
@@ -500,7 +501,7 @@ package body omniProxyCallWrapper is
          declare
             Member : Corba.Inv_Objref_Members ;
          begin
-            if Corba.Exceptions.Omni_System_Exception_Handler
+            if Omni_System_Exception_Handler
               (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
                                             Member) ;
@@ -514,6 +515,43 @@ package body omniProxyCallWrapper is
    -------------------------------------------------
    --              exception handling             --
    -------------------------------------------------
+
+
+   -- Completion_Status_To_C_Int
+   -----------------------------
+   function Completion_Status_To_C_Int (Status : in Corba.Completion_Status)
+                                        return Interfaces.C.Int is
+   begin
+      case Status is
+         when Corba.Completed_Yes =>
+            return Interfaces.C.Int (0) ;
+         when Corba.Completed_No =>
+            return Interfaces.C.Int (1) ;
+         when Corba.Completed_Maybe =>
+            return Interfaces.C.Int (2) ;
+      end case ;
+   end;
+
+
+   -- C_Int_To_Completion_Status
+   -----------------------------
+   function C_Int_To_Completion_Status (N : in Interfaces.C.Int)
+                                        return Corba.Completion_Status is
+   begin
+      case N is
+         when 1 =>
+            return Corba.Completed_Yes ;
+         when 2 =>
+            return Corba.Completed_No ;
+         when 3 =>
+            return Corba.Completed_Maybe ;
+         when others =>
+            Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
+                                            "Expected Completion_Status in C_Int_To_Completion_Status" & Corba.CRLF &
+                                            "Int out of range" & Corba.CRLF &
+                                            "(see corba_exceptions.adb L210)");
+      end case ;
+   end ;
 
 
    -- Ada_To_C_Unsigned_Long

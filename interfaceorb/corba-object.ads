@@ -154,6 +154,9 @@ package Corba.Object is
    -- function Get_OmniObject_Ptr (Self : in Ref) return Omniobject.Object_Ptr ;
    -- return the underlying omniobject
 
+   function Get_Omniobject_Ptr(Self : in Ref'Class)
+                               return Omniobject.Object_Ptr ;
+   -- returns the underlying Omniobject.Object
 
    -----------------------------------------------
    --             object <-> IOR                --

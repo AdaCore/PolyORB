@@ -179,47 +179,6 @@ package body Corba.Exceptions is
    end ;
 
 
-   -- Completion_Status_To_C_Int
-   -----------------------------
-   function Completion_Status_To_C_Int (Status : in Corba.Completion_Status)
-                                        return Interfaces.C.Int is
-   begin
-      case Status is
-         when Corba.Completed_Yes =>
-            return Interfaces.C.Int (0) ;
-         when Corba.Completed_No =>
-            return Interfaces.C.Int (1) ;
-         when Corba.Completed_Maybe =>
-            return Interfaces.C.Int (2) ;
-      end case ;
-   end;
-
-
-   -- C_Int_To_Completion_Status
-   -----------------------------
-   function C_Int_To_Completion_Status (N : in Interfaces.C.Int)
-                                        return Corba.Completion_Status is
-   begin
-      case N is
-         when 1 =>
-            return Corba.Completed_Yes ;
-         when 2 =>
-            return Corba.Completed_No ;
-         when 3 =>
-            return Corba.Completed_Maybe ;
-         when others =>
-            Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
-                                            "Expected Completion_Status in C_Int_To_Completion_Status" & Corba.CRLF &
-                                            "Int out of range" & Corba.CRLF &
-                                            "(see corba_exceptions.adb L210)");
-      end case ;
-   end ;
-
 
 
 end Corba.Exceptions ;
-
-
-
-
-

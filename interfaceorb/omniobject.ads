@@ -302,11 +302,25 @@ package OmniObject is
    --          miscellaneous                    --
    -----------------------------------------------
 
+   procedure Assert_Object_Existent(Self : in Object'Class) ;
+   pragma Import (CPP, Assert_Object_Existent, "assertObjectExistent__14Ada_OmniObject") ;
+   -- checks that this object really exists
+
    procedure Get_Rope_And_Key (Self : in Object'Class ;
                                L : out Omniropeandkey.Object ;
                                Success : out Boolean ) ;
    -- returns the rope and key for this omniobject
    -- if it is a proxy object
+
+
+   procedure Set_Rope_And_Key(Self : in out Object'Class ;
+                              L : in Omniropeandkey.Object ;
+                              KeepIOP : in Boolean := True) ;
+   -- sets the rope and key for this object
+
+   procedure Reset_Rope_And_Key(Self : in Object'Class) ;
+   pragma Import(CPP, Reset_Rope_And_Key, "resetRopeAndKey__14Ada_OmniObject") ;
+   -- re-sets the rope and key for this object
 
 
    function Get_Repository_Id(Self : in Object'class)

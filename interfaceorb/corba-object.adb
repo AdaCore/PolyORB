@@ -164,7 +164,8 @@ package body Corba.Object is
 
    -- Get_OmniObject_Ptr
    ---------------------
-   function Get_OmniObject_Ptr (Self : in Ref) return Omniobject.Object_Ptr is
+   function Get_OmniObject_Ptr (Self : in Ref'Class)
+                                return Omniobject.Object_Ptr is
    begin
       return Self.Omniobj ;
    end ;
@@ -501,6 +502,7 @@ package body Corba.Object is
       if not Is_Nil(Self) then
          Omniobject.Omniobject_Destructor(Self.Omniobj) ;
          Self.Omniobj := null ;
+         Self.Dynamic_Type := null ;
       end if ;
    end ;
 

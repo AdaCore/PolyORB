@@ -124,7 +124,7 @@ corba-command_line.ali : corba-command_line.ads corba-command_line.adb \
 corba.ali
 
 corba-exceptions.ali : corba-exceptions.ads corba-exceptions.adb \
-corba.ali Ada_Corba_Exceptions.o omniobject.ali sys_dep.ali
+ Ada_Corba_Exceptions.o sys_dep.ali corba.ads
 
 corba-forward.ali: corba-forward.ads corba-forward.adb corba.ali
 
