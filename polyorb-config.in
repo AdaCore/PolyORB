@@ -63,6 +63,8 @@ Options:
             Output the linker flags to use for PolyORB.
         [--cflags]
             Output the compiler flags to use for PolyORB.
+        [--help]
+            Output this message
 EOF
 }
 
