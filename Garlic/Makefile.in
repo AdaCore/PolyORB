@@ -96,10 +96,10 @@ RSH_CMD = @RSH_CMD@
 RSH_OPT = @RSH_OPT@
 SED = @SED@
 SUPPORTS_LOCAL_LAUNCH = @SUPPORTS_LOCAL_LAUNCH@
-S_GTPLSP_ADB = @S_GTPLSP_ADB@
-S_GTPLSP_ADS = @S_GTPLSP_ADS@
 S_GARTHI_ADB = @S_GARTHI_ADB@
 S_GARTHI_ADS = @S_GARTHI_ADS@
+S_GTPLSP_ADB = @S_GTPLSP_ADB@
+S_GTPLSP_ADS = @S_GTPLSP_ADS@
 TAR = @TAR@
 TCP_INCLUDED = @TCP_INCLUDED@
 TCP_PLATFORM_SOURCES = @TCP_PLATFORM_SOURCES@
@@ -228,7 +228,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -401,16 +401,6 @@ $(TCP_PLATFORM_SOURCES): $(S_GTPLSP_ADS) $(S_GTPLSP_ADB)
 	cp $(srcdir)/$(S_GTPLSP_ADS) s-gtplsp.ads
 	@if test -n "$(S_GTPLSP_ADB)"; then \
 	  cp $(srcdir)/$(S_GTPLSP_ADB) s-gtplsp.adb; \
-	fi
-
-force:
-
-s-garthi.ads s-garthi.adb: $(S_GARTHI_ADS) $(S_GARTHI_ADB) force
-	@if test -n "$(S_GARTHI_ADB)"; then \
-	  cp $(srcdir)/$(S_GARTHI_ADB) s-garthi.adb; \
-	fi
-	@if test -n "$(S_GARTHI_ADS)"; then \
-	  cp $(srcdir)/$(S_GARTHI_ADS) s-garthi.ads; \
 	fi
 
 split: $(srcdir)/split.adb

@@ -1,3 +1,8 @@
+2000-12-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in: Remove useless -Wall compilation for gnat. Update
+	makefiles.
+
 2000-11-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* MANIFEST: Add prj hierarchy needed to build gnatdist.
