@@ -1,3 +1,8 @@
+2000-09-06  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_check.adb: Use immediate fix to solve problem of incorrect
+	use of Get_File_Name.
+
 2000-07-03  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* xe_defs.ads, Makefile.am, Makefile.in: Create two functions to
