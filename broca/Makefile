@@ -1,4 +1,4 @@
-all:: config-stamp
+all:: config-stamp idlac/configure
 	cd idlac && $(MAKE) all
 	cd adasockets && $(MAKE) all
 	cd src && $(MAKE) all
@@ -7,6 +7,9 @@ autoconf::
 	cd idlac && (aclocal -I ../support && autoconf && automake)
 	cd adasockets && (aclocal -I ../support && autoconf && automake)
 	cd src && (aclocal -I ../support && autoconf && automake)
+
+idlac/configure:
+	$(MAKE) autoconf
 
 config-stamp:
 	cd idlac && ./configure --cache-file=../config.cache
