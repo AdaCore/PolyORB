@@ -9,7 +9,7 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = core
+SUBDIRS = utils core
 
 CLEANFILES = config-stamp
 

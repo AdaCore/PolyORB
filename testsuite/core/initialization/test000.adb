@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . T E S T . C O N F I G U R A T O R             --
+--                              T E S T 0 0 0                               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -95,6 +95,6 @@ begin
 
    Initialize_World;
 
-   Report.Output ("Test initialization #1", True);
+   Report.Output ("Test initialization #0", True);
    Report.End_Report;
 end Test000;

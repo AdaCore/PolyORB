@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . T A S K I N G . T E S T                  --
+--                       T E S T 0 0 0 _ C O M M O N                        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -29,6 +29,7 @@
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 --  Implementations of the test procedures.
 
 --  $Id$

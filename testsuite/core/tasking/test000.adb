@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . F U L L _ T A S K I N G . T E S T             --
+--                              T E S T 0 0 0                               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -42,8 +42,7 @@ pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
 
 with Test000_Common;
 
-procedure Test000
-is
+procedure Test000 is
    use Test000_Common;
 
 begin
