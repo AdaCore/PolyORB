@@ -747,7 +747,7 @@ package body XE_Stubs is
                   Add_Str_To_Name_Buffer (""",");
                   Dwrite_Line (FD, 2, Name_Buffer (1 .. Name_Len));
                   Dwrite_Line (FD, 2, """", Get_Absolute_Exec (Partition),
-                               " ", Get_Command_Line  (Partition), """);");
+                               "", Get_Command_Line  (Partition), """);");
                end if;
             end loop;
          end if;
