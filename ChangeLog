@@ -1,3 +1,7 @@
+	  xe-gcc*.
+
+Wed Apr  2 18:47:27 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
 	* README: Move a paragraph (concerning T.Wolf) from user_guide.txt
  	to README.
 

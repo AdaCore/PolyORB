@@ -18,9 +18,9 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-platform=letter  Select another platform's specific files (debug)"
 ac_help="$ac_help
-  --with-remsh=command   Select a remote shell command"
+  --with-remsh=command    Select a remote shell command"
 ac_help="$ac_help
-  --with-filters=list     Enumerate filter list"
+  --with-filters=list     Enumerate filter list (default=zip)"
 ac_help="$ac_help
   --with-protocols=list   Enumerate protocol list"
 ac_help="$ac_help
@@ -1454,7 +1454,7 @@ else
   
 echo $ac_n "checking default filters""... $ac_c" 1>&6
 echo "configure:1457: checking default filters" >&5
-FILTERFILE="";
+FILTERFILE="zip";
 echo "$ac_t""none" 1>&6
 
 fi

@@ -115,7 +115,7 @@ AC_MSG_RESULT($PSNAME)
 #
 AC_MSG_CHECKING(which remote shell to use)
 AC_ARG_WITH(remsh,
- [  --with-remsh=command   Select a remote shell command],
+ [  --with-remsh=command    Select a remote shell command],
  [RSH="${withval}"],
  [case "${target}" in
    hppa*-hp-hpux*)      RSH=remsh;;
@@ -127,7 +127,7 @@ AC_MSG_RESULT($RSH)
 # Filter list
 #
 AC_ARG_WITH(filters,
-[  --with-filters=list     Enumerate filter list],
+[  --with-filters=list     Enumerate filter list (default=zip)],
 [
   AC_MSG_CHECKING([default filters])
   FILTERLIST="";
@@ -144,7 +144,7 @@ AC_ARG_WITH(filters,
 ],
 [
 AC_MSG_CHECKING([default filters])
-FILTERFILE="";
+FILTERFILE="zip";
 AC_MSG_RESULT([none])
 ])
 AC_SUBST_FILE(FILTERFILE)
