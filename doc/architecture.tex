@@ -765,59 +765,78 @@ services sont~:
 
 \subsection{Exemple}
 
-Let us suppose that we have a very simple object with a single method \emph{echo}
-taking a string argument, and sending that string back to the caller.
-Invoking this method involves the following steps:
+Considérons un objet très simple, ayant une unique méthode \emph{echo}
+prenant un argument chaîne de caractère, et renvoyant cette chaîne
+au client. Le déroulement d'un appel sur cette méthode se déroulerait
+alors ainsi~:
 \begin{description}
-\item[Adressage] The caller determines a reference to the object.
+\item[Adressage] L'appelant détermine une référence sur de l'objet.
 
-\item[Transport] The caller-side ORB extracts a network address from
-  the reference and creates a connection to the object's ORB.
+\item[Transport] À partir de l'adresse réseau contenue dans
+  la référence, le service de transport de l'intergiciel client
+  crée une connection vers l'intergiciel serveur.
 
-\item[Liaisons] The object reference and transport connection
-  is implicitly associated with a client-side \emph{bound surrogate}
-  (i.e. a surrogate which is part of a \emph{binding object})
-  that will process requests by forwarding them to the actual
-  remote object.
+\item[Liaisons] La référence est associée à la connection de transport,
+  et à une session de protocole, pour former côté client un
+  \emph{subrogé lié} de l'objet initial, c'est-à-dire un subrogé
+  faisant partie d'un objet de liaison (\emph{binding object}).
+  Ce subrogé acceptera les requêtes côté client, et les transmettra
+  à l'objet réel.
 
-\item[Représentation] It converts the string passed
-  to the method into a representation suitable for network transport,
-  for example a four-byte, little-endian integer containing the length
-  of the string, followed by the string itself.
+\item[Représentation]
+  L'intergiciel client convertit la chaîne passée en paramètre de
+  l'appel vers une représentation transmissible sur le réseau,
+  par exemple un entier sur quatre octets codant sa longueur,
+  suivi des caractères eux-mêmes.
 
-\item[Protocole] It creates a \emph{Request} message containing the name
-  of the method, the object reference, and the marshalled argument, along
-  with a unique request ID.
-  It sends the message across the transport link to the callee ORB.
+\item[Protocole]
+  Il crée un message \emph{Request} contenant le nom de la méthode,
+  la référence de l'objet, et la représentation de l'argument, ainsi
+  qu'un identificateur unique de la requête.
 
-  The callee ORB receives the message.
-\item[Activation] The callee ORB looks up the object reference in its
-  internal tables, and associates it with an implementation object.
+\item[Transport]
+  Le message est acheminé de l'intergiciel client vers l'intergiciel
+  appelé. Celui-ci reçoit le message.
 
-\item[Aiguillage] The callee ORB finds an idle thread within its available
-  thread pool, and assigns the execution of the request onto that thread.
+\item[Activation]
+  L'intergiciel appelé recherche l'objet à partir de la référence
+  contenue dans le message, et détermine la structure concrète
+  qui représente cet objet (ou la crée au vol).
 
-\item[Représentation] The callee ORB marshalls the echoed string as above.
+\item[Aiguillage]
+  L'intergiciel appelé choisit un fil d'exécution disponible pour
+  traiter la requête, et lui attribue cette requête.
 
-\item[Protocole] It creates a \emph{Reply} message containing the request
-  ID and the marshalled result string. The reply is sent back to the caller.
+\item[Représentation] L'intergiciel appelé remet la chaîne retournée
+  par l'objet sous forme transmissible.
 
-  The caller ORB unmasrshalls the result and returns it to the calling
-  routine.
+\item[Protocole]
+  Il crée un message \emph{Reply} contenant l'identificateur unique de
+  la requête, et la représentation du résultat. Cette réponse est
+  renvoyée à l'intergiciel client.
+
+  Celui-ci convertit la représentation du résultat vers la forme
+  native, et rend le contrôle à l'appelant.
 \end{description}
 
-The association of a server object with a transport service access
-point that can receive data from clients is not discussed here.
-Like the binding operation on the client side (described above),
-this binding operation on the server side can be either implicit
-or explicit. In the implicit case, an object is bound by the
-mere fact of its creation and registration with an object adapter
-(this is the case of usual CORBA servers). An explicit binding
-mechanism can be necessary for objects that require specific
-set-up in the transport layer. An example of a situation where
-explicit binding is used can be found in~\cite{dumant98:jonathan},
-where a multimedia stream consumer object is explicitly bound to
-receive method invocation requests from a multicast stream.
+L'association d'un objet serveur avec un point d'accès du service
+de transport n'est pas discutée ici.
+
+De même que l'opération de liaison côté client décrite ci-dessus,
+cette association peut être implicite ou explicite. Dans
+le cas implicite, un objet est associé à un point d'accès par le
+simple fait d'être créé et enregistré auprès de l'intergiciel
+qui a ouvert ce point d'accès. Il s'agit là du cas ordinaire
+de CORBA et de la plupart des plates-formes de répartition
+existantes.
+
+Un mécanisme d'association explicite peut être nécessaire pour
+des objets justiciables d'une configuration spécifique de
+la couche de transport. Un exemple d'une telle situation
+est donné dans~\cite{dumant98:jonathan}, où un objet
+consommateur de flux multimedia est explicitement associé
+à un point d'accès lui permettant de recevoir des requêtes
+d'un flux de diffusion multicast.
 
 \subsection{Services internes}
 
