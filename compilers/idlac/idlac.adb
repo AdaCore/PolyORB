@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -42,7 +42,6 @@ with Idlac_Flags;       use Idlac_Flags;
 with Idl_Fe.Files;
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
-with Idl_Fe.Lexer;
 with Errors;
 
 with Ada_Be.Expansion;
@@ -232,11 +231,8 @@ begin
             Implement   => Generate_Impl_Template,
             Intf_Repo   => Generate_IR,
             To_Stdout   => To_Stdout);
+
+         Idl_Fe.Parser.Finalize;
       end if;
    end if;
-
-   if not Keep_Temporary_Files then
-      Idl_Fe.Lexer.Remove_Temporary_Files;
-   end if;
-
 end Idlac;

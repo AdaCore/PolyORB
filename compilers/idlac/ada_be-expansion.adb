@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -502,6 +502,13 @@ package body Ada_Be.Expansion is
                   Has_Named_Subnodes := True;
                   Init (Named_Subnodes, Enumerators (Current));
                   --  Reparent all enumerators of current node.
+               end if;
+
+               --  Enable code generation for Idl_File only if its
+               --  content is not imported to another file
+
+               if Imported (Current) then
+                  Set_Generate_Code (Idl_File_Node, False);
                end if;
 
             elsif Is_Type_Declarator (Current) then

@@ -13,7 +13,7 @@
 --
 --    Accessors will have the name Field and Set_Field.
 --
---  $Id: //droopi/main/compilers/idlac/nodes.txt#10 $
+--  $Id: //droopi/main/compilers/idlac/nodes.txt#11 $
 --
 
 START
@@ -60,6 +60,7 @@ Repository <-- Forward
 
 Module <-- Forward
   Contents : Node_List
+  Imported : Boolean
 
 Interface <-- Imports
   Parents : Node_List
@@ -68,6 +69,7 @@ Interface <-- Imports
   Forward : Node_Id
   Abst : Boolean
   Local : Boolean
+  Imported : Boolean
 
 Forward_Interface <-- Named
   Forward : Node_Id
@@ -316,6 +318,11 @@ Ben_Idl_File <-- Scope
   --  Expansion attribute: set to True if this node does
   --  not actually correspond to a real file (in which case
   --  it is expected that it only contains other scopes).
+  Generate_Code : Boolean := True
+  --  Expansion attribute: set to True if for this node
+  --  code should be generated. By default code generation
+  --  is always enabled, but for CORBA 3 style "imported"
+  --  file we disable code generation.
 
 Sequence_Instance <-- Named
   Sequence : Node_Id

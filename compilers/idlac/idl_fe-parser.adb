@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,8 +36,10 @@ with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 
 with GNAT.Case_Util;
+with GNAT.Table;
 
 with Utils; use Utils;
+with Idl_Fe.Files;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
@@ -65,15 +67,6 @@ package body Idl_Fe.Parser is
      := Idl_Fe.Debug.Is_Active ("idl_fe.parser_method_trace");
    procedure O2 is new Idl_Fe.Debug.Output (Flag2);
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize (Filename : String) is
-   begin
-      Idl_Fe.Lexer.Initialize (Filename);
-   end Initialize;
-
    ------------------------------------
    -- Management of the token stream --
    ------------------------------------
@@ -97,13 +90,16 @@ package body Idl_Fe.Parser is
      (Object => String,
       Name => String_Ptr);
 
+   --  types for buffers
+   type Token_Buffer_Type is array (Buffer_Index) of Idl_Token;
+   type Location_Buffer_Type is array (Buffer_Index) of Errors.Location;
+   type String_Buffer_Type is array (Buffer_Index) of String_Ptr;
+
    --  the buffers themself
-   Token_Buffer : array (Buffer_Index) of Idl_Token
-     := (others => T_Error);
-   Location_Buffer : array (Buffer_Index) of Errors.Location
+   Token_Buffer : Token_Buffer_Type   := (others => T_Error);
+   Location_Buffer : Location_Buffer_Type
      := (others => (Dirname => null, Filename => null, Line => 0, Col => 0));
-   String_Buffer : array (Buffer_Index) of String_Ptr
-     := (others => null);
+   String_Buffer : String_Buffer_Type := (others => null);
 
    --  index of the current token in the buffer
    Current_Index : Buffer_Index := 0;
@@ -111,6 +107,93 @@ package body Idl_Fe.Parser is
    --  index of the newest token in the buffer (could be different
    --  from the current token if we looked a bit further in the past)
    Newest_Index : Buffer_Index := 0;
+
+   Initialized : Boolean := False;
+   --  Flag for detecting parser reinitialization and store current parser
+   --  state if it already initialized
+
+   ------------------------
+   -- Parser State Stack --
+   ------------------------
+
+   type State_Item is record
+      Token_Buffer    : Token_Buffer_Type;
+      Location_Buffer : Location_Buffer_Type;
+      String_Buffer   : String_Buffer_Type;
+      Current_Index   : Buffer_Index;
+      Newest_Index    : Buffer_Index;
+   end record;
+
+   package State_Stack is
+     new GNAT.Table
+     (Table_Component_Type => State_Item,
+      Table_Index_Type     => Natural,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 10,
+      Table_Increment      => 100);
+
+   procedure Store_State;
+
+   procedure Restore_State;
+
+   ---------------------------
+   -- Processed files table --
+   ---------------------------
+
+   package Processed_File is
+     new GNAT.Table
+     (Table_Component_Type => String_Ptr,
+      Table_Index_Type     => Natural,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 10,
+      Table_Increment      => 100);
+
+   function Is_Processed (File_Name : in String) return Boolean;
+
+   ------------------
+   -- Is_Processed --
+   ------------------
+
+   function Is_Processed (File_Name : in String) return Boolean is
+   begin
+      for J in Processed_File.First .. Processed_File.Last loop
+         if Processed_File.Table (J).all = File_Name then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+   end Is_Processed;
+
+   -----------------
+   -- Store_State --
+   -----------------
+
+   procedure Store_State is
+   begin
+      State_Stack.Append
+        ((Token_Buffer,
+          Location_Buffer,
+          String_Buffer,
+          Current_Index,
+          Newest_Index));
+   end Store_State;
+
+   -------------------
+   -- Restore_State --
+   -------------------
+
+   procedure Restore_State is
+      S : constant State_Item := State_Stack.Table (State_Stack.Last);
+   begin
+      State_Stack.Set_Last (State_Stack.Last - 1);
+
+      Token_Buffer    := S.Token_Buffer;
+      Location_Buffer := S.Location_Buffer;
+      String_Buffer   := S.String_Buffer;
+      Current_Index   := S.Current_Index;
+      Newest_Index    := S.Newest_Index;
+   end Restore_State;
 
    -----------------
    --  Get_Token  --
@@ -333,6 +416,46 @@ package body Idl_Fe.Parser is
       String_Buffer (Current_Index + 1) := null;
    end Divide_T_Greater_Greater;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (Filename : String) is
+   begin
+      Idl_Fe.Lexer.Initialize (Filename);
+
+      if not Initialized then
+         Initialized := True;
+      else
+         Store_State;
+      end if;
+
+      Token_Buffer := (others => T_Error);
+      Location_Buffer :=
+       (others => (Dirname => null, Filename => null, Line => 0, Col => 0));
+      String_Buffer := (others => null);
+      Current_Index := 0;
+      Newest_Index := 0;
+
+      Next_Token;
+
+      Processed_File.Append (new String'(Filename));
+   end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize is
+   begin
+      if State_Stack.Last /= 0 then
+         Restore_State;
+      else
+         Initialized := False;
+      end if;
+
+      Idl_Fe.Lexer.Finalize;
+   end Finalize;
 
    ---------------------------------
    --  Management of expressions  --
@@ -429,53 +552,63 @@ package body Idl_Fe.Parser is
    --  Parse_Specification  --
    ---------------------------
 
+   procedure Parse_Specification
+     (Repository         : in Node_Id;
+      Called_From_Import : in Boolean)
+   is
+      Definition : Node_Id;
+      Definition_Result : Boolean;
+      Def_Nb : Natural := 0;
+   begin
+      loop
+         exit when Get_Token /= T_Import;
+         Parse_Import (Repository, Definition_Result);
+      end loop;
+
+      while Get_Token /= T_Eof loop
+         if Get_Token = T_Right_Cbracket then
+            Errors.Error
+              ("Invalid '}', nothing to be closed.",
+               Errors.Error,
+               Get_Token_Location);
+            Next_Token;
+            if Get_Token = T_Semi_Colon then
+               Next_Token;
+            end if;
+         end if;
+         Parse_Definition (Definition, Definition_Result);
+         if not Definition_Result then
+            --  we can be here for two reasons :
+            --    either the definition parsing crashed and we'd like to go
+            --  to the next one
+            --    either the definition was right but it was an already
+            --  existing module that was reopened. In this case,
+            --  go_to_next_definition won't have any effect since we are
+            --  on a definition
+            Go_To_Next_Definition;
+         elsif Definition /= No_Node then
+            Def_Nb := Def_Nb + 1;
+            Set_Imported (Definition, Called_From_Import);
+            Append_Node_To_Contents (Repository, Definition);
+         end if;
+      end loop;
+      if Def_Nb = 0 then
+         Errors.Error
+           ("Definition expected : a specification may not be empty.",
+            Errors.Error,
+            Get_Token_Location);
+      end if;
+   end Parse_Specification;
+
    function Parse_Specification return Node_Id is
       Result : Node_Id;
    begin
       pragma Debug (O2 ("Parse_Specification: enter"));
       --  first call next_token in order to initialize the location
-      Next_Token;
       Result := Make_Repository (Get_Token_Location);
       --  The repository is the root scope.
       Push_Scope (Result);
-      declare
-         Definition : Node_Id;
-         Definition_Result : Boolean;
-         Def_Nb : Natural := 0;
-      begin
-         while Get_Token /= T_Eof loop
-            if Get_Token = T_Right_Cbracket then
-               Errors.Error
-                 ("Invalid '}', nothing to be closed.",
-                  Errors.Error,
-                  Get_Token_Location);
-               Next_Token;
-               if Get_Token = T_Semi_Colon then
-                  Next_Token;
-               end if;
-            end if;
-            Parse_Definition (Definition, Definition_Result);
-            if not Definition_Result then
-               --  we can be here for two reasons :
-               --    either the definition parsing crashed and we'd like to go
-               --  to the next one
-               --    either the definition was right but it was an already
-               --  existing module that was reopened. In this case,
-               --  go_to_next_definition won't have any effect since we are
-               --  on a definition
-               Go_To_Next_Definition;
-            elsif Definition /= No_Node then
-               Def_Nb := Def_Nb + 1;
-               Append_Node_To_Contents (Result, Definition);
-            end if;
-         end loop;
-         if Def_Nb = 0 then
-            Errors.Error
-              ("Definition expected : a specification may not be empty.",
-               Errors.Error,
-               Get_Token_Location);
-         end if;
-      end;
+      Parse_Specification (Result, False);
       Pop_Scope;
       pragma Debug (O2 ("Parse_Specification: end"));
       return Result;
@@ -890,6 +1023,8 @@ package body Idl_Fe.Parser is
                            Get_Previous_Token_Location);
                   end;
                end if;
+
+               --  XXX Does we also check consistency of 'local' property?
 
                Prev_Decl := Get_Node (Definition);
                if View_Next_Token /= T_Semi_Colon then
@@ -7050,6 +7185,73 @@ package body Idl_Fe.Parser is
       Result := No_Node;
       Success := False;
    end Parse_Value_Base_Type;
+
+   ------------------
+   -- Parse_Import --
+   ------------------
+
+   procedure Parse_Import
+     (Repository : in     Node_Id;
+      Success    :    out Boolean)
+   is
+   begin
+      --  Skip 'import' keyword
+      Next_Token;
+
+      if Get_Token /= T_Colon_Colon then
+         Errors.Error
+           ("Only identifier relative global scope now allowed "
+             & "(IDLAC limitation)",
+            Errors.Error,
+            Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+
+      Next_Token;
+      if Get_Token /= T_Identifier then
+         Errors.Error
+           ("Identifier required in <scoped_name>",
+            Errors.Error,
+            Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+
+      declare
+         File_Name : constant String
+           := Files.Locate_IDL_Specification (Get_Token_String);
+
+      begin
+         if File_Name'Length = 0 then
+            Errors.Error
+              ("Can't find '" & File_Name & "' file",
+               Errors.Error,
+               Get_Token_Location);
+            Success := False;
+            return;
+         end if;
+
+         --  Process file if it not present in list of processed files.
+
+         if not Is_Processed (File_Name) then
+            Idl_Fe.Parser.Initialize (File_Name);
+            Parse_Specification (Repository, True);
+            Idl_Fe.Parser.Finalize;
+         end if;
+      end;
+
+      Next_Token;
+
+      if Get_Token /= T_Semi_Colon then
+         Errors.Error
+           ("Import statement must end with semicolon",
+            Errors.Error,
+            Get_Token_Location);
+         Success := False;
+      end if;
+      Next_Token;
+   end Parse_Import;
 
    --------------------------
    -- Parse_Exception_List --

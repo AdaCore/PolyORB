@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -161,19 +161,18 @@ package Idl_Fe.Lexer is
    ------------------------------------------------------------
 
    procedure Initialize (Filename : String);
-   --  Initialize the lexer by opening the file to process
-   --  and by preprocessing it if necessary
+   --  Initialize the lexer by opening the file to process and by
+   --  preprocessing it if necessary. If the lexer is already
+   --  initialized then save it state and reinitialize for processing
+   --  of new file.
+
+   procedure Finalize;
+   --  Finalize the lexer, close currently opened file, and restore
+   --  previous state (return to processing previous file).
 
    function Get_Next_Token return Idl_Token;
    --  Analyse forward and return the next token.
    --  Returns T_Error if the entry is invalid.
-
-   ---------------------------------------
-   -- Entry points for the idlac driver --
-   ---------------------------------------
-
-   procedure Remove_Temporary_Files;
-   --  Remove temporary files created by the preprocessor
 
    ------------------------------------------
    -- Current state of the lexer.          --

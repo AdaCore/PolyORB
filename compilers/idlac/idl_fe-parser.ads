@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -44,17 +44,15 @@ package Idl_Fe.Parser is
 
    procedure Initialize (Filename : String);
 
+   procedure Finalize;
+
    ---------------------------------------------------------------------------
    -- Parsing of an IDL specification (root nonterminal of the IDL grammar) --
    ---------------------------------------------------------------------------
 
    function Parse_Specification return Node_Id;
-   --  CORBA V3.0, 3.4
-   --
-   --  Rule 1 :
-   --  <specification> ::= <import>* <definition>+
-   --
-   --  <import>* not implemented
+   --  Parse IDL specification according to CORBA V3.0, 3.4
+
 private
 
    --------------------------------------
@@ -162,6 +160,13 @@ private
    --
    --  CORBA V3.0, 3.4
    --
+
+   --  Rule 1 :
+   --  <specification> ::= <import>* <definition>+
+
+   procedure Parse_Specification
+     (Repository         : in Node_Id;
+      Called_From_Import : in Boolean);
 
    --  Rule 2
    --  <definition> ::= <type_dcl> ";"
@@ -894,7 +899,8 @@ private
 
    --  Rule 100
    --  <import> ::= "import" <imported_scope> ";"
-   --  Not implemented
+   procedure Parse_Import (Repository : in     Node_Id;
+                           Success    :    out Boolean);
 
    --  Rule 101
    --  <imported_scope> ::= <scoped_name> | <string_literal>

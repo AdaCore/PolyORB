@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,9 +39,11 @@ with Ada.Strings;
 with Ada.Strings.Maps;
 
 with GNAT.Case_Util;
-with GNAT.OS_Lib;
 with GNAT.Directory_Operations;
+with GNAT.OS_Lib;
+with GNAT.Table;
 
+with Idlac_Flags;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
@@ -56,6 +58,10 @@ package body Idl_Fe.Lexer is
 
    Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.lexer");
    procedure O is new Idl_Fe.Debug.Output (Flag);
+
+   subtype Line_Type is String (1 .. 2047);
+   --  Used for define identical line buffers in global variable and
+   --  state table.
 
    subtype Idl_Token_Keyword is Idl_Token range T_Abstract .. T_Wstring;
 
@@ -126,6 +132,13 @@ package body Idl_Fe.Lexer is
       T_Wchar       => new String'("wchar"),
       T_Wstring     => new String'("wstring"));
 
+   Idl_File_Name : GNAT.OS_Lib.String_Access;
+   --  Name of file in which preprocessor output is saved, and which is now
+   --  processed by lexer
+
+   Idl_File      : Ada.Text_IO.File_Type;
+   --  Currently processed file
+
    ---------------------------------
    -- A state for pragma scanning --
    ---------------------------------
@@ -146,7 +159,7 @@ package body Idl_Fe.Lexer is
    Current_Line_Len : Natural;
    --  The length of the current line
 
-   Line : String (1 .. 2047);
+   Line : Line_Type;
    --  The current line in the parsed file
 
    Offset : Natural;
@@ -158,8 +171,79 @@ package body Idl_Fe.Lexer is
    --  are used to memorize the begining and the end of an
    --  identifier for example.
 
-   Idl_File : Ada.Text_IO.File_Type;
-   --  Currently processed file
+   -----------------
+   -- State stack --
+   -----------------
+
+   type State_Item is record
+      Idl_File_Name          : GNAT.OS_Lib.String_Access;
+      Current_Location       : Errors.Location;
+      Current_Token_Location : Errors.Location;
+      Current_Line_Len       : Natural;
+      Line                   : Line_Type;
+      Offset                 : Natural;
+      TIO_Line               : Ada.Text_IO.Positive_Count;
+      TIO_Col                : Ada.Text_IO.Positive_Count;
+   end record;
+
+   package State_Stack is
+     new GNAT.Table
+     (Table_Component_Type => State_Item,
+      Table_Index_Type     => Natural,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 10,
+      Table_Increment      => 100);
+
+   Initialized : Boolean := False;
+   --  Flag to detect nested calls to Initialize. If True then lexer
+   --  is already initialized, else its initialization for new file
+   --  current state should be saved in state stack.
+
+   procedure Store_State;
+   --  Store lexer state in stack
+
+   procedure Restore_State;
+   --  Restore lexer state from stack
+
+   -----------------
+   -- Store_State --
+   -----------------
+
+   procedure Store_State is
+   begin
+      State_Stack.Append
+        ((Idl_File_Name          => Idl_File_Name,
+          Current_Location       => Current_Location,
+          Current_Token_Location => Current_Token_Location,
+          Current_Line_Len       => Current_Line_Len,
+          Line                   => Line,
+          Offset                 => Offset,
+          TIO_Line               => Ada.Text_IO.Line (Idl_File),
+          TIO_Col                => Ada.Text_IO.Col (Idl_File)));
+      Ada.Text_IO.Close (Idl_File);
+   end Store_State;
+
+   -------------------
+   -- Restore_State --
+   -------------------
+
+   procedure Restore_State is
+      S : constant State_Item := State_Stack.Table (State_Stack.Last);
+   begin
+      State_Stack.Set_Last (State_Stack.Last - 1);
+
+      Idl_File_Name          := S.Idl_File_Name;
+      Current_Location       := S.Current_Location;
+      Current_Token_Location := S.Current_Token_Location;
+      Current_Line_Len       := S.Current_Line_Len;
+      Line                   := S.Line;
+      Offset                 := S.Offset;
+
+      Ada.Text_IO.Open (Idl_File, Ada.Text_IO.In_File, Idl_File_Name.all);
+      Ada.Text_IO.Set_Input (Idl_File);
+      Ada.Text_IO.Set_Line (Idl_File, S.TIO_Line);
+      Ada.Text_IO.Set_Col (Idl_File, S.TIO_Col);
+   end Restore_State;
 
    ------------------------
    -- Set_Token_Location --
@@ -1170,13 +1254,21 @@ package body Idl_Fe.Lexer is
       use GNAT.OS_Lib;
 
    begin
+      if Initialized then
+         Store_State;
+      else
+         Initialized := True;
+      end if;
+
       if Filename'Length = 0 then
          Errors.Error ("Missing IDL file as argument",
                        Errors.Fatal,
                        Get_Real_Location);
+         return;
       end if;
       Current_Location.Line := 0;
       Current_Location.Col := 0;
+      Current_Line_Len := 0;
 
       declare
          use Ada.Strings.Fixed;
@@ -1203,12 +1295,31 @@ package body Idl_Fe.Lexer is
          end if;
       end;
 
-      Ada.Text_IO.Open
-        (Idl_File, Ada.Text_IO.In_File, Files.Preprocess_File (Filename));
+      Idl_File_Name := new String'(Files.Preprocess_File (Filename));
+      Ada.Text_IO.Open (Idl_File, Ada.Text_IO.In_File, Idl_File_Name.all);
       Ada.Text_IO.Set_Input (Idl_File);
 
       pragma Debug (O ("Initialize: end"));
    end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize is
+   begin
+      if Idlac_Flags.Keep_Temporary_Files then
+         Ada.Text_IO.Close (Idl_File);
+      else
+         Ada.Text_IO.Delete (Idl_File);
+      end if;
+
+      if State_Stack.Last /= 0 then
+         Restore_State;
+      else
+         Initialized := False;
+      end if;
+   end Finalize;
 
    --------------------
    -- Get_Next_Token --
@@ -1391,14 +1502,5 @@ package body Idl_Fe.Lexer is
         renames Get_Marked_Text;
 
    end Lexer_State;
-
-   ----------------------------
-   -- Remove_Temporary_Files --
-   ----------------------------
-
-   procedure Remove_Temporary_Files is
-   begin
-      Ada.Text_IO.Delete (Idl_File);
-   end Remove_Temporary_Files;
 
 end Idl_Fe.Lexer;
