@@ -1078,7 +1078,10 @@ package body Lexer is
                Name_Len := Name_Len - 1;
             end if;
 
-         elsif Name_Len > 0 and then Name_Buffer (1) = '0' then
+         elsif Name_Len > 1
+           and then Name_Buffer (1) = '0'
+           and then Integer_Literal_Base /= 16
+         then
             Integer_Literal_Base := 8;
          end if;
 
