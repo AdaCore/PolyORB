@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#28 $
+--  $Id: //droopi/main/src/corba/corba.ads#29 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -210,7 +210,8 @@ package CORBA is
 
    procedure Get_Members
      (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out IDL_Exception_Members) is abstract;
+      To   : out IDL_Exception_Members)
+      is abstract;
    --  This method return the member corresponding to an exception
    --  occurence This method must be redefined for each new member
    --  type. That's why it is declared abstract.
@@ -513,16 +514,13 @@ package CORBA is
    type Bad_Qos_Members                 is new System_Exception_Members
      with null record;
 
-   --------------------
-   -- ORB Exceptions --
-   --------------------
+   ------------
+   -- Policy --
+   ------------
 
    --  Defined in 4.7
 
    type PolicyType is new CORBA.Unsigned_Long;
-
-   --  exception PolicyError
-   PolicyError : exception;
 
    type PolicyErrorCode is new CORBA.Short;
 
@@ -531,6 +529,13 @@ package CORBA is
    BAD_POLICY_TYPE          : constant PolicyErrorCode := PolicyErrorCode'(2);
    BAD_POLICY_VALUE         : constant PolicyErrorCode := PolicyErrorCode'(3);
    UNSUPPORTED_POLICY_VALUE : constant PolicyErrorCode := PolicyErrorCode'(4);
+
+   --------------------
+   -- ORB Exceptions --
+   --------------------
+
+   --  exception PolicyError
+   PolicyError : exception;
 
    type PolicyError_Members is new CORBA.IDL_Exception_Members with record
       Reason : PolicyErrorCode;
@@ -766,7 +771,8 @@ package CORBA is
 
    --  This one is a bit special : it doesn't put any value but
    --  create the aggregate value if it does not exist.
-   procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any);
+   procedure Set_Any_Aggregate_Value
+     (Any_Value : in out CORBA.Any);
 
    --  Not in spec : some methods to deal with any aggregates.
    --  What is called any aggregate is an any, made of an aggregate
@@ -774,13 +780,16 @@ package CORBA is
    --  unions, enums, arrays, sequences, objref, values...
 
    --  returns the number of elements in an any aggregate
-   function Get_Aggregate_Count (Value : Any) return CORBA.Unsigned_Long;
+   function Get_Aggregate_Count
+     (Value : Any)
+     return CORBA.Unsigned_Long;
 
    --  Adds an element to an any aggregate
    --  This element is given as a typecode but only its value is
    --  added to the aggregate
-   procedure Add_Aggregate_Element (Value : in out Any;
-                                    Element : in Any);
+   procedure Add_Aggregate_Element
+     (Value : in out Any;
+      Element : in Any);
 
    --  Gets an element in an any agregate
    --  returns an any made of the typecode Tc and the value read in
@@ -850,8 +859,7 @@ private
    VTM_TRUNCATABLE : constant ValueModifier := PolyORB.Any.VTM_TRUNCATABLE;
 
    PRIVATE_MEMBER : constant Visibility := PolyORB.Any.PRIVATE_MEMBER;
-   PUBLIC_MEMBER  : constant Visibility := PolyORB.Any.PRIVATE_MEMBER;
-   --  XXX PUBLIC == PRIVATE ???? should investigate
+   PUBLIC_MEMBER  : constant Visibility := PolyORB.Any.PUBLIC_MEMBER;
 
    pragma Inline (To_Any);
    pragma Inline (From_Any);
