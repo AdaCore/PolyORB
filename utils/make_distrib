@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#23 $
+# $Id: //droopi/main/utils/make_distrib#24 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -120,8 +120,18 @@ __EOF__
   P4CLIENT=${client}; export P4CLIENT
   set +e
   case "${tag}" in
-    head|HEAD) tagsep=# ;;
-    *)         tagsep=@ ;;
+    head|HEAD)
+      tagsep=#
+      taginfo="CHANGE_`p4 changes -m 1 ... | cut -f 2 -d \ `"
+      ;;
+    *)
+      tagsep=@
+      if echo "${tag}" | grep '^[0-9]*$' > /dev/null; then
+        taginfo="CHANGE_${tag}"
+      else
+        taginfo="TAG_${tag}"
+      fi
+      ;;
   esac
   (unset PWD; p4 sync ...${tagsep}${tag})
   rc=$?
@@ -130,6 +140,8 @@ __EOF__
   if [ $rc != 0 ]; then
     exit $rc
   fi
+  touch ${taginfo}
+  echo ${taginfo} >> MANIFEST
 
 # Use current directory
 
