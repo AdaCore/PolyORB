@@ -229,7 +229,15 @@ package body System.RPC is
          Keeper.Sent := True;
       end;
       pragma Debug (D (D_Debug, "Waiting for the result"));
-      Wait_For (RPC, Stream);
+      begin
+         Wait_For (RPC, Stream);
+      exception when E : others =>
+         pragma Debug
+           (D (D_Debug,
+               "Reraise exception " & Exception_Name (E) &
+               " in Wait_For"));
+         raise;
+      end;
       begin
          pragma Abort_Defer;
          pragma Debug (D (D_Debug, "The result is available"));
@@ -265,16 +273,18 @@ package body System.RPC is
    is
    begin
       if Keeper.Sent then
-         pragma Debug
-           (D (D_Debug,
-               "Will invalidate RPC (rpc =" & Keeper.RPC'Img &
-               ") with PID" & Keeper.PID'Img));
          Enter (Callers_Mutex);
-         Send_Abort_Message (Keeper.PID, Keeper.RPC);
          if Callers (Keeper.RPC).Status = Running then
+            pragma Debug
+              (D (D_Debug,
+                  "Invalidate RPC (rpc =" & Keeper.RPC'Img &
+                  ") on partition" & Keeper.PID'Img));
+            Send_Abort_Message (Keeper.PID, Keeper.RPC);
             Callers (Keeper.RPC).Status := Aborted;
-            Update (Callers_Watcher);
+         elsif Callers (Keeper.RPC).Status = Aborted then
+            Callers (Keeper.RPC).Status := Unknown;
          end if;
+         Update (Callers_Watcher);
          Leave (Callers_Mutex);
       end if;
    end Finalize;
@@ -362,7 +372,6 @@ package body System.RPC is
             Enter (Callers_Mutex);
             if Callers (Header.RPC).Status = Aborted then
                Callers (Header.RPC).Status := Unknown;
-               Callers (Header.RPC).PID    := Types.Null_PID;
             else
                Callers (Header.RPC).Status := Completed;
                Callers (Header.RPC).Result
@@ -493,8 +502,8 @@ package body System.RPC is
                Callers (RPC).Result := null;
                Update (Callers_Watcher);
                Leave (Callers_Mutex);
-               raise Communication_Error;
-
+               Raise_Exception (Communication_Error'Identity,
+                                "remote procedure call aborted");
             when others =>
                Commit (Callers_Watcher, Version);
                Leave (Callers_Mutex);

@@ -647,6 +647,15 @@ package body System.Garlic.Units is
          return;
       end if;
 
+      --  If the status is Declared when it is already set to Defined on
+      --  this partition, then a partition tries to register twice an unit.
+
+      if Status = Declared
+        and then New_Unit_Info.Status = Defined
+      then
+         return;
+      end if;
+
       --  If the unit is already registered as a unit of a given partition,
       --  then find the unit previous to the current unit in the partition
       --  unit list. If this unit is the first one in the list, then

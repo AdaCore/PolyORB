@@ -1,3 +1,13 @@
+1998-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-rpc.adb: Make a difference between a RPC receiver abortion due
+ 	to a partition crash and a RPC caller abortion due to a task
+ 	abortion (0004-G09).
+
+	* s-garuni.adb: If unit status is Defined and a request wants to
+	change it into Declared, just ignore. A partition is trying to
+	register an already registered unit (0004-G10).
+
 1998-12-11  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-stratt.adb: Optimize integer coding (the most frequent case)
