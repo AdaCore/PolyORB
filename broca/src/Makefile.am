@@ -81,7 +81,7 @@ bin_SCRIPTS = adabroker-config
 lib_LTLIBRARIES = libbroca.la
 libbroca_la_SOURCES =
 libbroca_la_LIBADD = $(ADA_LIBADD)
-libbroca_la_LDFLAGS = -lgnat -no-undefined -version-info $(LIBVERSIONINFO)
+libbroca_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
