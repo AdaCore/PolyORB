@@ -6,6 +6,7 @@ alidir = $(libdir)/polyorb-web_common
 
 ADA_SPECS_WITH_BODY = \
 	aws-url.ads \
+	aws-url-raise_url_error.ads \
 	aws-mime.ads 
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
