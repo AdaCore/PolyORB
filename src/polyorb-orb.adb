@@ -229,19 +229,25 @@ package body PolyORB.ORB is
    function Try_Perform_Work
      (ORB : access ORB_Type;
       Q   : access Job_Queue)
-     return Boolean is
+      return Boolean
+   is
+      Prefix : constant String
+        := "TPF " & Image (Current_Task) & ": ";
    begin
+      pragma Debug (O (Prefix & "enter"));
       if not Is_Empty (Q) then
          declare
             Job : Job_Access := Fetch_Job (Q);
          begin
             Leave (ORB.ORB_Lock);
 
+            pragma Debug (O (Prefix & "working"));
             pragma Assert (Job /= null);
             Run_And_Free_Job (Job);
             return True;
          end;
       else
+         pragma Debug (O (Prefix & "nothing to do."));
          return False;
       end if;
    end Try_Perform_Work;
@@ -378,6 +384,10 @@ package body PolyORB.ORB is
       pragma Inline (Set_Task_Id);
       --  Set this task's debugging identifier.
 
+      function Exit_Now return Boolean;
+      pragma Inline (Exit_Now);
+      --  True if this instance of the ORB main loop must be terminated.
+
       procedure Cleanup;
       pragma Inline (Cleanup);
       --  Remove all references to This_Task. Must be called
@@ -389,6 +399,13 @@ package body PolyORB.ORB is
          Set_Id (This_Task, new String'(Image (Current_Task)));
       end Set_Task_Id;
 
+      function Exit_Now return Boolean is
+      begin
+         return (Exit_Condition.Condition /= null
+                 and then Exit_Condition.Condition.all)
+           or else ORB.Shutdown;
+      end Exit_Now;
+
       procedure Cleanup is
          Id : Utils.Strings.String_Ptr := Task_Info.Id (This_Task);
       begin
@@ -397,8 +414,6 @@ package body PolyORB.ORB is
          end if;
          pragma Debug (Utils.Strings.Free (Id));
       end Cleanup;
-
-      Do_Idle : Boolean;
 
    begin
       Enter (ORB.ORB_Lock);
@@ -417,10 +432,7 @@ package body PolyORB.ORB is
 
          Check_Condition :
          loop
-            exit Main_Loop
-            when (Exit_Condition.Condition /= null
-                  and then Exit_Condition.Condition.all)
-              or else ORB.Shutdown;
+            exit Main_Loop when Exit_Now;
 
             exit Check_Condition
             when not Try_Perform_Work (ORB, ORB.Job_Queue);
@@ -431,8 +443,6 @@ package body PolyORB.ORB is
          end loop Check_Condition;
 
          --  ORB_Lock is held.
-
-         Do_Idle := True;
 
          if May_Poll and then not ORB.Polling then
             declare
@@ -473,6 +483,9 @@ package body PolyORB.ORB is
                                         & " returned from Check_Sources."));
                      Enter (ORB.ORB_Lock);
                      Update (ORB.Polling_Watcher);
+
+                     exit Main_Loop when Exit_Now;
+
                      if ORB.Source_Deleted then
                         --  An asynchronous event source was unregistered while
                         --  we were blocking, and may now have been destroyed.
@@ -499,11 +512,6 @@ package body PolyORB.ORB is
 
                --  ORB.ORB_Lock is held.
 
-               Update (ORB.Idle_Tasks);
-
-               --  Waiting for an event to happend when in polling
-               --  situation: ORB.ORB_Lock is not held.
-
                if Monitors'Length /= 1 then
                   declare
                      use Ada.Real_Time;
@@ -517,10 +525,8 @@ package body PolyORB.ORB is
                   end;
                end if;
             end;
-            Do_Idle := False;
-         end if;
 
-         if Do_Idle then
+         else
 
             --  This task is going idle. We are still holding
             --  ORB_Lock at this point. The tasking policy
@@ -545,6 +551,12 @@ package body PolyORB.ORB is
       end loop Main_Loop;
       pragma Debug (O ("Run: leave."));
       Cleanup;
+
+      if not ORB.Polling then
+         Update (ORB.Idle_Tasks);
+         --  Wake up idle tasks (if any) so that one of them
+         --  checks asynchronous event sources.
+      end if;
 
       Leave (ORB.ORB_Lock);
 
@@ -785,9 +797,9 @@ package body PolyORB.ORB is
 
    procedure Insert_Source
      (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access) is
+      AES : Asynch_Ev_Source_Access)
+   is
    begin
-
       pragma Assert (AES /= null);
 
       Enter (ORB.ORB_Lock);
@@ -823,6 +835,7 @@ package body PolyORB.ORB is
          Abort_Check_Sources (ORB.Selector.all);
       end if;
       Leave (ORB.ORB_Lock);
+
    end Insert_Source;
 
    -------------------
@@ -833,44 +846,23 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       AES : in out Asynch_Ev_Source_Access)
    is
-      Polling : Boolean;
       Polling_Version : Version_Id;
    begin
       Enter (ORB.ORB_Lock);
 
       Unregister_Source (AES);
 
-      --  After this point we know that this source won't be
-      --  considered in a call for Check_Sources, unless Polling
-      --  is true already.
-
-      Polling := ORB.Polling;
       if ORB.Polling then
-         pragma Assert (ORB.Selector /= null);
-
-         --  The current Check_Sources might consider
-         --  this event source, so we need to cause it
-         --  to be restarted:
-
-         Abort_Check_Sources (ORB.Selector.all);
-         --  1. abort it
-
-         ORB.Source_Deleted := True;
-         --  2. invalidate its result (this value will
-         --  be tested with ORB_Lock held).
-
          Polling_Version := ORB.Polling_Version;
-         --  3. prepare for notification by the Check_Sources
-         --  task that we can safely destroy the AES.
-
+         ORB.Source_Deleted := True;
+         Leave (ORB.ORB_Lock);
+         pragma Assert (ORB.Selector /= null);
+         Abort_Check_Sources (ORB.Selector.all);
+         Differ (ORB.Polling_Watcher.all, Polling_Version);
+      else
+         Leave (ORB.ORB_Lock);
       end if;
 
-      Leave (ORB.ORB_Lock);
-      if Polling then
-         Differ (ORB.Polling_Watcher.all, ORB.Polling_Version);
-         --  Need to wait for the blocked task to complete its
-         --  call to Check_Sources before destroying the AES.
-      end if;
       Destroy (AES);
    end Delete_Source;
 
