@@ -125,7 +125,8 @@ ${srcdir}/s-stratt.adb
 
 SOURCES = $(COMMON_SOURCES) @PROTOCOLS_SOURCES@ @LAUNCHING_SOURCES@
 
-CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads
+CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
+	s-garser.adb
 mkinstalldirs = $(top_srcdir)/mkinstalldirs
 DIST_COMMON = ChangeLog Makefile.am Makefile.in TODO
 

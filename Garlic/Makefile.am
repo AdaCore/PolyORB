@@ -89,7 +89,8 @@ ${srcdir}/s-stratt.adb
 
 SOURCES = $(COMMON_SOURCES) @PROTOCOLS_SOURCES@ @LAUNCHING_SOURCES@
 
-CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads
+CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
+	s-garser.adb
 
 .SUFFIXES:	.adb .ads .ali .o .xrb
 

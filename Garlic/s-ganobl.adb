@@ -56,7 +56,7 @@ package body System.Garlic.Non_Blocking is
 
    use C, Strings;
 
-   Safety_Delay : constant Duration := 0.2;
+   Safety_Delay : constant Duration := 30.0;
    --  A SIGIO will be simulated every Safety_Delay seconds, to make
    --  sure we do not get stuned because we have missed one of them.
 
@@ -477,7 +477,6 @@ package body System.Garlic.Non_Blocking is
    begin
       Termination.Add_Non_Terminating_Task;
       loop
-         delay Safety_Delay;
          Sigio_Keeper.Signal;
          select
             Shutdown_Keeper.Wait;
@@ -485,7 +484,7 @@ package body System.Garlic.Non_Blocking is
               (D (D_Debug, "Simulation exiting because of Shutdown_Keeper"));
             exit;
          else
-            null;
+            delay Safety_Delay;
          end select;
       end loop;
       Termination.Sub_Non_Terminating_Task;
