@@ -35,6 +35,7 @@
 --  $Id$
 
 with PolyORB.Sockets;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Asynch_Ev.Sockets is
 
@@ -73,14 +74,17 @@ package PolyORB.Asynch_Ev.Sockets is
 
 private
 
-   type Socket_Event_Source is new Asynch_Ev_Source
-     with record
-        Socket : PolyORB.Sockets.Socket_Type;
-     end record;
+   type Socket_Event_Source is new Asynch_Ev_Source with record
+      Socket : PolyORB.Sockets.Socket_Type;
+   end record;
 
-   type Socket_Event_Monitor is new Asynch_Ev_Monitor
-     with record
-        Selector : PolyORB.Sockets.Selector_Type;
-     end record;
+   package Source_Lists is
+      new PolyORB.Utils.Chained_Lists (Asynch_Ev_Source_Access);
+
+   type Socket_Event_Monitor is new Asynch_Ev_Monitor with record
+      Selector      : PolyORB.Sockets.Selector_Type;
+      Monitored_Set : PolyORB.Sockets.Socket_Set_Type;
+      Sources       : Source_Lists.List;
+   end record;
 
 end PolyORB.Asynch_Ev.Sockets;

@@ -54,6 +54,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    procedure Create (AEM : out Socket_Event_Monitor) is
    begin
+      Empty (AEM.Monitored_Set);
       Create_Selector (AEM.Selector);
    end Create;
 
@@ -63,6 +64,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    procedure Destroy (AEM : in out Socket_Event_Monitor) is
    begin
+      Empty (AEM.Monitored_Set);
       Close_Selector (AEM.Selector);
    end Destroy;
 
@@ -80,8 +82,10 @@ package body PolyORB.Asynch_Ev.Sockets is
          return;
       end if;
 
-      Source_Seqs.Append (AEM.Sources, AES);
+      Set (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
+      Source_Lists.Append (AEM.Sources, AES);
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
+
       Success := True;
    end Register_Source;
 
@@ -93,20 +97,10 @@ package body PolyORB.Asynch_Ev.Sockets is
      (AEM : in out Socket_Event_Monitor;
       AES : Asynch_Ev_Source_Access)
    is
-      use Source_Seqs;
-
-      Sources : constant Element_Array
-        := To_Element_Array (AEM.Sources);
+      use Source_Lists;
    begin
-      All_Sources :
-      for I in Sources'Range loop
-         if Sources (I) = AES then
-            Delete (Source  => AEM.Sources,
-                    From    => 1 + I - Sources'First,
-                    Through => 1 + I - Sources'First);
-            exit All_Sources;
-         end if;
-      end loop All_Sources;
+      Clear (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
+      Source_Lists.Remove (AEM.Sources, AES);
    end Unregister_Source;
 
    -------------------
@@ -118,26 +112,19 @@ package body PolyORB.Asynch_Ev.Sockets is
       Timeout : Duration)
      return AES_Array
    is
-      Monitored_Set : constant Source_Seqs.Element_Array
-        := Source_Seqs.To_Element_Array (AEM.Sources);
-      Result : AES_Array (1 .. Monitored_Set'Length);
+      use Source_Lists;
+      Result : AES_Array (1 .. Length (AEM.Sources));
       Last   : Integer := 0;
 
       T : Duration := Timeout;
 
-      S : Socket_Type;
       R_Set : Socket_Set_Type;
       W_Set : Socket_Set_Type;
       Status : Selector_Status;
 
    begin
-      Empty (R_Set);
-      Empty (W_Set);
-      for I in Monitored_Set'Range loop
-         S := Socket_Event_Source (Monitored_Set (I).all).Socket;
-         Set (R_Set, S);
-         pragma Debug (O ("Monitoring socket" & Image (S)));
-      end loop;
+      Copy (Source => AEM.Monitored_Set, Target => R_Set);
+      PolyORB.Sockets.Empty (W_Set);
 
       if T = Constants.Forever then
          --  Convert special value of Timeout.
@@ -155,25 +142,36 @@ package body PolyORB.Asynch_Ev.Sockets is
                        & Status'Img));
 
       if Status = Completed then
-         for I in Monitored_Set'Range loop
-            if Is_Set (R_Set, Socket_Event_Source
-                         (Monitored_Set (I).all).Socket) then
-               pragma Debug
-                 (O ("Got event on socket"
-                       & Image (Socket_Event_Source
-                                  (Monitored_Set (I).all).Socket)));
+         declare
+            It : Source_Lists.Iterator := First (AEM.Sources);
+         begin
+            while not Source_Lists.Last (It) loop
+               declare
+                  S : Asynch_Ev_Source_Access renames Value (It).all;
+                  Sock : Socket_Type
+                    renames Socket_Event_Source (S.all).Socket;
+               begin
+                  if Is_Set (R_Set, Sock) then
+                     pragma Debug
+                       (O ("Got event on socket" & Image (Sock)));
 
-               Last := Last + 1;
-                  Result (Last) := Monitored_Set (I);
-            end if;
-         end loop;
+                     Last := Last + 1;
+                     Result (Last) := S;
+                     Clear (AEM.Monitored_Set, Sock);
+                     Remove (AEM.Sources, It);
+                  else
+                     Next (It);
+                  end if;
+               end;
+            end loop;
+         end;
          pragma Assert (Last >= Result'First);
       end if;
 
       --  Free the storage space associated with our socket sets.
 
-      Empty (R_Set);
-      Empty (W_Set);
+      PolyORB.Sockets.Empty (R_Set);
+      PolyORB.Sockets.Empty (W_Set);
 
       return Result (1 .. Last);
 

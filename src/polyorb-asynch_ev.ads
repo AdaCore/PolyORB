@@ -34,8 +34,6 @@
 
 --  $Id$
 
-with PolyORB.Sequences.Unbounded;
-
 with PolyORB.Annotations;
 
 package PolyORB.Asynch_Ev is
@@ -143,12 +141,6 @@ private
       Notes   : aliased Annotations.Notepad;
    end record;
 
-   package Source_Seqs is new PolyORB.Sequences.Unbounded
-     (Asynch_Ev_Source_Access);
-   subtype Source_Seq is Source_Seqs.Sequence;
-
-   type Asynch_Ev_Monitor is abstract tagged limited record
-      Sources : Source_Seq;
-   end record;
+   type Asynch_Ev_Monitor is abstract tagged limited null record;
 
 end PolyORB.Asynch_Ev;
