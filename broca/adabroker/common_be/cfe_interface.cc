@@ -27,6 +27,9 @@
 
 /*
   $Log: cfe_interface.cc,v $
+  Revision 1.4  1999/03/02 12:25:25  niebel
+  some modifications
+
   Revision 1.3  1999/03/01 23:27:54  niebel
   modification to allow different BE (the adabroker and the omniidl2 back-end)
 
@@ -288,7 +291,7 @@ BE_parse_args(int argc, char **argv)
   int c;
   int be_defined = 0;
   char *buffer;
-  char *buffer1;
+
 
 #ifdef __WIN32__
   o2be_global::set_skelsuffix("SK.cpp");
