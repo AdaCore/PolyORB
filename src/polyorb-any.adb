@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#50 $
+--  $Id: //droopi/main/src/polyorb-any.adb#51 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -2645,11 +2645,6 @@ package body PolyORB.Any is
       Enter (Value.Any_Lock);
       pragma Assert (Value.The_Value /= null);
       Ptr := Content_Aggregate_Ptr (Value.The_Value.all).Value;
-      pragma Debug (O ("Get_Aggregate_Element : Index = "
-                       & Unsigned_Long'Image (Index)
-                       & ", aggregate_count = "
-                       & Unsigned_Long'Image
-                       (Get_Aggregate_Count (Value))));
 
       Result.The_Value.all
         := Duplicate
