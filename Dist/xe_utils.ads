@@ -32,6 +32,8 @@ with Types;
 
 package XE_Utils is
 
+   No_Str        : constant String := "";
+
    Obj_Suffix    : Types.File_Name_Type;
    Exe_Suffix    : Types.File_Name_Type;
 
@@ -169,8 +171,8 @@ package XE_Utils is
 
    function Strlen (Name : in Types.Name_Id) return Natural;
 
-   procedure To_Lower (S : in out String);
-   procedure To_Lower (N : in out Types.Name_Id);
+   procedure To_Lower   (S : in out String);
+   procedure To_Lower   (N : in out Types.Name_Id);
 
    function U_To_N
      (U : in Types.Unit_Name_Type)

@@ -1,3 +1,17 @@
+1998-07-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_utils.ads, xe_utils.adb: Improve GNAT_Style format procedure
+ 	and add No_Str constant.
+
+	* xe_stubs.adb: Add two functions to capitalize a string or a
+ 	name_id. Add a procedure Dwrite_Call to write a procedure call
+ 	easily. Use No_Str instead of "". Add comments. Make some major
+ 	cleanup in the code generated to handle elaboration, main
+ 	subprogram execution, version consistency and termination. 
+	
+	* xe_back.ads, xe_back.adb: Add a function Image for
+ 	Termination_Type.
+
 1998-07-29  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Handle exception in the partition main subprogram

@@ -40,6 +40,9 @@ package body XE_Stubs is
 
    Stdout : Boolean;
 
+   function C (N : Types.Name_Id) return Types.Name_Id renames GNAT_Style;
+   function C (S : String) return Types.Name_Id;
+
    procedure Copy_Stub
      (Source_Dir, Target_Dir : in File_Name_Type; A : in ALI_Id);
    --  Copy stub files (ali, object) from a source directory to a
@@ -67,6 +70,18 @@ package body XE_Stubs is
    procedure Delete_Stub (Source_Dir, Base_Name : in File_Name_Type);
    --  Delete stub files (ali, object) from a source directory.
 
+   procedure Dwrite_Call (FD  : in File_Descriptor;
+                          Ind : in Int;
+                          S1  : in String;
+                          N1  : in Name_Id := No_Name;
+                          S2  : in String  := No_Str;
+                          N2  : in Name_Id := No_Name;
+                          S3  : in String  := No_Str;
+                          N3  : in Name_Id := No_Name);
+   --  Insert a procedure call. The first non-null parameter
+   --  is supposed to be the procedure name. The next parameters
+   --  are parameters for this procedure call.
+
    procedure Dwrite_Eol (File   : in File_Descriptor;
                          Stdout : in Boolean := Building_Script)
      renames Write_Eol;
@@ -76,9 +91,9 @@ package body XE_Stubs is
                           Ind : in Int;
                           S1  : in String;
                           N1  : in Name_Id := No_Name;
-                          S2  : in String  := "";
+                          S2  : in String  := No_Str;
                           N2  : in Name_Id := No_Name;
-                          S3  : in String  := "";
+                          S3  : in String  := No_Str;
                           N3  : in Name_Id := No_Name);
 
    procedure Dwrite_Name (File   : in File_Descriptor;
@@ -103,6 +118,9 @@ package body XE_Stubs is
    function Rebuild_Partition (PID : in PID_Type) return Boolean;
    --  Check various file stamps to decide whether the partition
    --  executable should be regenerated.
+
+   function To_String (N : Name_Id) return Name_Id;
+   --  Make a string containing N and return it as a name_id
 
    -----------
    -- Build --
@@ -180,17 +198,32 @@ package body XE_Stubs is
                      --  in its include path.
 
                      Copy_Stub (Receiver_Dir, Directory, ALI);
+
+                     --  We have RCI units in this partition. So, we
+                     --  need all the PCS features in this partition.
+
                      Set_Light_PCS (PID, False);
 
                   else
+
+                     --  Remove previous copies of stubs stored.
                      Delete_Stub (Directory, Unit.Table (U).Sfile);
+
                   end if;
+
+                  --  We have RACW types in this partition.So, we
+                  --  need all the PCS features in this partition.
 
                   if Unit.Table (U).Has_RACW_Type then
                      Set_Light_PCS (PID, False);
                   end if;
 
+                  --  Update more recent stamp to decide later on whether
+                  --  we should update the partition executable.
                   Most_Recent_Stamp (PID, ALIs.Table (ALI).Afile);
+
+                  --  Compute the new checksum. This checksum will be
+                  --  useful to identify this partition.
                   Compute_Checksum  (PID, Unit.Table (U).Sfile);
 
                end if;
@@ -228,6 +261,20 @@ package body XE_Stubs is
       end loop;
 
    end Build;
+
+   -------
+   -- C --
+   -------
+
+   function C (S : String) return Name_Id is
+   begin
+      for F in S'Range loop
+         if S (F) /= ' ' then
+            return GNAT_Style (Str_To_Id (S (F .. S'Last)));
+         end if;
+      end loop;
+      return No_Name;
+   end C;
 
    ---------------
    -- Copy_Stub --
@@ -269,6 +316,7 @@ package body XE_Stubs is
       Partition   : Partition_Name_Type;
       Elaboration : File_Name_Type;
       Task_Pool   : Task_Pool_Type;
+      Termination : Name_Id;
 
       CID : CID_Type;
       FD  : File_Descriptor;
@@ -308,16 +356,18 @@ package body XE_Stubs is
          Dwrite_With_Clause (FD, "System.Garlic.Light_Termination");
       end if;
 
+      --  Add filtering package if needed
+
       if Default_Registration_Filter /= No_Filter_Name then
          Dwrite_With_Clause
            (FD, "System.Garlic.Filters",
-            GNAT_Style (Default_Registration_Filter), False);
+            C (Default_Registration_Filter), False);
       end if;
 
       if Get_Filter (PID) /= No_Filter_Name then
          Dwrite_With_Clause
            (FD, "System.Garlic.Filters",
-            GNAT_Style (Get_Filter (PID)), False);
+            C (Get_Filter (PID)), False);
       end if;
 
       if Partitions.Table (PID).First_Channel /= Null_CID then
@@ -326,7 +376,7 @@ package body XE_Stubs is
             if Get_Filter (CID) /= No_Filter_Name then
                Dwrite_With_Clause
                  (FD, "System.Garlic.Filters",
-                  GNAT_Style (Get_Filter (CID)), False);
+                  C (Get_Filter (CID)), False);
             end if;
             if Channels.Table (CID).Lower.My_Partition = PID then
                CID := Channels.Table (CID).Lower.Next_Channel;
@@ -344,24 +394,16 @@ package body XE_Stubs is
       --  If the partition holds the main unit, then it cannot be slave.
       --  Otherwise, it is.
 
-      if PID = Main_Partition then
-         Dwrite_Line (FD, 2, "Set_Is_Slave (False);");
-      else
-         Dwrite_Line (FD, 2, "Set_Is_Slave (True);");
+      Dwrite_Call
+        (FD, 2, "Set_Is_Slave", C (Boolean'Image (PID /= Main_Partition)));
+
+      --  How should the partition terminate. Note that in Garlic,
+      --  Global_Termination is the default. No need to force the default.
+
+      Termination := Image (Get_Termination (PID));
+      if Termination /= Image (Unknown_Termination) then
+         Dwrite_Call (FD, 2, "Set_Termination", Termination);
       end if;
-
-      --  The partition should not terminate.
-
-      case Get_Termination (PID) is
-         when Local_Termination =>
-            Dwrite_Line (FD, 2, "Set_Termination (Local_Termination);");
-         when Global_Termination =>
-            Dwrite_Line (FD, 2, "Set_Termination (Global_Termination);");
-         when Deferred_Termination =>
-            Dwrite_Line (FD, 2, "Set_Termination (Deferred_Termination);");
-         when Unknown_Termination =>
-            null;
-      end case;
 
       --  If a protocol has been specified, then use it (with its data
       --  if present).
@@ -372,33 +414,29 @@ package body XE_Stubs is
             Add_Str_To_Name_Buffer ("://");
             Get_Name_String_And_Append (Default_Protocol_Data);
          end if;
-         Dwrite_Line (FD, 2, "Set_Boot_Server (""", Name_Find, """);");
+         Dwrite_Call (FD, 2, "Set_Boot_Server", To_String (Name_Find));
       end if;
 
+      --  Do we want to control the number of anonymous tasks
       Task_Pool := Get_Task_Pool (PID);
       if Task_Pool /= No_Task_Pool then
-         Name_Len := 0;
-         for I in 1 .. 3 loop
-            Get_Name_String_And_Append (Task_Pool (I));
-            exit when I = 3;
-            Add_Char_To_Name_Buffer (',');
-         end loop;
-         Add_Str_To_Name_Buffer (");");
-         Dwrite_Line (FD, 2, "Set_Task_Pool_Bound (", Name_Find);
+         Dwrite_Call (FD, 2, "Set_Task_Pool_Bound",
+                      Task_Pool (1), No_Str,
+                      Task_Pool (2), No_Str,
+                      Task_Pool (3));
       end if;
 
-      Dwrite_Line (FD, 2, "Set_Partition_Name (""", Partition, """);");
+      Dwrite_Call (FD, 2, "Set_Partition_Name",
+                   To_String (Partitions.Table (PID).Name));
 
       if Default_Registration_Filter /= No_Filter_Name then
-         Dwrite_Line
-           (FD, 2, "Set_Registration_Filter (""",
-            Default_Registration_Filter, """);");
+         Dwrite_Call (FD, 2, "Set_Registration_Filter",
+                      To_String (Default_Registration_Filter));
       end if;
 
       if Partitions.Table (Default_Partition).Filter /= No_Filter_Name then
-         Dwrite_Line
-           (FD, 2, "Set_Default_Filter (""",
-            Partitions.Table (Default_Partition).Filter, """);");
+         Dwrite_Call (FD, 2, "Set_Default_Filter",
+                      To_String (Partitions.Table (Default_Partition).Filter));
       end if;
 
       if Partitions.Table (PID).Last_Channel /= Null_CID then
@@ -417,10 +455,10 @@ package body XE_Stubs is
                   CID  := Channels.Table (CID).Upper.Next_Channel;
                end if;
                if Filter /= No_Filter_Name then
-                  Dwrite_Line
-                    (FD, 2, "Set_Channel_Filter (""",
-                     Partitions.Table (Peer).Name,
-                     """, """, Filter, """);");
+                  Dwrite_Call
+                    (FD, 2, "Set_Channel_Filter",
+                     To_String (Partitions.Table (Peer).Name),
+                     No_Str, To_String (Filter));
                end if;
             end loop;
          end;
@@ -508,9 +546,9 @@ package body XE_Stubs is
 
       Main_File   : File_Name_Type;
 
-      UID   : CUID_Type;
-      Host  : Name_Id;
-      Main  : Name_Id;
+      UID         : CUID_Type;
+      Host        : Name_Id;
+      Main        : Name_Id;
 
       FD : File_Descriptor;
 
@@ -534,7 +572,7 @@ package body XE_Stubs is
       while UID /= Null_CUID loop
          Set_PID (Unit.Table (CUnit.Table (UID).My_Unit).Uname,
                   CUnit.Table (UID).Partition);
-         Dwrite_With_Clause (FD, "", CUnit.Table (UID).CUname, False);
+         Dwrite_With_Clause (FD, No_Str, CUnit.Table (UID).CUname, False);
          UID := CUnit.Table (UID).Next;
       end loop;
 
@@ -546,7 +584,7 @@ package body XE_Stubs is
          if Unit.Table (CUnit.Table (U).My_Unit).RCI then
             if CUnit.Table (U).Partition /= PID and then
               Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
-               Dwrite_With_Clause (FD, "", CUnit.Table (U).CUname, False);
+               Dwrite_With_Clause (FD, No_Str, CUnit.Table (U).CUname, False);
             end if;
          else
             Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
@@ -557,8 +595,7 @@ package body XE_Stubs is
       Dwrite_With_Clause (FD, "System.Garlic.Heart", No_Name, False);
       Dwrite_With_Clause (FD, "System.Garlic.Startup", No_Name, False);
       Dwrite_Line (FD, 0, "pragma Elaborate_All (System.Garlic.Startup);");
-      Dwrite_With_Clause (FD, "System.Garlic.Soft_Links", No_Name, False);
-      Dwrite_With_Clause (FD, "System.Partition_Interface", No_Name, False);
+      Dwrite_With_Clause (FD, "System.Partition_Interface", No_Name, True);
 
       Dwrite_Line (FD, 0, "procedure ", Partition_Main_Name, " is");
       Dwrite_Line (FD, 0, "begin");
@@ -568,8 +605,7 @@ package body XE_Stubs is
             Partitions.First + 1 /= Partitions.Last then
             for Partition in Partitions.First + 1 .. Partitions.Last loop
                if Partition /= Main_Partition then
-                  Dwrite_Line
-                    (FD, 1, "System.Partition_Interface.Launch");
+                  Dwrite_Line (FD, 1, "Launch");
                   Name_Len := 0;
                   Add_Str_To_Name_Buffer ("(""");
                   Add_Str_To_Name_Buffer (Get_Rsh_Command);
@@ -590,10 +626,6 @@ package body XE_Stubs is
 
       end if;
 
-      Dwrite_Line (FD, 1, "System.Garlic.Heart.Elaboration_Is_Terminated;");
-      Dwrite_Line (FD, 1, "System.RPC.Establish_RPC_Receiver");
-      Dwrite_Line (FD, 2, "(Partition'Partition_ID, null);");
-
       if Default_Version_Check then
 
          --  Version consistency between receiver and caller.
@@ -608,52 +640,32 @@ package body XE_Stubs is
             if Unit.Table (CUnit.Table (U).My_Unit).RCI and then
               CUnit.Table (U).Partition /= PID and then
               Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
-               Dwrite_Line
-                 (FD, 1, "System.Partition_Interface.Check (""",
-                  CUnit.Table (U).CUname, """, ",
-                  CUnit.Table (U).CUname, "'Version);");
+               declare
+                  Version : Name_Id;
+               begin
+                  Get_Name_String (CUnit.Table (U).CUname);
+                  Add_Str_To_Name_Buffer ("'Version");
+                  Version := Name_Find;
+                  Dwrite_Call (FD, 1, "Check",
+                               To_String (CUnit.Table (U).CUname),
+                               No_Str, Version);
+               end;
                Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
             end if;
          end loop;
       end if;
 
-      if PID = Main_Partition then
-         Dwrite_Line
-           (FD, 1,
-            "System.Partition_Interface.Run (",
-            Main_Subprogram, "'access);");
-      else
-         Main := Partitions.Table (PID).Main_Subprogram;
-         if Main = No_Main_Subprogram then
-            Main := Partitions.Table (Default_Partition).Main_Subprogram;
-         end if;
-         if Main /= No_Name then
-            Dwrite_Line (FD, 1, "   ", Main, ";");
-         end if;
+      Main := Partitions.Table (PID).Main_Subprogram;
+      if Main = No_Main_Subprogram then
+         Main := Partitions.Table (Default_Partition).Main_Subprogram;
+      end if;
+      if Main /= No_Name then
+         Get_Name_String (Main);
+         Add_Str_To_Name_Buffer ("'Access");
+         Main := Name_Find;
       end if;
 
-      --  When we exit main subprogram, just terminate.
-      if Get_Termination (PID) = Local_Termination then
-         Dwrite_Line (FD, 1, "System.Garlic.Soft_Links.Local_Termination;");
-      end if;
-
-      if PID = Main_Partition
-        and then Get_Termination (PID) /= Local_Termination then
-         Dwrite_Line (FD, 1, "System.Garlic.Soft_Links.Global_Termination;");
-      end if;
-
-      Dwrite_Line (FD, 0, "exception when others =>");
-
-      if Get_Termination (PID) = Local_Termination then
-         Dwrite_Line (FD, 1, "System.Garlic.Soft_Links.Local_Termination;");
-      end if;
-
-      if PID = Main_Partition
-        and then Get_Termination (PID) /= Local_Termination then
-         Dwrite_Line (FD, 1, "System.Garlic.Soft_Links.Global_Termination;");
-      end if;
-
-      Dwrite_Line (FD, 1, "raise;");
+      Dwrite_Call (FD, 1, "Run", Main);
       Dwrite_Line (FD, 0, "end ", Partition_Main_Name, ";");
 
       if Building_Script then
@@ -886,6 +898,58 @@ package body XE_Stubs is
    end Delete_Stub;
 
    -----------------
+   -- Dwrite_Call --
+   -----------------
+
+   procedure Dwrite_Call
+     (FD  : in File_Descriptor;
+      Ind : in Int;
+      S1  : in String;
+      N1  : in Name_Id := No_Name;
+      S2  : in String  := No_Str;
+      N2  : in Name_Id := No_Name;
+      S3  : in String  := No_Str;
+      N3  : in Name_Id := No_Name) is
+      Id  : Integer := 0;
+
+      procedure Dwrite_Separator (New_Id : Boolean);
+      procedure Dwrite_Separator (New_Id : Boolean) is
+      begin
+         if New_Id then
+            Id := Id + 1;
+            if Id = 2 then
+               Dwrite_Str (FD, " (");
+            elsif Id > 2 then
+               Dwrite_Str (FD, ", ");
+            end if;
+         end if;
+      end Dwrite_Separator;
+
+   begin
+      for I in 1 .. Ind loop
+         Dwrite_Str (FD, "   ", Stdout);
+      end loop;
+      Dwrite_Separator (S1 /= No_Str);
+      Dwrite_Str  (FD, S1, Stdout);
+      Dwrite_Separator (N1 /= No_Name);
+      Dwrite_Name (FD, N1, Stdout);
+      Dwrite_Separator (S2 /= No_Str);
+      Dwrite_Str  (FD, S2, Stdout);
+      Dwrite_Separator (N2 /= No_Name);
+      Dwrite_Name (FD, N2, Stdout);
+      Dwrite_Separator (S3 /= No_Str);
+      Dwrite_Str  (FD, S3, Stdout);
+      Dwrite_Separator (N3 /= No_Name);
+      Dwrite_Name (FD, N3, Stdout);
+      pragma Assert (Id /= 0);
+      if Id /= 1 then
+         Dwrite_Str (FD, ")");
+      end if;
+      Dwrite_Str (FD, ";");
+      Dwrite_Eol (FD, Stdout);
+   end Dwrite_Call;
+
+   -----------------
    -- Dwrite_Line --
    -----------------
 
@@ -894,9 +958,9 @@ package body XE_Stubs is
       Ind : in Int;
       S1  : in String;
       N1  : in Name_Id := No_Name;
-      S2  : in String  := "";
+      S2  : in String  := No_Str;
       N2  : in Name_Id := No_Name;
-      S3  : in String  := "";
+      S3  : in String  := No_Str;
       N3  : in Name_Id := No_Name) is
    begin
       for I in 1 .. Ind loop
@@ -925,7 +989,7 @@ package body XE_Stubs is
       Add_Str_To_Name_Buffer ("with ");
       Add_Str_To_Name_Buffer (Unit);
       if Child /= No_Name then
-         if Unit /= "" then
+         if Unit /= No_Str then
             Add_Char_To_Name_Buffer ('.');
          end if;
          Get_Name_String_And_Append (Child);
@@ -934,7 +998,7 @@ package body XE_Stubs is
          Add_Str_To_Name_Buffer ("; use ");
          Add_Str_To_Name_Buffer (Unit);
          if Child /= No_Name then
-            if Unit /= "" then
+            if Unit /= No_Str then
                Add_Char_To_Name_Buffer ('.');
             end if;
             Get_Name_String_And_Append (Child);
@@ -1172,5 +1236,18 @@ package body XE_Stubs is
 
       return False;
    end Rebuild_Partition;
+
+   ---------------
+   -- To_String --
+   ---------------
+
+   function To_String (N : Name_Id) return Name_Id is
+   begin
+      Name_Len := 0;
+      Add_Char_To_Name_Buffer ('"');
+      Get_Name_String_And_Append (N);
+      Add_Char_To_Name_Buffer ('"');
+      return Name_Find;
+   end To_String;
 
 end XE_Stubs;

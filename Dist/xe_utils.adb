@@ -572,8 +572,14 @@ package body XE_Utils is
             if Capitalized then
                Name_Buffer (I) :=
                  Character'Val (Character'Pos (Name_Buffer (I)) + Up_To_Low);
-               Capitalized := False;
             end if;
+            Capitalized := False;
+         elsif Name_Buffer (I) in 'A' .. 'Z' then
+            if not Capitalized then
+               Name_Buffer (I) :=
+                 Character'Val (Character'Pos (Name_Buffer (I)) - Up_To_Low);
+            end if;
+            Capitalized := False;
          elsif Name_Buffer (I) = '_' or else Name_Buffer (I) = '.' then
             Capitalized := True;
          end if;

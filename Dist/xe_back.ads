@@ -233,6 +233,8 @@ package XE_Back is
      (P : in PID_Type;
       F : in Types.File_Name_Type);
 
+   Image : array (XE.Termination_Type) of Types.Name_Id;
+
    procedure Create_Channel
      (Name : in  Channel_Name_Type;
       Node : in  XE.Node_Id;

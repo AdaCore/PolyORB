@@ -857,6 +857,11 @@ package body XE_Back is
       Channels.Table (C).Filter             := No_Filter_Name;
       Default_Channel := C;
 
+      Image := (Unknown_Termination  => No_Name,
+                Local_Termination    => Str_To_Id ("Local_Termination"),
+                Global_Termination   => Str_To_Id ("Global_Termination"),
+                Deferred_Termination => Str_To_Id ("Deferred_Termination"));
+
    end Initialize;
 
    ------------
