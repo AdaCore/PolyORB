@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#9 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#10 $
 
 with Ada.Finalization;
 
@@ -61,6 +61,8 @@ package Droopi.Binding_Data is
    --  in order to send a message to the designated middleware.
    --  The Transport_Endpoint at the bottom of the transport stack
    --  and the Session at the top are returned.
+   --  XXXXX: please document the reason why Session is not of type
+   --  Session_Access.
 
    function Get_Profile_Tag
      (Profile : Profile_Type)
