@@ -145,4 +145,12 @@ package PolyORB.Requests is
    function Image (Req : Request) return String;
    --  For debugging purposes.
 
+   procedure Pump_Up_Arguments
+     (A_Args : in out Any.NVList.Ref;
+      P_Args : Any.NVList.Ref;
+      Direction : Any.Flags);
+   --  Copy arguments of direction Direction (or INOUT) from received
+   --  protocol arguments list P_Args (either from a request, on server
+   --  side, or for a reply, on client side) into A_Args.
+
 end PolyORB.Requests;

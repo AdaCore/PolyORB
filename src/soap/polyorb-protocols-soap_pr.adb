@@ -233,11 +233,6 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       R : constant Requests.Request_Access := S.Pending_Rq;
 
-      Args : constant NV_Sequence_Access
-        := List_Of (R.Args);
-
-      P_Arg_Index : Integer := 1;
-      --  Index in Return_Args (protocol layer arguments)
    begin
       if R = null then
          raise Protocol_Error;
@@ -258,43 +253,9 @@ package body PolyORB.Protocols.SOAP_Pr is
       Delete (List_Of (Return_Args).all, 1, 1);
       --  XXX assumes that method result is arg #1.
 
-      --  XXX The following nice and fine loop is ripped
-      --  from PolyORB.Requests.Arguments and adapted for this case.
-      --  It should be factored out!
-
-      for A_Arg_Index in 1 .. Get_Count (R.Args) loop
-         --  Index in Args (application layer arguments)
-         declare
-            A_Arg : NamedValue
-              := Element_Of (Args.all, Integer (A_Arg_Index));
-         begin
-            if A_Arg.Arg_Modes = ARG_OUT
-              or else A_Arg.Arg_Modes = ARG_INOUT
-            then
-               --  Application says it wants this arg as
-               --  input: take it from P_Args.
-
-               Copy_Any_Value
-                 (A_Arg.Argument,
-                  Element_Of
-                  (List_Of (Return_Args).all, P_Arg_Index).Argument);
-               --  These MUST be type-compatible!
-
-               P_Arg_Index := P_Arg_Index + 1;
-            else
-               --  An ARG_IN argument
-
-               if P_Arg_Index <= Integer (Get_Count (Return_Args))
-                 and then Element_Of (List_Of (Return_Args).all,
-                                      P_Arg_Index).Arg_Modes
-                 = ARG_IN
-               then
-                  --  present: skip it.
-                  P_Arg_Index := P_Arg_Index + 1;
-               end if;
-            end if;
-         end;
-      end loop;
+      PolyORB.Requests.Pump_Up_Arguments
+        (A_Args => R.Args, P_Args => Return_Args,
+         Direction => ARG_OUT);
 
       Components.Emit_No_Reply
         (S.Server,

@@ -102,6 +102,88 @@ package body PolyORB.Requests is
 
    end Invoke;
 
+   procedure Pump_Up_Arguments
+     (A_Args : in out Any.NVList.Ref;
+      P_Args : Any.NVList.Ref;
+      Direction : Any.Flags)
+   is
+      use PolyORB.Components;
+
+      use PolyORB.Any;
+      use PolyORB.Any.NVList;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Sequence;
+
+      P_Arg_Index : Integer := 1;
+      --  Index in Self.Args (protocol layer arguments)
+   begin
+      pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
+
+      --  When Direction is ARG_IN, we are a server and we
+      --  are pumping arguments from an incoming request message
+      --  into the request that will be processed by the
+      --  actual application object. In this case, we know
+      --  that arguments in A_Args have their correct canonical
+      --  modes and names. We assume that P_Args only contain
+      --  arguments whose actual mode (as specifid in A_Args) is
+      --  ARG_IN or ARG_INOUT, possibly without names. If without
+      --  names, we assume that they are in the order of A_Args.
+
+      --  When direction is ARG_OUT, we are a client and
+      --  we are pumping up INOUT and OUT arguments from an
+      --  incoming reply message into the request that will be
+      --  handed back to the client appplication object.
+      --  (no return value must be present in P_Args, only
+      --  actual arguments). We assue that P_Args only contain
+      --  arguments whose actual mode is ARG_INOUT or ARG_OUT,
+      --  possibly without names, and if without names in the
+      --  order of A_Args.
+
+      --  Note that we cannot rely on the mode indications in
+      --  P_Args because some protocols (eg SOAP) do not
+      --  set it correcly (more specifically SOAP does not support
+      --  deferred unmarshalling, and insist on unmarshalling Self.Args
+      --  before Arguments is called. Consequence: 'OUT' mode arguments
+      --  might be missing in Self.Args, and 'INOUT' arguments might
+      --  be marked as 'IN'. Also, there is no guarantee that the order
+      --  of arguments is the same in Args and Self.Args.)
+
+      --  XXX actually for now we do not check names at all:
+      --  we skip P_Args with the wrong direction and then assume
+      --  strict positional association.
+      --  If we were brave guys, we should attempt
+      --  should be made to reconcile argument names and argument types
+      --  (tricky. See how Ada compilers do parameter reconciliation with
+      --  support for both named and positional parameter associations.)
+
+
+      for A_Arg_Index in 1 .. Get_Count (A_Args) loop
+         --  Index in Args (application layer arguments)
+         declare
+            A_Arg : NamedValue
+              := Element_Of (List_Of (A_Args).all,
+                             Integer (A_Arg_Index));
+         begin
+            if A_Arg.Arg_Modes = ARG_INOUT
+              or else A_Arg.Arg_Modes = Direction
+            then
+               --  This arguments needs to be pumped up from the
+               --  P_Args list.
+
+               declare
+                  P_Arg : constant NamedValue
+                    := Element_Of (List_Of (P_Args).all, P_Arg_Index);
+               begin
+                  Copy_Any_Value (A_Arg.Argument, P_Arg.Argument);
+                  --  These MUST be type-compatible!
+               end;
+               P_Arg_Index := P_Arg_Index + 1;
+            end if;
+         end;
+      end loop;
+
+   end Pump_Up_Arguments;
+
    procedure Arguments
      (Self : Request_Access;
       Args : in out Any.NVList.Ref)
@@ -133,60 +215,9 @@ package body PolyORB.Requests is
 
          pragma Debug (O ("in Arguments: " & Image (Self.Args)));
 
-         declare
-            use PolyORB.Any;
-            use PolyORB.Any.NVList.Internals;
-            use PolyORB.Any.NVList.Internals.NV_Sequence;
-            P_Arg_Index : Integer := 1;
-            --  Index in Self.Args (protocol layer arguments)
-         begin
-            for A_Arg_Index in 1 .. Get_Count (Args) loop
-               --  Index in Args (application layer arguments)
-               declare
-                  A_Arg : NamedValue
-                    := Element_Of (List_Of (Args).all,
-                                   Integer (A_Arg_Index));
-                  P_Arg : constant NamedValue
-                    := Element_Of (List_Of (Self.Args).all, P_Arg_Index);
-               begin
-                  if A_Arg.Arg_Modes = ARG_IN
-                    or else A_Arg.Arg_Modes = ARG_INOUT
-                  then
-                     --  Application says it wants this arg as
-                     --  input: take it from P_Args.
-                     Copy_Any_Value (A_Arg.Argument, P_Arg.Argument);
-                     --  These MUST be type-compatible!
-
-                     P_Arg_Index := P_Arg_Index + 1;
-                  else
-                     --  An ARG_OUT argument
-
-                     if P_Arg.Arg_Modes = ARG_OUT then
-                        --  present: skip it.
-                        P_Arg_Index := P_Arg_Index + 1;
-                     end if;
-                  end if;
-               end;
-            end loop;
-         end;
-
-         --  XXX This is not the whole story.
-
-         --  In an ideal world, Self.Args (from the Protocol layer)
-         --  and Args (from the application layer) are mode-conformant.
-         --  Unfortunately, some protocols (eg SOAP) do not support
-         --  deferred unmarshalling, and insist on unmarshalling Self.Args
-         --  before Arguments is called. Consequence: 'OUT' mode arguments
-         --  might be missing in Self.Args, and 'INOUT' arguments might
-         --  be marked as 'IN'. Also, there is no guarantee that the order
-         --  of arguments is the same in Args and Self.Args. An attempt
-         --  should be made to reconcile argument names and argument types
-         --  (tricky. See how Ada compilers do parameter reconciliation with
-         --  support for both named and positional parameter associations.)
-
-         --  Here we do our best by assuming that P_Args are exactly conformant
-         --  with A_Args, possibly with ARG_OUT arguments missing.
-
+         Pump_Up_Arguments
+           (A_Args => Args, P_Args => Self.Args,
+            Direction => Any.ARG_IN);
       end if;
    end Arguments;
 
