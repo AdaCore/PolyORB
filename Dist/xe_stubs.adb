@@ -526,7 +526,7 @@ package body XE_Stubs is
          Dwrite_Str  (FD, "--  Specific registration filters");
          Dwrite_Eol  (FD);
          Dwrite_Str  (FD, "with System.Garlic.Filters.");
-         Dwrite_Name (FD, Default_Registration_Filter);
+         Dwrite_Str  (FD, GNAT_Style (Default_Registration_Filter));
          Dwrite_Str  (FD, ";");
          Dwrite_Eol  (FD);
       end if;
@@ -535,7 +535,7 @@ package body XE_Stubs is
          Dwrite_Str  (FD, "--  Specific partition filters");
          Dwrite_Eol  (FD);
          Dwrite_Str  (FD, "with System.Garlic.Filters.");
-         Dwrite_Name (FD, Get_Filter (PID));
+         Dwrite_Str  (FD, GNAT_Style (Get_Filter (PID)));
          Dwrite_Str  (FD, ";");
          Dwrite_Eol  (FD);
       end if;
@@ -547,7 +547,7 @@ package body XE_Stubs is
          while CID /= Null_CID loop
             if Get_Filter (CID) /= No_Filter_Name then
                Dwrite_Str  (FD, "with System.Garlic.Filters.");
-               Dwrite_Name (FD, Get_Filter (CID));
+               Dwrite_Str  (FD, GNAT_Style (Get_Filter (CID)));
                Dwrite_Str  (FD, ";");
                Dwrite_Eol  (FD);
             end if;

@@ -169,6 +169,9 @@ package XE_Utils is
    procedure Delete
      (File : in File_Name_Type);
 
+   function  GNAT_Style (N : Name_Id) return String;
+   --  Return a string that approx. follows GNAT style.
+
    procedure Initialize;
    procedure Initialize_ALI renames ALI.Initialize_ALI;
 

@@ -1,3 +1,10 @@
+1998-02-25  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_utils.adb, xe_utils.ads: Add a new function GNAT_Style to
+ 	retrieve proper casing for a unit.
+
+	* xe_stubs.adb: Use GNAT_Style for filtering unit.
+
 1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: gnatdist is no longer a script. Use

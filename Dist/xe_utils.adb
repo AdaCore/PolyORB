@@ -533,6 +533,28 @@ package body XE_Utils is
    end Execute_Link;
 
    ----------------
+   -- GNAT_Style --
+   ----------------
+
+   function GNAT_Style (N : Name_Id) return String is
+      Capitalized : Boolean := True;
+   begin
+      Get_Name_String (N);
+      for I in 1 .. Name_Len loop
+         if Name_Buffer (I) in 'a' .. 'z' then
+            if Capitalized then
+               Name_Buffer (I) :=
+                 Character'Val (Character'Pos (Name_Buffer (I)) + Up_To_Low);
+               Capitalized := False;
+            end if;
+         elsif Name_Buffer (I) = '_' or else Name_Buffer (I) = '.' then
+            Capitalized := True;
+         end if;
+      end loop;
+      return Name_Buffer (1 .. Name_Len);
+   end GNAT_Style;
+
+   ----------------
    -- Initialize --
    ----------------
 
