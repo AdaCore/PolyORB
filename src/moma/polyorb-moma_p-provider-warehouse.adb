@@ -103,14 +103,12 @@ package body PolyORB.MOMA_P.Provider.Warehouse is
 
       if W.T_Persistence = None then
          Lock_R (W.T_Lock);
-         begin
-            Result := Lookup (W.T, K);
-            Unlock_R (W.T_Lock);
-         exception
-            when No_Key =>
-               Unlock_R (W.T_Lock);
-               raise Key_Not_Found;
-         end;
+         Result := Lookup (W.T, K, Result);
+         Unlock_R (W.T_Lock);
+
+         if Is_Empty (Result) then
+            raise Key_Not_Found;
+         end if;
       else
 --           Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
 --           Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
