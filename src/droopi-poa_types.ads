@@ -11,6 +11,7 @@ with Droopi.Objects;         use Droopi.Objects;
 with Droopi.Any;
 with Droopi.Any.NVList;
 with Droopi.Requests;
+with Droopi.Storage_Pools;
 with Droopi.Types; use Droopi.Types;
 with Sequences.Unbounded;
 
@@ -57,7 +58,9 @@ package Droopi.POA_Types is
    type POAList_Access is access all POAList;
 
    subtype Object_Id is Droopi.Objects.Object_Id;
-   type Object_Id_Access is access all Object_Id;
+   subtype Object_Id_Access is Droopi.Objects.Object_Id_Access;
+   function "=" (X, Y : Object_Id_Access) return Boolean
+     renames Droopi.Objects."=";
 
    type Unmarshalled_Oid is
      record
@@ -67,6 +70,7 @@ package Droopi.POA_Types is
          Creator          : Types.String;
      end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
+   for Unmarshalled_Oid_Access'Storage_Pool use Storage_Pools.Debug_Pool;
 
    function "=" (Left, Right : in Servant) return Standard.Boolean
       is abstract;
@@ -107,7 +111,8 @@ package Droopi.POA_Types is
      return Object_Id_Access;
    --  Marshall an Unmarshalled_Oid into an Object_Id
 
-   procedure Free (X : in out Droopi.POA_Types.Object_Id_Access);
+   procedure Free (X : in out Droopi.POA_Types.Object_Id_Access)
+     renames Droopi.Objects.Free;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Unmarshalled_Oid, Unmarshalled_Oid_Access);

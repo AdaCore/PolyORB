@@ -122,7 +122,7 @@ package body Droopi.POA_Types is
       U_Oid      : Unmarshalled_Oid_Access;
    begin
       Oid_Access := new Object_Id'(Oid);
-      Oid_Access.all := Oid;
+      --  Oid_Access.all := Oid;
       U_Oid := Oid_To_U_Oid (Oid_Access);
       Free (Oid_Access);
       return U_Oid;
@@ -151,18 +151,5 @@ package body Droopi.POA_Types is
       Release (Buffer);
       return Oid;
    end U_Oid_To_Oid;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free
-     (X : in out Droopi.POA_Types.Object_Id_Access)
-   is
-      Y : Droopi.Objects.Object_Id_Access
-        := Droopi.Objects.Object_Id_Access (X);
-   begin
-      Droopi.Objects.Free (Y);
-   end Free;
 
 end Droopi.POA_Types;

@@ -28,10 +28,10 @@ package body Droopi.Setup.Test_CORBA is
 
    procedure Initialize_CORBA_Test_Object is
    begin
-      Put ("Initializing OA confiuration");
+      Put ("Initializing OA confiuration... ");
       Droopi.POA_Config.Set_Configuration
         (new Droopi.POA_Config.Minimum.Minimum_Configuration);
-      Put ("Creating object adapter...");
+      Put ("Creating object adapter... ");
       Obj_Adapter := new Droopi.POA.Basic_POA.Basic_Obj_Adapter;
       Droopi.POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
       --  Create object adapter
@@ -45,17 +45,19 @@ package body Droopi.Setup.Test_CORBA is
       CORBA.Test_Object.Create (My_Object (My_Servant.all));
 
       declare
-         My_Id : aliased Droopi.Objects.Object_Id
-           := Droopi.Obj_Adapters.Export
-           (Droopi.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter),
-            Droopi.Objects.Servant_Access (My_Servant));
+         My_Id : constant Objects.Object_Id_Access
+           := new Objects.Object_Id'
+           (Droopi.Obj_Adapters.Export
+            (Droopi.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter),
+             Droopi.Objects.Servant_Access (My_Servant)));
+         --  XXX memory leak
          --  Register it with the SOA.
 
       begin
-         Create_Reference (The_ORB, My_Id'Unchecked_Access, My_Ref);
+         Create_Reference (The_ORB, My_Id, My_Ref);
          --  Obtain object reference.
 
-         Put_Line ("Registered object: " & Droopi.Objects.Image (My_Id));
+         Put_Line ("Registered object: " & Droopi.Objects.Image (My_Id.all));
          Put_Line ("Reference is     : " & References.Image (My_Ref));
          begin
             Put_Line ("IOR is           : "
