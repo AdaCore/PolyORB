@@ -50,58 +50,112 @@ package body PolyORB.Task_Info is
    end Image;
 
    --------------
+   -- May_Poll --
+   --------------
+
+   function May_Poll (TI : Task_Info) return Boolean is
+   begin
+      return TI.May_Poll;
+   end May_Poll;
+
+   --------------
    -- Selector --
    --------------
 
    function Selector (TI : Task_Info)
      return Asynch_Ev.Asynch_Ev_Monitor_Access is
    begin
-      pragma Assert (TI.Status = Blocked);
+      pragma Assert (TI.State = Blocked);
 
       return TI.Selector;
    end Selector;
 
-   ------------------------
-   -- Set_Status_Blocked --
-   ------------------------
+   -----------------------
+   -- Set_State_Blocked --
+   -----------------------
 
-   procedure Set_Status_Blocked
+   procedure Set_State_Blocked
      (TI       : in out Task_Info;
       Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access) is
    begin
-      pragma Assert (TI.Status = Running);
-
-      TI.Status   := Blocked;
+      TI.State    := Blocked;
       TI.Selector := Selector;
-   end Set_Status_Blocked;
+   end Set_State_Blocked;
 
-   ---------------------
-   -- Set_Status_Idle --
-   ---------------------
+   --------------------
+   -- Set_State_Idle --
+   --------------------
 
-   procedure Set_Status_Idle
+   procedure Set_State_Idle
      (TI        : in out Task_Info;
       Condition :        PTCV.Condition_Access) is
    begin
-      pragma Assert (TI.Status = Running);
-
-      TI.Status    := Idle;
+      TI.State     := Idle;
       TI.Condition := Condition;
-   end Set_Status_Idle;
+   end Set_State_Idle;
 
-   ------------------------
-   -- Set_Status_Running --
-   ------------------------
+   -----------------------
+   -- Set_State_Running --
+   -----------------------
 
-   procedure Set_Status_Running
+   procedure Set_State_Running
      (TI : in out Task_Info) is
    begin
-      pragma Assert (TI.Status /= Running);
-
-      TI.Status    := Running;
+      TI.State     := Running;
       TI.Selector  := null;
       TI.Condition := null;
-   end Set_Status_Running;
+   end Set_State_Running;
+
+   -----------
+   -- State --
+   -----------
+
+   function State (TI : Task_Info)
+     return Task_State is
+   begin
+      return TI.State;
+   end State;
+
+   ---------------
+   -- Condition --
+   ---------------
+
+   function Condition (TI : Task_Info)
+     return PTCV.Condition_Access is
+   begin
+      return TI.Condition;
+   end Condition;
+
+   --------------------
+   -- Exit_Condition --
+   --------------------
+
+   function Exit_Condition (TI : Task_Info)
+     return Boolean
+   is
+      use type PolyORB.Types.Boolean_Ptr;
+
+   begin
+      return TI.Exit_Condition /= null and then TI.Exit_Condition.all;
+   end Exit_Condition;
+
+   ------------------------
+   -- Set_Exit_Condition --
+   ------------------------
+
+   procedure Set_Exit_Condition
+     (TI             : in out Task_Info;
+      Exit_Condition :        PolyORB.Types.Boolean_Ptr)
+   is
+      use type PolyORB.Types.Boolean_Ptr;
+
+   begin
+      pragma Assert ((TI.Kind = Transient and then Exit_Condition /= null)
+                     or else (TI.Kind = Permanent
+                              and then Exit_Condition = null));
+
+      TI.Exit_Condition := Exit_Condition;
+   end Set_Exit_Condition;
 
    ------------
    -- Set_Id --
@@ -112,26 +166,53 @@ package body PolyORB.Task_Info is
       TI.Id := Tasking.Threads.Current_Task;
    end Set_Id;
 
-   ------------
-   -- Status --
-   ------------
+   -----------------
+   -- Set_Polling --
+   -----------------
 
-   function Status (TI : Task_Info)
-     return Task_Status is
+   procedure Set_Polling
+     (TI       : in out Task_Info;
+      May_Poll :        Boolean) is
    begin
-      return TI.Status;
-   end Status;
+      TI.May_Poll := May_Poll;
+   end Set_Polling;
 
-   ---------------
-   -- Condition --
-   ---------------
+   ---------------------------
+   -- Set_State_Unscheduled --
+   ---------------------------
 
-   function Condition (TI : Task_Info)
-     return PTCV.Condition_Access is
+   procedure Set_State_Unscheduled
+     (TI : in out Task_Info) is
    begin
-      pragma Assert (TI.Status = Idle);
+      pragma Assert (TI.State /= Unscheduled);
 
-      return TI.Condition;
-   end Condition;
+      TI.State     := Unscheduled;
+      TI.Selector  := null;
+      TI.Condition := null;
+   end Set_State_Unscheduled;
+
+   ---------------------------
+   -- Request_Abort_Polling --
+   ---------------------------
+
+   procedure Request_Abort_Polling
+     (TI            : in out Task_Info) is
+   begin
+      pragma Assert (TI.State = Blocked);
+
+      TI.Abort_Polling := True;
+   end Request_Abort_Polling;
+
+   -------------------
+   -- Abort_Polling --
+   -------------------
+
+   function Abort_Polling (TI : Task_Info)
+     return Boolean is
+   begin
+      pragma Assert (TI.State = Blocked);
+
+      return TI.Abort_Polling;
+   end Abort_Polling;
 
 end PolyORB.Task_Info;

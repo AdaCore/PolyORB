@@ -42,6 +42,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Jobs;
 with PolyORB.Log;
 with PolyORB.Setup;
+with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
@@ -74,7 +75,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    --  interleaving of reads and writes to this variable.
 
    Job_Mutex : Tasking.Mutexes.Mutex_Access;
-   Job_Taken : PTCV.Condition_Access;
+   Job_Taken : Condition_Access;
 
    procedure Request_Thread;
    --  Main loop executed by thread processing a request.
