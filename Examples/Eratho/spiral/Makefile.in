@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.0 from Makefile.am
+# Makefile.in generated automatically by automake 1.1g from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -37,6 +37,29 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
+target_alias = @target_alias@
+build_alias = @build_alias@
+host_triplet = @host@
+target_triplet = @target@
+build_triplet = @build@
+host_alias = @host_alias@
+LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
+LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
+AWK = @AWK@
+CC = @CC@
+VERSION = @VERSION@
+GNATMAKE = @GNATMAKE@
+CERRNO = @CERRNO@
+PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
+PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+PACKAGE = @PACKAGE@
+EXTRA_LIBS = @EXTRA_LIBS@
+TCP_INCLUDED = @TCP_INCLUDED@
+PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
+GNATFLAGS = @GNATFLAGS@
+GNAT_SOURCE = @GNAT_SOURCE@
+LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
@@ -50,50 +73,47 @@ PARTITIONS = partition1 partition2 partition3
 
 CLEANFILES = -r dsa *.o *.ali bin
 DISTCLEANFILES = $(EXTRA_PROGS) $(PARTITIONS)
-mkinstalldirs = $(top_srcdir)/mkinstalldirs
-DIST_COMMON = Makefile.am Makefile.in
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_CLEAN_FILES = 
+DIST_COMMON =  Makefile.am Makefile.in
 
 
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
-DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
 
 TAR = tar
 default: all
 
 
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
-	cd $(top_srcdir) && automake $(subdir)/Makefile
+	cd $(top_srcdir) && automake --strictness=foreign $(subdir)/Makefile
 
-Makefile: $(top_builddir)/config.status Makefile.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+Makefile: $(top_builddir)/config.status $(srcdir)/Makefile.in $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 tags: TAGS
 TAGS:
 
 
-subdir = Examples/Eratho/spiral
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-distdir: $(DEP_DISTFILES)
-	@for file in `cd $(srcdir) && echo $(DISTFILES)`; do \
+
+subdir = Examples/Eratho/spiral
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
-	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
-	  || cp -p $(srcdir)/$$file $(distdir)/$$file; \
+	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $$d/$$file $(distdir)/$$file; \
 	done
 info:
-
 dvi:
-
 check: all
-
 installcheck:
-
 install-exec: 
+	$(NORMAL_INSTALL)
 
 install-data: 
+	$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
@@ -115,7 +135,8 @@ clean-generic:
 
 distclean-generic:
 	rm -f Makefile $(DISTCLEANFILES)
-	rm -f config.cache config.log $(CONFIG_HEADER) stamp-h
+	rm -f config.cache config.log stamp-h
+	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 
 maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
