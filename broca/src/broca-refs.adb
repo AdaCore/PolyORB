@@ -31,8 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
+
 with Broca.Locks;
 
 with Broca.Debug;
@@ -75,7 +77,11 @@ package body Broca.Refs is
                        & Img (Obj.Counter + 1)));
       Obj.Counter := Obj.Counter + 1;
       Counter_Global_Lock.Unlock;
-
+   exception
+      when E : others =>
+         pragma Debug (O ("Inc_Usage: caught "
+                          & Ada.Exceptions.Exception_Information (E)));
+         raise;
    end Inc_Usage;
 
    ---------------
@@ -136,8 +142,12 @@ package body Broca.Refs is
 
    procedure Adjust (The_Ref : in out Ref) is
    begin
+      pragma Debug (O ("Adjust: enter"));
       if The_Ref.A_Ref /= null then
          Inc_Usage (The_Ref.A_Ref);
+      else
+         pragma Debug (O ("Adjust: null ref"));
+         null;
       end if;
    end Adjust;
 
@@ -147,12 +157,19 @@ package body Broca.Refs is
 
    procedure Finalize (The_Ref : in out Ref) is
    begin
-      pragma Debug (O ("Finalize : enter"));
+      pragma Debug (O ("Finalize: enter"));
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
+      else
+         pragma Debug (O ("Finalize: null ref"));
+         null;
       end if;
       The_Ref.A_Ref := null;
-
+   exception
+      when E : others =>
+         pragma Debug (O ("Finalize: caught "
+                          & Ada.Exceptions.Exception_Information (E)));
+         raise;
    end Finalize;
 
    ------------

@@ -1332,22 +1332,18 @@ package body Broca.RootPOA is
             pragma Debug (O ("GIOP_Invoke: Got Read lock on request (2)."));
          end if;
 
---           pragma Debug (O ("GIOP_Invoke: Preparing POA_Task_Attributes."));
---           declare
---              My_Task_Attributes : constant POA_Task_Attribute
---                := (Oid, PortableServer.POA.Convert.To_Forward (A_POA));
---           begin
---              pragma Debug (O ("GIOP_Invoke: Setting POA_Task_Attributes."));
---              --  Attributes.Set_Value (My_Task_Attributes);
---              pragma Debug (O ("GIOP_Invoke: Did set POA_Task_Attributes."));
---           end;
---
-
          pragma Debug (O ("GIOP_Invoke: Setting current object ID."));
          Task_Attributes.Set_Current_Object (Oid);
-         pragma Debug (O ("GIOP_Invoke: Setting current POA."));
-         Task_Attributes.Set_Current_POA
-           (PortableServer.POA.Convert.To_Forward (A_POA));
+
+         --  FIXME:
+         --  Call to Set_Current_POA disabled for now.
+         --  This feature is unsupported for now because of a tasking
+         --  problem. See Set_Current_POA for a detailed analysis.
+
+         --  pragma Debug (O ("GIOP_Invoke: Setting current POA."));
+         --  Task_Attributes.Set_Current_POA
+         --    (PortableServer.POA.Convert.To_Forward (A_POA));
+
          pragma Debug (O ("GIOP_Invoke: Setting Has_Context."));
          Task_Attributes.Set_Has_Context;
          pragma Debug (O ("GIOP_Invoke: All task attributes positioned."));

@@ -61,6 +61,14 @@ package body Broca.Task_Attributes is
    function Current_POA return PortableServer.POA_Forward.Ref is
    begin
       pragma Assert (Has_Context);
+      pragma Assert (False);
+      --  FIXME:
+      --  Current_POA is not currently supported in AdaBroker.
+      --  Rationale: Cannot use a Ref as a task attribute,
+      --  because Set on a task attribute is protected by
+      --  a mutex, and assigning a ref causes a protected
+      --  entry call which may cause a priority ceiling
+      --  violation. This may or may not be a bug in GNAT 3.13p.
       return Attributes.Value.Current_POA;
    end Current_POA;
 
@@ -74,6 +82,8 @@ package body Broca.Task_Attributes is
    procedure Set_Current_POA (Val : PortableServer.POA_Forward.Ref) is
       Current_Attributes : Task_Attribute := Attributes.Value;
    begin
+      pragma Assert (False);
+      --  Not supported (see above).
       Current_Attributes.Current_POA := Val;
       Attributes.Set_Value (Current_Attributes);
    end Set_Current_POA;
