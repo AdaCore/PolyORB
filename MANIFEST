@@ -970,6 +970,7 @@ testsuite/core/initialization/Makefile.in
 testsuite/core/initialization/test000.adb
 testsuite/core/initialization/test001.adb
 testsuite/core/initialization/test002.adb
+testsuite/core/initialization/test003.adb
 testsuite/core/obj_adapters/Makefile.am
 testsuite/core/obj_adapters/Makefile.in
 testsuite/core/obj_adapters/test000.adb
