@@ -128,23 +128,19 @@ adabe_attribute::produce_impl_ads(dep_list& with, string &body, string &previous
 void
 adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
-  body += "   -- Get_" + get_ada_local_name() + "\n" ;
-  body += "   --------------------------\n" ;
   body += "   function Get_" + get_ada_local_name() +"(Self : access Object) return ";
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + " is\n";
   body += "   begin\n";
-  body += "   end;\n\n\n"; 
+  body += "   end ;\n\n\n"; 
   if (!readonly())
     {
-      body += "   -- Set_" + get_ada_local_name() + "\n" ;
-      body += "   --------------------------\n" ;
       body += "   procedure Set_" + get_ada_local_name() +"(Self : access Object ; To : in ";
       body += name;
       body += ") is\n";
       body += "   begin\n";
-      body += "   end;\n\n\n"; 
+      body += "   end ;\n\n\n"; 
     } 
 }
 
