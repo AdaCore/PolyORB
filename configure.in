@@ -5,27 +5,18 @@ AC_INIT([Dist/xe.ads])
 #
 # Package description
 #
-PACKAGE=pcs
-AC_SUBST(PACKAGE)
-VERSION=1.0
-AC_SUBST(VERSION)
+AC_CANONICAL_SYSTEM
+AM_INIT_AUTOMAKE
 #
 # Various programs
 #
+AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_PROG_CC
 AC_PROG_RANLIB
 AC_CHECK_PROGS(SED, [gnused gsed sed])
-AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
-AC_CHECK_PROGS(UNZIP, [gunzip])
+AC_CHECK_PROGS(SSH, [ssh])
 AC_CHECK_PROGS(TAR, [gtar tar])
-AC_DEFUN(AM_PROG_INSTALL,
-[AC_REQUIRE([AC_PROG_INSTALL])
-test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL_PROGRAM}'
-AC_SUBST(INSTALL_SCRIPT)dnl
-])
-AM_PROG_INSTALL
-AC_CANONICAL_SYSTEM
-AC_ARG_PROGRAM
+AC_CHECK_PROGS(UNZIP, [gunzip])
 #
 # Check for maintainer mode
 #
@@ -89,10 +80,6 @@ AC_DEFUN([AC_GNAT_SOURCE],
 ])
 AC_GNAT_SOURCE
 #
-# Make
-#
-AC_PROG_MAKE_SET
-#
 # Platform specific
 #
 AC_MSG_CHECKING(which platform-specific variant to use)
@@ -129,10 +116,13 @@ AC_MSG_CHECKING(which remote shell to use)
 AC_ARG_WITH(remsh,
  [  --with-remsh=command   Select a remote shell command],
  [RSH="${withval}"],
-[case "${target}" in
-  hppa*-hp-hpux*)      RSH=remsh;;
-  *)                   RSH=rsh;;
-esac])
+[if test -z "$SSH"; then
+  case "${target}" in
+   hppa*-hp-hpux*)      RSH=remsh;;
+   *)                   RSH=rsh;;
+ esac; else
+  RSH=$SSH
+ fi])
 AC_SUBST(RSH)
 AC_MSG_RESULT($RSH)
 #

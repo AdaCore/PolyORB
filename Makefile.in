@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1g from Makefile.am
+# Makefile.in generated automatically by automake 1.1m from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -36,65 +36,76 @@ pkgincludedir = $(includedir)/@PACKAGE@
 
 top_builddir = .
 
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-target_alias = @target_alias@
 build_alias = @build_alias@
-host_triplet = @host@
-target_triplet = @target@
 build_triplet = @build@
 host_alias = @host_alias@
-LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
-LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
 AWK = @AWK@
 CC = @CC@
-VERSION = @VERSION@
-TAR = @TAR@
-GNATMAKE = @GNATMAKE@
 CERRNO = @CERRNO@
-PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
-PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
-PACKAGE = @PACKAGE@
 EXTRA_LIBS = @EXTRA_LIBS@
-RSH = @RSH@
-TCP_INCLUDED = @TCP_INCLUDED@
-PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
-UNZIP = @UNZIP@
 GNATFLAGS = @GNATFLAGS@
-RANLIB = @RANLIB@
+GNATMAKE = @GNATMAKE@
 GNAT_SOURCE = @GNAT_SOURCE@
-SED = @SED@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
+LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
+PACKAGE = @PACKAGE@
+PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
+PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
+PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
+RANLIB = @RANLIB@
+RSH = @RSH@
+SED = @SED@
+SSH = @SSH@
+TAR = @TAR@
+TCP_INCLUDED = @TCP_INCLUDED@
+UNZIP = @UNZIP@
+VERSION = @VERSION@
 
 AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = Dist Garlic
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  README COPYING ChangeLog INSTALL Makefile.am Makefile.in \
-README TODO config.guess config.sub configure configure.in install-sh \
-mkinstalldirs
+TODO aclocal.m4 config.guess config.sub configure configure.in \
+install-sh missing mkinstalldirs
 
 
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+GZIP = --best
 default: all
 
+.SUFFIXES:
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
 
-$(srcdir)/Makefile.in: Makefile.am configure.in
-	cd $(srcdir) && automake --strictness=foreign Makefile
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-# For an explanation of the following Makefile rules, see node
-# `Automatic Remaking' in GNU Autoconf documentation.
-Makefile: $(srcdir)/Makefile.in config.status $(BUILT_SOURCES)
-	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+$(srcdir)/aclocal.m4:  configure.in 
+	cd $(srcdir) && $(ACLOCAL)
+
 config.status: configure
 	$(SHELL) ./config.status --recheck
-$(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
-	cd $(srcdir) && autoconf
+$(srcdir)/configure: configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && $(AUTOCONF)
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -110,28 +121,30 @@ installdirs-recursive install-recursive uninstall-recursive  \
 check-recursive installcheck-recursive info-recursive dvi-recursive \
 mostlyclean-recursive clean-recursive distclean-recursive \
 maintainer-clean-recursive:
-	for subdir in $(SUBDIRS); do		\
+	@for subdir in $(SUBDIRS); do \
 	  target=`echo $@ | sed s/-recursive//`; \
-	  (cd $$subdir && $(MAKE) $$target)	\
+	  echo "Making $$target in $$subdir"; \
+	  (cd $$subdir && $(MAKE) $$target) \
 	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
 	done && test -z "$$fail"
-
-tags: TAGS
-
 tags-recursive:
 	list="$(SUBDIRS)"; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) tags); \
 	done
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES) $(CONFIG_HEADER) \
-		$(TAGS_DEPENDENCIES)
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES)
+	here=`pwd` && cd $(srcdir) && mkid -f$$here/ID $(SOURCES) $(HEADERS)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES)
 	tags=; \
 	here=`pwd`; \
-	for subdir in $(SUBDIRS); do \
+	list="$(SUBDIRS)"; for subdir in $$list; do \
 	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
 	done; \
-	test -z "$(ETAGS_ARGS)$(CONFIG_HEADER)$(SOURCES)$(HEADERS)$$tags" \
-	  || etags $(ETAGS_ARGS) $$tags $(CONFIG_HEADER) $(SOURCES) $(HEADERS)
+	test -z "$(ETAGS_ARGS)$(SOURCES)$(HEADERS)$$tags" \
+	  || cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $(SOURCES) $(HEADERS) -o $$here/TAGS
 
 mostlyclean-tags:
 
@@ -148,7 +161,7 @@ distdir = $(PACKAGE)-$(VERSION)
 # tarfile.
 distcheck: dist
 	rm -rf $(distdir)
-	$(TAR) zxf $(distdir).tar.gz
+	GZIP=$(GZIP) $(TAR) zxf $(distdir).tar.gz
 	mkdir $(distdir)/=build
 	mkdir $(distdir)/=inst
 	dc_install_base=`cd $(distdir)/=inst && pwd`; \
@@ -166,11 +179,11 @@ distcheck: dist
 	echo "========================"
 dist: distdir
 	-chmod -R a+r $(distdir)
-	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
 	rm -rf $(distdir)
 dist-all: distdir
 	-chmod -R a+r $(distdir)
-	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
 	rm -rf $(distdir)
 distdir: $(DISTFILES)
 	rm -rf $(distdir)
@@ -178,7 +191,7 @@ distdir: $(DISTFILES)
 	-chmod 755 $(distdir)
 	here=`pwd`; distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --strictness=foreign
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
@@ -234,21 +247,21 @@ maintainer-clean-generic:
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean-am:  mostlyclean-tags mostlyclean-generic
 
-clean-am:  clean-tags clean-generic mostlyclean-am 
+clean-am:  clean-tags clean-generic mostlyclean-am
 
-distclean-am:  distclean-tags distclean-generic clean-am 
+distclean-am:  distclean-tags distclean-generic clean-am
 
 maintainer-clean-am:  maintainer-clean-tags maintainer-clean-generic \
-		distclean-am 
+		distclean-am
 
-mostlyclean:  mostlyclean-am mostlyclean-recursive
+mostlyclean:  mostlyclean-recursive mostlyclean-am
 
-clean:  clean-am clean-recursive
+clean:  clean-recursive clean-am
 
-distclean:  distclean-am distclean-recursive
+distclean:  distclean-recursive distclean-am
 	rm -f config.status
 
-maintainer-clean:  maintainer-clean-am maintainer-clean-recursive
+maintainer-clean:  maintainer-clean-recursive maintainer-clean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 	rm -f config.status
@@ -259,12 +272,11 @@ uninstalldirs-recursive all-recursive check-recursive \
 installcheck-recursive info-recursive dvi-recursive \
 mostlyclean-recursive distclean-recursive clean-recursive \
 maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
-distclean-tags clean-tags maintainer-clean-tags distdir info dvi check \
+distclean-tags clean-tags maintainer-clean-tags distdir info dvi \
 installcheck all-am install-exec install-data install uninstall all \
 installdirs mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
-.SUFFIXES:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
