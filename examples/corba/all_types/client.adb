@@ -28,6 +28,7 @@
 
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
+with Ada.Real_Time; use Ada.Real_Time;
 with Ada.Text_IO;
 
 with CORBA; use CORBA;
@@ -45,14 +46,22 @@ with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 procedure Client is
    Myall_types : all_types.Ref;
    Ok : Boolean;
-   One_Shot : constant Boolean := Ada.Command_Line.Argument_Count /= 2
-                 or else Boolean'Value (Ada.Command_Line.Argument (2));
+   Howmany : Integer := 1;
+   Echo_Long_Only : constant Boolean := Ada.Command_Line.Argument_Count = 3
+                      and then Boolean'Value (Ada.Command_Line.Argument (3));
+
+   Start : Time;
+
 begin
    CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
-         ("usage : client <IOR_string_from_server|name|-i> [oneshot]");
+         ("usage : client <IOR_string_from_server|name|-i> [howmany [longonly]]");
       return;
+   end if;
+
+   if Ada.Command_Line.Argument_Count >= 2 then
+      Howmany := Integer'Value (Ada.Command_Line.Argument (2));
    end if;
 
    if Argument (1) = "-i" then
@@ -68,7 +77,20 @@ begin
 
    Output ("test not null", not all_types.Is_Nil (Myall_types));
 
-   loop
+   Start := Clock;
+   while Howmany > 0 loop
+      declare
+         L : Unsigned_Long := echoULong (Myall_Types, 123);
+      begin
+         if Echo_Long_Only then
+            pragma Assert (L = 123);
+            goto End_Of_Loop;
+            --  We are only doing an echoULong call, and we are
+            --  interested in getting it as fast as possible.
+         end if;
+         Output ("test unsigned_long", L = 123);
+      end;
+
       Output ("test string",
               To_Standard_String
               (echoString
@@ -78,7 +100,6 @@ begin
       Output ("test short", echoShort (Myall_types, 123) = 123);
       Output ("test long",  echoLong (Myall_types, 456) = 456);
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
-      Output ("test unsigned_long", echoULong (Myall_types, 123) = 123);
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
       Output ("test double", echoDouble (Myall_types, 1.5) = 1.5);
       begin
@@ -272,7 +293,14 @@ begin
       end;
       Output ("test unknown exception", Ok);
 
-      exit when One_Shot;
+      <<End_Of_Loop>>
+      Howmany := Howmany - 1;
    end loop;
 
+   declare
+      Elapsed : constant Duration
+        := To_Duration (Clock - Start);
+   begin
+      Ada.Text_IO.Put_Line ("Elapsed:" & Duration'Image (Elapsed));
+   end;
 end Client;
