@@ -218,7 +218,7 @@ package body System.Garlic.No_Tasking is
    -- Lookup --
    ------------
 
-   procedure Lookup (W : in out Unprotected_Watcher_Type; V : out Version_Id)
+   procedure Lookup (W : in Unprotected_Watcher_Type; V : out Version_Id)
      is
    begin
       V := W.Version;

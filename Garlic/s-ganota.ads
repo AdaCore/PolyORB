@@ -79,7 +79,7 @@ package System.Garlic.No_Tasking is
       V : in Types.Version_Id);
 
    procedure Lookup
-     (W : in out Unprotected_Watcher_Type;
+     (W : in Unprotected_Watcher_Type;
       V : out Types.Version_Id);
 
    procedure Update (W : in out Unprotected_Watcher_Type);

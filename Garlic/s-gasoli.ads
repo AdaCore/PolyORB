@@ -134,7 +134,7 @@ package System.Garlic.Soft_Links is
    --  Await until W version differs from V
 
    procedure Lookup
-     (W : in out Watcher_Type;
+     (W : in Watcher_Type;
       V : out Types.Version_Id) is abstract;
    --  Fetch W version
 
