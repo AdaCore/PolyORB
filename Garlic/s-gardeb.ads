@@ -88,7 +88,7 @@ package System.Garlic.Debug is
    --  is used to debug the global lock itself.
 
    function Debug_Mode
-     (Key     : Debug_Key)
+     (Key : Debug_Key)
       return Boolean;
    pragma Inline (Debug_Mode);
    --  Return true if this level is active

@@ -98,8 +98,8 @@ package body System.Garlic.Remote is
    -----------------
 
    procedure Full_Launch
-     (Host        : String;
-      Command     : String)
+     (Host    : String;
+      Command : String)
    is
       Argument : constant String := Get_Boot_Locations;
    begin
@@ -140,7 +140,7 @@ package body System.Garlic.Remote is
 
    function Get_Host
      (Partition : String)
-     return String
+      return String
    is
       Buffer : String (1 .. 64);
       Last   : Natural;
@@ -156,7 +156,7 @@ package body System.Garlic.Remote is
 
    function Is_Local_Host
      (Host : String)
-     return Boolean
+      return Boolean
    is
       Name_Of_Host : constant String
         := Official_Name (Get_Host_By_Name (Host));
@@ -170,10 +170,8 @@ package body System.Garlic.Remote is
    -- Launch_Registered_Partitions --
    ----------------------------------
 
-   procedure Launch_Registered_Partitions
-   is
+   procedure Launch_Registered_Partitions is
       P : Partition_List;
-
    begin
       if Options.Nolaunch then
          return;
@@ -203,7 +201,6 @@ package body System.Garlic.Remote is
       Command_Line : String)
    is
       P : Partition_List;
-
    begin
       P := new Partition_Info;
       P.Command_Line := new String'(Command_Line);

@@ -65,13 +65,13 @@ package System.Garlic.Partitions is
      (Partition      : in Types.Partition_ID;
       Boot_Partition : out Types.Partition_ID;
       Error          : in out Exceptions.Error_Type);
-   --  Return the pid of the partition used to boot Partition.
+   --  Return the pid of the partition used to boot Partition
 
    procedure Get_Is_Active_Partition
      (Partition : in Types.Partition_ID;
       Active    : out Boolean;
       Error     : in out Exceptions.Error_Type);
-   --  Return whether a partition is active or not.
+   --  Return whether a partition is active or not
 
    procedure Get_Mem_Location
      (Partition : in Types.Partition_ID;

@@ -78,8 +78,7 @@ package System.Garlic.Protocols is
       Self_Data : in String;
       Required  : in Boolean;
       Performed : out Boolean;
-      Error     : in out Exceptions.Error_Type)
-     is abstract;
+      Error     : in out Exceptions.Error_Type) is abstract;
    --  Initialize protocol. When Self_Data is non-null, use this
    --  location to receive messages. Required means that this
    --  initialization must be done. When Required is false, this
@@ -97,23 +96,22 @@ package System.Garlic.Protocols is
    --  since the protocols used may not depend on it.
 
    function Receive
-     (Protocol  : access Protocol_Type;
-      Timeout   : Duration)
-     return Boolean is abstract;
+     (Protocol : access Protocol_Type;
+      Timeout  : Duration)
+      return Boolean is abstract;
    --  Try to receive any incoming stream, analyze and process
    --  it. Return False if Timeout expired.
 
    procedure Set_Boot_Data
      (Protocol  : access Protocol_Type;
       Boot_Data : in String;
-      Error     : in out Exceptions.Error_Type)
-     is abstract;
+      Error     : in out Exceptions.Error_Type) is abstract;
    --  When Boot_Data is non-null, use this location to contact boot
    --  partition.
 
    function Get_Data
      (Protocol : access Protocol_Type)
-     return GNAT.Strings.String_List_Access;
+      return GNAT.Strings.String_List_Access;
    --  Return a string array which holds all the physical locations to
    --  be used by another partition to contact us.
 
@@ -144,4 +142,3 @@ package System.Garlic.Protocols is
    --  Shutdown every protocol
 
 end System.Garlic.Protocols;
-

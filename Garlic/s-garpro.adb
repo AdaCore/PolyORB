@@ -43,7 +43,7 @@ package body System.Garlic.Protocols is
 
    function Get_Data
      (Protocol  : access Protocol_Type)
-     return String_List_Access
+      return String_List_Access
    is
       pragma Unreferenced (Protocol);
    begin
@@ -54,8 +54,7 @@ package body System.Garlic.Protocols is
    -- Receive_From_All_Protocols --
    --------------------------------
 
-   procedure Receive_From_All_Protocols
-   is
+   procedure Receive_From_All_Protocols is
       Timeout  : Duration := Polling;
       Protocol : Natural  := First_Protocol;
 
@@ -98,4 +97,3 @@ package body System.Garlic.Protocols is
    end Shutdown;
 
 end System.Garlic.Protocols;
-

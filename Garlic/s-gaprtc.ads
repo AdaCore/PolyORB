@@ -55,12 +55,10 @@ package System.Garlic.Protocols.Tcp is
    function Create return Protocol_Access;
 
    function Get_Data
-     (Protocol  : access TCP_Protocol)
-     return GNAT.Strings.String_List_Access;
-
-   function Get_Name
      (Protocol : access TCP_Protocol)
-     return String;
+      return GNAT.Strings.String_List_Access;
+
+   function Get_Name (Protocol : access TCP_Protocol) return String;
 
    procedure Initialize
      (Protocol  : access TCP_Protocol;
@@ -72,7 +70,7 @@ package System.Garlic.Protocols.Tcp is
    function Receive
      (Protocol : access TCP_Protocol;
       Timeout  : Duration)
-     return Boolean;
+      return Boolean;
 
    procedure Send
      (Protocol  : access TCP_Protocol;
@@ -89,8 +87,7 @@ package System.Garlic.Protocols.Tcp is
 
    Shutdown_Completed : Boolean := False;
 
-   procedure Accept_Until_Closed
-     (Incoming : in Natural);
+   procedure Accept_Until_Closed (Incoming : in Natural);
 
    procedure Receive_Until_Closed
      (Peer : in GNAT.Sockets.Socket_Type;

@@ -60,19 +60,19 @@ package body System.Garlic.Partitions is
      renames Print_Debug_Info;
 
    type Partition_Info is record
-      Allocated       : Boolean;
-      Partition_Name  : String_Access;
-      Is_Active_Part  : Boolean;
-      Net_Loc_In_Use  : Location_Type;
-      Net_Locations   : String_Access;
-      Mem_Locations   : String_Access;
-      Termination     : Types.Termination_Type;
-      Reconnection    : Types.Reconnection_Type;
-      Is_Pure_Client  : Boolean;
-      Is_Boot_Mirror  : Boolean;
-      Boot_Partition  : Types.Partition_ID;
-      Online          : Boolean;
-      Status          : Types.Status_Type;
+      Allocated      : Boolean;
+      Partition_Name : String_Access;
+      Is_Active_Part : Boolean;
+      Net_Loc_In_Use : Location_Type;
+      Net_Locations  : String_Access;
+      Mem_Locations  : String_Access;
+      Termination    : Types.Termination_Type;
+      Reconnection   : Types.Reconnection_Type;
+      Is_Pure_Client : Boolean;
+      Is_Boot_Mirror : Boolean;
+      Boot_Partition : Types.Partition_ID;
+      Online         : Boolean;
+      Status         : Types.Status_Type;
    end record;
 
    --  Allocated      : true when this slot is not empty
@@ -147,7 +147,7 @@ package body System.Garlic.Partitions is
    --  Number of boot mirrors
 
    Allocator_Mutex : Soft_Links.Mutex_Access;
-   --  Critical section for PID allocator.
+   --  Critical section for PID allocator
 
    Allocator_Watcher : Soft_Links.Watcher_Access;
    --  Allocating a partition id can generate a group
@@ -186,10 +186,10 @@ package body System.Garlic.Partitions is
    --  policy sets to local termination.
 
    function Is_Known (Info : Partition_Info) return Boolean;
-   --  Return True when the partition is known (done or dead).
+   --  Return True when the partition is known (done or dead)
 
    function Is_Online (Info : Partition_Info) return Boolean;
-   --  Return True when the partition is done and online.
+   --  Return True when the partition is done and online
 
    type Matching_Function is
      access function (Info : Partition_Info) return Boolean;
@@ -197,7 +197,7 @@ package body System.Garlic.Partitions is
    function Matching_Partitions
      (Match : Matching_Function)
      return Partition_List;
-   --  Return a list of partitions ids that match the criteria Match.
+   --  Return a list of partitions ids that match the criteria Match
 
    procedure Read_Partition
      (Stream : access Streams.Params_Stream_Type;
@@ -205,28 +205,28 @@ package body System.Garlic.Partitions is
       Name   : in     String;
       Info   : in out Partition_Info;
       Error  : in out Error_Type);
-   --  Unmarshal partition info and update partition table if needed.
+   --  Unmarshal partition info and update partition table if needed
 
    procedure Read_Partitions
      (Stream : access Streams.Params_Stream_Type;
       Error  : in out Error_Type);
-   --  Unmarshal partition info table.
+   --  Unmarshal partition info table
 
    procedure Validate_PID
      (PID  : in out Types.Partition_ID;
       From : in Types.Partition_ID;
       Name : in String);
-   --  Validate when all the boot mirrors agree on a given PID.
+   --  Validate when all the boot mirrors agree on a given PID
 
    procedure Write_Partition
      (Stream : access Streams.Params_Stream_Type;
       PID    : in Partition_ID;
       Info   : in Partition_Info);
-   --  Marshal partition info if needed.
+   --  Marshal partition info if needed
 
    procedure Write_Partitions
      (Stream : access Streams.Params_Stream_Type);
-   --  Marshal partition info table.
+   --  Marshal partition info table
 
    Copy_Table : constant Request_Type := (Kind => Copy_Partition_Table);
    Pull_Table : constant Request_Type := (Kind => Pull_Partition_Table);
@@ -264,7 +264,7 @@ package body System.Garlic.Partitions is
          end loop;
       end if;
 
-      --  If we do not have already a partition id.
+      --  If we do not have already a partition id
 
       if PID = Null_PID then
          for P in First_PID .. Last_PID loop
@@ -1330,7 +1330,7 @@ package body System.Garlic.Partitions is
             Partitions.Set_Component (PID, Info);
          end if;
 
-         --  Broadcast the partition id of this partition.
+         --  Broadcast the partition id of this partition
 
          if Boot_Mirrors > 1 then
             Partitions.Enter;
@@ -1538,7 +1538,7 @@ package body System.Garlic.Partitions is
 
    procedure Shutdown is
    begin
-      --  Resume tasks waiting for an update of partition info table.
+      --  Resume tasks waiting for an update of partition info table
 
       Partitions.Update;
    end Shutdown;
@@ -1595,7 +1595,7 @@ package body System.Garlic.Partitions is
    is
       pragma Unreferenced (PID);
    begin
-      Boolean'Write           (Stream, Info.Is_Active_Part);
+      Boolean'Write (Stream, Info.Is_Active_Part);
       if Info.Status = Dead then
          String'Output (Stream, "");
          String'Output (Stream, "");
