@@ -242,7 +242,7 @@ package body PolyORB.Buffers is
      return Stream_Element_Array
    is
       Contents : Zone_Access := To_Stream_Element_Array (Buffer);
-      Result   : constant Stream_Element_Array  := Contents.all;
+      Result   : constant Stream_Element_Array := Contents.all;
    begin
       Free (Contents);
       return Result;
@@ -302,12 +302,13 @@ package body PolyORB.Buffers is
    begin
       if Padding = 0 then
          --  Buffer is already aligned.
+
          return;
       end if;
 
       pragma Debug
-        (O ("Pad_Align: pos = " & Stream_Element_Offset'Image
-            (Buffer.CDR_Position)));
+        (O ("Pad_Align: pos = "
+            & Stream_Element_Offset'Image (Buffer.CDR_Position)));
       pragma Debug
         (O ("Aligning on" & Alignment_Type'Image (Alignment)));
       pragma Debug (O ("Padding by"
@@ -350,6 +351,7 @@ package body PolyORB.Buffers is
    begin
       if Padding = 0 then
          --  Buffer is already aligned.
+
          return;
       end if;
 
@@ -370,13 +372,12 @@ package body PolyORB.Buffers is
 
       pragma Assert (Buffer.CDR_Position mod Alignment = 0);
       --  Post-condition: the buffer is aligned as requested.
+
       pragma Debug
         (O ("Align_Position: now at"
             & Stream_Element_Offset'Image (Buffer.CDR_Position)));
 
    end Align_Position;
-
-   --  Inserting data into a buffer
 
    ---------------------
    -- Insert_Raw_Data --
@@ -425,8 +426,7 @@ package body PolyORB.Buffers is
                            Iov_Len  => Storage_Offset (Size));
 
             A_Data := Chunk_Storage (A_Chunk);
-            Metadata (A_Chunk).all :=
-              (Last_Used             => Size);
+            Metadata (A_Chunk).all := (Last_Used => Size);
             Append
               (Iovec_Pool => Buffer.Contents,
                An_Iovec   => Data_Iovec,
@@ -542,8 +542,7 @@ package body PolyORB.Buffers is
    procedure Send_Buffer
      (Buffer : access Buffer_Type;
       Socket :        Sockets.Socket_Type;
-      To     :        Sockets.Sock_Addr_Type := Sockets.No_Sock_Addr)
-   is
+      To     :        Sockets.Sock_Addr_Type := Sockets.No_Sock_Addr) is
    begin
       Iovec_Pools.Write_To_Socket
         (Socket, Buffer.Contents'Access, Buffer.Length, To);
@@ -566,6 +565,8 @@ package body PolyORB.Buffers is
         := Buffer.CDR_Position;
 
    begin
+      pragma Debug (O ("Receive_buffer: max is" & Max'Img));
+
       Allocate_And_Insert_Cooked_Data (Buffer, Max, Data);
       declare
          Z_Addr : constant System.Address := Data;
@@ -588,10 +589,8 @@ package body PolyORB.Buffers is
    -- Utility subprograms --
    -------------------------
 
-   procedure Show
-     (Octets : Zone_Access);
-   --  Display the contents of Octets for
-   --  debugging purposes.
+   procedure Show (Octets : Zone_Access);
+   --  Display the contents of Octets for debugging purposes.
 
    ----------
    -- Show --
@@ -613,10 +612,9 @@ package body PolyORB.Buffers is
    begin
       for J in Octets'Range loop
          Hexa (Index_Hexa) := ' ';
-         Hexa (Index_Hexa + 1) := Hex
-           (Natural (Octets (J) / 16) + 1);
-         Hexa (Index_Hexa + 2) := Hex
-           (Natural (Octets (J) mod 16) + 1);
+         Hexa (Index_Hexa + 1) := Hex (Natural (Octets (J) / 16) + 1);
+         Hexa (Index_Hexa + 2) := Hex (Natural (Octets (J) mod 16) + 1);
+
          Index_Hexa := Index_Hexa + 3;
 
          if Octets (J) < 32 or else Octets (J) > 127 then
@@ -739,8 +737,8 @@ package body PolyORB.Buffers is
                      Last_Iovec.Iov_Len := Last_Iovec.Iov_Len
                        + Storage_Offset (Size);
                   else
-                     --  Cannot grow last chunk: leave Data
-                     --  unchanged.
+                     --  Cannot grow last chunk: leave Data unchanged.
+
                      pragma Debug
                        (O ("Cannot satisfy growth request of size"
                            & Stream_Element_Offset'Image (Size)));
@@ -752,8 +750,10 @@ package body PolyORB.Buffers is
 
       begin
          Data := System.Null_Address;
+
          if Iovec_Pool.Last = 0 then
             --  Empty Iovec pool.
+
             return;
          end if;
 
@@ -949,6 +949,7 @@ package body PolyORB.Buffers is
 
          begin
             --  Append new Iovec.
+
             Pool_Iovecs (1 .. New_Last)
               := Prefix_Iovecs (Prefix_Iovecs'Range)
               & Pool_Iovecs (1 .. Iovec_Pool.Last);
