@@ -123,6 +123,19 @@ AC_SUBST(PLATFORM_SPECIFIC)
 esac]
 AC_MSG_RESULT($PSNAME)
 #
+# Platform specific
+#
+AC_MSG_CHECKING(which remote shell to use)
+AC_ARG_WITH(remsh,
+ [  --with-remsh=command   Select a remote shell command],
+ [RSH="${withval}"],
+[case "${target}" in
+  hppa*-hp-hpux*)      RSH=remsh;;
+  *)                   RSH=rsh;;
+esac])
+AC_SUBST(RSH)
+AC_MSG_RESULT($RSH)
+#
 # Filter list
 #
 AC_ARG_WITH(filters,

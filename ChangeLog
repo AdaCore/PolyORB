@@ -1,3 +1,8 @@
+	* configure.in: Standard help strings for --with-filters and
+	  --with-protocols.
+
+Wed Feb 26 10:45:18 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
 	* configure.in: Reduce the effort of a third party to
  	add a new filter. The third party just have to provide a
  	Makefile.<filter>.
