@@ -783,32 +783,14 @@ package body PolyORB.Requests is
    -- Image --
    -----------
 
-   function Image
-     (Req : Request)
-     return String
-   is
-      S1 : constant String
-        := "Operation: "
+   function Image (Req : Request) return String is
+   begin
+      return "Operation: "
         & Req.Operation.all
         & " on object "
-        & References.Image (Req.Target);
-   begin
-      declare
-         S2 : constant String := Any.NVList.Image (Req.Args);
-      begin
-         return S1 & " with arguments " & S2;
-      end;
-
-   exception
-      when others =>
-         --  For some kinds of Any's, bugs in the respective
-         --  Image procedures may trigger exceptions. In such
-         --  cases, we do not want to fail here because we are
-         --  only computing an informational, debugging-oriented
-         --  message. Consequently, we return a placeholder
-         --  value rather than propagating the exception.
-
-         return S1 & " with non-representable arguments";
+        & References.Image (Req.Target)
+        & " with arguments "
+        & Any.NVList.Image (Req.Args);
    end Image;
 
    ----------------
