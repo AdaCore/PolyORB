@@ -478,7 +478,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end case;
 
       --  Reserved
-      Align_Position (Buffer, 3);
+      Align_Position (Buffer, 4);
 
       --  Target Ref
       Temp_Octet := Unmarshall (Buffer);
