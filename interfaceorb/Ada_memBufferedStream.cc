@@ -66,7 +66,7 @@ void
 Ada_memBufferedStream::Init (size_t Bufsize)
 {
   // Creation of the underlying omniobject_C2Ada object
-  C_MemBufferedStream = new MemBufferedStream (Bufsize);
+  C_Object = new MemBufferedStream (Bufsize);
   // updating of Init_OK flag
   Init_Ok = true;
   return;
@@ -80,7 +80,7 @@ Ada_memBufferedStream::marshall (_CORBA_Char a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -96,7 +96,7 @@ Ada_memBufferedStream::unmarshall (_CORBA_Char& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -112,7 +112,7 @@ Ada_memBufferedStream::marshall (_CORBA_Boolean b, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     b >>= s;
   } else {
     // else raise an Ada Exception
@@ -128,7 +128,7 @@ Ada_memBufferedStream::unmarshall (_CORBA_Boolean& b, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     b <<= s;
   } else {
     // else raise an Ada Exception
@@ -144,7 +144,7 @@ Ada_memBufferedStream::marshall (_CORBA_Short a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -160,7 +160,7 @@ Ada_memBufferedStream::unmarshall (_CORBA_Short& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -176,7 +176,7 @@ Ada_memBufferedStream::marshall (_CORBA_UShort a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -192,7 +192,7 @@ Ada_memBufferedStream::unmarshall (_CORBA_UShort& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -208,7 +208,7 @@ Ada_memBufferedStream::marshall (_CORBA_Long a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -224,7 +224,7 @@ Ada_memBufferedStream::unmarshall (_CORBA_Long& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -240,7 +240,7 @@ Ada_memBufferedStream::marshall (_CORBA_ULong a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -256,7 +256,7 @@ Ada_memBufferedStream::unmarshall (_CORBA_ULong& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -272,7 +272,7 @@ Ada_memBufferedStream::marshall (_CORBA_Float a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -288,7 +288,7 @@ Ada_memBufferedStream::unmarshall (_CORBA_Float& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception
@@ -304,7 +304,7 @@ Ada_memBufferedStream::marshall (_CORBA_Double a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a >>= s;
   } else {
     // else raise an Ada Exception
@@ -320,7 +320,7 @@ Ada_memBufferedStream::unmarshall (_CORBA_Double& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_MemBufferedStream
+    // function on C_Object
     a <<= s;
   } else {
     // else raise an Ada Exception

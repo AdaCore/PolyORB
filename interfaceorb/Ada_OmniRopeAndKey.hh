@@ -85,6 +85,9 @@ private:
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not
+
+  void* VTable;
+  // This field is only used by Ada. It is needed to interface C++ and Ada  
   
 };
 
