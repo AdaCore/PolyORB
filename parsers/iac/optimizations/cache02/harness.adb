@@ -13,14 +13,9 @@ with PolyORB.Utils.Strings.Lists;
 with PolyORB.Initialization;
 with PolyORB.Any.ExceptionList;
 
-
 package body Harness is
 
-   type NamedValue_Ptr is access PolyORB.Any.NamedValue;
-
    procedure echoULong_Cache_Init;
-
-
 
    procedure echoULong_Get_Request
      (Ref      : in PolyORB.References.Ref;
@@ -29,12 +24,12 @@ package body Harness is
       Index    : out Natural);
    pragma Inline (echoULong_Get_Request);
 
-   procedure echoULong_Free_Request
-     (Index : Natural);
+   procedure echoULong_Free_Request (Index : Natural);
    pragma Inline (echoULong_Free_Request);
 
    procedure EchoULong_Update_Argument_List (Argument_U_Arg : in CORBA.Any);
    pragma Inline (EchoULong_Update_Argument_List);
+
    echoULong_Operation_Name_ü : constant Standard.String :=
      "echoULong";
 
@@ -50,6 +45,8 @@ package body Harness is
 
    Request_Cache_Tab_Free : array (1 .. Cache_Size) of Boolean
      := (others => True);
+
+   --  XXX tout ceci devrait etre prefixé par echoULong ..
 
    --------------------------
    -- echoULong_Result_U_V --
@@ -86,6 +83,9 @@ package body Harness is
       Request_ü : PolyORB.Requests.Request_Access;
       Result_ü : PolyORB.Any.NamedValue
         := echoULong_Result_U_V;
+
+      --  XXX est ce que cette variable est necessaire ?
+
       Index : Natural;
    begin
       if CORBA.Object.Is_Nil
@@ -153,28 +153,32 @@ package body Harness is
       --  A solution with mutex will be developped to handle the
       --  concurency problem.
 
+      --  Enter (echoULong_Mutex);
+
       loop
          exit when Request_Cache_Tab_Free (I);
          I := I + 1;
       end loop;
+      Index := I;
 
-      Request_Cache_Tab (I).all.Target := Ref;
-      Request_Cache_Tab (I).all.Args := EchoULong_Argument_List;
-      Request_Cache_Tab (I).all.Result := Result;
-      Request_Cache_Tab_Free (I) := False;
+      --  Leave (echoULong_Mutex);
+      --  cf par ex PolyORB.Smart_Pointers pour plus de details
+
+      Request_Cache_Tab (Index).all.Target := Ref;
+      Request_Cache_Tab (Index).all.Args := EchoULong_Argument_List;
+      Request_Cache_Tab (Index).all.Result := Result;
+      Request_Cache_Tab_Free (Index) := False;
 
       --  Set returns values
 
-      Index := I;
-      Request :=  Request_Cache_Tab (I);
+      Request :=  Request_Cache_Tab (Index);
    end echoULong_Get_Request;
 
    ----------------------------
    -- echoULong_Free_Request --
    ----------------------------
 
-   procedure echoULong_Free_Request
-     (Index : Natural)
+   procedure EchoULong_Free_Request (Index : Natural)
    is
    begin
       Request_Cache_Tab (Index).all.Exc_List
@@ -241,8 +245,6 @@ package body Harness is
         (List_Ptr.all, 0);
       Element.all.Argument := CORBA.Internals.To_PolyORB_Any
         (Argument_U_Arg);
-      --  XXX A quoi sert Obj ????? Ou est defini Element ????
-
    end EchoULong_Update_Argument_List;
 
    ----------
