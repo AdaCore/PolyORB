@@ -3,12 +3,13 @@ with Droopi.Objects;      use Droopi.Objects;
 
 package CORBA.Policy.Thread_Policy is
 
-   type Thread_Policy is new Policy with private;
+   type ThreadPolicy is new Policy with private;
+   type ThreadPolicy_Access is access ThreadPolicy;
 
 private
-   type Thread_Policy is new Policy with
+   type ThreadPolicy is new Policy with
       record
-         Value : ThreadPolicyValue;
+         Value       : ThreadPolicyValue;
       end record;
 
 end CORBA.Policy.Thread_Policy;

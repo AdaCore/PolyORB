@@ -1,14 +1,13 @@
 with CORBA.Policy_Values; use CORBA.Policy_Values;
 with CORBA.POA_Types;     use CORBA.POA_Types;
-with Droopi.Objects;      use Droopi.Objects;
 
 package CORBA.Policy.Request_Processing_Policy is
 
-   type Request_Processing_Policy is abstract new Policy with private;
-   type Request_Processing_Policy_Ptr is access all Request_Processing_Policy;
+   type RequestProcessingPolicy is abstract new Policy with private;
+   type RequestProcessingPolicy_Access is access all RequestProcessingPolicy;
 
    function Servant_To_Id
-     (Self             : access Request_Processing_Policy;
+     (Self             : access RequestProcessingPolicy;
       OA               : access CORBA.POA_Types.Obj_Adapter;
       P_Servant        : in Servant)
      return Object_Id is abstract;
@@ -22,7 +21,7 @@ package CORBA.Policy.Request_Processing_Policy is
    --  Same than USE_ACTIVE_OBJECT_MAP_ONLY
 
    function Id_To_Servant
-     (Self             : access Request_Processing_Policy;
+     (Self             : access RequestProcessingPolicy;
       OA               : access CORBA.POA_Types.Obj_Adapter;
       Oid              : Object_Id)
      return Servant is abstract;
@@ -36,7 +35,7 @@ package CORBA.Policy.Request_Processing_Policy is
 
 
 private
-   type Request_Processing_Policy is abstract new Policy with
+   type RequestProcessingPolicy is abstract new Policy with
       record
          Value : RequestProcessingPolicyValue;
       end record;

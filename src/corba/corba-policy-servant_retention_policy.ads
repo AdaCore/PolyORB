@@ -1,14 +1,13 @@
 with CORBA.Policy_Values; use CORBA.Policy_Values;
-with Droopi.Objects;      use Droopi.Objects;
 with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Servant_Retention_Policy is
 
-   type Servant_Retention_Policy is abstract new Policy with private;
-   type Servant_Retention_Policy_Ptr is access all Servant_Retention_Policy;
+   type ServantRetentionPolicy is abstract new Policy with private;
+   type ServantRetentionPolicy_Access is access all ServantRetentionPolicy;
 
    function Activate_Object
-     (Self             : Servant_Retention_Policy_Ptr;
+     (Self             : ServantRetentionPolicy_Access;
       OA               : CORBA.POA_Types.Obj_Adapter;
       P_Servant        : in Servant)
      return Object_Id is abstract;
@@ -20,7 +19,7 @@ package CORBA.Policy.Servant_Retention_Policy is
    --  Raises a WrongPolicy exception
 
    procedure Activate_Object_With_Id
-     (Self             : Servant_Retention_Policy_Ptr;
+     (Self             : ServantRetentionPolicy_Access;
       OA               : CORBA.POA_Types.Obj_Adapter;
       Oid              : Object_Id;
       P_Servant        : in Servant)
@@ -32,7 +31,7 @@ package CORBA.Policy.Servant_Retention_Policy is
    --  in the active objects map
 
    procedure Deactivate_Object
-     (Self             : Servant_Retention_Policy_Ptr;
+     (Self             : ServantRetentionPolicy_Access;
       OA               : CORBA.POA_Types.Obj_Adapter;
       Oid              : Object_Id)
       is abstract;
@@ -43,7 +42,7 @@ package CORBA.Policy.Servant_Retention_Policy is
    --  Raises a WrongPolicy exception
 
    function Servant_To_Id
-     (Self             : Servant_Retention_Policy_Ptr;
+     (Self             : ServantRetentionPolicy_Access;
       OA               : CORBA.POA_Types.Obj_Adapter;
       P_Servant        : Servant)
      return Object_Id is abstract;
@@ -56,7 +55,7 @@ package CORBA.Policy.Servant_Retention_Policy is
    --  returns Nil
 
    function Id_To_Servant
-     (Self             : Servant_Retention_Policy_Ptr;
+     (Self             : ServantRetentionPolicy_Access;
       OA               : CORBA.POA_Types.Obj_Adapter;
       Oid              : Object_Id)
      return Servant is abstract;
@@ -67,7 +66,7 @@ package CORBA.Policy.Servant_Retention_Policy is
    --  Returns Nil
 
 private
-   type Servant_Retention_Policy is new Policy with
+   type ServantRetentionPolicy is new Policy with
       record
          Value : ServantRetentionPolicyValue;
       end record;

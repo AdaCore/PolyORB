@@ -1,15 +1,14 @@
 with CORBA.Policy_Values; use CORBA.Policy_Values;
-with Droopi.Objects;      use Droopi.Objects;
 with CORBA.POA_Types;     use CORBA.POA_Types;
 
 
 package CORBA.Policy.Lifespan_Policy is
 
-   type Lifespan_Policy is abstract new Policy with private;
-   type Lifespan_Policy_Ptr is access all Lifespan_Policy;
+   type LifespanPolicy is abstract new Policy with private;
+   type LifespanPolicy_Access is access all LifespanPolicy;
 
    procedure Ensure_Oid_Lifespan
-     (Self             : access Lifespan_Policy;
+     (Self             : access LifespanPolicy;
       OA               : access CORBA.POA_Types.Obj_Adapter;
       Oid              : Object_Id)
       is abstract;
@@ -21,7 +20,7 @@ package CORBA.Policy.Lifespan_Policy is
    --  Does nothing.
 
 private
-   type Lifespan_Policy is abstract new Policy with
+   type LifespanPolicy is abstract new Policy with
       record
          Value : LifespanPolicyValue;
       end record;

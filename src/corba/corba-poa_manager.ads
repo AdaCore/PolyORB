@@ -1,20 +1,9 @@
-
-
 package CORBA.POA_Manager is
 
-   type POA_Manager is private;
-   type POA_Manager_Ptr is access POA_Manager;
-
-
-
-
-
-
-
+   type POAManager is private;
+   type POAManager_Access is access all POAManager;
 
 private
-   type POA_Manager is null record;
-
-
+   type POAManager is null record;
 
 end CORBA.POA_Manager;
