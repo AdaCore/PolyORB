@@ -26,18 +26,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with M1.Echo.Skel;
 with CORBA;
+with PortableServer;
 
 package M1.Echo.Impl is
    --  My own implementation of echo object.
    --  This is simply used to define the operations.
 
-   type Object is new Echo.Skel.Object with null record;
+   type Object is new PortableServer.Servant_Base with null record;
 
    type Object_Acc is access Object;
 
-private
    function EchoMy_String (Self : access Object; Mesg : in M1.My_String)
                         return CORBA.String;
 

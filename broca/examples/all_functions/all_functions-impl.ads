@@ -1,19 +1,13 @@
-with All_Functions.Skel;
 with CORBA; use CORBA;
+with PortableServer;
 
 package all_functions.Impl is
    --  My own implementation of echo all_functions object.
    --  This is simply used to define the operations.
 
-   type Object is new All_Functions.Skel.Object with private;
+   type Object is new PortableServer.Servant_Base with private;
 
    type Object_Acc is access all Object;
-
-private
-
-   type Object is new All_Functions.Skel.Object with record
-      Attribute : Corba.Short ;
-   end record;
 
    function Get_the_attribute
      (Self : access Object)
@@ -137,5 +131,11 @@ private
       a : in CORBA.Short;
       b : in CORBA.Short;
       c : in CORBA.Short);
+
+private
+
+   type Object is new PortableServer.Servant_Base with record
+      Attribute : Corba.Short ;
+   end record;
 
 end all_functions.Impl;

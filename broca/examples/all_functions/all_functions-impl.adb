@@ -1,4 +1,6 @@
 with Broca.Exceptions; use Broca.Exceptions;
+with All_Functions.Skel;
+pragma Elaborate (All_Functions.Skel);
 
 package body all_functions.Impl is
 

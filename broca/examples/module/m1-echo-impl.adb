@@ -26,6 +26,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with M1.Echo.Skel;
+pragma Elaborate (M1.Echo.Skel);
+
 package body M1.Echo.Impl is
 
    function EchoMy_String (Self : access Object; Mesg : in My_String)
