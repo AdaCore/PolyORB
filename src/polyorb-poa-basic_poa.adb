@@ -633,7 +633,7 @@ package body PolyORB.POA.Basic_POA is
 
       Name : constant String := To_Standard_String (Self.Name);
    begin
-      pragma Debug (O ("Start destroying POA " & Name));
+      pragma Debug (O ("Start destroying POA: " & Name));
 
       --  Destroy all children
       if Self.Children /= null
@@ -689,7 +689,7 @@ package body PolyORB.POA.Basic_POA is
          Destroy_OA (OA);
       end;
 
-      pragma Debug (O ("POA " & Name & " destroyed"));
+      pragma Debug (O ("POA '" & Name & "' destroyed"));
 
       --  XXX Add code for Etherealize_Objects and Wait_For_Completion ???
 
@@ -940,6 +940,10 @@ package body PolyORB.POA.Basic_POA is
                Error);
          else
             POA := null;
+
+            Throw (Error,
+                   AdapterNonExistent_E,
+                   Null_Member);
          end if;
       end if;
 
