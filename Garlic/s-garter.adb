@@ -35,9 +35,7 @@
 
 with System.Garlic.Debug;         use System.Garlic.Debug;
 with System.Garlic.Heart;         use System.Garlic.Heart;
-with System.Garlic.Name_Server;   use System.Garlic.Name_Server;
 with System.Garlic.Options;
-with System.Garlic.PID_Server;    use System.Garlic.PID_Server;
 with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
 with System.Garlic.Streams;       use System.Garlic.Streams;
 with System.Garlic.Types;         use System.Garlic.Types;
@@ -229,9 +227,9 @@ package body System.Garlic.Termination is
    procedure Initiate_Synchronization is
       Id     : Stamp                 := Termination_Watcher.Get_Stamp;
       Count  : Natural               := 0;
-      Latest : constant Partition_ID := Latest_Allocated_Partition_ID;
+      Last   : constant Partition_ID := Last_Allocated_PID;
    begin
-      for Partition in Get_Boot_Server + 1 .. Latest loop
+      for Partition in Boot_PID + 1 .. Last loop
          if Termination_Policy (Partition) /= Local_Termination then
             declare
                Params : aliased Params_Stream_Type (0);
@@ -250,7 +248,7 @@ package body System.Garlic.Termination is
       end loop;
       pragma Debug (D (D_Debug, "Sent" & Count'Img & " messages"));
       Termination_Watcher.Messages_Sent (Count);
-      for Partition in Get_Boot_Server + 1 .. Latest loop
+      for Partition in Boot_PID + 1 .. Last loop
          if Termination_Policy (Partition) /= Local_Termination then
             declare
                Params : aliased Params_Stream_Type (0);
@@ -393,7 +391,7 @@ package body System.Garlic.Termination is
       --  This partition is involved in the global termination algorithm.
       --  But only the main partition will have something to do.
 
-      if Get_My_Partition_ID /= Get_Boot_Server then
+      if Get_My_Partition_ID /= Boot_PID then
          return;
       end if;
 
@@ -408,9 +406,9 @@ package body System.Garlic.Termination is
          --  occur whenever an error has been signaled causing the regular
          --  shutdown algorithm to be unused.
 
-         exit Main_Loop when Is_Shutdown_In_Progress;
+         exit Main_Loop when Shutdown_In_Progress;
          delay Time_Between_Checks;
-         exit Main_Loop when Is_Shutdown_In_Progress;
+         exit Main_Loop when Shutdown_In_Progress;
 
          --  If there is only one active task (me!), we can initiate
          --  the algorithm.
@@ -435,8 +433,7 @@ package body System.Garlic.Termination is
                --  termination is local. If this is the case, that means
                --  that these partitions have not terminated yet.
 
-               for Partition in Get_Boot_Server + 1 ..
-                 Latest_Allocated_Partition_ID loop
+               for Partition in Boot_PID + 1 .. Last_Allocated_PID loop
                   if Blocking_Partition (Partition) then
                      pragma Debug (D (D_Debug,
                                       "Partition" & Partition'Img &

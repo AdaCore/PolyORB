@@ -38,6 +38,8 @@ with System.Garlic.Types;
 
 package System.Garlic.Protocols is
 
+   pragma Elaborate_Body;
+
    type Protocol_Type is abstract tagged limited null record;
    --  New protocols must derivate from this tagged type. They must
    --  implement versions of the procedures below which are marked as
@@ -56,8 +58,7 @@ package System.Garlic.Protocols is
    procedure Set_Boot_Data
      (Protocol         : access Protocol_Type;
       Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String  := "";
-      Is_Master        : in Boolean := False)
+      Boot_Data        : in String  := "")
      is abstract;
    --  Set the boot data. This will be called as Set_Boot_Data (Protocol)
    --  if we are not the boot protocol. You should be prepared to deal with

@@ -240,7 +240,7 @@ package body System.Garlic.Options is
 
    procedure Set_Is_Slave (Default : in Boolean) is
    begin
-      Is_Slave := Default;
+      Boot_Partition := not Default;
    end Set_Is_Slave;
 
    ------------------

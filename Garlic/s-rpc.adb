@@ -36,7 +36,6 @@
 with Ada.Dynamic_Priorities;
 with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.Finalization;
-with Ada.Unchecked_Deallocation;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
@@ -49,14 +48,12 @@ with System.Garlic.Types;
 with System.Garlic.Units;        use System.Garlic.Units;
 with System.Garlic.Utils;        use System.Garlic.Utils;
 with System.RPC.Pool;            use System.RPC.Pool;
-pragma Elaborate (System.RPC.Pool);
 with System.RPC.Stream_IO;
-pragma Elaborate (System.RPC.Stream_IO);
 
 package body System.RPC is
 
    use Ada.Streams;
-   use System.Garlic.Units.Table;
+   use System.Garlic.Units.X;
    use type System.Garlic.Streams.Params_Stream_Access;
    use type System.Garlic.Streams.Params_Stream_Type;
    use type System.Garlic.Types.Partition_ID;
@@ -75,62 +72,33 @@ package body System.RPC is
    RPC_Barrier : Barrier_Type;
    --  The current RPC receiver and its associated barrier
 
-   type Request_Array is array (Request_Id) of Types.Partition_ID;
+   type RPC_Status is (Unknown, Running, Aborted, Completed);
 
-   protected type Request_Id_Server_Type is
-      entry Get  (Id : out Request_Id; Partition : in Types.Partition_ID);
-      procedure Free (Id : in Request_Id);
-      procedure Raise_Partition_Error (Partition : in Types.Partition_ID);
-   private
-      Latest      : Request_Id := Request_Id'First;
-      Destination : Request_Array :=
-        (others => System.Garlic.Types.Null_Partition_ID);
-      Count       : Request_Id := 0;
-   end Request_Id_Server_Type;
+   type RPC_Info is
+      record
+         PID    : Types.Partition_ID;
+         Result : Streams.Stream_Element_Access;
+         Status : RPC_Status;
+      end record;
 
-   type Request_Id_Server_Access is access Request_Id_Server_Type;
-   procedure Free is
-     new Ada.Unchecked_Deallocation
-     (Request_Id_Server_Type, Request_Id_Server_Access);
+   subtype Valid_RPC_Id is RPC_Id range APC + 1 .. RPC_Id'Last;
 
-   Request_Id_Server : Request_Id_Server_Access :=
-     new Request_Id_Server_Type;
-   --  Kludge to raise Program_Error at deallocation time. To be removed
-   --  in the future ???
-
-   type Result_Type is record
-      Result    : Streams.Params_Stream_Access;
-      Cancelled : Boolean := False;
-   end record;
-
-   type Result_Array is array (Request_Id) of Result_Type;
-   type Valid_Result_Array is array (Request_Id) of Boolean;
-
-   protected type Result_Watcher_Type is
-      procedure Set (Id : in Request_Id; Result : in Result_Type);
-      procedure Get (Id : in Request_Id; Result : out Result_Type);
-      procedure Invalidate (Id : in Request_Id);
-      procedure Raise_Error (Id : in Request_Id);
-      entry Wait (Request_Id);
-   private
-      Valid       : Valid_Result_Array := (others => False);
-      Cancelled   : Valid_Result_Array := (others => False);
-      Results     : Result_Array;
-      procedure Free (Id : in Request_Id);
-   end Result_Watcher_Type;
-
-   type Result_Watcher_Access is access Result_Watcher_Type;
-   procedure Free is
-     new Ada.Unchecked_Deallocation
-     (Result_Watcher_Type, Result_Watcher_Access);
-
-   Result_Watcher : Result_Watcher_Access := new Result_Watcher_Type;
+   Callers : array (Valid_RPC_Id) of RPC_Info;
+   Callers_Mutex : Mutex_Access := Create;
 
    type Abort_Keeper is new Ada.Finalization.Controlled with record
-      Sent      : Boolean := False;
-      Partition : Types.Partition_ID;
-      Id        : Request_Id;
+      Sent : Boolean := False;
+      PID  : Types.Partition_ID;
+      RPC  : RPC_Id;
    end record;
+
+   procedure Allocate (RPC : out RPC_Id; PID : Types.Partition_ID);
+   procedure Deallocate (RPC : in RPC_Id);
+   procedure Raise_Partition_Error (PID : in Types.Partition_ID);
+
+   procedure Wait_For
+     (RPC    : in  RPC_Id;
+      Result : out Streams.Stream_Element_Access);
 
    procedure Invalidate_RCI_Units (Partition : in Types.Partition_ID);
    pragma Inline (Invalidate_RCI_Units);
@@ -141,8 +109,8 @@ package body System.RPC is
    --  Handle abortion from Do_RPC
 
    procedure Send_Abort_Message
-     (Partition : in Types.Partition_ID;
-      Id        : in Request_Id);
+     (PID : in Types.Partition_ID;
+      RPC : in RPC_Id);
    --  Send an abort message for a request
 
    procedure Public_RPC_Receiver
@@ -159,18 +127,53 @@ package body System.RPC is
    --  Call this procedure to unblock tasks waiting for RPC results from
    --  a dead partition.
 
+   --------------
+   -- Allocate --
+   --------------
+
+   procedure Allocate (RPC : out RPC_Id; PID : in Types.Partition_ID)
+   is
+   begin
+      loop
+         Enter (Callers_Mutex);
+         for I in Callers'Range loop
+            if Callers (I).Status = Unknown then
+               Callers (I).Status := Running;
+               Callers (I).PID := PID;
+               RPC := I;
+               Leave (Callers_Mutex, Modified);
+               return;
+            end if;
+         end loop;
+         Leave (Callers_Mutex, Postponed);
+      end loop;
+   end Allocate;
+
+   ----------------
+   -- Deallocate --
+   ----------------
+
+   procedure Deallocate (RPC : in RPC_Id)
+   is
+   begin
+      Enter (Callers_Mutex);
+      Callers (RPC).Status := Unknown;
+      Leave (Callers_Mutex, Modified);
+   end Deallocate;
+
    ------------
    -- Do_APC --
    ------------
 
    procedure Do_APC
      (Partition : in Partition_ID;
-      Params    : access Params_Stream_Type) is
-      Header : constant Request_Header := (Kind => APC_Request);
+      Params    : access Params_Stream_Type)
+   is
+      Header : constant RPC_Header := (Kind => APC_Query);
    begin
       pragma Debug
         (D (D_Debug, "Doing a APC for partition" & Partition'Img));
-      Insert_Request (Params.X'Access, Header);
+      Insert_RPC_Header (Params.X'Access, Header);
       Partition_ID'Write (Params, Partition);
       Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
       Send (Types.Partition_ID (Partition), Remote_Call, Params.X'Access);
@@ -187,10 +190,11 @@ package body System.RPC is
    procedure Do_RPC
      (Partition  : in Partition_ID;
       Params     : access Params_Stream_Type;
-      Result     : access Params_Stream_Type) is
-      Id     : Request_Id;
-      Header : Request_Header (RPC_Request);
-      Tmp    : Result_Type;
+      Result     : access Params_Stream_Type)
+   is
+      RPC    : RPC_Id;
+      Header : RPC_Header (RPC_Query);
+      Stream : Streams.Stream_Element_Access;
       Keeper : Abort_Keeper;
 
    begin
@@ -198,29 +202,25 @@ package body System.RPC is
         (D (D_Debug, "Doing a RPC for partition" & Partition'Img));
       begin
          pragma Abort_Defer;
-         Request_Id_Server.Get (Id, Types.Partition_ID (Partition));
-         Header.Id := Id;
-         Insert_Request (Params.X'Access, Header);
+         Allocate (RPC, Types.Partition_ID (Partition));
+         Header.RPC := RPC;
+         Insert_RPC_Header (Params.X'Access, Header);
          Partition_ID'Write (Params, Partition);
          Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
          Send (Types.Partition_ID (Partition), Remote_Call, Params.X'Access);
-         Keeper.Id        := Id;
-         Keeper.Partition := Types.Partition_ID (Partition);
-         Keeper.Sent      := True;
+         Keeper.RPC  := RPC;
+         Keeper.PID  := Types.Partition_ID (Partition);
+         Keeper.Sent := True;
       end;
       pragma Debug (D (D_Debug, "Waiting for the result"));
-      Result_Watcher.Wait (Id);
+      Wait_For (RPC, Stream);
       begin
          pragma Abort_Defer;
          pragma Debug (D (D_Debug, "The result is available"));
          Keeper.Sent := False;
-         Result_Watcher.Get (Id, Tmp);
-         pragma Assert (not Tmp.Cancelled);
-         Request_Id_Server.Free (Id);
          pragma Debug (D (D_Debug, "Copying the result"));
-         pragma Assert (Tmp.Result /= null);
-         Streams.Deep_Copy (Tmp.Result.all, Result.X'Access);
-         Streams.Free (Tmp.Result);
+         Streams.Write (Result.X, Stream.all);
+         Streams.Free (Stream);
       end;
       pragma Debug (D (D_Debug, "Returning from Do_RPC"));
    exception
@@ -235,7 +235,8 @@ package body System.RPC is
 
    procedure Establish_RPC_Receiver
      (Partition : in Partition_ID;
-      Receiver  : in RPC_Receiver) is
+      Receiver  : in RPC_Receiver)
+   is
    begin
       pragma Debug
         (D (D_Debug, "Setting RPC receiver for partition" & Partition'Img));
@@ -253,12 +254,19 @@ package body System.RPC is
    -- Finalize --
    --------------
 
-   procedure Finalize (Keeper : in out Abort_Keeper) is
+   procedure Finalize (Keeper : in out Abort_Keeper)
+   is
+      Status : Status_Type := Unmodified;
    begin
       if Keeper.Sent then
-         Send_Abort_Message (Keeper.Partition, Keeper.Id);
-         pragma Debug (D (D_Debug, "Will invalidate object" & Keeper.Id'Img));
-         Result_Watcher.Invalidate (Keeper.Id);
+         pragma Debug (D (D_Debug, "Will invalidate object" & Keeper.RPC'Img));
+         Enter (Callers_Mutex);
+         Send_Abort_Message (Keeper.PID, Keeper.RPC);
+         if Callers (Keeper.RPC).Status = Running then
+            Callers (Keeper.RPC).Status := Aborted;
+            Status := Modified;
+         end if;
+         Leave (Callers_Mutex, Status);
       end if;
    end Finalize;
 
@@ -266,7 +274,8 @@ package body System.RPC is
    -- When_Established --
    ----------------------
 
-   procedure When_Established is
+   procedure When_Established
+   is
    begin
       if not RPC_Allowed then
          RPC_Barrier.Wait;
@@ -274,25 +283,25 @@ package body System.RPC is
    end When_Established;
 
    --------------------
-   -- Insert_Request --
+   -- Insert_RPC_Header --
    --------------------
 
-   procedure Insert_Request
+   procedure Insert_RPC_Header
      (Params : access Streams.Params_Stream_Type;
-      Header : in Request_Header)
+      Header : in RPC_Header)
    is
    begin
       Params.Special_First := True;
-      Request_Header'Output (Params, Header);
-   end Insert_Request;
+      RPC_Header'Output (Params, Header);
+   end Insert_RPC_Header;
 
    --------------------------
    -- Invalidate_RCI_Units --
    --------------------------
 
-   procedure Invalidate_RCI_Units (Partition : in Types.Partition_ID) is
+   procedure Invalidate_RCI_Units (Partition : in Types.Partition_ID)
+   is
       Invalidation : Request_Type := (Invalidate, Partition, 0, null, null);
-
    begin
       pragma Debug
         (D (D_Debug, "Invalidate partition" & Partition'Img & "'s RCI units"));
@@ -305,10 +314,11 @@ package body System.RPC is
    ----------------------------------
 
    procedure Partition_Error_Notification
-     (Partition : in Types.Partition_ID) is
+     (Partition : in Types.Partition_ID)
+   is
    begin
       Invalidate_RCI_Units (Partition);
-      Request_Id_Server.Raise_Partition_Error (Partition);
+      Raise_Partition_Error (Partition);
    end Partition_Error_Notification;
 
    -------------------------
@@ -318,19 +328,18 @@ package body System.RPC is
    procedure Public_RPC_Receiver
      (Partition : in Types.Partition_ID;
       Operation : in Public_Opcode;
-      Params    : access Streams.Params_Stream_Type) is
-      Header : constant Request_Header := Request_Header'Input (Params);
+      Params    : access Streams.Params_Stream_Type)
+   is
+      Header : constant RPC_Header := RPC_Header'Input (Params);
    begin
 
       case Header.Kind is
-
-         when RPC_Request | APC_Request =>
-
+         when RPC_Query | APC_Query =>
             declare
                Params_Copy  : Streams.Params_Stream_Access :=
                  new Streams.Params_Stream_Type (Params.Initial_Size);
-               Id           : Request_Id := Request_Id'First;
-               Asynchronous : constant Boolean := Header.Kind = APC_Request;
+               RPC          : RPC_Id := RPC_Id'First;
+               Asynchronous : constant Boolean := Header.Kind = APC_Query;
             begin
                pragma Debug
                  (D (D_Debug,
@@ -338,51 +347,65 @@ package body System.RPC is
                      Partition'Img));
                Streams.Deep_Copy (Params.all, Params_Copy);
                if not Asynchronous then
-                  Id := Header.Id;
+                  RPC := Header.RPC;
                   pragma Debug
                     (D (D_Debug,
-                        "(request id is" & Id'Img & ")"));
+                        "(request id is" & RPC'Img & ")"));
                end if;
-               Allocate_Task (Partition, Id, Params_Copy, Asynchronous);
+               Allocate_Task (Partition, RPC, Params_Copy, Asynchronous);
             end;
 
-         when RPC_Answer =>
-            declare
-               Result : Result_Type;
-            begin
-               pragma Debug
-                 (D (D_Debug,
-                     "RPC answer received from partition" &
-                     Partition'Img & " (request" & Header.Id'Img & ")"));
-               Result.Result :=
-                new Streams.Params_Stream_Type (Params.Initial_Size);
-               Streams.Deep_Copy (Params.all, Result.Result);
-               pragma Debug
-                 (D (D_Debug, "Signaling that the result is available"));
-               Result_Watcher.Set (Header.Id, Result);
-            end;
+         when RPC_Reply =>
+            pragma Debug
+              (D (D_Debug,
+                  "RPC reply received from partition" & Partition'Img &
+                  " (rpc" & Header.RPC'Img & ")"));
+            Enter (Callers_Mutex);
+            if Callers (Header.RPC).Status = Aborted then
+               Callers (Header.RPC).Status := Unknown;
+            else
+               Callers (Header.RPC).Status := Completed;
+               Callers (Header.RPC).Result
+                 := Streams.To_Stream_Element_Access (Params);
+            end if;
+            Leave (Callers_Mutex, Modified);
 
-         when RPC_Request_Cancellation =>
+         when Abortion_Query =>
             pragma Debug
                   (D (D_Debug,
-                      "RPC cancellation request received from partition" &
-                      Partition'Img & " (request" & Header.Id'Img & ")"));
-            Abort_Task (Partition, Header.Id);
+                      "RPC abortion query received from partition" &
+                      Partition'Img & " (rpc" & Header.RPC'Img & ")"));
+            Abort_Task (Partition, Header.RPC);
 
-         when RPC_Cancellation_Accepted =>
-            declare
-               Result : Result_Type;
-            begin
-               pragma Debug
-                  (D (D_Debug,
-                      "RPC cancellation ack received from partition" &
-                      Partition'Img & " (request" & Header.Id'Img & ")"));
-               Result.Cancelled := True;
-               Result_Watcher.Set (Header.Id, Result);
-            end;
+         when Abortion_Reply =>
+            pragma Debug
+              (D (D_Debug,
+                  "RPC abortion reply received from partition" &
+                  Partition'Img & " (rpc" & Header.RPC'Img & ")"));
+            Enter (Callers_Mutex);
+            Callers (Header.RPC).Status := Unknown;
+            Leave (Callers_Mutex, Modified);
 
       end case;
    end Public_RPC_Receiver;
+
+   ---------------------------
+   -- Raise_Partition_Error --
+   ---------------------------
+
+   procedure Raise_Partition_Error (PID : in Types.Partition_ID)
+   is
+      Status : Status_Type := Unmodified;
+   begin
+      Enter (Callers_Mutex);
+      for I in Callers'Range loop
+         if Callers (I).Status = Running then
+            Callers (I).Status := Aborted;
+            Status := Modified;
+         end if;
+      end loop;
+      Leave (Callers_Mutex, Status);
+   end Raise_Partition_Error;
 
    ----------
    -- Read --
@@ -391,7 +414,8 @@ package body System.RPC is
    procedure Read
      (Stream : in out Params_Stream_Type;
       Item   : out Ada.Streams.Stream_Element_Array;
-      Last   : out Ada.Streams.Stream_Element_Offset) is
+      Last   : out Ada.Streams.Stream_Element_Offset)
+   is
    begin
       System.Garlic.Streams.Read (Stream.X, Item, Last);
    exception
@@ -400,175 +424,65 @@ package body System.RPC is
                           Exception_Message (E));
    end Read;
 
-   ----------------------------
-   -- Request_Id_Server_Type --
-   ----------------------------
-
-   protected body Request_Id_Server_Type is
-
-      ---------------------------
-      -- Raise_Partition_Error --
-      ---------------------------
-
-      procedure Raise_Partition_Error
-        (Partition : in Types.Partition_ID) is
-      begin
-         for Id in Request_Id'First .. Latest loop
-            if Destination (Id) = Partition then
-               pragma Warnings (Off);  -- ??? To be checked
-               Result_Watcher.Raise_Error (Id);
-               pragma Warnings (On);
-               Free (Id);
-            end if;
-         end loop;
-      end Raise_Partition_Error;
-
-      ----------
-      -- Free --
-      ----------
-
-      procedure Free (Id : in Request_Id) is
-      begin
-         if Destination (Id) /= System.Garlic.Types.Null_Partition_ID then
-            Destination (Id) := System.Garlic.Types.Null_Partition_ID;
-            Count := Count - 1;
-         end if;
-      end Free;
-
-      ---------
-      -- Get --
-      ---------
-
-      entry Get (Id : out Request_Id; Partition : in Types.Partition_ID)
-      when Count < Request_Id'Last is
-      begin
-         while
-           Destination (Latest) /= System.Garlic.Types.Null_Partition_ID
-         loop
-            Latest := Latest + 1;
-         end loop;
-         Id := Latest;
-         Destination (Id) := Partition;
-         Count  := Count + 1;
-         Latest := Latest + 1;
-      end Get;
-
-   end Request_Id_Server_Type;
-
-   -------------------------
-   -- Result_Watcher_Type --
-   -------------------------
-
-   protected body Result_Watcher_Type is
-
-      -----------------
-      -- Raise_Error --
-      -----------------
-
-      procedure Raise_Error (Id : in Request_Id) is
-      begin
-         if not Valid (Id) then
-            Cancelled (Id) := True;
-            Valid (Id) := True;
-         end if;
-      end Raise_Error;
-
-      ----------
-      -- Free --
-      ----------
-
-      procedure Free (Id : in Request_Id) is
-         Tmp : Result_Type;
-      begin
-         Get (Id, Tmp);
-         Streams.Deallocate (Tmp.Result);
-         pragma Warnings (Off);  -- ??? To be checked
-         Request_Id_Server.Free (Id);
-         pragma Warnings (On);
-      end Free;
-
-      ---------
-      -- Get --
-      ---------
-
-      procedure Get
-        (Id     : in Request_Id;
-         Result : out Result_Type) is
-      begin
-         pragma Assert (Valid (Id));
-         if Cancelled (Id) then
-            raise Communication_Error;
-         end if;
-         Result := Results (Id);
-         Valid (Id) := False;
-         Results (Id) .Result := null;
-      end Get;
-
-      ----------------
-      -- Invalidate --
-      ----------------
-
-      procedure Invalidate (Id : in Request_Id) is
-      begin
-         if Valid (Id) then
-            Free (Id);
-         else
-            Cancelled (Id) := True;
-         end if;
-      end Invalidate;
-
-      ---------
-      -- Set --
-      ---------
-
-      procedure Set (Id : in Request_Id; Result : in Result_Type) is
-      begin
-         Valid (Id) := True;
-         Results (Id) := Result;
-         if Cancelled (Id) then
-            Cancelled (Id) := False;
-            Free (Id);
-         end if;
-      end Set;
-
-      ----------
-      -- Wait --
-      ----------
-
-      entry Wait (for Id in Request_Id)
-      when Valid (Id) is
-      begin
-         null;
-      end Wait;
-
-   end Result_Watcher_Type;
-
    ------------------------
    -- Send_Abort_Message --
    ------------------------
 
    procedure Send_Abort_Message
-     (Partition : in Types.Partition_ID;
-      Id        : in Request_Id) is
+     (PID : in Types.Partition_ID;
+      RPC : in RPC_Id)
+   is
       Params : aliased Streams.Params_Stream_Type (0);
-      Header : constant Request_Header := (RPC_Request_Cancellation, Id);
+      Header : constant RPC_Header := (Abortion_Query, RPC);
    begin
       pragma Debug (D (D_Debug, "Sending abortion message"));
-      Insert_Request (Params'Access, Header);
-      Send (Partition, Remote_Call, Params'Access);
+      Insert_RPC_Header (Params'Access, Header);
+      Send (PID, Remote_Call, Params'Access);
    end Send_Abort_Message;
 
    --------------
    -- Shutdown --
    --------------
 
-   procedure Shutdown is
+   procedure Shutdown
+   is
    begin
       pragma Debug (D (D_Debug, "Shutdown has been called"));
-      Free (Request_Id_Server);
-      Free (Result_Watcher);
+      Destroy (Callers_Mutex);
       Pool.Shutdown;
    end Shutdown;
+
+   --------------
+   -- Wait_For --
+   --------------
+
+   procedure Wait_For
+     (RPC    : in  RPC_Id;
+      Result : out Streams.Stream_Element_Access)
+   is
+   begin
+      loop
+         Enter (Callers_Mutex);
+         case Callers (RPC).Status is
+            when Completed =>
+               Result := Callers (RPC).Result;
+               Callers (RPC).Status := Unknown;
+               Callers (RPC).Result := null;
+               Leave (Callers_Mutex, Modified);
+               return;
+
+            when Aborted =>
+               Callers (RPC).Status := Unknown;
+               Callers (RPC).Result := null;
+               Leave (Callers_Mutex, Modified);
+               raise Communication_Error;
+
+            when others =>
+               Leave (Callers_Mutex, Postponed);
+
+         end case;
+      end loop;
+   end Wait_For;
 
    -----------
    -- Write --
@@ -576,7 +490,8 @@ package body System.RPC is
 
    procedure Write
      (Stream : in out Params_Stream_Type;
-      Item   : in Ada.Streams.Stream_Element_Array) is
+      Item   : in Ada.Streams.Stream_Element_Array)
+   is
    begin
       Streams.Write (Stream.X, Item);
    exception

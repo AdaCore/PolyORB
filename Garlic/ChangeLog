@@ -1,3 +1,65 @@
+1998-09-09  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garhea.adb: Change boot protocol to avoid multiple
+ 	initialization messages. For a partition boot, a partition sends
+ 	its partition info (location, termination, reconnection, name) to
+ 	the boot partition. The boot partition replies with two
+ 	messages. The first one contains the boot partition info. The
+ 	second one contains the partition info and its partition id. The
+ 	boot protocol is no longer in charge of allocating a partition id.
+  	Remove all the protected objects and use those defined in
+ 	Garlic.Utils (we will use soft links later on). For this, we use
+ 	the same package used in Filters and Units. Has_Arrived is split
+ 	in two separate procedures. The first one extracts partition id,
+ 	opcode and unfilter the remaining stream. The second one process
+ 	the unfiltered stream. Always use Self_PID and Get_My_Partition_ID
+ 	is supposed to initialize and get the partition id during
+ 	elaboration.
+
+	* s-garhea.ads: Change most of the procedure signatures. Move some
+ 	types into Garlic.Types. Remove procedure Is_Shutdown_In_Progress
+ 	to use a shared variable.
+
+	* s-gartyp.ads: Add types from Garlic.Heart. Define Self_PID
+	(current partition id), Boot_PID, Null_PID and Last_PID.
+
+	* s-gartcp.adb: Change TPC according to the new boot
+ 	protocol. This is a major re-writting of this unit. The code is
+ 	simpler as the boot protocol is done at higher level. Add new
+ 	opcode Unknown_Code and remove Open_Code which was unused with the
+ 	new boot protocol.
+
+	* s-gartcp.ads: Simplify Set_Boot_Data signature. With the new
+ 	boot protocol, the startup phase is simpler as well as
+ 	Set_Boot_Data.
+
+	* s-garsta.adb: Cleanup in startup phase. Much simpler because of
+	the new boot protocol.
+
+	* s-rpc.adb, s-rpc.ads, s-rpcpoo.ads, s-rpcpoo.adb: Remove
+ 	protected objects to use those defined in Garlic.Utils (we will
+ 	use soft links later on). Change Request_Id into RPC_Id and update
+ 	all the variables and procedures accordingly. Change Opcode to
+ 	have always the same notation
+ 	(Query/Reply).
+
+	* s-garuti.ads, s-garuti.adb: Mutex_Type is now a private
+ 	type. Procedure Enter sets Abort_Defer and Leave sets
+ 	Abort_Undefer because these procedures were always in a pragma
+ 	Abort_Defer section. Add new procedures Create and Destroy.
+
+	* ALL FILES: Update because of new Utils specification.
+
+	* s-garrep.adb, s-garrep.ads: Use new Protocol specification and 
+	adapt to new boot protocol.
+	
+	* s-gartra.adb, s-gartra.ads: Use new Protocol specification and 
+	adapt to new boot protocol.
+	
+	* s-garpro.ads: Use new Protocol specification.
+
+	* s-garter.adb: Use new Heart specification.
+	
 1998-09-07  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gartcp.adb: Do not pass data array to Physical_Send to prevent
@@ -19,34 +81,21 @@
 	* All files: Remove useless pragma Elaborate or Elaborate_All when 
 	the withed unit is already Pure, Preelaborate or Elaborate_Body.
 
-	* DALL, DALL.el, DALL.rc, UNDALL, UNDALL.el, UNDALL.rc: Add
-	S_GANASE and S_GAPISE.
-
 	* s-gartyp.ads: Put PID related constants and subtypes here to
 	avoid dragging System.Garlic.Heart when those are needed.
-
-	* s-gapise.ads, s-gapise.adb: New package System.Garlic.PID_Server 
-	that isolates all the PID-server-related services.
 
 	* s-gartcp.adb, s-gaseli.adb: Use subprograms from new package
 	System.Garlic.PID_Server.
 
 	* s-gardeb.adb: Move assertion to the right place.
 
-	* s-ganase.ads, s-ganase.adb: New package
-	System.Garlic.Name_Server that isolates all the partition-related
-	name services.
-
-	* Makefile.am (COMMONSOURCES): Add s-ganase.ad[bs].
-
 	* s-garhea.ads: Add pragma Inline where appropriate.
-	Move some subprograms into System.Garlic.Name_Server.
 
 	* s-garhea.adb: Remove useless "use type" and undetected unused
 	variable.
 
-	* s-garter.adb, s-gartcp.adb, s-garsta.adb, s-garrem.adb,
-	s-garuni.adb: Use subprograms from System.Garlic.Name_Server.
+	* s-garrep.adb: Remove now useless pragma Storage_Size on replay
+	task.
 
 1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
 

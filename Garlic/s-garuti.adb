@@ -34,23 +34,75 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+with System.Tasking_Soft_Links; use System.Tasking_Soft_Links;
 
 package body System.Garlic.Utils is
 
    use Ada.Task_Identification;
 
-   --------------
-   -- Allocate --
-   --------------
+   protected type Mutex_Type is
+      entry Enter;
+      entry Leave (S : Status_Type := Unmodified);
+   private
+      entry Wait (S : Status_Type);
+      Locked : Boolean := False;
+      Status : Status_Type := Unmodified;
+   end Mutex_Type;
+   --  A task can enter in a mutex if and only if there is no other task in
+   --  a mutex. A task can leave a mutex returning the status of its
+   --  action.  Unmodified corresponds to no modification of the protected
+   --  data. Postponed indicates that the task would like to be resumed
+   --  when the protected data is modified (in order to enter the mutex
+   --  another time). Modified corresponds to a modification and resume
+   --  all the tasks pending for a modification of the protected data.
 
-   function Allocate return Adv_Mutex_Access is
+   type Adv_Mutex_Type is limited record
+      Mutex     : Mutex_Access;
+      Current   : Ada.Task_Identification.Task_Id;
+      pragma Atomic (Current);
+      Level     : Natural;
+      pragma Atomic (Level);
+   end record;
+   --  This is a classical critical section except that when a task try to
+   --  Enter a critical section several times without leaving it first it
+   --  is not blocked and can continue. Leave keeps track of the number of
+   --  times Enter has been successful.
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Mutex_Type, Mutex_Access);
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
+
+   ----------------------
+   -- Access_To_String --
+   ----------------------
+
+   function Access_To_String (S : String_Access) return String is
+   begin
+      return S.all;
+   end Access_To_String;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return Adv_Mutex_Access is
       Item : Adv_Mutex_Access := new Adv_Mutex_Type;
 
    begin
       Item.Mutex   := new Mutex_Type;
       Item.Current := Null_Task_Id;
       return Item;
-   end Allocate;
+   end Create;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return Mutex_Access is
+   begin
+      return new Mutex_Type;
+   end Create;
 
    ------------------
    -- Barrier_Type --
@@ -97,14 +149,44 @@ package body System.Garlic.Utils is
 
    end Barrier_Type;
 
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (M : in out Adv_Mutex_Access) is
+   begin
+      Free (M.Mutex);
+      Free (M);
+   end Destroy;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (M : in out Mutex_Access) is
+   begin
+      Free (M);
+   end Destroy;
+
+   -----------
+   -- Enter --
+   -----------
+
+   procedure Enter (M : Mutex_Access) is
+   begin
+      pragma Assert (M /= null);
+      Abort_Defer.all;
+      M.Enter;
+   end Enter;
+
    -----------
    -- Enter --
    -----------
 
    procedure Enter (M : Adv_Mutex_Access) is
-      Self : Task_Id := Current_Task;
-
+      Self : constant Task_Id := Current_Task;
    begin
+      pragma Assert (M /= null);
       if M.Current /= Self then
          M.Mutex.Enter;
          M.Current := Self;
@@ -112,29 +194,31 @@ package body System.Garlic.Utils is
       M.Level := M.Level + 1;
    end Enter;
 
-   ----------
-   -- Free --
-   ----------
+   -----------
+   -- Leave --
+   -----------
 
-   procedure Free (M : in out Adv_Mutex_Access) is
-      procedure Local_Free is
-        new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
+   procedure Leave (M : in Adv_Mutex_Access) is
    begin
-      Free (M.Mutex);
-      Local_Free (M);
-   end Free;
+      pragma Assert (M /= null
+                     and then M.Current = Current_Task
+                     and then M.Level > 0);
+      M.Level := M.Level - 1;
+      if M.Level = 0 then
+         M.Current := Null_Task_Id;
+         M.Mutex.Leave;
+      end if;
+   end Leave;
 
    -----------
    -- Leave --
    -----------
 
-   procedure Leave (M : Adv_Mutex_Access; S : Status_Type := Unmodified) is
+   procedure Leave (M : in Mutex_Access; S : in Status_Type := Unmodified) is
    begin
-      M.Level := M.Level - 1;
-      if M.Level = 0 then
-         M.Current := Null_Task_Id;
-         M.Mutex.Leave (S);
-      end if;
+      pragma Assert (M /= null);
+      Abort_Undefer.all;
+      M.Leave (S);
    end Leave;
 
    ----------------
@@ -149,6 +233,7 @@ package body System.Garlic.Utils is
 
       entry Enter when not Locked is
       begin
+         --  Abort_Defer.all;
          Locked := True;
       end Enter;
 
@@ -160,6 +245,7 @@ package body System.Garlic.Utils is
       when Status /= Modified is
       begin
          Locked := False;
+         --  Abort_Undefer.all;
          case S is
             when Modified =>
                if Wait'Count > 0 then
@@ -185,6 +271,15 @@ package body System.Garlic.Utils is
       end Wait;
 
    end Mutex_Type;
+
+   ----------------------
+   -- String_To_Access --
+   ----------------------
+
+   function String_To_Access (S : String) return String_Access is
+   begin
+      return new String'(S);
+   end String_To_Access;
 
    --------------
    -- To_Lower --

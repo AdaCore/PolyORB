@@ -35,15 +35,13 @@
 
 with Ada.Exceptions;                  use Ada.Exceptions;
 pragma Warnings (Off, Ada.Exceptions);
-with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Filters;           use System.Garlic.Filters;
-with System.Garlic.Name_Server;       use System.Garlic.Name_Server;
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
 with System.Garlic.Options;
-with System.Garlic.PID_Server;        use System.Garlic.PID_Server;
+with System.Garlic.Partitions;        use System.Garlic.Partitions;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
-with System.Garlic.Protocols;
+with System.Garlic.Protocols;         use System.Garlic.Protocols;
 with System.Garlic.Soft_Links;        use System.Garlic.Soft_Links;
 with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Trace;             use System.Garlic.Trace;
@@ -56,17 +54,15 @@ pragma Warnings (Off, System.Garlic.Linker_Options);
 
 package body System.Garlic.Heart is
 
-   use Ada.Streams, System.Garlic.Types, System.Garlic.Utils;
+   use Ada.Streams;
+   use System.Garlic.Types, System.Garlic.Utils;
+   use System.Garlic.Partitions.Complex;
 
-   --  The protocol used is:
-   --
-   --   - <QUERY_PUBLIC_DATA> <PARTITION_ID>
-   --   - <QUERY_PUBLIC_DATA_ANSWER> <PARTITION_ID> <PUBLIC_DATA>
-   --   - <SET_PUBLIC_DATA> <PUBLIC_DATA>
-   --   - <SHUTDOWN>
+   Partitions_Table : Complex.Component_Table_Access renames Complex.Table;
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARHEA", "(s-garhea): ");
+
    procedure D
      (Level   : in Debug_Level;
       Message : in String;
@@ -83,8 +79,30 @@ package body System.Garlic.Heart is
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
-   Shutdown_In_Progress : Boolean := False;
-   pragma Atomic (Shutdown_In_Progress);
+   procedure Handle_Internal
+     (Partition : in Partition_ID;
+      Operation : in Internal_Opcode;
+      Params    : access Params_Stream_Type);
+   --  Internal operations
+
+   procedure Handle_Public
+     (Partition : in Partition_ID;
+      Operation : in Public_Opcode;
+      Params    : access Params_Stream_Type);
+   --  Public operations
+
+   function Get_Partition_Info
+     (Partition : Partition_ID)
+      return Partition_Info;
+   --  If cached, then return local partition info. Otherwise, on a non
+   --  boot partition send a request. Wait for info to be available.
+
+   function Get_Protocol
+     (Partition : Partition_ID)
+      return Protocol_Access;
+   pragma Inline (Get_Protocol);
+   --  Same as above. But for boot partition, then get protocol from
+   --  boot server option.
 
    function Opcode_Read (Operation : Stream_Element) return Opcode;
    pragma Inline (Opcode_Read);
@@ -92,65 +110,32 @@ package body System.Garlic.Heart is
    pragma Inline (Opcode_Write);
    --  Read and write opcode on one byte
 
-   protected type Local_Partition_ID_Type is
-      entry Get (Partition : out Partition_ID);
-      procedure Set (Partition : in Partition_ID);
-      function Get_Immediately return Partition_ID;
-   private
-      In_Progress     : Boolean := False;
-   end Local_Partition_ID_Type;
-   --  Local partition ID. Needs comments ???
-
-   type Local_Partition_ID_Access is access Local_Partition_ID_Type;
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Local_Partition_ID_Type,
-                                      Local_Partition_ID_Access);
-
-   Local_Partition_ID : Local_Partition_ID_Access :=
-     new Local_Partition_ID_Type;
-   --  Kludge to raise Program_Error at deallocation time. Should be cleaned
-   --  up in the future ???
-
-   Local_Partition : Partition_ID := Null_Partition_ID;
-   --  Fast version for direct access
-
-   Is_Boot : Boolean;
-   --  Set to True if we are on the boot partition
-
-   My_Public_Data : Public_Data;
-   --  Public data of the local partition
-
-   type Allocated_Map is array (Partition_ID range <>) of Boolean;
-   --  Type of allocated partitions
-
-   procedure Handle_Internal
+   procedure Partition_Info_Receiver
      (Partition : in Partition_ID;
-      Operation : in Internal_Opcode;
       Params    : access Params_Stream_Type);
-   --  Internal operation
+   --  Handle Partition_Service operations
 
-   procedure Handle_Public
-     (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
-      Params    : access Params_Stream_Type);
-   --  Public operation
+   procedure Process
+     (PID       : in Partition_ID;
+      Request   : in Request_Type;
+      Partition : in out Partition_Info;
+      Status    : out Status_Type);
+   --  Execute Request on Partition. This procedure is used by
+   --  Apply to get an atomic operation. The request can be postponed
+   --  when Status is set to Postponed. In this case, Process will
+   --  re-executed when the shared data status is set to Modified.
 
-   type Receiver_Array is array (Public_Opcode) of Public_Receiver;
+   procedure Send
+     (Target    : in Partition_ID;
+      Request   : in Request_Type;
+      Partition : in Partition_ID);
+   --  Send to Target a Request on Partition
 
-   protected type Receiver_Map_Type is
-      procedure Set (Operation : in Opcode; Receiver : in Public_Receiver);
-      entry Get (Opcode) (Receiver : out Public_Receiver);
-   private
-      Receiver_Data : Receiver_Array;
-   end Receiver_Map_Type;
-   --  List of receivers for every opcode
+   Self_PID_Barrier : Barrier_Access := new Barrier_Type;
+   --  Block any task until Self_PID is different from Null_PID
 
-   type Receiver_Map_Access is access Receiver_Map_Type;
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Receiver_Map_Type,
-                                      Receiver_Map_Access);
-   Receiver_Map : Receiver_Map_Access := new Receiver_Map_Type;
-   --  Same kludge as above ???
+   Receiver_Map : array (Public_Opcode) of Public_Receiver;
+   --  Receiver callbacks table
 
    procedure Shutdown;
    --  Generates a local shutdown
@@ -163,32 +148,115 @@ package body System.Garlic.Heart is
       Result : access Streams.Params_Stream_Type);
    --  Global RPC receiver
 
-   procedure Dump_Partition_Information (Partition : in Partition_ID;
-                                         Public    : in Public_Data);
+   procedure Dump_Partition_Info
+     (PID  : in Partition_ID;
+      Info : in Partition_Info);
    --  Dump a summary of all the information we have on a partition
 
-   --------------------------
-   -- Add_New_Partition_ID --
-   --------------------------
+   function PID_Read (Partition : Stream_Element) return Partition_ID;
+   pragma Inline (PID_Read);
+   function PID_Write (Partition : Partition_ID) return Stream_Element;
+   pragma Inline (PID_Write);
+   --  Read and write partition id on one byte
 
-   procedure Add_New_Partition_ID (Partition : in Partition_ID) is
-      Empty : aliased Params_Stream_Type (0);
+   ------------------
+   -- Allocate_PID --
+   ------------------
+
+   function Allocate_PID return Partition_ID is
+      Partition : Partition_ID;
    begin
-      --  Send a NOP to establish the connection
+      Enter_Critical_Section;
+      for P in Partitions_Table'Range loop
+         if not Partitions_Table (P).Allocated then
+            Partitions_Table (P).Allocated := True;
+            Partition := P;
+            exit;
+         end if;
+      end loop;
+      Leave_Critical_Section;
+      pragma Debug (D (D_Server, "Allocating partition" & Partition'Img));
+      return Partition;
+   end Allocate_PID;
 
-      pragma Debug (D (D_Debug, "Sending a No_Operation"));
-      Send (Partition, No_Operation, Empty'Access);
-   end Add_New_Partition_ID;
+   --------------------
+   -- Analyze_Stream --
+   --------------------
+
+   procedure Analyze_Stream
+     (Partition  : out Partition_ID;
+      Operation  : out Opcode;
+      Unfiltered : out Stream_Element_Access;
+      Filtered   : in  Stream_Element_Access;
+      Offset     : in  Ada.Streams.Stream_Element_Count := 0)
+   is
+      PID   : Partition_ID;
+      Code  : Opcode;
+      First : constant Stream_Element_Count := Filtered'First + Offset;
+      Last  : constant Stream_Element_Count := Filtered'Last;
+      Data  : Stream_Element_Array renames Filtered (First + 2 .. Last);
+   begin
+      --  Dump the stream for debugging purpose
+
+      pragma Debug (D (D_Dump, "Dumping incoming stream"));
+      pragma Debug (Dump (D_Dump, Filtered, Private_Debug_Key));
+
+      --  Record the current packet content in the trace file if needed
+
+      if Options.Execution_Mode = Trace_Mode then
+         Trace_Data (Partition, Filtered);
+      end if;
+
+      --  Read the partition id from the stream and check that it is valid
+
+      PID := PID_Read (Filtered (First));
+      if not PID'Valid then
+         pragma Debug (D (D_Debug, "Received incorrect partition id"));
+         raise Constraint_Error;
+      end if;
+
+      --  Read the opcode from the stream and check that it is valid
+
+      Code := Opcode_Read (Filtered (First + 1));
+      if not Code'Valid then
+         pragma Debug (D (D_Debug, "Received unknown opcode"));
+         raise Constraint_Error;
+      elsif Code = No_Operation then
+         pragma Debug (D (D_Debug, "Received No_Operation opcode"));
+         raise Constraint_Error;
+      end if;
+
+      --  When the partition id is unknown, allocate a new one
+
+      if PID = Null_PID then
+         PID := Allocate_PID;
+      end if;
+
+      pragma Debug
+        (D (D_Debug,
+            "Received request with opcode " & Code'Img &
+            " from partition" & PID'Img));
+
+      --  Unfilter the data and put it in a stream
+
+      Unfiltered := Filter_Incoming (PID, Code, Data);
+      Partition  := PID;
+      Operation  := Code;
+
+   exception when others =>
+      pragma Debug (D (D_Debug, "Exception in block Analyze_Stream"));
+      raise;
+   end Analyze_Stream;
 
    ------------------------
    -- Blocking_Partition --
    ------------------------
 
    function Blocking_Partition (Partition : Partition_ID) return Boolean is
-      Public : constant Public_Data := Get_Public_Data (Partition);
+      Data : constant Partition_Info := Get_Component (Partition);
    begin
-      return Public.Termination = Local_Termination
-        and then Public.Alive;
+      return Data.Termination = Local_Termination
+        and then Data.Status = Defined;
    end Blocking_Partition;
 
    ------------------------------
@@ -211,7 +279,7 @@ package body System.Garlic.Heart is
 
       --  If this is the main partition, fail
 
-      if Is_Boot_Partition then
+      if Options.Boot_Partition then
          return False;
       end if;
 
@@ -219,23 +287,6 @@ package body System.Garlic.Heart is
 
       return True;
    end Can_Have_A_Light_Runtime;
-
-   --------------------------------
-   -- Dump_Partition_Information --
-   --------------------------------
-
-   procedure Dump_Partition_Information
-     (Partition : in Partition_ID;
-      Public    : in Public_Data)
-   is
-   begin
-      D (D_Debug, "Information on partition" & Partition_ID'Image (Partition));
-      D (D_Debug, "  Name:        " & Get (Public.Name));
-      D (D_Debug, "  Location:    " & To_String (Public.Location));
-      D (D_Debug, "  Termination: " & Public.Termination'Img);
-      D (D_Debug, "  Reconnection: " & Public.Reconnection'Img);
-      D (D_Debug, "  Alive:       " & Boolean'Image (Public.Alive));
-   end Dump_Partition_Information;
 
    --------------------------
    -- Complete_Elaboration --
@@ -248,42 +299,79 @@ package body System.Garlic.Heart is
       Elaboration_Barrier.Signal_All (Permanent => True);
    end Complete_Elaboration;
 
+   -------------------------
+   -- Dump_Partition_Info --
+   -------------------------
+
+   procedure Dump_Partition_Info
+     (PID  : in Partition_ID;
+      Info : in Partition_Info)
+   is
+   begin
+      D (D_Dump, "Information on partition" & Partition_ID'Image (PID));
+      if Info.Logical_Name /= null then
+         D (D_Dump, "  Name:         " & Info.Logical_Name.all);
+      else
+         D (D_Dump, "  Name:         <no name>");
+      end if;
+      D (D_Dump, "  Location:     " & To_String (Info.Location));
+      D (D_Dump, "  Termination:  " & Info.Termination'Img);
+      D (D_Dump, "  Reconnection: " & Info.Reconnection'Img);
+      D (D_Dump, "  Status:       " & Partition_Status'Image (Info.Status));
+   end Dump_Partition_Info;
+
    ---------------------
-   -- Get_My_Location --
+   -- Get_Boot_Server --
    ---------------------
 
-   function Get_My_Location return Location_Type is
+   function Get_Boot_Server return String is
+      Info : Partition_Info;
    begin
-      return My_Public_Data.Location;
-   end Get_My_Location;
+      Info := Get_Component (Boot_PID);
+      return To_String (Info.Location);
+   end Get_Boot_Server;
 
    -------------------------
    -- Get_My_Partition_ID --
    -------------------------
 
    function Get_My_Partition_ID return Partition_ID is
-      Partition : Partition_ID;
+      Set  : Request_Type (Set_Partition_Info);
+      Info : Partition_Info;
 
    begin
-      Local_Partition_ID.Get (Partition);
+      if Self_PID = Null_PID then
 
-      if Partition = Null_Partition_ID then
-         declare
-            Params : aliased Params_Stream_Type (0);
-         begin
-            --  We will send a Set_Public_Data to the server. This will cause
-            --  a dialog to be established and a new Partition_ID to be
-            --  allocated, and our location will be registered into
-            --  the server's base.
+         --  Self_PID is unknown. Use Last_PID as a temporary partition id.
+         --  Fill partition info with Garlic.Options info.
 
-            pragma Assert (My_Public_Data.Alive);
-            Public_Data'Write (Params'Access, My_Public_Data);
-            Send (Server_Partition_ID, Set_Public_Data, Params'Access);
-            Local_Partition_ID.Get (Partition);
-         end;
+         Info := Get_Component (Last_PID);
+         Set.Logical_Name := Options.Partition_Name;
+         Set.Location     := Info.Location;
+         Set.Termination  := Options.Termination;
+         Set.Reconnection := Options.Reconnection;
+
+         if Options.Boot_Partition then
+            Apply (Boot_PID, Set, Process'Access);
+            Set_My_Partition_ID (Boot_PID);
+
+         else
+            --  We will send a Set_Partition_Info request to the server.
+            --  This will cause a dialog to be established and a new
+            --  Partition_ID to be allocated, and our location will be
+            --  registered into the boot partition's base. The boot
+            --  partition sends partition info on itself to this partition.
+            --  Then, it sends partition info on this partition. Therefore,
+            --  the current partition id is known and Self_PID_Barrier will
+            --  be kept opened.
+
+            Apply (Last_PID, Set, Process'Access);
+            Self_PID_Barrier.Wait;
+
+         end if;
       end if;
 
-      return Partition;
+      return Self_PID;
    exception
       when E : others =>
          pragma Warnings (Off, E);
@@ -291,18 +379,63 @@ package body System.Garlic.Heart is
          raise;
    end Get_My_Partition_ID;
 
-   -------------------------------------
-   -- Get_My_Partition_ID_Immediately --
-   -------------------------------------
+   ------------------------
+   -- Get_Partition_Info --
+   ------------------------
 
-   function Get_My_Partition_ID_Immediately return Partition_ID is
+   function Get_Partition_Info (Partition : Partition_ID)
+     return Partition_Info is
    begin
-      if Local_Partition = Null_Partition_ID then
-         return Local_Partition_ID.Get_Immediately;
-      else
-         return Local_Partition;
+      --  If partition info is availablein the cache, then get it from
+      --  there. Otherwise, send a request to boot partition to update
+      --  the cache.
+
+      if Partitions_Table (Partition).Status /= Defined then
+         pragma Debug
+           (D (D_Table, "Looking for info on partition" & Partition'Img));
+
+         Apply (Partition, (Get_Partition_Info, Self_PID), Process'Access);
       end if;
-   end Get_My_Partition_ID_Immediately;
+
+      return Partitions_Table (Partition);
+   end Get_Partition_Info;
+
+   ------------------
+   -- Get_Protocol --
+   ------------------
+
+   function Get_Protocol
+     (Partition : Partition_ID)
+      return Protocol_Access is
+   begin
+      --  If the partition is the boot server, then the protocol is
+      --  already known even when Partition_Info is only partially
+      --  initialized.
+
+      if Partition /= Boot_PID
+        and then Partitions_Table (Partition).Status /= Defined
+      then
+         return Get_Partition_Info (Partition).Protocol;
+      end if;
+
+      return Partitions_Table (Partition).Protocol;
+   end Get_Protocol;
+
+   -----------------------
+   -- Get_Self_Location --
+   -----------------------
+
+   function Get_Self_Location return Location_Type is
+      P : Partition_ID := Self_PID;
+   begin
+      --  If Self_PID is not initialized, then the location is supposed
+      --  to be stored temporary in the Last_PID slot.
+
+      if P = Null_PID then
+         P := Last_PID;
+      end if;
+      return Get_Component (P).Location;
+   end Get_Self_Location;
 
    ---------------------
    -- Handle_Internal --
@@ -312,92 +445,17 @@ package body System.Garlic.Heart is
      (Partition : in Partition_ID;
       Operation : in Internal_Opcode;
       Params    : access Params_Stream_Type) is
-      Data  : Partition_Data;
-      Asked : Partition_ID;
-
    begin
-
       Soft_Links.Activity_Detected;
 
       case Operation is
+         when No_Operation =>
+            null;
 
-         when No_Operation => null;
-
-         when Set_Public_Data =>
-
-            pragma Debug
-              (D (D_Server,
-                  "Receive information on partition" & Partition'Img));
-
-            Public_Data'Read (Params, Data.Public);
-            if Options.Execution_Mode = Replay_Mode then
-               Data.Public.Location := To_Location ("replay://");
-            end if;
-
-            pragma Debug (Dump_Partition_Information (Partition, Data.Public));
-            Data.Known       := True;
-            Data.Queried     := False;
-
-            pragma Debug
-              (D (D_Server,
-                  "Receive that partition" & Partition'Img &
-                  " is named " & Get (Data.Public.Name) &
-                  " and is located at " & To_String (Data.Public.Location)));
-
-            Partition_Map.Set_Data (Partition, Data);
-
-         when Query_Public_Data =>
-            declare
-               Answer : aliased Params_Stream_Type (0);
-
-            begin
-               Partition_ID'Read (Params, Asked);
-               if not Asked'Valid then
-                  pragma Debug (D (D_Debug, "Invalid partition ID"));
-                  raise Constraint_Error;
-               end if;
-
-               pragma Debug
-                 (D (D_Server,
-                     "Partition" & Partition'Img &
-                     " is looking for information on partition" & Asked'Img));
-
-               Data := Get_Partition_Data (Asked);
-
-               pragma Debug
-                 (D (D_Server,
-                     "Return information on partition" & Asked'Img));
-               pragma Debug (Dump_Partition_Information (Asked, Data.Public));
-
-               Partition_ID'Write (Answer'Access, Asked);
-               Public_Data'Write (Answer'Access, Data.Public);
-               Send (Partition, Query_Public_Data_Answer, Answer'Access);
-            end;
-
-         when Query_Public_Data_Answer =>
-
-            Partition_ID'Read (Params, Asked);
-            if not Asked'Valid then
-               pragma Debug (D (D_Debug, "Invalid partition ID"));
-               raise Constraint_Error;
-            end if;
-
-            pragma Debug
-              (D (D_Garlic,
-                  "Receive query for information on partition" & Asked'Img));
-
-            Public_Data'Read (Params, Data.Public);
-            if Options.Execution_Mode = Replay_Mode then
-               Data.Public.Location := To_Location ("replay://");
-            end if;
-            Data.Known       := True;
-            Data.Queried     := False;
-            Partition_Map.Set_Data (Asked, Data);
-
-            pragma Debug (Dump_Partition_Information (Asked, Data.Public));
+         when Partition_Service =>
+            Partition_Info_Receiver (Partition, Params);
 
          when Shutdown =>
-
             pragma Debug
               (D (D_Garlic,
                   "Receive shutdown request from partition" & Partition'Img));
@@ -425,82 +483,17 @@ package body System.Garlic.Heart is
    is
       Receiver : Public_Receiver;
    begin
+      pragma Assert (Self_PID /= Null_PID);
+
       if Operation /= Shutdown_Synchronization then
          Soft_Links.Activity_Detected;
       end if;
-      Receiver_Map.Get (Operation) (Receiver);
+
+      Receiver := Receiver_Map (Operation);
+      pragma Assert (Receiver /= null);
+
       Receiver (Partition, Operation, Params);
    end Handle_Public;
-
-   -----------------
-   -- Has_Arrived --
-   -----------------
-
-   procedure Has_Arrived
-     (Partition     : in Partition_ID;
-      Filtered_Data : access Stream_Element_Array;
-      Offset        : in Ada.Streams.Stream_Element_Count := 0)
-   is
-      Operation         : Opcode;
-      First             : constant Stream_Element_Count :=
-        Filtered_Data'First + Offset;
-      Real_Data         : Stream_Element_Array
-        renames Filtered_Data (First + 1 .. Filtered_Data'Last);
-      Unfiltered_Data   : Stream_Element_Access;
-      Unfiltered_Stream : aliased Params_Stream_Type (Real_Data'Length);
-   begin
-      --  Dump the stream for debugging purpose
-
-      pragma Debug (D (D_Dump, "Dumping incoming stream"));
-      pragma Debug (Dump (D_Dump, Filtered_Data, Private_Debug_Key));
-
-      --  Record the current packet content in the trace file if needed
-
-      if Options.Execution_Mode = Trace_Mode then
-         Trace_Data (Partition, Filtered_Data);
-      end if;
-
-      --  Read the opcode from the stream and check that it is valid
-
-      Operation := Opcode_Read (Filtered_Data (First));
-      if not Operation'Valid then
-         pragma Debug
-           (D (D_Debug, "Received unknown opcode"));
-         raise Constraint_Error;
-      elsif Operation = No_Operation then
-         pragma Debug (D (D_Debug, "Received No_Operation opcode"));
-         raise Constraint_Error;
-      end if;
-      pragma Debug
-        (D (D_Debug,
-            "Received request with opcode " & Operation'Img &
-            " from partition" & Partition_ID'Image (Partition)));
-
-      --  Unfilter the data and put it in a stream. Note that the size of
-      --  the stream has been set to Real_Data'Length, which is usually a
-      --  good hint as most filteres will not change the size of the data.
-
-      Unfiltered_Data :=
-        Filter_Incoming (Partition, Operation, Real_Data);
-      To_Params_Stream_Type (Unfiltered_Data.all, Unfiltered_Stream'Access);
-      Free (Unfiltered_Data);
-
-      --  Depending on the opcode, send the stream to the public or internal
-      --  routines.
-
-      case Operation is
-         when Internal_Opcode =>
-            Handle_Internal (Partition, Operation, Unfiltered_Stream'Access);
-         when Public_Opcode   =>
-            Handle_Public (Partition, Operation, Unfiltered_Stream'Access);
-         when Invalid_Operation =>
-            raise Program_Error;       -- We cannot land here, see test above
-      end case;
-
-   exception when others =>
-      pragma Debug (D (D_Debug, "Exception in block Has_Arrived"));
-      raise;
-   end Has_Arrived;
 
    ----------------
    -- Initialize --
@@ -508,78 +501,31 @@ package body System.Garlic.Heart is
 
    procedure Initialize is
    begin
-      My_Public_Data.Name         := Get (Options.Partition_Name.all);
-      My_Public_Data.Termination  := Options.Termination;
-      My_Public_Data.Reconnection := Options.Reconnection;
-      My_Public_Data.Alive        := True;
-
       pragma Debug
-        (D (D_Debug, "My partition name is " & Get (My_Public_Data.Name)));
+        (D (D_Dump,
+            "My partition name is " & Options.Partition_Name.all));
       pragma Debug
-        (D (D_Debug,
+        (D (D_Dump,
             "My termination policy is " & Options.Termination'Img));
       pragma Debug
-        (D (D_Debug,
+        (D (D_Dump,
             "My reconnection policy is " & Options.Reconnection'Img));
+      null;
    end Initialize;
 
-   -----------------------
-   -- Is_Boot_Partition --
-   -----------------------
+   ------------------------
+   -- Last_Allocated_PID --
+   ------------------------
 
-   function Is_Boot_Partition return Boolean is
+   function Last_Allocated_PID return Partition_ID is
    begin
-      return Is_Boot;
-   end Is_Boot_Partition;
-
-   -----------------------------
-   -- Is_Shutdown_In_Progress --
-   -----------------------------
-
-   function Is_Shutdown_In_Progress return Boolean is
-   begin
-      return Shutdown_In_Progress;
-   end Is_Shutdown_In_Progress;
-
-   -----------------------------
-   -- Local_Partition_ID_Type --
-   -----------------------------
-
-   protected body Local_Partition_ID_Type is
-
-      ---------
-      -- Get --
-      ---------
-
-      entry Get (Partition : out Partition_ID)
-      when Local_Partition /= Null_Partition_ID or not In_Progress is
-      begin
-         if Local_Partition = Null_Partition_ID then
-            In_Progress := True;
+      for P in reverse Partitions_Table'Range loop
+         if Partitions_Table (P).Allocated then
+            return P;
          end if;
-         Partition := Local_Partition;
-      end Get;
-
-      ---------------------
-      -- Get_Immediately --
-      ---------------------
-
-      function Get_Immediately return Partition_ID is
-      begin
-         return Local_Partition;
-      end Get_Immediately;
-
-      ---------
-      -- Set --
-      ---------
-
-      procedure Set (Partition : in Partition_ID) is
-      begin
-         In_Progress := False;
-         Local_Partition := Partition;
-      end Set;
-
-   end Local_Partition_ID_Type;
+      end loop;
+      return Null_PID;
+   end Last_Allocated_PID;
 
    --------------
    -- Location --
@@ -587,7 +533,7 @@ package body System.Garlic.Heart is
 
    function Location (Partition : Partition_ID) return Location_Type is
    begin
-      return Get_Public_Data (Partition) .Location;
+      return Get_Component (Partition) .Location;
    end Location;
 
    ----------
@@ -596,7 +542,7 @@ package body System.Garlic.Heart is
 
    function Name (Partition : Partition_ID) return Name_Id is
    begin
-      return Get_Public_Data (Partition) .Name;
+      return Get (Name (Partition));
    end Name;
 
    ----------
@@ -605,7 +551,7 @@ package body System.Garlic.Heart is
 
    function Name (Partition : Partition_ID) return String is
    begin
-      return Get (Name (Partition));
+      return Get_Partition_Info (Partition).Logical_Name.all;
    end Name;
 
    -----------------
@@ -626,6 +572,112 @@ package body System.Garlic.Heart is
       return Opcode'Pos (Operation);
    end Opcode_Write;
 
+   --------------
+   -- PID_Read --
+   --------------
+
+   function PID_Read (Partition : Stream_Element) return Partition_ID is
+   begin
+      return Partition_ID (Partition);
+   end PID_Read;
+
+   ---------------
+   -- PID_Write --
+   ---------------
+
+   function PID_Write (Partition : Partition_ID) return Stream_Element is
+   begin
+      return Stream_Element (Partition);
+   end PID_Write;
+
+   -----------------------------
+   -- Partition_Info_Receiver --
+   -----------------------------
+
+   procedure Partition_Info_Receiver
+     (Partition : in Partition_ID;
+      Params    : access Params_Stream_Type)
+   is
+      Request : Request_Type;
+      PID     : Partition_ID;
+      Boot    : Boolean := False;
+   begin
+      --  Do not answer to any request until boot partition completes
+      --  its initialization (ie initializes its partition id).
+
+      if Options.Boot_Partition and then Self_PID = Null_PID then
+         Self_PID_Barrier.Wait;
+      end if;
+
+      Partition_ID'Read (Params, PID);
+      Request := Request_Type'Input (Params);
+
+      pragma Debug
+        (D (D_Warning,
+            "Receive from partition" & Partition'Img &
+            " a request " & Request.Kind'Img &
+            " on partition " & PID'Img));
+
+      if Request.Kind = Set_Partition_Info then
+         --  A Set_Partition_Info request is a qrequest sent by a partition
+         --  during its elaboration in order to get a partition id. On
+         --  the boot partition, indicate that this partition is in a
+         --  boot phase.
+
+         if Options.Boot_Partition then
+            PID  := Partition;
+            Boot := True;
+         end if;
+
+         if Options.Execution_Mode = Replay_Mode then
+            Request.Location := To_Location ("replay://");
+         end if;
+      end if;
+
+      --  Run Process in an exclusive and unabortable procedure
+
+      Apply (PID, Request, Process'Access);
+
+      --  If the remote partition is in a boot phase, send to this
+      --  partition the boot partition info and then its partition info.
+      --  This will allow the remote partition to get its partition id.
+
+      if Boot then
+         declare
+            Set  : Request_Type;
+            Info : Partition_Info;
+         begin
+            Info := Get_Component (Boot_PID);
+            Set  := (Set_Partition_Info,
+                     Info.Logical_Name,
+                     Info.Location,
+                     Info.Termination,
+                     Info.Reconnection);
+            Send (PID, Set, Boot_PID);
+
+            Info := Get_Component (PID);
+            Set  := (Set_Partition_Info,
+                     Info.Logical_Name,
+                     Info.Location,
+                     Info.Termination,
+                     Info.Reconnection);
+            Send (PID, Set, PID);
+         end;
+      end if;
+
+      --  If we receive a request from boot partition and then the partition
+      --  id of the current partition is unknown and then the info does
+      --  not concern to boot partition, then this info concerns the current
+      --  partition. The request provides the new partition id.
+
+      if Partition = Boot_PID
+        and then Self_PID = Null_PID
+        and then PID     /= Boot_PID
+      then
+         Set_My_Partition_ID (PID);
+      end if;
+   end Partition_Info_Receiver;
+
    ----------------------------
    -- Partition_RPC_Receiver --
    ----------------------------
@@ -640,6 +692,139 @@ package body System.Garlic.Heart is
    end Partition_RPC_Receiver;
 
    -------------
+   -- Process --
+   -------------
+
+   procedure Process
+     (PID       : in Partition_ID;
+      Request   : in Request_Type;
+      Partition : in out Partition_Info;
+      Status    : out Status_Type) is
+
+   begin
+      pragma Debug
+        (D (D_Warning,
+            "Process " & Request.Kind'Img & " on partition" & PID'Img));
+      pragma Debug
+        (D (D_Warning,
+            "Partition status " & Partition.Status'Img));
+
+      case Request.Kind is
+         when Get_Partition_Info =>
+            case Partition.Status is
+
+               when Undefined =>
+                  --  Change status and send request to boot partition
+
+                  Partition.Status := Queried;
+                  if not Options.Boot_Partition then
+                     Send (Boot_PID, Request, PID);
+                  end if;
+
+                  --  Wait for a reply
+
+                  Status := Postponed;
+
+               when Queried =>
+                  --  Wait for a reply
+
+                  Status := Postponed;
+
+               when Defined =>
+                  --  If this is a remote request then send the
+                  --  reply to the remote partition.
+
+                  if Request.Reply_To_PID /= Self_PID then
+                     declare
+                        Set : Request_Type (Set_Partition_Info);
+                     begin
+                        Set.Logical_Name := Partition.Logical_Name;
+                        Set.Location     := Partition.Location;
+                        Set.Termination  := Partition.Termination;
+                        Set.Reconnection := Partition.Reconnection;
+                        Send (Request.Reply_To_PID, Set, PID);
+                     end;
+                  end if;
+                  Status := Unmodified;
+
+            end case;
+
+         when Set_Partition_Info =>
+            case Partition.Status is
+               when Undefined =>
+                  --  If this request is received by the boot partition
+                  --  or if PID is different from Last_PID (ie was not
+                  --  built locally), then really set info.
+
+                  if Options.Boot_Partition or else PID /= Last_PID then
+                     Partition.Logical_Name := Request.Logical_Name;
+                     Partition.Location     := Request.Location;
+                     Partition.Termination  := Request.Termination;
+                     Partition.Reconnection := Request.Reconnection;
+
+                     Partition.Protocol := Get_Protocol (Partition.Location);
+                     Partition.Status   := Defined;
+
+                  else
+                     --  This request was built locally. It excepts a
+                     --  reply from boot partition. Set Status to Queried
+                     --  and send request to boot partition. Wait for the
+                     --  reply.
+
+                     Partition.Status       := Queried;
+                     Send (Boot_PID, Request, PID);
+                  end if;
+                  Status := Modified;
+
+               when Queried | Defined =>
+                  Partition.Logical_Name := Request.Logical_Name;
+                  Partition.Location     := Request.Location;
+                  Partition.Termination  := Request.Termination;
+                  Partition.Reconnection := Request.Reconnection;
+
+                  Partition.Protocol := Get_Protocol (Partition.Location);
+                  Partition.Status   := Defined;
+                  Status := Modified;
+
+            end case;
+      end case;
+   end Process;
+
+   --------------------
+   -- Process_Stream --
+   --------------------
+
+   procedure Process_Stream
+     (Partition  : in Partition_ID;
+      Operation  : in Opcode;
+      Unfiltered : in Stream_Element_Access)
+   is
+      Stream : aliased Params_Stream_Type (Unfiltered.all'Length);
+   begin
+      --  Dump the stream for debugging purpose
+
+      pragma Debug (D (D_Dump, "Dumping incoming stream"));
+      pragma Debug (Dump (D_Dump, Unfiltered, Private_Debug_Key));
+
+      To_Params_Stream_Type (Unfiltered.all, Stream'Access);
+
+      --  Depending on the opcode, dispatch to the public or internal routines.
+
+      case Operation is
+         when Internal_Opcode =>
+            Handle_Internal (Partition, Operation, Stream'Access);
+         when Public_Opcode   =>
+            Handle_Public (Partition, Operation, Stream'Access);
+         when Invalid_Operation =>
+            raise Program_Error;
+      end case;
+
+   exception when others =>
+      pragma Debug (D (D_Debug, "Exception in block Process_Stream"));
+      raise;
+   end Process_Stream;
+
+   -------------
    -- Receive --
    -------------
 
@@ -648,35 +833,20 @@ package body System.Garlic.Heart is
       pragma Debug
         (D (D_Garlic,
             "Receiver for operation " & Operation'Img & " is now registered"));
-      Receiver_Map.Set (Operation, Receiver);
+
+      Receiver_Map (Operation) := Receiver;
    end Receive;
 
-   ------------------
-   -- Receiver_Map --
-   ------------------
+   -------------------------
+   -- Reconnection_Policy --
+   -------------------------
 
-   protected body Receiver_Map_Type is
-
-      ---------
-      -- Get --
-      ---------
-
-      entry Get (for Operation in Opcode) (Receiver : out Public_Receiver)
-      when Receiver_Data (Operation) /= null is
-      begin
-         Receiver := Receiver_Data (Operation);
-      end Get;
-
-      ---------
-      -- Set --
-      ---------
-
-      procedure Set (Operation : in Opcode; Receiver : in Public_Receiver) is
-      begin
-         Receiver_Data (Operation) := Receiver;
-      end Set;
-
-   end Receiver_Map_Type;
+   function Reconnection_Policy
+     (Partition : Partition_ID)
+      return Reconnection_Type is
+   begin
+      return Get_Component (Partition) .Reconnection;
+   end Reconnection_Policy;
 
    -------------------------------------------
    -- Register_Partition_Error_Notification --
@@ -693,21 +863,20 @@ package body System.Garlic.Heart is
    ----------------------------
 
    procedure Remote_Partition_Error (Partition : in Partition_ID) is
-      Data : Partition_Data;
+      Info : Partition_Info;
    begin
       pragma Debug
         (D (D_Communication,
             "It looks like partition" & Partition'Img & " is dead"));
-      pragma Debug (D (D_Debug, "Registering the partition as not alive"));
-      Data := Partition_Map.Get_Data (Partition);
-      Data.Public.Alive := False;
-      Partition_Map.Set_Data (Partition, Data);
+      Info := Get_Component (Partition);
+      Info.Status := Undefined;
+      Set_Component (Partition, Info);
       if Shutdown_Policy = Shutdown_On_Any_Partition_Error then
          pragma Debug
             (D (D_Communication, "Due to the policy, I will shutdown"));
          Soft_Shutdown;
       end if;
-      if Partition = Server_Partition_ID and then
+      if Partition = Boot_PID and then
         Shutdown_Policy = Shutdown_On_Boot_Partition_Error then
          pragma Debug
            (D (D_Communication, "I cannot live without a boot partition"));
@@ -719,17 +888,6 @@ package body System.Garlic.Heart is
       end if;
    end Remote_Partition_Error;
 
-   -------------------------
-   -- Reconnection_Policy --
-   -------------------------
-
-   function Reconnection_Policy
-     (Partition : Partition_ID)
-      return Reconnection_Type is
-   begin
-      return Get_Public_Data (Partition) .Reconnection;
-   end Reconnection_Policy;
-
    ----------
    -- Send --
    ----------
@@ -738,52 +896,86 @@ package body System.Garlic.Heart is
                    Operation : in Opcode;
                    Params    : access Params_Stream_Type)
    is
-      Filtered_Data : Stream_Element_Access;
-      Length        : Stream_Element_Offset;
-      Packet        : Stream_Element_Access;
+      Filtered : Stream_Element_Access;
+      Length   : Stream_Element_Offset;
+      Stream   : Stream_Element_Access;
    begin
+      pragma Debug
+        (D (D_Debug, "Send " & Operation'Img & " message to" & Partition'Img));
+
       --  Filter the data according to the remote partition and the opcode
 
-      Filtered_Data := Filter_Outgoing (Partition, Operation, Params);
+      Filtered := Filter_Outgoing (Partition, Operation, Params);
 
       --  Compute the length of the packet: this is the length of the
       --  unused space that will be used by the protocol to stick its own
-      --  data at the beginning + 1 for the opcode + the length of the
-      --  unfiltered data. Allocate a packet of the right length.
+      --  data at the beginning + 1 for the opcode + 1 for partition id +
+      --  the length of the unfiltered data. Allocate a packet of the right
+      --  length.
 
-      Length := Protocols.Unused_Space + 1 + Filtered_Data'Length;
-      Packet := new Stream_Element_Array (1 .. Length);
+      Length := Unused_Space + 2 + Filtered'Length;
+      Stream := new Stream_Element_Array (1 .. Length);
 
-      --  Put the opcode at the beginning of the reserved section,
-      --  then the filtered data, which can then be deallocated.
+      --  Put the opcode and the partition id at the beginning of
+      --  the reserved section, then the filtered data, which can then
+      --  be deallocated.
 
-      Packet (Protocols.Unused_Space + 1) := Opcode_Write (Operation);
-      Packet (Protocols.Unused_Space + 2 .. Packet'Last) := Filtered_Data.all;
-      Free (Filtered_Data);
+      Stream (Unused_Space + 1) := PID_Write (Self_PID);
+      Stream (Unused_Space + 2) := Opcode_Write (Operation);
+      Stream (Unused_Space + 3 .. Stream'Last) := Filtered.all;
+      Free (Filtered);
 
       --  If the data is for a remote partition, send it using the right
-      --  protocol. Otherwise, make a local call to Has_Arrived (this can
-      --  happen for a call on which pragma All_Calls_Remote applies) without
-      --  the extra space.
+      --  protocol. Otherwise, make local calls (this can happen for a call
+      --  on which pragma All_Calls_Remote applies) without extra space.
 
-      if Partition = Get_My_Partition_ID_Immediately then
+      if Partition = Self_PID then
          pragma Debug (D (D_Debug, "Handling a All_Calls_Remote case"));
-         Has_Arrived (Partition,
-                      Packet,
-                      Protocols.Unused_Space);
+         declare
+            PID        : Partition_ID;
+            Code       : Opcode;
+            Unfiltered : Stream_Element_Access;
+         begin
+            Analyze_Stream (PID, Code, Unfiltered, Stream, Unused_Space);
+            Process_Stream (PID, Code, Unfiltered);
+            Free (Unfiltered);
+         exception when others =>
+            Free (Unfiltered);
+         end;
       else
          pragma Debug (D (D_Debug, "Calling the right protocol"));
-         Protocols.Send (Get_Protocol (Partition), Partition, Packet);
+         Send (Get_Protocol (Partition), Partition, Stream);
       end if;
 
       --  Free the data, even if an exception occurs
 
-      Free (Packet);
+      Free (Stream);
 
-   exception
-      when others =>
-         Free (Packet);
-         raise;
+   exception when others =>
+      Free (Stream);
+      Free (Filtered);
+      raise;
+   end Send;
+
+   ----------
+   -- Send --
+   ----------
+
+   procedure Send
+     (Target    : in Partition_ID;
+      Request   : in Request_Type;
+      Partition : in Partition_ID)
+   is
+      Params : aliased Params_Stream_Type (0);
+   begin
+      pragma Debug
+        (D (D_Warning,
+            "send to partition" & Target'Img &
+            " a request " & Request.Kind'Img &
+            " on partition" & Partition'Img));
+      Partition_ID'Write (Params'Access, Partition);
+      Request_Type'Output (Params'Access, Request);
+      Send (Target, Partition_Service, Params'Access);
    end Send;
 
    -----------------------
@@ -792,47 +984,25 @@ package body System.Garlic.Heart is
 
    procedure Set_Boot_Location (Location : in Location_Type)
    is
-      Public : constant Public_Data :=
-        (Location     => Location,
-         Name         => Null_Name,
+      Info : Partition_Info :=
+        (Allocated    => True,
+         Location     => Location,
+         Protocol     => Get_Protocol (Location),
+         Logical_Name => null,
          Reconnection => Rejected_On_Restart,
          Termination  => Global_Termination,
-         Alive        => False);
-      Data : Partition_Data :=
-        (Public  => Public,
-         Queried => False,
-         Known   => False);
+         Status       => Defined);
    begin
-      if Is_Boot_Partition then
-         Data.Public := My_Public_Data;
-         Data.Known  := True;
+      if Options.Boot_Partition then
+         Info.Logical_Name := Options.Partition_Name;
       end if;
-      Partition_Map.Set_Data (Server_Partition_ID, Data);
+
+      pragma Debug
+        (D (D_Debug,
+            "Configuring boot location to be " & To_String (Location)));
+
+      Set_Component (Boot_PID, Info);
    end Set_Boot_Location;
-
-   ---------------------------
-   -- Set_Is_Boot_Partition --
-   ---------------------------
-
-   procedure Set_Is_Boot_Partition (Yes : in Boolean) is
-   begin
-      Is_Boot := Yes;
-      if Is_Boot then
-         Local_Partition_ID.Set (Server_Partition_ID);
-      end if;
-   end Set_Is_Boot_Partition;
-
-   ---------------------
-   -- Set_My_Location --
-   ---------------------
-
-   procedure Set_My_Location (Location : in Location_Type)
-   is
-   begin
-      pragma Debug (D (D_Debug,
-                       "Setting my location to " & To_String (Location)));
-      My_Public_Data.Location := Location;
-   end Set_My_Location;
 
    -------------------------
    -- Set_My_Partition_ID --
@@ -841,11 +1011,17 @@ package body System.Garlic.Heart is
    procedure Set_My_Partition_ID (Partition : in Partition_ID) is
       use System.Garlic.Trace;
    begin
+      pragma Debug
+        (D (D_Debug, "Got my partition ID, I am partition" & Partition'Img));
+
+      --  Set this so that exception informations contain the Partition_ID
+
       System.Standard_Library.Local_Partition_ID := Natural (Partition);
-      Local_Partition_ID.Set (Partition);
-      if Options.Execution_Mode = Trace_Mode then
-         Trace_Partition_ID (Partition);
-      end if;
+
+      --  Save partition id and signal update of this variable
+
+      Self_PID := Partition;
+      Self_PID_Barrier.Signal_All (Permanent => True);
    end Set_My_Partition_ID;
 
    ----------------
@@ -859,6 +1035,27 @@ package body System.Garlic.Heart is
       Shutdown_Policy := Shutdown;
    end Set_Policy;
 
+   -----------------------
+   -- Set_Self_Location --
+   -----------------------
+
+   procedure Set_Self_Location (Location : in Location_Type)
+   is
+      PID  : Partition_ID := Self_PID;
+      Info : Partition_Info;
+
+   begin
+      pragma Debug
+        (D (D_Debug, "Setting my location to " & To_String (Location)));
+
+      if PID = Null_PID then
+         PID := Last_PID;
+      end if;
+      Info := Get_Component (PID);
+      Info.Location := Location;
+      Set_Component (PID, Info);
+   end Set_Self_Location;
+
    --------------
    -- Shutdown --
    --------------
@@ -870,9 +1067,7 @@ package body System.Garlic.Heart is
       Soft_Links.Termination_Shutdown;
       Physical_Location.Shutdown;
       RPC_Shutdown;
-      Free (Local_Partition_ID);
-      Free (Partition_Map);
-      Free (Receiver_Map);
+      Free (Self_PID_Barrier);
       Delete_Termination_Sanity_File;
    end Shutdown;
 
@@ -883,9 +1078,8 @@ package body System.Garlic.Heart is
    procedure Soft_Shutdown is
    begin
       Shutdown_In_Progress := True;
-      if Is_Boot_Partition then
-         for Partition in
-           Server_Partition_ID + 1 .. Latest_Allocated_Partition_ID loop
+      if Options.Boot_Partition then
+         for Partition in Boot_PID + 1 .. Last_Allocated_PID loop
             if Termination_Policy (Partition) /= Local_Termination then
                declare
                   Empty : aliased Params_Stream_Type (0);
@@ -907,7 +1101,7 @@ package body System.Garlic.Heart is
    function Termination_Policy (Partition : Partition_ID)
      return Termination_Type is
    begin
-      return Get_Public_Data (Partition) .Termination;
+      return Get_Component (Partition) .Termination;
    end Termination_Policy;
 
    ------------------------------------------
@@ -916,8 +1110,11 @@ package body System.Garlic.Heart is
 
    procedure Wait_Until_Elaboration_Is_Terminated is
    begin
-      pragma Debug (D (D_Debug, "Checking that elaboration is terminated"));
+      pragma Debug
+        (D (D_Debug, "Checking that elaboration is terminated"));
+
       Elaboration_Barrier.Wait;
+
       pragma Debug
          (D (D_Debug, "Confirmation that elaboration is terminated"));
    end Wait_Until_Elaboration_Is_Terminated;

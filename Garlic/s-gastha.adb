@@ -70,17 +70,17 @@ package body System.Garlic.Storage_Handling is
          return;
       end if;
 
-      Pool.Mutex.Enter;
+      Utils.Enter (Pool.Mutex);
       for I in 1 .. Max_Objects loop
          if not Pool.Used (I) then
             Pool.Used (I)   := True;
             Storage_Address := Pool.Addresses (I);
             Pool.N_Objects := Pool.N_Objects + 1;
-            Pool.Mutex.Leave;
+            Utils.Leave (Pool.Mutex);
             return;
          end if;
       end loop;
-      Pool.Mutex.Leave;
+      Utils.Leave (Pool.Mutex);
       Storage_Address := malloc (IC.int (Size_In_Storage_Elements));
       if Storage_Address = Null_Address then
          raise Storage_Error;
@@ -127,6 +127,7 @@ package body System.Garlic.Storage_Handling is
    begin
       for I in 1 .. Max_Objects loop
          free (Pool.Addresses (I));
+         Utils.Destroy (Pool.Mutex);
       end loop;
    end Finalize;
 
@@ -140,6 +141,7 @@ package body System.Garlic.Storage_Handling is
       Pool.Used      := (others => False);
       for I in 1 .. Max_Objects loop
          Pool.Addresses (I) := malloc (IC.int (Static_Object_Size));
+         Pool.Mutex := Utils.Create;
       end loop;
    end Initialize;
 

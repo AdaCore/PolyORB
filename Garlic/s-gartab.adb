@@ -89,7 +89,7 @@ package body System.Garlic.Table is
         new Ada.Unchecked_Deallocation
         (Usage_Table_Type, Usage_Table_Access);
 
-      Local_Mutex : Mutex_Type;
+      Local_Mutex : Mutex_Access := Create;
       --  This lock is used to block tasks until the table is
       --  modified. This uses special behaviour of Utils.Mutex_Type.
       --  Basically, Local_Mutex.Leave (Postponed) lets the run-time know
@@ -105,7 +105,8 @@ package body System.Garlic.Table is
       -- Allocate --
       --------------
 
-      function Allocate (N : Index_Type := Null_Index) return Index_Type is
+      function Allocate (N : Index_Type := Null_Index) return Index_Type
+      is
          Old_Max   : Index_Type;
          Old_Table : Component_Table_Access;
          Old_Usage : Usage_Table_Access;
@@ -182,11 +183,11 @@ package body System.Garlic.Table is
 
          Check (N);
          loop
-            Local_Mutex.Enter;
+            Enter (Local_Mutex);
             Enter_Critical_Section;
             Process (N, Parameter, Table (N), Status);
             Leave_Critical_Section;
-            Local_Mutex.Leave (Status);
+            Leave (Local_Mutex, Status);
 
             --  Loop when the subprogram execution has been postponed
 
@@ -198,7 +199,8 @@ package body System.Garlic.Table is
       -- Check --
       -----------
 
-      procedure Check (N : Index_Type) is
+      procedure Check (N : Index_Type)
+      is
          Error : Boolean;
       begin
          Enter_Critical_Section;
@@ -214,11 +216,10 @@ package body System.Garlic.Table is
       -- Get_Component --
       -------------------
 
-      function Get_Component (N : Index_Type) return Component_Type is
+      function Get_Component (N : Index_Type) return Component_Type
+      is
          Component : Component_Type;
       begin
-         pragma Abort_Defer;
-
          Check (N);
          Enter_Critical_Section;
          Component := Table (N);
@@ -231,13 +232,12 @@ package body System.Garlic.Table is
       -- Get_Index --
       ---------------
 
-      function Get_Index (S : String) return Index_Type is
+      function Get_Index (S : String) return Index_Type
+      is
          Index : Index_Type;
          Name  : Name_Id;
          Info  : Integer;
       begin
-         pragma Abort_Defer;
-
          Enter_Critical_Section;
          Name  := Get (S);
          Info  := Get_Info (Name);
@@ -262,11 +262,10 @@ package body System.Garlic.Table is
       -- Get_Name --
       --------------
 
-      function  Get_Name  (N : Index_Type) return String is
+      function  Get_Name  (N : Index_Type) return String
+      is
          Name : Name_Id;
       begin
-         pragma Abort_Defer;
-
          Enter_Critical_Section;
          if Max < N or else Usage (N).Free then
             Name := Null_Name;
@@ -282,10 +281,9 @@ package body System.Garlic.Table is
       -- Set_Component --
       -------------------
 
-      procedure Set_Component (N : Index_Type; C : Component_Type) is
+      procedure Set_Component (N : Index_Type; C : Component_Type)
+      is
       begin
-         pragma Abort_Defer;
-
          Check (N);
          Enter_Critical_Section;
          Table (N) := C;
@@ -296,10 +294,9 @@ package body System.Garlic.Table is
       -- Set_Name --
       --------------
 
-      procedure Set_Name (N : Index_Type; S : String) is
+      procedure Set_Name (N : Index_Type; S : String)
+      is
       begin
-         pragma Abort_Defer;
-
          Check (N);
          Enter_Critical_Section;
          Usage (N).Name := Get (S);
@@ -361,7 +358,8 @@ package body System.Garlic.Table is
       -- Allocate --
       --------------
 
-      function Allocate (N : Index_Type := Null_Index) return Index_Type is
+      function Allocate (N : Index_Type := Null_Index) return Index_Type
+      is
          Old_Max   : Index_Type;
          Old_Table : Component_Table_Access;
          Old_Usage : Usage_Table_Access;
@@ -427,7 +425,8 @@ package body System.Garlic.Table is
       -- Check --
       -----------
 
-      procedure Check (N : Index_Type) is
+      procedure Check (N : Index_Type)
+      is
          Error : Boolean;
       begin
          Enter_Critical_Section;
@@ -443,7 +442,8 @@ package body System.Garlic.Table is
       -- Get_Component --
       -------------------
 
-      function Get_Component (N : Index_Type) return Component_Type is
+      function Get_Component (N : Index_Type) return Component_Type
+      is
          Component : Component_Type;
       begin
          pragma Abort_Defer;
@@ -460,7 +460,8 @@ package body System.Garlic.Table is
       -- Get_Index --
       ---------------
 
-      function Get_Index (S : String) return Index_Type is
+      function Get_Index (S : String) return Index_Type
+      is
          Index : Index_Type;
          Name  : Name_Id;
          Info  : Integer;
@@ -491,7 +492,8 @@ package body System.Garlic.Table is
       -- Get_Name --
       --------------
 
-      function  Get_Name  (N : Index_Type) return String is
+      function  Get_Name  (N : Index_Type) return String
+      is
          Name : Name_Id;
       begin
          pragma Abort_Defer;
@@ -511,7 +513,8 @@ package body System.Garlic.Table is
       -- Set_Component --
       -------------------
 
-      procedure Set_Component (N : Index_Type; C : Component_Type) is
+      procedure Set_Component (N : Index_Type; C : Component_Type)
+      is
       begin
          pragma Abort_Defer;
 
@@ -525,7 +528,8 @@ package body System.Garlic.Table is
       -- Set_Name --
       --------------
 
-      procedure Set_Name (N : Index_Type; S : String) is
+      procedure Set_Name (N : Index_Type; S : String)
+      is
       begin
          pragma Abort_Defer;
 
@@ -563,7 +567,8 @@ package body System.Garlic.Table is
       -- Allocate --
       --------------
 
-      function Allocate return Index_Type is
+      function Allocate return Index_Type
+      is
          Old : Component_Table_Access;
       begin
          if Last = Max then

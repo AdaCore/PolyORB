@@ -95,7 +95,6 @@ package System.Garlic.Table is
         (N         : in Index_Type;
          Parameter : in Parameter_Type;
          Process   : in Process_Type);
-
       --  Apply provides a critical section in which Process is executed.
       --  This Process procedure applies to a Component and takes a
       --  Parameter. If Status is Modified or Postponed, update the

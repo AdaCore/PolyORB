@@ -55,16 +55,11 @@ package System.Garlic.Heart is
    -- Boot server --
    -----------------
 
+   function Get_Boot_Server return String;
+   --  This function returns the coordinates of the boot server
+
    procedure Initialize;
    --  Initialize the package
-
-   procedure Set_Is_Boot_Partition (Yes : in Boolean);
-   --  Called when we are on the boot partition
-
-   function Is_Boot_Partition return Boolean;
-   pragma Inline (Is_Boot_Partition);
-   --  This function return True when the local partition is the boot
-   --  partition.
 
    procedure Set_Boot_Location
      (Location : in System.Garlic.Physical_Location.Location_Type);
@@ -94,9 +89,8 @@ package System.Garlic.Heart is
    --  Shutdown everything after signaling to all known reachable
    --  partitions to shutdown also.
 
-   function Is_Shutdown_In_Progress return Boolean;
-   pragma Inline (Is_Shutdown_In_Progress);
-   --  This function will return True when shutdown is in progress
+   Shutdown_In_Progress : Boolean := False;
+   pragma Atomic (Shutdown_In_Progress);
 
    function Blocking_Partition (Partition : Types.Partition_ID) return Boolean;
    --  Return True if a partition has a local termination but is still
@@ -119,17 +113,18 @@ package System.Garlic.Heart is
 
    function Location (Partition : Types.Partition_ID)
      return Physical_Location.Location_Type;
+   pragma Inline (Location);
    --  Return the location of a partition
 
    ---------------------
    -- Local partition --
    ---------------------
 
-   procedure Set_My_Location
+   procedure Set_Self_Location
      (Location : in System.Garlic.Physical_Location.Location_Type);
    --  Set my coordinates
 
-   function Get_My_Location
+   function Get_Self_Location
      return System.Garlic.Physical_Location.Location_Type;
    --  Get my coordinates
 
@@ -137,12 +132,6 @@ package System.Garlic.Heart is
    --  Return the Partition_ID of the running partition. If the
    --  Partition_ID isn't known yet the function will block until
    --  the server gives it to us.
-
-   function Get_My_Partition_ID_Immediately
-     return Types.Partition_ID;
-   pragma Inline (Get_My_Partition_ID_Immediately);
-   --  Return the Partition_ID if it's known otherwise return
-   --  Null_Partition_ID.
 
    procedure Set_My_Partition_ID (Partition : Types.Partition_ID);
    --  Set my partition ID
@@ -156,10 +145,6 @@ package System.Garlic.Heart is
    -- Remote partition --
    ----------------------
 
-   procedure Add_New_Partition_ID (Partition : in Types.Partition_ID);
-   --  Declare that a Partition is to be used. This means that if needed
-   --  we will connect to it.
-
    procedure Remote_Partition_Error
      (Partition : in Types.Partition_ID);
    --  Signal that a partition is dead
@@ -172,15 +157,13 @@ package System.Garlic.Heart is
    --  Register a procedure that will be called whenever a communication
    --  error occurs during a remote call.
 
-   type Opcode is (Invalid_Operation,        -- First Internal Opcode
-                   No_Operation,
-                   Set_Public_Data,
-                   Query_Public_Data,
-                   Query_Public_Data_Answer,
+   type Opcode is (Invalid_Operation,
+                   No_Operation,             -- First Internal Opcode
+                   Partition_Service,
                    Shutdown,                 -- Last Internal Opcode
                    Remote_Call,              -- First Public Opcode
                    Shutdown_Synchronization,
-                   Name_Service,
+                   Unit_Name_Service,
                    User_Message,
                    Filtering);               -- Last Public Opcode
    subtype Internal_Opcode is Opcode
@@ -213,12 +196,33 @@ package System.Garlic.Heart is
    --  Receive something from a remote partition given the Opcode. The
    --  receiver will have to read the Params_Stream_Type before returning.
 
-   procedure Has_Arrived
-     (Partition     : in Types.Partition_ID;
-      Filtered_Data : access Ada.Streams.Stream_Element_Array;
-      Offset        : in Ada.Streams.Stream_Element_Count := 0);
+   type Register_PID_Callback is
+      access procedure (Partition : in Types.Partition_ID);
+
+   procedure Analyze_Stream
+     (Partition  : out Types.Partition_ID;
+      Operation  : out Opcode;
+      Unfiltered : out Streams.Stream_Element_Access;
+      Filtered   : in  Streams.Stream_Element_Access;
+      Offset     : in Ada.Streams.Stream_Element_Count := 0);
    --  Called by a protocol to signal that something has arrived. Data has
    --  not been unfiltered yet. Offset represents the number of bytes that
    --  should not been considered.
+
+   procedure Process_Stream
+     (Partition  : in Types.Partition_ID;
+      Operation  : in Opcode;
+      Unfiltered : in Streams.Stream_Element_Access);
+
+   ----------------
+   -- PID server --
+   ----------------
+
+   function Allocate_PID return Types.Partition_ID;
+   --  Allocate a new partition ID
+
+   function Last_Allocated_PID return Types.Partition_ID;
+   --  This function is used by the Termination mechanism which needs
+   --  to address all the partitions.
 
 end System.Garlic.Heart;

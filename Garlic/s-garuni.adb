@@ -36,7 +36,7 @@
 with System.Garlic.Debug;       use System.Garlic.Debug;
 with System.Garlic.Heart;       use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
-with System.Garlic.Name_Server; use System.Garlic.Name_Server;
+with System.Garlic.Options; use System.Garlic.Options;
 with System.Garlic.Startup;
 pragma Warnings (Off, System.Garlic.Startup);
 with System.Garlic.Soft_Links;  use System.Garlic.Soft_Links;
@@ -55,7 +55,7 @@ package body System.Garlic.Units is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.Garlic.Units.Table;
+   use System.Garlic.Units.X;
 
    Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
    Get_Unit_Request : constant Request_Type :=
@@ -134,7 +134,6 @@ package body System.Garlic.Units is
       Unit    : in out Unit_Type;
       Status  : out Status_Type)
    is
-      Boot_Server  : Partition_ID := Get_Boot_Server;
       Reconnection : Reconnection_Type;
 
    begin
@@ -171,23 +170,26 @@ package body System.Garlic.Units is
                   end if;
 
                   --  Unit kept unmodified
+
                   Status := Unmodified;
 
                when Unknown | Queried =>
                   pragma Debug (D (D_Debug, Get_Name (N) & " is unknown"));
 
-                  if not Is_Boot_Partition then
+                  if not Boot_Partition then
 
                      --  Ask the boot server for this info
+
                      if Unit.Status = Unknown then
-                        Send (Boot_Server, Request, N);
+                        Send (Boot_PID, Request, N);
                      end if;
                      Unit.Status := Queried;
 
                      --  Unit modified and request unsatisfied
+
                      Status := Postponed;
 
-                  elsif Request.Partition /= Boot_Server then
+                  elsif Request.Partition /= Boot_PID then
                      pragma Debug
                        (D (D_Debug,
                            "Queuing request from" & Request.Partition'Img &
@@ -201,10 +203,12 @@ package body System.Garlic.Units is
                      Unit.Requests (Request.Partition) := True;
 
                      --  Unit modified but request satisfied (pending)
+
                      Status := Modified;
 
                   else
                      --  Request unsatisfied
+
                      Status := Postponed;
                   end if;
 
@@ -219,18 +223,20 @@ package body System.Garlic.Units is
                      declare
                         R : Request_Type
                           := (Set_Unit,
-                              Null_Partition_ID,
+                              Null_PID,
                               Unit.Receiver,
                               Unit.Version,
                               null);
                      begin
                         --  Send invalid values especially Partition_ID
                         --  to show that the registration has failed.
+
                         Send (Request.Partition, R, N);
                      end;
                   end if;
 
                   --  Unit kept unmodified
+
                   Status := Unmodified;
 
             end case;
@@ -246,7 +252,7 @@ package body System.Garlic.Units is
 
                   if Unit.Status = Invalid
                     and then
-                    Is_Boot_Partition
+                    Boot_Partition
                     and then
                     Reconnection_Policy (Unit.Partition) = Rejected_On_Restart
                   then
@@ -254,19 +260,22 @@ package body System.Garlic.Units is
                      return;
                   end if;
 
-                  if Is_Boot_Partition then
+                  if Boot_Partition then
 
                      --  Link this unit to the list of units configured
                      --  on this partition.
+
                      Add_To_Partition_RCI_List (N, Unit, Request.Partition);
 
                      --  All set requests are handled on boot partition
+
                      Unit.Status    := Known;
                      Unit.Receiver  := Request.Receiver;
                      Unit.Version   := Request.Version;
                      Unit.Partition := Request.Partition;
 
-                     --  Answer to pending requests
+                     --  Answer pending requests
+
                      if Unit.Pending then
                         pragma Debug
                           (D (D_Debug,
@@ -274,6 +283,7 @@ package body System.Garlic.Units is
                               Get_Name (N)));
 
                         --  Dequeue pending requests
+
                         for P in Unit.Requests'Range loop
                            if Unit.Requests (P) then
                               Send (P, Request, N);
@@ -291,6 +301,7 @@ package body System.Garlic.Units is
                      end if;
 
                      --  Unit modified
+
                      Status := Modified;
 
                   else
@@ -299,9 +310,11 @@ package body System.Garlic.Units is
                            " registered on boot server"));
 
                      --  Forward set request to boot partition
-                     Send (Boot_Server, Request, N);
+
+                     Send (Boot_PID, Request, N);
 
                      --  Unit kept unmodified
+
                      Status := Unmodified;
 
                   end if;
@@ -309,13 +322,14 @@ package body System.Garlic.Units is
                when Queried =>
 
                   --  Unit modified
+
                   Status := Modified;
 
                   --  If Request.Partition is null, then it means
                   --  this partition has been invalidated and it is
                   --  still invalid.
 
-                  if Request.Partition = Null_Partition_ID then
+                  if Request.Partition = Null_PID then
                      Unit.Status := Known;
                      return;
                   end if;
@@ -354,11 +368,13 @@ package body System.Garlic.Units is
             Reconnection := Reconnection_Policy (Request.Partition);
 
             --  Send the same request to boot_server
-            if not Is_Boot_Partition then
-               Send (Boot_Server, Request, N);
+
+            if not Boot_Partition then
+               Send (Boot_PID, Request, N);
             end if;
 
             --  Invalidate all RCI units of a given partition
+
             declare
                U : Unit_Type;
                I : Unit_Id;
@@ -448,7 +464,7 @@ package body System.Garlic.Units is
             Partition_ID'Write (Params'Access, Request.Partition);
       end case;
 
-      Send (Partition, Name_Service, Params'Access);
+      Send (Partition, Unit_Name_Service, Params'Access);
    end Send;
 
    ------------------

@@ -75,7 +75,7 @@ package body System.Garlic.Filters is
    Registration_Filter_Name  : constant String := "declare'filter";
 
    Null_Partition    : constant Partition_ID
-     := Null_Partition_ID;
+     := Null_PID;
    First_Partition   : constant Partition_ID
      := Partition_ID'Succ (Null_Partition);
    Last_Partition    : constant Partition_ID
@@ -112,7 +112,7 @@ package body System.Garlic.Filters is
    end record;
 
    Null_Channel : constant Channel_Type :=
-     (Partition => Null_Partition_ID,
+     (Partition => Null_PID,
       Filter    => null,
       Installed => False,
       Exchange  => False,

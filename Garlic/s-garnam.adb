@@ -73,7 +73,7 @@ package body System.Garlic.Naming is
       Message : in String);
    --  Raise the exception Naming_Error with an appropriate error message
 
-   Get_Host_Mutex : Mutex_Type;
+   Get_Host_Mutex : Mutex_Access := Create;
    --  This protected object will be used to protect calls to gethostbyname,
    --  since this function is not reentrant and returns statically allocated
    --  data.
@@ -203,17 +203,17 @@ package body System.Garlic.Naming is
       Res    : Hostent_Access;
       C_Name : chars_ptr := New_String (Name);
    begin
-      Get_Host_Mutex.Enter;
+      Enter (Get_Host_Mutex);
       Res := C_Gethostbyname (C_Name);
       Free (C_Name);
       if Res = null then
-         Get_Host_Mutex.Leave;
+         Leave (Get_Host_Mutex);
          Raise_Naming_Error (Errno, Name);
       end if;
       declare
          Result : constant Host_Entry := Parse_Entry (Res.all);
       begin
-         Get_Host_Mutex.Leave;
+         Leave (Get_Host_Mutex);
          return Result;
       end;
    end Info_Of;
@@ -232,18 +232,18 @@ package body System.Garlic.Naming is
       C_Addr  : constant chars_ptr := Convert (Temp'Unchecked_Access);
       Res     : Hostent_Access;
    begin
-      Get_Host_Mutex.Enter;
+      Enter (Get_Host_Mutex);
       Res := C_Gethostbyaddr (C_Addr,
                               C.int (Temp'Size / CHAR_BIT),
                               Af_Inet);
       if Res = null then
-         Get_Host_Mutex.Leave;
+         Leave (Get_Host_Mutex);
          Raise_Naming_Error (Errno, Image (Addr));
       end if;
       declare
          Result : constant Host_Entry := Parse_Entry (Res.all);
       begin
-         Get_Host_Mutex.Leave;
+         Leave (Get_Host_Mutex);
          return Result;
       end;
    end Info_Of;

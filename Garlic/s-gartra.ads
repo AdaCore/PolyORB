@@ -58,9 +58,8 @@ package System.Garlic.Trace is
 
    type Trace_Type is record
       Time : Ada.Real_Time.Time_Span;
-      Data : System.Garlic.Streams.Stream_Element_Access;
-      PID  : System.Garlic.Types.Partition_ID :=
-        System.Garlic.Types.Null_Partition_ID;
+      Data : Streams.Stream_Element_Access;
+      PID  : Types.Partition_ID := Types.Null_PID;
    end record;
 
    procedure Read (S : access Ada.Streams.Root_Stream_Type'Class;

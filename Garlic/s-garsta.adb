@@ -33,17 +33,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Debug; use System.Garlic.Debug;
-with System.Garlic.Protocols; use System.Garlic.Protocols;
-pragma Elaborate_All (System.Garlic.Protocols);
+with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Protocols;         use System.Garlic.Protocols;
 with System.Garlic.Protocols.Config;
-with System.Garlic.Options; use System.Garlic.Options;
+with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 pragma Elaborate_All (System.Garlic.Physical_Location);
-with System.Garlic.Heart; use System.Garlic.Heart;
+with System.Garlic.Heart;             use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Soft_Links;
-with System.Garlic.Types; use System.Garlic.Types;
+with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Services;
 pragma Elaborate_All (System.Garlic.Services);
 with System.Garlic.Filters;
@@ -51,7 +50,6 @@ with System.Garlic.Trace;
 pragma Elaborate_All (System.Garlic.Trace);
 with System.Garlic.Elaboration;
 pragma Elaborate_All (System.Garlic.Elaboration);
-with System.Garlic.Name_Server; use System.Garlic.Name_Server;
 
 package body System.Garlic.Startup is
 
@@ -79,14 +77,16 @@ begin
    --  Phase (2) (see s-garlic.ads)
 
    System.Garlic.Heart.Initialize;
+
+   --  Phase (30 (see s-garlic.ads)
+
    System.Garlic.Protocols.Config.Initialize;
 
    declare
-      Boot_Location : constant Location_Type
-        := To_Location (Options.Boot_Server.all);
+      Location      : Location_Type;
+      Boot_Location : constant Location_Type := To_Location (Boot_Server.all);
       Boot_Protocol : constant Protocol_Access := Get_Protocol (Boot_Location);
       Boot_Data     : constant String := Get_Data (Boot_Location);
-      Is_Master     : constant Boolean := not Options.Is_Slave;
    begin
 
       if Boot_Protocol = null then
@@ -94,22 +94,32 @@ begin
          raise Program_Error;
       end if;
 
-      --  Phase (3) (see s-garlic.ads)
-
-      Set_Is_Boot_Partition (Is_Master);
-
       --  Phase (4) (see s-garlic.ads)
 
       for I in Config.Protocol_Table'Range loop
          exit when Config.Protocol_Table (I) = null;
          if Config.Protocol_Table (I) = Boot_Protocol then
-            Set_Boot_Data (Boot_Protocol, True, Boot_Data, Is_Master);
-            Set_Is_Boot_Partition (Is_Master);
-            Set_My_Location
-              (To_Location (Boot_Protocol, Get_Info (Boot_Protocol)));
-            if Is_Master then
-               Set_Boot_Location
-                 (To_Location (Boot_Protocol, Get_Info (Boot_Protocol)));
+
+            --  This call initializes the boot protocol with the data
+            --  returned by Options.Boot_Server. For the boot partition,
+            --  Boot_Data is incomplete, it will be updated. For a non
+            --  boot partition, the location used for the boot protocol
+            --  is computed. Note that this may be wrong in a multiple
+            --  protocols context.
+
+            Set_Boot_Data (Boot_Protocol, True, Boot_Data);
+
+            --  Get the location used by the boot protocol for this
+            --  partition and store it internally in Heart.
+
+            Location := To_Location (Boot_Protocol, Get_Info (Boot_Protocol));
+            Set_Self_Location (Location);
+
+            --  Get the location used by the boot protocol for the
+            --  boot partition and store it internally in Heart.
+
+            if Boot_Partition then
+               Set_Boot_Location (Location);
             else
                Set_Boot_Location (To_Location (Boot_Protocol, Boot_Data));
             end if;
@@ -140,7 +150,7 @@ begin
 
          --  Then, let this partition know about boot server
 
-         D : constant String := Heart.Name (Get_Boot_Server);
+         D : constant String := Heart.Name (Boot_PID);
          pragma Warnings (Off, D);
       begin
          null;

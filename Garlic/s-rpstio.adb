@@ -59,8 +59,8 @@ package body System.RPC.Stream_IO is
          Incoming  : aliased Streams.Params_Stream_Type (0);
          Outgoing  : aliased Streams.Params_Stream_Type (0);
          Consumer  : Barrier_Type;
-         Available : Mutex_Type;
-         Critical  : Mutex_Type;
+         Available : Mutex_Access;
+         Critical  : Mutex_Access;
       end record;
    type Partition_Stream_Access is access Partition_Stream_Record;
 
@@ -97,7 +97,7 @@ package body System.RPC.Stream_IO is
       end if;
 
       pragma Debug (D (D_Debug, "Close - Unlock stream" & Stream.PID'Img));
-      Str.Available.Leave;
+      Leave (Str.Available);
    end Close;
 
    -----------
@@ -110,9 +110,11 @@ package body System.RPC.Stream_IO is
    begin
       if Streams (Partition) = null then
          pragma Debug (D (D_Debug, "Allocate stream" & Partition'Img));
-         Any.Critical.Enter;
+         Enter (Any.Critical);
          if Streams (Partition) = null then
             Streams (Partition) := new Partition_Stream_Record;
+            Streams (Partition).Available := Create;
+            Streams (Partition).Critical  := Create;
             if First_Partition = Partition_ID'Last
               or else
               First_Partition > Partition then
@@ -123,8 +125,9 @@ package body System.RPC.Stream_IO is
               Last_Partition < Partition then
                Last_Partition := Partition;
             end if;
+
          end if;
-         Any.Critical.Leave;
+         Leave (Any.Critical);
       end if;
       return Streams (Partition);
    end Fetch;
@@ -136,6 +139,8 @@ package body System.RPC.Stream_IO is
    procedure Initialize is
    begin
       Streams (Any_Partition) := new Partition_Stream_Record;
+      Streams (Any_Partition).Available := Create;
+      Streams (Any_Partition).Critical  := Create;
       Receive (Msgcode, Receive'Access);
    end Initialize;
 
@@ -161,7 +166,7 @@ package body System.RPC.Stream_IO is
       Stream.PID := Partition;
 
       pragma Debug (D (D_Debug, "Open - Lock stream" & Partition'Img));
-      Str.Available.Enter;
+      Enter (Str.Available);
       Str.Mode := Mode;
 
       pragma Debug (D (D_Debug, "Open - Resume stream" & Partition'Img));
@@ -202,13 +207,13 @@ package body System.RPC.Stream_IO is
 
          for P in FID .. LID loop
             pragma Debug (D (D_Debug, "Read - Lock stream" & P'Img));
-            Streams (P).Critical.Enter;
+            Enter (Streams (P).Critical);
 
             pragma Debug (D (D_Debug, "Read from stream" & P'Img));
             System.Garlic.Streams.Read (Streams (P).Incoming, Item, Len);
 
             pragma Debug (D (D_Debug, "Read - Unlock stream" & P'Img));
-            Streams (P).Critical.Leave;
+            Leave (Streams (P).Critical);
 
             if Len /= 0 then
                if Streams (P).Incoming.Count /= 0 then
@@ -239,13 +244,13 @@ package body System.RPC.Stream_IO is
    begin
       pragma Debug (D (D_Debug, "Receive new message"));
       pragma Debug (D (D_Debug, "Receive - Lock stream" & Partition'Img));
-      Str.Critical.Enter;
+      Enter (Str.Critical);
 
       Garlic.Streams.Read (Params.all, SEA, Len);
       Garlic.Streams.Write (Str.Incoming, SEA);
 
       pragma Debug (D (D_Debug, "Receive - Unlock stream" & Partition'Img));
-      Str.Critical.Leave;
+      Leave (Str.Critical);
 
       pragma Debug (D (D_Debug, "Signal to all streams"));
       Str.Consumer.Signal;
@@ -269,13 +274,13 @@ package body System.RPC.Stream_IO is
       end if;
 
       pragma Debug (D (D_Debug, "Write - Lock stream" & Stream.PID'Img));
-      Str.Critical.Enter;
+      Enter (Str.Critical);
 
       pragma Debug (D (D_Debug, "Write to stream" & Stream.PID'Img));
       Garlic.Streams.Write (Str.Outgoing, Item);
 
       pragma Debug (D (D_Debug, "Write - Unlock stream" & Stream.PID'Img));
-      Str.Critical.Leave;
+      Leave (Str.Critical);
    end Write;
 
 end System.RPC.Stream_IO;

@@ -51,8 +51,7 @@ package System.Garlic.Replay is
    procedure Set_Boot_Data
      (Protocol         : access Replay_Protocol;
       Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String  := "";
-      Is_Master        : in Boolean := False);
+      Boot_Data        : in String  := "");
 
    procedure Send
       (Protocol  : access Replay_Protocol;

@@ -90,33 +90,35 @@ private
         X : aliased System.Garlic.Streams.Params_Stream_Type (Initial_Size);
    end record;
 
-   type Request_Id is mod 2 ** 8;
-   --  The Request_Id identifies the request being sent
+   type RPC_Id is mod 2 ** 8;
+   --  The RPC_Id identifies the request being sent
 
-   type RPC_Opcode is (RPC_Request,
-                       RPC_Answer,
-                       RPC_Request_Cancellation,
-                       RPC_Cancellation_Accepted,
-                       APC_Request);
+   APC : constant RPC_Id := RPC_Id'First;
+
+   type RPC_Opcode is (RPC_Query,
+                       RPC_Reply,
+                       Abortion_Query,
+                       Abortion_Reply,
+                       APC_Query);
    --  Type of operation
 
-   type Request_Header (Kind : RPC_Opcode) is record
+   type RPC_Header (Kind : RPC_Opcode) is record
       case Kind is
-         when RPC_Request | RPC_Answer |
-           RPC_Request_Cancellation | RPC_Cancellation_Accepted =>
-            Id : Request_Id;
-         when APC_Request =>
+         when RPC_Query | RPC_Reply |
+           Abortion_Query | Abortion_Reply =>
+            RPC : RPC_Id;
+         when APC_Query =>
             null;
       end case;
    end record;
 
-   procedure Insert_Request
+   procedure Insert_RPC_Header
      (Params : access System.Garlic.Streams.Params_Stream_Type;
-      Header : in Request_Header);
-   --  Add a Request_Header in front of Params
+      Header : in RPC_Header);
+   --  Add a RPC_Header in front of Params
 
    procedure When_Established;
-   --  Wait for partition to be established.
+   --  Wait for partition to be established
 
 end System.RPC;
 

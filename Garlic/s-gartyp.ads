@@ -41,6 +41,14 @@ package System.Garlic.Types is
 
    type Partition_ID is range 0 .. 63;
 
+   Null_PID : constant Partition_ID := Partition_ID'First;
+   Last_PID : constant Partition_ID := Partition_ID'Last;
+   Boot_PID : constant Partition_ID := Partition_ID'Succ (Null_PID);
+   Self_PID : Partition_ID := Null_PID;
+
+   subtype Valid_Partition_ID is Partition_ID range Boot_PID .. Last_PID;
+   --  A partition whose ID fits in Valid_Partition_ID is a real partition
+
    type Shutdown_Access is access procedure;
 
    --  This package defines basic types that are used throughout Garlic
@@ -84,17 +92,6 @@ package System.Garlic.Types is
       access procedure (Params : access Streams.Params_Stream_Type;
                         Result : access Streams.Params_Stream_Type);
    --  Similar to System.RPC.RPC_Receiver
-
-   Null_Partition_ID : constant Partition_ID := Partition_ID'First;
-   --  Means "no Partition_ID known at this time"
-
-   subtype Valid_Partition_ID is Partition_ID
-     range Partition_ID'Succ (Null_Partition_ID) .. Partition_ID'Last;
-   --  A partition whose ID fits in Valid_Partition_ID is a real partition
-
-   Server_Partition_ID : constant Valid_Partition_ID :=
-     Valid_Partition_ID'First;
-   --  The partition ID server does have this partition ID
 
 private
 

@@ -41,7 +41,7 @@ with GNAT.Table;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Heart;      use System.Garlic.Heart;
-pragma Elaborate (System.Garlic.Heart);
+pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Remote;     use System.Garlic.Remote;
 with System.Garlic.Soft_Links;
@@ -64,7 +64,7 @@ package body System.Partition_Interface is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.Garlic.Units.Table;
+   use System.Garlic.Units.X;
 
    function Convert is
      new Ada.Unchecked_Conversion
@@ -262,7 +262,7 @@ package body System.Partition_Interface is
      (Name : Unit_Name)
       return RPC.Partition_ID is
    begin
-      return RPC.Partition_ID (Null_Partition_ID);
+      return RPC.Partition_ID (Null_PID);
    end Get_Passive_Partition_ID;
 
    ------------------------------
@@ -544,7 +544,7 @@ package body System.Partition_Interface is
             --  If not boot partition, then terminate without waiting for
             --  boot partition request.
 
-            if not Is_Boot_Partition then
+            if not Boot_Partition then
                Set_Termination (Local_Termination);
             end if;
 
@@ -578,5 +578,5 @@ package body System.Partition_Interface is
    end Run;
 
 begin
-   Receive (Name_Service, Public_Message_Receiver'Access);
+   Receive (Unit_Name_Service, Public_Message_Receiver'Access);
 end System.Partition_Interface;

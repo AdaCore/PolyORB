@@ -98,7 +98,7 @@ package System.Garlic.Units is
 
    Null_Unit : constant Unit_Type
      := (Next_Unit => Null_Unit_Id,
-         Partition => System.Garlic.Types.Null_Partition_ID,
+         Partition => Types.Null_PID,
          Receiver  => 0,
          Version   => null,
          Cache     => null,
@@ -126,7 +126,7 @@ package System.Garlic.Units is
 
    Null_Request : constant Request_Type :=
      (Command   => Get_Unit,
-      Partition => System.Garlic.Types.Null_Partition_ID,
+      Partition => Types.Null_PID,
       Receiver  => 0,
       Version   => null,
       Cache     => null);
@@ -137,7 +137,7 @@ package System.Garlic.Units is
    --  Version     : unit version id
    --  Cache       : reference ot the caller cache
 
-   package Table is new System.Garlic.Table.Complex
+   package X is new System.Garlic.Table.Complex
      (Index_Type     => Unit_Id,
       Null_Index     => Null_Unit_Id,
       First_Index    => First_Unit_Id,

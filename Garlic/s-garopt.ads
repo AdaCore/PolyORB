@@ -52,7 +52,7 @@ package System.Garlic.Options is
    Boot_Server     : Utils.String_Access;
    Connection_Hits : Natural;
    Detach          : Boolean;
-   Is_Slave        : Boolean;
+   Boot_Partition  : Boolean;
    Nolaunch        : Boolean;
    Reconnection    : Types.Reconnection_Type;
    Termination     : Types.Termination_Type;

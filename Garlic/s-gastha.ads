@@ -76,7 +76,7 @@ private
         pragma Atomic (N_Objects);
         Addresses : Array_Of_Addresses;
         Used      : Array_Of_Boolean;
-        Mutex     : Utils.Mutex_Type;
+        Mutex     : Utils.Mutex_Access;
      end record;
 
 end System.Garlic.Storage_Handling;

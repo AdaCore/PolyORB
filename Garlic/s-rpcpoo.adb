@@ -66,7 +66,7 @@ package body System.RPC.Pool is
 
    type Cancel_Type is record
       Partition : Types.Partition_ID;
-      Id        : Request_Id;
+      Id        : RPC_Id;
       Valid     : Boolean := False;
    end record;
 
@@ -77,14 +77,14 @@ package body System.RPC.Pool is
       procedure Free_One;
       procedure Abort_One
         (Partition : in Types.Partition_ID;
-         Id        : in Request_Id);
+         Id        : in RPC_Id);
       procedure Unabort_One
         (Partition : in Types.Partition_ID;
-         Id        : in Request_Id);
-      entry Is_Aborted (Partition : in Types.Partition_ID; Id : in Request_Id);
+         Id        : in RPC_Id);
+      entry Is_Aborted (Partition : in Types.Partition_ID; Id : in RPC_Id);
    private
       entry Is_Aborted_Waiting
-        (Partition : in Types.Partition_ID; Id : in Request_Id);
+        (Partition : in Types.Partition_ID; Id : in RPC_Id);
       Cancel_Map  : Cancel_Array;
       In_Progress : Boolean := False;
       Count       : Natural := 0;
@@ -108,10 +108,10 @@ package body System.RPC.Pool is
 
    task type Anonymous_Task is
       entry Set_Identifier (Identifier : in Task_Identifier_Access);
-      entry Set_Job (The_Partition    : in Types.Partition_ID;
-                     The_Id           : in Request_Id;
-                     The_Params       : in Streams.Params_Stream_Access;
-                     The_Asynchronous : in Boolean);
+      entry Set_Job (The_PID    : in Types.Partition_ID;
+                     The_RPC    : in RPC_Id;
+                     The_Params : in Streams.Params_Stream_Access;
+                     The_Async  : in Boolean);
       entry Shutdown;
       pragma Priority (Default_Priority);
       pragma Storage_Size (3_000_000);
@@ -191,10 +191,10 @@ package body System.RPC.Pool is
    ----------------
 
    procedure Abort_Task
-     (Partition : in Types.Partition_ID;
-      Id        : in Request_Id) is
+     (PID : in Types.Partition_ID;
+      RPC : in RPC_Id) is
    begin
-      Task_Manager.Abort_One (Partition, Id);
+      Task_Manager.Abort_One (PID, RPC);
    end Abort_Task;
 
    -------------------
@@ -202,10 +202,10 @@ package body System.RPC.Pool is
    -------------------
 
    procedure Allocate_Task
-     (Partition    : in Types.Partition_ID;
-      Id           : in Request_Id;
-      Params       : in Streams.Params_Stream_Access;
-      Asynchronous : in Boolean)
+     (PID    : in Types.Partition_ID;
+      RPC    : in RPC_Id;
+      Params : in Streams.Params_Stream_Access;
+      Async  : in Boolean)
    is
       Identifier : Task_Identifier_Access;
    begin
@@ -213,7 +213,7 @@ package body System.RPC.Pool is
       if Identifier = null then
          Identifier := Create_New_Task;
       end if;
-      Identifier.Task_Pointer.Set_Job (Partition, Id, Params, Asynchronous);
+      Identifier.Task_Pointer.Set_Job (PID, RPC, Params, Async);
    end Allocate_Task;
 
    --------------------
@@ -221,17 +221,17 @@ package body System.RPC.Pool is
    --------------------
 
    task body Anonymous_Task is
-      Dest         : Types.Partition_ID;
-      Receiver     : Types.RPC_Receiver;
-      Result       : Streams.Params_Stream_Access;
-      Cancelled    : Boolean;
-      Prio         : Any_Priority;
-      Partition    : Types.Partition_ID;
-      Id           : Request_Id;
-      Params       : Streams.Params_Stream_Access;
-      Asynchronous : Boolean;
-      Self         : Task_Identifier_Access;
-      Aborted      : Boolean := False;
+      Dest      : Types.Partition_ID;
+      Receiver  : Types.RPC_Receiver;
+      Result    : Streams.Params_Stream_Access;
+      Cancelled : Boolean;
+      Prio      : Any_Priority;
+      PID       : Types.Partition_ID;
+      RPC       : RPC_Id;
+      Params    : Streams.Params_Stream_Access;
+      Async     : Boolean;
+      Self      : Task_Identifier_Access;
+      Aborted   : Boolean := False;
 
       use Ada.Exceptions;
    begin
@@ -247,14 +247,14 @@ package body System.RPC.Pool is
          pragma Debug (D (D_Debug, "Waiting for a job"));
          select
             accept Set_Job
-              (The_Partition    : in Types.Partition_ID;
-               The_Id           : in Request_Id;
-               The_Params       : in Streams.Params_Stream_Access;
-               The_Asynchronous : in Boolean) do
-               Partition    := The_Partition;
-               Id           := The_Id;
-               Params       := The_Params;
-               Asynchronous := The_Asynchronous;
+              (The_PID    : in Types.Partition_ID;
+               The_RPC    : in RPC_Id;
+               The_Params : in Streams.Params_Stream_Access;
+               The_Async  : in Boolean) do
+               PID    := The_PID;
+               RPC    := The_RPC;
+               Params := The_Params;
+               Async  := The_Async;
             end Set_Job;
          or
             accept Shutdown do
@@ -273,7 +273,7 @@ package body System.RPC.Pool is
          Result    := new Streams.Params_Stream_Type (0);
          Cancelled := False;
          Task_Manager.Get_One;
-         Task_Manager.Unabort_One (Partition, Id);
+         Task_Manager.Unabort_One (PID, RPC);
          Types.Partition_ID'Read (Params, Dest);
          if not Dest'Valid then
             pragma Debug (D (D_Debug, "Invalid destination received"));
@@ -287,15 +287,14 @@ package body System.RPC.Pool is
          Ada.Dynamic_Priorities.Set_Priority (Prio);
          When_Established;
          select
-            Task_Manager.Is_Aborted (Partition, Id);
+            Task_Manager.Is_Aborted (PID, RPC);
             declare
                Empty  : aliased Streams.Params_Stream_Type (0);
-               Header : constant Request_Header :=
-                 (RPC_Cancellation_Accepted, Id);
+               Header : constant RPC_Header := (Abortion_Reply, RPC);
             begin
                pragma Debug (D (D_Debug, "Abortion queried by caller"));
-               Insert_Request (Empty'Access, Header);
-               Send (Partition, Remote_Call, Empty'Access);
+               Insert_RPC_Header (Empty'Access, Header);
+               Send (PID, Remote_Call, Empty'Access);
                Cancelled := True;
             end;
          then abort
@@ -313,16 +312,16 @@ package body System.RPC.Pool is
 
             Streams.Deallocate (Copy);
          end;
-         if Asynchronous or else Cancelled then
+         if Async or else Cancelled then
             pragma Debug (D (D_Debug, "Result not sent"));
             Streams.Deallocate (Result);
          else
             declare
-               Header : constant Request_Header := (RPC_Answer, Id);
+               Header : constant RPC_Header := (RPC_Reply, RPC);
             begin
                pragma Debug (D (D_Debug, "Result will be sent"));
-               Insert_Request (Result, Header);
-               Send (Partition, Remote_Call, Result);
+               Insert_RPC_Header (Result, Header);
+               Send (PID, Remote_Call, Result);
                Streams.Free (Result);
             end;
          end if;
@@ -502,7 +501,7 @@ package body System.RPC.Pool is
 
       procedure Abort_One
         (Partition : in Types.Partition_ID;
-         Id        : in Request_Id)
+         Id        : in RPC_Id)
       is
       begin
          for I in Cancel_Map'Range loop
@@ -542,7 +541,7 @@ package body System.RPC.Pool is
       -- Is_Aborted --
       ----------------
 
-      entry Is_Aborted (Partition : in Types.Partition_ID; Id : in Request_Id)
+      entry Is_Aborted (Partition : in Types.Partition_ID; Id : in RPC_Id)
       when Count_Abort > 0 and then not In_Progress is
       begin
          for I in Cancel_Map'Range loop
@@ -565,7 +564,7 @@ package body System.RPC.Pool is
       ------------------------
 
       entry Is_Aborted_Waiting
-        (Partition : in Types.Partition_ID; Id : in Request_Id)
+        (Partition : in Types.Partition_ID; Id : in RPC_Id)
       when In_Progress is
       begin
          if Is_Aborted_Waiting'Count = 0 then
@@ -580,7 +579,7 @@ package body System.RPC.Pool is
 
       procedure Unabort_One
         (Partition : in Types.Partition_ID;
-         Id        : in Request_Id)
+         Id        : in RPC_Id)
       is
       begin
          for I in Cancel_Map'Range loop

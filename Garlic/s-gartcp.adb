@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;                      use Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
 pragma Warnings (Off, Interfaces.C.Strings);
@@ -41,17 +40,16 @@ with System.Garlic.Constants;             use System.Garlic.Constants;
 with System.Garlic.Debug;                 use System.Garlic.Debug;
 with System.Garlic.Exceptions;            use System.Garlic.Exceptions;
 with System.Garlic.Heart;                 use System.Garlic.Heart;
-with System.Garlic.Name_Server;           use System.Garlic.Name_Server;
 with System.Garlic.Naming;                use System.Garlic.Naming;
 with System.Garlic.TCP.Operations;
 with System.Garlic.Network_Utilities;     use System.Garlic.Network_Utilities;
 with System.Garlic.Options;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
-with System.Garlic.PID_Server;            use System.Garlic.PID_Server;
 with System.Garlic.Priorities;
 with System.Garlic.Soft_Links;            use System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
+with System.Garlic.Types;                 use System.Garlic.Types;
 with System.Garlic.TCP_Platform_Specific;
 pragma Warnings (Off, System.Garlic.TCP_Platform_Specific);
 with System.Storage_Elements;             use System.Storage_Elements;
@@ -61,7 +59,7 @@ package body System.Garlic.TCP is
    --  This system implements TCP communication. The connection is established
    --  as follow: (C = caller, R = receiver)
    --    - If the partition_ID is not known:
-   --      C->R : Null_Partition_ID
+   --      C->R : Null_PID
    --      R->C : <new caller Partition_ID> <boot partition name>
    --    - After this, in any case: (C & R may be reversed)
    --      C->R : <Length (Stream_Element_Count)> <Packet>
@@ -130,7 +128,7 @@ package body System.Garlic.TCP is
    --  Kludge to raise Program_Error at deallocation time. Should be removed
    --  in the future ???
 
-   type Operation_Code is (Open_Code, Data_Code, Quit_Code);
+   type Operation_Code is (Unknown_Code, Data_Code, Quit_Code);
    --  Various operations that can be performed on a communication link
 
    Operation_Code_Length : constant := 4;
@@ -142,8 +140,8 @@ package body System.Garlic.TCP is
 
    function Read_Code (FD : C.int) return Operation_Code;
    pragma Inline (Read_Code);
-   --  Read an operation code from a file descriptor or raise
-   --  Communication_Error if the code is not understood.
+   --  Read an operation code from a file descriptor or return Unknown_Code
+   --  if the code is not understood.
 
    function To_Stream_Element_Array (Code : Operation_Code)
      return Operation_Code_Array;
@@ -180,8 +178,7 @@ package body System.Garlic.TCP is
                                  Partition : in Partition_ID);
    --  Write a Partition_ID on a file descriptor
 
-   function Establish_Connection (Location  : Host_Location;
-                                  Operation : Operation_Code)
+   function Establish_Connection (Location  : Host_Location)
       return C.int;
    --  Establish a socket to a remote location and return the file descriptor
 
@@ -191,12 +188,6 @@ package body System.Garlic.TCP is
 
    procedure Free is
      new Ada.Unchecked_Deallocation (Sockaddr_In, Sockaddr_In_Access);
-
-   function Ask_For_Partition_ID (FD : C.int) return Partition_ID;
-   --  Ask for a partition ID on the given file descriptor (which is
-   --  of course bound to the server, since we cannot contact other
-   --  partitions if we haven't our partition ID). Get also the boot
-   --  partition name.
 
    procedure Physical_Receive
      (FD : in C.int; Data : out Stream_Element_Array);
@@ -218,15 +209,6 @@ package body System.Garlic.TCP is
    --  Same procedures as above, at a lower level (and does not require a
    --  copy on the stack).
 
-   procedure Send_My_Partition_ID (FD : in C.int);
-   --  Transmit my partition ID to the remote end
-
-   procedure Receive_And_Send_To_Heart
-     (Length    : in Stream_Element_Count;
-      FD        : in C.int;
-      Partition : in Partition_ID);
-   --  Receive some data from FD and send it to Garlic heart
-
    task type Accept_Handler is
       pragma Priority (Priorities.RPC_Priority);
    end Accept_Handler;
@@ -234,9 +216,9 @@ package body System.Garlic.TCP is
    Acceptor : Accept_Handler_Access;
    --  The task which will accept new connections
 
-   task type Incoming_Connection_Handler (FD        : C.int;
-                                          Receiving : Boolean;
-                                          Remote    : Partition_ID) is
+   task type Incoming_Connection_Handler
+     (FD  : C.int;
+      PID : Partition_ID) is
       pragma Priority (Priorities.RPC_Priority);
    end Incoming_Connection_Handler;
    type Incoming_Connection_Handler_Access is
@@ -251,6 +233,7 @@ package body System.Garlic.TCP is
    begin
       --  Infinite loop on C_Accept
 
+      Accept_Loop :
       loop
          declare
             Sin    : Sockaddr_In_Access := new Sockaddr_In;
@@ -271,7 +254,6 @@ package body System.Garlic.TCP is
                Raise_Communication_Error;
             end if;
 
-
             --  Read a code from the file descriptor to know what to do
             --  next.
 
@@ -279,51 +261,27 @@ package body System.Garlic.TCP is
             Code := Read_Code (FD);
             case Code is
 
-               when Open_Code =>
-                  pragma Debug (D (D_Debug, "Open code received"));
-                  null;
+               when Unknown_Code =>
+                  pragma Debug (D (D_Debug,
+                                   "Unknown code received, closing socket"));
+                  Result := Net.C_Close (FD);
+
+               when Data_Code =>
+                  pragma Debug (D (D_Debug, "Data code received"));
+                  --  Create a new task to handle this new connection
+
+                  NT := new Incoming_Connection_Handler (FD, Null_PID);
 
                when Quit_Code =>
                   pragma Debug (D (D_Debug, "Quitting accept handler"));
                   Result := Net.C_Close (FD);
-                  Raise_Communication_Error ("Quit code received");
-
-               when Data_Code =>
-                  pragma Debug (D (D_Debug, "Unexpected code received " &
-                                   Operation_Code'Image (Code)));
-                  Raise_Communication_Error ("Unexpected code received " &
-                                             Operation_Code'Image (Code));
-                  Result := Net.C_Close (FD);
+                  exit Accept_Loop;
 
             end case;
 
-            --  Create a new task to handle this new connection
-
-            NT :=
-             new Incoming_Connection_Handler (FD,
-                                              Receiving => True,
-                                              Remote => Null_Partition_ID);
          end;
-      end loop;
+      end loop Accept_Loop;
    end Accept_Handler;
-
-   --------------------------
-   -- Ask_For_Partition_ID --
-   --------------------------
-
-   function Ask_For_Partition_ID (FD : C.int) return Partition_ID is
-      Partition : Partition_ID;
-   begin
-      pragma Debug (D (D_Garlic, "Asking for a Partition_ID"));
-      Write_Partition_ID (FD, Null_Partition_ID);
-      Partition := Read_Partition_ID (FD);
-      if not Partition'Valid then
-         pragma Debug (D (D_Garlic, "Invalid partition ID"));
-         Raise_Exception (Constraint_Error'Identity, "Invalid partition ID");
-      end if;
-      pragma Debug (D (D_Garlic, "My Partition_ID is" & Partition'Img));
-      return Partition;
-   end Ask_For_Partition_ID;
 
    ------------
    -- Create --
@@ -340,9 +298,8 @@ package body System.Garlic.TCP is
    -- Establish_Connection --
    --------------------------
 
-   function Establish_Connection (Location  : Host_Location;
-                                  Operation : Operation_Code)
-     return C.int is
+   function Establish_Connection (Location  : Host_Location) return C.int
+   is
       FD   : C.int;
       Sin  : Sockaddr_In_Access := new Sockaddr_In;
       Code : C.int;
@@ -362,7 +319,6 @@ package body System.Garlic.TCP is
          Free (Sin);
          Raise_Communication_Error;
       end if;
-      Physical_Send (FD, To_Stream_Element_Array (Operation));
       return FD;
    end Establish_Connection;
 
@@ -451,100 +407,76 @@ package body System.Garlic.TCP is
    ---------------------------------
 
    task body Incoming_Connection_Handler is
-      Data      : Host_Data;
-      Partition : Partition_ID := Null_Partition_ID;
+      Data       : Host_Data;
+      Unknown    : Boolean := (PID = Null_PID);
+      Partition  : Partition_ID := PID;
+      Length     : Stream_Element_Count;
+      Filtered   : Stream_Element_Access;
+      Unfiltered : Stream_Element_Access;
+      Operation  : Opcode;
+      Code       : Operation_Code;
 
-      procedure Handle_Transaction;
-      --  Handle one transaction
+   begin
+      pragma Debug (D (D_Communication, "New communication task started"));
 
-      ------------------------
-      -- Handle_Transaction --
-      ------------------------
+      loop
+         if Partition /= Null_PID then
+            pragma Debug (D (D_Debug, "Reading operation code"));
 
-      procedure Handle_Transaction is
-         Length : Stream_Element_Count;
-      begin
-         begin
             Add_Non_Terminating_Task;
-            pragma Debug
-              (D (D_Debug, "Reading operation code"));
+            Code := Read_Code (FD);
+            Sub_Non_Terminating_Task;
 
-            case Read_Code (FD) is
+            case Code is
+               when Unknown_Code =>
+                  pragma Debug (D (D_Debug, "Unknown code received"));
+                  Raise_Communication_Error ("Received an unknown code");
 
                when Data_Code =>
                   pragma Debug (D (D_Debug, "Received a data code"));
                   null;
 
                when Quit_Code =>
-                  pragma Debug (D (D_Debug, "Quitting one incoming handler"));
+                  pragma Debug (D (D_Debug, "Quitting incoming handler"));
                   Raise_Communication_Error ("Received a quit code");
 
-               when Open_Code =>
-                  pragma Debug (D (D_Debug, "Open code received, error"));
-                  Raise_Communication_Error ("Bogus open code received");
-
             end case;
-
-            Length := Read_Stream_Element_Count (FD);
-
-            Sub_Non_Terminating_Task;
-
-         exception
-            when Communication_Error =>
-               Sub_Non_Terminating_Task;
-               raise;
-         end;
-
-         pragma Debug (D (D_Debug,
-                          "Will receive a packet of length" & Length'Img));
-         Receive_And_Send_To_Heart (Length, FD, Partition);
-      end Handle_Transaction;
-
-   begin
-
-      if Receiving then
-
-         --  The first thing we will receive is the Partition_ID. As an
-         --  exception, Null_Partition_ID means that the remote side hasn't
-         --  got a Partition_ID.
-
-         pragma Debug
-           (D (D_Communication, "New communication task started"));
-
-         --  We do not call Add_Non_Terminating_Task since we want to
-         --  receive the whole partition ID. Moreover, we will signal
-         --  that data has arrived.
-
-         Activity_Detected;
-         Partition := Read_Partition_ID (FD);
-         if Partition = Null_Partition_ID then
-            Partition := Allocate_Partition_ID;
-            Write_Partition_ID (FD, Partition);
          end if;
-         pragma Debug
-           (D (D_Communication,
-                  "This task is in charge of partition" & Partition'Img));
-         Partition_Map.Lock (Partition);
-         Data           := Partition_Map.Get_Immediate (Partition);
-         Data.FD        := FD;
-         Data.Connected := True;
-         Partition_Map.Set_Locked (Partition, Data);
-         Partition_Map.Unlock (Partition);
 
-      else
+         Length := Read_Stream_Element_Count (FD);
 
-         Partition := Remote;
-         pragma Debug
-           (D (D_Communication,
-               "New task to handle partition" & Partition'Img));
+         pragma Debug (D (D_Debug, "Receive a packet of length" & Length'Img));
 
-      end if;
+         pragma Debug (D (D_Debug, "Create stream"));
+         Filtered := new Stream_Element_Array (1 .. Length);
 
-      --  Then we have an (almost) infinite loop to get requests or
-      --  answers.
+         pragma Debug (D (D_Debug, "Receive stream physically"));
+         Physical_Receive (FD, Filtered.all);
 
-      loop
-         Handle_Transaction;
+         pragma Debug (D (D_Debug, "Analyse stream"));
+         Analyze_Stream (Partition, Operation, Unfiltered, Filtered);
+
+         if Unknown then
+
+            Activity_Detected;
+            pragma Debug
+              (D (D_Communication, "Task handling partition" & Partition'Img));
+
+            Partition_Map.Lock (Partition);
+            Data           := Partition_Map.Get_Immediate (Partition);
+            Data.FD        := FD;
+            Data.Connected := True;
+            Partition_Map.Set_Locked (Partition, Data);
+            Partition_Map.Unlock (Partition);
+            Unknown := False;
+         end if;
+
+         pragma Debug (D (D_Debug, "Process stream"));
+         Process_Stream (Partition, Operation, Unfiltered);
+
+         pragma Debug (D (D_Debug, "Deallocate streams"));
+         Free (Filtered);
+         Free (Unfiltered);
       end loop;
 
    exception
@@ -555,8 +487,8 @@ package body System.Garlic.TCP is
          --  occurred. In the case, the entry will be freed, except if we
          --  are terminating since this is not worth freeing anything.
 
-         if Partition /= Null_Partition_ID
-           and then not Is_Shutdown_In_Progress
+         if Partition /= Null_PID
+           and then not Shutdown_In_Progress
          then
             --  Set the entry in the table correctly only we are not
             --  executing a shutdown operation. If we are, then
@@ -578,12 +510,12 @@ package body System.Garlic.TCP is
 
          --  Signal to the heart that we got an error on this partition
 
-         if Partition = Null_Partition_ID then
+         if Partition = Null_PID then
             pragma Debug
               (D (D_Garlic,
                   "Task dying before determining remote Partition_ID"));
             null;
-         elsif not Is_Shutdown_In_Progress then
+         elsif not Shutdown_In_Progress then
             pragma Debug
               (D (D_Garlic,
                   "Signaling that partition" & Partition'Img &
@@ -743,23 +675,32 @@ package body System.Garlic.TCP is
    -- Read_Code --
    ---------------
 
-   function Read_Code (FD : in C.int) return Operation_Code is
+   function Read_Code (FD : C.int) return Operation_Code is
       Code   : Operation_Code_Array;
       Result : Operation_Code;
    begin
+      pragma Debug (D (D_Debug,
+                       "Will receive" &
+                       Integer'Image (Code'Length) &
+                       " bytes from FD" & FD'Img));
       Physical_Receive (FD, Code);
+      pragma Debug (D (D_Debug, "Bytes received"));
       Result := Operation_Code'Val (Code (1));
       if not Result'Valid then
          pragma Debug (D (D_Exception, "Unknown Operation_Code received"));
-         Raise_Communication_Error ("Unknown Operation_Code received");
+         return Unknown_Code;
       end if;
       for I in 2 .. Code'Last loop
          if Code (I) /= Code (1) then
             pragma Debug (D (D_Exception, "Invalid Operation_Code received"));
-            Raise_Communication_Error ("Invalid Operation_Code received");
+            return Unknown_Code;
          end if;
       end loop;
       return Result;
+   exception
+      when Constraint_Error =>
+         pragma Debug (D (D_Debug, "Exception raised, unknown code"));
+         return Unknown_Code;
    end Read_Code;
 
    -----------------------
@@ -799,28 +740,6 @@ package body System.Garlic.TCP is
          Raise_Communication_Error ("Bad Stream_Element_Count received");
    end Read_Stream_Element_Count;
 
-   -------------------------------
-   -- Receive_And_Send_To_Heart --
-   -------------------------------
-
-   procedure Receive_And_Send_To_Heart
-     (Length    : in Stream_Element_Count;
-      FD        : in C.int;
-      Partition : in Partition_ID)
-   is
-      Buffer : Stream_Element_Access;
-   begin
-      pragma Debug (D (D_Debug, "Creating buffer"));
-      Buffer := new Stream_Element_Array (1 .. Length);
-      pragma Debug (D (D_Debug, "Calling Physical_Receive"));
-      Physical_Receive (FD, Buffer.all'Address, C.int (Length));
-      pragma Debug (D (D_Debug, "Calling Has_Arrived"));
-      Has_Arrived (Partition, Buffer);
-      pragma Debug (D (D_Debug, "Freeing buffer"));
-      Free (Buffer);
-      pragma Debug (D (D_Debug, "Packet received and sent to heart"));
-   end Receive_And_Send_To_Heart;
-
    ----------
    -- Send --
    ----------
@@ -831,7 +750,13 @@ package body System.Garlic.TCP is
       Data      : access Stream_Element_Array)
    is
       Remote_Data : Host_Data;
+
    begin
+      --  We need to use the global lock to make sure that the info has been
+      --  received concerning this partition.
+
+      Enter_Critical_Section;
+
       Partition_Map.Lock (Partition);
       Partition_Map.Get (Partition) (Remote_Data);
       if Remote_Data.Queried and then not Remote_Data.Known then
@@ -841,13 +766,16 @@ package body System.Garlic.TCP is
          begin
             Temp := Split_Data (Get_Data (Location (Partition)));
             Partition_Map.Lock (Partition);
-            Remote_Data := Partition_Map.Get_Immediate (Partition);
-            Remote_Data.Location := Temp;
-            Remote_Data.Known := True;
-            Remote_Data.Queried := False;
+            Remote_Data           := Partition_Map.Get_Immediate (Partition);
+            Remote_Data.Location  := Temp;
+            Remote_Data.Known     := True;
+            Remote_Data.Queried   := False;
             Partition_Map.Set_Locked (Partition, Remote_Data);
          end;
       end if;
+
+      Leave_Critical_Section;
+
       begin
          if not Remote_Data.Connected then
 
@@ -860,7 +788,7 @@ package body System.Garlic.TCP is
             declare
                Retries : Natural := 1;
             begin
-               if Partition = Get_Boot_Server then
+               if Partition = Boot_PID then
                   Retries := Options.Connection_Hits;
                end if;
                for I in 1 .. Retries loop
@@ -870,8 +798,7 @@ package body System.Garlic.TCP is
                            "Trying to connect to partition" &
                            Partition'Img));
                      Remote_Data.FD :=
-                       Establish_Connection (Remote_Data.Location,
-                                             Open_Code);
+                       Establish_Connection (Remote_Data.Location);
                      Remote_Data.Connected := True;
                      exit;
                   exception
@@ -895,11 +822,6 @@ package body System.Garlic.TCP is
             end;
 
             Partition_Map.Set_Locked (Partition, Remote_Data);
-            if Get_My_Partition_ID_Immediately = Null_Partition_ID then
-               Set_My_Partition_ID (Ask_For_Partition_ID (Remote_Data.FD));
-            else
-               Send_My_Partition_ID (Remote_Data.FD);
-            end if;
 
             --  Now create a task to get data on this connection
 
@@ -907,7 +829,7 @@ package body System.Garlic.TCP is
                NT : Incoming_Connection_Handler_Access;
             begin
                NT := new Incoming_Connection_Handler
-                 (Remote_Data.FD, Receiving => False, Remote => Partition);
+                 (Remote_Data.FD, Partition);
             end;
 
          end if;
@@ -920,10 +842,10 @@ package body System.Garlic.TCP is
             --  Write length at the beginning of the data, then the operation
             --  code.
 
-            Data (Offset .. Offset + Stream_Element_Count_Length - 1) :=
-              To_Stream_Element_Array (Data'Length - Unused_Space);
             Data (Code .. Offset - 1) :=
               To_Stream_Element_Array (Data_Code);
+            Data (Offset .. Offset + Stream_Element_Count_Length - 1) :=
+              To_Stream_Element_Array (Data'Length - Unused_Space);
             pragma Debug
               (D (D_Debug,
                   "Sending packet of length" &
@@ -931,6 +853,9 @@ package body System.Garlic.TCP is
                   " (content of" &
                   Stream_Element_Count'Image (Data'Length - Unused_Space) &
                   ")"));
+            pragma Debug (D (D_Debug, "first =" & Data'First'Img));
+            pragma Debug (D (D_Debug, "code =" & Code'Img));
+            Dump (D_Debug, Data, Private_Debug_Key);
             Physical_Send (Remote_Data.FD, Data (Code) 'Address,
                            C.int (Data'Last - Code + 1));
          end;
@@ -943,15 +868,6 @@ package body System.Garlic.TCP is
       end;
    end Send;
 
-   --------------------------
-   -- Send_My_Partition_ID --
-   --------------------------
-
-   procedure Send_My_Partition_ID (FD : in C.int) is
-   begin
-      Write_Partition_ID (FD, Get_My_Partition_ID);
-   end Send_My_Partition_ID;
-
    -------------------
    -- Set_Boot_Data --
    -------------------
@@ -959,8 +875,7 @@ package body System.Garlic.TCP is
    procedure Set_Boot_Data
      (Protocol         : access TCP_Protocol;
       Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String := "";
-      Is_Master        : in Boolean := False)
+      Boot_Data        : in String := "")
    is
       Boot_Host : Host_Data;
    begin
@@ -968,10 +883,10 @@ package body System.Garlic.TCP is
       if Is_Boot_Protocol then
          Boot_Host.Location := Split_Data (Boot_Data);
          Boot_Host.Known    := True;
-         Partition_Map.Lock (Get_Boot_Server);
-         Partition_Map.Set_Locked (Get_Boot_Server, Boot_Host);
-         Partition_Map.Unlock (Get_Boot_Server);
-         if Is_Master then
+         Partition_Map.Lock (Boot_PID);
+         Partition_Map.Set_Locked (Boot_PID, Boot_Host);
+         Partition_Map.Unlock (Boot_PID);
+         if Options.Boot_Partition then
             Self_Host.Location.Port := Boot_Host.Location.Port;
          end if;
       end if;
@@ -1018,7 +933,8 @@ package body System.Garlic.TCP is
       declare
          FD : C.int;
       begin
-         FD := Establish_Connection (Self_Host.Location, Quit_Code);
+         FD := Establish_Connection (Self_Host.Location);
+         Physical_Send (FD, To_Stream_Element_Array (Quit_Code));
          FD := Net.C_Close (FD);
       exception
          when Communication_Error => null;
@@ -1059,6 +975,7 @@ package body System.Garlic.TCP is
      return Operation_Code_Array
    is
    begin
+      pragma Assert (Code /= Unknown_Code);
       return (others => Operation_Code'Pos (Code));
    end To_Stream_Element_Array;
 

@@ -46,11 +46,6 @@ with System.Garlic.Types;             use System.Garlic.Types;
 
 package body System.Garlic.Replay is
 
-   --  This package should be modified not to require the Storage_Size
-   --  pragma on the Engine_Type task ???
-
-   use type Types.Partition_ID;
-
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARREP", "(s-garrep): ");
 
@@ -63,9 +58,7 @@ package body System.Garlic.Replay is
    Trace_File : File_Type;
    --  Where to read the traces
 
-   task type Engine_Type is
-      pragma Storage_Size (3_000_000);
-   end Engine_Type;
+   task type Engine_Type;
    type Engine_Type_Access is access Engine_Type;
    --  Reads and delivers the messages from the trace file
 
@@ -86,6 +79,9 @@ package body System.Garlic.Replay is
    -----------------
 
    task body Engine_Type is
+      PID  : Partition_ID;
+      Code : Opcode;
+      Data : Stream_Element_Access;
    begin
       pragma Debug (D (D_Debug, "Replay engine started"));
 
@@ -116,8 +112,10 @@ package body System.Garlic.Replay is
 
             --  Deliver message
 
-            Has_Arrived (Trace.PID, Trace.Data);
+            Analyze_Stream (PID, Code, Data, Trace.Data);
             Free (Trace.Data);
+            Process_Stream (PID, Code, Data);
+            Free (Data);
 
             pragma Debug (D (D_Debug, "Message delivered"));
          end;
@@ -128,7 +126,7 @@ package body System.Garlic.Replay is
       --  incoming message is available. Thus, the replay has to
       --  initiate the shutdown itself.
 
-      if Is_Boot_Partition then
+      if Boot_Partition then
          Soft_Shutdown;
       end if;
    end Engine_Type;
@@ -148,7 +146,7 @@ package body System.Garlic.Replay is
 
    procedure Send
      (Protocol  : access Replay_Protocol;
-      Partition : in Types.Partition_ID;
+      Partition : in Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array) is
    begin
       pragma Debug
@@ -167,11 +165,9 @@ package body System.Garlic.Replay is
    procedure Set_Boot_Data
      (Protocol         : access Replay_Protocol;
       Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String  := "";
-      Is_Master        : in Boolean := False)
+      Boot_Data        : in String  := "")
    is
       Engine    : Engine_Type_Access;
-      Partition : Types.Partition_ID;
    begin
       --  Replay protocol is always loaded because its activation
       --  is determined at run-time. It should be activated here when
@@ -186,18 +182,6 @@ package body System.Garlic.Replay is
          end if;
 
          Open (Trace_File, In_File, Trace_File_Name.all);
-
-         --  A non boot server partition won't be able to find its
-         --  partition id. Moreover, if this was possible, it can very
-         --  well end up with a partition id different from the one obtained
-         --  during the traced execution.
-
-         if not Is_Master then
-            pragma Debug
-              (D (D_Debug, "Force partition ID read from trace file"));
-            Types.Partition_ID'Read (Stream (Trace_File), Partition);
-            Set_My_Partition_ID (Partition);
-         end if;
 
          --  We create an unnamed task on which we keep no reference
 

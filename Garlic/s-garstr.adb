@@ -33,10 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;         use Ada.Streams;
-with System.Garlic.Debug; use System.Garlic.Debug;
-
 package body System.Garlic.Streams is
+
+   use Ada.Streams, System.Garlic.Debug;
 
    subtype Output_Line is String (1 .. 48);
 

@@ -41,9 +41,17 @@ package System.Garlic.Utils is
    pragma Elaborate_Body;
 
    type String_Access is access String;
+   function String_To_Access (S : String) return String_Access;
+   function Access_To_String (S : String_Access) return String;
+   pragma Stream_Convert (Entity => String_Access,
+                          Read   => String_To_Access,
+                          Write  => Access_To_String);
+   --  Stream attributes
+
    procedure Free is
       new Ada.Unchecked_Deallocation (String, String_Access);
-   --  Access on string and deallocation procedure
+   --  Access on string and deallocation procedure. This access type can
+   --  be transmitted accross partitions.
 
    procedure To_Lower (Item : in out String);
    pragma Inline (To_Lower);
@@ -70,49 +78,46 @@ package System.Garlic.Utils is
 
    type Status_Type is (Modified, Unmodified, Postponed);
 
-   protected type Mutex_Type is
-      entry Enter;
-      entry Leave (S : Status_Type := Unmodified);
-   private
-      entry Wait (S : Status_Type);
-      Locked : Boolean := False;
-      Status : Status_Type := Unmodified;
-   end Mutex_Type;
-   --  A task can enter in a mutex if and only if there is no other task in
-   --  a mutex. A task can leave a mutex returning the status of its
-   --  action.  Unmodified corresponds to no modification of the protected
-   --  data. Postponed indicates that the task would like to be resumed
-   --  when the protected data is modified (in order to enter the mutex
-   --  another time). Modified corresponds to a modification and resume
-   --  all the tasks pending for a modification of the protected data.
+   type Mutex_Access is private;
 
-   type Mutex_Access is access Mutex_Type;
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Mutex_Type, Mutex_Access);
+   function Create return Mutex_Access;
+   --  Allocate a mutex
 
-   type Adv_Mutex_Type is record
-      Mutex     : Mutex_Access;
-      Current   : Ada.Task_Identification.Task_Id;
-      Level     : Natural;
-   end record;
-   --  This is a classical critical section except that when a task try to
-   --  Enter a critical section several times without leaving it first it
-   --  is not blocked and can continue. Leave keeps track of the number of
-   --  times Enter has been successful.
-
-   type Adv_Mutex_Access is access Adv_Mutex_Type;
-   function Allocate return Adv_Mutex_Access;
-
-   procedure Enter (M : Adv_Mutex_Access);
+   procedure Enter (M : in Mutex_Access);
    pragma Inline (Enter);
    --  Enter one level of critical section
 
-   procedure Free (M : in out Adv_Mutex_Access);
+   procedure Destroy (M : in out Mutex_Access);
+   --  Free the memory used by a Mutex_Access
+
+   procedure Leave (M : in Mutex_Access; S : in Status_Type := Unmodified);
+   pragma Inline (Leave);
+   --  Leave one level of critical section
+
+   type Adv_Mutex_Access is private;
+
+   function Create return Adv_Mutex_Access;
+   --  Allocate an advances mutex
+
+   procedure Enter (M : in Adv_Mutex_Access);
+   pragma Inline (Enter);
+   --  Enter one level of critical section
+
+   procedure Destroy (M : in out Adv_Mutex_Access);
    --  Free the memory used by an Adv_Mutex
 
-   procedure Leave (M : Adv_Mutex_Access; S : Status_Type := Unmodified);
+   procedure Leave (M : in Adv_Mutex_Access);
    pragma Inline (Leave);
-   --  Leave one level of critical section. S is used by inner mutex when
-   --  leaving first level of critical section.
+   --  Leave one level of critical section
+
+private
+
+   type Mutex_Type;
+
+   type Mutex_Access is access Mutex_Type;
+
+   type Adv_Mutex_Type;
+
+   type Adv_Mutex_Access is access Adv_Mutex_Type;
 
 end System.Garlic.Utils;
