@@ -52,11 +52,13 @@ with PolyORB.Buffer_Sources;
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Methods;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.SOAP_Pr is
 
@@ -72,6 +74,13 @@ package body PolyORB.Protocols.SOAP_Pr is
    --------------------
    -- Implementation --
    --------------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      null;
+   end Initialize;
 
    procedure Create
      (Proto   : access SOAP_Protocol;
@@ -384,4 +393,16 @@ package body PolyORB.Protocols.SOAP_Pr is
       end if;
    end Handle_Message;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"protocols.soap",
+       Conflicts => Empty,
+       Depends => +"http_methods" & "http_headers",
+       Provides => Empty,
+       Init => Initialize'Access));
 end PolyORB.Protocols.SOAP_Pr;

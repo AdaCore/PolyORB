@@ -53,8 +53,8 @@ package body PolyORB.Utils.HTables is
    procedure Find_K
      (ST_Index : Natural;
       T        : Hash_Table);
-   --  The Find_k procedure is used to find the K parameter of the subtable
-   --  ST_Index in order to have an injectiv hash function
+   --  Find the K parameter of the subtable ST_Index to construct
+   --  an injective hash function.
 
    function Hashcode
      (S     : String;
@@ -62,27 +62,28 @@ package body PolyORB.Utils.HTables is
       Size  : Natural;
       Prime : Natural)
       return Natural;
-   --  Hashcode function returns the hashcode associated with S
-   --  h(S) = (( K * S ) mod Prime) mod Size
+   --  Hashcode function returns the hashcode associated with S;
+   --  h(S) = (( K * S ) mod Prime) mod Size.
 
    function Is_Injective
      (ST_Index : Natural;
       T        : Hash_Table)
       return Boolean;
-   --  This function indicates if the hash function associated with the
-   --  subtable ST_Index is injectiv
+   --  Return true iff the hash function associated with the
+   --  subtable ST_Index is injective.
 
    procedure Process_Subtable
      (ST_Index : Natural;
       T : Hash_Table);
    --  Find the K parameter of subtable ST_Index in order to have
    --  an injective hash function and to reorder the subtable.
+   --  XXX duplicate code with Find_K ??
 
    procedure Process_Subtable_Hashcode
      (ST_Index : Natural;
       T        : Hash_Table);
    --  Apply the Hashcode function to each element of subtable
-   --  ST_Index, and the stores the results in the ST_Offset component
+   --  ST_Index, and then stores the results in the ST_Offset component
    --  of the component.
 
    procedure Rehash_All
@@ -116,8 +117,8 @@ package body PolyORB.Utils.HTables is
    begin
       for I in S'Range loop
          Result := (Result * 65599
-                      + Long_Long_Integer (Character'Pos (S (I)))
-                        * Long_Long_Integer (K))
+                    + Long_Long_Integer (Character'Pos (S (I)))
+                    * Long_Long_Integer (K))
            mod Long_Long_Integer (Prime);
       end loop;
       return Natural (Result mod Long_Long_Integer (Size));
@@ -224,14 +225,14 @@ package body PolyORB.Utils.HTables is
      (Key : String;
       T   : in out Hash_Table)
    is
-      Max_Sum : Natural  := 0;
-      Step    : Natural  := 0;
-      ST_Index   : Natural  := 0;
-      ST_Offset : Natural := 0;
-      E_Index : Natural := 0;
-      Index : Natural := 0;
-      Swap    : Element  := Empty;
-      J       : Natural  := 0;
+      Max_Sum     : Natural := 0;
+      Step        : Natural := 0;
+      ST_Index    : Natural := 0;
+      ST_Offset   : Natural := 0;
+      E_Index     : Natural := 0;
+      Index       : Natural := 0;
+      Swap        : Element := Empty;
+      J           : Natural := 0;
       Swap_Index1 : Natural := 0;
       Swap_Index2 : Natural := Last (T.Elements);
 
@@ -320,7 +321,6 @@ package body PolyORB.Utils.HTables is
 
       end loop;
 
-
       --  Maximisation of each subtables if possible
       --  XXXXX Can be improved
 
@@ -403,7 +403,7 @@ package body PolyORB.Utils.HTables is
                else
                   J := T.Subtables.Table.all (ST_Index).First;
                   while (T.Elements.Table.all (J).Used)
-                    and then  (ST_Index = T.Elements.Table.all (J).ST_Index)
+                    and then (ST_Index = T.Elements.Table.all (J).ST_Index)
                   loop
                      J := J + 1;
                   end loop;
@@ -448,13 +448,13 @@ package body PolyORB.Utils.HTables is
    procedure Process_Subtable (ST_Index : Natural; T : Hash_Table)
    is
       Swap  : Element := Empty;
-      First : Natural := 0;
+      First : constant Natural := T.Subtables.Table.all (ST_Index).First;
       J     : Natural := 0;
    begin
       if T.Subtables.Table.all (ST_Index).Count = 1 then
-         --  deals with the case of a subtable with only one element
+         --  If the subtable has only one element.
          T.Subtables.Table.all (ST_Index).K  := 1;
-         First := T.Subtables.Table.all (ST_Index).First;
+
          for I in First .. T.Subtables.Table.all (ST_Index).Last
          loop
             if T.Elements.Table.all (I).Used then
@@ -467,13 +467,14 @@ package body PolyORB.Utils.HTables is
                T.Elements.Table.all (I) := Swap;
             end if;
          end loop;
+
       else
-         --  in the other cases
+         --  in the other cases.
          Find_K (ST_Index, T);
-         First := T.Subtables.Table.all (ST_Index).First;
+
          for I in  First .. T.Subtables.Table.all (ST_Index).Last
          loop
-            if  T.Elements.Table.all (I).Used then
+            if T.Elements.Table.all (I).Used then
                if I /= First + T.Elements.Table.all (I).ST_Offset then
                   J := First + T.Elements.Table.all (I).ST_Offset;
                   while T.Elements.Table.all (I).Used
@@ -527,7 +528,8 @@ package body PolyORB.Utils.HTables is
       ST_Offset : out Natural;
       Found     : out Boolean)
    is
-      I : Natural := 0;
+      Index : Natural := 0;
+
    begin
       Found := False;
       ST_Index  := Hashcode (Key, T.Info.K, T.Info.N_Subtables, T.Info.Prime);
@@ -535,13 +537,13 @@ package body PolyORB.Utils.HTables is
                              T.Subtables.Table.all (ST_Index).K,
                              T.Subtables.Table.all (ST_Index).Max,
                              T.Info.Prime);
-      I := T.Subtables.Table.all (ST_Index).First + ST_Offset;
-      if T.Elements.Table.all (I).Key /= null then
-         if T.Elements.Table.all (I).Key.all = Key
-           and then T.Elements.Table.all (I).Used
-         then
-            Found := True;
-         end if;
+      Index := T.Subtables.Table.all (ST_Index).First + ST_Offset;
+
+      if T.Elements.Table.all (Index).Key /= null
+        and then T.Elements.Table.all (Index).Key.all = Key
+        and then T.Elements.Table.all (Index).Used
+      then
+         Found := True;
       end if;
    end Lookup;
 
@@ -551,9 +553,9 @@ package body PolyORB.Utils.HTables is
 
    procedure Finalize (T : in out Hash_Table) is
    begin
-      for I in 0 .. Last (T.Elements) loop
-         if T.Elements.Table.all (I).Key /= null then
-            Free_String (T.Elements.Table.all (I).Key);
+      for J in 0 .. Last (T.Elements) loop
+         if T.Elements.Table.all (J).Key /= null then
+            Free_String (T.Elements.Table.all (J).Key);
          end if;
       end loop;
 
@@ -585,15 +587,16 @@ package body PolyORB.Utils.HTables is
 
       Init (T.Elements);
       Dynamic_Element_Array.Set_Last (T.Elements, 15 * T.Info.High);
-      for I in 0 .. Last (T.Elements) loop
-         T.Elements.Table.all (I) := Empty;
-         T.Elements.Table.all (I).Item_Index := I;
+      for J in 0 .. Last (T.Elements) loop
+         T.Elements.Table.all (J) := Empty;
+         T.Elements.Table.all (J).Item_Index := J;
       end loop;
 
       --  Allocation of the Hash_Table.Subtables
 
       Init (T.Subtables);
       Set_Last (T.Subtables, T.Info.N_Subtables - 1);
+
       if  ((T.Info.High * 21) / 8) +1 + ((T.Info.High * 3) / 8) >
         T.Info.N_Subtables
       then
@@ -602,22 +605,23 @@ package body PolyORB.Utils.HTables is
          Temp := (T.Info.High * 21) / 8;
       end if;
 
-      for I in 0 .. Temp loop
-         T.Subtables.Table.all (I).First := I * 4;
-         T.Subtables.Table.all (I).Last  := I * 4 + 3;
-         T.Subtables.Table.all (I).Count := 0;
-         T.Subtables.Table.all (I).High  := 2;
-         T.Subtables.Table.all (I).Max   := 4;
-         T.Subtables.Table.all (I).K     := 1;
+      for J in 0 .. Temp loop
+         T.Subtables.Table.all (J).First := J * 4;
+         T.Subtables.Table.all (J).Last  := J * 4 + 3;
+         T.Subtables.Table.all (J).Count := 0;
+         T.Subtables.Table.all (J).High  := 2;
+         T.Subtables.Table.all (J).Max   := 4;
+         T.Subtables.Table.all (J).K     := 1;
       end loop;
-      for I in  0 .. (T.Info.High * 3) / 8 - 1 loop
-         T.Subtables.Table.all (I + Temp + 1).First := I * 12 + 4 * (Temp + 1);
-         T.Subtables.Table.all (I + Temp + 1).Last  := I * 12 + 11
+
+      for J in  0 .. (T.Info.High * 3) / 8 - 1 loop
+         T.Subtables.Table.all (J + Temp + 1).First := J * 12 + 4 * (Temp + 1);
+         T.Subtables.Table.all (J + Temp + 1).Last  := J * 12 + 11
            + 4 * (Temp + 1);
-         T.Subtables.Table.all (I + Temp + 1).Count := 0;
-         T.Subtables.Table.all (I + Temp + 1).High  := 3;
-         T.Subtables.Table.all (I + Temp + 1).Max   := 12;
-         T.Subtables.Table.all (I + Temp + 1).K     := 1;
+         T.Subtables.Table.all (J + Temp + 1).Count := 0;
+         T.Subtables.Table.all (J + Temp + 1).High  := 3;
+         T.Subtables.Table.all (J + Temp + 1).Max   := 12;
+         T.Subtables.Table.all (J + Temp + 1).K     := 1;
       end loop;
    end Initialize;
 
@@ -640,17 +644,16 @@ package body PolyORB.Utils.HTables is
 
       if T.Info.Count = T.Info.High then
 
-         --  When  T.Info.Count > T.Info.high, extend the table and
-         --  Rehash_All.
+         --  Extend the table and Rehash_All.
 
          Old_Last := Last (T.Elements);
-         T.Info.Count := T.Info.Count + 1;
-         T.Info.High         := Integer ((1.0 + 0.5) * Float (T.Info.Count));
-         T.Info.N_Subtables  := T.Info.High * 3;
+         T.Info.Count       := T.Info.Count + 1;
+         T.Info.High        := Integer ((1.0 + 0.5) * Float (T.Info.Count));
+         T.Info.N_Subtables := T.Info.High * 3;
          Set_Last (T.Elements, 15 * T.Info.High);
-         for I in Old_Last + 1 .. Last (T.Elements) loop
-            T.Elements.Table.all (I) := Empty;
-            T.Elements.Table.all (I).Item_Index := I;
+         for J in Old_Last + 1 .. Last (T.Elements) loop
+            T.Elements.Table.all (J) := Empty;
+            T.Elements.Table.all (J).Item_Index := J;
          end loop;
 
          Set_Last (T.Subtables, T.Info.N_Subtables - 1);
@@ -659,14 +662,14 @@ package body PolyORB.Utils.HTables is
          To_Do := Reorder_Table;
 
       else
-         --  ...else search if the key is already in the table
+         --  ...else search if the key is already in the table.
 
          Lookup (T, Key, ST_Index, ST_Offset, Found);
          if Found then
 
             --  If key in table and is used, don't insert
-
             To_Do := Do_Nothing;
+
          else
 
             --  Temp_Index is the a priori position of the new key

@@ -133,15 +133,20 @@ package body MOMA.Provider.Message_Pool is
 
          --  Register Message call_back handler
 
+         pragma Debug (O ("Register_Handler request"));
+         Args := Get_Parameter_Profile (To_Standard_String (
+           Req.all.Operation));
+         PolyORB.Requests.Arguments (Req, Args);
+
          declare
             use PolyORB.Any.NVList.Internals;
             Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
-            Handler_Dest   : MOMA.Destinations.Destination :=
+            Handler_Dest   : constant MOMA.Destinations.Destination :=
               MOMA.Destinations.From_Any (
                 NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument);
-            Handler_Ref    : PolyORB.References.Ref :=
+            Handler_Ref    : constant PolyORB.References.Ref :=
               MOMA.Destinations.Get_Ref (Handler_Dest);
-            Behavior_Image : PolyORB.Types.String :=
+            Behavior_Image : constant PolyORB.Types.String :=
               From_Any (NV_Sequence.Element_Of
                         (Args_Sequence.all, 2).Argument);
             Behavior       : constant MOMA.Types.Call_Back_Behavior :=
@@ -149,18 +154,19 @@ package body MOMA.Provider.Message_Pool is
                 (MOMA.Types.To_Standard_String (Behavior_Image));
          begin
             Register_Handler (Self, Handler_Ref, Behavior);
+            pragma Debug (O ("Registered message handler, behavior is " &
+                       MOMA.Types.Call_Back_Behavior'Image (Self.Behavior)));
          end;
-
+      else
+         pragma Debug (O ("Unrecognized request "
+                       & To_Standard_String (Req.all.Operation)));
+         null;
       end if;
    end Invoke;
 
    ---------------------------
    -- Get_Parameter_Profile --
    ---------------------------
-
-   function Get_Parameter_Profile
-     (Method : String)
-     return PolyORB.Any.NVList.Ref;
 
    function Get_Parameter_Profile
      (Method : String)
@@ -190,7 +196,8 @@ package body MOMA.Provider.Message_Pool is
       elsif Method = "Register_Handler" then
          Add_Item (Result,
                    (Name => To_PolyORB_String ("Message_Handler"),
-                    Argument => Get_Empty_Any (TypeCode.TC_String),
+                    Argument => Get_Empty_Any (
+                      MOMA.Destinations.TC_MOMA_Destination),
                     Arg_Modes => ARG_IN));
          Add_Item (Result,
                    (Name => To_PolyORB_String ("Behavior"),

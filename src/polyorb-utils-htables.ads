@@ -31,6 +31,7 @@
 ------------------------------------------------------------------------------
 
 --  This package provides dynamic perfect hash tables.
+--  XXX if yes, why is it separate from polyorb-utils-htables-perfect ?
 
 --  $Id$
 
@@ -46,16 +47,6 @@ private
    subtype String_Access is PolyORB.Utils.Strings.String_Ptr;
    function "=" (L, R : String_Access) return Boolean
      renames PolyORB.Utils.Strings."=";
-
-   type What_To_Do is (Reorder_SubTable,
-                       Reorder_Table,
-                       Do_Nothing,
-                       Insert_Item);
-   --  What_To_Do is used by Insert in order to indicates
-   --  what to do after.
-   --  XXX After what? What is the meaning of each value of
-   --      the type? If it is documented with the spec of Insert,
-   --      say it.
 
    type Element is record
       Key        : String_Access;
@@ -106,11 +97,11 @@ private
      PolyORB.Utils.Dynamic_Tables (Element, Natural, 0, 10, 50);
    use Dynamic_Element_Array;
 
+   subtype Element_Array is Dynamic_Element_Array.Instance;
+
    package Dynamic_Subtable_Array is new
      PolyORB.Utils.Dynamic_Tables (Subtable, Natural, 0, 10, 50);
    use Dynamic_Subtable_Array;
-
-   subtype Element_Array is Dynamic_Element_Array.Instance;
 
    subtype Subtable_Array is Dynamic_Subtable_Array.Instance;
 
@@ -135,9 +126,9 @@ private
      (T      : out Hash_Table;
       Prime  : Natural;
       Max    : Natural);
-   --  Initialize the hash table and allocate some internal
-   --  structures. Prime is a prime number used by hash functions. Max
-   --  is the max number of elements to store.
+   --  Initialize the hash table and allocate some internal structures.
+   --  Prime is a prime number used by hash functions.
+   --  Max is the max number of elements to store.
 
    procedure Finalize
      (T : in out Hash_Table);
@@ -153,6 +144,13 @@ private
    --  corresponds to the subtable index and ST_Offset to the offset
    --  in this subtable. When Key does not exist, Found is set to False.
    --  If Key exists Found is set to True
+
+      type What_To_Do is (Reorder_SubTable,
+                          Reorder_Table,
+                          Do_Nothing,
+                          Insert_Item);
+   --  Indicate the next action to do after a value has been inserted.
+   --  See the specification of the Insert procedure for more details.
 
    procedure Insert
      (T         : in out Hash_Table;

@@ -310,10 +310,12 @@ AC_OUTPUT([Makefile
 	   examples/dsa/Makefile examples/bbs/Makefile
            examples/moma/Makefile examples/polyorb/Makefile
 	   testsuite/Makefile testsuite/core/Makefile
+	   testsuite/core/dynamic_dict/Makefile
+	   testsuite/core/fixed_point/Makefile
 	   testsuite/core/initialization/Makefile
 	   testsuite/core/poa/Makefile
 	   testsuite/core/tasking/Makefile
-	   testsuite/core/fixed_point/Makefile
+	   testsuite/acats/Makefile testsuite/acats/CXE1001/Makefile
 	   testsuite/utils/Makefile
 	   support/adacompiler support/native-adacompiler
            support/linker polyorb-config])

@@ -157,6 +157,9 @@ package PolyORB.ORB is
       Msg : Message'Class) is abstract;
    --  Assign the handling of a Request (i.e. an upcall to
    --  an application object) to the appropriate task.
+   --  XXX It looks like this is implemented in exactly identical terms
+   --  by all existing ORB tasking policies (as of 20021212). This should
+   --  be removed from the TP interface.
 
    ------------------------------
    -- Server object operations --

@@ -68,8 +68,6 @@ with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.Servants;
 with PolyORB.Tasking.Soft_Links;
-with PolyORB.Utils.Chained_Lists;
-with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 
 --  XXX the following are dependant on configuration options
@@ -80,6 +78,7 @@ with PolyORB.Utils.Strings.Lists;
 with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Config.Minimum;
 with PolyORB.POA_Manager;
+with PolyORB.Setup.Proxies_POA;
 
 package body System.PolyORB_Interface is
 
@@ -106,42 +105,6 @@ package body System.PolyORB_Interface is
    ------------------------
    -- Local declarations --
    ------------------------
-
-   --  During elaboration, each RCI package and each distributed
-   --  object type registers a Receiving_Stub entry.
-
-   type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
-
-   type Receiving_Stub is new Private_Info with record
-      Kind                : Receiving_Stub_Kind;
-      --  Indicates whetger this info is relative to a
-      --  RACW type or a RCI.
-
-      Name                : PolyORB.Utils.Strings.String_Ptr;
-      --  Fully qualified name of the RACW or RCI
-
-      Version             : PolyORB.Utils.Strings.String_Ptr;
-      --  For RCIs only: library unit version
-
-      Receiver            : Servant_Access;
-      --  The RPC receiver (servant) object
-
-      Is_All_Calls_Remote : Boolean;
-      --  For RCIs only: true iff a pragma All_Calls_Remote
-      --  applies to this unit.
-
-      Subp_Info           : System.Address;
-      Subp_Info_Len       : Integer;
-      --  For RCIs only: mapping of RCI subprogram names to
-      --  addresses. For the definition of these values, cf.
-      --  the specification of Register_Pkg_Receiving_Stubs.
-
-   end record;
-
-   package Receiving_Stub_Lists is new PolyORB.Utils.Chained_Lists
-     (Receiving_Stub);
-
-   All_Receiving_Stubs : Receiving_Stub_Lists.List;
 
    procedure Initialize;
    --  Initialization procedure to be called during the
@@ -619,6 +582,8 @@ package body System.PolyORB_Interface is
       POA_Manager.Activate
         (POA_Manager.POAManager_Access
            (POA_Manager.Entity_Of (Root_POA_Object.POA_Manager)));
+
+      PolyORB.Setup.Proxies_POA (Root_POA_Object);
 
       pragma Debug (O ("Initializing DSA library units"));
       It := First (All_Receiving_Stubs);

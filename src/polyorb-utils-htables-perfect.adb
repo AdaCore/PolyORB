@@ -41,12 +41,6 @@ with PolyORB.Utils.Dynamic_Tables;
 
 package body PolyORB.Utils.HTables.Perfect is
 
-   procedure Free_Item is
-     new Ada.Unchecked_Deallocation (Item, Item_Access);
-
-   procedure Free_Table is
-      new Ada.Unchecked_Deallocation (Table, Table_Access);
-
    ----------------
    -- Initialize --
    ----------------
@@ -84,15 +78,19 @@ package body PolyORB.Utils.HTables.Perfect is
       Key   : String;
       Value : Item)
    is
-      ST_Index  : Natural;
-      ST_Offset : Natural;
-      To_Do     : What_To_Do;
+      procedure Free_Item is
+         new Ada.Unchecked_Deallocation (Item, Item_Access);
+
+      ST_Index   : Natural;
+      ST_Offset  : Natural;
+      To_Do      : What_To_Do;
       Temp_Index : Natural;
-      Old_Last : Natural := 0;
+      Old_Last   : Natural := 0;
    begin
       Insert (T.T.HTable, Key, ST_Index, ST_Offset, To_Do);
-      if (To_Do = Reorder_Table) and
-        (Last (T.T.HTable.Elements) > Last (T.T.Items))
+
+      if To_Do = Reorder_Table
+        and then Last (T.T.HTable.Elements) > Last (T.T.Items)
       then
          Old_Last := Last (T.T.Items);
          Set_Last (T.T.Items, 15 * T.T.HTable.Info.High);
@@ -100,7 +98,8 @@ package body PolyORB.Utils.HTables.Perfect is
             T.T.Items.Table.all (I) := null;
          end loop;
       end if;
-      if (To_Do /= Do_Nothing) then
+
+      if To_Do /= Do_Nothing then
          Temp_Index := T.T.HTable.Elements.Table.all
            (T.T.HTable.Subtables.Table.all (ST_Index).First +
             ST_Offset).Item_Index;
@@ -125,11 +124,11 @@ package body PolyORB.Utils.HTables.Perfect is
    is
       ST_Index   : Natural;
       ST_Offset  : Natural;
-      Found       : Boolean;
+      Found      : Boolean;
       Temp_Index : Natural;
    begin
       Lookup (T.T.HTable, Key, ST_Index, ST_Offset, Found);
-      if Found = True then
+      if Found then
          Temp_Index := T.T.HTable.Elements.Table.all
            (T.T.HTable.Subtables.Table.all (ST_Index).First +
             ST_Offset).Item_Index;
@@ -154,7 +153,7 @@ package body PolyORB.Utils.HTables.Perfect is
       Temp_Index : Natural;
    begin
       Lookup (T.T.HTable, Key, ST_Index, ST_Offset, Found);
-      if Found = True then
+      if Found then
          Temp_Index := T.T.HTable.Elements.Table.all
            (T.T.HTable.Subtables.Table.all (ST_Index).First +
             ST_Offset).Item_Index;
@@ -171,6 +170,9 @@ package body PolyORB.Utils.HTables.Perfect is
    procedure Finalize
      (T : in out Table_Instance)
    is
+      procedure Free_Table is
+         new Ada.Unchecked_Deallocation (Table, Table_Access);
+
    begin
       Finalize (T.T.HTable);
       Deallocate (T.T.Items);

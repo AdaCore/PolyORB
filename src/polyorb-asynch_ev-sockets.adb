@@ -48,15 +48,27 @@ package body PolyORB.Asynch_Ev.Sockets is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ------------
+   -- Create --
+   ------------
+
    procedure Create (AEM : out Socket_Event_Monitor) is
    begin
       Create_Selector (AEM.Selector);
    end Create;
 
+   -------------
+   -- Destroy --
+   -------------
+
    procedure Destroy (AEM : in out Socket_Event_Monitor) is
    begin
       Close_Selector (AEM.Selector);
    end Destroy;
+
+   ---------------------
+   -- Register_Source --
+   ---------------------
 
    procedure Register_Source
      (AEM     : access Socket_Event_Monitor;
@@ -72,6 +84,10 @@ package body PolyORB.Asynch_Ev.Sockets is
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
       Success := True;
    end Register_Source;
+
+   -----------------------
+   -- Unregister_Source --
+   -----------------------
 
    procedure Unregister_Source
      (AEM : in out Socket_Event_Monitor;
@@ -93,6 +109,10 @@ package body PolyORB.Asynch_Ev.Sockets is
       end loop All_Sources;
    end Unregister_Source;
 
+   -------------------
+   -- Check_Sources --
+   -------------------
+
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;
       Timeout : Duration)
@@ -112,12 +132,12 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    begin
       Empty (R_Set);
+      Empty (W_Set);
       for I in Monitored_Set'Range loop
          S := Socket_Event_Source (Monitored_Set (I).all).Socket;
          Set (R_Set, S);
          pragma Debug (O ("Monitoring socket" & Image (S)));
       end loop;
-      Empty (W_Set);
 
       if T = Constants.Forever then
          --  Convert special value of Timeout.
@@ -149,9 +169,19 @@ package body PolyORB.Asynch_Ev.Sockets is
          end loop;
          pragma Assert (Last >= Result'First);
       end if;
+
+      --  Free the storage space associated with our socket sets.
+
+      Empty (R_Set);
+      Empty (W_Set);
+
       return Result (1 .. Last);
 
    end Check_Sources;
+
+   -------------------------
+   -- Abort_Check_Sources --
+   -------------------------
 
    procedure Abort_Check_Sources (AEM : Socket_Event_Monitor) is
    begin
@@ -159,6 +189,10 @@ package body PolyORB.Asynch_Ev.Sockets is
       --  (and do it in a thread-safe manner, if applicable!)
       Abort_Selector (AEM.Selector);
    end Abort_Check_Sources;
+
+   -------------------------
+   -- Create_Event_Source --
+   -------------------------
 
    function Create_Event_Source
      (Socket : PolyORB.Sockets.Socket_Type)
@@ -171,6 +205,10 @@ package body PolyORB.Asynch_Ev.Sockets is
       return Result;
    end Create_Event_Source;
 
+   ---------------------------------
+   -- Create_Socket_Event_Monitor --
+   ---------------------------------
+
    function Create_Socket_Event_Monitor
      return Asynch_Ev_Monitor_Access;
 
@@ -179,6 +217,10 @@ package body PolyORB.Asynch_Ev.Sockets is
    begin
       return new Socket_Event_Monitor;
    end Create_Socket_Event_Monitor;
+
+   --------------------
+   -- AEM_Factory_Of --
+   --------------------
 
    function AEM_Factory_Of (AES : Socket_Event_Source)
      return AEM_Factory is

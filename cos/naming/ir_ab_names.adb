@@ -32,12 +32,19 @@
 ------------------------------------------------------------------------------
 
 with AB_Names;
-with IR_AB_Names_Setup;
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.If_Descriptors;
+with PolyORB.If_Descriptors.CORBA_IR;
 
 procedure IR_AB_Names is
+   procedure IR_AB_Names_Setup;
+   procedure IR_AB_Names_Setup is
+   begin
+      PolyORB.If_Descriptors.Default_If_Descriptor
+        := new PolyORB.If_Descriptors.CORBA_IR.IR_If_Descriptor;
+   end IR_AB_Names_Setup;
 begin
    PolyORB.CORBA_P.Server_Tools.Initiate_Server_Hook
-     := IR_AB_Names_Setup'Access;
+     := IR_AB_Names_Setup'Unrestricted_Access;
    AB_Names;
 end IR_AB_Names;

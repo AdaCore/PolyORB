@@ -48,10 +48,10 @@ with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 package System.PolyORB_Interface is
-
-   pragma Elaborate_Body;
 
    subtype Object_Ref is PolyORB.References.Ref;
 
@@ -491,5 +491,46 @@ private
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class;
    pragma Inline (Execute_Servant);
+
+
+   --  During elaboration, each RCI package and each distributed
+   --  object type registers a Receiving_Stub entry. These need
+   --  to be available as soon as this spec is elaborated (before
+   --  the body of s-polint) for PolyORB.DSA_P.Partitions to
+   --  register correctly.
+
+   type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
+
+   type Receiving_Stub is new Private_Info with record
+      Kind                : Receiving_Stub_Kind;
+      --  Indicates whetger this info is relative to a
+      --  RACW type or a RCI.
+
+      Name                : PolyORB.Utils.Strings.String_Ptr;
+      --  Fully qualified name of the RACW or RCI
+
+      Version             : PolyORB.Utils.Strings.String_Ptr;
+      --  For RCIs only: library unit version
+
+      Receiver            : Servant_Access;
+      --  The RPC receiver (servant) object
+
+      Is_All_Calls_Remote : Boolean;
+      --  For RCIs only: true iff a pragma All_Calls_Remote
+      --  applies to this unit.
+
+      Subp_Info           : System.Address;
+      Subp_Info_Len       : Integer;
+      --  For RCIs only: mapping of RCI subprogram names to
+      --  addresses. For the definition of these values, cf.
+      --  the specification of Register_Pkg_Receiving_Stubs.
+
+   end record;
+
+   package Receiving_Stub_Lists is new PolyORB.Utils.Chained_Lists
+     (Receiving_Stub);
+
+   All_Receiving_Stubs : Receiving_Stub_Lists.List;
+
 
 end System.PolyORB_Interface;

@@ -341,7 +341,8 @@ package body PolyORB.Buffers is
             A_Chunk : Chunk_Access;
             Data_Iovec : Iovec;
          begin
-            Allocate (Buffer.Storage'Access, A_Chunk);
+            Allocate (Buffer.Storage'Access, A_Chunk, Size);
+            pragma Assert (A_Chunk /= null and then A_Chunk.Size >= Size);
             Data_Iovec := (Iov_Base => Chunk_Storage (A_Chunk),
                            Iov_Len  => Storage_Offset (Size));
 

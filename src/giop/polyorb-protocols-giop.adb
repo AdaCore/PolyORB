@@ -116,17 +116,6 @@ package body PolyORB.Protocols.GIOP is
    --  Subprograms related to the global Request_Id counter.
    --  (actually used only on the GIOP client side).
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      Create (GIOP_Lock);
-   end Initialize;
-
    --  Other internal subprograms
 
    procedure Add_Pending_Request
@@ -144,6 +133,10 @@ package body PolyORB.Protocols.GIOP is
    --  Retrieve a pending request of Ses by its request id.
    --  If Delete is True, the request is removed from the pending list.
    --  If no pending request has that id, GIOP_Error is raised.
+
+   -------------------------
+   -- Get_Pending_Request --
+   -------------------------
 
    function Get_Pending_Request
      (Ses    : access GIOP_Session;
@@ -370,24 +363,28 @@ package body PolyORB.Protocols.GIOP is
    pragma Warnings (On);
 
    procedure Marshall_Argument_List
-     (Buf  : Buffer_Access;
-      Args : in out Any.NVList.Ref;
-      Direction : Any.Flags);
+     (Buf                 :        Buffer_Access;
+      Args                : in out Any.NVList.Ref;
+      Direction           :        Any.Flags;
+      First_Arg_Alignment :        Opaque.Alignment_Type);
    --  Internal subprogram: Marshall arguments from Args
    --  into Buf.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
    --  with Arg_Modes equal to either ARG_INOUT or Direction
-   --  will be considered.
+   --  will be considered. The first argument marshalled will
+   --  be aligned on First_Arg_Alignment.
 
    procedure Unmarshall_Argument_List
-     (Ses : access GIOP_Session;
-      Args : in out Any.NVList.Ref;
-      Direction : Any.Flags);
+     (Ses                 : access GIOP_Session;
+      Args                : in out Any.NVList.Ref;
+      Direction           :        Any.Flags;
+      First_Arg_Alignment :        Opaque.Alignment_Type);
    --  Internal subprogram: set the values of arguments in
    --  Args by unmarshalling them from Ses.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
    --  with Arg_Modes equal to either ARG_INOUT or Direction
-   --  will be considered.
+   --  will be considered. The first argument is assumed to
+   --  be aligned on First_Arg_Alignment.
 
    -----------------------------
    -- Marshall_Cancel_Request --
@@ -585,6 +582,7 @@ package body PolyORB.Protocols.GIOP is
       use Internals;
       use Internals.NV_Sequence;
       use PolyORB.Objects;
+      use type PolyORB.Binding_Data.Profile_Access;
 
       Header_Space  : constant Reservation
         := Reserve (Buffer_Out, Message_Header_Size);
@@ -592,6 +590,8 @@ package body PolyORB.Protocols.GIOP is
 
       Request_Id : Types.Unsigned_Long
         renames Pend_Req.Request_Id;
+
+      Arguments_Alignment : Opaque.Alignment_Type;
 
    begin
       Fragment_Next := False;
@@ -617,6 +617,8 @@ package body PolyORB.Protocols.GIOP is
 
          when 2 =>
             --  GIOP 1.2
+
+            pragma Assert (Pend_Req.Target_Profile /= null);
 
             pragma Debug
               (O (Image (IIOP_Profile_Type
@@ -646,13 +648,16 @@ package body PolyORB.Protocols.GIOP is
       --  Marshall request body
 
       if Ses.Minor_Version >= 2 then
-         Pad_Align (Buffer_Out, 8);
+         Arguments_Alignment := 8;
          --  For GIOP 1.2 and higher, request bodies are
          --  aligned on an 8-byte boundary.
+      else
+         Arguments_Alignment := 1;
       end if;
 
       Marshall_Argument_List
-        (Buffer_Out, Pend_Req.Req.Args, PolyORB.Any.ARG_IN);
+        (Buffer_Out, Pend_Req.Req.Args, PolyORB.Any.ARG_IN,
+         Arguments_Alignment);
 
       if  Length (Buffer_Out) > Maximum_Message_Size then
          Fragment_Next := True;
@@ -696,11 +701,14 @@ package body PolyORB.Protocols.GIOP is
       Request       :        Requests.Request_Access;
       Fragment_Next :    out Boolean)
    is
+      use PolyORB.Any;
+
       Header_Buffer : Buffer_Access := new Buffer_Type;
-      Header_Space : constant Reservation
+      Header_Space  : constant Reservation
         := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
-      Request_Id : Types.Unsigned_Long renames N.Id;
+      Request_Id    : Types.Unsigned_Long renames N.Id;
+      Arguments_Alignment : Opaque.Alignment_Type;
    begin
       Get_Note (Request.Notepad, N);
 
@@ -727,15 +735,25 @@ package body PolyORB.Protocols.GIOP is
       --  Marshall the reply Body
 
       if Ses.Minor_Version >= 2 then
-         Pad_Align (Buffer_Out, 8);
+         if TypeCode.Kind (Get_Type (Request.Result.Argument))
+           /= Tk_Void
+         then
+            Pad_Align (Buffer_Out, 8);
+            Arguments_Alignment := 1;
+         else
+            Arguments_Alignment := 8;
+         end if;
          --  For GIOP 1.2 and higher, reply bodies are
          --  aligned on an 8-byte boundary.
+      else
+         Arguments_Alignment := 1;
       end if;
 
       Marshall_From_Any (Buffer_Out, Request.Result.Argument);
 
       Marshall_Argument_List
-        (Buffer_Out, Request.Args, PolyORB.Any.ARG_OUT);
+        (Buffer_Out, Request.Args, PolyORB.Any.ARG_OUT,
+         Arguments_Alignment);
 
       if Length (Buffer_Out)  > Maximum_Message_Size then
          Fragment_Next := True;
@@ -789,10 +807,22 @@ package body PolyORB.Protocols.GIOP is
         := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
+      CORBA_Occurence : PolyORB.Any.Any;
 
-      CORBA_Occurence : PolyORB.Any.Any
-        := PolyORB.GIOP_P.Exceptions.To_CORBA_Exception (Occurence);
    begin
+      Fragment_Next := False;
+
+      if Exception_Type = System_Exception then
+         CORBA_Occurence :=
+           PolyORB.GIOP_P.Exceptions.To_CORBA_Exception (Occurence);
+         --  If it is a system exception we need to translate it to a GIOP
+         --  specific exception occurence.
+
+      else
+         CORBA_Occurence := Occurence;
+         --  It is a user exception, nothing is done.
+
+      end if;
 
       Get_Note (Request.Notepad, N);
 
@@ -831,7 +861,7 @@ package body PolyORB.Protocols.GIOP is
                Exception_Type,
                CORBA_Occurence);
 
-            if  Length (Buffer_Out) > Maximum_Message_Size then
+            if Length (Buffer_Out) > Maximum_Message_Size then
                Fragment_Next := True;
             end if;
 
@@ -1267,9 +1297,10 @@ package body PolyORB.Protocols.GIOP is
    ----------------------------
 
    procedure Marshall_Argument_List
-     (Buf : Buffer_Access;
-      Args : in out Any.NVList.Ref;
-      Direction : Any.Flags)
+     (Buf                 :        Buffer_Access;
+      Args                : in out Any.NVList.Ref;
+      Direction           :        Any.Flags;
+      First_Arg_Alignment :        Opaque.Alignment_Type)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
@@ -1277,6 +1308,7 @@ package body PolyORB.Protocols.GIOP is
 
       List : constant NV_Sequence_Access := List_Of (Args);
       Arg  : PolyORB.Any.NamedValue;
+      First : Boolean := True;
    begin
       pragma Assert
         (Direction = ARG_IN or else Direction = ARG_OUT);
@@ -1289,8 +1321,11 @@ package body PolyORB.Protocols.GIOP is
          then
             pragma Debug (O ("Marshalling argument "
                              & Types.To_Standard_String (Arg.Name)
-                             & " = " & Image (Arg.Argument)));
-
+                               & " = " & Image (Arg.Argument)));
+            if First then
+               First := False;
+               Pad_Align (Buf, First_Arg_Alignment);
+            end if;
             Marshall (Buf, Arg);
          end if;
       end loop;
@@ -1301,9 +1336,10 @@ package body PolyORB.Protocols.GIOP is
    ------------------------------
 
    procedure Unmarshall_Argument_List
-     (Ses : access GIOP_Session;
-      Args : in out Any.NVList.Ref;
-      Direction : Any.Flags)
+     (Ses                 : access GIOP_Session;
+      Args                : in out Any.NVList.Ref;
+      Direction           :        Any.Flags;
+      First_Arg_Alignment :        Opaque.Alignment_Type)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
@@ -1311,6 +1347,7 @@ package body PolyORB.Protocols.GIOP is
 
       List     : constant NV_Sequence_Access := List_Of (Args);
       Temp_Arg : Any.NamedValue;
+      First : Boolean := True;
    begin
       pragma Assert
         (Direction = ARG_IN or else Direction = ARG_OUT);
@@ -1322,6 +1359,10 @@ package body PolyORB.Protocols.GIOP is
            or else Temp_Arg.Arg_Modes = Direction
            or else Temp_Arg.Arg_Modes = ARG_INOUT
          then
+            if First then
+               First := False;
+               Align_Position (Ses.Buffer_In, First_Arg_Alignment);
+            end if;
             Unmarshall_To_Any (Ses.Buffer_In, Temp_Arg.Argument);
          end if;
          Copy_Any_Value
@@ -1345,10 +1386,17 @@ package body PolyORB.Protocols.GIOP is
      (Ses : access GIOP_Session;
       Args : in out Any.NVList.Ref)
    is
+      Arguments_Alignment : Opaque.Alignment_Type;
    begin
       pragma Assert (Ses.State = Arguments_Ready);
       pragma Debug (O ("Unmarshalling deferred arguments."));
-      Unmarshall_Argument_List (Ses, Args, PolyORB.Any.ARG_IN);
+      if Ses.Minor_Version >= 2 then
+         Arguments_Alignment := 8;
+      else
+         Arguments_Alignment := 1;
+      end if;
+      Unmarshall_Argument_List
+        (Ses, Args, PolyORB.Any.ARG_IN, Arguments_Alignment);
       Expect_Message (Ses);
    end Handle_Unmarshall_Arguments;
 
@@ -1442,13 +1490,6 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (O ("Request_Received: Unmarshalled request header,"
         & " Request_Id: " & Types.Unsigned_Long'Image (Request_Id)));
 
-      if Ses.Minor_Version >= 2 then
-         Align_Position (Ses.Buffer_In, 8);
-         --  For GIOP 1.2 and higher, request bodies are
-         --  aligned on an 8-byte boundary.
-      end if;
-
-
       Args := Obj_Adapters.Get_Empty_Arg_List
         (Object_Adapter (ORB),
          Object_Key,
@@ -1535,9 +1576,13 @@ package body PolyORB.Protocols.GIOP is
      (Buffer : Buffer_Access;
       Info   : out Any.Any)
    is
+      use PolyORB.GIOP_P.Exceptions;
+
+      Exception_Name : constant String
+        := Extract_System_Exception_Name (Unmarshall (Buffer));
    begin
       Info := Any.Get_Empty_Any
-        (Exceptions.System_Exception_TypeCode (Unmarshall (Buffer)));
+        (PolyORB.Exceptions.System_Exception_TypeCode (Exception_Name));
       Unmarshall_To_Any
         (Buffer, Info);
    end Unmarshall_System_Exception_To_Any;
@@ -1549,8 +1594,9 @@ package body PolyORB.Protocols.GIOP is
    procedure Reply_Received
      (Ses : access GIOP_Session)
    is
-      use References.IOR;
-      use Binding_Data.IIOP;
+      use PolyORB.Any;
+      use PolyORB.Binding_Data.IIOP;
+      use PolyORB.References.IOR;
       use Pend_Req_Seq;
 
       Reply_Status  : Reply_Status_Type;
@@ -1558,6 +1604,7 @@ package body PolyORB.Protocols.GIOP is
       Current_Req   : Pending_Request;
       ORB           : constant ORB_Access
         := ORB_Access (Ses.Server);
+      Arguments_Alignment : Opaque.Alignment_Type;
 
    begin
       case Ses.Minor_Version is
@@ -1608,16 +1655,27 @@ package body PolyORB.Protocols.GIOP is
             --  Unmarshall reply body.
 
             if Ses.Minor_Version >= 2 then
-               Align_Position (Ses.Buffer_In, 8);
-               --  For GIOP 1.2 and higher, reply bodies are
-               --  aligned on an 8-byte boundary.
+               if TypeCode.Kind
+                 (Get_Type (Current_Req.Req.Result.Argument))
+                 /= Tk_Void
+               then
+                  Align_Position (Ses.Buffer_In, 8);
+                  Arguments_Alignment := 1;
+                  --  For GIOP 1.2 and higher, reply bodies are
+                  --  aligned on an 8-byte boundary.
+               else
+                  Arguments_Alignment := 8;
+               end if;
+            else
+               Arguments_Alignment := 1;
             end if;
 
             Unmarshall_To_Any
               (Ses.Buffer_In, Current_Req.Req.Result.Argument);
 
             Unmarshall_Argument_List
-              (Ses, Current_Req.Req.Args, PolyORB.Any.ARG_OUT);
+              (Ses, Current_Req.Req.Args, PolyORB.Any.ARG_OUT,
+               Arguments_Alignment);
 
             pragma Debug (O ("Request completed: "
               & Image (Current_Req.Req.all)));
@@ -1628,6 +1686,11 @@ package body PolyORB.Protocols.GIOP is
                (Req => Current_Req.Req));
 
          when User_Exception =>
+
+            if Ses.Minor_Version >= 2 then
+               Align_Position (Ses.Buffer_In, 8);
+            end if;
+
             declare
                RepositoryId : constant PolyORB.Types.String
                  := Unmarshall (Ses.Buffer_In);
@@ -1657,6 +1720,18 @@ package body PolyORB.Protocols.GIOP is
                   (Req => Current_Req.Req));
             end;
 
+         when System_Exception =>
+            if Ses.Minor_Version >= 2 then
+               Align_Position (Ses.Buffer_In, 8);
+            end if;
+
+            Unmarshall_System_Exception_To_Any
+              (Ses.Buffer_In, Current_Req.Req.Exception_Info);
+            Emit_No_Reply
+              (Component_Access (ORB),
+               Objects.Interface.Executed_Request'
+               (Req => Current_Req.Req));
+
          when Needs_Addressing_Mode =>
 --             Current_Req.Req.Exception_Info
 --               := To_Any (Not_Implemented);
@@ -1666,14 +1741,6 @@ package body PolyORB.Protocols.GIOP is
 --                Objects.Interface.Executed_Request'
 --                (Req => Current_Req.Req));
             raise Not_Implemented;
-
-         when System_Exception =>
-            Unmarshall_System_Exception_To_Any
-              (Ses.Buffer_In, Current_Req.Req.Exception_Info);
-            Emit_No_Reply
-              (Component_Access (ORB),
-               Objects.Interface.Executed_Request'
-               (Req => Current_Req.Req));
 
          when Location_Forward | Location_Forward_Perm =>
 
@@ -1755,10 +1822,6 @@ package body PolyORB.Protocols.GIOP is
       R   : Requests.Request_Access;
       Pro : access Binding_Data.Profile_Type'Class)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Pro);
-      pragma Warnings (On);
-
       use Buffers;
       use Binding_Data.IIOP;
       use PolyORB.Filters.Interface;
@@ -1784,6 +1847,16 @@ package body PolyORB.Protocols.GIOP is
          References.Get_Binding_Info (R.Target, Binding_Object, Profile);
          Current_Req.Req := R;
          Current_Req.Target_Profile := Profile;
+         if Profile = null then
+            Current_Req.Target_Profile := Profile_Access (Pro);
+            --  XXX this should *not* happen, it would be logical
+            --  to Assesrt (Pro = Profile)!
+            --  This work-around is currently necessary to pass
+            --  all_types with a dynamic proxy. Apparently,
+            --  Profile is left null for the target reference of
+            --  a proxied request (on the client side of the proxy).
+            --  Needs to be investigated.
+         end if;
          Add_Pending_Request (S, Current_Req);
       end;
 
@@ -1918,23 +1991,14 @@ package body PolyORB.Protocols.GIOP is
               := To_Standard_String (TypeCode.Id (TC));
             EType : Reply_Status_Type;
          begin
-            if EId'Length > PolyORB.Exceptions.PolyORB_Root'Length
-              and then EId
-              (EId'First .. EId'First
-               + PolyORB.Exceptions.PolyORB_Prefix'Length - 1)
-              = PolyORB.Exceptions.PolyORB_Prefix
-            then
+            if PolyORB.Exceptions.Is_System_Exception (EId) then
                EType := System_Exception;
             else
                EType := User_Exception;
             end if;
             pragma Debug
               (O ("Send_Reply: " & Reply_Status_Type'Image (EType)));
-            pragma Debug (O (EId));
-            pragma Debug (O (EId
-              (EId'First .. EId'First
-               + PolyORB.Exceptions.PolyORB_Prefix'Length - 1)));
-            pragma Debug (O (PolyORB.Exceptions.PolyORB_Prefix));
+            pragma Debug (O ("Exception Repositoy Id: " & EId));
             Exception_Reply
               (S, Buffer_Out, R, EType,
                R.Exception_Info, Fragment_Next);
@@ -2180,6 +2244,17 @@ package body PolyORB.Protocols.GIOP is
    begin
       return (Bit_Field and (2 ** Bit_Order)) /= 0;
    end Is_Set;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Create (GIOP_Lock);
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

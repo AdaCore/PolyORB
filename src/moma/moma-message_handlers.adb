@@ -37,6 +37,7 @@ with MOMA.Destinations;
 with MOMA.Provider.Message_Handler;
 with MOMA.Types;
 
+with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
@@ -51,6 +52,7 @@ package body MOMA.Message_Handlers is
    use MOMA.Destinations;
    use MOMA.Types;
 
+   use PolyORB.Annotations;
    use PolyORB.Any;
    use PolyORB.Any.NVList;
    use PolyORB.Log;
@@ -68,11 +70,14 @@ package body MOMA.Message_Handlers is
    ---------------------
 
    function Create_Handler
-     (Session        : MOMA.Sessions.Session;
-      Message_Cons   : MOMA.Message_Consumers.Message_Consumer_Acc)
+     (Session             : MOMA.Sessions.Session;
+      Message_Cons        : MOMA.Message_Consumers.Message_Consumer_Acc;
+      Notifier_Procedure  : Notifier := null;
+      Handler_Procedure   : Handler := null;
+      Behavior            : MOMA.Types.Call_Back_Behavior := None)
       return MOMA.Message_Handlers.Message_Handler_Acc
    is
-      Handler : MOMA.Message_Handlers.Message_Handler_Acc :=
+      Self    : MOMA.Message_Handlers.Message_Handler_Acc :=
          new MOMA.Message_Handlers.Message_Handler;
       Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
          new MOMA.Provider.Message_Handler.Object;
@@ -83,16 +88,43 @@ package body MOMA.Message_Handlers is
       pragma Warnings (On);
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA.
-      --  XXX XXX (same as in Create_Consumer)
       Initiate_Servant (Servant,
                         MOMA.Provider.Message_Handler.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
                         Servant_Ref);
-      MOMA.Message_Handlers.Initialize (
-         Handler, Message_Cons, Servant_Ref, null, null);
-      MOMA.Provider.Message_Handler.Initialize (Servant, Handler);
-      return Handler;
+      Self.Message_Cons := Message_Cons;
+      Self.Servant_Ref := Servant_Ref;
+      Self.Handler_Procedure := Handler_Procedure;
+      Self.Notifier_Procedure := Notifier_Procedure;
+      Self.Behavior := Behavior;
+      MOMA.Provider.Message_Handler.Initialize (Servant, Self);
+      if Behavior /= None then
+         Register_To_Servant (Self);
+      end if;
+      return Self;
    end Create_Handler;
+
+   ------------------------
+   -- Get_Call_Back_Data --
+   ------------------------
+
+   procedure Get_Call_Back_Data (Self : access Message_Handler;
+                                 Data : out PolyORB.Annotations.Note'Class)
+   is
+   begin
+      Get_Note (Self.Call_Back_Data, Data);
+   end Get_Call_Back_Data;
+
+   ------------------
+   -- Get_Consumer --
+   ------------------
+
+   function Get_Consumer (Self : access Message_Handler)
+      return MOMA.Message_Consumers.Message_Consumer
+   is
+   begin
+      return Self.Message_Cons.all;
+   end Get_Consumer;
 
    -----------------
    -- Get_Handler --
@@ -115,29 +147,6 @@ package body MOMA.Message_Handlers is
    begin
       return Self.Notifier_Procedure;
    end Get_Notifier;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize (
-      Self                : in out Message_Handler_Acc;
-      Message_Cons        : MOMA.Message_Consumers.Message_Consumer_Acc;
-      Self_Ref            : PolyORB.References.Ref;
-      Notifier_Procedure  : Notifier := null;
-      Handler_Procedure   : Handler := null;
-      Behavior            : MOMA.Types.Call_Back_Behavior := None)
-   is
-   begin
-      Self.Message_Cons := Message_Cons;
-      Self.Servant_Ref := Self_Ref;
-      Self.Handler_Procedure := Handler_Procedure;
-      Self.Notifier_Procedure := Notifier_Procedure;
-      Self.Behavior := Behavior;
-      if Behavior /= None then
-         Register_To_Servant (Self);
-      end if;
-   end Initialize;
 
    -------------------------
    -- Register_To_Servant --
@@ -170,7 +179,7 @@ package body MOMA.Message_Handlers is
                                       PolyORB.Any.ARG_IN);
          Result := (Name      => To_PolyORB_String ("Result"),
                     Argument  => PolyORB.Any.Get_Empty_Any
-                                    (TypeCode.TC_Any),
+                                    (TypeCode.TC_Void),
                     Arg_Modes => 0);
          PolyORB.Requests.Create_Request
            (Target    => Servant_Ref,
@@ -179,7 +188,9 @@ package body MOMA.Message_Handlers is
             Result    => Result,
             Req       => Request);
          PolyORB.Requests.Invoke (Request);
+         pragma Debug (O ("Register_Handler request complete"));
          PolyORB.Requests.Destroy_Request (Request);
+         pragma Debug (O ("Register_Handler request destroyed"));
       end if;
    end Register_To_Servant;
 
@@ -199,6 +210,17 @@ package body MOMA.Message_Handlers is
          Register_To_Servant (Self);
       end if;
    end Set_Behavior;
+
+   ------------------------
+   -- Set_Call_Back_Data --
+   ------------------------
+
+   procedure Set_Call_Back_Data (Self : access Message_Handler;
+                                 Data : PolyORB.Annotations.Note'Class)
+   is
+   begin
+      Set_Note (Self.Call_Back_Data, Data);
+   end Set_Call_Back_Data;
 
    -----------------
    -- Set_Handler --

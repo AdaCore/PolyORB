@@ -119,6 +119,13 @@ package body PolyORB.Protocols is
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
       elsif S in Execute_Request then
+         declare
+            use type Binding_Data.Profile_Access;
+         begin
+            pragma Assert (Execute_Request (S).Pro /= null);
+            null;
+         end;
+
          Req := Execute_Request (S).Req;
 
          if Req.Deferred_Arguments_Session /= null then

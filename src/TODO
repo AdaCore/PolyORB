@@ -6,6 +6,14 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* DSA: When taking 'Access on a local RCI subprogram, have
+  only 1 instance of the relay object for the whole partition.
+  (cf. tardieu99 4.6.2)
+
+* Give a look at the ac_prog_cc_for_build from
+  http://ac-archive.sourceforge.net/ to clean up configure script when
+  cross-compiling.
+
 * Review stack usage (for example, all_types fails with the default
   stack size, pragmas Storage_Size are needed in full_tasking and
   Ravenscar to allow it to proceed).

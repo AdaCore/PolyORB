@@ -1,36 +1,32 @@
 IDLAC = $(top_builddir)/compilers/idlac/idlac
 LINKER = $(top_builddir)/support/linker
 
-corba_lib=-I$(ROOT)/../src/corba/libpolyorb-corba.la
-giop_lib=-I$(ROOT)/../src/giop/libpolyorb-giop.la
-moma_lib=-I$(ROOT)/../src/moma/libpolyorb-moma.la
-soap_lib=-I$(ROOT)/../src/soap/libpolyorb-soap.la
-srp_lib=-I$(ROOT)/../src/srp/libpolyorb-srp.la
+corba_lib=-I$(top_builddir)/src/corba/libpolyorb-corba.la
+giop_lib=-I$(top_builddir)/src/giop/libpolyorb-giop.la
+moma_lib=-I$(top_builddir)/src/moma/libpolyorb-moma.la
+soap_lib=-I$(top_builddir)/src/soap/libpolyorb-soap.la
+srp_lib=-I$(top_builddir)/src/srp/libpolyorb-srp.la
 
-POLYORB_LIBS = -I$(ROOT)/../src/libpolyorb.la @PROTO_LIBS@ @APPLI_LIBS@
+POLYORB_LIBS = -I$(top_builddir)/src/libpolyorb.la @PROTO_LIBS@ @APPLI_LIBS@
 
-corba_inc=-I$(srcdir)/$(ROOT)/../src/corba -I$(ROOT)/../src/corba
-giop_inc=-I$(srcdir)/$(ROOT)/../src/giop -I$(ROOT)/../src/giop
-moma_inc=-I$(srcdir)/$(ROOT)/../src/moma -I$(ROOT)/../src/moma
-soap_inc=-I$(srcdir)/$(ROOT)/../src/soap -I$(ROOT)/../src/soap
-srp_inc=-I$(srcdir)/$(ROOT)/../src/srp -I$(ROOT)/../src/srp
+corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba
+giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop
+moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
+soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
+srp_inc=-I$(top_srcdir)/src/srp -I$(top_builddir)/src/srp
 
-naming_inc=-I$(srcdir)/$(ROOT)/../cos/naming -I$(ROOT)/../cos/naming \
-           -I$(ROOT)/../idls/cos/naming
+naming_inc=-I$(top_srcdir)/cos/naming -I$(top_builddir)/cos/naming \
+           -I$(top_builddir)/idls/cos/naming
 
-ir_inc=-I$(srcdir)/$(ROOT)/../cos/ir -I$(ROOT)/../cos/ir
+ir_inc=-I$(top_srcdir)/cos/ir -I$(top_builddir)/cos/ir
 
-POLYORB_INCS = -I$(srcdir) -I$(srcdir)/$(ROOT)/../src -I$(ROOT)/../src \
+POLYORB_INCS = -I$(srcdir) -I$(top_srcdir)/src -I$(top_builddir)/src \
                $(naming_inc) @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@
 
 GNATFLAGS=-pipe -g -O2 -gnatfa -fstack-check -gnatoy -Wall
 # suppress -gnatwae because of a bug in GNAT.Expect in 3.14p
 
 GNATMAKE_FLAGS = \
-	-I$(srcdir)/$(ROOT) \
-	-I$(srcdir)/$(ROOT)/common \
-	-I$(ROOT) \
-	-I$(ROOT)/common \
 	$(POLYORB_INCS) \
 	$(XMLADA_INCS) \
 	-m \
