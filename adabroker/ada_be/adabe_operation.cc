@@ -39,9 +39,6 @@ adabe_operation::produce_ads(dep_list with,string &String, string &previousdefin
     }
     string += ", Outs : out " return_type_cast.dump_name(dep_list with,string &String, string &previousdefinition) + ");";
   }
-  
-
-  
 */
 
 
@@ -51,8 +48,6 @@ adabe_operation::produce_ads(dep_list with,string &String, string &previousdefin
 //void produce_impl_ads(std::fstream& s);
 //void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
-
-private:
 
 
 bool  
@@ -71,6 +66,13 @@ adabe_operation::is_function();
   return(bool)
 
 */
+
+
+
+
+
+
+
 
 
 

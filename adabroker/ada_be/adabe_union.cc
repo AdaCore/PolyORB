@@ -22,7 +22,7 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
       cast of the item to the real adabe type, if it is a union branch do
       temp += "when "
       if (branche->label()->label_kind() != UL_default)
-           temp += branche->label()->label_val().produce(with,&tmp,&previousdefinition)
+           branche->label()->label_val().produce(with,&tmp,&previousdefinition)
       else if (branche->label()->label_kind() == UL_default)
            temp =+ "others "
 
@@ -39,7 +39,7 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
 string
 adabe_union::dump_name(dep_list with,string &String, string &previousdefinition) {
   /*  if (!is_already_defined())
-         &previousdefinition += produce_ads( with, String, previousdefinition);
+         produce_ads( with, String, &previousdefinition);
       return get_ada_name();
   */
 
@@ -52,7 +52,6 @@ IMPL_NARROW_FROM_SCOPE(adabe_union);
 //void produce_impl_ads(std::fstream& s);
 //void produce_impl_adb(std::fstream& s);
 
-private:
 
 string
 adabe_union::get_ada_type(AST_Expression::ExprType pd_udisc_type)

@@ -4,7 +4,7 @@
 adabe_predefined_type::adabe_predefined_type(AST_PredefinedType::PredefinedType t, UTL_ScopedName *n, UTL_StrList *p)
   //constructor
 
-string  
+void 
 adabe_predefined_type::produce_ads(dep_list with,string &String, string &previousdefinition);
 /*
   String += get_ada_predefined_type();
@@ -13,7 +13,7 @@ adabe_predefined_type::produce_ads(dep_list with,string &String, string &previou
 string
 adabe_predefined_type::dump_name(dep_list with,string &String, string &previousdefinition) {
   /*  
-      return produce_ads( with, &String, &previousdefinition);;
+      return get_ada_predefined_type();
   */
 
 
@@ -30,3 +30,8 @@ ada_predefined_type::get_ada_predefined_type();
 IMPL_NARROW_METHODS1(adabe_predefined_type, AST_PredefinedType);
 IMPL_NARROW_FROM_DECL(adabe_predefined_type);
  
+
+
+
+
+

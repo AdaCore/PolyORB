@@ -80,6 +80,7 @@ public:
 
   void produce_ads (dep_list with,string &String, string &previousdefinition);
 
+private:
   string get_ada_predefined_type(void);
 };
 
@@ -193,14 +194,13 @@ public:
   DEF_NARROW_FROM_DECL(adabe_union);
   DEF_NARROW_FROM_SCOPE(adabe_union);
 
-  virtual AST_UnionBranch *add_union_branch(AST_UnionBranch *un);
+  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //  void produce_adb(std::fstream& s);
+  //  void produce_impl_ads(std::fstream& s);
+  //  void produce_impl_adb(std::fstream& s);
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s);
-private:
-  adabe_union();
+ private:
+  string get_ada_type(AST_Expression::ExprType pd_udisc_type);
 
 };
 
@@ -215,9 +215,6 @@ public:
 
   DEF_NARROW_METHODS1(adabe_union_branch, AST_UnionBranch);
   DEF_NARROW_FROM_DECL(adabe_union_branch);
-
-private:
-  adabe_union_branch();
 
 };
 
@@ -234,10 +231,9 @@ public:
   DEF_NARROW_FROM_DECL(adabe_structure);
   DEF_NARROW_FROM_SCOPE(adabe_structure);
 
-  void produce_ads(std::fstream& s);
-  string dump_name();
-private:
-  adabe_structure();
+  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  string dump_name(dep_list with,string &String, string &previousdefinition);
+
 };
 
 
@@ -359,22 +355,14 @@ public:
   DEF_NARROW_FROM_DECL(adabe_operation);
   DEF_NARROW_FROM_SCOPE(adabe_operation);
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
-
-
-  friend class adabe_attribute;
-  friend class adabe_structure;
-  friend class adabe_sequence;
-  friend class adabe_union;
-  friend class adabe_exception;
-  friend class adabe_array;
+  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //  void produce_adb(std::fstream& s);
+  //  void produce_impl_ads(std::fstream& s);
+  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
 
 private:
-  adabe_operation();
+  bool is_function();
 
 };
 
@@ -390,15 +378,11 @@ public:
   DEF_NARROW_METHODS1(adabe_typedef, AST_Typedef);
   DEF_NARROW_FROM_DECL(adabe_typedef);
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
+  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //  void produce_adb(std::fstream& s);
+  //  void produce_impl_ads(std::fstream& s);
+  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
-
-private:
-
-  adabe_typedef();
 };
 
 

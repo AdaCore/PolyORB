@@ -3,13 +3,14 @@
 adabe_field::adabe_field(UTL_ScopedName *n, UTL_StrList *p);
 //constructor
 
+void
 adabe_field::produce_ads(dep_list with,string &String, string &previousdefinition) {
   /*
     ada_name.compute;
     String +=  ada_name;
     String += " : ";
     cast le field_type en NT puis
-    NT.dump_name(dep_list with,string &String, string &previousdefinition);
+    String += NT.dump_name(dep_list with,string &String, string &previousdefinition);
   */
 }
 

@@ -3,6 +3,7 @@
 adabe_structure::adabe_structure(UTL_ScopedName *n, UTL_StrList *p);
 //constructor
 
+void
 adabe_structure::produce_ads(dep_list with,string &String, string &previousdefinition) {
   /*
     ada_name.compute;
