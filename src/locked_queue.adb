@@ -8,6 +8,7 @@ pragma Elaborate_All (Droopi.Log);
 package body Locked_Queue is
 
    use Droopi.Log;
+   use Droopi.Soft_Links;
 
    package L is new Droopi.Log.Facility_Log
      ("locked_queue");
@@ -16,22 +17,6 @@ package body Locked_Queue is
 
    procedure Free is new Unchecked_Deallocation
      (Queue_Node, Queue_Node_Access);
-
-   ----------
-   -- Lock --
-   ----------
-
-   protected body Lock is
-      entry Enter when not Taken is
-      begin
-         Taken := True;
-      end Enter;
-
-      procedure Leave is
-      begin
-         Taken := False;
-      end Leave;
-   end Lock;
 
    -------------
    -- Destroy --
@@ -42,13 +27,17 @@ package body Locked_Queue is
    is
       Next : Queue_Node_Access;
    begin
-      Q.State_Lock.Enter;
+      Enter (Q.State_Lock);
       while Q.First /= null loop
          Next := Q.First.Next;
          Free (Q.First);
          Q.First := Next;
       end loop;
-      Q.State_Lock.Leave;
+      Leave (Q.State_Lock);
+
+      Destroy (Q.State_Lock);
+      Destroy (Q.Full_Lock);
+      Destroy (Q.Empty_Lock);
    end Destroy;
 
    ------------
@@ -61,7 +50,11 @@ package body Locked_Queue is
    is
    begin
       Q.Max_Count := Max_Count;
-      Q.Empty_Lock.Enter;
+      Create (Q.Empty_Lock);
+      Create (Q.Full_Lock);
+      Create (Q.State_Lock);
+
+      Enter (Q.Empty_Lock);
    end Create;
 
    ---------
@@ -73,9 +66,9 @@ package body Locked_Queue is
       E : in     Queue_Element)
    is
    begin
-      Q.Full_Lock.Enter;
+      Enter (Q.Full_Lock);
 
-      Q.State_Lock.Enter;
+      Enter (Q.State_Lock);
       if Q.Last = null then
          Q.Last := new Queue_Node'
            (Element => new Queue_Element'(E),
@@ -88,14 +81,14 @@ package body Locked_Queue is
          Q.Last := Q.Last.Next;
       end if;
       Q.Count := Q.Count + 1;
-      Q.State_Lock.Leave;
+      Leave (Q.State_Lock);
 
       if Q.Count = 1 then
-         Q.Empty_Lock.Leave;
+         Leave (Q.Empty_Lock);
       end if;
 
       if Q.Count /= Q.Max_Count then
-         Q.Full_Lock.Leave;
+         Leave (Q.Full_Lock);
       end if;
    end Add;
 
@@ -108,11 +101,11 @@ package body Locked_Queue is
       E :    out Queue_Element)
    is
    begin
-      Q.Empty_Lock.Enter;
+      Enter (Q.Empty_Lock);
 
       --  When execution reaches this, necessarily Q.First /= null.
 
-      Q.State_Lock.Enter;
+      Enter (Q.State_Lock);
 
       declare
          --  Old_First : Queue_Node_Access := Q.First;
@@ -125,16 +118,16 @@ package body Locked_Queue is
       end;
 
       Q.Count := Q.Count - 1;
-      Q.State_Lock.Leave;
+      Leave (Q.State_Lock);
 
       --  When execution reaches this, necessarily the queue is not full.
 
       if Q.Count = Q.Max_Count - 1 then
-         Q.Full_Lock.Leave;
+         Leave (Q.Full_Lock);
       end if;
 
       if Q.Count > 0 then
-         Q.Empty_Lock.Leave;
+         Leave (Q.Empty_Lock);
       end if;
 
    end Get_Head;

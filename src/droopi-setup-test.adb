@@ -14,10 +14,9 @@ with Droopi.Any.NVList;
 with Droopi.Filters;
 with Droopi.Filters.Slicers;
 with Droopi.Log;
-with Droopi.No_Tasking;
+with Droopi.Tasking;
 with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects;
---  with Droopi.ORB.Task_Policies;
 with Droopi.ORB.Thread_Pool;
 with Droopi.ORB.Interface;
 
@@ -52,8 +51,6 @@ is
    use Droopi.Sockets;
    use Droopi.Transport;
    use Droopi.Transport.Sockets;
-
-   --  package My_Thread_Pool is new Thread_Pool (4);
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
 
@@ -148,8 +145,8 @@ begin
    --  Logging subsystem. Start this one first so we can debug
    --  problems in others.
 
-   Droopi.No_Tasking.Initialize;
-   Put (" no-tasking");
+   Droopi.Tasking.Initialize;
+   Put (" tasking");
    --  Setup soft links.
 
    Droopi.Smart_Pointers.Initialize;
@@ -169,9 +166,6 @@ begin
 
    Setup.The_ORB := new ORB.ORB_Type
      (Tasking_Policy_Access'(new Thread_Pool.Thread_Pool_Policy));
-
---     Setup.The_ORB := new ORB.ORB_Type
---       (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
 
    Droopi.ORB.Create (Setup.The_ORB.all);
 
@@ -259,6 +253,7 @@ begin
 
       Put_Line ("Registered object: " & Image (My_Id));
       Put_Line ("Reference is     : " & References.Image (My_Ref));
+
       begin
          Put_Line ("IOR is           : "
                    & CORBA.To_Standard_String
@@ -294,28 +289,52 @@ begin
             Args : Any.NVList.Ref;
             Result : Any.NamedValue;
 
+            procedure Create_WaitAndEchoString_Request
+              (Arg1 : String;
+               Arg2 : Integer);
+
+
+            procedure Create_WaitAndEchoString_Request
+              (Arg1 : String;
+               Arg2 : Integer)
+            is
+            begin
+               Create (Args);
+               Add_Item
+                 (Args,
+                  To_Droopi_String ("waitAndEchoString"),
+                  To_Any (To_Droopi_String (Arg1)),
+                  ARG_IN);
+               Add_Item
+                 (Args,
+                  To_Droopi_String ("waitAndEchoString"),
+                  To_Any (Long (Arg2)),
+                  ARG_IN);
+
+               Put ("Creating servant request...  ");
+               Create_Request
+                 (My_Ref,
+                  "waitAndEchoString",
+                  Args,
+                  Result,
+                  Req);
+               Put_Line ("Done...");
+
+               Emit_No_Reply
+                 (Component_Access (The_ORB),
+                  Queue_Request'(Request   => Req,
+                                 Requestor => null,
+                                 Requesting_Task => null));
+            end Create_WaitAndEchoString_Request;
          begin
-            Create (Args);
-            Add_Item
-              (Args,
-               To_Droopi_String ("echoString"),
-               To_Any (To_Droopi_String ("Test")),
-               ARG_IN);
-
-            Put ("Creating servant request...  ");
-            Create_Request
-              (My_Ref,
-               "echoString",
-               Args,
-               Result,
-               Req);
-            Put_Line ("Done...");
-
-            Emit_No_Reply
-              (Component_Access (The_ORB),
-               Queue_Request'(Request   => Req,
-                              Requestor => null,
-                              Requesting_Task => null));
+            Create_WaitAndEchoString_Request
+              ("request number 1 : wait 3 seconds", 3);
+            Create_WaitAndEchoString_Request
+              ("request number 2 : wait 2 seconds", 2);
+            Create_WaitAndEchoString_Request
+              ("request number 3 : wait 2 seconds", 2);
+            Create_WaitAndEchoString_Request
+              ("request number 4 : wait 2 seconds", 2);
 
             Run (The_ORB,
                  (Condition =>
@@ -331,7 +350,6 @@ begin
          --  Execute the ORB.
 
       end if;
-
    end;
 
 end Droopi.Setup.Test;

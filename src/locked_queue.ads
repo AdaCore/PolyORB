@@ -1,5 +1,7 @@
 --  $Id$
 
+with Droopi.Soft_Links;
+
 --  This package implements a basic thread-safe bounded queue.
 
 generic
@@ -54,25 +56,17 @@ private
       Next    : Queue_Node_Access;
    end record;
 
-   protected type Lock is
-      entry Enter;
-      procedure Leave;
-   private
-      Taken : Boolean := False;
-   end Lock;
-
-
    type Queue is record
       Max_Count  : Positive;
 
-      State_Lock : Lock;
+      State_Lock : Droopi.Soft_Links.Mutex_Access;
       --  This locks the global state of the queue, and should be
       --  taken when modifying First, Last and Count fields.
 
-      Full_Lock  : Lock;
+      Full_Lock  : Droopi.Soft_Links.Mutex_Access;
       --  This lock is taken when the queue is full.
 
-      Empty_Lock : Lock;
+      Empty_Lock : Droopi.Soft_Links.Mutex_Access;
       --  This lock is taken when the queue is empty.
 
       First      : Queue_Node_Access := null;
