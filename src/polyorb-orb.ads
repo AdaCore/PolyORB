@@ -287,6 +287,20 @@ private
       --  True if, and only if, one task is blocked waiting
       --  for external events on ORB_Sockets.
 
+      Source_Deleted : Boolean;
+      --  Signals whether Delete_Source has been called while
+      --  another task was polling.
+
+      Polling_Watcher : Soft_Links.Watcher_Access;
+      Polling_Version : Soft_Links.Version_Id;
+      --  This watcher is looked up before one task goes into
+      --  external event polling, and updated after polling
+      --  is completed and events have been processed.
+      --  Notionally, Polling_Version is the version of the
+      --  set of AESs supported by Monitors that is being
+      --  considered, and while it is being considered
+      --  no AES may be destroyed.
+
       Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  The asynchronous event monitor on which this ORB is
       --  currently waiting for events.
@@ -313,9 +327,9 @@ private
 
    procedure Delete_Source
      (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access);
+      AES : in out Asynch_Ev_Source_Access);
    --  Delete AES from the set of asynchronous event sources
-   --  monitored by ORB.
+   --  monitored by ORB. AES is destroyed.
 
    --------------------------------------------
    -- Job type for method execution requests --

@@ -194,6 +194,7 @@ package body PolyORB.ORB is
       ORB.Job_Queue := PolyORB.Jobs.Create_Queue;
       ORB.Shutdown := False;
       ORB.Polling  := False;
+      Create (ORB.Polling_Watcher);
       Leave (ORB.ORB_Lock.all);
    end Create;
 
@@ -395,23 +396,41 @@ package body PolyORB.ORB is
                   ORB.Selector := Monitors (I);
                   Set_Status_Blocked (This_Task, Monitors (I));
 
+                  <<Retry>>
+                  ORB.Source_Deleted := False;
+                  Lookup (ORB.Polling_Watcher, ORB.Polling_Version);
                   Leave (ORB.ORB_Lock.all);
 
                   pragma Debug (O ("Run: task " & Image (Current_Task)
-                                   & " about to Check_Sources."));
+                                        & " about to Check_Sources."));
                   declare
                      Events : AES_Array
                        := Check_Sources (Monitors (I), Timeout);
                   begin
                      pragma Debug (O ("Run: task " & Image (Current_Task)
-                                      & " returned from Check_Sources."));
+                                        & " returned from Check_Sources."));
                      Enter (ORB.ORB_Lock.all);
+                     Update (ORB.Polling_Watcher);
+                     if ORB.Source_Deleted then
+                        --  An asynchronous event source was unregistered while
+                        --  we were blocking, and may now have been destroyed.
+                        goto Retry;
+                     end if;
+
+                     for J in Events'Range loop
+                        Unregister_Source (Monitors (I).all, Events (J));
+                     end loop;
+
                      ORB.Polling := False;
                      ORB.Selector := null;
                      Set_Status_Running (This_Task);
 
-                     for I in Events'Range loop
-                        Handle_Event (ORB, Events (I));
+                     for J in Events'Range loop
+                        Handle_Event (ORB, Events (J));
+                        --  XXX here one task will do *all*
+                        --  the I/O on events, this is not
+                        --  optimal. Rather, I/O jobs should
+                        --  be scheduled.
                      end loop;
                   end;
                end loop;
@@ -753,17 +772,48 @@ package body PolyORB.ORB is
 
    procedure Delete_Source
      (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access) is
+      AES : in out Asynch_Ev_Source_Access)
+   is
+      Polling : Boolean;
+      Polling_Version : Soft_Links.Version_Id;
+      --  True if the
    begin
       Enter (ORB.ORB_Lock.all);
 
       Unregister_Source (AES);
 
+      --  After this point we know that this source won't be
+      --  considered in a call for Check_Sources, unless Polling
+      --  is true already.
+
+      Polling := ORB.Polling;
       if ORB.Polling then
          pragma Assert (ORB.Selector /= null);
+
+         --  The current Check_Sources might consider
+         --  this event source, so we need to cause it
+         --  to be restarted:
+
          Abort_Check_Sources (ORB.Selector.all);
+         --  1. abort it
+
+         ORB.Source_Deleted := True;
+         --  2. invalidate its result (this value will
+         --  be tested with ORB_Lock held).
+
+         Polling_Version := ORB.Polling_Version;
+         --  3. prepare for notification by the Check_Sources
+         --  task that we can safely destroy the AES.
+
       end if;
+
       Leave (ORB.ORB_Lock.all);
+      if Polling then
+         Differ (ORB.Polling_Watcher.all, ORB.Polling_Version);
+         --  Need to wait for the blocked task to complete its
+         --  call to Check_Sources before destroying the AES.
+      end if;
+      Destroy (AES);
    end Delete_Source;
 
    ----------------------------------
@@ -1030,7 +1080,6 @@ package body PolyORB.ORB is
 
             if AES /= null then
                Delete_Source (ORB, AES);
-               Destroy (AES);
             end if;
             Destroy (TE);
          end;
