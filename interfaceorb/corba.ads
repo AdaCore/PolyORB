@@ -293,7 +293,11 @@ package Corba is
     ----           not in spec  omniORB2 specific           ---
     -----------------------------------------------------------
 
-    --  OmniORB2 specific system exceptions :
+    -- OmniORB2 fatal error
+    -----------------------
+    OmniORB_Fatal_Error : exception ;
+
+    -- OmniORB2 specific system exceptions :
     -----------------------------------------
     Object_Not_Exist : exception ;        -- data conversion errr
     Transaction_Required : exception ;    -- data conversion error

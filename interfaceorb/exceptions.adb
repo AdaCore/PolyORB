@@ -77,6 +77,27 @@ package body Exceptions is
    end ;
 
 
+   ---------------------------------
+   -- Handling of Fatal exception --
+   ---------------------------------
+
+   -- C_Raise_Ada_Fatal_Exception
+   ------------------------------
+   procedure C_Raise_Ada_Fatal_Exception (file : in Interfaces.C.Strings.Chars_Ptr ;
+                                          Line : in Interfaces.C.Int ;
+                                          Err_msg : in Interfaces.C.Strings.Chars_Ptr) is
+   begin
+      Ada.Exceptions.Raise_Exception (Corba.OmniORB_Fatal_Error'Identity,
+                                      "In " &
+                                      Interfaces.C.Strings.Value (File) &
+                                      ", line " &
+                                      Interfaces.C.Int'Image (Line) &
+                                      " : " & Corba.CRLF &
+                                      Interfaces.C.Strings.Value (Err_Msg)) ;
+   end ;
+
+
+
    -----------------------------------
    -- Handling of UNKNOWN exception --
    -----------------------------------
@@ -505,6 +526,20 @@ package body Exceptions is
       Ada_Pd_Status := Int_To_Status (Pd_Status) ;
       -- ... and raises the exception
       Corba.Raise_Corba_Exception (Corba.Wrong_Transaction'Identity,
+                                   Corba.Wrong_Transaction_Members'(Minor => Ada_Pd_Minor ,
+                                                                    Completed => Ada_Pd_Status)) ;
+   end ;
+
+   procedure C_Raise_Ada_Fatal_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                          Pd_Status : in Interfaces.C.Int) is
+      Ada_Pd_Minor : Corba.Unsigned_Long ;
+      Ada_Pd_Status : Corba.Completion_Status ;
+   begin
+      -- transforms the arguments in a Ada type ...
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Status := Int_To_Status (Pd_Status) ;
+      -- ... and raises the exception
+      Corba.Raise_Corba_Exception (Corba.AdaBroker_Fatal_Error'Identity,
                                    Corba.Wrong_Transaction_Members'(Minor => Ada_Pd_Minor ,
                                                                     Completed => Ada_Pd_Status)) ;
    end ;

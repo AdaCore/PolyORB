@@ -51,10 +51,24 @@
 
 with Ada.Exceptions ;
 with Interfaces.C ;
+with Interfaces.C.Strings ;
 
 with Corba ;
 
 package Exceptions is
+
+   ---------------------------------
+   -- Handling of Fatal exception --
+   ---------------------------------
+
+   procedure C_Raise_Ada_Fatal_Exception (file : in Interfaces.C.Strings.Chars_Ptr ;
+                                          Line : in Interfaces.C.Int ;
+                                          Err_msg : in Interfaces.C.Strings.Chars_Ptr) ;
+   pragma Export (Cpp,
+                  C_Raise_Ada_Fatal_Exception,
+                  "Raise_Ada_FatalException__FPCciT0");
+
+
 
    -----------------------------------
    -- Handling of UNKNOWN exception --
@@ -249,5 +263,11 @@ package Exceptions is
    pragma Export (Cpp,
                   C_Raise_Ada_WRONG_TRANSACTION_Exception,
                   "Raise_Ada_WRONG_TRANSACTION_Exception__FUlQ25CORBA16CompletionStatus");
+
+   procedure C_Raise_Ada_Fatal_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                          Pd_Status : in Interfaces.C.Int) ;
+   pragma Export (Cpp,
+                  C_Raise_Ada_Fatal_Exception,
+                  "Raise_Ada_Fatal_Exception__FUlQ25CORBA16CompletionStatus");
 
 end Exceptions ;

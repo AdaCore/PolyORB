@@ -63,6 +63,8 @@ with Rope ;
 
 with Adabroker_Debug ; use Adabroker_Debug ;
 
+with Text_IO; use Text_IO;
+
 package body omniProxyCallWrapper is
 
    -- Invoke
@@ -382,6 +384,7 @@ package body omniProxyCallWrapper is
          declare
             Member : Corba.Inv_Objref_Members ;
          begin
+            Put_Line ("hello coucou");
             if Omni_System_Exception_Handler
               (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),

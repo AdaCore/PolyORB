@@ -48,6 +48,32 @@
 
 #include <omniORB2/CORBA.h>
 
+/////////////////////////////////
+// Handling of Fatal exception //
+/////////////////////////////////
+
+void Raise_Corba_Exception (omniORB::fatalException e);
+// This method is called by C code for raising Corba exception
+// in Ada code. It uses Raise_Ada_Exception to handle the exceptions
+
+extern void Raise_Ada_FatalException (const char* file,
+				      int line,
+				      const char* err_msg) ;
+// called by C code (Raise_Corba_Exception to be exact).
+// Handles in Ada a Corba exception that was raised in C.
+// (see omniORB.h L 471 for more details on fatalexception)
+
+
+///////////////////////////////////
+// Handling of system exceptions //
+///////////////////////////////////
+
+void Raise_Corba_Exception (CORBA::SystemException e);
+// This method is never called if all goes normally
+// It is overwritten by all Raise_Corba_Exception methods
+// which handle more precise types
+
+
 ///////////////////////////////////
 // Handling of UNKNOWN exception //
 ///////////////////////////////////
@@ -60,7 +86,6 @@ extern void Raise_Ada_UNKNOWN_Exception (CORBA::ULong pd_minor,
 					 CORBA::CompletionStatus pd_status) ;
 // called by C code (Raise_Corba_Exception to be exact).
 // Handles in Ada a Corba exception that was raised in C.
-
 
 
 ///////////////////////////////////////////////////////
@@ -211,3 +236,4 @@ void Raise_Corba_Exception (CORBA::WRONG_TRANSACTION e);
 
 extern void Raise_Ada_WRONG_TRANSACTION_Exception (CORBA::ULong pd_minor,
 						   CORBA::CompletionStatus pd_status) ;
+

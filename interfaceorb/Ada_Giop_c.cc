@@ -132,15 +132,19 @@ Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
     if (Init_Ok) {
       // if Initialisation was made then call the corresponding
       // function on C_Object
-      GIOP::ReplyStatusType tmp = ((GIOP_C *) C_Object)->ReceiveReply();
-      cerr << "tmp = " << tmp << endl;
-      result = tmp;
+      result = ((GIOP_C *) C_Object)->ReceiveReply();
     } else {
       // else raise an Ada Exception
       raise_ada_exception ("Call of Ada_Giop_c::ReceiveReply without initialising object.");
     }
-  } catch (CORBA::UNKNOWN &e) {
+  } catch (CORBA::SystemException &e) {
     Raise_Corba_Exception (e);
+  } catch (omniORB::fatalException &e) {
+    Raise_Corba_Exception (e);    
+  } catch (...) {
+    Raise_Ada_FatalException ("Ada_Giop_c.cc",
+			      117,
+			      "An unknown C exception was catched.\nI can not raise it in Ada.");
   }
 };
 
