@@ -97,16 +97,11 @@ package body PolyORB.CORBA_P.Server_Tools is
       R : out CORBA.Object.Ref'Class)
    is
    begin
-      pragma Debug (O ("Initiate_Servant : enter"));
-
-      pragma Debug (O ("Initiate_Servant : ready to "
-                       & "call CORBA.Object.Set"));
-
+      pragma Debug (O ("Initiate_Servant: enter"));
       CORBA.Object.Set
          (R, CORBA.Object.Object_Of
           (PortableServer.POA.Servant_To_Reference (Get_Root_POA, S)));
-
-      pragma Debug (O ("Initiate_Servant : end"));
+      pragma Debug (O ("Initiate_Servant: end"));
    end Initiate_Servant;
 
    ---------------------------------
@@ -152,8 +147,8 @@ package body PolyORB.CORBA_P.Server_Tools is
       PortableServer.POA.Set_Servant (Serv_POA, S);
       CORBA.Object.Set (R, CORBA.Object.Object_Of (
         PortableServer.POA.Create_Reference_With_Id (Serv_POA,
-          PortableServer.String_To_ObjectId ("00"),
-          PortableServer.Get_Type_Id (S))));
+          PortableServer.String_To_ObjectId ("O"),
+          PortableServer.Internals.Get_Type_Id (S))));
    end Initiate_Well_Known_Service;
 
    --------------------------
