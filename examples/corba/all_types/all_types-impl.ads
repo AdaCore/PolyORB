@@ -145,6 +145,11 @@ package all_types.Impl is
       arg  : in array_struct)
       return array_struct;
 
+   function echoNestedStruct
+     (Self : access Object;
+      arg  : in nested_struct)
+      return nested_struct;
+
    function echoUnion
      (Self : access Object;
       arg : in myUnion)

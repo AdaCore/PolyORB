@@ -243,6 +243,14 @@ package body all_types.Impl is
       return arg;
    end echoArrayStruct;
 
+   function echoNestedStruct
+     (Self : access Object;
+      arg  : in nested_struct)
+      return nested_struct is
+   begin
+      return arg;
+   end echoNestedStruct;
+
    function echoUnion
      (Self : access Object;
       arg : in myUnion)

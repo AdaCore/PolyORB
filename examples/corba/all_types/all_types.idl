@@ -82,6 +82,11 @@ interface all_types {
       long double matrixMember[3][4];
   };
 
+  struct nested_struct {
+    	simple_struct ns;
+  };
+  nested_struct echoNestedStruct (in nested_struct arg);
+
   // Sequences
   // ---------
   typedef sequence<short> U_sequence;

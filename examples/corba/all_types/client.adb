@@ -132,6 +132,17 @@ begin
                  echoStruct (Myall_types, Test_Struct) = Test_Struct);
       end;
 
+      declare
+         Struct : constant simple_struct
+           := (123, To_CORBA_String ("Hello world!"));
+
+         Test_Struct : nested_struct;
+      begin
+         Test_Struct.ns := Struct;
+         Output ("test nested struct",
+                 echoNestedStruct (Myall_types, Test_Struct) = Test_Struct);
+      end;
+
       --  Refs
       declare
          X : all_types.Ref;
