@@ -57,7 +57,7 @@ package body PolyORB.Jobs is
    is
       use Job_Queues;
 
-      It     : Iterator := First (Q.Content);
+      It     : Iterator := First (Q.Contents);
       Result : Job_Access;
    begin
       if Is_Empty (Q) then
@@ -65,14 +65,14 @@ package body PolyORB.Jobs is
       end if;
 
       if Selector = null then
-         Extract_First (Q.Content, Result);
+         Extract_First (Q.Contents, Result);
          return Result;
       end if;
 
       while not Last (It) loop
          if Selector (Job_Access (Value (It).all)) then
             Result := Job_Access (Value (It).all);
-            Remove (Q.Content, It);
+            Remove (Q.Contents, It);
             return Result;
          end if;
 
@@ -103,7 +103,7 @@ package body PolyORB.Jobs is
    is
       use type Job_Queues.List;
    begin
-      return Q.Content = Job_Queues.Empty;
+      return Q.Contents = Job_Queues.Empty;
    end Is_Empty;
 
    ---------------
@@ -114,7 +114,7 @@ package body PolyORB.Jobs is
      (Q : access Job_Queue;
       J :        Job_Access) is
    begin
-      Job_Queues.Append (Q.Content, J);
+      Job_Queues.Append (Q.Contents, J);
    end Queue_Job;
 
 end PolyORB.Jobs;

@@ -110,7 +110,7 @@ private
    subtype Job_Queue_Internal is Job_Queues.List;
 
    type Job_Queue is limited record
-     Content : Job_Queue_Internal;
+     Contents : Job_Queue_Internal;
    end record;
 
    Any_Job : constant Job_Selector := null;
