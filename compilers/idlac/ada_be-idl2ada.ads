@@ -35,6 +35,8 @@
 
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
+pragma Elaborate_All (Ada_Be.Source_Streams);  --  WAG:3.15
+
 with Ada_Be.Mappings;
 
 package Ada_Be.Idl2Ada is
