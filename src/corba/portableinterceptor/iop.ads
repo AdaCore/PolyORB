@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -56,12 +56,12 @@ package IOP is
 
    --  IOR type
 
-   package IDL_Sequence_TaggedProfile is
+   package IDL_Sequence_IOP_TaggedProfile is
      new CORBA.Sequences.Unbounded (TaggedProfile);
 
    type IOR is record
       Type_Id  : CORBA.String;
-      Profiles : IDL_Sequence_TaggedProfile.Sequence;
+      Profiles : IDL_Sequence_IOP_TaggedProfile.Sequence;
    end record;
 
    --  ComponentId type and constants
@@ -110,6 +110,18 @@ package IOP is
       Component_Data : IDL_Sequence_Octet.Sequence;
    end record;
 
+   --  TaggedComponentSeq sequence
+
+   package IDL_Sequence_IOP_TaggedComponent is
+     new CORBA.Sequences.Unbounded (TaggedComponent);
+
+   type TaggedComponentSeq is new IDL_Sequence_IOP_TaggedComponent.Sequence;
+
+   --  MultipleComponentProfile type
+
+   type MultipleComponentProfile is
+     new IDL_Sequence_IOP_TaggedComponent.Sequence;
+
    --  ServiceId type and constants
 
    type ServiceId is new CORBA.Unsigned_Long;
@@ -139,6 +151,13 @@ package IOP is
       Context_Data : IDL_Sequence_Octet.Sequence;
    end record;
 
+   --  ServiceContextList sequence
+
+   package IDL_Sequence_IOP_ServiceContext is
+     new CORBA.Sequences.Unbounded (ServiceContext);
+
+   type ServiceContextList is new IDL_Sequence_IOP_ServiceContext.Sequence;
+
    --  EncodingFormat type and constants
 
    type EncodingFormat is new CORBA.Short;
@@ -155,34 +174,43 @@ package IOP is
 
    --  Repository Ids
 
-   Repository_Id                 : constant Standard.String
+   Repository_Id                          : constant Standard.String
      := "IDL:omg.org/IOP:1.0";
 
-   ComponentId_Repository_Id     : constant Standard.String
+   ComponentId_Repository_Id              : constant Standard.String
      := "IDL:omg.org/IOP/ComponentId:1.0";
 
-   Encoding_Repository_Id        : constant Standard.String
+   Encoding_Repository_Id                 : constant Standard.String
      := "IDL:omg.org/IOP/Encoding:1.0";
 
-   EncodingFormat_Repository_Id  : constant Standard.String
+   EncodingFormat_Repository_Id           : constant Standard.String
      := "IDL:omg.org/IOP/EncodingFormat:1.0";
 
-   IOR_Repository_Id             : constant Standard.String
+   IOR_Repository_Id                      : constant Standard.String
      := "IDL:omg.org/IOP/IOR:1.0";
 
-   ProfileId_Repository_Id       : constant Standard.String
+   MultipleComponentProfile_Repository_Id : constant Standard.String
+     := "IDL:omg.org/IOP/MultipleComponentProfile:1.0";
+
+   ProfileId_Repository_Id                : constant Standard.String
      := "IDL:omg.org/IOP/ProfileId:1.0";
 
-   ServiceContext_Repository_Id  : constant Standard.String
+   ServiceContext_Repository_Id           : constant Standard.String
      := "IDL:omg.org/IOP/ServiceContext:1.0";
 
-   ServiceId_Repository_Id       : constant Standard.String
+   ServiceContextList_Repository_Id       : constant Standard.String
+     := "IDL:omg.org/IOP/ServiceContextList:1.0";
+
+   ServiceId_Repository_Id                : constant Standard.String
      := "IDL:omg.org/IOP/ServiceId:1.0";
 
-   TaggedComponent_Repository_Id : constant Standard.String
+   TaggedComponent_Repository_Id          : constant Standard.String
      := "IDL:omg.org/IOP/TaggedComponent:1.0";
 
-   TaggedProfile_Repository_Id   : constant Standard.String
+   TaggedComponentSeq_Repository_Id       : constant Standard.String
+     := "IDL:omg.org/IOP/TaggedComponentSeq:1.0";
+
+   TaggedProfile_Repository_Id            : constant Standard.String
      := "IDL:omg.org/IOP/TaggedProfile:1.0";
 
 end IOP;

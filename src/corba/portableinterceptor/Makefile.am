@@ -10,6 +10,7 @@ ADA_SPECS_WITH_BODY = \
 	iop-codecfactory.ads \
 	iop-codecfactory-helper.ads \
 	iop-codecfactory-impl.ads \
+	iop-helper.ads \
 	polyorb-corba_p-codec_utils.ads \
 	polyorb-corba_p-interceptors.ads \
 	polyorb-corba_p-interceptors_policies.ads \
