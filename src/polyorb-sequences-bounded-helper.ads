@@ -33,7 +33,7 @@
 
 --  $Id$
 
---  Any conversion subprograms for unbounded sequences.
+--  Any conversion subprograms for bounded sequences.
 
 with PolyORB.Any;
 

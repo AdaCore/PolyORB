@@ -33,7 +33,7 @@
 
 --  $Id$
 
---  Any conversion subprograms for unbounded sequences.
+--  Any conversion subprograms for bounded sequences.
 
 with PolyORB.Types;
 
@@ -60,6 +60,8 @@ package body PolyORB.Sequences.Bounded.Helper is
       if Len > Max then
          raise Constraint_Error;
       end if;
+
+      Result.Length := Len;
 
       for J in Result.Content'First .. Result.Content'First + Len - 1 loop
          Result.Content (J) := Element_From_Any
