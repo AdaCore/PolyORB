@@ -82,6 +82,8 @@ package body Backend.BE_Ada.Runtime is
       Special_Name (RU_PolyORB, "PolyORB");
       Special_Name (RU_PolyORB_Any_NVList, "NVList");
       Special_Name (RU_CORBA_AbstractBase, "AbstractBase");
+      Special_Name (RU_PolyORB_Any_TypeCode, "TypeCode");
+      Special_Name (RU_CORBA_TypeCode, "TypeCode");
 
       for E in RE_Id loop
          Set_Str_To_Name_Buffer (RE_Id'Image (E));
@@ -101,6 +103,7 @@ package body Backend.BE_Ada.Runtime is
       Special_Name (RE_To_CORBA_String, "To_CORBA_String");
       Special_Name (RE_To_PolyORB_String, "To_PolyORB_String");
       Special_Name (RE_NamedValue, "NamedValue");
+      Special_Name (RE_TC_Object, "TC_Object");
    end Initialize;
 
    --------

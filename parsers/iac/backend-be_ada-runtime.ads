@@ -11,9 +11,11 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA,
       RU_CORBA_AbstractBase,
       RU_CORBA_Object,
+      RU_CORBA_TypeCode,
       RU_PolyORB,
       RU_PolyORB_Any,
       RU_PolyORB_Any_NVList,
+      RU_PolyORB_Any_TypeCode,
       RU_PolyORB_Requests,
       RU_PolyORB_Types,
       RU_Standard);
@@ -51,9 +53,11 @@ package Backend.BE_Ada.Runtime is
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
       RE_Is_Nil,                    --  CORBA.Object.Is_Nil
       RE_Ref_2,                     --  CORBA.Object.Ref
+      RE_Object,                    --  CORBA.TypeCode.Object
       RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
+      RE_TC_Object,                 --  PolyORB.Any.TypeCode.TC_Object
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
@@ -91,9 +95,11 @@ package Backend.BE_Ada.Runtime is
          RE_Ref_1                 => RU_CORBA_AbstractBase,
          RE_Ref_2                 => RU_CORBA_Object,
          RE_Is_Nil                => RU_CORBA_Object,
+         RE_Object                => RU_CORBA_TypeCode,
          RE_NamedValue            => RU_PolyORB_Any,
          RE_Ref_3                 => RU_PolyORB_Any_NVList,
          RE_Create                => RU_PolyORB_Any_NVList,
+         RE_TC_Object             => RU_PolyORB_Any_TypeCode,
          RE_Request_Access        => RU_PolyORB_Requests,
          RE_Identifier            => RU_PolyORB_Types,
          RE_To_PolyORB_String     => RU_PolyORB_Types,

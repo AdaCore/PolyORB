@@ -1,3 +1,7 @@
+2004-07-19  Saber Souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-helpers.adb: Completed helper specification.
+
 2004-07-18  Saber Souli  <souli@neraka.enst.fr>
 	
 	* backend-be_ada.adb: Add -i switch that  dump the idl tree with

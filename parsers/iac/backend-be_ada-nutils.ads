@@ -124,7 +124,9 @@ package Backend.BE_Ada.Nutils is
       P_Result,
       P_Returns,
       P_Self,
-      P_To);
+      P_To,
+      P_The_Ref,
+      P_Item);
 
    PN : array (Parameter_Id) of Name_Id;
 
@@ -165,7 +167,8 @@ package Backend.BE_Ada.Nutils is
    CN : array (Component_Id) of Name_Id;
 
    type Attribute_Id is
-     (A_First);
+     (A_First,
+      A_CLASS);
 
    AN : array (Attribute_Id) of Name_Id;
 
