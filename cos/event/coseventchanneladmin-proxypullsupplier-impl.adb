@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
 with CosEventComm; use CosEventComm;
 
 with CosEventComm.PullConsumer;
@@ -60,6 +59,8 @@ pragma Warnings (Off, CORBA.Object);
 
 with PolyORB.Log;
 
+with PolyORB.Utils.Chained_Lists;
+
 package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    use PolyORB.Log;
@@ -67,25 +68,18 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Queue_Event;
-   type Queue_Event_Ptr is access Queue_Event;
-   type Queue_Event is record
-      Prev : Queue_Event_Ptr;
-      Data : CORBA.Any;
-   end record;
+   package Event_Queues is new PolyORB.Utils.Chained_Lists
+     (CORBA.Any, CORBA."=");
+   use Event_Queues;
 
-   --  Procedure to free queue elements
-   procedure Free_Queue_Event is
-      new Ada.Unchecked_Deallocation (Queue_Event, Queue_Event_Ptr);
+   subtype Event_Queue is Event_Queues.List;
 
    type Proxy_Pull_Supplier_Record is
       record
          This    : Object_Ptr;
          Peer    : PullConsumer.Ref;
          Admin   : ConsumerAdmin.Impl.Object_Ptr;
-         Queue   : Queue_Event;
-         Last    : Queue_Event_Ptr;
-         Empty   : Boolean;
+         Queue   : Event_Queue;
          Semaphore : Semaphore_Access;
       end record;
 
@@ -95,8 +89,8 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    procedure Connect_Pull_Consumer
      (Self          : access Object;
-      Pull_Consumer : in PullConsumer.Ref)
-   is
+      Pull_Consumer : in PullConsumer.Ref) is
+
    begin
       pragma Debug (O ("connect pull consumer to proxy pull supplier"));
 
@@ -125,7 +119,6 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
       Supplier.X       := new Proxy_Pull_Supplier_Record;
       Supplier.X.This  := Supplier;
       Supplier.X.Admin := Admin;
-      Supplier.X.Empty := True;
       Create (Supplier.X.Semaphore);
       Initiate_Servant (Servant (Supplier), My_Ref);
       return Supplier;
@@ -161,18 +154,13 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any)
-   is
-      Last_Event : Queue_Event_Ptr;
+      Data : in CORBA.Any) is
+
    begin
       pragma Debug (O ("post new data to proxy pull supplier"));
 
       Enter_Critical_Section;
-      Last_Event := new Queue_Event;
-      Last_Event.Prev := Self.X.Last;
-      Last_Event.Data := Data;
-      Self.X.Last := Last_Event;
-      Self.X.Empty := False;
+      Append (Self.X.Queue, Data);
       V (Self.X.Semaphore);
       Leave_Critical_Section;
 
@@ -187,33 +175,22 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
      return CORBA.Any
    is
       Event : CORBA.Any;
-      Consumed  : Queue_Event_Ptr;
 
    begin
-      loop
-         pragma Debug
-           (O ("attempt to pull new data from proxy pull supplier"));
+      pragma Debug
+        (O ("attempt to pull new data from proxy pull supplier"));
 
-         Enter_Critical_Section;
-         if PullConsumer.Is_Nil (Self.X.Peer) then
-            Leave_Critical_Section;
-            raise Disconnected;
-         end if;
-
-         if not Self.X.Empty then
-            Consumed := Self.X.Last;
-            Event := Self.X.Last.Data;
-            if Self.X.Last.Prev = null then
-               Self.X.Empty := True;
-            end if;
-            Self.X.Last := Self.X.Last.Prev;
-            Free_Queue_Event (Consumed);
-            Leave_Critical_Section;
-            exit;
-         end if;
+      P (Self.X.Semaphore);
+      Enter_Critical_Section;
+      if PullConsumer.Is_Nil (Self.X.Peer) then
          Leave_Critical_Section;
-         P (Self.X.Semaphore);
-      end loop;
+         raise Disconnected;
+      end if;
+
+      if State (Self.X.Semaphore) >= 0 then
+         Extract_First (Self.X.Queue, Event);
+      end if;
+      Leave_Critical_Section;
       pragma Debug (O ("succeed to pull new data from proxy pull supplier"));
 
       return Event;
@@ -226,9 +203,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
    procedure Try_Pull
      (Self      : access Object;
       Has_Event : out CORBA.Boolean;
-      Returns   : out CORBA.Any)
-   is
-      Consumed  : Queue_Event_Ptr;
+      Returns   : out CORBA.Any) is
 
    begin
       pragma Debug (O ("try to pull new data from proxy pull supplier"));
@@ -238,22 +213,15 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
          raise Disconnected;
       end if;
 
-      if Self.X.Empty then
+      if State (Self.X.Semaphore) <= 0 then
          Has_Event := False;
 
       else
          Has_Event := True;
-         Returns := Self.X.Last.Data;
-         Consumed := Self.X.Last;
-         if Self.X.Last.Prev = null then
-            Self.X.Empty := True;
-         end if;
-         Self.X.Last := Self.X.Last.Prev;
-         Free_Queue_Event (Consumed);
-         Free_Queue_Event (Self.X.Last);
+         Extract_First (Self.X.Queue, Returns);
+         P (Self.X.Semaphore);
       end if;
       Leave_Critical_Section;
-      P (Self.X.Semaphore);
    end Try_Pull;
 
 end CosEventChannelAdmin.ProxyPullSupplier.Impl;
