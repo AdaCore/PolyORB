@@ -140,10 +140,22 @@ package PolyORB.Requests is
       --  Ctxt_List  : CORBA.ContextList.Ref;
 
       Req_Flags : Flags;
+      --  Addition flags
 
       Completed : aliased Boolean := False;
+      --  Indicate whether the request is completed or not.
+      --  Note: request execution state when completing the request
+      --  depends on synchronisation flags used.
+
       Requesting_Task : aliased PolyORB.Task_Info.Task_Info_Access;
+      --  Task requesting request completion. This task will be 'used'
+      --  by ORB main loop until the request is completed.
+      --  Note: Requesting_Task is set up when entering ORB main loop,
+      --  see PolyORB.ORB.Run for more details.
+
       Requesting_Component : Components.Component_Access;
+      --  Component requesting request execution. The response, if
+      --  any, will be redirected to this component.
 
       Notepad : Annotations.Notepad;
       --  Request objects are manipulated by both the
