@@ -604,12 +604,14 @@ package body Parse is
                   end;
                end if;
                Fd_Res := N_Forward_Interface_Acc (Get_Node (Definition));
-               --  is this interface also a forward declaration
-               --  FIXME >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+               --  is this interface not a forward declaration
+               --  FIXME >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                if View_Next_Token /= T_Semi_Colon then
                   Fd_Res.Forward := Res;
                   Res.Forward := Fd_Res;
                   Redefine_Identifier (Definition, Res);
+                  --  the forward declaration is now implemented
+                  Add_Int_Val_Definition (N_Named_Acc (Fd_Res));
                end if;
             else
                declare
@@ -685,6 +687,8 @@ package body Parse is
             Fd_Res.Forward := null;
             Fd_Res.Abst := Res.Abst;
             Redefine_Identifier (Definition, Fd_Res);
+            --  A forward declaration should be added
+            Add_Int_Val_Forward (N_Named_Acc (Fd_Res));
             --  Free (Res); ???????????????????
             Result := N_Named_Acc (Fd_Res);
             Success := True;
@@ -693,7 +697,11 @@ package body Parse is
       else
          --  use the Interface4 rule
          Parse_Interface_Dcl_End (Res, Success);
-         Result := N_Named_Acc (Res);
+         if not Success then
+            Result := null;
+         else
+            Result := N_Named_Acc (Res);
+         end if;
          return;
       end if;
       return;
@@ -703,10 +711,12 @@ package body Parse is
    ----------------------------
    --  Parse_Interface_Body  --
    ----------------------------
-   procedure Parse_Interface_Body (List : in out Node_List) is
+   procedure Parse_Interface_Body (List : in out Node_List;
+                                   Success : out Boolean) is
       Ite : Node_Iterator;
    begin
       Init (Ite, List);
+      Success := True;
 --       loop
 --          exit when Token = T_Right_Cbracket;
 --          Parse_Export (List);
@@ -721,7 +731,7 @@ package body Parse is
                            Success : out Boolean) is
    begin
       Result := null;
-      Success := False;
+      Success := True;
 --       case Token is
 --          when T_Readonly | T_Attribute =>
 --             Parse_Attr_Dcl (List);
@@ -761,6 +771,7 @@ package body Parse is
    --------------------------------
    procedure Parse_Interface_Dcl_End (Result : in out N_Interface_Acc;
                                      Success : out Boolean) is
+      Body_Success : Boolean;
    begin
       --  interface header.
       if Get_Token = T_Colon then
@@ -773,7 +784,12 @@ package body Parse is
             begin
                --  FIXME : no test on scoped_success
                Parse_Scoped_Name (Name, Scoped_Success);
-               Append_Node (Result.Parents, N_Root_Acc (Name));
+               if not Scoped_Success then
+                  Go_To_Next_Left_Cbracket;
+                  exit;
+               else
+                  Append_Node (Result.Parents, N_Root_Acc (Name));
+               end if;
             end;
             exit when Get_Token /= T_Comma;
          end loop;
@@ -797,12 +813,18 @@ package body Parse is
       end if;
       --  Create a scope for the interface.
       Push_Scope (Result);
-      Parse_Interface_Body (Result.Contents);
+      Parse_Interface_Body (Result.Contents, Body_Success);
       Pop_Scope;
-      --  consume the right bracket at the end of the interface body
-      --  verification of the presence of this bracket was done
-      --  in Parse_Interface_Body
-      Next_Token;
+      if not Body_Success then
+         Result := null;
+         Success := False;
+         return;
+      else
+         --  consume the right bracket at the end of the interface body
+         --  verification of the presence of this bracket was done
+         --  in Parse_Interface_Body
+         Next_Token;
+      end if;
       Success := True;
       return;
    end Parse_Interface_Dcl_End;
@@ -813,46 +835,132 @@ package body Parse is
    -------------------------
    procedure Parse_Scoped_Name (Result : out N_Scoped_Name_Acc;
                                 Success : out Boolean) is
---       Res, Prev : N_Scoped_Name_Acc;
---       Scope : N_Scope_Acc;
---       Name : N_Named_Acc;
+      Res, Prev : N_Scoped_Name_Acc;
+      Scope : N_Scope_Acc;
+      Name : N_Named_Acc;
    begin
       Result := null;
       Success := False;
---       Prev := null;
---       Res := new N_Scoped_Name;
---       Set_Location (Res.all, Get_Location);
---       if Token = T_Colon_Colon then
---          Scope := Get_Root_Scope;
---       else
---          Name := Find_Identifier_Node;
---          Next_Token;
---          if Token /= T_Colon_Colon then
---             if Name = null then
---                raise Errors.Internal_Error;
---             end if;
---             Res.Value := Name;
---             return Res;
---          end if;
---       end if;
---       loop
---          if Name.all not in N_Scope'Class then
---             Errors.Parser_Error ("identifier is not a scope",
---                                   Errors.Error);
---             raise Errors.Internal_Error;
---          end if;
---          Next_Token;
---          Scope := N_Scope_Acc (Name);
---          Expect (T_Identifier);
---          Name := Find_Identifier_Node (Scope);
---          Next_Token;
---          exit when Token /= T_Colon_Colon;
---       end loop;
---       if Name = null then
---          raise Errors.Internal_Error;
---       end if;
---       Res.Value := Name;
---       return Res;
+      Prev := null;
+      Res := new N_Scoped_Name;
+      Set_Location (Res.all, Get_Token_Location);
+      if Get_Token = T_Colon_Colon then
+         Scope := Get_Root_Scope;
+      else
+         --  token should be an identifier
+         if Get_Token /= T_Identifier then
+            Errors.Parser_Error
+              (" identifier expected in the scoped name",
+               Errors.Error,
+               Get_Token_Location);
+            Success := False;
+            Result := null;
+            return;
+         end if;
+         Name := Find_Identifier_Node (Get_Token_String);
+         if Name = null then
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Get_Previous_Token_Location;
+               Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+               Errors.Parser_Error
+                 ("Bad identifier in scoped name",
+                  Errors.Error,
+                  Loc);
+               Success := False;
+               Result := null;
+               return;
+            end;
+         end if;
+         Next_Token;
+         --  we should import this identifier if it is not in the scope
+         if Get_Current_Scope /= Get_Definition (Name).Parent_Scope then
+            Add_Definition_To_Imported (Get_Definition (Name));
+         end if;
+         if Get_Token /= T_Colon_Colon then
+            Res.Value := Name;
+            Success := True;
+            Result := Res;
+            return;
+         end if;
+         --  is the identifier a scope?
+         if Name.all not in N_Scope'Class then
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Get_Previous_Token_Location;
+               Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+               Errors.Parser_Error
+                 ("Bad identifier in scoped name",
+                  Errors.Error,
+                  Loc);
+               Success := False;
+               Result := null;
+               return;
+            end;
+         else
+            Scope := N_Scope_Acc (Name);
+         end if;
+      end if;
+      --  now we will loop in the scopes to get the right definition
+      loop
+         Next_Token;
+         if Get_Token /= T_Identifier then
+            Errors.Parser_Error
+              (" identifier expected in the scoped name",
+               Errors.Error,
+               Get_Token_Location);
+            Success := False;
+            Result := null;
+            return;
+         end if;
+         --  find the indentifier in the scope
+         Name := Find_Identifier_In_Storage (Scope, Get_Token_String).Node;
+         if Name = null then
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Get_Previous_Token_Location;
+               Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+               Errors.Parser_Error
+                 ("Bad identifier in scoped name",
+                  Errors.Error,
+                  Loc);
+               Success := False;
+               Result := null;
+               return;
+            end;
+         end if;
+         Next_Token;
+         if Get_Token = T_Colon_Colon then
+            if Name.all not in N_Scope'Class then
+               declare
+                  Loc : Errors.Location;
+               begin
+                  Loc := Get_Previous_Token_Location;
+                  Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+                  Errors.Parser_Error
+                    ("Bad identifier in scoped name",
+                     Errors.Error,
+                     Loc);
+                  Success := False;
+                  Result := null;
+                  return;
+               end;
+            else
+               Scope := N_Scope_Acc (Name);
+            end if;
+         end if;
+         exit when Get_Token /= T_Colon_Colon;
+      end loop;
+      if Name = null then
+         raise Errors.Internal_Error;
+      end if;
+      Res.Value := Name;
+      Success := True;
+      Result := Res;
+      return;
    end Parse_Scoped_Name;
 
    -------------------
@@ -1982,7 +2090,6 @@ package body Parse is
    procedure Parse_Const_Type (Result : out N_Root_Acc;
                                Success : out Boolean) is
    begin
-
       case Get_Token is
          when T_Long =>
             if View_Next_Token = T_Double then
@@ -1995,23 +2102,23 @@ package body Parse is
             Parse_Integer_Type (Result, Success);
          when T_Char =>
             declare
-               Res : N_Char_Acc;
+               Res : N_Type_Declarator_Acc;
             begin
-               Parse_Char_Type (Res, Success);
+               Parse_Type_Declarator (Res, Success);
                Result := N_Root_Acc (Res);
             end;
-         when T_Wchar =>
+         when T_Struct =>
             declare
-               Res : N_Wide_Char_Acc;
+               Res : N_Struct_Acc;
             begin
-               Parse_Wide_Char_Type (Res, Success);
+               Parse_Struct_Type (Res, Success);
                Result := N_Root_Acc (Res);
             end;
-         when T_Boolean =>
+         when T_Union =>
             declare
-               Res : N_Boolean_Acc;
+               Res : N_Union_Acc;
             begin
-               Parse_Boolean_Type (Res, Success);
+               Parse_Union_Type (Res, Success);
                Result := N_Root_Acc (Res);
             end;
          when T_Float
@@ -3738,7 +3845,6 @@ package body Parse is
       return;
    end Parse_Case;
 
-
    ------------------------
    --  Parse_Case_Label  --
    ------------------------
@@ -4892,7 +4998,6 @@ package body Parse is
 --       return Res;
 --    end Parse_Or_Expr;
 
-
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
 --    --                 <simple_declarator> { "," <simple_declarator> }*
@@ -5280,10 +5385,20 @@ package body Parse is
    -----------------------------
    procedure Go_To_Next_Left_Cbracket is
    begin
-      while Get_Token /= T_Left_Cbracket loop
+      while Get_Token /= T_Eof and Get_Token /= T_Left_Cbracket loop
          Next_Token;
       end loop;
    end Go_To_Next_Left_Cbracket;
+
+   -----------------------------
+   --  Go_To_Next_R_Cbracket  --
+   -----------------------------
+   procedure Go_To_Next_Right_Cbracket is
+   begin
+      while Get_Token /= T_Eof and Get_Token /= T_Right_Cbracket loop
+         Next_Token;
+      end loop;
+   end Go_To_Next_Right_Cbracket;
 
    -------------------------
    --  Go_To_Next_Export  --
@@ -5306,7 +5421,7 @@ package body Parse is
    ---------------------------------
    procedure Go_To_End_Of_State_Member is
    begin
-      while Get_Token /= T_Semi_Colon loop
+      while Get_Token /= T_Eof and Get_Token /= T_Semi_Colon loop
          Next_Token;
       end loop;
       Next_Token;
@@ -5317,7 +5432,7 @@ package body Parse is
    ------------------------------------
    procedure Go_To_Next_Right_Paren is
    begin
-      while Get_Token /= T_Right_Paren loop
+      while Get_Token /= T_Eof and Get_Token /= T_Right_Paren loop
          Next_Token;
       end loop;
    end Go_To_Next_Right_Paren;

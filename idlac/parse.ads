@@ -183,7 +183,8 @@ private
 
    --  Rule 8:
    --  <interface_body> ::= <export>*
-   procedure Parse_Interface_Body (List : in out Node_List);
+   procedure Parse_Interface_Body (List : in out Node_List;
+                                   Success : out Boolean);
 
    --  Rule 9:
    --  <export> ::= <type_dcl> ";"
@@ -795,6 +796,9 @@ private
 
    --  Goes to the next Cbracket opening.
    procedure Go_To_Next_Left_Cbracket;
+
+   --  Goes to the next Cbracket opening.
+   procedure Go_To_Next_Right_Cbracket;
 
    --  Goes to the next export (see rule 9)
    procedure Go_To_Next_Export;

@@ -17,6 +17,7 @@
 --
 
 with Ada.Unchecked_Deallocation;
+with System;
 with Tokens;
 with GNAT.Case_Util;
 with Errors;
@@ -171,6 +172,26 @@ package body Types is
    end Get_Length;
 
 
+   --------------------------
+   --  Simplify node list  --
+   --------------------------
+
+   function Simplify_Node_List (In_List : Node_List) return Node_List is
+      Result_List : Node_List := null;
+      It : Node_Iterator;
+      Node : N_Root_Acc;
+   begin
+      Init (It, In_List);
+      while not Is_End (It) loop
+         Node := Get_Node (It);
+         if not Is_In_List (Result_List, Node) then
+            Append_Node (Result_List, Node);
+         end if;
+         Next (It);
+      end loop;
+      return Result_List;
+   end Simplify_Node_List;
+
 
    ---------------------------------------------------
    --  Named nodes in the tree parsed from the idl  --
@@ -206,6 +227,19 @@ package body Types is
          raise Errors.Fatal_Error;
       end if;
    end Get_Node;
+
+   ----------------------
+   --  Get_Definition  --
+   ----------------------
+   function Get_Definition (Node : N_Named_Acc)
+                            return Identifier_Definition_Acc is
+   begin
+      if Node /= null then
+         return Node.Definition;
+      else
+         raise Errors.Fatal_Error;
+      end if;
+   end Get_Definition;
 
    --  To deallocate an identifier_definition_list
    procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
@@ -250,42 +284,159 @@ package body Types is
    Root_Scope : Scope_Stack_Acc := null;
 
 
+   ------------------------------------------------
+   --  The Gnat_Table type implemented functions --
+   ------------------------------------------------
+
+   Initial : constant Positive := 37;
+   --  The size allocated at the creation of the table
+
+   Min : constant Integer := Integer (Nil_Uniq_Id + 1);
+   --  Subscript of the minimum entry in the currently allocated table
+
+   type size_t is new Integer;
+
+   procedure Reallocate (T : in out Table);
+   --  Reallocate the existing table according to the current value stored
+   --  in Max. Works correctly to do an initial allocation if the table
+   --  is currently null.
+
+   procedure Allocate (T : in out Table;
+                       Num : in Integer := 1;
+                       Result : out Uniq_Id) is
+      Old_Last : constant Integer := T.Last_Val;
+
+   begin
+      T.Last_Val := T.Last_Val + Num;
+
+      if T.Last_Val > T.Max then
+         Reallocate (T);
+      end if;
+
+      Result := Uniq_Id (Old_Last + 1);
+      return;
+   end Allocate;
+
+   procedure Decrement_Last (T : in out Table) is
+   begin
+      T.Last_Val := T.Last_Val - 1;
+   end Decrement_Last;
+
+   procedure Increment_Last (T : in out Table) is
+   begin
+      T.Last_Val := T.Last_Val + 1;
+
+      if T.Last_Val > T.Max then
+         Reallocate (T);
+      end if;
+   end Increment_Last;
+
+   procedure Init (T : in out Table) is
+      Old_Length : Integer := T.Length;
+
+   begin
+      T.Last_Val := Min - 1;
+      T.Max      := Min + Initial - 1;
+      T.Length   := T.Max - Min + 1;
+
+      --  If table is same size as before (happens when table is never
+      --  expanded which is a common case), then simply reuse it. Note
+      --  that this also means that an explicit Init call right after
+      --  the implicit one in the package body is harmless.
+
+      if Old_Length = T.Length then
+         return;
+
+      --  Otherwise we can use Reallocate to get a table of the right size.
+      --  Note that Reallocate works fine to allocate a table of the right
+      --  initial size when it is first allocated.
+
+      else
+         Reallocate (T);
+      end if;
+   end Init;
+
+   function Last (T : Table) return Uniq_Id is
+   begin
+      return Uniq_Id (T.Last_Val);
+   end Last;
+
+   procedure Reallocate (T : in out Table)  is
+
+      function realloc
+        (memblock : Table_Ptr;
+         size     : size_t)
+         return     Table_Ptr;
+      pragma Import (C, realloc);
+
+      function malloc
+        (size     : size_t)
+         return     Table_Ptr;
+      pragma Import (C, malloc);
+
+      New_Size : size_t;
+
+   begin
+      if T.Max < T.Last_Val then
+         if T.Length = 0 and T.Max = Min - 1 then
+            T.Max := Min + Initial - 1;
+            T.Length :=  T.Max - Min + 1;
+         else
+            pragma Assert (not Locked);
+            while T.Max < T.Last_Val loop
+               T.Length := T.Length * 2;
+               T.Max := Min + T.Length - 1;
+            end loop;
+         end if;
+      end if;
+
+      New_Size :=
+        size_t ((T.Max - Min + 1) *
+                (Table_Type'Component_Size / System.Storage_Unit));
+
+      if T.Table = null then
+         T.Table := malloc (New_Size);
+
+      elsif New_Size > 0 then
+         T.Table :=
+           realloc
+             (memblock => T.Table,
+              size     => New_Size);
+      end if;
+
+      if T.Length /= 0 and then T.Table = null then
+         raise Storage_Error;
+      end if;
+
+   end Reallocate;
+
+   procedure Release (T : in out Table) is
+   begin
+      T.Length := T.Last_Val - Min + 1;
+      T.Max    := T.Last_Val;
+      Reallocate (T);
+   end Release;
+
+   procedure Set_Last (T : in out Table; New_Val : in Uniq_Id) is
+      Old_Last : Integer;
+
+   begin
+      if Integer (New_Val) < T.Last_Val then
+         T.Last_Val := Integer (New_Val);
+      else
+         Old_Last := T.Last_Val;
+         T.Last_Val := Integer (New_Val);
+
+         if T.Last_Val > T.Max then
+            Reallocate (T);
+         end if;
+      end if;
+   end Set_Last;
+
 
    ----------------------------------
    --  identifiers handling types  --
    ----------------------------------
-
-   --  Each identifier is given a unique id number. This number is
-   --  its location in the table of all the identifiers definitions :
-   --  the id_table.
-   --  In order to find easily a given identifier in this id_table,
-   --  an hashtable of the position of the identifiers in the
-   --  id_table is maintained : the Hash_table. This one keeps the
-   --  position in the id_table of the first identifier defined for
-   --  each possible hash value. All the identifiers having the same
-   --  hash_value are then linked : each one has a pointer on the
-   --  next defined.
-
-   --  dimension of the hashtable
-   Hash_Mod : constant Hash_Value_Type := 2053;
-
-   --  The hash table of the location of the identifiers in the
-   --  id_table
-   type Hash_Table_Type is array (0 .. Hash_Mod - 1) of Uniq_Id;
-   Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
-
-   --  Type of an entry in the id_table.
-   --  it contains the following :
-   --    - the identifier_definition,
-   --    - a pointer on the entry correponding to the definition
-   --  of an identifier with the same hash value.
-   type Hash_Entry is record
-      Definition : Identifier_Definition_Acc := null;
-      Next : Uniq_Id;
-   end record;
-
-   --  The id_table. It is actually an variable size table. If it
-   --  becomes to little, it grows automatically.
    package Id_Table is new GNAT.Table
      (Table_Component_Type => Hash_Entry, Table_Index_Type => Uniq_Id,
       Table_Low_Bound => Nil_Uniq_Id + 1, Table_Initial => 256,
@@ -293,7 +444,7 @@ package body Types is
 
    ------------
    --  Hash  --
-   ------------
+   -------------
    function Hash (Str : in String) return Hash_Value_Type is
       Res : Hash_Value_Type := 0;
    begin
@@ -315,7 +466,12 @@ package body Types is
    ---------------------------
    procedure Add_Int_Val_Forward (Node : in N_Named_Acc) is
    begin
-      Append_Node (Current_Scope.Scope.Unimplemented_Forwards,
+      if Get_Kind (Current_Scope.Scope.all) /= K_Repository and
+        Get_Kind (Current_Scope.Scope.all) /= K_Module then
+         raise Errors.Internal_Error;
+         return;
+      end if;
+      Append_Node (N_Forward_Acc (Current_Scope.Scope).Unimplemented_Forwards,
                    N_Root_Acc (Node));
    end Add_Int_Val_Forward;
 
@@ -324,7 +480,12 @@ package body Types is
    ------------------------------
    procedure Add_Int_Val_Definition (Node : in N_Named_Acc) is
    begin
-      Remove_Node (Current_Scope.Scope.Unimplemented_Forwards,
+      if Get_Kind (Current_Scope.Scope.all) /= K_Repository and
+        Get_Kind (Current_Scope.Scope.all) /= K_Module then
+         raise Errors.Internal_Error;
+         return;
+      end if;
+      Remove_Node (N_Forward_Acc (Current_Scope.Scope).Unimplemented_Forwards,
                    N_Root_Acc (Node));
    end Add_Int_Val_Definition;
 
@@ -369,10 +530,28 @@ package body Types is
       Forward_Defs : Node_Iterator;
       Forward_Def : N_Root_Acc;
    begin
+      --  Remove all definition of scope from the hash table, and
+      --  replace them by the previous one.
+      --  Add these definition to the identifier_table of the current_scope
+      Definition_List := Current_Scope.Scope.Identifier_List;
+      while Definition_List /= null loop
+         Add_Definition_To_Storage
+           (Id_Table.Table (Definition_List.Definition.Id).Definition);
+         Id_Table.Table (Definition_List.Definition.Id).Definition :=
+           Definition_List.Definition.Previous_Definition;
+         Old_Definition_List := Definition_List;
+         Definition_List := Definition_List.Next;
+         Unchecked_Deallocation (Old_Definition_List);
+      end loop;
+
       Old_Scope := Current_Scope;
       Current_Scope := Old_Scope.Parent;
       --  Test if all forward definitions were implemented
-      Init (Forward_Defs, Old_Scope.Scope.Unimplemented_Forwards);
+      if Get_Kind (Old_Scope.Scope.all) = K_Repository or
+        Get_Kind (Old_Scope.Scope.all) = K_Module then
+         Init (Forward_Defs,
+               N_Forward_Acc (Old_Scope.Scope).Unimplemented_Forwards);
+      end if;
       while not Is_End (Forward_Defs) loop
          Forward_Def := Get_Node (Forward_Defs);
          Errors.Parser_Error ("The forward declaration " &
@@ -384,17 +563,11 @@ package body Types is
          Next (Forward_Defs);
       end loop;
       --  frees the forward definition list
-      Free (Old_Scope.Scope.Unimplemented_Forwards);
-      --  Remove all definition of scope from the hash table, and
-      --  replace them by the previous one.
-      Definition_List := Old_Scope.Scope.Identifier_List;
-      while Definition_List /= null loop
-         Id_Table.Table (Definition_List.Definition.Id).Definition :=
-           Definition_List.Definition.Previous_Definition;
-         Old_Definition_List := Definition_List;
-         Definition_List := Definition_List.Next;
-         Unchecked_Deallocation (Old_Definition_List);
-      end loop;
+      if Get_Kind (Old_Scope.Scope.all) = K_Repository or
+        Get_Kind (Old_Scope.Scope.all) = K_Module then
+         Free (N_Forward_Acc (Old_Scope.Scope).Unimplemented_Forwards);
+      end if;
+
       Unchecked_Deallocation (Old_Scope);
    end Pop_Scope;
 
@@ -404,9 +577,9 @@ package body Types is
    --  identifiers handling methods  --
    ------------------------------------
 
-   -----------------------------------
-   --  Check_identifier_Identifier  --
-   -----------------------------------
+   ------------------------------
+   --  Check_Identifier_Index  --
+   ------------------------------
    function Check_Identifier_Index (Identifier : String) return Uniq_Id is
       use Tokens;
       Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
@@ -426,8 +599,7 @@ package body Types is
             Index := Id_Table.Table (Index).Next;
          end loop;
       end if;
-      --  return  Nil_Uniq_Id
-      return Index;
+      return Nil_Uniq_Id;
    end Check_Identifier_Index;
 
    ----------------------------------
@@ -471,10 +643,30 @@ package body Types is
    function Find_Identifier_Definition (Name : String)
                                         return Identifier_Definition_Acc is
       Index : Uniq_Id;
+      Definition, Imported_Definition, Inherited_Definition
+        : Identifier_Definition_Acc;
    begin
       Index := Check_Identifier_Index (Name);
       if Index /= Nil_Uniq_Id then
-         return Id_Table.Table (Index).Definition;
+         Definition := Id_Table.Table (Index).Definition;
+         --  is the definition in the scope
+         if Definition.Parent_Scope = Current_Scope.Scope then
+            return Definition;
+         else
+            Imported_Definition := Find_Imported_Identifier_Definition (Name);
+            --  is the definition imported
+            if Imported_Definition /= null then
+               return Imported_Definition;
+            end if;
+            --  is the definition inherited
+            Inherited_Definition
+              := Find_Inherited_Identifier_Definition (Name);
+            if Inherited_Definition /= null then
+               return Inherited_Definition;
+            end if;
+         end if;
+         --  the definition is in a upper scope
+         return Definition;
       else
          return null;
       end if;
@@ -539,10 +731,335 @@ package body Types is
       return True;
    end Add_Identifier;
 
+   -----------------------------------
+   --  Check_Identifier_In_Storage  --
+   -----------------------------------
+   function Check_Identifier_In_Storage (Scope : N_Scope_Acc;
+                                         Identifier : String)
+                                             return Uniq_Id is
+      use Tokens;
+      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
+      Index : Uniq_Id;
+   begin
+      Index := Scope.Identifier_Table.Hash_Table (Hash_Index);
+      if Index /= Nil_Uniq_Id then
+         while Scope.Identifier_Table.Content_Table.Table (Index).
+           Definition.Name /= null loop
+            if Idl_Identifier_Equal
+              (Scope.Identifier_Table.Content_Table.Table (Index).
+               Definition.Name.all, Identifier) /= Differ
+            then
+               return Index;
+            end if;
+            if Scope.Identifier_Table.Content_Table.Table (Index).Next =
+              Nil_Uniq_Id then
+               exit;
+            end if;
+            Index := Scope.Identifier_Table.Content_Table.Table (Index).Next;
+         end loop;
+      end if;
+      return  Nil_Uniq_Id;
+   end Check_Identifier_In_Storage;
+
+
+   ----------------------------------
+   --  Find_Identifier_In_Storage  --
+   ----------------------------------
+   function Find_Identifier_In_Storage (Scope : N_Scope_Acc; Name : String)
+                                        return Identifier_Definition_Acc is
+      Index : Uniq_Id;
+   begin
+      Index := Check_Identifier_In_Storage (Scope, Name);
+      if Index /= Nil_Uniq_Id then
+         return Scope.Identifier_Table.Content_Table.Table (Index).Definition;
+      else
+         return null;
+      end if;
+   end Find_Identifier_In_Storage;
+
+   -------------------------------------
+   --  Create_Indentifier_In_Storage  --
+   -------------------------------------
+   function Create_Identifier_In_Storage (Identifier : String)
+                                          return Uniq_Id is
+      use Tokens;
+      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
+      Index : Uniq_Id :=
+        Current_Scope.Scope.Identifier_Table.Hash_Table (Hash_Index);
+   begin
+      if Index = Nil_Uniq_Id then
+         Increment_Last (Current_Scope.Scope.Identifier_Table.Content_Table);
+         Index := Last (Current_Scope.Scope.Identifier_Table.Content_Table);
+         Current_Scope.Scope.Identifier_Table.Hash_Table (Hash_Index) := Index;
+      else
+         while Current_Scope.Scope.Identifier_Table.Content_Table.
+           Table (Index).Definition.Name /= null loop
+            if Idl_Identifier_Equal
+              (Current_Scope.Scope.Identifier_Table.Content_Table.
+               Table (Index).Definition.Name.all, Identifier) /= Differ
+            then
+               return Index;
+            end if;
+            if  Current_Scope.Scope.Identifier_Table.Content_Table.
+              Table (Index).Next = Nil_Uniq_Id then
+               Increment_Last (Current_Scope.Scope.Identifier_Table.
+                               Content_Table);
+               Current_Scope.Scope.Identifier_Table.Content_Table.
+                 Table (Index).Next :=
+                 Last (Current_Scope.Scope.Identifier_Table.Content_Table);
+               Index := Last (Current_Scope.Scope.Identifier_Table.
+                              Content_Table);
+               exit;
+            end if;
+            Index :=
+              Current_Scope.Scope.Identifier_Table.Content_Table.
+              Table (Index).Next;
+         end loop;
+      end if;
+      --  Add an entry in INDEX.
+      Current_Scope.Scope.Identifier_Table.Content_Table.Table (Index) :=
+        (Definition => null, Next => Nil_Uniq_Id);
+      return Index;
+   end Create_Identifier_In_Storage;
+
+   --------------------------------
+   --  Add_Definition_To_Storage --
+   --------------------------------
+   procedure Add_Definition_To_Storage
+     (Definition : in Identifier_Definition_Acc) is
+      Index : Uniq_Id;
+      Definition_Test : Identifier_Definition_Acc;
+   begin
+      Index := Create_Identifier_In_Storage (Definition.Name.all);
+      Definition_Test :=
+        Current_Scope.Scope.Identifier_Table.Content_Table.
+        Table (Index).Definition;
+      --  their shouldn't be any redefinition
+      if Definition_Test /= null then
+         raise Errors.Internal_Error;
+         return;
+      end if;
+      Current_Scope.Scope.Identifier_Table.Content_Table.
+        Table (Index).Definition := Definition;
+   end Add_Definition_To_Storage;
+
+   --------------------------------------
+   --  Check_Imported_Identifier_Idex  --
+   --------------------------------------
+   function Check_Imported_Identifier_Index (Identifier : String)
+                                             return Uniq_Id is
+      use Tokens;
+      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
+      Index : Uniq_Id;
+      Scope : N_Imports_Acc;
+   begin
+      --  there is no imports in moduls types
+      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
+        Get_Kind (Current_Scope.Scope.all) = K_Module then
+         raise Errors.Internal_Error;
+      end if;
+
+      Scope := N_Imports_Acc (Current_Scope.Scope);
+      Index := Scope.Imported_Table.Hash_Table (Hash_Index);
+      if Index /= Nil_Uniq_Id then
+         while Scope.Imported_Table.Content_Table.Table (Index).Definition.Name
+           /= null loop
+            if Idl_Identifier_Equal
+              (Scope.Imported_Table.Content_Table.Table (Index).
+               Definition.Name.all, Identifier) /= Differ
+            then
+               return Index;
+            end if;
+            if Scope.Imported_Table.Content_Table.Table (Index).Next =
+              Nil_Uniq_Id then
+               exit;
+            end if;
+            Index := Scope.Imported_Table.Content_Table.Table (Index).Next;
+         end loop;
+      end if;
+      return  Nil_Uniq_Id;
+   end Check_Imported_Identifier_Index;
+
+
+   -------------------------------------------
+   --  Find_Imported_Identifier_Definition  --
+   -------------------------------------------
+   function Find_Imported_Identifier_Definition (Name : String)
+                                        return Identifier_Definition_Acc is
+      Index : Uniq_Id;
+      Scope : N_Imports_Acc;
+   begin
+      --  there is no imports in moduls types
+      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
+        Get_Kind (Current_Scope.Scope.all) = K_Module then
+         return null;
+      end if;
+
+      Scope := N_Imports_Acc (Current_Scope.Scope);
+      Index := Check_Imported_Identifier_Index (Name);
+      if Index /= Nil_Uniq_Id then
+         return Scope.Imported_Table.Content_Table.Table (Index).Definition;
+      else
+         return null;
+      end if;
+   end Find_Imported_Identifier_Definition;
+
+   --------------------------------------
+   --  Create_Indentifier_In_Imported  --
+   --------------------------------------
+   function Create_Identifier_In_Imported (Identifier : String)
+                                          return Uniq_Id is
+      use Tokens;
+      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
+      Index : Uniq_Id;
+      Scope : N_Imports_Acc;
+   begin
+      --  check if we are in value type or interfaces (we should be);
+      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
+        Get_Kind (Current_Scope.Scope.all) = K_Module then
+         raise Errors.Internal_Error;
+      end if;
+
+      Scope := N_Imports_Acc (Current_Scope.Scope);
+      Index := Scope.Imported_Table.Hash_Table (Hash_Index);
+      if Index = Nil_Uniq_Id then
+         Increment_Last (Scope.Imported_Table.Content_Table);
+         Index := Last (Scope.Imported_Table.Content_Table);
+         Scope.Imported_Table.Hash_Table (Hash_Index) := Index;
+      else
+         while Scope.Imported_Table.Content_Table.
+           Table (Index).Definition.Name /= null loop
+            if Idl_Identifier_Equal (Scope.Imported_Table.Content_Table.
+               Table (Index).Definition.Name.all, Identifier) /= Differ
+            then
+               return Index;
+            end if;
+            if  Scope.Imported_Table.Content_Table.
+              Table (Index).Next = Nil_Uniq_Id then
+               Increment_Last (Scope.Imported_Table.Content_Table);
+               Scope.Imported_Table.Content_Table.Table (Index).Next :=
+                 Last (Scope.Imported_Table.Content_Table);
+               Index := Last (Scope.Imported_Table.Content_Table);
+               exit;
+            end if;
+            Index :=
+              Scope.Imported_Table.Content_Table.Table (Index).Next;
+         end loop;
+      end if;
+      --  Add an entry in INDEX.
+      Scope.Imported_Table.Content_Table.Table (Index) :=
+        (Definition => null, Next => Nil_Uniq_Id);
+      return Index;
+   end Create_Identifier_In_Imported;
+
+   --------------------------------
+   --  Add_Definition_To_Imported --
+   --------------------------------
+   procedure Add_Definition_To_Imported
+     (Definition : in Identifier_Definition_Acc) is
+      Index : Uniq_Id;
+      Definition_Test : Identifier_Definition_Acc;
+      Scope : N_Imports_Acc;
+   begin
+      --  check if we are in value type or interfaces (we should be);
+      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
+        Get_Kind (Current_Scope.Scope.all) = K_Module then
+         return;
+      end if;
+
+      Scope := N_Imports_Acc (Current_Scope.Scope);
+      Index := Create_Identifier_In_Imported (Definition.Name.all);
+      Definition_Test :=
+        Scope.Imported_Table.Content_Table.Table (Index).Definition;
+      if Definition_Test /= null then
+         if Definition_Test /= Definition then
+            raise Errors.Internal_Error;
+            return;
+         end if;
+      end if;
+      Scope.Imported_Table.Content_Table.
+        Table (Index).Definition := Definition;
+      return;
+   end Add_Definition_To_Imported;
+
+
+   --------------------------------
+   --  Find_Identifier_In_Scope  --
+   --------------------------------
+   procedure Find_Identifier_In_Inheritance (Name : in String;
+                                             Scope : in N_Imports_Acc;
+                                             List : in out Node_List) is
+      It : Node_Iterator;
+      Node : N_Root_Acc;
+      Definition : Identifier_Definition_Acc;
+      Parent : Node_List := null;
+   begin
+      if Get_Kind (Scope.all) = K_Interface then
+         Parent := null;  --  N_Interface_Acc (Scope_Node).Parents;
+      end if;
+      if Get_Kind (Scope.all) = K_ValueType then
+         Parent := null;  --  N_ValueType_Acc (Scope_Node).Parents;
+      end if;
+
+      Init (It, Parent);
+      --  loop for all the Parent of the scope
+      while not Is_End (It) loop
+         Node := Get_Node (It);
+         Definition := Find_Identifier_In_Storage (N_Scope_Acc (Node),
+                                                   Name);
+         if Definition /= null then
+            Append_Node (List, N_Root_Acc (Definition.Node));
+         else
+            Find_Identifier_In_Inheritance (Name, N_Imports_Acc (Node), List);
+            Next (It);
+         end if;
+      end loop;
+      Free (Parent);
+      return;
+   end Find_Identifier_In_Inheritance;
+
+   --------------------------------------------
+   --  Find_Inherited_Identifier_Definition  --
+   --------------------------------------------
+   function Find_Inherited_Identifier_Definition (Name : String)
+                                           return Identifier_Definition_Acc is
+      Result_List : Node_List := null;
+      First_List : Node_List := null;
+   begin
+      --  there is no imports in moduls types
+      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
+        Get_Kind (Current_Scope.Scope.all) = K_Module then
+         return null;
+      end if;
+      Find_Identifier_In_Inheritance (Name,
+                                      N_Imports_Acc (Current_Scope.Scope),
+                                      First_List);
+      Result_List := Simplify_Node_List (First_List);
+      Free (First_List);
+      if Get_Length (Result_List) = 0 then
+         return null;
+      elsif  Get_Length (Result_List) = 1 then
+         declare
+            It : Node_Iterator;
+            Node : N_Root_Acc;
+         begin
+            Init (It, Result_List);
+            Node := Get_Node (It);
+            Free (Result_List);
+            if Node.all not in N_Named'Class then
+               raise Errors.Internal_Error;
+            end if;
+            return Get_Definition (N_Named_Acc (Node));
+         end;
+      else
+         --  there is multiple definition
+         Free (Result_List);
+         return null;
+      end if;
+   end Find_Inherited_Identifier_Definition;
 
 
 --  INUTILE ???
-
 --    procedure Set_Back_End (N : in out N_Root'Class;
 --                            Be : access N_Back_End'Class) is
 --    begin
@@ -586,23 +1103,29 @@ package body Types is
 --       return Add_Node_To_Id_Table (Node.Cell.Identifier, Node) /= null;
 --    end Import_Uniq_Identifier;
 
---  FIXME : to be uncomment when used
---    function Find_Identifier_Node (Scope : N_Scope_Acc)
---                                   return N_Named_Acc is
---       Definition : Identifier_Definition_Acc;
---    begin
---       Definition := Find_Identifier_Definition;
---       loop
---          if Definition = null then
---             return null;
---          end if;
---          if Definition.Parent_Scope = Scope then
---             return Definition.Node;
---          else
---             Definition := Definition.Previous_Definition;
---          end if;
---       end loop;
---    end Find_Identifier_Node;
-
+--   function Find_Identifier_Node (Scope : N_Scope_Acc; Name : String)
+--                                  return N_Named_Acc is
+--      Definition : Identifier_Definition_Acc;
+--   begin
+--      Definition := Find_Identifier_Definition (Name);
+--      loop
+--         if Definition = null then
+--            return null;
+--         end if;
+--         if Definition.Parent_Scope = Scope then
+--            return Definition.Node;
+--         else
+--            Definition := Definition.Previous_Definition;
+--         end if;
+--      end loop;
+--   end Find_Identifier_Node;
 
 end Types;
+
+
+
+
+
+
+
+

@@ -143,7 +143,8 @@ package Types is
    --  Identifiers are numbered, in order to make comparaison
    --  easier and static. Each number is unique.
    type Uniq_Id is new Natural;
-   Nil_Uniq_Id : constant Uniq_Id;
+   Nil_Uniq_Id : constant Uniq_Id := 0;
+
 
 
 
@@ -217,6 +218,11 @@ package Types is
    --  computes the length of the list
    function Get_Length (List : in Node_List) return Integer;
 
+   --  Function that take a node list and remove all the redondant items
+   --  returns the resulting node list
+   --  usefull for the inheritance treatement
+   function Simplify_Node_List (In_List : Node_List) return Node_List;
+
    ---------------------------------------------------
    --  Named nodes in the tree parsed from the idl  --
    ---------------------------------------------------
@@ -238,6 +244,23 @@ package Types is
    --  Basic type for nodes that define a scope
    type N_Scope is abstract new N_Named with private;
    type N_Scope_Acc is access all N_Scope'Class;
+
+
+   --------------------------------------------------------------
+   --  Nodes defining a scope containig forward declaration    --
+   --------------------------------------------------------------
+
+   --  Basic type for nodes that define a scope
+   type N_Forward is abstract new N_Scope with private;
+   type N_Forward_Acc is access all N_Forward'Class;
+
+   ---------------------------------------------------------------------
+   --  Nodes defining a scope that could contain imported identifier  --
+   ---------------------------------------------------------------------
+
+   --  Basic type for nodes that define a scope
+   type N_Imports is abstract new N_Scope with private;
+   type N_Imports_Acc is access all N_Imports'Class;
 
 
    ----------------------------------------
@@ -269,7 +292,10 @@ package Types is
    function Get_Node (Definition : Identifier_Definition_Acc)
                       return N_Named_Acc;
 
-
+   --  Return the identifier definition corresponding to the node
+   --  Raises fatal_error if Node is a null pointer
+   function Get_Definition (Node : N_Named_Acc)
+                            return Identifier_Definition_Acc;
 
    ----------------------
    --  scope handling  --
@@ -326,6 +352,10 @@ package Types is
    --  If this identifier is not defined, returns a null pointer.
    function Find_Identifier_Node (Name : String) return N_Named_Acc;
 
+--   function Find_Identifier_Node (Scope : N_Scope_Acc; Name : String)
+--                                  return N_Named_Acc;
+
+
    --  Change the definition (associed node) of CELL.
    --  only used in the case of a forward interface definition
    procedure Redefine_Identifier
@@ -339,6 +369,183 @@ package Types is
    function Add_Identifier (Node : access N_Named'Class;
                             Name : String) return Boolean;
 
+
+   --  Check if the  uniq_id from an identifier is already defined
+   --  in the scope and return it or Nil_Uniq_Id
+   function Check_Identifier_In_Storage (Scope : N_Scope_Acc;
+                                         Identifier : String)
+                                             return Uniq_Id;
+
+   --  Find the identifier definition in Scope.
+   --  If this identifier is not defined, returns a null pointer.
+   function Find_Identifier_In_Storage (Scope : N_Scope_Acc; Name : String)
+                                        return Identifier_Definition_Acc;
+
+   --  Create the uniq_id entry for an identifier in the storage table
+   --  at the end of the scope parsing
+   --  return it
+   function Create_Identifier_In_Storage (Identifier : String) return Uniq_Id;
+
+
+   --  add the definition to the current scope storage table.
+   --  It is done at the end of the scope parsing (called by pop_scope)
+   procedure Add_Definition_To_Storage
+     (Definition : in Identifier_Definition_Acc);
+
+   --  Check if the  uniq_id from an identifier is already defined
+   --  in the imported table.
+   --  return it or Nil_Uniq_Id
+   function Check_Imported_Identifier_Index (Identifier : String)
+                                             return Uniq_Id;
+
+   --  Find the identifier definition in the imported table.
+   --  If this identifier is not defined, returns a null pointer.
+   function Find_Imported_Identifier_Definition (Name : String)
+                                          return Identifier_Definition_Acc;
+
+   --  Create the uniq_id entry for an identifier in the imported table
+   --  return it
+   function Create_Identifier_In_Imported (Identifier : String) return Uniq_Id;
+
+
+   --  add the imported definition to the current scope imported table.
+   procedure Add_Definition_To_Imported
+     (Definition : in Identifier_Definition_Acc);
+
+   --  Find the identifier in the scope's parents (in each one recursively)
+   --  add the different definitions to the node list
+   --  it is usefull for looking in the inherited interfaces or value types
+   procedure Find_Identifier_In_Inheritance (Name : in String;
+                                             Scope : in N_Imports_Acc;
+                                             List : in out Node_List);
+
+   --  Find the identifier definition in the inherited interface.
+   --  If this identifier is not defined, returns a null pointer.
+   function Find_Inherited_Identifier_Definition (Name : String)
+                                          return Identifier_Definition_Acc;
+
+   ----------------------------
+   --  identifiers handling  --
+   ----------------------------
+
+   --  Each identifier is given a unique id number. This number is
+   --  its location in the table of all the identifiers definitions :
+   --  the id_table.
+   --  In order to find easily a given identifier in this id_table,
+   --  an hashtable of the position of the identifiers in the
+   --  id_table is maintained : the Hash_table. This one keeps the
+   --  position in the id_table of the first identifier defined for
+   --  each possible hash value. All the identifiers having the same
+   --  hash_value are then linked : each one has a pointer on the
+   --  next defined.
+
+   --  dimension of the hashtable
+   type Hash_Value_Type is mod 2**32;
+
+   --  dimension of the hashtable
+   Hash_Mod : constant Hash_Value_Type := 2053;
+
+   --  The hash table of the location of the identifiers in the
+   --  id_table
+   type Hash_Table_Type is array (0 .. Hash_Mod - 1) of Uniq_Id;
+   Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
+
+   --  Type of an entry in the id_table.
+   --  it contains the following :
+   --    - the identifier_definition,
+   --    - a pointer on the entry correponding to the definition
+   --  of an identifier with the same hash value.
+   type Hash_Entry is record
+      Definition : Identifier_Definition_Acc := null;
+      Next : Uniq_Id;
+   end record;
+
+   ----------------------------------
+   --  The Gnat_Table adapted type --
+   ----------------------------------
+   --  This section provides an implementation of dynamically resizable one
+   --  dimensional array type.The idea is to mimic the normal Ada semantics for
+   --  arrays as closely as possible with the one additional capability of
+   --  dynamically modifying the value of the Last attribute.
+
+
+   --  we are defining the type of the table
+   type Table_Type is
+      array (Uniq_Id range <>) of Hash_Entry;
+
+   subtype Big_Table_Type is
+     Table_Type (Nil_Uniq_Id + 1 .. Uniq_Id'Last);
+
+   --  The table is actually represented as a pointer to allow reallocation
+   type Table_Ptr is access all Big_Table_Type;
+
+   --  the table type that will be instanciated
+   type Table is record
+      --  the table
+      Table : Table_Ptr := null;
+      --  Subscript of the maximum entry in the currently allocated table
+      Max : Integer := Integer (Nil_Uniq_Id);
+      --  Number of entries in currently allocated table. The value of zero
+      --  ensures that we initially allocate the table.
+      Length : Integer := 0;
+      --  Current value of Last.
+      Last_Val : Integer := Integer (Nil_Uniq_Id);
+   end record;
+
+   --  the location of the first element of the table (it is constant)
+   First : constant Uniq_Id := Nil_Uniq_Id + 1;
+
+   --  Table expansion is permitted only if this switch is set to False. A
+   --  client may set Locked to True, in which case any attempt to expand
+   --  the table will cause an assertion failure. Note that while a table
+   --  is locked, its address in memory remains fixed and unchanging.
+   Locked : Boolean := False;
+
+   --  This procedure allocates a new table of size Initial (freeing any
+   --  previously allocated larger table). It is not necessary to call
+   --  Init when a table is first instantiated (since reallocate works
+   --  with a null table). However, it is harmless to do so, and
+   --  Init is convenient in reestablishing a table for new use.
+   procedure Init (T : in out Table);
+
+   --  Returns the current value of the last used entry in the table, which
+   --  can then be used as a subscript for Table. Note that the only way to
+   --  modify Last is to call the Set_Last procedure. Last must always be
+   --  used to determine the logically last entry.
+   function Last (T : Table) return Uniq_Id;
+
+   --  Storage is allocated in chunks according to the values given in the
+   --  Initial and Increment parameters. A call to Release releases all
+   --  storage that is allocated, but is not logically part of the current
+   --  array value. Current array values are not affected by this call.
+   procedure Release (T : in out Table);
+
+   --  This procedure sets Last to the indicated value. If necessary the
+   --  table is reallocated to accomodate the new value (i.e. on return
+   --  the allocated table has an upper bound of at least Last). If Set_Last
+   --  reduces the size of the table, then logically entries are removed
+   --  from the table. If Set_Last increases the size of the table, then
+   --  new entries are logically added to the table.
+   procedure Set_Last (T : in out Table; New_Val : in Uniq_Id);
+
+   --  Adds 1 to Last (same as Set_Last (Last + 1).
+   procedure Increment_Last (T : in out Table);
+
+   --  Subtracts 1 from Last (same as Set_Last (Last - 1).
+   procedure Decrement_Last (T : in out Table);
+
+   --  Adds Num to T.Last_val, and returns the old value of T.Last_Val + 1.
+   procedure Allocate (T : in out Table;
+                       Num : in Integer := 1;
+                       Result : out Uniq_Id);
+
+   -------------------------------------------------
+   --  the structure used for storing identifiers --
+   -------------------------------------------------
+   type Storage is record
+      Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
+      Content_Table : Table;
+   end record;
 
 private
 
@@ -390,7 +597,7 @@ private
    --  and values still not defined
    type N_Scope is abstract new N_Named with record
       Identifier_List : Identifier_Definition_List;
-      Unimplemented_Forwards : Node_List := null;
+      Identifier_Table : Storage;
    end record;
 
    ----------------------------------------
@@ -405,23 +612,38 @@ private
       Next : Identifier_Definition_List;
    end record;
 
-   Nil_Uniq_Id : constant Uniq_Id := 0;
-
    --  Adds an identifier definition to a scope
    procedure Add_Identifier_Definition (Scope : in out N_Scope'Class;
                                         Identifier : in Identifier_Definition);
 
-   ----------------------------
-   --  identifiers handling  --
-   ----------------------------
+   -----------------------------------------------------
+   --  Nodes defining particular scopes in the tree   --
+   -----------------------------------------------------
 
-   --  dimension of the hashtable
-   type Hash_Value_Type is mod 2**32;
+   --  A scope that can contained interfaces and value types.
+   --  These can be forward declared, thus the following field.
+   --  This type represent for instance the repository or a module.
+   type N_Forward is abstract new N_Scope with record
+      Unimplemented_Forwards : Node_List := null;
+   end record;
+
+   --  the following node is a scope
+   --  where you can import identifier from other scopes.
+   --  It is for instance interfaces or value types.
+   --  So it contains the imported identifiers hash table.
+   --  This can also be forward declared.
+   type N_Imports is abstract new N_Scope with record
+      Imported_Table : Storage;
+   end record;
+
+
+
+
+
 
    --  The hashing function. Takes an identifier and return its hash
    --  value
    function Hash (Str : in String) return Hash_Value_Type;
-
 
 --
 --   INUTILE ???
@@ -472,9 +694,6 @@ private
    --  The current identifier is the one just scanned by the lexer
    --  If this identifier is not defined in the given scope,
    --  returns a null pointer.
---   function Find_Identifier_Node (Scope : N_Scope_Acc)
---                                  return N_Named_Acc;
-
 
 
 end Types;

@@ -140,14 +140,14 @@ package Tree is
 
    --  Top of the repository.
    --  A repository is a list of elements.
-   type N_Repository is new Types.N_Scope with record
+   type N_Repository is new Types.N_Forward with record
       Contents : Types.Node_List;
    end record;
    function Get_Kind (N : N_Repository) return Types.Node_Kind;
    type N_Repository_Acc is access all N_Repository;
 
    --  A module
-   type N_Module is new Types.N_Scope with record
+   type N_Module is new Types.N_Forward with record
       Contents : Types.Node_List;
    end record;
    type N_Module_Acc is access all N_Module;
@@ -157,7 +157,7 @@ package Tree is
    type N_Forward_Interface;
    type N_Forward_Interface_Acc is access all N_Forward_Interface;
 
-   type N_Interface is new Types.N_Scope with record
+   type N_Interface is new Types.N_Imports with record
       Parents : Types.Node_List := Types.Nil_List;
       Contents : Types.Node_List;
       Forward : N_Forward_Interface_Acc;
@@ -177,7 +177,7 @@ package Tree is
    type N_Forward_ValueType;
    type N_Forward_ValueType_Acc is access all N_Forward_ValueType;
 
-   type N_ValueType is new Types.N_Scope with record
+   type N_ValueType is new Types.N_Imports with record
       Parents : Types.Node_List := Types.Nil_List;
       Supports : Types.Node_List := Types.Nil_List;
       Contents : Types.Node_List := Types.Nil_List;
