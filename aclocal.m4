@@ -189,7 +189,7 @@ AC_DEFUN([AM_GNAT_PREREQ],
 AC_CHECK_PROG(GNATLS, gnatls, gnatls)
 AC_CHECK_PROG(SED, sed, sed)
 AC_MSG_CHECKING([if the Ada compiler is recent enough])
-am_gnatls_date=`$GNATLS -v | $SED -ne 's/^GNATLS .*(\(.*\)).*$/\1/p'`
+am_gnatls_date=`$GNATLS -v | $SED -ne 's/^GNATLS .*(\(........\).*$/\1/p'`
 if test "$1" -le "$am_gnatls_date"; then
   AC_MSG_RESULT(yes)
 else

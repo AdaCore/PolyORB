@@ -51,7 +51,7 @@ AC_SUBST(GNATDISTOPT)
 #
 # Check that the GNAT version is recent enough for this version of GLADE
 #
-AM_GNAT_PREREQ(20010122, 3.14)
+AM_GNAT_PREREQ(20040908, 3.16)
 #
 # Platform specific
 #

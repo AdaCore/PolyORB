@@ -1661,13 +1661,13 @@ fi
 
 echo $ac_n "checking if the Ada compiler is recent enough""... $ac_c" 1>&6
 echo "configure:1664: checking if the Ada compiler is recent enough" >&5
-am_gnatls_date=`$GNATLS -v | $SED -ne 's/^GNATLS .*(\(.*\)).*$/\1/p'`
-if test "20010122" -le "$am_gnatls_date"; then
+am_gnatls_date=`$GNATLS -v | $SED -ne 's/^GNATLS .*(\(........\).*$/\1/p'`
+if test "20040908" -le "$am_gnatls_date"; then
   echo "$ac_t""yes" 1>&6
 else
   echo "$ac_t""no" 1>&6
   am_gnatls_version=`$GNATLS -v | $SED -ne 's/^GNATLS \(.*\) (.*.*$/\1/p'`
-  { echo "configure: error: Please get a version of GNAT no older than 3.14 (20010122)
+  { echo "configure: error: Please get a version of GNAT no older than 3.16 (20040908)
 (it looks like you only have GNAT $am_gnatls_version ($am_gnatls_date))" 1>&2; exit 1; }
 fi
 #
