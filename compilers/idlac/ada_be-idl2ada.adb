@@ -2102,6 +2102,9 @@ package body Ada_Be.Idl2Ada is
                II (CU);
 
                if Local (Parent_Scope (Node)) then
+
+                  --  Case of a local interface
+
                   declare
                      Impl_U_Name : constant String
                        := Client_Stubs_Unit_Name (Mapping, Parent_Scope (Node))
@@ -2148,10 +2151,23 @@ package body Ada_Be.Idl2Ada is
 
                         end loop;
                      end;
+
+                     if not Is_Function
+                       and then Kind (Org_O_Type) /= K_Void
+                     then
+                        PL (CU, ",");
+                        II (CU);
+                        Put (CU, "Returns");
+                        DI (CU);
+                     end if;
+
                      PL (CU, ");");
                   end;
 
                else
+
+                  --  Case of a regular (non-local) interface
+
                   declare
                      Response_Expected : constant Boolean
                        := not Is_Oneway (Node);
