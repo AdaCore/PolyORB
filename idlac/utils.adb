@@ -32,6 +32,17 @@ package body Utils is
    -- Img --
    ---------
 
+   function Img (N : Character) return String is
+      S : String (1 .. 1);
+   begin
+      S (1) := N;
+      return S;
+   end Img;
+
+   ---------
+   -- Img --
+   ---------
+
    function Img (N : Long_Long_Integer) return String is
       S : constant String := Long_Long_Integer'Image (N);
    begin

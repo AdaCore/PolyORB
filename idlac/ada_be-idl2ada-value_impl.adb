@@ -31,8 +31,6 @@ with Idl_Fe.Tree.Synthetic;           use Idl_Fe.Tree.Synthetic;
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
 
-with Errors;                use Errors;
-
 with Ada_Be.Idl2Ada.Impl;
 
 package body Ada_Be.Idl2Ada.Value_Impl is
@@ -133,10 +131,7 @@ package body Ada_Be.Idl2Ada.Value_Impl is
             null;
 
          when others =>
-            Error
-              (Node_Kind'Image (Kind (Node))
-               & " should not generate code in package .Value_Impl",
-               Fatal, Get_Location (Node));
+            null;
       end case;
    end Gen_Node_Spec;
 

@@ -123,6 +123,9 @@ package Idl_Fe.Tree.Synthetic is
    function Integer_Value
      (Node : Node_Id)
      return Integer;
+   function Character_Value
+     (Node : Node_Id)
+     return Character;
    function Float_Value
      (Node : Node_Id)
      return Long_Long_Float;
@@ -139,7 +142,7 @@ package Idl_Fe.Tree.Synthetic is
      (Node : Node_Id)
      return Node_Id;
    --  Return the value of a constant expression
-   --  node as an {integer,string,boolean,enumerator}.
+   --  node as an {integer,char,string,boolean,enumerator}.
 
    procedure Set_String_Value
      (Node : Node_Id;

@@ -2301,6 +2301,7 @@ package body Ada_Be.Idl2Ada.Helper is
             --          K_Forward_ValueType |
          when
            K_Sequence_Instance |
+           K_String_Instance   |
            K_Enum              |
            K_Union             |
            K_Struct            |

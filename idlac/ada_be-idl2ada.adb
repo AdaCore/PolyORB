@@ -2105,6 +2105,9 @@ package body Ada_Be.Idl2Ada is
          when K_Lit_String =>
             Put (CU, String_Value (Node));
 
+         when K_Lit_Character =>
+            Put (CU, Img (Character_Value (Node)));
+
          when K_Lit_Integer =>
             Put (CU, Img (Integer_Value (Node)));
 
