@@ -75,6 +75,7 @@ Features
 
     - Debian GNU/Linux 2.2 (Potato) on Intel and Sparc
     - FreeBSD 4.0 and 5.0-CURRENT
+    _ HP/UX 10.20 (client without tasking)
     - Solaris 2.5.1, 2.6 and 2.7 on Sparc
 
 - If you need to debug AdaBroker, you can create a file broca.opt in
