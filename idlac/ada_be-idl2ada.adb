@@ -2577,10 +2577,19 @@ package body Ada_Be.Idl2Ada is
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
+               PL (CU, "if Val'Valid then");
+               II (CU);
                PL (CU, "Marshall");
                PL (CU, "  (Buffer,");
                PL (CU, "   CORBA.Unsigned_Long ("
-                         & E_Name & "'Pos (Val)));");
+                   & E_Name & "'Pos (Val)));");
+               DI (CU);
+               PL (CU, "else");
+               II (CU);
+               PL (CU, "Marshall");
+               PL (CU, "  (Buffer,");
+               PL (CU, "   CORBA.Unsigned_Long'(0));");
+               PL (CU, "end if;");
                DI (CU);
                PL (CU, "end Marshall;");
 

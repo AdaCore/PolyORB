@@ -37,6 +37,9 @@ with Broca.POA;
 with Broca.Stream;
 
 package Broca.Server is
+
+   pragma Elaborate_Body;
+
    --  Log.
    --  This is displayed/stored only if broca.flags.log is true.
    procedure Log (S : String);

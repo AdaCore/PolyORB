@@ -32,29 +32,34 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-
-with Broca.Buffers; use Broca.Buffers;
-with CORBA; use CORBA;
-with Broca.CDR;
-with Broca.IOP;
-with Broca.IIOP;
-with Sockets.Thin; use Sockets.Thin;
-with Sockets.Constants; use Sockets.Constants;
+with Ada.Text_IO;
 with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings;
-with Broca.Exceptions;
-with Broca.GIOP;
+
+with GNAT.OS_Lib;
+
+with Sockets.Thin; use Sockets.Thin;
+with Sockets.Constants; use Sockets.Constants;
+
+with CORBA; use CORBA;
+pragma Elaborate_All (CORBA);
+
+with Broca.Buffers; use Broca.Buffers;
+with Broca.CDR;
 with Broca.Stream; use Broca.Stream;
+with Broca.IOP;
+with Broca.GIOP;
+with Broca.IIOP;
+
 with Broca.Flags;
 with Broca.Server;
 with Broca.Sequences;
-with Ada.Text_IO;
-pragma Elaborate_All (Broca.Exceptions);
-pragma Elaborate_All (Broca.Server);
-pragma Elaborate_All (CORBA);
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
+
+with Broca.Exceptions;
+pragma Elaborate_All (Broca.Exceptions);
 
 package body Broca.Inet_Server is
 
@@ -563,7 +568,11 @@ package body Broca.Inet_Server is
             end if;
          end loop;
 
-         Res := C_Poll (A_Job.Poll_Set'Address, A_Job.Poll_Set'Length, -1);
+         loop
+            Res := C_Poll (A_Job.Poll_Set'Address, A_Job.Poll_Set'Length, -1);
+            exit when not (Res = -1 and then GNAT.OS_Lib.Errno = Eintr);
+         end loop;
+
          pragma Debug (O ("poll returned " & Res'Img));
          for I in 1 .. A_Job.Poll_Set'Length loop
             if A_Job.Poll_Set (I).Revents > 0 then
