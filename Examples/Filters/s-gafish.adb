@@ -2,7 +2,6 @@ with Ada.Streams; use Ada.Streams;
 with Ada.Numerics.Discrete_Random;
 
 with System.Garlic.Debug;   use System.Garlic.Debug;
-with System.Garlic.Heart;   use System.Garlic.Heart;
 with System.Garlic.Filters;
 pragma Elaborate (System.Garlic.Filters);
 with System.Garlic.Streams; use System.Garlic.Streams;
@@ -36,6 +35,7 @@ package body System.Garlic.Filters.Shift is
       Offset : in Stream_Element_Offset)
       return Stream_Element_Access
    is
+      pragma Unreferenced (Filter);
       Shift_Params  : Shift_Filter_Params_Type;
       Target_Buffer : Stream_Element_Access;
 
@@ -69,7 +69,9 @@ package body System.Garlic.Filters.Shift is
      (Filter : in     Shift_Filter_Type;
       Params : in     Filter_Params_Access;
       Stream : access System.Garlic.Streams.Params_Stream_Type)
-      return Stream_Element_Access is
+     return Stream_Element_Access
+   is
+      pragma Unreferenced (Filter);
       Shift_Params  : Shift_Filter_Params_Type;
       Target_Buffer : Stream_Element_Access;
 
@@ -99,7 +101,9 @@ package body System.Garlic.Filters.Shift is
    function Filter_Params_Read
      (Filter : Shift_Filter_Type;
       Stream : Ada.Streams.Stream_Element_Array)
-      return Filter_Params_Access is
+     return Filter_Params_Access
+   is
+      pragma Unreferenced (Filter);
    begin
       D ("Read filter params" & Stream (Stream'First)'Img);
       return new Shift_Filter_Params_Type'(Times => Stream (Stream'First));
@@ -112,7 +116,9 @@ package body System.Garlic.Filters.Shift is
    function Filter_Params_Write
      (Filter : Shift_Filter_Type;
       Params : Filter_Params_Access) return
-      Streams.Stream_Element_Access is
+     Streams.Stream_Element_Access
+   is
+      pragma Unreferenced (Filter);
       Shift_Filter_Params : Shift_Filter_Params_Type;
 
    begin
@@ -129,11 +135,12 @@ package body System.Garlic.Filters.Shift is
      (Filter          : in Shift_Filter_Type;
       Public_Params   : out Filter_Params_Access;
       Private_Params  : out Filter_Params_Access;
-      Exchange_Params : out Boolean) is
+      Exchange_Params : out Boolean)
+   is
+      pragma Unreferenced (Filter);
       Element : Stream_Element;
 
    begin
-      Wait_For_My_Partition_ID;
       for I in 1 .. Self_PID loop
          Element := Shift_Filter_Params.Random (Generator);
       end loop;

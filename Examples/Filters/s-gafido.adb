@@ -17,7 +17,10 @@ package body System.Garlic.Filters.Double is
      (Filter : in     New_Filter_Type;
       Params : in     Filter_Params_Access;
       Stream : access System.Garlic.Streams.Params_Stream_Type)
-      return Stream_Element_Access is
+      return Stream_Element_Access
+   is
+      pragma Unreferenced (Filter);
+      pragma Unreferenced (Params);
       R : Stream_Element_Access  := To_Stream_Element_Access (Stream);
       D : Stream_Element_Access  := new Stream_Element_Array'(R.all & R.all);
    begin
@@ -39,6 +42,8 @@ package body System.Garlic.Filters.Double is
       Offset : in Stream_Element_Offset)
       return Stream_Element_Access
    is
+      pragma Unreferenced (Filter);
+      pragma Unreferenced (Params);
       F : constant Stream_Element_Offset := Stream'First + Offset;
       L : constant Stream_Element_Offset := Stream'Last;
       R : Stream_Element_Access := new Stream_Element_Array'(Stream (F .. L));
@@ -57,7 +62,9 @@ package body System.Garlic.Filters.Double is
      (Filter          : in  New_Filter_Type;
       Public_Params   : out Filter_Params_Access;
       Private_Params  : out Filter_Params_Access;
-      Exchange_Params : out Boolean) is
+      Exchange_Params : out Boolean)
+   is
+      pragma Unreferenced (Filter);
    begin
       Public_Params   := null;
       Private_Params  := null;
@@ -71,7 +78,10 @@ package body System.Garlic.Filters.Double is
    function Filter_Params_Read
      (Filter : New_Filter_Type;
       Stream : Ada.Streams.Stream_Element_Array)
-      return Filter_Params_Access is
+     return Filter_Params_Access
+   is
+      pragma Unreferenced (Filter);
+      pragma Unreferenced (Stream);
    begin
       return null;
    end Filter_Params_Read;
@@ -82,8 +92,11 @@ package body System.Garlic.Filters.Double is
 
    function Filter_Params_Write
      (Filter : New_Filter_Type;
-      Params : Filter_Params_Access) return
-      Streams.Stream_Element_Access is
+      Params : Filter_Params_Access)
+     return Streams.Stream_Element_Access
+   is
+      pragma Unreferenced (Filter);
+      pragma Unreferenced (Params);
    begin
       return null;
    end Filter_Params_Write;

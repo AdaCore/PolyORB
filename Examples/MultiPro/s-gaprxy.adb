@@ -50,9 +50,6 @@ with System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
 with System.Garlic.Table;
 with System.Garlic.Types;                 use System.Garlic.Types;
-with System.Garlic.Utils;                 use System.Garlic.Utils;
-
-with System.Storage_Elements;             use System.Storage_Elements;
 
 package body System.Garlic.Protocols.Xyz is
 
@@ -115,9 +112,6 @@ package body System.Garlic.Protocols.Xyz is
 
    Banner_Size : constant := 4;
    --  Size of a header when it is encoded as a stream
-
-   subtype Banner_Stream is Stream_Element_Array (1 .. Banner_Size);
-   --  Constrained subtype for headers
 
    procedure Read_Banner
      (Peer   : in Socket_Type;
@@ -267,6 +261,8 @@ package body System.Garlic.Protocols.Xyz is
      (Protocol : access XYZ_Protocol;
       Error    : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
+      pragma Unreferenced (Error);
    begin
       if Activated then
          return;
@@ -394,16 +390,17 @@ package body System.Garlic.Protocols.Xyz is
 
    function Get_Data
      (Protocol : access XYZ_Protocol)
-     return String_Array_Access
+     return String_List_Access
    is
-      Result : String_Array_Access;
+      pragma Unreferenced (Protocol);
+      Result : String_List_Access;
    begin
       if Options.Is_Pure_Client
         or else Last_Incoming = Null_Incoming
       then
          return null;
       end if;
-      Result := new String_Array (First_Incoming .. Last_Incoming);
+      Result := new String_List (First_Incoming .. Last_Incoming);
       for I in Result'Range loop
          Result (I) := new String'(Image (Incomings (I).Sock_Addr));
       end loop;
@@ -416,7 +413,9 @@ package body System.Garlic.Protocols.Xyz is
 
    function Get_Name
      (Protocol : access XYZ_Protocol)
-     return String is
+     return String
+   is
+      pragma Unreferenced (Protocol);
    begin
       return "xyz";
    end Get_Name;
@@ -432,6 +431,7 @@ package body System.Garlic.Protocols.Xyz is
       Performed : out Boolean;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
       Host  : constant Sock_Addr_Type := Value (Host_Name);
       Self  : Socket_Info := Null_Socket_Info;
       Index : Natural;
@@ -647,6 +647,7 @@ package body System.Garlic.Protocols.Xyz is
       Timeout   : Duration)
      return Boolean
    is
+      pragma Unreferenced (Protocol);
       RSet     : Socket_Set_Type;
       WSet     : Socket_Set_Type;
       Info     : Socket_Info;
@@ -902,6 +903,7 @@ package body System.Garlic.Protocols.Xyz is
       Data      : access Stream_Element_Array;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
       Info     : Socket_Info;
       Hits     : Natural := 1;
       First    : Stream_Element_Count := Data'First + Unused_Space;
@@ -1044,7 +1046,10 @@ package body System.Garlic.Protocols.Xyz is
    procedure Set_Boot_Data
      (Protocol  : access XYZ_Protocol;
       Boot_Data : in String;
-      Error     : in out Error_Type) is
+      Error     : in out Error_Type)
+   is
+      pragma Unreferenced (Protocol);
+      pragma Unreferenced (Error);
    begin
       if not Initialized then
          pragma Debug (D ("Initialize protocol xyz"));
@@ -1083,6 +1088,7 @@ package body System.Garlic.Protocols.Xyz is
    procedure Shutdown
      (Protocol : access XYZ_Protocol)
    is
+      pragma Unreferenced (Protocol);
       Count   : Natural;
       Socket  : Socket_Type;
       Info    : Socket_Info;

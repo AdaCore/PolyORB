@@ -36,9 +36,10 @@
 with Ada.Streams;
 
 with System.Garlic.Exceptions;
-with GNAT.Sockets;
 with System.Garlic.Types;
-with System.Garlic.Utils;
+
+with GNAT.Sockets;
+with GNAT.Strings;
 
 package System.Garlic.Protocols.Xyz is
 
@@ -54,7 +55,7 @@ package System.Garlic.Protocols.Xyz is
 
    function Get_Data
      (Protocol  : access XYZ_Protocol)
-     return Utils.String_Array_Access;
+     return GNAT.Strings.String_List_Access;
 
    function Get_Name
      (Protocol : access XYZ_Protocol)
