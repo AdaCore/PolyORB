@@ -12,8 +12,8 @@
 #
 # Current version
 #
-glade_version='1.03'
-gnat_version='3.10'
+glade_version='1.04b'
+gnat_version='3.10b'
 
 #
 # files hold the list of files in which substitutions will occur
