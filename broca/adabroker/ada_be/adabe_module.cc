@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.11 $
+//                            $Revision: 1.12 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -429,8 +429,8 @@ adabe_module::produce_stream_ads (dep_list & withlist,
 
 	    dynamic_cast<adabe_name *>(d)->produce_stream_ads
 	      (withlist,
-	       maincode,
-	       prologue);
+	       entity_maincode,
+	       entity_prologue);
 
 	    if (entity_maincode != "") first = false;
 
