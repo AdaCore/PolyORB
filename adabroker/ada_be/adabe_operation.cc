@@ -589,6 +589,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   string unmarshall = "";
   string call_args = "";
   string marshall = "";
+  string align_size = "" ;
   bool no_in = true;
   bool no_out = true;
   
@@ -598,7 +599,14 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_argument)
-	 dynamic_cast<adabe_argument *>(d)->produce_skel_adb(with, in_decls , no_in, no_out, unmarshall, call_args, marshall);
+	 dynamic_cast<adabe_argument *>(d)->produce_skel_adb(with,
+							     in_decls ,
+							     no_in,
+							     no_out,
+							     unmarshall,
+							     call_args,
+							     marshall,
+							     align_size);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
@@ -648,7 +656,8 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
 
   body += "            -- compute the size of the replied message\n";
   body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
-  if ((!no_out) || (is_function())) {
+  body += align_size ;
+  if (!return_is_void()) {
     body += "            Mesg_Size := Align_Size (Returns, Mesg_Size) ;\n";
   }
   body += "            -- Initialisation of the reply\n";
@@ -657,7 +666,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   body += "            -- Marshall the arguments\n";
   body += marshall;
 
-  if (is_function())
+  if (!return_is_void())
     body += "            Marshall (Returns, Orls) ;\n";
   
 

@@ -451,7 +451,12 @@ public:
 			   string &unmarshall_decls,
 			   string &unmarshall, string &finalize,
 			   string &out_args, string &result_decls);
-  void produce_skel_adb(dep_list &with, string &in_decls , bool &no_in, bool no_out, string &unmarshall, string &call_args, string &marshall);
+  void produce_skel_adb(dep_list &with,	string &in_decls ,
+			bool &no_in, bool no_out,
+			string &unmarshall,
+			string &call_args,
+			string &marshall,
+			string &align_size);
 };
 
 

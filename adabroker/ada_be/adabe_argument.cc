@@ -210,7 +210,7 @@ void
 adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
 				 bool &no_in, bool no_out,
 				 string &unmarshall, string &call_args,
-				 string &marshall)
+				 string &marshall, string &align_size)
 {
   string previous = "";
   AST_Decl *d = field_type();
@@ -235,12 +235,16 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
   call_args += ", ";
   call_args += get_ada_local_name ();
 
-  if ((direction() == AST_Argument::dir_OUT) || (direction() == AST_Argument::dir_INOUT))
+  if ((direction() == AST_Argument::dir_OUT)
+      || (direction() == AST_Argument::dir_INOUT))
     {
       no_out = false;
       marshall += "            Marshall(";
       marshall += get_ada_local_name ();
       marshall += ", Orls) ;\n";
+      align_size += "            Mesg_Size := Align_Size(" ;
+      align_size += get_ada_local_name() ;
+      align_size += ", Mesg_Size) ;\n" ;
     }      
 }
 
