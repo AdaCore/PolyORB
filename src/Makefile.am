@@ -20,6 +20,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-binding_data-local.ads \
 		polyorb-binding_data-srp.ads \
 		polyorb-buffers.ads \
+		polyorb-call_back.ads \
 		polyorb-components.ads \
 		polyorb-configuration.ads \
 		polyorb-dynamic_dict.ads \
