@@ -330,58 +330,55 @@ package body Broca.Rootpoa is
                             Current_POA);
    end Set_Attributes_Value;
 
-   type Cell_State_Type is (Free, Reserved, Active, To_Be_Destroyed);
-   --  A servant_cell_type is in fact an object map entry.
-   --  FIXME: change name.
-   type Servant_Cell_Type is
-      record
-         --  SKELETON must not be null when state is active.
-         Skeleton : Broca.POA.Skeleton_Ptr;
+   type Object_Map_Entry_State is (Free, Reserved, Active, To_Be_Destroyed);
+   type Rw_Lock_Ptr is access Broca.Locks.Rw_Lock_Type;
 
-         --  State of the entry.
-         State : Cell_State_Type := Free;
+   type Object_Map_Entry is record
+      State : Object_Map_Entry_State := Free;
+      --  State of the entry.
 
-         --  Date.
-         --  Changed each time the entry becomes free, so that dangling IOR
-         --  are not valid.
-         Date : Natural := 0;
+      Skeleton : Broca.POA.Skeleton_Ptr;
+      --  SKELETON must not be null when state is active.
 
-         --  Number of requests to this object.  Used for etherealize.
-         Requests_Lock : Broca.Locks.Rw_Lock_Type;
-      end record;
+      Date : Natural := 0;
+      --  Date.
+      --  Changed each time the entry becomes free, so that dangling IOR
+      --  are not valid.
+
+      Requests_Lock : Rw_Lock_Ptr := null;
+      --  Number of requests to this object.  Used for etherealize.
+   end record;
 
    type Slot_Index_Type is new CORBA.Unsigned_Long;
    Bad_Slot_Index : constant Slot_Index_Type := -1;
-   type Servant_Cell_Ptr is access Servant_Cell_Type;
-   type Servant_Cell_Ptr_Array is array (Slot_Index_Type range <>)
-     of Servant_Cell_Ptr;
-   type Servant_Cell_Ptr_Array_Ptr is access Servant_Cell_Ptr_Array;
+   type Object_Map_Type is array (Slot_Index_Type range <>)
+     of Object_Map_Entry;
+   type Object_Map_Ptr is access Object_Map_Type;
 
-   type Object is new Broca.POA.POA_Object with
-      record
-         --  Lock for serialization of requests to incarnate/etherealize.
-         Servant_Lock : Broca.Locks.Mutex_Type;
+   type Object is new Broca.POA.POA_Object with record
+      Servant_Lock : Broca.Locks.Mutex_Type;
+      --  Lock for serialization of requests to incarnate/etherealize.
 
-         --  Number of current requests.
-         --  The lock is used to count the number of requests (R) or to prevent
-         --  any new requests (W).
-         --  This is used only for single_thread_model policy.
-         Requests_Lock : Broca.Locks.Rw_Lock_Type;
+      Requests_Lock : Broca.Locks.Rw_Lock_Type;
+      --  Number of current requests.
+      --  The lock is used to count the number of requests (R) or to prevent
+      --  any new requests (W).
+      --  This is used only for single_thread_model policy.
 
-         --  The object map.
-         --  It is valid only if the servant retention policy is RETAIN.
-         Object_Map : Servant_Cell_Ptr_Array_Ptr := null;
+      Object_Map : Object_Map_Ptr := null;
+      --  The object map.
+      --  It is valid only if the servant retention policy is RETAIN.
 
-         --  Only used if NON_RETAIN and SYSTEM_ID to allocate uniq oid.
-         Last_Slot : Slot_Index_Type := Bad_Slot_Index;
+      Last_Slot : Slot_Index_Type := Bad_Slot_Index;
+      --  Only used if NON_RETAIN and SYSTEM_ID to allocate uniq oid.
 
-         --  The map can always be read, but protected against multiple
-         --  write accesses by the lock.
-         --  FIXME: this is a kludge.
-         --  To be true, OBJECT_MAP must be atomic, but it isn't since it is
-         --  a fat pointer.
-         Map_Lock : Broca.Locks.Mutex_Type;
-      end record;
+      Map_Lock : Broca.Locks.Mutex_Type;
+      --  The map can always be read, but protected against multiple
+      --  write accesses by the lock.
+      --  FIXME: this is a kludge.
+      --  To be true, OBJECT_MAP must be atomic, but it isn't since it is
+      --  a fat pointer.
+   end record;
 
    type Object_Ptr is access all Object;
 
@@ -469,7 +466,7 @@ package body Broca.Rootpoa is
      (Source => Objectid_Type, Target => Slot_Index_Type);
 
    procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
-     (Object => Servant_Cell_Ptr_Array, Name => Servant_Cell_Ptr_Array_Ptr);
+     (Object => Object_Map_Type, Name => Object_Map_Ptr);
 
    --  Disable "should be in package spec" warning.
    pragma Warnings (Off);
@@ -501,29 +498,16 @@ package body Broca.Rootpoa is
    procedure Set_Cleanup_Call_Back (Self : access Object);
    pragma Warnings (On);
 
-   function Slot_By_Object_Id (Self : access Object; Name : ObjectId)
-     return Slot_Index_Type is
-   begin
-      if Self.Object_Map /= null then
-         for I in Self.Object_Map.all'Range loop
-            if Self.Object_Map (I).Skeleton /= null
-              and then Self.Object_Map (I).Skeleton.Object_Id = Name
-            then
-               return I;
-            end if;
-         end loop;
-      end if;
-      return Bad_Slot_Index;
-   end Slot_By_Object_Id;
-
-   function Nbr_Slots_For_Servant (Self : access Object; P_Servant : Servant)
+   function Nbr_Slots_For_Servant
+     (Self : access Object;
+      P_Servant : Servant)
      return Natural
    is
       Res : Natural := 0;
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if Self.Object_Map (I) /= null
+            if True
               and then Self.Object_Map (I).Skeleton /= null
               and then Self.Object_Map (I).Skeleton.P_Servant = P_Servant
             then
@@ -533,6 +517,28 @@ package body Broca.Rootpoa is
       end if;
       return Res;
    end Nbr_Slots_For_Servant;
+
+   -----------------------
+   -- Slot_By_Object_Id --
+   -----------------------
+
+   function Slot_By_Object_Id
+     (Self : access Object;
+      Name : ObjectId)
+     return Slot_Index_Type is
+   begin
+      if Self.Object_Map /= null then
+         for I in Self.Object_Map.all'Range loop
+            if True
+              and then Self.Object_Map (I).Skeleton /= null
+              and then Self.Object_Map (I).Skeleton.Object_Id = Name
+            then
+               return I;
+            end if;
+         end loop;
+      end if;
+      return Bad_Slot_Index;
+   end Slot_By_Object_Id;
 
    ---------------------
    -- Slot_By_Servant --
@@ -545,7 +551,7 @@ package body Broca.Rootpoa is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if Self.Object_Map (I) /= null
+            if True
               and then Self.Object_Map (I).Skeleton /= null
               and then Self.Object_Map (I).Skeleton.P_Servant = P_Servant
             then
@@ -556,15 +562,19 @@ package body Broca.Rootpoa is
       return Bad_Slot_Index;
    end Slot_By_Servant;
 
+   ----------------------
+   -- Slot_By_Skeleton --
+   ----------------------
+
    function Slot_By_Skeleton
-     (Self : access Object; Skeleton : Broca.POA.Skeleton_Ptr)
+     (Self : access Object;
+      Skeleton : Broca.POA.Skeleton_Ptr)
       return Slot_Index_Type is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if Self.Object_Map (I) /= null
-              and then Self.Object_Map (I).Skeleton = Skeleton
-            then
+            if True
+              and then Self.Object_Map (I).Skeleton = Skeleton then
                return I;
             end if;
          end loop;
@@ -572,16 +582,14 @@ package body Broca.Rootpoa is
       return Bad_Slot_Index;
    end Slot_By_Skeleton;
 
-   -------------------
+   --------------------
    -- Reserve_A_Slot --
-   -------------------
+   --------------------
 
    function Reserve_A_Slot
      (Self : access Object)
      return Slot_Index_Type
    is
-      New_Object_Map : Servant_Cell_Ptr_Array_Ptr;
-      Old_Object_Map : Servant_Cell_Ptr_Array_Ptr;
       Slot           : Slot_Index_Type;
       Found          : Boolean;
    begin
@@ -595,32 +603,45 @@ package body Broca.Rootpoa is
          when RETAIN =>
             --  Find a slot.
             if Self.Object_Map = null then
-               Self.Object_Map := new Servant_Cell_Ptr_Array'(1 .. 8 => null);
+               pragma Debug (O ("Allocated inital active object map."));
+               Self.Object_Map := new Object_Map_Type (1 .. 8);
+
+               for I in Self.Object_Map.all'Range loop
+                  Self.Object_Map (I).Requests_Lock
+                    := new Broca.Locks.Rw_Lock_Type;
+               end loop;
+
                Slot := 1;
             else
                Found := False;
                for I in Self.Object_Map.all'Range loop
-                  if Self.Object_Map (I) = null
-                    or else Self.Object_Map (I).State = Free
-                  then
+                  if Self.Object_Map (I).State = Free then
                      Slot  := I;
                      Found := True;
                      exit;
                   end if;
                end loop;
+
                if not Found then
-                  New_Object_Map := new Servant_Cell_Ptr_Array'
-                    (1 .. 2 * Self.Object_Map.all'Last => null);
-                  Slot := Self.Object_Map.all'Last + 1;
-                  New_Object_Map (Self.Object_Map.all'Range) :=
-                    Self.Object_Map.all;
-                  Old_Object_Map := Self.Object_Map;
-                  Self.Object_Map := New_Object_Map;
-                  Unchecked_Deallocation (Old_Object_Map);
+                  declare
+                     --  FIXME: Memory leak.
+                     --  The object map is never shrunk.
+                     New_Object_Map : constant Object_Map_Ptr
+                       := new Object_Map_Type
+                       (1 .. 2 * Self.Object_Map.all'Last);
+                  begin
+                     Slot := Self.Object_Map.all'Last + 1;
+                     New_Object_Map (Self.Object_Map.all'Range)
+                       := Self.Object_Map (Self.Object_Map.all'Range);
+                     for I in Self.Object_Map.all'Last + 1
+                       .. New_Object_Map.all'Last loop
+                        New_Object_Map (I).Requests_Lock
+                          := new Broca.Locks.Rw_Lock_Type;
+                     end loop;
+                     Unchecked_Deallocation (Self.Object_Map);
+                     Self.Object_Map := New_Object_Map;
+                  end;
                end if;
-            end if;
-            if Self.Object_Map (Slot) = null then
-               Self.Object_Map (Slot) := new Servant_Cell_Type;
             end if;
             Self.Object_Map (Slot).State := Reserved;
       end case;
@@ -1225,7 +1246,8 @@ package body Broca.Rootpoa is
 
       begin
          if Self.Servant_Policy = RETAIN then
-            pragma Debug (O ("GIOP_Invoke: RETAIN policy"));
+            pragma Debug (O ("GIOP_Invoke: RETAIN policy, Slot = "
+                             & Slot'Img));
             Self.Object_Map (Slot).Requests_Lock.Lock_R;
             pragma Debug (O ("GIOP_Invoke: Got Read lock on request (2)."));
          end if;
