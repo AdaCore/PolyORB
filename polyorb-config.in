@@ -15,15 +15,18 @@ polyorb_lib="@XMLADA_LIBS@ -L${libdir}"
 for P in $appli
 do
  polyorb_dir="$polyorb_dir -I${includedir}/polyorb/${P}"
+ polyorb_lib="$polyorb_lib -lpolyorb-${P}"
 done
 
 for P in $proto
 do
  if [ "x$P" = "xgiop" ]
  then
-   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/giop -I${includedir}/polyorb/giop/iiop -I${includedir}/polyorb/giop/diop -I${includedir}/polyorb/giop/miop"
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/giop -I${includedir}/polyorb/giop/diop -I${includedir}/polyorb/giop/iiop -I${includedir}/polyorb/giop/miop"
+   polyorb_lib="$polyorb_lib -lpolyorb-giop -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"  
  else
    polyorb_dir="$polyorb_dir -I${includedir}/polyorb/${P}"
+   polyorb_lib="$polyorb_lib -lpolyorb-${P}"
  fi
 done
 
