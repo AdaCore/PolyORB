@@ -50,9 +50,6 @@ with System.Garlic.Utils;             use System.Garlic.Utils;
 
 package body System.Garlic.Remote is
 
-   package C renames Interfaces.C;
-   --  Shortcuts
-
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARREM", "(s-garrem): ");
 
