@@ -36,7 +36,7 @@
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;
-with System.Garlic.Storage_Handling;
+--  with System.Garlic.Storage_Handling;
 
 package System.Garlic.Streams is
 
@@ -78,14 +78,18 @@ package System.Garlic.Streams is
    pragma Inline (Read);
    pragma Inline (Write);
 
-   package Streams_Pools is new Storage_Handling
-     (Max_Objects        => 16,
-      Static_Object_Size => 16_384);
+   --  ??? Code for storage pools has been commented out at this stage since
+   --  it causes problem because of the combination of soft-links and
+   --  elaboration order. See comments in s-gastha.adb.
 
-   Streams_Pool : Streams_Pools.Garlic_Storage_Pool;
+--    package Streams_Pools is new Storage_Handling
+--      (Max_Objects        => 16,
+--       Static_Object_Size => 16_384);
+
+--    Streams_Pool : Streams_Pools.Garlic_Storage_Pool;
 
    type Stream_Element_Access is access Ada.Streams.Stream_Element_Array;
-   for Stream_Element_Access'Storage_Pool use Streams_Pool;
+--   for Stream_Element_Access'Storage_Pool use Streams_Pool;
 
    procedure Copy
      (Source : in Params_Stream_Type;

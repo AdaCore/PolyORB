@@ -157,7 +157,8 @@ package body System.Garlic.Streams is
 
    procedure Initialize is
    begin
-      Streams_Pools.Initialize;
+      null;
+--       Streams_Pools.Initialize;
    end Initialize;
 
    ------------
