@@ -194,6 +194,15 @@ package body Droopi.Protocols.SRP is
       return Result;
    end Split;
 
+   --  Same as above, but takes a CORBA.Any as an input parameter
+   function Split (Data : CORBA.Any) return Split_SRP;
+   function Split (Data : CORBA.Any) return Split_SRP
+   is
+   begin
+      return Split (CORBA.To_Standard_String
+                    (CORBA.From_Any (Data)));
+   end Split;
+
    --  procedure Free (SA : in out String_Array);
    --  procedure Free (SA : in out String_Array) is
    --  begin
@@ -216,8 +225,16 @@ package body Droopi.Protocols.SRP is
       pragma Debug (Buffers.Show (S.Buffer.all));
 
       declare
+         --  Argv : Split_SRP
+         --    := Split (Unmarshall_String (Rep.all, S.Buffer));
+
+         --  Argv : Split_SRP
+         --    := Split (CORBA.To_Standard_String
+         --         (CORBA.From_Any (Unmarshall_To_Any (Rep.all, S.Buffer))));
+
          Argv : Split_SRP
-           := Split (Unmarshall_String (Rep.all, S.Buffer));
+           := Split (Unmarshall_To_Any (Rep.all, S.Buffer));
+
 
          Method     : constant String := Argv.Method.all;
          Oid        : constant Object_Id := Argv.Oid.all;

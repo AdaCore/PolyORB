@@ -31,6 +31,7 @@ package Droopi.Representations.SRP is
 
    -----------------------------------
 
+   function Encode_URL (Str : in String) return String;
 
    procedure Marshall_From_Any
      (R      : Rep_SRP;
@@ -66,6 +67,10 @@ package Droopi.Representations.SRP is
       B : access Buffer_Type)
      return String;
    --  Unmarshall a string terminated by a CR/LF sequence.
+
+   function Unmarshall_To_Any
+     (R      : Rep_SRP;
+      Buffer : access Buffers.Buffer_Type) return CORBA.Any;
 
 private
 
