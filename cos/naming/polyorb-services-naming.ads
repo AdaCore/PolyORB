@@ -34,11 +34,13 @@
 
 --  $Id$
 
-with CORBA.Forward;
-pragma Elaborate_All (CORBA.Forward);
+--  with CORBA;
+--  with CORBA.Forward;
+--  pragma Elaborate_All (CORBA.Forward);
+
 with PolyORB.Sequences.Unbounded;
 pragma Elaborate_All (PolyORB.Sequences.Unbounded);
-with CORBA;
+
 with PolyORB.Types;
 
 package PolyORB.Services.Naming is
@@ -87,6 +89,6 @@ package PolyORB.Services.Naming is
    BindingList_Repository_Id : constant Standard.String
      := "IDL:omg.org/CosNaming/BindingList:1.0";
 
-   package BindingIterator_Forward is new CORBA.Forward;
+   --  package BindingIterator_Forward is new CORBA.Forward;
 
 end PolyORB.Services.Naming;

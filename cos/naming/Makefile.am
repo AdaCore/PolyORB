@@ -10,7 +10,7 @@ PROGS= po_names test_naming_generic @APPLI_EXES@ @SERVICE_EXES@
 
 FORCE=	force
 
-TOOLS=	polyorb-corba_p-naming_tools.adb
+TOOLS=	polyorb-corba_p-naming_tools.adb polyorb-services-naming-tools.adb
 EXTRA=	$(TOOLS:.adb=.ali)
 
 COS_DIRS=../../idls/cos/naming @SERVICE_DIRS@

@@ -1055,7 +1055,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          end if;
 
          NC  := NCA (NCA'Last);
-      exception when CORBA.Bad_Param =>
+      exception when PolyORB.Exceptions.Bad_Param =>
          declare
             Member : NotFound_Members;
 

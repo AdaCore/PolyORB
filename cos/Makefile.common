@@ -37,12 +37,15 @@ CLEANFILES = b~*.* *.o *.ali
 
 DISTCLEANFILES =  $(PROGS)
 
-SUFFIXES = .idl .ads .adb
+SUFFIXES = .idl .ads .adb .ali
 
 all-local:: $(PROGS) $(EXTRA)
 
 .idl.ads .idl.adb:
 	$(IDLAC) -I$(srcdir) $<
+
+.adb.ali:
+	$(GNATMAKE_FOR_TARGET) -c $< $(GNATMAKE_FLAGS)
 
 .PHONY: force
 

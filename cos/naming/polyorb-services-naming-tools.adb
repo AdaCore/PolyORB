@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . C O R B A _ P . N A M I N G _ T O O L S          --
+--         P O L Y O R . S E R V I C E S . N A M I N G . T O O L S          --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2001 Free Software Fundation              --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,19 +37,33 @@ with PolyORB.References.IOR;
 with PolyORB.Services.Naming.NamingContext.Client;
 with PolyORB.Services.Naming.NamingContext.Helper;
 
-package body PolyOR.Services.Naming_Tools is
+package body PolyORB.Services.Naming.Tools is
 
    use PolyORB.Services.Naming.NamingContext.Helper;
    use PolyORB.Services.Naming.NamingContext.Client;
+   use PolyORB.Services.Naming.NamingContext;
 
    subtype NameComponent_Array is
-     CosNaming.IDL_SEQUENCE_CosNaming_NameComponent.Element_Array;
+     PolyORB.Services.Naming.SEQUENCE_NameComponent.Element_Array;
+
+   RNS  : PolyORB.Services.Naming.NamingContext.Ref;
+   --  Reference to the Naming Service in use.
+   --  XXX use a mechanism similar to Resolve_Initial_References.
 
    function Retrieve_Context
-     (Name   : in CosNaming.Name)
-     return Ref;
+     (Name   : in PolyORB.Services.Naming.Name)
+     return PolyORB.Services.Naming.NamingContext.Ref;
    --  Return a CosNaming.NamingContext.Ref that designates the
    --  NamingContext registered as Name.
+
+   ----------
+   -- Init --
+   ----------
+
+   procedure Init (Ref : PolyORB.References.Ref) is
+   begin
+      RNS := To_Ref (Ref);
+   end Init;
 
    --------------
    -- Finalize --
@@ -57,7 +71,7 @@ package body PolyOR.Services.Naming_Tools is
 
    procedure Finalize (Guard : in out Server_Guard) is
       Name : constant String
-        := PolyORB.Types..To_Standard_String (Guard.Name);
+        := PolyORB.Types.To_Standard_String (Guard.Name);
    begin
       if Name /= "" then
          Unregister (Name);
@@ -68,16 +82,12 @@ package body PolyOR.Services.Naming_Tools is
    -- Locate --
    ------------
 
-   --  function Locate
-   --    (Name : PolyORB.Services.Naming.Name)
-   --    return CORBA.Object.Ref
-   --  is
-   --     RNS  : constant NamingContext.Ref :=
-   --       To_Ref (CORBA.ORB.Resolve_Initial_References
-   --               (CORBA.ORB.To_CORBA_String ("NamingService")));
-   --  begin
-   --     return resolve (RNS, Name);
-   --  end Locate;
+   function Locate
+     (Name : PolyORB.Services.Naming.Name)
+     return PolyORB.References.Ref is
+   begin
+      return Resolve (RNS, Name);
+   end Locate;
 
    ------------
    -- Locate --
@@ -99,18 +109,14 @@ package body PolyOR.Services.Naming_Tools is
    function Locate
      (IOR_Or_Name : String;
       Sep : Character := '/')
-     return PolyORB.References.Ref 
+     return PolyORB.References.Ref
    is
       use PolyORB.References.IOR;
 
    begin
       if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
-         declare
-            Obj : PolyORB.References.Ref;
-         begin
-            CORBA.ORB.
-            return String_To_Object (PolyORB.Types.To_PolyORB_String (IOR_Or_Name);
-         end;
+         return String_To_Object
+           (PolyORB.Types.To_PolyORB_String (IOR_Or_Name));
       end if;
 
       return Locate (Parse_Name (IOR_Or_Name, Sep));
@@ -129,11 +135,8 @@ package body PolyOR.Services.Naming_Tools is
       use PolyORB.References.IOR;
    begin
       if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
-         declare
-            Obj : CORBA.Object.Ref;
-         begin
-            return String_To_Object (PolyORB.Types.To_PolyORB_String (IOR_Or_Name));
-         end;
+         return String_To_Object
+           (PolyORB.Types.To_PolyORB_String (IOR_Or_Name));
       end if;
 
       return Locate (Context, Parse_Name (IOR_Or_Name, Sep));
@@ -145,25 +148,23 @@ package body PolyOR.Services.Naming_Tools is
 
    function Retrieve_Context
      (Name   : in PolyORB.Services.Naming.Name)
-     return Ref
+     return PolyORB.Services.Naming.NamingContext.Ref
    is
-      Cur : PolyORB.Services.NamingContext.Ref :=
-        To_Ref (CORBA.ORB.Resolve_Initial_References
-                (CORBA.ORB.To_CORBA_String ("NamingService")));
-      Ref : NamingContext.Ref;
-      N : CosNaming.Name;
+      Cur : PolyORB.Services.Naming.NamingContext.Ref := RNS;
+      Ref : PolyORB.Services.Naming.NamingContext.Ref;
+      N : PolyORB.Services.Naming.Name;
 
       NCA : constant NameComponent_Array
-        := CosNaming.To_Element_Array (Name);
+        := PolyORB.Services.Naming.To_Element_Array (Name);
 
    begin
       for I in NCA'Range loop
-         N := CosNaming.To_Sequence ((1 => NCA (I)));
+         N := PolyORB.Services.Naming.To_Sequence ((1 => NCA (I)));
          begin
-            Ref := To_Ref (resolve (Cur, N));
+            Ref := To_Ref (Resolve (Cur, N));
          exception
             when NotFound =>
-               Ref := bind_new_context (Cur, N);
+               Ref := Bind_New_Context (Cur, N);
          end;
          Cur := Ref;
       end loop;
@@ -176,30 +177,30 @@ package body PolyOR.Services.Naming_Tools is
 
    procedure Register
      (Name   : in String;
-      Ref    : in CORBA.Object.Ref;
+      Ref    : in PolyORB.References.Ref;
       Rebind : in Boolean := False;
       Sep    : in Character := '/')
    is
       Context : NamingContext.Ref;
       NCA : constant NameComponent_Array :=
-        CosNaming.To_Element_Array (Parse_Name (Name, Sep));
-      N : constant CosNaming.Name := CosNaming.To_Sequence
-        ((1 => NCA (NCA'Last)));
+        PolyORB.Services.Naming.To_Element_Array (Parse_Name (Name, Sep));
+      N : constant PolyORB.Services.Naming.Name
+        := PolyORB.Services.Naming.To_Sequence ((1 => NCA (NCA'Last)));
    begin
       if NCA'Length = 1 then
-         Context := To_Ref
-           (CORBA.ORB.Resolve_Initial_References
-            (CORBA.ORB.To_CORBA_String ("NamingService")));
+         Context := RNS;
       else
          Context := Retrieve_Context
-           (CosNaming.To_Sequence (NCA (NCA'First .. NCA'Last - 1)));
+           (PolyORB.Services.Naming.To_Sequence
+            (NCA (NCA'First .. NCA'Last - 1)));
       end if;
 
-      bind (Context, N, Ref);
+      Bind (Context, N, Ref);
    exception
       when NamingContext.AlreadyBound =>
          if Rebind then
-            NamingContext.rebind (Context, N, Ref);
+            PolyORB.Services.Naming.NamingContext.Client.Rebind
+              (Context, N, Ref);
          else
             raise;
          end if;
@@ -211,14 +212,14 @@ package body PolyOR.Services.Naming_Tools is
 
    procedure Register
      (Guard  : in out Server_Guard;
-      Name   : in String;
-      Ref    : in CORBA.Object.Ref;
+      Name   : in Standard.String;
+      Ref    : in PolyORB.References.Ref;
       Rebind : in Boolean := False;
       Sep    : in Character := '/')
    is
    begin
       Register (Name, Ref, Rebind, Sep);
-      Guard.Name := CORBA.To_CORBA_String (Name);
+      Guard.Name := PolyORB.Types.To_PolyORB_String (Name);
    end Register;
 
    ----------------
@@ -228,9 +229,9 @@ package body PolyOR.Services.Naming_Tools is
    function Parse_Name
      (Name : String;
       Sep  : Character := '/')
-     return CosNaming.Name
+     return PolyORB.Services.Naming.Name
    is
-      Result    : CosNaming.Name;
+      Result    : PolyORB.Services.Naming.Name;
       Unescaped : String (Name'Range);
       First     : Integer := Unescaped'First;
       Last      : Integer := Unescaped'First - 1;
@@ -267,9 +268,9 @@ package body PolyOR.Services.Naming_Tools is
                end if;
                Append
                  (Result, NameComponent'
-                  (Id   => To_CORBA_String
+                  (Id   => To_PolyORB_String
                    (Unescaped (First .. Last_Unescaped_Period - 1)),
-                   Kind => To_CORBA_String
+                   Kind => To_PolyORB_String
                    (Unescaped (Last_Unescaped_Period + 1 .. Last))));
                Last_Unescaped_Period := Last;
                First := Last + 1;
@@ -289,16 +290,13 @@ package body PolyOR.Services.Naming_Tools is
    procedure Unregister
      (Name   : in String)
    is
-      RNS : constant NamingContext.Ref
-        := To_Ref (CORBA.ORB.Resolve_Initial_References
-                   (CORBA.ORB.To_CORBA_String ("NamingService")));
-      N   : CosNaming.Name;
+      N   : PolyORB.Services.Naming.Name;
       NC  : NameComponent;
    begin
-      NC.kind := To_CORBA_String ("");
-      NC.id   := To_CORBA_String (Name);
+      NC.kind := To_PolyORB_String ("");
+      NC.id   := To_PolyORB_String (Name);
       Append (N, NC);
-      unbind (RNS, N);
+      Unbind (RNS, N);
    end Unregister;
 
-end PolyORB.Services.Naming_Tools;
+end PolyORB.Services.Naming.Tools;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        P O L Y O R B . S E R V I C E S . N A M I N G _ T O O L S         --
+--        P O L Y O R B . S E R V I C E S . N A M I N G . T O O L S         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -34,16 +34,21 @@
 
 with Ada.Finalization;
 
-with PolyORB.Services.Naming;
+with PolyORB.References;
 
-package PolyORB.Services.Naming_Tools is
+with PolyORB.Services.Naming;
+with PolyORB.Services.Naming.NamingContext;
+
+package PolyORB.Services.Naming.Tools is
 
    --  This package allows an object to be chosen either by its IOR or by
    --  its name in the naming service.
 
-   --  function Locate
-   --    (Name : PolyORB.Services.Naming.Name)
-   --   return PolyORB.References.Ref;
+   procedure Init (Ref : PolyORB.References.Ref);
+
+   function Locate
+     (Name : PolyORB.Services.Naming.Name)
+      return PolyORB.References.Ref;
 
    function Locate
      (Context : PolyORB.Services.Naming.NamingContext.Ref;
@@ -55,6 +60,7 @@ package PolyORB.Services.Naming_Tools is
      (IOR_Or_Name : String;
       Sep         : Character := '/')
      return PolyORB.References.Ref;
+
    function Locate
      (Context     : PolyORB.Services.Naming.NamingContext.Ref;
       IOR_Or_Name : String;
@@ -79,9 +85,10 @@ package PolyORB.Services.Naming_Tools is
    --  Unregister an object by its name by unbinding it.
 
    type Server_Guard is limited private;
+
    procedure Register
      (Guard  : in out Server_Guard;
-      Name   : in String;
+      Name   : in Standard.String;
       Ref    : in PolyORB.References.Ref;
       Rebind : in Boolean := False;
       Sep    : in Character := '/');
@@ -107,4 +114,4 @@ private
 
    procedure Finalize (Guard : in out Server_Guard);
 
-end PolyORB.Services.Naming_Tools;
+end PolyORB.Services.Naming.Tools;

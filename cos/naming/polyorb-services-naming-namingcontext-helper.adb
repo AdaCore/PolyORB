@@ -319,7 +319,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
      (Item : in NamingContext.AlreadyBound_Members)
      return PolyORB.Any.Any is
       Result : PolyORB.Any.Any :=
-         CORBA.Get_Empty_Any_Aggregate (TC_AlreadyBound);
+         Get_Empty_Any_Aggregate (TC_AlreadyBound);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -331,7 +331,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
      (Item : in NamingContext.NotEmpty_Members)
      return PolyORB.Any.Any is
       Result : PolyORB.Any.Any :=
-         CORBA.Get_Empty_Any_Aggregate (TC_NotEmpty);
+         Get_Empty_Any_Aggregate (TC_NotEmpty);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Item);
