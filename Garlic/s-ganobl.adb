@@ -696,16 +696,15 @@ package body System.Garlic.Non_Blocking is
 
       else
 
+         Clear (Rfds);
+         Clear (Sfds);
+
          if R_Mask then
-            Rfds := 2 ** Integer (Socket);
-         else
-            Rfds := 0;
+            Set (Rfds, Socket_Fd (Socket));
          end if;
 
          if S_Mask then
-            Sfds := 2 ** Integer (Socket);
-         else
-            Sfds := 0;
+            Set (Sfds, Socket_Fd (Socket));
          end if;
 
          Timeout := Immediat;
@@ -719,8 +718,8 @@ package body System.Garlic.Non_Blocking is
             R_Mask := False;
             R_Mask := False;
          else
-            R_Mask := Rfds /= 0;
-            S_Mask := Sfds /= 0;
+            R_Mask := Is_Set (Rfds, Socket_Fd (Socket));
+            S_Mask := Is_Set (Sfds, Socket_Fd (Socket));
          end if;
          pragma Debug (D ("C_Select (F: " & Socket'Img &
                           ", R: " & R_Mask'Img &
@@ -785,10 +784,6 @@ package body System.Garlic.Non_Blocking is
       RFD, SFD     : Desc_Set;
       Max          : aliased int;
       Dummy        : int;
-      Pfd          : aliased Thin.Pollfd;
-      Rfds         : Fd_Set_Access := new Fd_Set;
-      Sfds         : Fd_Set_Access := new Fd_Set;
-      Timeout      : Timeval_Access := new Timeval;
       Terminated   : Boolean;
    begin
       Soft_Links.Add_Non_Terminating_Task;
