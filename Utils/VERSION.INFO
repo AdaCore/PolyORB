@@ -12,8 +12,8 @@
 #
 # Current version
 #
-dsa_version='1.02'
-gnat_version='3.07'
+dsa_version='1.03'
+gnat_version='3.08'
 
 #
 # files hold the list of files in which substitutions will occur
