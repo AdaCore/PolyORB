@@ -80,7 +80,6 @@ package body System.Garlic.Remote is
 
    List : Partition_List;
 
-
    ------------
    -- Detach --
    ------------

@@ -43,8 +43,8 @@ package System.Garlic.Remote is
    --  descriptors.
 
    procedure Full_Launch
-     (Host        : in String;
-      Command     : in String);
+     (Host    : in String;
+      Command : in String);
    --  Launch the given partition with the correct parameters on the
    --  command line.
 
