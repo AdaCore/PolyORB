@@ -354,7 +354,7 @@ package body System.Garlic.Units is
    is
       Unit  : Unit_Id;
       Info  : Unit_Info;
-      PIDs  : Partition_List := Known_Partitions;
+      PIDs  : constant Partition_List := Known_Partitions;
    begin
       D ("Unit Info Table");
       D ("---------------");
@@ -476,7 +476,7 @@ package body System.Garlic.Units is
 
          Soft_Links.Enter_Critical_Section;
          declare
-            Name : String := Units.Get_Name (Unit);
+            Name : constant String := Units.Get_Name (Unit);
             List : Elab_Unit_List := Elab_Units;
          begin
             while List /= null loop
@@ -912,7 +912,7 @@ package body System.Garlic.Units is
       Receiver  : in Interfaces.Unsigned_64;
       Version   : in Types.Version_Type)
    is
-      Node : Elab_Unit_List := new Elab_Unit_Node;
+      Node : constant Elab_Unit_List := new Elab_Unit_Node;
 
    begin
       --  We need this critical section because a package can be
@@ -1187,7 +1187,6 @@ package body System.Garlic.Units is
          end;
       end if;
 
-
       --  When Current_Info.Status and Status are both set to
       --  DECLARED, we have to resolve a conflict.  We discard the
       --  unit declared by the partition of greater partition id. If
@@ -1293,7 +1292,7 @@ package body System.Garlic.Units is
    procedure Write_Units
      (Stream : access Params_Stream_Type)
    is
-      PIDs : Partition_List := Known_Partitions;
+      PIDs : constant Partition_List := Known_Partitions;
       Unit : Unit_Id;
       Info : Unit_Info;
    begin

@@ -498,7 +498,7 @@ package body System.Garlic.Soft_Links is
    -----------------
 
    function Stamp_Image (M : String) return String is
-      S : Float := Get_Stamp;
+      S : constant Float := Get_Stamp;
       N : Integer;
       A : String (1 .. 10) := (others => ' ');
       R : String (1 .. 10) := (others => ' ');

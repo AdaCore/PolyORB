@@ -123,7 +123,7 @@ package body System.Garlic.Termination is
    Messages_Sent : Boolean := False;
    --  Record the fact that messages have been sent since the last wave
 
-   Termination_Activated : Boolean := False;
+   Termination_Activated : constant Boolean := False;
    --  Will be set to True when the termination will be activated
 
    Termination_Detected : Boolean := False;
