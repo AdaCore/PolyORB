@@ -306,6 +306,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
         (Buffer, Result, TResult.Address, False, True);
 
       if TResult.Version_Major /= UIPMC_Version_Major then
+         Destroy_Profile (Result);
          raise MIOP_Error;
       end if;
 
@@ -403,28 +404,33 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
             Index2 := Find (S, Index, '.');
             if Index2 = S'Last + 1 then
+               Destroy_Profile (Result);
                return null;
             end if;
             TResult.Version_Major :=
               Types.Octet'Value (S (Index .. Index2 - 1));
             if TResult.Version_Major /= UIPMC_Version_Major then
+               Destroy_Profile (Result);
                return null;
             end if;
             Index := Index2 + 1;
 
             Index2 := Find (S, Index, '@');
             if Index2 = S'Last + 1 then
+               Destroy_Profile (Result);
                return null;
             end if;
             TResult.Version_Minor :=
               Types.Octet'Value (S (Index .. Index2 - 1));
             if TResult.Version_Minor /= UIPMC_Version_Minor then
+               Destroy_Profile (Result);
                return null;
             end if;
             Index := Index2 + 1;
 
             Index2 := Find (S, Index, '/');
             if Index2 = S'Last + 1 then
+               Destroy_Profile (Result);
                return null;
             end if;
 
@@ -442,6 +448,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
             Index2 := Find (S, Index, ':');
             if Index2 = S'Last + 1 then
+               Destroy_Profile (Result);
                return null;
             end if;
             pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
