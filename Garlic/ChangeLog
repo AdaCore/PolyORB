@@ -1,3 +1,8 @@
+2000-09-07  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-shasto.ads, s-shasto.adb, Makefile.am, Makefile.in: Replace
+ 	s-shamem with s-shasto.
+
 2000-09-02  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-gartas.adb, s-gartas.ads: Remove usage of requeue statements

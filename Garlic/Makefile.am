@@ -84,7 +84,7 @@ s-parint.o\
 s-rpc.o\
 s-rpcser.o\
 s-rpstio.o\
-s-shamem.o\
+s-shasto.o\
 s-stratt.o
 
 COMMONSOURCES = \
@@ -130,7 +130,7 @@ $(srcdir)/s-parint.ads $(srcdir)/s-parint.adb \
 $(srcdir)/s-rpc.ads    $(srcdir)/s-rpc.adb    \
 $(srcdir)/s-rpcser.ads $(srcdir)/s-rpcser.adb \
 $(srcdir)/s-rpstio.ads $(srcdir)/s-rpstio.adb \
-$(srcdir)/s-shamem.ads $(srcdir)/s-shamem.adb \
+$(srcdir)/s-shasto.ads $(srcdir)/s-shasto.adb \
 $(srcdir)/s-stratt.adb
 
 @FILTERSMAKEFILE@
@@ -321,7 +321,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	    chmod u+w $(GARLIC)/$$lib;\
 	    $(AR) d $(GARLIC)/$$lib s-stratt.o \
 	                            s-rpc.o \
-	                            s-shamem.o \
+	                            s-shasto.o \
 	                            s-parint.o 2>/dev/null;\
 	    if test `cat inlining` = "yes"; then\
 	      (cd gnatlib;\
