@@ -1,3 +1,12 @@
+Tue Aug 12 17:54:28 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_back.ads, xe_back.adb: Remove Default_Host which was not
+ 	initialized but still used.
+
+	* xe_lead.adb, xe_stubs.adb: Suppress useless function calls.
+
+	* xe_parse.adb: Add some tree debugging information.
+
 Tue Aug 12 13:08:02 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* config.sdefault: libgnat.a is now located under adalib.

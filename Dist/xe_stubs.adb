@@ -853,7 +853,7 @@ package body XE_Stubs is
                      Dwrite_Str  (FD, """),");
                   else
                      Dwrite_Str  (FD, "          host            => ");
-                     Dwrite_Name (FD, Get_Host (Partition));
+                     Dwrite_Name (FD, Host);
                      Dwrite_Str  (FD, ",");
                   end if;
                   Dwrite_Eol  (FD);

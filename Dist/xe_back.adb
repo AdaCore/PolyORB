@@ -613,12 +613,12 @@ package body XE_Back is
    -- Get_Host --
    --------------
 
-   function Get_Host            (P : in PID_Type) return Name_Id is
+   function Get_Host (P : in PID_Type) return Name_Id is
       H : HID_Type := Partitions.Table (P).Host;
    begin
 
       if H = Null_HID then
-         H := Default_Host;
+         H := Partitions.Table (Default_Partition).Host;
       end if;
 
       if H /= Null_HID then
@@ -1460,7 +1460,7 @@ package body XE_Back is
 
             Host := I.Host;
             if Host = Null_HID then
-               Host := Default_Host;
+               Host := Partitions.Table (Default_Partition).Host;
             end if;
 
             if Host /= Null_HID then

@@ -84,7 +84,7 @@ procedure XE_Lead is
       else
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, "_HOST=");
-         Write_Name (FD, Get_Host (Partition));
+         Write_Name (FD, Host);
          Write_Eol  (FD);
 
       end if;

@@ -1538,19 +1538,35 @@ package body XE_Parse is
          Write_Indent (Many, "Item    : ");
          Write_Name   (Get_Node_Name (Node_Id (T)));
          Write_Eol;
+         First_Type_Component (Node, C);
+         while C /= Null_Component loop
+            if Get_Attribute_Kind (C) /= Attribute_Unknown then
+               Print_Component (C, Many + 2);
+               Write_Eol;
+            end if;
+            Next_Type_Component (C);
+         end loop;
       else
          Write_Indent (Many, "Size    : ");
          Write_Int  (S);
          Write_Eol;
          Write_Eol;
          First_Type_Component (Node, C);
-         if C /= Null_Component then
-            while C /= Null_Component loop
+         while C /= Null_Component loop
+            if Get_Attribute_Kind (C) = Attribute_Unknown then
                Print_Component (C, Many + 2);
                Write_Eol;
-               Next_Type_Component (C);
-            end loop;
-         end if;
+            end if;
+            Next_Type_Component (C);
+         end loop;
+         First_Type_Component (Node, C);
+         while C /= Null_Component loop
+            if Get_Attribute_Kind (C) /= Attribute_Unknown then
+               Print_Component (C, Many + 2);
+               Write_Eol;
+            end if;
+            Next_Type_Component (C);
+         end loop;
       end if;
    end Print_Type;
 

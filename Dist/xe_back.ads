@@ -104,7 +104,6 @@ package XE_Back is
 
    Default_Partition           : PID_Type;
    Default_Channel             : CID_Type;
-   Default_Host                : HID_Type              := Null_HID;
 
    Default_Registration_Filter : Filter_Name_Type      := No_Filter_Name;
    Default_Protocol_Name       : Name_Id               := No_Name;
