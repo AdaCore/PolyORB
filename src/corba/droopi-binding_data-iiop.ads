@@ -13,6 +13,8 @@ package Droopi.Binding_Data.IIOP is
    type IIOP_Profile_Type is new Profile_Type with private;
 
 
+   procedure Initialize;
+
    procedure Initialize (P : in out IIOP_Profile_Type);
    procedure Adjust     (P : in out IIOP_Profile_Type);
    procedure Finalize   (P : in out IIOP_Profile_Type);

@@ -15,7 +15,7 @@ with Droopi.Filters;
 with Droopi.Filters.Slicers;
 with Droopi.Sockets;
 with Droopi.Objects;
-
+with Droopi.References.IOR;
 --  The IIOP protocol is defined upon TCP/IP.
 
 package body Droopi.Binding_Data.IIOP is
@@ -25,7 +25,7 @@ package body Droopi.Binding_Data.IIOP is
    use Droopi.Objects;
    use Droopi.Transport.Sockets;
    use Droopi.Sockets;
-
+   use Droopi.References.IOR;
 
    procedure Marshall_Socket
         (Buffer   : access Buffer_Type;
@@ -35,6 +35,14 @@ package body Droopi.Binding_Data.IIOP is
     (Buffer   : access Buffer_Type;
      Sock     : out Sockets.Sock_Addr_Type);
 
+
+   procedure Initialize is
+   begin
+      Register
+       (Tag_Internet_IOP,
+        Marshall_IIOP_Profile_Body'Access,
+        Unmarshall_IIOP_Profile_Body'Access);
+   end Initialize;
 
    procedure Initialize (P : in out IIOP_Profile_Type) is
    begin
@@ -149,6 +157,7 @@ package body Droopi.Binding_Data.IIOP is
    --------------------------------
    -- Marshall_IIOP_Profile_Body --
    --------------------------------
+
 
    procedure Marshall_IIOP_Profile_Body
      (Buf     : access Buffer_Type;
@@ -283,7 +292,8 @@ package body Droopi.Binding_Data.IIOP is
 
    function Image (Prof : IIOP_Profile_Type) return String is
    begin
-      return "Not Implemented";
+      return "Address : " & Image (Prof.Address) &
+        ", Object_Id : " & Droopi.Objects.Image (Prof.Object_Id.all);
    end Image;
 
 end Droopi.Binding_Data.IIOP;

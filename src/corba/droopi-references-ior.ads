@@ -40,7 +40,7 @@ package Droopi.References.IOR is
 
    type Marshall_Profile_Body_Type is access procedure
      (Buffer  : access Buffers.Buffer_Type;
-      Profile : access Profile_Type'Class);
+      Profile : Profile_Access);
 
    type Unmarshall_Profile_Body_Type is access function
      (Buffer  : access Buffers.Buffer_Type)
