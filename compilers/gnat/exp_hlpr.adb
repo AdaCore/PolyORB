@@ -36,6 +36,7 @@ with Nmake;    use Nmake;
 with Rtsfind;  use Rtsfind;
 with Sinfo;    use Sinfo;
 with Einfo;    use Einfo;
+with Sem;      use Sem;
 with Sem_Ch7;  use Sem_Ch7;
 with Sem_Ch8;  use Sem_Ch8;
 with Sem_Util; use Sem_Util;
@@ -88,8 +89,9 @@ package body Exp_Hlpr is
    -- Build_To_Any_Call --
    -----------------------
 
-   procedure Rewrite_To_Any_Call
-     (N   : Node_Id)
+   function Build_To_Any_Call
+     (N : Node_Id)
+      return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (N);
       Typ : constant Entity_Id := Etype (N);
@@ -193,7 +195,9 @@ package body Exp_Hlpr is
             Decl : Entity_Id;
          begin
             Build_To_Any_Function (Loc, U_Type, Decl, Fnam);
-            Insert_Action (N, Decl);
+            Append_Freeze_Action (U_Type, Decl);
+            Analyze (Decl);
+            --  Set_TSS (U_Type, Decl);
          end;
       end if;
 
@@ -204,13 +208,11 @@ package body Exp_Hlpr is
          Fnam := RTE (Lib_RE);
       end if;
 
-      Rewrite (N,
+      return
           Make_Function_Call (Loc,
             Name => New_Occurrence_Of (Fnam, Loc),
-            Parameter_Associations => Empty_List));
-      Set_Parameter_Associations (N, New_List (Original_Node (N)));
-
-   end Rewrite_To_Any_Call;
+            Parameter_Associations => New_List (N));
+   end Build_To_Any_Call;
 
    -----------------------------
    -- Build_To_Any_Function --
@@ -247,10 +249,14 @@ package body Exp_Hlpr is
          declare
             Rt_Type : constant Entity_Id
               := Root_Type (Typ);
-            pragma Unreferenced (Rt_Type);
             Any_Parameter : constant Entity_Id
               := Make_Defining_Identifier (Loc,
                    New_Internal_Name ('A'));
+            Expr : constant Node_Id
+              := OK_Convert_To (
+                   Rt_Type,
+                   New_Occurrence_Of (Expr_Parameter, Loc));
+
          begin
             Append_To (Decls,
              Make_Object_Declaration (Loc,
@@ -258,8 +264,10 @@ package body Exp_Hlpr is
                  Any_Parameter,
                Aliased_Present     => False,
                Object_Definition   =>
-                 New_Occurrence_Of (RTE (RE_Any), Loc)));
-            --  XXX SHOULD BUILD A ROOT TYPE To_Any call.
+                 New_Occurrence_Of (RTE (RE_Any), Loc),
+               Expression =>
+                 Build_To_Any_Call (Expr)));
+
             Append_To (Stms,
               Make_Procedure_Call_Statement (Loc,
                 Name => New_Occurrence_Of (RTE (RE_Set_TC), Loc),

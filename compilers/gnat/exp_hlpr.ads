@@ -32,9 +32,8 @@ with Types; use Types;
 
 package Exp_Hlpr is
 
-   procedure Rewrite_To_Any_Call (N : Node_Id);
-   --  Build call to To_Any attribute function for expression N,
-   --  and replace N with that call.
+   function Build_To_Any_Call (N : Node_Id) return Node_Id;
+   --  Build call to To_Any attribute function for expression N.
 
    procedure Build_To_Any_Function
      (Loc : Source_Ptr;
