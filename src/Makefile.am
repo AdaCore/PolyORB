@@ -40,6 +40,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-minimal_servant-tools.ads \
 		polyorb-obj_adapters.ads \
 		polyorb-obj_adapters-simple.ads \
+		polyorb-obj_adapters-group_object_adapter.ads \
 		polyorb-object_maps.ads \
 		polyorb-object_maps-system.ads \
 		polyorb-object_maps-user.ads \
@@ -91,6 +92,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-sequences-unbounded.ads \
 		polyorb-sequences-unbounded-search.ads \
 		polyorb-servants.ads \
+		polyorb-servants-group_servants.ads \
 		polyorb-setup-proxies_poa.ads \
 		polyorb-setup-tcp_access_points.ads \
 		polyorb-setup-udp_access_points.ads \

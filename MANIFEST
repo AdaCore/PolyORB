@@ -676,6 +676,8 @@ src/polyorb-minimal_servant-tools.adb
 src/polyorb-minimal_servant-tools.ads
 src/polyorb-minimal_servant.adb
 src/polyorb-minimal_servant.ads
+src/polyorb-obj_adapters-group_object_adapter.adb
+src/polyorb-obj_adapters-group_object_adapter.ads
 src/polyorb-obj_adapters-simple.adb
 src/polyorb-obj_adapters-simple.ads
 src/polyorb-obj_adapters.adb
@@ -795,6 +797,8 @@ src/polyorb-sequences-unbounded-search.ads
 src/polyorb-sequences-unbounded.adb
 src/polyorb-sequences-unbounded.ads
 src/polyorb-sequences.ads
+src/polyorb-servants-group_servants.adb
+src/polyorb-servants-group_servants.ads
 src/polyorb-servants.adb
 src/polyorb-servants.ads
 src/polyorb-servants-interface.ads
