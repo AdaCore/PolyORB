@@ -95,6 +95,8 @@ adabe_array::produce_marshal_ads(dep_list& with,string &body, string &previous)
 void
 adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
 {
+  string name = (dynamic_cast<adabe_name *>(base_type()))->marshal_name(with, previous);
+  
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";

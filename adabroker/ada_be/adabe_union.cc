@@ -86,8 +86,7 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
 void
 adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
-  adabe_name *b = dynamic_cast<adabe_name *>(disc_type());
-  string disc_name = b->get_ada_local_name();
+  string disc_name = (dynamic_cast<adabe_name *>(disc_type()))->marshal_name(with, previous); 
 
   string marshall = "";
   string unmarshall = "";
