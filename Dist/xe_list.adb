@@ -50,36 +50,74 @@ package body XE_List is
       Table_Initial        => 20,
       Table_Increment      => 100);
 
-   procedure Push (Sfile : File_Name_Type);
-   function  Pop return File_Name_Type;
-
    ------------
    -- Parser --
    ------------
 
    package Parser is
 
-      subtype Token_Type is Natural range 0 .. 18;
+      subtype Token_Type is Natural range 0 .. 27;
 
-      No_Such_ALI      : constant Token_Type :=  0;  --  "Can't"
-      T_Unit           : constant Token_Type :=  1;  --  "Unit"
-      T_Name           : constant Token_Type :=  2;  --  "Name"
-      T_Kind           : constant Token_Type :=  3;  --  "Kind"
-      T_Flags          : constant Token_Type :=  4;  --  "Flags"
-      T_Source         : constant Token_Type :=  5;  --  "Source"
-      T_Has_RACW       : constant Token_Type :=  6;  --  "Has_RACW"
-      T_Remote_Types   : constant Token_Type :=  7;  --  "Remote_Types"
-      T_Shared_Passive : constant Token_Type :=  8;  --  "Shared_Passive
-      T_RCI            : constant Token_Type :=  9;  --  "RCI"
-      T_Predefined     : constant Token_Type := 10;  --  "Predefined"
-      T_Internal       : constant Token_Type := 11;  --  "Internal"
-      T_Is_Generic     : constant Token_Type := 12;  --  "Is_Generic"
-      T_Preelaborated  : constant Token_Type := 13;  --  "Preelaborated"
-      T_Package        : constant Token_Type := 14;  --  "package"
-      T_Subprogram     : constant Token_Type := 15;  --  "subprogram"
-      T_Spec           : constant Token_Type := 16;  --  "spec"
-      T_Body           : constant Token_Type := 17;  --  "body"
-      No_Such_Token    : constant Token_Type := 18;
+      T_No_ALI         : constant Token_Type := 00;
+      T_ALI            : constant Token_Type := 01;
+      T_Unit           : constant Token_Type := 02;
+      T_With           : constant Token_Type := 03;
+      T_Source         : constant Token_Type := 04;
+      T_Afile          : constant Token_Type := 05;
+      T_Ofile          : constant Token_Type := 06;
+      T_Sfile          : constant Token_Type := 07;
+      T_Name           : constant Token_Type := 08;
+      T_Main           : constant Token_Type := 09;
+      T_Kind           : constant Token_Type := 10;
+      T_Flags          : constant Token_Type := 11;
+      T_Preelaborated  : constant Token_Type := 12;
+      T_Pure           : constant Token_Type := 13;
+      T_Has_RACW       : constant Token_Type := 14;
+      T_Remote_Types   : constant Token_Type := 15;
+      T_Shared_Passive : constant Token_Type := 16;
+      T_RCI            : constant Token_Type := 17;
+      T_Predefined     : constant Token_Type := 18;
+      T_Internal       : constant Token_Type := 19;
+      T_Is_Generic     : constant Token_Type := 20;
+      T_Procedure      : constant Token_Type := 21;
+      T_Function       : constant Token_Type := 22;
+      T_Package        : constant Token_Type := 23;
+      T_Subprogram     : constant Token_Type := 24;
+      T_Spec           : constant Token_Type := 25;
+      T_Body           : constant Token_Type := 26;
+      No_Such_Token    : constant Token_Type := 27;
+
+      subtype Valid_Token_Type is Token_Type
+        range Token_Type'First .. Token_Type'Last - 1;
+
+      Image : constant array (Valid_Token_Type) of String_Access :=
+        (T_No_ALI          => new String'("No_ALI"),
+         T_ALI             => new String'("ALI"),
+         T_Unit            => new String'("Unit"),
+         T_With            => new String'("With"),
+         T_Source          => new String'("Source"),
+         T_Afile           => new String'("Afile"),
+         T_Ofile           => new String'("Ofile"),
+         T_Sfile           => new String'("Sfile"),
+         T_Name            => new String'("Name"),
+         T_Main            => new String'("Main"),
+         T_Kind            => new String'("Kind"),
+         T_Flags           => new String'("Flags"),
+         T_Preelaborated   => new String'("Preelaborated"),
+         T_Pure            => new String'("Pure"),
+         T_Has_RACW        => new String'("Has_RACW"),
+         T_Remote_Types    => new String'("Remote_Types"),
+         T_Shared_Passive  => new String'("Shared_Passive"),
+         T_RCI             => new String'("RCI"),
+         T_Predefined      => new String'("Predefined"),
+         T_Internal        => new String'("Internal"),
+         T_Is_Generic      => new String'("Is_Generic"),
+         T_Procedure       => new String'("procedure"),
+         T_Function        => new String'("function"),
+         T_Package         => new String'("package"),
+         T_Subprogram      => new String'("subprogram"),
+         T_Spec            => new String'("spec"),
+         T_Body            => new String'("body"));
 
       procedure Open (Fname : String);
       --  Open Fname in order to parse it. Initialize the parser by
@@ -111,9 +149,8 @@ package body XE_List is
    procedure Dump_ALI (My_ALI : ALI_Id);
    --  Dump content of ALI record
 
-   procedure Load_ALI (Sfile : File_Name_Type; My_ALI : out ALI_Id);
-   --  Read the ALI file corresponding to Sfile (spawning gnat list)
-   --  and return an ALI id.
+   procedure Load_ALIs (Output : File_Name_Type);
+   --  Read from Output all the ALI files available
 
    ------------
    -- Parser --
@@ -137,38 +174,19 @@ package body XE_List is
       Index  : Text_Ptr;
       Last   : Text_Ptr;
 
-      subtype Valid_Token_Type is Token_Type
-        range Token_Type'First .. Token_Type'Last - 1;
-
-      Image : constant array (Valid_Token_Type) of String_Access :=
-        (No_Such_ALI      => new String'("Can't"),
-         T_Unit           => new String'("Unit"),
-         T_Name           => new String'("Name"),
-         T_Kind           => new String'("Kind"),
-         T_Flags          => new String'("Flags"),
-         T_Source         => new String'("Source"),
-         T_Has_RACW       => new String'("Has_RACW"),
-         T_Remote_Types   => new String'("Remote_Types"),
-         T_Shared_Passive => new String'("Shared_Passive"),
-         T_RCI            => new String'("RCI"),
-         T_Predefined     => new String'("Predefined"),
-         T_Internal       => new String'("Internal"),
-         T_Is_Generic     => new String'("Is_Generic"),
-         T_Preelaborated  => new String'("Preelaborated"),
-         T_Package        => new String'("package"),
-         T_Subprogram     => new String'("subprogram"),
-         T_Spec           => new String'("spec"),
-         T_Body           => new String'("body"));
-
       --  These values are automatically generated for the set of
       --  tokens from Token_Type. Do not modify them.
 
-      P  : constant array (0 ..  1) of Natural := (2, 4);
-      T1 : constant array (0 ..  1) of Byte    := (14, 25);
-      T2 : constant array (0 ..  1) of Byte    := (19, 34);
-      G  : constant array (0 .. 36) of Byte    :=
-        (0, 0, 0, 1, 0, 14, 0, 12, 14, 0, 4, 0, 0, 5, 8, 4, 0, 4,
-         12, 0, 0, 0, 0, 5, 0, 0, 10, 0, 5, 0, 3, 0, 11, 6, 0, 15, 0);
+      P  : constant array (0 ..  2) of Natural := (01, 02, 04);
+      T1 : constant array (0 ..  2) of Byte    := (54, 27, 20);
+      T2 : constant array (0 ..  2) of Byte    := (45, 24, 26);
+      G  : constant array (0 .. 54) of Byte    :=
+        (03, 00, 00, 00, 13, 11, 00, 00, 00, 00,
+         13, 00, 03, 00, 13, 00, 00, 00, 06, 01,
+         00, 00, 11, 00, 04, 13, 08, 26, 00, 00,
+         24, 00, 22, 00, 00, 02, 00, 00, 00, 00,
+         00, 05, 25, 03, 00, 26, 26, 14, 10, 00,
+         06, 08, 12, 00, 00);
 
       function Hash (S : String) return Natural;
 
@@ -275,10 +293,10 @@ package body XE_List is
          for K in P'Range loop
             exit when L < P (K);
             J  := Character'Pos (S (P (K) + F));
-            F1 := (F1 + Natural (T1 (K)) * J) mod 37;
-            F2 := (F2 + Natural (T2 (K)) * J) mod 37;
+            F1 := (F1 + Natural (T1 (K)) * J) mod 55;
+            F2 := (F2 + Natural (T2 (K)) * J) mod 55;
          end loop;
-         return (Natural (G (F1)) + Natural (G (F2))) mod 18;
+         return (Natural (G (F1)) + Natural (G (F2))) mod 27;
       end Hash;
 
       ----------------------
@@ -332,23 +350,175 @@ package body XE_List is
    --------------
 
    procedure Dump_ALI (My_ALI : ALI_Id) is
-      R : constant ALIs_Record := ALIs.Table (My_ALI);
+      use Parser;
+
+      A : constant ALIs_Record := ALIs.Table (My_ALI);
+      U : Unit_Record;
+      N : Natural := 0;
+
+      procedure Write_Token (T : Token_Type);
+
+      -----------------
+      -- Write_Token --
+      -----------------
+
+      procedure Write_Token (T : Token_Type) is
+         Img : String_Access renames Image (T);
+
+      begin
+         if T in T_No_ALI .. T_Flags then
+            for J in 1 .. N loop
+               Write_Str ("   ");
+            end loop;
+
+            Write_Str (Img.all);
+
+            for J in Img'Length .. 12 loop
+               Write_Char (' ');
+            end loop;
+
+            Write_Str ("=>");
+
+            if T in T_No_ALI .. T_With then
+               null;
+
+            elsif T in T_Source .. T_Name then
+               Write_Char (' ');
+            end if;
+
+         elsif T in T_Preelaborated .. T_Body then
+            Write_Char (' ');
+            Write_Str  (Img.all);
+
+         else
+            Write_Str  (Img.all);
+         end if;
+      end Write_Token;
 
    begin
-      Write_Str  ("Afile     => ");
-      Write_Name (R.Afile);
+      Write_Token (T_ALI);
+      Write_Str   (" (");
+      Write_Int   (Int (My_ALI));
+      Write_Str   (")");
       Write_Eol;
-      for J in R.First_Unit .. R.Last_Unit loop
-         Write_Str  ("*  Unit   => ");
-         Write_Name (Units.Table (J).Uname);
+      N := N + 1;
+
+      Write_Token (T_Name);
+      Write_Name  (A.Uname);
+      Write_Str   (" (");
+      Write_Int   (Get_Name_Table_Info (A.Uname));
+      Write_Str   (")");
+      Write_Eol;
+
+      if Present (A.Afile) then
+         Write_Token (T_Afile);
+         Write_Name  (A.Afile);
+         Write_Str   (" (");
+         Write_Int   (Get_Name_Table_Info (A.Afile));
+         Write_Str   (")");
          Write_Eol;
-         Write_Str  ("*  Sfile  => ");
-         Write_Name (Units.Table (J).Sfile);
+      end if;
+
+      if Present (A.Ofile) then
+         Write_Token (T_Ofile);
+         Write_Name  (A.Ofile);
          Write_Eol;
+      end if;
+
+      if Present (A.Sfile) then
+         Write_Token (T_Sfile);
+         Write_Name  (A.Sfile);
+         Write_Str   (" (");
+         Write_Int   (Get_Name_Table_Info (A.Sfile));
+         Write_Str   (")");
+         Write_Eol;
+      end if;
+
+      for J in A.First_Unit .. A.Last_Unit loop
+         U := Units.Table (J);
+         Write_Token (T_Unit);
+         Write_Str   (" (");
+         Write_Int   (Int (J));
+         Write_Str   (")");
+         Write_Eol;
+
+         N := N + 1;
+         Write_Token (T_Name);
+         Write_Name  (U.Uname);
+         Write_Str   (" (");
+         Write_Int   (Get_Name_Table_Info (U.Uname));
+         Write_Str   (")");
+         Write_Eol;
+
+         if Present (U.Sfile) then
+            Write_Token (T_Sfile);
+            Write_Name  (U.Sfile);
+            Write_Str   (" (");
+            Write_Int   (Get_Name_Table_Info (U.Sfile));
+            Write_Str   (")");
+            Write_Eol;
+         end if;
+
+         Write_Token (T_Flags);
+         if U.Has_RACW then
+            Write_Token (T_Has_RACW);
+         end if;
+         if U.Remote_Types then
+            Write_Token (T_Remote_Types);
+         end if;
+         if U.Shared_Passive then
+            Write_Token (T_Shared_Passive);
+         end if;
+         if U.RCI then
+            Write_Token (T_RCI);
+         end if;
+         if U.Preelaborated then
+            Write_Token (T_Preelaborated);
+         end if;
+         if U.Pure then
+            Write_Token (T_Pure);
+         end if;
+         if U.Predefined then
+            Write_Token (T_Predefined);
+         end if;
+         if U.Internal then
+            Write_Token (T_Internal);
+         end if;
+         if U.Is_Generic then
+            Write_Token (T_Is_Generic);
+         end if;
+         Write_Eol;
+
+         for K in U.First_With .. U.Last_With loop
+            Write_Token (T_With);
+            Write_Eol;
+            N := N + 1;
+
+            if Present (Withs.Table (K).Afile) then
+               Write_Token (T_Afile);
+               Write_Name  (Withs.Table (K).Afile);
+               Write_Str   (" (");
+               Write_Int   (Get_Name_Table_Info (Withs.Table (K).Afile));
+               Write_Str   (")");
+               Write_Eol;
+            end if;
+
+            if Present (Withs.Table (K).Sfile) then
+               Write_Token (T_Sfile);
+               Write_Name  (Withs.Table (K).Sfile);
+               Write_Str   (" (");
+               Write_Int   (Get_Name_Table_Info (Withs.Table (K).Sfile));
+               Write_Str   (")");
+               Write_Eol;
+            end if;
+            N := N - 1;
+         end loop;
+         N := N - 1;
       end loop;
-      for J in R.First_Sdep .. R.Last_Sdep loop
-         Write_Str  ("*  Source => ");
-         Write_Name (Sdep.Table (J).Sfile);
+
+      for J in A.First_Sdep .. A.Last_Sdep loop
+         Write_Token (T_Source);
+         Write_Name  (Sdep.Table (J).Sfile);
          Write_Eol;
       end loop;
       Write_Eol;
@@ -369,45 +539,54 @@ package body XE_List is
       Write_Line ("pragma Warnings (Off);");
    end Initialize;
 
-   --------------
-   -- Load_ALI --
-   --------------
+   ---------------
+   -- Load_ALIs --
+   ---------------
 
-   procedure Load_ALI (Sfile : File_Name_Type; My_ALI : out ALI_Id) is
+   procedure Load_ALIs (Output : File_Name_Type) is
       use Parser;
 
-      Output      : File_Name_Type;
-      Skip_Line   : Boolean := False;
-      Ofile       : File_Name_Type := No_Name;
-      Afile       : File_Name_Type := No_Name;
+      My_ALI      : ALI_Id         := No_ALI_Id;
       My_Unit     : Unit_Id        := No_Unit_Id;
+      My_With     : With_Id        := No_With_Id;
       My_Sdep     : Sdep_Id        := No_Sdep_Id;
-      Empty_Lines : Natural        := 0;
+      Afile       : File_Name_Type;
+      Sfile       : File_Name_Type;
+
+      function File_Name (N : Natural) return File_Name_Type;
+      --  Get the Nth field and return it as a file name type
+
+      ---------------
+      -- File_Name --
+      ---------------
+
+      function File_Name (N : Natural) return File_Name_Type is
+      begin
+         return Id (Parser.Field (N));
+      end File_Name;
 
    begin
-      My_ALI := No_ALI_Id;
-
-      --  Execute and parse result of gnat list -v -a
-
-      List (Strip_Directory (Sfile), (Verbose_Flag, Readonly_Flag), Output);
-
-      if No (Output) then
-         return;
-      end if;
-
       Parser.Open (Get_Name_String (Output));
-      while Empty_Lines /= 5 loop
-         Parser.Get_Line;
-         if Parser.Number_Of_Fields = 0 then
-            Empty_Lines := Empty_Lines + 1;
-         end if;
-      end loop;
-
       while not Parser.End_Of_File loop
          Parser.Get_Line;
+
          case Parser.Token (1) is
-            when No_Such_ALI =>
-               exit;
+            when T_No_ALI =>
+               My_ALI  := No_ALI_Id;
+               My_Unit := No_Unit_Id;
+               My_With := No_With_Id;
+               My_Sdep := No_Sdep_Id;
+
+            when T_ALI =>
+
+               --  Allocate ALI and initialize ALI entry
+
+               ALIs.Increment_Last;
+               My_ALI              := ALIs.Last;
+               ALIs.Table (My_ALI) := Default_ALI;
+               My_Sdep             := No_Sdep_Id;
+               My_Unit             := No_Unit_Id;
+               My_With             := No_With_Id;
 
             when T_Unit =>
 
@@ -417,143 +596,215 @@ package body XE_List is
                My_Unit                      := Units.Last;
                Units.Table (My_Unit)        := Default_Unit;
                Units.Table (My_Unit).My_ALI := My_ALI;
+               My_With                      := No_With_Id;
 
                --  Add it to ALI unit list
 
-               if ALIs.Table (My_ALI).First_Unit = No_Unit_Id then
+               if ALIs.Table (My_ALI).Last_Unit = No_Unit_Id then
                   ALIs.Table (My_ALI).First_Unit := My_Unit;
                end if;
                ALIs.Table (My_ALI).Last_Unit := My_Unit;
 
+            when T_With =>
+
+               --  Allocate With and initialize With entry
+
+               Withs.Increment_Last;
+               My_With                      := Withs.Last;
+               Withs.Table (My_With)        := Default_With;
+
+               --  Add it to unit with list
+
+               if Units.Table (My_Unit).Last_With = No_With_Id then
+                  Units.Table (My_Unit).First_With := My_With;
+               end if;
+               Units.Table (My_Unit).Last_With := My_With;
+
+            when T_Source =>
+
+               Sdep.Increment_Last;
+               My_Sdep := Sdep.Last;
+               Sdep.Table (My_Sdep).Sfile := File_Name (3);
+
+               --  Add it to ALI sdep list
+
+               if ALIs.Table (My_ALI).Last_Sdep = No_Sdep_Id then
+                  ALIs.Table (My_ALI).First_Sdep := My_Sdep;
+               end if;
+               ALIs.Table (My_ALI).Last_Sdep := My_Sdep;
+
+               --  Detect use of tasking
+
+               Get_Name_String (Strip_Directory (Sdep.Table (My_Sdep).Sfile));
+
+               if Name_Len > 8
+                 and then Name_Buffer (1 .. 8) = "s-taskin"
+               then
+                  ALIs.Table (My_ALI).Tasking := 'U';
+               end if;
+
+            when T_Afile =>
+
+               --  If My_With is not null, then this attribute belongs
+               --  to a With entry.
+
+               if My_With /= No_With_Id then
+                  Withs.Table (My_With).Afile := File_Name (3);
+
+               else
+                  Afile := File_Name (3);
+                  Set_ALI_Id (Afile, My_ALI);
+
+                  if My_ALI /= No_ALI_Id then
+                     ALIs.Table (My_ALI).Afile := Afile;
+                  end if;
+               end if;
+
+            when T_Ofile =>
+               ALIs.Table (My_ALI).Ofile := File_Name (3);
+
+            when T_Sfile =>
+
+               --  If My_With is not null, then this attribute belongs
+               --  to a Withs entry.
+
+               if My_With /= No_With_Id then
+                  Withs.Table (My_With).Sfile := File_Name (3);
+
+               --  If My_Unit is not null, then this attribute belongs
+               --  to a Units entry.
+
+               elsif My_Unit /= No_Unit_Id then
+                  Units.Table (My_Unit).Sfile := File_Name (3);
+                  Set_Unit_Id (Units.Table (My_Unit).Sfile, My_Unit);
+
+               elsif My_ALI /= No_ALI_Id then
+                  ALIs.Table (My_ALI).Sfile := File_Name (3);
+
+               else
+                  Sfile := File_Name (3);
+                  Afile := To_Afile (Sfile);
+                  Set_ALI_Id (Afile, No_ALI_Id);
+               end if;
+
             when T_Name =>
-               Name_Len := 0;
-               Add_Str_To_Name_Buffer (Parser.Field (3));
-               Units.Table (My_Unit).Uname := Name_Find;
 
-               --  When Uname is unknown in ALI, update it and associate
-               --  unit name with ALI id.
+               --  If My_With is not null, then this attribute belongs
+               --  to a With entry.
 
-               if No (ALIs.Table (My_ALI).Uname) then
-                  ALIs.Table (My_ALI).Uname := Units.Table (My_Unit).Uname;
-                  Set_ALI_Id (ALIs.Table (My_ALI).Uname, My_ALI);
+               if My_With /= No_With_Id then
+                  Withs.Table (My_With).Uname := File_Name (3);
+
+               else
+                  Units.Table (My_Unit).Uname := File_Name (3);
+
+                  --  When Uname is unknown in ALI, update it and
+                  --  associate unit name with ALI id. Note that the
+                  --  unit name is not yet encoded.
+
+                  if No (ALIs.Table (My_ALI).Uname) then
+                     ALIs.Table (My_ALI).Uname := Units.Table (My_Unit).Uname;
+                     Set_ALI_Id (ALIs.Table (My_ALI).Uname, My_ALI);
+                  end if;
+               end if;
+
+            when T_Main =>
+
+               if Parser.Token (3) = T_Procedure then
+                  ALIs.Table (My_ALI).Main_Program := Proc;
+               else
+                  ALIs.Table (My_ALI).Main_Program := Func;
                end if;
 
             when T_Kind =>
 
-               --  Is it a subprogram or a package
+               --  If My_With is not null, then this attribute belongs
+               --  to a With entry.
 
-               if Parser.Token (3) = T_Subprogram then
-                  Units.Table (My_Unit).Unit_Kind := 's';
+               if My_With /= No_With_Id then
+
+                  Get_Name_String (Withs.Table (My_With).Uname);
+                  Add_Char_To_Name_Buffer ('%');
+
+                  if Parser.Token (3) = T_Spec then
+                     Add_Char_To_Name_Buffer ('s');
+                  else
+                     Add_Char_To_Name_Buffer ('b');
+                  end if;
+
+                  Withs.Table (My_With).Uname := Name_Find;
 
                else
-                  Units.Table (My_Unit).Unit_Kind := 'p';
-               end if;
 
-               --  Prepare to set unit name info
+                  --  Is it a subprogram or a package
 
-               Get_Name_String (Units.Table (My_Unit).Uname);
-               Add_Char_To_Name_Buffer ('%');
-
-               --  Is it a spec or a body
-
-               if Parser.Token (4) = T_Spec then
-                  Add_Char_To_Name_Buffer ('s');
-                  if ALIs.Table (My_ALI).First_Unit = My_Unit then
-                     Units.Table (My_Unit).Utype := Is_Spec_Only;
+                  if Parser.Token (3) = T_Subprogram then
+                     Units.Table (My_Unit).Unit_Kind := 's';
 
                   else
-                     Units.Table (ALIs.Table (My_ALI).First_Unit).Utype :=
-                       Is_Body;
-                     Units.Table (My_Unit).Utype := Is_Spec;
+                     Units.Table (My_Unit).Unit_Kind := 'p';
                   end if;
 
-               else
-                  Add_Char_To_Name_Buffer ('b');
-                  Units.Table (My_Unit).Utype := Is_Body_Only;
-               end if;
+                  --  Prepare to set unit name info
 
-               --  Set unit name info
+                  Get_Name_String (Units.Table (My_Unit).Uname);
+                  Add_Char_To_Name_Buffer ('%');
 
-               Units.Table (My_Unit).Uname := Name_Find;
-               Set_Unit_Id (Units.Table (My_Unit).Uname, My_Unit);
+                  --  Is it a spec or a body
 
-               when T_Flags =>
-                  for F in 3 .. Parser.Number_Of_Fields loop
-                     case Parser.Token (F) is
-                        when T_Has_RACW =>
-                           Units.Table (My_Unit).Has_RACW := True;
+                  if Parser.Token (4) = T_Spec then
+                     Add_Char_To_Name_Buffer ('s');
+                     if ALIs.Table (My_ALI).First_Unit = My_Unit then
+                        Units.Table (My_Unit).Utype := Is_Spec_Only;
 
-                        when T_Remote_Types =>
-                           Units.Table (My_Unit).Remote_Types := True;
+                     else
+                        Units.Table (ALIs.Table (My_ALI).First_Unit).Utype :=
+                          Is_Body;
+                        Units.Table (My_Unit).Utype := Is_Spec;
+                     end if;
 
-                        when T_Shared_Passive =>
-                           Units.Table (My_Unit).Shared_Passive := True;
-
-                        when T_RCI =>
-                           Units.Table (My_Unit).RCI := True;
-
-                        when T_Predefined =>
-                           Units.Table (My_Unit).Predefined := True;
-
-                        when T_Internal =>
-                           Units.Table (My_Unit).Internal := True;
-
-                        when T_Is_Generic =>
-                           Units.Table (My_Unit).Is_Generic := True;
-
-                        when T_Preelaborated =>
-                           Units.Table (My_Unit).Preelaborated := True;
-
-                        when others =>
-                           null;
-                     end case;
-                  end loop;
-
-                  if Units.Table (My_Unit).Unit_Kind = 's' then
-                     ALIs.Table (My_ALI).Main_Program := Proc;
-                  end if;
-
-            when T_Source =>
-               Name_Len := 0;
-               Add_Str_To_Name_Buffer (Parser.Field (3));
-               Units.Table (My_Unit).Sfile := Name_Find;
-               if ALIs.Table (My_ALI).Sfile = No_File_Name then
-                  ALIs.Table (My_ALI).Sfile :=
-                    Units.Table (My_Unit).Sfile;
-               end if;
-               Set_ALI_Id (Units.Table (My_Unit).Sfile, My_ALI);
-
-            when No_Such_Token =>
-
-               --  First line of the block we are looking for
-
-               if No (Ofile) then
-                  Name_Len := 0;
-                  Add_Str_To_Name_Buffer (Parser.Field (1));
-                  Ofile := Name_Find;
-                  if Name_Buffer (1 .. Name_Len) /= "<no_obj>" then
-                     Get_Name_String (Strip_Suffix (Ofile));
                   else
-                     Get_Name_String (Strip_Suffix (Sfile));
-                  end if;
-                  Get_Name_String_And_Append (ALI_Suffix_Id);
-                  Afile := Name_Find;
-
-                  --  This object file is already in the table
-
-                  if Get_Name_Table_Info (Afile) /= 0 then
-                     return;
+                     Add_Char_To_Name_Buffer ('b');
+                     Units.Table (My_Unit).Utype := Is_Body_Only;
                   end if;
 
-                  --  Allocate ALI and initialize ALI entry
+                  --  Set unit name info
 
-                  ALIs.Increment_Last;
-                  My_ALI                        := ALIs.Last;
-                  ALIs.Table (My_ALI)           := Default_ALI;
-                  ALIs.Table (My_ALI).Ofile     := Ofile;
-                  ALIs.Table (My_ALI).Afile     := Afile;
-                  Set_ALI_Id (Afile, My_ALI);
+                  Units.Table (My_Unit).Uname := Name_Find;
+                  Set_Unit_Id (Units.Table (My_Unit).Uname, My_Unit);
                end if;
+
+            when T_Flags =>
+               for F in 3 .. Parser.Number_Of_Fields loop
+                  case Parser.Token (F) is
+                     when T_Has_RACW =>
+                        Units.Table (My_Unit).Has_RACW := True;
+
+                     when T_Remote_Types =>
+                        Units.Table (My_Unit).Remote_Types := True;
+
+                     when T_Shared_Passive =>
+                        Units.Table (My_Unit).Shared_Passive := True;
+
+                     when T_RCI =>
+                        Units.Table (My_Unit).RCI := True;
+
+                     when T_Predefined =>
+                        Units.Table (My_Unit).Predefined := True;
+
+                     when T_Internal =>
+                        Units.Table (My_Unit).Internal := True;
+
+                     when T_Is_Generic =>
+                        Units.Table (My_Unit).Is_Generic := True;
+
+                     when T_Preelaborated =>
+                        Units.Table (My_Unit).Preelaborated := True;
+
+                     when others =>
+                        null;
+                  end case;
+               end loop;
 
             when others =>
                raise Program_Error;
@@ -561,62 +812,19 @@ package body XE_List is
       end loop;
       Parser.Close;
       Remove_Temp_File (Output);
-
-      if My_ALI = No_ALI_Id then
-         return;
-      end if;
-
-      --  Execute and parse result of gnat list -d -a
-
-      Skip_Line := True;
-      List (Sfile, (Dependencies_Flag, Readonly_Flag), Output);
-      Parser.Open (Get_Name_String (Output));
-      while not Parser.End_Of_File loop
-         Parser.Get_Line;
-
-         --  We start a new block. Stop skipping lines as this new
-         --  block might be the one we are looking for.
-
-         if Parser.Number_Of_Fields = 0 then
-            null;
-
-         elsif Parser.Number_Of_Fields = 1 then
-            Skip_Line := False;
-
-         elsif Skip_Line then
-            Skip_Line := False;
-
-         else
-            Sdep.Increment_Last;
-            My_Sdep := Sdep.Last;
-            Name_Len := 0;
-            Add_Str_To_Name_Buffer (Parser.Field (2));
-            Sdep.Table (My_Sdep).Sfile := Name_Find;
-            if ALIs.Table (My_ALI).Last_Sdep = No_Sdep_Id then
-               ALIs.Table (My_ALI).First_Sdep := My_Sdep;
-            end if;
-            ALIs.Table (My_ALI).Last_Sdep := My_Sdep;
-            Get_Name_String (Strip_Directory (Sdep.Table (My_Sdep).Sfile));
-            if Name_Len > 8
-              and then Name_Buffer (1 .. 8) = "s-taskin"
-            then
-               ALIs.Table (My_ALI).Tasking := 'U';
-            end if;
-         end if;
-      end loop;
-      Parser.Close;
-      Remove_Temp_File (Output);
-   end Load_ALI;
+   end Load_ALIs;
 
    -------------------------------
    -- Load_All_Registered_Units --
    -------------------------------
 
    procedure Load_All_Registered_Units is
-      S : File_Name_Type;
-      A : ALI_Id;
-      P : Partition_Id;
-      F : File_Name_Type renames Part_Main_Src_Name;
+      Flags      : constant Argument_List := (1 => GLADE_List_Flag);
+      Sfile      : File_Name_Type;
+      Afile      : File_Name_Type;
+      ALI        : ALI_Id;
+      Partition  : Partition_Id;
+      Output     : File_Name_Type;
 
    begin
       Write_Line ("procedure Partition is");
@@ -624,113 +832,143 @@ package body XE_List is
       Write_Line ("   null;");
       Write_Line ("end Partition;");
       Set_Standard_Output;
-      Build (F, No_Name, (Compile_Only_Flag, Keep_Going_Flag), False);
 
-      Load_ALI (F, A);
-      if A = No_ALI_Id then
+      --  Build the monolithic application with a fake main subprogram
+      --  Partition. Load the info from its ALI file.
+
+      Sfile := Part_Main_Src_Name;
+      Afile := To_Afile (Sfile);
+      Build (Sfile, (Compile_Only_Flag, Keep_Going_Flag), False);
+      List ((1 => Afile), Flags, Output);
+      Load_ALIs (Output);
+      ALI := Get_ALI_Id (Afile);
+
+      --  The compilation of partition.adb failed. There is no way to
+      --  rescue this situation.
+
+      if ALI = No_ALI_Id then
          raise Compilation_Error;
       end if;
 
-      Set_ALI_Id (F, A);
-      if Debug_Mode then
-         Dump_ALI (A);
-      end if;
-      for J in ALIs.Table (A).First_Sdep .. ALIs.Table (A).Last_Sdep loop
-         Push (Sdep.Table (J).Sfile);
-      end loop;
+      --  Load in the sources stack all the withed units or in other
+      --  words the configured units.
 
-      --  Load all the ali files
-
+      for J in
+        ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit
       loop
-         S := Pop;
-         exit when S = No_File_Name;
-         Load_ALI (S, A);
-         if A = No_ALI_Id then
-            Compile (S, (1 => Semantic_Only_Flag), False);
-            Load_ALI (S, A);
-            if A = No_ALI_Id then
-               raise Compilation_Error;
-            end if;
-            P := Get_Partition_Id (ALIs.Table (A).Uname);
-            if not Units.Table (ALIs.Table (A).Last_Unit).RCI
-              or else P = No_Partition_Id
-              or else Partitions.Table (P).To_Build
-            then
-               raise Compilation_Error;
-            end if;
-         end if;
-         Set_ALI_Id (S, A);
-         if Debug_Mode then
-            Dump_ALI (A);
-         end if;
-         for J in ALIs.Table (A).First_Sdep .. ALIs.Table (A).Last_Sdep loop
-            if not Is_Predefined_File (Sdep.Table (J).Sfile) then
-               Push (Sdep.Table (J).Sfile);
+         for K in
+           Units.Table (J).First_With .. Units.Table (J).Last_With
+         loop
+            Sfile := Withs.Table (K).Sfile;
+
+            if Present (Sfile) then
+               Set_Name_Table_Byte (Sfile, 1);
+               Sources.Append (Sfile);
             end if;
          end loop;
       end loop;
-   end Load_All_Registered_Units;
 
-   ---------
-   -- Pop --
-   ---------
-
-   function Pop return File_Name_Type is
-      Sfile : File_Name_Type;
-
-   begin
       while Sources.First <= Sources.Last loop
-         Sfile := Sources.Table (Sources.Last);
-         Sources.Decrement_Last;
+         declare
+            Last   : Natural := Sources.Last + 1 - Sources.First;
+            Afiles : File_Name_List (1 .. Last);
+            Sfiles : File_Name_List (1 .. Last);
 
-         --  Check that we did not yet try to find the corresponding
-         --  ali file. Note that we do not use Get_ALI_Id since some
-         --  ali files may have been searched and not found. In this
-         --  case, we set their info field to No_ALI_Id.
+         begin
+            --  Load in Args the sources which corresponding ALI file
+            --  is not yet available.
 
-         if Get_Name_Table_Info (Sfile) = 0 then
-            if Verbose_Mode then
-               Message ("load", Strip_Directory (Sfile));
-            end if;
-            return Sfile;
-         end if;
+            Last := 0;
+            for J in Sources.First .. Sources.Last loop
+               Sfile := Sources.Table (J);
+               Afile := To_Afile (Sfile);
+
+               --  We never tried to download this ALI file. Its info
+               --  is not a valid ALI id (not even No_ALI_Id).
+
+               if Get_Name_Table_Info (Afile) = 0 then
+                  Last := Last + 1;
+                  Afiles (Last) := Afile;
+                  Sfiles (Last) := Sfile;
+               end if;
+            end loop;
+            Sources.Init;
+
+            List (Afiles (1 .. Last), Flags, Output);
+            Load_ALIs (Output);
+
+            for J in 1 .. Last loop
+               Sfile := Sfiles (J);
+               Afile := Afiles (J);
+               ALI   := Get_ALI_Id (Afile);
+
+               --  The ALI file does not exist. It may come from a
+               --  missing body file although the spec file is
+               --  available (we compiled the main subprogram with
+               --  keep-going flag). So compile the spec file with
+               --  semantic only flag in order to obtain the ALI file
+               --  anyway. Then check this operation was correctly
+               --  performed which means that the unit was RCI. The
+               --  missing body file is not an issue as long as the
+               --  unit is not assigned to a partition to build.
+
+               if ALI = No_ALI_Id then
+                  Compile (Sfile, (1 => Semantic_Only_Flag), False);
+                  List ((1 => Afile), Flags, Output);
+                  Load_ALIs (Output);
+
+                  --  If the ALI file is still missing, then we have a
+                  --  real problem.
+
+                  ALI := Get_ALI_Id (Afile);
+                  if ALI = No_ALI_Id then
+                     raise Compilation_Error;
+                  end if;
+
+                  --  Check that the unit was really assigned to a
+                  --  partition we are not going to build.
+
+                  Partition := Get_Partition_Id (ALIs.Table (ALI).Uname);
+                  if not Units.Table (ALIs.Table (ALI).Last_Unit).RCI
+                    or else Partition = No_Partition_Id
+                    or else Partitions.Table (Partition).To_Build
+                  then
+                     raise Compilation_Error;
+                  end if;
+               end if;
+
+               if Debug_Mode then
+                  Dump_ALI (ALI);
+               end if;
+
+               --  Check that the withed units are present.
+
+               for J in
+                 ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit
+               loop
+                  for K in
+                    Units.Table (J).First_With .. Units.Table (J).Last_With
+                  loop
+                     Sfile := Withs.Table (K).Sfile;
+
+                     --  We can ignore the sources that have already
+                     --  been loaded and the predefined ones (they are
+                     --  not defined as configured units at this stage
+                     --  and they cannot be categorized).
+
+                     if Present (Sfile)
+                       and then not Is_Predefined_File (Sfile)
+                       and then Get_Name_Table_Byte (Sfile) = 0
+                     then
+                        Set_Name_Table_Byte (Sfile, 1);
+                        Sources.Append (Sfile);
+                     end if;
+                  end loop;
+               end loop;
+            end loop;
+         end;
       end loop;
-      return No_File_Name;
-   end Pop;
-
-   ----------
-   -- Push --
-   ----------
-
-   procedure Push (Sfile : File_Name_Type) is
-      S : File_Name_Type := Sfile;
-
-   begin
-      --  Deal with special predefined units
-
-      Get_Name_String (Strip_Directory (Strip_Suffix (Sfile)));
-      if Name_Len = 8 then
-         if Name_Buffer (1 .. 8) = "unchconv" then
-            Get_Name_String (Sfile);
-            Name_Buffer (Name_Len - 11 .. Name_Len - 4) := "a-unccon";
-            S := Name_Find;
-
-         elsif Name_Buffer (1 .. 8) = "unchdeal" then
-            Get_Name_String (Sfile);
-            Name_Buffer (Name_Len - 11 .. Name_Len - 4) := "a-uncdea";
-            S := Name_Find;
-         end if;
-      end if;
-
-      --  Check that we did not yet try to find the corresponding ali
-      --  file. Note that we do not use Get_ALI_Id since some ali
-      --  files may have been searched and not found. In this case, we
-      --  set their info field to No_ALI_Id.
-
-      if Get_Name_Table_Info (S) = 0 then
-         Sources.Append (S);
-      end if;
-   end Push;
+   end Load_All_Registered_Units;
 
    ---------------------------
    -- Register_Unit_To_Load --
