@@ -924,7 +924,7 @@ fi
 if test "${with_launching+set}" = set; then
   withval="$with_launching"
   
-  echo $ac_n "checking for launching facilities""... $ac_c" 1>&6
+  echo $ac_n "checking launching facilities""... $ac_c" 1>&6
   case ${withval} in
   yes)
      LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
@@ -940,7 +940,7 @@ if test "${with_launching+set}" = set; then
 
 else
   
-echo $ac_n "checking for launching facilities""... $ac_c" 1>&6
+echo $ac_n "checking launching facilities""... $ac_c" 1>&6
 LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
 LAUNCHING_OBJECTS="\$(LAUNCHING_OBJECTS)";
 LAUNCHING_INCLUDED="";
@@ -958,7 +958,7 @@ fi
 if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
   
-  echo $ac_n "checking for default protocols""... $ac_c" 1>&6
+  echo $ac_n "checking default protocols""... $ac_c" 1>&6
   LIST="";
   PROTOCOLS_SOURCES="";
   PROTOCOLS_OBJECTS="";
@@ -982,9 +982,11 @@ if test "${with_protocols+set}" = set; then
 
 else
   
+echo $ac_n "checking default protocols""... $ac_c" 1>&6
 PROTOCOLS_SOURCES="\$(TCP_SOURCES)";
 PROTOCOLS_OBJECTS="\$(TCP_OBJECTS)";
 TCP_INCLUDED=""
+echo "$ac_t""tcp" 1>&6
 
 fi
 
@@ -1082,7 +1084,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgnat  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1086 "configure"
+#line 1088 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1094,7 +1096,7 @@ int t() {
 is_regular_file()
 ; return 0; }
 EOF
-if { (eval echo configure:1098: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1100: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1125,7 +1127,7 @@ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1129 "configure"
+#line 1131 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -1149,7 +1151,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:1153: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1155: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -1175,7 +1177,7 @@ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1179 "configure"
+#line 1181 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -1199,7 +1201,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:1203: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1205: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else

@@ -37,7 +37,7 @@ AC_SUBST(GNATFLAGS)
 AC_ARG_WITH(launching,
 [  --without-launching     Don't include launching facilities],
 [
-  AC_MSG_CHECKING([for launching facilities])
+  AC_MSG_CHECKING([launching facilities])
   case ${withval} in
   yes)
      LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
@@ -52,7 +52,7 @@ AC_ARG_WITH(launching,
   esac;
 ],
 [
-AC_MSG_CHECKING([for launching facilities])
+AC_MSG_CHECKING([launching facilities])
 LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
 LAUNCHING_OBJECTS="\$(LAUNCHING_OBJECTS)";
 LAUNCHING_INCLUDED="";
@@ -67,7 +67,7 @@ AC_SUBST(LAUNCHING_INCLUDED)
 AC_ARG_WITH(protocols,
 [  --with-protocols        Enumerate protocol list],
 [
-  AC_MSG_CHECKING([for default protocols])
+  AC_MSG_CHECKING([default protocols])
   LIST="";
   PROTOCOLS_SOURCES="";
   PROTOCOLS_OBJECTS="";
@@ -90,9 +90,11 @@ AC_ARG_WITH(protocols,
   AC_MSG_RESULT([${LIST}])
 ],
 [
+AC_MSG_CHECKING([default protocols])
 PROTOCOLS_SOURCES="\$(TCP_SOURCES)";
 PROTOCOLS_OBJECTS="\$(TCP_OBJECTS)";
 TCP_INCLUDED=""
+AC_MSG_RESULT([tcp])
 ])
 AC_SUBST(PROTOCOLS_SOURCES)
 AC_SUBST(PROTOCOLS_OBJECTS)
