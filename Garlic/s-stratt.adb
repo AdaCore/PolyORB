@@ -1288,6 +1288,7 @@ package body System.Stream_Attributes is
       else
          S (1) := SE (U);
       end if;
+      U := U / BB;
 
       Ada.Streams.Write (Stream.all, S);
 
@@ -1397,6 +1398,7 @@ package body System.Stream_Attributes is
       else
          S (1) := SE (U);
       end if;
+      U := U / BB;
 
       Ada.Streams.Write (Stream.all, S);
 
@@ -1506,6 +1508,7 @@ package body System.Stream_Attributes is
       else
          S (1) := SE (U);
       end if;
+      U := U / BB;
 
       Ada.Streams.Write (Stream.all, S);
 
@@ -1615,6 +1618,7 @@ package body System.Stream_Attributes is
       else
          S (1) := SE (U);
       end if;
+      U := U / BB;
 
       Ada.Streams.Write (Stream.all, S);
 

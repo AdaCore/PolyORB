@@ -1,3 +1,8 @@
+Mon Mar 17 15:30:14 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-stratt.adb: Incorrect check for W_*F. U was not always equal
+ 	to 0 because the first byte has a special treatment.
+
 Wed Mar 12 13:53:10 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am: s-garela.o was missing. Not detected before because
