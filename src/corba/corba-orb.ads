@@ -39,9 +39,9 @@ with CORBA.ExceptionList;
 with CORBA.NVList;
 with CORBA.Object;
 with CORBA.Policy;
+with CORBA.Sequences.Unbounded;
 
 with PolyORB.References;
-with PolyORB.Sequences.Unbounded;
 
 package CORBA.ORB is
 
@@ -56,10 +56,10 @@ package CORBA.ORB is
    end record;
 
    package IDL_Sequence_ServiceOption is new
-     PolyORB.Sequences.Unbounded (ServiceOption);
+     CORBA.Sequences.Unbounded (ServiceOption);
 
    package IDL_Sequence_ServiceDetail is new
-     PolyORB.Sequences.Unbounded (ServiceDetail);
+     CORBA.Sequences.Unbounded (ServiceDetail);
 
    type ServiceInformation is record
       service_options : IDL_Sequence_ServiceOption.Sequence;
@@ -69,7 +69,7 @@ package CORBA.ORB is
    type ObjectId is new CORBA.String;
 
    package IDL_Sequence_ObjectId is new
-     PolyORB.Sequences.Unbounded (ObjectId);
+     CORBA.Sequences.Unbounded (ObjectId);
 
    type ObjectIdList is new IDL_Sequence_ObjectId.Sequence;
 
