@@ -65,9 +65,6 @@ package XE_Front is
 
    procedure Frontend;
 
-   procedure Add_Channel_Partition (P : Partition_Name_Type; C : Channel_Id);
-   --  Assign a partition to a channel. Sort the partition pair.
-
    procedure Add_Conf_Unit (U : Unit_Name_Type; P : Partition_Id);
    --  Assign a unit to a partition. This unit is declared in the
    --  configuration file (it is not yet mapped to an ada unit).

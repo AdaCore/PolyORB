@@ -32,11 +32,15 @@ with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Types;    use XE_Types;
+with XE_Units;    use XE_Units;
 with XE_Utils;    use XE_Utils;
 
 package body XE_Front is
 
    Min_Field_Width : constant := 11;
+
+   procedure Add_Channel_Partition (P : Partition_Id; C : Channel_Id);
+   --  Assign a partition to a channel. Sort the partition pair.
 
    procedure Build_New_Channel (V : Variable_Id);
    --  Retrieve the two partitions and attributes previously parsed in
@@ -82,16 +86,14 @@ package body XE_Front is
    ---------------------------
 
    procedure Add_Channel_Partition
-     (P : Partition_Name_Type;
+     (P : Partition_Id;
       C : Channel_Id)
    is
-      PID  : Partition_Id;
-
       procedure Update_Channel_Partition
         (Channel_Partition : in out Channel_Partition_Type;
          Partition         : Partition_Id;
          Channel           : Channel_Id);
-      --  Link Channel into the list of partition channels. The head of
+      --  Link Channel into the list of partition Channels. The head of
       --  this list is First_Channel (Partitions) and the tail is
       --  Last_Channel. Next elements are Next_Channel (Channels).
 
@@ -124,18 +126,19 @@ package body XE_Front is
 
    begin
       if Debug_Mode then
-         Message ("add partition", P, "to channel", Channels.Table (C).Name);
+         Message ("add partition", Partitions.Table (P).Name,
+                  "to channel", Channels.Table (C).Name);
       end if;
-      PID := Get_Partition_Id (P);
-      if Channels.Table (C).Lower = Null_Channel_Partition then
-         Update_Channel_Partition (Channels.Table (C).Lower, PID, C);
 
-      elsif PID > Channels.Table (C).Lower.My_Partition then
-         Update_Channel_Partition (Channels.Table (C).Upper, PID, C);
+      if Channels.Table (C).Lower = Null_Channel_Partition then
+         Update_Channel_Partition (Channels.Table (C).Lower, P, C);
+
+      elsif P > Channels.Table (C).Lower.My_Partition then
+         Update_Channel_Partition (Channels.Table (C).Upper, P, C);
 
       else
          Channels.Table (C).Upper := Channels.Table (C).Lower;
-         Update_Channel_Partition (Channels.Table (C).Lower, PID, C);
+         Update_Channel_Partition (Channels.Table (C).Lower, P, C);
       end if;
    end Add_Channel_Partition;
 
@@ -221,6 +224,7 @@ package body XE_Front is
       Partition_Name : Name_Id;
       Partition_Node : Variable_Id;
       Component_Node : Component_Id;
+      Partition      : Partition_Id;
       Channel        : Channel_Id;
 
    begin
@@ -244,7 +248,17 @@ package body XE_Front is
 
                Partition_Node := Get_Component_Value (Component_Node);
                Partition_Name := Get_Variable_Name (Partition_Node);
-               Add_Channel_Partition (Partition_Name, Channel);
+               Partition      := Get_Partition_Id (Partition_Name);
+
+               if Partition = No_Partition_Id then
+                  Write_SLOC (Node_Id (Partition_Node));
+                  Write_Str  ("no such partition ");
+                  Write_Name (Partition_Name);
+                  Write_Eol;
+                  raise Parsing_Error;
+               end if;
+
+               Add_Channel_Partition (Partition, Channel);
             end if;
 
          else
