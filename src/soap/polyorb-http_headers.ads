@@ -34,7 +34,7 @@
 
 package PolyORB.HTTP_Headers is
 
-   pragma Preelaborate;
+   pragma Elaborate_Body;
 
    type Header is
      (
@@ -102,7 +102,6 @@ package PolyORB.HTTP_Headers is
 
       --  </ENUM>
       );
-   pragma Convention (C, Header);
 
    subtype General_Header is Header
      range H_Cache_Control .. H_Warning;

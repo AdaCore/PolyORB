@@ -7,8 +7,8 @@ alidir = $(libdir)/polyorb-soap
 GPERF_SPECS = \
 	polyorb-http_headers.ads \
 	polyorb-http_methods.ads
-GPERF_C = $(GPERF_SPECS:.ads=_GPERF.c)
-GPERF_LIBADD = $(GPERF_C:.c=.lo)
+
+GPERF_BODY = $(GPERF_SPECS:.ads=.adb)
 
 ADA_SPECS_WITH_BODY = \
 	$(GPERF_SPECS) \
@@ -40,10 +40,10 @@ ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
 lib_LTLIBRARIES = libpolyorb-soap.la
 libpolyorb_soap_la_SOURCES =
-libpolyorb_soap_la_LIBADD = $(ADA_LIBADD) $(GPERF_LIBADD)
+libpolyorb_soap_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_soap_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
-CLEANFILES = *.ali
+CLEANFILES = *.ali $(GPERF_BODY)
 
 LINK = $(LIBTOOL) $(ADA) -o libpolyorb-soap.la
 
@@ -54,18 +54,16 @@ ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
 
 ADACOMPILER = ../../support/adacompiler
 
+GNATPRFH = ../../compilers/gnatprfh/gnatprfh
+GEN_HTTP_BODY = $(srcdir)/gen_http_body
+
 SUFFIXES = .adb .ads .lo .ali .c
 
-polyorb-http_methods_GPERF.c polyorb-http_methods.adb: \
-  polyorb-http_methods.ads
-	$(srcdir)/gen_keywords $(srcdir)/polyorb-http_methods.ads
+polyorb-http_methods.adb: $(srcdir)/$(GEN_HTTP_BODY) polyorb-http_methods.ads
+	$(srcdir)/$(GEN_HTTP_BODY) $(GNATPRFH) $(srcdir) Method
 
-polyorb-http_headers_GPERF.c polyorb-http_headers.adb: \
-  polyorb-http_headers.ads
-	$(srcdir)/gen_keywords $(srcdir)/polyorb-http_headers.ads
-
-.c.lo:
-	$(LTCOMPILE) -c $<
+polyorb-http_headers.adb: $(srcdir)/$(GEN_HTTP_BODY) polyorb-http_headers.ads
+	$(srcdir)/$(GEN_HTTP_BODY) $(GNATPRFH) $(srcdir) Header
 
 .adb.lo:
 	@chmod a+x $(ADACOMPILER)
