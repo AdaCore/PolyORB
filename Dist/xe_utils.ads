@@ -205,8 +205,14 @@ package XE_Utils is
    --  with the characters %s).
 
 
-   function Quote (N : Types.Name_Id) return Types.Name_Id;
-   --  Make a string containing N and return it as a Name_Id
+   function Quote
+     (N : Types.Name_Id;
+      I : Natural := 0;
+      S : Positive := 48)
+     return Types.Name_Id;
+   --  Make a string containing N and return it as a
+   --  Name_Id. Moreover, split the string in several chunks of size
+   --  lesser than S. For each chunk add I indentations of 3 spaces.
 
    procedure Remove_GNAT_Flag (Flag : in String);
    --  Remove from command line any gnat flag beginning with string

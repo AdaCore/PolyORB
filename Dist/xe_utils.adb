@@ -1179,12 +1179,38 @@ package body XE_Utils is
    -- Quote --
    -----------
 
-   function Quote (N : Name_Id) return Name_Id is
+   function Quote
+     (N : Name_Id;
+      I : Natural  := 0;
+      S : Positive := 48)
+     return Name_Id
+   is
+      F : Natural;
+      L : Natural;
+
    begin
       Name_Len := 0;
       Add_Char_To_Name_Buffer ('"'); -- "
       if N /= No_Name then
          Get_Name_String_And_Append (N);
+         F := 2;
+         L := Name_Len;
+         for T in 1 .. (Name_Len - 1) / S loop
+            F := F + S;
+            Name_Buffer (F + 5 + 3 * I .. L + 5 + 3 * I)
+              := Name_Buffer (F .. L);
+            Name_Buffer (F)     := '"'; -- "
+            Name_Buffer (F + 1) := ' ';
+            Name_Buffer (F + 2) := '&';
+            Name_Buffer (F + 3) := ASCII.LF;
+            for J in 0 .. I - 1 loop
+               Name_Buffer (F + 4 + 3 * J .. F + 4 + 3 * (J + 1)) := "   ";
+            end loop;
+            Name_Buffer (F + 4 + 3 * I) := '"'; -- "
+            F := F + 5 + 3 * I;
+            L := L + 5 + 3 * I;
+         end loop;
+         Name_Len := L;
       end if;
       Add_Char_To_Name_Buffer ('"'); -- "
       return Name_Find;
