@@ -40,7 +40,7 @@ Ada 95 compiler:
   GNAT Pro 5.02a  or later
   GCC 3.4.0       or later
 
-Optional: XmlAda (http://libre.act-europe.fr/xmlada/) if you want to
+Optional: XML/Ada (http://libre.act-europe.fr/xmlada/) if you want to
 build the SOAP protocol personality.
 
 Note: per construction, the macro 'configure' uses to find your GNAT
