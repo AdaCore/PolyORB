@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#12 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#13 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -4227,26 +4227,26 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Boolean_Literal;
 
-   --------------------------------
-   --  Parse_Positive_Int_Const  --
-   --------------------------------
+   ------------------------------
+   -- Parse_Positive_Int_Const --
+   ------------------------------
+
    procedure Parse_Positive_Int_Const (Result : out Node_Id;
                                        Success : out Boolean) is
       C_Type : Constant_Value_Ptr
         := new Constant_Value (Kind => C_General_Integer);
    begin
-      --  here we can not call parse_const_exp directly since we
-      --  don't have a node specifying the type of the constant
-      --  So, we call parse_or_exp and check the result
+
+      --  We cannot call Pase_Const_Exp directly, since we do
+      --  not have a node specifying the type of the constant,
+      --  so we call Parse_Or_Expr, and then check the result
+      --  against the unsigned type bounds.
+
       Parse_Or_Expr (Result, Success, C_Type);
-      if Expr_Value (Result).Integer_Value < Idl_ULongLong_Min then
-         Errors.Error
-           ("The specified type for this integer constant " &
-            "does not allow a negative value",
-            Errors.Error,
-            Get_Token_Location);
-      end if;
-      if Expr_Value (Result).Integer_Value > Idl_ULongLong_Max then
+      if Success
+        and then Expr_Value (Result).Integer_Value
+        not in Idl_ULongLong_Min .. Idl_ULongLong_Max
+      then
          Errors.Error
            ("The specified type for this integer constant " &
             "does not allow this value",
