@@ -7,6 +7,7 @@ alidir = $(includedir)/polyorb/giop
 ADA_SPECS_WITH_BODY = \
 	polyorb-giop_p-exceptions.ads \
 	polyorb-giop_p-tagged_components.ads \
+	polyorb-giop_p-tagged_components-policies.ads \
 	polyorb-protocols-giop-common.ads \
 	polyorb-protocols-giop-giop_1_0.ads \
 	polyorb-protocols-giop-giop_1_1.ads \

@@ -147,7 +147,8 @@ package PolyORB.GIOP_P.Tagged_Components is
    -- Tag List --
    --------------
 
-   Tag_Group : constant Tag_Value;
+   Tag_Policies : constant Tag_Value;
+   Tag_Group    : constant Tag_Value;
 
 private
 
@@ -173,7 +174,8 @@ private
    -- Tag List --
    --------------
 
-   Tag_Group : constant Tag_Value := 39;
+   Tag_Policies : constant Tag_Value := 2;
+   Tag_Group    : constant Tag_Value := 39;
    --  TAO Value
    --  Tag_Group : constant Tag_Value := 1413566211;
 

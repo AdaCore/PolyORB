@@ -554,6 +554,8 @@ src/giop/polyorb-giop_p-exceptions.adb
 src/giop/polyorb-giop_p-exceptions.ads
 src/giop/polyorb-giop_p-tagged_components.adb
 src/giop/polyorb-giop_p-tagged_components.ads
+src/giop/polyorb-giop_p-tagged_components-policies.adb
+src/giop/polyorb-giop_p-tagged_components-policies.ads
 src/giop/polyorb-giop_p.ads
 src/giop/polyorb-protocols-giop-common.adb
 src/giop/polyorb-protocols-giop-common.ads
