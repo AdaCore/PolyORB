@@ -343,8 +343,13 @@ private
       --  The queue of jobs to be processed by ORB tasks.
 
       Idle_Tasks : Soft_Links.Watcher_Access;
-
       --  Idle ORB task wait on this watcher.
+
+      Idle_Counter : Natural;
+      --  Number of thread in the Idle State
+
+      Idle_Lock : Soft_Links.Mutex_Access;
+      --  Protect the access to Idle_Counter;
 
       Monitors : Monitor_Seq;
       --  The set of asynchronous event monitors to be watched

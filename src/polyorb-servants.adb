@@ -33,8 +33,14 @@
 --  $Id$
 
 with PolyORB.Objects.Interface;
+with PolyORB.Log;
 
 package body PolyORB.Servants is
+
+   use PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log ("polyorb.servants");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    -----------------------
    -- Set_Thread_Policy --
@@ -61,12 +67,18 @@ package body PolyORB.Servants is
       use PolyORB.POA_Policies.Thread_Policy;
    begin
       if Msg in Execute_Request then
-         --  Dispatch by OA thread policies
+         --  Dispatch by OA thread policy
+         if S.TP_Access = null then
+            O ("No thread policy specified for servant");
+         end if;
+         pragma Debug (O ("POA Thread policy is "
+                          & Policy_Id (S.TP_Access.all)));
          return Handle_Request_Execution
            (S.TP_Access,
             Msg,
             PolyORB.Components.Component_Access (S));
       else
+         pragma Debug (O (" Message not in Execute_Request"));
          raise PolyORB.Components.Unhandled_Message;
       end if;
    end Handle_Message;

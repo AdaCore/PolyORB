@@ -195,6 +195,10 @@ package body PolyORB.ORB is
       ORB.Polling  := False;
       Create (ORB.Polling_Watcher);
       Leave (ORB.ORB_Lock.all);
+      Create (ORB.Idle_Lock);
+      Enter (ORB.Idle_Lock);
+      ORB.Idle_Counter := 0;
+      Leave (ORB.Idle_Lock);
    end Create;
 
    ----------------------
@@ -1026,8 +1030,7 @@ package body PolyORB.ORB is
 
          --  Ensure that one ORB task will process this job.
 
-         if False then
-         --  XXX if ORB.Idle_Counter /= 0 then
+         if ORB.Idle_Counter /= 0 then
             Update (ORB.Idle_Tasks);
          elsif ORB.Polling then
             pragma Assert (ORB.Selector /= null);

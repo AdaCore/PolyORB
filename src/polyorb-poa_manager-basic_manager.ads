@@ -39,14 +39,16 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.POA_Types;
 with PolyORB.Locks;
 with PolyORB.Components;
-with PolyORB.Locked_Queue;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Servants;
+with PolyORB.Objects.Interface;
 
 package PolyORB.POA_Manager.Basic_Manager is
 
    pragma Elaborate_Body;
 
    use PolyORB.POA_Types;
+   use PolyORB.Objects.Interface;
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
@@ -113,13 +115,8 @@ package PolyORB.POA_Manager.Basic_Manager is
    --    Beware that the requests are queued in the ORB queue, and are not
    --    first.
 
-   type Queue_Element_Access is private;
    type Hold_Servant is new PolyORB.Servants.Servant with private;
    type Hold_Servant_Access is access all Hold_Servant;
-
-   function "="
-     (Left, Right : Hold_Servant)
-     return Boolean;
 
    function Execute_Servant
      (Obj : access Hold_Servant;
@@ -127,25 +124,17 @@ package PolyORB.POA_Manager.Basic_Manager is
      return PolyORB.Components.Message'Class;
 
 private
-   Queue_Size : constant Positive := 10;
-   --  The size max of the queue
 
-   type Queue_Element is
-      record
-         OA  : Obj_Adapter_Access;
-         --         Msg : PolyORB.Components.Message;
-         --  ??? How do we queue de messages?
-      end record;
-   type Queue_Element_Access is access all Queue_Element;
 
-   package Requests_Queue_P is new PolyORB.Locked_Queue (Queue_Element_Access);
-   subtype Requests_Queue is Requests_Queue_P.Queue;
+   package Requests_Queue_P is new PolyORB.Sequences.Unbounded
+     (Execute_Request);
+   subtype Requests_Queue is Requests_Queue_P.Sequence;
 
    type Basic_POA_Manager is new POAManager with
       record
          Usage_Count     : Integer := 0;
          Holded_Requests : Requests_Queue;
-
+         PM_Hold_Servant : Hold_Servant_Access := null;
          State_Lock      : PolyORB.Locks.Rw_Lock_Access;
          --  Lock the state
          Count_Lock      : PolyORB.Locks.Rw_Lock_Access;
@@ -162,12 +151,8 @@ private
 
    type Hold_Servant is new PolyORB.Servants.Servant with
       record
-         Queue_Entry : Queue_Element_Access;
+         PM : Basic_POA_Manager_Access := null;
       end record;
-
-   procedure Create
-     (HS  : in out Hold_Servant;
-      QEA : in Queue_Element_Access);
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Basic_POA_Manager, Basic_POA_Manager_Access);

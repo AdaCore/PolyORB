@@ -1080,52 +1080,52 @@ package body PolyORB.POA.Basic_POA is
      return Servants.Servant_Access
    is
       U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
+      The_OA : constant Basic_Obj_Adapter_Access
+        := Find_POA_Recursively (OA, U_Oid.Creator);
    begin
-      if Do_Check = CHECK then
-         case Get_State (POA_Manager_Of (OA).all) is
-            when DISCARDING | INACTIVE =>
-               --  Raise_Transient (1);
-               --  ??? Do we have to do something special for INACTIVE
-               raise Transient;
-            when HOLDING =>
-               declare
-                  S : Servants.Servant_Access;
-               begin
-                  S := Servants.Servant_Access
-                    (Get_Hold_Servant
-                     (POA_Manager_Of (OA),
-                      POA_Types.Obj_Adapter_Access (OA)));
-                  return S;
-               end;
-            when others =>
-               null;
-         end case;
-      end if;
+      if The_OA /= null then
+         if Do_Check = CHECK then
+            case Get_State (POA_Manager_Of (The_OA).all) is
+               when DISCARDING | INACTIVE =>
+                  --  Raise_Transient (1);
+                  --  ??? Do we have to do something special for INACTIVE
+                  raise Transient;
+               when HOLDING =>
+                  declare
+                     S : Servants.Servant_Access;
+                  begin
+                     S := Servants.Servant_Access
+                       (Get_Hold_Servant
+                        (POA_Manager_Of (The_OA),
+                         POA_Types.Obj_Adapter_Access (The_OA)));
+                     Servants.Set_Thread_Policy (S, The_OA.Thread_Policy);
+                     return S;
+                  end;
+               when others =>
+                  null;
+            end case;
+         end if;
 
-      pragma Debug
-        (O ("Look for OA with name #"
-            & To_Standard_String (U_Oid.Creator)
-            & "# starting from RootPOA"));
-
-      declare
-         The_OA : constant Basic_Obj_Adapter_Access
-           := Find_POA_Recursively (OA, U_Oid.Creator);
-         S      : Servants.Servant_Access;
-      begin
          pragma Debug
+           (O ("Look for OA with name #"
+               & To_Standard_String (U_Oid.Creator)
+               & "# starting from RootPOA"));
+
+         declare
+            S      : Servants.Servant_Access;
+         begin
+            pragma Debug
            (O ("OA : " & To_Standard_String (The_OA.Name)
                & " looks for servant associated with Id "
                & Objects.To_String (Id.all)));
-
-         if The_OA /= null then
             S := Servants.Servant_Access (Id_To_Servant (The_OA, Id.all));
             Servants.Set_Thread_Policy (S, The_OA.Thread_Policy);
             return S;
-         else
-            raise Invalid_Object_Id;
-            --  This is an exception from PolyORB
-         end if;
-      end;
+         end;
+      else
+         raise Invalid_Object_Id;
+         --  This is an exception from PolyORB
+      end if;
    end Find_Servant;
 
    ---------------------

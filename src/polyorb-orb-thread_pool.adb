@@ -180,9 +180,16 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
                        & " is going idle."));
+      Enter (ORB.Idle_Lock);
+      ORB.Idle_Counter := ORB.Idle_Counter + 1;
+      Leave (ORB.Idle_Lock);
 
       Lookup (ORB.Idle_Tasks, V);
       Differ (ORB.Idle_Tasks, V);
+
+      Enter (ORB.Idle_Lock);
+      ORB.Idle_Counter := ORB.Idle_Counter - 1;
+      Leave (ORB.Idle_Lock);
 
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
