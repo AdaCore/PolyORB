@@ -1,3 +1,8 @@
+1998-08-05  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_lead.adb: Do not issue -n inconditionnally when building
+	shell starter.
+
 1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_stubs.adb: Add System.Garlic.Locking to the list of included
