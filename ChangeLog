@@ -1,3 +1,7 @@
+Thu Oct  9 15:58:35 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Deactivate local launching on Linux.
+
 Tue Sep 30 15:52:59 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* NEWS: Add a note on zlib which is broken on alpha.

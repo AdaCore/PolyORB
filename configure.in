@@ -113,7 +113,17 @@ AC_SUBST(PLATFORM_SPECIFIC)
 esac]
 AC_MSG_RESULT($PSNAME)
 #
-# Platform specific
+# Local launcher. Linux does not support local launching of programs with
+# LinuxThreads. This crashes the machine.
+#
+AC_MSG_CHECKING(if platform supports local launching)
+case "${target}" in
+  *-linux*)	SUPPORTS_LOCAL_LAUNCH=False; AC_MSG_RESULT(no);;
+  *)            SUPPORTS_LOCAL_LAUNCH=True; AC_MSG_RESULT(yes);;
+esac
+AC_SUBST(SUPPORTS_LOCAL_LAUNCH)
+#
+# Remote shell
 #
 AC_MSG_CHECKING(which remote shell to use)
 AC_ARG_WITH(remsh,
@@ -222,8 +232,8 @@ AC_SUBST(EXTRA_LIBS)
 #
 AC_OUTPUT([Makefile
            Dist/Makefile Dist/gnatdist Dist/xe-gcc
-           Garlic/Makefile Garlic/s-gaprco.adb Garlic/s-garser.adb
-           Garlic/s-gaosli.ads
+           Garlic/Makefile Garlic/s-gaosli.ads Garlic/s-gaplsp.ads
+           Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
            Examples/Bank/Makefile

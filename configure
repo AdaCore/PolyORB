@@ -1382,10 +1382,21 @@ case "${PLATFORM_SPECIFIC}" in
 esac
 echo "$ac_t""$PSNAME" 1>&6
 #
-# Platform specific
+# Local launcher. Linux does not support local launching of programs with
+# LinuxThreads. This crashes the machine.
+#
+echo $ac_n "checking if platform supports local launching""... $ac_c" 1>&6
+echo "configure:1390: checking if platform supports local launching" >&5
+case "${target}" in
+  *-linux*)	SUPPORTS_LOCAL_LAUNCH=False; echo "$ac_t""no" 1>&6;;
+  *)            SUPPORTS_LOCAL_LAUNCH=True; echo "$ac_t""yes" 1>&6;;
+esac
+
+#
+# Remote shell
 #
 echo $ac_n "checking which remote shell to use""... $ac_c" 1>&6
-echo "configure:1389: checking which remote shell to use" >&5
+echo "configure:1400: checking which remote shell to use" >&5
 # Check whether --with-remsh or --without-remsh was given.
 if test "${with_remsh+set}" = set; then
   withval="$with_remsh"
@@ -1415,7 +1426,7 @@ else
 fi
 
 echo $ac_n "checking default filters""... $ac_c" 1>&6
-echo "configure:1419: checking default filters" >&5
+echo "configure:1430: checking default filters" >&5
 
 if test -d Garlic; then
   :
@@ -1443,7 +1454,7 @@ if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
   
   echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1447: checking default protocols" >&5
+echo "configure:1458: checking default protocols" >&5
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
@@ -1468,7 +1479,7 @@ echo "configure:1447: checking default protocols" >&5
 else
   
 echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1472: checking default protocols" >&5
+echo "configure:1483: checking default protocols" >&5
 PROTOCOLSSOURCES="\$(TCPSOURCES)";
 PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
@@ -1478,7 +1489,7 @@ fi
 
 if test "$TCP_INCLUDED" = ""; then
   echo $ac_n "checking thread-blocking I/O""... $ac_c" 1>&6
-echo "configure:1482: checking thread-blocking I/O" >&5
+echo "configure:1493: checking thread-blocking I/O" >&5
     if grep Non_Blocking $srcdir/Garlic/2${PLATFORM_SPECIFIC}gtplsp.ads \
       > /dev/null 2>&1; then
 	echo "$ac_t""no" 1>&6
@@ -1495,7 +1506,7 @@ fi
 # Find get_errno or __get_errno
 #
 echo $ac_n "checking for get_errno in -lgnat""... $ac_c" 1>&6
-echo "configure:1499: checking for get_errno in -lgnat" >&5
+echo "configure:1510: checking for get_errno in -lgnat" >&5
 ac_lib_var=`echo gnat'_'get_errno | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1503,7 +1514,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgnat  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1507 "configure"
+#line 1518 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1514,7 +1525,7 @@ int main() {
 get_errno()
 ; return 0; }
 EOF
-if { (eval echo configure:1518: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1529: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1664,8 +1675,8 @@ ac_given_INSTALL="$INSTALL"
 
 trap 'rm -fr `echo "Makefile
            Dist/Makefile Dist/gnatdist Dist/xe-gcc
-           Garlic/Makefile Garlic/s-gaprco.adb Garlic/s-garser.adb
-           Garlic/s-gaosli.ads
+           Garlic/Makefile Garlic/s-gaosli.ads Garlic/s-gaplsp.ads
+           Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
            Examples/Bank/Makefile
@@ -1745,6 +1756,7 @@ s%@LAUNCHINGOBJECTS@%$LAUNCHINGOBJECTS%g
 s%@LAUNCHING_INCLUDED@%$LAUNCHING_INCLUDED%g
 s%@GNAT_SOURCE@%$GNAT_SOURCE%g
 s%@PLATFORM_SPECIFIC@%$PLATFORM_SPECIFIC%g
+s%@SUPPORTS_LOCAL_LAUNCH@%$SUPPORTS_LOCAL_LAUNCH%g
 s%@RSH@%$RSH%g
 /@FILTERFILE@/r $FILTERFILE
 s%@FILTERFILE@%%g
@@ -1796,8 +1808,8 @@ cat >> $CONFIG_STATUS <<EOF
 
 CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Dist/Makefile Dist/gnatdist Dist/xe-gcc
-           Garlic/Makefile Garlic/s-gaprco.adb Garlic/s-garser.adb
-           Garlic/s-gaosli.ads
+           Garlic/Makefile Garlic/s-gaosli.ads Garlic/s-gaplsp.ads
+           Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
            Examples/Bank/Makefile
