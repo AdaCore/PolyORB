@@ -136,7 +136,7 @@ package body System.Garlic.Filters.None is
      (Filter : No_Filter)
       return String is
    begin
-      return "";
+      return Dummy_Name;
    end Get_Name;
 
    ------------------
