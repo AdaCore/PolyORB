@@ -40,6 +40,8 @@ with Test_Suite.Test_Case.Parser;
 
 package body Test_Suite.Scenarios is
 
+   Invalid_Scenario : exception;
+
    -------------------
    -- Open_Scenario --
    -------------------
@@ -64,6 +66,10 @@ package body Test_Suite.Scenarios is
            := Get_Conf ("scenario", "id");
 
       begin
+         if Scenario_Name = "" then
+            raise Invalid_Scenario;
+         end if;
+
          Open_Scenario_Output_Context (Output, Scenario_Name);
 
          Log (Output, "Opening scenario #"
