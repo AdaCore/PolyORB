@@ -30,6 +30,9 @@ DSA implementation (CA22-003)
 Items still requiring attention
 -------------------------------
 
+* Document flexible configuration pragmas framework introduced in
+  change 8053.
+
 * Review initialization of the object adapter attached to ORB, to
   enable setup of POA proxies during modules' initialization.
 
