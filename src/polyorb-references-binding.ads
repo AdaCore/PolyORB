@@ -67,10 +67,6 @@ package PolyORB.References.Binding is
    --  and the returned Servant will be an actual local servant
    --  (not a surrogate).
 
-   Invalid_Reference : exception;
-   --  Raised when an attempt is made to bind a reference
-   --  that is null or has no supported profile.
-
    procedure Get_Tagged_Profile
      (R         :        Ref;
       Tag       :        Binding_Data.Profile_Tag;
