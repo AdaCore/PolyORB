@@ -221,14 +221,24 @@ fi
 # Check for maintainer (debug) mode.
 ##########################################
 
+define(DEBUG_OPTIONS, [dnl
+  GNATFLAGS="-pipe -g -O2 -gnatfa -fstack-check -gnatoy -gnatwae -Wall"
+  BARGS=-E
+  debug=true])
+define(NODEBUG_OPTIONS, [dnl
+  GNATFLAGS="-pipe -g -O2"
+  BARGS=
+  debug=false])
+
 AC_ARG_ENABLE(debug,
 [  --enable-debug          Turn on debugging options],
-[GNATFLAGS="-pipe -g -O2 -gnatfa -fstack-check -gnatoy -gnatwae -Wall"
- BARGS=-E
- debug=true],
-[GNATFLAGS="-pipe -g -O2"
- BARGS=
- debug=false])
+[if [[ "$enableval" = "yes" ]]; then
+  DEBUG_OPTIONS
+else
+  NODEBUG_OPTIONS
+fi],
+[NODEBUG_OPTIONS])
+
 AC_SUBST(GNATFLAGS)
 AC_SUBST(BARGS)
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
