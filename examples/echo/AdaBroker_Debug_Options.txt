@@ -8,8 +8,8 @@
 #corba.orb
 #corba.object
 echo
+omniproxycallwrapper
+giop_c
 echo.impl
 omniobject
 echo.skeleton
-
-

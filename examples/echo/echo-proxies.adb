@@ -15,7 +15,6 @@ with Netbufferedstream ; use Netbufferedstream ;
 
 use type Corba.Unsigned_Long ;
 
-
 package body Echo.Proxies is
 
    --------------------------------------------------
@@ -56,11 +55,8 @@ package body Echo.Proxies is
    function Aligned_Size(Self: in EchoString_Proxy;
                          Size_In: in Corba.Unsigned_Long)
                          return Corba.Unsigned_Long is
-      Msg_Size : Corba.Unsigned_Long ;
    begin
-      Msg_Size := Omni.Align_To(Size_In,Omni.ALIGN_4)
-        + Corba.Unsigned_Long(5) + Corba.Length(Self.Arg_Msg.all);
-      return Msg_Size ;
+      return Netbufferedstream.Align_size(Self.Arg_Msg.all, Size_In);
    end;
 
    -- Marshal_Arguments

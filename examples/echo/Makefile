@@ -22,7 +22,7 @@ CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Exceptions.o
 
 main:
 	make -C ../../InterfaceORB main
-#	make client
+	make client
 	make server
 
 client: echo.o echo-proxies.o client.o  $(ADABROKER_PATH)
