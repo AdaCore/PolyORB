@@ -20,7 +20,7 @@ string tmp = ""
 
 with.add("Corba.Object");
 if (!pd_is_imported) ada_name.compute();  /////// forwarded then defined
-String += "pakage " + get_ada_name() + " is /n"
+String += "pakage " + get_ada_full_name() + " is /n"
 
 if (n_inherits()==0) String += "type Ref = new(Corba.Object.ref); /n"
 
@@ -30,8 +30,8 @@ if (n_inherits()==0) String += "type Ref = new(Corba.Object.ref); /n"
 
 if (pd_is_forwarded == true)           
    {
-   with.add(get_ada_name()+"_Forward")
-   tmp += "package Convert is new " + get_ada_name() + "_Forward.Convert(Ref)"
+   with.add(get_ada_full_name()+"_Forward")
+   tmp += "package Convert is new " + get_ada_full_name() + "_Forward.Convert(Ref)"
    if (inherits() == NULL) String += "type Ref = new(Corba.Object.ref); /n"
    }
 
@@ -45,7 +45,7 @@ if (pd_n_inherits > 0)
        if the node is a type, a constant or an exception
            {
 	   cast th type in his real NT
-	   tmp += "subtype" +  NT.get_ada_name() + " is " + NT.get_ada_full_name()
+	   tmp += "subtype" +  NT.get_ada_full_name() + " is " + NT.get_ada_full_name()
 	   }
        }   
    }
@@ -87,7 +87,7 @@ scan du UTL_Scope de this
        String += tmp2 + tmp1;  
        }   
    }
-String += "\n end " + get_ada_name() + "\n"    
+String += "\n end " + get_ada_full_name() + "\n"    
 
 */
 
@@ -102,9 +102,11 @@ with.add("Ada.exceptions");
 with.add("Ada.Omniproxycallwrapper");
 with.add("Ada.Proxies");
 with.add("Ada.Object");
-String += "pakage body" + get_ada_name() + " is /n"
+String += "pakage body" + get_ada_full_name() + " is /n"
 
 String += "function To_Ref(The_Ref : in Corba.Object.ref'CLASS) return Ref \n"
+
+
 //////////////////////////// a completer /////////////////////////////////////
 
 
@@ -120,7 +122,7 @@ scan du UTL_Scope de this
        String += tmp2 + tmp1;  
        }   
    }
-String += "\n end " + get_ada_name() + "\n"    
+String += "\n end " + get_ada_full_name() + "\n"    
 
 */
 
@@ -132,7 +134,7 @@ string tmp = ""
 
 
 if (!pd_is_imported) ada_name.compute();  /////// forwarded then defined
-String += "pakage " + get_ada_name() + " is /n"
+String += "pakage " + get_ada_full_name() + " is /n"
 
 if (n_inherits()==0) String += "type Object = new(Corba.Object.Object); /n"
 
@@ -142,8 +144,8 @@ if (n_inherits()==0) String += "type Object = new(Corba.Object.Object); /n"
 
 if (pd_is_forwarded == true)           
    {
-   with.add(get_ada_name()+"_Forward")
-   tmp += "package Convert is new " + get_ada_name() + "_Forward.Convert(Object)"
+   with.add(get_ada_full_name()+"_Forward")
+   tmp += "package Convert is new " + get_ada_full_name() + "_Forward.Convert(Object)"
    if (inherits() == NULL) String += "type Object = new(Corba.Object.Object); /n"
    }
 
@@ -199,7 +201,7 @@ scan du UTL_Scope de this
        String += tmp2 + tmp1;  
        }   
    }
-String += "\n end " + get_ada_name() + "\n"    
+String += "\n end " + get_ada_full_name() + "\n"    
 
 */
 
@@ -213,7 +215,7 @@ adabe_interface::produce_impl_adb(dep_list with,string &String, string &previous
 /////////////with.add("Ada.Omniproxycallwrapper");
 /////////////with.add("Ada.Proxies");
 /////////////with.add("Ada.Object");
-String += "pakage body" + get_ada_name() + " is /n"
+String += "pakage body" + get_ada_full_name() + " is /n"
 
 // instructions
 
@@ -227,15 +229,56 @@ scan du UTL_Scope de this
        String += tmp2 + tmp1;  
        }   
    }
-String += "\n end " + get_ada_name() + "\n"    
+String += "\n end " + get_ada_full_name() + "\n"    
 
 */
 
 
+void
+adabe_interface::produce_skel_ads(dep_list with,string &String, string &previousdefinition);
+/*
+  with.add("Omniorb");
+  with.add("Giop_S");
+  with.add(get_ada_full_name() + ".impl");
+  String += "package " + get_ada_full_name() + ".Skeleton is \n";
+  String += "procedure Adabroker_Init (Self : in out "
+  String += get_ada_full_name() + ".Impl.Object ; K : in OmniORB.ObjectKey); \n"
+  String += "procedure Adabroker_Dispatch (Self : in out "
+  String += get_ada_full_name();
+  String += ".Impl.Object ; Orls : in Giop_S.Object ; Orl_Op : in Corba.String ; Orl_Response_Expected : in Corba.Boolean ; Returns : out Corba.Boolean ); \n";
+  String += "end " + get_ada_full_name() + ".Skeleton ;\n";
+    
+ */
 
 
+void
+adabe_interface::produce_proxies_ads(dep_list with ; string &String ;string &previousdefinition);
+/*
+  with.add("Giop_C");
+  with.add("Omniproxycalldesc");
+  with.add("Proxyobject factory");
+  with.add("Rope");
+  with.add("Iop");
+  String += "package " + get_ada_full_name() + ".Proxies is \n";
+  
+  ////////////////////////////// Mapping the object factory ////////////////////////
 
-
+  string Sprivate = "";
+  scan du UTL_Scope de this
+  {
+    cast du NT en son veritable type et si c'est un attribut ou une operation faire
+      {
+      string tmp1 = "";
+      string tmp2 = "";
+      NT.produce_proxies_ads.(with,tmp1,tmp2);
+      String += tmp1;
+      Sprivate += tmp2;
+      };   
+  };
+  String += "private \n";
+  String += Sprivate;
+  String += "end " + get_ada_full_name() + ".Skeleton ;\n";
+*/
 
 
 

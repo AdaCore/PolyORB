@@ -12,7 +12,8 @@ void
 adabe_interface_fwd::produce_ads(dep_list with,string &String, string &previousdefinition);
 /*
 ada_name.compute();
-full_definition()->set_ada_name(get_ada_name());
+full_definition()->set_ada_name(get_ada_name()); /////////////attention, il faut retirer "_forward"
+full_definition()->set_ada_full_name(get_ada_full_name());////attention, il faut retirer "_forward"
 String += "with CORBA.Forward \n"
 String += "package" + get_ada_name() + "_Forward is new CORBA.Forward \n" 
 

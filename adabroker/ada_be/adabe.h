@@ -190,8 +190,6 @@ public:
 
   DEF_NARROW_METHODS1(adabe_field, AST_Field);
   DEF_NARROW_FROM_DECL(adabe_field);
-
-
 };
 
 
@@ -216,7 +214,7 @@ public:
   //produce an union in the implementation header
   void produce_adb(dep_list with,string &String, string &previousdefinition); 
   //produce the name of the union in the implementation body
-  
+
 };
 
 
@@ -240,7 +238,6 @@ public:
 private:
   string produce_disc_value(AST_ConcreteType, AST_Expression)  
   //produce the value of the branch
-
 };
 
 
@@ -266,7 +263,6 @@ public:
   //produce the name of the structure in the implementation body
   string dump_name(dep_list with,string &String, string &previousdefinition);
   //produce the name of the structure
-
 };
 
 
@@ -311,7 +307,6 @@ public:
 
 private:
   adabe_array();
-
 };
 
 
@@ -356,7 +351,6 @@ public:
 
   DEF_NARROW_METHODS1(adabe_argument, AST_Argument);
   DEF_NARROW_FROM_DECL(adabe_argument);
-
 };
 
 
@@ -380,6 +374,10 @@ public:
   //produce an attribute in the implementation header
   void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the implementation body
+  void produce_proxies_ads(dep_list with,string &String, string &previousdefinition);
+  //produce the attribute and the necessary functions in the proxy header
+
+
 
 };
 
@@ -407,6 +405,8 @@ public:
   //produce an operation in the implementation header
   void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an operation in the implementation body
+  void produce_proxies_ads(dep_list with,string &String, string &previousdefinition);
+  //produce the operation and the necessary functions in the proxy header
 
 
 private:
@@ -434,8 +434,6 @@ public:
   //produce a typedef in the implementation header
   void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce the name of the typedef in the implementation body
-
-
 };
 
 
@@ -460,7 +458,10 @@ public:
   //produce an interface in the implementation header
   void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an interface in the implementation body
-  
+  void produce_skel_ads(dep_list with,string &String, string &previousdefinition);
+  //produce the necessary functions in the skeleton header
+  void produce_proxies_ads(dep_list with,string &String, string &previousdefinition);
+  //produce the necessary functions in the proxies header
 };
 
 
@@ -480,7 +481,6 @@ public:
   //produce the interface forward in the header
   void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce the interface forward in the implementation header
-
 };
 
 
@@ -759,6 +759,10 @@ private:
 };
 
 #endif
+
+
+
+
 
 
 
