@@ -84,6 +84,12 @@ package CORBA.ORB is
    function Object_To_String
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String;
+   --  Convert reference to IOR
+
+   function Object_To_Corbaloc
+     (Obj : in CORBA.Object.Ref'Class)
+     return CORBA.String;
+   --  Convert reference to corbaloc, return corbaloc of best profile
 
    procedure String_To_Object
      (From : in     CORBA.String;
