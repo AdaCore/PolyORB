@@ -35,15 +35,13 @@
 --  $Id$
 
 with PolyORB.Setup.Test; use PolyORB.Setup.Test;
-with PolyORB.No_Tasking;
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.No_Tasking);
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+
+with PolyORB.Setup.No_Tasking_Server;
+pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
+pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 procedure PolyORB.Test.No_Tasking is
 begin
-   Initialize_Test_Server;
-   Initialize_Test_Access_Points;
    Initialize_Test_Object;
    Run_Test;
 end PolyORB.Test.No_Tasking;

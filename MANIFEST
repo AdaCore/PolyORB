@@ -348,6 +348,16 @@ src/polyorb-requests.adb
 src/polyorb-requests.ads
 src/polyorb-setup-corba_client.adb
 src/polyorb-setup-corba_client.ads
+src/polyorb-setup-no_tasking_server.adb
+src/polyorb-setup-no_tasking_server.ads
+src/polyorb-setup-server.adb
+src/polyorb-setup-server.ads
+src/polyorb-setup-tcp_access_points.adb
+src/polyorb-setup-tcp_access_points.ads
+src/polyorb-setup-thread_per_session_server.adb
+src/polyorb-setup-thread_per_session_server.ads
+src/polyorb-setup-thread_pool_server.adb
+src/polyorb-setup-thread_pool_server.ads
 src/polyorb-setup.ads
 src/polyorb-smart_pointers.adb
 src/polyorb-smart_pointers.ads

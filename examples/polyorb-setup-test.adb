@@ -44,41 +44,13 @@ with CORBA;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
-with PolyORB.Configurator;
-with PolyORB.Filters;
-with PolyORB.Filters.Slicers;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;
 with PolyORB.ORB.Interface;
-with PolyORB.Protocols;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
-
---  A transport mechanism: sockets.
-
-with PolyORB.Sockets;
-with PolyORB.Transport.Sockets;
-
---  Some protocol personalities:
-
---  Stupid test protocol
-with PolyORB.Binding_Data.Test;
-with PolyORB.Protocols.Echo;
-
---  GIOP
-with PolyORB.Binding_Data.IIOP;
-with PolyORB.Protocols.GIOP;
-
---  SRP
-with PolyORB.Binding_Data.SRP;
-with PolyORB.Protocols.SRP;
-
---  SOAP
-with PolyORB.Binding_Data.SOAP;
-with PolyORB.Filters.HTTP;
-with PolyORB.Protocols.SOAP_Pr;
 
 --  Utility.
 with PolyORB.References.IOR;
@@ -86,182 +58,15 @@ with PolyORB.References.IOR;
 --  Our application object.
 with PolyORB.Test_Object;
 
+pragma Elaborate_All (PolyORB.ORB);
+
 package body PolyORB.Setup.Test is
 
-   use PolyORB.Binding_Data;
-   use PolyORB.Filters;
    use PolyORB.Objects;
    use PolyORB.ORB;
-   use PolyORB.Sockets;
-   use PolyORB.Transport;
-   use PolyORB.Transport.Sockets;
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
    My_Servant : Servant_Access;
-
-   ---------------------------------------------
-   -- Common data for all test access points. --
-   ---------------------------------------------
-
-   type Decorated_Access_Point is record
-      Socket  : Socket_Type;
-      Address : Sock_Addr_Type;
-
-      SAP : Transport_Access_Point_Access;
-      PF  : Profile_Factory_Access;
-   end record;
-
-   procedure Initialize_Socket
-     (DAP  : in out Decorated_Access_Point;
-      Port : Port_Type);
-   --  Initialize DAP.Socket and bind it to a free port,
-   --  Port if possible.
-
-   procedure Initialize_Socket
-     (DAP  : in out Decorated_Access_Point;
-      Port : Port_Type) is
-   begin
-      Create_Socket (DAP.Socket);
-
-      DAP.Address.Addr := Any_Inet_Addr;
-      DAP.Address.Port := Port;
-
-      --  Allow reuse of local addresses.
-
-      Set_Socket_Option
-        (DAP.Socket,
-         Socket_Level,
-         (Reuse_Address, True));
-
-      Create
-        (Socket_Access_Point (DAP.SAP.all),
-         DAP.Socket,
-         DAP.Address);
-      if DAP.PF /= null then
-         Create_Factory
-           (DAP.PF.all, DAP.SAP, Components.Component_Access (The_ORB));
-      else
-         Put_Line (" (null profile factory!)");
-      end if;
-      Put_Line (" done, listening at " & Image (DAP.Address));
-   end Initialize_Socket;
-
-   --  The 'test' access point.
-
-   Test_Access_Point : Decorated_Access_Point
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.Test.Test_Profile_Factory);
-
-   Echo_Protocol : aliased Protocols.Echo.Echo_Protocol;
-
-   --  The 'GIOP' access point.
-
-   GIOP_Access_Point : Decorated_Access_Point
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.IIOP.IIOP_Profile_Factory);
-
-   GIOP_Protocol  : aliased Protocols.GIOP.GIOP_Protocol;
-   Slicer_Factory : aliased Filters.Slicers.Slicer_Factory;
-
-   --  The 'SRP' access point.
-
-   SRP_Access_Point : Decorated_Access_Point
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.SRP.SRP_Profile_Factory);
-
-   SRP_Protocol  : aliased Protocols.SRP.SRP_Protocol;
-
-   --  The 'SOAP' access point.
-
-   SOAP_Access_Point : Decorated_Access_Point
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.SOAP.SOAP_Profile_Factory);
-   HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
-   SOAP_Protocol : aliased Protocols.SOAP_Pr.SOAP_Protocol;
-   --  XXX
-   --  It is not a very satisfying thing to have to chain
-   --  HTTP_Filter and SOAP_Protocol explicitly on the server
-   --  side. On the client side, this is done in Binding_Data.SOAP
-   --  (as an effect of binding a SOAP object reference).
-   --  Since Binding_Data encapsulates the association of a protocol
-   --  with a complete transport stack, it should also provide
-   --  the corresponding server-side primitive (eg as a constant
-   --  filter chain created at initialisation.)
-
-   procedure Initialize_Test_Server
-     renames PolyORB.Configurator.Initialize_World;
-
-   procedure Initialize_Test_Access_Points is
-   begin
-
-      --------------------------------------
-      -- Create server (listening) socket --
-      --------------------------------------
-
-      Put ("Creating Test/Echo access point... ");
-      Initialize_Socket (Test_Access_Point, Any_Port);
-      Register_Access_Point
-        (ORB    => The_ORB,
-         TAP    => Test_Access_Point.SAP,
-         Chain  => Echo_Protocol'Unchecked_Access,
-         PF     => Test_Access_Point.PF);
-      --  Register socket with ORB object, associating a protocol
-      --  to the transport service access point.
-
-      ---------------------------------------------
-      -- Create server (listening) socket - GIOP --
-      ---------------------------------------------
-
-      Put ("Creating GIOP access point...");
-
-      Initialize_Socket (GIOP_Access_Point, Any_Port);
-      Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
-                        1 => GIOP_Protocol'Unchecked_Access));
-      Register_Access_Point
-        (ORB    => The_ORB,
-         TAP    => GIOP_Access_Point.SAP,
-         Chain  => Slicer_Factory'Unchecked_Access,
-         PF     => GIOP_Access_Point.PF);
-
-      --------------------------------------------
-      -- Create server (listening) socket - SRP --
-      --------------------------------------------
-
-      Put ("Creating SRP access point... ");
-      Initialize_Socket (SRP_Access_Point, Any_Port);
-      Register_Access_Point
-        (ORB    => The_ORB,
-         TAP    => SRP_Access_Point.SAP,
-         Chain  => SRP_Protocol'Unchecked_Access,
-         PF     => SRP_Access_Point.PF);
-      --  Register socket with ORB object, associating a protocol
-      --  to the transport service access point.
-
-      ---------------------------------------------
-      -- Create server (listening) socket - SOAP --
-      ---------------------------------------------
-
-      Put ("Creating SOAP access point... ");
-      Initialize_Socket (SOAP_Access_Point, 8080);
-      Chain_Factories
-        ((0 => HTTP_Filter'Unchecked_Access,
-          1 => SOAP_Protocol'Unchecked_Access));
-      Register_Access_Point
-        (ORB    => The_ORB,
-         TAP    => SOAP_Access_Point.SAP,
-         Chain  => HTTP_Filter'Unchecked_Access,
-         PF     => SOAP_Access_Point.PF);
-      --  Register socket with ORB object, associating a protocol
-      --  to the transport service access point.
-   end Initialize_Test_Access_Points;
 
    procedure Initialize_Test_Object is
    begin

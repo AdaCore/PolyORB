@@ -35,21 +35,14 @@
 --  $Id$
 
 with PolyORB.Setup.Test; use PolyORB.Setup.Test;
-with PolyORB.Setup.Test_CORBA;
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-with CORBA.Object;
-pragma Warnings (Off, CORBA.Object);
-with CORBA.AbstractBase;
-pragma Warnings (Off, CORBA.AbstractBase);
+with PolyORB.Setup.Test_CORBA; use PolyORB.Setup.Test_CORBA;
 
+with PolyORB.Setup.No_Tasking_Server;
+pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
+pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 procedure PolyORB.Test.No_Tasking_POA is
 begin
-   Initialize_Test_Server;
-   Initialize_Test_Access_Points;
    Setup.Test_CORBA.Initialize_CORBA_Test_Object;
    Run_Test;
 end PolyORB.Test.No_Tasking_POA;

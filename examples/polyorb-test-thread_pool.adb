@@ -35,17 +35,15 @@
 --  $Id$
 
 with PolyORB.Setup.Test; use PolyORB.Setup.Test;
-with PolyORB.Protected_Objects;
-pragma Warnings (Off, PolyORB.Protected_Objects);
+
 with PolyORB.ORB.Thread_Pool;
-pragma Warnings (Off, PolyORB.Protected_Objects);
+with PolyORB.Setup.Thread_Pool_Server;
+pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
+pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 procedure PolyORB.Test.Thread_Pool is
 begin
-   Initialize_Test_Server;
    ORB.Thread_Pool.Initialize (4, 10);
-
-   Initialize_Test_Access_Points;
    Initialize_Test_Object;
    Run_Test;
 end PolyORB.Test.Thread_Pool;

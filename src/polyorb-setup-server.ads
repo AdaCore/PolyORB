@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    C O R B A . T E S T _ O B J E C T                     --
+--                 P O L Y O R B . S E T U P . S E R V E R                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,41 +30,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A simple test server object.
+--  Set up a simple ORB to act as a server.
+--  The user must take care of also setting up a tasking policy.
 
 --  $Id$
 
-with PolyORB.Components;
-with PolyORB.POA_Types;
-with CORBA;
+with PolyORB.Smart_Pointers;
+pragma Elaborate_All (PolyORB.Smart_Pointers);
+pragma Warnings (Off, PolyORB.Smart_Pointers);
+--  The dependency and pragma above should not be necessary
+--  (because of the dependency and pragma on PolyORB.References,
+--  which has Smart_Pointers in its closure). They are necessary to
+--  work around a bug in GNAT 3.15 (perhaps the same as 9530-011).
 
-package CORBA.Test_Object is
+package PolyORB.Setup.Server is
 
    pragma Elaborate_Body;
 
-   use CORBA;
-
-   type My_Object is new PolyORB.POA_Types.Servant with null record;
-
-   procedure Create (O : in out My_Object);
-
-   function "=" (Left, Right : My_Object)
-     return Standard.Boolean;
-
-   function echoString
-     (O : My_Object;
-      S : CORBA.String)
-     return CORBA.String;
-
-   function echoInteger
-     (O : My_Object;
-      I : CORBA.Long)
-     return CORBA.Long;
-
-   function Handle_Message
-     (Obj : access My_Object;
-      Msg : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
-
-end CORBA.Test_Object;
-
+end PolyORB.Setup.Server;

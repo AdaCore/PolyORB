@@ -23,17 +23,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/all_types/server.adb#1 $
+--  $Id$
 
 with Ada.Text_IO;
 with GNAT.Command_Line;  use GNAT.Command_Line;
 
 with PolyORB.CORBA_P.Server_Tools;
 
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-
-with PolyORB.Setup.Test;
+with PolyORB.Setup.No_Tasking_Server;
+pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
+pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with CORBA;
 with CORBA.Object;
@@ -70,11 +69,6 @@ begin
       Obj : constant CORBA.Impl.Object_Ptr
         := new all_types.Impl.Object;
    begin
-      PolyORB.Setup.Test.Initialize_Test_Server;
-      PolyORB.Setup.Test.Initialize_Test_Access_Points;
-      --  XXX PolyORB initialisation.
-      --  Should be automated by PolyORB Automatic Configurator.
-
       Initiate_Servant (PortableServer.Servant (Obj), Ref);
       --  Note that Ref is a smart pointer to a Reference_Info, *not*
       --  to a CORBA.Impl.Object.
