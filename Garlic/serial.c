@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * This file provides the necessary stuff to connect two partitions
  * using two sockets.
  *

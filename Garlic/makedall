@@ -1,7 +1,5 @@
 #! /bin/sh
 #
-# $Id$
-#
 # This script makes various files containing scripts to set or clear GARLIC
 # debug variables.
 #

@@ -1,3 +1,29 @@
+2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* all files: Update copyright.
+
+	* Makefile.am, Makefile.in: Add s-gartyp.adb.
+
+	* s-gartyp.ads, s-gartyp.adb: Add partition id marshalling
+ 	procedures. Partition_ID is now on two octets (pids > 255).
+
+	* s-garhea.adb, s-rpc.adb: Use new Garlic.Types
+ 	subprograms. Especially in System.RPC do not marshall
+ 	RPC.Partition_ID as they are not marshalled the same way
+	Garlic.Types.Partition_ID are.
+
+	* constants.c, constants.sh: Remove RCS keyword.
+
+	* s-gardeb.adb, s-gardeb.ads: Add procedure Debug_All to active
+ 	debugging info from gdb. To do so, the unit banner is not
+	independent from the unit debugging info activation.
+
+	* s-garpar.adb, s-garpar.ads: Use new Garlic.Debug specification
+ 	especially in Dump_Partition_Table.
+
+	* s-garsto.adb: Catch properly error that occurs when the user
+ 	tries to use a data storage support that is not available.
+	
 2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-gaphlo.adb, s-gaphlo.ads: Add subprograms Get_Name and

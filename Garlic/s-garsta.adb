@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -391,7 +391,7 @@ begin
    Units.Initialize;
    Trace.Initialize;
 
-   pragma Debug (Partitions.Dump_Partition_Table);
+   pragma Debug (Partitions.Dump_Partition_Table (Private_Debug_Key));
 
    --  Let boot server know about this partition
 

@@ -1,7 +1,4 @@
 #!/bin/sh
-#
-# mkdep,v 1.3 1996/04/10 15:41:58 tardieu Exp
-#
 
 FNAME=${1:-Makefile.am}
 MKDEP="### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###"
