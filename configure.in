@@ -218,9 +218,11 @@ if test "$TCP_INCLUDED" = ""; then
   AC_ARG_ENABLE(thread-blocking-io,
   [  --enable-thread-blocking-io  Turn on thread blocking io mode],
   [
-   echo "with System.Garlic.TCP.Non_Blocking;"     >$srcdir/Garlic/s-gatcop.ads
+   echo "with System.Garlic.Non_Blocking;"         >$srcdir/Garlic/s-gatcop.ads
    echo "package System.Garlic.TCP.Operations"    >>$srcdir/Garlic/s-gatcop.ads
    echo "   renames System.Garlic.Non_Blocking;"  >>$srcdir/Garlic/s-gatcop.ads
+   PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
+   PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
   ],
   [
     AC_MSG_CHECKING([thread-blocking I/O])

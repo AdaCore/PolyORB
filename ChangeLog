@@ -1,3 +1,8 @@
+1998-07-27  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure, configure.in: Typo in configure.in (TCP.Non_Blocking
+	-> Non_Blocking).
+
 1998-07-26  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* MANIFEST: Remove some 5*files because the thread-blocking-io
