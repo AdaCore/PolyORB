@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#7 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#8 $
 
 with PolyORB.Exceptions;
 with PolyORB.Smart_Pointers;
@@ -53,7 +53,7 @@ package body PortableServer.POAManager is
    -----------------
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterInactive_Members)
    is
       use Ada.Exceptions;
@@ -61,6 +61,7 @@ package body PortableServer.POAManager is
       if Exception_Identity (From) /= AdapterInactive'Identity then
          PolyORB.Exceptions.Raise_Bad_Param;
       end if;
+
       To := AdapterInactive_Members'
         (CORBA.IDL_Exception_Members with null record);
    end Get_Members;
@@ -69,10 +70,11 @@ package body PortableServer.POAManager is
    -- To_POA_Manager --
    --------------------
 
-   function To_POA_Manager  (Self : Ref)
-                            return POAManager_Access
+   function To_POA_Manager (Self : Ref)
+     return POAManager_Access
    is
       Res : constant PolyORB.Smart_Pointers.Entity_Ptr := Entity_Of (Self);
+
    begin
       if Is_Nil (Self)
         or else Res.all not in PolyORB.POA_Manager.POAManager'Class then
@@ -102,7 +104,8 @@ package body PortableServer.POAManager is
    -- Activate --
    --------------
 
-   procedure Activate (Self : Ref)
+   procedure Activate
+     (Self : in Ref)
    is
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
@@ -116,8 +119,8 @@ package body PortableServer.POAManager is
    -------------------
 
    procedure Hold_Requests
-     (Self : Ref;
-      Wait_For_Completion : CORBA.Boolean)
+     (Self                : in Ref;
+      Wait_For_Completion : in CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
@@ -131,8 +134,8 @@ package body PortableServer.POAManager is
    ----------------------
 
    procedure Discard_Requests
-     (Self : Ref;
-      Wait_For_Completion : CORBA.Boolean)
+     (Self                : in Ref;
+      Wait_For_Completion : in CORBA.Boolean)
    is
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
@@ -146,7 +149,7 @@ package body PortableServer.POAManager is
    ----------------
 
    procedure Deactivate
-     (Self : in Ref;
+     (Self                : in Ref;
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean)
    is
@@ -161,8 +164,9 @@ package body PortableServer.POAManager is
    -- Get_State --
    ---------------
 
-   function Get_State (Self : Ref)
-                      return State
+   function Get_State
+     (Self : in Ref)
+     return State
    is
       POA_Manager : constant POAManager_Access
         := To_POA_Manager (Self);

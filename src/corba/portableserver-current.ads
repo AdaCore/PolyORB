@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,19 +30,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-current.ads#2 $
+--  $Id: //droopi/main/src/corba/portableserver-current.ads#3 $
 
-with CORBA;
+with Ada.Exceptions;
+
 with CORBA.Current;
 
 package PortableServer.Current is
+
    type Ref is new CORBA.Current.Ref with private;
 
    NoContext : exception;
+
    type NoContext_Members is new CORBA.IDL_Exception_Members
      with null record;
+
    procedure Get_Members
-     (From : in  CORBA.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out NoContext_Members);
 
    function get_POA (Self : Ref)
@@ -53,4 +57,5 @@ package PortableServer.Current is
 
 private
    type Ref is new CORBA.Current.Ref with null record;
+
 end PortableServer.Current;

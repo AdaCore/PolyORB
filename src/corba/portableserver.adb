@@ -34,9 +34,9 @@
 
 with Ada.Tags;
 
-with CORBA;
-
 with PolyORB.CORBA_P.Names;
+
+with PolyORB.Exceptions;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -57,6 +57,28 @@ package body PortableServer is
    package L is new PolyORB.Log.Facility_Log ("portableserver");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   ---------------------------------------
+   -- Information about a skeleton unit --
+   ---------------------------------------
+
+   type Skeleton_Info is record
+      Type_Id    : CORBA.RepositoryId;
+      Is_A       : Servant_Class_Predicate;
+      Dispatcher : Request_Dispatcher;
+   end record;
+
+   function Find_Info
+     (For_Servant : Servant)
+     return Skeleton_Info;
+
+   package Skeleton_Lists is new PolyORB.Utils.Chained_Lists
+     (Skeleton_Info);
+
+   All_Skeletons : Skeleton_Lists.List;
+   Skeleton_Lock : Mutex_Access;
+
+   Skeleton_Unknown : exception;
 
    ---------------------
    -- Execute_Servant --
@@ -134,23 +156,17 @@ package body PortableServer is
    -----------------
 
    procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
-      To   : out ForwardRequest_Members) is
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ForwardRequest_Members)
+   is
+      use Ada.Exceptions;
    begin
-      raise PolyORB.Not_Implemented;
+      if Exception_Identity (From) /= ForwardRequest'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      PolyORB.Exceptions.User_Get_Members (From, To);
    end Get_Members;
-
-   -----------------------------
-   -- A list of Skeleton_Info --
-   -----------------------------
-
-   package Skeleton_Lists is new PolyORB.Utils.Chained_Lists
-     (Skeleton_Info);
-
-   All_Skeletons : Skeleton_Lists.List;
-   Skeleton_Lock : Mutex_Access;
-
-   Skeleton_Unknown : exception;
 
    ---------------
    -- Find_Info --

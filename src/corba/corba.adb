@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#18 $
+--  $Id: //droopi/main/src/corba/corba.adb#19 $
 
 with Ada.Characters.Handling;
 
@@ -77,12 +77,12 @@ package body CORBA is
          (Source));
    end To_Standard_Wide_String;
 
-   ---------------------------------------
-   -- Get_Members for system exceptions --
-   ---------------------------------------
+   -----------------
+   -- Get_Members --
+   -----------------
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members)
    is
       Str : constant Standard.String :=
@@ -100,71 +100,71 @@ package body CORBA is
 
       --  Unmarshall minor.
       Val := 0;
-      for I in Str'First .. Str'Last - 1 loop
-         Val := Val * 256 + Character'Pos (Str (I));
+      for J in Str'First .. Str'Last - 1 loop
+         Val := Val * 256 + Character'Pos (Str (J));
       end loop;
       To.Minor := Val;
+
    exception
       when Constraint_Error =>
          PolyORB.Exceptions.Raise_Bad_Param;
    end Get_Members;
 
-   --------------------------------------
-   -- Get_Members for other exceptions --
-   --------------------------------------
-
-   -----------------
-   -- Get_Members --
-   -----------------
-
    procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InvalidName_Members)
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidName_Members)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (From);
-      pragma Warnings (On);
+      use Ada.Exceptions;
+
    begin
+      if Exception_Identity (From) /= InvalidName'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
       To := InvalidName_Members'
         (IDL_Exception_Members with null record);
    end Get_Members;
 
-   -----------------
-   -- Get_Members --
-   -----------------
-
    procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InconsistentTypeCode_Members)
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InconsistentTypeCode_Members)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (From);
-      pragma Warnings (On);
+      use Ada.Exceptions;
+
    begin
+      if Exception_Identity (From) /= InconsistentTypeCode'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
       To := InconsistentTypeCode_Members'
         (IDL_Exception_Members with null record);
    end Get_Members;
 
-   -----------------
-   -- Get_Members --
-   -----------------
-
    procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out PolicyError_Members)
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out PolicyError_Members)
    is
+      use Ada.Exceptions;
+
    begin
+      if Exception_Identity (From) /= PolicyError'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
       PolyORB.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
-   -----------------
-   -- Get_Members --
-   -----------------
-
    procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To   : out UnknownUserException_Members) is
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out UnknownUserException_Members)
+   is
+      use Ada.Exceptions;
+
    begin
+      if Exception_Identity (From) /= UnknownUserException'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
       PolyORB.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 

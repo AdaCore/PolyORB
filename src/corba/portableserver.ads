@@ -32,22 +32,22 @@
 
 --  $Id$
 
-with PolyORB.Components;
-with PolyORB.Objects;
+with Ada.Exceptions;
 
-with CORBA;
+with CORBA.Forward;
+pragma Elaborate_All (CORBA.Forward);
+
+with CORBA.Impl;
+with CORBA.Object;
+with CORBA.ServerRequest;
 
 pragma Warnings (Off);              --  WAG:3.15
 with PolyORB.Any;                   --  WAG:3.15
 pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
 pragma Warnings (On);               --  WAG:3.15
 
-with CORBA.Object;
-with CORBA.Impl;
-with CORBA.Forward;
-pragma Elaborate_All (CORBA.Forward);
-
-with CORBA.ServerRequest;
+with PolyORB.Components;
+with PolyORB.Objects;
 
 package PortableServer is
 
@@ -125,14 +125,12 @@ package PortableServer is
 
    ForwardRequest : exception;
 
-   type ForwardRequest_Members is
-     new CORBA.IDL_Exception_Members with
-      record
-         Forward_Reference : CORBA.Object.Ref;
-      end record;
+   type ForwardRequest_Members is new CORBA.IDL_Exception_Members with record
+      Forward_Reference : CORBA.Object.Ref;
+   end record;
 
    procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out ForwardRequest_Members);
 
    ---------------
@@ -311,19 +309,5 @@ private
    procedure Invoke
      (Self    : access Servant_Base;
       Request : in CORBA.ServerRequest.Object_Ptr);
-
-   ---------------------------------------
-   -- Information about a skeleton unit --
-   ---------------------------------------
-
-   type Skeleton_Info is record
-      Type_Id    : CORBA.RepositoryId;
-      Is_A       : Servant_Class_Predicate;
-      Dispatcher : Request_Dispatcher;
-   end record;
-
-   function Find_Info
-     (For_Servant : Servant)
-     return Skeleton_Info;
 
 end PortableServer;

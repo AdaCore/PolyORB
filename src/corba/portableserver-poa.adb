@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#30 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#31 $
 
 with Ada.Exceptions;
 
@@ -89,7 +89,7 @@ package body PortableServer.POA is
    -----------------
 
    procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterAlreadyExists_Members)
    is
       use Ada.Exceptions;
@@ -104,7 +104,7 @@ package body PortableServer.POA is
    end Get_Members;
 
    procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterNonExistent_Members)
    is
       use Ada.Exceptions;
@@ -115,6 +115,125 @@ package body PortableServer.POA is
       end if;
 
       To := AdapterNonExistent_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidPolicy_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= InvalidPolicy'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out NoServant_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= NoServant'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      To := NoServant_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ObjectAlreadyActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ObjectAlreadyActive'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      To := ObjectAlreadyActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ObjectNotActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ObjectNotActive'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      To := ObjectNotActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ServantAlreadyActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ServantAlreadyActive'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      To := ServantAlreadyActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ServantNotActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ServantNotActive'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      To := ServantNotActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out WrongAdapter_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= WrongAdapter'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      To := WrongAdapter_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out WrongPolicy_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= WrongPolicy'Identity then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      To := WrongPolicy_Members'
         (CORBA.IDL_Exception_Members with null record);
    end Get_Members;
 
@@ -383,8 +502,8 @@ package body PortableServer.POA is
 
    procedure Destroy
      (Self                : in out Ref;
-      Etherealize_Objects : in CORBA.Boolean;
-      Wait_For_Completion : in CORBA.Boolean)
+      Etherealize_Objects : in     CORBA.Boolean;
+      Wait_For_Completion : in     CORBA.Boolean)
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -396,7 +515,7 @@ package body PortableServer.POA is
          PolyORB.Types.Boolean (Wait_For_Completion));
 
       --  XXX CORBA Specifications says 'Self' should be an 'in'
-      --  parameter; by doin so 'Self' is still a reference to an
+      --  parameter; by doing so 'Self' is still a reference to an
       --  invalid POA --> file an issue against the spec to have Ref
       --  converted to an 'in out' arg...
 

@@ -30,7 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.ads#5 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.ads#6 $
+
+with Ada.Exceptions;
 
 with CORBA.Object;
 with CORBA.Policy;
@@ -39,53 +41,34 @@ with PortableServer.POAManager;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
 
---  with PortableServer.ThreadPolicy;
-
 package PortableServer.POA is
 
    type Ref is new CORBA.Object.Ref with null record;
 
-   AdapterAlreadyExists : exception;
-
-   type AdapterAlreadyExists_Members is
-     new CORBA.IDL_Exception_Members
-     with null record;
-
-   procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
-      To   : out AdapterAlreadyExists_Members);
-
-   AdapterNonExistent : exception;
-
-   type AdapterNonExistent_Members is
-     new CORBA.IDL_Exception_Members
-     with null record;
-
-   procedure Get_Members (From : in CORBA.Exception_Occurrence;
-                          To   : out AdapterNonExistent_Members);
-
    function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
 
-   AdapterInactive      : exception;
+   AdapterAlreadyExists : exception;
+   AdapterNonExistent   : exception;
+   InvalidPolicy        : exception;
+   NoServant            : exception;
    ObjectAlreadyActive  : exception;
    ObjectNotActive      : exception;
    ServantAlreadyActive : exception;
    ServantNotActive     : exception;
    WrongAdapter         : exception;
    WrongPolicy          : exception;
-   NoServant            : exception;
 
    function Create_POA
-     (Self         : Ref;
-      Adapter_Name : CORBA.String;
-      A_POAManager : PortableServer.POAManager.Ref;
-      Policies     : CORBA.Policy.PolicyList)
+     (Self         : in Ref;
+      Adapter_Name : in CORBA.String;
+      A_POAManager : in PortableServer.POAManager.Ref;
+      Policies     : in CORBA.Policy.PolicyList)
      return Ref'Class;
 
    function Find_POA
-     (Self         : Ref;
-      Adapter_Name : CORBA.String;
-      Activate_It  : CORBA.Boolean)
+     (Self         : in Ref;
+      Adapter_Name : in CORBA.String;
+      Activate_It  : in CORBA.Boolean)
       return Ref'Class;
 
    procedure Destroy
@@ -94,19 +77,19 @@ package PortableServer.POA is
       Wait_For_Completion : in     CORBA.Boolean);
 
    function Get_The_Name
-     (Self : Ref)
+     (Self : in Ref)
      return CORBA.String;
 
    function Get_The_Parent
-     (Self : Ref)
+     (Self : in Ref)
      return Ref'Class;
 
    function Get_The_POAManager
-     (Self : Ref)
+     (Self : in Ref)
      return PortableServer.POAManager.Ref;
 
    function Get_The_Activator
-     (Self : Ref)
+     (Self : in Ref)
      return PortableServer.AdapterActivator.Ref;
 
    procedure Set_The_Activator
@@ -122,7 +105,7 @@ package PortableServer.POA is
       Imgr : in PortableServer.ServantManager.Ref);
 
    function Get_Servant
-     (Self : Ref)
+     (Self : in Ref)
      return Servant;
 
    procedure Set_Servant
@@ -130,8 +113,8 @@ package PortableServer.POA is
       P_Servant : in Servant);
 
    function Activate_Object
-     (Self      : Ref;
-      P_Servant : Servant)
+     (Self      : in Ref;
+      P_Servant : in Servant)
      return ObjectId;
 
    procedure Activate_Object_With_Id
@@ -144,47 +127,120 @@ package PortableServer.POA is
       Oid  : in ObjectId);
 
    function Create_Reference
-     (Self : Ref;
-      Intf : CORBA.RepositoryId)
+     (Self : in Ref;
+      Intf : in CORBA.RepositoryId)
      return CORBA.Object.Ref;
 
    function Create_Reference_With_Id
-     (Self : Ref;
-      Oid  : ObjectId;
-      Intf : CORBA.RepositoryId)
+     (Self : in Ref;
+      Oid  : in ObjectId;
+      Intf : in CORBA.RepositoryId)
      return CORBA.Object.Ref;
 
    function Servant_To_Id
-     (Self      : Ref;
-      P_Servant : Servant)
+     (Self      : in Ref;
+      P_Servant : in Servant)
      return ObjectId;
 
    function Servant_To_Reference
-     (Self      : Ref;
-      P_Servant : Servant)
+     (Self      : in Ref;
+      P_Servant : in Servant)
      return CORBA.Object.Ref;
 
    function Reference_To_Servant
-     (Self      : Ref;
-      Reference : CORBA.Object.Ref'Class)
+     (Self      : in Ref;
+      Reference : in CORBA.Object.Ref'Class)
      return Servant;
 
    function Reference_To_Id
-     (Self      : Ref;
-      Reference : CORBA.Object.Ref'Class)
+     (Self      : in Ref;
+      Reference : in CORBA.Object.Ref'Class)
      return ObjectId;
 
    function Id_To_Servant
-     (Self : Ref;
-      Oid  : ObjectId)
+     (Self : in Ref;
+      Oid  : in ObjectId)
      return Servant;
 
    function Id_To_Reference
-     (Self : Ref;
-      Oid  : ObjectId)
+     (Self : in Ref;
+      Oid  : in ObjectId)
      return CORBA.Object.Ref;
 
    package Convert is new
      PortableServer.POA_Forward.Convert (Ref);
+
+   --  Exception manipulation.
+
+   type AdapterAlreadyExists_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out AdapterAlreadyExists_Members);
+
+   type AdapterNonExistent_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out AdapterNonExistent_Members);
+
+   type InvalidPolicy_Members is new CORBA.IDL_Exception_Members with record
+      Index : CORBA.Short;
+   end record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidPolicy_Members);
+
+   type NoServant_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out NoServant_Members);
+
+   type ObjectAlreadyActive_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out ObjectAlreadyActive_Members);
+
+   type ObjectNotActive_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out ObjectNotActive_Members);
+
+   type ServantAlreadyActive_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out ServantAlreadyActive_Members);
+
+   type ServantNotActive_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out ServantNotActive_Members);
+
+   type WrongAdapter_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out WrongAdapter_Members);
+
+   type WrongPolicy_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out WrongPolicy_Members);
 
 end PortableServer.POA;

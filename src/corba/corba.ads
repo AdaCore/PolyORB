@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#24 $
+--  $Id: //droopi/main/src/corba/corba.ads#25 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -203,13 +203,11 @@ package CORBA is
    --  abstract and empty but all other records will inherit from it.
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out IDL_Exception_Members) is abstract;
    --  This method return the member corresponding to an exception
    --  occurence This method must be redefined for each new member
    --  type. That's why it is declared abstract.
-
-   --  Free method associated to the type Idl_Exception_Members_Ptr
 
    subtype Completion_Status is PolyORB.Exceptions.Completion_Status;
    --  Type used for characterize the state of an exception It is defined
@@ -219,128 +217,137 @@ package CORBA is
    --  Type used for characterize exceptions.  It is defined by the CORBA
    --  specification.
 
+   -----------------------
+   -- System Exceptions --
+   -----------------------
+
    type System_Exception_Members is new PolyORB.Exceptions.Exception_Members
      with record
-         Minor     : Unsigned_Long;
-         Completed : Completion_Status;
+        Minor     : Unsigned_Long;
+        Completed : Completion_Status;
      end record;
 
-   subtype Exception_Occurrence is PolyORB.Exceptions.Exception_Occurrence;
-   --  Not in CORBA spec !
-
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members);
-   --  This method return the member corresponding to a system exception
-   --  occurence.
+   --  Return the member corresponding to a system exception occurence.
 
-   Unknown       : exception;          --  the unknown exception
-   Bad_Param     : exception;          --  an invalid parameter was passed
-   No_Memory     : exception;          --  dynamic memory allocation failure
-   Imp_Limit     : exception;          --  violated implementation limit
-   Comm_Failure  : exception;          --  communication failure
-   Inv_Objref    : exception;          --  invalid object reference
-   No_Permission : exception;          --  no permission for attempted op.
-   Internal      : exception;          --  ORB internal error
-   Marshal       : exception;          --  error marshalling param/result
-   Initialization_Failure : exception; --  ORB initialization failure
-   No_Implement  : exception;          --  operation implementation unavailable
-   Bad_TypeCode  : exception;          --  bad typecode
-   Bad_Operation : exception;          --  invalid operation
-   No_Resources  : exception;          --  insufficient resources for req.
-   No_Response   : exception;          --  response to request not available
-   Persist_Store : exception;          --  persistent storage failure
-   Bad_Inv_Order : exception;          --  routine invocations out of order
-   Transient     : exception;          --  transient failure - reissue request
-   Free_Mem      : exception;          --  cannot free memory
-   Inv_Ident     : exception;          --  invalid identifier syntax
-   Inv_Flag      : exception;          --  invalid flag was specified
-   Intf_Repos    : exception;          --  error accessing interface repository
-   Bad_Context   : exception;          --  error processing context object
-   Obj_Adapter   : exception;          --  failure detected by object adapter
-   Data_Conversion : exception;        --  data conversion error
-   Object_Not_Exist       : exception;
-   Transaction_Required   : exception;
-   Transaction_Rolledback : exception;
-   Invalid_Transaction    : exception;
+   Unknown                 : exception; --  unknown exception
+   Bad_Param               : exception; --  an invalid parameter was passed
+   No_Memory               : exception; --  dynamic memory allocation failure
+   Imp_Limit               : exception; --  violated implementation limit
+   Comm_Failure            : exception; --  communication failure
+   Inv_Objref              : exception; --  invalid object reference
+   No_Permission           : exception; --  no permission for attempted op.
+   Internal                : exception; --  ORB internal error
+   Marshal                 : exception; --  error marshalling param/result
+   Initialization_Failure  : exception; --  ORB initialization failure
+   No_Implement            : exception; --  operation impleme. unavailable
+   Bad_TypeCode            : exception; --  bad typecode
+   Bad_Operation           : exception; --  invalid operation
+   No_Resources            : exception; --  insufficient resources for req.
+   No_Response             : exception; --  response to request not available
+   Persist_Store           : exception; --  persistent storage failure
+   Bad_Inv_Order           : exception; --  routine invocations out of order
+   Transient               : exception; --  transient failure - reissue request
+   Free_Mem                : exception; --  cannot free memory
+   Inv_Ident               : exception; --  invalid identifier syntax
+   Inv_Flag                : exception; --  invalid flag was specified
+   Intf_Repos              : exception; --  error accessing intf. repository
+   Bad_Context             : exception; --  error processing context object
+   Obj_Adapter             : exception; --  failure detected by object adapter
+   Data_Conversion         : exception; --  data conversion error
+   Object_Not_Exist        : exception; --  non-existent object, delete ref.
+   Transaction_Required    : exception; --  transaction required
+   Transaction_Rolledback  : exception; --  transaction rolled back
+   Invalid_Transaction     : exception; --  invalid transaction
+   Inv_Policy              : exception; --  invalid policy
+   Codeset_Incompatible    : exception; --  incompatible code set
+   Rebind                  : exception; --  rebind needed
+   Timeout                 : exception; --  operation timed out
+   Transaction_Unavailable : exception; --  no transaction
+   Transaction_Mode        : exception; --  invalid transaction mode
+   Bad_Qos                 : exception; --  bad quality of service
 
-   Adapter_Already_Exists : exception;
-   Invalid_Policy         : exception;
-   Wrong_Policy           : exception;
-   Servant_Already_Active : exception;
-   Object_Already_Active  : exception;
-   Servant_Not_Active     : exception;
-   Object_Not_Active      : exception;
-   Adapter_Inactive       : exception;
+   type Unknown_Members                 is new System_Exception_Members
+     with null record;
+   type Bad_Param_Members               is new System_Exception_Members
+     with null record;
+   type No_Memory_Members               is new System_Exception_Members
+     with null record;
+   type Imp_Limit_Members               is new System_Exception_Members
+     with null record;
+   type Comm_Failure_Members            is new System_Exception_Members
+     with null record;
+   type Inv_Objref_Members              is new System_Exception_Members
+     with null record;
+   type No_Permission_Members           is new System_Exception_Members
+     with null record;
+   type Internal_Members                is new System_Exception_Members
+     with null record;
+   type Marshal_Members                 is new System_Exception_Members
+     with null record;
+   type Initialization_Failure_Members  is new System_Exception_Members
+     with null record;
+   type No_Implement_Members            is new System_Exception_Members
+     with null record;
+   type Bad_Typecode_Members            is new System_Exception_Members
+     with null record;
+   type Bad_Operation_Members           is new System_Exception_Members
+     with null record;
+   type No_Resources_Members            is new System_Exception_Members
+     with null record;
+   type No_Response_Members             is new System_Exception_Members
+     with null record;
+   type Persist_Store_Members           is new System_Exception_Members
+     with null record;
+   type Bad_Inv_Order_Members           is new System_Exception_Members
+     with null record;
+   type Transient_Members               is new System_Exception_Members
+     with null record;
+   type Free_Mem_Members                is new System_Exception_Members
+     with null record;
+   type Inv_Ident_Members               is new System_Exception_Members
+     with null record;
+   type Inv_Flag_Members                is new System_Exception_Members
+     with null record;
+   type Intf_Repos_Members              is new System_Exception_Members
+     with null record;
+   type Bad_Context_Members             is new System_Exception_Members
+     with null record;
+   type Obj_Adapter_Members             is new System_Exception_Members
+     with null record;
+   type Data_Conversion_Members         is new System_Exception_Members
+     with null record;
+   type Object_Not_Exist_Members        is new System_Exception_Members
+     with null record;
+   type Transaction_Required_Members    is new System_Exception_Members
+     with null record;
+   type Transaction_Rolledback_Members  is new System_Exception_Members
+     with null record;
+   type Invalid_Transaction_Members     is new System_Exception_Members
+     with null record;
+   type Inv_Policy_Members              is new System_Exception_Members
+     with null record;
+   type Codeset_Incompatible_Members    is new System_Exception_Members
+     with null record;
+   type Rebind_Members                  is new System_Exception_Members
+     with null record;
+   type Timeout_Members                 is new System_Exception_Members
+     with null record;
+   type Transaction_Unavailable_Members is new System_Exception_Members
+     with null record;
+   type Transaction_Mode_Members        is new System_Exception_Members
+     with null record;
+   type Bad_Qos_Members                 is new System_Exception_Members
+     with null record;
 
-   type Unknown_Members         is new System_Exception_Members
-     with null record;
-   type Bad_Param_Members       is new System_Exception_Members
-     with null record;
-   type No_Memory_Members       is new System_Exception_Members
-     with null record;
-   type Imp_Limit_Members       is new System_Exception_Members
-     with null record;
-   type Comm_Failure_Members    is new System_Exception_Members
-     with null record;
-   type Inv_Objref_Members      is new System_Exception_Members
-     with null record;
-   type No_Permission_Members   is new System_Exception_Members
-     with null record;
-   type Internal_Members        is new System_Exception_Members
-     with null record;
-   type Marshal_Members         is new System_Exception_Members
-     with null record;
-   type Initialization_Failure_Members is new System_Exception_Members
-     with null record;
-   type No_Implement_Members    is new System_Exception_Members
-     with null record;
-   type Bad_Typecode_Members    is new System_Exception_Members
-     with null record;
-   type Bad_Operation_Members   is new System_Exception_Members
-     with null record;
-   type No_Resources_Members    is new System_Exception_Members
-     with null record;
-   type No_Response_Members     is new System_Exception_Members
-     with null record;
-   type Persist_Store_Members   is new System_Exception_Members
-     with null record;
-   type Bad_Inv_Order_Members   is new System_Exception_Members
-     with null record;
-   type Transient_Members       is new System_Exception_Members
-     with null record;
-   type Free_Mem_Members        is new System_Exception_Members
-     with null record;
-   type Inv_Ident_Members       is new System_Exception_Members
-     with null record;
-   type Inv_Flag_Members        is new System_Exception_Members
-     with null record;
-   type Intf_Repos_Members      is new System_Exception_Members
-     with null record;
-   type Bad_Context_Members     is new System_Exception_Members
-     with null record;
-   type Obj_Adapter_Members     is new System_Exception_Members
-     with null record;
-   type Data_Conversion_Members is new System_Exception_Members
-     with null record;
-   type Object_Not_Exist_Members       is new System_Exception_Members
-     with null record;
-   type Transaction_Required_Members   is new System_Exception_Members
-     with null record;
-   type Transaction_Rolledback_Members is new System_Exception_Members
-     with null record;
-   type Invalid_Transaction_Members    is new System_Exception_Members
-     with null record;
-   type Adapter_Already_Exists_Members is new System_Exception_Members
-     with null record;
-   type Invalid_Policy_Members         is new System_Exception_Members
-     with null record;
-
-   -----------------------------
-   -- exceptions for the ORB  --
-   -----------------------------
+   --------------------
+   -- ORB Exceptions --
+   --------------------
 
    --  Defined in 4.7
+
    type PolicyType is new CORBA.Unsigned_Long;
 
    --  exception PolicyError
@@ -348,42 +355,39 @@ package CORBA is
 
    type PolicyErrorCode is new CORBA.Short;
 
-   BAD_POLICY               : constant PolicyErrorCode
-     := PolicyErrorCode'(0);
-   UNSUPPORTED_POLICY       : constant PolicyErrorCode
-     := PolicyErrorCode'(1);
-   BAD_POLICY_TYPE          : constant PolicyErrorCode
-     := PolicyErrorCode'(2);
-   BAD_POLICY_VALUE         : constant PolicyErrorCode
-     := PolicyErrorCode'(3);
-   UNSUPPORTED_POLICY_VALUE : constant PolicyErrorCode
-     := PolicyErrorCode'(4);
+   BAD_POLICY               : constant PolicyErrorCode := PolicyErrorCode'(0);
+   UNSUPPORTED_POLICY       : constant PolicyErrorCode := PolicyErrorCode'(1);
+   BAD_POLICY_TYPE          : constant PolicyErrorCode := PolicyErrorCode'(2);
+   BAD_POLICY_VALUE         : constant PolicyErrorCode := PolicyErrorCode'(3);
+   UNSUPPORTED_POLICY_VALUE : constant PolicyErrorCode := PolicyErrorCode'(4);
 
-   type PolicyError_Members is
-     new CORBA.IDL_Exception_Members with
-      record
-         Reason : PolicyErrorCode;
-      end record;
+   type PolicyError_Members is new CORBA.IDL_Exception_Members with record
+      Reason : PolicyErrorCode;
+   end record;
 
    procedure Get_Members
-     (From : in     Ada.Exceptions.Exception_Occurrence;
-      To   :    out PolicyError_Members);
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out PolicyError_Members);
 
    --  exception InvalidName
    InvalidName : exception;
+
    type InvalidName_Members is new CORBA.IDL_Exception_Members
      with null record;
+
    procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InvalidName_Members);
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidName_Members);
 
    --  exception InconsistentTypeCode
    InconsistentTypeCode : exception;
+
    type InconsistentTypeCode_Members is new CORBA.IDL_Exception_Members
      with null record;
+
    procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InconsistentTypeCode_Members);
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InconsistentTypeCode_Members);
 
    -------------------------
    -- Types and constants --
