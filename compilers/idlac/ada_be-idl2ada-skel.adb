@@ -559,16 +559,21 @@ package body Ada_Be.Idl2Ada.Skel is
                      declare
                         Arg_Name : constant String
                           := Ada_Name (Declarator (P_Node));
+                        PT_Node : constant Node_Id
+                          := Param_Type (P_Node);
                         Helper_Name : constant String
-                          := Helper_Unit (Param_Type (P_Node));
+                          := Helper_Unit (PT_Node);
                      begin
                         if not Is_Returns (P_Node) then
                            if Mode (P_Node) = Mode_In
                              or else Mode (P_Node) = Mode_Inout
                            then
-                              PL (CU, Arg_Name
-                                  & " := " & Helper_Name & ".From_Any ("
-                                  & T_Argument & Arg_Name & ");");
+                              PL (CU, Arg_Name & " := ");
+                              Gen_Forward_Conversion
+                                (CU, PT_Node, "To_Forward",
+                                 Helper_Name & ".From_Any ("
+                                 & T_Argument & Arg_Name & ")");
+                              PL (CU, ";");
                            end if;
                         end if;
                      end;
@@ -734,8 +739,10 @@ package body Ada_Be.Idl2Ada.Skel is
                      NL (CU);
 
                      declare
+                        OT_Node : constant Node_Id
+                          := Original_Operation_Type (Node);
                         Prefix : constant String
-                          := Helper_Unit (Original_Operation_Type (Node));
+                          := Helper_Unit (OT_Node);
                      begin
                         Add_With (CU, Prefix);
 
@@ -743,14 +750,21 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, "CORBA.ServerRequest.Set_Result");
                            PL (CU, "  (Request, ");
                            II (CU);
-                           PL (CU, Prefix & ".To_Any ("
-                               & T_Result & "));");
+                           PL (CU, Prefix & ".To_Any (");
+                           Gen_Forward_Conversion
+                             (CU, OT_Node,
+                              "From_Forward", T_Result);
+                           PL (CU, "));");
                            DI (CU);
                         else
                            PL (CU, "CORBA.ServerRequest.Set_Result");
                            PL (CU, "  (Request, ");
                            II (CU);
-                           PL (CU, Prefix & ".To_Any (Returns));");
+                           PL (CU, Prefix & ".To_Any (");
+                           Gen_Forward_Conversion
+                             (CU, OT_Node,
+                              "From_Forward", "Returns");
+                           PL (CU, "));");
                            DI (CU);
                         end if;
                      end;

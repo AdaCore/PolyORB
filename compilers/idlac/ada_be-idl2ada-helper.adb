@@ -1925,7 +1925,7 @@ package body Ada_Be.Idl2Ada.Helper is
            and then Helper_Name /= Name (CU)
          then
             Divert (CU, Initialization_Dependencies);
-            PL (CU, "& (+""" & Ada_Helper_Name (Type_Node) & """)");
+            PL (CU, "& """ & Ada_Helper_Name (Type_Node) & """");
             Divert (CU, Visible_Declarations);
          end if;
 
