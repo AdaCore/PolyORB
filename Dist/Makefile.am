@@ -65,6 +65,14 @@ xe_defs.adb: Makefile
 	@echo "   begin" >>xe_defs.adb
 	@echo "      return \"$(DEFSTORAGENAME)\";" >>xe_defs.adb
 	@echo "   end Get_Def_Storage_Name;" >>xe_defs.adb
+	@echo "   function Get_Def_Protocol_Data return String is" >>xe_defs.adb
+	@echo "   begin" >>xe_defs.adb
+	@echo "      return \"$(DEFPROTOCOLDATA)\";" >>xe_defs.adb
+	@echo "   end Get_Def_Protocol_Data;" >>xe_defs.adb
+	@echo "   function Get_Def_Protocol_Name return String is" >>xe_defs.adb
+	@echo "   begin" >>xe_defs.adb
+	@echo "      return \"$(DEFPROTOCOLNAME)\";" >>xe_defs.adb
+	@echo "   end Get_Def_Protocol_Name;" >>xe_defs.adb
 	@echo "   function Get_Default_Optimization return String is" >> xe_defs.adb
 	@echo "   begin" >> xe_defs.adb
 	@echo "      return \"$(GNATDISTOPT)\";" >> xe_defs.adb
