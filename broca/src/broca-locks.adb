@@ -146,6 +146,12 @@ package body Broca.Locks is
          L.Writers_Waiting := L.Writers_Waiting + 1;
          exit when L.Count = 0;
          Leave_Critical_Section;
+
+         --  XXX RACE CONDITION!
+         --  Signal could be called here -- and lost...
+         --  ... before we enter Wait.
+         --  (probably same elsewhere in this unit.)
+
          Wait (L.Writers_Barrier.all);
       end loop;
 
