@@ -38,35 +38,30 @@
 
 --  $Id$
 
-with Ada.Command_Line; use Ada.Command_Line;
-with Ada.Text_IO;      use Ada.Text_IO;
+with Ada.Command_Line;
+with Ada.Text_IO;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
-with CORBA;
 with CORBA.Object;
 with CORBA.ORB;
 
-with CosNaming;
 with CosNaming.NamingContext;
---  with CosNaming.BindingIterator;
-
---  with PolyORB.CORBA_P.Naming_Tools;
 
 with PolyORB.Utils.Report;
 
 procedure Test_Naming_CORBA is
 
+   use Ada.Command_Line;
+   use Ada.Text_IO;
+
    use CORBA.Object;
 
    use CosNaming;
    use CosNaming.NamingContext;
-   --  use CosNaming.BindingIterator;
-
-   --  use PolyORB.CORBA_P.Naming_Tools;
-
    use PolyORB.Utils.Report;
+
    Root_Context : CosNaming.NamingContext.Ref;
 
 begin
@@ -93,6 +88,7 @@ begin
    declare
       Obj_Name : CosNaming.Name;
       Rcvd_Ref : CORBA.Object.Ref;
+
    begin
       Append (Obj_Name, NameComponent'(Id => To_CORBA_String ("object1"),
                                        Kind => To_CORBA_String ("")));
@@ -120,6 +116,7 @@ begin
    end;
 
    End_Report;
+
 exception
    when E : CORBA.Transient =>
       declare
@@ -132,5 +129,4 @@ exception
          Put_Line (CORBA.Completion_Status'Image (Memb.Completed));
          End_Report;
       end;
-
 end Test_Naming_CORBA;
