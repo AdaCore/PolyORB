@@ -67,6 +67,11 @@ package CORBA.NVList is
    --  Not in spec
    ---------------
 
+   --  to get a NamedValue from the list
+   function Get_Item (Self : Ref;
+                      Index : CORBA.Unsigned_Long)
+                      return CORBA.NamedValue;
+
    --  to marshall all the NamedValues of an NVList
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;

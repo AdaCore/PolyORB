@@ -33,6 +33,7 @@
 
 with Broca.CDR;
 with Broca.Debug;
+with Broca.Exceptions;
 
 package body CORBA.NVList is
 
@@ -105,6 +106,29 @@ package body CORBA.NVList is
    begin
       return Length (Get_NVList (Self));
    end Get_Count;
+
+   ----------------
+   --  Get_Item  --
+   ----------------
+   function Get_Item (Self : Ref;
+                      Index : CORBA.Unsigned_Long)
+                      return CORBA.NamedValue is
+   begin
+      if CORBA.Long (Index) < Get_Count (Self) then
+         declare
+            List : NV_List := Get_NVList (Self);
+         begin
+            if Index > 0 then
+               for I in 1 .. Index loop
+                  List := List.Next;
+               end loop;
+            end if;
+            return List.NV;
+         end;
+      else
+         Broca.Exceptions.Raise_Internal;
+      end if;
+   end Get_Item;
 
    ----------------
    --  Marshall  --

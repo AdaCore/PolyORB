@@ -46,7 +46,7 @@ with All_Types.Helper;
 
 procedure DynClient is
    IOR : CORBA.String;
-   Myall_types : CORBA.Object.Ref;
+   Myall_Types : CORBA.Object.Ref;
    One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
                  or else Boolean'Value (Ada.Command_Line.Argument (2));
 
