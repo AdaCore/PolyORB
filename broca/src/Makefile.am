@@ -47,6 +47,7 @@ ADA_SPECS = $(ADA_FULL) \
            broca.ads \
            broca-opaque.ads \
            broca-iop.ads \
+           corba-current.ads \
            corba-sequences.ads \
            portableserver-servantactivator-impl.ads \
            portableserver-servantlocator-impl.ads \

@@ -220,6 +220,7 @@ src/broca-task_attributes.ads
 src/broca-vararray.adb
 src/broca-vararray.ads
 src/broca.ads
+src/corba-current.ads
 src/corba-forward.adb
 src/corba-forward.ads
 src/corba-object.adb
