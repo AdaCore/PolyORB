@@ -15,7 +15,7 @@ XMLADA_LIBS=""
 AC_MSG_CHECKING([XmlAda])
 has_xmlada=no
 AC_ARG_ENABLE(xmlada,
-[  --enable-xmlada     Use an existing installation of AdaSockets (no)],
+[  --enable-xmlada     Use XmlAda to build SOAP personality (no)],
 [if xmlada-config --version | grep "^XmlAda" > /dev/null 2>&1; then
    XMLADA_INCLUDE="`xmlada-config --cflags`"
    XMLADA_LIBS="`xmlada-config --libs`"

@@ -204,6 +204,13 @@ package body PolyORB.Configurator is
          raise;
    end Resolve_Dependencies;
 
+   -----------------------------------------------------------
+   -- Recursive traversal of the dependency graph           --
+   -- (initialize each module in reverse topological order) --
+   -----------------------------------------------------------
+
+   procedure Visit (M : Module_Access);
+
    procedure Visit (M : Module_Access) is
       MI : Dep_Lists.Iterator;
       Dep : Module_Access;
