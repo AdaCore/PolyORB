@@ -2184,6 +2184,8 @@ package body Ada_Be.Idl2Ada is
                                    := Param_Type (P_Node);
                                  Helper_Name : constant String
                                    := Helper_Unit (P_Typ);
+                                 Unit, Typ   : ASU.Unbounded_String;
+
                               begin
                                  Add_With (CU, Helper_Name);
                                  PL (CU, T_Arg_Name & Arg_Name
@@ -2195,11 +2197,30 @@ package body Ada_Be.Idl2Ada is
                                  PL (CU,
                                      T_Argument & Arg_Name & " : CORBA.Any");
                                  if Mode (P_Node) /= Mode_Out then
-                                    PL (CU, "  := " & Helper_Name & ".To_Any");
-                                    Put (CU, "  (");
-                                    Gen_Forward_Conversion
-                                      (CU, P_Typ, "From_Forward", Arg_Name);
-                                    PL (CU, ");");
+                                    if Kind (P_Typ) = K_Scoped_Name
+                                      and then S_Type (P_Typ)
+                                        = Parent_Scope
+                                        (Parent_Scope (Declarator (P_Node)))
+                                    then
+                                       Map_Type_Name
+                                         (Mapping, P_Typ, Unit, Typ);
+
+                                       PL (CU,
+                                           "  := " & Helper_Name & ".To_Any");
+                                       Put (CU, "  (");
+                                       Put (CU, -Typ);
+                                       Put (CU, " (");
+                                       Gen_Forward_Conversion
+                                         (CU, P_Typ, "From_Forward", Arg_Name);
+                                       PL (CU, "));");
+                                    else
+                                       PL (CU,
+                                           "  := " & Helper_Name & ".To_Any");
+                                       Put (CU, "  (");
+                                       Gen_Forward_Conversion
+                                         (CU, P_Typ, "From_Forward", Arg_Name);
+                                       PL (CU, ");");
+                                    end if;
                                  else
                                     declare
                                        TC_Helper_Name   : constant String
@@ -2408,16 +2429,35 @@ package body Ada_Be.Idl2Ada is
                               declare
                                  Prefix : constant String
                                    := Helper_Unit (Org_O_Type);
+                                 Unit, Typ : ASU.Unbounded_String;
                               begin
                                  Add_With (CU, Prefix);
 
-                                 Gen_Forward_Conversion
-                                   (CU, Org_O_Type,
-                                    "To_Forward",
-                                    Prefix & ".From_Any"
-                                    & ASCII.LF
-                                    & "  (CORBA.Internals.To_CORBA_Any ("
-                                    & T_Result & ".Argument))");
+                                 if not Is_Function
+                                   and then Kind (O_Type) = K_Scoped_Name
+                                   and then S_Type (O_Type)
+                                     = Parent_Scope (Node)
+                                 then
+                                    Map_Type_Name (Mapping, O_Type, Unit, Typ);
+                                    Put (CU, (-Typ) & "'Class (");
+
+                                    Gen_Forward_Conversion
+                                         (CU, Org_O_Type,
+                                          "To_Forward",
+                                          Prefix & ".From_Any"
+                                          & ASCII.LF
+                                          & "  (CORBA.Internals.To_CORBA_Any ("
+                                          & T_Result & ".Argument)))");
+                                 else
+                                    Gen_Forward_Conversion
+                                      (CU, Org_O_Type,
+                                       "To_Forward",
+                                       Prefix & ".From_Any"
+                                       & ASCII.LF
+                                       & "  (CORBA.Internals.To_CORBA_Any ("
+                                       & T_Result & ".Argument))");
+                                 end if;
+
                                  PL (CU, ";");
                               end;
                            end if;
@@ -2443,16 +2483,42 @@ package body Ada_Be.Idl2Ada is
                                     declare
                                        Arg_Name : constant String
                                          := Ada_Name (Declarator (P_Node));
+                                       T_Node : constant Node_Id
+                                         := Param_Type (P_Node);
+                                       Unit, Typ : ASU.Unbounded_String;
                                     begin
                                        Put (CU, Arg_Name & " := ");
-                                       Gen_Forward_Conversion
-                                         (CU, Param_Type (P_Node),
-                                          "To_Forward",
-                                          Helper_Unit (Param_Type (P_Node))
-                                          & ".From_Any"
-                                          & ASCII.LF & "  ("
-                                          & T_Argument
-                                          & Arg_Name);
+
+                                       if Kind (T_Node) = K_Scoped_Name
+                                         and then S_Type (T_Node)
+                                           = Parent_Scope
+                                           (Parent_Scope (Declarator (P_Node)))
+                                       then
+                                          Map_Type_Name
+                                            (Mapping, T_Node, Unit, Typ);
+                                          Put (CU, -Typ);
+                                          Put (CU, "'Class (");
+
+                                          Gen_Forward_Conversion
+                                            (CU, Param_Type (P_Node),
+                                             "To_Forward",
+                                             Helper_Unit (Param_Type (P_Node))
+                                             & ".From_Any"
+                                             & ASCII.LF & "  ("
+                                             & T_Argument
+                                             & Arg_Name);
+                                          Put (CU, ")");
+                                       else
+                                          Gen_Forward_Conversion
+                                            (CU, Param_Type (P_Node),
+                                             "To_Forward",
+                                             Helper_Unit (Param_Type (P_Node))
+                                             & ".From_Any"
+                                             & ASCII.LF & "  ("
+                                             & T_Argument
+                                             & Arg_Name);
+                                       end if;
+
                                        PL (CU, ");");
                                     end;
                                  end if;
@@ -2617,17 +2683,9 @@ package body Ada_Be.Idl2Ada is
                   Add_With (CU, -Unit);
                   Put (CU, "  return " & (-Typ));
 
-                  --  FIXME:
-                  --  This is disabled for now because
-                  --  it requires fixing the unmarshalling
-                  --  of references (we must really be able to
-                  --  unmarshall any kind of reference and
-                  --  return a CORBA.Object.Ref'Class).
-
-                  if False
-                    and then Kind (O_Type) = K_Scoped_Name
-                    and then S_Type (O_Type)
-                    = Parent_Scope (Node) then
+                  if Kind (O_Type) = K_Scoped_Name
+                    and then S_Type (O_Type) = Parent_Scope (Node)
+                  then
                      --  An operation of an interface is a
                      --  primitive operation of the tagged type
                      --  that maps this interface. If it has
@@ -2666,13 +2724,10 @@ package body Ada_Be.Idl2Ada is
                Add_With (CU, -Unit);
                Put (CU, -Typ);
 
-               --  FIXME:
-               --  Code disabled, see above.
-
-               if False
-                 and then Kind (T_Node) = K_Scoped_Name
+               if Kind (T_Node) = K_Scoped_Name
                  and then S_Type (T_Node) = Parent_Scope
-                 (Parent_Scope (Declarator (Node))) then
+                 (Parent_Scope (Declarator (Node)))
+               then
 
                   --  An operation of an interface is a
                   --  primitive operation of the tagged type

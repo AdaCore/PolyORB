@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -505,7 +505,7 @@ begin
                      raise Syntax_Error;
                   end if;
                   Argv  := Argument (2);
-                  Dir   := new_context (From (Argv.all));
+                  Dir   := NamingContext.Ref (new_context (From (Argv.all)));
                   bind_context (From (Argv.all), To_Name (Argv.all), Dir);
                   bind_context (Dir, Here, Dir);
                   bind_context (Dir, Back, Parent (Argv.all));
