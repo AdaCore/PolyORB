@@ -107,23 +107,6 @@ package System.Garlic.Sockets is
    --  This exception is raised when a name cannot be resolved
 
 
-   type Socket_Set_Type is private;
-
-   procedure Clear (Set : in out Socket_Set_Type; Socket : in Socket_Type);
-   procedure Set   (Set : in out Socket_Set_Type; Socket : in Socket_Type);
-   procedure Zero  (Set : in out Socket_Set_Type);
-
-   function Empty
-     (Set : Socket_Set_Type) return Boolean;
-
-   function Is_Set
-     (Set    : Socket_Set_Type;
-      Socket : Socket_Type) return Boolean;
-
-   type Microseconds is new Natural;
-   Forever : constant Microseconds := Microseconds'Last;
-
-
    function New_Socket
      (Mode : Mode_Type := SOCK_STREAM)
      return Socket_Type;
@@ -161,11 +144,6 @@ package System.Garlic.Sockets is
       Item   : out Ada.Streams.Stream_Element_Array;
       Last   : out Ada.Streams.Stream_Element_Offset);
 
-   procedure Select_Socket
-     (R_Socket_Set : in out Socket_Set_Type;
-      W_Socket_Set : in out Socket_Set_Type;
-      Timeout      : in Microseconds := Forever);
-
    procedure Send_Socket
      (Socket : in  Socket_Type;
       Item   : in  Ada.Streams.Stream_Element_Array;
@@ -179,8 +157,5 @@ private
 
    type Socket_Type is new Integer;
    Null_Socket : constant Socket_Type := -1;
-
-   type Socket_Set_Record;
-   type Socket_Set_Type is access all Socket_Set_Record;
 
 end System.Garlic.Sockets;

@@ -53,12 +53,6 @@ package body System.Garlic.Sockets is
 
    package Net renames System.Garlic.TCP_Operations;
 
-   type Socket_Set_Record is new Fd_Set;
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation
-        (Socket_Set_Record, Socket_Set_Type);
-
    Modes : constant array (Mode_Type) of C.int
      := (Sock_Stream => Constants.Sock_Stream,
          Sock_Dgram  => Constants.Sock_Dgram);
@@ -229,64 +223,6 @@ package body System.Garlic.Sockets is
       return Hostent.Name;
    end Official_Name;
 
-   -----------
-   -- Clear --
-   -----------
-
-   procedure Clear (Set : in out Socket_Set_Type; Socket : in Socket_Type) is
-   begin
-      if Set = null then
-         Set := new Socket_Set_Record'(0);
-      end if;
-      Set.all := Set.all xor 2 ** Natural (Socket);
-   end Clear;
-
-   ---------
-   -- Set --
-   ---------
-
-   procedure Set   (Set : in out Socket_Set_Type; Socket : in Socket_Type) is
-   begin
-      if Set = null then
-         Set := new Socket_Set_Record'(0);
-      end if;
-      Set.all := Set.all or 2 ** Natural (Socket);
-   end Set;
-
-   ----------
-   -- Zero --
-   ----------
-
-   procedure Zero  (Set : in out Socket_Set_Type) is
-   begin
-      if Set /= null then
-         Free (Set);
-      end if;
-   end Zero;
-
-   -----------
-   -- Empty --
-   -----------
-
-   function Empty
-     (Set : Socket_Set_Type) return Boolean is
-   begin
-      return (Set = null
-        or else Set.all = 0);
-   end Empty;
-
-   ------------
-   -- Is_Set --
-   ------------
-
-   function Is_Set
-     (Set    : Socket_Set_Type;
-      Socket : Socket_Type) return Boolean is
-   begin
-      return (Set /= null
-        and then (Set.all and 2 ** Natural (Socket)) /= 0);
-   end Is_Set;
-
    ----------------
    -- New_Socket --
    ----------------
@@ -399,67 +335,6 @@ package body System.Garlic.Sockets is
          Last := Item'First + Ada.Streams.Stream_Element_Offset (Res);
       end if;
    end Receive_Socket;
-
-   -------------------
-   -- Select_Socket --
-   -------------------
-
-   procedure Select_Socket
-     (R_Socket_Set : in out Socket_Set_Type;
-      W_Socket_Set : in out Socket_Set_Type;
-      Timeout      : in Microseconds := Forever)
-   is
-      Res  : C.int;
-      Len  : C.int;
-      Set  : Fd_Set;
-      RSet : aliased Fd_Set;
-      WSet : aliased Fd_Set;
-      TVal : aliased Timeval := (0, Timeval_Unit (Timeout));
-      TPtr : Timeval_Access;
-
-   begin
-      if Timeout = Forever then
-         TPtr := null;
-      else
-         TPtr := TVal'Unchecked_Access;
-      end if;
-
-      if R_Socket_Set = null then
-         RSet := 0;
-      else
-         RSet := Fd_Set (R_Socket_Set.all);
-      end if;
-      Set := RSet;
-
-      if W_Socket_Set = null then
-         WSet := 0;
-      else
-         WSet := Fd_Set (W_Socket_Set.all);
-         if WSet > Set then
-            Set := WSet;
-         end if;
-      end if;
-
-      if Set = 0 then
-         raise Socket_Error;
-      end if;
-
-      Len := 0;
-      while Set /= 0 loop
-         Len := Len + 1;
-         Set := Set / 2;
-      end loop;
-
-      Res := C_Select
-        (Len, RSet'Unchecked_Access, WSet'Unchecked_Access, null, TPtr);
-
-      if R_Socket_Set /= null then
-         R_Socket_Set.all := Socket_Set_Record (RSet);
-      end if;
-      if W_Socket_Set /= null then
-         W_Socket_Set.all := Socket_Set_Record (WSet);
-      end if;
-   end Select_Socket;
 
    -----------------
    -- Send_Socket --
