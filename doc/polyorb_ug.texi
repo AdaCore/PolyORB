@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#28 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#29 $
 
 @include version.texi
 
@@ -567,7 +567,7 @@ guess at what compilers to use:
 @item @code{CC}:  the C compiler
 @item @code{ADA}: the Ada 95 compiler
 @item @code{CXXCPP}, @code{CXXCPPFLAGS}: the preprocessor used by
-idlac (only when setting up the CORBA application personality).  CORBA
+idlac (only when setting up the CORBA application personality). CORBA
 specifications require this preprocessor to be compatible with the
 preprocessing rules defined in the @i{C++} programming language
 specifications.
@@ -668,7 +668,7 @@ remote entities.
 
 @noindent
 CORBA is OMG specification of a Distributed Object Computing (DOC)
-distribution model (@cite{[OMG02]}). It is now a well-known and
+distribution model (@cite{[OMG04]}). It is now a well-known and
 well-established specification, used in a wide range of industrial
 applications.
 
@@ -858,14 +858,14 @@ incoming requests.
 @subsection Object Adapter
 @c -------------------------------------------------------------------
  
-@b{TO BE WRITTEN}
+@b{XXX TO BE WRITTEN}
 
 @c -------------------------------------------------------------------
 @node Linking protocol personalities to executable
 @subsection Linking protocol personalities to executable
 @c -------------------------------------------------------------------
  
-@b{TO BE WRITTEN}
+@b{XXX TO BE WRITTEN}
 
 @c -------------------------------------------------------------------
 @node Sample files
@@ -1179,7 +1179,7 @@ OPTIONS
 
 @noindent
 This section assumes that the reader is familiar with the CORBA
-specifications described in @cite{[OMG02a]} and the @emph{IDL-to-Ada}
+specifications described in @cite{[OMG04]} and the @emph{IDL-to-Ada}
 mapping defined in @cite{[OMG01]}.
 
 @c -------------------------------------------------------------------
@@ -1234,6 +1234,9 @@ OPTIONS
        -q      Be quiet.
 
        -noir   Don't generate code for interface repository.
+
+       -gnatW8
+               Use UTF8 character encoding
 
        -cppargs ARGS
                Pass ARGS to the C++ preprocessor.
