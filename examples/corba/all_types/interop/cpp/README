@@ -1,0 +1,24 @@
+README for the PolyORB CORBA interoperability tests
+---------------------------------------------------
+
+$Id: //droopi/main/design/interop/README#2 $
+
+* Compilation
+
+edit the makefile to setup:
+
+- C/C++ compiler, be careful to use the correct version of the GNU
+  C++ compiler if required.
+
+- IDL compiler.
+
+- Path to libraries and include files.
+
+* PolyORB / omniORB 4.0
+
+In order to interoperate with PolyORB, omniORB should be modified as
+follow : 
+
+1. you must remove the use of locate request (see the
+   verifyObjectExistsAndType option in omniORB.cfg
+
