@@ -1,3 +1,10 @@
+1998-08-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Compile each garlic unit separatly to
+ 	avoid using gnatmake -a which compiles too many files. It is less
+ 	efficient during distribution cleanup but far more efficient
+ 	during user distribution installation.
+
 1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* NEWS: Updated for heterogeneous support.

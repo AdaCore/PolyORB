@@ -22,12 +22,12 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-remsh=command    Select a remote shell command"
 ac_help="$ac_help
-  --with-filters=list     Enumerate filter list (default=none+zip)"
-ac_help="$ac_help
   --with-protocols=list   Enumerate protocol list"
 ac_help="$ac_help
   --enable-thread-blocking-io
                           Turn on thread blocking io mode (default=test)"
+ac_help="$ac_help
+  --with-filters=list     Enumerate filter list (default=none+zip)"
 ac_help="$ac_help
   --with-extra-libs=libs  Add extra libraries when building a program"
 
@@ -1697,40 +1697,12 @@ fi
 
 echo "$ac_t""$RSH" 1>&6
 #
-# Filter list
+# Checking whether s-gtplsp.adb exists for this platform
 #
-# Check whether --with-filters or --without-filters was given.
-if test "${with_filters+set}" = set; then
-  withval="$with_filters"
-  
-  FILTERLIST="${withval}";
-
-else
-  
-  FILTERLIST="zip"
-
-fi
-
-echo $ac_n "checking default filters""... $ac_c" 1>&6
-echo "configure:1716: checking default filters" >&5
-
-if test -d Garlic; then
-  :
-else
-  mkdir Garlic
-fi
-FILTERFILE=Garlic/Makefile.fil;
-rm -f ${FILTERFILE}
-for F in ${FILTERLIST}; do
-  if test -f ${srcdir}/Garlic/Makefile.${F}; then
-    cat ${srcdir}/Garlic/Makefile.${F} >>${FILTERFILE}
-    echo "" >>${FILTERFILE}
-  else
-    { echo "configure: error: unknown filter ${F}" 1>&2; exit 1; }
-  fi;
-done
-
-echo "$ac_t""${FILTERLIST}" 1>&6
+case ${PLATFORM_SPECIFIC} in
+  w) TCP_PLATFORM_SOURCE=s-gtplsp.adb;;
+  *) TCP_PLATFORM_SOURCE=s-gtplsp.ads;;
+esac
 
 #
 # Protocol list
@@ -1740,7 +1712,7 @@ if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
   
   echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1744: checking default protocols" >&5
+echo "configure:1716: checking default protocols" >&5
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
@@ -1765,7 +1737,7 @@ echo "configure:1744: checking default protocols" >&5
 else
   
 echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1769: checking default protocols" >&5
+echo "configure:1741: checking default protocols" >&5
 PROTOCOLSSOURCES="\$(TCPSOURCES)";
 PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
@@ -1796,9 +1768,12 @@ if test "${enable_thread_blocking_io+set}" = set; then
   
 else
   
-    echo $ac_n "checking for thread-blocking I/O""... $ac_c" 1>&6
-echo "configure:1801: checking for thread-blocking I/O" >&5
-    gnatmake -m -q -a isthrbio.adb -I$srcdir/Garlic;
+    echo $ac_n "checking for thread-blocking I/O (long)""... $ac_c" 1>&6
+echo "configure:1773: checking for thread-blocking I/O (long)" >&5
+    gcc -c -gnatg $srcdir/Garlic/${TCP_PLATFORM_SOURCE} -I$srcdir/Garlic;
+    gcc -c -gnatg $srcdir/Garlic/s-garlic.ads -I$srcdir/Garlic;
+    gcc -c -gnatg $srcdir/Garlic/s-garthi.ads -I$srcdir/Garlic;
+    gnatmake -q isthrbio.adb -I$srcdir/Garlic;
     if ./isthrbio${EXEEXT} $srcdir/Garlic/s-gatcop.ads; then
 	echo "$ac_t""no" 1>&6
 	PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
@@ -1814,12 +1789,40 @@ fi
 
 
 #
-# Checking whether s-gtplsp.adb exists for this platform
+# Filter list
 #
-case ${PLATFORM_SPECIFIC} in
-  w) TCP_PLATFORM_SOURCE=s-gtplsp.adb;;
-  *) TCP_PLATFORM_SOURCE=s-gtplsp.ads;;
-esac
+# Check whether --with-filters or --without-filters was given.
+if test "${with_filters+set}" = set; then
+  withval="$with_filters"
+  
+  FILTERLIST="${withval}";
+
+else
+  
+  FILTERLIST="zip"
+
+fi
+
+echo $ac_n "checking default filters""... $ac_c" 1>&6
+echo "configure:1808: checking default filters" >&5
+
+if test -d Garlic; then
+  :
+else
+  mkdir Garlic
+fi
+FILTERFILE=Garlic/Makefile.fil;
+rm -f ${FILTERFILE}
+for F in ${FILTERLIST}; do
+  if test -f ${srcdir}/Garlic/Makefile.${F}; then
+    cat ${srcdir}/Garlic/Makefile.${F} >>${FILTERFILE}
+    echo "" >>${FILTERFILE}
+  else
+    { echo "configure: error: unknown filter ${F}" 1>&2; exit 1; }
+  fi;
+done
+
+echo "$ac_t""${FILTERLIST}" 1>&6
 
 #
 # Extra libraries
@@ -1836,7 +1839,7 @@ fi
 #
 if test $target = $host; then
 echo $ac_n "checking how to run the C preprocessor""... $ac_c" 1>&6
-echo "configure:1840: checking how to run the C preprocessor" >&5
+echo "configure:1843: checking how to run the C preprocessor" >&5
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
   CPP=
@@ -1851,13 +1854,13 @@ else
   # On the NeXT, cc -E runs the code through the compiler's parser,
   # not just through cpp.
   cat > conftest.$ac_ext <<EOF
-#line 1855 "configure"
+#line 1858 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1861: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1864: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   :
@@ -1868,13 +1871,13 @@ else
   rm -rf conftest*
   CPP="${CC-cc} -E -traditional-cpp"
   cat > conftest.$ac_ext <<EOF
-#line 1872 "configure"
+#line 1875 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1878: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1881: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   :
@@ -1900,17 +1903,17 @@ for ac_hdr in stdio.h sys/types.h sys/socket.h errno.h netdb.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:1904: checking for $ac_hdr" >&5
+echo "configure:1907: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1909 "configure"
+#line 1912 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1914: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1917: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1940,17 +1943,17 @@ for ac_hdr in netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:1944: checking for $ac_hdr" >&5
+echo "configure:1947: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1949 "configure"
+#line 1952 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1954: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1957: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1980,17 +1983,17 @@ for ac_hdr in sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h stropts.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:1984: checking for $ac_hdr" >&5
+echo "configure:1987: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1989 "configure"
+#line 1992 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1994: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1997: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2020,17 +2023,17 @@ for ac_hdr in sys/conf.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2024: checking for $ac_hdr" >&5
+echo "configure:2027: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2029 "configure"
+#line 2032 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2034: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2037: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2252,12 +2255,12 @@ s%@PLATFORM_SPECIFIC@%$PLATFORM_SPECIFIC%g
 s%@CP_PRESERVE@%$CP_PRESERVE%g
 s%@SUPPORTS_LOCAL_LAUNCH@%$SUPPORTS_LOCAL_LAUNCH%g
 s%@RSH@%$RSH%g
-/@FILTERFILE@/r $FILTERFILE
-s%@FILTERFILE@%%g
+s%@TCP_PLATFORM_SOURCE@%$TCP_PLATFORM_SOURCE%g
 s%@PROTOCOLSSOURCES@%$PROTOCOLSSOURCES%g
 s%@PROTOCOLSOBJECTS@%$PROTOCOLSOBJECTS%g
 s%@TCP_INCLUDED@%$TCP_INCLUDED%g
-s%@TCP_PLATFORM_SOURCE@%$TCP_PLATFORM_SOURCE%g
+/@FILTERFILE@/r $FILTERFILE
+s%@FILTERFILE@%%g
 s%@EXTRA_LIBS@%$EXTRA_LIBS%g
 s%@CPP@%$CPP%g
 

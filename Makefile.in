@@ -11,7 +11,7 @@
 # PARTICULAR PURPOSE.
 
 #
-# $Id$
+# $Id: Makefile.am,v 1.4 1998/08/03 20:54:16 tardieu Exp $
 #
 
 
@@ -102,7 +102,7 @@ AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = Dist Garlic
 ACLOCAL_AMFLAGS = -I support
 
-CLEANFILES = isthrbio${EXEEXT} *.o *.ali
+CLEANFILES = isthrbio${EXEEXT} *.o *.ali b_*.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
 CONFIG_HEADER = ./[Garlic/config.h]
