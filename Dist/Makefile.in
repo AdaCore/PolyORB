@@ -335,9 +335,10 @@ xe_defs.o: xe_defs.ads xe_defs.adb
 	${CC} -c -g -O2 -gnatp -I${srcdir} -I${GNATSRC} xe_defs.adb
 
 sdefault.adb: ${srcdir}/config.sdefault
-	@echo Generating sdefault.adb
 	@if [ -f ${GNATSRC}/sdefault.adb ]; then \
+	  echo Copying sdefault.adb; \
 	  cp ${GNATSRC}/sdefault.adb .; else \
+	  echo Generating sdefault.adb; \
 	  ${SHELL} ${srcdir}/config.sdefault; fi
 
 sdefault.o: sdefault.adb ${GNATSRC}/sdefault.ads
