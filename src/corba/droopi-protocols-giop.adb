@@ -1210,8 +1210,7 @@ package body Droopi.Protocols.GIOP is
         (Component_Access (ORB),
          Queue_Request'
          (Request => Req,
-          Requestor => Component_Access (Ses),
-          Requesting_Task => null));
+          Requestor => Component_Access (Ses)));
       Free (Object_Key);
    end Request_Received;
 
@@ -1293,9 +1292,7 @@ package body Droopi.Protocols.GIOP is
             Emit_No_Reply
               (Component_Access (ORB),
                Queue_Request'(Request   => Current_Req.Req,
-                              Requestor => Component_Access (Ses),
-                              Requesting_Task => null));
-
+                              Requestor => Component_Access (Ses)));
 
          when User_Exception =>
             raise Not_Implemented;

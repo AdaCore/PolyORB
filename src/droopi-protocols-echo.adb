@@ -210,11 +210,11 @@ package body Droopi.Protocols.Echo is
                Result    => Result,
                Req       => Req);
 
-            Emit_No_Reply
-              (Component_Access (ORB),
+            Queue_Request_To_Handler
+              (ORB.Tasking_Policy,
+               ORB,
                Queue_Request'(Request   => Req,
-                              Requestor => Component_Access (S),
-                              Requesting_Task => null));
+                              Requestor => Component_Access (S)));
             --  This request is submitted to the ORB by internal
             --  activity, not by a transient task lent by the
             --  application. Requesting_Task is therefore null.

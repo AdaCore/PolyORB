@@ -4,6 +4,9 @@
 
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
+with Droopi.ORB;
+with Droopi.ORB.Interface;
+with Droopi.Setup;
 
 package body Droopi.Requests is
 
@@ -36,6 +39,29 @@ package body Droopi.Requests is
 
       Req := Res;
    end Create_Request;
+
+   procedure Invoke (Self : Request_Access)
+   is
+      use Droopi.ORB;
+      use Droopi.ORB.Interface;
+      use Droopi.Setup;
+
+   begin
+      Droopi.ORB.Queue_Request_To_Handler
+        (The_ORB.Tasking_Policy, The_ORB,
+         Queue_Request'
+         (Request   => Self,
+          Requestor => null));
+      --  XXX Only synchronous requests are supported!
+
+      --  Execute the ORB until the request is completed.
+      ORB.Run
+        (The_ORB, Exit_Condition_T'
+         (Condition => Self.Completed'Access,
+          Task_Info => Self.Requesting_Task'Access),
+         May_Poll => True);
+
+   end Invoke;
 
 --    procedure Destroy_Request
 --      (Req : in out Request_Access) is

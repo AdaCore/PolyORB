@@ -45,7 +45,14 @@ package body Droopi.Log is
       is
       begin
          if not Initialized then
-            Facility_Level := Get_Log_Level (Facility);
+            begin
+               Facility_Level := Get_Log_Level (Facility);
+            exception
+               when Log_Level_Dict.Key_Not_Found =>
+                  Facility_Level := Notice;
+               when others =>
+                  raise;
+            end;
             Initialized := True;
          end if;
 
@@ -124,6 +131,7 @@ package body Droopi.Log is
             --  converted to a string.
 
             if Log_Level'Image (L) = Level then
+               Put_Line ("Setting log level for " & Facility & " to " & Level);
                Set_Log_Level (Facility, L);
                exit;
             end if;

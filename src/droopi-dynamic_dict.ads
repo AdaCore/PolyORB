@@ -10,6 +10,8 @@ package Droopi.Dynamic_Dict is
 
    pragma Elaborate_Body;
 
+   Key_Not_Found : exception;
+
    function Lookup
       (K : String)
      return Value;

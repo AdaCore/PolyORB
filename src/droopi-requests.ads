@@ -13,8 +13,6 @@ with Droopi.Types;
 
 package Droopi.Requests is
 
-   pragma Elaborate_Body;
-
    -------------
    -- Request --
    -------------
@@ -72,6 +70,9 @@ package Droopi.Requests is
       Req       :    out Request_Access
       --  Req_Flags : in     Flags
      );
+
+   procedure Invoke (Self : Request_Access);
+   --  Run Self.
 
    procedure Destroy_Request is new Ada.Unchecked_Deallocation
      (Request, Request_Access);

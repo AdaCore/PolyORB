@@ -174,9 +174,7 @@ package body Droopi.ORB.Thread_Pool is
       Msg : Message'Class)
    is
    begin
-      Emit_No_Reply
-        (Component_Access (ORB),
-         Msg);
+      Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 
    ----------------

@@ -147,8 +147,9 @@ package body Droopi.ORB.Thread_Per_Session is
                --  Session request watcher is not null, ie a task is
                --  already handling jobs from this session : emit the
                --  queue_request message.
-               Emit_No_Reply (Component_Access (S),
-                              Queue_Request (Msg));
+               Emit_No_Reply
+                 (Component_Access (S),
+                  Queue_Request (Msg));
             end if;
 
          exception

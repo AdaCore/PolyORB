@@ -147,20 +147,15 @@ package body Droopi.Protocols.SRP is
 
       --  The following modification is due to the new TP architecture design.
 
-      --  Emit the request
-
-      --       Emit_No_Reply
-      --         (Component_Access (ORB),
-      --          Queue_Request'(Request   => Req,
-      --                         Requestor => Component_Access (S),
-      --                         Requesting_Task => null));
+      --  Queue the request for execution
 
       Queue_Request_To_Handler
         (ORB.Tasking_Policy,
          ORB,
-         Queue_Request'(Request   => Req,
-                        Requestor => Component_Access (S),
-                        Requesting_Task => null));
+         Queue_Request'
+         (Request   => Req,
+          Requestor => Component_Access (S)));
+
    end Request_Received;
 
    procedure Reply_Received (S : access SRP_Session);

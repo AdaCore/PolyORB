@@ -1,7 +1,10 @@
+--  The ORB core module.
+
 --  $Id$
 
-with Ada.Real_Time;
 with Ada.Exceptions;
+with Ada.Real_Time;
+with Ada.Tags;
 
 with Droopi.Annotations;
 with Droopi.Constants;
@@ -676,6 +679,7 @@ package body Droopi.ORB is
             end if;
 
             Queue_Job (ORB.Job_Queue, J);
+            pragma Debug (O ("Queue_Request: leave"));
          end;
       elsif Msg in Executed_Request then
 
@@ -705,6 +709,8 @@ package body Droopi.ORB is
          end;
 
       else
+         pragma Debug (O ("ORB received unhandled message of type "
+                          & Ada.Tags.External_Tag (Msg'Tag)));
          raise Components.Unhandled_Message;
       end if;
 

@@ -67,6 +67,8 @@ begin
    --  else
    --     myecho := Locate (Ada.Command_Line.Argument (1));
    --  end if;
+   CORBA.ORB.String_To_Object
+     (To_CORBA_String (Ada.Command_Line.Argument (1)), myecho);
 
    --  creating the argument list
    CORBA.ORB.Create_List (0, Arg_List);

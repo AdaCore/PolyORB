@@ -65,6 +65,9 @@ package body Droopi.Dynamic_Dict is
       KK : aliased String := K;
       E  : constant Dict_Entry := HT.Get (KK'Unchecked_Access);
    begin
+      if E.Key_Ptr = null then
+         raise Key_Not_Found;
+      end if;
       return E.The_Value;
    end Lookup;
 

@@ -1,3 +1,7 @@
+--  The standard CORBA ORB interface.
+
+--  $Id$
+
 with Sequences.Unbounded;
 with CORBA.Object;
 with CORBA.NVList;
@@ -167,7 +171,3 @@ package CORBA.ORB is
    --  within this ORB.
 
 end CORBA.ORB;
-
-
-
-

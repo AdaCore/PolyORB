@@ -1,10 +1,14 @@
 --  The following subprograms still have to be implemented :
---     Create_Request
 --     Get_Policy
 --     Is_A
 --     Non_Existent
 
+with Ada.Tags;
+
 with GNAT.HTable;
+
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 with Droopi.Smart_Pointers;
 
@@ -13,7 +17,12 @@ with CORBA.ORB;
 
 package body CORBA.Object is
 
+   use Droopi.Log;
    use Droopi.Smart_Pointers;
+
+   package L is new Droopi.Log.Facility_Log ("corba.object");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    type Internal_Object is new Droopi.Smart_Pointers.Entity with record
       The_Object : Droopi.Objects.Object_Id_Access;
@@ -194,6 +203,13 @@ package body CORBA.Object is
       E : constant Droopi.Smart_Pointers.Entity_Ptr
         := Entity_Of (R);
    begin
+      if E = null then
+         raise Constraint_Error;
+      end if;
+      pragma Debug
+        (O ("Converting entity of type "
+            & Ada.Tags.External_Tag (E.all'Tag)
+            & " into Droopi ref"));
       if E.all in Reference_Info then
          return Reference_Info (E.all).IOR.Ref;
       else

@@ -326,8 +326,8 @@ package body Droopi.Setup.Test is
                Emit_No_Reply
                  (Component_Access (The_ORB),
                   Queue_Request'(Request   => Req,
-                                 Requestor => null,
-                                 Requesting_Task => null));
+                                 Requestor => null));
+               --  Requesting_Task => null));
             end Create_WaitAndEchoString_Request;
          begin
             Create_WaitAndEchoString_Request

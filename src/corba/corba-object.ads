@@ -94,13 +94,12 @@ package CORBA.Object is
      (R : in Ref)
      return Droopi.References.Ref;
 
-private
-
-   type Ref is new CORBA.AbstractBase.Ref with null record;
-
    type Reference_Info is new Droopi.Smart_Pointers.Entity with record
       IOR : Droopi.References.IOR.IOR_Type;
    end record;
 
-end CORBA.Object;
+private
 
+   type Ref is new CORBA.AbstractBase.Ref with null record;
+
+end CORBA.Object;

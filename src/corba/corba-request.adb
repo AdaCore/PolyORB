@@ -47,7 +47,8 @@ package body CORBA.Request is
      (Self         : in out Object;
       Invoke_Flags : in     Flags  := 0) is
    begin
-      raise Droopi.Not_Implemented;
+      Droopi.Requests.Invoke (Self.The_Request);
+      --  XXX Some arguments are not taken into account!
    end Invoke;
 
    procedure Delete (Self : in out Object) is

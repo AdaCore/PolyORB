@@ -30,8 +30,9 @@ pragma Elaborate_All (Droopi.Dynamic_Dict);
 with Droopi.ORB;
 with Droopi.ORB.Task_Policies;
 with Droopi.Objects;
-
+with Droopi.References.IOR;
 with Droopi.Setup;
+with Droopi.Smart_Pointers;
 
 package body CORBA.ORB is
 
@@ -292,6 +293,7 @@ package body CORBA.ORB is
       return CORBA.String
    is
    begin
+      raise Droopi.Not_Implemented;
       return To_CORBA_String ("");
    end Object_To_String;
 
@@ -303,8 +305,12 @@ package body CORBA.ORB is
      (From : in     CORBA.String;
       To   : in out CORBA.Object.Ref'Class)
    is
+      Ref_Info : constant Droopi.Smart_Pointers.Entity_Ptr
+        := new Object.Reference_Info;
    begin
-      null;
+      Object.Reference_Info (Ref_Info.all).IOR
+        := Droopi.References.IOR.String_To_Object (From);
+      CORBA.Object.Set (To, Ref_Info);
    end String_To_Object;
 
    ------------------
