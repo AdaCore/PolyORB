@@ -31,7 +31,9 @@ GEN= \
         $(GEN_SPECS_WITH_BODY)
 
 $(GEN): $(IDL) $(IDLAC)
-	$(IDLAC) $(IDL) -I$(srcdir)
+	for i in $(IDL); do \
+		$(IDLAC) $$i -I$(srcdir); \
+	done
 	touch $@
 
 $(GEN_BODIES): $(GEN)
