@@ -32,7 +32,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#7 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#8 $
 
 with Ada.Unchecked_Deallocation;
 with System;
@@ -40,6 +40,7 @@ with System;
 package body PolyORB.Opaque.Chunk_Pools is
 
    use Ada.Streams;
+   use Chunk_Lists;
 
    procedure Initialize (X : in out Chunk) is
    begin
@@ -73,20 +74,11 @@ package body PolyORB.Opaque.Chunk_Pools is
          Pool.Prealloc_Used := True;
       else
          New_Chunk := new Chunk (Size => Allocation_Size);
-         New_Chunk.Next := null;
          New_Chunk.Data.all := (others => 176);
          New_Chunk.Metadata := Null_Metadata;
       end if;
 
-      if Pool.Last = null then
-         pragma Assert (Pool.First = null);
-
-         Pool.First := New_Chunk;
-         Pool.Last  := New_Chunk;
-      else
-         Pool.Last.Next := New_Chunk;
-         Pool.Last := New_Chunk;
-      end if;
+      Append (Pool.Chunks, New_Chunk);
 
       A_Chunk := New_Chunk;
    end Allocate;
@@ -107,48 +99,26 @@ package body PolyORB.Opaque.Chunk_Pools is
       procedure Free is new Ada.Unchecked_Deallocation
         (Chunk, Chunk_Access);
 
-      Current : Chunk_Access
-        := Pool.First;
-
+      It : Chunk_Lists.Iterator := First (Pool.Chunks);
    begin
-      while Current /= null loop
+      while not Last (It) loop
          declare
             use type System.Address;
-            Next : constant Chunk_Access := Current.Next;
+            This : Chunk_Access renames Value (It).all;
          begin
-            if Current.all'Address /= Pool.Prealloc'Address then
-               Free (Current);
+            if This.all'Address /= Pool.Prealloc'Address then
+               Free (This);
             end if;
-            Current := Next;
          end;
+         Next (It);
       end loop;
-
-      Pool.Prealloc.Next := null;
-      Pool.First := null;
-      Pool.Last  := null;
+      Deallocate (Pool.Chunks);
       Pool.Prealloc_Used := False;
    end Release;
 
-   function First
-     (Pool : Pool_Type)
-     return Chunk_Access is
-   begin
-      return Pool.First;
-   end First;
-
-   function Next
-     (A_Chunk : Chunk_Access)
-     return Chunk_Access is
-   begin
-      return A_Chunk.Next;
-   end Next;
-
-   function Metadata
-     (A_Chunk : Chunk_Access)
-     return Metadata_Access is
+   function Metadata (A_Chunk : Chunk_Access) return Metadata_Access is
    begin
       return A_Chunk.Metadata'Access;
    end Metadata;
 
 end PolyORB.Opaque.Chunk_Pools;
-
