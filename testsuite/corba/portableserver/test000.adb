@@ -59,6 +59,7 @@ with Echo.Impl;
 
 with Test_AdapterActivator;
 with Test_ServantActivator;
+with Test_MyPOA;
 with Test_Job;
 
 procedure Test000 is
@@ -1689,6 +1690,7 @@ procedure Test000 is
 
    use Test_AdapterActivator;
    use Test_ServantActivator;
+   use Test_MyPOA;
 
 begin
    Init_Test;
@@ -1702,6 +1704,7 @@ begin
    Test_POA_Hierarchy;
    Run_Test_AdapterActivator;
    Run_Test_ServantActivator;
+   Run_Test_MyPOA;
 
    End_Report;
 
