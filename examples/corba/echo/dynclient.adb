@@ -33,10 +33,11 @@
 
 --  $Id$
 
---   echo dynamic client.
+--  echo dynamic client, using the Dynamic Invocation Interface (DII)
+
 with Ada.Command_Line;
-with Ada.Text_IO;      use Ada.Text_IO;
-with CORBA;            use CORBA;
+with Ada.Text_IO;
+
 with CORBA.Object;
 with CORBA.Context;
 with CORBA.Request;
@@ -49,14 +50,19 @@ pragma Warnings (Off, PolyORB.Setup.Client);
 with PolyORB.Utils.Report;
 
 procedure DynClient is
+   use Ada.Text_IO;
    use PolyORB.Utils.Report;
+   use CORBA;
 
    myecho : CORBA.Object.Ref;
 
+   -------------
+   -- Do_Test --
+   -------------
+
    procedure Do_Test;
 
-   procedure Do_Test
-   is
+   procedure Do_Test is
       Sent_Msg : CORBA.String := To_CORBA_String ("Hello Dynamic World");
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoString");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("Mesg");
@@ -69,7 +75,8 @@ procedure DynClient is
       Recv_Msg : CORBA.String;
 
    begin
-      --  creating the argument list
+      --  Creating the argument list
+
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Sent_Msg);
       CORBA.NVList.Add_Item (Arg_List,
@@ -77,12 +84,14 @@ procedure DynClient is
                              Argument,
                              CORBA.ARG_IN);
 
-      --  setting the result type
+      --  Setting the result type
+
       Result := (Name => CORBA.Identifier (Result_Name),
                  Argument => Get_Empty_Any (CORBA.TC_String),
                  Arg_Modes => 0);
 
-      --  creating a request
+      --  Creating a request
+
       CORBA.Object.Create_Request (myecho,
                                    Ctx,
                                    Operation_Name,
@@ -91,13 +100,16 @@ procedure DynClient is
                                    Request,
                                    0);
 
-      --  sending message
+      --  Sending message
+
       CORBA.Request.Invoke (Request, 0);
 
-      --  getting the answer
+      --  Getting the answer
+
       Recv_Msg := From_Any (Result.Argument);
 
-      --  printing result
+      --  Printing the result
+
       Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
       Put_Line ("The object answered : "
                 & CORBA.To_Standard_String (Recv_Msg));
@@ -106,21 +118,17 @@ procedure DynClient is
    Iter : Natural := 1;
 
 begin
-   New_Test ("Echo dynamic client");
+   New_Test ("Echo dynamic client using the DII");
 
    CORBA.ORB.Initialize ("ORB");
 
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>|-i [niter]");
+      Put_Line ("usage : client <IOR_string_from_server> [niter]");
       return;
    end if;
 
-   --  getting the CORBA.Object
-   --  if Ada.Command_Line.Argument (1) = "-i" then
-   --     myecho := Locate ("echo");
-   --  else
-   --     myecho := Locate (Ada.Command_Line.Argument (1));
-   --  end if;
+   --  Getting a reference on the CORBA object
+
    CORBA.ORB.String_To_Object
      (To_CORBA_String (Ada.Command_Line.Argument (1)), myecho);
 
@@ -128,7 +136,7 @@ begin
       Iter := Integer'Value (Ada.Command_Line.Argument (2));
    end if;
 
-   for I in 1 .. Iter loop
+   for J in 1 .. Iter loop
       Do_Test;
    end loop;
 
