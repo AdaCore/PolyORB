@@ -229,4 +229,7 @@ package body CORBA.Object is
       end if;
    end To_PolyORB_Ref;
 
+   function TC_Object return CORBA.TypeCode.Object
+     renames CORBA.TypeCode.TC_Object;
+
 end CORBA.Object;

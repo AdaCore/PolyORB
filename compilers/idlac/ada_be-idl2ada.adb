@@ -822,8 +822,9 @@ package body Ada_Be.Idl2Ada is
             end;
 
             Gen_Repository_Id (Node, Stubs_Spec);
-            Gen_Is_A (Node, Stubs_Spec, Stubs_Body);
-            Gen_Local_Is_A (Stubs_Body, Node);
+            --  Gen_Is_A (Node, Stubs_Spec, Stubs_Body);
+            --  Gen_Local_Is_A (Stubs_Body, Node);
+            --  XXX Disabled for use with PolyORB (uses Broca.Repository).
 
 
 
@@ -1013,7 +1014,6 @@ package body Ada_Be.Idl2Ada is
 
       --  Implementation
 
-      Add_With (Stubs_Body, "Broca.Repository");
       Add_With (Stubs_Body, "CORBA.Object");
 
       NL (Stubs_Body);
@@ -1076,8 +1076,7 @@ package body Ada_Be.Idl2Ada is
       PL (CU, "  return CORBA.Boolean");
       PL (CU, "is");
       II (CU);
-      Add_With (CU, "Broca.Repository");
-      PL (CU, "use Broca.Repository;");
+      Add_With (CU, "Broca.Repository", Use_It => True);
       DI (CU);
       PL (CU, "begin");
       II (CU);
@@ -3576,6 +3575,8 @@ package body Ada_Be.Idl2Ada is
                      declare
                         Arg_Name : constant String
                           := Ada_Name (Declarator (P_Node));
+                        Helper_Name : constant String
+                          := Helper_Path (Param_Type (P_Node));
                      begin
 
                         PL (CU, Justify (Arg_Name, Max_Len)
@@ -3587,15 +3588,13 @@ package body Ada_Be.Idl2Ada is
                                & Arg_Name & """);");
                         end if;
 
-                        Prefix := new String'
-                          (Helper_Path (Param_Type (P_Node)));
-                        Add_With (CU, Prefix.all);
+                        Add_With (CU, Helper_Name);
 
                         Forward_Stuff
                           (Param_Type (P_Node), "From_Forward", Str1, Str2);
 
                         PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
-                            & " : CORBA.Any := " & Prefix.all & ".To_Any"
+                            & " : CORBA.Any := " & Helper_Name & ".To_Any"
                             & " (" & Str1.all & Arg_Name
                             & Str2.all & ");");
                         NL (CU);
@@ -3690,13 +3689,15 @@ package body Ada_Be.Idl2Ada is
                      declare
                         Arg_Name : constant String
                           := Ada_Name (Declarator (P_Node));
+                        Helper_Name : constant String
+                          := Helper_Path (Param_Type (P_Node));
                      begin
                         if not Is_Returns (P_Node) then
                            if Mode (P_Node) = Mode_In
                              or else Mode (P_Node) = Mode_Inout
                            then
                               PL (CU, Arg_Name
-                                  & " := From_Any ("
+                                  & " := " & Helper_Name & ".From_Any ("
                                   & T_Argument & Arg_Name & ");");
                            end if;
                         end if;
@@ -3781,6 +3782,8 @@ package body Ada_Be.Idl2Ada is
                               declare
                                  Arg_Name : constant String
                                    := Ada_Name (Declarator (P_Node));
+                                 Helper_Name : constant String
+                                   := Helper_Path (Param_Type (P_Node));
                               begin
 
                                  if First then
@@ -3790,11 +3793,10 @@ package body Ada_Be.Idl2Ada is
                                     First := False;
                                  end if;
 
-                                 Prefix := new String'(Helper_Path (Param_Type (P_Node)));
-                                 Add_With (CU, Prefix.all);
+                                 Add_With (CU, Helper_Name);
                                  Forward_Stuff (Param_Type (P_Node), "From_Forward", Str1, Str2);
                                  PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
-                                     & " := " & Prefix.all & ".To_Any"
+                                     & " := " & Helper_Name & ".To_Any"
                                      & " (" & Str1.all & Arg_Name
                                      & Str2.all & ");");
                                  NL (CU);

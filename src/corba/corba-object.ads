@@ -101,6 +101,8 @@ package CORBA.Object is
    --  suppressed completely, and PolyORB.References.Ref/Reference_Info
    --  can be used instead.
 
+   function TC_Object return CORBA.TypeCode.Object;
+
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
