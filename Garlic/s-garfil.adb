@@ -164,7 +164,6 @@ package body System.Garlic.Filters is
       Error     : in out Error_Type);
    --  This procedure initializes and extracts the half outgoing channel.
 
-
    procedure Handle_Request
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
@@ -367,11 +366,9 @@ package body System.Garlic.Filters is
 
       Channel : Channel_Type;
       Version : Version_Id;
-      Waiting : Boolean;
 
    begin
       loop
-         Waiting := False;
 
          loop
             Channels.Enter;
