@@ -668,8 +668,10 @@ package body XE_Stubs is
                   else
                      Dwrite_Line (File, 3, "(True, ", Remote_Host, ",");
                   end if;
-                  Dwrite_Line (File, 3, """", Get_Absolute_Exec (Partition),
-                               "", Get_Command_Line  (Partition), """);");
+                  Dwrite_Line
+                    (File, 3, "",
+                     Quote (Get_Absolute_Exec (Partition) &
+                            Get_Command_Line  (Partition), 3), ");");
                end if;
             end loop;
          end if;
