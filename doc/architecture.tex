@@ -1,0 +1,154 @@
+%% Architecture de DROOPI
+%% $Id$
+
+\documentclass[12pt,a4paper]{article}
+\usepackage{slashbox}
+\usepackage{interop}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage[francais]{babel}
+\usepackage{graphics}
+\usepackage{array}
+
+\title{Architecture de DROOPI}
+\author{Thomas Quinot}
+
+\begin{document}
+
+\section{Position du problème}
+
+\subsection{Contexte}
+% Les entités qu'on va être amenés à faire coopérer
+
+On s'intéresse à quatre classes d'entités~:
+\begin{itemize}
+\item serveurs DSA~;
+\item clients DSA~;
+\item serveurs CORBA~;
+\item clients CORBA.
+\end{itemize}
+qu'on se propose de faire interopérer.
+
+Toute entité est rattachée à un ORB qui est chargé d'assurer les fonctions
+liées à la répartition nécessaires aux besoins de l'entité.
+
+Une entité DSA (client ou serveur) peut être rattachée à un ORB GLADE
+(le code existant), ou bien à un ORB générique DROOPI (possédant une
+personnalité DSA).
+
+Une entité CORBA (client ou serveur) peut être rattachée à un ORB CORBA
+(AdaBroker par exemple), ou bien à un ORB générique DROOPI (possédant
+une personnalité CORBA).
+
+Un ORB possède deux façades~:
+\begin{itemize}
+\item une façade qu'il présente aux entités (clients
+  ou serveurs) qui lui sont rattachées~;
+\item une façade qu'il présente à d'autres ORBs à travers un
+  réseau de communication et des protocoles de communication inter-ORB.
+\end{itemize}
+
+Chacune de ces façades possède plusieurs variantes~; le choix d'une
+variante détermine une personnalité.
+
+L'objectif de DROOPI est de découpler ces deux façades. D'une part, une entité
+peut se rattacher à un ORB DROOPI au moyen d'une des personnalités de cet ORB
+(paramétrant la façade «~entité~»). D'autre part, un ORB distants peut invoquer
+une méthode sur cette entité en transmettant une demande d'invocation à DROOPI
+au moyen d'une (autre) personnalité (paramétrant la façade «~ORB~»).
+
+\subsection{Domaine}
+% Limitation du scope de l'étude
+
+Nous souhaitons limiter notre étude à un ensemble de cas précis.
+
+Nous identifions les cas d'interopérations possibles par une matrice~:
+
+{
+\newcommand{\RH}[1]{\raisebox{-1ex}[0pt][1em]{\makebox[1em][l]{\rotatebox{45}{#1}}}}
+\def\myrule{\relax}
+\vspace{1cm}
+\begin{tabular}{l|*{4}{c!{\myrule}}@{\gdef\myrule{\vline}}}
+\backslashbox{Client}{Serveur}
+& \RH{DSA DROOPI}
+& \RH{DSA GLADE}
+& \RH{CORBA DROOPI}
+& \RH{CORBA AdaBroker}  \\ \hline\hline
+DSA DROOPI      & 3 & 6 & 5 & 5  \\\hline
+DSA GLADE       & 6 & 1 & 8 & 8  \\\hline
+CORBA DROOPI    & 4 & 7 & 2 & 2  \\\hline
+CORBA AdaBroker & 4 & 7 & 2 & 1  \\\hline
+\end{tabular}
+}
+
+\begin{enumerate}
+\item %1
+  Ne fait pas intervenir DROOPI.
+\item %2
+  La personnalité CORBA de DROOPI implémente les specs CORBA de l'OMG.
+  Cela suppose un support par un compilateur IDL.
+\item %3
+  La personnalité DSA de DROOPI implémente l'annexe des systèmes
+  répartis d'\ada{}. Cela suppose un support dans le compilateur.
+\item %4
+  Découplage des personnalités. Situation fonctionnellement
+  équivalente (pour le développeur d'application répartie) à CIAO,
+  mais sans avoir besoin d'un proxy.
+\item %5
+  Réciproque du précédent.
+\item %6
+  Suppose le support par DROOPI du protocole actuel de GLADE.
+\item %7
+  Suppose le support du protocole actuel de GLADE \emph{et} d'un
+  mécanisme permettant de retransmettre une requête reçue par un subrogé
+  «~serveur~» à un subrogé «~client~», pour continuation.\\
+  Situation identique à CIAO (avec proxy).
+\item %8
+  Réciproqe du précédent.
+\end{enumerate}
+
+\section{Découpage}
+\subsection{Client}
+
+Un client DROOPI dispose d'une description de service dans une
+personnalité donnée. Cette description de service va permettre
+de générer~:\begin{itemize}
+\item des stubs génériques~;
+\item des stubs spécifiques, si la personnalité le requiert
+  (cas de CORBA mais pas de DSA)~;
+\item du code inséré au moment des appels
+  (cas de DSA mais pas de CORBA).
+\end{itemize}
+
+\subsection{Serveur}
+
+\section{Base objects}
+
+\subsection{Communication objects}
+\subsubsection{Transport channel termination point}
+
+<-> a connected socket.
+
+Primitives: read/write/close
+Must be capable of participating in poll (asynchronous
+i/o).
+
+\subsubsection{Transport service access point}
+
+<-> a listening socket.
+
+Must be capable of participating in poll.
+Primitives: bind/accept
+Acts as a factory of transport channel termination points.
+
+\subsection{Protocol implementations}
+\subsubsection{GIOP}
+
+It must be possible to stack GIOP over any transport channel kind
+(eg TCP/IP, serial line).
+
+The glue between GIOP and TCP/IP is IIOP.
+
+The glue between GIOP and serial line shall be defined.
+
+\end{document}
