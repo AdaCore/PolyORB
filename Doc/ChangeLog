@@ -1,3 +1,8 @@
+2003-12-07  Laurent Pautet  <pautet@enst.fr>
+
+	* glade_ug.texi: Update documentation about priority policies and
+	remote shell use.
+
 2003-11-12  Samuel Tardieu  <sam@rfc1149.net>
 
 	* glade_ug.texi: Add proper reference to the GFDL.
