@@ -20,15 +20,15 @@ with Droopi.Binding_Data;
 
 package Droopi.Protocols.GIOP.GIOP_1_0 is
 
-   pragma Elaborate_Body;
+   No_Context : constant CORBA.Unsigned_Long := 0;
 
-   procedure GIOP_Header_Marshall
+   procedure Marshall_GIOP_Header
      (Buffer       : access Buffer_Type;
       Message_Type : in Msg_Type;
       Message_Size : in Stream_Element_Offset);
 
 
-   procedure Request_Message_Marshall
+   procedure Marshall_Request_Message
      (Buffer            : access Buffer_Type;
       Request_Id        : in CORBA.Unsigned_Long;
       Target_Profile    : in Binding_Data.Profile_Type;
@@ -36,19 +36,19 @@ package Droopi.Protocols.GIOP.GIOP_1_0 is
       Operation         : in Requests.Operation_Id);
 
 
-   procedure No_Exception_Marshall
+   procedure Marshall_No_Exception
     (Buffer      : access Buffer_Type;
      Request_Id  : in CORBA.Unsigned_Long);
 
 
-   procedure Exception_Marshall
+   procedure Marshall_Exception
     (Buffer           : access Buffer_Type;
      Request_Id       : in CORBA.Unsigned_Long;
-     Exception_Type   : in Reply_Status_Type;
+     Exception_Type   : in Reply_Status_Exception;
      Occurence        : in CORBA.Exception_Occurrence);
 
 
-   procedure Location_Forward_Marshall
+   procedure Marshall_Location_Forward
     (Buffer           : access Buffer_Type;
      Request_Id       : in  CORBA.Unsigned_Long;
      Forward_Ref      : in  Droopi.References.Ref);
@@ -58,7 +58,7 @@ package Droopi.Protocols.GIOP.GIOP_1_0 is
    --- Unmarshalling receiving messages
    -------------------------------------
 
-   procedure Request_Message_Unmarshall
+   procedure Unmarshall_Request_Message
      (Buffer            : access Buffer_Type;
       Request_Id        : out CORBA.Unsigned_Long;
       Response_Expected : out Boolean;
@@ -66,7 +66,7 @@ package Droopi.Protocols.GIOP.GIOP_1_0 is
       Operation         : out CORBA.String);
 
 
-   procedure Reply_Message_Unmarshall
+   procedure Unmarshall_Reply_Message
       (Buffer       : access Buffer_Type;
        Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type);

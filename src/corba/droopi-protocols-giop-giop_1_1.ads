@@ -25,55 +25,56 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
 
    pragma Elaborate_Body;
 
+   Service_Context_List_1_1 : constant array (range 0 .. 1) of ServiceId;
    type Service_Id_Array is array (Integer range <>) of ServiceId;
    Service_Context_List_1_1 : constant Service_Id_Array;
 
-   procedure GIOP_Header_Marshall
+   procedure Marshall_GIOP_Header
      (Buffer        : access Buffers.Buffer_Type;
       Message_Type  : in Msg_Type;
       Message_Size  : in Stream_Element_Offset;
       Fragment_Next : in Boolean);
 
 
-   procedure Request_Message_Marshall
+   procedure Marshall_Request_Message
      (Buffer                : access Buffers.Buffer_Type;
       Request_Id            : in CORBA.Unsigned_Long;
       Target_Profile        : in Binding_Data.Profile_Type;
       Response_Expected     : in Boolean;
       Operation             : in Requests.Operation_Id);
 
-   procedure Fragment_Marshall
+   procedure Marshall_Fragment
     ( Buffer      : access Buffer_Type;
       Request_Id  : in CORBA.Unsigned_Long);
 
 
-   procedure No_Exception_Marshall
+   procedure Marshall_No_Exception
     (Buffer      : access Buffer_Type;
      Request_Id  : in CORBA.Unsigned_Long);
 
 
-   procedure Exception_Marshall
+   procedure Marshall_Exception
     (Buffer           : access Buffer_Type;
      Request_Id       : in CORBA.Unsigned_Long;
-     Exception_Type   : in Reply_Status_Type;
+     Exception_Type   : in Reply_Status_Exception;
      Occurence        : in CORBA.Exception_Occurrence);
 
 
-   procedure Location_Forward_Marshall
+   procedure Marshall_Location_Forward
     (Buffer           : access Buffer_Type;
      Request_Id       : in  CORBA.Unsigned_Long;
     Forward_Ref      : in  Droopi.References.Ref);
 
 
-   procedure Request_Message_Unmarshall
+   procedure Unmarshall_Request_Message
      ( Buffer            : access Buffer_Type;
-       Request_Id        : out CORBA.Unsigned_Long;
+       Request_Id        : out CORBA.Unisgned_Long;
        Response_Expected : out Boolean;
        Object_Key        : out Objects.Object_Id;
        Operation         : out CORBA.String;
        Principal         : out Stream_Element_Array);
 
-    procedure Reply_Message_Unmarshall
+    procedure Unmarshall_Reply_Message
       (Buffer       : access Buffer_Type;
        Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type);
@@ -82,7 +83,7 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
 private
 
    Service_Context_List_1_1 : constant Service_Id_Array
-      := (0 => Transaction_Service, 1 => CodeSets);
+                := (0=> Transaction_Service, 1=> CodeSets);
 
    Major_Version : constant CORBA.Octet
      := 1;
