@@ -82,14 +82,14 @@ package body System.Garlic.Non_Blocking is
       procedure Open  (Socket : in Descriptors);
 
       entry Recv (Descriptors)
-        (Buffer : in chars_ptr;
+        (Buffer : in System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int);
       --  You may wait for data to be here by setting Nbyte to zero
 
       entry Send (Descriptors)
-        (Buffer : in chars_ptr;
+        (Buffer : in System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int);
@@ -111,13 +111,13 @@ package body System.Garlic.Non_Blocking is
       entry Close_Requeue (Descriptors);
 
       entry Recv_Requeue (Descriptors)
-        (Buffer : in chars_ptr;
+        (Buffer : in System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int);
 
       entry Send_Requeue (Descriptors)
-        (Buffer : in chars_ptr;
+        (Buffer : in System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int);
@@ -258,7 +258,7 @@ package body System.Garlic.Non_Blocking is
       -----------------------
 
       entry Recv (for RRFD in Descriptors)
-        (Buffer : in chars_ptr;
+        (Buffer : in System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int)
@@ -318,7 +318,7 @@ package body System.Garlic.Non_Blocking is
       -------------------------------
 
       entry Recv_Requeue (for RRFD in Descriptors)
-        (Buffer : in chars_ptr;
+        (Buffer : in System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int)
@@ -377,7 +377,7 @@ package body System.Garlic.Non_Blocking is
       -----------------------
 
       entry Send (for RSFD in Descriptors)
-        (Buffer : in chars_ptr;
+        (Buffer : in System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int)
@@ -442,7 +442,7 @@ package body System.Garlic.Non_Blocking is
       -------------------------------
 
       entry Send_Requeue (for RSFD in Descriptors)
-        (Buffer : in chars_ptr;
+        (Buffer : in System.Address;
          Length : in int;
          Flags  : in int;
          Result : out int)
@@ -531,12 +531,12 @@ package body System.Garlic.Non_Blocking is
 
    function C_Accept
      (Socket  : int;
-      Addr    : Thin.Sockaddr_Access;
+      Addr    : System.Address;
       Addrlen : access int)
      return int
    is
       Dummy     : int;
-      Dummy_CP  : chars_ptr := Null_Ptr;
+      Dummy_CP  : constant System.Address := Null_Address;
       Return_FD : int;
    begin
       pragma Assert (Asynchronous.Is_Open (Socket));
@@ -574,12 +574,12 @@ package body System.Garlic.Non_Blocking is
 
    function C_Connect
      (Socket  : int;
-      Name    : Thin.Sockaddr_Access;
+      Name    : System.Address;
       Namelen : int)
      return int
    is
       Dummy    : int;
-      Dummy_CP : chars_ptr := Null_Ptr;
+      Dummy_CP : constant System.Address := Null_Address;
    begin
       pragma Assert (Asynchronous.Is_Open (Socket));
       Set_Asynchronous_Non_Blocking (Socket);
@@ -612,7 +612,7 @@ package body System.Garlic.Non_Blocking is
 
    function C_Recv
      (Socket : int;
-      Buffer : chars_ptr;
+      Buffer : System.Address;
       Length : int;
       Flags  : int)
      return int
@@ -630,7 +630,7 @@ package body System.Garlic.Non_Blocking is
 
    function C_Send
      (Socket : C.int;
-      Buffer : Strings.chars_ptr;
+      Buffer : System.Address;
       Length : C.int;
       Flags  : C.int)
      return int

@@ -33,9 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Interfaces.C.Strings;
-with System.Garlic.Thin;
 with Ada.Interrupts.Names;
+with Interfaces.C;
 
 package System.Garlic.Non_Blocking is
 
@@ -45,11 +44,10 @@ package System.Garlic.Non_Blocking is
    --  provide thread-blocking I/Os.
 
    package C renames Interfaces.C;
-   package Strings renames C.Strings;
 
    function C_Accept
      (Socket  : C.int;
-      Addr    : Thin.Sockaddr_Access;
+      Addr    : System.Address;
       Addrlen : access C.int)
      return C.int;
    --  Thread blocking accept
@@ -60,14 +58,14 @@ package System.Garlic.Non_Blocking is
 
    function C_Connect
      (Socket  : C.int;
-      Name    : Thin.Sockaddr_Access;
+      Name    : System.Address;
       Namelen : C.int)
      return C.int;
    --  Thread blocking connect
 
    function C_Recv
      (Socket : C.int;
-      Buffer : Strings.chars_ptr;
+      Buffer : System.Address;
       Length : C.int;
       Flags  : C.int)
      return C.int;
@@ -75,7 +73,7 @@ package System.Garlic.Non_Blocking is
 
    function C_Send
      (Socket : C.int;
-      Buffer : Strings.chars_ptr;
+      Buffer : System.Address;
       Length : C.int;
       Flags  : C.int)
      return C.int;

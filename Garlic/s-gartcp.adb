@@ -253,8 +253,8 @@ package body System.Garlic.Tcp is
       Accept_Loop :
       loop
          declare
-            Sin       : Sockaddr_In_Access := new Sockaddr_In;
-            Length    : aliased C.int := Sin.all'Size / 8;
+            Sin       : aliased Sockaddr_In;
+            Length    : aliased C.int := Sin'Size / 8;
             Peer      : C.int;
             Connector : Connect_Access;
             Banner    : Banner_Kind;
@@ -264,7 +264,7 @@ package body System.Garlic.Tcp is
             Soft_Links.Add_Non_Terminating_Task;
             Peer := Net.C_Accept
               (Incomings (N).Socket,
-               To_Sockaddr_Access (Sin),
+               Sin'Address,
                Length'Access);
             Soft_Links.Sub_Non_Terminating_Task;
             if Peer = Failure then
@@ -553,22 +553,20 @@ package body System.Garlic.Tcp is
    function Do_Connect (Location  : Host_Location) return C.int
    is
       Peer : C.int;
-      Sin  : Sockaddr_In_Access;
+      Sin  : aliased Sockaddr_In;
       Code : C.int;
    begin
       Peer := Net.C_Socket (Af_Inet, Sock_Stream, 0);
       if Peer /= Failure then
-         Sin := new Sockaddr_In;
          Sin.Sin_Family := Constants.Af_Inet;
          Sin.Sin_Addr := To_In_Addr (Location.Addr);
          Sin.Sin_Port := Port_To_Network (Location.Port);
          Code := Net.C_Connect
-           (Peer, To_Sockaddr_Access (Sin), Sin.all'Size / 8);
+           (Peer, Sin'Address, Sin'Size / 8);
          if Code = Failure then
             pragma Debug
               (D ("Cannot connect to host " & Image (Location.Addr) &
                   " on port" & Location.Port'Img));
-            Free (Sin);
             Code := Net.C_Close (Peer);
             Peer := Failure;
          end if;
@@ -586,16 +584,14 @@ package body System.Garlic.Tcp is
    is
       Self  : Socket_Info renames Incomings (Index);
       Port  : C.unsigned_short renames Self.Location.Port;
-      Sin   : Sockaddr_In_Access := new Sockaddr_In;
-      Check : Sockaddr_In_Access := new Sockaddr_In;
-      Size  : aliased C.int := Check.all'Size / 8;
+      Sin   : aliased Sockaddr_In;
+      Check : aliased Sockaddr_In;
+      Size  : aliased C.int := Check'Size / 8;
       Code  : C.int;
       One   : aliased C.int := 1;
    begin
       Self.Socket := Net.C_Socket (Af_Inet, Sock_Stream, 0);
       if Self.Socket = Failure then
-         Free (Sin);
-         Free (Check);
          Throw (Error, "Do_Listen: tcp socket error");
          return;
       end if;
@@ -605,10 +601,8 @@ package body System.Garlic.Tcp is
 
       Sin.Sin_Family := Constants.Af_Inet;
       Sin.Sin_Port := Port_To_Network (Port);
-      Code := C_Bind (Self.Socket, To_Sockaddr_Access (Sin), Sin.all'Size / 8);
+      Code := C_Bind (Self.Socket, Sin'Address, Sin'Size / 8);
       if Code = Failure then
-         Free (Sin);
-         Free (Check);
          Throw (Error, "Do_Listen: tcp bind error");
          return;
       end if;
@@ -620,10 +614,8 @@ package body System.Garlic.Tcp is
 
       if Port = 0 then
          Code := C_Getsockname
-           (Self.Socket, To_Sockaddr_Access (Check), Size'Access);
+           (Self.Socket, Check'Address, Size'Access);
          if Code = Failure then
-            Free (Sin);
-            Free (Check);
             Throw (Error, "Do_Listen: tcp getsockname error");
             return;
          end if;
@@ -631,7 +623,6 @@ package body System.Garlic.Tcp is
       end if;
 
       Self.Closed := False;
-      Free (Check);
 
       pragma Debug (D ("Listen on port" & Port'Img));
    end Do_Listen;
@@ -832,7 +823,7 @@ package body System.Garlic.Tcp is
       Code : C.int;
    begin
       while Size > 0 loop
-         Code := Net.C_Recv (Peer, To_Chars_Ptr (Addr), Size, 0);
+         Code := Net.C_Recv (Peer, Addr, Size, 0);
          if Code <= 0 then
             Throw (Error,
                    "Physical_Receive: peer =" & Peer'Img &
@@ -860,7 +851,7 @@ package body System.Garlic.Tcp is
       Code : C.int;
    begin
       while Size > 0 loop
-         Code := Net.C_Send (Peer, To_Chars_Ptr (Addr), Size, 0);
+         Code := Net.C_Send (Peer, Addr, Size, 0);
          if Code <= 0 then
             Throw (Error,
                    "Physical_Send: peer =" & Peer'Img &
