@@ -52,6 +52,8 @@ with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
+with PolyORB.Utils.Report;
+
 --  Our application object.
 with PolyORB.Test_Object_SOA;
 
@@ -64,6 +66,7 @@ package body PolyORB.Setup.Test_SOA is
    use PolyORB.Exceptions;
    use PolyORB.Objects;
    use PolyORB.ORB;
+   use PolyORB.Utils.Report;
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
    My_Servant : Servants.Servant_Access;
@@ -82,13 +85,14 @@ package body PolyORB.Setup.Test_SOA is
       -- Create simple object adapter --
       ----------------------------------
 
-      Put_Line ("Creating object adapter...");
       Obj_Adapter := new Obj_Adapters.Simple.Simple_Obj_Adapter;
       Obj_Adapters.Create (Obj_Adapter);
       --  Create object adapter
 
       Set_Object_Adapter (The_ORB, Obj_Adapter);
       --  Link object adapter with ORB.
+
+      Output ("Created object adapter", True);
 
       My_Servant := new Test_Object_SOA.My_Object;
       --  Create application server object.
@@ -111,7 +115,7 @@ package body PolyORB.Setup.Test_SOA is
 
       Create_Reference (The_ORB, My_Id, "IDL:Echo:1.0", My_Ref);
 
-      Put_Line ("Registered object: " & Image (My_Id.all));
+      Output ("Registered object: " & Image (My_Id.all), True);
       Put_Line ("Reference is     : " & References.Image (My_Ref));
       begin
          Put_Line ("IOR is           : "
@@ -156,7 +160,6 @@ package body PolyORB.Setup.Test_SOA is
                To_Any (To_PolyORB_String (Arg1)),
                ARG_IN);
 
-            Put ("Creating servant request...  ");
             Create_Request
               (My_Ref,
                "echoString",
@@ -164,7 +167,7 @@ package body PolyORB.Setup.Test_SOA is
                Result,
                PolyORB.Any.ExceptionList.Nil_Ref,
                Req);
-            Put_Line ("Done...");
+            Output ("Created servant request", True);
 
             Emit_No_Reply
               (Component_Access (The_ORB),
@@ -188,6 +191,8 @@ package body PolyORB.Setup.Test_SOA is
                Task_Info => Req.Requesting_Task'Access),
               May_Poll => True);
          --  Execute the ORB.
+
+         End_Report;
       end;
    end Run_Test;
 
