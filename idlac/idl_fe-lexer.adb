@@ -1142,73 +1142,15 @@ package body Idl_Fe.Lexer is
       end;
 
       if Preprocess then
-         declare
-            use GNAT.Command_Line;
-
-            Spawn_Result : Boolean;
-            Fd : File_Descriptor;
-         begin
-            --  Use default options:
-            --  -E           only preprocess
-            --  -C           do not discard comments
-            --  -x c++       use c++ preprocessor semantic
-            Add_Argument ("-E");
-            Add_Argument ("-C");
-            Add_Argument ("-x");
-            Add_Argument ("c++");
-            Add_Argument ("-ansi");
-
-            Goto_Section ("cppargs");
-            while Getopt ("*") /= ASCII.Nul loop
-               --  Pass user options to the preprocessor.
-               Add_Argument (Full_Switch);
-            end loop;
-
-            --  Always add the current directory at the end of the
-            --  include list.
-            Add_Argument ("-I");
-            Add_Argument (".");
-
-            Create_Temp_File (Fd, Tmp_File_Name);
-            if Fd = Invalid_FD then
-               Errors.Error
-                 (Ada.Command_Line.Command_Name &
-                  ": cannot create temporary " &
-                  "file name",
-                  Errors.Fatal,
-                  Get_Real_Location);
-            end if;
-            --  We don't need the fd.
-            Close (Fd);
-
-            Add_Argument ("-o");
-            Add_Argument (Tmp_File_Name);
-            Args (Arg_Count) := new String'(Filename);
-            Spawn (Locate_Exec_On_Path (Platform.Ada_Compiler).all,
-                   Args (1 .. Arg_Count),
-                   Spawn_Result);
-            pragma Debug (O ("Initialize: preprocessing done"));
-            if not Spawn_Result then
-               pragma Debug (O ("Initialize: preprocessing failed"));
-               Errors.Error
-                 (Ada.Command_Line.Command_Name &
-                  ": preprocessor failed",
-                  Errors.Fatal,
-                  Errors.No_Location);
-            end if;
-            Ada.Text_IO.Open
-              (Idl_File,
-               Ada.Text_IO.In_File,
-               Tmp_File_Name);
-         end;
+         Preprocess_File (Filename);
       else
          Ada.Text_IO.Open
            (Idl_File,
             Ada.Text_IO.In_File,
             Filename);
+         Ada.Text_IO.Set_Input (Idl_File);
       end if;
       pragma Debug (O ("Initialize: end"));
-      Ada.Text_IO.Set_Input (Idl_File);
    end Initialize;
 
    ----------------------
@@ -1367,16 +1309,10 @@ package body Idl_Fe.Lexer is
    exception
       when Ada.Text_IO.End_Error =>
          if not Keep_Temporary_Files then
-            declare
-               use GNAT.OS_Lib;
-               Spawn_Result : Boolean;
-            begin
-               Delete_File (Tmp_File_Name'Address, Spawn_Result);
-            end;
+            Remove_Temporary_Files;
          end if;
          return T_Eof;
    end Get_Next_Token;
-
 
    -------------------------------------
    --  methods useful for the parser  --
@@ -1398,41 +1334,82 @@ package body Idl_Fe.Lexer is
    function Get_Lexer_String return String renames Get_Marked_Text;
 
 
-   -------------------------
-   --  Maybe useless ???  --
-   -------------------------
+   ----------------
+   -- Preprocess --
+   ----------------
 
-   --    --  compares two idl words
-   --    function Idl_Compare (Left, Right : String) return Boolean is
-   --       use Gnat.Case_Util;
-   --    begin
-   --       if Left'Length /= Right'Length then
-   --          return False;
-   --       end if;
-   --       for I in Left'Range loop
-   --          if To_Lower (Left (I))
-   --            /= To_Lower (Right (Right'First + I - Left'First))
-   --          then
-   --             return False;
-   --          end if;
-   --       end loop;
-   --       return True;
-   --    end Idl_Compare;
+   procedure Preprocess_File (Filename : in String) is
+      use GNAT.Command_Line, GNAT.OS_Lib;
 
-   --    --  returns an image of the current identifier
-   --    function Image (Tok : Idl_Token) return String is
-   --    begin
-   --       case Tok is
-   --          when T_Identifier =>
-   --             if Tok = Token then
-   --                return "identifier `" & Get_Identifier & ''';
-   --             else
-   --                return "identifier";
-   --             end if;
-   --          when others =>
-   --             return '`' & Idl_Token'Image (Token) & ''';
-   --       end case;
-   --    end Image;
+      Spawn_Result : Boolean;
+      Fd           : File_Descriptor;
+      Idl_File     : Ada.Text_IO.File_Type;
+
+   begin
+      --  Use default options:
+      --  -E           only preprocess
+      --  -C           do not discard comments
+      --  -x c++       use c++ preprocessor semantic
+      Add_Argument ("-E");
+      Add_Argument ("-C");
+      Add_Argument ("-x");
+      Add_Argument ("c++");
+      Add_Argument ("-ansi");
+
+      Goto_Section ("cppargs");
+      while Getopt ("*") /= ASCII.Nul loop
+         --  Pass user options to the preprocessor.
+         Add_Argument (Full_Switch);
+      end loop;
+
+      --  Always add the current directory at the end of the
+      --  include list.
+      Add_Argument ("-I");
+      Add_Argument (".");
+
+      Create_Temp_File (Fd, Tmp_File_Name);
+      if Fd = Invalid_FD then
+         Errors.Error
+           (Ada.Command_Line.Command_Name &
+            ": cannot create temporary " &
+            "file name",
+            Errors.Fatal,
+            Get_Real_Location);
+      end if;
+      --  We don't need the fd.
+      Close (Fd);
+
+      Add_Argument ("-o");
+      Add_Argument (Tmp_File_Name);
+      Args (Arg_Count) := new String'(Filename);
+      Spawn (Locate_Exec_On_Path (Platform.Ada_Compiler).all,
+             Args (1 .. Arg_Count),
+             Spawn_Result);
+      pragma Debug (O ("Initialize: preprocessing done"));
+      if not Spawn_Result then
+         pragma Debug (O ("Initialize: preprocessing failed"));
+         Errors.Error
+           (Ada.Command_Line.Command_Name &
+            ": preprocessor failed",
+            Errors.Fatal,
+            Errors.No_Location);
+      end if;
+      Ada.Text_IO.Open
+        (Idl_File,
+         Ada.Text_IO.In_File,
+         Tmp_File_Name);
+      Ada.Text_IO.Set_Input (Idl_File);
+   end Preprocess_File;
+
+   ----------------------------
+   -- Remove_Temporary_Files --
+   ----------------------------
+
+   procedure Remove_Temporary_Files is
+      Spawn_Result : Boolean;
+   begin
+      GNAT.OS_Lib.Delete_File (Tmp_File_Name'Address, Spawn_Result);
+   end Remove_Temporary_Files;
 
 end Idl_Fe.Lexer;
 

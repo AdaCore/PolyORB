@@ -50,6 +50,7 @@ procedure Idlac is
    begin
       Put_Line (Current_Error, "Usage: " & Command_Name
                 & " [-i] [-k] idl_file [-cppargs ...]");
+      Put_Line (Current_Error, "  -E    Preprocess only.");
       Put_Line (Current_Error, "  -i    Generate implementation template.");
       Put_Line (Current_Error, "  -k    Keep temporary files.");
       Put_Line (Current_Error, "  -p    Produce source on standard output.");
@@ -61,12 +62,13 @@ procedure Idlac is
    end Usage;
 
    File_Name : Idl_Fe.Types.String_Cacc;
-   Rep : Idl_Fe.Types.Node_Id;
+   Rep       : Idl_Fe.Types.Node_Id;
 
    Generate_Impl_Template : Boolean := False;
-   Keep_Temporary_Files : Boolean := False;
-   To_Stdout : Boolean := False;
-   Verbose : Boolean := True;
+   Keep_Temporary_Files   : Boolean := False;
+   Preprocess_Only        : Boolean := False;
+   To_Stdout              : Boolean := False;
+   Verbose                : Boolean := True;
 
 begin
    begin
@@ -74,8 +76,11 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("I: i k p q") is
+         case Getopt ("E I: i k p q") is
             when ASCII.Nul => exit;
+
+            when 'E' =>
+               Preprocess_Only := True;
 
             when 'I' =>
                Idl_Fe.Lexer.Add_Argument ("-I");
@@ -135,49 +140,73 @@ begin
       end if;
    end if;
 
-   --  Setup parser
-   Idl_Fe.Parser.Initialize
-     (File_Name.all,
-      True,
-      Keep_Temporary_Files);
+   if Preprocess_Only then
 
-   --  Parse input
-   Rep := Idl_Fe.Parser.Parse_Specification;
+      --  If we only want to preprocess, let's preprocess, print the content
+      --  of the file and exit.
 
-   if Errors.Is_Error then
+      Idl_Fe.Lexer.Preprocess_File (File_Name.all);
+      declare
+         use Ada.Text_IO;
+         Line : String (1 .. 1024);
+         Last : Natural;
+      begin
+         while not End_Of_File loop
+            Get_Line (Line, Last);
+            Put_Line (Line (1 .. Last));
+         end loop;
+      end;
 
-      Put (Current_Error,
-           Natural'Image (Errors.Error_Number)
-           & " error(s)");
-      if Errors.Is_Warning then
-         Put_Line
-           (Current_Error,
-            " and "
-            & Natural'Image (Errors.Warning_Number)
-            & " warning(s)");
+      if not Keep_Temporary_Files then
+         Idl_Fe.Lexer.Remove_Temporary_Files;
       end if;
-      Put_Line (Current_Error, " during parsing.");
 
-      return;
+   else
 
-   elsif Verbose then
-      if Errors.Is_Warning then
-         Put_Line
-           (Current_Error,
-            Natural'Image (Errors.Warning_Number)
-            & " warning(s) during parsing.");
-      else
-         Put_Line (Current_Error, "Successfully parsed.");
+      --  Setup parser
+      Idl_Fe.Parser.Initialize
+        (File_Name.all,
+         True,
+         Keep_Temporary_Files);
+
+      --  Parse input
+      Rep := Idl_Fe.Parser.Parse_Specification;
+
+      if Errors.Is_Error then
+
+         Put (Current_Error,
+              Natural'Image (Errors.Error_Number)
+              & " error(s)");
+         if Errors.Is_Warning then
+            Put_Line
+              (Current_Error,
+               " and "
+               & Natural'Image (Errors.Warning_Number)
+               & " warning(s)");
+         end if;
+         Put_Line (Current_Error, " during parsing.");
+
+         return;
+
+      elsif Verbose then
+         if Errors.Is_Warning then
+            Put_Line
+              (Current_Error,
+               Natural'Image (Errors.Warning_Number)
+               & " warning(s) during parsing.");
+         else
+            Put_Line (Current_Error, "Successfully parsed.");
+         end if;
       end if;
+
+      --  Expand tree
+      Ada_Be.Expansion.Expand_Repository (Rep);
+
+      --  Generate code
+      Ada_Be.Idl2Ada.Generate
+        (Rep,
+         Implement => Generate_Impl_Template,
+         To_Stdout => To_Stdout);
    end if;
-
-   --  Expand tree
-   Ada_Be.Expansion.Expand_Repository (Rep);
-
-   --  Generate code
-   Ada_Be.Idl2Ada.Generate
-     (Rep,
-      Implement => Generate_Impl_Template,
-      To_Stdout => To_Stdout);
 
 end Idlac;

@@ -194,6 +194,12 @@ package Idl_Fe.Lexer is
                          Preprocess : in Boolean;
                          Keep_Temporary_Files : in Boolean);
 
+   --  Preprocess a file and output the result on standard out.
+   procedure Preprocess_File (Filename : in String);
+
+   --  Remove temporary files
+   procedure Remove_Temporary_Files;
+
    --  Analyses further and returns the next token.
    --  Returns t_error if the entry is invalid.
    function Get_Next_Token return Idl_Token;
