@@ -1,36 +1,49 @@
-***********************************************************
-***                                                     ***
-***         AdaBroker : an IDL to Ada compiler          ***
-***                                                     ***
-***********************************************************
+------------------------------------------------------------------------------
+--                                                                          --
+--                          ADABROKER COMPONENTS                            --
+--                                                                          --
+--                               R E A D M E                                --
+--                                                                          --
+--       Copyright (C) 1999-2000 ENST Paris University, France.             --
+--                                                                          --
+-- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+--             AdaBroker is maintained by ENST Paris University.            --
+------------------------------------------------------------------------------
 
-Installation :
---------------
+This is the documentation for AdaBroker version @adabroker_version@.
 
-- check that egcs and gnat are intalled on your system. Set your
-  environnement variables so that g++ refers to egcs and gcc to gnat.
+Build requirements
+------------------
 
-- create a symbolic link in AdaBroker, pointing to omniORB_2.7.1 (if
-  you use another version of omniORB, update the config.mk file in
-  AdaBroker/config). In any case, the link must be called `omniORB_2.7.1'.
+Ada 95 compiler: GNAT 3.12p.
 
-- run 'make export'. It will produce AdaBroker libraries and
-  adabroker executable. The installation procedure is similar to
-  omniORB installation procedure. For instance, adabroker executable
-  is installed in omniORB_2.7.1/bin/<platform>. Same thing for
-  libraries and ali files which are installed in
-  omniORB_2.7.1/lib/<platform>.
+Build instructions
+------------------
 
-- go to AdaBroker/Examples directory and run 'make' to build examples.
+See file INSTALL.
 
-- AdaBroker has been tested only with EGCS, but should work OK with most
-  recent C++ compilers. However, we have had failure reports with GCC 2.8.1.
-  This will be fixed as soon as GNAT is officially ported on EGCS.
+Usage
+-----
 
-Usage :
--------
+  idlac [-i] [-k] idl_file [-cppargs ...]
 
-  adabroker [ -i ] myinterface.idl creates several files :
+  -i    Generate implementation template.
+  -k    Keep temporary files.
+  -q    Be quiet.
+  -cppargs ARGS
+        Pass ARGS to the C++ preprocessor.
+
+This creates several files :
 
 - myinterface.ads, myinterface.adb : these files contain the mapping
   for user defined types (client and server side).
@@ -39,30 +52,32 @@ Usage :
   filled by the user. They contain the implementation of the
   server. They are generated only if the -i flag is specified.
 
-- myinterface-proxy.ads, myinterface-proxy.adb : these files
-  contain utilities to make proxy calls.
+- myinterface.ads, myinterface.adb : these files
+  contain the client stubs for the interface.
 
 - myinterface-skel.ads, myinterface-skel.adb : these files
-  contain utilities for the server-side implementation.
+  contain the server-side skeletons for the interface.
 
-- myinterface-stream.ads, myinterface-stream.adb : they contain
-  subprograms to marshall types according to the GIOP protocol.
+- myinterface-stream.ads, myinterface-stream.adb : these files
+  contain subprograms to marshall data according to the CDR protocol.
 
 
-Features :
-----------
+Features
+--------
 
 - Most of the CORBA features are implemented except dynamic
   invocation. This includes CORBA types, CORBA exceptions, forward
   declarations and multiple inheritance. The Ada tasking is also
-  working with AdaBroker. AdaBroker/Examples provides
+  working with AdaBroker. The 'examples' subdirectory provides
   several examples of the available features.
 
-- This release has been successfully tested on Solaris. It has been
-  reported to work on Linux (RedHat and Debian) with a home-built
-  Ada and C++ compiler based on EGCS 1.1.1 and GNAT 3.11p.
+- This release has been succesfully tested on:
 
-- If you need to debug AdaBroker, you can create a file adabroker.opt in
+    - Debian GNU/Linux 2.2 (Potato) on Intel and Sparc
+    - FreeBSD 4.0 and 5.0-CURRENT
+    - Solaris 2.5.1, 2.6 and 2.7 on Sparc
+
+- If you need to debug AdaBroker, you can create a file broca.opt in
   your current directory. This file should contain lines with package
   names you want to debug. For instance, corba.orb will enable debug
   messages from package CORBA.ORB. If you want to debug C++ files, you
@@ -70,17 +85,17 @@ Features :
   on how much detailed you want the output to be.
 
 
-Bug reports:
-------------
+Bug reports
+-----------
 
 If you find a bug and would like to submit fixes, please do so
 indicating what release you use. We accept patch files. To produce
 such a patch file, put your files in the AdaBroker directory and our
 files in the directory AdaBroker.orig, and use the following command:
 
-  diff --recursive --context AdaBroker.orig AdaBroker > patch_file
+  diff --recursive --context adabroker.orig adabroker > patch_file
 
-and send us the patch_file via E-mail at the address 
+and send us the patch_file via e-mail at the address 
 
           adabroker-bugs@adabroker.eu.org
 
@@ -91,8 +106,8 @@ GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
 Note that unified diff files (-u option of GNU diff) are also welcomed.
 
 
-Mailing-lists:
---------------
+Mailing-lists
+-------------
 
 Several mailing-lists have been created for discussions around AdaBroker:
 
@@ -124,3 +139,4 @@ contributors:
 * Thomas Quinot (quinot@enst.fr)
 * Frank Singhoff (singhoff@enst.fr)
 * Samuel Tardieu (sam@enst.fr)
+

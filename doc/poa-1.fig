@@ -1,0 +1,21 @@
+#FIG 3.2
+Landscape
+Center
+Metric
+A4      
+100.00
+Single
+-2
+1200 2
+4 0 0 0 0 0 24 0.0000 4 300 3540 3825 675 Introduction au POA (1)\001
+4 0 0 0 0 0 24 0.0000 4 315 7725 900 1800 POA: Portable Object Server, refonte totale du BOA.\001
+4 0 0 0 0 0 24 0.0000 4 315 8550 1350 3150 Contr\364le de la politique d'invocation aux impl\351mentations\001
+4 0 0 0 0 0 24 0.0000 4 240 630 900 2700 But:\001
+4 0 0 0 0 0 24 0.0000 4 315 4080 1350 3825 ie, que faire d'une requ\352te ?\001
+4 0 0 0 0 0 24 0.0000 4 315 2295 900 4725 Premi\350re \351tape:\001
+4 0 0 0 0 0 24 0.0000 4 345 1845 1350 5175 \311tat du POA\001
+4 0 0 0 0 0 24 0.0000 4 240 750 2250 5625 Actif\001
+4 0 0 0 0 0 24 0.0000 4 240 960 2250 6075 Inactif\001
+4 0 0 0 0 0 24 0.0000 4 315 1395 2250 6525 Suspendu\001
+4 0 0 0 0 0 24 0.0000 4 315 2160 2250 6975 Rejet (discard)\001
+4 0 0 0 0 0 24 0.0000 4 300 885 3825 6525 (hold)\001

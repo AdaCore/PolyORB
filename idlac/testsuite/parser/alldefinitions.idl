@@ -14,7 +14,7 @@
 #pragma toto
 
 // Rule 1
-const short const1 = 412;
+const short const1 = 4;
 
 // Rule 2
 typedef long long1;
@@ -198,90 +198,91 @@ const octet const14 = 2;
 const short const15 = 5;
 
 // Rule 30
-const short const16 = 3 | 28;
-const short const17 = 3 | 28 | 12;
+//const short const16 = 3 | -28;
+//const short const17 = 3 | -28 | 12;
 
 // Rule 31
-const short const18 = 3 ^ 28;
-const short const19 = 3 ^ 28 ^ 12;
+//const short const18 = 3 ^ -28;
+//const short const19 = 3 ^ -28 ^ 12;
 
 // Rule 32
-const short const20 = 3 & 28;
-const short const21 = 3 & 28 & 12;
+//const short const20 = 3 & -28;
+//const short const21 = 3 & -28 & 12;
 
 // Rule 33
-const long const22 = 345 << 8;
-const long const23 = 345 << 2 << 6;
-const short const24 = 345 >> 8;
-const short const25 = 345 >> 2 >> 6;
+//const short const22 = 345 << 8;
+//const short const23 = 345 << 2 << 6;
+//const short const24 = 345 >> 8;
+//const short const25 = 345 >> 2 >> 6;
 
 // Rule 34
-const short const26 = 345 + 8;
-const short const27 = 345 + 2 + 6;
-const short const28 = 345 - 8;
-const short const29 = 345 - 2 - 6;
-const short const30 = 345 - 2 + 6;
-const short const31 = 345 + 2 - 6;
+//const short const23 = 345 + 8;
+//const short const24 = 345 + 2 + 6;
+//const short const25 = 345 - 8;
+//const short const26 = 345 - 2 - 6;
+//const short const27 = 345 - 2 + 6;
+//const short const28 = 345 + 2 - 6;
 
 // Rule 35
-const short const32 = 345 * 8;
-const short const33 = 345 * 2 * 4;
-const short const34 = 345 / 8;
-const short const35 = 345 / 2 / 4;
-const short const36 = 345 % 8;
-const short const37 = 347 % 4 % 2;
-const short const38 = 345 * 4 / 2;
-const short const39 = 345 / 4 * 2;
-const short const40 = 345 * 4 % 5;
-const short const41 = 345 % 4 * 5;
-const short const42 = 345 / 4 % 5;
-const short const43 = 345 % 4 / 5;
+//const short const29 = 345 * 8;
+//const short const30 = 345 * 2 * 4;
+//const short const31 = 345 / 8;
+//const short const32 = 345 / 2 / 4;
+//const short const33 = 345 % 8;
+//const short const34 = 345 % 4 % 2;
+//const short const35 = 345 * 4 / 2;
+//const short const36 = 345 / 4 * 2;
+//const short const37 = 345 * 4 % 5;
+//const short const38 = 345 % 4 * 5;
+//const short const39 = 345 / 4 % 5;
+//const short const40 = 345 % 4 / 5;
 
 // Rule 36
-const short const44 = - 17;
+//const short const41 = - 17;
 
 // Rule 37
-const short const45 = - 17;
-const short const46 = + 17;
-const short const47 = ~ 17;
+//const short const42 = - 17;
+//const short const43 = + 17;
+//const short const44 = ~ 17;
 
 // Rule 38
 module module9 {
    const short c = 2;
 };
-const short const48 = ::module9::c;
-const short const49 = module9::c;
-const short const50 = 18;
-const short const51 = ( 1 | 3 ^ 200 >> 3 & 7 << 2 + -7 - -11 * 13 / 15 % ~17);
+//const short const45 = ::module9::c;
+//const short const46 = module9::c;
+//const short const47 = 18;
+//const short const48 = ( 1 | 3 ^ 20 >> 1 & 7 << 2 + -9 - +11 * 13 / 15 % ~17);
 
 // Rule 39
-const short const52 = 12;
-const short const53 = 014;
-const short const54 = 0xC;
-const string const55 = "a string";
-const wstring const56 = L"a wide string";
-const char const57 = 'r';
-const char const58 = '\n';
-const char const59 = '\60';
-const char const60 = '\xab';
-const wchar const61 = L'r';
-const wchar const62 = L'\n';
-const wchar const63 = L'\12';
-const wchar const64 = L'\xab';
-const wchar const65 = L'\uabc';
-const fixed<5,3> const66 = 12d;
-const fixed<3,1> const67 = 3.4d;
-const float const68 = 1.45;
-const float const69 = 5e3;
-const float const70 = 3E4;
-const boolean const71 = TRUE;
+const short const49 = 12;
+const short const50 = 014;
+const short const51 = 0xC;
+const string const52 = "a string";
+const string const53 = L"a wide string";
+const char const54 = 'r';
+const char const55 = '\n';
+const char const56 = '\12';
+const char const57 = '\xab';
+const char const58 = '\uabc';
+const wchar const59 = L'r';
+const wchar const60 = L'\n';
+const wchar const61 = L'\12';
+const wchar const62 = L'\xab';
+const wchar const63 = L'\uabc';
+const fixed<2,3> const64 = 12d;
+const fixed<3,4> const65 = 3.4d;
+const float const66 = 1.45;
+const float const67 = 5e3;
+const float const68 = 3E4;
+const boolean const69 = TRUE;
 
 // Rule 40
-const boolean const72 = TRUE;
-const boolean const73 = FALSE;
+const boolean const70 = TRUE;
+const boolean const71 = FALSE;
 
 // Rule 41
-const fixed<4,2> const74 = 12d;
+const fixed<2,3> const72 = 12d;
 
 // Rule 42
 typedef long type8;
@@ -322,7 +323,7 @@ typedef ValueBase type25;
 typedef sequence<long> type26;
 typedef string type27;
 typedef wstring type28;
-typedef fixed<4,4> type29;
+typedef fixed<3,4> type29;
 
 // Rule 48
 typedef struct struct2 { long l; } type30;
@@ -616,10 +617,10 @@ interface interface26 {
 };
 
 // Rule 96
-const fixed<4,1> const75 = 12d;
+const fixed<2,3> const73 = 12d;
 
 // Rule 97
-const fixed<4,1> const76 = 12d;
+const fixed<2,3> const74 = 12d;
 
 // Rule 98
 typedef ValueBase type77;
@@ -645,8 +646,8 @@ typedef sequence<long> sequenceA;
 typedef sequence<sequence<long> > sequenceB;
 typedef sequence<sequence<long>> sequenceC;
 typedef sequence<sequence<long,8>> sequenceD;
-typedef sequence<sequence<long,8>>1>> sequenceE;
-typedef sequence<sequence<long,8>>1>,5>>1> sequenceF;
+//typedef sequence<sequence<long,8>>1>> sequenceE;
+//typedef sequence<sequence<long,8>>1>,5>>1> sequenceF;
 typedef sequence<sequence<sequence<long>>> sequenceG;
 
 // reopening of modules
