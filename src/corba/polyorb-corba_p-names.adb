@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  String constants.
+--  String constants defined by OMG specifications.
 
 --  $Id$
 
@@ -44,7 +44,8 @@ package body PolyORB.CORBA_P.Names is
    -- OMG_Prefix --
    ----------------
 
-   function OMG_Prefix return String is
+   function OMG_Prefix
+     return String is
    begin
       return Prefix;
    end OMG_Prefix;
@@ -53,7 +54,9 @@ package body PolyORB.CORBA_P.Names is
    -- OMG_RepositoryId --
    ----------------------
 
-   function OMG_RepositoryId (Name : String) return String is
+   function OMG_RepositoryId
+     (Name : String)
+     return String is
    begin
       return "IDL:" & Prefix & "/" & Name & ":" & Version;
    end OMG_RepositoryId;
@@ -62,7 +65,8 @@ package body PolyORB.CORBA_P.Names is
    -- OMG_Version --
    -----------------
 
-   function OMG_Version return String is
+   function OMG_Version
+     return String is
    begin
       return Version;
    end OMG_Version;

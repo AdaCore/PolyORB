@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  String constants.
+--  String constants defined by OMG specifications.
 
 --  $Id$
 
@@ -39,9 +39,15 @@ package PolyORB.CORBA_P.Names is
 
    pragma Pure;
 
-   function OMG_Prefix return String;
-   function OMG_Version return String;
-   function OMG_RepositoryId (Name : String) return String;
+   function OMG_Prefix
+     return String;
+
+   function OMG_Version
+     return String;
+
+   function OMG_RepositoryId
+     (Name : String)
+     return String;
 
 private
 
