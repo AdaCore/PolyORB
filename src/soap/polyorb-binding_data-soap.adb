@@ -44,6 +44,7 @@ with PolyORB.Filters.HTTP;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
+with PolyORB.Setup;
 
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR;
@@ -177,10 +178,13 @@ package body PolyORB.Binding_Data.SOAP is
    procedure Create_Factory
      (PF : out SOAP_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
-      ORB : Components.Component_Access) is
+      ORB : PolyORB.Components.Component_Access)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
    begin
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
-      PF.ORB := ORB;
    end Create_Factory;
 
    function Create_Profile
@@ -201,15 +205,13 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Address   := PF.Address;
 
       declare
-         PF_ORB : PolyORB.Components.Component_Access renames PF.ORB;
-
          Oid_Translate : constant ORB.Interface.Oid_Translate
            := (PolyORB.Components.Message with Oid => TResult.Object_Id);
-         TOid_Translate : PolyORB.Components.Message'Class
-           renames PolyORB.Components.Message'Class (Oid_Translate);
+
          M : constant PolyORB.Components.Message'Class
            := PolyORB.Components.Emit
-           (Port => PF_ORB,  Msg => TOid_Translate);
+           (Port => Components.Component_Access (Setup.The_ORB),
+            Msg => Oid_Translate);
          TM : ORB.Interface.URI_Translate renames
            ORB.Interface.URI_Translate (M);
       begin
@@ -247,7 +249,26 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Address.Port := Port_Type (Positive'(Port (URL)));
 
       TResult.URI_Path := To_PolyORB_String (AWS.URL.URI (URL));
-      --  XXX do we need to fill in TResult.Oid ?
+
+      if ORB.Is_Profile_Local (Setup.The_ORB, Result) then
+
+         --  Fill Oid from URI for a local profile.
+
+         declare
+            URI_Translate : constant ORB.Interface.URI_Translate
+              := (PolyORB.Components.Message
+                    with Path => TResult.URI_Path);
+
+            M : constant PolyORB.Components.Message'Class
+              := PolyORB.Components.Emit
+              (Port => Components.Component_Access (Setup.The_ORB),
+               Msg => URI_Translate);
+            TM : ORB.Interface.Oid_Translate renames
+              ORB.Interface.Oid_Translate (M);
+         begin
+            TResult.Object_Id := TM.Oid;
+         end;
+      end if;
 
       return Result;
    end Create_Profile;

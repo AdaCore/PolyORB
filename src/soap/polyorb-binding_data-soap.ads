@@ -76,11 +76,11 @@ package PolyORB.Binding_Data.SOAP is
    function Get_URI_Path (Profile : SOAP_Profile_Type) return Types.String;
    --  Return the 'path' component of the object URI.
 
-   function Create_Profile (URI : Types.String) return Profile_Access;
-   --  Create a SOAP RPC/HTTP profile from an absolute URI.
-
    function To_URI (Prof : SOAP_Profile_Type) return String;
    --  Convert a SOAP profile to an equivalent URI.
+
+   function Create_Profile (URI : Types.String) return Profile_Access;
+   --  Create a SOAP RPC/HTTP profile from an absolute URI.
 
    function Image (Prof : SOAP_Profile_Type) return String;
    --  Represent Prof as a string, for debugging purposes.
@@ -128,7 +128,6 @@ private
 
    type SOAP_Profile_Factory is new Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
-      ORB     : Components.Component_Access;
    end record;
 
 end PolyORB.Binding_Data.SOAP;
