@@ -112,6 +112,9 @@ package body XE_Stubs is
    function SG_Initialize (N : in Name_Id) return String;
    --  Return System.Garlic.<N>.Initialize
 
+   function SGF_Initialize (N : in Name_Id) return String;
+   --  Return System.Garlic.Filters.<N>.Initialize
+
    function SGP_Initialize (N : in Name_Id) return String;
    --  Return System.Garlic.Protocols.<N>.Initialize
 
@@ -436,6 +439,7 @@ package body XE_Stubs is
       Dwrite_With_Clause (File, True, SG ("Filters"));
       Dwrite_With_Clause (File, True, SG ("Heart"));
       Dwrite_With_Clause (File, True, SG ("Options"));
+      Dwrite_With_Clause (File, True, SG ("Name_Table"));
       Dwrite_With_Clause (File, True, SG ("Types"));
 
       if Light_PCS then
@@ -479,9 +483,6 @@ package body XE_Stubs is
       Dwrite_Line (File, 0, "package body ", Elaboration_Name, " is");
       Dwrite_Line (File, 1, "procedure Initialize is");
       Dwrite_Line (File, 1, "begin");
-
-      --  If the partition holds the main unit, then it cannot be slave.
-      --  Otherwise, it is.
 
       Dwrite_Call
         (File, 2, "Set_Slave", C (Boolean'Image (PID /= Main_Partition)));
@@ -547,6 +548,31 @@ package body XE_Stubs is
                       Task_Pool (3));
       end if;
 
+      if Light_PCS then
+         Dwrite_Call
+           (File, 2, SG_Initialize (Str_To_Id ("No_Tasking")));
+         Dwrite_Call
+           (File, 2, "Set_Light_PCS", Str_To_Id ("True"));
+
+      elsif Pure_Client then
+         Dwrite_Call
+           (File, 2, SG_Initialize (Str_To_Id ("Tasking")));
+         Dwrite_Call
+           (File, 2, "Set_Pure_Client", Str_To_Id ("True"));
+
+      else
+         Dwrite_Call
+           (File, 2, SG_Initialize (Str_To_Id ("Tasking")));
+      end if;
+
+      --  To be elaborated Name_Table needs Soft_Links to be initialized.
+
+      Dwrite_Call (File, 2, SG_Initialize (Str_To_Id ("Name_Table")));
+
+
+      --  If the partition holds the main unit, then it cannot be slave.
+      --  Otherwise, it is.
+
       Dwrite_Call (File, 2, "Set_Partition_Name",
                    Quote (Partitions.Table (PID).Name));
 
@@ -585,21 +611,29 @@ package body XE_Stubs is
          end;
       end if;
 
-      if Light_PCS then
-         Dwrite_Call
-           (File, 2, SG_Initialize (Str_To_Id ("No_Tasking")));
-         Dwrite_Call
-           (File, 2, "Set_Light_PCS", Str_To_Id ("True"));
+      --  Add filtering package if needed
 
-      elsif Pure_Client then
+      if Default_Registration_Filter /= No_Filter_Name then
          Dwrite_Call
-           (File, 2, SG_Initialize (Str_To_Id ("Tasking")));
-         Dwrite_Call
-           (File, 2, "Set_Pure_Client", Str_To_Id ("True"));
+           (File, 2, SGF_Initialize (C (Default_Registration_Filter)));
+      end if;
 
-      else
-         Dwrite_Call
-           (File, 2, SG_Initialize (Str_To_Id ("Tasking")));
+      if Get_Filter (PID) /= No_Filter_Name then
+         Dwrite_Call (File, 2, SGF_Initialize (C (Get_Filter (PID))));
+      end if;
+
+      if Partitions.Table (PID).First_Channel /= Null_CID then
+         CID := Partitions.Table (PID).First_Channel;
+         while CID /= Null_CID loop
+            if Get_Filter (CID) /= No_Filter_Name then
+               Dwrite_Call (File, 2, SGF_Initialize (C (Get_Filter (CID))));
+            end if;
+            if Channels.Table (CID).Lower.My_Partition = PID then
+               CID := Channels.Table (CID).Lower.Next_Channel;
+            else
+               CID := Channels.Table (CID).Upper.Next_Channel;
+            end if;
+         end loop;
       end if;
 
       --  Footer.
@@ -1589,6 +1623,17 @@ package body XE_Stubs is
       Add_Str_To_Name_Buffer (".Initialize");
       return Name_Buffer (1 .. Name_Len);
    end SG_Initialize;
+
+   --------------------
+   -- SGP_Initialize --
+   --------------------
+
+   function SGF_Initialize (N : Name_Id) return String is
+   begin
+      Get_Name_String (SGF (N));
+      Add_Str_To_Name_Buffer (".Initialize");
+      return Name_Buffer (1 .. Name_Len);
+   end SGF_Initialize;
 
    --------------------
    -- SGP_Initialize --
