@@ -34,15 +34,13 @@
 
 with Ada.Exceptions;
 
+with PolyORB.Locked_Queue;
+pragma Elaborate_All (PolyORB.Locked_Queue);
 with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Jobs;
 with PolyORB.Components;
 with PolyORB.Filters.Interface;
-
-with Locked_Queue;
-
-pragma Elaborate_All (Locked_Queue);
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.ORB.Thread_Pool is
 

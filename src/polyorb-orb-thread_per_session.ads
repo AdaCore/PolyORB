@@ -55,7 +55,7 @@ package PolyORB.ORB.Thread_Per_Session is
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Session_Policy;
       ORB : ORB_Access;
-      RJ  : Jobs.Job_Access);
+      RJ  : access Jobs.Job'Class);
 
    procedure Idle
      (P : access Thread_Per_Session_Policy;

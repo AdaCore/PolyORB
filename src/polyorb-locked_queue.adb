@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                         L O C K E D _ Q U E U E                          --
+--                 P O L Y O R B . L O C K E D _ Q U E U E                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package implements a basic thread-safe bounded queue.
+
 --  $Id$
 
 with Unchecked_Deallocation;
@@ -37,13 +39,13 @@ with Unchecked_Deallocation;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
-package body Locked_Queue is
+package body PolyORB.Locked_Queue is
 
    use PolyORB.Log;
    use PolyORB.Soft_Links;
 
    package L is new PolyORB.Log.Facility_Log
-     ("locked_queue");
+     ("polyorb.locked_queue");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -197,4 +199,4 @@ package body Locked_Queue is
 
    end Get_Head;
 
-end Locked_Queue;
+end PolyORB.Locked_Queue;

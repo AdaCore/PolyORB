@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                         L O C K E D _ Q U E U E                          --
+--                 P O L Y O R B . L O C K E D _ Q U E U E                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,17 +30,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package implements a basic thread-safe bounded queue.
+
 --  $Id$
 
 with PolyORB.Soft_Links;
-
---  This package implements a basic thread-safe bounded queue.
 
 generic
 
    type Queue_Element is private;
 
-package Locked_Queue is
+package PolyORB.Locked_Queue is
 
    pragma Elaborate_Body;
 
@@ -117,12 +117,4 @@ private
       Count      : Natural := 0;
    end record;
 
-end Locked_Queue;
-
-
-
-
-
-
-
-
+end PolyORB.Locked_Queue;

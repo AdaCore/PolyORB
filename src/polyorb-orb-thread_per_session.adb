@@ -43,8 +43,8 @@ with PolyORB.ORB.Interface;
 
 with PolyORB.Protocols;
 
-with Locked_Queue;
-pragma Elaborate_All (Locked_Queue);
+with PolyORB.Locked_Queue;
+pragma Elaborate_All (PolyORB.Locked_Queue);
 
 pragma Elaborate_All (PolyORB.Log);
 
@@ -135,7 +135,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Session_Policy;
       ORB : ORB_Access;
-      RJ  : Jobs.Job_Access)
+      RJ  : access Jobs.Job'Class)
    is
    begin
       Jobs.Run (RJ);
