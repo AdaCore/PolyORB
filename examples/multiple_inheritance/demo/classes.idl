@@ -10,4 +10,5 @@ interface weapon {
 };
 
 interface tank : vehicle, weapon {
+  void refill() ;
 };

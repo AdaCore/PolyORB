@@ -12,6 +12,8 @@ use Membufferedstream ;
 use Omniropeandkey ;
 use Giop ;
 use Corba ;
+use Netbufferedstream ;
+use Membufferedstream ;
 use type Corba.Unsigned_Long ;
 
 package body Echo.Skeleton is
@@ -23,6 +25,10 @@ package body Echo.Skeleton is
                        Returns : out Corba.Boolean) is
       Self : Echo.Impl.Object_Ptr := Echo.Impl.Object_Ptr(Myself) ;
    begin
+   -----------------------
+   -- IDL definitions   --
+   -----------------------
+
       if Orl_Op = "echoString" then
          declare
             mesg : Corba.String ;
@@ -49,11 +55,9 @@ package body Echo.Skeleton is
          end ;
       end if ;
 
+
+
       Returns := false ;
    end ;
 
 end Echo.Skeleton  ;
-
-
-
-

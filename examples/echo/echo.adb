@@ -7,6 +7,7 @@ use Corba.Object ;
 use type Corba.String ;
 package body Echo is 
 
+
    -----------------------------
    --         The Spec        --
    -----------------------------
@@ -30,10 +31,8 @@ package body Echo is
    end ;
 
 
-
-
    --------------------------------------------------
-   --          IDL definitions                     --
+   --          IDL declarations                    --
    --------------------------------------------------
 
    function echoString(Self : in Ref;
@@ -45,8 +44,6 @@ package body Echo is
       OmniProxyCallWrapper.Invoke(Self, Opcd) ;
       return Echo.Proxies.Get_Result(Opcd) ;
    end ;
-
-
 
    -----------------------------
    --       Not in Spec       --

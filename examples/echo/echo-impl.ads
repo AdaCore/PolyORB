@@ -1,13 +1,19 @@
 with Omniobject ;
 with Corba ;
-
 package Echo.Impl is
 
    type Object is new Omniobject.Implemented_Object with private ;
    type Object_Ptr is access all Object ;
 
 
+   -----------------------
+   -- IDL definitions   --
+   -----------------------
+
    function echoString(Self : access Object; mesg : in Corba.String) return Corba.String ;
+
+
+
 
 private
 
