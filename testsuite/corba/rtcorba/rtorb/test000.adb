@@ -168,7 +168,7 @@ begin
             10,
             False,
             1,
-            1);
+            0);
 
          Output ("Thread Pool created with id"
                  & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id), True);
@@ -231,7 +231,7 @@ begin
             False,
             False,
             1,
-            1);
+            0);
 
          Output ("Thread Pool created with id"
                  & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id), True);
@@ -281,7 +281,7 @@ begin
             10,
             False,
             1,
-            1);
+            0);
 
          Output ("Thread Pool created with id"
                  & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id), True);
