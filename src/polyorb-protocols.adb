@@ -190,6 +190,17 @@ package body PolyORB.Protocols is
               := Executed_Request (S).Req;
          begin
 
+            if Req.Deferred_Arguments_Session /= null then
+
+               --  The request has been aborted before being fully
+               --  processed. Flush the session's data and restore the
+               --  session to its initial state, waiting for requests.
+
+               Emit_No_Reply
+                 (Component_Access (Sess),
+                  Protocols.Interface.Flush'(Message with null record));
+            end if;
+
             if Is_Set (Sync_With_Target, Req.Req_Flags)
               or else Is_Set (Sync_Call_Back, Req.Req_Flags)
             then
