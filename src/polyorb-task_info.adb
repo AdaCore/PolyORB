@@ -49,6 +49,33 @@ package body PolyORB.Task_Info is
       return Tasking.Threads.Image (TI.Id);
    end Image;
 
+   -----------------
+   -- List_Attach --
+   -----------------
+
+   procedure List_Attach
+     (TI       : in out Task_Info;
+      Position : Task_Lists.Iterator)
+   is
+   begin
+      TI.Position := Position;
+   end List_Attach;
+
+   -----------------
+   -- List_Detach --
+   -----------------
+
+   procedure List_Detach
+     (TI   : in out Task_Info;
+      List : in out Task_Lists.List)
+   is
+   begin
+      if not Task_Lists.Last (TI.Position) then
+         Task_Lists.Remove (List, TI.Position);
+         TI.Position := Task_Lists.Last (List);
+      end if;
+   end List_Detach;
+
    --------------
    -- May_Poll --
    --------------

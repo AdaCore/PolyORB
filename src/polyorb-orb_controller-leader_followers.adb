@@ -353,6 +353,10 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
                   null;
             end case;
+
+         when Idle_Awake =>
+            List_Detach (E.Awakened_Task.all, O.Idle_Task_List);
+
       end case;
 
       pragma Debug (O2 (Status (O)));
@@ -433,14 +437,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
          O.Idle_Tasks := O.Idle_Tasks + 1;
 
-         declare
-            CV : constant PTCV.Condition_Access := Allocate_CV (O);
-
-         begin
-            Set_State_Idle (TI.all, CV, O.ORB_Lock);
-
-            Idle_Task_Lists.Append (O.Idle_Task_List, Idle_Task'(CV, TI));
-         end;
+         Set_State_Idle (TI.all, Allocate_CV (O), O.ORB_Lock);
+         Idle_Task_Lists.Append (O.Idle_Task_List, TI);
+         List_Attach (TI.all, Task_Lists.First (O.Idle_Task_List));
 
          pragma Debug (O1 ("Task is now idle"));
          pragma Debug (O2 (Status (O)));
@@ -504,7 +503,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    procedure Awake_One_Idle_Task
      (O : access ORB_Controller_Leader_Followers)
    is
-      Task_To_Awake : Idle_Task;
+      Task_To_Awake : Task_Info_Access;
 
    begin
       if O.Idle_Tasks > 0 then
@@ -518,8 +517,9 @@ package body PolyORB.ORB_Controller.Leader_Followers is
          --  Signal one idle task, and puts its CV in Free_CV
 
          Idle_Task_Lists.Extract_First (O.Idle_Task_List, Task_To_Awake);
-         Signal (Task_To_Awake.CV);
-         CV_Lists.Append (O.Free_CV, Task_To_Awake.CV);
+         List_Attach (Task_To_Awake.all, Task_Lists.Last (O.Idle_Task_List));
+         Signal (Condition (Task_To_Awake.all));
+         CV_Lists.Append (O.Free_CV, Condition (Task_To_Awake.all));
 
       else
          pragma Debug (O1 ("No idle task !"));

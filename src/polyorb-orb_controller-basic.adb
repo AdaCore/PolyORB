@@ -311,6 +311,13 @@ package body PolyORB.ORB_Controller.Basic is
 
                   null;
             end case;
+
+         when Idle_Awake =>
+
+            --  A task has left Idle state
+
+            List_Detach (E.Awakened_Task.all, O.Idle_Task_List);
+
       end case;
 
       pragma Debug (O2 (Status (O)));
@@ -325,7 +332,7 @@ package body PolyORB.ORB_Controller.Basic is
       TI :        PTI.Task_Info_Access)
    is
    begin
-      pragma Debug (O1 ("Schedule_Task: enter"));
+      pragma Debug (O1 ("Schedule_Task: enter " & Image (TI.all)));
 
       pragma Assert (PTI.State (TI.all) = Unscheduled);
 
@@ -377,14 +384,9 @@ package body PolyORB.ORB_Controller.Basic is
 
          O.Idle_Tasks := O.Idle_Tasks + 1;
 
-         declare
-            CV : constant PTCV.Condition_Access := Allocate_CV (O);
-
-         begin
-            Set_State_Idle (TI.all, CV, O.ORB_Lock);
-
-            Idle_Task_Lists.Append (O.Idle_Task_List, Idle_Task'(CV, TI));
-         end;
+         Set_State_Idle (TI.all, Allocate_CV (O), O.ORB_Lock);
+         Task_Lists.Prepend (O.Idle_Task_List, TI);
+         List_Attach (TI.all, Task_Lists.First (O.Idle_Task_List));
 
          pragma Debug (O1 ("Task is now idle"));
          pragma Debug (O2 (Status (O)));
@@ -400,13 +402,13 @@ package body PolyORB.ORB_Controller.Basic is
      (O  : access ORB_Controller_Basic;
       TI :        PTI.Task_Info_Access)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (TI);
-      pragma Warnings (On);
-
+      S : constant Task_State := State (TI.all);
    begin
-      pragma Debug (O1 ("Unregister_Task: enter"));
+      pragma Debug (O1 ("Unregister_Task: enter, State = "
+                        & State (TI.all)'Img));
+      pragma Debug (O2 (Status (O)));
 
+      pragma Assert (S = Terminated);
       O.Registered_Tasks := O.Registered_Tasks - 1;
 
       pragma Debug (O2 (Status (O)));
@@ -468,8 +470,7 @@ package body PolyORB.ORB_Controller.Basic is
    -------------------------
 
    procedure Awake_One_Idle_Task (O : access ORB_Controller_Basic) is
-      Task_To_Awake : Idle_Task;
-
+      Task_To_Awake : Task_Info_Access;
    begin
       if O.Idle_Tasks > 0 then
          pragma Debug (O1 ("Awake one idle task"));
@@ -481,9 +482,10 @@ package body PolyORB.ORB_Controller.Basic is
 
          --  Signal one idle task, and puts its CV in Free_CV list
 
-         Idle_Task_Lists.Extract_First (O.Idle_Task_List, Task_To_Awake);
-         Signal (Task_To_Awake.CV);
-         CV_Lists.Append (O.Free_CV, Task_To_Awake.CV);
+         Task_Lists.Extract_First (O.Idle_Task_List, Task_To_Awake);
+         List_Attach (Task_To_Awake.all, Task_Lists.Last (O.Idle_Task_List));
+         Signal (Condition (Task_To_Awake.all));
+         CV_Lists.Append (O.Free_CV, Condition (Task_To_Awake.all));
 
       else
          pragma Debug (O1 ("No idle task !"));

@@ -92,9 +92,11 @@ package PolyORB.ORB_Controller is
       Queue_Request_Job,
       --  Queue a request job
 
-      Request_Result_Ready
+      Request_Result_Ready,
       --  A Request has been completed
 
+      Idle_Awake
+      --  A task has left Idle state
       );
 
    --  Event type
@@ -115,6 +117,9 @@ package PolyORB.ORB_Controller is
 
          when Request_Result_Ready =>
             Requesting_Task : PTI.Task_Info_Access;
+
+         when Idle_Awake =>
+            Awakened_Task : PTI.Task_Info_Access;
 
          when others =>
             null;

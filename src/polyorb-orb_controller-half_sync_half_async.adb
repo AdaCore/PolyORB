@@ -339,6 +339,10 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
                   null;
             end case;
+
+         when Idle_Awake =>
+            null;
+
       end case;
 
       pragma Debug (O2 (Status (O)));
