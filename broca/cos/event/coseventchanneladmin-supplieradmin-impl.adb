@@ -25,7 +25,13 @@ with CORBA.Sequences.Unbounded;
 
 with PortableServer; use PortableServer;
 
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body CosEventChannelAdmin.SupplierAdmin.Impl is
+
+   Flag : constant Natural := Broca.Debug.Is_Active ("consumeradmin");
+   procedure O is new Broca.Debug.Output (Flag);
 
    package PullConsumers is
       new CORBA.Sequences.Unbounded (ProxyPullConsumer.Impl.Object_Ptr);
@@ -39,7 +45,6 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
          Channel : EventChannel.Impl.Object_Ptr;
          Pushs   : PushConsumers.Sequence;
          Pulls   : PullConsumers.Sequence;
-         Mutex   : Mutex_Access;
       end record;
 
    ------------
@@ -53,34 +58,15 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
       My_Ref   : SupplierAdmin.Ref;
 
    begin
+      pragma Debug (O ("create supplier admin"));
+
       Supplier        := new Object;
       Supplier.X      := new Supplier_Admin_Record;
       Supplier.X.This    := Supplier;
       Supplier.X.Channel := Channel;
-      Create (Supplier.X.Mutex);
       Initiate_Servant (Servant (Supplier), My_Ref);
       return Supplier;
    end Create;
-
-   --------------------------
-   -- Obtain_Push_Consumer --
-   --------------------------
-
-   function Obtain_Push_Consumer
-     (Self : access Object)
-     return ProxyPushConsumer.Ref
-   is
-      Consumer : ProxyPushConsumer.Impl.Object_Ptr;
-      Its_Ref  : ProxyPushConsumer.Ref;
-
-   begin
-      Enter  (Self.X.Mutex);
-      Consumer := ProxyPushConsumer.Impl.Create (Self.X.This);
-      Servant_To_Reference (Servant (Consumer), Its_Ref);
-      PushConsumers.Append (Self.X.Pushs, Consumer);
-      Leave  (Self.X.Mutex);
-      return Its_Ref;
-   end Obtain_Push_Consumer;
 
    --------------------------
    -- Obtain_Pull_Consumer --
@@ -94,13 +80,37 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
       Its_Ref  : ProxyPullConsumer.Ref;
 
    begin
-      Enter  (Self.X.Mutex);
+      pragma Debug (O ("obtain proxy pull consumer from supplier admin"));
+
+      Enter_Critical_Section;
       Consumer := ProxyPullConsumer.Impl.Create (Self.X.This);
-      Servant_To_Reference (Servant (Consumer), Its_Ref);
       PullConsumers.Append (Self.X.Pulls, Consumer);
-      Leave  (Self.X.Mutex);
+      Leave_Critical_Section;
+      Servant_To_Reference (Servant (Consumer), Its_Ref);
       return Its_Ref;
    end Obtain_Pull_Consumer;
+
+   --------------------------
+   -- Obtain_Push_Consumer --
+   --------------------------
+
+   function Obtain_Push_Consumer
+     (Self : access Object)
+     return ProxyPushConsumer.Ref
+   is
+      Consumer : ProxyPushConsumer.Impl.Object_Ptr;
+      Its_Ref  : ProxyPushConsumer.Ref;
+
+   begin
+      pragma Debug (O ("obtain proxy push consumer from supplier admin"));
+
+      Enter_Critical_Section;
+      Consumer := ProxyPushConsumer.Impl.Create (Self.X.This);
+      PushConsumers.Append (Self.X.Pushs, Consumer);
+      Leave_Critical_Section;
+      Servant_To_Reference (Servant (Consumer), Its_Ref);
+      return Its_Ref;
+   end Obtain_Push_Consumer;
 
    ----------
    -- Post --
@@ -110,9 +120,9 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
      (Self : access Object;
       Data : in CORBA.Any) is
    begin
-      Enter (Self.X.Mutex);
+      pragma Debug (O ("post new data from supplier admin to channel"));
+
       EventChannel.Impl.Post (Self.X.Channel, Data);
-      Leave (Self.X.Mutex);
    end Post;
 
 end CosEventChannelAdmin.SupplierAdmin.Impl;

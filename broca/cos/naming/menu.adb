@@ -1,4 +1,4 @@
-with Text_IO; use Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
 package body Menu is
@@ -10,6 +10,8 @@ package body Menu is
    Line : String (1 .. 1024);
    Last : Natural;
    Scan : Natural;
+   Pipe : Boolean := False;
+   File : File_Type;
 
    function Next return String;
 
@@ -35,7 +37,17 @@ package body Menu is
    is
    begin
       Put (Prompt);
-      Get_Line (Line, Last);
+      begin
+         Get_Line (Current_Input, Line, Last);
+      exception when others =>
+         Close (File);
+         Set_Input (Standard_Input);
+         Pipe := False;
+         Get_Line (Current_Input, Line, Last);
+      end;
+      if Pipe then
+         Put_Line (Line (1 .. Last));
+      end if;
       Scan := 1;
       Argc := 0;
       loop
@@ -103,6 +115,25 @@ package body Menu is
          return Line (F .. L);
       end if;
    end Next;
+
+   ---------------
+   -- Set_Input --
+   ---------------
+
+   procedure Set_Input
+     (Filename : in String_Access) is
+   begin
+      Open (File, In_File, Filename.all);
+      Set_Input (File);
+      Pipe := True;
+
+   exception when others =>
+      Put_Line ("no such file");
+   end Set_Input;
+
+   --------------
+   -- To_Lower --
+   --------------
 
    procedure To_Lower (S : String_Access) is
    begin

@@ -12,4 +12,6 @@ package Menu is
 
    procedure To_Lower (S : String_Access);
 
+   procedure Set_Input (Filename : String_Access);
+
 end Menu;

@@ -55,6 +55,8 @@ procedure Test_Event is
    type Command is
      (Help,
       Quit,
+      Run,
+      Sleep,
       Connect,
       Consume,
       Produce,
@@ -71,6 +73,8 @@ procedure Test_Event is
    Help_Messages : constant array (Command) of String_Access
      := (Help    => M ("print this message"),
          Quit    => M ("quit this shell"),
+         Run     => M ("run <file of commands from this language"),
+         Sleep   => M ("sleep <seconds>"),
          Create  => M ("create <kind> <entity>"),
          Connect => M ("connect <entity> to <channel>"),
          Consume => M ("consume in <entity>"),
@@ -416,7 +420,9 @@ begin
 
    loop
       Argc := Count;
-      if Argc > 0 then
+      if Argc > 0
+        and then Argument (1)(Argument (1)'First) /= '#'
+      then
          begin
             case Command'Value (Argument (1).all) is
                when Help =>
@@ -470,7 +476,7 @@ begin
                   Connect_Entity (Entity, Kind, Channel);
 
                when Consume =>
-                  if Argc /= 4 then
+                  if Argc /= 3 then
                      raise Syntax_Error;
                   end if;
 
@@ -482,7 +488,7 @@ begin
                   Ada.Text_IO.Put_Line (Consume_Event (Entity, Kind));
 
                when Produce =>
-                  if Argc /= 5 then
+                  if Argc /= 4 then
                      raise Syntax_Error;
                   end if;
 
@@ -492,6 +498,23 @@ begin
                   Find_Entity (Argument (4), Entity, Kind);
                   Produce_Event (Entity, Kind, Argument (2));
 
+               when Run =>
+                  if Argc /= 2 then
+                     raise Syntax_Error;
+                  end if;
+
+                  Menu.Set_Input (Argument (2));
+
+               when Sleep =>
+                  if Argc /= 2 then
+                     raise Syntax_Error;
+                  end if;
+
+                  declare
+                     N : Natural := Natural'Value (Argument (2).all);
+                  begin
+                     delay Duration (N);
+                  end;
             end case;
 
          exception

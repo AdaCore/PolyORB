@@ -19,7 +19,13 @@ with PortableServer; use PortableServer;
 
 with CORBA.Impl;
 
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body CosEventChannelAdmin.EventChannel.Impl is
+
+   Flag : constant Natural := Broca.Debug.Is_Active ("eventchannel");
+   procedure O is new Broca.Debug.Output (Flag);
 
    -------------
    -- Channel --
@@ -30,7 +36,6 @@ package body CosEventChannelAdmin.EventChannel.Impl is
          This     : Object_Ptr;
          Consumer : ConsumerAdmin.Impl.Object_Ptr;
          Supplier : SupplierAdmin.Impl.Object_Ptr;
-         Mutex    : Mutex_Access;
       end record;
 
    ------------
@@ -43,12 +48,13 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       My_Ref  : EventChannel.Ref;
 
    begin
+      pragma Debug (O ("create channel"));
+
       Channel            := new Object;
       Channel.X          := new Event_Channel_Record;
       Channel.X.This     := Channel;
       Channel.X.Consumer := ConsumerAdmin.Impl.Create (Channel);
       Channel.X.Supplier := SupplierAdmin.Impl.Create (Channel);
-      Create (Channel.X.Mutex);
       Initiate_Servant (Servant (Channel), My_Ref);
       return Channel;
    end Create;
@@ -74,6 +80,8 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       R : ConsumerAdmin.Ref;
 
    begin
+      pragma Debug (O ("create consumer admin for channel"));
+
       Servant_To_Reference (Servant (Self.X.Consumer), R);
       return R;
    end For_Consumers;
@@ -89,6 +97,8 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       R : SupplierAdmin.Ref;
 
    begin
+      pragma Debug (O ("create supplier for channel"));
+
       Servant_To_Reference (Servant (Self.X.Supplier), R);
       return R;
    end For_Suppliers;

@@ -20,15 +20,19 @@ with Broca.Soft_Links;    use  Broca.Soft_Links;
 with PortableServer; use PortableServer;
 
 with CORBA.Object;
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 package body CosEventChannelAdmin.ProxyPushConsumer.Impl is
+
+   Flag : constant Natural := Broca.Debug.Is_Active ("proxypushconsumer");
+   procedure O is new Broca.Debug.Output (Flag);
 
    type Proxy_Push_Consumer_Record is
       record
          This   : Object_Ptr;
          Peer   : PushSupplier.Ref;
          Admin  : SupplierAdmin.Impl.Object_Ptr;
-         Mutex  : Mutex_Access;
       end record;
 
    ---------------------------
@@ -39,21 +43,15 @@ package body CosEventChannelAdmin.ProxyPushConsumer.Impl is
      (Self          : access Object;
       Push_Supplier : in CosEventComm.PushSupplier.Ref) is
    begin
-      Enter (Self.X.Mutex);
+      pragma Debug (O ("connect push supplier to proxy push consumer"));
 
-      --  Check a peer is not already connected
+      Enter_Critical_Section;
       if not PushSupplier.Is_Nil (Self.X.Peer) then
-         Leave (Self.X.Mutex);
+         Leave_Critical_Section;
          raise AlreadyConnected;
       end if;
-
       Self.X.Peer := Push_Supplier;
-      Leave (Self.X.Mutex);
-
-   exception when Disconnected =>
-      Destroy (Self.X.Mutex);
-      raise Disconnected;
-
+      Leave_Critical_Section;
    end Connect_Push_Supplier;
 
    ------------
@@ -66,11 +64,12 @@ package body CosEventChannelAdmin.ProxyPushConsumer.Impl is
       My_Ref   : ProxyPushConsumer.Ref;
 
    begin
+      pragma Debug (O ("create proxy push consumer"));
+
       Consumer         := new Object;
       Consumer.X       := new Proxy_Push_Consumer_Record;
       Consumer.X.This  := Consumer;
       Consumer.X.Admin := Admin;
-      Create (Consumer.X.Mutex);
       Initiate_Servant (Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
@@ -82,12 +81,20 @@ package body CosEventChannelAdmin.ProxyPushConsumer.Impl is
    procedure Disconnect_Push_Consumer
      (Self : access Object)
    is
+      Peer    : PushSupplier.Ref;
       Nil_Ref : PushSupplier.Ref;
 
    begin
-      Enter (Self.X.Mutex);
+      pragma Debug (O ("disconnect proxy push consumer"));
+
+      Enter_Critical_Section;
+      Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Leave (Self.X.Mutex);
+      Leave_Critical_Section;
+
+      if not PushSupplier.Is_Nil (Peer) then
+         PushSupplier.Disconnect_Push_Supplier (Peer);
+      end if;
    end Disconnect_Push_Consumer;
 
    ----------
@@ -98,9 +105,10 @@ package body CosEventChannelAdmin.ProxyPushConsumer.Impl is
      (Self : access Object;
       Data : in CORBA.Any) is
    begin
-      Enter (Self.X.Mutex);
+      pragma Debug
+        (O ("push new data from proxy push consumer to supplier admin"));
+
       SupplierAdmin.Impl.Post (Self.X.Admin, Data);
-      Leave (Self.X.Mutex);
    end Push;
 
 end CosEventChannelAdmin.ProxyPushConsumer.Impl;

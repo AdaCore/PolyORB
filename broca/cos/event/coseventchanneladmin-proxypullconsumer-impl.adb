@@ -23,12 +23,16 @@ with PortableServer; use PortableServer;
 
 with CORBA.Object;
 
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
+   Flag : constant Natural := Broca.Debug.Is_Active ("proxypullconsumer");
+   procedure O is new Broca.Debug.Output (Flag);
+
    task type Proxy_Pull_Consumer_Engin is
-      entry Connect
-        (Consumer : in Object_Ptr;
-         Supplier : in PullSupplier.Ref);
+      entry Connect (Consumer : in Object_Ptr);
    end Proxy_Pull_Consumer_Engin;
 
    type Proxy_Pull_Consumer_Engin_Access is access Proxy_Pull_Consumer_Engin;
@@ -39,7 +43,6 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
          Peer   : PullSupplier.Ref;
          Admin  : SupplierAdmin.Impl.Object_Ptr;
          Engin  : Proxy_Pull_Consumer_Engin_Access;
-         Mutex  : Mutex_Access;
       end record;
 
    -------------------------------
@@ -53,22 +56,38 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
       Event : CORBA.Any;
 
    begin
-      select
-         accept Connect
-           (Consumer : Object_Ptr;
-            Supplier : PullSupplier.Ref)
-         do
-            This := Consumer;
-            Peer := Supplier;
-         end Connect;
-      or
-         terminate;
-      end select;
       loop
-         Event := PullSupplier.Pull (Peer);
-         Enter (This.X.Mutex);
-         SupplierAdmin.Impl.Post (This.X.Admin, Event);
-         Leave (This.X.Mutex);
+         select
+            accept Connect
+              (Consumer : Object_Ptr)
+            do
+               This := Consumer;
+            end Connect;
+         or
+            terminate;
+         end select;
+
+         loop
+            Enter_Critical_Section;
+            Peer := This.X.Peer;
+            Leave_Critical_Section;
+
+            exit when PullSupplier.Is_Nil (Peer);
+
+            pragma Debug
+              (O ("pull new data from proxy pull consumer engin"));
+
+            begin
+               Event := PullSupplier.Pull (Peer);
+            exception when others =>
+               exit;
+            end;
+
+            pragma Debug
+              (O ("post new data from proxy pull consumer to admin"));
+
+            SupplierAdmin.Impl.Post (This.X.Admin, Event);
+         end loop;
       end loop;
    end Proxy_Pull_Consumer_Engin;
 
@@ -80,18 +99,22 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
      (Self          : access Object;
       Pull_Supplier : in CosEventComm.PullSupplier.Ref) is
    begin
-      Enter (Self.X.Mutex);
+      pragma Debug (O ("connect pull supplier to proxy pull consumer"));
 
-      --  Check a peer is not already connected
+      Enter_Critical_Section;
       if not PullSupplier.Is_Nil (Self.X.Peer) then
-         Leave (Self.X.Mutex);
+         Leave_Critical_Section;
          raise AlreadyConnected;
       end if;
 
-      --  Start engin
-      Self.X.Engin.Connect (Self.X.This, Pull_Supplier);
+      Self.X.Peer := Pull_Supplier;
 
-      Leave (Self.X.Mutex);
+      --  Start engin
+      if Self.X.Engin = null then
+         Self.X.Engin := new Proxy_Pull_Consumer_Engin;
+      end if;
+      Self.X.Engin.Connect (Self.X.This);
+      Leave_Critical_Section;
    end Connect_Pull_Supplier;
 
    ------------
@@ -104,11 +127,12 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
       My_Ref   : ProxyPullConsumer.Ref;
 
    begin
+      pragma Debug (O ("create proxy pull consumer"));
+
       Consumer         := new Object;
       Consumer.X       := new Proxy_Pull_Consumer_Record;
       Consumer.X.This  := Consumer;
       Consumer.X.Admin := Admin;
-      Create (Consumer.X.Mutex);
       Initiate_Servant (Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
@@ -120,10 +144,20 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
    procedure Disconnect_Pull_Consumer
      (Self : access Object)
    is
+      Peer    : PullSupplier.Ref;
       Nil_Ref : PullSupplier.Ref;
 
    begin
+      pragma Debug (O ("disconnect proxy pull consumer"));
+
+      Enter_Critical_Section;
+      Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
+      Leave_Critical_Section;
+
+      if not PullSupplier.Is_Nil (Peer) then
+         PullSupplier.Disconnect_Pull_Supplier (Peer);
+      end if;
    end Disconnect_Pull_Consumer;
 
 end CosEventChannelAdmin.ProxyPullConsumer.Impl;
