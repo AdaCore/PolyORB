@@ -1,0 +1,303 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                   GNAT DISTRIBUTED SYSTEMS ANNEX DOCUMENTS               --
+--                                                                          --
+--                   G N A T D I S T    U S E R    M A N U A L              --
+--                                                                          --
+--                            $Revision$                              --
+--                                                                          --
+-- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
+-- under terms of the  GNU General Public License  as published by the Free --
+-- Software  Foundation;  either version 2,  or  (at your option) any later --
+-- version. GNATDIST is distributed in the hope that it will be useful, but --
+-- WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHANTABI- --
+-- LITY or FITNESS  FOR A PARTICULAR PURPOSE.  See the  GNU General  Public --
+-- License  for more details.  You should  have received a copy of the  GNU --
+-- General Public License distributed with  GNATDIST; see file COPYING.  If --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+--              GNATDIST is maintained by ACT Europe.                       --
+--            (email:distribution@act-europe.gnat.com).                     --
+--                                                                          --
+------------------------------------------------------------------------------
+
+Note: This manual does not explain the concepts behind the distributed
+      processing model of Ada 95. The reader is supposed to have a
+      clear understanding of the Ada 95 distributed annex.
+
+---------------------------------------------------------------------------
+Contents.
+   Introduction.
+   How to Use Gnatdist to Configure a Distributed Application.
+   Gnatdist Command Line Options.
+   Gnatdist Behind the Scenes.
+   The Configuration Language.
+   Remote Shell Notes.
+   Warnings.
+   Restrictions.
+---------------------------------------------------------------------------
+
+Introduction.
+-------------
+
+An Ada 95 distributed application comprises a number of partitions
+which can be executed concurrently on the same machine or, and this is
+the interesting part, can be distributed on a network of machines.
+The way in which partitions communicate is described in Annex E of the
+Ada 95 reference manual.
+
+A partition is a set of compilation units which are linked together to
+produce an executable binary. A distributed program comprises two or
+more communicating partitions.
+
+The distributed systems annex does not describe how a distributed
+application should be configured. It is up to the user to define what
+are the partitions in his program and on which machines they should be
+executed on.
+
+The tool gnatdist and its configuration language have been purposely
+designed to allow you to partition your program and specify the
+machines where the individual partitions are to execute on.
+
+gnatdist reads a configuration file (whose syntax is described below)
+and builds several executables, one for each partition. It also builds
+a shell script (default) which is used to launch the different
+partitions and to pass arguments specific to each partition.
+
+How to Use Gnatdist to Configure a Distributed Application.
+-----------------------------------------------------------
+
+1. Write a non-distributed Ada application. Use the categorization
+   pragmas to specify the packages that can be called remotly. The
+   Shared_Passive categorization pragma is not yet implemented. The
+   Remote_Call_Interface and Remote_Types categorization pragmas are.
+
+2. When this non-distributed application is working, write a
+   configuration file that maps your categorized packages onto 
+   partitions. Don't forget to specify the main procedure of your
+   distributed application (see below).
+
+3. Type `gnatdist configuration-file'.
+
+4. Start your distributed application by invoking the start-up shell
+   script or Ada program (depending on the "pragma Starter" option,
+   see below).
+
+Gnatdist Command Line Options.
+------------------------------
+
+   gnatdist [switches] configuration-file [list-of-partitions]
+
+The switches of gnatdist are, for the time being, exactly the same as
+for gnatmake.  Read the gnatinfo.txt file from the GNAT distribution
+for info on these switches. By default gnatdist outputs a
+configuration report and the actions performed. The switch -n allows
+gnatdist to skip the first stage of recompilation of the
+non-distributed application.
+
+All configuration files should end with the `.cfg' suffix. There may
+be several configuration files for the same distributed application,
+as you may want to use different distributed configurations according
+to your computing environment.
+
+If a list of partitions is provided on the command line, only these
+partitions will be build. In the following configuration example, you
+can type : gnatdist configuration partition_2 partition_3.
+
+Gnatdist Behind the Scenes.
+---------------------------
+
+Here is what goes on behind the scenes in gnatdist when building a
+distributed application:
+
+1. Each compilation unit in the program is compiled into an object
+   module (as in non distributed applications). This is achieved
+   by calling gnatmake on the sources of the various partitions.
+   This step can be skipped by using the -n option.
+
+2. Stubs are generated and compiled into object modules (a stub is the
+   software that allows a partition running on machine A to communicate
+   with a partition running on machine B). Several timestamp checks
+   are performed to avoid useless recompilation.
+
+3. gnatdist performs a number of consistency checks, for instance it
+   checks that all packages marked as remote call interfaces (RCI, see
+   LRM annex E) are mapped onto partitions. It also checks that an
+   RCI package is mapped onto only one partition.
+
+4. Finally, the executables for each partition in the program are
+   created along with the generation of the shell script to start them
+   on the appropriate machines.
+
+The Configuration Language.
+---------------------------
+
+The configuration language is "Ada-like". Because of its simplicity,
+it is described by means of an example. As the capabilities of the DSA
+will evolve, so will this configuration language.
+
+Every keyword and construct defined in the configuration language have
+been used in the following sample configuration file.
+
+---------------------------
+--  File `my_config.cfg' --
+---------------------------
+
+--  Typically after having created the following configuration file
+--  you would type
+--
+--      gnatdist my_config.cfg
+--
+--  If you wish to build only certain partitions then list the partitions
+--  to build on the gnatdist command line as follows:
+--
+--      gnatdist my_config.cfg   partition_2 partition_3
+
+configuration My_Config is
+  --  The name of the file prefix must be the same as the name of
+  --  the configuration unit, in this example `my_config'. The file
+  --  suffix must be `cfg'. For a given distributed application
+  --  you can have as many configuration files as you wish.
+
+  Partition_1 : Partition := ();
+  procedure Master_Procedure is in Partition_1;
+  --  Partition 1 contains no RCI package.
+  --  However, it will contain the main procedure of the distributed
+  --  application, called `Master_Procedure' in this example. If the
+  --  line `procedure Master_Procedure is in Partition_1;' was missing
+  --  Partition 1 would be completely empty. This is forbidden, a
+  --  partition has to contain at least one library unit.
+  --  
+  --  gnatdist produces an executable shell script with the name of
+  --  Master_Procedure which will starts the various partitions on
+  --  their host machines in the background.  The main partition is
+  --  launched in the foreground. Note that by killing this main
+  --  procedure the whole distributed application is halted. 
+
+  Partition_2, Partition_3 : Partition;
+
+  for Partition_2'Host use foo.bar.com;
+  --  Specify the host on which to run partition 2.
+
+  for Partition_3'Host use function "./best-node machine1 machine2 machine3";
+  --  Use the value returned by an a program to figure out at execution time
+  --  the name of the host on which partition 3 should execute.
+  --  For instance, execute the shell script `best-node' which returns a
+  --  string giving the name of the machine chosen among machine1, machine2
+  --  or machine3.
+
+  Partition_4 : Partition := (RCI_B5);
+  --  Partition 4 contains one RCI package RCI_B5
+  --  No host is specified for this partition. The startup script
+  --  will ask for it interactively when it is executed.
+
+  for Partition_1'Storage_Dir use "/usr/you/test/bin";
+  for Partition_2'Storage_Dir use "/usr/you/test/bin";
+  --  Specify the directory in which the executables in each partition
+  --  will be stored. Default is the current directory.
+
+  pragma Starter (Method => Ada);
+  --  Specify the kind of startup method you would like. There are 3
+  --  possibilities: Shell, Ada and None. Specifying `Shell' builds a shell
+  --  script. All the partitions will be launched from a shell script.
+  --  If `Ada' is chosen, then the main Ada procedure itself is used to launch
+  --  the various partitions. If method `None' is chosen, then
+  --  no launch method is used and you have to start each partition
+  --  manually. 
+  --
+  --  In this example, Partition_2, Partitions_3 and Partition_4 will be
+  --  started from Partition_1 (ie from the ada procedure Master_Procedure).
+  --
+  --  Note that you can specify a shell function to dynamically choose a host
+  --  as in
+  --
+  --    `for Partition_3'Host use function "./best-node ...";'
+  --
+  --  only if you use the Shell starter.
+
+begin
+  --  The configuration body is optional. You may have fully described your
+  --  configuration in the declaration part.
+
+  Partition_2 := (RCI_B2, RCI_B4, Normal);
+  --  Partition 2 contains two RCI packages RCI_B2 and RCI_B4
+  --  and a normal package. A normal package is not categorized.
+
+  Partition_3 := (RCI_B3);
+  --  Partition 3 contains one RCI package RCI_B3
+
+end My_Config;
+
+
+Remote Shell Notes.
+-------------------
+
+To start a partition, the shell script executes a remote shell. Thus
+you have to make sure that you are authorized to execute a remote
+shell on the remote machine. In this case, a first step would be to
+add into your ${HOME}/.rhosts file a line like :
+<remote-machine> <your-username>
+
+If you are not authorized at all, you can bypass this problem. All you
+have to do is:
+
+1. Open a session on each machine listed in your configuration file.
+
+2. If MAIN_PART is the partition that includes the main procedure and
+   if you want to start MAIN_PART on host MAIN_HOST:
+
+   (a) Choose a TCP port number PORT_NUM (gnatdist default is 5555
+       when using a shell starter, randomly chosen when using an Ada
+       starter).
+
+   (b) Then for each partition PART, start manually the corresponding
+       executable on the corresponding host as follows
+
+           % PART --nolaunch --boot_server tcp://MAIN_HOST:PORT_NUM
+
+3. If you want to kill the distributed application before it
+   terminates, kill MAIN_PART.
+
+
+Warnings.
+---------
+
+When creating stubs, gnatdist will create two directories, caller and
+receiver where gnatdist stores the stubs on the client and the
+receiver side. If these directories already exist gnatdist will add
+the stubs inside them.
+
+For each generated partition gnatdist will create a directory with the
+name of the partition which gnatdist uses to create a partition
+executable. Again if a directory with a partition name already exists
+the files generated by gnatdist (objects, stubs etc) will be copied in
+this directory.
+
+All these directories are stored under a common directory named
+"dsa". You may remove this whole directory and its content when you do
+not intend to rebuild your distributed applications.
+
+
+Restrictions.
+-------------
+
+Static remote procedures, asynchonous remote procedures, remote access
+to class wide types and asynchronous transfert of control with remote
+procedures are implemented. Remote types packages are implemented.
+
+Remote access to subprogram have not yet been implemented.
+
+Pragma All_Calls_Remote has not yet been implemented.
+
+Shared passive packages and generic RCI packages are also
+unimplemented.
+
+Language-defined exceptions propagate well through different
+partitions. User-defined exceptions are, for the time being,
+changed into System.RPC.Communication_Error, but the right exception
+message (if any) is propagated correctly.
+
+For the time being, gnatdist is only able to build distributed
+applications for a pool of homogeneous machines using TCP/IP as a
+common network protocol.
