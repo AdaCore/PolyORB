@@ -9,7 +9,7 @@ procedure Test000 is
      new PolyORB.Fixed_Point.Fixed_Point_Conversion (Megabucks);
    use Megabucks_Conv;
 
-   Values : array (Integer range <>) of Megabucks :=
+   Values : constant array (Integer range <>) of Megabucks :=
      (0.0, 0.01, 0.05, 1.23, -1.0, 12345.67, 123456.78, -0.01,
       9999.99, 99999.99);
 

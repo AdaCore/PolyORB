@@ -1,5 +1,3 @@
-with PolyORB.Initialization;
-
 with PolyORB.Report;
 
 with PolyORB.Profiles.Full_Tasking;

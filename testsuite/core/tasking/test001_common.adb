@@ -1,6 +1,4 @@
-with PolyORB.Initialization;
-
-with PolyORB.Report;
+--  with PolyORB.Report;
 
 with PolyORB.Profiles.Full_Tasking;
 pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);

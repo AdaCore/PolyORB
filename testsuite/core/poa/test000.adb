@@ -71,7 +71,7 @@ procedure Test000 is
 
    procedure Test_Root_POA
    is
-      Root_POA_Object : PolyORB.POA.Obj_Adapter_Access
+      Root_POA : constant PolyORB.POA.Obj_Adapter_Access
         := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
 
    begin
@@ -79,11 +79,11 @@ procedure Test000 is
         (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
 
       --  Root POA creation
-      PolyORB.POA.Create (Root_POA_Object);
+      PolyORB.POA.Create (Root_POA);
       PolyORB.Report.Output ("RootPOA creation", True);
 
       --  Root POA destruction
-      PolyORB.POA.Destroy (Root_POA_Object);
+      PolyORB.POA.Destroy (Root_POA);
       PolyORB.Report.Output ("RootPOA destruction", True);
 
    exception
@@ -107,7 +107,7 @@ procedure Test000 is
       use PolyORB.POA_Policies;
       use PolyORB.POA_Policies.Policy_Sequences;
 
-      Root_POA : PolyORB.POA.Obj_Adapter_Access
+      Root_POA : constant PolyORB.POA.Obj_Adapter_Access
         := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
 
       OA1, OA2, OA3 : Obj_Adapter_Access;
@@ -195,7 +195,7 @@ procedure Test000 is
       S1.Name  := To_PolyORB_String ("Servant1");
 
       declare
-         Root_POA : PolyORB.POA.Obj_Adapter_Access
+         Root_POA : constant PolyORB.POA.Obj_Adapter_Access
            := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
 
       begin
@@ -231,7 +231,7 @@ procedure Test000 is
       end;
 
       declare
-         Root_POA : PolyORB.POA.Obj_Adapter_Access
+         Root_POA : constant PolyORB.POA.Obj_Adapter_Access
            := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
 
       begin

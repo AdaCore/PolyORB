@@ -25,7 +25,7 @@ POLYORB_INCS = -I$(srcdir) -I$(top_srcdir)/src -I$(top_builddir)/src \
 	     -I$(top_builddir)/testsuite/common \
 	     $(naming_inc) @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@
 
-GNATFLAGS=-pipe -g -O2 -gnatfa -fstack-check -gnatoy -Wall
+# GNATFLAGS=-pipe -g -O2 -gnatfa -fstack-check -gnatoy -Wall
 # suppress -gnatwae because of a bug in GNAT.Expect in 3.14p
 
 GNATMAKE_FLAGS = \
@@ -53,8 +53,10 @@ SUFFIXES = .idl .ads .adb
 .idl.adb:
 	$(IDLAC) $(IDLAC_FLAGS) $<
 
-@APPLI_EXES@ @SERVICE_EXES@: src
+@APPLI_EXES@ @SERVICE_EXES@: src $(idl)
 	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
+
+$(idl): $(idl).ads
 
 src:
 	cd $(top_builddir)/src && $(MAKE)

@@ -2,14 +2,11 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 
 with PolyORB.Components;
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects.Interface;
 with PolyORB.Requests;
-with PolyORB.Tasking.Threads;
 
 package body Test_Servant is
 

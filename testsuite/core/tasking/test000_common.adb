@@ -1020,8 +1020,9 @@ package body Test000_Common is
 
       Synchro.Signal (4);
       Synchro_Joiner.Join;
-      PolyORB.Report.Output ("test that Wait outside the monitor raise an exception",
-                     Ok);
+      PolyORB.Report.Output
+        ("test that Wait outside the monitor raise an exception",
+         Ok);
       Counter.Reset;
       Ok := True;
 

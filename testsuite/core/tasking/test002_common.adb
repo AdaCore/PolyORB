@@ -1,5 +1,3 @@
-with PolyORB.Initialization;
-
 with PolyORB.Report;
 
 with PolyORB.Profiles.Full_Tasking;
@@ -27,13 +25,6 @@ package body Test002_Common is
       Id : Natural;
       P  : Parameterless_Procedure;
    end record;
-
-   type State is record
-      Wait : Boolean;
-   end record;
-
-   type State_Arr is array (Task_Index) of State;
-   States : State_Arr;
 
    procedure Run (R : access Generic_Runnable);
 

@@ -47,7 +47,6 @@ with PolyORB.Servants;
 with PolyORB.Types;
 with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.ORB.Interface;
 with PolyORB.ORB;
 with PolyORB.Setup;
 
@@ -116,8 +115,11 @@ procedure Test000 is
             IOR : constant String :=
               PolyORB.Types.To_Standard_String
               (PolyORB.References.IOR.Object_To_String (My_Ref));
+            pragma Warnings (Off);
+            pragma Unreferenced (IOR);
+            pragma Warnings (On);
          begin
-            PolyORB.Report.Output("IOR created", True);
+            PolyORB.Report.Output ("IOR created", True);
          end;
 
          PolyORB.Obj_Adapters.Unexport (Obj_Adapter, My_Id);
