@@ -4,6 +4,7 @@ man_MANS = ab_names.1 idlac.1 polyorb-config.1 polyorb.7
 SUFFIXES = .idl .ads .adb .texi .sed .pdf .txt .html
 
 polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
+	polyorb-corba_p-corbaloc.texi \
 	polyorb-corba_p-server_tools.texi \
 	polyorb-corba_p-naming_tools.texi \
 	echo.texi \
@@ -16,11 +17,14 @@ polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 # Rules to build specific files for PolyORB User's Guide
 # 
 
-polyorb-corba_p-server_tools.ads: ../src/corba/polyorb-corba_p-server_tools.ads
-	cp ../src/corba/polyorb-corba_p-server_tools.ads .
+polyorb-corba_p-corbaloc.ads: ../src/corba/polyorb-corba_p-corbaloc.ads
+	cp ../src/corba/polyorb-corba_p-corbaloc.ads .
 
 polyorb-corba_p-naming_tools.ads: ../cos/naming/polyorb-corba_p-naming_tools.ads
 	cp ../cos/naming/polyorb-corba_p-naming_tools.ads .
+
+polyorb-corba_p-server_tools.ads: ../src/corba/polyorb-corba_p-server_tools.ads
+	cp ../src/corba/polyorb-corba_p-server_tools.ads .
 
 polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 	@${SED} -e 's/~/ /g' \

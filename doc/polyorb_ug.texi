@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#23 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#24 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -171,6 +171,7 @@ CORBA
 * Resolving names in a CORBA application::
 * Building a CORBA application with PolyORB::
 * Configuring a CORBA application::
+* PolyORB specific APIs::
 
 GIOP
 
@@ -1476,6 +1477,7 @@ information on GIOP's configuration.
 @c -------------------------------------------------------------------
 
 @menu
+* PolyORB.CORBA_P.CORBALOC::
 * PolyORB.CORBA_P.Naming_Tools::
 * PolyORB.CORBA_P.Server_Tools::
 @end menu
@@ -1484,6 +1486,11 @@ information on GIOP's configuration.
 PolyORB defines packages to help in the development of CORBA programs.
 
 @itemize @bullet
+
+@item @ref{PolyORB.CORBA_P.CORBALOC}: 
+
+This package defines a helper function to build a @code{corbaloc}
+stringified reference from a CORBA object reference.
 
 @item @ref{PolyORB.CORBA_P.Naming_Tools}: 
 
@@ -1496,6 +1503,13 @@ This package defines helper functions to ease set up of a simple CORBA
 Server.
 
 @end itemize
+
+@page
+@node PolyORB.CORBA_P.CORBALOC
+@subsection @code{PolyORB.CORBA_P.CORBALOC}
+@cindex @code{PolyORB.CORBA_P.CORBALOC}
+
+@include polyorb-corba_p-corbaloc.texi
 
 
 @page
