@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -53,16 +53,16 @@ begin
    CORBA.ORB.String_To_Object
      (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), Ref);
 
-   New_Test ("Rasing CODESET_INCOMPATIBLE exception");
+   New_Test ("Raising CODESET_INCOMPATIBLE exception");
 
    begin
       Test_Interface.Put (Ref, CORBA.To_CORBA_Wide_String ("Test"));
-      Output ("Rasing CODESET_INCOMPATIBLE", False);
+      Output ("Raising CODESET_INCOMPATIBLE", False);
    exception
       when CORBA.Codeset_Incompatible =>
-         Output ("Rasing CODESET_INCOMPATIBLE", True);
+         Output ("Raising CODESET_INCOMPATIBLE", True);
       when others =>
-         Output ("Rasing CODESET_INCOMPATIBLE", False);
+         Output ("Raising CODESET_INCOMPATIBLE", False);
    end;
 
    End_Report;
