@@ -33,9 +33,11 @@
 --  $Id$
 
 with Ada.Characters.Handling;
+pragma Warnings (Off);
 with System.IO; use System.IO;
 --  Package System.IO is GNAT-specific; for other compilers use
 --  Ada.Text_IO instead.
+pragma Warnings (On);
 
 with PolyORB.Configuration;
 
