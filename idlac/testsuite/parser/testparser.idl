@@ -153,6 +153,52 @@ typedef any any1;
 const any1 const4 = TRUE;
 const error;
 
+/* Test of rule 29 */
+const short const5 = 65000;
+const unsigned short const6 = -17;
+const long const7 = 4000000000;
+const unsigned long const8 = -17;
+
+/* Test of rule 30 */
+const short const9 = 3 | 4;
+
+/* Test of rule 31 */
+const short const10 = 3 ^ 4;
+
+/* Test of rule 32 */
+const short const11 = 3 & 4;
+
+/* Test of rule 33 */
+const short const12 = 3 << 4;
+const short const13 = 3 >> 4;
+
+/* Test of rule 34 */
+const short const14 = 3 + 4;
+const short const15 = 3 - 4;
+
+/* Test of rule 35 */
+const short const16 = 3 * 4;
+const short const17 = 3 / 4;
+const short const18 = 3 % 4;
+
+/* Test of rule 36-37 */
+const short const19 = -3;
+const short const20 = +3;
+const short const21 = ~3;
+
+/* Test of rule 38 */
+const wchar const22 = L'X';
+const wstring const23 = L"Wide string";
+const fixed const24 = 4.05d;
+const short const25 = ( 3 ;
+const short const26 = const;
+
+/* Test of rule 39 */
+// nothing to be tested
+
+/* Test of rule 40 */
+// nothing to be tested
+
 /* Test of rule 44 */
 valuetype value48 {
   private Error;
@@ -163,7 +209,7 @@ typedef sequence <Error>;
 
 /* Test of rule 50 */
 union union1 switch (boolean) {
-  case true : long ;
+  case TRUE : long ;
   default : short short1;
 };
 

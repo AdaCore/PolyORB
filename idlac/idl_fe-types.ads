@@ -79,6 +79,7 @@ package Idl_Fe.Types is
 --        K_Lit_Fixed_Point,
 --        K_Lit_Char,
 --        K_Lit_Wchar,
+       K_Lit_Boolean,
        K_Lit_String  --  ,
 --        K_Lit_Wstring,
 --        K_Lit_True,
@@ -86,12 +87,20 @@ package Idl_Fe.Types is
        );
 
    --  all the possible kind of constants
+   --  These types are used in the evaluation of constants to check
+   --  that each subexpression of an expression does not exceed the
+   --  precision of the final expression. In this context, there's
+   --  no use to distinguish signed and unsigned integers (see CORBA
+   --  V2.3 - 3.9.2), so C_Short for example could be a short or an
+   --  unsigned short.
+   --  The distinction is kept for long long due to the special way
+   --  to code it : see idl_fe.tree.ads.
    type Const_Kind is
      (C_Short,
       C_Long,
       C_LongLong,
-      C_UShort,
-      C_ULong,
+--      C_UShort,
+--      C_ULong,
       C_ULongLong,
       C_Char,
       C_WChar,

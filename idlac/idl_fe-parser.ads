@@ -88,7 +88,7 @@ private
 
    --  a generic interval of values
    type Interval_Type is record
-      Min, Max : Value_Ptr;
+      Min, Max : Idl_Value;
    end record;
 
    --  a generic set of values, implemented as a list of intervals
@@ -373,7 +373,8 @@ private
    --  <or_expr> ::= <xor_expr>
    --            |   <xor_expr> "^" <or_expr>
    procedure Parse_Or_Expr (Result : out N_Expr_Acc;
-                            Success : out Boolean);
+                            Success : out Boolean;
+                            Expr_Type : in Const_Type_Ptr);
 
    --  Rule 31
    --  <xor_expr> ::= <and_expr>
@@ -382,7 +383,8 @@ private
    --  <xor_expr> ::= <and_expr>
    --             |   <and_expr> "^" <xor_expr>
    procedure Parse_Xor_Expr (Result : out N_Expr_Acc;
-                             Success : out Boolean);
+                             Success : out Boolean;
+                             Expr_Type : in Const_Type_Ptr);
 
    --  Rule 32
    --  <and_expr> ::= <shift_expr>
@@ -391,7 +393,8 @@ private
    --  <and_expr> ::= <shift_expr>
    --             |   <shift_expr> "&" <and_expr>
    procedure Parse_And_Expr (Result : out N_Expr_Acc;
-                             Success : out Boolean);
+                             Success : out Boolean;
+                             Expr_Type : in Const_Type_Ptr);
 
    --  Rule 33
    --  <shift_expr> ::= <add_expr>
@@ -402,7 +405,8 @@ private
    --               |   <add_expr> ">>" <shift_expr>
    --               |   <add_expr> "<<" <shift_expr>
    procedure Parse_Shift_Expr (Result : out N_Expr_Acc;
-                               Success : out Boolean);
+                               Success : out Boolean;
+                               Expr_Type : in Const_Type_Ptr);
 
    --  Rule 34
    --  <add_expr> ::= <mult_expr>
@@ -413,7 +417,8 @@ private
    --             |   <mult_expr> ">>" <add_expr>
    --             |   <mult_expr> "<<" <add_expr>
    procedure Parse_Add_Expr (Result : out N_Expr_Acc;
-                             Success : out Boolean);
+                             Success : out Boolean;
+                             Expr_Type : in Const_Type_Ptr);
 
    --  Rule 35
    --  <mult_expr> ::= <unary_expr>
@@ -426,7 +431,8 @@ private
    --              |   <unary_expr> "/" <mult_expr>
    --              |   <unary_expr> "%" <mult_expr>
    procedure Parse_Mult_Expr (Result : out N_Expr_Acc;
-                              Success : out Boolean);
+                              Success : out Boolean;
+                              Expr_Type : in Const_Type_Ptr);
 
    --  Rule 36
    --  <unary_expr> ::= <unary_operator> <primary_expr>
@@ -434,14 +440,31 @@ private
    --  Rule 37
    --  <unary_operator> ::= "+" | "-" | "~"
    procedure Parse_Unary_Expr (Result : out N_Expr_Acc;
-                               Success : out Boolean);
+                               Success : out Boolean;
+                               Expr_Type : in Const_Type_Ptr);
 
    --  Rule 38
    --  <primary_expr> ::= <scoped_name>
    --                 |   <literal>
    --                 |   "(" <const_expr> ")"
    procedure Parse_Primary_Expr (Result : out N_Expr_Acc;
-                                 Success : out Boolean);
+                                 Success : out Boolean;
+                                 Expr_Type : in Const_Type_Ptr);
+
+   --  Rule 39
+   --  <literal> ::= <integer_literal>
+   --            | <string_literal>
+   --            | <character_literal>
+   --            | <floating_pt_literal>
+   --            | <boolean_literal>
+   procedure Parse_Literal (Result : out N_Root_Acc;
+                            Success : out Boolean);
+
+   --  Rule 40
+   --  <boolean_literal> ::= "TRUE"
+   --                    | "FALSE"
+   procedure Parse_Boolean_Literal (Result : out N_Lit_Boolean_Acc;
+                                    Success : out Boolean);
 
    --  Rule 41
    --  <positive_int_const> ::= <const_exp>
@@ -794,9 +817,21 @@ private
    --  Parsing of literals  --
    ---------------------------
 
+   --  parsing of an integer
+   procedure Parse_Integer_Literal (Result : out N_Lit_String_Acc;
+                                    Success : out Boolean);
+
    --  parsing of a string
    procedure Parse_String_Literal (Result : out N_Lit_String_Acc;
                                    Success : out Boolean);
+
+   --  parsing of a char
+   procedure Parse_Char_Literal (Result : out N_Lit_String_Acc;
+                                 Success : out Boolean);
+
+   --  parsing of a float
+   procedure Parse_Floating_Pt_Literal (Result : out N_Lit_String_Acc;
+                                  Success : out Boolean);
 
    --  CORBA V2.3 - 3.12.4
    --
@@ -815,98 +850,100 @@ private
    --  evaluation of expressions  --
    ---------------------------------
 
-   --  CORBA V2.3 - 3.9.2
-   --
-   --  "An infix operator can combine two integer, floats
-   --  or fixed but not mixtures of these."
-   --  "Infix operator are applicable only to integer, float
-   --  and fixed types."
-   --
-   --  all the functions in this section raise an error if the types
-   --  of each element are not compatible. It then computes the type
-   --  of the result. In case of incompatibility, the type is
-   --  C_No_Type
-   --
-   --  Beside that, when the type is ok, these functions compute
-   --  the value of the expression.
+--    --  CORBA V2.3 - 3.9.2
+--    --
+--    --  "An infix operator can combine two integer, floats
+--    --  or fixed but not mixtures of these."
+--    --  "Infix operator are applicable only to integer, float
+--    --  and fixed types."
+--    --
+--    --  all the functions in this section raise an error if the types
+--    --  of each element are not compatible. It then computes the type
+--    --  of the result. In case of incompatibility, the type is
+--    --  C_No_Type
+--    --
+--    --  Beside that, when the type is ok, these functions compute
+--    --  the value of the expression.
 
-   --  Or expression evaluation
-   procedure Eval_Or_Expr (Left : in Value_Ptr;
-                           Right : in Value_Ptr;
-                           Result : out Value_Ptr;
-                           Loc : in Idl_Fe.Errors.Location);
+--    --  Or expression evaluation
+--    procedure Eval_Or_Expr (Left : in Value_Ptr;
+--                            Right : in Value_Ptr;
+--                            Result : out Value_Ptr;
+--                            Loc : in Idl_Fe.Errors.Location);
 
-   --  Xor expression evaluation
-   procedure Eval_Xor_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Xor expression evaluation
+--    procedure Eval_Xor_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  And expression evaluation
-   procedure Eval_And_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  And expression evaluation
+--    procedure Eval_And_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  Right shift expression evaluation
-   procedure Eval_Shr_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Right shift expression evaluation
+--    procedure Eval_Shr_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  Left shift expression evaluation
-   procedure Eval_Shl_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Left shift expression evaluation
+--    procedure Eval_Shl_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  Add expression evaluation
-   procedure Eval_Add_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Add expression evaluation
+--    procedure Eval_Add_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  Sub expression evaluation
-   procedure Eval_Sub_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Sub expression evaluation
+--    procedure Eval_Sub_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  Mul expression evaluation
-   procedure Eval_Mul_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Mul expression evaluation
+--    procedure Eval_Mul_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  Div expression evaluation
-   procedure Eval_Div_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Div expression evaluation
+--    procedure Eval_Div_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  Mod expression evaluation
-   procedure Eval_Mod_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Mod expression evaluation
+--    procedure Eval_Mod_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  Neg expression evaluation
-   procedure Eval_Neg_Expr (Operand : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Neg expression evaluation
+--    procedure Eval_Neg_Expr (Operand : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  Not expression evaluation
-   procedure Eval_Not_Expr (Operand : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location);
+--    --  Not expression evaluation
+--    procedure Eval_Not_Expr (Operand : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location);
 
-   --  actual or functions for idl types
-   function "or" (X, Y : Idl_Short) return Idl_Short;
-   function "or" (X, Y : Idl_Long) return Idl_Long;
-   function "or" (X, Y : Idl_LongLong) return Idl_LongLong;
-   function "or" (X, Y : Idl_UShort) return Idl_UShort;
-   function "or" (X, Y : Idl_ULong) return Idl_ULong;
-   function "or" (X, Y : Idl_ULongLong) return Idl_ULongLong;
+--    --  actual or functions for idl types
+--    function "or" (X, Y : Idl_Short) return Idl_Short;
+--    function "or" (X, Y : Idl_Long) return Idl_Long;
+--    function "or" (X, Y : Idl_LongLong) return Idl_LongLong;
+--    function "or" (X, Y : Idl_UShort) return Idl_UShort;
+--    function "or" (X, Y : Idl_ULong) return Idl_ULong;
+--    function "or" (X, Y : Idl_ULongLong) return Idl_ULongLong;
+
+   function "or" (X, Y : Idl_Value) return Idl_Value;
 
    ------------------------------
    --  To resume after errors  --
@@ -944,35 +981,5 @@ private
 
    --  Goes to the end of a case label in an union (see rule 75)
    procedure Go_To_End_Of_Case_Label;
-
-
-
-
-
---    --  FIXME: to add: rules 25, 26, 81, 82.
-
---    function Parse_Param_Type_Spec return N_Root_Acc;
---    function Parse_Const_Exp return N_Root_Acc;
---    function Parse_Sequence_Type return N_Sequence_Acc;
---    function Parse_Constr_Type_Spec return N_Root_Acc;
---    function Parse_Module return N_Module_Acc;
-
-
---    --  Rule 24:
---    --  <literal> ::= <integer_literal>
---    --            | <string_literal>
---    --            | <wide_string_literal>
---    --            | <character_literal>
---    --            | <wide_character_literal>
---    --            | <fixed_pt_literal>
---    --            | <floating_pt_literal>
---    --            | <boolean_literal>
---    function Parse_Literal return N_Root_Acc is
-
-
-
-
---    --
---    --
 
 end Idl_Fe.Parser;

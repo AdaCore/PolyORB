@@ -237,9 +237,9 @@ package body Idl_Fe.Parser is
             Used_Values.Next := null;
             Used_Values.Interval := (Min => C.Value, Max => C.Value);
          else
-            if Is_Prec (Used.Interval.Max, C.Value) then
+            if Used.Interval.Max = C.Value - 1 then
                if Used.Next /= null
-                 and then Is_Prec (C.Value, Used.Next.Interval.Min) then
+                 and then C.Value = Used.Next.Interval.Min - 1 then
                   --  merge the intervals
                   declare
                      Old_Used : Set_Ptr := Used.Next;
@@ -260,9 +260,9 @@ package body Idl_Fe.Parser is
          end if;
       else
          if Used.Interval.Min > C.Value then
-            if Is_Prec (C.Value, Used.Interval.Min) then
+            if C.Value = Used.Interval.Min - 1 then
                if Old_Used /= null
-                 and then Is_Prec (Old_Used.Interval.Max, C.Value) then
+                 and then Old_Used.Interval.Max = C.Value - 1 then
                   --  merge the intervals
                   Old_Used.Interval.Max := Used.Interval.Max;
                   Old_Used.Next := Used.Next;
@@ -2267,11 +2267,12 @@ package body Idl_Fe.Parser is
                      Idl_Fe.Errors.Parser_Error
                        ("Invalid type in constant. The " &
                         "scoped name should refer to " &
-                        "an integer, char, wide_cahr, " &
+                        "an integer, char, wide_char, " &
                         "boolean, floating_pt, string, " &
                         "wide_string, octet or enum type.",
                         Idl_Fe.Errors.Error,
                         Get_Token_Location);
+                     Success := False;
                end case;
                Result := N_Root_Acc (Res);
             end;
@@ -2299,478 +2300,273 @@ package body Idl_Fe.Parser is
                               Constant_Type : in N_Root_Acc;
                               Success : out Boolean) is
       Loc : Idl_Fe.Errors.Location;
+      C_Type : Const_Type_Ptr;
    begin
       Loc := Get_Token_Location;
-      Parse_Or_Expr (Result, Success);
-      --  check compatibility between the constant expression
-      --  and its supposed type
       case Get_Kind (Constant_Type.all) is
-         when K_Short =>
-            case Result.Value.Const_Type.Kind is
-               when C_Short =>
-                  null;
-               when C_UShort =>
-                  if Short_Value_Ptr (Result.Value).Value > Idl_Short'Last then
-                     Idl_Fe.Errors.Parser_Error
-                       ("constraint error : this value is " &
-                        "not in range of type short but " &
-                        "unsigned short.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                  end if;
-               when C_Long =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type short but long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_LongLong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type short but " &
-                     "long long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_ULong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type short but " &
-                     "unsigned long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_ULongLong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type short but " &
-                     "unsigned long long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not an integer.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
-         when K_Long =>
-            case Result.Value.Const_Type.Kind is
-               when C_Short
-                 | C_UShort
-                 | C_Long =>
-                  null;
-               when C_ULong =>
-                  if Long_Value_Ptr (Result.Value).Value > Idl_Long'Last then
-                     Idl_Fe.Errors.Parser_Error
-                       ("constraint error : this value is " &
-                        "not in range of type long but " &
-                        "unsigned long.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                  end if;
-               when C_LongLong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type long but " &
-                     "long long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_ULongLong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type long but " &
-                     "unsigned long long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not an integer.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+         when K_Short
+           | K_Unsigned_Short =>
+            C_Type := new Const_Type (Kind => C_Short);
+         when K_Long
+           | K_Unsigned_Long =>
+            C_Type := new Const_Type (Kind => C_Long);
          when K_Long_Long =>
-            case Result.Value.Const_Type.Kind is
-               when C_Short
-                 | C_UShort
-                 | C_Long
-                 | C_ULong
-                 | C_LongLong =>
-                  null;
-               when C_ULongLong =>
-                  if LongLong_Value_Ptr (Result.Value).Value >
-                    Idl_LongLong'Last then
-                     Idl_Fe.Errors.Parser_Error
-                       ("constraint error : this value is " &
-                        "not in range of type long long " &
-                        "but unsigned long long.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                  end if;
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not an integer.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
-         when K_Unsigned_Short =>
-            case Result.Value.Const_Type.Kind is
-               when C_Short =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned short " &
-                     "but short.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_Long =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned short " &
-                     "but long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_LongLong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned short " &
-                     "but long long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_UShort =>
-                  null;
-               when C_ULong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned short " &
-                     "but unsigned long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_ULongLong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned short " &
-                     "but unsigned long long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not an integer.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
-         when K_Unsigned_Long =>
-            case Result.Value.Const_Type.Kind is
-               when C_Short =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned long " &
-                     "but short.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-
-               when C_Long =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned long " &
-                     "but long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_LongLong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned long " &
-                     "but long long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_UShort
-                 | C_ULong =>
-                  null;
-               when C_ULongLong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned long " &
-                     "but unsigned long long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not an integer.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_LongLong);
          when K_Unsigned_Long_Long =>
-            case Result.Value.Const_Type.Kind is
-               when C_Short =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned long " &
-                     "long but short.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_Long =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned long " &
-                     "long but long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_LongLong =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type unsigned long " &
-                     "long but long long.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_UShort
-                 | C_ULong
-                 | C_ULongLong =>
-                  null;
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not an integer.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_ULongLong);
          when K_Char =>
-            case Result.Value.Const_Type.Kind is
-               when C_Char =>
-                  null;
-               when C_WChar =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not of type char but wide_char.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not a char.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_Char);
          when K_Wide_Char =>
-            case Result.Value.Const_Type.Kind is
-               when C_WChar =>
-                  null;
-               when C_Char =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not of type wide_char but char.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not a char.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_WChar);
          when K_Boolean =>
-            case Result.Value.Const_Type.Kind is
-               when C_Boolean =>
-                  null;
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not a boolean.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_Boolean);
          when K_Float =>
-            case Result.Value.Const_Type.Kind is
-               when C_Float =>
-                  null;
-               when C_Double =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type float " &
-                     "but double.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when C_LongDouble =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type float " &
-                     "but long double.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not a floating point number.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_Float);
          when K_Double =>
-            case Result.Value.Const_Type.Kind is
-               when C_Float
-                 | C_Double =>
-                  null;
-               when C_LongDouble =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not in range of type double " &
-                     "but long double.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not a floating point number.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_Double);
          when K_Long_Double =>
-            case Result.Value.Const_Type.Kind is
-               when C_Float
-                 | C_Double
-                 | C_LongDouble =>
-                  null;
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not a floating point number.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_LongDouble);
          when K_Fixed =>
-            case Result.Value.Const_Type.Kind is
-               when C_Fixed =>
-                  null;  --  FIXME
---                   declare
---                      Dg_Node : Idl_Short
---                        renames Short_Value_Ptr (N_Fixed_Acc (Constant_Type)
---                                                  .Scale.Value).Value;
---                      Dg_Exp : Idl_Fixed_Digits_Nb;
---                        renames Result.Value.Const_Type.Digits_Nb;
---                      Sc_Node : Idl_Short
---                        renames Short_Value_Ptr (N_Fixed_Acc (Constant_Type)
---                                                  .Digits_Nb.Value).Value;
---                      Sc_Exp : Idl_Fixed_Scale;
---                        renames Result.Value.Const_Type.Scale;
---                   begin
---                      if Sc_Node > Sc_Exp
---                        and then Dg_Node > Dg_Exp + (Sc_Node - Sc_Exp) then
---                         null;
---                      else
---                      Idl_Fe.Errors.Parser_Error
---                        ("constraint error : this value " &
---                                              "is more precise than the " &
---                                              "declared type",
---                                              Idl_Fe.Errors.Error,
---                                              Loc);
---                      end if;
---                   end;
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not a fixed point number.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_Fixed);
+            C_Type.Digits_Nb := 0;
+            C_Type.Scale := 0;
          when K_String =>
-            case Result.Value.Const_Type.Kind is
-               when C_String =>
-                  null;
-               when C_WString =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not of type string but wide_string.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not a string.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_String);
          when K_Wide_String =>
-            case Result.Value.Const_Type.Kind is
-               when C_WString =>
-                  null;
-               when C_String =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not of type wide_string but string.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not a string.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_WString);
          when K_Octet =>
-            case Result.Value.Const_Type.Kind is
-               when C_Octet =>
-                  null;
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not an octet.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_Octet);
          when K_Enum =>
-            case Result.Value.Const_Type.Kind is
-               when C_Enum =>
-                  null;
-               when others =>
-                  Idl_Fe.Errors.Parser_Error
-                    ("constraint error : this value is " &
-                     "not an enumeration value.",
-                     Idl_Fe.Errors.Error,
-                     Loc);
-            end case;
+            C_Type := new Const_Type (Kind => C_Enum);
          when others =>
-            Idl_Fe.Errors.Parser_Error
-              ("constraint error : this value is "
-               & "not a constant expression ("
-               & Get_Kind (Constant_Type.all)'Img & ")",
-               Idl_Fe.Errors.Error,
-               Loc);
             raise Idl_Fe.Errors.Internal_Error;
       end case;
+      Parse_Or_Expr (Result, Success, C_Type);
+      --  check compatibility between the constant expression
+      --  and its supposed type in the case of short and long
+      if (Get_Kind (Constant_Type.all) = K_Short and
+        Result.Expr_Type.Kind = C_Short) and then
+        Result.Value > Idl_Short_Max then
+         Errors.Parser_Error ("this value exceed the range " &
+                              "of type short.",
+                              Errors.Error,
+                              Loc);
+      end if;
+      if (Get_Kind (Constant_Type.all) = K_Unsigned_Short and
+        Result.Expr_Type.Kind = C_Short) and then
+        Result.Value < Idl_UShort_Min then
+         Errors.Parser_Error ("this value exceed the range " &
+                              "of type unsigned short since it is negative.",
+                              Errors.Error,
+                              Loc);
+      end if;
+      if (Get_Kind (Constant_Type.all) = K_Long and
+        Result.Expr_Type.Kind = C_Long) and then
+        Result.Value > Idl_Long_Max then
+         Errors.Parser_Error ("this value exceed the range " &
+                              "of type long.",
+                              Errors.Error,
+                              Loc);
+      end if;
+      if (Get_Kind (Constant_Type.all) = K_Unsigned_Long and
+        Result.Expr_Type.Kind = C_Long) and then
+        Result.Value < Idl_ULong_Min then
+         Errors.Parser_Error ("this value exceed the range " &
+                              "of type unsigned long since it is negative.",
+                              Errors.Error,
+                              Loc);
+      end if;
    end Parse_Const_Exp;
 
    --------------------
    --  Parse_Or_Exp  --
    --------------------
    procedure Parse_Or_Expr (Result : out N_Expr_Acc;
-                            Success : out Boolean) is
+                            Success : out Boolean;
+                            Expr_Type : in Const_Type_Ptr) is
       Xor_Exp : N_Expr_Acc;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
-      Parse_Xor_Expr (Xor_Exp, Success);
+      Parse_Xor_Expr (Xor_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
       if Get_Token = T_Bar then
-         declare
-            Res : N_Or_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_Or_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (Xor_Exp);
-            Parse_Or_Expr (Res.Right, Success);
-            if Success then
-               Eval_Or_Expr (Res.Left.Value,
-                             Res.Right.Value,
-                             Res.Value,
-                             Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
-      else
-         Result := Xor_Exp;
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
+                              Loc);
       end if;
+--          declare
+--             Res : N_Or_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_Or_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Expr_Type := Duplicate (Expr_Type);
+--             Res.Left := N_Expr_Acc (Xor_Exp);
+--             Parse_Or_Expr (Res.Right, Success, Duplicate (Expr_Type));
+--             if not Success then
+--                Result := N_Expr_Acc (Res);
+--                return;
+--             end;
+--             case Expr_Type is
+--                when C_Short =>
+--                   if (Res.Right.Value < Idl_UShort_min and
+--                       Res.Left.Value > Idl_Short_max) or
+--                     (Res.Left.Value < Idl_UShort_min and
+--                      Res.Right.Value > Idl_Short_max) then
+--                      Errors.Parser_Error ("the result of this operation " &
+--                                           "exceed the range of short " &
+--                                           "types.",
+--                                           Errors.Error,
+--                                           Loc);
+--                      Res.Value = 0;
+--                   else
+--                      Res.Value := Res.Left.Value or Res.Right.Value;
+--                   end if;
+--                when C_Long =>
+--                   if (Res.Right.Value < Idl_ULong_min and
+--                       Res.Left.Value > Idl_Long_max) or
+--                     (Res.Left.Value < Idl_ULong_min and
+--                      Res.Right.Value > Idl_Long_max) then
+--                      Errors.Parser_Error ("the result of this operation " &
+--                                           "exceed the range of long " &
+--                                           "types.",
+--                                           Errors.Error,
+--                                           Loc);
+--                      Res.Value = 0;
+--                   else
+--                      Res.Value := Res.Left.Value or Res.Right.Value;
+--                   end if;
+--                when C_LongLong =>
+--                   case Res.Right.Expr_Type.Kind is
+--                      when C_LongLong =>
+--                         case Res.Left.Expr_Type.Kind is
+--                            when C_LongLong =>
+--                             Res.Value := Res.Left.Value or Res.Right.Value;
+--                            when C_ULongLong =>
+--                               if Res.Left.Value > Idl_LongLong.Max then
+--                                Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Res.Value = 0;
+--                               else
+--                                  Res.Value := Res.Right.Value or
+--                                    Res.Left.Value;
+--                               end if;
+--                            when others =>
+--                               raise Errors.Internal_Error;
+--                         end case;
+--                      when C_ULongLong =>
+--                         case Res.Left.Expr_Type.Kind is
+--                            when C_LongLong =>
+--                               if Res.Right.Value > Idl_LongLong.Max then
+--                               Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Res.Value = 0;
+--                               else
+--                                  Res.Value := Res.Right.Value or
+--                                    Res.Left.Value;
+--                               end if;
+--                            when C_ULongLong =>
+--                               Res.Value := Res.Right.Value or
+--                                 Res.Left.Value;
+--                               if Res.Value > Idl_LongLong.Max then
+--                               Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Res.Value = 0;
+--                               else
+--                                  Free (Result.Expr_Type);
+--                                  Result.Expr_Type := new Const_Type
+--                                    (Kind => C_ULongLong);
+--                               end if;
+--                            when others =>
+--                               raise Errors.Internal_Error;
+--                         end case;
+--                      when others =>
+--                         raise Errors.Internal_Error;
+--                   end case;
+--                when C_ULongLong =>
+--                   case Res.Right.Expr_Type.Kind is
+--                      when C_LongLong =>
+--                         case Res.Left.Expr_Type.Kind is
+--                            when C_LongLong =>
+--                               Res.Value := Res.Right.Value or
+--                                 Res.Left.Value;
+--                               if Res.Value > Idl_LongLong.Max then
+--                                Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Res.Value = 0;
+--                               else
+--                                  Free (Result.Expr_Type);
+--                                  Result.Expr_Type := new Const_Type
+--                                    (Kind => C_LongLong);
+--                               end if;
+--                            when C_ULongLong =>
+--                               if Res.Right.Value > Idl_LongLong.Max then
+--                                Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Res.Value = 0;
+--                               else
+--                                  Res.Value := Res.Right.Value or
+--                                    Res.Left.Value;
+--                               end if;
+--                            when others =>
+--                               raise Errors.Internal_Error;
+--                         end case;
+--                      when C_ULongLong =>
+--                         case Res.Left.Expr_Type.Kind is
+--                            when C_LongLong =>
+--                               if Res.Left.Value > Idl_LongLong.Max then
+--                                Errors.Parser_Error ("the result of this " &
+--                                                       "operation exceed " &
+--                                                       "the range of long " &
+--                                                       "long types.",
+--                                                       Errors.Error,
+--                                                       Loc);
+--                                  Res.Value = 0;
+--                               else
+--                                  Res.Value := Res.Right.Value or
+--                                    Res.Left.Value;
+--                               end if;
+--                            when C_ULongLong =>
+--                               Res.Value := Res.Right.Value or
+--                                 Res.Left.Value;
+--                            when others =>
+--                               raise Errors.Internal_Error;
+--                         end case;
+--                      when others =>
+--                         raise Errors.Internal_Error;
+--                   end case;
+--                when others =>
+--                   Res.Value = 0;
+--             end case;
+--             Result := N_Expr_Acc (Res);
+--          end;
+--       else
+      Result := Xor_Exp;
+--       end if;
       return;
    end Parse_Or_Expr;
 
@@ -2778,35 +2574,41 @@ package body Idl_Fe.Parser is
    --  Parse_Xor_Exp  --
    ---------------------
    procedure Parse_Xor_Expr (Result : out N_Expr_Acc;
-                             Success : out Boolean) is
+                             Success : out Boolean;
+                             Expr_Type : in Const_Type_Ptr) is
       And_Exp : N_Expr_Acc;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
-      Parse_And_Expr (And_Exp, Success);
+      Parse_And_Expr (And_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
       if Get_Token = T_Circumflex then
-         declare
-            Res : N_Xor_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_Xor_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (And_Exp);
-            Parse_Xor_Expr (Res.Right, Success);
-            if Success then
-               Eval_Xor_Expr (Res.Left.Value,
-                              Res.Right.Value,
-                              Res.Value,
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
-      else
-         Result := And_Exp;
       end if;
+--          declare
+--             Res : N_Xor_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_Xor_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Left := N_Expr_Acc (And_Exp);
+--             Parse_Xor_Expr (Res.Right, Success, Expr_Type);
+--             if Success then
+--                Eval_Xor_Expr (Res.Left.Value,
+--                               Res.Right.Value,
+--                               Res.Value,
+--                               Loc);
+--             end if;
+--             Result := N_Expr_Acc (Res);
+--          end;
+--       else
+      Result := And_Exp;
+--       end if;
       return;
    end Parse_Xor_Expr;
 
@@ -2814,35 +2616,41 @@ package body Idl_Fe.Parser is
    --  Parse_And_Exp  --
    ---------------------
    procedure Parse_And_Expr (Result : out N_Expr_Acc;
-                             Success : out Boolean) is
+                             Success : out Boolean;
+                             Expr_Type : in Const_Type_Ptr) is
       Shift_Exp : N_Expr_Acc;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
-      Parse_Shift_Expr (Shift_Exp, Success);
+      Parse_Shift_Expr (Shift_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
       if Get_Token = T_Ampersand then
-         declare
-            Res : N_And_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_And_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (Shift_Exp);
-            Parse_And_Expr (Res.Right, Success);
-            if Success then
-               Eval_And_Expr (Res.Left.Value,
-                              Res.Right.Value,
-                              Res.Value,
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
-      else
-         Result := Shift_Exp;
       end if;
+--          declare
+--             Res : N_And_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_And_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Left := N_Expr_Acc (Shift_Exp);
+--             Parse_And_Expr (Res.Right, Success);
+--             if Success then
+--                Eval_And_Expr (Res.Left.Value,
+--                               Res.Right.Value,
+--                               Res.Value,
+--                               Loc);
+--             end if;
+--             Result := N_Expr_Acc (Res);
+--          end;
+--       else
+      Result := Shift_Exp;
+--       end if;
       return;
    end Parse_And_Expr;
 
@@ -2850,52 +2658,62 @@ package body Idl_Fe.Parser is
    --  Parse_Shift_Exp  --
    -----------------------
    procedure Parse_Shift_Expr (Result : out N_Expr_Acc;
-                               Success : out Boolean) is
+                               Success : out Boolean;
+                               Expr_Type : in Const_Type_Ptr) is
       Add_Exp : N_Expr_Acc;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
-      Parse_Add_Expr (Add_Exp, Success);
+      Parse_Add_Expr (Add_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
       if Get_Token = T_Greater_Greater then
-         declare
-            Res : N_Shr_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_Shr_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (Add_Exp);
-            Parse_Shift_Expr (Res.Right, Success);
-            if Success then
-               Eval_Shr_Expr (Res.Left.Value,
-                              Res.Right.Value,
-                              Res.Value,
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
+--          declare
+--             Res : N_Shr_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_Shr_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Left := N_Expr_Acc (Add_Exp);
+--             Parse_Shift_Expr (Res.Right, Success);
+--             if Success then
+--                Eval_Shr_Expr (Res.Left.Value,
+--                               Res.Right.Value,
+--                               Res.Value,
+--                               Loc);
+--             end if;
+--             Result := N_Expr_Acc (Res);
+--          end;
       elsif Get_Token = T_Less_Less then
-         declare
-            Res : N_Shl_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_Shl_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (Add_Exp);
-            Parse_Shift_Expr (Res.Right, Success);
-            if Success then
-               Eval_Shl_Expr (Res.Left.Value,
-                              Res.Right.Value,
-                              Res.Value,
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
-      else
-         Result := Add_Exp;
       end if;
+--          declare
+--             Res : N_Shl_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_Shl_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Left := N_Expr_Acc (Add_Exp);
+--             Parse_Shift_Expr (Res.Right, Success);
+--             if Success then
+--                Eval_Shl_Expr (Res.Left.Value,
+--                               Res.Right.Value,
+--                               Res.Value,
+--                               Loc);
+--             end if;
+--             Result := N_Expr_Acc (Res);
+--          end;
+--       else
+      Result := Add_Exp;
+--       end if;
       return;
    end Parse_Shift_Expr;
 
@@ -2903,52 +2721,62 @@ package body Idl_Fe.Parser is
    --  Parse_Add_Exp  --
    ---------------------
    procedure Parse_Add_Expr (Result : out N_Expr_Acc;
-                             Success : out Boolean) is
+                             Success : out Boolean;
+                             Expr_Type : in Const_Type_Ptr) is
       Mult_Exp : N_Expr_Acc;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
-      Parse_Mult_Expr (Mult_Exp, Success);
+      Parse_Mult_Expr (Mult_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
       if Get_Token = T_Plus then
-         declare
-            Res : N_Add_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_Add_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (Mult_Exp);
-            Parse_Add_Expr (Res.Right, Success);
-            if Success then
-               Eval_Add_Expr (Res.Left.Value,
-                              Res.Right.Value,
-                              Res.Value,
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
+--          declare
+--             Res : N_Add_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_Add_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Left := N_Expr_Acc (Mult_Exp);
+--             Parse_Add_Expr (Res.Right, Success);
+--             if Success then
+--                Eval_Add_Expr (Res.Left.Value,
+--                               Res.Right.Value,
+--                               Res.Value,
+--                               Loc);
+--             end if;
+--             Result := N_Expr_Acc (Res);
+--          end;
       elsif Get_Token = T_Minus then
-         declare
-            Res : N_Sub_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_Sub_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (Mult_Exp);
-            Parse_Add_Expr (Res.Right, Success);
-            if Success then
-               Eval_Sub_Expr (Res.Left.Value,
-                              Res.Right.Value,
-                              Res.Value,
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
-      else
-         Result := Mult_Exp;
       end if;
+--          declare
+--             Res : N_Sub_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_Sub_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Left := N_Expr_Acc (Mult_Exp);
+--             Parse_Add_Expr (Res.Right, Success);
+--             if Success then
+--                Eval_Sub_Expr (Res.Left.Value,
+--                               Res.Right.Value,
+--                               Res.Value,
+--                               Loc);
+--             end if;
+--             Result := N_Expr_Acc (Res);
+--          end;
+--       else
+      Result := Mult_Exp;
+--       end if;
       return;
    end Parse_Add_Expr;
 
@@ -2956,69 +2784,83 @@ package body Idl_Fe.Parser is
    --  Parse_Mult_Exp  --
    ----------------------
    procedure Parse_Mult_Expr (Result : out N_Expr_Acc;
-                              Success : out Boolean) is
+                              Success : out Boolean;
+                              Expr_Type : in Const_Type_Ptr) is
       Unary_Exp : N_Expr_Acc;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
-      Parse_Unary_Expr (Unary_Exp, Success);
+      Parse_Unary_Expr (Unary_Exp, Success, Expr_Type);
       if not Success then
          return;
       end if;
       if Get_Token = T_Star then
-         declare
-            Res : N_Mul_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_Mul_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (Unary_Exp);
-            Parse_Mult_Expr (Res.Right, Success);
-            if Success then
-               Eval_Mul_Expr (Res.Left.Value,
-                              Res.Right.Value,
-                              Res.Value,
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
+--          declare
+--             Res : N_Mul_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_Mul_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Left := N_Expr_Acc (Unary_Exp);
+--             Parse_Mult_Expr (Res.Right, Success);
+--             if Success then
+--                Eval_Mul_Expr (Res.Left.Value,
+--                               Res.Right.Value,
+--                               Res.Value,
+--                               Loc);
+--             end if;
+--             Result := N_Expr_Acc (Res);
+--          end;
       elsif Get_Token = T_Slash then
-         declare
-            Res : N_Div_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_Div_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (Unary_Exp);
-            Parse_Mult_Expr (Res.Right, Success);
-            if Success then
-               Eval_Div_Expr (Res.Left.Value,
-                              Res.Right.Value,
-                              Res.Value,
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
+--          declare
+--             Res : N_Div_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_Div_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Left := N_Expr_Acc (Unary_Exp);
+--             Parse_Mult_Expr (Res.Right, Success);
+--             if Success then
+--                Eval_Div_Expr (Res.Left.Value,
+--                               Res.Right.Value,
+--                               Res.Value,
+--                               Loc);
+--             end if;
+--             Result := N_Expr_Acc (Res);
+--          end;
       elsif Get_Token = T_Percent then
-         declare
-            Res : N_Mod_Expr_Acc;
-         begin
-            Next_Token;
-            Res := new N_Mod_Expr;
-            Set_Location (Result.all, Loc);
-            Res.Left := N_Expr_Acc (Unary_Exp);
-            Parse_Mult_Expr (Res.Right, Success);
-            if Success then
-               Eval_Mod_Expr (Res.Left.Value,
-                              Res.Right.Value,
-                              Res.Value,
+         Errors.Parser_Error ("only simple constants are " &
+                              "implemented for the moment",
+                              Errors.Error,
                               Loc);
-            end if;
-            Result := N_Expr_Acc (Res);
-         end;
-      else
-         Result := Unary_Exp;
       end if;
+--          declare
+--             Res : N_Mod_Expr_Acc;
+--          begin
+--             Next_Token;
+--             Res := new N_Mod_Expr;
+--             Set_Location (Result.all, Loc);
+--             Res.Left := N_Expr_Acc (Unary_Exp);
+--             Parse_Mult_Expr (Res.Right, Success);
+--             if Success then
+--                Eval_Mod_Expr (Res.Left.Value,
+--                               Res.Right.Value,
+--                               Res.Value,
+--                               Loc);
+--             end if;
+--             Result := N_Expr_Acc (Res);
+--          end;
+--       else
+      Result := Unary_Exp;
+--       end if;
       return;
    end Parse_Mult_Expr;
 
@@ -3026,55 +2868,70 @@ package body Idl_Fe.Parser is
    --  Parse_Unary_Exp  --
    -----------------------
    procedure Parse_Unary_Expr (Result : out N_Expr_Acc;
-                               Success : out Boolean) is
+                               Success : out Boolean;
+                               Expr_Type : in Const_Type_Ptr) is
    begin
-      case Get_Next_Token is
+      case Get_Token is
          when T_Minus =>
-            declare
-               Res : N_Neg_Expr_Acc;
-            begin
-               Next_Token;
-               Res := new N_Neg_Expr;
-               Set_Location (Res.all, Get_Previous_Token_Location);
-               Parse_Primary_Expr (Res.Operand, Success);
-               if Success then
-                  Eval_Neg_Expr (Res.Operand.Value,
-                                 Res.Value,
-                                 Get_Previous_Token_Location);
-               end if;
-               Result := N_Expr_Acc (Res);
-            end;
+            Errors.Parser_Error ("only simple constants are " &
+                                 "implemented for the moment",
+                                 Errors.Error,
+                                 Get_Token_Location);
+--             declare
+--                Res : N_Neg_Expr_Acc;
+--             begin
+--                Next_Token;
+--                Res := new N_Neg_Expr;
+--                Set_Location (Res.all, Get_Previous_Token_Location);
+--                Parse_Primary_Expr (Res.Operand, Success, Expr_Type);
+--                if Success then
+--                   Eval_Neg_Expr (Res.Operand.Value,
+--                                  Res.Value,
+--                                  Get_Previous_Token_Location);
+--                end if;
+--                Result := N_Expr_Acc (Res);
+--             end;
          when T_Plus =>
-            declare
-               Res : N_Id_Expr_Acc;
-            begin
-               Next_Token;
-               Res := new N_Id_Expr;
-               Set_Location (Res.all, Get_Previous_Token_Location);
-               Parse_Primary_Expr (Res.Operand, Success);
-               if Success then
-                  Res.Value := Res.Operand.Value;
-               end if;
-               Result := N_Expr_Acc (Res);
-            end;
+            Errors.Parser_Error ("only simple constants are " &
+                                 "implemented for the moment",
+                                 Errors.Error,
+                                 Get_Token_Location);
+--             declare
+--                Res : N_Id_Expr_Acc;
+--             begin
+--                Next_Token;
+--                Res := new N_Id_Expr;
+--                Set_Location (Res.all, Get_Previous_Token_Location);
+--                Parse_Primary_Expr (Res.Operand, Success, Expr_Type);
+--                if Success then
+--                   Res.Value := Res.Operand.Value;
+--                end if;
+--                Result := N_Expr_Acc (Res);
+--             end;
          when T_Tilde =>
-            declare
-               Res : N_Not_Expr_Acc;
-            begin
-               Next_Token;
-               Res := new N_Not_Expr;
-               Set_Location (Res.all, Get_Previous_Token_Location);
-               Parse_Primary_Expr (Res.Operand, Success);
-               if Success then
-                  Eval_Not_Expr (Res.Operand.Value,
-                                 Res.Value,
-                                 Get_Previous_Token_Location);
-               end if;
-               Result := N_Expr_Acc (Res);
-            end;
+            Errors.Parser_Error ("only simple constants are " &
+                                 "implemented for the moment",
+                                 Errors.Error,
+                                 Get_Token_Location);
+--             declare
+--                Res : N_Not_Expr_Acc;
+--             begin
+--                Next_Token;
+--                Res := new N_Not_Expr;
+--                Set_Location (Res.all, Get_Previous_Token_Location);
+--                Parse_Primary_Expr (Res.Operand, Success, Expr_Type);
+--                if Success then
+--                   Eval_Not_Expr (Res.Operand.Value,
+--                                  Res.Value,
+--                                  Get_Previous_Token_Location);
+--                end if;
+--                Result := N_Expr_Acc (Res);
+--             end;
          when others =>
-            Parse_Primary_Expr (Result, Success);
+            Parse_Primary_Expr (Result, Success, Expr_Type);
+            return;
       end case;
+      Success := False;
       return;
    end Parse_Unary_Expr;
 
@@ -3082,11 +2939,170 @@ package body Idl_Fe.Parser is
    --  Parse_Primary_Exp  --
    -------------------------
    procedure Parse_Primary_Expr (Result : out N_Expr_Acc;
-                                 Success : out Boolean) is
+                                 Success : out Boolean;
+                                 Expr_Type : in Const_Type_Ptr) is
+      Res : N_Primary_Expr_Acc;
    begin
-      Result := null;
-      Success := False;
+      Res := new N_Primary_Expr;
+      Set_Location (Res.all, Get_Token_Location);
+      Res.Expr_Type := Expr_Type;
+      case Get_Token is
+            when  T_Colon_Colon
+              | T_Identifier =>
+               declare
+                  Local_Res : N_Scoped_Name_Acc;
+               begin
+                  Parse_Scoped_Name (Local_Res, Success);
+                  Res.Operand := N_Root_Acc (Local_Res);
+               end;
+         when T_Lit_Decimal_Integer
+           | T_Lit_Octal_Integer
+           | T_Lit_Hexa_Integer
+           | T_Lit_String
+           | T_Lit_Simple_Char
+           | T_Lit_Escape_Char
+           | T_Lit_Octal_Char
+           | T_Lit_Hexa_Char
+           | T_Lit_Unicode_Char
+           | T_Lit_Simple_Floating_Point
+           | T_Lit_Exponent_Floating_Point
+           | T_Lit_Pure_Exponent_Floating_Point
+           | T_True
+           | T_False =>
+            Parse_Literal (Res.Operand, Success);
+         when T_Lit_Wide_Simple_Char
+           | T_Lit_Wide_Escape_Char
+           | T_Lit_Wide_Octal_Char
+           | T_Lit_Wide_Hexa_Char
+           | T_Lit_Wide_Unicode_Char =>
+            Errors.Parser_Error ("primary expression expected. This does " &
+                                 "not include wide chars.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Next_Token;
+            Result := null;
+            Success := True;
+         when T_Lit_Wide_String =>
+            Errors.Parser_Error ("primary expression expected. This does " &
+                                 "not include wide strings.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Next_Token;
+            Result := null;
+            Success := True;
+         when T_Lit_Simple_Fixed_Point
+           | T_Lit_Floating_Fixed_Point =>
+            Errors.Parser_Error ("primary expression expected. This does " &
+                                 "not include fixed point literals.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Next_Token;
+            Result := null;
+            Success := True;
+         when T_Left_Paren =>
+            Next_Token;
+            declare
+               Local_Res : N_Expr_Acc;
+            begin
+               Parse_Or_Expr (Local_Res, Success, Expr_Type);
+               Res.Operand := N_Root_Acc (Local_Res);
+            end;
+            if not Success then
+               return;
+            end if;
+            if Get_Token /= T_Right_Paren then
+               Idl_Fe.Errors.Parser_Error ("')' expected at the end  of ." &
+                                           "a constant expression.",
+                                           Idl_Fe.Errors.Error,
+                                           Get_Token_Location);
+               Success := False;
+               return;
+            end if;
+         when others =>
+            Errors.Parser_Error ("primary expression expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Result := null;
+            Success := False;
+            return;
+      end case;
+      Result := N_Expr_Acc (Res);
+      return;
    end Parse_Primary_Expr;
+
+   ---------------------
+   --  Parse_Literal  --
+   ---------------------
+   procedure Parse_Literal (Result : out N_Root_Acc;
+                            Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_Lit_Decimal_Integer
+              | T_Lit_Octal_Integer
+              | T_Lit_Hexa_Integer =>
+            declare
+               Res : N_Lit_String_Acc;
+            begin
+               Parse_Integer_Literal (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Lit_String =>
+            declare
+               Res : N_Lit_String_Acc;
+            begin
+               Parse_String_Literal (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Lit_Simple_Char
+           | T_Lit_Escape_Char
+           | T_Lit_Octal_Char
+           | T_Lit_Hexa_Char
+           | T_Lit_Unicode_Char =>
+            declare
+               Res : N_Lit_String_Acc;
+            begin
+               Parse_Char_Literal (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Lit_Simple_Floating_Point
+           | T_Lit_Exponent_Floating_Point
+           | T_Lit_Pure_Exponent_Floating_Point =>
+            declare
+               Res : N_Lit_String_Acc;
+            begin
+               Parse_Floating_Pt_Literal (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_True
+           | T_False =>
+            declare
+               Res : N_Lit_Boolean_Acc;
+            begin
+               Parse_Boolean_Literal (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
+   end Parse_Literal;
+
+   -----------------------------
+   --  Parse_Boolean_Literal  --
+   -----------------------------
+   procedure Parse_Boolean_Literal (Result : out N_Lit_Boolean_Acc;
+                                    Success : out Boolean) is
+   begin
+      Result := new N_Lit_Boolean;
+      Set_Location (Result.all, Get_Token_Location);
+      if Get_Token = T_True then
+         Result.Value := True;
+      else
+         Result.Value := False;
+      end if;
+      Next_Token;
+      Success := true;
+      return;
+   end Parse_Boolean_Literal;
 
    --------------------------------
    --  Parse_Positive_Int_Const  --
@@ -3860,6 +3876,7 @@ package body Idl_Fe.Parser is
                Loc);
             Result := null;
             Success := False;
+            return;
          end;
       end if;
       --  Is there a previous definition
@@ -4277,6 +4294,7 @@ package body Idl_Fe.Parser is
                          Switch_Type : in N_Root_Acc;
                          Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_case : enter"));
       case Get_Token is
          when T_Case
            | T_Default =>
@@ -4297,6 +4315,7 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
       end case;
+      pragma Debug (O ("Parse_case : first token ok"));
       Result := new N_Case;
       Set_Location (Result.all, Get_Token_Location);
       Result.Labels := Nil_List;
@@ -4313,6 +4332,7 @@ package body Idl_Fe.Parser is
             end if;
          end;
       end loop;
+      pragma Debug (O ("Parse_case : all label parsed"));
       Parse_Element_Spec (Result.Case_Type,
                           Result.Case_Decl,
                           Success);
@@ -4338,6 +4358,7 @@ package body Idl_Fe.Parser is
                                Switch_Type : in N_Root_Acc;
                                Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_case_label : enter"));
       case Get_Token is
          when T_Case =>
             declare
@@ -4365,7 +4386,7 @@ package body Idl_Fe.Parser is
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
       end case;
-      if Get_Token /= T_Colon_Colon then
+      if Get_Token /= T_Colon then
          Idl_Fe.Errors.Parser_Error
            ("':' expected at the end of case label.",
             Idl_Fe.Errors.Error,
@@ -4471,7 +4492,7 @@ package body Idl_Fe.Parser is
          Append_Node (Result.Enumerators, N_Root_Acc (Enum));
       end;
       declare
-         Count : Idl_Enum := 1;
+         Count : Long_Long_Integer := 1;
       begin
          while Get_Token = T_Comma loop
             Next_Token;
@@ -4483,7 +4504,7 @@ package body Idl_Fe.Parser is
                   return;
                end if;
                Count := Count + 1;
-               if Count = 0 then
+               if Count = Long_Long_Integer (Idl_Enum_Max) + 1 then
                   Idl_Fe.Errors.Parser_Error
                     ("two much possible values in this " &
                      "enumeration : maximum is 2^32.",
@@ -5358,245 +5379,6 @@ package body Idl_Fe.Parser is
       Success := False;
    end Parse_Value_Base_Type;
 
-
-
---    --  FIXME: to add: rules 25, 26, 81, 82.
-
---    function Parse_Param_Type_Spec return N_Root_Acc;
---    function Parse_Const_Exp return N_Root_Acc;
---    function Parse_Sequence_Type return N_Sequence_Acc;
---    function Parse_Constr_Type_Spec return N_Root_Acc;
---    function Parse_Module return N_Module_Acc;
-
-
-
---    --  Rule 24:
---    --  <literal> ::= <integer_literal>
---    --            | <string_literal>
---    --            | <wide_string_literal>
---    --            | <character_literal>
---    --            | <wide_character_literal>
---    --            | <fixed_pt_literal>
---    --            | <floating_pt_literal>
---    --            | <boolean_literal>
---    function Parse_Literal return N_Root_Acc is
---    begin
---       case Token is
---          when T_Lit_Decimal_Integer =>
---             declare
---                Res : N_Lit_Integer_Acc;
---             begin
---                Res := new N_Lit_Integer;
---                Res.Lit := new String'(Idl_Fe.Lexer.Get_Token_String);
---                Next_Token;
---                return N_Root_Acc (Res);
---             end;
---          when T_Lit_Simple_Floating_Point =>
---             declare
---                Res : N_Lit_Floating_Point_Acc;
---             begin
---                Res := new N_Lit_Floating_Point;
---                Res.Lit := new String'(Idl_Fe.Lexer.Get_Token_String);
---                Next_Token;
---                return N_Root_Acc (Res);
---             end;
---          when others =>
---             raise Idl_Fe.Errors.Internal_Error;
---       end case;
---    end Parse_Literal;
-
-
---    --  Rule 23:
---    --  <primary_expr> ::= <scoped_name>
---    --                 |   <literal>
---    --                 |   "(" <const_expr> ")"
---    function Parse_Primary_Expr return N_Root_Acc is
---       Res : N_Root_Acc;
---    begin
---       case Token is
---          when T_Colon_Colon | T_Identifier =>
---             return N_Root_Acc (Parse_Scoped_Name);
---          when T_Left_Paren =>
---             Next_Token;
---             Res := Parse_Const_Exp;
---             Expect (T_Right_Paren);
---             Next_Token;
---             return Res;
---          when T_Lit_Decimal_Integer | T_Lit_Simple_Char
---            | T_Lit_Simple_Floating_Point | T_Lit_String
---            | T_Lit_Simple_Fixed_Point | T_True | T_False =>
---             return Parse_Literal;
---          when others =>
---             Idl_Fe.Errors.Parser_Error
---                ("bad token for a primary expression: "
---                         & Image (Token),
---                                   Idl_Fe.Errors.Error);
---             raise Parse_Error;
---       end case;
---    end Parse_Primary_Expr;
-
---    --  Rule 21:
---    --  <unary_expr> ::= <unary_operator> <primary_expr>
---    --               |   <primary_expr>
---    --
---    --  Rule 22:
---    --  <unary_operator> ::= "+" | "-" | "~"
---    function Parse_Unary_Expr return N_Root_Acc is
---       R : N_Unary_Expr_Acc;
---    begin
---       case Token is
---          when T_Minus =>
---             R := new N_Neg_Expr;
---             Next_Token;
---             R.Operand := Parse_Primary_Expr;
---             return N_Root_Acc (R);
---          when T_Plus =>
---             R := new N_Id_Expr;
---             Next_Token;
---             R.Operand := Parse_Primary_Expr;
---             return N_Root_Acc (R);
---          when T_Tilde =>
---             R := new N_Not_Expr;
---             Next_Token;
---             R.Operand := Parse_Primary_Expr;
---             return N_Root_Acc (R);
---          when others =>
---             return Parse_Primary_Expr;
---       end case;
---    end Parse_Unary_Expr;
-
---    --  Rule 20:
---    --  <mult_expr> ::= <unary_expr>
---    --              |   <mult_expr> "*" <unary_expr>
---    --              |   <mult_expr> "/" <unary_expr>
---    --              |   <mult_expr> "%" <unary_expr>
---    function Parse_Mult_Expr return N_Root_Acc is
---       Res : N_Root_Acc;
---       R : N_Binary_Expr_Acc;
---    begin
---       Res := Parse_Unary_Expr;
---       loop
---          if Token = T_Star then
---             R := new N_Mul_Expr;
---          elsif Token = T_Slash then
---             R := new N_Div_Expr;
---          elsif Token = T_Ampersand then
---             R := new N_Mod_Expr;
---          else
---             exit;
---          end if;
---          R.Left := Res;
---          Next_Token;
---          R.Right := Parse_Unary_Expr;
---          Res := N_Root_Acc (R);
---       end loop;
---       return Res;
---    end Parse_Mult_Expr;
-
---    --  Rule 19:
---    --  <add_expr> ::= <mult_expr>
---    --             |   <add_expr> "+" <mult_expr>
---    --             |   <add_expr> "-" <mult_expr>
---    function Parse_Add_Expr return N_Root_Acc is
---       Res : N_Root_Acc;
---       R : N_Binary_Expr_Acc;
---    begin
---       Res := Parse_Mult_Expr;
---       loop
---          if Token = T_Plus then
---             R := new N_Add_Expr;
---          elsif Token = T_Minus then
---             R := new N_Sub_Expr;
---          else
---             exit;
---          end if;
---          R.Left := Res;
---          Next_Token;
---          R.Right := Parse_Mult_Expr;
---          Res := N_Root_Acc (R);
---       end loop;
---       return Res;
---    end Parse_Add_Expr;
-
---    --  Rule 18:
---    --  <shift_expr> ::= <add_expr>
---    --               |   <shift_expr> ">>" <add_expr>
---    --               |   <shift_expr> "<<" <add_expr>
---    function Parse_Shift_Expr return N_Root_Acc is
---       Res : N_Root_Acc;
---       R : N_Binary_Expr_Acc;
---    begin
---       Res := Parse_Add_Expr;
---       loop
---          if Token = T_Greater_Greater then
---             R := new N_Shr_Expr;
---          elsif Token = T_Less_Less then
---             R := new N_Shl_Expr;
---          else
---             exit;
---          end if;
---          R.Left := Res;
---          Next_Token;
---          R.Right := Parse_Add_Expr;
---          Res := N_Root_Acc (R);
---       end loop;
---       return Res;
---    end Parse_Shift_Expr;
-
---    --  Rule 17:
---    --  <and_expr> ::= <shift_expr>
---    --             |   <and_expr> "&" <shift_expr>
---    function Parse_And_Expr return N_Root_Acc is
---       Res : N_Root_Acc;
---       R : N_And_Expr_Acc;
---    begin
---       Res := Parse_Shift_Expr;
---       while Token = T_Circumflex loop
---          R := new N_And_Expr;
---          R.Left := Res;
---          Next_Token;
---          R.Right := Parse_Shift_Expr;
---          Res := N_Root_Acc (R);
---       end loop;
---       return Res;
---    end Parse_And_Expr;
-
---    --  Rule 16:
---    --  <xor_expr> ::= <and_expr>
---    --             |   <xor_expr> "^" <and_expr>
---    function Parse_Xor_Expr return N_Root_Acc is
---       Res : N_Root_Acc;
---       R : N_Xor_Expr_Acc;
---    begin
---       Res := Parse_And_Expr;
---       while Token = T_Circumflex loop
---          R := new N_Xor_Expr;
---          R.Left := Res;
---          Next_Token;
---          R.Right := Parse_And_Expr;
---          Res := N_Root_Acc (R);
---       end loop;
---       return Res;
---    end Parse_Xor_Expr;
-
---    --  Rule 15:
---    --  <or_expr> ::= <xor_expr>
---    --            |   <or_expr> "^" <xor_expr>
---    function Parse_Or_Expr return N_Root_Acc is
---       Res : N_Root_Acc;
---       R : N_Or_Expr_Acc;
---    begin
---       Res := Parse_Xor_Expr;
---       while Token = T_Bar loop
---          R := new N_Or_Expr;
---          R.Left := Res;
---          Next_Token;
---          R.Right := Parse_Xor_Expr;
---          Res := N_Root_Acc (R);
---       end loop;
---       return Res;
---    end Parse_Or_Expr;
-
    ----------------------------------
    --  Parse_Attribute_Declarator  --
    ----------------------------------
@@ -5722,7 +5504,6 @@ package body Idl_Fe.Parser is
    end Parse_Attr_Dcl;
 
 
-
 --    --  Rule 35:
 --    --  <declarator> ::= <simple_declarator>
 --    --               |   <complex_declarator>
@@ -5765,15 +5546,61 @@ package body Idl_Fe.Parser is
    --  Parsing of literals  --
    ---------------------------
 
+   -----------------------------
+   --  Parse_Integer_Literal  --
+   -----------------------------
+   procedure Parse_Integer_Literal (Result : out N_Lit_String_Acc;
+                                    Success : out Boolean) is
+   begin
+      Result := new N_Lit_String;
+      Set_Location (Result.all, Get_Token_Location);
+      Result.Value := new String'(Get_Token_String);
+      Next_Token;
+      Success := true;
+      return;
+   end Parse_Integer_Literal;
+
    ----------------------------
    --  Parse_String_Literal  --
    ----------------------------
    procedure Parse_String_Literal (Result : out N_Lit_String_Acc;
                                    Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
+      Result := new N_Lit_String;
+      Set_Location (Result.all, Get_Token_Location);
+      Result.Value := new String'(Get_Token_String);
+      Next_Token;
+      Success := true;
+      return;
    end Parse_String_Literal;
+
+   --------------------------
+   --  Parse_Char_Literal  --
+   --------------------------
+   procedure Parse_Char_Literal (Result : out N_Lit_String_Acc;
+                                 Success : out Boolean) is
+   begin
+      Result := new N_Lit_String;
+      Set_Location (Result.all, Get_Token_Location);
+      Result.Value := new String'(Get_Token_String);
+      Next_Token;
+      Success := true;
+      return;
+   end Parse_Char_Literal;
+
+   ---------------------------------
+   --  Parse_Floating_Pt_Literal  --
+   ---------------------------------
+   procedure Parse_Floating_Pt_Literal (Result : out N_Lit_String_Acc;
+                                        Success : out Boolean) is
+   begin
+      Result := new N_Lit_String;
+      Set_Location (Result.all, Get_Token_Location);
+      Result.Value := new String'(Get_Token_String);
+      Next_Token;
+      Success := true;
+      return;
+   end Parse_Floating_Pt_Literal;
 
    ----------------------------
    --  Check_Context_String  --
@@ -5823,654 +5650,662 @@ package body Idl_Fe.Parser is
    ---------------------------------
    --  evaluation of expressions  --
    ---------------------------------
-   --------------------
-   --  Eval_Or_Expr  --
-   --------------------
-   procedure Eval_Or_Expr (Left : in Value_Ptr;
-                           Right : in Value_Ptr;
-                           Result : out Value_Ptr;
-                           Loc : in Idl_Fe.Errors.Location) is
-   begin
-      if Left = null or Right = null then
-         Result := null;
-         return;
-      end if;
-      case Left.Const_Type.Kind is
-         when C_Short
-           | C_UShort
-           | C_Long
-           | C_ULong
-           | C_LongLong
-           | C_ULongLong =>
-            null;
-         when others =>
-            Idl_Fe.Errors.Parser_Error
-              ("invalid type in the left term of this " &
-               "expression. Or expression is only " &
-               "applicable to integer expressions.",
-               Idl_Fe.Errors.Error,
-               Loc);
-            Result := null;
-            return;
-      end case;
-      case Right.Const_Type.Kind is
-         when C_Short
-           | C_UShort
-           | C_Long
-           | C_ULong
-           | C_LongLong
-           | C_ULongLong =>
-            null;
-         when others =>
-            Idl_Fe.Errors.Parser_Error
-              ("invalid type in the right term of this " &
-               "expression. Or expression is only " &
-               "applicable to integer expressions.",
-               Idl_Fe.Errors.Error,
-               Loc);
-            Result := null;
-            return;
-      end case;
-      case Right.Const_Type.Kind is
-         when C_Short =>
-            case Left.Const_Type.Kind is
-               when C_Short =>
-                  Result := new Short_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_Short);
-                  Short_Value_Ptr (Result).Value :=
-                    Short_Value_Ptr (Right).Value or
-                    Short_Value_Ptr (Left).Value;
-               when C_UShort =>
-                  if UShort_Value_Ptr (Left).Value <=
-                    Idl_UShort (Idl_Short'Last) then
-                     Result := new Short_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_Short);
-                     Short_Value_Ptr (Result).Value :=
-                       Short_Value_Ptr (Right).Value or
-                       Idl_Short (UShort_Value_Ptr (Left).Value);
-                  else
-                     Result := new Long_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_Long);
-                     Long_Value_Ptr (Result).Value :=
-                       Idl_Long (Short_Value_Ptr (Right).Value) or
-                       Idl_Long (UShort_Value_Ptr (Left).Value);
-                  end if;
-               when C_Long =>
-                  Result := new Long_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_Long);
-                  Long_Value_Ptr (Result).Value :=
-                    Idl_Long (Short_Value_Ptr (Right).Value) or
-                    Long_Value_Ptr (Left).Value;
-               when C_ULong =>
-                  if ULong_Value_Ptr (Left).Value <=
-                    Idl_ULong (Idl_Long'Last) then
-                     Result := new Long_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_Long);
-                     Long_Value_Ptr (Result).Value :=
-                       Idl_Long (Short_Value_Ptr (Right).Value) or
-                       Idl_Long (ULong_Value_Ptr (Left).Value);
-                  else
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       Idl_LongLong (Short_Value_Ptr (Right).Value) or
-                       Idl_LongLong (ULong_Value_Ptr (Left).Value);
-                  end if;
-               when C_LongLong =>
-                  Result := new LongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                  LongLong_Value_Ptr (Result).Value :=
-                    Idl_LongLong (Short_Value_Ptr (Right).Value) or
-                    LongLong_Value_Ptr (Left).Value;
-               when C_ULongLong =>
-                  if ULongLong_Value_Ptr (Left).Value <=
-                    Idl_ULongLong (Idl_LongLong'Last) then
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       Idl_LongLong (Short_Value_Ptr (Right).Value) or
-                       Idl_LongLong (ULongLong_Value_Ptr (Left).Value);
-                  else
-                     Result := null;
-                     Idl_Fe.Errors.Parser_Error
-                       ("incompatible type between the two terms : the " &
-                        "first one is negative and the other one is " &
-                        "unsigned long long.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                     return;
-                  end if;
-               when others =>
-                  raise Idl_Fe.Errors.Internal_Error;
-            end case;
-         when C_UShort =>
-            case Left.Const_Type.Kind is
-               when C_UShort =>
-                  Result := new UShort_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_UShort);
-                  UShort_Value_Ptr (Result).Value :=
-                    UShort_Value_Ptr (Right).Value or
-                    UShort_Value_Ptr (Left).Value;
-               when C_Short =>
-                  if UShort_Value_Ptr (Right).Value <=
-                    Idl_UShort (Idl_Short'Last) then
-                     Result := new Short_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_Short);
-                     Short_Value_Ptr (Result).Value :=
-                       Idl_Short (UShort_Value_Ptr (Right).Value) or
-                       Short_Value_Ptr (Left).Value;
-                  else
-                     Result := new Long_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_Long);
-                     Long_Value_Ptr (Result).Value :=
-                       Idl_Long (UShort_Value_Ptr (Right).Value) or
-                       Idl_Long (Short_Value_Ptr (Left).Value);
-                  end if;
-               when C_Long =>
-                  Result := new Long_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_Long);
-                  Long_Value_Ptr (Result).Value :=
-                    Idl_Long (UShort_Value_Ptr (Right).Value) or
-                    Long_Value_Ptr (Left).Value;
-               when C_ULong =>
-                  Result := new ULong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULong);
-                  ULong_Value_Ptr (Result).Value :=
-                    Idl_ULong (UShort_Value_Ptr (Right).Value) or
-                    ULong_Value_Ptr (Left).Value;
-               when C_LongLong =>
-                  Result := new LongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                  LongLong_Value_Ptr (Result).Value :=
-                    Idl_LongLong (UShort_Value_Ptr (Right).Value) or
-                    LongLong_Value_Ptr (Left).Value;
-               when C_ULongLong =>
-                  Result := new ULongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
-                  ULongLong_Value_Ptr (Result).Value :=
-                    Idl_ULongLong (UShort_Value_Ptr (Right).Value) or
-                    ULongLong_Value_Ptr (Left).Value;
-               when others =>
-                  raise Idl_Fe.Errors.Internal_Error;
-            end case;
-         when C_Long =>
-            case Left.Const_Type.Kind is
-               when C_Short =>
-                  Result := new Long_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_Long);
-                  Long_Value_Ptr (Result).Value :=
-                    Long_Value_Ptr (Right).Value or
-                    Idl_Long (Short_Value_Ptr (Left).Value);
-               when C_UShort =>
-                  Result := new Long_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_Long);
-                  Long_Value_Ptr (Result).Value :=
-                    Long_Value_Ptr (Right).Value or
-                    Idl_Long (UShort_Value_Ptr (Left).Value);
-               when C_Long =>
-                  Result := new Long_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_Long);
-                  Long_Value_Ptr (Result).Value :=
-                    Long_Value_Ptr (Right).Value or
-                    Long_Value_Ptr (Left).Value;
-               when C_ULong =>
-                  if ULong_Value_Ptr (Left).Value <=
-                    Idl_ULong (Idl_Long'Last) then
-                     Result := new Long_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_Long);
-                     Long_Value_Ptr (Result).Value :=
-                       Long_Value_Ptr (Right).Value or
-                       Idl_Long (ULong_Value_Ptr (Left).Value);
-                  else
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       Idl_LongLong (Long_Value_Ptr (Right).Value) or
-                       Idl_LongLong (ULong_Value_Ptr (Left).Value);
-                  end if;
-               when C_LongLong =>
-                  Result := new LongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                  LongLong_Value_Ptr (Result).Value :=
-                    Idl_LongLong (Long_Value_Ptr (Right).Value) or
-                    LongLong_Value_Ptr (Left).Value;
-               when C_ULongLong =>
-                  if ULongLong_Value_Ptr (Left).Value <=
-                    Idl_ULongLong (Idl_LongLong'Last) then
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       Idl_LongLong (Long_Value_Ptr (Right).Value) or
-                       Idl_LongLong (ULongLong_Value_Ptr (Left).Value);
-                  else
-                     Result := null;
-                     Idl_Fe.Errors.Parser_Error
-                       ("incompatible type between the two terms : the " &
-                        "first one is negative and the other one is " &
-                        "unsigned long long.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                     return;
-                  end if;
-               when others =>
-                  raise Idl_Fe.Errors.Internal_Error;
-            end case;
-         when C_ULong =>
-            case Left.Const_Type.Kind is
-               when C_UShort =>
-                  Result := new ULong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULong);
-                  ULong_Value_Ptr (Result).Value :=
-                    ULong_Value_Ptr (Right).Value or
-                    Idl_ULong (UShort_Value_Ptr (Left).Value);
-               when C_Short =>
-                  if ULong_Value_Ptr (Right).Value <=
-                    Idl_ULong (Idl_Long'Last) then
-                     Result := new Long_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_Long);
-                     Long_Value_Ptr (Result).Value :=
-                       Idl_Long (ULong_Value_Ptr (Right).Value) or
-                       Idl_Long (Short_Value_Ptr (Left).Value);
-                  else
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       Idl_LongLong (ULong_Value_Ptr (Right).Value) or
-                       Idl_LongLong (Short_Value_Ptr (Left).Value);
-                  end if;
-               when C_ULong =>
-                  Result := new ULong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULong);
-                  ULong_Value_Ptr (Result).Value :=
-                    ULong_Value_Ptr (Right).Value or
-                    ULong_Value_Ptr (Left).Value;
-               when C_Long =>
-                  if ULong_Value_Ptr (Right).Value <=
-                    Idl_ULong (Idl_Long'Last) then
-                     Result := new Long_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_Long);
-                     Long_Value_Ptr (Result).Value :=
-                       Idl_Long (ULong_Value_Ptr (Right).Value) or
-                       Long_Value_Ptr (Left).Value;
-                  else
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       Idl_LongLong (ULong_Value_Ptr (Right).Value) or
-                       Idl_LongLong (Long_Value_Ptr (Left).Value);
-                  end if;
-               when C_ULongLong =>
-                  Result := new ULongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
-                  ULongLong_Value_Ptr (Result).Value :=
-                    Idl_ULongLong (ULong_Value_Ptr (Right).Value) or
-                    ULongLong_Value_Ptr (Left).Value;
-               when C_LongLong =>
-                  Result := new LongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                  LongLong_Value_Ptr (Result).Value :=
-                    Idl_LongLong (ULong_Value_Ptr (Right).Value) or
-                    LongLong_Value_Ptr (Left).Value;
-               when others =>
-                  raise Idl_Fe.Errors.Internal_Error;
-            end case;
-         when C_LongLong =>
-            case Left.Const_Type.Kind is
-               when C_Short =>
-                  Result := new LongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                  LongLong_Value_Ptr (Result).Value :=
-                    LongLong_Value_Ptr (Right).Value or
-                    Idl_LongLong (Short_Value_Ptr (Left).Value);
-               when C_UShort =>
-                  Result := new LongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                  LongLong_Value_Ptr (Result).Value :=
-                    LongLong_Value_Ptr (Right).Value or
-                    Idl_LongLong (UShort_Value_Ptr (Left).Value);
-               when C_Long =>
-                  Result := new LongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                  LongLong_Value_Ptr (Result).Value :=
-                    LongLong_Value_Ptr (Right).Value or
-                    Idl_LongLong (Long_Value_Ptr (Left).Value);
-               when C_ULong =>
-                  Result := new LongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                  LongLong_Value_Ptr (Result).Value :=
-                    LongLong_Value_Ptr (Right).Value or
-                    Idl_LongLong (ULong_Value_Ptr (Left).Value);
-               when C_LongLong =>
-                  Result := new LongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                  LongLong_Value_Ptr (Result).Value :=
-                    LongLong_Value_Ptr (Right).Value or
-                    LongLong_Value_Ptr (Left).Value;
-               when C_ULongLong =>
-                  if ULongLong_Value_Ptr (Left).Value <=
-                    Idl_ULongLong (Idl_LongLong'Last) then
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       LongLong_Value_Ptr (Right).Value or
-                       Idl_LongLong (ULongLong_Value_Ptr (Left).Value);
-                  else
-                     Result := null;
-                     Idl_Fe.Errors.Parser_Error
-                       ("incompatible type between the two terms : the " &
-                        "first one is negative and the other one is " &
-                        "unsigned long long.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                     return;
-                  end if;
-               when others =>
-                  raise Idl_Fe.Errors.Internal_Error;
-            end case;
-         when C_ULongLong =>
-            case Left.Const_Type.Kind is
-               when C_UShort =>
-                  Result := new ULongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
-                  ULongLong_Value_Ptr (Result).Value :=
-                    ULongLong_Value_Ptr (Right).Value or
-                    Idl_ULongLong (UShort_Value_Ptr (Left).Value);
-               when C_Short =>
-                  if ULongLong_Value_Ptr (Right).Value <=
-                    Idl_ULongLong (Idl_LongLong'Last) then
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       Idl_LongLong (ULongLong_Value_Ptr (Right).Value) or
-                       Idl_LongLong (Short_Value_Ptr (Left).Value);
-                  else
-                     Result := null;
-                     Idl_Fe.Errors.Parser_Error
-                       ("incompatible type between the two terms : the " &
-                        "first one is unsigned long long and the other " &
-                        "one is negative.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                     return;
-                  end if;
-               when C_ULong =>
-                  Result := new ULongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
-                  ULongLong_Value_Ptr (Result).Value :=
-                    ULongLong_Value_Ptr (Right).Value or
-                    Idl_ULongLong (ULong_Value_Ptr (Left).Value);
-               when C_Long =>
-                  if ULongLong_Value_Ptr (Right).Value <=
-                    Idl_ULongLong (Idl_LongLong'Last) then
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       Idl_LongLong (ULongLong_Value_Ptr (Right).Value) or
-                       Idl_LongLong (Long_Value_Ptr (Left).Value);
-                  else
-                     Result := null;
-                     Idl_Fe.Errors.Parser_Error
-                       ("incompatible type between the two terms : the " &
-                        "first one is unsigned long long and the other " &
-                        "one is negative.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                     return;
-                  end if;
-               when C_ULongLong =>
-                  Result := new ULongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
-                  ULongLong_Value_Ptr (Result).Value :=
-                    ULongLong_Value_Ptr (Right).Value or
-                    ULongLong_Value_Ptr (Left).Value;
-               when C_LongLong =>
-                  if ULongLong_Value_Ptr (Right).Value <=
-                    Idl_ULongLong (Idl_LongLong'Last) then
-                     Result := new LongLong_Value;
-                     Result.Const_Type := new Const_Type'(Kind => C_LongLong);
-                     LongLong_Value_Ptr (Result).Value :=
-                       Idl_LongLong (ULongLong_Value_Ptr (Right).Value) or
-                       Idl_LongLong (LongLong_Value_Ptr (Left).Value);
-                  else
-                     Result := null;
-                     Idl_Fe.Errors.Parser_Error
-                       ("incompatible type between the two terms : the " &
-                        "first one is unsigned long long and the other " &
-                        "one is negative.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                     return;
-                  end if;
-               when others =>
-                  raise Idl_Fe.Errors.Internal_Error;
-            end case;
-         when others =>
-            raise Idl_Fe.Errors.Internal_Error;
-      end case;
-      --  if positive, then use unsigned types
-      case Result.Const_Type.Kind is
-         when C_Short =>
-            if Short_Value_Ptr (Result).Value > 0 then
-               declare
-                  Value : Idl_Short;
-               begin
-                  Value := Short_Value_Ptr (Result).Value;
-                  Free (Result.Const_Type);
-                  Free (Short_Value_Ptr (Result));
-                  Result := new UShort_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_UShort);
-                  UShort_Value_Ptr (Result).Value := Idl_UShort (Value);
-               end;
-            end if;
-         when C_Long =>
-            if Long_Value_Ptr (Result).Value > 0 then
-               declare
-                  Value : Idl_Long;
-               begin
-                  Value := Long_Value_Ptr (Result).Value;
-                  Free (Result.Const_Type);
-                  Free (Long_Value_Ptr (Result));
-                  Result := new ULong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULong);
-                  ULong_Value_Ptr (Result).Value := Idl_ULong (Value);
-               end;
-            end if;
-         when C_LongLong =>
-            if LongLong_Value_Ptr (Result).Value > 0 then
-               declare
-                  Value : Idl_LongLong;
-               begin
-                  Value := LongLong_Value_Ptr (Result).Value;
-                  Free (Result.Const_Type);
-                  Free (LongLong_Value_Ptr (Result));
-                  Result := new ULongLong_Value;
-                  Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
-                  ULongLong_Value_Ptr (Result).Value := Idl_ULongLong (Value);
-               end;
-            end if;
-         when C_ULong
-           | C_UShort
-           | C_ULongLong =>
-            null;
-         when others =>
-            raise Idl_Fe.Errors.Internal_Error;
-      end case;
-   end Eval_Or_Expr;
+--    --------------------
+--    --  Eval_Or_Expr  --
+--    --------------------
+--    procedure Eval_Or_Expr (Left : in Value_Ptr;
+--                            Right : in Value_Ptr;
+--                            Result : out Value_Ptr;
+--                            Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       if Left = null or Right = null then
+--          Result := null;
+--          return;
+--       end if;
+--       case Left.Const_Type.Kind is
+--          when C_Short
+--            | C_UShort
+--            | C_Long
+--            | C_ULong
+--            | C_LongLong
+--            | C_ULongLong =>
+--             null;
+--          when others =>
+--             Idl_Fe.Errors.Parser_Error
+--               ("invalid type in the left term of this " &
+--                "expression. Or expression is only " &
+--                "applicable to integer expressions.",
+--                Idl_Fe.Errors.Error,
+--                Loc);
+--             Result := null;
+--             return;
+--       end case;
+--       case Right.Const_Type.Kind is
+--          when C_Short
+--            | C_UShort
+--            | C_Long
+--            | C_ULong
+--            | C_LongLong
+--            | C_ULongLong =>
+--             null;
+--          when others =>
+--             Idl_Fe.Errors.Parser_Error
+--               ("invalid type in the right term of this " &
+--                "expression. Or expression is only " &
+--                "applicable to integer expressions.",
+--                Idl_Fe.Errors.Error,
+--                Loc);
+--             Result := null;
+--             return;
+--       end case;
+--       case Right.Const_Type.Kind is
+--          when C_Short =>
+--             case Left.Const_Type.Kind is
+--                when C_Short =>
+--                   Result := new Short_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_Short);
+--                   Short_Value_Ptr (Result).Value :=
+--                     Short_Value_Ptr (Right).Value or
+--                     Short_Value_Ptr (Left).Value;
+--                when C_UShort =>
+--                   if UShort_Value_Ptr (Left).Value <=
+--                     Idl_UShort (Idl_Short'Last) then
+--                      Result := new Short_Value;
+--                      Result.Const_Type := new Const_Type'(Kind => C_Short);
+--                      Short_Value_Ptr (Result).Value :=
+--                        Short_Value_Ptr (Right).Value or
+--                        Idl_Short (UShort_Value_Ptr (Left).Value);
+--                   else
+--                      Result := new Long_Value;
+--                      Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (Short_Value_Ptr (Right).Value) or
+--                        Idl_Long (UShort_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_Long =>
+--                   Result := new Long_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                   Long_Value_Ptr (Result).Value :=
+--                     Idl_Long (Short_Value_Ptr (Right).Value) or
+--                     Long_Value_Ptr (Left).Value;
+--                when C_ULong =>
+--                   if ULong_Value_Ptr (Left).Value <=
+--                     Idl_ULong (Idl_Long'Last) then
+--                      Result := new Long_Value;
+--                      Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (Short_Value_Ptr (Right).Value) or
+--                        Idl_Long (ULong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (Short_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (ULong_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     Idl_LongLong (Short_Value_Ptr (Right).Value) or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when C_ULongLong =>
+--                   if ULongLong_Value_Ptr (Left).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (Short_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (ULongLong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := null;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is negative and the other one is " &
+--                         "unsigned long long.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_UShort =>
+--             case Left.Const_Type.Kind is
+--                when C_UShort =>
+--                   Result := new UShort_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_UShort);
+--                   UShort_Value_Ptr (Result).Value :=
+--                     UShort_Value_Ptr (Right).Value or
+--                     UShort_Value_Ptr (Left).Value;
+--                when C_Short =>
+--                   if UShort_Value_Ptr (Right).Value <=
+--                     Idl_UShort (Idl_Short'Last) then
+--                      Result := new Short_Value;
+--                      Result.Const_Type := new Const_Type'(Kind => C_Short);
+--                      Short_Value_Ptr (Result).Value :=
+--                        Idl_Short (UShort_Value_Ptr (Right).Value) or
+--                        Short_Value_Ptr (Left).Value;
+--                   else
+--                      Result := new Long_Value;
+--                      Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (UShort_Value_Ptr (Right).Value) or
+--                        Idl_Long (Short_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_Long =>
+--                   Result := new Long_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                   Long_Value_Ptr (Result).Value :=
+--                     Idl_Long (UShort_Value_Ptr (Right).Value) or
+--                     Long_Value_Ptr (Left).Value;
+--                when C_ULong =>
+--                   Result := new ULong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULong);
+--                   ULong_Value_Ptr (Result).Value :=
+--                     Idl_ULong (UShort_Value_Ptr (Right).Value) or
+--                     ULong_Value_Ptr (Left).Value;
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     Idl_LongLong (UShort_Value_Ptr (Right).Value) or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when C_ULongLong =>
+--                   Result := new ULongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     Idl_ULongLong (UShort_Value_Ptr (Right).Value) or
+--                     ULongLong_Value_Ptr (Left).Value;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_Long =>
+--             case Left.Const_Type.Kind is
+--                when C_Short =>
+--                   Result := new Long_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                   Long_Value_Ptr (Result).Value :=
+--                     Long_Value_Ptr (Right).Value or
+--                     Idl_Long (Short_Value_Ptr (Left).Value);
+--                when C_UShort =>
+--                   Result := new Long_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                   Long_Value_Ptr (Result).Value :=
+--                     Long_Value_Ptr (Right).Value or
+--                     Idl_Long (UShort_Value_Ptr (Left).Value);
+--                when C_Long =>
+--                   Result := new Long_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                   Long_Value_Ptr (Result).Value :=
+--                     Long_Value_Ptr (Right).Value or
+--                     Long_Value_Ptr (Left).Value;
+--                when C_ULong =>
+--                   if ULong_Value_Ptr (Left).Value <=
+--                     Idl_ULong (Idl_Long'Last) then
+--                      Result := new Long_Value;
+--                      Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                      Long_Value_Ptr (Result).Value :=
+--                        Long_Value_Ptr (Right).Value or
+--                        Idl_Long (ULong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (Long_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (ULong_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     Idl_LongLong (Long_Value_Ptr (Right).Value) or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when C_ULongLong =>
+--                   if ULongLong_Value_Ptr (Left).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (Long_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (ULongLong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := null;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is negative and the other one is " &
+--                         "unsigned long long.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_ULong =>
+--             case Left.Const_Type.Kind is
+--                when C_UShort =>
+--                   Result := new ULong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULong);
+--                   ULong_Value_Ptr (Result).Value :=
+--                     ULong_Value_Ptr (Right).Value or
+--                     Idl_ULong (UShort_Value_Ptr (Left).Value);
+--                when C_Short =>
+--                   if ULong_Value_Ptr (Right).Value <=
+--                     Idl_ULong (Idl_Long'Last) then
+--                      Result := new Long_Value;
+--                      Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (ULong_Value_Ptr (Right).Value) or
+--                        Idl_Long (Short_Value_Ptr (Left).Value);
+--                   else
+--                      Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (Short_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_ULong =>
+--                   Result := new ULong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULong);
+--                   ULong_Value_Ptr (Result).Value :=
+--                     ULong_Value_Ptr (Right).Value or
+--                     ULong_Value_Ptr (Left).Value;
+--                when C_Long =>
+--                   if ULong_Value_Ptr (Right).Value <=
+--                     Idl_ULong (Idl_Long'Last) then
+--                      Result := new Long_Value;
+--                      Result.Const_Type := new Const_Type'(Kind => C_Long);
+--                      Long_Value_Ptr (Result).Value :=
+--                        Idl_Long (ULong_Value_Ptr (Right).Value) or
+--                        Long_Value_Ptr (Left).Value;
+--                   else
+--                      Result := new LongLong_Value;
+--                  Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (Long_Value_Ptr (Left).Value);
+--                   end if;
+--                when C_ULongLong =>
+--                   Result := new ULongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     Idl_ULongLong (ULong_Value_Ptr (Right).Value) or
+--                     ULongLong_Value_Ptr (Left).Value;
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     Idl_LongLong (ULong_Value_Ptr (Right).Value) or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_LongLong =>
+--             case Left.Const_Type.Kind is
+--                when C_Short =>
+--                   Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     Idl_LongLong (Short_Value_Ptr (Left).Value);
+--                when C_UShort =>
+--                   Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     Idl_LongLong (UShort_Value_Ptr (Left).Value);
+--                when C_Long =>
+--                   Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     Idl_LongLong (Long_Value_Ptr (Left).Value);
+--                when C_ULong =>
+--                   Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     Idl_LongLong (ULong_Value_Ptr (Left).Value);
+--                when C_LongLong =>
+--                   Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                   LongLong_Value_Ptr (Result).Value :=
+--                     LongLong_Value_Ptr (Right).Value or
+--                     LongLong_Value_Ptr (Left).Value;
+--                when C_ULongLong =>
+--                   if ULongLong_Value_Ptr (Left).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        LongLong_Value_Ptr (Right).Value or
+--                        Idl_LongLong (ULongLong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := null;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is negative and the other one is " &
+--                         "unsigned long long.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when C_ULongLong =>
+--             case Left.Const_Type.Kind is
+--                when C_UShort =>
+--                   Result := new ULongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     ULongLong_Value_Ptr (Right).Value or
+--                     Idl_ULongLong (UShort_Value_Ptr (Left).Value);
+--                when C_Short =>
+--                   if ULongLong_Value_Ptr (Right).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULongLong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (Short_Value_Ptr (Left).Value);
+--                   else
+--                      Result := null;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is unsigned long long and the other " &
+--                         "one is negative.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when C_ULong =>
+--                   Result := new ULongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     ULongLong_Value_Ptr (Right).Value or
+--                     Idl_ULongLong (ULong_Value_Ptr (Left).Value);
+--                when C_Long =>
+--                   if ULongLong_Value_Ptr (Right).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULongLong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (Long_Value_Ptr (Left).Value);
+--                   else
+--                      Result := null;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is unsigned long long and the other " &
+--                         "one is negative.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when C_ULongLong =>
+--                   Result := new ULongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
+--                   ULongLong_Value_Ptr (Result).Value :=
+--                     ULongLong_Value_Ptr (Right).Value or
+--                     ULongLong_Value_Ptr (Left).Value;
+--                when C_LongLong =>
+--                   if ULongLong_Value_Ptr (Right).Value <=
+--                     Idl_ULongLong (Idl_LongLong'Last) then
+--                      Result := new LongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_LongLong);
+--                      LongLong_Value_Ptr (Result).Value :=
+--                        Idl_LongLong (ULongLong_Value_Ptr (Right).Value) or
+--                        Idl_LongLong (LongLong_Value_Ptr (Left).Value);
+--                   else
+--                      Result := null;
+--                      Idl_Fe.Errors.Parser_Error
+--                        ("incompatible type between the two terms : the " &
+--                         "first one is unsigned long long and the other " &
+--                         "one is negative.",
+--                         Idl_Fe.Errors.Error,
+--                         Loc);
+--                      return;
+--                   end if;
+--                when others =>
+--                   raise Idl_Fe.Errors.Internal_Error;
+--             end case;
+--          when others =>
+--             raise Idl_Fe.Errors.Internal_Error;
+--       end case;
+--       --  if positive, then use unsigned types
+--       case Result.Const_Type.Kind is
+--          when C_Short =>
+--             if Short_Value_Ptr (Result).Value > 0 then
+--                declare
+--                   Value : Idl_Short;
+--                begin
+--                   Value := Short_Value_Ptr (Result).Value;
+--                   Free (Result.Const_Type);
+--                   Free (Short_Value_Ptr (Result));
+--                   Result := new UShort_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_UShort);
+--                   UShort_Value_Ptr (Result).Value := Idl_UShort (Value);
+--                end;
+--             end if;
+--          when C_Long =>
+--             if Long_Value_Ptr (Result).Value > 0 then
+--                declare
+--                   Value : Idl_Long;
+--                begin
+--                   Value := Long_Value_Ptr (Result).Value;
+--                   Free (Result.Const_Type);
+--                   Free (Long_Value_Ptr (Result));
+--                   Result := new ULong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULong);
+--                   ULong_Value_Ptr (Result).Value := Idl_ULong (Value);
+--                end;
+--             end if;
+--          when C_LongLong =>
+--             if LongLong_Value_Ptr (Result).Value > 0 then
+--                declare
+--                   Value : Idl_LongLong;
+--                begin
+--                   Value := LongLong_Value_Ptr (Result).Value;
+--                   Free (Result.Const_Type);
+--                   Free (LongLong_Value_Ptr (Result));
+--                   Result := new ULongLong_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_ULongLong);
+--                ULongLong_Value_Ptr (Result).Value := Idl_ULongLong (Value);
+--                end;
+--             end if;
+--          when C_ULong
+--            | C_UShort
+--            | C_ULongLong =>
+--             null;
+--          when others =>
+--             raise Idl_Fe.Errors.Internal_Error;
+--       end case;
+--    end Eval_Or_Expr;
 
-   ---------------------
-   --  Eval_Xor_Expr  --
-   ---------------------
-   procedure Eval_Xor_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Xor_Expr;
+--    ---------------------
+--    --  Eval_Xor_Expr  --
+--    ---------------------
+--    procedure Eval_Xor_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Xor_Expr;
 
-   ---------------------
-   --  Eval_And_Expr  --
-   ---------------------
-   procedure Eval_And_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_And_Expr;
+--    ---------------------
+--    --  Eval_And_Expr  --
+--    ---------------------
+--    procedure Eval_And_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_And_Expr;
 
-   ---------------------
-   --  Eval_Shr_Expr  --
-   ---------------------
-   procedure Eval_Shr_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Shr_Expr;
+--    ---------------------
+--    --  Eval_Shr_Expr  --
+--    ---------------------
+--    procedure Eval_Shr_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Shr_Expr;
 
-   ---------------------
-   --  Eval_Shl_Expr  --
-   ---------------------
-   procedure Eval_Shl_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Shl_Expr;
+--    ---------------------
+--    --  Eval_Shl_Expr  --
+--    ---------------------
+--    procedure Eval_Shl_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Shl_Expr;
 
-   ---------------------
-   --  Eval_Add_Expr  --
-   ---------------------
-   procedure Eval_Add_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Add_Expr;
+--    ---------------------
+--    --  Eval_Add_Expr  --
+--    ---------------------
+--    procedure Eval_Add_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Add_Expr;
 
-   ---------------------
-   --  Eval_Sub_Expr  --
-   ---------------------
-   procedure Eval_Sub_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Sub_Expr;
+--    ---------------------
+--    --  Eval_Sub_Expr  --
+--    ---------------------
+--    procedure Eval_Sub_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Sub_Expr;
 
-   ---------------------
-   --  Eval_Mul_Expr  --
-   ---------------------
-   procedure Eval_Mul_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Mul_Expr;
+--    ---------------------
+--    --  Eval_Mul_Expr  --
+--    ---------------------
+--    procedure Eval_Mul_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Mul_Expr;
 
-   ---------------------
-   --  Eval_Div_Expr  --
-   ---------------------
-   procedure Eval_Div_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Div_Expr;
+--    ---------------------
+--    --  Eval_Div_Expr  --
+--    ---------------------
+--    procedure Eval_Div_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Div_Expr;
 
-   ---------------------
-   --  Eval_Mod_Expr  --
-   ---------------------
-   procedure Eval_Mod_Expr (Left : in Value_Ptr;
-                            Right : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Mod_Expr;
+--    ---------------------
+--    --  Eval_Mod_Expr  --
+--    ---------------------
+--    procedure Eval_Mod_Expr (Left : in Value_Ptr;
+--                             Right : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Mod_Expr;
 
-   ---------------------
-   --  Eval_Neg_Expr  --
-   ---------------------
-   procedure Eval_Neg_Expr (Operand : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Neg_Expr;
+--    ---------------------
+--    --  Eval_Neg_Expr  --
+--    ---------------------
+--    procedure Eval_Neg_Expr (Operand : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Neg_Expr;
 
-   ---------------------
-   --  Eval_Not_Expr  --
-   ---------------------
-   procedure Eval_Not_Expr (Operand : in Value_Ptr;
-                            Result : out Value_Ptr;
-                            Loc : in Idl_Fe.Errors.Location) is
-   begin
-      Result := null;
-      return;
-   end Eval_Not_Expr;
+--    ---------------------
+--    --  Eval_Not_Expr  --
+--    ---------------------
+--    procedure Eval_Not_Expr (Operand : in Value_Ptr;
+--                             Result : out Value_Ptr;
+--                             Loc : in Idl_Fe.Errors.Location) is
+--    begin
+--       Result := null;
+--       return;
+--    end Eval_Not_Expr;
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_Short) return Idl_Short is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_Long) return Idl_Long is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_LongLong) return Idl_LongLong is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_UShort) return Idl_UShort is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_ULong) return Idl_ULong is
+--    begin
+--       return X;
+--    end "or";
+
+--    ----------
+--    --  or  --
+--    ----------
+--    function "or" (X, Y : Idl_ULongLong) return Idl_ULongLong is
+--    begin
+--       return X;
+--    end "or";
 
    ----------
    --  or  --
    ----------
-   function "or" (X, Y : Idl_Short) return Idl_Short is
-   begin
-      return X;
-   end "or";
-
-   ----------
-   --  or  --
-   ----------
-   function "or" (X, Y : Idl_Long) return Idl_Long is
-   begin
-      return X;
-   end "or";
-
-   ----------
-   --  or  --
-   ----------
-   function "or" (X, Y : Idl_LongLong) return Idl_LongLong is
-   begin
-      return X;
-   end "or";
-
-   ----------
-   --  or  --
-   ----------
-   function "or" (X, Y : Idl_UShort) return Idl_UShort is
-   begin
-      return X;
-   end "or";
-
-   ----------
-   --  or  --
-   ----------
-   function "or" (X, Y : Idl_ULong) return Idl_ULong is
-   begin
-      return X;
-   end "or";
-
-   ----------
-   --  or  --
-   ----------
-   function "or" (X, Y : Idl_ULongLong) return Idl_ULongLong is
+   function "or" (X, Y : Idl_Value) return Idl_Value is
    begin
       return X;
    end "or";
@@ -6628,7 +6463,11 @@ package body Idl_Fe.Parser is
    -------------------------
    procedure Go_To_End_Of_Case is
    begin
-      null;
+      --  FIXME : to be improved
+      while Get_Token /= T_Case and
+        Get_Token /= T_Default loop
+         Next_Token;
+      end loop;
    end Go_To_End_Of_Case;
 
    -------------------------------

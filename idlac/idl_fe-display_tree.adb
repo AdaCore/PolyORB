@@ -367,6 +367,10 @@ package body Idl_Fe.Display_Tree is
 --          when K_Lit_Char =>
 --             raise Errors.Internal_Error;
 
+         when K_Lit_Boolean =>
+            Put_Line ("boolean literal : " &
+                      Boolean'Image (N_Lit_Boolean (N).Value));
+
          when K_Lit_String =>
             Put_Line ("string literal : " &
                       Ada.Characters.Latin_1.Quotation &

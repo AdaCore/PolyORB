@@ -1,4 +1,4 @@
-with Idl_Fe.Errors;
+--  with Idl_Fe.Errors;
 
 package body Idl_Fe.Tree is
 
@@ -6,129 +6,129 @@ package body Idl_Fe.Tree is
    --  Management of const values  --
    ----------------------------------
 
-   ---------
-   --  <  --
-   ---------
-   function "<" (X, Y : Value_Ptr) return Boolean is
-   begin
-      case X.Const_Type.Kind is
-         when Types.C_Short =>
-            return Short_Value_Ptr (X).Value < Short_Value_Ptr (Y).Value;
-         when Types.C_Long =>
-            return Long_Value_Ptr (X).Value < Long_Value_Ptr (Y).Value;
-         when Types.C_LongLong =>
-            return LongLong_Value_Ptr (X).Value < LongLong_Value_Ptr (Y).Value;
-         when Types.C_UShort =>
-            return UShort_Value_Ptr (X).Value < UShort_Value_Ptr (Y).Value;
-         when Types.C_ULong =>
-            return ULong_Value_Ptr (X).Value < ULong_Value_Ptr (Y).Value;
-         when Types.C_ULongLong =>
-            return ULongLong_Value_Ptr (X).Value <
-              ULongLong_Value_Ptr (Y).Value;
-         when Types.C_Char =>
-            return Char_Value_Ptr (X).Value < Char_Value_Ptr (Y).Value;
-         when Types.C_WChar =>
-            return WChar_Value_Ptr (X).Value < WChar_Value_Ptr (Y).Value;
-         when Types.C_Boolean =>
-            return Boolean_Value_Ptr (X).Value < Boolean_Value_Ptr (Y).Value;
-         when Types.C_Enum =>
-            return Enum_Value_Ptr (X).Value < Enum_Value_Ptr (Y).Value;
-         when Types.C_Fixed =>
-            --  FIXME
-            return True;
---            return Fixed_Value_Ptr (X).Value < Fixed_Value_Ptr (Y).Value;
-         when others =>
-            raise Idl_Fe.Errors.Internal_Error;
-      end case;
-      --  Never reached
-      return True;
-   end "<";
+--    ---------
+--    --  <  --
+--    ---------
+--    function "<" (X, Y : Value_Ptr) return Boolean is
+--    begin
+--       case X.Const_Type.Kind is
+--          when Types.C_Short =>
+--             return Short_Value_Ptr (X).Value < Short_Value_Ptr (Y).Value;
+--          when Types.C_Long =>
+--             return Long_Value_Ptr (X).Value < Long_Value_Ptr (Y).Value;
+--          when Types.C_LongLong =>
+--          return LongLong_Value_Ptr (X).Value < LongLong_Value_Ptr (Y).Value;
+--          when Types.C_UShort =>
+--             return UShort_Value_Ptr (X).Value < UShort_Value_Ptr (Y).Value;
+--          when Types.C_ULong =>
+--             return ULong_Value_Ptr (X).Value < ULong_Value_Ptr (Y).Value;
+--          when Types.C_ULongLong =>
+--             return ULongLong_Value_Ptr (X).Value <
+--               ULongLong_Value_Ptr (Y).Value;
+--          when Types.C_Char =>
+--             return Char_Value_Ptr (X).Value < Char_Value_Ptr (Y).Value;
+--          when Types.C_WChar =>
+--             return WChar_Value_Ptr (X).Value < WChar_Value_Ptr (Y).Value;
+--          when Types.C_Boolean =>
+--          return Boolean_Value_Ptr (X).Value < Boolean_Value_Ptr (Y).Value;
+--          when Types.C_Enum =>
+--             return Enum_Value_Ptr (X).Value < Enum_Value_Ptr (Y).Value;
+--          when Types.C_Fixed =>
+--             --  FIXME
+--             return True;
+--  --        return Fixed_Value_Ptr (X).Value < Fixed_Value_Ptr (Y).Value;
+--          when others =>
+--             raise Idl_Fe.Errors.Internal_Error;
+--       end case;
+--       --  Never reached
+--       return True;
+--    end "<";
 
-   ---------
-   --  >  --
-   ---------
-   function ">" (X, Y : Value_Ptr) return Boolean is
-   begin
-      case X.Const_Type.Kind is
-         when Types.C_Short =>
-            return Short_Value_Ptr (X).Value > Short_Value_Ptr (Y).Value;
-         when Types.C_Long =>
-            return Long_Value_Ptr (X).Value > Long_Value_Ptr (Y).Value;
-         when Types.C_LongLong =>
-            return LongLong_Value_Ptr (X).Value > LongLong_Value_Ptr (Y).Value;
-         when Types.C_UShort =>
-            return UShort_Value_Ptr (X).Value > UShort_Value_Ptr (Y).Value;
-         when Types.C_ULong =>
-            return ULong_Value_Ptr (X).Value > ULong_Value_Ptr (Y).Value;
-         when Types.C_ULongLong =>
-            return ULongLong_Value_Ptr (X).Value >
-              ULongLong_Value_Ptr (Y).Value;
-         when Types.C_Char =>
-            return Char_Value_Ptr (X).Value > Char_Value_Ptr (Y).Value;
-         when Types.C_WChar =>
-            return WChar_Value_Ptr (X).Value > WChar_Value_Ptr (Y).Value;
-         when Types.C_Boolean =>
-            return Boolean_Value_Ptr (X).Value > Boolean_Value_Ptr (Y).Value;
-         when Types.C_Enum =>
-            return Enum_Value_Ptr (X).Value > Enum_Value_Ptr (Y).Value;
-         when Types.C_Fixed =>
-            --  FIXME
-            return True;
---            return Fixed_Value_Ptr (X).Value > Fixed_Value_Ptr (Y).Value;
-         when others =>
-            raise Idl_Fe.Errors.Internal_Error;
-      end case;
-      --  Never reached
-      return True;
-   end ">";
+--    ---------
+--    --  >  --
+--    ---------
+--    function ">" (X, Y : Value_Ptr) return Boolean is
+--    begin
+--       case X.Const_Type.Kind is
+--          when Types.C_Short =>
+--             return Short_Value_Ptr (X).Value > Short_Value_Ptr (Y).Value;
+--          when Types.C_Long =>
+--             return Long_Value_Ptr (X).Value > Long_Value_Ptr (Y).Value;
+--          when Types.C_LongLong =>
+--          return LongLong_Value_Ptr (X).Value > LongLong_Value_Ptr (Y).Value;
+--          when Types.C_UShort =>
+--             return UShort_Value_Ptr (X).Value > UShort_Value_Ptr (Y).Value;
+--          when Types.C_ULong =>
+--             return ULong_Value_Ptr (X).Value > ULong_Value_Ptr (Y).Value;
+--          when Types.C_ULongLong =>
+--             return ULongLong_Value_Ptr (X).Value >
+--               ULongLong_Value_Ptr (Y).Value;
+--          when Types.C_Char =>
+--             return Char_Value_Ptr (X).Value > Char_Value_Ptr (Y).Value;
+--          when Types.C_WChar =>
+--             return WChar_Value_Ptr (X).Value > WChar_Value_Ptr (Y).Value;
+--          when Types.C_Boolean =>
+--          return Boolean_Value_Ptr (X).Value > Boolean_Value_Ptr (Y).Value;
+--          when Types.C_Enum =>
+--             return Enum_Value_Ptr (X).Value > Enum_Value_Ptr (Y).Value;
+--          when Types.C_Fixed =>
+--             --  FIXME
+--             return True;
+--  --        return Fixed_Value_Ptr (X).Value > Fixed_Value_Ptr (Y).Value;
+--          when others =>
+--             raise Idl_Fe.Errors.Internal_Error;
+--       end case;
+--       --  Never reached
+--       return True;
+--    end ">";
 
-   ---------------
-   --  Is_Prec  --
-   ---------------
-   function Is_Prec (Prec, Next : Value_Ptr) return Boolean is
-   begin
-      case Prec.Const_Type.Kind is
-         when Types.C_Short =>
-            return Short_Value_Ptr (Prec).Value =
-              Idl_Short'Pred (Short_Value_Ptr (Next).Value);
-         when Types.C_Long =>
-            return Long_Value_Ptr (Prec).Value =
-              Idl_Long'Pred (Long_Value_Ptr (Next).Value);
-         when Types.C_LongLong =>
-            return LongLong_Value_Ptr (Prec).Value =
-              Idl_LongLong'Pred (LongLong_Value_Ptr (Next).Value);
-         when Types.C_UShort =>
-            return UShort_Value_Ptr (Prec).Value =
-              Idl_UShort'Pred (UShort_Value_Ptr (Next).Value);
-         when Types.C_ULong =>
-            return ULong_Value_Ptr (Prec).Value =
-              Idl_ULong'Pred (ULong_Value_Ptr (Next).Value);
-         when Types.C_ULongLong =>
-            return ULongLong_Value_Ptr (Prec).Value =
-              Idl_ULongLong'Pred (ULongLong_Value_Ptr (Next).Value);
-         when Types.C_Char =>
-            return Char_Value_Ptr (Prec).Value =
-              Idl_Char'Pred (Char_Value_Ptr (Next).Value);
-         when Types.C_WChar =>
-            return WChar_Value_Ptr (Prec).Value =
-              Idl_WChar'Pred (WChar_Value_Ptr (Next).Value);
-         when Types.C_Boolean =>
-            return Boolean_Value_Ptr (Prec).Value =
-              Idl_Boolean'Pred (Boolean_Value_Ptr (Next).Value);
-         when Types.C_Enum =>
-            return Enum_Value_Ptr (Prec).Value =
-              Idl_Enum'Pred (Enum_Value_Ptr (Next).Value);
-         when Types.C_Fixed =>
-            --  FIXME
-            return True;
---            return Fixed_Value_Ptr (Prec).Value =
---              Fixed_Value_Ptr (Next).Value'Pred;
-         when others =>
-            raise Idl_Fe.Errors.Internal_Error;
-      end case;
-      --  Never reached
-      return True;
-   end Is_Prec;
+--    ---------------
+--    --  Is_Prec  --
+--    ---------------
+--    function Is_Prec (Prec, Next : Value_Ptr) return Boolean is
+--    begin
+--       case Prec.Const_Type.Kind is
+--          when Types.C_Short =>
+--             return Short_Value_Ptr (Prec).Value =
+--               Idl_Short'Pred (Short_Value_Ptr (Next).Value);
+--          when Types.C_Long =>
+--             return Long_Value_Ptr (Prec).Value =
+--               Idl_Long'Pred (Long_Value_Ptr (Next).Value);
+--          when Types.C_LongLong =>
+--             return LongLong_Value_Ptr (Prec).Value =
+--               Idl_LongLong'Pred (LongLong_Value_Ptr (Next).Value);
+--          when Types.C_UShort =>
+--             return UShort_Value_Ptr (Prec).Value =
+--               Idl_UShort'Pred (UShort_Value_Ptr (Next).Value);
+--          when Types.C_ULong =>
+--             return ULong_Value_Ptr (Prec).Value =
+--               Idl_ULong'Pred (ULong_Value_Ptr (Next).Value);
+--          when Types.C_ULongLong =>
+--             return ULongLong_Value_Ptr (Prec).Value =
+--               Idl_ULongLong'Pred (ULongLong_Value_Ptr (Next).Value);
+--          when Types.C_Char =>
+--             return Char_Value_Ptr (Prec).Value =
+--               Idl_Char'Pred (Char_Value_Ptr (Next).Value);
+--          when Types.C_WChar =>
+--             return WChar_Value_Ptr (Prec).Value =
+--               Idl_WChar'Pred (WChar_Value_Ptr (Next).Value);
+--          when Types.C_Boolean =>
+--             return Boolean_Value_Ptr (Prec).Value =
+--               Idl_Boolean'Pred (Boolean_Value_Ptr (Next).Value);
+--          when Types.C_Enum =>
+--             return Enum_Value_Ptr (Prec).Value =
+--               Idl_Enum'Pred (Enum_Value_Ptr (Next).Value);
+--          when Types.C_Fixed =>
+--             --  FIXME
+--             return True;
+--   --       return Fixed_Value_Ptr (Prec).Value =
+--   --         Fixed_Value_Ptr (Next).Value'Pred;
+--          when others =>
+--             raise Idl_Fe.Errors.Internal_Error;
+--       end case;
+--       --  Never reached
+--       return True;
+--    end Is_Prec;
 
 
 
@@ -566,6 +566,14 @@ package body Idl_Fe.Tree is
    function Get_Kind (N : N_Lit_String) return Types.Node_Kind is
    begin
       return Types.K_Lit_String;
+   end Get_Kind;
+
+   ----------------
+   --  Get_Kind  --
+   ----------------
+   function Get_Kind (N : N_Lit_Boolean) return Types.Node_Kind is
+   begin
+      return Types.K_Lit_Boolean;
    end Get_Kind;
 
    ----------------
