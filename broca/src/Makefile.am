@@ -14,6 +14,7 @@ ADA_FULL = \
            broca-ior.ads \
            broca-locks.ads \
            broca-cdr.ads \
+	   broca-cdr-refs.ads \
            broca-object.ads \
            broca-orb.ads \
            broca-poa.ads \

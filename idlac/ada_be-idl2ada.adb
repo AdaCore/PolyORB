@@ -2643,10 +2643,13 @@ package body Ada_Be.Idl2Ada is
            K_Long_Double        |
            K_String             |
            K_Wide_String        |
-           K_Octet              |
-           K_Object             =>
+           K_Octet              =>
 
             Add_With (CU, "Broca.CDR",
+                      Use_It => True);
+
+           when K_Object             =>
+            Add_With (CU, "Broca.CDR.Refs",
                       Use_It => True);
 
          when others =>

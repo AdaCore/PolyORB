@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
-with CORBA.Object;
 with Broca.Buffers;
 use Broca.Buffers;
 
@@ -141,16 +140,6 @@ package Broca.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.String;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access CORBA.Object.Ref);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Object.Ref);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Object.Ref;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
