@@ -52,11 +52,11 @@ SUFFIXES = .adb .ads .lo .ali
 
 .adb.lo:
 	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile --tag=CXX $(ADACOMPILER) -c $(ADAFLAGS) $<
+	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 .ads.lo:
 	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile --tag=CXX $(ADACOMPILER) -c $(ADAFLAGS) $<
+	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)

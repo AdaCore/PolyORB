@@ -62,11 +62,11 @@ polyorb-http_headers.adb: $(GEN_HTTP_BODY) $(srcdir)/polyorb-http_headers.ads
 
 .adb.lo:
 	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile --tag=CXX $(ADACOMPILER) -c $(ADAFLAGS) $<
+	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 .ads.lo:
 	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) --mode=compile --tag=CXX $(ADACOMPILER) -c $(ADAFLAGS) $<
+	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
