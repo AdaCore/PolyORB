@@ -49,7 +49,6 @@ with Interfaces.CPP ;
 with Interfaces.C.Strings ;
 with System ;
 
-with OmniObject ;
 with Corba ;
 
 package Omni is

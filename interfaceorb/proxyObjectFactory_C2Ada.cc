@@ -1,26 +1,63 @@
-////////////////////////////////////////////////////////////////////////////
-////                                                                    ////
-////                      AdaBroker                                     ////
-////                                                                    ////
-////    This class is a descendant of proxyObjectFactory                ////
-////    it is the same proxyObjectFactory that is used to               ////
-////    create all Ada objects. The only difference is                  ////
-////    a field which stores the repoID                                 ////
-////                                                                    ////
-////                Date : 03/03/99                                     ////
-////                                                                    ////
-////                authors : Sebastien Ponce, Fabien Azavant           ////
-////                                                                    ////
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+////                                                               ////
+////                         AdaBroker                             ////
+////                                                               ////
+////                 class proxyObjectFactory_C2Ada                ////
+////                                                               ////
+////                                                               ////
+////   Copyright (C) 1999 ENST                                     ////
+////                                                               ////
+////   This file is part of the AdaBroker library                  ////
+////                                                               ////
+////   The AdaBroker library is free software; you can             ////
+////   redistribute it and/or modify it under the terms of the     ////
+////   GNU Library General Public License as published by the      ////
+////   Free Software Foundation; either version 2 of the License,  ////
+////   or (at your option) any later version.                      ////
+////                                                               ////
+////   This library is distributed in the hope that it will be     ////
+////   useful, but WITHOUT ANY WARRANTY; without even the implied  ////
+////   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ////
+////   PURPOSE.  See the GNU Library General Public License for    ////
+////   more details.                                               ////
+////                                                               ////
+////   You should have received a copy of the GNU Library General  ////
+////   Public License along with this library; if not, write to    ////
+////   the Free Software Foundation, Inc., 59 Temple Place -       ////
+////   Suite 330, Boston, MA 02111-1307, USA                       ////
+////                                                               ////
+////                                                               ////
+////                                                               ////
+////   Description                                                 ////
+////   -----------                                                 ////
+////    This class is a descendant of proxyObjectFactory           ////
+////    it is the same proxyObjectFactory that is used to          ////
+////    create all Ada objects. The only difference is             ////
+////    a field which stores the repoID                            ////
+////                                                               ////
+////                                                               ////
+////   authors : Sebastien Ponce, Fabien Azavant                   ////
+////   date    : 02/28/99                                          ////
+////                                                               ////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
 
 #include "proxyObjectFactory_C2Ada.hh"
 #include "omniObject_C2Ada.hh"
 
+
+// irRepoID
+//---------
 const char*
 proxyObjectFactory_C2Ada::irRepoId() const { 
   return pd_repoID ;
 }
 
+
+// newProxyObject
+//---------------
 CORBA::Object_ptr
 proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
 					 CORBA::Octet *key,
@@ -45,12 +82,16 @@ proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
 }
 
 
+// is_a
+//-----
 CORBA::Boolean
 proxyObjectFactory_C2Ada::is_a(const char *base_repoId) const { 
   return (!strcmp(base_repoId, pd_repoID)) ;
 }
 
 
+// createProxyObjectFactory
+//-------------------------
 void createProxyObjectFactory(const char* repoID) {
   proxyObjectFactory_C2Ada *p = new proxyObjectFactory_C2Ada(repoID) ;
   // no memory leak
