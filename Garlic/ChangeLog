@@ -1,5 +1,7 @@
 Tue Oct 29 12:58:51 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-garthi.ads: Removed dependency on System.Garlic.Constants.
+
 	* Makefile.am: Added s-gaosli.*.
 
 	* s-gaosli.ads: New file with Getenv.

@@ -35,7 +35,6 @@
 
 
 with Interfaces.C.Strings;
-with System.Garlic.Constants;
 with System.Garlic.Pointers;
 
 package System.Garlic.Thin is
@@ -101,7 +100,7 @@ package System.Garlic.Thin is
    --  Access to socket address.
 
    type Sockaddr_In is record
-      Sin_Family : C.Unsigned_Short      := Constants.AF_INET;
+      Sin_Family : C.Unsigned_Short;
       Sin_Port   : C.Unsigned_Short      := 0;
       Sin_Addr   : In_Addr               := Inaddr_Any;
       Sin_Zero   : C.Char_Array (1 .. 8) := (others => C.Char'Val (0));
