@@ -58,6 +58,8 @@ IDLAC= ../../idlac/idlac
 
 if ENABLE_IR
 all-local: server client print
+else
+all-local:
 endif
 
 ${DEP}: ir.idl ${IDLAC}
