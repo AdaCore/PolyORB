@@ -270,7 +270,7 @@ package body System.Garlic.TCP is
       when E : others =>
          pragma Warnings (Off, E);
          pragma Debug (D ("Accept Handler: " & Exception_Information (E)));
-         raise;
+         null;
    end Accept_Handler;
 
    ------------------------

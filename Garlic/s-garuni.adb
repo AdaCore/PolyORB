@@ -176,6 +176,7 @@ package body System.Garlic.Units is
      (Unit : in Unit_Id;
       Info : in Unit_Info);
 
+   function Dump_Request_List (L : Request_List) return String;
    procedure Get_Unit_Info
      (Unit  : in Unit_Id;
       Info  : out Unit_Info;
@@ -295,6 +296,21 @@ package body System.Garlic.Units is
          raise;
    end Answer_Pending_Requests;
 
+   -----------------------
+   -- Dump_Request_List --
+   -----------------------
+
+   function Dump_Request_List (L : Request_List) return String
+   is
+      Info : Request_Info;
+   begin
+      if L /= Null_Request_List then
+         Info := Requests.Get_Component (L);
+         return Info.PID'Img & Dump_Request_List (Info.Next);
+      end if;
+      return "";
+   end Dump_Request_List;
+
    --------------------
    -- Dump_Unit_Info --
    --------------------
@@ -303,18 +319,6 @@ package body System.Garlic.Units is
      (Unit : in Unit_Id;
       Info : in Unit_Info)
    is
-      function Request_List_Image (L : Request_List) return String;
-      function Request_List_Image (L : Request_List) return String
-      is
-         Info : Request_Info;
-      begin
-         if L /= Null_Request_List then
-            Info := Requests.Get_Component (L);
-            return Info.PID'Img & Request_List_Image (Info.Next);
-         end if;
-         return "";
-      end Request_List_Image;
-
    begin
       D ("* Unit " & Units.Get_Name (Unit));
       D ("   Partition    "  & Info.Partition'Img);
@@ -325,7 +329,7 @@ package body System.Garlic.Units is
          D ("   Version       <no version>");
       end if;
       if Info.Requests /= Null_Request_List then
-         D ("   Requests     " & Request_List_Image (Info.Requests));
+         D ("   Requests     " & Dump_Request_List (Info.Requests));
       end if;
       D ("   Status        " & Info.Status'Img);
       D ("   Next Unit    " & Info.Next_Unit'Img);
@@ -856,6 +860,8 @@ package body System.Garlic.Units is
          end loop;
       end loop;
 
+      pragma Debug (D ("Requests from" & Dump_Request_List (List) &
+                       " can be answered"));
       pragma Debug (Dump_Unit_Table);
    exception
       when Error : others =>
@@ -1029,7 +1035,7 @@ package body System.Garlic.Units is
       if Current_Status = Invalid and then Status = Declared then
 
          --  Check reconnection policy and exit when the unit must be
-         --  rejected on restart.
+         --  configured on a partition with Rejected_On_Restart policy.
 
          pragma Debug (D ("Checking renewed unit " & Units.Get_Name (Unit)));
 
@@ -1057,12 +1063,12 @@ package body System.Garlic.Units is
                   or else Current_Status = Invalid
                   or else Current_Status = Queried)
       then
-         --  A unit may have an Undefined status once its partition has
+         --  A unit may have an UNDEFINED status once its partition has
          --  been invalidated. This comes from a partition reconnection
          --  mode set to Blocked_Until_Restart. But Status is supposed to
-         --  evolve as follow: Undefined -> Queried -> Defined ->
-         --  Invalid. With the reconnection mode above, the status evolves
-         --  from Defined to Undefined. To set its status back to Defined,
+         --  evolve as follow: UNDEFINED -> QUERIED -> DEFINED ->
+         --  INVALID. With the reconnection mode above, the status evolves
+         --  from Defined to Undefined. To set its status back to DEFINED,
          --  the partition id has to be different. Note that we have to
          --  remove the current unit from the previous partition units
          --  list.
@@ -1095,12 +1101,12 @@ package body System.Garlic.Units is
 
 
       --  When Current_Info.Status and Status are both set to
-      --  Declared, we have to resolve a conflict.  We discard the
+      --  DECLARED, we have to resolve a conflict.  We discard the
       --  unit declared by the partition of greater partition id. If
       --  the unit is declared by a partition whose boot partition is
       --  the current partition, then the token has performed a full
-      --  pass and the unit status is no longer Declared but
-      --  Defined. That means it has been accepted by all the boot
+      --  pass and the unit status is no longer DECLARED but
+      --  DEFINED. That means it has been accepted by all the boot
       --  mirrors. As the status of this unit has been modified, we
       --  need to send a new copy of the table to the other boot
       --  mirrors.  For this purpose, Pending (Self_PID) is set to
@@ -1173,8 +1179,14 @@ package body System.Garlic.Units is
          if Current_Info.Requests /= Null_Request_List then
             pragma Debug (D ("Dequeuing pending requests for unit " &
                              Units.Get_Name (Unit)));
-            Pending := Current_Info.Requests;
-            Current_Info.Requests := Null_Request_List;
+            declare
+               PID : Partition_ID;
+            begin
+               while Current_Info.Requests /= Null_Request_List loop
+                  Extract (Current_Info.Requests, PID);
+                  Insert  (Pending, PID);
+               end loop;
+            end;
          end if;
       end if;
 

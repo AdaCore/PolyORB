@@ -421,6 +421,7 @@ package body System.Garlic.Partitions is
    is
       Current : Partition_Info;
       Version : Version_Id;
+      Query   : aliased Params_Stream_Type (0);
 
       --  Get a consistent content of PID slot. If info is not available,
       --  then send a request to boot partition and wait until partition
@@ -449,19 +450,18 @@ package body System.Garlic.Partitions is
             Partitions.Set_Component (Partition, Current);
 
             if Boot_PID /= Self_PID then
-               declare
-                  Query : aliased Params_Stream_Type (0);
-               begin
-                  Request_Type'Output (Query'Access, Pull_Table);
-                  Send_Boot_Server (Partition_Operation, Query'Access, Error);
-               end;
+               Request_Type'Output (Query'Access, Pull_Table);
             end if;
          end if;
 
          Partitions.Leave (Version);
-         if Found (Error) or else Current.Status = Done then
-            exit;
+
+         if not Empty (Query'Access) then
+            Send_Boot_Server (Partition_Operation, Query'Access, Error);
          end if;
+
+         exit when Found (Error) or else Current.Status = Done;
+
          Partitions.Differ (Version);
       end loop;
 
@@ -943,7 +943,7 @@ package body System.Garlic.Partitions is
          end if;
       end loop;
 
-      raise Program_Error;
+      pragma Assert (False);
    end Next_Boot_Mirror;
 
    --------------------

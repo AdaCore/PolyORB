@@ -1,3 +1,16 @@
+1999-07-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garhea.adb: When we send a message is sent to boot server,
+	retry only when the boot server partition id has changed.
+
+	* s-garpar.adb: (Get_Partition_Info) Send request on a partition
+	outside the mutex. (Next_Boot_Mirror) Do not raise Program_Error,
+	add an assertion failure.
+
+	* s-garuni.adb: Add new function Dump_Request_List.
+ 	(Store_New_Unit) Do not replace pending request list, but merge
+	the existing one with the new one.
+ 
 1999-07-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuni.adb: Iterator missing in Insert.

@@ -604,6 +604,7 @@ package body System.Garlic.Heart is
       Error  : out Error_Type)
    is
       Params_Copy : Params_Stream_Type (Params.Initial_Size);
+      Boot_Server : Partition_ID := Boot_PID;
    begin
       --  Preserve Params because we may have to send it several times
 
@@ -614,7 +615,13 @@ package body System.Garlic.Heart is
 
       while not Shutdown_In_Progress loop
          Send (Boot_PID, Opcode, Params, Error);
-         exit when not Found (Error);
+
+         --  Exit when the message has been sent correctly. When an
+         --  error has occurred, exit when the boot server has not
+         --  changed after its invalidation.
+
+         exit when not Found (Error)
+           or else Boot_PID = Boot_Server;
 
          --  Since there was an error, copy back Params_Copy into Params,
          --  after removing the junk that may still be in Params.
