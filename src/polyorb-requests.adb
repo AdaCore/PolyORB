@@ -52,21 +52,6 @@ package body PolyORB.Requests is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   -----------------------------
-   -- Shift function fo flags --
-   -----------------------------
-
-   function Shift_Left
-     (Value : Flags;
-      N     : Natural)
-     return Flags
-   is
-      Result : constant Types.Unsigned_Long
-        := Types.Shift_Left (Types.Unsigned_Long (Value), N);
-   begin
-      return Flags (Result);
-   end Shift_Left;
-
    --------------------
    -- Create_Request --
    --------------------

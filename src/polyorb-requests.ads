@@ -224,12 +224,6 @@ package PolyORB.Requests is
 
 private
 
-   function Shift_Left
-     (Value : Flags;
-      N     : Natural)
-     return Flags;
-   pragma Inline (Shift_Left);
-
    Sync_None           : constant Flags := 1;
    Sync_With_Transport : constant Flags := 2;
    Sync_With_Server    : constant Flags := 4;
