@@ -1,5 +1,6 @@
+import idl.*;
 
-public class Alltypes extends all_typesPOA
+public class Alltypes extends idl.all_typesPOA
 {
     public boolean echoBoolean(boolean arg)
     {
@@ -51,7 +52,7 @@ public class Alltypes extends all_typesPOA
 	return arg;
     }
 
-    public all_types echoRef(all_types arg)
+    public idl.all_types echoRef(idl.all_types arg)
     {
 	return arg;
     }
@@ -61,15 +62,15 @@ public class Alltypes extends all_typesPOA
 	return arg;
     }
 
-    public all_typesPackage.Color echoColor(all_typesPackage.Color arg)
+    public idl.all_typesPackage.Color echoColor(idl.all_typesPackage.Color arg)
     {
 	return arg;
     }
 
     public void testException(int arg)
-        throws all_typesPackage.my_exception
+        throws idl.all_typesPackage.my_exception
     {
-	throw new all_typesPackage.my_exception(arg);
+	throw new idl.all_typesPackage.my_exception(arg);
     }
 
     public void testUnknownException(int arg)
@@ -79,12 +80,12 @@ public class Alltypes extends all_typesPOA
 	int k = i/j;
     }
 
-    public all_typesPackage.myUnion echoUnion(all_typesPackage.myUnion arg)
+    public idl.all_typesPackage.myUnion echoUnion(idl.all_typesPackage.myUnion arg)
     {
 	return arg;
     }
 
-    public all_typesPackage.myUnionEnumSwitch echoUnionEnumSwitch(all_typesPackage.myUnionEnumSwitch arg)
+    public idl.all_typesPackage.myUnionEnumSwitch echoUnionEnumSwitch(idl.all_typesPackage.myUnionEnumSwitch arg)
     {
 	return arg;
     }
@@ -104,17 +105,17 @@ public class Alltypes extends all_typesPOA
 	return arg;
     }
 
-    public all_typesPackage.simple_struct echoStruct(all_typesPackage.simple_struct arg)
+    public idl.all_typesPackage.simple_struct echoStruct(idl.all_typesPackage.simple_struct arg)
     {
 	return arg;
     }
 
-    public all_typesPackage.array_struct echoArrayStruct(all_typesPackage.array_struct arg)
+    public idl.all_typesPackage.array_struct echoArrayStruct(idl.all_typesPackage.array_struct arg)
     {
 	return arg;
     }
 
-    public all_typesPackage.nested_struct echoNestedStruct(all_typesPackage.nested_struct arg)
+    public idl.all_typesPackage.nested_struct echoNestedStruct(idl.all_typesPackage.nested_struct arg)
     {
 	return arg;
     }
@@ -141,14 +142,14 @@ public class Alltypes extends all_typesPOA
 	return global_counter ++;
     }
 
-    all_typesPackage.Color global_color;
+    idl.all_typesPackage.Color global_color;
 
-    public all_typesPackage.Color myColor()
+    public idl.all_typesPackage.Color myColor()
     {
 	return global_color;
     }
 
-    public void myColor(all_typesPackage.Color value)
+    public void myColor(idl.all_typesPackage.Color value)
     {
 	global_color = value;
     }

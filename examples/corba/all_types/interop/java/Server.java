@@ -1,5 +1,7 @@
 // Java All Types static server, cf all_types.idl for more details    
 
+import idl.*;
+
 public class Server
 {
     public static void main( String args[] )
