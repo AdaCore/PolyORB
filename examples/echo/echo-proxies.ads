@@ -9,17 +9,21 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Corba ;
 with Giop_C ;
 with Omniproxycalldesc ;
 
 package Echo.Proxies is
 
 
-   type EchoString_Proxy is new OmniProxyCallDesc.Object(10) with private ;
+   --------------------------------------------------
+   ----        function EchoString               ----
+   --------------------------------------------------
 
-   function Create(Operation : Standard.String ;
-                   Arg : Corba.String ) return EchoString_Proxy ;
+   type EchoString_Proxy is new OmniProxyCallDesc.Object with private ;
+
+   function Create(Arg : Corba.String ) return EchoString_Proxy ;
+
+   procedure Free(Self : in out EchoString_Proxy) ;
 
    function Aligned_Size(Self: in EchoString_Proxy ;
                          Size_In: in Corba.Unsigned_Long)
@@ -37,9 +41,7 @@ package Echo.Proxies is
 
 private
 
-   -- Beware : fields of this record are dinamically allocated
-   -- they must be released
-   type EchoString_Proxy is new OmniProxyCallDesc.Object(10) with record
+   type EchoString_Proxy is new OmniProxyCallDesc.Object with record
       Arg_Msg : Corba.String_Ptr := null ;
       Private_Result : Corba.String_Ptr := null ;
    end record ;

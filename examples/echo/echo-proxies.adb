@@ -11,30 +11,37 @@
 
 with Ada.Characters.Latin_1 ;
 
-with Omni ;
-
 with Corba ;
 use type Corba.Unsigned_Long ;
 
-package body Echo.Proxies is
+with Omni ;
 
+
+package body Echo.Proxies is
 
    -- Create
    ---------
-   function Create(Operation : Standard.String ;
-                   Arg : Corba.String ) return EchoString_Proxy is
+   function Create(Arg : Corba.String) return EchoString_Proxy is
       Result : EchoString_Proxy ;
    begin
-      Init(Result, Operation) ;
+      Init(Result) ;
       Result.Arg_Msg := new Corba.String'(Arg) ;
       return Result ;
+   end ;
+
+   -- Free
+   ----------
+   procedure Free(Self : in out EchoString_Proxy) is
+   begin
+      Corba.Free(Self.Arg_Msg) ;
+      Corba.Free(Self.Private_Result) ;
    end ;
 
    -- Aligned_Size
    --------------
    function Aligned_Size(Self: in EchoString_Proxy;
-                        Size_In: in Corba.Unsigned_Long)
-                        return Corba.Unsigned_Long is
+                         Size_In: in Corba.Unsigned_Long)
+                         return Corba.Unsigned_Long is
       Msg_Size : Corba.Unsigned_Long ;
    begin
       Msg_Size := Omni.Align_To(Size_In,Omni.ALIGN_4)

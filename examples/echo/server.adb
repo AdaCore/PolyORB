@@ -29,7 +29,6 @@ begin
    -- getting this object's IOR
    Text_IO.Put_Line(Corba.To_Standard_String(Corba.Orb.Object_To_String(Server))) ;
 
-
    -- telling the BOA we are ready
    -- the BOA blocks indefinitely on this call
    Corba.Boa.Impl_Is_Ready(server) ;

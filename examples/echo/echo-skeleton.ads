@@ -3,28 +3,28 @@
 ----     This in an example which is hand-written                       ----
 ----     for the echo object                                            ----
 ----                                                                    ----
-----                package echo_impl                                   ----
+----                package echo_skeletons                              ----
 ----                                                                    ----
 ----                authors : Fabien Azavant, Sebastien Ponce           ----
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
+with Omniorb ;
+with Giop_S ;
 
-package body Echo.impl is
+with Echo.Impl ;
 
-
-   -- EchoString
-   -------------
-   function EchoString(Self : access Object;
-                       Message : in Corba.String) return Corba.String is
-      Result : Corba.String := Message ;
-   begin
-      return Result ;
-   end ;
+package Echo.Skeleton is
 
 
+   procedure Adabroker_Init (Self : in out Echo.Impl.Object ;
+                             K : in OmniORB.ObjectKey) ;
 
-End Echo.Impl ;
+   procedure AdaBroker_Dispatch (Self : in out Echo.Impl.Object ;
+                                Orls : in Giop_S.Object ;
+                                Orl_Op : in Corba.String ;
+                                Orl_Response_Expected : in Corba.Boolean ;
+                                Returns : out Corba.Boolean ) ;
 
 
-
+end Echo.Skeleton ;
