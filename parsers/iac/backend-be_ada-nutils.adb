@@ -388,6 +388,52 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Assignment_Statement;
 
+   ---------------------
+   -- Make_Case_Label --
+   ---------------------
+
+   function Make_Case_Label (Value : Value_Id) return Node_Id is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Case_Label);
+      Set_Value (N, Value);
+      return N;
+   end Make_Case_Label;
+
+   -------------------------
+   -- Make_Case_Statement --
+   -------------------------
+
+   function Make_Case_Statement
+     (Expression                  : Node_Id;
+      Case_Statement_Alternatives : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Case_Statement);
+      Set_Expression (N, Expression);
+      Set_Case_Statement_Alternatives (N, Case_Statement_Alternatives);
+      return N;
+   end Make_Case_Statement;
+
+   -------------------------------------
+   -- Make_Case_Statement_Alternative --
+   -------------------------------------
+
+   function Make_Case_Statement_Alternative
+     (Discret_Choice_List : List_Id;
+      Statements          : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Case_Statement_Alternative);
+      Set_Discret_Choice_List (N, Discret_Choice_List);
+      Set_Statements (N, Statements);
+      return N;
+   end Make_Case_Statement_Alternative;
+
    --------------------------------
    -- Make_Component_Association --
    --------------------------------

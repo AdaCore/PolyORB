@@ -164,8 +164,23 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface For_Statement : Definition {
-    Node_Id      Range_Constraint; 
-    List_Id      Statements; 
+    Node_Id    Range_Constraint; 
+    List_Id    Statements; 
+  };
+
+  interface Case_Statement_Alternative : Node_Id {
+    List_Id    Discret_Choice_List; 
+    List_Id    Statements; 
+  };
+
+  interface Case_Statement : Node_Id {
+    Node_Id    Expression; 
+    List_Id    Case_Statement_Alternatives; 
+  };
+
+  interface Case_Label : Node_Id {
+    Node_Id    Expression; 
+    Value_Id   Value; 
   };
 
   /***************/

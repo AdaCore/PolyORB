@@ -1,4 +1,5 @@
 with Namet;     use Namet;
+with Values;     use Values;
 
 with Frontend.Nodes;   use Frontend.Nodes;
 
@@ -438,10 +439,30 @@ package body Backend.BE_Ada.Helpers is
          Spec        : Node_Id;
          D           : constant List_Id := New_List (K_List_Id);
          S           : constant List_Id := New_List (K_List_Id);
-      begin
-         Spec := Helper_Node (BE_Node (Identifier (E)));
-         Spec := Next_Node (Spec);  --  Second in the list of helpers
-         if Kind (E) = K_Interface_Declaration then
+         function Complex_Declarator_Body (E : Node_Id) return Node_Id;
+         function Interface_Declaration_Body (E : Node_Id) return Node_Id;
+         function Simple_Declarator_Body (E : Node_Id) return Node_Id;
+         function Structure_Type_Body (E : Node_Id) return Node_Id;
+         function Union_Type_Body (E : Node_Id) return Node_Id;
+
+         -----------------------------
+         -- Complex_Declarator_Body --
+         -----------------------------
+
+         function Complex_Declarator_Body (E : Node_Id) return Node_Id is
+            pragma Unreferenced (E);
+         begin
+            return No_Node;
+         end Complex_Declarator_Body;
+
+         --------------------------------
+         -- Interface_Declaration_Body --
+         --------------------------------
+
+         function Interface_Declaration_Body (E : Node_Id) return Node_Id is
+         begin
+            Spec := Helper_Node (BE_Node (Identifier (E)));
+            Spec := Next_Node (Spec);  --  Second in the list of helpers
             Spec := Next_Node (Next_Node (Spec));
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (SN (S_To_Ref)),
@@ -451,12 +472,65 @@ package body Backend.BE_Ada.Helpers is
                  Make_List_Id (Make_Defining_Identifier (PN (P_Item))))));
             N := Make_Return_Statement (N);
             Append_Node_To_List (N, S);
-         else
-            null;
-         end if;
-         N := Make_Subprogram_Implementation
-           (Spec, D, S);
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
+         end Interface_Declaration_Body;
+
+         ----------------------------
+         -- Simple_Declarator_Body --
+         ----------------------------
+
+         function Simple_Declarator_Body (E : Node_Id) return Node_Id is
+            pragma Unreferenced (E);
+         begin
+            return No_Node;
+         end Simple_Declarator_Body;
+
+         -------------------------
+         -- Structure_Type_Body --
+         -------------------------
+
+         function Structure_Type_Body (E : Node_Id) return Node_Id is
+            pragma Unreferenced (E);
+         begin
+            return No_Node;
+         end Structure_Type_Body;
+
+         ----------------
+         -- Union_Body --
+         ----------------
+
+         function Union_Type_Body (E : Node_Id) return Node_Id is
+            pragma Unreferenced (E);
+         begin
+            return No_Node;
+         end Union_Type_Body;
+
+      begin
+         case FEN.Kind (E) is
+            when K_Complex_Declarator =>
+               N := Complex_Declarator_Body (E);
+
+            when K_Enumeration_Type =>
+               N := No_Node;
+
+            when K_Interface_Declaration =>
+               N := Interface_Declaration_Body (E);
+
+            when K_Simple_Declarator =>
+               N := Simple_Declarator_Body (E);
+
+            when K_Structure_Type =>
+               N := Structure_Type_Body (E);
+
+            when K_Union_Type =>
+               N := Union_Type_Body (E);
+            when others =>
+               raise Program_Error;
+         end case;
          return N;
+
       end From_Any_Body;
 
       -----------------
@@ -474,6 +548,7 @@ package body Backend.BE_Ada.Helpers is
          M           : Node_Id;
          Helper_Name : Name_Id;
          function Complex_Declarator_Body (E : Node_Id) return Node_Id;
+         function Enumeration_Type_Body (E : Node_Id) return Node_Id;
          function Interface_Declaration_Body (E : Node_Id) return Node_Id;
          function Simple_Declarator_Body (E : Node_Id) return Node_Id;
          function Structure_Type_Body (E : Node_Id) return Node_Id;
@@ -547,6 +622,49 @@ package body Backend.BE_Ada.Helpers is
               (Spec, D, S);
             return N;
          end Complex_Declarator_Body;
+
+         ---------------------------
+         -- Enumeration_Type_Body --
+         ---------------------------
+
+         function Enumeration_Type_Body (E : Node_Id) return Node_Id is
+         begin
+            Spec := Helper_Node (BE_Node (Identifier (E)));
+            Spec := Next_Node (Next_Node (Spec));
+            N := RE (RE_Get_Empty_Any_Aggregate);
+            Helper_Name := BEN.Name
+              (Defining_Identifier (Helper_Node (BE_Node (Identifier (E)))));
+            N := Make_Subprogram_Call
+              (N,
+               Make_List_Id (Make_Defining_Identifier (Helper_Name)));
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Result)),
+               Object_Definition => RE (RE_Any),
+               Expression => N);
+            Append_Node_To_List (N, D);
+
+            N := Make_Subprogram_Call
+              (Make_Type_Attribute (Map_Designator (E), A_Pos),
+               Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
+            N := Make_Subprogram_Call
+              (RE (Convert (K_Unsigned_Long)),
+               Make_List_Id (N));
+            N := Make_Subprogram_Call
+              (RE (RE_Any),
+               Make_List_Id (N));
+            N := Make_Subprogram_Call
+              (RE (RE_Add_Aggregate_Element),
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Result)), N));
+            Append_Node_To_List (N, S);
+            N := Make_Return_Statement
+              (Make_Defining_Identifier (PN (P_Result)));
+            Append_Node_To_List (N, S);
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
+         end Enumeration_Type_Body;
 
          --------------------------------
          -- Interface_Declaration_Body --
@@ -632,9 +750,43 @@ package body Backend.BE_Ada.Helpers is
          -------------------------
 
          function Structure_Type_Body (E : Node_Id) return Node_Id is
-            pragma Unreferenced (E);
+            Member      : Node_Id;
+            Declarator  : Node_Id;
          begin
-            return No_Node;
+            Spec := Helper_Node (BE_Node (Identifier (E)));
+            Spec := Next_Node (Next_Node (Spec));
+            N := RE (RE_Get_Empty_Any_Aggregate);
+            Helper_Name := BEN.Name
+              (Defining_Identifier (Helper_Node (BE_Node (Identifier (E)))));
+            N := Make_Subprogram_Call
+              (N,
+               Make_List_Id (Make_Defining_Identifier (Helper_Name)));
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Result)),
+               Object_Definition => RE (RE_Any),
+               Expression => N);
+            Append_Node_To_List (N, D);
+            Member := First_Entity (Members (E));
+            while Present (Member) loop
+               Declarator := First_Entity (Declarators (Member));
+               while Present (Declarator) loop
+                  N := Make_Subprogram_Call
+                    (RE (RE_Any),
+                     Make_List_Id (Map_Designator (Declarator)));
+                  N := Make_Subprogram_Call
+                    (RE (RE_Add_Aggregate_Element),
+                     Make_List_Id
+                     (Make_Defining_Identifier (PN (P_Result)),
+                      N));
+                  Append_Node_To_List (N, S);
+                  Declarator := Next_Entity (Declarator);
+               end loop;
+               Member := Next_Entity (Member);
+            end loop;
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
          end Structure_Type_Body;
 
          ----------------
@@ -642,16 +794,83 @@ package body Backend.BE_Ada.Helpers is
          ----------------
 
          function Union_Type_Body (E : Node_Id) return Node_Id is
-            pragma Unreferenced (E);
+            SwitchItem          : Name_Id;
+            Alternative_Name    : Name_Id;
+            Choice_List         : List_Id;
+            Switch_Alternative  : Node_Id;
+            Switch_Alternatives : List_Id;
+            Case_Label          : Node_Id;
+            V                   : Value_Type;
          begin
-            return No_Node;
+            Spec := Helper_Node (BE_Node (Identifier (E)));
+            Spec := Next_Node (Next_Node (Spec));
+            N := RE (RE_Get_Empty_Any_Aggregate);
+            Helper_Name := BEN.Name
+              (Defining_Identifier (Helper_Node (BE_Node (Identifier (E)))));
+            N := Make_Subprogram_Call
+              (N,
+               Make_List_Id (Make_Defining_Identifier (Helper_Name)));
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Result)),
+               Object_Definition => RE (RE_Any),
+               Expression => N);
+            Append_Node_To_List (N, D);
+            Get_Name_String (PN (P_Item));
+            Add_Char_To_Name_Buffer ('.');
+            Get_Name_String_And_Append (CN (C_Switch));
+            SwitchItem := Name_Find;
+            N := Make_Subprogram_Call
+              (RE (RE_Any),
+               Make_List_Id (Make_Defining_Identifier (SwitchItem)));
+            N := Make_Subprogram_Call
+              (RE (RE_Add_Aggregate_Element),
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Result)),
+                N));
+            Switch_Alternatives := New_List (K_List_Id);
+            Switch_Alternative := First_Entity (Switch_Type_Body (E));
+            while Present (Switch_Alternative) loop
+               Case_Label := First_Entity (Labels (Switch_Alternative));
+               Choice_List := New_List (K_List_Id);
+               while Present (Case_Label) loop
+                  V := Value (FEN.Value (Case_Label));
+                  N := Make_Case_Label (New_Value (V));
+                  Append_Node_To_List (N, Choice_List);
+                  Case_Label := Next_Entity (Case_Label);
+               end loop;
+               Get_Name_String (PN (P_Item));
+               Add_Char_To_Name_Buffer ('.');
+               Get_Name_String_And_Append
+                 (FEN.Name (Identifier
+                            (Declarator (Element (Switch_Alternative)))));
+               Alternative_Name := Name_Find;
+               N := Make_Subprogram_Call
+                 (RE (RE_Add_Aggregate_Element),
+                  Make_List_Id
+                  (Make_Defining_Identifier (PN (P_Result)),
+                   Make_Defining_Identifier (Alternative_Name)));
+               Append_Node_To_List
+                 (Make_Case_Statement_Alternative
+                  (Choice_List, Make_List_Id (N)), Switch_Alternatives);
+               Switch_Alternative := Next_Entity (Switch_Alternative);
+            end loop;
+            N := Make_Case_Statement
+              (Make_Defining_Identifier (SwitchItem),
+               Switch_Alternatives);
+            Append_Node_To_List (N, S);
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
          end Union_Type_Body;
 
       begin
-
          case FEN.Kind (E) is
             when K_Complex_Declarator =>
                N := Complex_Declarator_Body (E);
+
+            when K_Enumeration_Type =>
+               N := Enumeration_Type_Body (E);
 
             when K_Interface_Declaration =>
                N := Interface_Declaration_Body (E);

@@ -204,7 +204,9 @@ package Backend.BE_Ada.Nutils is
 
    type Attribute_Id is
      (A_First,
-      A_CLASS);
+      A_CLASS,
+      A_Pos,
+      A_Val);
 
    AN : array (Attribute_Id) of Name_Id;
 
@@ -265,6 +267,18 @@ package Backend.BE_Ada.Nutils is
    function Make_Assignment_Statement
      (Variable_Identifier : Node_Id;
       Expression          : Node_Id)
+     return Node_Id;
+
+   function Make_Case_Label (Value : Value_Id) return Node_Id;
+
+   function Make_Case_Statement
+     (Expression                  : Node_Id;
+      Case_Statement_Alternatives : List_Id)
+     return Node_Id;
+
+   function Make_Case_Statement_Alternative
+     (Discret_Choice_List : List_Id;
+      Statements          : List_Id)
      return Node_Id;
 
    function Make_Component_Association

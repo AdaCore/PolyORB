@@ -10,6 +10,7 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_Assignment_Statement (N : Node_Id);
+   procedure Generate_Case_Statement (N : Node_Id);
    procedure Generate_Component_Association (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
    procedure Generate_Defining_Identifier (N : Node_Id);
@@ -55,6 +56,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Assignment_Statement =>
             Generate_Assignment_Statement (N);
+
+         when K_Case_Statement =>
+            Generate_Case_Statement (N);
 
          when K_Component_Association =>
             Generate_Component_Association (N);
@@ -189,6 +193,55 @@ package body Backend.BE_Ada.Generator is
       Decrement_Indentation;
    end Generate_Assignment_Statement;
 
+   -----------------------------
+   -- Generate_Case_Statement --
+   -----------------------------
+
+   procedure Generate_Case_Statement (N : Node_Id) is
+      D : Node_Id;
+      M : Node_Id;
+   begin
+      Write (Tok_Case);
+      Write_Space;
+      Generate (Expression (N));
+      D := First_Node (Case_Statement_Alternatives (N));
+      Increment_Indentation;
+      while Present (D) loop
+         M := First_Node (Discret_Choice_List (D));
+         Write_Eol;
+         Write_Indentation;
+         Write (Tok_When);
+         Write_Space;
+         loop
+            Write_Str (Values.Image (Value (M)));
+            M := Next_Node (M);
+            if No (M) then
+               exit;
+            end if;
+            Write_Space;
+            Write (Tok_Vertical_Bar);
+            Write_Space;
+         end loop;
+         Write_Space;
+         Write (Tok_Arrow);
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation;
+         M := First_Node (Statements (D));
+         while Present (M) loop
+            Generate (M);
+            M := Next_Node (M);
+         end loop;
+         Decrement_Indentation;
+         D := Next_Node (D);
+      end loop;
+      Decrement_Indentation;
+      Write_Eol;
+      Write_Indentation;
+      Write (Tok_End);
+      Write_Space;
+      Write (Tok_Case);
+   end Generate_Case_Statement;
 
    ------------------------------------
    -- Generate_Component_Association --

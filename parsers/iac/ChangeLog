@@ -1,3 +1,12 @@
+2004-07-27  souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-nodes.idl: Add case_statement node.
+
+	* backend-be_ada-generator.adb: Generate case statements. 
+
+	* backend-be_ada-helpers.adb: Generate To_Any body for
+	Enumerate_Type, Structure_Type and Union_Type. 
+
 2004-07-26  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-generator.adb: Add "in" keyword befor range

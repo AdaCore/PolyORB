@@ -479,7 +479,7 @@ package body Backend.BE_Ada.Stubs is
             Make_Component_Declaration
             (Make_Defining_Identifier (CN (C_Switch)), T,
              Make_Type_Attribute (T, A_First)));
-         --  Link_BE_To_FE (E, N);
+         Bind_FE_To_Stub (Identifier (E), N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
