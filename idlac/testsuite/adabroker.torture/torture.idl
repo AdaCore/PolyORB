@@ -79,6 +79,10 @@ module MyModule {
 
   typedef sequence<unsigned long> longSeq;
 
+  struct forwardUsageOccurence1 {
+    MyInterface aForwardRef;
+  };
+
   interface MyInterface {
     string echoString (in string arg) raises (rootScopeException);
     Color echoColor (in Color arg);
@@ -87,6 +91,13 @@ module MyModule {
   };
   #pragma ID MyInterface "IDL:toto/titi/tata/tutu:1.0"
   
+#if 0
+  struct forwardUsageOccurence2 {
+    // This should still refer to the /forward/ declaration.
+    MyInterface anotherForwardRef;
+  };
+#endif
+
   exception MyException {
     unsigned long Einfo;
   };

@@ -2474,13 +2474,6 @@ package body Ada_Be.Idl2Ada is
                  := Value (Node);
             begin
                case Kind (Denoted_Entity) is
-                  when
-                    K_Forward_Interface |
-                    K_Interface         =>
-                     Add_With
-                       (CU, Ada_Full_Name (Denoted_Entity));
-                     Put (CU, Ada_Type_Name (Node));
-
                   when K_Enumerator =>
                      Put (CU, Ada_Full_Name (Node));
 
