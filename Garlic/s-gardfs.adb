@@ -3,8 +3,6 @@ with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.Lock_Files;
-with GNAT.Task_Lock;
-
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with System;
@@ -14,8 +12,9 @@ with System.File_IO;
 with System.Garlic.Debug; use System.Garlic.Debug;
 pragma Elaborate (System.Garlic.Debug);
 
-with System.Garlic.Options; use System.Garlic.Options;
-with System.Garlic.Utils;   use System.Garlic.Utils;
+with System.Garlic.Options;    use System.Garlic.Options;
+with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
+with System.Garlic.Utils;      use System.Garlic.Utils;
 
 package body System.Garlic.Dfs is
 
@@ -37,8 +36,6 @@ package body System.Garlic.Dfs is
    package FCB renames System.File_Control_Block;
 
    package SFI renames System.File_IO;
-
-   package TSL renames GNAT.Task_Lock;
 
    function To_AFCB_Ptr is
       new Ada.Unchecked_Conversion (SIO.File_Type, FCB.AFCB_Ptr);
@@ -132,14 +129,14 @@ package body System.Garlic.Dfs is
       pragma Debug (D ("enter protected variable file " &
                        Lock_File_Name (Var_Data)));
 
-      TSL.Lock;
+      Enter_Critical_Section;
       if Var_Data.Lock_Count /= 0 then
          Var_Data.Lock_Count := Var_Data.Lock_Count + 1;
-         TSL.Unlock;
+         Leave_Critical_Section;
 
       else
          Var_Data.Lock_Count := 1;
-         TSL.Unlock;
+         Leave_Critical_Section;
          GNAT.Lock_Files.Lock_File (Lock_File_Name (Var_Data), Wait => 0.1);
       end if;
 
@@ -185,14 +182,14 @@ package body System.Garlic.Dfs is
       pragma Debug (D ("leave protected variable file " &
                        Lock_File_Name (Var_Data)));
 
-      TSL.Lock;
+      Enter_Critical_Section;
       Var_Data.Lock_Count := Var_Data.Lock_Count - 1;
 
       if Var_Data.Lock_Count = 0 then
          GNAT.Lock_Files.Unlock_File (Lock_File_Name (Var_Data));
       end if;
       pragma Debug (D ("lock count =" & Var_Data.Lock_Count'Img));
-      TSL.Unlock;
+      Leave_Critical_Section;
    end Leave_Variable;
 
    --------------------
@@ -230,7 +227,7 @@ package body System.Garlic.Dfs is
       Free : DFS_Data_Access;
 
    begin
-      TSL.Lock;
+      Enter_Critical_Section;
       Failure := False;
 
       if Var_Mode in GSS.Read .. GSS.Write then
@@ -287,7 +284,7 @@ package body System.Garlic.Dfs is
       if Failure then
          pragma Debug (D ("reject mode " & Var_Mode'Img &
                           " for variable file " & Var_Data.Data_Name.all));
-         TSL.Unlock;
+         Leave_Critical_Section;
          return;
       end if;
 
@@ -316,7 +313,7 @@ package body System.Garlic.Dfs is
          LRU_Tail.Next     := Var_Data.Self;
          LRU_Tail          := Var_Data.Self;
       end if;
-      TSL.Unlock;
+      Leave_Critical_Section;
    end Set_Access_Mode;
 
    -----------

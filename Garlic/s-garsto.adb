@@ -3,11 +3,11 @@ with Ada.Streams;    use Ada.Streams;
 
 with GNAT.HTable;
 with GNAT.OS_Lib;
-with GNAT.Task_Lock;
 
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
+with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Units;      use System.Garlic.Units;
 with System.Garlic.Utils;      use System.Garlic.Utils;
@@ -26,7 +26,6 @@ package body System.Garlic.Storages is
      renames Print_Debug_Info;
 
    package OS  renames GNAT.OS_Lib;
-   package TSL renames GNAT.Task_Lock;
 
    subtype Hash_Header is Natural range 0 .. 30;
 
@@ -108,7 +107,7 @@ package body System.Garlic.Storages is
    begin
       pragma Debug (D ("lookup variable " & Var_Name));
 
-      TSL.Lock;
+      Enter_Critical_Section;
       Var_Data := SST.Get (Var_Name'Unrestricted_Access);
 
       if Var_Data = null then
@@ -125,7 +124,7 @@ package body System.Garlic.Storages is
             if Pkg_Data = null then
                Get_Partition (Get_Unit_Id (Pkg_Name), Partition, Error);
                if Found (Error) then
-                  TSL.Unlock;
+                  Leave_Critical_Section;
                   Raise_Communication_Error (Content (Error'Access));
                end if;
 
@@ -142,13 +141,13 @@ package body System.Garlic.Storages is
 
                      Get_Mem_Location (Partition, Location, Error);
                      if Found (Error) then
-                        TSL.Unlock;
+                        Leave_Critical_Section;
                         Raise_Communication_Error (Content (Error'Access));
                      end if;
 
                      Master := Lookup_Storage (Location.all);
                      if Master = null then
-                        TSL.Unlock;
+                        Leave_Critical_Section;
                         Raise_Exception
                           (Program_Error'Identity,
                            "cannot find data storage for partition " &
@@ -174,7 +173,7 @@ package body System.Garlic.Storages is
       end if;
 
       Set_Access_Mode (Var_Data.all, Var_Mode, Failure);
-      TSL.Unlock;
+      Leave_Critical_Section;
 
       if Failure then
          return null;
