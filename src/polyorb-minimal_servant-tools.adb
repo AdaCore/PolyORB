@@ -92,7 +92,6 @@ package body PolyORB.Minimal_Servant.Tools is
 
    procedure Initiate_Servant
      (Obj     : access PolyORB.Minimal_Servant.Servant'Class;
-      If_Desc : in     PolyORB.Obj_Adapters.Simple.Interface_Description;
       Type_Id : in     PolyORB.Types.String;
       Ref     :    out PolyORB.References.Ref;
       Error   : in out PolyORB.Exceptions.Error_Container)
@@ -110,11 +109,12 @@ package body PolyORB.Minimal_Servant.Tools is
       Initialize_OA;
       Obj_Adapter := PolyORB.ORB.Object_Adapter (The_ORB);
 
-      PolyORB.Obj_Adapters.Export (Obj_Adapter,
-                                   Servant,
-                                   null,
-                                   Servant_Id,
-                                   Error);
+      PolyORB.Obj_Adapters.Export
+        (Obj_Adapter,
+         Servant,
+         null,
+         Servant_Id,
+         Error);
 
       if Found (Error) then
          return;
@@ -122,15 +122,11 @@ package body PolyORB.Minimal_Servant.Tools is
 
       --  Register it with the SOA.
 
-      PolyORB.Obj_Adapters.Simple.Set_Interface_Description
-        (PolyORB.Obj_Adapters.Simple.Simple_Obj_Adapter
-         (Obj_Adapter.all), Servant_Id, If_Desc);
-      --  Set object description.
-
-      PolyORB.ORB.Create_Reference (The_ORB,
-                                    Servant_Id,
-                                    PolyORB.Types.To_Standard_String (Type_Id),
-                                    Ref);
+      PolyORB.ORB.Create_Reference
+        (The_ORB,
+         Servant_Id,
+         PolyORB.Types.To_Standard_String (Type_Id),
+         Ref);
 
       Free (Servant_Id);
    end Initiate_Servant;

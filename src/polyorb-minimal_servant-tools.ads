@@ -35,7 +35,6 @@
 
 with PolyORB.Exceptions;
 with PolyORB.Minimal_Servant;
-with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
 with PolyORB.Types;
 
@@ -43,7 +42,6 @@ package PolyORB.Minimal_Servant.Tools is
 
    procedure Initiate_Servant
      (Obj     : access PolyORB.Minimal_Servant.Servant'Class;
-      If_Desc : in     PolyORB.Obj_Adapters.Simple.Interface_Description;
       Type_Id : in     PolyORB.Types.String;
       Ref     :    out PolyORB.References.Ref;
       Error   : in out PolyORB.Exceptions.Error_Container);

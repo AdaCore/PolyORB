@@ -36,11 +36,11 @@
 --  $Id$
 
 with MOMA.Destinations;
-with PolyORB.MOMA_P.Provider.Topic_Datas;
 with MOMA.Types;
 
+with PolyORB.MOMA_P.Provider.Topic_Datas;
+
 with PolyORB.Minimal_Servant;
-with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Tasking.Rw_Locks;
@@ -78,11 +78,6 @@ package PolyORB.MOMA_P.Provider.Routers is
      (Self : access Router;
       Req  :        PolyORB.Requests.Request_Access);
    --  Router servant skeleton.
-
-   function If_Desc
-     return PolyORB.Obj_Adapters.Simple.Interface_Description;
-   pragma Inline (If_Desc);
-   --  Interface description for SOA object adapter.
 
    --  Accessors to internal data.
 

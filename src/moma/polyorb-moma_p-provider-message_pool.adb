@@ -33,17 +33,17 @@
 
 --  Message_Pool servant.
 
-with PolyORB.Any;
-with PolyORB.Any.NVList;
-with PolyORB.Log;
-with PolyORB.Types;
-with PolyORB.Requests;
-with PolyORB.Exceptions;
-
+with MOMA.Destinations;
 with MOMA.Messages;
 with MOMA.Types;
+
 with PolyORB.MOMA_P.Provider.Warehouse;
-with MOMA.Destinations;
+
+with PolyORB.Any.NVList;
+with PolyORB.Exceptions;
+with PolyORB.Log;
+with PolyORB.Requests;
+with PolyORB.Types;
 
 package body PolyORB.MOMA_P.Provider.Message_Pool is
 
@@ -81,11 +81,6 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
      (Method : String)
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any;
-   --  Result part of the interface description.
 
    ------------
    -- Invoke --
@@ -234,45 +229,6 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
       return Result;
    end Get_Parameter_Profile;
-
-   ------------------------
-   -- Get_Result_Profile --
-   ------------------------
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any
-   is
-      use PolyORB.Any;
-
-   begin
-      pragma Debug (O ("Result profile for " & Method & " requested."));
-
-      if Method = "Publish" then
-         return Get_Empty_Any (TypeCode.TC_Void);
-
-      elsif Method = "Get" then
-         return Get_Empty_Any (TC_MOMA_Message);
-
-      elsif Method = "Register_Handler" then
-         return Get_Empty_Any (TypeCode.TC_Void);
-
-      else
-         raise Program_Error;
-      end if;
-   end Get_Result_Profile;
-
-   -------------
-   -- If_Desc --
-   -------------
-
-   function If_Desc
-     return PolyORB.Obj_Adapters.Simple.Interface_Description is
-   begin
-      return
-        (PP_Desc => Get_Parameter_Profile'Access,
-         RP_Desc => Get_Result_Profile'Access);
-   end If_Desc;
 
    ------------------------------
    -- Servant actual functions --

@@ -1306,7 +1306,6 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    begin
       PolyORB.Minimal_Servant.Tools.Initiate_Servant
          (Create,
-          If_Desc,
           To_PolyORB_String ("NAMING"),
           PolyORB.References.Ref (My_Ref),
           Exception_Error);

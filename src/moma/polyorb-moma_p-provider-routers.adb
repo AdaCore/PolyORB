@@ -37,12 +37,11 @@ with MOMA.Destinations;
 with MOMA.Messages;
 with PolyORB.MOMA_P.Provider.Topic_Datas;
 
-with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Types;
-with PolyORB.Exceptions;
 
 package body PolyORB.MOMA_P.Provider.Routers is
 
@@ -116,11 +115,6 @@ package body PolyORB.MOMA_P.Provider.Routers is
      (Method : String)
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any;
-   --  Result part of the interface description.
 
    --  Private accessors to some internal data.
 
@@ -229,26 +223,6 @@ package body PolyORB.MOMA_P.Provider.Routers is
       return Result;
    end Get_Parameter_Profile;
 
-   ------------------------
-   -- Get_Result_Profile --
-   ------------------------
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any
-   is
-      use PolyORB.Any;
-   begin
-      pragma Debug (O ("Result profile for " & Method & " requested."));
-      if Method = "Publish" then
-         return Get_Empty_Any (TypeCode.TC_Void);
-      elsif Method = "Subscribe" then
-         return Get_Empty_Any (TypeCode.TC_Void);
-      else
-         raise Program_Error;
-      end if;
-   end Get_Result_Profile;
-
    -----------------
    -- Get_Routers --
    -----------------
@@ -275,18 +249,6 @@ package body PolyORB.MOMA_P.Provider.Routers is
    begin
       return Self.Self_Ref;
    end Get_Self_Ref;
-
-   -------------
-   -- If_Desc --
-   -------------
-
-   function If_Desc
-     return PolyORB.Obj_Adapters.Simple.Interface_Description is
-   begin
-      return
-        (PP_Desc => Get_Parameter_Profile'Access,
-         RP_Desc => Get_Result_Profile'Access);
-   end If_Desc;
 
    ----------------
    -- Initialize --

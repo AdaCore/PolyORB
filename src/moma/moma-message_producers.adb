@@ -121,7 +121,6 @@ package body MOMA.Message_Producers is
       Error : Error_Container;
    begin
       Initiate_Servant (MOMA_Obj,
-                        PolyORB.MOMA_P.Provider.Message_Producer.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
                         MOMA_Ref,
                         Error);

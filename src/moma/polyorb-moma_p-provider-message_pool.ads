@@ -36,12 +36,12 @@
 --  skeleton and implementation subroutines.
 
 with MOMA.Types;
+
 with PolyORB.MOMA_P.Provider.Warehouse;
 
 with PolyORB.Minimal_Servant;
-with PolyORB.Requests;
-with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
+with PolyORB.Requests;
 
 package PolyORB.MOMA_P.Provider.Message_Pool is
 
@@ -58,11 +58,6 @@ package PolyORB.MOMA_P.Provider.Message_Pool is
      (Self : access Object;
       Req  : in     PolyORB.Requests.Request_Access);
    --  Message_Pool servant skeleton.
-
-   function If_Desc
-     return PolyORB.Obj_Adapters.Simple.Interface_Description;
-   pragma Inline (If_Desc);
-   --  Interface description for SOA object adapter.
 
 private
 

@@ -91,7 +91,6 @@ package body MOMA.Message_Consumers is
       --  using session position in the POA
 
       Initiate_Servant (MOMA_Obj,
-                        PolyORB.MOMA_P.Provider.Message_Consumer.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
                         MOMA_Ref,
                         Error);

@@ -72,7 +72,6 @@ package body MOMA.Configuration.Server is
                        & To_Standard_String (Get_Name (Pool))));
 
       Initiate_Servant (MOMA_Obj,
-                        PolyORB.MOMA_P.Provider.Message_Pool.If_Desc,
                         MOMA_Type_Id,
                         Ref,
                         Error);
@@ -102,7 +101,6 @@ package body MOMA.Configuration.Server is
       pragma Debug (O ("Creating Router"));
 
       Initiate_Servant (Router,
-                        PolyORB.MOMA_P.Provider.Routers.If_Desc,
                         MOMA_Type_Id,
                         Ref,
                         Error);

@@ -39,7 +39,6 @@
 
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
-with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
 
 package PolyORB.MOMA_P.Provider.Message_Consumer is
@@ -53,11 +52,6 @@ package PolyORB.MOMA_P.Provider.Message_Consumer is
      (Self : access Object;
       Req  : in     PolyORB.Requests.Request_Access);
    --  Message_Consumer servant skeleton.
-
-   function If_Desc
-     return PolyORB.Obj_Adapters.Simple.Interface_Description;
-   pragma Inline (If_Desc);
-   --  Interface description for SOA object adapter.
 
    --  Accessors to Object internals.
 

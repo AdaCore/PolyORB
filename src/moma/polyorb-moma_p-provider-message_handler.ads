@@ -42,7 +42,6 @@ with MOMA.Message_Handlers;
 
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
-with PolyORB.Obj_Adapters.Simple;
 
 package PolyORB.MOMA_P.Provider.Message_Handler is
 
@@ -54,11 +53,6 @@ package PolyORB.MOMA_P.Provider.Message_Handler is
      (Self : access Object;
       Req  : in     PolyORB.Requests.Request_Access);
    --  Message_Handler servant skeleton.
-
-   function If_Desc
-     return PolyORB.Obj_Adapters.Simple.Interface_Description;
-   pragma Inline (If_Desc);
-   --  Interface description for SOA object adapter.
 
    procedure Initialize
      (Self                 : access Object;
