@@ -24,10 +24,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Text_IO;       use Ada.Text_IO;
+with Ada.Command_Line;  use Ada.Command_Line;
 
 with GNAT.Command_Line; use GNAT.Command_Line;
+with GNAT.IO_Aux;       use GNAT.IO_Aux;
 with GNAT.OS_Lib;
 
 with Idl_Fe.Types;
@@ -106,6 +107,18 @@ begin
          Put_Line ("No parameter for " & Full_Switch);
          Usage;
    end;
+
+   --  If file does not exist, issue an error message unless it works after
+   --  adding an "idl" extension.
+
+   if not File_Exists (File_Name.all) then
+      if File_Exists (File_Name.all & ".idl") then
+         File_Name := new String'(File_Name.all & ".idl");
+      else
+         Put_Line ("No such file: " & File_Name.all);
+         Usage;
+      end if;
+   end if;
 
    --  Setup parser
    Idl_Fe.Parser.Initialize
