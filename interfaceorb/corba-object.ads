@@ -104,9 +104,10 @@ private
       Dynamic_Object : access Ref'Class := null ;
    end record ;
 
-   procedure Initialise (Self: in out Ref'Class);
+   procedure Initialize (Self: in out Ref'Class);
    -- called each time a Ref object is created
-   -- initialise the Dynamic_Object pointer
+   -- initializes the Dynamic_Object pointer
+   -- creates the underlying C object
 
    procedure Adjust (Self: in out Ref'Class);
    -- called each time you duplicate a Ref object using :=
@@ -114,7 +115,7 @@ private
 
    procedure Finalize (Self: in out Ref'Class);
    -- called each time a Ref object must be trashed
-   -- nothing to do for the moment
+   -- releases the underlying C pointer
 
    -------------------------------------------------------------------
    -- ancienne methode compliquee sans les types controlled
@@ -132,4 +133,4 @@ private
    --      Internal_Corba_Object : Internal_Object_Access ;
    --   end record ;
 
-   end Corba.Object ;
+end Corba.Object ;

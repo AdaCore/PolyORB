@@ -25,18 +25,25 @@ package body Corba.Object is
 
 private
 
-   procedure Initialise (Self: in out Ref'Class) is
+   -- Initialize
+   -------------
+   procedure Initialize (Self: in out Ref'Class) is
    begin
       Dynamic_Object := Ref'Access;
-   end Initialise;
+   end Initialize;
 
 
+   -- Adjust
+   ---------
    procedure Adjust (Self: in out Ref'Class)
      renames Initialise;
 
+   -- Finalize
+   -----------
    procedure Finalize (Self: in out Ref'Class) is
    begin
       -- nothing to do for the moment
+      -- releases the underlying C++ pointer
    end Finalize;
 
 
