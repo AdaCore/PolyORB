@@ -1268,7 +1268,8 @@ package body System.Garlic.Protocols.Tcp is
       end loop;
 
       declare
-         Addr : Inet_Addr_Type := Addresses (Get_Host_By_Name (Image), 1);
+         Addr : constant Inet_Addr_Type :=
+                  Addresses (Get_Host_By_Name (Image), 1);
 
       begin
          return (Addr.Family, Addr, Any_Port);

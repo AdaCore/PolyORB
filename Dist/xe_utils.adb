@@ -265,7 +265,7 @@ package body XE_Utils is
       Name : in File_Name_Type;
       Exec : in Boolean := False)
    is
-      File_Name_Len : Natural := Strlen (Name);
+      File_Name_Len : constant Natural := Strlen (Name);
       File_Name     : String (1 .. File_Name_Len + 1);
    begin
       Get_Name_String (Name);
@@ -294,7 +294,7 @@ package body XE_Utils is
    ----------------
 
    procedure Create_Dir (To : in File_Name_Type) is
-      Dir_Name_Len : Natural := Strlen (To);
+      Dir_Name_Len : constant Natural := Strlen (To);
       Dir_Name     : String (1 .. Dir_Name_Len);
    begin
       Get_Name_String (To);
@@ -863,7 +863,8 @@ package body XE_Utils is
       DSA_Dir        := Str_To_Id ("dsa");
 
       declare
-         Private_Dir : Name_Id := Dir (DSA_Dir, Str_To_Id ("private"));
+         Private_Dir : constant Name_Id :=
+                         Dir (DSA_Dir, Str_To_Id ("private"));
       begin
          Caller_Dir   := Dir (Private_Dir, Str_To_Id ("caller"));
          Receiver_Dir := Dir (Private_Dir, Str_To_Id ("receiver"));

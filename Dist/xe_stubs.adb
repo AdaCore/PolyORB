@@ -261,7 +261,6 @@ package body XE_Stubs is
                         Set_Tasking (P, True);
                      end if;
 
-
                   elsif Get_PID (Name (U)) = P then
 
                      --  Copy RCI or SP receiver stubs when this unit has been
@@ -421,7 +420,6 @@ package body XE_Stubs is
    -----------------------------
 
    procedure Create_Elaboration_File (PID : in PID_Type) is
-      Partition    : Partition_Name_Type;
       Elaboration  : File_Name_Type;
       Task_Pool    : Task_Pool_Type;
       Termination  : Termination_Type;
@@ -435,7 +433,6 @@ package body XE_Stubs is
       File  : File_Descriptor;
 
    begin
-      Partition   := Partitions.Table (PID) .Name;
       Elaboration := Dir (Partitions.Table (PID).Partition_Dir,
                           Elaboration_File & ADB_Suffix);
 
@@ -545,7 +542,6 @@ package body XE_Stubs is
                       Build_Location_String (Def_Boot_Location_First));
       end if;
 
-
       --  Compute the self location string (eventually composed of
       --  several locations separated by commas).
 
@@ -600,7 +596,6 @@ package body XE_Stubs is
       --  To be elaborated Name_Table needs Soft_Links to be initialized.
 
       Dwrite_Call (File, 2, PCS_Initialize (Str_To_Id ("Name_Table")));
-
 
       --  If the partition holds the main unit, then it cannot be slave.
       --  Otherwise, it is.
@@ -809,7 +804,7 @@ package body XE_Stubs is
       CU          : CUID_Type;
       Main        : Name_Id;
       File        : File_Descriptor;
-      V_Partition : Name_Id := Str_To_Id ("Partition");
+      V_Partition : constant Name_Id := Str_To_Id ("Partition");
       Directory   : File_Name_Type
         renames Partitions.Table (PID).Partition_Dir;
 
@@ -851,7 +846,7 @@ package body XE_Stubs is
       for C in Callers.First .. Callers.Last loop
          if Units.Table (Callers.Table (C)).Shared_Passive then
             declare
-               P : PID_Type := Get_PID (Name (Callers.Table (C)));
+               P : constant PID_Type := Get_PID (Name (Callers.Table (C)));
                L : LID_Type;
                S : Name_Id  := No_Name;
             begin
@@ -1087,7 +1082,8 @@ package body XE_Stubs is
             end if;
 
             declare
-               P : PID_Type := Get_PID (Name (Callers.Table (Caller)));
+               P : constant PID_Type :=
+                     Get_PID (Name (Callers.Table (Caller)));
                L : LID_Type;
                M : Name_Id;
             begin
@@ -1152,7 +1148,8 @@ package body XE_Stubs is
       for Caller in Callers.First .. Callers.Last loop
          if Units.Table (Callers.Table (Caller)).Shared_Passive then
             declare
-               P : PID_Type := Get_PID (Name (Callers.Table (Caller)));
+               P : constant PID_Type :=
+                     Get_PID (Name (Callers.Table (Caller)));
                L : LID_Type;
                M : Name_Id;
             begin
@@ -1284,7 +1281,7 @@ package body XE_Stubs is
 
       --  Do we need to regenerate the caller stub and its ali.
       Obsolete := False;
-      if not Obsolete and then not Is_Regular_File (Caller_Object) then
+      if not Is_Regular_File (Caller_Object) then
          if Verbose_Mode then
             Write_Missing_File (Caller_Object);
          end if;
@@ -1355,7 +1352,7 @@ package body XE_Stubs is
 
       --  Do we need to generate the receiver stub and its ali.
       Obsolete := False;
-      if not Obsolete and then not Is_Regular_File (Receiver_Object) then
+      if not Is_Regular_File (Receiver_Object) then
          if Verbose_Mode then
             Write_Missing_File (Receiver_Object);
          end if;
@@ -1396,8 +1393,9 @@ package body XE_Stubs is
    -----------------
 
    procedure Delete_Stub (Directory, ALI_File  : in File_Name_Type) is
-      Stub_ALI : File_Name_Type := Dir (Directory, ALI_File);
-      Stub_Obj : File_Name_Type := Strip_Suffix (Stub_ALI) & Obj_Suffix;
+      Stub_ALI : constant File_Name_Type := Dir (Directory, ALI_File);
+      Stub_Obj : constant File_Name_Type :=
+                   Strip_Suffix (Stub_ALI) & Obj_Suffix;
    begin
       if Is_Regular_File (Stub_ALI) then
          Delete (Stub_ALI);
@@ -1718,7 +1716,7 @@ package body XE_Stubs is
    ---------
 
    function PCS (N : Name_Id) return Name_Id is
-      CN : Name_Id := C (N);
+      CN : constant Name_Id := C (N);
    begin
       Get_Name_String (PCS_Name);
       Add_Char_To_Name_Buffer ('.');
@@ -1731,7 +1729,7 @@ package body XE_Stubs is
    ----------
 
    function PCSP (N : Name_Id) return Name_Id is
-      CN : Name_Id := C (N);
+      CN : constant Name_Id := C (N);
    begin
       Name_Len := 0;
       Add_Str_To_Name_Buffer ("Protocols.");
@@ -1744,7 +1742,7 @@ package body XE_Stubs is
    ----------
 
    function PCSF (N : Name_Id) return Name_Id is
-      CN : Name_Id := C (N);
+      CN : constant Name_Id := C (N);
    begin
       Name_Len := 0;
       Add_Str_To_Name_Buffer ("Filters.");
@@ -1757,7 +1755,7 @@ package body XE_Stubs is
    ----------
 
    function PCSS (N : Name_Id) return Name_Id is
-      CN : Name_Id := C (N);
+      CN : constant Name_Id := C (N);
    begin
       Name_Len := 0;
       Add_Str_To_Name_Buffer ("Storages.");
