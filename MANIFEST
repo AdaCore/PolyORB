@@ -302,6 +302,14 @@ examples/corba/random/random-impl.adb
 examples/corba/random/random-impl.ads
 examples/corba/random/random.idl
 examples/corba/random/server.adb
+examples/corba/rtcorba/Makefile.am
+examples/corba/rtcorba/Makefile.in
+examples/corba/rtcorba/server_declared/Makefile.am
+examples/corba/rtcorba/server_declared/Makefile.in
+examples/corba/rtcorba/server_declared/echo-impl.adb
+examples/corba/rtcorba/server_declared/echo-impl.ads
+examples/corba/rtcorba/server_declared/echo.idl
+examples/corba/rtcorba/server_declared/server.adb
 examples/corba/send/Makefile.am
 examples/corba/send/Makefile.in
 examples/corba/send/listener.adb
