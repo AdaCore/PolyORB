@@ -33,7 +33,6 @@
 
 --  $Id$
 
-with Ada.Command_Line;
 with Ada.Text_IO;
 
 with PolyORB.Setup.No_Tasking_Server;
@@ -56,8 +55,6 @@ with Test.Printer.Impl;
 
 procedure Listener is
 
-   use Ada.Command_Line;
-
    use CORBA.ORB;
    use PortableServer;
    use PortableServer.POA.GOA;
@@ -66,9 +63,6 @@ procedure Listener is
 
    procedure Print_List (List : IDs);
    --  Output each elements of List
-
-   procedure Usage;
-   --  Output usage information
 
    ----------------
    -- Print_List --
@@ -80,6 +74,7 @@ procedure Listener is
 
    begin
       Ada.Text_IO.Put_Line ("Group length :" & Integer'Image (Length (List)));
+      Ada.Text_IO.Put_Line ("Objects in group :");
 
       for J in 1 .. Length (List) loop
          Ada.Text_IO.Put_Line
@@ -87,31 +82,14 @@ procedure Listener is
             & " - "
             & PortableServer.ObjectId_To_String (Element_Of (List, J).all));
       end loop;
+      Ada.Text_IO.New_Line;
+
    end Print_List;
 
-   -----------
-   -- Usage --
-   -----------
-
-   procedure Usage is
-   begin
-      Ada.Text_IO.Put_Line ("usage : ./listener [-v]");
-   end Usage;
-
-   Print_IOR : Boolean := False;
+   Group_Id : constant Standard.String
+     := "corbaloc:miop:1.0@1.0-TestDomain-5506/239.239.239.18:5678";
 
 begin
-   if Argument_Count > 1 then
-      Usage;
-      return;
-   end if;
-
-   if Argument_Count = 1
-     and then Argument (1) = "-v"
-   then
-      Print_IOR := True;
-   end if;
-
    CORBA.ORB.Initialize ("ORB");
 
    declare
@@ -130,9 +108,12 @@ begin
           PortableServer.POA.Get_The_POAManager (Get_Root_POA),
           Policies));
 
-      Obj1 : constant CORBA.Impl.Object_Ptr := new Test.Printer.Impl.Object;
-      Obj2 : constant CORBA.Impl.Object_Ptr := new Test.Printer.Impl.Object;
-      Obj3 : constant CORBA.Impl.Object_Ptr := new Test.Printer.Impl.Object;
+      Obj1 : constant CORBA.Impl.Object_Ptr
+        := new Test.Printer.Impl.Object;
+      Obj2 : constant CORBA.Impl.Object_Ptr
+        := new Test.Printer.Impl.Object;
+      Obj3 : constant CORBA.Impl.Object_Ptr
+        := new Test.Printer.Impl.Object;
 
       Oid1 : constant PortableServer.ObjectId
         := Servant_To_Id (GOA, PortableServer.Servant (Obj1));
@@ -147,8 +128,7 @@ begin
       Initiate_Servant (PortableServer.Servant (Obj3), Ref3);
 
       CORBA.ORB.String_To_Object
-        (CORBA.To_CORBA_String
-         ("corbaloc:miop:1.0@1.0-TestDomain-5506/239.239.239.18:5678"),
+        (CORBA.To_CORBA_String (Group_Id),
          Group);
 
       Associate_Reference_With_Id (GOA, Group, Oid1);
@@ -161,25 +141,27 @@ begin
         ("Group IOR: '"
          & CORBA.To_Standard_String (Object_To_String (Group))
          & "'");
+      Ada.Text_IO.New_Line;
 
       Ada.Text_IO.Put_Line
         ("Group corbaloc: '"
          & CORBA.To_Standard_String
          (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Group))
          & "'");
+      Ada.Text_IO.New_Line;
 
-      if Print_IOR then
-         Ada.Text_IO.Put_Line
-           ("Object IOR: '"
-            & CORBA.To_Standard_String (Object_To_String (Group))
-            & "'");
+      Ada.Text_IO.Put_Line
+        ("IOR of one object in group: '"
+         & CORBA.To_Standard_String (Object_To_String (Ref1))
+         & "'");
+      Ada.Text_IO.New_Line;
 
-         Ada.Text_IO.Put_Line
-           ("Object IOR: '"
-            & CORBA.To_Standard_String
-            (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref1))
-            & "'");
-      end if;
+      Ada.Text_IO.Put_Line
+        ("corbaloc of one objec in group: '"
+         & CORBA.To_Standard_String
+         (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref1))
+         & "'");
+      Ada.Text_IO.New_Line;
 
       --  Launch the server
 

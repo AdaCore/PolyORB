@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  T E S T . P R I N T E R . I M P L                       --
+--                    T E S T . P R I N T E R . I M P L                     --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,60 +32,73 @@
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;
+
 with Test.Printer.Skel;
 pragma Elaborate (Test.Printer.Skel);
 pragma Warnings (Off, Test.Printer.Skel);
 
 package body Test.Printer.Impl is
 
+   -----------------
+   -- PrintString --
+   -----------------
+
    procedure PrintString
-     (Self : access Object; Mesg : in CORBA.String)
+     (Self : access Object;
+      Mesg : in     CORBA.String)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Warnings (On);
    begin
       Ada.Text_IO.Put_Line
         ("Printing string: «" & CORBA.To_Standard_String (Mesg)
          & "»");
    end PrintString;
 
+   ---------------
+   -- PrintLong --
+   ---------------
+
    procedure PrintLong
-     (Self : access Object; K : in CORBA.Long)
+     (Self : access Object;
+      K    : in     CORBA.Long)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Warnings (On);
+
    begin
-      Ada.Text_IO.Put_Line
-        ("Printing Long: " & K'Img);
+      Ada.Text_IO.Put_Line ("Printing Long: " & CORBA.Long'Image (K));
    end PrintLong;
+
+   ----------------
+   -- EchoString --
+   ----------------
 
    function EchoString
      (Self : access Object;
-      Mesg : in CORBA.String)
+      Mesg : in     CORBA.String)
      return CORBA.String
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Warnings (On);
+
    begin
       Ada.Text_IO.Put_Line ("Echoing : "
                             & CORBA.To_Standard_String (Mesg));
+
       return Mesg;
    end EchoString;
 
+   --------------
+   -- EchoLong --
+   --------------
+
    function EchoLong
      (Self : access Object;
-      K    : in CORBA.Long)
+      K    : in     CORBA.Long)
      return CORBA.Long
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Warnings (On);
+
    begin
-      Ada.Text_IO.Put_Line ("Echoing : "
-                            & K'Img);
+      Ada.Text_IO.Put_Line ("Echoing : " & CORBA.Long'Image (K));
       return K;
    end EchoLong;
 
