@@ -302,19 +302,29 @@ package body Ada_Be.Mappings.DSA is
    function Generate_Scope_In_Child_Package
      (Self : access DSA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
-     return Boolean is
+     return Boolean
+   is
+      use CIAO.ASIS_Queries;
+
+      E : constant Asis.Element := Get_Origin (Node);
+      NK : constant Node_Kind := Kind (Node);
    begin
       pragma Assert (Is_Gen_Scope (Node));
-      if Kind (Node) = K_Module then
-         declare
-            E : constant Asis.Element := Get_Origin (Node);
-         begin
+
+      case NK is
+         when K_Module =>
             return Is_Equal
               (E, Unit_Declaration (Enclosing_Compilation_Unit (E)));
             --  True only if E is a library unit declaration.
-         end;
-      end if;
-      return False;
+         when K_Interface =>
+            return Unit_Category (Enclosing_Compilation_Unit (E))
+              = Remote_Call_Interface;
+         when others =>
+            return False;
+      end case;
+
+      --  Not reached.
+
    end Generate_Scope_In_Child_Package;
 
    ------------------------

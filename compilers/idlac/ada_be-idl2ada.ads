@@ -79,8 +79,8 @@ private
    --  The full name of the typecode corresponding to an Ada type
 
    function Ada_Helper_Name (Node : in Node_Id) return String;
-   --  The name of the helper package where the TypeCode
-   --  corresponding to Node is defined
+   --  The name of the helper package where the TypeCode, To_Any
+   --  and From_Any corresponding to Node are defined
 
    --------------------------------------
    -- Top-level generation subprograms --
@@ -111,12 +111,6 @@ private
    --  Add a semantic dependency of CU on the
    --  package that contains the mapping of
    --  the entity defined by Node.
-
-   function Helper_Unit
-     (Node : Node_Id)
-     return String;
-   --  The name of the Helper unit containing To_Any and
-   --  From_Any for type Node.
 
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;

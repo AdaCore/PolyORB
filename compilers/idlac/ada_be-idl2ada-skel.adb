@@ -460,7 +460,7 @@ package body Ada_Be.Idl2Ada.Skel is
                         Arg_Name : constant String
                           := Ada_Name (Declarator (P_Node));
                         Helper_Name : constant String
-                          := Helper_Unit (Param_Type (P_Node));
+                          := Ada_Helper_Name (Param_Type (P_Node));
                      begin
 
                         PL (CU, Justify (Arg_Name, Max_Len) & " : "
@@ -577,7 +577,7 @@ package body Ada_Be.Idl2Ada.Skel is
                         PT_Node : constant Node_Id
                           := Param_Type (P_Node);
                         Helper_Name : constant String
-                          := Helper_Unit (PT_Node);
+                          := Ada_Helper_Name (PT_Node);
                      begin
                         if not Is_Returns (P_Node) then
                            if Mode (P_Node) = Mode_In
@@ -644,7 +644,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                         declare
                            Prefix : constant String
-                             := Helper_Unit (E_Node);
+                             := Ada_Helper_Name (E_Node);
                         begin
                            Add_With (CU, Prefix);
 
@@ -716,7 +716,7 @@ package body Ada_Be.Idl2Ada.Skel is
                                  Arg_Name : constant String
                                    := Ada_Name (Declarator (P_Node));
                                  Helper_Name : constant String
-                                   := Helper_Unit (Param_Type (P_Node));
+                                   := Ada_Helper_Name (Param_Type (P_Node));
                               begin
 
                                  if First then
@@ -758,7 +758,7 @@ package body Ada_Be.Idl2Ada.Skel is
                         OT_Node : constant Node_Id
                           := Original_Operation_Type (Node);
                         Prefix : constant String
-                          := Helper_Unit (OT_Node);
+                          := Ada_Helper_Name (OT_Node);
                      begin
                         Add_With (CU, Prefix);
 
