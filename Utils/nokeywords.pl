@@ -10,5 +10,5 @@
 # Original files are renamed with .bak extensions.
 #
 
-s/(--\s\s+\$Rev[i]sion(: [\d\.]+\s)?\$)\s+--$/\1/g
+s/^(--\s\s+\$Rev[i]sion)(: [\d\.]+\s)?\$.*/\1\$/g
 

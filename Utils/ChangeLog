@@ -1,3 +1,8 @@
+1998-12-11  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* nokeywords.pl: Update script so that it clears version as well
+	as trailing double-dash.
+
 1998-10-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* nokeywords.pl: Remove trailing -- instead of just suppressing
