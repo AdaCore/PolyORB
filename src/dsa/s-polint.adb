@@ -1656,8 +1656,8 @@ begin
       (Name      => +"dsa",
        Conflicts => Empty,
        Depends   => +"orb"
-       & "poa?" --  XXX see note in the header concerning OAs
-       & "poa_config.racws?"
+       & "poa_config.racws?"   --  XXX see note in the header concerning OAs
+       & "object_adapter"
        & "naming.Helper"
        & "naming.NamingContext.Helper"
        & "tasking.mutexes"

@@ -70,7 +70,7 @@ begin
      (Module_Info'
       (Name      => +"simple_oa",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"orb",
        Provides  => +"object_adapter",
        Implicit  => False,
        Init      => Initialize'Access));

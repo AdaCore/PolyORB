@@ -110,7 +110,7 @@ begin
      (Module_Info'
       (Name      => +"basic_poa",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"orb",
        Provides  => +"object_adapter"
        & "poa",
        Implicit  => False,
