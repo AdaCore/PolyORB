@@ -8,9 +8,11 @@ with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.References;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
+with PolyORB.Utils.Strings.Lists;
+with PolyORB.Initialization;
 
 package body Harness is
-
 
    procedure echoULong_Cache_Init;
 
@@ -36,7 +38,6 @@ package body Harness is
    Request_Cache_Tab : array (1..10) of PolyORB.Requests.Request_Access;
    Request_Cache_Tab_Used : array (1..10) of Boolean
      := (others => false);
-
 
    --------------------------
    -- echoULong_Result_U_V --
@@ -214,6 +215,28 @@ package body Harness is
             or else False;
    end Is_A;
 
+   procedure Deferred_Initialization
+   is
+   begin
+      echoULong_Cache_Init;
+   end Deferred_Initialization;
+
 begin
-   echoULong_Cache_Init;
+   declare
+      List : PolyORB.Utils.Strings.Lists.List;
+
+   begin
+      PolyORB.Utils.Strings.Lists.Append (List, "smart_pointers");
+
+      PolyORB.Initialization.Register_Module
+        (PolyORB.Initialization.Module_Info'
+         (Name => PolyORB.Utils.Strings."+"
+          ("Harness"),
+          Conflicts => PolyORB.Utils.Strings.Lists.Empty,
+          Depends => List,
+          Provides => PolyORB.Utils.Strings.Lists.Empty,
+          Implicit => False,
+          Init => Deferred_Initialization'Access));
+   end;
+
 end Harness;
