@@ -194,15 +194,15 @@ package body PolyORB.Test_Object is
    end Handle_Message;
 
    function Get_Parameter_Profile
-     (Method : Requests.Operation_Id)
+     (Method : String)
      return Any.NVList.Ref;
 
    function Get_Result_Profile
-     (Method : Requests.Operation_Id)
+     (Method : String)
      return Any.Any;
 
    function Get_Parameter_Profile
-     (Method : Requests.Operation_Id)
+     (Method : String)
      return Any.NVList.Ref
    is
       use Any;
@@ -236,7 +236,7 @@ package body PolyORB.Test_Object is
    end Get_Parameter_Profile;
 
    function Get_Result_Profile
-     (Method : Requests.Operation_Id)
+     (Method : String)
      return Any.Any
    is
       use Any;
