@@ -1,11 +1,12 @@
 interface vehicle {
   attribute string mark;
   boolean can_drive(in unsigned short age) ;
+  typedef string model;
 };
 
 interface weapon {
   typedef string name;
-  void shoot ();
+  void shoot (in long range);
 };
 
 interface tank : vehicle, weapon {

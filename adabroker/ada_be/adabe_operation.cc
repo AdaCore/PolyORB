@@ -580,7 +580,10 @@ void
 adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_definition)
 {
   string full_name = get_ada_full_name();
-  string pack_name = full_name.substr(0,full_name.find_last_of('.')) ;
+  string pack_name = adabe_global::adabe_current_file()->get_ada_full_name();
+  // the name of the current interface should be taken because of the multiple inheritance
+
+
   string result_name = "";
   string in_decls = "";
   string unmarshall = "";

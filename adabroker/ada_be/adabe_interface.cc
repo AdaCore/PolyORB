@@ -894,6 +894,54 @@ adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previ
 	}
       i.next();
     }
+    // In case of multiple inheritance, generate what
+  // is needed for all other parents
+  if (n_inherits() > 1) {
+    // loop over all parents from the second one
+    for(int i = 1; i < n_inherits(); i++) {
+      // get a parent as adabe_interface object
+      adabe_interface *inher = adabe_interface::narrow_from_decl(inherits()[i]);
+      
+      // compute its name
+      string corps2 = inher->get_ada_full_name();
+      int len = corps2.length();
+      
+      with.add(corps2);
+      
+      body += "   -----------------------" + spaces(len,'-') + "\n";
+      body += "   -- inheritance from " + corps2 + "\n";
+      body += "   -----------------------" + spaces(len,'-') + "\n\n";
+      {
+	// loop over all declarations of the current parent
+	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
+	while (!j.is_done())
+	  {
+	    // get the current declaration as an adabe_name object
+	    AST_Decl *d = j.item();
+	    adabe_name *e = dynamic_cast<adabe_name *>(d);
+	    
+	    switch(d->node_type())
+	      {
+	      case AST_Decl::NT_op:
+	      case AST_Decl::NT_attr:
+		{
+		  string tempo1 = "";
+		  string tempo2 = "";
+		  e->produce_proxies_ads(with, tempo1, tempo2);
+		  body += tempo1;
+		  Sprivate += tempo2;	
+		}
+		break ;
+	      default:break;
+	      }
+	    // get next element
+	    j.next();
+	  }
+	body += "\n\n" ;
+      }
+    }
+  }
+
   body += "private \n";
   body += Sprivate;
   body += "end " + get_ada_full_name() + ".Proxies ;\n";
@@ -1095,7 +1143,54 @@ adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previ
       // get the next declaration
       i.next();
     }
-
+  // In case of multiple inheritance, generate what
+  // is needed for all other parents
+  if (n_inherits() > 1) {
+    // loop over all parents from the second one
+    for(int i = 1; i < n_inherits(); i++) {
+      // get a parent as adabe_interface object
+      adabe_interface *inher = adabe_interface::narrow_from_decl(inherits()[i]);
+      
+      // compute its name
+      string corps2 = inher->get_ada_full_name();
+      int len = corps2.length();
+      
+      with.add(corps2);
+      
+      body += "   -----------------------" + spaces(len,'-') + "\n";
+      body += "   -- inheritance from " + corps2 + "\n";
+      body += "   -----------------------" + spaces(len,'-') + "\n\n";
+      {
+	// loop over all declarations of the current parent
+	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
+	while (!j.is_done())
+	  {
+	    // get the current declaration as an adabe_name object
+	    AST_Decl *d = j.item();
+	    adabe_name *e = dynamic_cast<adabe_name *>(d);
+	    
+	    switch(d->node_type())
+	      {
+	      case AST_Decl::NT_op:
+	      case AST_Decl::NT_attr:
+		{
+		  string tempo1 = "";
+		  string tempo2 = "";
+		  e->produce_proxies_adb(with, tempo1, tempo2);
+		  body += tempo2 + tempo1;
+		  empty = false;
+		}
+		break ;
+	      default:break;
+	      }
+	    // get next element
+	    j.next();
+	  }
+	body += "\n\n" ;
+      }
+    }
+  }
+  
   // end of the package
   body += "end " + get_ada_full_name() + ".Proxies ;\n";
 
