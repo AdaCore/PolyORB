@@ -3,152 +3,298 @@ with Backend.BE_Ada.Nodes;  use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils; use Backend.BE_Ada.Nutils;
 
 with Errors; use Errors;
-with Lexer;  use Lexer;
 with Namet;  use Namet;
 with Output; use Output;
 with Types;  use Types;
-with Values;  use Values;
 
 package body Backend.BE_Ada.Generator is
 
-   procedure Generate_Array_Sizes (L : List_Id);
-   procedure Generate_Array_Type (E : Node_Id);
+   procedure Generate_Component_Declaration (N : Node_Id);
+   procedure Generate_Defining_Identifier (E : Node_Id);
+   procedure Generate_Derived_Type_Definition (N : Node_Id);
+   procedure Generate_Designator (N : Node_Id);
    procedure Generate_Enumeration_Type (E : Node_Id);
-   procedure Generate_Identifier (E : Node_Id);
-   procedure Generate_Package (E : Node_Id);
-   procedure Generate_Package_Body (E : Node_Id);
-   procedure Generate_Package_Spec (E : Node_Id);
-   procedure Generate_Package_With (L : List_Id);
-   procedure Generate_Parameter (E : Node_Id);
+   procedure Generate_Enumeration_Type_Definition (N : Node_Id);
+   procedure Generate_Full_Type_Declaration (N : Node_Id);
+   procedure Generate_IDL_Unit_Packages (N : Node_Id);
+   procedure Generate_Package_Declaration (N : Node_Id);
+   procedure Generate_Package_Implementation (N : Node_Id);
+   procedure Generate_Package_Specification (N : Node_Id);
+   procedure Generate_Parameter (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
-   procedure Generate_Private_Part (L : List_Id);
-   procedure Generate_Record_Type_Spec (E : Node_Id);
-   procedure Generate_Subprogram_Header (E : Node_Id);
-   procedure Generate_Subprogram_Spec (E : Node_Id);
-   procedure Generate_Type_Declaration (E : Node_Id);
-   procedure Generate_Type_Extension (E : Node_Id);
-   procedure Generate_Type_Header  (E : Node_Id);
-   procedure Generate_Type_Spec (E : Node_Id);
-   procedure Generate_Visible_Part (L : List_Id);
-
-   procedure W_Small_Indent;
+   procedure Generate_Record_Definition (N : Node_Id);
+   procedure Generate_Record_Type_Definition (N : Node_Id);
+   procedure Generate_Subprogram_Specification (N : Node_Id);
+   procedure Generate_Type_Spec (N : Node_Id);
+   procedure Generate_Withed_Package (N : Node_Id);
 
    --------------
    -- Generate --
    --------------
 
-   procedure Generate (E : List_Id) is
-      N : Node_Id;
+   procedure Generate (N : Node_Id) is
    begin
-      Set_Space_Increment (3);
-      if E = No_List then
-         return;
-      end if;
-      N := First_Node (E);
-      while Present (N) loop
-         case Kind (N) is
-            when K_Package_Declaration =>
-               Generate_Package (N);
+      case Kind (N) is
+         when K_Component_Declaration =>
+            Generate_Component_Declaration (N);
 
-            when others =>
-               Set_Str_To_Name_Buffer ("Ada Package Node");
-               Error_Name (1) := Name_Find;
-               DE ("% Expected.");
+         when K_Defining_Identifier =>
+            Generate_Defining_Identifier (N);
 
-         end case;
-         Write_Eol;
-         N := Next_Node (N);
-      end loop;
+         when K_Derived_Type_Definition =>
+            Generate_Derived_Type_Definition (N);
+
+         when K_Designator =>
+            Generate_Designator (N);
+
+         when K_Enumeration_Type_Definition =>
+            Generate_Enumeration_Type_Definition (N);
+
+         when K_Full_Type_Declaration =>
+            Generate_Full_Type_Declaration (N);
+
+         when K_IDL_Unit =>
+            Generate_IDL_Unit_Packages (N);
+
+         when K_Package_Declaration =>
+            Generate_Package_Declaration (N);
+
+         when K_Package_Implementation =>
+            Generate_Package_Implementation (N);
+
+         when K_Package_Specification =>
+            Generate_Package_Specification (N);
+
+         when K_Record_Definition =>
+            Generate_Record_Definition (N);
+
+         when K_Record_Type_Definition =>
+            Generate_Record_Type_Definition (N);
+
+         when K_Subprogram_Specification =>
+            Generate_Subprogram_Specification (N);
+
+         when K_Withed_Package =>
+            Generate_Withed_Package (N);
+
+         when K_Float .. K_Octet =>
+            Write_Name (Image (Base_Type (N)));
+
+         when others =>
+            null;
+      end case;
    end Generate;
 
-   --------------------------
-   -- Generate_Array_Sizes --
-   --------------------------
+   ------------------------------------
+   -- Generate_Component_Declaration --
+   ------------------------------------
 
-   procedure Generate_Array_Sizes (L : List_Id) is
-      D : Node_Id;
-      V : Value_Id;
-      VT : Value_Type;
+   procedure Generate_Component_Declaration (N : Node_Id) is
    begin
+      Write_Indentation;
+      Generate (Defining_Identifier (N));
+      Write_Str (" : ");
+      Generate (Subtype_Indication (N));
+      Write_Line (";");
+   end Generate_Component_Declaration;
+
+   ----------------------------------
+   -- Generate_Defining_Identifier --
+   ----------------------------------
+
+   procedure Generate_Defining_Identifier (E : Node_Id) is
+      P : Node_Id;
+
+   begin
+      P := Parent_Unit_Name (E);
+      if Present (P) then
+         Generate (P);
+         Write_Char ('.');
+      end if;
+      Write_Name (Name (E));
+   end Generate_Defining_Identifier;
+
+   -------------------------
+   -- Generate_Designator --
+   -------------------------
+
+   procedure Generate_Designator (N : Node_Id) is
+      P : Node_Id;
+
+   begin
+      P := Parent_Unit_Name (N);
+      if Present (P) then
+         Generate (P);
+         Write_Char ('.');
+      end if;
+      Write_Name (Name (Defining_Identifier (N)));
+   end Generate_Designator;
+
+   --------------------------------------
+   -- Generate_Derived_Type_Definition --
+   --------------------------------------
+
+   procedure Generate_Derived_Type_Definition (N : Node_Id) is
+      R : Node_Id;
+
+   begin
+      if Is_Abstract_Type (N) then
+         Write_Str (" abstract");
+      end if;
+      Write_Str (" new ");
+      Generate (Subtype_Indication (N));
+      R := Record_Extension_Part (N);
+      if Present (R) then
+         Write_Str (" with ");
+         Generate (Record_Extension_Part (N));
+      end if;
+   end Generate_Derived_Type_Definition;
+
+   -------------------------------
+   -- Generate_Enumeration_Type --
+   -------------------------------
+
+   procedure Generate_Enumeration_Type (E : Node_Id) is
+      N : Node_Id;
+
+   begin
+      Write_Indentation;
       Write_Str ("(");
-      D := First_Node (L);
-      while Present (D) loop
-         Write_Str ("0 .. ");
-         V := Value (D);
-         VT := Value (V);
-         VT.IVal := VT.IVal - 1;
-         Set_Value (V, VT);
-         Write_Str (Values.Image (V));
-         D := Next_Node (D);
-         if Present (D) then
+      N := First_Node (Enumeration_Literals (E));
+      while Present (N) loop
+         Generate_Defining_Identifier (N);
+         N := Next_Node (N);
+         if Present (N) then
             Write_Str (",");
-            Write_Space;
+            Write_Indentation;
          end if;
       end loop;
       Write_Str (")");
-   end Generate_Array_Sizes;
+   end Generate_Enumeration_Type;
 
-   -------------------------
-   -- Generate_Array_Type --
-   -------------------------
+   ------------------------------------------
+   -- Generate_Enumeration_Type_Definition --
+   ------------------------------------------
 
-   procedure Generate_Array_Type (E : Node_Id) is
+   procedure Generate_Enumeration_Type_Definition (N : Node_Id) is
+      E : Node_Id;
+
    begin
+      Write_Str ("(");
+      E := First_Node (Enumeration_Literals (N));
+      loop
+         Generate (E);
+         E := Next_Node (E);
+         exit when No (E);
+         Write_Str (", ");
+      end loop;
+      Write_Str (")");
+   end Generate_Enumeration_Type_Definition;
 
-      Write_Str ("array");
-      Write_Space;
-      Generate_Array_Sizes (Array_Sizes (E));
-      Write_Space;
-      Write_Str ("of");
-      Write_Space;
-      Generate_Type_Spec (Type_Spec (E));
-   end Generate_Array_Type;
+   ------------------------------------
+   -- Generate_Full_Type_Declaration --
+   ------------------------------------
 
-   ------------------------------
-   -- Generate_Subprogram_Spec --
-   ------------------------------
-
-   procedure Generate_Subprogram_Spec (E : Node_Id) is
-      P : List_Id;
-      T : Node_Id;
+   procedure Generate_Full_Type_Declaration (N : Node_Id) is
    begin
-      Generate_Subprogram_Header (E);
-      Write_Eol;
+      Write_Indentation;
+      Write_Str ("type ");
+      Write_Name (Name (Defining_Identifier (N)));
+      Write_Str (" is");
+      Generate  (Type_Definition (N));
+   end Generate_Full_Type_Declaration;
+
+   --------------------------------
+   -- Generate_IDL_Unit_Packages --
+   --------------------------------
+
+   procedure Generate_IDL_Unit_Packages (N : Node_Id) is
+      P : Node_Id := First_Node (Packages (N));
+
+   begin
+      while Present (P) loop
+         Generate (P);
+         P := Next_Node (P);
+      end loop;
+   end Generate_IDL_Unit_Packages;
+
+   ----------------------------------
+   -- Generate_Package_Declaration --
+   ----------------------------------
+
+   procedure Generate_Package_Declaration (N : Node_Id) is
+   begin
+      Generate (Package_Specification (N));
+      Generate (Package_Implementation (N));
+   end Generate_Package_Declaration;
+
+   -------------------------------------
+   -- Generate_Package_Implementation --
+   -------------------------------------
+
+   procedure Generate_Package_Implementation (N : Node_Id) is
+      pragma Unreferenced (N);
+   begin
+      null;
+   end Generate_Package_Implementation;
+
+   ------------------------------------
+   -- Generate_Package_Specification --
+   ------------------------------------
+
+   procedure Generate_Package_Specification (N : Node_Id) is
+      P : Node_Id;
+   begin
+      P := First_Node (Withed_Packages (N));
+      while Present (P) loop
+         Generate (P);
+         P := Next_Node (P);
+      end loop;
+      Write_Indentation;
+      Write_Str  ("package ");
+      Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+      Write_Line (" is");
       Increment_Indentation;
-      P := Parameters (E);
-      if not Is_Empty (P) then
-         Generate_Parameter_List (P);
-      end if;
-      T := Type_Spec (E);
-      if Present (T) then
-         Write_Eol;
-         N_Space := N_Space - 1;
+      P := First_Node (Visible_Part (N));
+      while Present (P) loop
+         Generate (P);
+         Write_Line (";");
+         P := Next_Node (P);
+      end loop;
+      if not Is_Empty (Private_Part (N)) then
          Write_Indentation;
-         Write_Str ("return ");
-         N_Space := N_Space + 1;
-         Generate_Type_Spec (T);
+         Write_Line ("private");
+         P := First_Node (Private_Part (N));
+         while Present (P) loop
+            Generate (P);
+            Write_Line (";");
+            P := Next_Node (P);
+         end loop;
       end if;
-      Write_Line (";");
       Decrement_Indentation;
-   end Generate_Subprogram_Spec;
+      Write_Indentation;
+      Write_Str  ("end ");
+      Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
+      Write_Line (";");
+   end Generate_Package_Specification;
 
    ------------------------
    -- Generate_Parameter --
    ------------------------
 
-   procedure Generate_Parameter (E : Node_Id) is
+   procedure Generate_Parameter (N : Node_Id) is
    begin
-      Write_Name (Name (Identifier (E)));
+      Write_Name (Name (Defining_Identifier (N)));
       Write_Str  (" : ");
-      case Nutils.Parameter_Mode (E) is
-         when T_In =>
+      case Parameter_Mode (N) is
+         when Mode_In =>
             Write_Str ("in ");
-         when T_Out =>
+         when Mode_Out =>
             Write_Str ("out ");
-         when T_Inout =>
+         when Mode_Inout =>
             Write_Str ("in out ");
       end case;
-      Generate_Type_Spec (Type_Spec (E));
+      Generate_Type_Spec (Parameter_Type (N));
    end Generate_Parameter;
 
    -----------------------------
@@ -157,6 +303,7 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Parameter_List (L : List_Id) is
       N : Node_Id;
+
    begin
       N_Space := N_Space - 1;
       Write_Indentation;
@@ -174,255 +321,123 @@ package body Backend.BE_Ada.Generator is
       Write_Str (")");
    end Generate_Parameter_List;
 
-   ---------------------------
-   -- Generate_Private_Part --
-   ---------------------------
+   --------------------------------
+   -- Generate_Record_Definition --
+   --------------------------------
 
-   procedure Generate_Private_Part (L : List_Id) is
-      pragma Unreferenced (L);
-   begin
-      null;
-   end Generate_Private_Part;
+   procedure Generate_Record_Definition (N : Node_Id) is
+      L : constant List_Id := Component_List (N);
+      C : Node_Id;
 
-   ---------------------------
-   -- Generate_Visible_Part --
-   ---------------------------
-
-   procedure Generate_Visible_Part (L : List_Id) is
-      N : Node_Id;
    begin
       if Is_Empty (L) then
-         return;
-      end if;
-
-      N := First_Node (L);
-      while Present (N) loop
-         case Kind (N) is
-            when K_Type_Declaration =>
-               Generate_Type_Declaration (N);
-
-            when K_Ada_Subprogram_Spec =>
-               Generate_Subprogram_Spec (N);
-
-            when others =>
-               DE (Image (Kind (N)) & " not supported");
-         end case;
-         N := Next_Node (N);
-      end loop;
-   end Generate_Visible_Part;
-
-   ------------------------------
-   -- Generate_Type_Extension --
-   ------------------------------
-
-   procedure Generate_Type_Extension (E : Node_Id) is
-      Ext : Node_Id;
-      Id : Node_Id;
-   begin
-      Write_Str ("new ");
-      if Is_Abstract (E) then
-         Write_Str ("abstract ");
-      end if;
-      Id := Identifier (E);
-      case Kind (Id) is
-         when K_Ada_Identifier =>
-            Generate_Identifier (Id);
-         when K_Float .. K_Octet =>
-            Write_Str (Image (Image (Base_Type (Id))));
-         when K_Type_Declaration =>
-            Write_Str (Full_Package_Name (Current_Package) & ".");
-            Generate_Identifier (Identifier (Id));
-         when others =>
-            null;
-      end case;
-      Ext := Record_Extention_Part (E);
-      if Present (Ext) then
-         Write_Str (" with ");
-         Generate_Record_Type_Spec (Ext);
-      end if;
-   end Generate_Type_Extension;
-
-   -------------------------------
-   -- Generate_Enumeration_Type --
-   -------------------------------
-
-   procedure Generate_Enumeration_Type (E : Node_Id) is
-      D : Node_Id;
-   begin
-      Write_Str ("(");
-      D := First_Node (Enumerators (E));
-      while Present (D) loop
-         Generate_Identifier (D);
-         D := Next_Node (D);
-         if D /= No_Node then
-            Write_Str (",");
-            W_Eol;
-            Write_Indentation;
-         end if;
-      end loop;
-      Write_Str (")");
-   end Generate_Enumeration_Type;
-
-   -------------------------
-   -- Generate_Identifier --
-   -------------------------
-
-   procedure Generate_Identifier (E : Node_Id) is
-   begin
-      Write_Name (Name (E));
-   end Generate_Identifier;
-
-   ----------------------
-   -- Generate_Package --
-   ----------------------
-
-   procedure Generate_Package (E : Node_Id) is
-   begin
-      Push_Package (E);
-      Generate_Package_Spec (Package_Specification (E));
-      Generate_Package_Body (Package_Implementation (E));
-      Pop_Package;
-   end Generate_Package;
-
-   ---------------------------
-   -- Generate_Package_Spec --
-   ---------------------------
-
-   procedure Generate_Package_Spec (E : Node_Id) is
-   begin
-      if E = No_Node then
-         return;
-      end if;
-      Generate_Package_With (Withed_Packages (E));
-      Write_Indentation;
-      Write_Str  ("package ");
-      Write_Str  (Full_Package_Name (Current_Package));
-      Write_Line (" is");
-      Increment_Indentation;
-      Generate_Visible_Part (Visible_Part (E));
-      Generate_Private_Part (Private_Part (E));
-      Decrement_Indentation;
-      Write_Indentation;
-      Write_Str  ("end ");
-      Write_Str  (Full_Package_Name (Current_Package));
-      Write_Line (";");
-   end Generate_Package_Spec;
-
-   ---------------------------
-   -- Generate_Package_Body --
-   ---------------------------
-
-   procedure Generate_Package_Body (E : Node_Id) is
-      pragma Unreferenced (E);
-   begin
-      null;
-   end Generate_Package_Body;
-
-   ---------------------------
-   -- Generate_Package_With --
-   ---------------------------
-
-   procedure Generate_Package_With (L : List_Id) is
-      pragma Unreferenced (L);
-   begin
-      null;
-   end Generate_Package_With;
-
-   -------------------------------
-   -- Generate_Record_Type_Spec --
-   -------------------------------
-
-   procedure Generate_Record_Type_Spec (E : Node_Id) is
-   begin
-      if Is_Null_Record (E) then
          Write_Str ("null record");
       else
-         null; --   In progress...
+         Write_Line (" record");
+         Increment_Indentation;
+         C := First_Node (L);
+         while Present (C) loop
+            Generate (C);
+            C := Next_Node (C);
+         end loop;
+         Decrement_Indentation;
+         Write_Indentation;
+         Write_Str ("end record");
       end if;
-   end Generate_Record_Type_Spec;
+   end Generate_Record_Definition;
 
-   -------------------------------
-   -- Generate_Type_Declaration --
-   -------------------------------
+   -------------------------------------
+   -- Generate_Record_Type_Definition --
+   -------------------------------------
 
-   procedure Generate_Type_Declaration (E : Node_Id) is
+   procedure Generate_Record_Type_Definition (N : Node_Id) is
+      R : Node_Id;
+
    begin
-      Generate_Type_Header (Identifier (E));
+      if Is_Abstract_Type (N) then
+         Write_Str ("abstract ");
+      end if;
+      if Is_Tagged_Type (N) then
+         Write_Str ("tagged ");
+      end if;
+      if Is_Limited_Type (N) then
+         Write_Str ("limited ");
+      end if;
+      R := Record_Definition (N);
+      if Present (R) then
+         Generate (R);
+      end if;
+   end Generate_Record_Type_Definition;
+
+   ---------------------------------------
+   -- Generate_Subprogram_Specification --
+   ---------------------------------------
+
+   procedure Generate_Subprogram_Specification (N : Node_Id) is
+      P : List_Id;
+      T : Node_Id;
+
+   begin
+      T := Return_Type (N);
+      Write_Indentation;
+      if Present (T) then
+         Write_Str ("function ");
+      else
+         Write_Str ("procedure ");
+      end if;
+      Write_Name (Name (Defining_Identifier (N)));
+      Write_Eol;
       Increment_Indentation;
-      W_Small_Indent;
-      Generate_Type_Spec   (Type_Spec (E));
-      Write_Line (";");
+      P := Parameter_Profile (N);
+      if not Is_Empty (P) then
+         Generate_Parameter_List (P);
+      end if;
+      T := Return_Type (N);
+      if Present (T) then
+         Write_Eol;
+         Write_Indentation;
+         Write_Str ("return ");
+         Generate_Type_Spec (T);
+      end if;
       Decrement_Indentation;
-   end Generate_Type_Declaration;
+   end Generate_Subprogram_Specification;
 
    ------------------------
    -- Generate_Type_Spec --
    ------------------------
 
-   procedure Generate_Type_Spec (E : Node_Id) is
+   procedure Generate_Type_Spec (N : Node_Id) is
    begin
-      case Kind (E) is
-         when K_Float .. K_Octet =>
-            Write_Name (Image (Base_Type (E)));
-
+      case Kind (N) is
          when K_Derived_Type_Definition =>
-            Generate_Type_Extension (E);
+            Generate_Derived_Type_Definition (N);
 
-         when K_Ada_Identifier =>
-            Generate_Identifier (E);
+         when K_Defining_Identifier =>
+            Generate_Defining_Identifier (N);
 
-         when K_Type_Declaration =>
-            Write_Str (Full_Package_Name (Current_Package) & ".");
-            Write_Name (Name (Identifier (E)));
+         when K_Full_Type_Declaration =>
+            Write_Name (Name (Defining_Identifier (N)));
 
          when K_Enumeration_Type =>
-            Generate_Enumeration_Type (E);
+            Generate_Enumeration_Type (N);
 
-         when K_Array_Type =>
-            Generate_Array_Type (E);
+         when K_Designator =>
+            Generate_Designator (N);
 
          when others =>
-            DE (Image (Kind (E)) & " not supported");
+            DE (Image (Kind (N)) & " not supported");
       end case;
    end Generate_Type_Spec;
 
-   --------------------------------
-   -- Generate_Subprogram_Header --
-   --------------------------------
+   -----------------------------
+   -- Generate_Withed_Package --
+   -----------------------------
 
-   procedure Generate_Subprogram_Header (E : Node_Id) is
+   procedure Generate_Withed_Package (N : Node_Id) is
    begin
-      Write_Indentation;
-      if No (Type_Spec (E)) then
-         Write_Str ("procedure ");
-      else
-         Write_Str ("function ");
-      end if;
-      Write_Name (Name (Identifier (E)));
-   end Generate_Subprogram_Header;
-
-   --------------------------
-   -- Generate_Type_Header --
-   --------------------------
-
-   procedure Generate_Type_Header (E : Node_Id) is
-   begin
-      Write_Indentation;
-      Write_Str  ("type ");
-      Write_Name (Name (E));
-      Write_Str  (" is");
-   end Generate_Type_Header;
-
-   --------------------
-   -- W_Small_Indent --
-   --------------------
-
-   procedure W_Small_Indent is
-   begin
-      W_Eol;
-      N_Space := N_Space - 1;
-      Write_Indentation;
-      N_Space := N_Space + 1;
-   end W_Small_Indent;
+      Write_Str ("with ");
+      Generate (Defining_Identifier (N));
+      Write_Line (";");
+   end Generate_Withed_Package;
 
 end Backend.BE_Ada.Generator;

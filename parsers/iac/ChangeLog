@@ -1,5 +1,7 @@
 2004-06-22  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* backend-be_ada*: Merge be_a into be_ada.
+
 	* backend-be_a-generator.adb, backend-be_a-nutils.adb,
 	backend-be_a-nutils.adb, backend-be_a-nutils.ads,
 	backend-be_a-nodes.idl, backend-be_a.adb: Implement designator,

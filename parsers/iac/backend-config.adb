@@ -1,4 +1,3 @@
-with Backend.BE_A;
 with Backend.BE_Ada;
 with Backend.BE_IDL;
 
@@ -16,12 +15,6 @@ package body Backend.Config is
          BE_IDL.Usage'Access,
          "idl",
          "Dump parsed IDL file");
-      Register
-        (BE_A.Generate'Access,
-         BE_A.Configure'Access,
-         BE_A.Usage'Access,
-         "a",
-         "Produce Ada files");
       Register
         (BE_Ada.Generate'Access,
          BE_Ada.Configure'Access,
