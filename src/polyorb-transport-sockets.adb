@@ -90,7 +90,7 @@ package body PolyORB.Transport.Sockets is
    -----------------------
 
    procedure Accept_Connection
-     (TAP : Socket_Access_Point;
+     (TAP :     Socket_Access_Point;
       TE  : out Transport_Endpoint_Access)
    is
       New_TE : constant Transport_Endpoint_Access
@@ -121,7 +121,7 @@ package body PolyORB.Transport.Sockets is
 
    procedure Create
      (TE : in out Socket_Endpoint;
-      S  : Socket_Type) is
+      S  :        Socket_Type) is
    begin
       TE.Socket := S;
       Create (TE.Mutex);
@@ -144,7 +144,7 @@ package body PolyORB.Transport.Sockets is
 
    procedure Read
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffers.Buffer_Access;
+      Buffer :        Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count)
    is
       Data_Received : Stream_Element_Count;
@@ -168,20 +168,15 @@ package body PolyORB.Transport.Sockets is
 
    procedure Write
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffers.Buffer_Access)
-   is
+      Buffer :        Buffers.Buffer_Access) is
    begin
       pragma Debug (O ("Write: enter"));
-      begin
-         Enter (TE.Mutex);
-         --  XXX Send_Buffer is not atomic, needs to be protected.
-      exception
-         when E : others =>
-            pragma Debug (O ("Enter (TE.Mutex) raised "
-              & Ada.Exceptions.Exception_Information (E)));
-            raise;
-      end;
+
+      --  Send_Buffer is not atomic, needs to be protected.
+
+      Enter (TE.Mutex);
       pragma Debug (O ("TE mutex acquired"));
+
       PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket);
       Leave (TE.Mutex);
    end Write;
