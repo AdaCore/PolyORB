@@ -34,8 +34,10 @@
 
 package body PolyORB.Opaque is
 
-   function "+" (P : Opaque_Pointer; Ofs : Stream_Element_Offset)
-                return Opaque_Pointer is
+   function "+" (P : Opaque_Pointer; Ofs : Ada.Streams.Stream_Element_Offset)
+                return Opaque_Pointer
+   is
+      use type Ada.Streams.Stream_Element_Offset;
    begin
       return Opaque_Pointer'(P.Zone, P.Offset + Ofs);
    end "+";

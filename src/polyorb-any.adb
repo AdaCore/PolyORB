@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#31 $
+--  $Id: //droopi/main/src/polyorb-any.adb#32 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -44,6 +44,7 @@ package body PolyORB.Any is
 
    use PolyORB.Locks;
    use PolyORB.Log;
+   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)

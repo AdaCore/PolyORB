@@ -35,7 +35,7 @@
 
 --  $Id$
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;
 
 with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
@@ -46,8 +46,6 @@ package PolyORB.Transport is
 
    --  Package body needs PolyORB.ORB.Interface, which has an
    --  indirect dependency on Transport: no pramga Elaborate_Body.
-
-   use PolyORB.Asynch_Ev;
 
    -------------------------------------------------------------
    -- A transport service access point:                       --
@@ -72,7 +70,7 @@ package PolyORB.Transport is
 
    function Create_Event_Source
      (TAP : Transport_Access_Point)
-     return Asynch_Ev_Source_Access
+     return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TAP as an asyncrhonous event source.
 
@@ -134,14 +132,14 @@ package PolyORB.Transport is
 
    function Create_Event_Source
      (TE : Transport_Endpoint)
-     return Asynch_Ev_Source_Access
+     return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TE as an asyncrhonous event source.
 
    procedure Read
      (TE     : in out Transport_Endpoint;
       Buffer : Buffers.Buffer_Access;
-      Size   : in out Stream_Element_Count)
+      Size   : in out Ada.Streams.Stream_Element_Count)
       is abstract;
    --  Receive data from TE into Buffer. When Read is Called,
    --  Size is set to the maximum size of the data to be received.

@@ -83,7 +83,9 @@ package body PolyORB.References is
    procedure Create_Reference
      (Profiles : Profile_Array;
       Type_Id  : String;
-      R        : out Ref) is
+      R        : out Ref)
+   is
+      use type Binding_Data.Profile_Access;
    begin
       if Profiles'Length = 0 then
          Set (R, null);
@@ -177,7 +179,7 @@ package body PolyORB.References is
          pragma Debug
            (O ("Destroying profile of type "
                & Ada.Tags.External_Tag (Profiles (I)'Tag)));
-         Destroy_Profile (Profiles (I));
+         Binding_Data.Destroy_Profile (Profiles (I));
       end loop;
    end Finalize;
 

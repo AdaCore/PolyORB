@@ -58,7 +58,7 @@ package PolyORB.Transport.Sockets is
 
    function Create_Event_Source
      (TAP : Socket_Access_Point)
-      return Asynch_Ev_Source_Access;
+      return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Accept_Connection
      (TAP : Socket_Access_Point;
@@ -78,12 +78,12 @@ package PolyORB.Transport.Sockets is
 
    function Create_Event_Source
      (TE : Socket_Endpoint)
-      return Asynch_Ev_Source_Access;
+      return Asynch_Ev.Asynch_Ev_Source_Access;
 
    procedure Read
      (TE     : in out Socket_Endpoint;
       Buffer : Buffers.Buffer_Access;
-      Size   : in out Stream_Element_Count);
+      Size   : in out Ada.Streams.Stream_Element_Count);
 
    procedure Write
      (TE     : in out Socket_Endpoint;

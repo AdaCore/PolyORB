@@ -37,7 +37,7 @@
 with Ada.Unchecked_Deallocation;
 with PolyORB.Sequences.Unbounded;
 
-with PolyORB.Binding_Data; use PolyORB.Binding_Data;
+with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;

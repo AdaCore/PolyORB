@@ -39,6 +39,7 @@ with PolyORB.Log;
 package body PolyORB.Any.NVList is
 
    use PolyORB.Log;
+   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any.nvlist");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)

@@ -53,14 +53,14 @@ package PolyORB.References.IOR is
 
    type Marshall_Profile_Body_Type is access procedure
      (Buffer  : access Buffers.Buffer_Type;
-      Profile : Profile_Access);
+      Profile : Binding_Data.Profile_Access);
 
    type Unmarshall_Profile_Body_Type is access function
      (Buffer  : access Buffers.Buffer_Type)
-     return Profile_Access;
+     return Binding_Data.Profile_Access;
 
    type Profile_Record is record
-      Tag                     : Profile_Tag;
+      Tag                     : Binding_Data.Profile_Tag;
       Marshall_Profile_Body   : Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
    end record;
@@ -104,7 +104,7 @@ package PolyORB.References.IOR is
      return IOR_Type;
 
    procedure Register
-     (Profile                 : in Profile_Tag;
+     (Profile                 : in Binding_Data.Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
 

@@ -32,7 +32,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#4 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#5 $
 
 with Ada.Finalization;
 
@@ -47,14 +47,11 @@ package PolyORB.Opaque.Chunk_Pools is
 
    pragma Preelaborate;
 
-   use Ada.Streams;
-   use PolyORB.Opaque;
-
-   type Chunk (Size : Stream_Element_Count) is
+   type Chunk (Size : Ada.Streams.Stream_Element_Count) is
      new Ada.Finalization.Limited_Controlled with private;
    type Chunk_Access is access all Chunk;
 
-   Default_Chunk_Size : constant Stream_Element_Count := 4096;
+   Default_Chunk_Size : constant Ada.Streams.Stream_Element_Count := 4096;
 
    type Pool_Type is limited private;
    --  A Pool of chunks with one preallocated chunk and a
@@ -65,7 +62,7 @@ package PolyORB.Opaque.Chunk_Pools is
    procedure Allocate
      (Pool    : access Pool_Type;
       A_Chunk : out Chunk_Access;
-      Size    : Stream_Element_Count := Default_Chunk_Size);
+      Size    : Ada.Streams.Stream_Element_Count := Default_Chunk_Size);
    --  Create a chunk in Pool and return an access to it.
    --  On the first call where Size is no more than Default_Chunk_Size,
    --  the Prealloc chunk is returned. On all other calls, a chunk of
@@ -74,7 +71,7 @@ package PolyORB.Opaque.Chunk_Pools is
 
    function Chunk_Storage
      (A_Chunk : Chunk_Access)
-     return Opaque_Pointer;
+     return Opaque.Opaque_Pointer;
    --  Return a pointer to a chunk's storage space.
 
    procedure Release
@@ -106,7 +103,7 @@ private
    --  A chunk pool is managed as a linked list
    --  of chunks.
 
-   type Chunk (Size : Stream_Element_Count) is
+   type Chunk (Size : Ada.Streams.Stream_Element_Count) is
      new Ada.Finalization.Limited_Controlled with record
         Next     : Chunk_Access;
          --  The next chunk in the pool.

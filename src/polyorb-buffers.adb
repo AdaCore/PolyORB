@@ -39,6 +39,8 @@ with PolyORB.Log;
 
 package body PolyORB.Buffers is
 
+   use Ada.Streams;
+   use PolyORB.Opaque;
    use PolyORB.Log;
    use Buffer_Chunk_Pools;
    use Iovec_Pools;

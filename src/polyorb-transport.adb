@@ -129,7 +129,8 @@ package body PolyORB.Transport is
          end if;
 
          declare
-            Size : Stream_Element_Count := TE.Max;
+            use type Ada.Streams.Stream_Element_Count;
+            Size : Ada.Streams.Stream_Element_Count := TE.Max;
          begin
             Read (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size);
 

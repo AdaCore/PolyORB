@@ -40,6 +40,8 @@ with PolyORB.Utils;
 
 package body PolyORB.Objects is
 
+   use Ada.Streams;
+
    procedure Free (X : in out Object_Id_Access)
    is
       procedure Free is new Ada.Unchecked_Deallocation

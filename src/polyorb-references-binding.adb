@@ -50,6 +50,7 @@ with PolyORB.Types;
 
 package body PolyORB.References.Binding is
 
+   use PolyORB.Binding_Data;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.binding");
@@ -57,7 +58,7 @@ package body PolyORB.References.Binding is
      renames L.Output;
 
    procedure Bind
-     (R          : Ref;
+     (R          : Ref'Class;
       Local_ORB  : ORB.ORB_Access;
       Servant    : out Components.Component_Access;
       Pro        : out Binding_Data.Profile_Access;
@@ -187,7 +188,7 @@ package body PolyORB.References.Binding is
                      Bind (Continuation, Local_ORB, Servant, Pro);
                      pragma Debug (O ("Recursed."));
                      Share_Binding_Info
-                       (Dest => R, Source => Continuation);
+                       (Dest => Ref (R), Source => Continuation);
                      pragma Debug (O ("Cached binding data."));
                   end if;
                   pragma Debug (O ("About to finalize Continuation"));
