@@ -1223,7 +1223,6 @@ tools/po_catref/polyorb-binding_data-giop-diop-print.adb
 tools/po_catref/polyorb-binding_data-giop-diop-print.ads
 tools/po_catref/polyorb-binding_data-giop-iiop-print.adb
 tools/po_catref/polyorb-binding_data-giop-iiop-print.ads
-tools/po_catref/polyorb-binding_data-giop-print.ads
 tools/po_catref/polyorb-binding_data-giop-uipmc-print.adb
 tools/po_catref/polyorb-binding_data-giop-uipmc-print.ads
 tools/po_catref/polyorb-binding_data-print.adb

@@ -452,6 +452,12 @@ do
    mv ${F}.new ${F}
 done
 
+for F in ${PO_CATREF_WITHS}
+do
+   ${SED} -e 's/.*PolyORB.Binding_Data.GIOP.Print.*//g' < ${F} > ${F}.new
+   mv ${F}.new ${F}
+done
+
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
 AC_SUBST_FILE(PROTO_SERVER_WITHS)
 AC_SUBST_FILE(PO_CATREF_WITHS)
