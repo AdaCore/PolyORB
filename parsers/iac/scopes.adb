@@ -95,6 +95,7 @@ package body Scopes is
       H  : Node_Id;
       KC : Node_Kind;
       KE : constant Node_Kind := Kind (E);
+      KS : constant Node_Kind := Kind (S);
 
    begin
       if Present (C) then
@@ -148,7 +149,10 @@ package body Scopes is
                Remove_From_Scope (H, Scope_Entity (H));
             end if;
 
-         elsif Kind (S) = K_Interface_Declaration then
+         elsif KS = K_Interface_Declaration
+           or else KS = K_Value_Declaration
+           or else KS = K_Abstract_Value_Declaration
+         then
 
             --  If the current entity is an attribute or an operation,
             --  then it cannot be overriden.

@@ -15,7 +15,6 @@ with Frontend.Nutils; use Frontend.Nutils;
 
 package body Analyzer is
 
-   procedure Analyze_Abstract_Value_Declaration (E : Node_Id);
    procedure Analyze_Attribute_Declaration (E : Node_Id);
    procedure Analyze_Complex_Declarator (E : Node_Id);
    procedure Analyze_Constant_Declaration (E : Node_Id);
@@ -86,8 +85,9 @@ package body Analyzer is
       end if;
 
       case Kind (E) is
-         when K_Abstract_Value_Declaration =>
-            Analyze_Abstract_Value_Declaration (E);
+         when K_Abstract_Value_Declaration
+           | K_Value_Declaration =>
+            Analyze_Value_Declaration (E);
 
          when K_Attribute_Declaration =>
             Analyze_Attribute_Declaration (E);
@@ -173,9 +173,6 @@ package body Analyzer is
          when K_Union_Type =>
             Analyze_Union_Type (E);
 
-         when K_Value_Declaration =>
-            Analyze_Value_Declaration (E);
-
          when K_Value_Box_Declaration =>
             Analyze_Value_Box_Declaration (E);
 
@@ -189,15 +186,6 @@ package body Analyzer is
             Dummy (E);
       end case;
    end Analyze;
-
-   ----------------------------------------
-   -- Analyze_Abstract_Value_Declaration --
-   ----------------------------------------
-
-   procedure Analyze_Abstract_Value_Declaration (E : Node_Id) is
-   begin
-      Dummy (E);
-   end Analyze_Abstract_Value_Declaration;
 
    -----------------------------------
    -- Analyze_Attribute_Declaration --
@@ -228,7 +216,7 @@ package body Analyzer is
          TK := Kind (PT);
          if (TK = K_Forward_Interface_Declaration
              or else TK = K_Forward_Interface_Declaration)
-           and then Is_Local_Interface (PT)
+           and then Is_A_Local_Type (PT)
          then
             Error_Loc (1)  := Loc (T);
             Error_Name (1) := IDL_Name (Identifier (T));
@@ -245,7 +233,7 @@ package body Analyzer is
 
    begin
       Analyze (Decl_Type);
-      if not Is_Local_Interface (Interface) then
+      if not Is_A_Local_Type (Interface) then
          No_Interface_Attribute_Of_Local_Type (Decl_Type, Interface);
       end if;
 
@@ -457,7 +445,7 @@ package body Analyzer is
       Parent      : Node_Id;
       Definition  : Node_Id;
       Scoped_Name : Node_Id;
-      Is_Local    : constant Boolean := Is_Local_Interface (E);
+      Is_Local    : constant Boolean := Is_A_Local_Type (E);
       Is_Abstract : constant Boolean := Is_Abstract_Interface (E);
 
    begin
@@ -488,7 +476,7 @@ package body Analyzer is
                Set_Reference (Scoped_Name, No_Node);
 
             elsif not Is_Local then
-               if Is_Local_Interface (Parent) then
+               if Is_A_Local_Type (Parent) then
                   Error_Loc (1) := Loc (E);
                   DE ("interface cannot inherit " &
                       "from a local interface");
@@ -619,7 +607,7 @@ package body Analyzer is
          TK := Kind (PT);
          if (TK = K_Forward_Interface_Declaration
              or else TK = K_Forward_Interface_Declaration)
-           and then Is_Local_Interface (PT)
+           and then Is_A_Local_Type (PT)
          then
             Error_Loc (1)  := Loc (T);
             Error_Name (1) := IDL_Name (Identifier (T));
@@ -659,7 +647,7 @@ package body Analyzer is
                TK := Kind (MT);
                if (TK = K_Forward_Interface_Declaration
                    or else TK = K_Forward_Interface_Declaration)
-                 and then Is_Local_Interface (MT)
+                 and then Is_A_Local_Type (MT)
                then
                   Error_Loc (1)  := Loc (EM);
                   Error_Name (1) := IDL_Name (Identifier (MT));
@@ -674,7 +662,7 @@ package body Analyzer is
       end No_Exception_Member_Of_Local_Type;
 
       Interface     : constant Node_Id := Current_Scope;
-      Is_Local      : constant Boolean := Is_Local_Interface (Interface);
+      Is_Local      : constant Boolean := Is_A_Local_Type (Interface);
       Oneway        : Boolean := Is_Oneway (E);
       Param_Type    : Node_Id;
       Op_Parameter  : Node_Id;
@@ -1039,6 +1027,9 @@ package body Analyzer is
       Parent       : Node_Id;
       Definition   : Node_Id;
       Scoped_Names : List_Id;
+      Parent_Kind  : Node_Kind;
+      Is_Abstract  : constant Boolean :=
+        (Kind (E) = K_Abstract_Value_Declaration);
 
    begin
       Enter_Name_In_Scope (Identifier (E));
@@ -1053,8 +1044,11 @@ package body Analyzer is
             Analyze (Scoped_Name);
             Parent := Reference (Scoped_Name);
             if Present (Parent) then
-               if Kind (Parent) /= K_Value_Declaration then
-                  if Kind (Parent) = K_Value_Forward_Declaration then
+               Parent_Kind := Kind (Parent);
+               if Parent_Kind /= K_Value_Declaration
+                 and then Parent_Kind /= K_Abstract_Value_Declaration
+               then
+                  if Parent_Kind = K_Value_Forward_Declaration then
                      Error_Loc (1) := Loc (E);
                      DE ("value type cannot inherit " &
                          "from a forward-declared value type");
@@ -1067,6 +1061,14 @@ package body Analyzer is
 
                   --  Do not consider this value type later on.
 
+                  Set_Reference (Scoped_Name, No_Node);
+
+               elsif Is_Abstract
+                 and then Parent_Kind /= K_Abstract_Value_Declaration
+               then
+                  Error_Loc (1) := Loc (E);
+                  DE ("abstract value type cannot inherit " &
+                      "from a non-abstract value type");
                   Set_Reference (Scoped_Name, No_Node);
                end if;
             end if;

@@ -141,6 +141,16 @@ package body Frontend.Nutils is
    end Is_A_Forward_Of;
 
    ---------------------
+   -- Is_A_Local_Type --
+   ---------------------
+
+   function Is_A_Local_Type (E : Node_Id) return Boolean is
+   begin
+      return Kind (E) = K_Interface_Declaration
+        and then Is_Local_Interface (E);
+   end Is_A_Local_Type;
+
+   ---------------------
    -- Is_A_Non_Module --
    ---------------------
 
@@ -162,6 +172,8 @@ package body Frontend.Nutils is
            | K_Specification
            | K_Structure_Type
            | K_Union_Type
+           | K_Value_Declaration
+           | K_Abstract_Value_Declaration
            | K_Exception_Declaration
            | K_Interface_Declaration =>
             return True;

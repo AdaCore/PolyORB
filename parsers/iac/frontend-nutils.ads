@@ -33,6 +33,7 @@ package Frontend.Nutils is
    function Is_Attribute_Or_Operation (E : Node_Id) return Boolean;
    function Is_Interface_Redefinable_Node (E : Node_Id) return Boolean;
    function Is_A_Non_Module (E : Node_Id) return Boolean;
+   function Is_A_Local_Type (E : Node_Id) return Boolean;
 
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
    function New_List (Kind : Node_Kind; Loc : Location) return List_Id;

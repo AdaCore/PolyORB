@@ -3,14 +3,17 @@
 	* backend-be_idl.adb: Generate value declaration and adopt the
 	same organization for IDL backend than the one for Ada backend.
 
-	* frontend-nutils.adb: Fix function Is_A_Forward_Of for value
-	declaration.
+	* frontend-nutils.adb, frontend-nutils.ads: Fix function
+	Is_A_Forward_Of for value declaration. Implement value type
+	inheritance.
 
-	* scopes.adb: Deal with value forward declaration.
+	* scopes.adb: Deal with value forward declaration. Implement
+	value type inheritance.
 
 	* analyzer.adb: Analyze partially value declarations. Some parts
 	are just cut and pasted from interface analyzis. This will be
-	reorganized later on.
+	reorganized later on. Implement value type inheritance.
+
 
 2004-07-02  Laurent Pautet  <pautet@dorine.enst.fr>
 
