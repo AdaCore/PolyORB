@@ -509,13 +509,9 @@ package body Exp_Hlpr is
                                 Alt_List));
 
                         Variant := First_Non_Pragma (Variants (Field));
+
                         while Present (Variant) loop
-                           Choice_List := New_List;
-                           Choice := First (Discrete_Choices (Variant));
-                           while Present (Choice) loop
-                              Append_To (Choice_List, New_Copy_Tree (Choice));
-                              Next (Choice);
-                           end loop;
+                           Choice_List := New_Copy_List_Tree (Discrete_Choices (Variant));
 
                            VP_Stmts := New_List;
                            FA_Append_Record_Traversal (
@@ -848,6 +844,8 @@ package body Exp_Hlpr is
               Make_Object_Declaration (Loc,
                 Defining_Identifier =>
                   Strm,
+                Aliased_Present     =>
+                  True,
                 Object_Definition   =>
                   New_Occurrence_Of (RTE (RE_Buffer_Stream_Type), Loc)));
 
@@ -858,8 +856,8 @@ package body Exp_Hlpr is
                 Name =>
                   New_Occurrence_Of (RTE (RE_Any_To_BS), Loc),
                 Parameter_Associations => New_List (
-                  New_Occurrence_Of (Strm, Loc),
-                  New_Occurrence_Of (Any_Parameter, Loc))));
+                  New_Occurrence_Of (Any_Parameter, Loc),
+                  New_Occurrence_Of (Strm, Loc))));
 
             --  declare
             --     Res : constant T := T'Input (Strm);
@@ -876,13 +874,14 @@ package body Exp_Hlpr is
                   Object_Definition   =>
                     New_Occurrence_Of (Typ, Loc),
                   Expression          =>
-                    Make_Function_Call (Loc,
-                      Name =>
-                        Make_Attribute_Reference (Loc,
-                          Prefix         => Typ,
-                          Attribute_Name => Name_Input),
-                      Parameter_Associations => New_List (
-                        New_Occurrence_Of (Strm, Loc))))),
+                      Make_Attribute_Reference (Loc,
+                        Prefix         => New_Occurrence_Of (Typ, Loc),
+                        Attribute_Name => Name_Input,
+                        Expressions => New_List (
+                          Make_Attribute_Reference (Loc,
+                            Prefix => New_Occurrence_Of (Strm, Loc),
+                            Attribute_Name => Name_Access))))),
+
               Handled_Statement_Sequence =>
                 Make_Handled_Sequence_Of_Statements (Loc,
                   Statements => New_List (
@@ -1191,10 +1190,8 @@ package body Exp_Hlpr is
 
                      --  A variant part
 
-
-
                      declare
---                      Variant : Node_Id;
+                        Variant : Node_Id;
 --                      Choice  : Node_Id;
 --                      Struct_Counter : Int := 0;
 
@@ -1203,36 +1200,36 @@ package body Exp_Hlpr is
 --                      VP_Stmts : List_Id;
 
                         Alt_List : constant List_Id := New_List;
---                      Choice_List : List_Id;
+                        Choice_List : List_Id;
 
---                      Struct_Any : constant Entity_Id
---                        := Make_Defining_Identifier (Loc,
---                             New_Internal_Name ('S'));
+                        Struct_Any : constant Entity_Id
+                          := Make_Defining_Identifier (Loc,
+                               New_Internal_Name ('S'));
                      begin
 
---                      Append_To (Decls,
---                        Make_Object_Declaration (Loc,
---                          Defining_Identifier =>
---                            Struct_Any,
---                          Constant_Present =>
---                             True,
---                          Object_Definition =>
---                             New_Occurrence_Of (RTE (RE_Any), Loc),
---                          Expression =>
---                            Make_Function_Call (Loc,
---                              Name => New_Occurrence_Of (
---                                RTE (RE_Extract_Union_Value), Loc),
---                              Parameter_Associations => New_List (
---                                Build_Get_Aggregate_Element (Loc,
---                                  Any => Any,
---                                  Tc  => Make_Function_Call (Loc,
---                                    Name => New_Occurrence_Of (
---                                      RTE (RE_Any_Member_Type), Loc),
---                                    Parameter_Associations => New_List (
---                                      New_Occurrence_Of (Any, Loc),
---                                      Make_Integer_Literal (Loc, Counter))),
---                                  Idx => Make_Integer_Literal (Loc,
---                                    Counter))))));
+                        Append_To (Decls,
+                          Make_Object_Declaration (Loc,
+                            Defining_Identifier =>
+                              Struct_Any,
+                            Constant_Present =>
+                               True,
+                            Object_Definition =>
+                               New_Occurrence_Of (RTE (RE_Any), Loc),
+                            Expression =>
+                              Make_Function_Call (Loc,
+                                Name => New_Occurrence_Of (
+                                  RTE (RE_Extract_Union_Value), Loc),
+                                Parameter_Associations => New_List (
+                                  Build_Get_Aggregate_Element (Loc,
+                                    Any => Any,
+                                    Tc  => Make_Function_Call (Loc,
+                                      Name => New_Occurrence_Of (
+                                        RTE (RE_Any_Member_Type), Loc),
+                                      Parameter_Associations => New_List (
+                                        New_Occurrence_Of (Any, Loc),
+                                        Make_Integer_Literal (Loc, Counter))),
+                                    Idx => Make_Integer_Literal (Loc,
+                                      Counter))))));
 
                         Append_To (Stmts,
                           Make_Block_Statement (Loc,
@@ -1254,29 +1251,25 @@ package body Exp_Hlpr is
                               Alternatives =>
                                 Alt_List));
 
---                      Variant := First_Non_Pragma (Variants (Field));
---                      while Present (Variant) loop
---                         Choice_List := New_List;
---                         Choice := First (Discrete_Choices (Variant));
---                         while Present (Choice) loop
---                            Append_To (Choice_List, New_Copy_Tree (Choice));
---                            Next (Choice);
---                         end loop;
+                      Variant := First_Non_Pragma (Variants (Field));
 
---                         VP_Stmts := New_List;
---                         FA_Append_Record_Traversal (
---                           Stmts     => VP_Stmts,
---                           Clist     => Component_List (Variant),
---                           Container => Struct_Any,
---                           Counter   => Struct_Counter);
+                      while Present (Variant) loop
+                         Choice_List := New_Copy_List_Tree (Discrete_Choices (Variant));
 
---                         Append_To (Alt_List,
---                           Make_Case_Statement_Alternative (Loc,
---                             Discrete_Choices => Choice_List,
---                             Statements =>
---                               VP_Stmts));
---                         Next_Non_Pragma (Variant);
---                      end loop;
+                         VP_Stmts := New_List;
+                         TA_Append_Record_Traversal (
+                           Stmts     => VP_Stmts,
+                           Clist     => Component_List (Variant),
+                           Container => XXX Struct_Any,
+                           Counter   => XXX Struct_Counter);
+
+                         Append_To (Alt_List,
+                           Make_Case_Statement_Alternative (Loc,
+                             Discrete_Choices => Choice_List,
+                             Statements =>
+                               VP_Stmts));
+                         Next_Non_Pragma (Variant);
+                      end loop;
                      end;
 
 
@@ -1461,7 +1454,7 @@ package body Exp_Hlpr is
               Make_Object_Declaration (Loc,
                 Defining_Identifier =>
                   Strm,
-                Aliased_Present =>
+                Aliased_Present     =>
                   True,
                 Object_Definition   =>
                   New_Occurrence_Of (RTE (RE_Buffer_Stream_Type), Loc)));
