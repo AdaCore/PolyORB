@@ -35,8 +35,6 @@
 
 --  $Id$
 
-with PolyORB.Sequences.Unbounded;
-
 package PolyORB.Components is
 
    pragma Elaborate_Body;
@@ -111,34 +109,6 @@ package PolyORB.Components is
    type Component_Factory is access function
      return Component_Access;
 
-   -------------------------
-   -- Group communication --
-   -------------------------
-
-   --  Common declarations
-
-   type Group is abstract new Component with private;
-   --  A group of target components.
-
-   procedure Subscribe
-     (G      : in out Group;
-      Target :        Component_Access);
-   --  Subscribe Target to group G.
-
-   procedure Unsubscribe
-     (G      : in out Group;
-      Target :        Component_Access);
-   --  Unsubscribe Target from group G.
-
-   type Multicast_Group is new Group with private;
-   --  A group with Multicast semantics: when a message
-   --  is received by the group, all subscribers receive it.
-
-   type Anycast_Group is new Group with private;
-   --  A group with Anycast semantics: when a message is received
-   --  by the group, subscribers receive it sequentially until
-   --  one of them handles it.
-
 private
 
    pragma Inline (Set_Allocation_Class);
@@ -149,28 +119,5 @@ private
      abstract tagged limited record
         Allocation_Class : Component_Allocation_Class := Auto;
      end record;
-
-   package Component_Seqs is new PolyORB.Sequences.Unbounded
-     (Component_Access);
-
-   subtype Component_Seq is Component_Seqs.Sequence;
-
-   type Group is abstract new Component with record
-      Members : Component_Seq;
-   end record;
-
-   type Multicast_Group is new Group with null record;
-
-   function Handle_Message
-     (Grp : access Multicast_Group;
-      Msg :        Message'Class)
-     return Message'Class;
-
-   type Anycast_Group is new Group with null record;
-
-   function Handle_Message
-     (Grp : access Anycast_Group;
-      Msg :        Message'Class)
-     return Message'Class;
 
 end PolyORB.Components;

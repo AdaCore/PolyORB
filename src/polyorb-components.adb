@@ -46,7 +46,6 @@ package body PolyORB.Components is
 
    use Ada.Tags;
    use PolyORB.Log;
-   use Component_Seqs;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.components");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -141,97 +140,5 @@ package body PolyORB.Components is
    begin
       C.Allocation_Class := CAC;
    end Set_Allocation_Class;
-
-   ---------------
-   -- Subscribe --
-   ---------------
-
-   procedure Subscribe
-     (G      : in out Group;
-      Target :        Component_Access) is
-   begin
-      pragma Assert (Target /= null);
-      Append (G.Members, Target);
-   end Subscribe;
-
-   -----------------
-   -- Unsubscribe --
-   -----------------
-
-   procedure Unsubscribe
-     (G      : in out Group;
-      Target : Component_Access)
-   is
-      Members : constant Element_Array := To_Element_Array (G.Members);
-
-   begin
-      for J in Members'Range loop
-         if Members (J) = Target then
-            Delete (Source  => G.Members,
-                    From    => 1 + J - Members'First,
-                    Through => J + J - Members'First);
-            return;
-         end if;
-      end loop;
-   end Unsubscribe;
-
-   --------------------
-   -- Handle_Message --
-   --------------------
-
-   function Handle_Message
-     (Grp : access Multicast_Group;
-      Msg : Message'Class)
-     return Message'Class
-   is
-      Members : constant Element_Array := To_Element_Array (Grp.Members);
-      Handled : Boolean := False;
-      Nothing : Null_Message;
-
-   begin
-      for J in Members'Range loop
-         begin
-            Emit_No_Reply (Members (J), Msg);
-            Handled := True;
-         exception
-            when Unhandled_Message =>
-               null;
-         end;
-      end loop;
-
-      if Handled then
-         return Nothing;
-      else
-         raise Unhandled_Message;
-      end if;
-   end Handle_Message;
-
-   --------------------
-   -- Handle_Message --
-   --------------------
-
-   function Handle_Message
-     (Grp : access Anycast_Group;
-      Msg : Message'Class)
-     return Message'Class
-   is
-      Members : constant Element_Array := To_Element_Array (Grp.Members);
-
-   begin
-      for J in Members'Range loop
-         begin
-            declare
-               Reply : constant Message'Class
-                 := Handle_Message (Members (J), Msg);
-            begin
-               return Reply;
-            end;
-         exception
-            when Unhandled_Message =>
-               null;
-         end;
-      end loop;
-      raise Unhandled_Message;
-   end Handle_Message;
 
 end PolyORB.Components;
