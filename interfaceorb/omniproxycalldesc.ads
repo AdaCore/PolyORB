@@ -69,18 +69,18 @@ package omniProxyCallDesc is
 
    function Align_Size(Self : in Object ;
                        Size_In: in Corba.Unsigned_Long )
-                       return Corba.Unsigned_Long is abstract ;
+                       return Corba.Unsigned_Long ;
    -- This function computes the size needed to marshall the arguments
    -- of the subprogram
 
 
    procedure Marshal_Arguments (Self : in Object ;
-                                Giop_Client: in out Giop_C.Object ) is abstract ;
+                                Giop_Client: in out Giop_C.Object ) ;
    -- marshalls the arguments of the subprogram into a Giop_C object
 
 
    procedure Unmarshal_Returned_Values (Self : in out Object ;
-                                        Giop_Client: in out Giop_C.Object ) is abstract ;
+                                        Giop_Client: in out Giop_C.Object ) ;
    -- unmarshalls the returned values of the subprogram from a Giop_C object
 
 

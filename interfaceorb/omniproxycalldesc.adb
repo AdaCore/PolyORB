@@ -61,6 +61,41 @@ package body omniProxyCallDesc is
    end ;
 
 
+   -- Align_Size
+   -------------
+   function Align_Size(Self : in Object ;
+                       Size_In: in Corba.Unsigned_Long )
+                       return Corba.Unsigned_Long is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                     "omniProxyCallDesc.AlignSize should not be "
+                                     & "called on a procedure or function with no arguments") ;
+      return 0 ;
+   end ;
+
+
+   -- Marshall_Arguments
+   ---------------------
+   procedure Marshal_Arguments (Self : in Object ;
+                                Giop_Client: in out Giop_C.Object ) is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                     "omniProxyCallDesc.Marshal_Arguments should not be "
+                                     & "called on a procedure or function with no arguments") ;
+   end ;
+
+
+   -- Unmarshall_Returned_Values
+   -----------------------------
+   procedure Unmarshal_Returned_Values (Self : in out Object ;
+                                        Giop_Client: in out Giop_C.Object ) is
+   begin
+      Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                     "omniProxyCallDesc.Unmarshal_Returned_Values should not be "
+                                     & "called on a procedure") ;
+   end ;
+
+
    -- User_Exception
    -----------------
    procedure User_Exception (Self : in Object ;
