@@ -92,11 +92,10 @@ ADACOMPILER = ../support/adacompiler
 $(ADA_LIBADD): ../adasockets/src/sockets-constants.ads
 
 install-data-local:
-	$(INSTALL) -d $(alidir)
-	$(INSTALL) -m 444 *.ali $(alidir)
-
-uninstall-local:
-	-$(RM) $(alidir)/*.ali
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 *.ad[bs] ../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(srcdir)/../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
 
 ../adasockets/src/sockets-constants.ads:
 	cd ../adasockets/src && $(MAKE) sockets-constants.ads

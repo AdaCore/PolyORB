@@ -283,8 +283,7 @@ install-data: install-data-am
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-libLTLIBRARIES uninstall-binSCRIPTS \
-		uninstall-local
+uninstall-am: uninstall-libLTLIBRARIES uninstall-binSCRIPTS
 uninstall: uninstall-am
 all-am: Makefile $(LTLIBRARIES) $(SCRIPTS)
 all-redirect: all-am
@@ -336,10 +335,10 @@ mostlyclean-libtool distclean-libtool clean-libtool \
 maintainer-clean-libtool uninstall-binSCRIPTS install-binSCRIPTS tags \
 distdir info-am info dvi-am dvi check check-am installcheck-am \
 installcheck install-exec-am install-exec install-data-local \
-install-data-am install-data install-am install uninstall-local \
-uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+install-data-am install-data install-am install uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 %.lo: %.adb
@@ -357,11 +356,10 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 $(ADA_LIBADD): ../adasockets/src/sockets-constants.ads
 
 install-data-local:
-	$(INSTALL) -d $(alidir)
-	$(INSTALL) -m 444 *.ali $(alidir)
-
-uninstall-local:
-	-$(RM) $(alidir)/*.ali
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 *.ad[bs] ../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(srcdir)/../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
 
 ../adasockets/src/sockets-constants.ads:
 	cd ../adasockets/src && $(MAKE) sockets-constants.ads
