@@ -6,10 +6,15 @@
 with CORBA;
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Log;
+with Droopi.Representations.CDR; use Droopi.Representations.CDR;
 
 package body Droopi.References.IOR is
 
-   package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop");
+   use Droopi.Log;
+
+   package L is
+      new Droopi.Log.Facility_Log ("droopi.references.ior");
+
    procedure O
      (Message : in String;
       Level   : in Log_Level := Debug)
@@ -21,7 +26,8 @@ package body Droopi.References.IOR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Value  : in IOR_Type) is
+      Value  : in IOR_Type)
+   is
    begin
       Marshall (Buffer, Value.Type_Id);
       Marshall (Buffer, CORBA.Unsigned_Long (Value.Profiles'Length));
@@ -39,14 +45,13 @@ package body Droopi.References.IOR is
    -- Unmarshall --
    ----------------
 
-   procedure Unmarshall
+   function Unmarshall
      (Buffer : access Buffer_Type)
-   return  IOR_Type;
-
+   return  IOR_Type
    is
-       N_Profiles : CORBA.Unsigned_Long;
-       Profiles   : access Profile_Array;
-       Result : out IOR_Type;
+      N_Profiles : CORBA.Unsigned_Long;
+      Profiles   : Profile_Array_Access;
+      Result     : IOR_Type;
    begin
       Result.Type_Id := Unmarshall (Buffer);
       N_Profiles     := Unmarshall (Buffer);
@@ -56,7 +61,7 @@ package body Droopi.References.IOR is
             To_Standard_String (Type_Id) &
             " (" & N_Profiles'Img & " profiles)."));
 
-      Prof_Array := new Profile_Array (1 .. N_Profiles => null);
+      Prof_Array := new Profile_Array'(1 .. N_Profiles => null);
 
       for N in Profiles'Range loop
          declare

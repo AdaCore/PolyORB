@@ -39,11 +39,6 @@ with Droopi.Requests;
 with Droopi.Components;
 with Droopi.Filters;
 with Droopi.Filters.Interface;
-with Droopi.Log;
-
-
-pragma Elaborate_All (Droopi.Log);
-
 
 package body Droopi.Protocols.GIOP is
 
