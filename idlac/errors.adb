@@ -186,7 +186,10 @@ package body Errors is
 
    function Full_Name (Loc : Location) return String is
    begin
-      pragma Assert (Loc.Filename /= null);
+      if Loc.Filename = null then
+         return "<standard input>";
+      end if;
+
       if Loc.Dirname = null then
          return Loc.Filename.all;
       else
