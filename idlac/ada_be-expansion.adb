@@ -431,9 +431,9 @@ package body Ada_Be.Expansion is
       Pop_Scope;
    end Expand_Ben_Idl_File;
 
-   -----------------------
-   --  Expand_Interface --
-   -----------------------
+   ----------------------
+   -- Expand_Interface --
+   ----------------------
 
    procedure Recursive_Copy_Operations
      (Into : in out Node_List;
@@ -518,6 +518,10 @@ package body Ada_Be.Expansion is
       Expand_Node_List (Export_List, True);
       --  First expand the interface's exports
       --  (eg, attributes are expanded into operations.)
+
+      Export_List := Contents (Node);
+      --  Expand_Node_List may have inserted new nodes
+      --  in Contents.
 
       Init (It, Parents (Node));
       while not Is_End (It) loop
@@ -726,9 +730,8 @@ package body Ada_Be.Expansion is
            (List => Enclosing_List,
             Node => Members_Struct,
             Before => Node);
-         Set_Members_Type (Node, Members_Struct);
-
          Set_Contents (Enclosing_Scope, Enclosing_List);
+         Set_Members_Type (Node, Members_Struct);
       end;
    end Expand_Exception;
 
@@ -1345,20 +1348,30 @@ package body Ada_Be.Expansion is
       end if;
    end Add_Identifier_With_Renaming;
 
+   ---------------------------
+   -- Insert_Before_Current --
+   ---------------------------
+
    procedure Insert_Before_Current
      (Node : Node_Id)
    is
-      Current_Gen_Scope : constant Node_Id := Get_Current_Gen_Scope;
+      Current_Gen_Scope : constant Node_Id
+        := Get_Current_Gen_Scope;
       Current_Scope_Contents : Node_List;
    begin
       pragma Assert (Is_Gen_Scope (Current_Gen_Scope));
+
       Current_Scope_Contents
         := Contents (Current_Gen_Scope);
+
       Insert_Before
         (Current_Scope_Contents,
          Node,
          Before => Current_Position_In_List);
-      Set_Contents (Current_Gen_Scope, Current_Scope_Contents);
+
+      Set_Contents
+        (Current_Gen_Scope, Current_Scope_Contents);
+
    end Insert_Before_Current;
 
    function Has_Out_Formals

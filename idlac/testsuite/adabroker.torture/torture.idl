@@ -84,6 +84,7 @@ module MyModule {
   };
 
   interface MyInterface {
+    typedef sequence<double> list;
     string echoString (in string arg) raises (rootScopeException);
     Color echoColor (in Color arg);
     MyInterface echoRef (in MyInterface arg);
