@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#3 $
+# $Id: //droopi/main/utils/cobuild#4 $
 
 PROJECT=DROOPI
 
@@ -70,7 +70,6 @@ cd $CLIENT_TOP
 if [ "x$CHANGELIST" = x ]
 then
   CHANGELIST=`p4 changes -m 1 ... | awk '{print \$2}'`
-  echo foo
 fi
 
 # Kill any previous build.
