@@ -269,6 +269,8 @@ Fixed
 
 ValueBase
 
+Pragma
+
 ------------------------------
 -- Expansion-specific nodes --
 ------------------------------

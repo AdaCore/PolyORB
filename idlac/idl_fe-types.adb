@@ -1034,9 +1034,13 @@ package body Idl_Fe.Types is
          if Kind (A_Definition.Node) = K_Operation or
            (Kind (A_Definition.Node) = K_Declarator and then
             Kind (Parent (A_Definition.Node)) = K_Attribute) then
-            pragma Debug (O ("Is_Redefinable : cannot redefine an op, attr"));
-            pragma Debug (O2 ("Is_Redefinable : end"));
-            return False;
+            if Kind (Get_Current_Scope) = K_Interface or
+              Kind (Get_Current_Scope) = K_ValueType then
+               pragma Debug (O ("Is_Redefinable : cannot redefine " &
+                                "an op, attr"));
+               pragma Debug (O2 ("Is_Redefinable : end"));
+               return False;
+            end if;
          end if;
          --  Ckecks if identifier found is the current scope name:
          --  it is not allowed except for the operation

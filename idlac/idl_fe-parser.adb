@@ -468,6 +468,16 @@ package body Idl_Fe.Parser is
          Def_Nb : Natural := 0;
       begin
          while Get_Token /= T_Eof loop
+            if Get_Token = T_Right_Cbracket then
+               Errors.Error
+                 ("Invalid '}', nothing to be closed.",
+                  Errors.Error,
+                  Get_Token_Location);
+               Next_Token;
+               if Get_Token = T_Semi_Colon then
+                  Next_Token;
+               end if;
+            end if;
             Parse_Definition (Definition, Definition_Result);
             if not Definition_Result then
                Go_To_Next_Definition;
@@ -597,12 +607,9 @@ package body Idl_Fe.Parser is
                                 "after pragma, current token is " &
                                 Idl_Token'Image (Get_Token)));
                Parse_Definition (Result, Success);
-               pragma Debug (O2 ("Parse_Definition : end"));
-               return;
-            else
-               pragma Debug (O2 ("Parse_Definition : end"));
-               return;
-            end if;
+            end  if;
+            pragma Debug (O2 ("Parse_Definition : end"));
+            return;
 
          when T_Eof
            | T_Right_Cbracket =>
@@ -971,6 +978,22 @@ package body Idl_Fe.Parser is
            | T_Native
            | T_Typedef =>
             Parse_Type_Dcl (Result, Success);
+         when T_Pragma =>
+            Parse_Pragma (Result, Success);
+            if not Success then
+               --  here the pragma is ignored and no node created
+               --  so we parse the next export (if it exists)
+               Parse_Export (Result, Success);
+            end if;
+            pragma Debug (O2 ("Parse_Export : end"));
+            return;
+         when T_Right_Cbracket =>
+            --  here we just parsed a pragma but it was the last export of the
+            --  interface or value. Thus, we return without creating a node but
+            --  without an error message
+            Success := False;
+            Result := No_Node;
+            return;
          when others =>
             Errors.Error
               ("declaration of a type, a constant, an exception, " &
@@ -1341,10 +1364,13 @@ package body Idl_Fe.Parser is
             --  use the type of it
             pragma Debug (O ("Parse_Scoped_Name : the scoped" &
                              " name is defined in a typedef"));
-            if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
-               Set_S_Type (Res, S_Type (T_Type (Parent (A_Name))));
-            else
-               Set_S_Type (Res, T_Type (Parent (A_Name)));
+            if Parent (A_Name) /= No_Node and then
+              T_Type (Parent (A_Name)) /= No_Node then
+               if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
+                  Set_S_Type (Res, S_Type (T_Type (Parent (A_Name))));
+               else
+                  Set_S_Type (Res, T_Type (Parent (A_Name)));
+               end if;
             end if;
          elsif Kind (A_Name) = K_Struct
            or else Kind (A_Name) = K_Union
@@ -2248,6 +2274,21 @@ package body Idl_Fe.Parser is
             Parse_State_Member (Result, Success);
          when T_Factory =>
             Parse_Init_Dcl (Result, Success);
+         when T_Pragma =>
+            Parse_Pragma (Result, Success);
+            if not Success then
+               --  here the pragma is ignored and no node created
+               --  so we parse the next export (if it exists)
+               Parse_Value_Element (Result, Success);
+            end if;
+            return;
+         when T_Right_Cbracket =>
+            --  here we just parsed a pragma but it was the last element of the
+            --  value. Thus, we return without creating a node but
+            --  without an error message
+            Success := False;
+            Result := No_Node;
+            return;
          when others =>
             Errors.Error ("value_element expected.",
                                  Errors.Error,
@@ -4978,29 +5019,32 @@ package body Idl_Fe.Parser is
    -------------------------
    procedure Parse_Member_List (Result : out Node_List;
                                 Success : out Boolean) is
+      Empty : Boolean := True;
    begin
       pragma Debug (O2 ("Parse_Member_List : enter"));
       Result := Nil_List;
-      if Get_Token = T_Right_Cbracket then
+      loop
+         declare
+            Member : Node_Id;
+            Member_Success : Boolean;
+         begin
+            Parse_Member (Member, Member_Success);
+            if not Member_Success then
+               Go_To_Next_Member;
+            else
+               if Kind (Member) /= K_Pragma then
+                  Empty := False;
+               end if;
+               Append_Node (Result, Member);
+            end if;
+         end;
+         exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
+      end loop;
+      if Empty then
          Errors.Error
            ("member expected : a struct may not be empty.",
             Errors.Error,
             Get_Token_Location);
-      else
-         loop
-            declare
-               Member : Node_Id;
-               Member_Success : Boolean;
-            begin
-               Parse_Member (Member, Member_Success);
-               if not Member_Success then
-                  Go_To_Next_Member;
-               else
-                  Append_Node (Result, Member);
-               end if;
-            end;
-            exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
-         end loop;
       end if;
       Success := True;
       pragma Debug (O2 ("Parse_Member_List : end"));
@@ -5016,6 +5060,24 @@ package body Idl_Fe.Parser is
       Loc : Errors.Location;
    begin
       pragma Debug (O2 ("Parse_Member : enter"));
+      if Get_Token = T_Pragma then
+         Parse_Pragma (Result, Success);
+         if not Success then
+            --  here the pragma is ignored and no node created
+            --  so we parse the next member (if it exists)
+            Parse_Member (Result, Success);
+         end if;
+         return;
+      end if;
+      if Get_Token = T_Right_Cbracket then
+         --  here, two situation possible :
+         --  either we just parsed a pragma but it was the last member of the
+         --  struct or the struct is empty.
+         --  In both case, we return without creating a node
+         Success := False;
+         Result := No_Node;
+         return;
+      end if;
       Loc := Get_Token_Location;
       Parse_Type_Spec (Type_Spec, Success);
       if not Success then
@@ -5281,31 +5343,27 @@ package body Idl_Fe.Parser is
                                 Switch_Type : in Node_Id;
                                 Success : out Boolean) is
       Default_Clause : Boolean := False;
+      Empty : Boolean := True;
    begin
       pragma Debug (O2 ("Parse_Switch_Body : enter"));
       Result := Nil_List;
-      if Get_Token = T_Right_Cbracket then
-         Errors.Error
-           ("case clause expected : " &
-            "a union may not be empty.",
-            Errors.Error,
-            Get_Token_Location);
-      else
-         loop
-            declare
-               Case_Clause : Node_Id;
-               Case_Success : Boolean;
-               Loc : Errors.Location;
-            begin
-               pragma Debug (O ("Parse_Switch_Body : new case clause"));
-               Loc := Get_Token_Location;
-               Parse_Case (Case_Clause,
-                           Switch_Type,
-                           Case_Success);
-               if not Case_Success then
-                  Go_To_End_Of_Case;
-               else
-                  Append_Node (Result, Case_Clause);
+      loop
+         declare
+            Case_Clause : Node_Id;
+            Case_Success : Boolean;
+            Loc : Errors.Location;
+         begin
+            pragma Debug (O ("Parse_Switch_Body : new case clause"));
+            Loc := Get_Token_Location;
+            Parse_Case (Case_Clause,
+                        Switch_Type,
+                        Case_Success);
+            if not Case_Success then
+               Go_To_End_Of_Case;
+            else
+               Append_Node (Result, Case_Clause);
+               if Kind (Case_Clause) /= K_Pragma then
+                  Empty := False;
                   if Default_Clause then
                      if Is_In_List (Labels (Case_Clause), No_Node) then
                         Errors.Error
@@ -5319,9 +5377,16 @@ package body Idl_Fe.Parser is
                      end if;
                   end if;
                end if;
-            end;
-            exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
-         end loop;
+            end if;
+         end;
+         exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
+      end loop;
+      if Empty then
+         Errors.Error
+           ("case clause expected : " &
+            "a union may not be empty.",
+            Errors.Error,
+            Get_Token_Location);
       end if;
 --      Release_All_Used_Values;
       Success := True;
@@ -5344,6 +5409,23 @@ package body Idl_Fe.Parser is
          when T_Case
            | T_Default =>
             null;
+         when T_Pragma =>
+            Parse_Pragma (Result, Success);
+            if not Success then
+               --  here the pragma is ignored and no node created
+               --  so we parse the next case (if it exists)
+               Parse_Case (Result, Switch_Type, Success);
+            end  if;
+            pragma Debug (O2 ("Parse_Case : end"));
+            return;
+         when T_Right_Cbracket =>
+            --  here we just parsed a pragma but it was the last case of the
+            --  union. Thus, we return without creating a node but
+            --  without an error message
+            Result := No_Node;
+            Success := False;
+            pragma Debug (O2 ("Parse_Case : end"));
+            return;
          when others =>
             Errors.Error ("invalid case label : " &
                                  Ada.Characters.Latin_1.Quotation &
@@ -5556,6 +5638,7 @@ package body Idl_Fe.Parser is
          begin
             Parse_Enumerator (Enum, Success);
             if not Success then
+               Go_To_End_Of_Enumeration;
                return;
             end if;
             Set_Enumerators (Result, Append_Node (Enumerators (Result), Enum));
@@ -5563,27 +5646,37 @@ package body Idl_Fe.Parser is
          declare
             Count : Long_Long_Integer := 1;
          begin
-            while Get_Token = T_Comma loop
-               Next_Token;
+            while Get_Token = T_Comma or
+              Get_Token = T_Pragma loop
                declare
                   Enum : Node_Id;
                begin
-                  Parse_Enumerator (Enum, Success);
-                  if not Success then
-                     Go_To_End_Of_Enumeration;
-                     return;
+                  if Get_Token = T_Pragma then
+                     Parse_Pragma (Enum, Success);
+                     if Success then
+                        Set_Enumerators (Result,
+                                         Append_Node (Enumerators (Result),
+                                                      Enum));
+                     end if;
+                  else
+                     Next_Token;
+                     Parse_Enumerator (Enum, Success);
+                     if not Success then
+                        Go_To_End_Of_Enumeration;
+                        return;
+                     end if;
+                     Count := Count + 1;
+                     if Count = Idl_Enum_Max + 1 then
+                        Errors.Error
+                          ("two much possible values in this " &
+                           "enumeration : maximum is 2^32.",
+                           Errors.Error,
+                           Get_Token_Location);
+                     end if;
+                     Set_Enumerators (Result,
+                                      Append_Node (Enumerators (Result),
+                                                   Enum));
                   end if;
-                  Count := Count + 1;
-                  if Count = Idl_Enum_Max + 1 then
-                     Errors.Error
-                       ("two much possible values in this " &
-                        "enumeration : maximum is 2^32.",
-                        Errors.Error,
-                        Get_Token_Location);
-                  end if;
-                  Set_Enumerators (Result,
-                                   Append_Node (Enumerators (Result),
-                                                Enum));
                end;
             end loop;
          end;
@@ -5614,6 +5707,23 @@ package body Idl_Fe.Parser is
    procedure Parse_Enumerator (Result : out Node_Id;
                                Success : out Boolean) is
    begin
+      if Get_Token = T_Pragma then
+         Parse_Pragma (Result, Success);
+         if not Success then
+            --  here the pragma is ignored and no node created
+            --  so we parse the next enumerator (if it exists)
+            Parse_Enumerator (Result, Success);
+         end if;
+         return;
+      end if;
+      if Get_Token = T_Right_Cbracket then
+         --  here we just parsed a pragma but it was the last enumerator of the
+         --  enum. Thus, we return without creating a node but
+         --  without an error message
+         Success := False;
+         Result := No_Node;
+         return;
+      end if;
       if Get_Token /= T_Identifier then
          Errors.Error ("Identifier expected.",
                               Errors.Error,
