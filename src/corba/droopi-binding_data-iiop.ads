@@ -6,7 +6,7 @@ with CORBA;
 
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Sockets;
-with Droopi.Representations.CDR;
+
 
 package Droopi.Binding_Data.IIOP is
 

@@ -13,11 +13,9 @@
 with Ada.Streams; use Ada.Streams;
 
 with CORBA;
-with CORBA.Abstractbase;
-with CORBA.Object;
 
 with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Objects;
+
 
 package Droopi.Representations.CDR is
 

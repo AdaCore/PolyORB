@@ -219,6 +219,9 @@ package body Droopi.Protocols.GIOP is
    procedure Locate_Request_Receive
      (Ses : access GIOP_Session);
 
+   procedure Initialize_Factory
+     (Prof_Factory : in out Binding_Data.Profile_Factory_Access);
+
    -----------------------------
    -- Cancel_Request_Marshall --
    -----------------------------
@@ -1554,8 +1557,8 @@ package body Droopi.Protocols.GIOP is
                   raise Not_Implemented;
                end if;
 
-             when Message_Error =>
-                raise GIOP_Error;
+            when Message_Error =>
+               raise GIOP_Error;
 
             when Fragment =>
                raise Not_Implemented;

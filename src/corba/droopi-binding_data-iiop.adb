@@ -10,6 +10,7 @@ with CORBA.Exceptions;
 with Droopi.Transport.Sockets;
 with Droopi.Protocols.GIOP;
 with Droopi.Protocols;
+with Droopi.Representations.CDR;
 with Droopi.Filters;
 with Droopi.Filters.Slicers;
 with Droopi.Sockets;
@@ -87,16 +88,16 @@ package body Droopi.Binding_Data.IIOP is
       Connect_Socket (Sock, Remote_Addr);
       TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), Sock);
-      Create (Pro'Access, Filters.Filter_Access(Ses));
+      Create (Pro'Access, Filters.Filter_Access (Ses));
 
-     -- ORB := ORB_Access(Session(Ses.all).Server);
+      --  ORB := ORB_Access(Session(Ses.all).Server);
 
-     -- Register_Endpoint(ORB, TE, Slicer_Fact, Ses.Role);
+      --  Register_Endpoint(ORB, TE, Slicer_Fact, Ses.Role);
 
-      -- Connect Session to Slicer
-      Sli_Filter := TE.Upper;
-      Connect_Lower(Session, Component_Access(Sli_Filter));
-      Connect(Sli_Filter.Upper,  Component_Access(Session));
+      --  Connect Session to Slicer
+      --  Sli_Filter := TE.Upper;
+      --  Connect_Lower (Session, Component_Access (Sli_Filter));
+      --  Connect (Sli_Filter.Upper,  Component_Access (Session));
 
    end Bind_Profile;
 
@@ -168,14 +169,15 @@ package body Droopi.Binding_Data.IIOP is
       Start_Encapsulation (Profile_Body);
 
       --  Version
-      Marshall (Profile_Body, CORBA.Octet(IIOP_Major_Version));
-      Marshall (Profile_Body, CORBA.Octet(IIOP_Minor_Version));
+      Marshall (Profile_Body, CORBA.Octet (IIOP_Major_Version));
+      Marshall (Profile_Body, CORBA.Octet (IIOP_Minor_Version));
 
-      -- Marshalling of a Socket
+      --  Marshalling of a Socket
       Marshall_Socket (Profile_Body, IIOP_Profile.Address);
 
-      -- Marshalling of the Object Id
-      Marshall (Profile_Body, Stream_Element_Array(IIOP_Profile.Object_Id.all));
+      --  Marshalling of the Object Id
+      Marshall (Profile_Body, Stream_Element_Array
+                (IIOP_Profile.Object_Id.all));
 
       --  Marshall the Profile_Body into IOR.
       Marshall (Buf, Encapsulate (Profile_Body));
@@ -193,16 +195,16 @@ package body Droopi.Binding_Data.IIOP is
      return Profile_Access
 
    is
-     use CORBA;
-     use CORBA.Exceptions;
-     Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
-     Profile_Buffer : Buffer_Access;
-     Major_Version  : CORBA.Octet;
-     Minor_Version  : CORBA.Octet;
-     Length         : CORBA.Long;
-     Result         : Profile_Access := new IIOP_Profile_Type;
-     TResult        : IIOP_Profile_Type
-                      renames IIOP_Profile_Type (Result.all);
+      use CORBA;
+      use CORBA.Exceptions;
+      Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
+      Profile_Buffer : Buffer_Access;
+      Major_Version  : CORBA.Octet;
+      Minor_Version  : CORBA.Octet;
+      Length         : CORBA.Long;
+      Result         : Profile_Access := new IIOP_Profile_Type;
+      TResult        : IIOP_Profile_Type
+                       renames IIOP_Profile_Type (Result.all);
 
 
    begin
@@ -218,20 +220,21 @@ package body Droopi.Binding_Data.IIOP is
          CORBA.Exceptions.Raise_Bad_Param;
       end if;
 
-      Unmarshall_Socket(Profile_Buffer, TResult.Address);
+      Unmarshall_Socket (Profile_Buffer, TResult.Address);
 
       declare
-        Str  : aliased Stream_Element_Array := Unmarshall(Profile_Buffer);
+            Str  : aliased Stream_Element_Array :=
+                     Unmarshall (Profile_Buffer);
       begin
 
-        TResult.Object_Id := new Object_Id'(Object_Id(Str));
-        if Minor_Version /= 0 then
-         Length := Unmarshall (Profile_Buffer);
-         if Length /= 0 then
-           --  FIXME: Multiple components are not yet handled.
-           CORBA.Exceptions.Raise_Bad_Param;
-         end if;
-        end if;
+            TResult.Object_Id := new Object_Id'(Object_Id (Str));
+            if Minor_Version /= 0 then
+               Length := Unmarshall (Profile_Buffer);
+               if Length /= 0 then
+                  --  FIXME: Multiple components are not yet handled.
+                  CORBA.Exceptions.Raise_Bad_Param;
+               end if;
+            end if;
       end;
       return Result;
 
@@ -245,15 +248,14 @@ package body Droopi.Binding_Data.IIOP is
 
    is
       use CORBA;
-      Str  : CORBA.String := To_CORBA_String(Image(Sock.Addr));
+      Str  : CORBA.String := To_CORBA_String (Image (Sock.Addr));
    begin
 
-     -- Marshalling of the Host as a string
-     Marshall(Buffer, Str);
+      --  Marshalling of the Host as a string
+      Marshall (Buffer, Str);
 
-     -- Marshalling of the port
-     Marshall(Buffer, CORBA.Unsigned_Short(Sock.Port));
-
+      --  Marshalling of the port
+      Marshall (Buffer, CORBA.Unsigned_Short (Sock.Port));
 
    end Marshall_Socket;
 
@@ -264,16 +266,16 @@ package body Droopi.Binding_Data.IIOP is
 
    is
       use CORBA;
-      Str  : CORBA.String := Unmarshall(Buffer);
+      Str  : CORBA.String := Unmarshall (Buffer);
       Port : CORBA.Unsigned_Short;
    begin
 
-     -- UnMarshalling of the Host
-     Sock.Addr :=Inet_Addr(To_Standard_String(Str));
+      --  Unmarshalling of the Host
+      Sock.Addr :=Inet_Addr (To_Standard_String (Str));
 
-     -- Unmarshalling of the port
-     Port := Unmarshall(Buffer);
-     Sock.Port := Port_Type(Port);
+      --  Unmarshalling of the port
+      Port := Unmarshall (Buffer);
+      Sock.Port := Port_Type (Port);
 
    end Unmarshall_Socket;
 
