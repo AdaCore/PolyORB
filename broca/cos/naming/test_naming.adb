@@ -99,6 +99,8 @@ procedure Test_Naming is
       Sep : Character := '/')
      return String;
 
+   procedure Usage;
+
    Argv    : String_Access;
    Argc    : Natural;
    Dir     : NamingContext.Ref;
@@ -249,6 +251,18 @@ procedure Test_Naming is
       end if;
    end To_String;
 
+   -----------
+   -- Usage --
+   -----------
+
+   procedure Usage is
+   begin
+      for I in Help_Messages'Range loop
+         Ada.Text_IO.Put_Line (I'Img & Ascii.HT & Help_Messages (I).all);
+      end loop;
+      Ada.Text_IO.New_Line;
+   end Usage;
+
    Back    : Name := To_Name (new String'(".."));
    Here    : Name := To_Name (new String'("."));
    Cmmd    : Command;
@@ -266,14 +280,14 @@ begin
       if Argc > 0 then
          begin
             Argv := Argument (1);
-            Cmmd := Command'Value (Argv.all);
+            begin
+               Cmmd := Command'Value (Argv.all);
+            exception when Constraint_Error =>
+               raise Syntax_Error;
+            end;
             case Cmmd is
                when Help =>
-                 for I in Help_Messages'Range loop
-                    Ada.Text_IO.Put_Line
-                      (I'Img & Ascii.HT & Help_Messages (I).all);
-                 end loop;
-                 Ada.Text_IO.New_Line;
+                  Usage;
 
                when Quit =>
                  exit;
@@ -429,8 +443,11 @@ begin
             end case;
 
          exception
+            when Syntax_Error =>
+               Ada.Text_IO.Put_Line ("syntax error");
+
             when E : others =>
-               Ada.Text_IO.Put_Line ("Raised "& Exception_Information (E));
+               Ada.Text_IO.Put_Line ("raised "& Exception_Information (E));
                Ada.Text_IO.Put_Line (Exception_Message (E));
          end;
       end if;
