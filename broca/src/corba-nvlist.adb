@@ -53,6 +53,16 @@ package body CORBA.NVList is
    procedure Set_Last_Cell (List : in NV_List;
                             NV : in NamedValue);
 
+   ------------------
+   --  Deallocate  --
+   ------------------
+   procedure Deallocate (Obj : access Object) is
+   begin
+      pragma Debug (O ("Deallocate : enter"));
+      Free_All_List (Obj.all.List);
+      pragma Debug (O ("Deallocate : end"));
+   end Deallocate;
+
    ----------------
    --  Add_Item  --
    ----------------

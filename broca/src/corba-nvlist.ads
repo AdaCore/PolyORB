@@ -44,6 +44,10 @@ package CORBA.NVList is
    type Object is new CORBA.Impl.Object with private;
    type Object_Ptr is access all Object;
 
+   --  we overwrite Deallocate to free the List associated to each
+   --  Object
+   procedure Deallocate (Obj : access Object);
+
    procedure Add_Item
      (Self       :    Ref;
       Item_Name  : in Identifier;
@@ -106,4 +110,6 @@ private
       List : NV_List;
    end record;
 
+   Nil_Ref : constant Ref := (CORBA.AbstractBase.Ref
+                              with null record);
 end CORBA.NVList;

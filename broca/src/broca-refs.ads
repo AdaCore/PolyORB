@@ -48,6 +48,10 @@ package Broca.Refs is
    --  references to this object, and is automatically destroyed when
    --  the counter reaches 0.
 
+   --  to be overwritten whenever a descendant of Entity has
+   --  something to deallocate when it is itself deallocated
+   procedure Deallocate (Obj : access Entity);
+
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Entity);
