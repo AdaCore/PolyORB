@@ -94,7 +94,6 @@ InterfaceORB/Ada_memBufferedStream.cc
 InterfaceORB/Ada_memBufferedStream.hh
 InterfaceORB/Ada_netBufferedStream.cc
 InterfaceORB/Ada_netBufferedStream.hh
-InterfaceORB/Makefile.sys_dep
 InterfaceORB/adabroker-constants.adb
 InterfaceORB/adabroker-constants.ads
 InterfaceORB/adabroker-debug.adb
