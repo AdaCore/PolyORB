@@ -600,6 +600,46 @@ procedure DynClient is
         (CORBA.Request.Return_Value (Request).Argument);
    end EchoMatrix;
 
+   function EchoBigMatrix
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.BigMatrix)
+     return All_Types.BigMatrix is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBigMatrix");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+   begin
+      --  creating the argument list
+      Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => Get_Empty_Any (All_Types.Helper.TC_BigMatrix),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  FIXME : not logical
+      CORBA.NVList.Free (Arg_List);
+      --  getting the answer
+      return All_Types.Helper.From_Any
+        (CORBA.Request.Return_Value (Request).Argument);
+   end EchoBigMatrix;
+
    function EchoStruct
      (Self : in CORBA.Object.Ref;
       Arg : in All_Types.Simple_Struct)
