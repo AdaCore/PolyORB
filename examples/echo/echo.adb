@@ -52,18 +52,13 @@ package body Echo is
                        return Corba.String is
 
       Opcd : Echo.Proxies.EchoString_Proxy ;
-      Result : Corba.String ;
    begin
       Output(Debug, "Echo.echoString : creating call desc") ;
       Echo.Proxies.Init(Opcd, Message) ;
       Output(Debug, "Echo.echoString : call desc created, invoking method !!!!!") ;
       OmniProxyCallWrapper.Invoke(Self, Opcd) ;
       Output(Debug, "Echo.echoString : method echoString invoked !!!!") ;
-      Result :=  Echo.Proxies.Get_Result(Opcd) ;
-      Output(Debug,
-             "Echo.echoString : got the result : "
-             & Corba.To_Standard_String(Result)) ;
-      return Result ;
+      return Echo.Proxies.Get_Result(Opcd) ;
    end ;
 
 

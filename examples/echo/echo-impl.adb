@@ -10,7 +10,7 @@
 ----------------------------------------------------------------------------
 
 with Corba ; use Corba ;
-
+with Echo.Skeleton ;
 with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body Echo.impl is
@@ -35,6 +35,33 @@ package body Echo.impl is
    begin
       Output(Echo_Impl,"*** Je suis dans echoLong") ;
       return Result ;
+   end ;
+
+
+   -----------------------------------------------------------
+   -----------------------------------------------------------
+   -- Initialize
+   -------------
+   procedure Initialize(Self : in out Object) is
+   begin
+      Omniobject.Init_Local_Object(Omniobject.Implemented_Object(Self),
+                                   Repository_Id, Echo.Skeleton.Dispatch'Access) ;
+   end Initialize ;
+
+
+   -- Adjust
+   ---------
+   procedure Adjust(Self: in out Object) is
+   begin
+      Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
+   end ;
+
+
+   -- Finalize
+   -----------
+   procedure Finalize(Self : in out Object) is
+   begin
+      Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
    end ;
 
 

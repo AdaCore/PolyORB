@@ -9,7 +9,7 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Echo.Skeleton ;
+with Omniobject ;
 
 with Adabroker_Debug ;
 pragma Elaborate(Adabroker_Debug) ;
@@ -22,7 +22,7 @@ package Echo.Impl is
    ----                spec                      ----
    --------------------------------------------------
 
-   type Object is new Echo.Skeleton.Object with private ;
+   type Object is new Omniobject.Implemented_Object with private ;
    type Object_Ptr is access all Object'Class ;
 
    function EchoString(Self : access Object;
@@ -34,8 +34,15 @@ package Echo.Impl is
 private
 
    -- you may add fields to this record
-   type Object is new Echo.Skeleton.Object with record
+   type Object is new Omniobject.Implemented_Object with record
       null ;
    end record ;
+
+   --------------------------------------------------
+   ----          finalization operators          ----
+   --------------------------------------------------
+   procedure Initialize(Self : in out Object) ;
+   procedure Adjust(Self : in out Object) ;
+   procedure Finalize(Self : in out Object) ;
 
 End Echo.Impl ;

@@ -15,45 +15,22 @@ with Giop_S ; use Giop_S ;
 with Giop ;
 with Corba ;
 use type Corba.Unsigned_Long ;
-
+with Echo.Impl ;
 with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body Echo.Skeleton is
 
 
-   -- Initialize
-   -------------
-   procedure Initialize(Self : in out Object) is
-   begin
-      Omniobject.Init_Local_Object(Omniobject.Implemented_Object(Self),
-                                   Repository_Id) ;
-   end Initialize ;
-
-
-   -- Adjust
-   ---------
-   procedure Adjust(Self: in out Object) is
-   begin
-      Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
-   end ;
-
-
-   -- Finalize
-   -----------
-   procedure Finalize(Self : in out Object) is
-   begin
-      Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
-   end ;
-
 
 
    -- Dipatch
    ----------
-   procedure Dispatch (Self : access Object ;
+   procedure Dispatch (Myself : Omniobject.Implemented_Object_Ptr ;
                        Orls : in out Giop_S.Object ;
                        Orl_Op : in Standard.String ;
                        Orl_Response_Expected : in Corba.Boolean ;
                        Returns : out Corba.Boolean ) is
+      Self : Echo.Impl.Object_Ptr := Echo.Impl.Object_Ptr(Myself) ;
    begin
       if Orl_Op = "echoString" then
          declare
@@ -70,7 +47,7 @@ package body Echo.Skeleton is
             Request_Received(Orls) ;
 
             -- call the implementation
-            Result := EchoString(Object_Ptr(Self), Mesg) ;
+            Result := Echo.Impl.EchoString(Self, Mesg) ;
 
             -- computing the size of the replied message
             Mesg_Size := Giop_S.Reply_Header_Size (Orls);
@@ -112,7 +89,7 @@ package body Echo.Skeleton is
                    "Request_Received ok !") ;
 
             -- call the implementation
-            Result := EchoLong(Object_Ptr(Self), Mesg) ;
+            Result := Echo.Impl.EchoLong(Self, Mesg) ;
 
             Output(Echo_Skeleton, "Got the result : "
                    & Integer'Image(Integer(Result))) ;
