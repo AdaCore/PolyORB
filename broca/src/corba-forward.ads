@@ -1,4 +1,3 @@
-//depot/adabroker/main/broca/src/corba-forward.ads#6 - edit change 1403 (ktext)
 ------------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
@@ -48,6 +47,3 @@ package CORBA.Forward is
       function To_Forward   (The_Ref : in Ref_Type) return Ref;
    end Convert;
 end CORBA.Forward;
-
-
-
