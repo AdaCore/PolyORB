@@ -13,6 +13,7 @@ private
 
 
    procedure Expand_Module (Node : in Node_Id);
+   procedure Expand_Ben_Idl_File (Node : in Node_Id);
    procedure Expand_Interface (Node : in Node_Id);
    procedure Expand_Attribute (Node : in Node_Id);
 

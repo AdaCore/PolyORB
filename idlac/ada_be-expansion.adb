@@ -34,6 +34,8 @@ package body Ada_Be.Expansion is
             Expand_Interface (Node);
          when K_Attribute =>
             Expand_Attribute (Node);
+         when K_Ben_Idl_File =>
+            Expand_Ben_Idl_File (Node);
          when others =>
             null;
       end case;
@@ -147,6 +149,15 @@ package body Ada_Be.Expansion is
       pragma Assert (Kind (Node) = K_Module);
       Expand_Node_List (Contents (Node));
    end Expand_Module;
+
+   --------------------------
+   --  Expand_Ben_Idl_File --
+   --------------------------
+   procedure Expand_Ben_Idl_File (Node : in Node_Id) is
+   begin
+      pragma Assert (Kind (Node) = K_Ben_Idl_File);
+      Expand_Node_List (Contents (Node));
+   end Expand_Ben_Idl_File;
 
    -----------------------
    --  Expand_Interface --
@@ -282,7 +293,6 @@ package body Ada_Be.Expansion is
    procedure Expand_Node_List (List : in Node_List) is
    begin
       if List /= Nil_List then
-         O ("toto");
          Expand_Node (List.Car);
          Expand_Node_List (List.Cdr);
       end if;
