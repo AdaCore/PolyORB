@@ -33,28 +33,25 @@
 
 with Ada.Text_IO;
 
-with CORBA;
 with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.Repository.Impl;
-with CORBA.Repository_Root; use CORBA.Repository_Root;
+with CORBA.Repository_Root;
 
 with PortableServer;
 
-with CosNaming.NamingContext;
-
-with PolyORB.CORBA_P.Naming_Tools;
-with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
+with PolyORB.CORBA_P.Server_Tools;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
-pragma Elaborate (PolyORB.CORBA_P.Server_Tools);
-
 procedure Server is
+   use CORBA.Repository_Root;
+   use PolyORB.CORBA_P.Server_Tools;
+
 begin
 
    CORBA.ORB.Initialize ("ORB");
@@ -75,14 +72,6 @@ begin
         ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
          "'");
 
-      PolyORB.CORBA_P.Naming_Tools.Register ("Interface_Repository", Ref);
       Initiate_Server;
-
-   exception
-      when CosNaming.NamingContext.AlreadyBound =>
-         PolyORB.CORBA_P.Naming_Tools.Register
-           ("Interface_Repository", Ref, Rebind => True);
    end;
 end Server;
-
-

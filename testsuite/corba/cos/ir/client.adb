@@ -32,23 +32,24 @@
 ------------------------------------------------------------------------------
 
 with Ada.Command_Line;
-with Ada.Text_IO; use Ada.Text_IO;
-with CORBA; use CORBA;
+with Ada.Text_IO;
+
 with CORBA.ORB;
-with CORBA.Repository_Root; use CORBA.Repository_Root;
+with CORBA.Repository_Root;
 with CORBA.Repository_Root.Repository;
-with CORBA.Repository_Root.Repository.Helper;
 with CORBA.Repository_Root.InterfaceDef;
 with CORBA.Repository_Root.OperationDef;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.ModuleDef;
 
-with PolyORB.CORBA_P.Naming_Tools;
-
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure Client is
+   use Ada.Text_IO;
+
+   use CORBA;
+   use CORBA.Repository_Root;
 
    IOR : CORBA.String;
    Myrep : Repository.Ref;
@@ -59,17 +60,19 @@ begin
       IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
       CORBA.ORB.String_To_Object (IOR, Myrep);
    else
-      Myrep := CORBA.Repository_Root.Repository.Helper.To_Ref
-         (PolyORB.CORBA_P.Naming_Tools.Locate ("Interface_Repository"));
+      Put_Line ("Usage: client <IOR>");
+      return;
    end if;
 
-   --  checking if it worked
+   --  Checking if it worked
+
    if Repository.Is_Nil (Myrep) then
       Put_Line ("main : cannot invoke on a nil reference");
       return;
    end if;
 
-   --  creating a module
+   --  Creating a module
+
    declare
       Mod1 : ModuleDef_Forward.Ref;
       Int1 : InterfaceDef_Forward.Ref;
@@ -111,7 +114,8 @@ begin
          Memb : ParameterDescription;
       begin
 
-         --  create the members
+         --  Create the members
+
          Name := To_CORBA_String ("oper1");
          Memb :=  (Name => Name,
                    IDL_Type => TC_Long,
@@ -134,7 +138,8 @@ begin
                    Mode => PARAM_IN);
          PDS.Append (PDS.Sequence (Mem), Memb);
 
-         --  create the operation
+         --  Create the operation
+
          Id := To_CORBA_String ("idl:toto/titi/myop:1.1");
          Name := To_CORBA_String ("myop");
          Version := To_CORBA_String ("1.1");
@@ -157,12 +162,12 @@ begin
    end;
 
 exception
-      when E : CORBA.Bad_Param =>
-         declare
-            Memb : System_Exception_Members;
-         begin
-            Get_Members (E, Memb);
-            Put ("received Bad_Param exception, minor");
-            Put_Line (Unsigned_Long'Image (Memb.Minor));
-         end;
+   when E : CORBA.Bad_Param =>
+      declare
+         Memb : System_Exception_Members;
+      begin
+         Get_Members (E, Memb);
+         Put ("received Bad_Param exception, minor");
+         Put_Line (Unsigned_Long'Image (Memb.Minor));
+      end;
 end Client;
