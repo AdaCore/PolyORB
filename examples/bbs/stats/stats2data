@@ -8,11 +8,23 @@
 # ethr
 # siz
 
-case "x$1" in
+while getopts t:p: opt; do
+  case "$opt" in
+    t) tag="$OPTARG" ;;
+    p) param="$OPTARG" ;;
+    *) echo "Usage: $0 [ -t TAG ] [ -p PARAM ]"; exit 1 ;;
+  esac
+done
+
+case "x$param" in
   x|xnmax) param=nmax ;;
-  xethr|xsiz) param=$1 ;;
+  xethr|xsiz) param=$param ;;
   *) echo "bad param"; exit 1 ;;
 esac
+
+if [ "$tag" != "" ]; then
+  tag="_$tag"
+fi
 
 tr '=' ' ' | awk '
   BEGIN { param = "'"$param"'" }
@@ -23,7 +35,7 @@ tr '=' ' ' | awk '
   /^evolutedp_thr/ { ethr=$2 }
   /^ect/  { ect = $2;
      if (ethr == 0) ethr = 4;
-     fn = sprintf ("data_%diter", cnt);
+     fn = sprintf ("data'"$tag"'_%diter", cnt);
      if (param != "nmax")
        fn = (fn sprintf ("_%dcli", nmax));
      if (param != "ethr")

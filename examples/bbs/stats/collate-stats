@@ -41,13 +41,16 @@ for d in "$@"; do
     get_threads evolutedp
     for f in $d/cli*; do
       sed -n '/.*Elapsed *: \([0-9]*\.[0-9]*\)$/s//\1/p' < $f
-    done | awk '{ sum += $1; sqsum += $1 * $1 }
-                 END { if (sum > 0 && NR == '"$nmax"') {
-                         print "status=OK"
-                         avg = sum / NR;
-                         printf "moy=%.12g\nect=%.12g\n",
-                           (sum / NR), sqrt(sqsum/NR - (avg * avg))
-                       } else { print "status=FAILED"; } }'
+    done | awk 'BEGIN { sup = 0; inf = 0; }
+                { sum += $1; sqsum += $1 * $1;
+                  if (sup == 0 || $1 > sup) sup = $1;
+                  if (inf == 0 ||$1 < inf) inf = $1; }
+                END { if (sum > 0 && NR == '"$nmax"') {
+                        print "status=OK"
+                        avg = sum / NR;
+                        printf "moy=%.12g\nect=%.12g\n",
+                          (sum / NR), sqrt(sqsum/NR - (avg * avg))
+                      } else { print "status=FAILED"; } }'
     ) >> $d/99RESULTS
   fi
   if $all || grep status=OK $d/99RESULTS > /dev/null; then

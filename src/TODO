@@ -6,6 +6,12 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* Create a new PolyORB.Tasking.Time_Stamps package to allow the
+  creation of time stamps. Use it in P.POA.Basic_POA.Time_Stamps
+  and in MOMA.
+
+* Merge Dynamic_Tables and Sequences.
+
 * Close connection with server properly (ie : generate a 'close
   connection' message)
 
