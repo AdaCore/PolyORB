@@ -83,8 +83,9 @@ package body SOAP.Message.XML is
 
    Start_Fault_Env : constant String := "<SOAP-ENV:Fault>";
 
-   type Array_State is (Void, A_Undefined, A_Int, A_Float, A_String,
-                        A_Boolean, A_Time_Instant, A_Base64);
+   type Array_State is
+     (Void, A_Undefined, A_Int, A_Short, A_Float, A_String,
+      A_Boolean, A_Time_Instant, A_Base64);
 
    type State is record
       Wrapper_Name : Unbounded_String;
@@ -103,6 +104,9 @@ package body SOAP.Message.XML is
    function Parse_Int       (N : in DOM.Core.Node)
      return PolyORB.Any.NamedValue;
 
+   function Parse_Short     (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue;
+
    function Parse_Float     (N : in DOM.Core.Node)
      return PolyORB.Any.NamedValue;
 
@@ -110,6 +114,9 @@ package body SOAP.Message.XML is
      return PolyORB.Any.NamedValue;
 
    function Parse_Boolean   (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue;
+
+   function Parse_Null      (N : in DOM.Core.Node)
      return PolyORB.Any.NamedValue;
 
 --    function Parse_Base64    (N : in DOM.Core.Node)
@@ -378,6 +385,19 @@ package body SOAP.Message.XML is
          Arg_Modes => ARG_IN);
    end Parse_Boolean;
 
+   function Parse_Null
+     (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue
+   is
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+   begin
+      return NamedValue'
+        (Name => Name,
+         Argument => Get_Empty_Any (TC_Void),
+         Arg_Modes => ARG_IN);
+   end Parse_Null;
+
    --------------------
    -- Parse_Document --
    --------------------
@@ -417,10 +437,11 @@ package body SOAP.Message.XML is
         := To_PolyORB_String (Local_Name (N));
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'(Name => Name,
-                         Argument => To_Any
-                         (Double (Long_Float'Value (Node_Value (Value)))),
-                         Arg_Modes => ARG_IN);
+      return NamedValue'
+        (Name => Name,
+         Argument => To_Any
+         (Double (Long_Float'Value (Node_Value (Value)))),
+         Arg_Modes => ARG_IN);
    end Parse_Float;
 
    ---------------
@@ -432,10 +453,22 @@ package body SOAP.Message.XML is
         := To_PolyORB_String (Local_Name (N));
       Value : constant DOM.Core.Node := First_Child (N);
    begin
-      return NamedValue'(Name => Name,
-                         Argument => To_Any (Long'Value (Node_Value (Value))),
-                         Arg_Modes => ARG_IN);
+      return NamedValue'
+        (Name => Name,
+         Argument => To_Any (Long'Value (Node_Value (Value))),
+         Arg_Modes => ARG_IN);
    end Parse_Int;
+
+   function Parse_Short (N : in DOM.Core.Node) return PolyORB.Any.NamedValue is
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+      Value : constant DOM.Core.Node := First_Child (N);
+   begin
+      return NamedValue'
+        (Name => Name,
+         Argument => To_Any (Short'Value (Node_Value (Value))),
+         Arg_Modes => ARG_IN);
+   end Parse_Short;
 
    -----------------
    -- Parse_Param --
@@ -466,6 +499,9 @@ package body SOAP.Message.XML is
             case S.A_State is
                when A_Int =>
                   return Parse_Int (N);
+
+               when A_Short =>
+                  return Parse_Short (N);
 
                when A_Float =>
                   return Parse_Float (N);
@@ -498,9 +534,7 @@ package body SOAP.Message.XML is
                            if N = null then
                               Error (N, "Wrong or not supported type");
                            else
-                              --  XXX return Types.N (Name);
-                              raise PolyORB.Not_Implemented;
-                              --  XXX 'null' ??
+                              return Parse_Null (N);
                            end if;
                         end;
 
@@ -511,6 +545,9 @@ package body SOAP.Message.XML is
                         begin
                            if xsd = Types.XML_Int then
                               return Parse_Int (N);
+
+                           elsif xsd = Types.XML_Short then
+                              return Parse_Short (N);
 
                            elsif xsd = Types.XML_Float then
                               return Parse_Float (N);

@@ -73,11 +73,12 @@ package SOAP.Types is
 --    function XML_Image (O : in NamedValue) return String;
 --    function XML_Type (O : in NamedValue) return String;
 
---    -------------
---    -- Integer --
---    -------------
+   -------------
+   -- Integer --
+   -------------
 
    XML_Int : constant String := "xsd:int";
+   XML_Short : constant String := "xsd:short";
 
 --    type XSD_Integer is new Scalar with private;
 
@@ -94,6 +95,7 @@ package SOAP.Types is
 --    -----------
 
    XML_Float : constant String := "xsd:float";
+   XML_Double : constant String := "xsd:double";
 
 --    type XSD_Float is new Scalar with private;
 
@@ -105,9 +107,9 @@ package SOAP.Types is
 --      return XSD_Float;
 --    function V (O : in XSD_Float) return Long_Float;
 
---    ------------
---    -- String --
---    ------------
+   ------------
+   -- String --
+   ------------
 
    XML_String : constant String := "xsd:string";
 
@@ -125,9 +127,9 @@ package SOAP.Types is
 
 --    function V (O : in XSD_String) return String;
 
---    -------------
---    -- Boolean --
---    -------------
+   -------------
+   -- Boolean --
+   -------------
 
    XML_Boolean : constant String := "xsd:boolean";
 
@@ -165,11 +167,11 @@ package SOAP.Types is
 --    function V (O : in XSD_Time_Instant) return Ada.Calendar.Time;
 --    --  Returns a GMT date and time.
 
---    ----------
---    -- Null --
---    ----------
+   ----------
+   -- Null --
+   ----------
 
---    XML_Null : constant String := "1";
+   XML_Null : constant String := "1";
 
 --    type XSD_Null is new Scalar with private;
 

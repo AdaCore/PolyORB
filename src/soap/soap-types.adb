@@ -159,14 +159,20 @@ package body SOAP.Types is
 
    function Get (O : in NamedValue) return Integer is
    begin
-      if TCK (O.Argument) = Tk_Long then
-         return Integer (Long'(From_Any (O.Argument)));
-
-      else
-         Exceptions.Raise_Exception
-           (Data_Error'Identity,
-            "Integer expected, found " & TCKind'Image (TCK (O.Argument)));
-      end if;
+      case TCK (O.Argument) is
+         when Tk_Long =>
+            return Integer (Long'(From_Any (O.Argument)));
+         when Tk_Short =>
+            return Integer (Short'(From_Any (O.Argument)));
+         when Tk_Ulong =>
+            return Integer (Unsigned_Long'(From_Any (O.Argument)));
+         when Tk_Ushort =>
+            return Integer (Unsigned_Short'(From_Any (O.Argument)));
+         when others =>
+            Exceptions.Raise_Exception
+              (Data_Error'Identity,
+               "Integer expected, found " & TCKind'Image (TCK (O.Argument)));
+      end case;
    end Get;
 
    function Get (O : in NamedValue) return Long_Float is
@@ -247,9 +253,14 @@ package body SOAP.Types is
 --    -----------
 
    function Image (O : NamedValue) return String is
+      K : constant TCKind := TCK (O.Argument);
    begin
-      case TCK (O.Argument) is
-         when Tk_Long =>
+      case K is
+         when
+           Tk_Long   |
+           Tk_Short  |
+           Tk_Ulong  |
+           Tk_Ushort =>
             return PolyORB.Utils.Trimmed_Image (Get (O));
 
          when Tk_Double =>
@@ -272,6 +283,9 @@ package body SOAP.Types is
             else
                return "0";
             end if;
+
+         when Tk_Void =>
+            return "";
 
          when others =>
             --  XXX ???
@@ -485,6 +499,10 @@ package body SOAP.Types is
          --  when Tk_Null =>
          --  XXX see code below.
 
+         when Tk_Void =>
+            return "<" & To_Standard_String (O.Name)
+              & " xsi:null=""1""/>";
+
          when others =>
             return "<" & To_Standard_String (O.Name)
               & xsi_type (XML_Type (O)) & '>'
@@ -582,14 +600,17 @@ package body SOAP.Types is
       case TCK (O.Argument) is
          when Tk_Long =>
             return XML_Int;
+         when Tk_Short =>
+            return XML_Short;
          when Tk_Double =>
-            return XML_Float;
+            return XML_Double;
          when Tk_String =>
             return XML_String;
          when Tk_Boolean =>
             return XML_Boolean;
          when Tk_Array =>
             return XML_Array;
+
          when others =>
             return "";
             --  XXX ???
