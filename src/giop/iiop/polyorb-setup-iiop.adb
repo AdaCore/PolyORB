@@ -32,11 +32,12 @@
 ------------------------------------------------------------------------------
 
 pragma Warnings (Off);
---  No entities referenced.
+--  No entities from the following dependencies are referenced
 
 with PolyORB.Protocols.GIOP.GIOP_1_0;
 with PolyORB.Protocols.GIOP.GIOP_1_1;
 with PolyORB.Protocols.GIOP.GIOP_1_2;
+
 pragma Warnings (On);
 
 with PolyORB.Initialization;
@@ -67,8 +68,8 @@ begin
       (Name      => +"setup.iiop",
        Conflicts => Empty,
        Depends   => +"protocols.giop.giop_1_2"
-       &"protocols.giop.giop_1_1"
-       &"protocols.giop.giop_1_0",
+                   & "protocols.giop.giop_1_1"
+                   & "protocols.giop.giop_1_0",
        Provides  => Empty,
        Init      => Initialize'Access));
 
