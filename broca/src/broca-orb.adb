@@ -33,7 +33,6 @@
 
 with CORBA.Sequences.Unbounded;
 with CORBA.Impl;
-with CORBA.AbstractBase;
 
 with Broca.IOP;
 with Broca.Exceptions;
@@ -47,7 +46,9 @@ with Broca.IIOP;
 pragma Warnings (Off, Broca.IIOP);
 
 with Broca.POA;
-with PortableServer;
+with PortableServer.POA;
+with PortableServer.ServantLocator.Impl;
+with PortableServer.ServantManager;
 
 package body Broca.ORB is
 
@@ -66,19 +67,31 @@ package body Broca.ORB is
 
    References_POA         : Broca.POA.POA_Object_Ptr;
 
-   procedure GIOP_Dispatch
-     (For_Servant       : in PortableServer.Servant;
-      Operation         : in String;
-      Request_Id        : in CORBA.Unsigned_Long;
-      Response_Expected : in CORBA.Boolean;
-      Request_Buffer    : access Broca.Buffers.Buffer_Type;
-      Reply_Buffer      : access Broca.Buffers.Buffer_Type);
+   type References_Locator is
+     new PortableServer.ServantLocator.Impl.Object with null record;
 
-   function Is_A
-     (For_Servant : PortableServer.Servant)
-     return Boolean;
+   procedure Preinvoke
+     (Self       : in out References_Locator;
+      Oid        : in PortableServer.ObjectId;
+      Adapter    : in PortableServer.POA.Ref;
+      Operation  : in CORBA.Identifier;
+      The_Cookie : out PortableServer.ServantLocator.Cookie;
+      Returns    : out PortableServer.Servant);
+
+   procedure Postinvoke
+     (Self        : in out References_Locator;
+      Oid         : in PortableServer.ObjectId;
+      Adapter     : in PortableServer.POA.Ref;
+      Operation   : in CORBA.Identifier;
+      The_Cookie  : in PortableServer.ServantLocator.Cookie;
+      The_Servant : in PortableServer.Servant);
+
+   Locator : aliased References_Locator;
 
    procedure Ensure_References_POA_Is_Started;
+
+   function To_String (Oid : PortableServer.ObjectId)
+     return String;
 
    --------------------------------------
    -- Ensure_References_POA_Is_Started --
@@ -87,18 +100,24 @@ package body Broca.ORB is
    procedure Ensure_References_POA_Is_Started is
       use Broca.POA, PortableServer;
    begin
+      pragma Debug (O ("Ensuring that references POA is started"));
       if References_POA = null then
+
+         pragma Debug (O ("It has not been started"));
+
          declare
-            use PortableServer;
-            RootPOA : constant POA_Object_Ptr :=
-              POA_Object_Of (Broca.POA.Ref'Class
-                             (CORBA.AbstractBase.Ref'Class
-                              (Resolve_Initial_References
-                               (Root_POA_ObjectId))));
+            RootPOA_Obj : constant CORBA.Object.Ref'Class :=
+              Resolve_Initial_References (Root_POA_ObjectId);
+            RootPOA     : constant PortableServer.POA.Ref'Class :=
+              PortableServer.POA.Ref'Class (RootPOA_Obj);
+            RootPOA_Ptr : constant Broca.POA.POA_Object_Ptr :=
+              Broca.POA.POA_Object_Ptr
+              (CORBA.Object.Object_Of (RootPOA_Obj));
          begin
+            pragma Debug (O ("Starting references POA"));
             References_POA :=
               Broca.POA.Create_POA
-              (Self         => RootPOA,
+              (Self         => RootPOA_Ptr,
                Adapter_Name => CORBA.To_CORBA_String ("InitialReferences"),
                A_POAManager => null,
                Tp           => ORB_CTRL_MODEL,
@@ -107,33 +126,17 @@ package body Broca.ORB is
                Ip           => USER_ID,
                Ap           => NO_IMPLICIT_ACTIVATION,
                Sp           => NON_RETAIN,
-               Rp           => USE_DEFAULT_SERVANT);
-            PortableServer.Register_Skeleton
-              (Initial_References_RepositoryId,
-               Is_A'Access,
-               GIOP_Dispatch'Access);
+               Rp           => USE_SERVANT_MANAGER);
+            PortableServer.ServantManager.Set
+              (References_POA.Servant_Manager,
+               CORBA.Object.Object_Of
+               (PortableServer.POA.Servant_To_Reference
+                (RootPOA, Locator'Access)));
             Activate (Get_The_POAManager (References_POA) .all);
+            pragma Debug (O ("Activating the references POA"));
          end;
       end if;
    end Ensure_References_POA_Is_Started;
-
-   -------------------
-   -- GIOP_Dispatch --
-   -------------------
-
-   procedure GIOP_Dispatch
-     (For_Servant       : in PortableServer.Servant;
-      Operation         : in String;
-      Request_Id        : in CORBA.Unsigned_Long;
-      Response_Expected : in CORBA.Boolean;
-      Request_Buffer    : access Broca.Buffers.Buffer_Type;
-      Reply_Buffer      : access Broca.Buffers.Buffer_Type)
-   is
-   begin
-      --  Now, how to get the right servant since we do not have the
-      --  object key handy? XXXXX Sam 2000-06-15
-      null;
-   end GIOP_Dispatch;
 
    -------------------
    -- IOR_To_Object --
@@ -203,18 +206,6 @@ package body Broca.ORB is
 
    end IOR_To_Object;
 
-   ----------
-   -- Is_A --
-   ----------
-
-   function Is_A
-     (For_Servant : PortableServer.Servant)
-     return Boolean
-   is
-   begin
-      return True;
-   end Is_A;
-
    ---------------------------
    -- List_Initial_Services --
    ---------------------------
@@ -223,6 +214,44 @@ package body Broca.ORB is
    begin
       return Identifiers;
    end List_Initial_Services;
+
+   ---------------
+   -- Preinvoke --
+   ---------------
+
+   procedure Preinvoke
+     (Self       : in out References_Locator;
+      Oid        : in PortableServer.ObjectId;
+      Adapter    : in PortableServer.POA.Ref;
+      Operation  : in CORBA.Identifier;
+      The_Cookie : out PortableServer.ServantLocator.Cookie;
+      Returns    : out PortableServer.Servant)
+   is
+      Name : constant String := To_String (Oid);
+      Obj  : constant CORBA.Object.Ref'Class :=
+        Resolve_Initial_References (CORBA.ORB.To_CORBA_String (Name));
+   begin
+      pragma Debug (O ("Calling Preinvoke for service " & Name));
+      The_Cookie := null;
+      Returns    := PortableServer.POA.Reference_To_Servant (Adapter, Obj);
+   end Preinvoke;
+
+   ----------------
+   -- Postinvoke --
+   ----------------
+
+   procedure Postinvoke
+     (Self        : in out References_Locator;
+      Oid         : in PortableServer.ObjectId;
+      Adapter     : in PortableServer.POA.Ref;
+      Operation   : in CORBA.Identifier;
+      The_Cookie  : in PortableServer.ServantLocator.Cookie;
+      The_Servant : in PortableServer.Servant)
+   is
+   begin
+      pragma Debug (O ("Calling Postinvoke for service " & To_String (Oid)));
+      null;
+   end Postinvoke;
 
    --------------------------------
    -- Resolve_Initial_References --
@@ -300,5 +329,23 @@ package body Broca.ORB is
    begin
       POA_State_Changed (The_ORB.all, POA);
    end POA_State_Changed;
+
+   ---------------
+   -- To_String --
+   ---------------
+
+   function To_String (Oid : PortableServer.ObjectId) return String
+   is
+      Result : String (1 .. PortableServer.Length (Oid));
+      Chars  : constant PortableServer.IDL_SEQUENCE_Octet.Element_Array :=
+        PortableServer.To_Element_Array (Oid);
+      Index  : Positive := 1;
+   begin
+      for I in Chars'Range loop
+         Result (Index) := Character'Val (Chars (I));
+         Index := Index + 1;
+      end loop;
+      return Result;
+   end To_String;
 
 end Broca.ORB;
