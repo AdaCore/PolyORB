@@ -81,7 +81,7 @@ package System.Partition_Interface is
    procedure Get_RAS_Info
      (Pkg_Name        :     String;
       Subprogram_Name :     String;
-      Subp_Ref        : out System.PolyOBR_Interface.Object_Ref)
+      Subp_Ref        : out System.PolyORB_Interface.Object_Ref)
      renames System.PolyORB_Interface.Get_RAS_Ref;
 
    --  Receiving stubs contain a table of all subprograms
