@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,7 @@ with PolyORB.ORB.Interface;
 with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Setup;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Soft_Links;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
 with PolyORB.Types;
@@ -62,17 +62,16 @@ package body PolyORB.ORB is
 
    use PolyORB.Annotations;
    use PolyORB.Asynch_Ev;
+   use PolyORB.Binding_Data;
    use PolyORB.Components;
    use PolyORB.Filters;
    use PolyORB.Jobs;
    use PolyORB.Log;
-   use PolyORB.Requests;
-   use PolyORB.Soft_Links;
-   use PolyORB.Transport;
-
-   use PolyORB.Binding_Data;
-   use PolyORB.Types;
    use PolyORB.References;
+   use PolyORB.Requests;
+   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Transport;
+   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -814,7 +813,7 @@ package body PolyORB.ORB is
       AES : in out Asynch_Ev_Source_Access)
    is
       Polling : Boolean;
-      Polling_Version : Soft_Links.Version_Id;
+      Polling_Version : PolyORB.Tasking.Soft_Links.Version_Id;
    begin
       Enter (ORB.ORB_Lock.all);
 
@@ -1167,6 +1166,7 @@ package body PolyORB.ORB is
    ----------------
 
    procedure Initialize;
+
    procedure Initialize is
    begin
       Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy);

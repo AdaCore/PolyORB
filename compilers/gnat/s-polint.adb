@@ -30,7 +30,7 @@ with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.Servants;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Soft_Links;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
@@ -742,7 +742,7 @@ package body System.PolyORB_Interface is
    is
       Answer : RACW_Stub_Type_Access;
    begin
-      PolyORB.Soft_Links.Enter_Critical_Section;
+      PolyORB.Tasking.Soft_Links.Enter_Critical_Section;
       Answer := Objects_HTable.Get (Handler);
       if Answer = null then
          Objects_HTable.Set (Handler, Handler);
@@ -753,7 +753,7 @@ package body System.PolyORB_Interface is
          Free (Handler);
          Handler := Answer;
       end if;
-      PolyORB.Soft_Links.Leave_Critical_Section;
+      PolyORB.Tasking.Soft_Links.Leave_Critical_Section;
    end Get_Unique_Remote_Pointer;
 
    -----------------
@@ -1012,7 +1012,7 @@ begin
       (Name => +"dsa",
        Conflicts => Empty,
        Depends => +"orb"
-         & "initial_references"
+         & "corba.initial_references"
          & "access_points?"
          & "poa_config.racws?",
        Provides => Empty,

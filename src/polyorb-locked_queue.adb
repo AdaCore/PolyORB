@@ -41,7 +41,7 @@ with PolyORB.Log;
 package body PolyORB.Locked_Queue is
 
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
+   use PolyORB.Tasking.Soft_Links;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.locked_queue");

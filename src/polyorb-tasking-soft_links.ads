@@ -35,7 +35,6 @@
 
 --  $Id$
 
-with PolyORB.Soft_Links;
 with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Watchers;
@@ -45,9 +44,16 @@ package PolyORB.Tasking.Soft_Links is
 
    pragma Elaborate_Body;
 
-   package PS renames PolyORB.Soft_Links;
+   type Version_Id is mod 2 ** 8;
+   No_Version : constant Version_Id;
 
-   procedure Initialize;
+   function "<" (L, R : Version_Id) return Boolean;
+
+   -------------------
+   -- General types --
+   -------------------
+
+   type Parameterless_Procedure is access procedure;
 
    -------------------------------------------
    -- Critical Section for ORB with Tasking --
@@ -57,100 +63,131 @@ package PolyORB.Tasking.Soft_Links is
 
    procedure Leave_Critical_Section;
 
-   --------------------------------
-   -- Mutex for PCS with Tasking --
-   --------------------------------
+   --------------------
+   -- Advanced_Mutex --
+   --------------------
 
-   type Tasking_Mutex_Type is new PS.Mutex_Type with private;
+   type Adv_Mutex_Type is tagged private;
+   type Adv_Mutex_Access is access all Adv_Mutex_Type'Class;
 
-   function Create return PS.Mutex_Access;
+   function Create return Adv_Mutex_Access;
 
-   procedure Enter (M : in Tasking_Mutex_Type);
+   procedure Create (M : out Adv_Mutex_Access);
+   pragma Inline (Create);
 
-   procedure Destroy (M : in out Tasking_Mutex_Type);
+   procedure Destroy (M : in out Adv_Mutex_Type);
 
-   procedure Leave (M : in Tasking_Mutex_Type);
+   procedure Destroy (M : in out Adv_Mutex_Access);
+   pragma Inline (Destroy);
 
-   ----------------------------------
-   -- Watcher for PCS with Tasking --
-   ----------------------------------
+   procedure Enter (M : in Adv_Mutex_Type);
 
-   type Tasking_Watcher_Type is new PS.Watcher_Type with private;
+   procedure Enter (M : in Adv_Mutex_Access);
+   pragma Inline (Enter);
 
-   function Create return PS.Watcher_Access;
+   procedure Leave (M : in Adv_Mutex_Type);
 
-   procedure Destroy (W : in out Tasking_Watcher_Type);
+   procedure Leave (M : in Adv_Mutex_Access);
+   pragma Inline (Leave);
 
-   procedure Differ
-     (W : in Tasking_Watcher_Type;
-      V : in PS.Version_Id);
+   -----------
+   -- Mutex --
+   -----------
 
-   procedure Lookup
-     (W : in Tasking_Watcher_Type;
-      V : out PS.Version_Id);
+   type Mutex_Type is tagged private;
+   type Mutex_Access is access all Mutex_Type'Class;
 
-   procedure Update (W : in Tasking_Watcher_Type);
+   function Create return Mutex_Access;
 
-   -----------------------------------------
-   -- Advanced Mutex for PCS with Tasking --
-   -----------------------------------------
+   procedure Create (M : out Mutex_Access);
+   pragma Inline (Create);
 
-   type Tasking_Adv_Mutex_Type is new PS.Adv_Mutex_Type with private;
+   procedure Destroy (M : in out Mutex_Type);
 
-   function Create return PS.Adv_Mutex_Access;
+   procedure Destroy (M : in out Mutex_Access);
+   pragma Inline (Destroy);
 
-   procedure Enter (M : in Tasking_Adv_Mutex_Type);
+   procedure Enter (M : in Mutex_Type);
 
-   procedure Destroy (M : in out Tasking_Adv_Mutex_Type);
+   procedure Enter (M : in Mutex_Access);
+   pragma Inline (Enter);
 
-   procedure Leave (M : in Tasking_Adv_Mutex_Type);
+   procedure Leave (M : in Mutex_Type);
+
+   procedure Leave (M : in Mutex_Access);
+   pragma Inline (Leave);
+
+   -------------
+   -- Watcher --
+   -------------
+
+   type Watcher_Type is tagged private;
+   type Watcher_Access is access all Watcher_Type'Class;
+
+   function Create return Watcher_Access;
+
+   procedure Create (W : out Watcher_Access);
+   pragma Inline (Create);
+
+   procedure Destroy (W : in out Watcher_Type);
+
+   procedure Destroy (W : in out Watcher_Access);
+   pragma Inline (Destroy);
+
+   procedure Differ (W : in Watcher_Type; V : in Version_Id);
+
+   procedure Differ (W : in Watcher_Access; V : in Version_Id);
+   pragma Inline (Differ);
+   --  Await until W version differs from V
+
+   procedure Lookup (W : in Watcher_Type; V : out Version_Id);
+
+   procedure Lookup (W : in Watcher_Access; V : out Version_Id);
+   pragma Inline (Lookup);
+   --  Fetch W version
+
+   procedure Update (W : in Watcher_Type);
+
+   procedure Update (W : in Watcher_Access);
+   pragma Inline (Update);
+   --  Increment W version
 
    ---------------------
-   -- Task allocation --
+   -- Task management --
    ---------------------
+
+   type Task_Id is tagged private;
 
    procedure Create_Task
-     (Main : PS.Parameterless_Procedure);
+     (Main : Parameterless_Procedure);
 
-   -------------------------
-   -- Task identification --
-   -------------------------
+   function Current_Task return Task_Id'Class;
+   function Null_Task return Task_Id'Class;
 
-   type Tasking_Task_Id is new PS.Task_Id with private;
-
-   function Get_Current_Task return PS.Task_Id'Class;
-   function Get_Null_Task return PS.Task_Id'Class;
-
-   function Image (T : Tasking_Task_Id) return String;
+   function Image (T : Task_Id) return String;
    pragma Inline (Image);
 
-   function To_Integer (T : Tasking_Task_Id) return Integer;
+   function To_Integer (T : Task_Id) return Integer;
    pragma Inline (To_Integer);
 
 private
-   use PolyORB.Tasking.Threads;
-   use PolyORB.Tasking.Mutexes;
-   use PolyORB.Tasking.Watchers;
-   use PolyORB.Tasking.Advanced_Mutexes;
 
-   type Tasking_Mutex_Type is new PS.Mutex_Type
-     with record
-        M : Mutex_Access;
-     end record;
+   No_Version : constant Version_Id := 0;
 
-   type Tasking_Watcher_Type is new PS.Watcher_Type
-     with record
-        W : Watcher_Access;
-     end record;
+   type  Mutex_Type is tagged record
+     M : PolyORB.Tasking.Mutexes.Mutex_Access;
+   end record;
 
-   type Tasking_Adv_Mutex_Type is new PS.Adv_Mutex_Type
-     with record
-        X : Adv_Mutex_Access;
-     end record;
+   type Watcher_Type is tagged record
+     W : PolyORB.Tasking.Watchers.Watcher_Access;
+   end record;
 
-   type Tasking_Task_Id is new PS.Task_Id
-     with record
-        X : Thread_Id_Access;
-     end record;
+   type Adv_Mutex_Type is tagged record
+     X : PolyORB.Tasking.Advanced_Mutexes.Adv_Mutex_Access;
+   end record;
+
+   type Task_Id is tagged record
+     X : PolyORB.Tasking.Threads.Thread_Id_Access;
+   end record;
 
 end PolyORB.Tasking.Soft_Links;

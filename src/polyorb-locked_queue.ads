@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,7 @@
 
 --  $Id$
 
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Soft_Links;
 
 generic
 
@@ -42,7 +42,7 @@ generic
 
 package PolyORB.Locked_Queue is
 
-   pragma Preelaborate;
+   --  pragma Preelaborate;
 
    type Queue is limited private;
 
@@ -102,14 +102,14 @@ private
    type Queue is record
       Max_Count  : Positive;
 
-      State_Lock : PolyORB.Soft_Links.Mutex_Access;
+      State_Lock : PolyORB.Tasking.Soft_Links.Mutex_Access;
       --  This locks the global state of the queue, and should be
       --  taken when modifying First, Last and Count fields.
 
-      Full_Lock  : PolyORB.Soft_Links.Mutex_Access;
+      Full_Lock  : PolyORB.Tasking.Soft_Links.Mutex_Access;
       --  This lock is taken when the queue is full.
 
-      Empty_Lock : PolyORB.Soft_Links.Mutex_Access;
+      Empty_Lock : PolyORB.Tasking.Soft_Links.Mutex_Access;
       --  This lock is taken when the queue is empty.
 
       First      : Queue_Node_Access := null;

@@ -39,51 +39,225 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Soft_Links is
 
-   Critical_Section : Tasking_Adv_Mutex_Type;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
+   use PolyORB.Tasking.Watchers;
+   use PolyORB.Tasking.Advanced_Mutexes;
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Mutex_Type'Class, Mutex_Access);
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Watcher_Type'Class, Watcher_Access);
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Adv_Mutex_Type'Class, Adv_Mutex_Access);
+
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (L, R : Version_Id) return Boolean is
+      Version_Id_Window : constant Version_Id := Version_Id'Last / 2;
+   begin
+      return Integer (R - L) < Integer (Version_Id_Window);
+   end "<";
+
+   ---------------
+   -- Adv_Mutex --
+   ---------------
+
+   procedure Create (M :  out Adv_Mutex_Access) is
+   begin
+      M := Create;
+   end Create;
+
+   function Create return Adv_Mutex_Access is
+      M : Adv_Mutex_Type;
+   begin
+      Create (M.X);
+      return new Adv_Mutex_Type'(M);
+   end Create;
+
+   procedure Destroy (M : in out Adv_Mutex_Type) is
+   begin
+      Destroy (M.X);
+   end Destroy;
+
+   procedure Destroy (M : in out Adv_Mutex_Access) is
+   begin
+      if M /= null then
+         Destroy (M.all);
+         Free (M);
+      end if;
+   end Destroy;
+
+   procedure Enter (M : in Adv_Mutex_Access) is
+   begin
+      pragma Assert (M /= null);
+      Enter (M.all);
+   end Enter;
+
+   procedure Enter (M : in Adv_Mutex_Type) is
+   begin
+      Enter (M.X);
+   end Enter;
+
+   procedure Leave (M : in Adv_Mutex_Access) is
+   begin
+      pragma Assert (M /= null);
+      Leave (M.all);
+   end Leave;
+
+   procedure Leave (M : in Adv_Mutex_Type) is
+   begin
+      Leave (M.X);
+   end Leave;
+
+   -----------
+   -- Mutex --
+   -----------
+
+   procedure Create (M : out Mutex_Access) is
+   begin
+      M := Create;
+   end Create;
+
+   function Create return Mutex_Access is
+      M : Mutex_Type;
+   begin
+      Create (M.M);
+      return new Mutex_Type'(M);
+   end Create;
+
+   procedure Destroy (M : in out Mutex_Access) is
+   begin
+      if M /= null then
+         Destroy (M.all);
+         Free (M);
+      end if;
+   end Destroy;
+
+   procedure Destroy (M : in out Mutex_Type) is
+   begin
+      Destroy (M.M);
+   end Destroy;
+
+   procedure Enter (M : in Mutex_Access) is
+   begin
+      pragma Assert (M /= null);
+      Enter (M.all);
+   end Enter;
+
+   procedure Enter (M : in Mutex_Type) is
+   begin
+      Enter (M.M);
+   end Enter;
+
+   procedure Leave (M : in Mutex_Access) is
+   begin
+      pragma Assert (M /= null);
+      Leave (M.all);
+   end Leave;
+
+   procedure Leave (M : in Mutex_Type) is
+   begin
+      Leave (M.M);
+   end Leave;
+
+   -------------
+   -- Watcher --
+   -------------
+
+   procedure Create (W : out Watcher_Access) is
+   begin
+      W := Create;
+   end Create;
+
+   function Create return Watcher_Access is
+      W : Watcher_Type;
+   begin
+      W.W := new PolyORB.Tasking.Watchers.Watcher_Type;
+      Create (W.W.all);
+      return new Watcher_Type'(W);
+   end Create;
+
+   procedure Differ
+     (W : in Watcher_Type;
+      V : in Version_Id) is
+   begin
+      Differ (W.W.all, Tasking.Watchers.Version_Id (V));
+   end Differ;
+
+   procedure Destroy (W : in out Watcher_Access) is
+   begin
+      if W /= null then
+         Destroy (W.all);
+         Free (W);
+      end if;
+   end Destroy;
+
+   procedure Destroy (W : in out Watcher_Type) is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (PolyORB.Tasking.Watchers.Watcher_Type,
+         PolyORB.Tasking.Watchers.Watcher_Access);
+   begin
+      Destroy (W.W.all);
+      Free (W.W);
+   end Destroy;
+
+   procedure Differ (W : in Watcher_Access; V : in Version_Id) is
+   begin
+      pragma Assert (W /= null);
+      Differ (W.all, V);
+   end Differ;
+
+   procedure Lookup (W : in Watcher_Access; V : out Version_Id) is
+   begin
+      pragma Assert (W /= null);
+      Lookup (W.all, V);
+   end Lookup;
+
+   procedure Lookup
+     (W : in Watcher_Type;
+      V : out Version_Id) is
+   begin
+      Lookup (W.W.all, Tasking.Watchers.Version_Id (V));
+   end Lookup;
+
+   procedure Update (W : in Watcher_Access) is
+   begin
+      pragma Assert (W /= null);
+      Update (W.all);
+   end Update;
+
+   procedure Update (W : in Watcher_Type) is
+   begin
+      Update (W.W.all);
+   end Update;
+
+   -------------------------------------------
+   -- Critical Section for ORB with Tasking --
+   -------------------------------------------
+
+   Critical_Section : Adv_Mutex_Access;
+
+   procedure Enter_Critical_Section is
+   begin
+      Enter (Critical_Section);
+   end Enter_Critical_Section;
+
+   procedure Leave_Critical_Section is
+   begin
+      Leave (Critical_Section);
+   end Leave_Critical_Section;
+
+   ---------------------
+   -- Task management --
+   ---------------------
 
    My_Thread_Factory  : Thread_Factory_Access;
 
-   type Generic_Run is new Runnable with record
-      P  : PS.Parameterless_Procedure;
-   end record;
-   --  Simple generic Runnable, that use a access to procedure
-   --  for its main procedure
-
-   procedure Run (R : access Generic_Run);
-
-   ------------
-   -- Create --
-   ------------
-
-   function Create return PS.Mutex_Access is
-      M : Tasking_Mutex_Type;
-   begin
-      Create (M.M);
-      return new Tasking_Mutex_Type'(M);
-   end Create;
-
-   function Create return PS.Watcher_Access is
-      W : Tasking_Watcher_Type;
-   begin
-      W.W := new Watcher_Type;
-      Create (W.W.all);
-      return new Tasking_Watcher_Type'(W);
-   end Create;
-
-   function Create return PS.Adv_Mutex_Access is
-      M : Tasking_Adv_Mutex_Type;
-   begin
-      M.X := new Adv_Mutex_Type;
-      Create (M.X);
-      return new Tasking_Adv_Mutex_Type'(M);
-   end Create;
-
-   -----------------
-   -- Create_Task --
-   -----------------
-
    procedure Create_Task
-     (Main : PS.Parameterless_Procedure) is
+     (Main : Parameterless_Procedure) is
       T  : Thread_Access;
    begin
       T := Run_In_Task
@@ -91,165 +265,29 @@ package body PolyORB.Tasking.Soft_Links is
          P  => Tasking.Threads.Parameterless_Procedure (Main));
    end Create_Task;
 
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy (M : in out Tasking_Mutex_Type) is
-   begin
-      Destroy (M.M);
-   end Destroy;
-
-   procedure Destroy (W : in out Tasking_Watcher_Type) is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Watcher_Type, Watcher_Access);
-   begin
-      Destroy (W.W.all);
-      Free (W.W);
-   end Destroy;
-
-   procedure Destroy (M : in out Tasking_Adv_Mutex_Type) is
-   begin
-      Destroy (M.X);
-   end Destroy;
-
-   ------------
-   -- Differ --
-   ------------
-
-   procedure Differ
-     (W : in Tasking_Watcher_Type;
-      V : in PS.Version_Id) is
-   begin
-      Differ (W.W.all, Tasking.Watchers.Version_Id (V));
-   end Differ;
-
-   -----------
-   -- Enter --
-   -----------
-
-   procedure Enter (M : in Tasking_Mutex_Type) is
-   begin
-      Enter (M.M);
-   end Enter;
-
-   procedure Enter (M : in Tasking_Adv_Mutex_Type) is
-   begin
-      Enter (M.X);
-   end Enter;
-
-   ----------------------------
-   -- Enter_Critical_Section --
-   ----------------------------
-
-   procedure Enter_Critical_Section is
-   begin
-      Enter (Critical_Section);
-   end Enter_Critical_Section;
-
-   ----------------------
-   -- Get_Current_Task --
-   ----------------------
-
-   function Get_Current_Task return PS.Task_Id'Class is
-      X : Tasking_Task_Id;
+   function Current_Task return Task_Id'Class is
+      X : Task_Id;
    begin
       X.X := new Thread_Id'Class'(Get_Current_Thread_Id (My_Thread_Factory));
       return X;
-   end Get_Current_Task;
+   end Current_Task;
 
-   -------------------
-   -- Get_Null_Task --
-   -------------------
-
-   function Get_Null_Task return PS.Task_Id'Class is
-      X : Tasking_Task_Id;
+   function Null_Task return Task_Id'Class is
+      X : Task_Id;
    begin
       --  cannot be implemented with PolyORB.Tasking.
       raise Not_Implemented;
       return X;
-   end Get_Null_Task;
+   end Null_Task;
 
-   ----------------------------
-   -- Leave_Critical_Section --
-   ----------------------------
-
-   procedure Leave_Critical_Section is
-   begin
-      Leave (Critical_Section);
-   end Leave_Critical_Section;
-
-   -----------
-   -- Image --
-   -----------
-
-   function Image (T : Tasking_Task_Id) return String is
+   function Image (T : Task_Id) return String is
       pragma Warnings (Off);
       pragma Warnings (On);
    begin
       return Threads.Image (T.X.all);
    end Image;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-      use PolyORB.Soft_Links;
-   begin
-      My_Thread_Factory := Get_Thread_Factory;
-      Critical_Section.X         := new Advanced_Mutexes.Adv_Mutex_Type;
-      Create (Critical_Section.X);
-      Register_Enter_Critical_Section (Enter_Critical_Section'Access);
-      Register_Leave_Critical_Section (Leave_Critical_Section'Access);
-      Register_Watcher_Creation_Function (Create'Access);
-      Register_Mutex_Creation_Function (Create'Access);
-      Register_Adv_Mutex_Creation_Function (Create'Access);
-      Register_Create_Task (Create_Task'Access);
-      Register_Task_Identification
-        (Task_Id_Function'(Get_Current_Task'Access),
-         Task_Id_Function'(Get_Null_Task'Access));
-   end Initialize;
-
-   -----------
-   -- Leave --
-   -----------
-
-   procedure Leave (M : in Tasking_Mutex_Type) is
-   begin
-      Leave (M.M);
-   end Leave;
-
-   procedure Leave (M : in Tasking_Adv_Mutex_Type) is
-   begin
-      Leave (M.X);
-   end Leave;
-
-   ------------
-   -- Lookup --
-   ------------
-
-   procedure Lookup
-     (W : in Tasking_Watcher_Type;
-      V : out PS.Version_Id) is
-   begin
-      Lookup (W.W.all, Tasking.Watchers.Version_Id (V));
-   end Lookup;
-
-   ---------
-   -- Run --
-   ---------
-
-   procedure Run (R : access Generic_Run) is
-   begin
-      R.P.all;
-   end Run;
-
-   ----------------
-   -- To_Integer --
-   ----------------
-
-   function To_Integer (T : Tasking_Task_Id) return Integer is
+   function To_Integer (T : Task_Id) return Integer is
       pragma Warnings (Off);
       pragma Unreferenced (T);
       pragma Warnings (On);
@@ -259,14 +297,17 @@ package body PolyORB.Tasking.Soft_Links is
       return -1;
    end To_Integer;
 
-   ------------
-   -- Update --
-   ------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Update (W : in Tasking_Watcher_Type) is
+   procedure Initialize;
+
+   procedure Initialize is
    begin
-      Update (W.W.all);
-   end Update;
+      My_Thread_Factory  := Get_Thread_Factory;
+      Create (Critical_Section);
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -277,8 +318,8 @@ begin
      (Module_Info'
       (Name => +"tasking.soft_links",
        Conflicts => Empty,
-       Depends => +"tasking.condition_variables"
-         & "tasking.threads"
+       Depends => +"tasking.threads"
+         & "tasking.condition_variables"
          & "tasking.mutexes",
        Provides => +"soft_links",
        Init => Initialize'Access));

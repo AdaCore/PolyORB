@@ -30,17 +30,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#1 $
+--  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#2 $
 
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Soft_Links;
 
 package body PolyORB.Exceptions.Stack is
 
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
+   use PolyORB.Tasking.Soft_Links;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.exceptions.stack");

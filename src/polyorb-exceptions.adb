@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions.adb#4 $
+--  $Id: //droopi/main/src/polyorb-exceptions.adb#5 $
 
 with Ada.Unchecked_Conversion;
 
@@ -45,7 +45,7 @@ pragma Warnings (On);
 with PolyORB.Any;
 with PolyORB.Exceptions.Stack;
 with PolyORB.Log;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Soft_Links;
 with PolyORB.Types;
 with PolyORB.Utils;
 with PolyORB.Utils.Chained_Lists;
@@ -99,7 +99,7 @@ package body PolyORB.Exceptions is
      (TC     : in PolyORB.Any.TypeCode.Object;
       Raiser : in Raise_From_Any_Procedure)
    is
-      use PolyORB.Soft_Links;
+      use PolyORB.Tasking.Soft_Links;
       use Exception_Lists;
    begin
       pragma Debug
@@ -171,7 +171,7 @@ package body PolyORB.Exceptions is
      (For_Exception : PolyORB.Types.RepositoryId)
      return Exception_Info
    is
-      use PolyORB.Soft_Links;
+      use PolyORB.Tasking.Soft_Links;
       use PolyORB.Types;
       use Exception_Lists;
 

@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#1 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#2 $
 
 with PolyORB.Tasking.Condition_Variables;
 
@@ -56,12 +56,21 @@ package PolyORB.Tasking.Rw_Locks is
    procedure Destroy (L : in out Rw_Lock_Access);
 
    procedure Lock_W (L : access Rw_Lock_Type);
+   --  Get lock in writing mode.
+
    procedure Lock_R (L : access Rw_Lock_Type);
+   --  Get lock in reading mode.
+
    procedure Unlock_W (L : access Rw_Lock_Type);
+   --  Release writing lock.
+
    procedure Unlock_R (L : access Rw_Lock_Type);
+   --  Release reading mode lock.
+
    procedure Set_Max_Count
      (L : access Rw_Lock_Type;
       Max : Natural);
+   --  Set maximum number of reader.
 
 private
 
@@ -78,9 +87,9 @@ private
 
       Count : Integer := 0;
       --  Current readers, or -1 if held for writing.
-      --  If COUNT > 0, it is the number of tasks owning the lock in R mode.
-      --  If COUNT = 0, no tasks own the lock.
-      --  If COUNT = -1, a task is owning the lock in W mode.
+      --  If Count >  0, it is the number of tasks owning the lock in R mode.
+      --     Count =  0, no tasks own the lock.
+      --     Count = -1, a task is owning the lock in W mode.
 
       Max_Count : Natural := Natural'Last;
       --  Maximum number of readers.

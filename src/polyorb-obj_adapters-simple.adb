@@ -35,17 +35,20 @@
 
 --  $Id$
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;
 with Ada.Unchecked_Conversion;
 
 with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
-use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
 with PolyORB.POA_Policies.Thread_Policy;
-use PolyORB.POA_Policies.Thread_Policy;
 
 package body PolyORB.Obj_Adapters.Simple is
 
-   use PolyORB.Soft_Links;
+   use Ada.Streams;
+
+   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+   use PolyORB.POA_Policies.Thread_Policy;
+
    use Object_Map_Entry_Seqs;
 
    subtype Simple_OA_Oid is Stream_Element_Array
@@ -55,6 +58,10 @@ package body PolyORB.Obj_Adapters.Simple is
       new Ada.Unchecked_Conversion (Integer, Simple_OA_Oid);
    function Oid_To_Index is
       new Ada.Unchecked_Conversion (Simple_OA_Oid, Integer);
+
+   ----------------
+   -- Find_Entry --
+   ----------------
 
    function Find_Entry
      (OA    : Simple_Obj_Adapter;
@@ -91,15 +98,27 @@ package body PolyORB.Obj_Adapters.Simple is
 
    --  XXX Replace OA.Lock with a r/w lock???
 
+   ------------
+   -- Create --
+   ------------
+
    procedure Create (OA : access Simple_Obj_Adapter) is
    begin
       Create (OA.Lock);
    end Create;
 
+   -------------
+   -- Destroy --
+   -------------
+
    procedure Destroy (OA : access Simple_Obj_Adapter) is
    begin
       Destroy (OA.Lock);
    end Destroy;
+
+   ------------
+   -- Export --
+   ------------
 
    function Export
      (OA  : access Simple_Obj_Adapter;
@@ -145,6 +164,10 @@ package body PolyORB.Obj_Adapters.Simple is
 
    --  XXX There is FAR TOO MUCH code duplication in here!
 
+   --------------
+   -- Unexport --
+   --------------
+
    procedure Unexport
      (OA : access Simple_Obj_Adapter;
       Id : Objects.Object_Id_Access)
@@ -174,6 +197,10 @@ package body PolyORB.Obj_Adapters.Simple is
       Leave (OA.Lock);
    end Unexport;
 
+   ----------------
+   -- Object_Key --
+   ----------------
+
    function Object_Key
      (OA : access Simple_Obj_Adapter;
       Id :        Objects.Object_Id_Access)
@@ -186,6 +213,10 @@ package body PolyORB.Obj_Adapters.Simple is
       --  An SOA object identifier cannot contain a user-defined
       --  object key.
    end Object_Key;
+
+   -------------------------------
+   -- Set_Interface_Description --
+   -------------------------------
 
    procedure Set_Interface_Description
      (OA      : in out Simple_Obj_Adapter;
@@ -217,6 +248,10 @@ package body PolyORB.Obj_Adapters.Simple is
       Leave (OA.Lock);
    end Set_Interface_Description;
 
+   ------------------------
+   -- Get_Empty_Arg_List --
+   ------------------------
+
    function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
@@ -247,6 +282,10 @@ package body PolyORB.Obj_Adapters.Simple is
       Leave (OA.Lock);
       return Result;
    end Get_Empty_Arg_List;
+
+   ----------------------
+   -- Get_Empty_Result --
+   ----------------------
 
    function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
@@ -280,7 +319,12 @@ package body PolyORB.Obj_Adapters.Simple is
       return Result;
    end Get_Empty_Result;
 
+   ------------------
+   -- Find_Servant --
+   ------------------
+
    No_Thread_Policy : constant ThreadPolicy_Access := new ORB_Ctrl_Policy;
+   --  XXX ????
 
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
@@ -296,6 +340,10 @@ package body PolyORB.Obj_Adapters.Simple is
       Leave (OA.Lock);
       return Result;
    end Find_Servant;
+
+   ---------------------
+   -- Release_Servant --
+   ---------------------
 
    procedure Release_Servant
      (OA : access Simple_Obj_Adapter;

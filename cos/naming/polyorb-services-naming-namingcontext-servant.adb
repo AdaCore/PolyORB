@@ -42,7 +42,7 @@ with PolyORB.Any.ObjRef;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.References;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Soft_Links;
 
 with PolyORB.Minimal_Servant;
 with PolyORB.Minimal_Servant.Tools;
@@ -60,7 +60,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    use PolyORB.Any.ObjRef;
    use PolyORB.Log;
    use PolyORB.Requests;
-   use PolyORB.Soft_Links;
+   use PolyORB.Tasking.Soft_Links;
    use PolyORB.Types;
 
    use PolyORB.Services.Naming.Helper;

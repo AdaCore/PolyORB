@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,7 @@
 --  $Id$
 
 with Ada.Exceptions;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Components;
 with PolyORB.Initialization;
@@ -43,7 +44,6 @@ with PolyORB.ORB.Interface;
 with PolyORB.Protocols;
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
-with Ada.Unchecked_Deallocation;
 
 package body PolyORB.ORB.Thread_Per_Session is
 
@@ -51,18 +51,17 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Local declarations --
    ------------------------
 
+   use PolyORB.Annotations;
    use PolyORB.Asynch_Ev;
    use PolyORB.Components;
    use PolyORB.Filters;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
-   use PolyORB.Components;
-   use PolyORB.Transport;
-   use PolyORB.Protocols;
    use PolyORB.ORB.Interface;
-   use PolyORB.Annotations;
-   use PolyORB.Utils.Semaphores;
+   use PolyORB.Protocols;
+   use PolyORB.Tasking.Semaphores;
+   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.orb.thread_per_session");
@@ -72,6 +71,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    ----------------------
    --  Free procedures --
    ----------------------
+
    procedure Free is new Ada.Unchecked_Deallocation
      (Notepad, Notepad_Access);
 
@@ -79,8 +79,8 @@ package body PolyORB.ORB.Thread_Per_Session is
      (Request_Queue, Request_Queue_Access);
 
    A_S   : Session_Access := null;
-   --  This variable is used to initialized the threads local variable.
-   --  it is used to replaced the accept statement
+   --  This variable is used to initialize the threads local variable.
+   --  it is used to replace the 'accept' statement.
 
    Thread_Init_Watcher    : Watcher_Access := null;
    Thread_Init_Version_Id : Version_Id;
@@ -90,7 +90,6 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure Session_Thread;
    --  This procedure is a parameterless procedure used as
    --  the body of the threads
-
 
    -----------------
    -- Add_Request --
@@ -103,7 +102,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    begin
       Request_Queues.Append (S.Request_List.all, RI);
       Up (S.Request_Semaphore);
-      pragma Debug (O ("A job has bee queued"));
+      pragma Debug (O ("A job has been queued"));
    end Add_Request;
 
    ------------------------------------
@@ -133,7 +132,7 @@ package body PolyORB.ORB.Thread_Per_Session is
          end loop;
       end;
 
-      --  Create and Queue a End_Thread_Job
+      --  Create and queue a 'End_Thread_Job'
       ET := new End_Thread_Job;
       declare
          N   : constant Notepad_Access := Get_Task_Info (Session_Access (S));
@@ -161,6 +160,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Unreferenced (P);
       pragma Warnings (On);
       pragma Debug (O ("New client connection"));
+
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
@@ -181,7 +181,9 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Unreferenced (P);
       pragma Warnings (On);
       pragma Debug (O ("New server connection. "));
+
       Insert_Source (ORB, C.AES);
+
       declare
          S  : Filters.Filter_Access := null;
          Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (C.TE));
@@ -190,17 +192,22 @@ package body PolyORB.ORB.Thread_Per_Session is
             S := Temp;
             Temp := Filters.Filter_Access (Upper (Temp));
          end loop;
+
          pragma Debug (O ("find Session access"));
+
          if S = null then
             null;
-            pragma Debug (O ("S isn't define yet ....."));
+            pragma Debug (O ("S isn't defined yet ....."));
          end if;
+
          A_S := Session_Access (S);
+
          Create_Task (Session_Thread'Access);
          Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
          Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
          --  wait until the end of thread initialisation before emiting
       end;
+
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Indication'(null record));
@@ -222,6 +229,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Unreferenced (ORB);
       pragma Warnings (On);
       pragma Debug (O ("Handle_Request_Execution : Queue Job"));
+
       declare
          N : constant Notepad_Access := Get_Task_Info (S);
          STI : Session_Thread_Info;
@@ -247,21 +255,10 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Unreferenced (ORB);
       pragma Warnings (On);
       raise Program_Error;
-      --  In thread_per_session policy, only one task is executing ORB.Run
+      --  In Thread_Per_Session policy, only one task is executing ORB.Run.
       --  So this task shouldn't go idle, since this would block the system
-      --  forever
+      --  forever.
    end Idle;
-
-   ----------------
-   -- Initialize --
-   ----------------
-   procedure Initialize;
-   procedure Initialize is
-   begin
-      Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
-      Create (Thread_Init_Watcher);
-      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
-   end Initialize;
 
    ------------------------------
    -- Queue_Request_To_Handler --
@@ -276,6 +273,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
+
       if Msg in Interface.Queue_Request then
          begin
             Emit_No_Reply
@@ -367,6 +365,19 @@ package body PolyORB.ORB.Thread_Per_Session is
          O ("Got exception in thread");
          O (Ada.Exceptions.Exception_Information (E));
    end Session_Thread;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
+      Create (Thread_Init_Watcher);
+      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

@@ -47,11 +47,11 @@ package body PolyORB.ORB.Thread_Pool is
    ------------------------
 
    use PolyORB.Components;
+   use PolyORB.Configuration;
+   use PolyORB.Components;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
-   use PolyORB.Components;
-   use PolyORB.Configuration;
+   use PolyORB.Tasking.Soft_Links;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -171,7 +171,6 @@ package body PolyORB.ORB.Thread_Pool is
      (P : access Thread_Pool_Policy;
       ORB : ORB_Access)
    is
-      use PolyORB.Soft_Links;
       V : Version_Id;
    begin
       pragma Warnings (Off);

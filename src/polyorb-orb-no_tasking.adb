@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,13 +40,6 @@ with PolyORB.Filters.Interface;
 with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
-with PolyORB.Profiles.No_Tasking;
-with PolyORB.Tasking.Soft_Links;
-
-pragma Warnings (Off, PolyORB.Profiles.No_Tasking);
-pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
-pragma Elaborate_All (PolyORB.Profiles.No_Tasking);
-pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 
 package body PolyORB.ORB.No_Tasking is
 
@@ -189,9 +182,7 @@ begin
      (Module_Info'
       (Name => +"orb.no_tasking",
        Conflicts => Empty,
-       Depends => +"tasking.threads"
-         & "tasking.mutexes"
-         & "tasking.condition_variables",
+       Depends => +"soft_links",
        Provides => +"orb.tasking_policy",
        Init => Initialize'Access));
 end PolyORB.ORB.No_Tasking;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,8 +52,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    use PolyORB.Filters;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
-   use PolyORB.Components;
+   use PolyORB.Tasking.Soft_Links;
    use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log
@@ -169,25 +168,11 @@ package body PolyORB.ORB.Thread_Per_Request is
       pragma Unreferenced (P);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
-      pragma Debug (O ("No_Tasking: Idle -> Program error is raised"));
       raise Program_Error;
-      --  In thread_per_request policy, only one task is executing ORB.Run
+      --  In Thread_Per_Request policy, only one task is executing ORB.Run
       --  So this task shouldn't go idle, since this would block the system
       --  forever
    end Idle;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
-      Create (Thread_Init_Watcher);
-      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
-   end Initialize;
 
    ------------------------------
    -- Queue_Request_To_Handler --
@@ -217,15 +202,30 @@ package body PolyORB.ORB.Thread_Per_Request is
       Job := A_Job;
       Update (Thread_Init_Watcher);
       pragma Debug (O ("Thread "
-        & Soft_Links.Image (Soft_Links.Current_Task)
+        & Image (Current_Task)
         & " is executing a job"));
-      --  Job is executed
+
       Run_Request (Request_Job (Job.all)'Access);
+
+      --  Job is executed
       Jobs.Free (Job);
       pragma Debug (O ("Thread "
-        & Soft_Links.Image (Soft_Links.Current_Task)
+        & Image (Current_Task)
         & " has executed and destroyed a job"));
    end Request_Thread;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
+      Create (Thread_Init_Watcher);
+      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

@@ -48,7 +48,7 @@ with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Sequences.Unbounded;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Soft_Links;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
 
@@ -330,7 +330,7 @@ private
       -- Mutex for access to ORB state --
       -----------------------------------
 
-      ORB_Lock : Soft_Links.Adv_Mutex_Access;
+      ORB_Lock : PolyORB.Tasking.Soft_Links.Adv_Mutex_Access;
 
       ------------------
       -- Server state --
@@ -342,13 +342,13 @@ private
       Job_Queue  : Jobs.Job_Queue_Access;
       --  The queue of jobs to be processed by ORB tasks.
 
-      Idle_Tasks : Soft_Links.Watcher_Access;
+      Idle_Tasks : PolyORB.Tasking.Soft_Links.Watcher_Access;
       --  Idle ORB task wait on this watcher.
 
       Idle_Counter : Natural;
       --  Number of thread in the Idle State
 
-      Idle_Lock : Soft_Links.Mutex_Access;
+      Idle_Lock : PolyORB.Tasking.Soft_Links.Mutex_Access;
       --  Protect the access to Idle_Counter;
 
       Monitors : Monitor_Seq;
@@ -366,8 +366,8 @@ private
       --  Signals whether Delete_Source has been called while
       --  another task was polling.
 
-      Polling_Watcher : Soft_Links.Watcher_Access;
-      Polling_Version : Soft_Links.Version_Id;
+      Polling_Watcher : PolyORB.Tasking.Soft_Links.Watcher_Access;
+      Polling_Version : PolyORB.Tasking.Soft_Links.Version_Id;
       --  This watcher is looked up before one task goes into
       --  external event polling, and updated after polling
       --  is completed and events have been processed.

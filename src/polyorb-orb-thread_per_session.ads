@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,9 +33,9 @@
 --  $Id$
 
 with PolyORB.Annotations;
-with PolyORB.Utils.Chained_Lists;
 with PolyORB.Jobs;
-with PolyORB.Utils.Semaphores;
+with PolyORB.Utils.Chained_Lists;
+with PolyORB.Tasking.Semaphores;
 
 package PolyORB.ORB.Thread_Per_Session is
 
@@ -98,7 +98,7 @@ private
    --  This queues store the jobs that a thread has to execute
 
    type Session_Thread_Info is new PolyORB.Annotations.Note with record
-      Request_Semaphore : Utils.Semaphores.Semaphore_Access := null;
+      Request_Semaphore : Tasking.Semaphores.Semaphore_Access := null;
       Request_List      : Request_Queue_Access := null;
    end record;
    --  This structure is used in order to be able to retrieve the queue

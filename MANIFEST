@@ -720,8 +720,6 @@ src/polyorb-setup.ads
 src/polyorb-smart_pointers.adb
 src/polyorb-smart_pointers.ads
 src/polyorb-sockets.ads
-src/polyorb-soft_links.adb
-src/polyorb-soft_links.ads
 src/polyorb-storage_pools.ads
 src/polyorb-tasking-advanced_mutexes.adb
 src/polyorb-tasking-advanced_mutexes.ads
@@ -785,8 +783,6 @@ src/polyorb-utils-htables-perfect.adb
 src/polyorb-utils-htables-perfect.ads
 src/polyorb-utils-htables.adb
 src/polyorb-utils-htables.ads
-src/polyorb-utils-semaphores.adb
-src/polyorb-utils-semaphores.ads
 src/polyorb-utils-simple_flags.adb
 src/polyorb-utils-simple_flags.ads
 src/polyorb-utils-strings-lists.adb

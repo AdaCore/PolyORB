@@ -34,29 +34,6 @@ configuration files.
 
 Base data types used throughout PolyORB.
 
-./polyorb-soft_links.ads
-
-Abstraction layer for all library units that may depend upon
-the tasking runtime.
-
-./polyorb-protected_objects.ads
-
-Implementation of soft_links for a context with tasking.
-Uses protected objects.
-
-./polyorb-no_tasking.ads
-
-Implementation of soft_links for a context without tasking.
-All synchronisation operations are replaced with empty placeholders,
-since there is actually only one task in the application.
-
-XXX irrelevant, what is the new implementation, if it exists ???
-
-./polyorb-locks.ads
-
-High-level synchronisation objects (currently only a readers/writers lock).
-Implemented using the low-level facilities provided by soft_links.
-
 ./polyorb-annotations.ads
 
 The Annotation pattern, which allows clients of a data structure
@@ -106,6 +83,12 @@ strings.
 
 {Bounded,unbounded} variable length arrays (cf. CORBA.Sequences.)
 Notionally based on Ada.Strings.Unbounded.
+
+./polyorb-tasking-*
+
+Tasking runtime, support full tasking, ravenscar tasking subset and no
+tasking modes. Provides advanced mutexes, mutexes, watchers, r/w locks
+abstractions.
 
 2. Neutral core
 ---------------
