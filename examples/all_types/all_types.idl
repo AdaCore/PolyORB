@@ -1,0 +1,26 @@
+interface all_types {
+
+  exception simple_exception {};
+  exception complexe_exception {long excep;};
+
+  union example switch (long) {
+    case 1: long Counter;
+    case 2: boolean Flags;
+    default: long Unknown;
+  };
+ 
+  struct simple_struct {
+      long a[10];
+      long b;
+  };
+
+  enum Color { Red, Green, Blue };
+
+  typedef string Name;
+
+  typedef sequence<short> Data;
+
+  attribute example f;
+
+  simple_struct foo (in Data h);
+};
