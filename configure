@@ -1328,11 +1328,11 @@ if test "${with_remsh+set}" = set; then
   RSH="${withval}"
 else
   case "${target}" in
-   hppa*-hp-hpux*
-fi
-      RSH=remsh;;
+   hppa*-hp-hpux*)      RSH=remsh;;
    *)                   RSH=rsh;;
-  esac])
+  esac
+fi
+
 
 echo "$ac_t""$RSH" 1>&6
 #

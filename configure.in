@@ -116,7 +116,7 @@ AC_MSG_CHECKING(which remote shell to use)
 AC_ARG_WITH(remsh,
  [  --with-remsh=command   Select a remote shell command],
  [RSH="${withval}"],
-  case "${target}" in
+ [case "${target}" in
    hppa*-hp-hpux*)      RSH=remsh;;
    *)                   RSH=rsh;;
   esac])
