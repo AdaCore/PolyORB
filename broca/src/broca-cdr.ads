@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
-with CORBA.AbstractBase;
 with CORBA.Object;
 
 with Broca.Opaque; use Broca.Opaque;
@@ -264,7 +263,7 @@ package Broca.CDR is
 
    --  This procedure unmarshalls an Any in Result.
    --  If Result already has a value, then its memory location
-   --  will be reused. Otherwise, a nex location will be created
+   --  will be reused. Otherwise, a new location will be created
    procedure Unmarshall_To_Any (Buffer : access Buffer_Type;
                                 Result : in out CORBA.Any);
 
@@ -304,16 +303,17 @@ package Broca.CDR is
    --  that will be turned into an Encapsulation.
 
    --  Marshalling and unmashalling of object references
-   --  The two procedures are used for all object references
+   --  The two procedures are used for all object references,
+   --  including Valuetypes.
    --  The function is only used for CORBA.Object.Ref and none of its
    --  descendants.
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.AbstractBase.Ref'Class);
+      Data   : in CORBA.Object.Ref'Class);
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data : in out CORBA.AbstractBase.Ref'Class);
+      Data : in out CORBA.Object.Ref'Class);
 
    function Unmarshall
      (Buffer : access Buffer_Type)

@@ -77,7 +77,7 @@ package body Ada_Be.Expansion is
 
    procedure Expand_Boxed_ValueType
      (Node : in Node_Id);
-   --  expands the type of a boxed value (sequence for example
+   --  Expand the type of a boxed value (sequence for example)
 
    procedure Expand_Attribute
      (Node : in Node_Id);
@@ -985,6 +985,7 @@ package body Ada_Be.Expansion is
    ------------------------------
    --  Expand_Type_Declarator  --
    ------------------------------
+
    procedure Expand_Type_Declarator
      (Node : Node_Id)
    is
@@ -1067,6 +1068,7 @@ package body Ada_Be.Expansion is
    -----------------------
    --  Expand_Sequence  --
    -----------------------
+
    procedure Expand_Sequence
      (Node : Node_Id)
    is
@@ -1195,6 +1197,7 @@ package body Ada_Be.Expansion is
    ------------------------------
    --  Expand_Boxed_ValueType  --
    ------------------------------
+
    procedure Expand_Boxed_ValueType
      (Node : in Node_Id) is
    begin
@@ -1204,6 +1207,7 @@ package body Ada_Be.Expansion is
    -------------------------------
    --  Expand_Constructed_Type  --
    -------------------------------
+
    procedure Expand_Constructed_Type
      (Node : Node_Id;
       Replacement_Node : out Node_Id)
@@ -1517,6 +1521,7 @@ package body Ada_Be.Expansion is
    --------------------------
    --  Sequence_Type_Name  --
    --------------------------
+
    function Sequence_Type_Name
      (Node : Node_Id)
      return String

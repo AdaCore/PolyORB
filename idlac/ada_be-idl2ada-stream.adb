@@ -34,9 +34,9 @@ with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Utils;                 use Utils;
 
 package body Ada_Be.Idl2Ada.Stream is
-   
+
    use Ada_Be.Source_Streams;
-   
+
    procedure Gen_Marshall_Profile
      (CU        : in out Compilation_Unit;
       Type_Node : in Node_Id);
@@ -66,6 +66,14 @@ package body Ada_Be.Idl2Ada.Stream is
    --  occurence of the '%' character in Stmt_Template is
    --  replaced by the proper indices, with parentheses.
 
+
+   --------------------------------------
+   --  End of subprogram declarations  --
+   --------------------------------------
+
+   ----------------------------
+   --  Gen_Marshall_Profile  --
+   ----------------------------
    procedure Gen_Marshall_Profile
      (CU        : in out Compilation_Unit;
       Type_Node : in Node_Id) is
@@ -77,6 +85,9 @@ package body Ada_Be.Idl2Ada.Stream is
            & Ada_Type_Name (Type_Node) & ")");
    end Gen_Marshall_Profile;
 
+   ------------------------------
+   --  Gen_Unmarshall_Profile  --
+   ------------------------------
    procedure Gen_Unmarshall_Profile
      (CU        : in out Compilation_Unit;
       Type_Node : in Node_Id) is
@@ -88,6 +99,9 @@ package body Ada_Be.Idl2Ada.Stream is
            & Ada_Type_Name (Type_Node));
    end Gen_Unmarshall_Profile;
 
+   --------------------------
+   --  Gen_Array_Iterator  --
+   --------------------------
    procedure Gen_Array_Iterator
      (CU               : in out Compilation_Unit;
       Array_Name       : String;
@@ -180,7 +194,12 @@ package body Ada_Be.Idl2Ada.Stream is
             null;
 
          when K_ValueType =>
-            null;
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            PL (CU, ";");
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            PL (CU, ";");
 
          when
            K_Forward_Interface |
@@ -252,7 +271,25 @@ package body Ada_Be.Idl2Ada.Stream is
             null;
 
          when K_ValueType =>
-            null;
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            PL (CU, " is");
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "null;");
+            DI (CU);
+            PL (CU, "end Marshall;");
+
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "Result : " & Ada_Type_Name (Node) & ";");
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "return Result;");
+            DI (CU);
+            PL (CU, "end Unmarshall;");
 
          when K_Struct =>
 

@@ -139,6 +139,13 @@ package body Ada_Be.Idl2Ada is
    --  and Sr_No_Reply alternatives of the subsequent
    --  case on the returned status.
 
+   procedure Gen_Convert_Forward_Declaration
+     (CU : in out Compilation_Unit;
+      Node : in Node_Id);
+   --  Generate package Convert if necessary for
+   --  valuetypes and interfaces.
+
+
    ----------------------------------------------
    -- End of internal subprograms declarations --
    ----------------------------------------------
@@ -333,6 +340,9 @@ package body Ada_Be.Idl2Ada is
          end loop;
       end;
 
+      Gen_Convert_Forward_Declaration (Stubs_Spec,
+                                       Node);
+
       if Supports (Node) /= Nil_List then
          Skel.Gen_Body_Common_End (Skel_Body, Node);
       end if;
@@ -464,7 +474,7 @@ package body Ada_Be.Idl2Ada is
 
             when K_Initializer =>
                Gen_Initializer_Profile (CU,
-                                        "Value_Ref",
+                                        "Value_Ref'Class",
                                         Node);
                PL (CU, " is");
                II (CU);
@@ -717,22 +727,8 @@ package body Ada_Be.Idl2Ada is
             Helper.Gen_Node_Spec (Helper_Spec, Node);
             Helper.Gen_Node_Body (Helper_Body, Node);
 
-            declare
-               Forward_Node : constant Node_Id
-                 := Forward (Node);
-            begin
-               if Forward_Node /= No_Node then
-                  --  This interface has a forward declaration.
-
-                  NL (Stubs_Spec);
-                  PL (Stubs_Spec, "package Convert_Forward is");
-                  PL (Stubs_Spec, "  new "
-                      & Ada_Full_Name (Forward_Node)
-                      & ".Convert (Ref_Type => Ref);");
-                  Add_With (Stubs_Spec, Ada_Full_Name
-                            (Definition (Node).Parent_Scope));
-               end if;
-            end;
+            Gen_Convert_Forward_Declaration (Stubs_Spec,
+                                             Node);
 
             if not Abst (Node) then
                Skel.Gen_Body_Common_End (Skel_Body, Node);
@@ -1010,6 +1006,34 @@ package body Ada_Be.Idl2Ada is
 
    end Gen_Object_Reference_Declaration;
 
+
+   ---------------------------------------
+   --  Gen_Convert_Forward_Declaration  --
+   ---------------------------------------
+
+   procedure Gen_Convert_Forward_Declaration
+     (CU : in out Compilation_Unit;
+      Node : in Node_Id) is
+      Forward_Node : Node_Id;
+   begin
+      pragma Assert ((Kind (Node) = K_Interface)
+                     or else (Kind (Node) = K_ValueType));
+      Forward_Node := Forward (Node);
+      if Forward_Node /= No_Node then
+         --  This interface has a forward declaration.
+
+         NL (CU);
+         PL (CU, "package Convert_Forward is");
+         Put (CU, "  new "
+              & Ada_Full_Name (Forward_Node)
+              & ".Convert ("
+              & Ada_Type_Defining_Name (Node)
+              & ");");
+         Add_With (CU, Ada_Full_Name
+                   (Definition (Node).Parent_Scope));
+      end if;
+   end Gen_Convert_Forward_Declaration;
+
    ------------------------------------
    -- Gen_Object_Servant_Declaration --
    ------------------------------------
@@ -1162,7 +1186,10 @@ package body Ada_Be.Idl2Ada is
          when K_ValueType =>
             null;
          when K_Forward_ValueType =>
-            null;
+            Add_With (CU, "CORBA.Value.Forward");
+            NL (CU);
+            PL (CU, "package " & Ada_Name (Node)
+                & " is new CORBA.Value.Forward;");
 
          when K_Boxed_ValueType =>
             Add_With (CU, "CORBA.Value.Box");
@@ -1190,11 +1217,14 @@ package body Ada_Be.Idl2Ada is
                 & ");");
             NL (CU);
             PL (CU,
-                "type "
+                "subtype "
                 & Ada_Name (Node)
-                & " is new "
+                & " is "
                 & Ada_Name (Node)
                 & "_Value_Box.Box_Ref;");
+            --  I tried to put a "with null record", but
+            --  primitives of CORBA.Value.Box have to be overriden.
+            --  More simple with a subtype.
 
          when K_State_Member =>
             null;
@@ -1205,7 +1235,7 @@ package body Ada_Be.Idl2Ada is
 
          when K_Initializer =>
             Gen_Initializer_Profile (CU,
-                                     "Value_Ref",
+                                     "Value_Ref'Class",
                                      Node);
             PL (CU, ";");
 
