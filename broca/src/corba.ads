@@ -32,8 +32,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Finalization;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
+with Ada.Unchecked_Deallocation;
 with Interfaces;
 with Sequences.Unbounded;
 pragma Elaborate_All (Sequences.Unbounded);
@@ -939,110 +941,159 @@ private
 
 
    type Content is abstract tagged null record;
-   type Any_Content_Ptr is access Content'Class;
+   type Any_Content_Ptr is access all Content'Class;
    Null_Content_Ptr : constant Any_Content_Ptr := null;
+
+   --  This function duplicates its argument and give back
+   --  a deep copy of it.
+   --  It is actually overridden fro every subtype of Content
+   function Duplicate (Object : access Content)
+                       return Any_Content_Ptr;
+
+   --  Frees a Content_Ptr
+   --  It is overridden for aggregates since those have to
+   --  deallocate all the list of their elements
+   procedure Deallocate (Object : access Content);
+
+   --  Frees an Any_Content_Ptr
+   procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
+     (Content'Class, Any_Content_Ptr);
 
    type Content_Octet is new Content with
       record
          Value : CORBA.Octet;
       end record;
    type Content_Octet_Ptr is access all Content_Octet;
+   function Duplicate (Object : access Content_Octet)
+                       return Any_Content_Ptr;
 
    type Content_Short is new Content with
       record
          Value : CORBA.Short;
       end record;
    type Content_Short_Ptr is access all Content_Short;
+   function Duplicate (Object : access Content_Short)
+                       return Any_Content_Ptr;
 
    type Content_Long is new Content with
       record
          Value : CORBA.Long;
       end record;
    type Content_Long_Ptr is access all Content_Long;
+   function Duplicate (Object : access Content_Long)
+                       return Any_Content_Ptr;
 
    type Content_Long_Long is new Content with
       record
          Value : CORBA.Long_Long;
       end record;
    type Content_Long_Long_Ptr is access all Content_Long_Long;
+   function Duplicate (Object : access Content_Long_Long)
+                       return Any_Content_Ptr;
 
    type Content_UShort is new Content with
       record
          Value : CORBA.Unsigned_Short;
       end record;
    type Content_UShort_Ptr is access all Content_UShort;
+   function Duplicate (Object : access Content_UShort)
+                       return Any_Content_Ptr;
 
    type Content_ULong is new Content with
       record
          Value : CORBA.Unsigned_Long;
       end record;
    type Content_ULong_Ptr is access all Content_ULong;
+   function Duplicate (Object : access Content_ULong)
+                       return Any_Content_Ptr;
 
    type Content_ULong_Long is new Content with
       record
          Value : CORBA.Unsigned_Long_Long;
       end record;
    type Content_ULong_Long_Ptr is access all Content_ULong_Long;
+   function Duplicate (Object : access Content_ULong_Long)
+                       return Any_Content_Ptr;
 
    type Content_Boolean is new Content with
       record
          Value : CORBA.Boolean;
       end record;
    type Content_Boolean_Ptr is access all Content_Boolean;
+   function Duplicate (Object : access Content_Boolean)
+                       return Any_Content_Ptr;
 
    type Content_Char is new Content with
       record
          Value : CORBA.Char;
       end record;
    type Content_Char_Ptr is access all Content_Char;
+   function Duplicate (Object : access Content_Char)
+                       return Any_Content_Ptr;
 
    type Content_Wchar is new Content with
       record
          Value : CORBA.Wchar;
       end record;
    type Content_Wchar_Ptr is access all Content_Wchar;
+   function Duplicate (Object : access Content_Wchar)
+                       return Any_Content_Ptr;
 
    type Content_String is new Content with
       record
          Value : CORBA.String;
       end record;
    type Content_String_Ptr is access all Content_String;
+   function Duplicate (Object : access Content_String)
+                       return Any_Content_Ptr;
 
    type Content_Wide_String is new Content with
       record
          Value : CORBA.Wide_String;
       end record;
    type Content_Wide_String_Ptr is access all Content_Wide_String;
+   function Duplicate (Object : access Content_Wide_String)
+                       return Any_Content_Ptr;
 
    type Content_Float is new Content with
       record
          Value : CORBA.Float;
       end record;
    type Content_Float_Ptr is access all Content_Float;
+   function Duplicate (Object : access Content_Float)
+                       return Any_Content_Ptr;
 
    type Content_Double is new Content with
       record
          Value : CORBA.Double;
       end record;
    type Content_Double_Ptr is access all Content_Double;
+   function Duplicate (Object : access Content_Double)
+                       return Any_Content_Ptr;
 
    type Content_Long_Double is new Content with
       record
          Value : CORBA.Long_Double;
       end record;
    type Content_Long_Double_Ptr is access all Content_Long_Double;
+   function Duplicate (Object : access Content_Long_Double)
+                       return Any_Content_Ptr;
 
    type Content_TypeCode is new Content with
       record
          Value : CORBA.TypeCode.Object;
       end record;
    type Content_TypeCode_Ptr is access all Content_TypeCode;
+   function Duplicate (Object : access Content_TypeCode)
+                       return Any_Content_Ptr;
 
    type Content_Any is new Content with
       record
          Value : CORBA.Any;
       end record;
    type Content_Any_Ptr is access all Content_Any;
+   function Duplicate (Object : access Content_Any)
+                       return Any_Content_Ptr;
 
    --  a list of any
    type Content_Cell;
@@ -1052,6 +1103,10 @@ private
       Next : Content_List := null;
    end record;
    Null_Content_List : constant Content_List := null;
+   function Duplicate (List : in Content_List) return Content_List;
+   procedure Deep_Deallocate (List : in out Content_List);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Content_Cell, Content_List);
 
    --  for complex types that could be defined in Idl
    --  content_aggregate will be used.
@@ -1072,19 +1127,33 @@ private
    --     - for Value : FIXME
    --     - for Valuebox : FIXME
    --     - for Abstract_Interface : FIXME
-   type Content_Aggregate is new Content with
-      record
-         Value : Content_List := null;
-      end record;
+   type Content_Aggregate is new Content with record
+      Value : Content_List := null;
+   end record;
    type Content_Aggregate_Ptr is access all Content_Aggregate;
+   function Duplicate (Object : access Content_Aggregate)
+                       return Any_Content_Ptr;
+   procedure Deallocate (Object : in out Content_Aggregate_Ptr);
+
+   type Natural_Ptr is access Natural;
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Natural, Natural_Ptr);
 
    --  The actual Any type
-   type Any is
-     record
-        The_Value : Any_Content_Ptr;
-        The_Type  : CORBA.TypeCode.Object;
-     end record;
+   --  The first two fields are clear, the third one tells whether
+   --  the Any has a semantic of reference or of value and the last
+   --  one counts the number of references on the field The_Value.
+   type Any is new Ada.Finalization.Controlled with record
+      The_Value : Any_Content_Ptr;
+      The_Type  : CORBA.TypeCode.Object;
+      As_Reference : Boolean := False;
+      Ref_Counter : Natural_Ptr := new Natural'(0);
+   end record;
 
+   --  The associated control procedures
+   procedure Initialize (Object : in out Any);
+   procedure Adjust (Object : in out Any);
+   procedure Finalize (Object : in out Any);
 
    ------------------
    --  Named_Value --

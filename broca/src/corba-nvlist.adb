@@ -42,6 +42,17 @@ package body CORBA.NVList is
      := Broca.Debug.Is_Active ("corba.nvlist");
    procedure O is new Broca.Debug.Output (Flag);
 
+   --------------------
+   --  some methods  --
+   --------------------
+   --  to get the last cell of a NV_List
+   --  List has to be non null
+   function Get_Last_Cell (List : NV_List) return NV_List;
+
+   --  sets the value of the Cell to NV and its next field to null
+   procedure Set_Last_Cell (List : in NV_List;
+                            NV : in NamedValue);
+
    ----------------
    --  Add_Item  --
    ----------------
@@ -66,9 +77,21 @@ package body CORBA.NVList is
       Item_Flags : in Flags) is
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
+      pragma Debug (O ("Add_Item (4 params) : Item type is "
+                       & Ada.Tags.External_Tag (Item.The_Value'Tag)));
+      pragma Debug (O ("Add_Item (4 params) : ref_counter = "
+                       & Positive'Image (Item.Ref_Counter.all)));
+      Item.Ref_Counter.all := Item.Ref_Counter.all + 1;
       Add_Item (Self, (Name => Item_Name,
-                       Argument => Item,
+                       Argument => (Ada.Finalization.Controlled
+                                    with
+                                    The_Value => Item.The_Value,
+                                    The_Type => Item.The_Type,
+                                    As_Reference => True,
+                                    Ref_Counter => Item.Ref_Counter),
                        Arg_Modes => Item_Flags));
+      pragma Debug (O ("Add_Item (4 params) : ref_counter = "
+                       & Positive'Image (Item.Ref_Counter.all)));
       pragma Debug (O ("Add_Item (4 params) : end"));
    end Add_Item;
 
@@ -78,13 +101,13 @@ package body CORBA.NVList is
    procedure Add_Item
      (Self : Ref;
       Item : NamedValue) is
-      List : NV_List := Get_NVList (Self);
    begin
       pragma Debug (O ("Add_Item (2 params) : enter"));
-      Add_Cell (List, Item);
-      if Length (List) = 1 then
-         Add_NVList (Self, List);
-      end if;
+      pragma Debug (O ("Add_Item (2 params) : ref_counter = "
+                       & Positive'Image (Item.Argument.Ref_Counter.all)));
+      Add_Cell (Get_NVList (Self), Item);
+      pragma Debug (O ("Add_Item (2 params) : ref_counter = "
+                       & Positive'Image (Item.Argument.Ref_Counter.all)));
       pragma Debug (O ("Add_Item (2 params) : end"));
    end Add_Item;
 
@@ -105,7 +128,7 @@ package body CORBA.NVList is
    -----------------
    function Get_Count (Self : Ref) return CORBA.Long is
    begin
-      return Length (Get_NVList (Self));
+      return Length (Get_NVList (Self).List);
    end Get_Count;
 
    ----------------
@@ -114,7 +137,7 @@ package body CORBA.NVList is
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Data   : Ref) is
-      List : NV_List := Get_NVList (Data);
+      List : NV_List := Get_NVList (Data).List;
    begin
       pragma Debug (O ("Marshall : enter"));
       while List /= Null_NVList loop
@@ -122,6 +145,10 @@ package body CORBA.NVList is
          if List.NV.Arg_Modes = CORBA.ARG_IN or
            List.NV.Arg_Modes = CORBA.ARG_INOUT then
             pragma Debug (O ("Marshall : marshalling a named value"));
+            pragma Debug
+              (O ("Marshall : NV type is "
+                  & Ada.Tags.External_Tag
+                  (List.NV.Argument.The_Value'Tag)));
             Broca.CDR.Marshall (Buffer, List.NV);
          end if;
          List := List.Next;
@@ -135,7 +162,7 @@ package body CORBA.NVList is
    procedure Unmarshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Data : in out Ref) is
-      List : NV_List := Get_NVList (Data);
+      List : NV_List := Get_NVList (Data).List;
    begin
       pragma Debug (O ("Unmarshall : enter"));
       while List /= Null_NVList loop
@@ -173,30 +200,58 @@ package body CORBA.NVList is
    NVList_Repository : NVList_List := null;
    Last_NVList : NVList_List := null;
 
+   ---------------------
+   --  Get_Last_Cell  --
+   ---------------------
+   function Get_Last_Cell (List : NV_List) return NV_List is
+   begin
+      if List.Next = Null_NVList then
+         return List;
+      else
+         return Get_Last_Cell (List.Next);
+      end if;
+   end Get_Last_Cell;
+
+   ---------------------
+   --  Set_Last_Cell  --
+   ---------------------
+   procedure Set_Last_Cell (List : in NV_List;
+                            NV : in NamedValue) is
+   begin
+      pragma Debug (O ("Actual_Add_Cell : about to assign NV"));
+      List.NV := NV;
+      pragma Debug
+        (O ("Actual_Add_Cell : NV type is "
+            & Ada.Tags.External_Tag
+            (List.NV.Argument.The_Value'Tag)));
+      pragma Debug (O ("Actual_Add_Cell : NV assigned"));
+      List.Next := Null_NVList;
+   end Set_Last_Cell;
+
    ----------------
    --  Add_Cell  --
    ----------------
-   procedure Add_Cell (List : in out NV_List;
+   procedure Add_Cell (List : in NVList_List;
                        NV : in NamedValue) is
-      Last_Cell : NV_List := List;
    begin
       pragma Debug (O ("Add_Cell : enter"));
       pragma Debug (O ("Add_Cell : length of the list is : " &
-                       Long'Image (Length (List))));
-      if Last_Cell = Null_NVList then
-         List := new NV_Cell;
-         List.NV := NV;
-         List.Next := Null_NVList;
+                       Long'Image (Length (List.List))));
+      if List.List = Null_NVList then
+         List.List := new NV_Cell;
+         pragma Debug (O ("Add_Cell : new cell created"));
+         Set_Last_Cell (List.List, NV);
       else
-         while Last_Cell.Next /= Null_NVList loop
-            Last_Cell := Last_Cell.Next;
-         end loop;
-         Last_Cell.Next := new NV_Cell;
-         Last_Cell.Next.NV := NV;
-         Last_Cell.Next.Next := Null_NVList;
+         declare
+            Last_Cell : NV_List := Get_Last_Cell (List.List);
+         begin
+            Last_Cell.Next := new NV_Cell;
+            pragma Debug (O ("Add_Cell : new cell created"));
+            Set_Last_Cell (Last_Cell.Next, NV);
+         end;
       end if;
       pragma Debug (O ("Add_Cell : length of the list is : " &
-                       Long'Image (Length (List))));
+                       Long'Image (Length (List.List))));
       pragma Debug (O ("Add_Cell : end"));
    end Add_Cell;
 
@@ -227,28 +282,29 @@ package body CORBA.NVList is
       return Result;
    end Length;
 
-   ------------------
-   --  Add_NVList  --
-   ------------------
-   procedure Add_NVList (Obj : Ref;
-                         List : in NV_List) is
+   ---------------------
+   --  Create_NVList  --
+   ---------------------
+   function Create_NVList (Obj : Ref)
+                           return NVList_List is
    begin
-      pragma Debug (O ("Add_NVList : enter"));
+      pragma Debug (O ("Create_NVList : enter"));
       if NVList_Repository = Null_NVList_List then
          Last_NVList := new NVList_Cell;
          Last_NVList.Obj := Obj;
-         Last_NVList.List := List;
+         Last_NVList.List := Null_NVList;
          Last_NVList.Next := Null_NVList_List;
          NVList_Repository := Last_NVList;
       else
          Last_NVList.Next := new NVList_Cell;
          Last_NVList.Next.Obj := Obj;
-         Last_NVList.Next.List := List;
+         Last_NVList.Next.List := Null_NVList;
          Last_NVList.Next.Next := Null_NVList_List;
          Last_NVList := Last_NVList.Next;
       end if;
-      pragma Debug (O ("Add_NVList : end"));
-   end Add_NVList;
+      pragma Debug (O ("Create_NVList : end"));
+      return Last_NVList;
+   end Create_NVList;
 
    ---------------------
    --  Remove_NVList  --
@@ -295,7 +351,7 @@ package body CORBA.NVList is
    -------------------
    --  Get_NV_List  --
    -------------------
-   function Get_NVList (Obj : Ref) return NV_List is
+   function Get_NVList (Obj : Ref) return NVList_List is
       Current_NVList_List : NVList_List := NVList_Repository;
    begin
       pragma Debug (O ("Get_NV_List : enter"));
@@ -305,10 +361,10 @@ package body CORBA.NVList is
       end loop;
       if Current_NVList_List = Null_NVList_List then
          pragma Debug (O ("Get_NV_List : end with null list"));
-         return Null_NVList;
+         return Create_NVList (Obj);
       else
          pragma Debug (O ("Get_NV_List : end with non null list"));
-         return Current_NVList_List.List;
+         return Current_NVList_List;
       end if;
    end Get_NVList;
 

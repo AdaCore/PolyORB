@@ -125,5 +125,7 @@ private
          Value : Ref;
       end record;
    type Content_ObjRef_Ptr is access all Content_ObjRef;
+   function Duplicate (Object : access Content_ObjRef)
+                       return Any_Content_Ptr;
 
 end CORBA.Object;

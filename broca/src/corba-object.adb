@@ -175,4 +175,14 @@ package body CORBA.Object is
                                     Req_Flags);
    end Create_Request;
 
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_ObjRef)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_ObjRef'
+        (Value => Content_ObjRef_Ptr (Object).Value);
+   end Duplicate;
+
 end CORBA.Object;

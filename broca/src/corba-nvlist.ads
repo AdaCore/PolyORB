@@ -56,7 +56,7 @@ package CORBA.NVList is
 
    procedure Add_Item
      (Self : Ref;
-      Item : CORBA.NamedValue);
+      Item : in CORBA.NamedValue);
 
    --  free and free_memory not needed in Ada
    procedure Free (Self : Ref);
@@ -87,15 +87,9 @@ private
    end record;
    Null_NVList : constant NV_List := null;
 
-   --  some usefull fonctions - no further comment are needed
-   procedure Add_Cell (List : in out NV_List;
-                       NV : in NamedValue);
-
    procedure Free is new Ada.Unchecked_Deallocation (NV_Cell, NV_List);
    procedure Free_All_List (List : in out NV_List);
-
    function Length (List : in NV_List) return CORBA.Long;
-
 
    --  in order to be able to deal with several NVLists at the
    --  same time, each NVList is associated to a Ref.
@@ -109,19 +103,22 @@ private
    end record;
    Null_NVList_List : constant NVList_List := null;
 
-   --  Adds a cell to the list of current NVLists
-   --  The new Cell will be associated to List
-   procedure Add_NVList (Obj : in Ref;
-                         List : in NV_List);
+   --  adds a cell with NV in it to the NVList contained by List
+   procedure Add_Cell (List : in NVList_List;
+                       NV : in NamedValue);
+
+   --  Creates a new NVList_Cell and adds it to the list of current
+   --  NVLists. The new Cell is returned
+   function Create_NVList (Obj : in Ref)
+                           return NVList_List;
 
    --  removes an NV_List from the list and frees it
    --  does nothing if the given Ref does not correspond to any list
    procedure Remove_NVList (Obj : Ref);
 
-   --  returns the list associated to a given Ref
-   --  returns Null_NVList_List if the given Ref does not correspond
-   --  to any list
-   function Get_NVList (Obj : Ref) return NV_List;
+   --  returns a cell containing the list associated to a given Ref
+   --  if there is no, creates a new one and returns it
+   function Get_NVList (Obj : Ref) return NVList_List;
 
    --  to free a NV_List_Cell
    procedure Free is new Ada.Unchecked_Deallocation

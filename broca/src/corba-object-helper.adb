@@ -39,9 +39,11 @@ package body CORBA.Object.Helper is
    --  To_Any  --
    --------------
    function To_Any (Item : in CORBA.Object.Ref) return Any is
+      Result : Any;
    begin
-      return (new Content_ObjRef' (Value => Item),
-              CORBA.TypeCode.TC_ObjRef);
+      Result.The_Value := new Content_ObjRef' (Value => Item);
+      Result.The_Type := CORBA.TypeCode.TC_ObjRef;
+      return Result;
    end To_Any;
 
    ----------------
