@@ -30,9 +30,16 @@ package Weapon is
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
 
-   procedure AdaBroker_Cast_To_Parent(Real_Ref: in Ref;
-                                      Result: out Corba.Object.Ref'Class) ;
+   function Get_Repository_Id(Self : in Ref) return Corba.String ;
 
+   function Is_A(The_Ref: in Ref;
+                 Repo_Id: in Corba.String)
+                 return Corba.Boolean ;
 
+private
+
+   procedure Initialize (Self: in out Ref);
+
+   Nil_Ref : aliased Ref := (Corba.Object.Nil_Ref with null record) ;
 
 End Weapon;

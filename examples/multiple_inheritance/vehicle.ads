@@ -22,23 +22,23 @@ package Vehicle is
 
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
-   -- procedure Set_Mark (Self: in Ref ;
-   --                    To: in Corba.String) ;
-
-   -- function Get_Mark (Self: in Ref) return Corba.String ;
-
-   -- procedure Drive (Self: in Ref; Vehicle_Mark: in Corba.String) ;
-
 
 
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
 
-   procedure AdaBroker_Cast_To_Parent(Real_Ref: in Ref;
-                                      Result: out Corba.Object.Ref'Class) ;
+   function Get_Repository_Id(Self : in Ref) return Corba.String ;
 
+   function Is_A(The_Ref: in Ref;
+                 Repo_Id: in Corba.String)
+                 return Corba.Boolean ;
 
+private
+
+   procedure Initialize (Self: in out Ref);
+
+   Nil_Ref : aliased Ref := (Corba.Object.Nil_Ref with null record) ;
 
 End Vehicle ;
 

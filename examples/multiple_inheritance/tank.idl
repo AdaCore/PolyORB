@@ -1,2 +1,5 @@
-interface Tank : Vehicle, Weapon {
-}
+#include "weapon.idl"
+#include "vehicle.idl"
+
+interface tank : Vehicle, Weapon {
+};
