@@ -1,3 +1,10 @@
+2004-03-25  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_utils.adb, xe_utils.ads, config.sdefault: Set Exec_Name to
+	"gnatmake" instead of "gnatdist" in order to configure paths
+	correctly.
+	For D309-019
+
 2004-03-24  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_utils.ads, xe_utils.adb, xe_stubs.adb: Introduce function
