@@ -1,5 +1,7 @@
 --  $Id$
 
+with Ada.Exceptions;
+
 with Droopi.Log;
 with Droopi.Jobs;
 with Droopi.Components;
@@ -84,6 +86,13 @@ package body Droopi.ORB.Thread_Pool is
                           & Integer'Image (Number)
                           & " has executed request"));
       end loop;
+   exception
+      when E : others =>
+         pragma Debug (O ("Thread_Pool: Thread" & Number'Img
+                          & " caught an exception:"));
+         pragma Debug (O (Ada.Exceptions.Exception_Information
+                          (E)));
+         null;
    end Pool_Thread;
 
    ----------------------------------
