@@ -13,6 +13,7 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 PROGS= ab_names test_naming
 
 bin_PROGRAMS = ab_names
+ab_names_SOURCES =
 
 COS_DIRS=../../idls/cos/naming
 COS_IMPL=\
