@@ -34,8 +34,6 @@ with Echo;
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
-with PolyORB.Exceptions;
-
 procedure Client is
    Sent_Msg, Rcvd_Msg : CORBA.String;
    myecho : Echo.Ref;
@@ -80,7 +78,4 @@ exception
          Put (", completion status: ");
          Put_Line (CORBA.Completion_Status'Image (Memb.Completed));
       end;
-   when PolyORB.Exceptions.Bad_Param =>
-      Put_Line ("usage : client <IOR_string_from_server>|-i");
-      return;      
 end Client;
