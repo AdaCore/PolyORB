@@ -89,6 +89,14 @@ package PolyORB.Binding_Data.IIOP is
 
    function Image (Prof : IIOP_Profile_Type) return String;
 
+   function Profile_To_Corbaloc
+     (P : Profile_Access)
+     return Types.String;
+
+   function Corbaloc_To_Profile
+     (Str : Types.String)
+     return Profile_Access;
+
 private
 
    IIOP_Version_Major : constant Types.Octet := 1;
@@ -107,5 +115,8 @@ private
    type IIOP_Profile_Factory is new Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
    end record;
+
+   IIOP_Corbaloc_Prefix : constant Types.String
+     := PolyORB.Types.To_PolyORB_String ("iiop:");
 
 end PolyORB.Binding_Data.IIOP;

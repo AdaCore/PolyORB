@@ -47,6 +47,7 @@ with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Protocols.GIOP.IIOP;
 with PolyORB.Representations.CDR;
+with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Sockets;
@@ -58,6 +59,7 @@ package body PolyORB.Binding_Data.IIOP is
 
    use PolyORB.Log;
    use PolyORB.Objects;
+   use PolyORB.References.Corbaloc;
    use PolyORB.References.IOR;
    use PolyORB.Representations.CDR;
    use PolyORB.Transport.Connected.Sockets;
@@ -386,6 +388,105 @@ package body PolyORB.Binding_Data.IIOP is
         & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
+   -------------------------
+   -- Profile_To_Corbaloc --
+   -------------------------
+
+   function Profile_To_Corbaloc
+     (P : Profile_Access)
+     return Types.String
+   is
+      use PolyORB.Sockets;
+      use PolyORB.Types;
+      use PolyORB.Utils;
+
+      IIOP_Profile : IIOP_Profile_Type renames IIOP_Profile_Type (P.all);
+   begin
+      pragma Debug (O ("IIOP Profile to corbaloc"));
+      return
+        IIOP_Corbaloc_Prefix &
+        Trimmed_Image (Integer (IIOP_Version_Major)) & "." &
+        Trimmed_Image (Integer (IIOP_Version_Minor)) & "@" &
+        Image (IIOP_Profile.Address.Addr) & ":" &
+        Trimmed_Image (Integer (IIOP_Profile.Address.Port)) & "/" &
+        To_String (P.Object_Id.all);
+   end Profile_To_Corbaloc;
+
+   -------------------------
+   -- Corbaloc_To_Profile --
+   -------------------------
+
+   function Corbaloc_To_Profile
+     (Str : Types.String)
+     return Profile_Access
+   is
+      use PolyORB.Types;
+      use PolyORB.Utils;
+      use PolyORB.Utils.Sockets;
+
+      Len    : constant Integer := Length (IIOP_Corbaloc_Prefix);
+   begin
+      if Length (Str) > Len
+        and then To_String (Str) (1 .. Len) = IIOP_Corbaloc_Prefix then
+         declare
+            Result  : constant Profile_Access := new IIOP_Profile_Type;
+            TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
+            S       : constant String
+              := To_Standard_String (Str) (Len + 1 .. Length (Str));
+            Index   : Integer := S'First;
+            Index2  : Integer;
+         begin
+            pragma Debug (O ("IIOP corbaloc to profile: enter"));
+            Index2 := Find (S, Index, '.');
+            if Index2 = S'Last + 1 then
+               return null;
+            end if;
+            TResult.Version_Major
+              := Types.Octet'Value (S (Index .. Index2 - 1));
+            Index := Index2 + 1;
+
+            Index2 := Find (S, Index, '@');
+            if Index2 = S'Last + 1 then
+               return null;
+            end if;
+            TResult.Version_Minor
+              := Types.Octet'Value (S (Index .. Index2 - 1));
+            Index := Index2 + 1;
+
+            Index2 := Find (S, Index, ':');
+            if Index2 = S'Last + 1 then
+               return null;
+            end if;
+            pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
+            TResult.Address.Addr := String_To_Addr
+              (To_PolyORB_String (S (Index .. Index2 - 1)));
+            Index := Index2 + 1;
+
+            Index2 := Find (S, Index, '/');
+            if Index2 = S'Last + 1 then
+               return null;
+            end if;
+            pragma Debug (O ("Port = " & S (Index .. Index2 - 1)));
+            TResult.Address.Port :=
+              PolyORB.Sockets.Port_Type'Value (S (Index .. Index2 - 1));
+            Index := Index2 + 1;
+
+            TResult.Object_Id := new Object_Id'(To_Oid (S (Index .. S'Last)));
+
+            if TResult.Object_Id = null then
+               return null;
+            end if;
+
+            pragma Debug (O ("Oid = " & Image (TResult.Object_Id.all)));
+
+            TResult.Components := Null_Tagged_Component_List;
+            pragma Debug (O ("IIOP corbaloc to profile: leave"));
+            return Result;
+         end;
+      end if;
+      return null;
+   end Corbaloc_To_Profile;
+
    ----------------
    -- Initialize --
    ----------------
@@ -407,6 +508,11 @@ package body PolyORB.Binding_Data.IIOP is
        (Tag_Internet_IOP,
         Marshall_IIOP_Profile_Body'Access,
         Unmarshall_IIOP_Profile_Body'Access);
+      Register
+        (Tag_Internet_IOP,
+         IIOP_Corbaloc_Prefix,
+         Profile_To_Corbaloc'Access,
+         Corbaloc_To_Profile'Access);
    end Initialize;
 
    use PolyORB.Initialization;
