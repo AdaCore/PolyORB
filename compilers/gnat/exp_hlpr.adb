@@ -371,6 +371,7 @@ package body Exp_Hlpr is
 
       elsif Is_Record_Type (Typ)
         and then not Is_Derived_Type (Typ)
+        and then not Is_Tagged_Type (Typ)
       then
          if Nkind (Declaration_Node (Typ)) = N_Subtype_Declaration then
             Append_To (Stms,
