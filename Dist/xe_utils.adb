@@ -160,14 +160,14 @@ package body XE_Utils is
    begin
 
       if Debug_Mode then
-         Message (": change to dir ", To);
+         Message ("change to dir ", To);
       end if;
 
       Get_Name_String (To);
       C_Path (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
       C_Path (Name_Len + 1) := Ascii.Nul;
       if Chdir (C_Path'Address) /= 0 then
-         Message (": Cannot change dir to ", To);
+         Message ("cannot change dir to ", To);
          raise Fatal_Error;
       end if;
 
@@ -260,13 +260,13 @@ package body XE_Utils is
       File_Name (File_Name_Len + 1) := Ascii.Nul;
 
       if Verbose_Mode then
-         Message (": creating file ", Name);
+         Message ("creating file ", Name);
       end if;
 
       File := Create_File (File_Name'Address, Text);
 
       if File = Invalid_FD then
-         Message (": cannot create file ", Name);
+         Message ("cannot create file ", Name);
          raise Fatal_Error;
       end if;
 
@@ -311,7 +311,7 @@ package body XE_Utils is
       Error : Boolean;
    begin
       if Verbose_Mode then
-         Message (": deleting ", File);
+         Message ("deleting ", File);
       end if;
       Get_Name_String (File);
       Name_Len := Name_Len + 1;
@@ -356,7 +356,7 @@ package body XE_Utils is
       Spawn (Prog.all, Args, Success);
 
       if not Success then
-         Message (": ", No_Name, Prog.all, No_Name, " failed");
+         Message ("", No_Name, Prog.all, No_Name, " failed");
          raise Fatal_Error;
       end if;
 
@@ -757,7 +757,7 @@ package body XE_Utils is
    begin
       Prog := Locate_Regular_File (Exec_Name, Path.all);
       if Prog = null and then Show_Error then
-         Message (": ", No_Name, Exec_Name, No_Name, " is not in your path");
+         Message ("", No_Name, Exec_Name, No_Name, " is not in your path");
          raise Fatal_Error;
       end if;
       return Prog;
@@ -955,7 +955,7 @@ package body XE_Utils is
    procedure Write_Missing_File
      (File  : in File_Name_Type) is
    begin
-      Message (": ", File, " does not exist");
+      Message ("", File, " does not exist");
    end Write_Missing_File;
 
    ----------------

@@ -136,7 +136,7 @@ package body XE_Stubs is
       for CUID in CUnit.First .. CUnit.Last loop
          if Unit.Table (CUnit.Table (CUID).My_Unit).RCI then
             if Verbose_Mode then
-               Message (": building ", CUnit.Table (CUID).CUname, " stubs");
+               Message ("building ", CUnit.Table (CUID).CUname, " stubs");
             end if;
             Build_Stub
               (Get_Unit_Sfile (CUnit.Table (CUID).My_Unit),
@@ -266,12 +266,12 @@ package body XE_Stubs is
 
       if not Is_Regular_File (Executable) then
          if Verbose_Mode then
-            Message (": ", Executable, " doesn't exist");
+            Message ("", Executable, " doesn't exist");
          end if;
 
       elsif not Is_Regular_File (Stamp_File) then
          if Verbose_Mode then
-            Message (": ", Stamp_File, " doesn't exist");
+            Message ("", Stamp_File, " doesn't exist");
          end if;
 
       elsif Partitions.Table (Partition).Most_Recent > Stamp_File then
@@ -292,7 +292,7 @@ package body XE_Stubs is
       Change_Dir (Directory);
 
       if not Quiet_Output then
-         Message (": building partition ", Part_Name);
+         Message ("building partition ", Part_Name);
       end if;
 
       --  Is it a relative storage directory ?
@@ -387,7 +387,7 @@ package body XE_Stubs is
       if Obsolete then
 
          if not Quiet_Output then
-            Message (": building ", Caller_Body, " from ", Full_RCI_Spec);
+            Message ("building ", Caller_Body, " from ", Full_RCI_Spec);
          end if;
 
          Change_Dir (Caller_Dir);
@@ -397,7 +397,7 @@ package body XE_Stubs is
          Change_Dir (Original_Dir);
 
       elsif not Quiet_Output then
-         Message (":    ", Caller_Body, " caller stub is up to date");
+         Message ("   ", Caller_Body, " caller stub is up to date");
       end if;
 
       --  If no RCI body is available, use RCI spec.
@@ -451,7 +451,7 @@ package body XE_Stubs is
       if Obsolete then
 
          if not Quiet_Output then
-            Message (": building ", Receiver_Body, " from ", Full_RCI_Body);
+            Message ("building ", Receiver_Body, " from ", Full_RCI_Body);
          end if;
 
          Change_Dir (Receiver_Dir);
@@ -461,7 +461,7 @@ package body XE_Stubs is
          Change_Dir (Original_Dir);
 
       elsif not Quiet_Output then
-         Message (":    ", Receiver_Body, " receiver stub is up to date");
+         Message ("   ", Receiver_Body, " receiver stub is up to date");
       end if;
 
    end Build_Stub;
@@ -1036,7 +1036,7 @@ package body XE_Stubs is
    begin
 
       if Debug_Mode then
-         Message (": mark ali file ", ALIs.Table (ALI).Afile);
+         Message ("mark ali file ", ALIs.Table (ALI).Afile);
       end if;
 
       --  Mark this unit to avoid infinite recursive search.
@@ -1050,22 +1050,15 @@ package body XE_Stubs is
          for J in Unit.Table (I).First_With ..
                   Unit.Table (I).Last_With loop
 
-            --  Avoid generic units.
-            Continue := not (Withs.Table (J).Afile = No_File);
+            --  An Afile name key is its ALI id.
+            Current_ALI := Get_ALI_Id (Withs.Table (J).Afile);
 
-            if Continue then
-
-               --  An Afile name key is its ALI id.
-               Current_ALI := Get_ALI_Id (Withs.Table (J).Afile);
-
-               --  If this ALI file has not been loaded, then we do not
-               --  need to check it (this means that we encountered an
-               --  internal unit that was not specified in the configuration
-               --  file and thus not recursively checked for consistency).
-               if Current_ALI = No_ALI_Id then
-                  Continue := False;
-               end if;
-
+            --  If this ALI file has not been loaded, then we do not
+            --  need to check it (this means that we encountered an
+            --  internal unit that was not specified in the configuration
+            --  file and thus not recursively checked for consistency).
+            if Current_ALI /= No_ALI_Id then
+               Continue := False;
             end if;
 
             if Continue then

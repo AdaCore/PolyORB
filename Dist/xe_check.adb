@@ -90,7 +90,7 @@ package body XE_Check is
             if Full_Source_Name (File_Name) = No_File then
                File_Name := File_Name_Of_Spec (Unit);
                if Full_Source_Name (File_Name) = No_File then
-                  Message (": """, Unit, """ cannot be found");
+                  Message ("""", Unit, """ cannot be found");
                   Exit_Program (E_Fatal);
                end if;
             end if;
@@ -203,7 +203,7 @@ package body XE_Check is
       end loop;
 
       if not Quiet_Output then
-         Message (": checking configuration consistency");
+         Message ("checking configuration consistency");
       end if;
 
       --  Check conf. unit name key to detect non-Ada unit.
@@ -226,7 +226,7 @@ package body XE_Check is
             --  This unit is not an ada unit
             --  as no ali file has been found.
 
-            Message (": configured unit """, CUnit.Table (U).CUname,
+            Message ("configured unit """, CUnit.Table (U).CUname,
                      """ is not an Ada unit");
             Inconsistent := True;
 
@@ -240,7 +240,7 @@ package body XE_Check is
                   --  configured rci unit name to a partition.
 
                   if Get_CUID (Unit.Table (I).Uname) /= Null_CUID  then
-                     Message (": RCI Ada unit """, CUnit.Table (U).CUname,
+                     Message ("RCI Ada unit """, CUnit.Table (U).CUname,
                               """ has been assigned twice");
                      Inconsistent := True;
                   end if;
@@ -281,7 +281,6 @@ package body XE_Check is
 
       for U in Unit.First .. Unit.Last loop
          if Unit.Table (U).RCI and then
-            ALIs.Table (Unit.Table (U).My_ALI).Afile /= No_File and then
             Get_CUID (Unit.Table (U).Uname) = Null_CUID then
             Write_Program_Name;
             Write_Str (": RCI Ada unit """);
@@ -302,7 +301,7 @@ package body XE_Check is
          PID := Get_PID (Partitions.Table (P).Name);
          if PID = Null_PID and then
            Partitions.Table (P).Main_Subprogram = No_Name then
-            Message (": partition """, Partitions.Table (P).Name,
+            Message ("partition """, Partitions.Table (P).Name,
                      """ is empty");
             Inconsistent := True;
          end if;
@@ -322,7 +321,7 @@ package body XE_Check is
 
       Main_Subprogram := Get_Main_Subprogram (Main_Partition);
       if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
-         Message (": """, Main_Subprogram, """ is not a main program");
+         Message ("""", Main_Subprogram, """ is not a main program");
          Inconsistent := True;
       end if;
 
@@ -332,7 +331,7 @@ package body XE_Check is
          for C in Channels.First + 1 .. Channels.Last loop
             if Channels.Table (C).Upper.My_Partition =
               Channels.Table (C).Lower.My_Partition then
-               Message (": channel """, Channels.Table (C).Name,
+               Message ("channel """, Channels.Table (C).Name,
                         """ is an illegal pair of partitions");
                Inconsistent := True;
             end if;
@@ -348,7 +347,7 @@ package body XE_Check is
             Upper :=
               Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
             if Get_CID (Lower & Parent_Dir & Upper) /= Null_CID then
-               Message (": two channels define """, Lower,
+               Message ("two channels define """, Lower,
                         """ and """, Upper, """ pair");
                Inconsistent := True;
             end if;

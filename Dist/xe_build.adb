@@ -109,7 +109,7 @@ begin
          --  If the filename is not already correct.
          if not Is_Regular_File (N) then
 
-            Message (": ", N, " not found");
+            Message ("", N, " not found");
             Exit_Program (E_Fatal);
          else
             Configuration_File := N;
@@ -130,7 +130,7 @@ begin
       Name_Len := Name_Len - 4;
       if Configuration /= Name_Find then
          if not Quiet_Output then
-            Message (": configuration file name should be """, Configuration,
+            Message ("configuration file name should be """, Configuration,
                      ".cfg""");
          end if;
          raise Fatal_Error;
@@ -178,25 +178,25 @@ begin
 
 exception
    when Scanning_Error =>
-      Message (": *** scanning failed");
+      Message ("*** scanning failed");
       Exit_Program (E_Fatal);
    when Parsing_Error =>
-      Message (": *** parsing failed");
+      Message ("*** parsing failed");
       Exit_Program (E_Fatal);
    when Partitioning_Error =>
-      Message (": *** partitionning failed");
+      Message ("*** partitionning failed");
       Exit_Program (E_Fatal);
    when Usage_Error =>
-      Message (": *** wrong argument(s)");
+      Message ("*** wrong argument(s)");
       Exit_Program (E_Fatal);
    when Not_Yet_Implemented =>
-      Message (": *** unimplemented feature");
+      Message ("*** unimplemented feature");
       Exit_Program (E_Fatal);
    when Fatal_Error =>
-      Message (": *** can't continue");
+      Message ("*** can't continue");
       Exit_Program (E_Fatal);
    when others =>
-      Message (": *** unknown error");
+      Message ("*** unknown error");
       raise;  --  hope GNAT will output its name
 
 end XE_Build;

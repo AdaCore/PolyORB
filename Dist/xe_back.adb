@@ -107,7 +107,7 @@ package body XE_Back is
 
    begin
       if Verbose_Mode then
-         Message (": add partition ", Partition,
+         Message ("add partition ", Partition,
                   " to channel ", Channels.Table (To).Name);
       end if;
       if Channels.Table (To).Lower = Null_Channel_Partition then
@@ -134,7 +134,7 @@ package body XE_Back is
       end if;
 
       if Verbose_Mode then
-         Message (": configuring unit ", CU,
+         Message ("configuring unit ", CU,
                   " on partition ", Partitions.Table (To).Name);
       end if;
 
@@ -372,7 +372,7 @@ package body XE_Back is
       Channel : CID_Type;
    begin
       if Verbose_Mode then
-         Message (": create channel ", Name);
+         Message ("create channel ", Name);
       end if;
 
       Channels.Increment_Last;
@@ -397,7 +397,7 @@ package body XE_Back is
       Host : HID_Type;
    begin
       if Verbose_Mode then
-         Message (": create host ", Name);
+         Message ("create host ", Name);
       end if;
 
       Hosts.Increment_Last;
@@ -422,7 +422,7 @@ package body XE_Back is
       Partition : PID_Type;
    begin
       if Verbose_Mode then
-         Message (": create partition ", Name);
+         Message ("create partition ", Name);
       end if;
 
       Partitions.Increment_Last;
@@ -851,7 +851,7 @@ package body XE_Back is
       Text : Text_Buffer_Ptr;
    begin
       if Verbose_Mode then
-         Message (": loading all units from ", From);
+         Message ("loading all units from ", From);
       end if;
       if Already_Loaded (From) then
          return;
@@ -860,7 +860,7 @@ package body XE_Back is
       if Full_Source_Name (File) = No_Name then
          File := From & ADS_Suffix;
          if Full_Source_Name (File) = No_Name then
-            Message (": no spec or body found for unit ", From);
+            Message ("no spec or body found for unit ", From);
             raise Fatal_Error;
          end if;
       end if;

@@ -1,7 +1,7 @@
 Fri Sep 12 18:52:20 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* xe_check.adb: Don't check that an RCI package has been assigned
-	to a partition.
+	* xe_utils.adb, xe_scan.adb, xe_lead.adb, xe_build.adb,
+	xe_back.adb, xe_stubs.adb, xe_check.adb: Fix output message.
 
 Wed Sep  3 20:19:31 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
