@@ -56,7 +56,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#7 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#8 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -88,7 +88,7 @@ entitled ``GNU Free Documentation License''.
 @end titlepage
 
 @ifinfo
-@node Top, Introduction to PolyORB, (dir), (dir)
+@node Top, About This Guide, (dir), (dir)
 @top PolyORB User's Guide
 
 PolyORB User's Guide
@@ -107,6 +107,7 @@ Back-Cover Texts.  A copy of the license is included in the section
 entitled ``GNU Free Documentation License''.
 
 @menu
+* About This Guide::
 * Introduction to PolyORB::
 * Installation::
 * Overview of PolyORB personalities::
@@ -119,10 +120,109 @@ entitled ``GNU Free Documentation License''.
 @detailmenu
  --- The Detailed Node Listing ---
 
+About This Guide
+
+* What This Guide Contains::
+* Conventions::
+
 @end detailmenu
 @end menu
 
 @end ifinfo
+
+@c -------------------------------------------------------------------
+
+@contents
+
+@c -------------------------------------------------------------------
+@node About This Guide
+@unnumbered About This Guide
+@c -------------------------------------------------------------------
+
+This guide describes the use of PolyORB, a middleware that enables
+the constriction of Ada 95 distributed applications.
+
+It describes the features of the middleware and related APIS and
+tools, and details how to use them to build Ada 95 applications.
+
+@menu
+* What This Guide Contains::
+* Conventions::
+@end menu
+
+@c -------------------------------------------------------------------
+@node What This Guide Contains
+@unnumberedsec What This Guide Contains
+@c -------------------------------------------------------------------
+
+@noindent
+This guide contains the following chapters:
+@itemize @bullet
+
+@item @ref{Introduction to PolyORB} provides a brief description of
+middleware and PolyORB's architecture.
+
+@item @ref{Installation} details how to configure and install PolyORB
+on your system.
+
+@item @ref{Overview of PolyORB personalities} enumerates the different
+personalities, or distribution mechanisms, provided by PolyORB.
+
+@item
+@ref{GNU Free Documentation License}, contains the text of the license
+under which this document is being distributed.
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Conventions
+@unnumberedsec Conventions
+@cindex Conventions
+@cindex Typographical conventions
+@c -------------------------------------------------------------------
+
+@noindent
+Following are examples of the typographical and graphic conventions used
+in this guide:
+
+@itemize @bullet
+@item
+@code{Functions}, @code{utility program names}, @code{standard names},
+and @code{classes}.
+
+@item
+@samp{Option flags}
+
+@item
+@file{File Names}, @file{button names}, and @file{field names}.
+
+@item
+@var{Variables}.
+
+@item
+@emph{Emphasis}.
+
+@item
+[optional information or parameters]
+
+@item
+Examples are described by text
+@smallexample
+and then shown this way.
+@end smallexample
+@end itemize
+
+@noindent
+Commands that are entered by the user are preceded in this manual by
+the characters @w{``@code{$ }''} (dollar sign followed by space). If
+your system uses this sequence as a prompt, then the commands will
+appear exactly as you see them in the manual. If your system uses some
+other prompt, then the command will appear with the @code{$} replaced
+by whatever prompt character you are using.
+
+Full file names are shown with the ``@code{/}'' character
+as the directory separator; e.g., @file{parent-dir/subdir/myfile.adb}.
+If you are using GNAT on a Windows platform, please note that
+the ``@code{\}'' character should be used instead.
 
 @c -------------------------------------------------------------------
 @node Introduction to PolyORB
@@ -130,10 +230,17 @@ entitled ``GNU Free Documentation License''.
 @cindex PolyORB
 @c -------------------------------------------------------------------
 
-@c XXX check consistency with ANNOUNCE file
+@menu
+* Distributed applications and middleware::
+* PolyORB a generic middleware with an instance per distribution model::
+@end menu
 
-
+@c -------------------------------------------------------------------
+@node Distributed applications and middleware
 @section Distributed applications and middleware
+@c -------------------------------------------------------------------
+
+@c XXX check consistency with ANNOUNCE file
 
 @noindent
 PolyORB aims at providing a uniform solution to build distributed
@@ -180,9 +287,10 @@ supports one (or several) distribution model, e.g.: OMG CORBA, Java
 Remote Method Invocation (RMI), the Distributed System Annex of Ada
 95, Java Message Service (MOM).
 
-
-@section PolyORB: a generic middleware with an instance per distribution model
-
+@c -------------------------------------------------------------------
+@node PolyORB a generic middleware with an instance per distribution model
+@section PolyORB a generic middleware with an instance per distribution model
+@c -------------------------------------------------------------------
 
 @noindent
 Typical middleware implementations for one platform support only one
@@ -229,15 +337,23 @@ Reusable Object-Oriented Polymorphic Infrastructure}
 @chapter Installation
 @c -------------------------------------------------------------------
 
+@menu
+* Supported Platforms::
+* Build requirements::
+* Build instructions::
+* Platform notes::
+@end menu
 
 @c XXX check consistency with INSTALL file
 
-
+@c -------------------------------------------------------------------
+@node Supported Platforms
 @section Supported Platforms
-
+@c -------------------------------------------------------------------
 
 @noindent
-PolyORB has been compiled and successfully tested on the following platforms:
+PolyORB has been compiled and successfully tested on the following
+platforms:
 
 @itemize @bullet
 @item FreeBSD
@@ -249,7 +365,10 @@ PolyORB has been compiled and successfully tested on the following platforms:
 
 @noindent
 
+@c -------------------------------------------------------------------
+@node Build requirements
 @section Build requirements
+@c -------------------------------------------------------------------
 
 @noindent
 Ada 95 compiler: GNAT 3.15a (or the public release 3.15p) or later.
@@ -264,8 +383,10 @@ very careful with your path and executables if you have multiple GNAT
 versions installed. See below explanations on the ADA environment
 variable if you need to override the default guess.
 
-
+@c -------------------------------------------------------------------
+@node Build instructions
 @section Build instructions
+@c -------------------------------------------------------------------
 
 @noindent
 To compile and install PolyORB, execute:
@@ -284,6 +405,11 @@ another prefix than @file{/usr/local}, give configure a
 
 Note: at this time, you MUST use GNU make to compile this software.
 
+@c -------------------------------------------------------------------
+@subsection Build Options
+@c -------------------------------------------------------------------
+
+@noindent
 Available options for the 'configure' script include:
 
 @itemize @bullet
@@ -319,6 +445,12 @@ and supplementary runtime checks.
 
 
 @end itemize
+
+
+@c -------------------------------------------------------------------
+@subsection Compiler, Tools and Run-Time libraries Options
+@c -------------------------------------------------------------------
+
 @noindent
 The following environment variables can be used to override configure's
 guess at what compilers to use:
@@ -341,8 +473,10 @@ NOTE: Developers building PolyORB from the version control repository
 who need to rebuild the configure and Makefile.in files should
 use the script support/reconfig for this purpose.
 
-
+@c -------------------------------------------------------------------
+@node Platform notes
 @section Platform notes
+@c -------------------------------------------------------------------
 
 @noindent
 Solaris 2.8:
@@ -361,15 +495,26 @@ Solaris 2.8:
 
 @end itemize
 @noindent
+
 @c -------------------------------------------------------------------
 @node Overview of PolyORB personalities
 @chapter Overview of PolyORB personalities
+@cindex Personalities
 @c -------------------------------------------------------------------
 
 @noindent
 This section provides a brief overview of existing personalities.
 
+@menu
+* Application personalities::
+* Protocol personalities::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Application personalities
 @section Application personalities
+@cindex Application personalities
+@c -------------------------------------------------------------------
 
 @subsection CORBA
 
@@ -408,9 +553,12 @@ services, web server applications, or classical web pages. AWS-based
 servers allow the programmer to directly interact with incoming or
 outgoing @code{HTTP} and @code{SOAP} requests.
 
+@c -------------------------------------------------------------------
+@node Protocol personalities
 @section Protocol personalities
-
-
+@cindex Protocol personality
+@c -------------------------------------------------------------------
+ 
 @subsection GIOP
 
 
@@ -752,7 +900,5 @@ in CORBA IDL specification.
 @c -------------------------------------------------------------------
 
 @printindex cp
-
-@contents
 
 @bye
