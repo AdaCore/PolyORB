@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#49 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#50 $
 
 with Ada.Exceptions;
 
@@ -1023,7 +1023,12 @@ package body PortableServer.POA is
          when InvalidPolicy_E =>
             declare
                Member : constant InvalidPolicy_Members :=
-                 InvalidPolicy_Members (Error.Member.all);
+                 InvalidPolicy_Members'
+                 (CORBA.IDL_Exception_Members with
+                   Index =>
+                     CORBA.Short
+                      (PolyORB.Exceptions.InvalidPolicy_Members
+                        (Error.Member.all).Index));
             begin
                Free (Error.Member);
                Raise_InvalidPolicy (Member);
