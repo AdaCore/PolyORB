@@ -9,11 +9,12 @@ with Frontend.Nutils;
 with Frontend.Nodes;            use Frontend.Nodes;
 
 with Backend.BE_Ada.Debug;      use Backend.BE_Ada.Debug;
+with Backend.BE_Ada.Expand;     use Backend.BE_Ada.Expand;
+with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Generator;  use Backend.BE_Ada.Generator;
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
-with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 
 package body Backend.BE_Ada is
 
@@ -227,7 +228,7 @@ package body Backend.BE_Ada is
       then
          I := RE (RE_Get_Empty_Any_1);
          Add_Str_To_Name_Buffer ("Void");
-         Param := Make_Designator
+         Param := Expand_Designator
            (Identifier => Make_Defining_Identifier (Name_Find),
             Unit_Name => RU (RU_CORBA));
       elsif Is_Base_Type
@@ -235,14 +236,14 @@ package body Backend.BE_Ada is
       then
          Get_Name_String_And_Append
            (BEN.Name (Defining_Identifier (Return_T)));
-         Param := Make_Designator
+         Param := Expand_Designator
            (Identifier => Make_Defining_Identifier (Name_Find),
             Unit_Name => RU (RU_CORBA));
          I := RE (RE_Get_Empty_Any_0);
       else
          Get_Name_String_And_Append
            (BEN.Name (Defining_Identifier (Return_T)));
-         Param := Make_Designator
+         Param := Expand_Designator
            (Identifier => Make_Defining_Identifier (Name_Find),
             Unit_Name =>
               Qualified_Designator

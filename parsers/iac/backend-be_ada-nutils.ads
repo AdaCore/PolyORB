@@ -223,11 +223,6 @@ package Backend.BE_Ada.Nutils is
       Expression          : Node_Id)
      return Node_Id;
 
-   function Make_Type_Attribute
-     (Designator : Node_Id;
-      Attribute  : Attribute_Id)
-     return Node_Id;
-
    function Make_Component_Association
      (Selector_Name : Node_Id;
       Expression    : Node_Id)
@@ -247,11 +242,6 @@ package Backend.BE_Ada.Nutils is
      (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id;
       Is_Abstract_Type      : Boolean := False)
-     return Node_Id;
-
-   function Make_Designator
-     (Identifier : Node_Id;
-      Unit_Name : Node_Id)
      return Node_Id;
 
    function Make_Enumeration_Type_Definition
@@ -331,6 +321,11 @@ package Backend.BE_Ada.Nutils is
       Parameter_Profile   : List_Id;
       Return_Type         : Node_Id := No_Node)
       return                Node_Id;
+
+   function Make_Type_Attribute
+     (Designator : Node_Id;
+      Attribute  : Attribute_Id)
+     return Node_Id;
 
    function Make_Variant_Part
      (Discriminant        : Node_Id;

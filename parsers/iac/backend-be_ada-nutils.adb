@@ -418,28 +418,6 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Derived_Type_Definition;
 
-   ---------------------
-   -- Make_Designator --
-   ---------------------
-
-   function Make_Designator
-     (Identifier : Node_Id;
-      Unit_Name : Node_Id)
-     return Node_Id
-   is
-      N : Node_Id;
-   begin
-      N := New_Node (K_Designator);
-      Set_Defining_Identifier (N, Identifier);
-      Set_Parent_Unit_Name (N, Unit_Name);
-
-      if Present (Unit_Name) then
-         Add_With_Package (Unit_Name);
-      end if;
-
-      return N;
-   end Make_Designator;
-
    --------------------------------------
    -- Make_Enumeration_Type_Definition --
    --------------------------------------
