@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#4 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#5 $
 
 with System;
 --  For bit-order information.
@@ -276,7 +276,7 @@ package PolyORB.Buffers is
    --  Received at most Max octets of data into Buffer at
    --  current position. On return, Received is set to the
    --  effective amount of data received, and the current
-   --  position is advanced by that much.
+   --  position is set to the initial buffer position.
 
    -------------------------
    -- Utility subprograms --

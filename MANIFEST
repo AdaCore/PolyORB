@@ -131,6 +131,8 @@ src/corba/corba-nvlist.adb
 src/corba/corba-nvlist.ads
 src/corba/corba-object.adb
 src/corba/corba-object.ads
+src/corba/corba-object-helper.adb
+src/corba/corba-object-helper.ads
 src/corba/corba-orb.adb
 src/corba/corba-orb.ads
 src/corba/corba-policy_types.ads
