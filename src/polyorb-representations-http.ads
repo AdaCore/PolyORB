@@ -49,13 +49,13 @@ package  PolyORB.Representations.HTTP is
    --     +     should be changed to a space
    --     %xy   should be replaced by the character whose code is xy
 
-   function Encode_Stream (Data : Ada.Streams.Stream_Element_Array)  return String;
+   function Encode_Stream (Data : Ada.Streams.Stream_Element_Array)
+     return String;
+   function Encode_String (Data : in String) return String;
    --  Encode Data using the base64 algorithm
 
-   function Encode_String (Data : in String) return String;
-   --  Encode Data using the base64 algorithm also but it takes a string as input
-
-   function Decode (B64_Data : in String) return Ada.Streams.Stream_Element_Array;
+   function Decode (B64_Data : in String)
+     return Ada.Streams.Stream_Element_Array;
    --  Decode Data using the base64 algorithm
 
 end  PolyORB.Representations.HTTP;

@@ -93,8 +93,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
          raise PolyORB.POA.Invalid_Policy;
          --  XXX was Wrong_Policy, is that the same?
       end if;
-      Ensure_Servant_Uniqueness
-        (POA.Id_Uniqueness_Policy.all,OA, P_Servant);
+      Ensure_Servant_Uniqueness (POA.Id_Uniqueness_Policy.all, OA, P_Servant);
       return Activate_Object (POA.Id_Assignment_Policy.all, OA, P_Servant);
    end Activate_Object;
 

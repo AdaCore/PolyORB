@@ -81,17 +81,21 @@ package body  PolyORB.Representations.HTTP is
    -- Encode_Stream ---
    --------------------
 
-   function Encode_Stream (Data : Streams.Stream_Element_Array) return String  is
+   function Encode_Stream (Data : Streams.Stream_Element_Array)
+     return String
+   is
       use Streams;
       use type Streams.Stream_Element;
 
       function Base64 (E : in Stream_Element) return Character;
-      --  returns the base64 character given a number
+      --  Returns the base64 character given a number
 
-      function Shift_Left (Value  : in Stream_Element; Amount : in Natural) return Stream_Element;
+      function Shift_Left (Value  : in Stream_Element; Amount : in Natural)
+        return Stream_Element;
       pragma Import (Intrinsic, Shift_Left);
 
-      function Shift_Right (Value  : in Stream_Element; Amount : in Natural) return Stream_Element;
+      function Shift_Right (Value  : in Stream_Element; Amount : in Natural)
+        return Stream_Element;
       pragma Import (Intrinsic, Shift_Right);
 
       Result : Unbounded_String;
@@ -170,11 +174,13 @@ package body  PolyORB.Representations.HTTP is
       return Encode_Stream (Stream_Data);
    end Encode_String;
 
-   -------------------
-   ------ Decode -----
-   -------------------
+   ------------
+   -- Decode --
+   ------------
 
-   function Decode  (B64_Data : in String) return Streams.Stream_Element_Array  is
+   function Decode  (B64_Data : in String)
+     return Streams.Stream_Element_Array
+   is
       use Streams;
       use type Interfaces.Unsigned_32;
       use type Streams.Stream_Element_Offset;
