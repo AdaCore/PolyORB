@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -198,8 +198,14 @@ package body PolyORB.Smart_Pointers is
    procedure Finalize
      (The_Ref : in out Ref) is
    begin
-      pragma Debug (O ("Finalize: enter, The_Ref is a "
-                       & Ref_External_Tag (The_Ref)));
+      if Ref_External_Tag /= null then
+         pragma Debug (O ("Finalize: enter, The_Ref is a "
+                          & Ref_External_Tag (The_Ref)));
+         null;
+      else
+         pragma Debug (O ("Finalize: enter, The_Ref is a <UNAVAILABLE>"));
+         null;
+      end if;
 
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
