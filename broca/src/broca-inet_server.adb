@@ -180,7 +180,8 @@ package body Broca.Inet_Server is
    private
 
       Locked : Boolean;
-      Polls : Pollfd_Array (1 .. Simultaneous_Streams);
+      Polls : Pollfd_Array (1 .. Simultaneous_Streams)
+        := (others => (Fd => Failure, Events => 0, Revents => 0));
       Streams : Stream_Ptr_Array (3 .. Simultaneous_Streams)
         := (others => null);
 
@@ -202,8 +203,10 @@ package body Broca.Inet_Server is
       begin
          Polls (1).Fd := Listening_Socket;
          Polls (1).Events := Pollin;
+         Polls (1).Revents := 0;
          Polls (2).Fd := Signal_Fd_Read;
          Polls (2).Events := Pollin;
+         Polls (2).Revents := 0;
          Nbr_Fd := 2;
          Fd_Pos := 1;
       end Initialize;
