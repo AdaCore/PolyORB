@@ -39,6 +39,7 @@ with System.Garlic.Options;
 with System.Garlic.Priorities;
 with System.Garlic.Utils;
 with System.RPC; use System.RPC;
+with System.Task_Primitives.Operations;
 with System.Tasking.Utilities; use System.Tasking, System.Tasking.Utilities;
 pragma Elaborate_All (System.Tasking);
 pragma Elaborate_All (System.Tasking.Utilities);
@@ -78,6 +79,7 @@ package body System.Garlic.Termination is
       procedure Negative_Ack_Received (S : in Stamp);
       procedure Force_Termination;
       entry     Termination_Accepted (S : in Stamp; B : out Boolean);
+      function  Result_Is_Available return Boolean;
    private
       Current   : Stamp := Stamp'Last;
       Count     : Natural;
@@ -119,6 +121,7 @@ package body System.Garlic.Termination is
 
    Time_Between_Checks : constant Duration := 2.0;
    Time_To_Synchronize : constant Duration := 10.0;
+   Polling_Interval    : constant Duration := 0.5;
    --  Constants which change the behaviour of this package.
 
    Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
@@ -373,20 +376,34 @@ package body System.Garlic.Termination is
 
          if Get_Active_Task_Count = 1 then
             declare
-               Id      : Stamp;
-               Success : Boolean;
+               function Clock return Duration
+                 renames System.Task_Primitives.Operations.Clock;
+               Id       : Stamp;
+               Success  : Boolean;
+               End_Time : Duration;
             begin
                Termination_Watcher.Increment_Stamp;
                Id := Termination_Watcher.Get_Stamp;
                Initiate_Synchronization;
-               select
-                  delay Time_To_Synchronize;
-                  Success := False;
-               then abort
-                  Termination_Watcher.Termination_Accepted (Id, Success);
-                  pragma Debug
-                    (D (D_Debug, "Termination accepted => " & Success'Img));
-               end select;
+
+               Success  := False;
+               End_Time := Clock + Time_To_Synchronize;
+               while Clock < End_Time loop
+                  --  The following construction is against all the quality
+                  --  and style guidelines; but they cannot be applied here:
+                  --  we do NOT care if this is not executed in time, since
+                  --  that means that some other activity took place. If this
+                  --  is the case, then it is likely that we do not want to
+                  --  terminate anymore.
+
+                  delay Polling_Interval;
+
+                  if Termination_Watcher.Result_Is_Available then
+                     Termination_Watcher.Termination_Accepted (Id, Success);
+                     exit;
+                  end if;
+               end loop;
+
                pragma Debug
                  (D (D_Debug,
                      "Get_Active_Task_Count is" & Get_Active_Task_Count'Img));
@@ -494,6 +511,15 @@ package body System.Garlic.Termination is
             end if;
          end if;
       end Positive_Ack_Received;
+
+      -------------------------
+      -- Result_Is_Available --
+      -------------------------
+
+      function Result_Is_Available return Boolean is
+      begin
+         return Available;
+      end Result_Is_Available;
 
       ---------------
       -- Set_Stamp --
