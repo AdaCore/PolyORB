@@ -251,8 +251,7 @@ public:
   DEF_NARROW_FROM_DECL(adabe_field);
 
   virtual void produce_ads (dep_list &with, string &body, string &previous);
-  void produce_marshal_adb(dep_list& with, string &marshall, string &unmarshall, string &align_size);
-
+  void produce_marshal_adb(dep_list& with, string &body, string &marshall, string &unmarshall, string &align_size);
 
 };
 
@@ -289,7 +288,7 @@ public:
 
   void produce_ads(dep_list &with, string &body, string &previous,
 		   AST_ConcreteType* concrete);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_marshal_adb(dep_list &with, string &marshal, string &unmarshal, string &align_size);
 
 };
 

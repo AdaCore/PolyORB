@@ -45,7 +45,7 @@ void adabe_string::produce_ads (dep_list &with,string &body, string &previous) {
 
 
 void  
-adabe_enum::produce_marshal_ads(dep_list& with, string &body, string &previous)
+adabe_string::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
@@ -68,7 +68,7 @@ adabe_enum::produce_marshal_ads(dep_list& with, string &body, string &previous)
 
 
 void 
-adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
+adabe_string::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   string tmp="";
 

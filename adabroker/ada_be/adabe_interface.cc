@@ -526,6 +526,9 @@ adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previ
 void
 adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
+  body += "package ";
+  body += get_ada_full_name();
+  body += ".Marshal is\n\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -551,11 +554,15 @@ adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previ
 	}
       i.next();
     }
+  body += "end " + get_ada_full_name() + ".Marshal ;\n";  
 }
 
 void
 adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
+  body += "package body ";
+  body += get_ada_full_name();
+  body += ".Marshal is\n\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -581,6 +588,7 @@ adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previ
 	}
       i.next();
     }
+  body += "end " + get_ada_full_name() + ".Marshal ;\n";  
 }
 
 

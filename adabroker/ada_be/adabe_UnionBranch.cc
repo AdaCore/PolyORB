@@ -42,7 +42,7 @@ adabe_union_branch::produce_ads(dep_list& with, string &body, string &previous, 
 */ 
 
 void
-adabe_union_branch::produce_marshal_adb(dep_list& with, string &body, string &previous)
+adabe_union_branch::produce_marshal_adb(dep_list& with, string &marshall, string &unmarshall, string &align_size)
 {
 }
 

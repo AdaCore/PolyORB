@@ -53,12 +53,61 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
 void
 adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
+  body += "   function Marshall (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "   function UnMarshall (A : out ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "   function Align_Size (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "                        N : in Corba.Unsigned_Long := 1)\n";
+  body += "                        return Corba.Unsigned_Long ;\n\n\n";
 }
+
 void
 adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
+  string arg1, arg2 = "";
+  string name = (dynamic_cast<adabe_name *> (base_type()))->dump_name(with, arg1, arg2); 
+  
+  body += "   function Marshall(A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) is\n";
+  body += "   begin\n";
+  body += "      Marshall(";
+  body += name;
+  body += "(A), S) ;\n";
+  body += "   end ;\n\n\n";
+  
+  body += "   function UnMarshall(A : out ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) is\n";
+  body += "   begin\n";
+  body += "      UnMarshall(";
+  body += name;
+  body += "(A) ,S) ;\n";
+  body += "   end ;\n\n\n";
+    
+  body += "   function Align_Size (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "                        N : in Corba.Unsigned_Long := 1)\n";
+  body += "                        return Corba.Unsigned_Long is\n";
+  body += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
+  body += "   begin\n";
+  body += "      Tmp := Align_Size(";
+  body += name;
+  body += "(A) , Tmp) ;\n";
+  body += "   end ;\n\n\n";
 }
-
 
 
 string

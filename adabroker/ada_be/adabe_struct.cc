@@ -67,7 +67,7 @@ adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
 */
 
 void
-adabe_structure::produce_marshal_ads(dep_list& with, string &body, string &previous)
+adabe_structure::produce_marshal_ads(dep_list &with, string &body, string &previous)
 {
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
@@ -77,16 +77,16 @@ adabe_structure::produce_marshal_ads(dep_list& with, string &body, string &previ
   body += get_ada_local_name();
   body += " ;\n";
   body += "      S : in out Giop_C.Object) ;\n\n";
-  body += "   function Align_Size (A : in";
+  body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "               N : in Corba.Unsigned_Long := 1)\n";
-  body += "               return Corba.Unsigned_Long ;\n\n\n";
+  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "                        N : in Corba.Unsigned_Long := 1)\n";
+  body += "                        return Corba.Unsigned_Long ;\n\n\n";
 }
 
 void
-adabe_structure::produce_marshal_adb(dep_list& with, string &body, string &previous)
+adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previous)
 {
   string marshall = "";
   string unmarshall = "";
@@ -103,12 +103,12 @@ adabe_structure::produce_marshal_adb(dep_list& with, string &body, string &previ
   unmarshall += "      S : in out Giop_C.Object) is\n";
   unmarshall += "   begin\n";
   
-  align_size += "   function Align_Size (A : in";
+  align_size += "   function Align_Size (A : in ";
   align_size += get_ada_local_name();
   align_size += " ;\n";
-  align_size += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
-  align_size += "               N : in Corba.Unsigned_Long := 1)\n";
-  align_size += "               return Corba.Unsigned_Long is\n";
+  align_size += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+  align_size += "                        N : in Corba.Unsigned_Long := 1)\n";
+  align_size += "                        return Corba.Unsigned_Long is\n";
   align_size += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
   align_size += "   begin\n";
   
@@ -117,7 +117,7 @@ adabe_structure::produce_marshal_adb(dep_list& with, string &body, string &previ
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_field) {
-	dynamic_cast<adabe_field *>(d)->produce_marshal_adb(with, marshall, unmarshall, align_size);
+	dynamic_cast<adabe_field *>(d)->produce_marshal_adb(with, body, marshall, unmarshall, align_size);
       }
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
       i.next();
