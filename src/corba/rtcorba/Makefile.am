@@ -2,7 +2,7 @@ iiSUBDIRS = .
 
 include $(srcdir)/../../Makefile.common
 
-alidir = $(libdir)/polyorb-rtcorba
+alidir = $(includedir)/polyorb/corba/rtcorba
 
 ADA_SPECS_WITH_BODY = \
 		polyorb-rtcorba_p-prioritymodelpolicy.ads \

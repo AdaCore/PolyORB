@@ -2,7 +2,7 @@ SUBDIRS = .
 
 include $(srcdir)/../Makefile.common
 
-alidir = $(libdir)/polyorb-web_common
+alidir = $(includedir)/polyorb/web_common
 
 ADA_SPECS_WITH_BODY = \
 	aws-url.ads \

@@ -10,7 +10,7 @@ SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@ @LIBS_DIRS@
 
 include $(srcdir)/Makefile.common
 
-alidir = $(libdir)/polyorb
+alidir = $(includedir)/polyorb
 
 ADA_SPECS_WITH_BODY = \
 		polyorb-annotations.ads \

@@ -2,8 +2,7 @@ SUBDIRS = .
 
 include $(srcdir)/../Makefile.common
 
-alidir = $(libdir)/polyorb-srp
-
+alidir = $(includedir)/polyorb/srp
 
 ADA_SPECS_WITH_BODY = \
 	polyorb-binding_data-srp.ads \

@@ -2,7 +2,7 @@ SUBDIRS = .
 
 include $(srcdir)/../Makefile.common
 
-alidir = $(libdir)/polyorb-dsa
+alidir = $(includedir)/polyorb/dsa
 
 ADA_SPECS_WITH_BODY = \
 	s-polint.ads \

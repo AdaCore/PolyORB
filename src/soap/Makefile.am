@@ -2,7 +2,7 @@ SUBDIRS = .
 
 include $(srcdir)/../Makefile.common
 
-alidir = $(libdir)/polyorb-soap
+alidir = $(includedir)/polyorb/soap
 
 GPERF_SPECS = \
 	polyorb-http_headers.ads \

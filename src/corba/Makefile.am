@@ -2,7 +2,7 @@ SUBDIRS = . rtcorba
 
 include $(srcdir)/../Makefile.common
 
-alidir = $(libdir)/polyorb-corba
+alidir = $(includedir)/polyorb/corba
 
 ADA_SPECS_WITH_BODY = \
 	corba-abstractbase.ads \

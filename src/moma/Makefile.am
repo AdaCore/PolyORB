@@ -2,8 +2,7 @@ SUBDIRS = .
 
 include $(srcdir)/../Makefile.common
 
-alidir = $(libdir)/polyorb-moma
-
+alidir = $(includedir)/polyorb/moma
 
 ADA_SPECS_WITH_BODY = \
 	moma-configuration-server.ads \

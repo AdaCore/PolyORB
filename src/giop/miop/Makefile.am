@@ -2,7 +2,7 @@ SUBDIRS = .
 
 include $(srcdir)/../../Makefile.common
 
-alidir = $(libdir)/polyorb-miop
+alidir = $(includedir)/polyorb/giop/miop
 
 ADA_SPECS_WITH_BODY = \
 	polyorb-setup-uipmc.ads \
