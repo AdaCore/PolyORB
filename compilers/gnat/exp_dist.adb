@@ -207,20 +207,11 @@ package body Exp_Dist is
    --  If Locator is not Empty, it will be used instead of RCI_Cache. If
    --  New_Name is given, then it will be used instead of the original name.
 
-   function Build_Subprogram_Receiving_Stubs
-     (Vis_Decl                 : Node_Id;
-      Asynchronous             : Boolean;
-      Dynamically_Asynchronous : Boolean   := False;
-      Stub_Type                : Entity_Id := Empty;
-      RACW_Type                : Entity_Id := Empty;
-      Parent_Primitive         : Entity_Id := Empty) return Node_Id;
-   --  Build the receiving stub for a given subprogram. The subprogram
-   --  declaration is also built by this procedure, and the value returned
-   --  is a N_Subprogram_Body. If a parameter of type access to Stub_Type is
-   --  found in the specification, then its address is read from the stream
-   --  instead of the object itself and converted into an access to
-   --  class-wide type before doing the real call using any of the RACW type
-   --  pointing on the designated type.
+   function Build_RPC_Receiver_Specification
+     (RPC_Receiver      : Entity_Id;
+      Request_Parameter : Entity_Id) return Node_Id;
+   --  Make a subprogram specification for an RPC receiver, with the given
+   --  defining unit name and formal parameter.
 
    function Build_Ordered_Parameters_List (Spec : Node_Id) return List_Id;
    --  Return an ordered parameter list: unconstrained parameters are put
@@ -414,9 +405,6 @@ package body Exp_Dist is
      (Loc      : Source_Ptr;
       Var_Type : Entity_Id;
       Stream   : Node_Id) return Node_Id;
-   pragma Warnings (Off);
-   pragma Unreferenced (Input_With_Tag_Check);
-   pragma Warnings (On);
    --  Return a function with the following form:
    --    function R return Var_Type is
    --    begin
@@ -532,6 +520,21 @@ package body Exp_Dist is
    --  ancillary subprogram for Add_Stub_Type. If no RPC receiver declaration
    --  is generated, then RPC_Receiver_Decl is set to Empty.
 
+   function Specific_Build_Subprogram_Receiving_Stubs
+     (Vis_Decl                 : Node_Id;
+      Asynchronous             : Boolean;
+      Dynamically_Asynchronous : Boolean   := False;
+      Stub_Type                : Entity_Id := Empty;
+      RACW_Type                : Entity_Id := Empty;
+      Parent_Primitive         : Entity_Id := Empty) return Node_Id;
+   --  Build the receiving stub for a given subprogram. The subprogram
+   --  declaration is also built by this procedure, and the value returned
+   --  is a N_Subprogram_Body. If a parameter of type access to Stub_Type is
+   --  found in the specification, then its address is read from the stream
+   --  instead of the object itself and converted into an access to
+   --  class-wide type before doing the real call using any of the RACW type
+   --  pointing on the designated type.
+
    procedure Specific_Add_Receiving_Stubs_To_Declarations
      (Pkg_Spec : Node_Id;
       Decls    : List_Id);
@@ -584,15 +587,17 @@ package body Exp_Dist is
          Stub_Type_Decl    : out Node_Id;
          RPC_Receiver_Decl : out Node_Id);
 
+      function Build_Subprogram_Receiving_Stubs
+        (Vis_Decl                 : Node_Id;
+         Asynchronous             : Boolean;
+         Dynamically_Asynchronous : Boolean   := False;
+         Stub_Type                : Entity_Id := Empty;
+         RACW_Type                : Entity_Id := Empty;
+         Parent_Primitive         : Entity_Id := Empty) return Node_Id;
+
       procedure Add_Receiving_Stubs_To_Declarations
         (Pkg_Spec : Node_Id;
          Decls    : List_Id);
-
-      function Build_RPC_Receiver_Specification
-        (RPC_Receiver      : Entity_Id;
-         Request_Parameter : Entity_Id) return Node_Id;
-      --  Make a subprogram specification for an RPC receiver,
-      --  with the given defining unit name and formal parameters.
 
       procedure Build_RPC_Receiver_Body
         (RPC_Receiver : Entity_Id;
@@ -657,15 +662,17 @@ package body Exp_Dist is
          Stub_Type_Decl    : out Node_Id;
          RPC_Receiver_Decl : out Node_Id);
 
+      function Build_Subprogram_Receiving_Stubs
+        (Vis_Decl                 : Node_Id;
+         Asynchronous             : Boolean;
+         Dynamically_Asynchronous : Boolean   := False;
+         Stub_Type                : Entity_Id := Empty;
+         RACW_Type                : Entity_Id := Empty;
+         Parent_Primitive         : Entity_Id := Empty) return Node_Id;
+
       procedure Add_Receiving_Stubs_To_Declarations
         (Pkg_Spec : Node_Id;
          Decls    : List_Id);
-
-      function Build_RPC_Receiver_Specification
-        (RPC_Receiver      : Entity_Id;
-         Request_Parameter : Entity_Id) return Node_Id;
-      --  Make a subprogram specification for an RPC receiver,
-      --  with the given defining unit name and formal parameters.
 
       procedure Build_RPC_Receiver_Body
         (RPC_Receiver : Entity_Id;
@@ -1233,7 +1240,7 @@ package body Exp_Dist is
 
                if not Is_RAS then
                   Current_Receiver_Body :=
-                    Build_Subprogram_Receiving_Stubs
+                    Specific_Build_Subprogram_Receiving_Stubs
                       (Vis_Decl                 => Current_Primitive_Decl,
                        Asynchronous             => Possibly_Asynchronous,
                        Dynamically_Asynchronous => Possibly_Asynchronous,
@@ -1983,6 +1990,26 @@ package body Exp_Dist is
       Analyze (Reg);
    end Build_Passive_Partition_Stub;
 
+   --------------------------------------
+   -- Build_RPC_Receiver_Specification --
+   --------------------------------------
+
+   function Build_RPC_Receiver_Specification
+     (RPC_Receiver      : Entity_Id;
+      Request_Parameter : Entity_Id) return Node_Id
+   is
+      Loc : constant Source_Ptr := Sloc (RPC_Receiver);
+   begin
+      return
+        Make_Procedure_Specification (Loc,
+          Defining_Unit_Name       => RPC_Receiver,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier => Request_Parameter,
+              Parameter_Type      =>
+                New_Occurrence_Of (RTE (RE_Request_Access), Loc))));
+   end Build_RPC_Receiver_Specification;
+
    ----------------------------------------
    -- Build_Remote_Subprogram_Proxy_Type --
    ----------------------------------------
@@ -2185,513 +2212,6 @@ package body Exp_Dist is
    begin
       return Make_String_Literal (Loc, Get_Subprogram_Id (E));
    end Build_Subprogram_Id;
-
-   --------------------------------------
-   -- Build_Subprogram_Receiving_Stubs --
-   --------------------------------------
-
-   function Build_Subprogram_Receiving_Stubs
-     (Vis_Decl                 : Node_Id;
-      Asynchronous             : Boolean;
-      Dynamically_Asynchronous : Boolean   := False;
-      Stub_Type                : Entity_Id := Empty;
-      RACW_Type                : Entity_Id := Empty;
-      Parent_Primitive         : Entity_Id := Empty) return Node_Id
-   is
-      Loc : constant Source_Ptr := Sloc (Vis_Decl);
-
-      Request_Parameter : Node_Id;
-      --  ???
-
-      Outer_Decls : constant List_Id := New_List;
-      --  At the outermost level, an NVList and Any's are
-      --  declared for all parameters. The Dynamic_Async
-      --  flag also needs to be declared there to be visible
-      --  from the exception handling code.
-
-      Outer_Statements : constant List_Id := New_List;
-      --  Statements that occur prior to the declaration of the actual
-      --  parameter variables.
-
-      Decls : constant List_Id := New_List;
-      --  All the parameters will get declared before calling the real
-      --  subprograms. Also the out parameters will be declared.
-      --  At this level, parameters may be unconstrained.
-
-      Statements : constant List_Id := New_List;
-
-      Extra_Formal_Statements : constant List_Id := New_List;
-      --  Statements concerning extra formal parameters
-
-      After_Statements : constant List_Id := New_List;
-      --  Statements to be executed after the subprogram call
-
-      Inner_Decls : List_Id := No_List;
-      --  In case of a function, the inner declarations are needed since
-      --  the result may be unconstrained.
-
-      Excep_Handlers : List_Id := No_List;
-
-      Parameter_List : constant List_Id := New_List;
-      --  List of parameters to be passed to the subprogram
-
-      First_Controlling_Formal_Seen : Boolean := False;
-
-      Current_Parameter : Node_Id;
-
-      Ordered_Parameters_List : constant List_Id :=
-                                  Build_Ordered_Parameters_List
-                                    (Specification (Vis_Decl));
-
-      Arguments : Node_Id;
-      --  Name of the named values list used to retrieve parameters
-
-      Subp_Spec : Node_Id;
-      --  Subprogram specification
-
-      Called_Subprogram : Node_Id;
-      --  The subprogram to call
-
-      Dynamic_Async : Entity_Id;
-      pragma Warnings (Off);
-      pragma Unreferenced (Dynamic_Async);
-      pragma Warnings (On);
-
-   begin
-      if Present (RACW_Type) then
-         Called_Subprogram :=
-           New_Occurrence_Of (Parent_Primitive, Loc);
-      else
-         Called_Subprogram :=
-           New_Occurrence_Of (
-             Defining_Unit_Name (Specification (Vis_Decl)), Loc);
-      end if;
-
-      Request_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
-
-      if Dynamically_Asynchronous then
-         Dynamic_Async :=
-           Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
-      else
-         Dynamic_Async := Empty;
-      end if;
-
-      Arguments :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
-      Declare_Create_NVList (Loc, Arguments, Outer_Decls, Outer_Statements);
-
-      --  Loop through every parameter and get its value from the stream. If
-      --  the parameter is unconstrained, then the parameter is read using
-      --  'Input at the point of declaration.
-
-      Current_Parameter := First (Ordered_Parameters_List);
-      while Present (Current_Parameter) loop
-         declare
-            Etyp        : Entity_Id;
-            Constrained : Boolean;
-            Any         : Entity_Id := Empty;
-            Object      : constant Entity_Id :=
-                            Make_Defining_Identifier (Loc,
-                              New_Internal_Name ('P'));
-            Expr        : Node_Id   := Empty;
-
-            Is_Controlling_Formal : constant Boolean
-              := Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type);
-
-            Is_First_Controlling_Formal : Boolean := False;
-         begin
-            Set_Ekind (Object, E_Variable);
-
-            if Is_Controlling_Formal then
-
-               --  Controlling formals in distributed object primitive
-               --  operations are handled specially:
-               --    - the first controlling formal is used as the
-               --      target of the call;
-               --    - the remaining controlling formals are transmitted
-               --      as RACWs.
-
-               Etyp := RACW_Type;
-               Is_First_Controlling_Formal :=
-                 not First_Controlling_Formal_Seen;
-               First_Controlling_Formal_Seen := True;
-            else
-               Etyp := Etype (Parameter_Type (Current_Parameter));
-            end if;
-
-            Constrained :=
-              Is_Constrained (Etyp)
-              or else Is_Elementary_Type (Etyp);
-
-            if not Is_First_Controlling_Formal then
-               Any := Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
-               Append_To (Outer_Decls,
-                 Make_Object_Declaration (Loc,
-                   Defining_Identifier =>
-                     Any,
-                   Object_Definition   =>
-                     New_Occurrence_Of (RTE (RE_Any), Loc),
-                   Expression =>
-                     Make_Function_Call (Loc,
-                       Name =>
-                         New_Occurrence_Of (RTE (RE_Create_Any), Loc),
-                       Parameter_Associations => New_List (
-                         PolyORB_Support.Helpers.Build_TypeCode_Call (Loc,
-                           Etyp, Outer_Decls)))));
-
-               Append_To (Outer_Statements,
-                 Add_Parameter_To_NVList (Loc,
-                   Parameter   => Current_Parameter,
-                   NVList      => Arguments,
-                   Constrained => Constrained,
-                   Any         => Any));
-            end if;
-
-            if Is_First_Controlling_Formal then
-               declare
-                  Addr : constant Entity_Id :=
-                    Make_Defining_Identifier (Loc,
-                      New_Internal_Name ('A'));
-                  Is_Local : constant Entity_Id :=
-                    Make_Defining_Identifier (Loc,
-                      New_Internal_Name ('L'));
-               begin
-
-                  --  Special case: obtain the first controlling
-                  --  formal from the target of the remote call,
-                  --  instead of the argument list.
-
-                  Append_To (Outer_Decls,
-                    Make_Object_Declaration (Loc,
-                      Defining_Identifier =>
-                        Addr,
-                      Object_Definition =>
-                        New_Occurrence_Of (RTE (RE_Address), Loc)));
-                  Append_To (Outer_Decls,
-                    Make_Object_Declaration (Loc,
-                      Defining_Identifier =>
-                        Is_Local,
-                      Object_Definition =>
-                        New_Occurrence_Of (Standard_Boolean, Loc)));
-                  Append_To (Outer_Statements,
-                    Make_Procedure_Call_Statement (Loc,
-                      Name =>
-                        New_Occurrence_Of (
-                          RTE (RE_Get_Local_Address), Loc),
-                      Parameter_Associations => New_List (
-                        Make_Selected_Component (Loc,
-                          Prefix =>
-                            New_Occurrence_Of (
-                              Request_Parameter, Loc),
-                          Selector_Name =>
-                            Make_Identifier (Loc, Name_Target)),
-                        New_Occurrence_Of (Is_Local, Loc),
-                        New_Occurrence_Of (Addr, Loc))));
-
-                  Expr := Unchecked_Convert_To (RACW_Type,
-                    New_Occurrence_Of (Addr, Loc));
-               end;
-
-            elsif In_Present (Current_Parameter)
-               or else not Out_Present (Current_Parameter)
-               or else not Constrained
-            then
-               --  If an input parameter is contrained, then its reading is
-               --  deferred until the beginning of the subprogram body. If
-               --  it is unconstrained, then an expression is built for
-               --  the object declaration and the variable is set using
-               --  'Input instead of 'Read.
-
-               Expr := PolyORB_Support.Helpers.Build_From_Any_Call (
-                         Etyp, New_Occurrence_Of (Any, Loc), Decls);
-
-               if Constrained then
-
-                  Append_To (Statements,
-                    Make_Assignment_Statement (Loc,
-                      Name =>
-                        New_Occurrence_Of (Object, Loc),
-                      Expression =>
-                         Expr));
-                  Expr := Empty;
-               else
-                  null;
-                  --  Expr will be used to initialize (and constrain)
-                  --  the parameter when it is declared.
-               end if;
-
-            end if;
-
-            --  If we do not have to output the current parameter, then
-            --  it can well be flagged as constant. This may allow further
-            --  optimizations done by the back end.
-
-            Append_To (Decls,
-              Make_Object_Declaration (Loc,
-                Defining_Identifier => Object,
-                Constant_Present    =>
-                  not Constrained and then not Out_Present (Current_Parameter),
-                Object_Definition   =>
-                  New_Occurrence_Of (Etyp, Loc),
-                Expression          => Expr));
-            Set_Etype (Object, Etyp);
-
-            --  An out parameter may be written back using a 'Write
-            --  attribute instead of a 'Output because it has been
-            --  constrained by the parameter given to the caller. Note that
-            --  out controlling arguments in the case of a RACW are not put
-            --  back in the stream because the pointer on them has not
-            --  changed.
-
-            if Out_Present (Current_Parameter)
-              and then not Is_Controlling_Formal
-            then
-               Append_To (After_Statements,
-                 Make_Procedure_Call_Statement (Loc,
-                   Name =>
-                     New_Occurrence_Of (RTE (RE_Copy_Any_Value), Loc),
-                   Parameter_Associations => New_List (
-                     New_Occurrence_Of (Any, Loc),
-                     PolyORB_Support.Helpers.Build_To_Any_Call (
-                       New_Occurrence_Of (Object, Loc),
-                       Decls))));
-            end if;
-
-            --  For RACW controlling formals, the Etyp of Object is always
-            --  an RACW, even if the parameter is not of an anonymous access
-            --  type. In such case, we need to dereference it at call time.
-
-            if Is_Controlling_Formal then
-               if Nkind (Parameter_Type (Current_Parameter)) /=
-                 N_Access_Definition
-               then
-                  Append_To (Parameter_List,
-                    Make_Parameter_Association (Loc,
-                      Selector_Name             =>
-                        New_Occurrence_Of (
-                          Defining_Identifier (Current_Parameter), Loc),
-                      Explicit_Actual_Parameter =>
-                        Make_Explicit_Dereference (Loc,
-                          Unchecked_Convert_To (RACW_Type,
-                            OK_Convert_To (RTE (RE_Address),
-                              New_Occurrence_Of (Object, Loc))))));
-
-               else
-                  Append_To (Parameter_List,
-                    Make_Parameter_Association (Loc,
-                      Selector_Name             =>
-                        New_Occurrence_Of (
-                          Defining_Identifier (Current_Parameter), Loc),
-                      Explicit_Actual_Parameter =>
-                        Unchecked_Convert_To (RACW_Type,
-                          OK_Convert_To (RTE (RE_Address),
-                            New_Occurrence_Of (Object, Loc)))));
-               end if;
-
-            else
-               Append_To (Parameter_List,
-                 Make_Parameter_Association (Loc,
-                   Selector_Name             =>
-                     New_Occurrence_Of (
-                       Defining_Identifier (Current_Parameter), Loc),
-                   Explicit_Actual_Parameter =>
-                     New_Occurrence_Of (Object, Loc)));
-            end if;
-
-            --  If the current parameter needs an extra formal, then read it
-            --  from the stream and set the corresponding semantic field in
-            --  the variable. If the kind of the parameter identifier is
-            --  E_Void, then this is a compiler generated parameter that
-            --  doesn't need an extra constrained status.
-
-            --  The case of Extra_Accessibility should also be handled ???
-
-            if Nkind (Parameter_Type (Current_Parameter)) /=
-                                                      N_Access_Definition
-              and then
-                Ekind (Defining_Identifier (Current_Parameter)) /= E_Void
-              and then
-                Present (Extra_Constrained
-                  (Defining_Identifier (Current_Parameter)))
-            then
-               declare
-                  Extra_Parameter : constant Entity_Id :=
-                                      Extra_Constrained
-                                        (Defining_Identifier
-                                          (Current_Parameter));
-                  Extra_Any : constant Entity_Id :=
-                    Make_Defining_Identifier
-                      (Loc, New_Internal_Name ('A'));
-                  Formal_Entity : constant Entity_Id :=
-                                    Make_Defining_Identifier
-                                        (Loc, Chars (Extra_Parameter));
-
-                  Formal_Type : constant Entity_Id :=
-                                  Etype (Extra_Parameter);
-               begin
-                  Append_To (Outer_Decls,
-                    Make_Object_Declaration (Loc,
-                      Defining_Identifier =>
-                        Extra_Any,
-                      Object_Definition   =>
-                        New_Occurrence_Of (RTE (RE_Any), Loc)));
-
-                  Append_To (Outer_Statements,
-                    Add_Parameter_To_NVList (Loc,
-                      Parameter   => Extra_Parameter,
-                      NVList      => Arguments,
-                      Constrained => True,
-                      Any         => Extra_Any));
-
-                  Append_To (Decls,
-                    Make_Object_Declaration (Loc,
-                      Defining_Identifier => Formal_Entity,
-                      Object_Definition   =>
-                        New_Occurrence_Of (Formal_Type, Loc)));
-
-                  Append_To (Extra_Formal_Statements,
-                    Make_Assignment_Statement (Loc,
-                      Name =>
-                        New_Occurrence_Of (Extra_Parameter, Loc),
-                      Expression =>
-                        PolyORB_Support.Helpers.Build_From_Any_Call (
-                          Etype (Extra_Parameter),
-                          New_Occurrence_Of (Extra_Any, Loc),
-                    Decls)));
-                  Set_Extra_Constrained (Object, Formal_Entity);
-
-               end;
-            end if;
-         end;
-
-         Next (Current_Parameter);
-      end loop;
-
-      Append_To (Outer_Statements,
-        Make_Procedure_Call_Statement (Loc,
-          Name =>
-            New_Occurrence_Of (RTE (RE_Request_Arguments), Loc),
-          Parameter_Associations => New_List (
-            New_Occurrence_Of (Request_Parameter, Loc),
-            New_Occurrence_Of (Arguments, Loc))));
-
-      Append_List_To (Statements, Extra_Formal_Statements);
-
-      if Nkind (Specification (Vis_Decl)) = N_Function_Specification then
-
-         --  The remote subprogram is a function. We build an inner block to
-         --  be able to hold a potentially unconstrained result in a variable.
-
-         declare
-            Etyp   : constant Entity_Id :=
-                       Etype (Subtype_Mark (Specification (Vis_Decl)));
-            Result : constant Node_Id   :=
-                       Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
-
-         begin
-            Inner_Decls := New_List (
-              Make_Object_Declaration (Loc,
-                Defining_Identifier => Result,
-                Constant_Present    => True,
-                Object_Definition   => New_Occurrence_Of (Etyp, Loc),
-                Expression          =>
-                  Make_Function_Call (Loc,
-                    Name                   => Called_Subprogram,
-                    Parameter_Associations => Parameter_List)));
-
-            Set_Etype (Result, Etyp);
-            Append_To (After_Statements,
-              Make_Procedure_Call_Statement (Loc,
-                Name =>
-                  New_Occurrence_Of (RTE (RE_Set_Result), Loc),
-                Parameter_Associations => New_List (
-                  New_Occurrence_Of (Request_Parameter, Loc),
-                  PolyORB_Support.Helpers.Build_To_Any_Call (
-                    New_Occurrence_Of (Result, Loc),
-                    Decls))));
-            --  A DSA function does not have out or inout arguments.
-         end;
-
-         Append_To (Statements,
-           Make_Block_Statement (Loc,
-             Declarations               => Inner_Decls,
-             Handled_Statement_Sequence =>
-               Make_Handled_Sequence_Of_Statements (Loc,
-                 Statements => After_Statements)));
-
-      else
-         --  The remote subprogram is a procedure. We do not need any inner
-         --  block in this case. No specific processing is required here for
-         --  the dynamically asynchronous case: the indication of whether call
-         --  is asynchronous or not is managed by the Sync_Scope attibute of
-         --  the request, and is handled entirely in the protocol layer.
-
-         Append_To (After_Statements,
-           Make_Procedure_Call_Statement (Loc,
-             Name =>
-               New_Occurrence_Of (RTE (RE_Request_Set_Out), Loc),
-             Parameter_Associations => New_List (
-               New_Occurrence_Of (Request_Parameter, Loc))));
-
-         Append_To (Statements,
-           Make_Procedure_Call_Statement (Loc,
-             Name                   => Called_Subprogram,
-             Parameter_Associations => Parameter_List));
-
-         Append_List_To (Statements, After_Statements);
-      end if;
-
-      Subp_Spec :=
-        Make_Procedure_Specification (Loc,
-          Defining_Unit_Name       =>
-            Make_Defining_Identifier (Loc, New_Internal_Name ('F')),
-
-          Parameter_Specifications => New_List (
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier => Request_Parameter,
-              Parameter_Type      =>
-                New_Occurrence_Of (RTE (RE_Request_Access), Loc))));
-
-      --  An exception raised during the execution of an incoming
-      --  remote subprogram call and that needs to be sent back
-      --  to the caller is propagated by the receiving stubs, and
-      --  will be handled by the caller (the distribution runtime).
-
-      if Asynchronous and then not Dynamically_Asynchronous then
-
-         --  For an asynchronous procedure, add a null exception handler
-
-         Excep_Handlers := New_List (
-           Make_Exception_Handler (Loc,
-             Exception_Choices => New_List (Make_Others_Choice (Loc)),
-             Statements        => New_List (Make_Null_Statement (Loc))));
-
-      else
-
-         --  In the other cases, if an exception is raised, then the
-         --  exception occurrence is propagated.
-
-         null;
-      end if;
-
-      Append_To (Outer_Statements,
-        Make_Block_Statement (Loc,
-          Declarations =>
-            Decls,
-          Handled_Statement_Sequence =>
-            Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => Statements)));
-
-      return
-        Make_Subprogram_Body (Loc,
-          Specification              => Subp_Spec,
-          Declarations               => Outer_Decls,
-          Handled_Statement_Sequence =>
-            Make_Handled_Sequence_Of_Statements (Loc,
-              Statements         => Outer_Statements,
-              Exception_Handlers => Excep_Handlers));
-   end Build_Subprogram_Receiving_Stubs;
 
    ------------------------
    -- Copy_Specification --
@@ -4565,7 +4085,7 @@ package body Exp_Dist is
          Request := Make_Defining_Identifier (Loc, Name_R);
 
          RPC_Receiver_Spec :=
-           GARLIC_Support.Build_RPC_Receiver_Specification
+           Build_RPC_Receiver_Specification
              (RPC_Receiver      => RPC_Receiver,
               Request_Parameter => Request);
 
@@ -4741,24 +4261,448 @@ package body Exp_Dist is
       end Build_Stub_Type;
 
       --------------------------------------
-      -- Build_RPC_Receiver_Specification --
+      -- Build_Subprogram_Receiving_Stubs --
       --------------------------------------
 
-      function Build_RPC_Receiver_Specification
-        (RPC_Receiver      : Entity_Id;
-         Request_Parameter : Entity_Id) return Node_Id
+      function Build_Subprogram_Receiving_Stubs
+        (Vis_Decl                 : Node_Id;
+         Asynchronous             : Boolean;
+         Dynamically_Asynchronous : Boolean   := False;
+         Stub_Type                : Entity_Id := Empty;
+         RACW_Type                : Entity_Id := Empty;
+         Parent_Primitive         : Entity_Id := Empty) return Node_Id
       is
-         Loc : constant Source_Ptr := Sloc (RPC_Receiver);
+         Loc : constant Source_Ptr := Sloc (Vis_Decl);
+
+         Request_Parameter : Node_Id;
+         --  ???
+
+         Decls : constant List_Id := New_List;
+         --  All the parameters will get declared before calling the real
+         --  subprograms. Also the out parameters will be declared.
+
+         Statements : constant List_Id := New_List;
+
+         Extra_Formal_Statements : constant List_Id := New_List;
+         --  Statements concerning extra formal parameters
+
+         After_Statements : constant List_Id := New_List;
+         --  Statements to be executed after the subprogram call
+
+         Inner_Decls : List_Id := No_List;
+         --  In case of a function, the inner declarations are needed since
+         --  the result may be unconstrained.
+
+         Excep_Handlers : List_Id := No_List;
+         Excep_Choice   : Entity_Id;
+         Excep_Code     : List_Id;
+
+         Parameter_List : constant List_Id := New_List;
+         --  List of parameters to be passed to the subprogram
+
+         Current_Parameter : Node_Id;
+
+         Ordered_Parameters_List : constant List_Id :=
+                                     Build_Ordered_Parameters_List
+                                       (Specification (Vis_Decl));
+
+         Subp_Spec : Node_Id;
+         --  Subprogram specification
+
+         Called_Subprogram : Node_Id;
+         --  The subprogram to call
+
+         Null_Raise_Statement : Node_Id;
+
+         Dynamic_Async : Entity_Id;
+
       begin
-         return
+         if Present (RACW_Type) then
+            Called_Subprogram :=
+              New_Occurrence_Of (Parent_Primitive, Loc);
+         else
+            Called_Subprogram :=
+              New_Occurrence_Of (
+                Defining_Unit_Name (Specification (Vis_Decl)), Loc);
+         end if;
+
+         Request_Parameter :=
+           Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+
+         if Dynamically_Asynchronous then
+            Dynamic_Async :=
+              Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+         else
+            Dynamic_Async := Empty;
+         end if;
+
+         if not Asynchronous or else Dynamically_Asynchronous then
+            --  The first statement after the subprogram call is a statement to
+            --  writes a Null_Occurrence into the result stream.
+
+            Null_Raise_Statement :=
+              Make_Attribute_Reference (Loc,
+                Prefix         =>
+                  New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
+                Attribute_Name => Name_Write,
+                Expressions    => New_List (
+                                    Make_Selected_Component (Loc,
+                                      Prefix        => Request_Parameter,
+                                      Selector_Name => Name_Result),
+                  New_Occurrence_Of (RTE (RE_Null_Occurrence), Loc)));
+
+            if Dynamically_Asynchronous then
+               Null_Raise_Statement :=
+                 Make_Implicit_If_Statement (Vis_Decl,
+                   Condition       =>
+                     Make_Op_Not (Loc, New_Occurrence_Of (Dynamic_Async, Loc)),
+                   Then_Statements => New_List (Null_Raise_Statement));
+            end if;
+
+            Append_To (After_Statements, Null_Raise_Statement);
+         end if;
+
+         --  Loop through every parameter and get its value from the stream. If
+         --  the parameter is unconstrained, then the parameter is read using
+         --  'Input at the point of declaration.
+
+         Current_Parameter := First (Ordered_Parameters_List);
+         while Present (Current_Parameter) loop
+            declare
+               Etyp        : Entity_Id;
+               Constrained : Boolean;
+
+               Object : constant Entity_Id :=
+                          Make_Defining_Identifier (Loc,
+                            New_Internal_Name ('P'));
+
+               Expr : Node_Id   := Empty;
+
+               Is_Controlling_Formal : constant Boolean :=
+                                         Is_RACW_Controlling_Formal
+                                           (Current_Parameter, Stub_Type);
+
+            begin
+               Set_Ekind (Object, E_Variable);
+
+               if Is_Controlling_Formal then
+
+                  --  We have a controlling formal parameter. Read its address
+                  --  rather than a real object. The address is in Unsigned_64
+                  --  form.
+
+                  Etyp := RTE (RE_Unsigned_64);
+               else
+                  Etyp := Etype (Parameter_Type (Current_Parameter));
+               end if;
+
+               Constrained :=
+                 Is_Constrained (Etyp) or else Is_Elementary_Type (Etyp);
+
+               if In_Present (Current_Parameter)
+                 or else not Out_Present (Current_Parameter)
+                 or else not Constrained
+                 or else Is_Controlling_Formal
+               then
+                  --  If an input parameter is contrained, then its reading is
+                  --  deferred until the beginning of the subprogram body. If
+                  --  it is unconstrained, then an expression is built for
+                  --  the object declaration and the variable is set using
+                  --  'Input instead of 'Read.
+
+                  if Constrained and then not Is_Controlling_Formal then
+                     Append_To (Statements,
+                       Make_Attribute_Reference (Loc,
+                         Prefix         => New_Occurrence_Of (Etyp, Loc),
+                         Attribute_Name => Name_Read,
+                         Expressions    => New_List (
+                           Make_Selected_Component (Loc,
+                             Prefix        => Request_Parameter,
+                             Selector_Name => Name_Params),
+                           New_Occurrence_Of (Object, Loc))));
+
+                  else
+                     Expr := Input_With_Tag_Check (Loc,
+                       Var_Type => Etyp,
+                       Stream   => Make_Selected_Component (Loc,
+                                     Prefix        => Request_Parameter,
+                                     Selector_Name => Name_Params));
+                     Append_To (Decls, Expr);
+                     Expr := Make_Function_Call (Loc,
+                       New_Occurrence_Of (Defining_Unit_Name
+                         (Specification (Expr)), Loc));
+                  end if;
+               end if;
+
+               --  If we do not have to output the current parameter, then it
+               --  can well be flagged as constant. This may allow further
+               --  optimizations done by the back end.
+
+               Append_To (Decls,
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier => Object,
+                   Constant_Present    => not Constrained
+                     and then not Out_Present (Current_Parameter),
+                   Object_Definition   =>
+                     New_Occurrence_Of (Etyp, Loc),
+                   Expression          => Expr));
+
+               --  An out parameter may be written back using a 'Write
+               --  attribute instead of a 'Output because it has been
+               --  constrained by the parameter given to the caller. Note that
+               --  out controlling arguments in the case of a RACW are not put
+               --  back in the stream because the pointer on them has not
+               --  changed.
+
+               if Out_Present (Current_Parameter)
+                 and then
+                   Etype (Parameter_Type (Current_Parameter)) /= Stub_Type
+               then
+                  Append_To (After_Statements,
+                    Make_Attribute_Reference (Loc,
+                      Prefix         => New_Occurrence_Of (Etyp, Loc),
+                      Attribute_Name => Name_Write,
+                      Expressions    => New_List (
+                        Make_Selected_Component (Loc,
+                          Prefix        => Request_Parameter,
+                          Selector_Name => Name_Result),
+                        New_Occurrence_Of (Object, Loc))));
+               end if;
+
+               --  For RACW controlling formals, the Etyp of Object is always
+               --  an RACW, even if the parameter is not of an anonymous access
+               --  type. In such case, we need to dereference it at call time.
+
+               if Is_Controlling_Formal then
+                  if Nkind (Parameter_Type (Current_Parameter)) /=
+                    N_Access_Definition
+                  then
+                     Append_To (Parameter_List,
+                       Make_Parameter_Association (Loc,
+                         Selector_Name             =>
+                           New_Occurrence_Of (
+                             Defining_Identifier (Current_Parameter), Loc),
+                         Explicit_Actual_Parameter =>
+                           Make_Explicit_Dereference (Loc,
+                             Unchecked_Convert_To (RACW_Type,
+                               OK_Convert_To (RTE (RE_Address),
+                                 New_Occurrence_Of (Object, Loc))))));
+
+                  else
+                     Append_To (Parameter_List,
+                       Make_Parameter_Association (Loc,
+                         Selector_Name             =>
+                           New_Occurrence_Of (
+                             Defining_Identifier (Current_Parameter), Loc),
+                         Explicit_Actual_Parameter =>
+                           Unchecked_Convert_To (RACW_Type,
+                             OK_Convert_To (RTE (RE_Address),
+                               New_Occurrence_Of (Object, Loc)))));
+                  end if;
+
+               else
+                  Append_To (Parameter_List,
+                    Make_Parameter_Association (Loc,
+                      Selector_Name             =>
+                        New_Occurrence_Of (
+                          Defining_Identifier (Current_Parameter), Loc),
+                      Explicit_Actual_Parameter =>
+                        New_Occurrence_Of (Object, Loc)));
+               end if;
+
+               --  If the current parameter needs an extra formal, then read it
+               --  from the stream and set the corresponding semantic field in
+               --  the variable. If the kind of the parameter identifier is
+               --  E_Void, then this is a compiler generated parameter that
+               --  doesn't need an extra constrained status.
+
+               --  The case of Extra_Accessibility should also be handled ???
+
+               if Nkind (Parameter_Type (Current_Parameter)) /=
+                                                         N_Access_Definition
+                 and then
+                   Ekind (Defining_Identifier (Current_Parameter)) /= E_Void
+                 and then
+                   Present (Extra_Constrained
+                     (Defining_Identifier (Current_Parameter)))
+               then
+                  declare
+                     Extra_Parameter : constant Entity_Id :=
+                                         Extra_Constrained
+                                           (Defining_Identifier
+                                             (Current_Parameter));
+
+                     Formal_Entity : constant Entity_Id :=
+                                       Make_Defining_Identifier
+                                           (Loc, Chars (Extra_Parameter));
+
+                     Formal_Type : constant Entity_Id :=
+                                     Etype (Extra_Parameter);
+
+                  begin
+                     Append_To (Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier => Formal_Entity,
+                         Object_Definition   =>
+                           New_Occurrence_Of (Formal_Type, Loc)));
+
+                     Append_To (Extra_Formal_Statements,
+                       Make_Attribute_Reference (Loc,
+                         Prefix         => New_Occurrence_Of (
+                                             Formal_Type, Loc),
+                         Attribute_Name => Name_Read,
+                         Expressions    => New_List (
+                           Make_Selected_Component (Loc,
+                             Prefix        => Request_Parameter,
+                             Selector_Name => Name_Params),
+                           New_Occurrence_Of (Formal_Entity, Loc))));
+                     Set_Extra_Constrained (Object, Formal_Entity);
+                  end;
+               end if;
+            end;
+
+            Next (Current_Parameter);
+         end loop;
+
+         --  Append the formal statements list at the end of regular statements
+
+         Append_List_To (Statements, Extra_Formal_Statements);
+
+         if Nkind (Specification (Vis_Decl)) = N_Function_Specification then
+
+            --  The remote subprogram is a function. We build an inner block to
+            --  be able to hold a potentially unconstrained result in a
+            --  variable.
+
+            declare
+               Etyp   : constant Entity_Id :=
+                          Etype (Subtype_Mark (Specification (Vis_Decl)));
+               Result : constant Node_Id   :=
+                          Make_Defining_Identifier (Loc,
+                             New_Internal_Name ('R'));
+            begin
+               Inner_Decls := New_List (
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier => Result,
+                   Constant_Present    => True,
+                   Object_Definition   => New_Occurrence_Of (Etyp, Loc),
+                   Expression          =>
+                     Make_Function_Call (Loc,
+                       Name                   => Called_Subprogram,
+                       Parameter_Associations => Parameter_List)));
+
+               Append_To (After_Statements,
+                 Make_Attribute_Reference (Loc,
+                   Prefix         => New_Occurrence_Of (Etyp, Loc),
+                   Attribute_Name => Name_Output,
+                   Expressions    => New_List (
+                     Make_Selected_Component (Loc,
+                       Prefix        => Request_Parameter,
+                       Selector_Name => Name_Result),
+                     New_Occurrence_Of (Result, Loc))));
+            end;
+
+            Append_To (Statements,
+              Make_Block_Statement (Loc,
+                Declarations               => Inner_Decls,
+                Handled_Statement_Sequence =>
+                  Make_Handled_Sequence_Of_Statements (Loc,
+                    Statements => After_Statements)));
+
+         else
+            --  The remote subprogram is a procedure. We do not need any inner
+            --  block in this case.
+
+            if Dynamically_Asynchronous then
+               Append_To (Decls,
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier => Dynamic_Async,
+                   Object_Definition   =>
+                     New_Occurrence_Of (Standard_Boolean, Loc)));
+
+               Append_To (Statements,
+                 Make_Attribute_Reference (Loc,
+                   Prefix         => New_Occurrence_Of (Standard_Boolean, Loc),
+                   Attribute_Name => Name_Read,
+                   Expressions    => New_List (
+                     Make_Selected_Component (Loc,
+                       Prefix        => Request_Parameter,
+                       Selector_Name => Name_Params),
+                     New_Occurrence_Of (Dynamic_Async, Loc))));
+            end if;
+
+            Append_To (Statements,
+              Make_Procedure_Call_Statement (Loc,
+                Name                   => Called_Subprogram,
+                Parameter_Associations => Parameter_List));
+
+            Append_List_To (Statements, After_Statements);
+         end if;
+
+         if Asynchronous and then not Dynamically_Asynchronous then
+
+            --  For an asynchronous procedure, add a null exception handler
+
+            Excep_Handlers := New_List (
+              Make_Exception_Handler (Loc,
+                Exception_Choices => New_List (Make_Others_Choice (Loc)),
+                Statements        => New_List (Make_Null_Statement (Loc))));
+
+         else
+            --  In the other cases, if an exception is raised, then the
+            --  exception occurrence is copied into the output stream and
+            --  no other output parameter is written.
+
+            Excep_Choice :=
+              Make_Defining_Identifier (Loc, New_Internal_Name ('E'));
+
+            Excep_Code := New_List (
+              Make_Attribute_Reference (Loc,
+                Prefix         =>
+                  New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
+                Attribute_Name => Name_Write,
+                Expressions    => New_List (
+                                    Make_Selected_Component (Loc,
+                                      Prefix        => Request_Parameter,
+                                      Selector_Name => Name_Result),
+                                    New_Occurrence_Of (Excep_Choice, Loc))));
+
+            if Dynamically_Asynchronous then
+               Excep_Code := New_List (
+                 Make_Implicit_If_Statement (Vis_Decl,
+                   Condition       => Make_Op_Not (Loc,
+                     New_Occurrence_Of (Dynamic_Async, Loc)),
+                   Then_Statements => Excep_Code));
+            end if;
+
+            Excep_Handlers := New_List (
+              Make_Exception_Handler (Loc,
+                Choice_Parameter   => Excep_Choice,
+                Exception_Choices  => New_List (Make_Others_Choice (Loc)),
+                Statements         => Excep_Code));
+
+         end if;
+
+         Subp_Spec :=
            Make_Procedure_Specification (Loc,
-             Defining_Unit_Name       => RPC_Receiver,
+             Defining_Unit_Name       =>
+               Make_Defining_Identifier (Loc, New_Internal_Name ('F')),
+
              Parameter_Specifications => New_List (
                Make_Parameter_Specification (Loc,
                  Defining_Identifier => Request_Parameter,
                  Parameter_Type      =>
                    New_Occurrence_Of (RTE (RE_Request_Access), Loc))));
-      end Build_RPC_Receiver_Specification;
+
+         return
+           Make_Subprogram_Body (Loc,
+             Specification              => Subp_Spec,
+             Declarations               => Decls,
+             Handled_Statement_Sequence =>
+               Make_Handled_Sequence_Of_Statements (Loc,
+                 Statements         => Statements,
+                 Exception_Handlers => Excep_Handlers));
+      end Build_Subprogram_Receiving_Stubs;
 
       ------------
       -- Result --
@@ -7522,7 +7466,7 @@ package body Exp_Dist is
          Request := Make_Defining_Identifier (Loc, Name_R);
 
          RPC_Receiver_Spec :=
-           PolyORB_Support.Build_RPC_Receiver_Specification (
+           Build_RPC_Receiver_Specification (
              RPC_Receiver      => RPC_Receiver,
              Request_Parameter => Request);
 
@@ -7556,27 +7500,514 @@ package body Exp_Dist is
       end Build_RPC_Receiver_Body;
 
       --------------------------------------
-      -- Build_RPC_Receiver_Specification --
+      -- Build_Subprogram_Receiving_Stubs --
       --------------------------------------
 
-      function Build_RPC_Receiver_Specification
-        (RPC_Receiver      : Entity_Id;
-         Request_Parameter : Entity_Id) return Node_Id
+      function Build_Subprogram_Receiving_Stubs
+        (Vis_Decl                 : Node_Id;
+         Asynchronous             : Boolean;
+         Dynamically_Asynchronous : Boolean   := False;
+         Stub_Type                : Entity_Id := Empty;
+         RACW_Type                : Entity_Id := Empty;
+         Parent_Primitive         : Entity_Id := Empty) return Node_Id
       is
-         Loc : constant Source_Ptr := Sloc (RPC_Receiver);
+         Loc : constant Source_Ptr := Sloc (Vis_Decl);
+
+         Request_Parameter : Node_Id;
+         --  ???
+
+         Outer_Decls : constant List_Id := New_List;
+         --  At the outermost level, an NVList and Any's are
+         --  declared for all parameters. The Dynamic_Async
+         --  flag also needs to be declared there to be visible
+         --  from the exception handling code.
+
+         Outer_Statements : constant List_Id := New_List;
+         --  Statements that occur prior to the declaration of the actual
+         --  parameter variables.
+
+         Decls : constant List_Id := New_List;
+         --  All the parameters will get declared before calling the real
+         --  subprograms. Also the out parameters will be declared.
+         --  At this level, parameters may be unconstrained.
+
+         Statements : constant List_Id := New_List;
+
+         Extra_Formal_Statements : constant List_Id := New_List;
+         --  Statements concerning extra formal parameters
+
+         After_Statements : constant List_Id := New_List;
+         --  Statements to be executed after the subprogram call
+
+         Inner_Decls : List_Id := No_List;
+         --  In case of a function, the inner declarations are needed since
+         --  the result may be unconstrained.
+
+         Excep_Handlers : List_Id := No_List;
+
+         Parameter_List : constant List_Id := New_List;
+         --  List of parameters to be passed to the subprogram
+
+         First_Controlling_Formal_Seen : Boolean := False;
+
+         Current_Parameter : Node_Id;
+
+         Ordered_Parameters_List : constant List_Id :=
+                                     Build_Ordered_Parameters_List
+                                       (Specification (Vis_Decl));
+
+         Arguments : Node_Id;
+         --  Name of the named values list used to retrieve parameters
+
+         Subp_Spec : Node_Id;
+         --  Subprogram specification
+
+         Called_Subprogram : Node_Id;
+         --  The subprogram to call
+
+         Dynamic_Async : Entity_Id;
+         pragma Warnings (Off);
+         pragma Unreferenced (Dynamic_Async);
+         pragma Warnings (On);
 
       begin
-         return
+         if Present (RACW_Type) then
+            Called_Subprogram :=
+              New_Occurrence_Of (Parent_Primitive, Loc);
+         else
+            Called_Subprogram :=
+              New_Occurrence_Of (
+                Defining_Unit_Name (Specification (Vis_Decl)), Loc);
+         end if;
+
+         Request_Parameter :=
+           Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+
+         if Dynamically_Asynchronous then
+            Dynamic_Async :=
+              Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+         else
+            Dynamic_Async := Empty;
+         end if;
+
+         Arguments :=
+           Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+         Declare_Create_NVList (Loc, Arguments, Outer_Decls, Outer_Statements);
+
+         --  Loop through every parameter and get its value from the stream. If
+         --  the parameter is unconstrained, then the parameter is read using
+         --  'Input at the point of declaration.
+
+         Current_Parameter := First (Ordered_Parameters_List);
+         while Present (Current_Parameter) loop
+            declare
+               Etyp        : Entity_Id;
+               Constrained : Boolean;
+               Any         : Entity_Id := Empty;
+               Object      : constant Entity_Id :=
+                               Make_Defining_Identifier (Loc,
+                                 New_Internal_Name ('P'));
+               Expr        : Node_Id   := Empty;
+
+               Is_Controlling_Formal : constant Boolean
+                 := Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type);
+
+               Is_First_Controlling_Formal : Boolean := False;
+            begin
+               Set_Ekind (Object, E_Variable);
+
+               if Is_Controlling_Formal then
+
+                  --  Controlling formals in distributed object primitive
+                  --  operations are handled specially:
+                  --    - the first controlling formal is used as the
+                  --      target of the call;
+                  --    - the remaining controlling formals are transmitted
+                  --      as RACWs.
+
+                  Etyp := RACW_Type;
+                  Is_First_Controlling_Formal :=
+                    not First_Controlling_Formal_Seen;
+                  First_Controlling_Formal_Seen := True;
+               else
+                  Etyp := Etype (Parameter_Type (Current_Parameter));
+               end if;
+
+               Constrained :=
+                 Is_Constrained (Etyp)
+                 or else Is_Elementary_Type (Etyp);
+
+               if not Is_First_Controlling_Formal then
+                  Any := Make_Defining_Identifier (Loc,
+                           New_Internal_Name ('A'));
+                  Append_To (Outer_Decls,
+                    Make_Object_Declaration (Loc,
+                      Defining_Identifier =>
+                        Any,
+                      Object_Definition   =>
+                        New_Occurrence_Of (RTE (RE_Any), Loc),
+                      Expression =>
+                        Make_Function_Call (Loc,
+                          Name =>
+                            New_Occurrence_Of (RTE (RE_Create_Any), Loc),
+                          Parameter_Associations => New_List (
+                            PolyORB_Support.Helpers.Build_TypeCode_Call (Loc,
+                              Etyp, Outer_Decls)))));
+
+                  Append_To (Outer_Statements,
+                    Add_Parameter_To_NVList (Loc,
+                      Parameter   => Current_Parameter,
+                      NVList      => Arguments,
+                      Constrained => Constrained,
+                      Any         => Any));
+               end if;
+
+               if Is_First_Controlling_Formal then
+                  declare
+                     Addr : constant Entity_Id :=
+                       Make_Defining_Identifier (Loc,
+                         New_Internal_Name ('A'));
+                     Is_Local : constant Entity_Id :=
+                       Make_Defining_Identifier (Loc,
+                         New_Internal_Name ('L'));
+                  begin
+
+                     --  Special case: obtain the first controlling
+                     --  formal from the target of the remote call,
+                     --  instead of the argument list.
+
+                     Append_To (Outer_Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier =>
+                           Addr,
+                         Object_Definition =>
+                           New_Occurrence_Of (RTE (RE_Address), Loc)));
+                     Append_To (Outer_Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier =>
+                           Is_Local,
+                         Object_Definition =>
+                           New_Occurrence_Of (Standard_Boolean, Loc)));
+                     Append_To (Outer_Statements,
+                       Make_Procedure_Call_Statement (Loc,
+                         Name =>
+                           New_Occurrence_Of (
+                             RTE (RE_Get_Local_Address), Loc),
+                         Parameter_Associations => New_List (
+                           Make_Selected_Component (Loc,
+                             Prefix =>
+                               New_Occurrence_Of (
+                                 Request_Parameter, Loc),
+                             Selector_Name =>
+                               Make_Identifier (Loc, Name_Target)),
+                           New_Occurrence_Of (Is_Local, Loc),
+                           New_Occurrence_Of (Addr, Loc))));
+
+                     Expr := Unchecked_Convert_To (RACW_Type,
+                       New_Occurrence_Of (Addr, Loc));
+                  end;
+
+               elsif In_Present (Current_Parameter)
+                  or else not Out_Present (Current_Parameter)
+                  or else not Constrained
+               then
+                  --  If an input parameter is contrained, then its reading is
+                  --  deferred until the beginning of the subprogram body. If
+                  --  it is unconstrained, then an expression is built for
+                  --  the object declaration and the variable is set using
+                  --  'Input instead of 'Read.
+
+                  Expr := PolyORB_Support.Helpers.Build_From_Any_Call (
+                            Etyp, New_Occurrence_Of (Any, Loc), Decls);
+
+                  if Constrained then
+
+                     Append_To (Statements,
+                       Make_Assignment_Statement (Loc,
+                         Name =>
+                           New_Occurrence_Of (Object, Loc),
+                         Expression =>
+                            Expr));
+                     Expr := Empty;
+                  else
+                     null;
+                     --  Expr will be used to initialize (and constrain)
+                     --  the parameter when it is declared.
+                  end if;
+
+               end if;
+
+               --  If we do not have to output the current parameter, then
+               --  it can well be flagged as constant. This may allow further
+               --  optimizations done by the back end.
+
+               Append_To (Decls,
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier => Object,
+                   Constant_Present    => not Constrained
+                     and then not Out_Present (Current_Parameter),
+                   Object_Definition   =>
+                     New_Occurrence_Of (Etyp, Loc),
+                   Expression          => Expr));
+               Set_Etype (Object, Etyp);
+
+               --  An out parameter may be written back using a 'Write
+               --  attribute instead of a 'Output because it has been
+               --  constrained by the parameter given to the caller. Note that
+               --  out controlling arguments in the case of a RACW are not put
+               --  back in the stream because the pointer on them has not
+               --  changed.
+
+               if Out_Present (Current_Parameter)
+                 and then not Is_Controlling_Formal
+               then
+                  Append_To (After_Statements,
+                    Make_Procedure_Call_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (RTE (RE_Copy_Any_Value), Loc),
+                      Parameter_Associations => New_List (
+                        New_Occurrence_Of (Any, Loc),
+                        PolyORB_Support.Helpers.Build_To_Any_Call (
+                          New_Occurrence_Of (Object, Loc),
+                          Decls))));
+               end if;
+
+               --  For RACW controlling formals, the Etyp of Object is always
+               --  an RACW, even if the parameter is not of an anonymous access
+               --  type. In such case, we need to dereference it at call time.
+
+               if Is_Controlling_Formal then
+                  if Nkind (Parameter_Type (Current_Parameter)) /=
+                    N_Access_Definition
+                  then
+                     Append_To (Parameter_List,
+                       Make_Parameter_Association (Loc,
+                         Selector_Name             =>
+                           New_Occurrence_Of (
+                             Defining_Identifier (Current_Parameter), Loc),
+                         Explicit_Actual_Parameter =>
+                           Make_Explicit_Dereference (Loc,
+                             Unchecked_Convert_To (RACW_Type,
+                               OK_Convert_To (RTE (RE_Address),
+                                 New_Occurrence_Of (Object, Loc))))));
+
+                  else
+                     Append_To (Parameter_List,
+                       Make_Parameter_Association (Loc,
+                         Selector_Name             =>
+                           New_Occurrence_Of (
+                             Defining_Identifier (Current_Parameter), Loc),
+                         Explicit_Actual_Parameter =>
+                           Unchecked_Convert_To (RACW_Type,
+                             OK_Convert_To (RTE (RE_Address),
+                               New_Occurrence_Of (Object, Loc)))));
+                  end if;
+
+               else
+                  Append_To (Parameter_List,
+                    Make_Parameter_Association (Loc,
+                      Selector_Name             =>
+                        New_Occurrence_Of (
+                          Defining_Identifier (Current_Parameter), Loc),
+                      Explicit_Actual_Parameter =>
+                        New_Occurrence_Of (Object, Loc)));
+               end if;
+
+               --  If the current parameter needs an extra formal, then read it
+               --  from the stream and set the corresponding semantic field in
+               --  the variable. If the kind of the parameter identifier is
+               --  E_Void, then this is a compiler generated parameter that
+               --  doesn't need an extra constrained status.
+
+               --  The case of Extra_Accessibility should also be handled ???
+
+               if Nkind (Parameter_Type (Current_Parameter)) /=
+                                                         N_Access_Definition
+                 and then
+                   Ekind (Defining_Identifier (Current_Parameter)) /= E_Void
+                 and then
+                   Present (Extra_Constrained
+                     (Defining_Identifier (Current_Parameter)))
+               then
+                  declare
+                     Extra_Parameter : constant Entity_Id :=
+                                         Extra_Constrained
+                                           (Defining_Identifier
+                                             (Current_Parameter));
+                     Extra_Any : constant Entity_Id :=
+                       Make_Defining_Identifier
+                         (Loc, New_Internal_Name ('A'));
+                     Formal_Entity : constant Entity_Id :=
+                                       Make_Defining_Identifier
+                                           (Loc, Chars (Extra_Parameter));
+
+                     Formal_Type : constant Entity_Id :=
+                                     Etype (Extra_Parameter);
+                  begin
+                     Append_To (Outer_Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier =>
+                           Extra_Any,
+                         Object_Definition   =>
+                           New_Occurrence_Of (RTE (RE_Any), Loc)));
+
+                     Append_To (Outer_Statements,
+                       Add_Parameter_To_NVList (Loc,
+                         Parameter   => Extra_Parameter,
+                         NVList      => Arguments,
+                         Constrained => True,
+                         Any         => Extra_Any));
+
+                     Append_To (Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier => Formal_Entity,
+                         Object_Definition   =>
+                           New_Occurrence_Of (Formal_Type, Loc)));
+
+                     Append_To (Extra_Formal_Statements,
+                       Make_Assignment_Statement (Loc,
+                         Name =>
+                           New_Occurrence_Of (Extra_Parameter, Loc),
+                         Expression =>
+                           PolyORB_Support.Helpers.Build_From_Any_Call (
+                             Etype (Extra_Parameter),
+                             New_Occurrence_Of (Extra_Any, Loc),
+                       Decls)));
+                     Set_Extra_Constrained (Object, Formal_Entity);
+
+                  end;
+               end if;
+            end;
+
+            Next (Current_Parameter);
+         end loop;
+
+         Append_To (Outer_Statements,
+           Make_Procedure_Call_Statement (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_Request_Arguments), Loc),
+             Parameter_Associations => New_List (
+               New_Occurrence_Of (Request_Parameter, Loc),
+               New_Occurrence_Of (Arguments, Loc))));
+
+         Append_List_To (Statements, Extra_Formal_Statements);
+
+         if Nkind (Specification (Vis_Decl)) = N_Function_Specification then
+
+            --  The remote subprogram is a function. We build an inner block to
+            --  be able to hold a potentially unconstrained result in a
+            --  variable.
+
+            declare
+               Etyp   : constant Entity_Id :=
+                          Etype (Subtype_Mark (Specification (Vis_Decl)));
+               Result : constant Node_Id   :=
+                          Make_Defining_Identifier (Loc,
+                            New_Internal_Name ('R'));
+            begin
+               Inner_Decls := New_List (
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier => Result,
+                   Constant_Present    => True,
+                   Object_Definition   => New_Occurrence_Of (Etyp, Loc),
+                   Expression          =>
+                     Make_Function_Call (Loc,
+                       Name                   => Called_Subprogram,
+                       Parameter_Associations => Parameter_List)));
+
+               Set_Etype (Result, Etyp);
+               Append_To (After_Statements,
+                 Make_Procedure_Call_Statement (Loc,
+                   Name =>
+                     New_Occurrence_Of (RTE (RE_Set_Result), Loc),
+                   Parameter_Associations => New_List (
+                     New_Occurrence_Of (Request_Parameter, Loc),
+                     PolyORB_Support.Helpers.Build_To_Any_Call (
+                       New_Occurrence_Of (Result, Loc),
+                       Decls))));
+               --  A DSA function does not have out or inout arguments.
+            end;
+
+            Append_To (Statements,
+              Make_Block_Statement (Loc,
+                Declarations               => Inner_Decls,
+                Handled_Statement_Sequence =>
+                  Make_Handled_Sequence_Of_Statements (Loc,
+                    Statements => After_Statements)));
+
+         else
+            --  The remote subprogram is a procedure. We do not need any inner
+            --  block in this case. No specific processing is required here for
+            --  the dynamically asynchronous case: the indication of whether
+            --  call is asynchronous or not is managed by the Sync_Scope
+            --  attibute of the request, and is handled entirely in the
+            --  protocol layer.
+
+            Append_To (After_Statements,
+              Make_Procedure_Call_Statement (Loc,
+                Name =>
+                  New_Occurrence_Of (RTE (RE_Request_Set_Out), Loc),
+                Parameter_Associations => New_List (
+                  New_Occurrence_Of (Request_Parameter, Loc))));
+
+            Append_To (Statements,
+              Make_Procedure_Call_Statement (Loc,
+                Name                   => Called_Subprogram,
+                Parameter_Associations => Parameter_List));
+
+            Append_List_To (Statements, After_Statements);
+         end if;
+
+         Subp_Spec :=
            Make_Procedure_Specification (Loc,
-             Defining_Unit_Name       => RPC_Receiver,
+             Defining_Unit_Name       =>
+               Make_Defining_Identifier (Loc, New_Internal_Name ('F')),
+
              Parameter_Specifications => New_List (
                Make_Parameter_Specification (Loc,
                  Defining_Identifier => Request_Parameter,
                  Parameter_Type      =>
-                   New_Occurrence_Of (
-                     RTE (RE_Request_Access), Loc))));
-      end Build_RPC_Receiver_Specification;
+                   New_Occurrence_Of (RTE (RE_Request_Access), Loc))));
 
+         --  An exception raised during the execution of an incoming
+         --  remote subprogram call and that needs to be sent back
+         --  to the caller is propagated by the receiving stubs, and
+         --  will be handled by the caller (the distribution runtime).
+
+         if Asynchronous and then not Dynamically_Asynchronous then
+
+            --  For an asynchronous procedure, add a null exception handler
+
+            Excep_Handlers := New_List (
+              Make_Exception_Handler (Loc,
+                Exception_Choices => New_List (Make_Others_Choice (Loc)),
+                Statements        => New_List (Make_Null_Statement (Loc))));
+
+         else
+
+            --  In the other cases, if an exception is raised, then the
+            --  exception occurrence is propagated.
+
+            null;
+         end if;
+
+         Append_To (Outer_Statements,
+           Make_Block_Statement (Loc,
+             Declarations =>
+               Decls,
+             Handled_Statement_Sequence =>
+               Make_Handled_Sequence_Of_Statements (Loc,
+                 Statements => Statements)));
+
+         return
+           Make_Subprogram_Body (Loc,
+             Specification              => Subp_Spec,
+             Declarations               => Outer_Decls,
+             Handled_Statement_Sequence =>
+               Make_Handled_Sequence_Of_Statements (Loc,
+                 Statements         => Outer_Statements,
+                 Exception_Handlers => Excep_Handlers));
+      end Build_Subprogram_Receiving_Stubs;
       -------------
       -- Helpers --
       -------------
@@ -10442,6 +10873,34 @@ package body Exp_Dist is
               Stub_Type_Decl, RPC_Receiver_Decl);
       end case;
    end Specific_Build_Stub_Type;
+
+   function Specific_Build_Subprogram_Receiving_Stubs
+     (Vis_Decl                 : Node_Id;
+      Asynchronous             : Boolean;
+      Dynamically_Asynchronous : Boolean   := False;
+      Stub_Type                : Entity_Id := Empty;
+      RACW_Type                : Entity_Id := Empty;
+      Parent_Primitive         : Entity_Id := Empty) return Node_Id is
+   begin
+      case Get_PCS_Name is
+         when Name_PolyORB_DSA =>
+            return PolyORB_Support.Build_Subprogram_Receiving_Stubs (
+                     Vis_Decl,
+                     Asynchronous,
+                     Dynamically_Asynchronous,
+                     Stub_Type,
+                     RACW_Type,
+                     Parent_Primitive);
+         when others =>
+            return GARLIC_Support.Build_Subprogram_Receiving_Stubs (
+                     Vis_Decl,
+                     Asynchronous,
+                     Dynamically_Asynchronous,
+                     Stub_Type,
+                     RACW_Type,
+                     Parent_Primitive);
+      end case;
+   end Specific_Build_Subprogram_Receiving_Stubs;
 
    --------------------------
    -- Underlying_RACW_Type --
