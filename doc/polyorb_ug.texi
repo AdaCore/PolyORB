@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#40 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#41 $
 
 @include version.texi
 
@@ -177,6 +177,7 @@ Tasking model in PolyORB
 
 * PolyORB Tasking runtimes::
 * PolyORB ORB Tasking policies::
+* PolyORB ORB Controller policies::
 * PolyORB Tasking configuration::
 
 CORBA
@@ -886,7 +887,7 @@ See @ref{Tasking model in PolyORB} for more information on this point.
 
 @noindent
 PolyORB provides several tasking policies. A tasking policy defines
-how threads are used by the middleware to process incoming requests.
+how tasks are used by the middleware to process incoming requests.
 
 @itemize @bullet
 @item @code{No_Tasking}: There is only one task in middleware,
@@ -1218,6 +1219,7 @@ OPTIONS
 @menu
 * PolyORB Tasking runtimes::
 * PolyORB ORB Tasking policies::
+* PolyORB ORB Controller policies::
 * PolyORB Tasking configuration::
 @end menu
 
@@ -1286,7 +1288,7 @@ linked with a tasking-capable Ada runtime or a Ravenscar Ada runtime.
 @section PolyORB ORB Tasking policies
 @c -------------------------------------------------------------------
 
-PolyORB ORB Tasking policies control the creation of threads to
+PolyORB ORB Tasking policies control the creation of tasks to
 process all middleware internal jobs, e.g. request processing, I/O
 monitoring.
 
@@ -1312,7 +1314,7 @@ thread during the initialization of PolyORB. This pool processes all
 jobs.
 
 @xref{PolyORB Tasking configuration}, for more information on how to
-configure the number of threads in the threadpool.
+configure the number of tasks in the threadpool.
 
 @c -------------------------------------------------------------------
 @subsection Thread Per Session
@@ -1329,6 +1331,61 @@ finalized when the session is closed.
 Under the Thread Per Session ORB policy, the middleware creates one
 task per incoming request. The task is finalized when the request is
 completed.
+
+@c -------------------------------------------------------------------
+@node PolyORB ORB Controller policies
+@section PolyORB ORB Controller policies
+@c -------------------------------------------------------------------
+
+The PolyORB ORB Controller policies are responsible for the management
+of the global state of the middleware: they assign middleware internal
+jobs, or I/Os monitoring to middleware tasks.
+
+ORB Controller policies grant access to middleware internals and
+affect one action for each middleware task. They ensure that all
+tasks work concurrently in a thread-safe manner.
+
+@c -------------------------------------------------------------------
+@subsection No Tasking
+@c -------------------------------------------------------------------
+
+The No Tasking ORB Controller policy is dedicated to no tasking
+middleware configurations; the middleware task executes the following
+loop: process internal jobs, then monitor I/Os.
+
+@c -------------------------------------------------------------------
+@subsection Basic
+@c -------------------------------------------------------------------
+
+The Basic ORB Controller policy is a simple controller policy: all
+tasks are equal, they may alternatively and randomly process requests
+or wait for I/O sources.
+
+@i{Note: it is the default configuration provided by PolyORB sample
+setup files, @xref{Sample files}.}
+
+@c -------------------------------------------------------------------
+@subsection Half Sync/Half Async
+@c -------------------------------------------------------------------
+
+The Half Sync/Half Async ORB Controller policy implements the ``Half
+Sync/Half Async'' design pattern: it discriminates between one thread
+dedicated to I/O monitoring that queue middleware jobs; another pool
+of threads dequeue jobs and process them.
+
+@i{Note: this pattern is well-suited to process computation-intensive
+requests.}
+
+@c -------------------------------------------------------------------
+@subsection Leader/Followers
+@c -------------------------------------------------------------------
+
+The Leader/Followers ORB Controller policy implements the
+``Leader/Followers '' design pattern: multiple tasks take turns to
+monitor I/O sources and then process requests that occur on the event
+sources.
+
+@i{Note: this pattern is adapted to process a lot of light requests.}
 
 @c -------------------------------------------------------------------
 @node PolyORB Tasking configuration
