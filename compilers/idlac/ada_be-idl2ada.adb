@@ -2166,7 +2166,7 @@ package body Ada_Be.Idl2Ada is
 
                else
 
-                  --  Case of a regular (non-local) interface
+                  --  Case of an unconstrained interface
 
                   declare
                      Response_Expected : constant Boolean
