@@ -287,6 +287,12 @@ package System.PolyORB_Interface is
       return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.Content_Type;
 
+   function Member_Type
+     (Self  : PolyORB.Any.TypeCode.Object;
+      Index : PolyORB.Types.Unsigned_Long)
+      return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.Member_Type;
+
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
      renames PolyORB.Any.NVList.Create;
@@ -390,6 +396,8 @@ package System.PolyORB_Interface is
    --  type for each Ada type should be selected, if cross-platform
    --  interoperability is desired.
 
+   function TC_Any return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Any;
    function TC_I return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TC_Long;
    function TC_LF return PolyORB.Any.TypeCode.Object
