@@ -2,13 +2,13 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                 S Y S T E M . G A R L I C . R E P L A Y                  --
+--       S Y S T E M . G A R L I C . P R O T O C O L S . R E P L A Y        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -62,7 +62,9 @@ package body System.Garlic.Protocols.Replay is
 
    Trace_Start : Time;
 
-   task type Engine_Type;
+   task type Engine_Type is
+      pragma Priority (System.Priority'Last);
+   end Engine_Type;
    type Engine_Type_Access is access Engine_Type;
    Engine : Engine_Type_Access;
    --  Reads and delivers the messages from the trace file
