@@ -155,7 +155,7 @@ package body CORBA.Repository_Root.Repository.Impl is
          when Pk_String =>
             IDL_Type := TC_String;
          when Pk_Objref =>
-            IDL_Type := TC_ObjRef;
+            IDL_Type := CORBA.TypeCode.TC_Object;
          when Pk_Longlong =>
             IDL_Type := TC_Long_Long;
          when Pk_Ulonglong =>

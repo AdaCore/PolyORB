@@ -157,7 +157,7 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := TC_Objref;
+      Result := CORBA.TypeCode.TC_Object;
       Add_Parameter (Result, To_Any (CORBA.String (Name)));
       Add_Parameter (Result, To_Any (CORBA.String (Id)));
       return Result;

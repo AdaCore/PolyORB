@@ -1335,8 +1335,9 @@ package body Ada_Be.Idl2Ada is
 
          when K_Type_Declarator =>
             declare
-               Is_Interface : constant Boolean
-                 := Is_Interface_Type (T_Type (Node));
+               Is_Ref : constant Boolean
+                 := Is_Interface_Type (T_Type (Node))
+                 or else Kind (T_Type (Node)) = K_Object;
                Is_Fixed : constant Boolean
                  := Kind (T_Type (Node)) = K_Fixed;
             begin
@@ -1356,7 +1357,7 @@ package body Ada_Be.Idl2Ada is
                           := not Is_Empty (Array_Bounds (Decl_Node));
                      begin
                         NL (CU);
-                        if Is_Interface
+                        if Is_Ref
                           and then not Is_Array then
                            --  A typedef where the <type_spec>
                            --  denotes an interface type, and
@@ -1388,7 +1389,7 @@ package body Ada_Be.Idl2Ada is
                            end loop;
                            Put (CU, ") of ");
                         else
-                           if not (Is_Interface or else Is_Fixed) then
+                           if not (Is_Ref or else Is_Fixed) then
                               Put (CU, "new ");
                            end if;
                         end if;
@@ -1531,15 +1532,16 @@ package body Ada_Be.Idl2Ada is
             PL (CU, ";");
 
          when K_ValueBase =>
-            null;
-         when K_Native =>
+            --  FIXME: Check that this is correct.
             null;
 
-         when K_Object =>
-            null;
---         when K_Any =>
---            null;
+         when K_Native =>
+            NL (CU);
+            PL (CU, "--  type " & Name (Declarator (Node))
+                & " is implementation defined;");
+
          when K_Void =>
+            --  FIXME: Probably cannot happen.
             null;
 
          when K_Fixed =>
@@ -1553,7 +1555,6 @@ package body Ada_Be.Idl2Ada is
       end case;
 
    end Gen_Node_Stubs_Spec;
-
 
    --------------------------
    -- Gen_Node_Stubs_Body  --
@@ -2088,6 +2089,10 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, "CORBA");
             Put (CU, Ada_Type_Name (Node));
 
+         when K_Object =>
+            Add_With (CU, "CORBA.Object");
+            Put (CU, Ada_Type_Name (Node));
+
          when K_Enumerator =>
             Put (CU, Ada_Name (Node));
 
@@ -2415,7 +2420,10 @@ package body Ada_Be.Idl2Ada is
                if True
                  and then Kind (P_Node) = K_Type_Declarator
                  and then Is_Empty (Array_Bounds (Node))
-                 and then Is_Interface_Type (T_Type (P_Node)) then
+                 and then
+                 (Is_Interface_Type (T_Type (P_Node))
+                  or else Kind (T_Type (P_Node)) = K_Object)
+               then
                   --  For a typedef of an interface type, the
                   --  dependance must be on the stream unit for
                   --  the scope that contains the actual definition.

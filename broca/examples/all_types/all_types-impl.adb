@@ -135,6 +135,30 @@ package body all_types.Impl is
       return arg;
    end echoRef;
 
+   function echoObject
+     (Self : access Object;
+      arg  : in CORBA.Object.Ref)
+     return CORBA.Object.Ref is
+   begin
+      return Arg;
+   end EchoObject;
+
+   function echoOtherAllTypes
+     (Self : access Object;
+      arg  : in all_types.otherAllTypes)
+     return all_types.OtherAllTypes is
+   begin
+      return Arg;
+   end EchootherAllTypes;
+
+   function echoOtherObject
+     (Self : access Object;
+      arg  : in all_types.otherObject)
+     return all_types.OtherObject is
+   begin
+      return Arg;
+   end Echootherobject;
+
    function echoColor
      (Self : access Object;
       arg  : in Color)

@@ -1188,12 +1188,12 @@ package body CORBA is
       end TC_Except;
 
       -----------------
-      --  TC_Objref  --
+      --  TC_Object  --
       -----------------
-      function TC_Objref return TypeCode.Object is
+      function TC_Object return TypeCode.Object is
       begin
-         return PTC_Objref;
-      end TC_Objref;
+         return PTC_Object;
+      end TC_Object;
 
       ----------------
       --  TC_Fixed  --

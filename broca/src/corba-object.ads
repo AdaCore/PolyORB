@@ -99,6 +99,8 @@ package CORBA.Object is
 
    Nil_Ref : constant Ref;
 
+   function TC_Object return CORBA.TypeCode.Object;
+
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;

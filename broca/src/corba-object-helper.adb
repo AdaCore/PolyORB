@@ -42,7 +42,7 @@ package body CORBA.Object.Helper is
       Result : Any;
    begin
       Set_Value (Result, new Content_ObjRef' (Value => Item));
-      Set_Type (Result, CORBA.TypeCode.TC_ObjRef);
+      Set_Type (Result, TC_Object);
       Inc_Usage (Result);
       return Result;
    end To_Any;

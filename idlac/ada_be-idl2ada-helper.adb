@@ -344,7 +344,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, Ada_TC_Name (Node)
           & " : CORBA.TypeCode.Object := ");
       II (CU);
-      PL (CU, "CORBA.TypeCode.TC_ObjRef;");
+      PL (CU, "CORBA.TypeCode.TC_Object;");
       DI (CU);
 
       --  From_Any
@@ -391,7 +391,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, Ada_TC_Name (Node)
           & " : CORBA.TypeCode.Object := ");
       II (CU);
-      PL (CU, "CORBA.TypeCode.TC_ObjRef;");
+      PL (CU, "CORBA.TypeCode.TC_Object;");
       DI (CU);
 
       --  From_Any
@@ -1677,16 +1677,13 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       Add_With (CU, "CORBA");
 
-      PL (CU, Ada_TC_Name (Node)
-          & " : CORBA.TypeCode.Object := CORBA.TypeCode.");
-
-      II (CU);
+      Put (CU, Ada_TC_Name (Node)
+           & " : CORBA.TypeCode.Object := CORBA.TypeCode.");
       if Is_Array then
          PL (CU, "TC_Array;");
       else
          PL (CU, "TC_Alias;");
       end if;
-      DI (CU);
 
       --  From_Any
 
@@ -2197,8 +2194,10 @@ package body Ada_Be.Idl2Ada.Helper is
    -- Ada_TC_Name --
    -----------------
 
-   function Ada_TC_Name (Node : Node_Id)
-                         return String is
+   function Ada_TC_Name
+     (Node : Node_Id)
+     return String
+   is
       NK : constant Node_Kind := Kind (Node);
       Prefix : constant String := "TC_";
    begin
@@ -2266,7 +2265,7 @@ package body Ada_Be.Idl2Ada.Helper is
             return Prefix & "Octet";
 
          when K_Object =>
-            return Prefix & "Object.Ref";
+            return Prefix & "Object";
 
          when K_Any =>
             return Prefix & "Any";
@@ -2289,8 +2288,10 @@ package body Ada_Be.Idl2Ada.Helper is
    -- Ada_Helper_Name --
    ---------------------
 
-   function Ada_Helper_Name (Node : in     Node_Id)
-                             return String is
+   function Ada_Helper_Name
+     (Node : in     Node_Id)
+     return String
+   is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
@@ -2332,9 +2333,11 @@ package body Ada_Be.Idl2Ada.Helper is
            K_String             |
            K_Wide_String        |
            K_Octet              |
-           K_Object             |
            K_Any                =>
             return "CORBA";
+
+         when K_Object =>
+            return "CORBA.Object.Helper";
 
          when others =>
             --  Improper use: node N is not

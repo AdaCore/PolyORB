@@ -33,10 +33,15 @@
 
 package CORBA.Object.Helper is
 
-   --  see comments of the corresponding methods in corba.ads
+   --  See comments of the corresponding methods in package CORBA
+
    function To_Any (Item : in CORBA.Object.Ref) return Any;
    function From_Any (Item : in Any) return CORBA.Object.Ref;
-   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
-                            Value : in CORBA.Object.Ref);
+   procedure Set_Any_Value
+     (Any_Value : in out CORBA.Any;
+      Value : in CORBA.Object.Ref);
+
+   function TC_Object return CORBA.TypeCode.Object
+     renames CORBA.Object.TC_Object;
 
 end CORBA.Object.Helper;

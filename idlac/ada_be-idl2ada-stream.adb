@@ -223,31 +223,27 @@ package body Ada_Be.Idl2Ada.Stream is
 
          when K_Type_Declarator =>
 
-            declare
-               Is_Interface : constant Boolean
-                 := Is_Interface_Type (T_Type (Node));
-            begin
-               if not Is_Interface then
+            if not (Is_Interface_Type (T_Type (Node))
+                    or else Kind (T_Type (Node)) = K_Object)
+            then
+               declare
+                  It   : Node_Iterator;
+                  Decl_Node : Node_Id;
+               begin
+                  Init (It, Declarators (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, Decl_Node);
 
-                  declare
-                     It   : Node_Iterator;
-                     Decl_Node : Node_Id;
-                  begin
-                     Init (It, Declarators (Node));
-                     while not Is_End (It) loop
-                        Get_Next_Node (It, Decl_Node);
-
-                        NL (CU);
-                        Gen_Marshall_Profile
-                          (CU, Decl_Node);
-                        PL (CU, ";");
-                        Gen_Unmarshall_Profile
-                          (CU, Decl_Node);
-                        PL (CU, ";");
-                     end loop;
-                  end;
-               end if;
-            end;
+                     NL (CU);
+                     Gen_Marshall_Profile
+                       (CU, Decl_Node);
+                     PL (CU, ";");
+                     Gen_Unmarshall_Profile
+                       (CU, Decl_Node);
+                     PL (CU, ";");
+                  end loop;
+               end;
+            end if;
 
          when others =>
             null;
@@ -801,108 +797,105 @@ package body Ada_Be.Idl2Ada.Stream is
 
          when K_Type_Declarator =>
 
-            declare
-               Is_Interface : constant Boolean
-                 := Is_Interface_Type (T_Type (Node));
-               Is_Fixed : constant Boolean
-                 := Kind (T_Type (Node)) = K_Fixed;
-            begin
-               if Is_Interface then
-                  null;
-               elsif Is_Fixed then
-                  declare
-                     Decl_Node : constant Node_Id
-                       := Head (Declarators (Node));
-                     Type_Name : constant String
-                       := Ada_Name (Decl_Node);
-                  begin
-                     NL (CU);
-                     PL (CU, "package CDR_"
-                         & Type_Name & " is");
-                     PL (CU, "  new Broca.CDR.Fixed_Point ("
-                         & Type_Name & ");");
+            if  Is_Interface_Type (T_Type (Node))
+              or else Kind (T_Type (Node)) = K_Object
+            then
+               return;
+            end if;
 
-                     Gen_Marshall_Profile
-                       (CU, Decl_Node);
-                     PL (CU, " renames CDR_" & Type_Name
-                         & ".Marshall;");
-                     Gen_Unmarshall_Profile
-                       (CU, Decl_Node);
-                     PL (CU, " renames CDR_" & Type_Name
-                         & ".Unmarshall;");
-                  end;
-               else
-                  declare
-                     Base_Type_Name : constant String
-                       := Ada_Type_Name (T_Type (Node));
+            if Kind (T_Type (Node)) = K_Fixed then
+               declare
+                  Decl_Node : constant Node_Id
+                    := Head (Declarators (Node));
+                  Type_Name : constant String
+                    := Ada_Name (Decl_Node);
+               begin
+                  NL (CU);
+                  PL (CU, "package CDR_"
+                      & Type_Name & " is");
+                  PL (CU, "  new Broca.CDR.Fixed_Point ("
+                      & Type_Name & ");");
 
-                     It   : Node_Iterator;
-                     Decl_Node : Node_Id;
-                  begin
-                     Add_With_Stream (CU, T_Type (Node));
-                     Init (It, Declarators (Node));
-                     while not Is_End (It) loop
-                        Get_Next_Node (It, Decl_Node);
+                  Gen_Marshall_Profile
+                    (CU, Decl_Node);
+                  PL (CU, " renames CDR_" & Type_Name
+                      & ".Marshall;");
+                  Gen_Unmarshall_Profile
+                    (CU, Decl_Node);
+                  PL (CU, " renames CDR_" & Type_Name
+                      & ".Unmarshall;");
+               end;
+            else
+               declare
+                  Base_Type_Name : constant String
+                    := Ada_Type_Name (T_Type (Node));
 
-                        declare
-                           Type_Name : constant String
-                             := Ada_Type_Name (Decl_Node);
-                           Array_Dimensions : constant Natural
-                             := Length (Array_Bounds (Decl_Node));
-                        begin
+                  It   : Node_Iterator;
+                  Decl_Node : Node_Id;
+               begin
+                  Add_With_Stream (CU, T_Type (Node));
+                  Init (It, Declarators (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, Decl_Node);
+
+                     declare
+                        Type_Name : constant String
+                          := Ada_Type_Name (Decl_Node);
+                        Array_Dimensions : constant Natural
+                          := Length (Array_Bounds (Decl_Node));
+                     begin
+                        NL (CU);
+                        Gen_Marshall_Profile
+                          (CU, Decl_Node);
+                        PL (CU, " is");
+                        PL (CU, "begin");
+                        II (CU);
+                        if Array_Dimensions /= 0 then
+                           Gen_Array_Iterator
+                             (CU, "Val", Array_Dimensions,
+                              "Marshall (Buffer, Val %);");
+                        else
+                           PL (CU, "Marshall");
+                           PL (CU, "  (Buffer,");
+                           PL (CU, "   "
+                               & Base_Type_Name
+                               & " (Val));");
+                        end if;
+                        DI (CU);
+                        PL (CU, "end Marshall;");
+
+                        NL (CU);
+                        Gen_Unmarshall_Profile
+                          (CU, Decl_Node);
+                        if Array_Dimensions /= 0 then
                            NL (CU);
-                           Gen_Marshall_Profile
-                             (CU, Decl_Node);
+                           PL (CU, "is");
+                           II (CU);
+                           PL (CU, T_Returns & " : " & Type_Name & ";");
+                           DI (CU);
+                           PL (CU, "begin");
+                           II (CU);
+
+                           Gen_Array_Iterator
+                             (CU, T_Returns, Array_Dimensions,
+                              T_Returns & " % := Unmarshall (Buffer);");
+
+                           PL (CU, "return " & T_Returns & ";");
+                        else
                            PL (CU, " is");
                            PL (CU, "begin");
                            II (CU);
-                           if Array_Dimensions /= 0 then
-                              Gen_Array_Iterator
-                                (CU, "Val", Array_Dimensions,
-                                 "Marshall (Buffer, Val %);");
-                           else
-                              PL (CU, "Marshall");
-                              PL (CU, "  (Buffer,");
-                              PL (CU, "   "
-                                  & Base_Type_Name
-                                  & " (Val));");
-                           end if;
-                           DI (CU);
-                           PL (CU, "end Marshall;");
+                           PL (CU, "return " & Type_Name);
+                           PL (CU, "  (" & Base_Type_Name & "'");
+                           PL (CU, "   (Unmarshall (Buffer)));");
+                        end if;
 
-                           NL (CU);
-                           Gen_Unmarshall_Profile
-                             (CU, Decl_Node);
-                           if Array_Dimensions /= 0 then
-                              NL (CU);
-                              PL (CU, "is");
-                              II (CU);
-                              PL (CU, T_Returns & " : " & Type_Name & ";");
-                              DI (CU);
-                              PL (CU, "begin");
-                              II (CU);
-
-                              Gen_Array_Iterator
-                                (CU, T_Returns, Array_Dimensions,
-                                 T_Returns & " % := Unmarshall (Buffer);");
-
-                              PL (CU, "return " & T_Returns & ";");
-                           else
-                              PL (CU, " is");
-                              PL (CU, "begin");
-                              II (CU);
-                              PL (CU, "return " & Type_Name);
-                              PL (CU, "  (" & Base_Type_Name & "'");
-                              PL (CU, "   (Unmarshall (Buffer)));");
-                           end if;
-
-                           DI (CU);
-                           PL (CU, "end Unmarshall;");
-                        end;
-                     end loop;
-                  end;
-               end if;
-            end;
+                        DI (CU);
+                        PL (CU, "end Unmarshall;");
+                     end;
+                  end loop;
+               end;
+            end if;
 
          when
            K_Interface         |

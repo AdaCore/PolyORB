@@ -216,4 +216,7 @@ package body CORBA.Object is
         (Value => Content_ObjRef_Ptr (Object).Value);
    end Duplicate;
 
+   function TC_Object return CORBA.TypeCode.Object
+     renames CORBA.TypeCode.TC_Object;
+
 end CORBA.Object;

@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+with CORBA.Object;
 with PortableServer;
 
 package all_types.Impl is
@@ -92,6 +93,21 @@ package all_types.Impl is
      (Self : access Object;
       arg : in all_types.Ref)
       return all_types.Ref;
+
+   function echoObject
+     (Self : access Object;
+      arg  : in CORBA.Object.Ref)
+     return CORBA.Object.Ref;
+
+   function echoOtherAllTypes
+     (Self : access Object;
+      arg  : in all_types.otherAllTypes)
+     return all_types.otherAllTypes;
+
+   function echoOtherObject
+     (Self : access Object;
+      arg  : in all_types.otherObject)
+     return all_types.otherObject;
 
    function echoColor
      (Self : access Object;

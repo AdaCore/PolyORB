@@ -1771,7 +1771,7 @@ package body Broca.CDR is
          when 13 =>
             Result := CORBA.TypeCode.TC_Principal;
          when 14 =>
-            Result := CORBA.TypeCode.TC_ObjRef;
+            Result := CORBA.TypeCode.TC_Object;
             declare
                Id : CORBA.String := Unmarshall (Buffer);
                Name : CORBA.String := Unmarshall (Buffer);

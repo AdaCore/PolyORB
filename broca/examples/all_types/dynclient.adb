@@ -455,7 +455,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_ObjRef),
+                 Argument => Get_Empty_Any
+                 (CORBA.Object.Helper.TC_Object),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,

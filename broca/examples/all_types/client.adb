@@ -30,6 +30,7 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;
 
 with CORBA; use CORBA;
+with CORBA.Object;
 with CORBA.ORB;
 
 with all_types.Helper; use all_types, all_types.Helper;
@@ -206,6 +207,18 @@ begin
             X := echoRef (X, X);
          end loop;
          Output ("test self reference", echoLong (X, 31337) = 31337);
+
+         X := Echootheralltypes (X, X);
+         Output ("test self reference typedef", echoLong (X, 31337) = 31337);
+
+         X := All_Types.Helper.To_Ref
+           (EchoObject (X, CORBA.Object.Ref (X)));
+         Output ("test object", echoLong (X, 23459) = 23459);
+
+         X := All_Types.Helper.To_Ref
+           (EchootherObject (X, CORBA.Object.Ref (X)));
+         Output ("test object typedef", echoLong (X, 34563) = 34563);
+
       end;
 
       exit when One_Shot;

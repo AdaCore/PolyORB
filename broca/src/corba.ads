@@ -555,7 +555,7 @@ package CORBA is
       function TC_Enum               return TypeCode.Object;
       function TC_Alias              return TypeCode.Object;
       function TC_Except             return TypeCode.Object;
-      function TC_ObjRef             return TypeCode.Object;
+      function TC_Object             return TypeCode.Object;
       function TC_Fixed              return TypeCode.Object;
       function TC_Sequence           return TypeCode.Object;
       function TC_Array              return TypeCode.Object;
@@ -655,7 +655,7 @@ package CORBA is
       PTC_Enum               : constant Object := (Tk_Enum, null);
       PTC_Alias              : constant Object := (Tk_Alias, null);
       PTC_Except             : constant Object := (Tk_Except, null);
-      PTC_Objref             : constant Object := (Tk_Objref, null);
+      PTC_Object             : constant Object := (Tk_Objref, null);
       PTC_Fixed              : constant Object := (Tk_Fixed, null);
       PTC_Sequence           : constant Object := (Tk_Sequence, null);
       PTC_Array              : constant Object := (Tk_Array, null);
@@ -702,13 +702,11 @@ package CORBA is
      renames TypeCode.TC_Any;
    function TC_TypeCode           return TypeCode.Object
      renames TypeCode.TC_TypeCode;
-   function TC_ObjRef             return TypeCode.Object
-     renames TypeCode.TC_ObjRef;
    function TC_String             return TypeCode.Object
      renames TypeCode.TC_String;
    function TC_Wide_String        return TypeCode.Object
      renames TypeCode.TC_Wide_String;
-
+   --  function TC_Object is in CORBA.Object.
 
    -----------
    --  Any  --
