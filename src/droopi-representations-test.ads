@@ -25,6 +25,16 @@ package Droopi.Representations.Test is
    --  The following methods are specific to Rep_Test and are
    --  here only to facilitate testing of other parts of the ORB.
 
+   procedure Marshall_Char
+     (B : access Buffer_Type;
+      C : Character);
+   --  Marshall one character.
+
+   function Unmarshall_Char
+     (B : access Buffer_Type)
+     return Character;
+   --  Unmarshall one character.
+
    procedure Marshall_String
      (R : access Rep_Test;
       B : access Buffer_Type;

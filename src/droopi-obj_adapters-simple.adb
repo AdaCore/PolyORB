@@ -72,7 +72,7 @@ package body Droopi.Obj_Adapters.Simple is
          M : constant Element_Array := To_Element_Array (OA.Object_Map);
          New_Id : Integer := M'Last + 1;
       begin
-     Map :
+         Map :
          for I in M'Range loop
             if M (I).Servant = null then
                Replace_Element

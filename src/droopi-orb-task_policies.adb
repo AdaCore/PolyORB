@@ -1,12 +1,12 @@
 --  $Id$
 
 with Droopi.Components;
-with Droopi.Filters;
+with Droopi.Filters.Interface;
 
 package body Droopi.ORB.Task_Policies is
 
    use Droopi.Components;
-   use Droopi.Filters.Data_Units;
+   use Droopi.Filters.Interface;
 
    procedure Handle_New_Connection
      (P   : access No_Tasking;
@@ -19,6 +19,8 @@ package body Droopi.ORB.Task_Policies is
            := Components.Emit
            (Component_Access (C.TE),
             Connect_Indication'(null record));
+         pragma Warnings (Off, Reply);
+         --  Reply is ignored.
       begin
          null;
       end;

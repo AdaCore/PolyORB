@@ -79,6 +79,8 @@ package body Droopi.Components is
             declare
                Reply : constant Message'Class
                  := Handle_Message (Members (I), Msg);
+               pragma Warnings (Off, Reply);
+               --  Reply is ignored.
             begin
                Handled := True;
             end;

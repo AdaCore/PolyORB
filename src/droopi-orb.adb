@@ -6,6 +6,7 @@ with Ada.Exceptions;
 with Droopi.Annotations;
 with Droopi.Components;
 with Droopi.Filters;
+with Droopi.Filters.Interface;
 with Droopi.Log;
 with Droopi.Soft_Links;
 with Droopi.Transport;
@@ -146,7 +147,10 @@ package body Droopi.ORB is
       procedure Set_Server (F : Filter_Access; S : Server_Access)
       is
          Reply : constant Message'Class
-           := Emit (Component_Access (F), Filters.Data_Units.Set_Server'(Server => S));
+           := Emit (Component_Access (F),
+                    Filters.Interface.Set_Server'(Server => S));
+         pragma Warnings (Off, Reply);
+         --  Reply is ignored.
       begin
          null;
       end Set_Server;
@@ -197,8 +201,10 @@ package body Droopi.ORB is
                declare
                   Reply : constant Components.Message'Class
                     := Emit (Component_Access (Note.D.TE),
-                             Filters.Data_Units.Data_Indication'
+                             Filters.Interface.Data_Indication'
                              (null record));
+                  pragma Warnings (Off, Reply);
+                  --  Reply is ignored.
                begin
                   Insert_Source (ORB, AES);
                   --  Continue monitoring this source.

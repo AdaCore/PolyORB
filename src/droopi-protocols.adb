@@ -3,11 +3,12 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
+with Droopi.Filters.Interface;
 
 package body Droopi.Protocols is
 
    use Droopi.Components;
-   use Droopi.Filters.Data_Units;
+   use Droopi.Filters.Interface;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Session'Class, Session_Access);
@@ -47,6 +48,8 @@ package body Droopi.Protocols is
         := Emit (Port   => Lower (S),
                  Msg    => Data_Expected'
                  (In_Buf => In_Buf, Max => 1024));
+      pragma Warnings (Off, Reply);
+      --  Reply is ignored.
    begin
       null;
    end Expect_Data;

@@ -3,12 +3,12 @@
 
 --  $Id$
 
-with Droopi.Filters;
+with Droopi.Filters.Interface;
 with Droopi.Log;
 
 package body Droopi.Transport is
 
-   use Droopi.Filters.Data_Units;
+   use Droopi.Filters.Interface;
    use Droopi.Log;
 
    package L is new Droopi.Log.Facility_Log ("droopi.transport");
