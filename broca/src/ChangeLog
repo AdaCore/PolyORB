@@ -1,3 +1,7 @@
+1999-08-25  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* all files: Buffer_Descriptor is now encapsulated.
+
 1999-08-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* broca-buffers.adb, broca-buffers.ads, broca-exceptions.adb,

@@ -4,6 +4,7 @@ with CORBA.Iop;
 with CORBA.Object;
 with Broca.Exceptions;
 with Broca.Marshalling;
+with Broca.Buffers;
 with Broca.Refs;
 with Broca.Object;
 with Broca.Repository;
@@ -25,12 +26,14 @@ package body Broca.Orb is
       Tag : CORBA.Iop.Profile_Id;
       Type_Id : CORBA.String;
       Obj : Broca.Object.Object_Acc;
+      Endianess : Boolean;
    begin
       pragma Debug (O ("Ior_To_Object : enter"));
       --  The IOR is an encapsulation (defined in 13.3.3) as described in
       --  11.6.6
       --  Extract the endianness
-      Unmarshall (Ior, Ior.Little_Endian);
+      Unmarshall (Ior, Endianess);
+      Broca.Buffers.Set_Endianess (IOR, Endianess);
 
       --  Unmarshall type id.
       Unmarshall (Ior, Type_Id);
@@ -42,7 +45,7 @@ package body Broca.Orb is
             --  FIXME:
             --  No classes for the string was found.
             --  What can be done ?
-	    pragma Debug (O ("Ior_To_Object : A_Ref is nil"));
+            pragma Debug (O ("Ior_To_Object : A_Ref is nil"));
             Broca.Refs.Set (Broca.Refs.Ref (Res), null);
             return;
          end if;

@@ -17,13 +17,13 @@ package body CORBA.Orb is
       Buffer : Broca.Buffers.Buffer_Descriptor;
    begin
       pragma Debug (O ("String_To_Object : enter"));
-      Buffer.Buffer := Broca.Ior.Ior_String_To_Buffer (From);
+      Buffer := Broca.Ior.Ior_String_To_Buffer (From);
       Broca.Orb.IOR_To_Object (Buffer, To);
       if Corba.Object.Is_Nil(To) then
          pragma Debug (O ("String_To_Object : null object returned"));
          null;
       end if;
-      Free (Buffer.Buffer);
+      Destroy (Buffer);
    end String_To_Object;
 
    function List_Initial_Services return ObjectIdList

@@ -105,6 +105,32 @@ package body Broca.Buffers is
    end Compute_New_Size;
 
    ----------
+   -- Copy --
+   ----------
+
+   procedure Copy
+     (Source : in Buffer_Descriptor;
+      Target : out Buffer_Descriptor) is
+   begin
+      Target := Source;
+      if Source.Buffer /= null then
+         Target.Buffer := new Buffer_Type'(Source.Buffer.all);
+      end if;
+   end Copy;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (Buffer : in out Buffer_Descriptor) is
+   begin
+      if Buffer.Buffer /= null then
+         Free (Buffer.Buffer);
+      end if;
+      Buffer.Pos := 0;
+   end Destroy;
+
+   ----------
    -- Dump --
    ----------
 

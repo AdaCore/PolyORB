@@ -666,7 +666,7 @@ package body Broca.Rootpoa is
       Broca.Server.Build_Ior
         (Obj.Ior, Type_Id, Broca.Poa.POA_Object_Access (Self), Key);
 
-      Broca.Buffers.Free (Key.Buffer);
+      Broca.Buffers.Destroy (Key);
 
       Broca.Server.Log ("ObjectId created");
 

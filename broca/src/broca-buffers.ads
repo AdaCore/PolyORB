@@ -7,6 +7,8 @@ package Broca.Buffers is
    --  True if this machine use little endian byte order.
    Is_Little_Endian : Boolean;
 
+   type Buffer_Descriptor is private;
+
    --  Buffer to/from network before unmarshalling or after marshalling.
    --  Must start at 0, according to CORBA V2.2 13.3
 
@@ -14,16 +16,6 @@ package Broca.Buffers is
    type Buffer_Index_Type is mod 2 ** 32;
    type Buffer_Type is array (Buffer_Index_Type range <>) of Byte;
    type Buffer_Access is access Buffer_Type;
-
-   --  A buffer with the current position, as needed by unmarshall and
-   --  endianness.
-   type Buffer_Descriptor is
-      record
-         Pos           : Buffer_Index_Type := 0;
-         Little_Endian : Boolean := False;
-         Write         : Boolean := True;
-         Buffer        : Buffer_Access := null;
-      end record;
 
    subtype Alignment_Type is Buffer_Index_Type range 1 .. 8;
 
@@ -63,6 +55,12 @@ package Broca.Buffers is
       Align  : in Alignment_Type;
       Size   : in Buffer_Index_Type);
 
+   procedure Copy
+     (Source : in Buffer_Descriptor;
+      Target : out Buffer_Descriptor);
+
+   procedure Destroy (Buffer : in out Buffer_Descriptor);
+
    procedure Dump (Buffer : in Buffer_Type);
    --  Display Buffer
 
@@ -73,9 +71,6 @@ package Broca.Buffers is
    --  Extract Length bytes from Source, update position of Source and
    --  copy it to Target. Pos is reset before copying and not updated,
    --  and Little_Endian flag is copied from Source.
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Buffer_Type, Buffer_Access);
 
    function Get_Endianess (Buffer : Buffer_Descriptor) return Boolean;
 
@@ -101,5 +96,20 @@ package Broca.Buffers is
       Bytes   : in Buffer_Type);
    pragma Inline (Write);
    --  Write into Buffer an array of bytes
+
+private
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation (Buffer_Type, Buffer_Access);
+
+   --  A buffer with the current position, as needed by unmarshall and
+   --  endianness.
+   type Buffer_Descriptor is
+      record
+         Pos           : Buffer_Index_Type := 0;
+         Little_Endian : Boolean := False;
+         Write         : Boolean := True;
+         Buffer        : Buffer_Access := null;
+      end record;
 
 end Broca.Buffers;

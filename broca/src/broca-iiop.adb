@@ -47,6 +47,7 @@ package body Broca.Iiop is
       Nbr_Seq : CORBA.Unsigned_Long;
       Profile_Length : CORBA.Unsigned_Long;
       Old_Endian : CORBA.Boolean;
+      New_Endian : CORBA.Boolean;
    begin
       Res := new Profile_Iiop_Type;
 
@@ -54,8 +55,9 @@ package body Broca.Iiop is
       Unmarshall (Buffer, Profile_Length);
 
       --  profile_data is an encapsulation, so extract little_endian now.
-      Old_Endian := Buffer.Little_Endian;
-      Unmarshall (Buffer, Buffer.Little_Endian);
+      Old_Endian := Get_Endianess (Buffer);
+      Unmarshall (Buffer, New_Endian);
+      Set_Endianess (Buffer, New_Endian);
 
       --  Extract version.
       Unmarshall (Buffer, Res.Iiop_Version.Major);
@@ -86,7 +88,7 @@ package body Broca.Iiop is
       Profile := Res.all'Access;
 
       --  Restore little_endian flag of buffer.
-      Buffer.Little_Endian := Old_Endian;
+      Set_Endianess (Buffer, Old_Endian);
    end Create_Profile;
 
    procedure Create_Socket_Address (Profile : in out Profile_Iiop_Type);

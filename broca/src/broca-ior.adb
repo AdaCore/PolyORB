@@ -6,48 +6,46 @@ package body Broca.Ior is
 
    --  Convert a string representing an IOR, as decribed in CORBA V2.2 11.6.6,
    --  into a buffer ready for unmarshalling.
-   function Ior_String_To_Buffer (Str : CORBA.String) return Buffer_Access is
+   function Ior_String_To_Buffer (IOR : CORBA.String) return Buffer_Descriptor is
       package U renames Ada.Strings.Unbounded;
-      Unbounded_Str : constant U.Unbounded_String := U.Unbounded_String (Str);
-      Res : Buffer_Access;
-      Length : Natural;
-      El : Character;
-      Nibble : CORBA.Octet;
-      Res_Index : Buffer_Index_Type;
+      S      : constant String := To_Standard_String (IOR);
+      Buffer : Buffer_Descriptor;
+      Length : Natural := S'Length;
    begin
-      Length := U.Length (Unbounded_Str);
-
       --  Check the prefix.
       if Length <= 4
         or else Length mod 2 /= 0
-        or else Slice (Str, 1, 4) /= "IOR:" then
+        or else S (S'First .. S'First + 3) /= "IOR:" then
          Broca.Exceptions.Raise_Bad_Param;
       end if;
 
-      --  The prefix is 4 characters long and there is one octet
-      --  for 2 characters.
-      Res := new Buffer_Type (0 .. Buffer_Index_Type ((Length - 4) / 2 - 1));
-      Res_Index := 0;
-      for I in 5 .. Length loop
-         El := CORBA.Element (Str, I);
-         if El >= '0' and then El <= '9' then
-            Nibble := Character'Pos (El) - Character'Pos ('0');
-         elsif El >= 'A' and then El <= 'F' then
-            Nibble := 10 + Character'Pos (El) - Character'Pos ('A');
-         elsif El >= 'a' and then El <= 'f' then
-            Nibble := 10 + Character'Pos (El) - Character'Pos ('a');
-         else
-            Free (Res);
-            Broca.Exceptions.Raise_Bad_Param;
-         end if;
-         if I mod 2 = 1 then
-            Res (Res_Index) := Byte (Nibble * 16);
-         else
-            Res (Res_Index) := Res (Res_Index) + Byte (Nibble);
-            Res_Index := Res_Index + 1;
-         end if;
-      end loop;
-      return Res;
+      --  Prefix is 4 characters long, then 1 octet for 2 characters.
+      declare
+         Index : Buffer_Index_Type := 0;
+         Bytes : Buffer_Type (0 .. Buffer_Index_Type ((Length - 4) / 2 - 1));
+         O     : Byte;
+      begin
+         for I in S'First + 4 .. S'Last loop
+            if S (I) >= '0' and then S (I) <= '9' then
+               O := Character'Pos (S (I)) - Character'Pos ('0');
+            elsif S (I) >= 'A' and then S (I) <= 'F' then
+               O := 10 + Character'Pos (S (I)) - Character'Pos ('A');
+            elsif S (I) >= 'a' and then S (I) <= 'f' then
+               O := 10 + Character'Pos (S (I)) - Character'Pos ('a');
+            else
+               Broca.Exceptions.Raise_Bad_Param;
+            end if;
+            if I mod 2 = 1 then
+               Bytes (Index) := O * 16;
+            else
+               Bytes (Index) := Bytes (Index) + O;
+               Index := Index + 1;
+            end if;
+         end loop;
+         Allocate_Buffer_And_Clear_Pos (Buffer, Bytes'Last + 1);
+         Write (Buffer, Bytes);
+      end;
+      return Buffer;
    end Ior_String_To_Buffer;
 
    type Char_Array is array (Byte range <>) of Character;
@@ -59,25 +57,19 @@ package body Broca.Ior is
      (Buffer : Buffer_Descriptor)
      return CORBA.String
    is
-      Target : CORBA.String;
-      Len : Natural;
+      Length : Buffer_Index_Type := Size (Buffer);
+      Bytes  : Buffer_Type (0 .. Length - 1);
+      IOR    : String (1 .. 4 + Natural (Length) * 2);
+      Local  : Buffer_Descriptor := Buffer;
    begin
-      Len := Natural (Size (Buffer));
-      Target := To_Unbounded_String (4 + 2 * Len);
+      Read (Local, Bytes);
+      IOR (1 .. 4) := "IOR:";
 
-      Replace_Element (Target, 1, 'I');
-      Replace_Element (Target, 2, 'O');
-      Replace_Element (Target, 3, 'R');
-      Replace_Element (Target, 4, ':');
-      for I in 0 .. Len - 1 loop
-         Replace_Element
-           (Target, 5 + 2 * I,
-            Xdigits (Buffer.Buffer (Buffer_Index_Type (I)) / 16));
-         Replace_Element
-           (Target, 5 + 2 * I + 1,
-            Xdigits (Buffer.Buffer (Buffer_Index_Type (I)) mod 16));
+      for I in Bytes'Range loop
+         IOR (5 + 2 * Natural (I)) := Xdigits (Bytes (I) / 16);
+         IOR (6 + 2 * Natural (I)) := Xdigits (Bytes (I) mod 16);
       end loop;
-      return Target;
+      return To_CORBA_String (IOR);
    end Buffer_To_Ior_String;
 
 end Broca.Ior;

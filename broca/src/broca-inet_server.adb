@@ -131,7 +131,7 @@ package body Broca.Inet_Server is
    Fd_Server_Id : Broca.Server.Server_Id_Type;
    Fd_Pos : Integer;
 
-   procedure Signal_Poll_Set_Change 
+   procedure Signal_Poll_Set_Change
    is
       C : aliased constant Character := Character'Val (0);
    begin
@@ -239,11 +239,14 @@ package body Broca.Inet_Server is
       use Broca.Marshalling;
       use Sockets.Constants;
       use Interfaces.C;
+      use Broca.Giop;
       Res : C.int;
       Sock : Interfaces.C.int;
       Sock_Name : Sockaddr_In;
       Size : aliased C.int;
       The_Fd_Pos : Integer;
+      Bytes : Buffer_Type (0 .. Message_Header_Size - 1);
+
    begin
       Broca.Server.Log ("polling");
       << Again >> null;
@@ -298,10 +301,7 @@ package body Broca.Inet_Server is
       end if;
 
       --  Receive a message header
-      Allocate_Buffer_And_Clear_Pos
-        (Buffer, Broca.Giop.Message_Header_Size);
-      Res := C_Recv (Sock, Buffer.Buffer.all'Address,
-                     Broca.Giop.Message_Header_Size, 0);
+      Res := C_Recv (Sock, Bytes'Address, Message_Header_Size, 0);
       if Res <= 0 then
          if Broca.Flags.Log then
             if Res < 0 then
@@ -326,6 +326,10 @@ package body Broca.Inet_Server is
       elsif Res /= Broca.Giop.Message_Header_Size then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
+
+      Allocate_Buffer_And_Clear_Pos
+        (Buffer, Broca.Giop.Message_Header_Size);
+      Write (Buffer, Bytes);
 
       --  The message was accepted.
       The_Fd_Pos := Fd_Pos;
@@ -392,7 +396,7 @@ package body Broca.Inet_Server is
       --  Key.
       Compute_New_Size (IOR, Object_Key);
    end Marshall_Size_Profile;
- 
+
    ----------------------
    -- Marshall_Profile --
    ----------------------

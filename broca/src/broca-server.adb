@@ -459,7 +459,7 @@ package body Broca.Server is
          --  The queue is FIFO, but in fact, it acts as if there were a queue
          --  for each POA.
 
-         --  Append a request.
+         --  Append a request. Make a copy of buffer.
          procedure Append (Stream : Broca.Stream.Stream_Acc;
                            Buffer : Buffer_Descriptor;
                            Poa : Broca.Poa.POA_Object_Access);
@@ -591,7 +591,7 @@ package body Broca.Server is
                Head := Head.Next;
             end if;
             --  Free the memory associed with BUFFER, since it is overwritten.
-            Free (Buffer.Buffer);
+            Destroy (Buffer);
             Stream := Cell.Stream;
             Buffer := Cell.Bd;
             Poa := Cell.Poa;
@@ -663,12 +663,14 @@ package body Broca.Server is
                            Buffer : Buffer_Descriptor;
                            Poa : Broca.Poa.POA_Object_Access)
          is
-            Cell : Request_Cell_Acc;
+            Cell  : Request_Cell_Acc;
+            Local : Buffer_Descriptor;
          begin
+            Copy (Buffer, Local);
             Cell := new Request_Cell_Type'
               (Poa => Poa,
                Stream => Stream,
-               Bd => Buffer,
+               Bd => Local,
                Next => null);
             if Head = null then
                if Tail /= null then
@@ -846,7 +848,7 @@ package body Broca.Server is
 
             --  Queue this request
             Queues.Hold_Queue.Append (Stream, Copy, Poa);
-            Buffer.Buffer := null;
+            Destroy (Buffer);
 
          when Inactive =>
             Poa.Link_Lock.Unlock_R;
@@ -867,7 +869,7 @@ package body Broca.Server is
             Unlock_Send (Stream);
 
       end case;
-      Free (Key.Buffer);
+      Destroy (Key);
       pragma Debug (O ("Handle_Request : leave"));
    exception
       when Broca.Stream.Connection_Closed =>
@@ -929,7 +931,7 @@ package body Broca.Server is
             Lock_Send (Stream);
             Send (Stream, Buffer);
             Unlock_Send (Stream);
-            Free (Key.Buffer);
+            Destroy (Key);
 
          when others =>
             Broca.Exceptions.Raise_Comm_Failure;
@@ -1018,7 +1020,7 @@ package body Broca.Server is
          Marshall_Profile (Server, Ior, Object_Key);
       end loop;
 
-      Free (Object_Key.Buffer);
+      Destroy (Object_Key);
 
       Target := IOR;
    end Build_Ior;

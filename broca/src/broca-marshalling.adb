@@ -339,7 +339,7 @@ package body Broca.Marshalling is
    begin
       Align_Size (Buffer, US_Size);
       Read (Buffer, Bytes);
-      if Buffer.Little_Endian /= Is_Little_Endian then
+      if Get_Endianess (Buffer) /= Is_Little_Endian then
          Revert (Bytes);
       end if;
       Result := Buffer_Type_To_Unsigned_Short (Bytes);
@@ -353,7 +353,7 @@ package body Broca.Marshalling is
    begin
       Align_Size (Buffer, S_Size);
       Read (Buffer, Bytes);
-      if Buffer.Little_Endian /= Is_Little_Endian then
+      if Get_Endianess (Buffer) /= Is_Little_Endian then
          Revert (Bytes);
       end if;
       Result := Buffer_Type_To_Short (Bytes);
@@ -367,7 +367,7 @@ package body Broca.Marshalling is
    begin
       Align_Size (Buffer, UL_Size);
       Read (Buffer, Bytes);
-      if Buffer.Little_Endian /= Is_Little_Endian then
+      if Get_Endianess (Buffer) /= Is_Little_Endian then
          Revert (Bytes);
       end if;
       Result := Buffer_Type_To_Unsigned_Long (Bytes);
@@ -381,7 +381,7 @@ package body Broca.Marshalling is
    begin
       Align_Size (Buffer, L_Size);
       Read (Buffer, Bytes);
-      if Buffer.Little_Endian /= Is_Little_Endian then
+      if Get_Endianess (Buffer) /= Is_Little_Endian then
          Revert (Bytes);
       end if;
       Result := Buffer_Type_To_Long (Bytes);
@@ -395,7 +395,7 @@ package body Broca.Marshalling is
    begin
       Align_Size (Buffer, F_Size);
       Read (Buffer, Bytes);
-      if Buffer.Little_Endian /= Is_Little_Endian then
+      if Get_Endianess (Buffer) /= Is_Little_Endian then
          Revert (Bytes);
       end if;
       Result := Buffer_Type_To_Float (Bytes);
@@ -409,7 +409,7 @@ package body Broca.Marshalling is
    begin
       Align_Size (Buffer, D_Size);
       Read (Buffer, Bytes);
-      if Buffer.Little_Endian /= Is_Little_Endian then
+      if Get_Endianess (Buffer) /= Is_Little_Endian then
          Revert (Bytes);
       end if;
       Result := Buffer_Type_To_Double (Bytes);
