@@ -45,19 +45,12 @@ with MOMA.Message_Consumers;
 with MOMA.Sessions;
 with MOMA.Types;
 
+with PolyORB.Annotations;
 with PolyORB.References;
 
 package MOMA.Message_Handlers is
 
    use MOMA.Types;
-
-   type Call_Back_Data is tagged null record;
-   --  The Call_Back_Data object is to be used by Handler and Notifier
-   --  procedures. The content of a Call_Back_Data object is up to the client,
-   --  depending of what the Call_Back purpose is, thus this type has to be
-   --  derived.
-
-   type Call_Back_Data_Acc is access all Call_Back_Data;
 
    type Message_Handler is private;
    --  Self_Ref is the reference to the Message_Handler Servant.
@@ -93,10 +86,6 @@ package MOMA.Message_Handlers is
    --  If the behavior is Handle and no Handler_Procedure is provided, the
    --  incoming messages will be lost.
 
-   function Get_Call_Back_Data (Self : access Message_Handler)
-      return Call_Back_Data_Acc;
-   --  Get the access the Call_Back_Data object
-
    function Get_Consumer (Self : access Message_Handler)
       return MOMA.Message_Consumers.Message_Consumer;
 
@@ -108,15 +97,15 @@ package MOMA.Message_Handlers is
       return Notifier;
    --  Get the Notifier procedure.
 
+   function Notepad_Of
+     (Handler : access Message_Handler)
+     return PolyORB.Annotations.Notepad_Access;
+
    procedure Set_Behavior (
       Self           : access Message_Handler;
       New_Behavior   : in MOMA.Types.Call_Back_Behavior);
    --  Set the Behavior. A request is sent to the actual servant if the
    --  behavior has changed.
-
-   procedure Set_Call_Back_Data (Self : access Message_Handler;
-                                 Call_Back_Object : access Call_Back_Data);
-   --  Set the Call_Back_Data object
 
    procedure Set_Handler (
       Self                    : access Message_Handler;
@@ -148,7 +137,7 @@ private
       Handler_Procedure    : Handler := null;
       Notifier_Procedure   : Notifier := null;
       Behavior             : MOMA.Types.Call_Back_Behavior := None;
-      Call_Back_Object     : Call_Back_Data_Acc := null;
+      Notepad              : aliased PolyORB.Annotations.Notepad;
    end record;
 
    procedure Register_To_Servant (Self : access Message_Handler);

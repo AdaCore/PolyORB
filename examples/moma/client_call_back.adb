@@ -56,6 +56,7 @@ with MOMA.Message_Handlers;
 
 with MOMA.Types;
 
+with PolyORB.Annotations;
 with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.References.IOR;
@@ -74,12 +75,12 @@ procedure Client_Call_Back is
    use MOMA.Sessions;
    use MOMA.Connections;
    use MOMA.Destinations;
---   use MOMA.Messages;
    use MOMA.Message_Producers;
    use MOMA.Message_Consumers;
    use MOMA.Message_Handlers;
    use MOMA.Types;
 
+   use PolyORB.Annotations;
    use PolyORB.References;
    use PolyORB.Types;
 
@@ -95,8 +96,6 @@ procedure Client_Call_Back is
    MOMA_Consumer_Acc  : MOMA.Message_Consumers.Message_Consumer_Acc;
    MOMA_Handler       : MOMA.Message_Handlers.Message_Handler;
    MOMA_Handler_Acc   : MOMA.Message_Handlers.Message_Handler_Acc;
-   Call_Back_Test     : Call_Back_Byte_Test_Acc := new Call_Back_Byte_Test;
-
    Message_Id         : MOMA.Types.Byte;
 
    ---------------
@@ -118,11 +117,15 @@ procedure Client_Call_Back is
    procedure Wait;
 
    procedure Wait is
+      Data : Byte_Test_Note;
    begin
-      while not Call_Back_Test.Proceed loop
+      Get_Note (Notepad_Of (MOMA_Handler_Acc).all, Data);
+      while not Data.Proceed loop
          delay 0.5;
+         Get_Note (Notepad_Of (MOMA_Handler_Acc).all, Data);
       end loop;
-      Call_Back_Test.Proceed := False;
+      Data.Proceed := False;
+      Set_Note (Notepad_Of (MOMA_Handler_Acc).all, Data);
    end Wait;
 
    --------------------
@@ -179,9 +182,10 @@ begin
    --  Initialization is completed.
    Output ("Initialization", True);
 
-   Call_Back_Test.Byte_Value := MOMA.Types.Byte (1);
-   Call_Back_Test.Proceed := False;
-   Set_Call_Back_Data (MOMA_Handler_Acc, Call_Back_Test);
+   Set_Byte_Test_Note (MOMA_Handler_Acc,
+                       Byte_Value => MOMA.Types.Byte (1),
+                       Proceed => False);
+
    Set_Handler (MOMA_Handler_Acc, Handle_Then_Notify'Access);
    Set_Notifier (MOMA_Handler_Acc, Notify_And_Receive'Access);
    Set_Behavior (MOMA_Handler_Acc, Handle);
@@ -194,7 +198,10 @@ begin
    Wait;
 
    Set_Behavior (MOMA_Handler_Acc, Notify);
-   Call_Back_Test.Byte_Value := MOMA.Types.Byte (2);
+
+   Set_Byte_Test_Note (MOMA_Handler_Acc,
+                       Byte_Value => MOMA.Types.Byte (2),
+                       Proceed => False);
 
    Send_MByte (MOMA_Producer, 2);
    --  Message 2 is notified and received.
@@ -214,7 +221,9 @@ begin
    --  Behavior is set to Handle by current Notify procedure.
    Wait;
 
-   Call_Back_Test.Byte_Value := MOMA.Types.Byte (5);
+   Set_Byte_Test_Note (MOMA_Handler_Acc,
+                       Byte_Value => MOMA.Types.Byte (5),
+                       Proceed => False);
 
    Send_MByte (MOMA_Producer, 5);
    --  Message 5 is handled.

@@ -35,6 +35,7 @@
 with MOMA.Messages;
 with MOMA.Messages.MBytes;
 
+with PolyORB.Annotations;
 with PolyORB.Types;
 
 with Report;
@@ -48,6 +49,7 @@ package body Client_Call_Back_Procedures is
    use MOMA.Messages.MBytes;
    use MOMA.Types;
 
+   use PolyORB.Annotations;
    use PolyORB.Types;
 
    use Report;
@@ -79,17 +81,15 @@ package body Client_Call_Back_Procedures is
       Handler : access Message_Handler;
       Message : MOMA.Messages.Message'Class)
    is
-      Data : Call_Back_Data'Class := Get_Call_Back_Data (Handler).all;
-      Test_Data : Call_Back_Byte_Test;
+      Data : Byte_Test_Note;
       Id : constant Byte := Get_Byte_Value (Message);
       Ok : Boolean := False;
    begin
       Output ("Handling message ", True);
-      if Data in Call_Back_Byte_Test then
-         Test_Data := Call_Back_Byte_Test (Data);
-         Ok := Id = Test_Data.Byte_Value;
-         Test_Data.Proceed := True;
-      end if;
+      Get_Note (Notepad_Of (Handler).all, Data);
+      Ok := Id = Data.Byte_Value;
+      Data.Proceed := True;
+      Set_Note (Notepad_Of (Handler).all, Data);
       Output ("Retrieved message " & MOMA.Types.Byte'Image (Id), Ok);
       Set_Behavior (Handler, Notify);
    end Handle_Then_Notify;
@@ -101,17 +101,15 @@ package body Client_Call_Back_Procedures is
    procedure Notify_And_Receive (
       Handler : access Message_Handler)
    is
-      Data : Call_Back_Data'Class := Get_Call_Back_Data (Handler).all;
-      Test_Data : Call_Back_Byte_Test;
+      Data : Byte_Test_Note;
       Id : constant Byte := Receive_MByte (Get_Consumer (Handler));
       Ok : Boolean := False;
    begin
       Output ("Notified", True);
-      if Data in Call_Back_Byte_Test then
-         Test_Data := Call_Back_Byte_Test (Data);
-         Ok := Id = Test_Data.Byte_Value;
-         Test_Data.Proceed := True;
-      end if;
+      Get_Note (Notepad_Of (Handler).all, Data);
+      Ok := Id = Data.Byte_Value;
+      Data.Proceed := True;
+      Set_Note (Notepad_Of (Handler).all, Data);
       Output ("Retrieved message " & MOMA.Types.Byte'Image (Id), Ok);
    end Notify_And_Receive;
 
@@ -122,13 +120,12 @@ package body Client_Call_Back_Procedures is
    procedure Notify_Then_Handle (
       Handler : access Message_Handler)
    is
-      Data : Call_Back_Data'Class := Get_Call_Back_Data (Handler).all;
-      Test_Data : Call_Back_Byte_Test;
+      Data : Byte_Test_Note;
    begin
       Output ("Notified", True);
-      if Data in Call_Back_Byte_Test then
-         Test_Data.Proceed := True;
-      end if;
+      Get_Note (Notepad_Of (Handler).all, Data);
+      Data.Proceed := True;
+      Set_Note (Notepad_Of (Handler).all, Data);
       Set_Behavior (Handler, None);
    end Notify_Then_Handle;
 
@@ -157,5 +154,20 @@ package body Client_Call_Back_Procedures is
       Set_Byte (MByte_Message_Sent, Id);
       Send (MOMA_Producer, MByte_Message_Sent);
    end Send_MByte;
+
+   ------------------------
+   -- Set_Byte_Test_Note --
+   ------------------------
+
+   procedure Set_Byte_Test_Note (Handler : access Message_Handler;
+                                 Proceed : Boolean;
+                                 Byte_Value : MOMA.Types.Byte) is
+   begin
+      Set_Note (
+         Notepad_Of (Handler).all,
+         Byte_Test_Note'(Note with
+            Byte_Value => Byte_Value,
+            Proceed => Proceed));
+   end Set_Byte_Test_Note;
 
 end Client_Call_Back_Procedures;

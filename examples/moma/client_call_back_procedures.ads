@@ -40,19 +40,19 @@ with MOMA.Message_Consumers;
 with MOMA.Message_Handlers;
 with MOMA.Types;
 
+with PolyORB.Annotations;
+
 package Client_Call_Back_Procedures is
 
    use MOMA.Message_Producers;
    use MOMA.Message_Consumers;
    use MOMA.Message_Handlers;
 
-   type Call_Back_Byte_Test is new MOMA.Message_Handlers.Call_Back_Data
+   type Byte_Test_Note is new PolyORB.Annotations.Note
    with record
       Byte_Value : MOMA.Types.Byte;
       Proceed    : Boolean;
    end record;
-
-   type Call_Back_Byte_Test_Acc is access all Call_Back_Byte_Test;
 
    function Get_Byte_Value (Message : MOMA.Messages.Message'Class)
       return MOMA.Types.Byte;
@@ -80,5 +80,9 @@ package Client_Call_Back_Procedures is
 
    procedure Send_MByte (MOMA_Producer : Message_Producer;
                          Id : MOMA.Types.Byte);
+
+   procedure Set_Byte_Test_Note (Handler : access Message_Handler;
+                                 Proceed : Boolean;
+                                 Byte_Value : MOMA.Types.Byte);
 
 end Client_Call_Back_Procedures;
