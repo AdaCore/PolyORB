@@ -4,7 +4,7 @@
 # $Id$
 #
 
-unset LANG LC_COLLATE
+unset LANG LC_ALL LC_COLLATE
 PREFIXLIST=
 
 while true
