@@ -126,9 +126,9 @@ package body Test_Suite.Scenarios is
       Output         : Test_Suite_Output'Class)
    is
       procedure Run_Scenario_Wrapper
-             (Scenario_File : String;
-              Index         : Positive;
-              Quit          : in out Boolean);
+        (Scenario_File : String;
+         Index         : Positive;
+         Quit          : in out Boolean);
 
       procedure Run_Scenario_Wrapper
         (Scenario_File : String;
@@ -146,7 +146,7 @@ package body Test_Suite.Scenarios is
       Log (Output, "Running all scenario from: " & Directory_Name);
       Separator (Output);
 
-      Run_Scenario_With_Pattern (Directory_Name, "(.*)\.conf");
+      Run_Scenario_With_Pattern (Directory_Name, "(.*)-(.*)\.conf");
    end Run_All_Scenarios;
 
 end Test_Suite.Scenarios;
