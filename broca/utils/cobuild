@@ -2,7 +2,7 @@
 
 # cobuild: Build AdaBroker from a checked-out wavefront.
 
-# $Id: //depot/adabroker/main/broca/utils/cobuild#1 $
+# $Id: //depot/adabroker/main/broca/utils/cobuild#2 $
 
 usage () {
   echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
@@ -73,6 +73,8 @@ exec > $LOGFILE 2>&1
 
 # Prepare execution.
 
+echo "---------- Build started: `date`"
+
 cd $CLIENT_TOP
 #p4 sync "#none"
 #rm -fr $CLIENT_TOP/*
@@ -84,17 +86,17 @@ export CHANGE
 /usr/local/bin/rungroup /bin/sh -c '(
   set -e
   #sleep 120
-  echo "Build started: `date`"
 
   ./support/reconfig
   cd $OUTDIR
-  mkdir build || true
-  mkdir install || true
+  mkdir build > /dev/null 2>&1 || true
+  mkdir install > /dev/null 2>&1 || true
   cd build
 
   $CLIENT_TOP/configure --disable-shared --prefix=$OUTDIR/install &&
-  make &&
-  make install
+  make && make install
+
+  echo "---------- Build ended: `date`"
 )' &
 
 # The build is now running in background. Save PID and
@@ -114,7 +116,9 @@ set -e
 if [ $RC = 0 ]
 then
   STATUS="completed"
-  MSG="Build completed successfully -- see details at $OUTDIR/build.log"
+  OUTPATH=`echo $OUTDIR | sed 's,/usr/home,/infres,'`
+  MSG="Build completed successfully.
+See details at $OUTPATH/build.log"
   SUCCESS=true
 elif [ $RC -ge 128 ]
 then
