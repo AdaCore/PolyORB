@@ -38,52 +38,19 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
-   ---------
-   -- "=" --
-   ---------
-
-   function "="
-     (T1 : No_Tasking_Thread_Id;
-      T2 : No_Tasking_Thread_Id)
-     return Boolean is
-      pragma Warnings (Off);
-      pragma Unreferenced (T1);
-      pragma Unreferenced (T2);
-      pragma Warnings (On);
-   begin
-      return True;
-   end "=";
-
-   --------------------
-   -- Copy_Thread_Id --
-   --------------------
-
-   procedure Copy_Thread_Id
-     (TF     : access No_Tasking_Thread_Factory_Type;
-      Source : PTT.Thread_Id'Class;
-      Target : PTT.Thread_Id_Access) is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Unreferenced (Source);
-      pragma Unreferenced (Target);
-      pragma Warnings (On);
-   begin
-      null;
-   end Copy_Thread_Id;
-
    ---------------------------
    -- Get_Current_Thread_Id --
    ---------------------------
 
    function Get_Current_Thread_Id
      (TF : access No_Tasking_Thread_Factory_Type)
-     return PTT.Thread_Id'Class is
+     return PTT.Thread_Id
+   is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
-      T : No_Tasking_Thread_Id;
    begin
-      return T;
+      return PTT.Null_Thread_Id;
    end Get_Current_Thread_Id;
 
    -------------------
@@ -92,13 +59,13 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    function Get_Thread_Id
      (T : access No_Tasking_Thread_Type)
-     return PTT.Thread_Id_Access is
+     return PTT.Thread_Id
+   is
       pragma Warnings (Off);
       pragma Unreferenced (T);
       pragma Warnings (On);
    begin
-      raise Tasking.Tasking_Profile_Error;
-      return null;
+      return PTT.Null_Thread_Id;
    end Get_Thread_Id;
 
    ----------------
@@ -115,13 +82,17 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
    -- Image --
    -----------
 
-   function Image (T : No_Tasking_Thread_Id) return String is
+   function Thread_Id_Image
+     (TF  : access No_Tasking_Thread_Factory_Type;
+      TID : Thread_Id)
+      return String
+   is
       pragma Warnings (Off);
-      pragma Unreferenced (T);
+      pragma Unreferenced (TF, TID);
       pragma Warnings (On);
    begin
       return "main_task";
-   end Image;
+   end Thread_Id_Image;
 
    -----------------
    -- Run_In_Task --
@@ -169,8 +140,9 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    procedure Set_Priority
      (TF : access No_Tasking_Thread_Factory_Type;
-      T  : Thread_Id'Class;
-      P  : System.Any_Priority) is
+      T  : Thread_Id;
+      P  : System.Any_Priority)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (T);

@@ -81,31 +81,22 @@ package PolyORB.Tasking.Threads is
    -- Thread Ids --
    ----------------
 
-   type Thread_Id is abstract tagged null record;
+   type Thread_Id is private;
    --  Type used for identifying Threads.  An unique Thread_Id is
    --  assigned to each Thread at creation time.
-   --  This type is derived by each concrete tasking profile.
 
-   type Thread_Id_Access is access all Thread_Id'Class;
+   function Null_Thread_Id return Thread_Id;
 
-   function "="
-     (T1 : Thread_Id;
-      T2 : Thread_Id)
-     return Boolean
-      is abstract;
-   --  Compare the content of T1 and T2; return True if they are equals.
+   function Image (TID : Thread_Id) return String;
+   --  Return a human-readable representation of TID.
 
-   function Image (T : Thread_Id) return String is abstract;
-
-   function Image (T : Thread_Id_Access) return String;
-   pragma Inline (Image);
-   --  Image function, for debugging purpose.
-
-   function Current_Task return Thread_Id_Access;
+   function Current_Task return Thread_Id;
    --  Return the Thread associated to the current task.
 
-   function Null_Task return Thread_Id_Access;
-   --  XXX not implemented.
+   function To_Address (TID : Thread_Id) return System.Address;
+   pragma Inline (To_Address);
+   function To_Thread_Id (A : System.Address) return Thread_Id;
+   pragma Inline (To_Thread_Id);
 
    -----------------
    -- Thread Type --
@@ -123,7 +114,7 @@ package PolyORB.Tasking.Threads is
 
    function Get_Thread_Id
      (T : access Thread_Type)
-     return Thread_Id_Access
+     return Thread_Id
       is abstract;
    --  Get the identifier of the Thread.
 
@@ -136,13 +127,6 @@ package PolyORB.Tasking.Threads is
    --  This type is derived by each concrete tasking profile.
 
    type Thread_Factory_Access is access all Thread_Factory_Type'Class;
-
-   procedure Copy_Thread_Id
-     (TF     : access Thread_Factory_Type;
-      Source : Thread_Id'Class;
-      Target : Thread_Id_Access)
-      is abstract;
-   --  Copy Source into Target.all, which must be of the same concrete type.
 
    procedure Create_Task
      (Main : Parameterless_Procedure);
@@ -183,7 +167,7 @@ package PolyORB.Tasking.Threads is
 
    procedure Set_Priority
      (TF : access Thread_Factory_Type;
-      T  : Thread_Id'Class;
+      T  : Thread_Id;
       P  : System.Any_Priority)
      is abstract;
    --  This function change the priority of the current task,
@@ -192,13 +176,20 @@ package PolyORB.Tasking.Threads is
 
    function Get_Current_Thread_Id
      (TF : access Thread_Factory_Type)
-     return Thread_Id'Class
+     return Thread_Id
       is abstract;
    --  If we are running in a task created using Create_Task,
    --  get the Thread object associated with the current task.
    --  If the current task was not created by this API but
    --  for example by a direct call to the Ada tasking facilities,
    --  this call will raise a PolyORB.Tasking.Tasking_Error.
+
+   function Thread_Id_Image
+     (TF : access Thread_Factory_Type;
+      TID : Thread_Id)
+     return String
+     is abstract;
+   --  Return a human-readable interpretation of TID.
 
    function Get_Thread_Factory
      return Thread_Factory_Access;
@@ -212,4 +203,6 @@ package PolyORB.Tasking.Threads is
      (TF : Thread_Factory_Access);
    --  Register the factory corresponding to the chosen tasking profile.
 
+private
+   type Thread_Id is new System.Address;
 end PolyORB.Tasking.Threads;

@@ -37,6 +37,7 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
+with PolyORB.Tasking.Threads;
 
 package body PolyORB.Tasking.Watchers is
 
@@ -111,34 +112,42 @@ package body PolyORB.Tasking.Watchers is
 
    procedure Differ
      (W : in out Watcher_Type;
-      V : in Version_Id) is
+      V : in Version_Id)
+   is
+      use Tasking.Threads;
+      Prefix : constant String
+        := Image (Current_Task) & ": D (" & Version_Id'Image (V) & "): ";
+      Clr : constant String := Prefix & "Clearing Updated";
+      Gotupdate : constant String := Prefix & "Updated!";
    begin
-      pragma Debug (O ("Differ: enter, V =" & Version_Id'Image (V)));
+      pragma Debug (O (Prefix & "enter"));
       PTM.Enter (W.WMutex);
       pragma Debug (O ("... W.Version =" & Version_Id'Image (W.Version)));
 
       while W.Version = V loop
 
          while W.Updated loop
-            pragma Debug (O ("Pending update"));
+            pragma Debug (O (Prefix & "Pending update"));
             PTCV.Wait (W.WCondition, W.WMutex);
-            pragma Debug (O ("Resumed from pending update, W.Version ="
-              & Version_Id'Image (W.Version)));
+            pragma Debug
+              (O (Prefix & "Resumed from pending update, W.Version ="
+                  & Version_Id'Image (W.Version)));
          end loop;
 
          if W.Version = V then
+
             W.Await_Count := W.Await_Count + 1;
-            pragma Debug (O ("Differ: suspend, Cnt =" & W.Await_Count'Img));
+            pragma Debug (O (Prefix & "suspend, Cnt =" & W.Await_Count'Img));
             while not W.Updated loop
                PTCV.Wait (W.WCondition, W.WMutex);
-               pragma Debug (O ("Differ: resume, Cnt =" & W.Await_Count'Img
+               pragma Debug (O (Prefix & "resume, Cnt =" & W.Await_Count'Img
                  & ", W.Version =" & Version_Id'Image (W.Version)));
             end loop;
-            pragma Debug (O ("Differ: updated!"));
+            pragma Debug (O (Gotupdate));
             W.Await_Count := W.Await_Count - 1;
 
             if W.Await_Count = 0 then
-               pragma Debug (O ("Clearing Updated"));
+               pragma Debug (O (Clr));
                W.Updated := False;
                PTCV.Broadcast (W.WCondition);
             end if;
@@ -146,7 +155,7 @@ package body PolyORB.Tasking.Watchers is
          end if;
 
       end loop;
-      pragma Debug (O ("Differ: end"));
+      pragma Debug (O (Prefix & "Differ: end"));
       PTM.Leave (W.WMutex);
    end Differ;
 
@@ -162,11 +171,14 @@ package body PolyORB.Tasking.Watchers is
 
    procedure Lookup
      (W : in Watcher_Type;
-      V : out Version_Id) is
+      V : out Version_Id)
+   is
+      use Tasking.Threads;
    begin
       Enter (W.WMutex);
-      pragma Debug (O ("Lookup"));
       V := W.Version;
+      pragma Debug (O (Image (Current_Task)
+        & ": Lookup: V =" & Version_Id'Image (V)));
       Leave (W.WMutex);
    end Lookup;
 

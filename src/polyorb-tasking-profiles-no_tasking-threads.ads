@@ -45,22 +45,6 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
    procedure  Initialize;
    --  Initialize this package.
 
-   --------------------------
-   -- No_Tasking_Thread_Id --
-   --------------------------
-
-   type No_Tasking_Thread_Id is new PTT.Thread_Id with private;
-
-   type No_Tasking_Thread_Id_Access is
-     access all No_Tasking_Thread_Id'Class;
-
-   function "="
-     (T1 : No_Tasking_Thread_Id;
-      T2 : No_Tasking_Thread_Id)
-     return Boolean;
-
-   function Image (T : No_Tasking_Thread_Id) return String;
-
    ----------------------------
    -- No_Tasking_Thread Type --
    ----------------------------
@@ -70,7 +54,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    function Get_Thread_Id
      (T : access No_Tasking_Thread_Type)
-     return PTT.Thread_Id_Access;
+     return PTT.Thread_Id;
    --  This function has no sense in No_Tasking profile,
    --  as this profile provides no way to manipulate a Thread_Type.
    --  It simply raises a Tasking.Tasking_Profile_Error.
@@ -89,11 +73,6 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
      is access all No_Tasking_Thread_Factory_Type'Class;
 
    The_Thread_Factory : constant No_Tasking_Thread_Factory_Access;
-
-   procedure Copy_Thread_Id
-     (TF     : access No_Tasking_Thread_Factory_Type;
-      Source : PTT.Thread_Id'Class;
-      Target : PTT.Thread_Id_Access);
 
    function Run_In_Task
      (TF               : access No_Tasking_Thread_Factory_Type;
@@ -116,24 +95,25 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    procedure Set_Priority
      (TF : access No_Tasking_Thread_Factory_Type;
-      T  : Thread_Id'Class;
+      T  : Thread_Id;
       P  : System.Any_Priority);
    --  This procedure does nothing in this profile.
 
    function Get_Current_Thread_Id
      (TF : access No_Tasking_Thread_Factory_Type)
-     return PTT.Thread_Id'Class;
+     return PTT.Thread_Id;
+
+   function Thread_Id_Image
+     (TF  : access No_Tasking_Thread_Factory_Type;
+      TID : PTT.Thread_Id)
+     return String;
 
 private
-
-   type No_Tasking_Thread_Id is new PTT.Thread_Id with null record;
 
    type No_Tasking_Thread_Type is new PTT.Thread_Type with null record;
 
    type No_Tasking_Thread_Factory_Type is
-     new PTT.Thread_Factory_Type with record
-        null;
-     end record;
+     new PTT.Thread_Factory_Type with null record;
 
    The_Thread_Factory : constant No_Tasking_Thread_Factory_Access
      := new No_Tasking_Thread_Factory_Type;

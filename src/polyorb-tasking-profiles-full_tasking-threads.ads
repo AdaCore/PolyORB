@@ -42,22 +42,6 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    package PTT renames PolyORB.Tasking.Threads;
 
-   ----------------------------
-   -- Full_Tasking_Thread_Id --
-   ----------------------------
-
-   type Full_Tasking_Thread_Id is new PTT.Thread_Id with private;
-
-   type Full_Tasking_Thread_Id_Access is
-     access all Full_Tasking_Thread_Id'Class;
-
-   function "="
-     (T1 : Full_Tasking_Thread_Id;
-      T2 : Full_Tasking_Thread_Id)
-     return Boolean;
-
-   function Image (T : Full_Tasking_Thread_Id) return String;
-
    ------------------------------
    -- Full_Tasking_Thread Type --
    ------------------------------
@@ -67,7 +51,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    function Get_Thread_Id
      (T : access Full_Tasking_Thread_Type)
-     return PTT.Thread_Id_Access;
+     return PTT.Thread_Id;
 
    type Full_Tasking_Thread_Access
       is access all Full_Tasking_Thread_Type'Class;
@@ -83,11 +67,6 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      is access all Full_Tasking_Thread_Factory_Type'Class;
 
    The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access;
-
-   procedure Copy_Thread_Id
-     (TF     : access Full_Tasking_Thread_Factory_Type;
-      Source : PTT.Thread_Id'Class;
-      Target : PTT.Thread_Id_Access);
 
    function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
@@ -106,30 +85,35 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    procedure Set_Priority
      (TF : access Full_Tasking_Thread_Factory_Type;
-      T  : PTT.Thread_Id'Class;
+      T  : PTT.Thread_Id;
       P  : System.Any_Priority);
 
    function Get_Current_Thread_Id
      (TF : access Full_Tasking_Thread_Factory_Type)
-     return PTT.Thread_Id'Class;
+     return PTT.Thread_Id;
+
+   function Thread_Id_Image
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      TID : PTT.Thread_Id)
+     return String;
 
 private
 
-   type Full_Tasking_Thread_Id is new PTT.Thread_Id with record
-      Tid : Ada.Task_Identification.Task_Id;
-   end record;
-
    type Full_Tasking_Thread_Type is new PTT.Thread_Type with record
-      Id        : PTT.Thread_Id_Access;
+      Id        : PTT.Thread_Id;
       Priority  : System.Any_Priority;
    end record;
 
    type Full_Tasking_Thread_Factory_Type is
-     new PTT.Thread_Factory_Type with record
-        null;
-     end record;
+     new PTT.Thread_Factory_Type with null record;
 
    The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access
      := new Full_Tasking_Thread_Factory_Type;
+
+   type Simple_Runnable is new PTT.Runnable with record
+      Main_Subprogram : PTT.Parameterless_Procedure;
+   end record;
+
+   procedure Run (SR : access Simple_Runnable);
 
 end PolyORB.Tasking.Profiles.Full_Tasking.Threads;

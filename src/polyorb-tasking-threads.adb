@@ -61,35 +61,14 @@ package body PolyORB.Tasking.Threads is
          P  => Main);
    end Create_Task;
 
-   -----------
-   -- Image --
-   -----------
-
-   function Image (T : Thread_Id_Access) return String is
-   begin
-      return Image (T.all);
-   end Image;
-
    ------------------
    -- Current_Task --
    ------------------
 
-   function Current_Task return Thread_Id_Access is
+   function Current_Task return Thread_Id is
    begin
-      return new Thread_Id'Class'(Get_Current_Thread_Id (My_Thread_Factory));
+      return Get_Current_Thread_Id (My_Thread_Factory);
    end Current_Task;
-
-   ---------------
-   -- Null_Task --
-   ---------------
-
-   function Null_Task return Thread_Id_Access is
-      X : Thread_Id_Access;
-   begin
-      --  Not implementable with PolyORB.Tasking.
-      raise Not_Implemented;
-      return X;
-   end Null_Task;
 
    -------------------
    -- Free_Runnable --
@@ -116,6 +95,15 @@ package body PolyORB.Tasking.Threads is
       return My_Thread_Factory;
    end Get_Thread_Factory;
 
+   -----------
+   -- Image --
+   -----------
+
+   function Image (TID : Thread_Id) return String is
+   begin
+      return Thread_Id_Image (My_Thread_Factory, TID);
+   end Image;
+
    -----------------------------
    -- Register_Thread_Factory --
    -----------------------------
@@ -130,5 +118,32 @@ package body PolyORB.Tasking.Threads is
          Initialised := True;
       end if;
    end Register_Thread_Factory;
+
+   --------------------
+   -- Null_Thread_Id --
+   --------------------
+
+   function Null_Thread_Id return Thread_Id is
+   begin
+      return Thread_Id (System.Null_Address);
+   end Null_Thread_Id;
+
+   ----------------
+   -- To_Address --
+   ----------------
+
+   function To_Address (TID : Thread_Id) return System.Address is
+   begin
+      return System.Address (TID);
+   end To_Address;
+
+   ------------------
+   -- To_Thread_Id --
+   ------------------
+
+   function To_Thread_Id (A : System.Address) return Thread_Id is
+   begin
+      return Thread_Id (A);
+   end To_Thread_Id;
 
 end PolyORB.Tasking.Threads;
