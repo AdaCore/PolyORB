@@ -272,6 +272,9 @@ procedure Test000 is
    procedure Test_POA_API;
    --  Test full POA API.
 
+   procedure Test_POA_Hierarchy;
+   --  Tests on POA trees
+
    -------------------
    -- Test_Root_POA --
    -------------------
@@ -1562,6 +1565,113 @@ procedure Test000 is
       Output ("Test_POA_API", Result);
    end Test_POA_API;
 
+   ------------------------
+   -- Test_POA_Hierarchy --
+   ------------------------
+
+   procedure Test_POA_Hierarchy
+   is
+      Policies : CORBA.Policy.PolicyList;
+
+      Root_POA : constant PortableServer.POA.Ref :=
+        PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+
+      Child_POA : PortableServer.POA.Ref;
+      Huey_POA, Dewey_POA, Louie_POA : PortableServer.POA.Ref;
+
+   begin
+      New_Test ("POA Hierarchy");
+
+      --  Register Children POA
+
+      Child_POA := PortableServer.POA.Ref
+        (PortableServer.POA.Create_POA
+         (Root_POA,
+          To_CORBA_String ("Child_POA"),
+          PortableServer.POA.Get_The_POAManager (Root_POA),
+          Policies));
+
+      Huey_POA := PortableServer.POA.Ref
+        (PortableServer.POA.Create_POA
+         (Child_POA,
+          To_CORBA_String ("Huey_POA"),
+          PortableServer.POA.Get_The_POAManager (Root_POA),
+          Policies));
+
+      Dewey_POA := PortableServer.POA.Ref
+        (PortableServer.POA.Create_POA
+         (Child_POA,
+          To_CORBA_String ("Dewey_POA"),
+          PortableServer.POA.Get_The_POAManager (Root_POA),
+          Policies));
+
+      Louie_POA := PortableServer.POA.Ref
+        (PortableServer.POA.Create_POA
+         (Dewey_POA,
+          To_CORBA_String ("Louie_POA"),
+          PortableServer.POA.Get_The_POAManager (Root_POA),
+          Policies));
+
+      Output ("Registred POA tree", True);
+
+      --  Test Find_POA
+
+      declare
+         Huey_2 : PortableServer.POA.Ref;
+      begin
+         Huey_2 := PortableServer.POA.Ref
+           (PortableServer.POA.Find_POA
+            (Child_POA,
+             To_CORBA_String ("Huey_POA"),
+             False));
+         Output ("Find_POA on an existent POA", True);
+      end;
+
+      declare
+         Donald : PortableServer.POA.Ref;
+      begin
+         Donald := PortableServer.POA.Ref
+           (PortableServer.POA.Find_POA
+            (Child_POA,
+             To_CORBA_String ("Donald_POA"),
+             True));
+      exception
+         when PortableServer.POA.AdapterNonExistent =>
+            Output ("Find_POA on a non existent POA", True);
+      end;
+
+      --  Test Get_The_Children
+
+      declare
+         use PortableServer.IDL_Sequence_POA_Forward;
+
+         Children : PortableServer.POAList
+           := PortableServer.POA.Get_The_Children (Child_POA);
+
+         Children_Array : Element_Array := To_Element_Array (Children);
+
+      begin
+         if Children_Array'Length /= 2 then
+            raise Program_Error;
+         end if;
+
+         for J in Children_Array'Range loop
+            Output ("Found child: "
+                    & CORBA.To_Standard_String
+                    (PortableServer.POA.Get_The_Name
+                     (PortableServer.POA.Convert.To_Ref (Children_Array (J)))),
+                     True);
+         end loop;
+
+      end;
+
+      Destroy (Child_POA, True, True);
+      Output ("Destroy POA tree", True);
+
+   end Test_POA_Hierarchy;
+
    use Test_AdapterActivator;
 
 begin
@@ -1574,6 +1684,7 @@ begin
    Test_POA_Creation;
    Test_POA_API;
    Run_Test_AdapterActivator;
+   Test_POA_Hierarchy;
    End_Report;
 
    GNAT.OS_Lib.OS_Exit (1);
