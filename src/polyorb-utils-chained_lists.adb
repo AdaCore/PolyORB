@@ -83,28 +83,23 @@ package body PolyORB.Utils.Chained_Lists is
    -- Duplicate --
    ---------------
 
-   function Duplicate (L : List) return List is
-      D : List          := Empty;
-      N : Node_Access   := L.First;
+   function Duplicate (L : List) return List
+   is
+      D : List        := Empty;
+      N : Node_Access := L.First;
       P : Node_Access;
-      Q : Node_Access;
    begin
       if L = Empty then
          return D;
       end if;
-      D.First := new Node'(Value => N.Value,
-                           Next => null);
-      P := D.First;
-      Q := D.First;
+      P := new Node'(Value => N.Value, Next => null);
+      D.First := P;
       N := N.Next;
       while N /= null loop
-         P := Q;
-         Q := new Node'(Value => N.Value,
-                        Next => null);
-         P.Next := Q;
+         P.Next := new Node'(Value => N.Value, Next => null);
          N := N.Next;
       end loop;
-      D.Last := Q;
+      D.Last := P.Next;
       return D;
    end Duplicate;
 
@@ -208,23 +203,22 @@ package body PolyORB.Utils.Chained_Lists is
    -- Remove --
    ------------
 
-   procedure Remove (L           : in out List;
-                     I           : T;
-                     Free_Memory : Boolean)
+   procedure Remove (L : in out List; I : T)
    is
-      Current : Node_Access := L.First;
-      Previous : Node_Access := Current;
+      Current  : Node_Access := L.First;
+      Previous : Node_Access := null;
+      Old      : Node_Access := null;
    begin
       while Current /= null loop
-         if "=" (Current.Value, I) then
-            if Current = Previous then
+         if Current.Value = I then
+            if Previous = null then
                L.First  := Current.Next;
-               Previous := Current.Next;
-               Current  := Current.Next;
             else
                Previous.Next := Current.Next;
-               Current := Current.Next;
             end if;
+            Old := Current;
+            Current := Current.Next;
+            Free (Old);
          else
             Previous := Current;
             Current := Current.Next;

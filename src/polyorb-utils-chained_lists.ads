@@ -62,11 +62,8 @@ package PolyORB.Utils.Chained_Lists is
    procedure Prepend (L : in out List; I : T);
    procedure Append (L : in out List; I : T);
 
-   procedure Remove (L           : in out List;
-                     I           : T;
-                     Free_Memory : Boolean);
-   --  Remove all occurences of I in list L.
-   --  If Free_Memory is true then the occurences removed are also freed.
+   procedure Remove (L : in out List; I : T);
+   --  Remove all occurences of I from list L.
 
    Empty : constant List;
 

@@ -187,7 +187,7 @@ package body MOMA.Provider.Topic_Datas is
                         & MOMA.Destinations.Image (Pool)));
       Lock_W (Data.T_Lock);
       V := Lookup (Data.T, T);
-      Destination_List.Remove (V.Subscribers, Pool, True);
+      Destination_List.Remove (V.Subscribers, Pool);
       if V.Subscribers = Destination_List.Empty then
          Delete (Data.T, T);
       end if;
