@@ -1,1 +1,1 @@
-SUBDIRS = naming time
+SUBDIRS = naming
