@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //depot/adabroker/main/broca/Utils/update-headers.el#1 $
+;;; $Id: //depot/adabroker/main/broca/Utils/update-headers.el#2 $
 ;;;
 ;;; This file contains the update-header command which can be used to
 ;;; update headers depending on the header.txt file in the current directory.
@@ -49,8 +49,8 @@
     (insert (center-ada (upcase (expand-ada-name name))))
     (insert (center-ada ""))
     (insert (center-ada (if spec "S p e c" "B o d y")))
-    (insert (center-ada ""))
-    (insert (center-ada (concat "$" "Revision: 1.99 $") 'omit-terminator))
+;    (insert (center-ada ""))
+;    (insert (center-ada (concat "$" "Revision: 1.99 $") 'omit-terminator))
     (re-search-forward "----------")
     (next-line 1)
     (let ((beg (point)))
