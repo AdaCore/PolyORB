@@ -57,6 +57,7 @@ with PolyORB.Setup;
 with PolyORB.Tasking.Threads;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
+with PolyORB.Transport.Handlers;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -75,6 +76,7 @@ package body PolyORB.ORB is
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads;
    use PolyORB.Transport;
+   use PolyORB.Transport.Handlers;
    use PolyORB.Types;
    use Unsigned_Long_Flags;
 

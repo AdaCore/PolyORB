@@ -34,12 +34,10 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#28 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#29 $
 
-with PolyORB.Asynch_Ev;
 with PolyORB.Components;
 with PolyORB.Exceptions;
-with PolyORB.Filters;
 with PolyORB.Objects;
 with PolyORB.Smart_Pointers;
 pragma Elaborate_All (PolyORB.Smart_Pointers);
@@ -164,25 +162,6 @@ package PolyORB.Binding_Data is
    --  on the local ORB) with the designated object as its actual
    --  Continuation. Used for proxy profiles (which are actually
    --  indirect pointers to remote objects).
-
-   --------------------------------
-   -- Access Point Event Handler --
-   --------------------------------
-
-   type TAP_AES_Event_Handler
-      is abstract new PolyORB.Asynch_Ev.AES_Event_Handler with record
-      TAP : PolyORB.Transport.Transport_Access_Point_Access;
-      --  Factory of Transport_Endpoint components.
-
-      Filter_Factory_Chain : Filters.Factory_Access;
-      --  Factory of Filter (protocol stack) components.
-
-      Profile_Factory : Binding_Data.Profile_Factory_Access;
-      --  Factory of profiles capable of associating the
-      --  address of TAP and the specification of the
-      --  protocol implemented by Filter_Factory_Chain
-      --  with an object id.
-      end record;
 
 private
 

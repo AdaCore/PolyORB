@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . T R A N S P O R T . D A T A G R A M            --
+--                    P O L Y O R B . T R A N S P O R T                     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,65 +31,43 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract datagram transport service access points and transport endpoints.
+--  Event handlers associated with transport access points and transport
+--  endpoints.
 
 --  $Id$
 
-with PolyORB.Transport.Handlers;
+with PolyORB.Binding_Data;
+with PolyORB.Filters;
 
-package PolyORB.Transport.Datagram is
+package PolyORB.Transport.Handlers is
 
-   use PolyORB.Asynch_Ev;
+   subtype EH is PolyORB.Asynch_Ev.AES_Event_Handler;
 
-   ------------------
-   -- Access Point --
-   ------------------
+   --------------------------------
+   -- Access point event handler --
+   --------------------------------
 
-   type Datagram_Transport_Access_Point is
-     abstract new Transport_Access_Point with private;
-   type Datagram_Transport_Access_Point_Access is
-     access all Datagram_Transport_Access_Point'Class;
+   type TAP_AES_Event_Handler is abstract new EH with record
+      TAP : PolyORB.Transport.Transport_Access_Point_Access;
+      --  Factory of Transport_Endpoint components.
 
-   ---------------
-   -- End Point --
-   ---------------
+      Filter_Factory_Chain : Filters.Factory_Access;
+      --  Factory of Filter (protocol stack) components.
 
-   type Datagram_Transport_Endpoint
-     is abstract new Transport_Endpoint with private;
+      Profile_Factory : Binding_Data.Profile_Factory_Access;
+      --  Factory of profiles capable of associating the
+      --  address of TAP and the specification of the
+      --  protocol implemented by Filter_Factory_Chain
+      --  with an object id.
+   end record;
 
-   type Datagram_Transport_Endpoint_Access is
-     access all Datagram_Transport_Endpoint'Class;
+   ----------------------------
+   -- Endpoint event handler --
+   ----------------------------
 
-   function Handle_Message
-     (TE  : access Datagram_Transport_Endpoint;
-      Msg : Components.Message'Class)
-     return Components.Message'Class;
+   type TE_AES_Event_Handler is abstract new EH with record
+      TE : PolyORB.Transport.Transport_Endpoint_Access;
+      --  Back pointer to the corresponding endpoint.
+   end record;
 
-   function Create_Endpoint
-     (TAP : access Datagram_Transport_Access_Point)
-      return Datagram_Transport_Endpoint_Access;
-   --  This function create an Endpoint on the same socket
-   --  This allow to receive data to datagram socket
-
-private
-
-   type Datagram_Transport_Access_Point is
-     abstract new Transport_Access_Point with null record;
-
-   type Datagram_Transport_Endpoint
-      is abstract new Transport_Endpoint with null record;
-
-   type Datagram_TAP_AES_Event_Handler is
-     new Handlers.TAP_AES_Event_Handler with null record;
-
-   procedure Handle_Event
-     (H : access Datagram_TAP_AES_Event_Handler);
-
-   type Datagram_TE_AES_Event_Handler is
-     new Handlers.TE_AES_Event_Handler with null record;
-
-   procedure Handle_Event
-     (H : access Datagram_TE_AES_Event_Handler);
-
-
-end PolyORB.Transport.Datagram;
+end PolyORB.Transport.Handlers;

@@ -154,15 +154,6 @@ package PolyORB.Transport is
 
    procedure Close (TE : in out Transport_Endpoint) is abstract;
 
-   --  Handler for AES associated with a Transport Access Point
-   --  is defined in polyorb-binding_data.ads
-
-   type TE_AES_Event_Handler
-      is abstract new PolyORB.Asynch_Ev.AES_Event_Handler with record
-         TE : PolyORB.Transport.Transport_Endpoint_Access;
-      end record;
-   --  Handler for AES associated with a Transport End Point
-
 private
 
    type Transport_Access_Point

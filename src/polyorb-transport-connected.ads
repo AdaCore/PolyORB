@@ -36,12 +36,11 @@
 
 --  $Id$
 
-with PolyORB.Binding_Data;
+with PolyORB.Transport.Handlers;
 
 package PolyORB.Transport.Connected is
 
    use PolyORB.Asynch_Ev;
-   use PolyORB.Binding_Data;
 
    Connection_Closed : exception;
 
@@ -49,11 +48,11 @@ package PolyORB.Transport.Connected is
    -- Access Point --
    ------------------
 
-   type Connected_Transport_Access_Point
-      is abstract new Transport_Access_Point with private;
-   type Connected_Transport_Access_Point_Access
-   is access all Connected_Transport_Access_Point'Class;
-   --  Conected Access point
+   type Connected_Transport_Access_Point is
+      abstract new Transport_Access_Point with private;
+
+   type Connected_Transport_Access_Point_Access is
+      access all Connected_Transport_Access_Point'Class;
 
    procedure Accept_Connection
      (TAP :     Connected_Transport_Access_Point;
@@ -61,13 +60,6 @@ package PolyORB.Transport.Connected is
       is abstract;
    --  Accept a pending new connection on TAP and create
    --  a new associated TE.
-
-   type Connected_TAP_AES_Event_Handler
-   is new TAP_AES_Event_Handler with private;
-   --  Connected Access Point Event Handler
-
-   procedure Handle_Event
-     (H : access Connected_TAP_AES_Event_Handler);
 
    ---------------
    -- End Point --
@@ -84,13 +76,6 @@ package PolyORB.Transport.Connected is
       Msg : Components.Message'Class)
      return Components.Message'Class;
 
-   type Connected_TE_AES_Event_Handler
-   is new TE_AES_Event_Handler with private;
-   --  Connected End Point Event Handler
-
-   procedure Handle_Event
-     (H : access Connected_TE_AES_Event_Handler);
-
    function Is_Data_Available
      (TE : Connected_Transport_Endpoint;
       N  : Natural)
@@ -104,13 +89,19 @@ private
    type Connected_Transport_Access_Point
       is abstract new Transport_Access_Point with null record;
 
-   type Connected_TAP_AES_Event_Handler
-   is new TAP_AES_Event_Handler with null record;
-
    type Connected_Transport_Endpoint
       is abstract new Transport_Endpoint with null record;
 
-   type Connected_TE_AES_Event_Handler
-   is new TE_AES_Event_Handler with null record;
+   type Connected_TAP_AES_Event_Handler is
+     new Handlers.TAP_AES_Event_Handler with null record;
+
+   procedure Handle_Event
+     (H : access Connected_TAP_AES_Event_Handler);
+
+   type Connected_TE_AES_Event_Handler is
+     new Handlers.TE_AES_Event_Handler with null record;
+
+   procedure Handle_Event
+     (H : access Connected_TE_AES_Event_Handler);
 
 end PolyORB.Transport.Connected;
