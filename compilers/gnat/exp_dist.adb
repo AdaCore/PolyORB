@@ -1990,6 +1990,12 @@ package body Exp_Dist is
 
       Insert_After (Parent (Stub_Type), Stub_Type_Access_Declaration);
 
+      --  Susequent expansion processing needs the Designated_Type attribute
+      --  to be correctly set on Stub_Type_Access.
+
+      Analyze (Parent (Stub_Type));
+      Analyze (Stub_Type_Access_Declaration);
+
       Stubs_Table.Set (Designated_Type,
         (Stub_Type           => Stub_Type,
          Stub_Type_Access    => Stub_Type_Access,
