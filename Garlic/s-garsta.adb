@@ -55,9 +55,6 @@ pragma Elaborate_All (System.Garlic.Physical_Location);
 with System.Garlic.Heart; use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
 
-with System.Garlic.Remote; use System.Garlic.Remote;
-pragma Elaborate_All (System.Garlic.Remote);
-
 with System.Garlic.Termination; use System.Garlic.Termination;
 pragma Elaborate_All (System.Garlic.Termination);
 
