@@ -301,15 +301,15 @@ begin
                   Bind_Context (Dir, Here, Dir);
                   Bind_Context (Dir, Back, Parent (Argv));
 
-                  when Lmkdir =>
-                     if Argc /= 2 then
-                       raise Syntax_Error;
-                     end if;
-                     Argv  := Argument (2);
-                     Dir   := NamingContext.Impl.New_Context;
-                     Bind_Context (From (Argv), To_Name (Argv), Dir);
-                     Bind_Context (Dir, Here, Dir);
-                     Bind_Context (Dir, Back, Parent (Argv));
+               when Lmkdir =>
+                  if Argc /= 2 then
+                     raise Syntax_Error;
+                  end if;
+                  Argv  := Argument (2);
+                  Dir   := NamingContext.Impl.New_Context;
+                  Bind_Context (From (Argv), To_Name (Argv), Dir);
+                  Bind_Context (Dir, Here, Dir);
+                  Bind_Context (Dir, Back, Parent (Argv));
 
                when Write =>
                   if Argc /= 3 then
@@ -320,10 +320,11 @@ begin
                      Fil := To_File (Argv);
 
                   exception when others =>
+                     Ada.Text_IO.Put_Line ("Creating file " & Argv);
                      Fil := File.Impl.New_File;
                      Bind (From (Argv),
                            To_Name (Argv),
-                           CORBA.Object.Ref (Obj));
+                           CORBA.Object.Ref (Fil));
                   end;
                   Argv := Argument (3);
                   Set_Image (Fil, CORBA.To_CORBA_String (Argv.all));
@@ -429,7 +430,7 @@ begin
 
          exception
             when E : others =>
-               Ada.Text_IO.Put_Line ("raise "& Exception_Name (E));
+               Ada.Text_IO.Put_Line ("Raised "& Exception_Information (E));
                Ada.Text_IO.Put_Line (Exception_Message (E));
          end;
       end if;
