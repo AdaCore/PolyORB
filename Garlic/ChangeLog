@@ -1,3 +1,8 @@
+2000-06-02  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-stratt.adb: Protect all float marshalling procedures against
+	unitialized values.
+
 2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-garhea.adb: Change Partition mode in Analyze_Stream from out
