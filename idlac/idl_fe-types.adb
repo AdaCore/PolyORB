@@ -1557,64 +1557,57 @@ package body Idl_Fe.Types is
    --  Find_Inherited_Identifier_Definition  --
    --------------------------------------------
 
-   function Find_Inherited_Identifier_Definition
-     (Name : String)
+   function Find_Inherited_Identifier_Definition (Name : String)
      return Identifier_Definition_Acc
    is
+      Temp_List   : Node_List := Nil_List;
       Result_List : Node_List := Nil_List;
-      First_List : Node_List := Nil_List;
+      Result      : Identifier_Definition_Acc;
    begin
       pragma Debug (O2 ("Find_Inherited_Identifier_Definition : enter"));
-      --  There are no imports in modules.
-      if not (False
-        or else Kind (Current_Scope.Scope) = K_Interface
-        or else Kind (Current_Scope.Scope) = K_ValueType)
+
+      --  There are no imports in modules
+      if Kind (Current_Scope.Scope) /= K_Interface
+        and then Kind (Current_Scope.Scope) /= K_ValueType
       then
          pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
          return null;
       end if;
 
       Find_Identifier_In_Inheritance
-        (Name,
-         Current_Scope.Scope,
-         First_List);
-      Result_List := Simplify_Node_List (First_List);
-      Free (First_List);
-      if Get_Length (Result_List) = 0 then
-         pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
-                          "Nothing found in inheritance"));
-         pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
-         return null;
-      elsif  Get_Length (Result_List) = 1 then
-         declare
-            Node : Node_Id;
-         begin
+        (Name, Current_Scope.Scope, Temp_List);
+      Result_List := Simplify_Node_List (Temp_List);
+
+      case Get_Length (Result_List) is
+
+         when 0 =>
+            pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
+                             "Nothing found in inheritance"));
+            pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
+            Result := null;
+
+         when 1 =>
             pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
                              "One definition found in inheritance"));
-            Node := Head (Result_List);
-            pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
-            return Definition (Node);
-         end;
-      else
-         declare
-            Node : Node_Id;
-         begin
-            --  there is multiple definition
+            Result := Definition (Head (Result_List));
+
+         when others =>
+            --  There are multiple definitions
             pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
-                             "Many definitions found in inheritance"));
+                             "Multiple definitions found in inheritance"));
 
             Errors.Error ("Multiple definitions found" &
-                                        " in inheritance : ambiguous " &
-                                        "referance",
-                                        Errors.Error,
-                                        Idl_Fe.Lexer.Get_Lexer_Location);
+                          " in inheritance : ambiguous " &
+                          "reference",
+                          Errors.Error,
+                          Idl_Fe.Lexer.Get_Lexer_Location);
 
-            Node := Head (Result_List);
-            Free (Result_List);
-            pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
-            return Definition (Node);
-         end;
-      end if;
+            Result := Definition (Head (Result_List));
+      end case;
+
+      Free (Temp_List);
+      Free (Result_List);
+      return Result;
    end Find_Inherited_Identifier_Definition;
 
    -----------------------------------
