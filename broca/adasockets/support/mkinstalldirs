@@ -4,7 +4,7 @@
 # Created: 1993-05-16
 # Public domain
 
-# $Id: //depot/adabroker/main/broca/adasockets/support/mkinstalldirs#3 $
+# $Id: //depot/adabroker/main/broca/adasockets/support/mkinstalldirs#4 $
 
 errstatus=0
 
@@ -22,7 +22,7 @@ do
      esac
 
      if test ! -d "$pathcomp"; then
-        echo "mkdir $pathcomp" 1>&2
+        echo "mkdir $pathcomp"
 
         mkdir "$pathcomp" || lasterr=$?
 
