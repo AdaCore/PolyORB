@@ -1019,15 +1019,36 @@ package body PolyORB.ORB is
                        & Ada.Tags.External_Tag (Msg'Tag)));
 
       if Msg in Interface.Queue_Job then
+         Enter (ORB.ORB_Lock);
+
          Queue_Job (ORB.Job_Queue,
                     Interface.Queue_Job (Msg).Job);
 
+         --  Ensure that one ORB task will process this job.
+
+         if False then
+         --  XXX if ORB.Idle_Counter /= 0 then
+            Update (ORB.Idle_Tasks);
+         elsif ORB.Polling then
+            pragma Assert (ORB.Selector /= null);
+            Abort_Check_Sources (ORB.Selector.all);
+         else
+            null;
+            --  No task is blocked: assume that one will
+            --  eventually loop in ORB.Run and process this job.
+         end if;
+
+         Leave (ORB.ORB_Lock.all);
+
       elsif Msg in Interface.Queue_Request then
          declare
-            J : constant Job_Access := new Request_Job;
             QR : Interface.Queue_Request
               renames Interface.Queue_Request (Msg);
             Req : Requests.Request_Access renames QR.Request;
+
+            QJ : constant Interface.Queue_Job :=
+              (Job => new Request_Job);
+            J  : Job_Access renames QJ.Job;
          begin
             pragma Debug (O ("Queue_Request: enter"));
             Request_Job (J.all).ORB       := ORB_Access (ORB);
@@ -1044,7 +1065,7 @@ package body PolyORB.ORB is
                Request_Job (J.all).Requestor := QR.Requestor;
             end if;
             Req.Requesting_Component := Request_Job (J.all).Requestor;
-            Queue_Job (ORB.Job_Queue, J);
+            return Handle_Message (ORB, QJ);
             pragma Debug (O ("Queue_Request: leave"));
          end;
 
