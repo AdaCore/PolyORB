@@ -1,4 +1,21 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<?
+function mailfrom($fromaddress, $toaddress, $subject, $body, $headers) {
+  $fp = popen('/usr/sbin/sendmail -f'.$fromaddress.' '.$toaddress,"w");
+  if(!$fp) return false;
+  fputs($fp, "To: $toaddress\n");
+  fputs($fp, "Subject: $subject\n");
+  fputs($fp, $headers."\n\n");
+  fputs($fp, $body);
+  fputs($fp, "\n");
+  pclose($fp);
+  return true;
+}
+   mailfrom ("root@adabroker.eu.org", "w3-logs@adabroker.eu.org",
+            "AdaBroker access",
+            "$REMOTE_HOST - $REMOTE_ADDR\n$HTTP_REFERER\n$HTTP_USER_AGENT",
+            "");
+?>
 <html>
   <head>
     <title>AdaBroker</title>
@@ -10,7 +27,7 @@
   </head>
 
   <body bgcolor="#ffffff">
-    <center><img src="trace.cgi"></center>
+    <center><img src="adabroker.jpg"></center>
 
     <center><h1>What is AdaBroker?</h1></center>
 
@@ -55,26 +72,24 @@
 
     <ul>
       <li>
-
-	adabroker@adabroker.eu.org: general discussions about
-	AdaBroker To subscribe, send a mail to <a
-	href="mailto:adabroker-request@adabroker.eu.org">adabroker-request@adabroker.eu.org</a>
-	with the single line <b>subscribe</b> in the body (subject
-	will be ignored)
+	<TT>adabroker@adabroker.eu.org</TT>: general discussions about
+	AdaBroker.
+        To subscribe, please visit the <A
+	href="http://adabroker.eu.org/cgi-bin/mailman/listinfo/adabroker">
+        mailing list information page</A>.
 
       <li>
-
-	adabroker-announce@adabroker.eu.org: low trafic mailing-list
+	<TT>adabroker-announce@adabroker.eu.org</TT>: low trafic mailing-list
 	<b></b> that will only carry important information about
-	AdaBroker, such as new releases, beta test announces, etc.  To
-	subscribe, send a mail to <a
-	href="mailto:adabroker-announce-request@adabroker.eu.org">adabroker-announce-request@adabroker.eu.org</a>
-	with the single line <b>subscribe</b> in the body (subject
-	will be ignored)
+	AdaBroker, such as new releases, beta test announces, etc.
+        To subscribe, please visit the <A
+	href="http://adabroker.eu.org/cgi-bin/mailman/listinfo/adabroker-announce">
+        mailing list information page</A>.
 </ul>
 
 <center><h1>Archives</h1></center>
-You can browse the <a href="mail/">mailing-list archives</a>.
+You can browse the <a href="http://adabroker.eu.org/pipermail/adabroker/">
+mailing-list archives</a>.
 
 <center><h1>Authors</h1></center>
 
@@ -98,6 +113,6 @@ The AdaBroker WWW site is hosted on the
     <hr>
     <address><a href="mailto:sam+adabrokerwww@ada.eu.org">Samuel
     Tardieu</a></address>
-<!-- $Id: //depot/adabroker/main/WWW/index.html#16 $ -->
+<!-- $Id: //depot/adabroker/main/WWW/index.html#17 $ -->
   </body>
 </html>
