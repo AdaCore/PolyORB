@@ -5,6 +5,8 @@
 with Droopi.Buffers;
 with Droopi.Log;
 
+with Droopi.Representations.Test; use Droopi.Representations.Test;
+
 package body Droopi.Protocols.Echo is
 
    use Droopi.Log;
@@ -12,6 +14,8 @@ package body Droopi.Protocols.Echo is
    package L is new Droopi.Log.Facility_Log ("droopi.protocols.echo");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   Rep : constant Rep_Test_Access := new Rep_Test;
 
    procedure Create_Session
      (Proto   : access Echo_Protocol;
@@ -47,7 +51,7 @@ package body Droopi.Protocols.Echo is
 
    procedure Handle_Connect (S : access Echo_Session) is
    begin
-      --  Send_String ("Hello, please type data." & ASCII.NL);
+      --  Send_String ("Hello, please type data." & ASCII.LF);
       pragma Debug (O ("Received new connection to echo service..."));
       Channels.Expect_Data (S.Channel, S.Buffer, 1024, False);
    end Handle_Connect;
@@ -57,10 +61,20 @@ package body Droopi.Protocols.Echo is
       pragma Debug (O ("Received data on echo service..."));
       pragma Debug (Buffers.Show (S.Buffer.all));
 
-      Channels.Send_Data (S.Channel, S.Buffer);
-      --  Bounce received data to caller.
+      declare
+         Str : constant String
+           := Unmarshall_String (Rep, S.Buffer);
+      begin
+         pragma Debug (O ("Remote said: " & Str));
+         Buffers.Release_Contents (S.Buffer.all);
+         Marshall_String
+           (Rep, S.Buffer, "You said « " & Str & " »"
+            & ASCII.CR & ASCII.LF);
 
-      Buffers.Release_Contents (S.Buffer.all);
+         Channels.Send_Data (S.Channel, S.Buffer);
+         Buffers.Release_Contents (S.Buffer.all);
+      end;
+
       Channels.Expect_Data (S.Channel, S.Buffer, 1024, False);
       --  Clear buffer and prepare to receive next message.
 

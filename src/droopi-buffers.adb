@@ -379,6 +379,8 @@ package body Droopi.Buffers is
          From   => Addr);
       Received := Last - Data.Offset + 1;
       Unuse_Allocation (Buffer, Max - Received);
+
+      Buffer.CDR_Position := Buffer.Initial_CDR_Position;
    end Receive_Buffer;
 
    -------------------------
