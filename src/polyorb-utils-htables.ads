@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . U T I L S . H T A B L E                       --
+--                P O L Y O R B . U T I L S . H T A B L E S                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,8 @@
 ------------------------------------------------------------------------------
 
 --  This package provides dynamic perfect hash tables.
+
+--  $Id$
 
 package PolyORB.Utils.HTables is
 
