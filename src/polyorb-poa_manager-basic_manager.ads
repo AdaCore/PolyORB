@@ -36,15 +36,17 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.POA_Types; use PolyORB.POA_Types;
+with PolyORB.POA_Types;
 with PolyORB.Locks;
 with PolyORB.Components;
 with PolyORB.Locked_Queue;
-pragma Elaborate_All (PolyORB.Locked_Queue);
+with PolyORB.Servants;
 
 package PolyORB.POA_Manager.Basic_Manager is
 
    pragma Elaborate_Body;
+
+   use PolyORB.POA_Types;
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
@@ -84,7 +86,7 @@ package PolyORB.POA_Manager.Basic_Manager is
 
    procedure Register_POA
      (Self : access Basic_POA_Manager;
-      OA   : Obj_Adapter_Access);
+      OA   :        Obj_Adapter_Access);
 
    procedure Remove_POA
      (Self : access Basic_POA_Manager;
@@ -93,7 +95,7 @@ package PolyORB.POA_Manager.Basic_Manager is
    function Get_Hold_Servant
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access)
-     return Hold_Servant_Base_Access;
+     return PolyORB.Servants.Servant_Access;
 
    ---------------------------------------------------
    --  Servant used to implement the holding state  --
@@ -112,14 +114,14 @@ package PolyORB.POA_Manager.Basic_Manager is
    --    first.
 
    type Queue_Element_Access is private;
-   type Hold_Servant is new Hold_Servant_Base with private;
+   type Hold_Servant is new PolyORB.Servants.Servant with private;
    type Hold_Servant_Access is access all Hold_Servant;
 
    function "="
      (Left, Right : Hold_Servant)
      return Boolean;
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access Hold_Servant;
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
@@ -158,7 +160,7 @@ private
 
    procedure Dec_Usage_Counter (Self : access Basic_POA_Manager);
 
-   type Hold_Servant is new Hold_Servant_Base with
+   type Hold_Servant is new PolyORB.Servants.Servant with
       record
          Queue_Entry : Queue_Element_Access;
       end record;
@@ -174,5 +176,3 @@ private
      (Hold_Servant, Hold_Servant_Access);
 
 end PolyORB.POA_Manager.Basic_Manager;
-
-

@@ -33,7 +33,6 @@
 --  $Id$
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.POA;
 
 package body PolyORB.POA_Manager.Basic_Manager is
@@ -260,7 +259,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    function Get_Hold_Servant
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access)
-     return Hold_Servant_Base_Access
+     return Servants.Servant_Access
    is
       S         : Hold_Servant_Access;
       New_Entry : Queue_Element_Access;
@@ -283,7 +282,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       S.Queue_Entry := New_Entry;
       Unlock_W (Self.Queue_Lock);
 
-      return Hold_Servant_Base_Access (S);
+      return Servants.Servant_Access (S);
    end Get_Hold_Servant;
 
    -----------------------
@@ -400,7 +399,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access Hold_Servant;
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
@@ -421,6 +420,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Free (S);
 
       return Null_Message;
-   end Handle_Message;
+   end Execute_Servant;
 
 end PolyORB.POA_Manager.Basic_Manager;

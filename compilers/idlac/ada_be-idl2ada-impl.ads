@@ -34,11 +34,12 @@ private package Ada_Be.Idl2Ada.Impl is
    procedure Gen_Node_Spec
      (CU       : in out Compilation_Unit;
       Node     : Node_Id;
-      Delegate : Boolean := False);
+      Is_Delegate : Boolean := False);
+
    procedure Gen_Node_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   --  Generate an implementation template. If Delegate is True, the
+   --  Generate an implementation template. If Is_Delegate is True, the
    --  generated spec is a delegate's generic formal parameter.
 
 end Ada_Be.Idl2Ada.Impl;

@@ -30,20 +30,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Exceptions management for the CORBA Applicative Personality
+--  of PolyORB.
+
 --  Description:
 --  Exceptions_Members are handled differently according to the type
 --  of the exception:
 --   - for System exceptions, it is marshalled in the message
---   - for user exceptions, it is stored in a global stack
+--   - for User exceptions, it is stored in a global stack
 --   unless the members is an empty struct, in which case nothing
 --   is stored and the Get_Members function created a new
---   object from a derivation od IDL_Exception_Members
+--   object from a derivation of IDL_Exception_Members
 
-
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#2 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#7 $
 
 with Ada.Exceptions;
+
 with CORBA; use CORBA;
+
+with PolyORB.Any;
+with PolyORB.Types;
 
 package PolyORB.CORBA_P.Exceptions is
 
@@ -52,12 +58,12 @@ package PolyORB.CORBA_P.Exceptions is
    -----------------------------------------
 
    procedure User_Get_Members
-     (Occurrence : in CORBA.Exception_Occurrence;
+     (Occurrence : in Ada.Exceptions.Exception_Occurrence;
       Members    : out CORBA.IDL_Exception_Members'Class);
    --  Extract members from an exception occurence
 
    procedure User_Purge_Members
-     (Occurrence : in CORBA.Exception_Occurrence);
+     (Occurrence : in Ada.Exceptions.Exception_Occurrence);
    --  Forget exception members associated with an exception occurrence
 
    procedure User_Raise_Exception
@@ -71,21 +77,15 @@ package PolyORB.CORBA_P.Exceptions is
    -------------------------------------------
 
    procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
+     (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members);
 
-   function Get_ExcepId_By_RepositoryId
-     (RepoId : in Standard.String)
-     return Ada.Exceptions.Exception_Id;
-   --  return the corresponding Ada Exception_Id for
-   --  an IDL repository. Returns Null_Id if RepoId
-   --  is unknown.
-
-   function Occurrence_To_Name (Occurrence : CORBA.Exception_Occurrence)
-                                return CORBA.RepositoryId;
+   function Occurrence_To_Name
+     (Occurrence : Ada.Exceptions.Exception_Occurrence)
+      return CORBA.RepositoryId;
 
    ------------------------------------------------------------
-   -- conversion between Unsigned_Long and Completion_Status --
+   -- Conversion between Unsigned_Long and Completion_Status --
    ------------------------------------------------------------
 
    To_Completion_Status :
@@ -213,10 +213,31 @@ package PolyORB.CORBA_P.Exceptions is
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
+   type Raise_From_Any_Procedure is access procedure
+     (Occurrence : CORBA.Any);
+
+   procedure Register_Exception
+     (TC     : in CORBA.TypeCode.Object;
+      Raiser : in Raise_From_Any_Procedure);
+   --  Associate the TypeCode for a user-defined exception with
+   --  a procedure that raises an occurrence of that exception,
+   --  given an Any with that TypeCode.
+   --  (When a client creates a request, it is his responsability
+   --  to provide the list of typecodes of potential exceptions,
+   --  so the generic middleware can unmarshall occurrences and
+   --  store them into an Any. It is then the responsibility of
+   --  the application layer -- here, the CORBA PortableServer --
+   --  to map the Any back to whatever representation is relevant
+   --  in the application personality: here, raising a language
+   --  exception with proper members.
+
+   procedure Raise_From_Any (Occurrence : Any.Any);
+   pragma No_Return (Raise_From_Any);
+
+   function System_Exception_TypeCode
+     (Name : PolyORB.Types.RepositoryId)
+     return Any.TypeCode.Object;
+   --  Return the TypeCode corresponding to the indicated
+   --  system exception name.
+
 end PolyORB.CORBA_P.Exceptions;
-
-
-
-
-
-

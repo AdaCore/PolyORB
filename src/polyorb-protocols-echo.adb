@@ -43,7 +43,6 @@ with PolyORB.Buffers;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
@@ -228,7 +227,7 @@ package body PolyORB.Protocols.Echo is
          Args   : Any.NVList.Ref;
          Result : Any.NamedValue;
 
-         Target_Profile : Binding_Data.Profile_Access
+         Target_Profile : constant Binding_Data.Profile_Access
            := new Local_Profile_Type;
          Target : References.Ref;
 

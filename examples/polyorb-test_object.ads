@@ -36,7 +36,7 @@
 
 with PolyORB.Components;
 with PolyORB.Obj_Adapters.Simple;
-with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.Types;
 
 package PolyORB.Test_Object is
@@ -45,7 +45,7 @@ package PolyORB.Test_Object is
 
    use PolyORB.Types;
 
-   type My_Object is new PolyORB.Objects.Servant with null record;
+   type My_Object is new PolyORB.Servants.Servant with null record;
 
    function waitAndEchoString
      (O : My_Object;
@@ -63,7 +63,7 @@ package PolyORB.Test_Object is
       I : Types.Long)
      return Types.Long;
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access My_Object;
       Msg : Components.Message'Class)
      return Components.Message'Class;

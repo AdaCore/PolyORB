@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,8 @@ with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
+with PolyORB.Log;
+with PolyORB.ORB;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Representations.CDR;
@@ -48,15 +49,18 @@ with PolyORB.References.IOR;
 with PolyORB.Transport.Sockets;
 with PolyORB.Utils.Strings;
 
-with Sequences.Unbounded;
-
 package body PolyORB.Binding_Data.IIOP is
 
-   use PolyORB.Representations.CDR;
+   use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.References.IOR;
+   use PolyORB.Representations.CDR;
    use PolyORB.Transport.Sockets;
    use PolyORB.Types;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.iiop");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Marshall_Socket
         (Buffer   : access Buffer_Type;
@@ -102,10 +106,10 @@ package body PolyORB.Binding_Data.IIOP is
       Free (P.Object_Id);
    end Finalize;
 
-   procedure Bind_Profile
+   function Bind_Profile
      (Profile : IIOP_Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Filter  : out Components.Component_Access)
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access
    is
       use PolyORB.Components;
       use PolyORB.Protocols;
@@ -116,57 +120,79 @@ package body PolyORB.Binding_Data.IIOP is
 
       Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
+      TE : constant Transport.Transport_Endpoint_Access
+        := new Transport.Sockets.Socket_Endpoint;
       Pro  : aliased GIOP_Protocol;
       Sli  : aliased Slicer_Factory;
-      Prof : Profile_Access := new IIOP_Profile_Type;
+      Prof : constant Profile_Access := new IIOP_Profile_Type;
       --  This Profile_Access is stored in the created
       --  GIOP_Session, and free'd when the session is finalised.
+
+      Filter : Filters.Filter_Access;
 
       TProf : IIOP_Profile_Type
         renames IIOP_Profile_Type (Prof.all);
 
    begin
+      pragma Debug (O ("Bind IIOP profile: enter"));
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
-      TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), Sock);
 
       Chain_Factories ((0 => Sli'Unchecked_Access,
                         1 => Pro'Unchecked_Access));
 
-      Filter := Component_Access (Create_Filter_Chain (Sli'Unchecked_Access));
+      Filter :=
+        Slicers.Create_Filter_Chain (Sli'Unchecked_Access);
       --  Filter must be an access to the lowest filter in
       --  the stack (the slicer in the case of GIOP).
+      --  The call to CFC is qualified to work around a bug in
+      --  the APEX compiler.
 
+      ORB.Register_Endpoint
+        (ORB.ORB_Access (The_ORB), TE,
+         Filter, ORB.Client);
+      --  Register the endpoint and lowest filter with the ORB.
+
+      pragma Debug (O ("Preparing local copy of profile"));
       TProf.Address := Profile.Address;
       TProf.Object_Id := Profile.Object_Id;
       Adjust (TProf);
+      pragma Debug (O ("Adjusted local copy of profile"));
 
       declare
          S : GIOP_Session
            renames GIOP_Session
-           (Upper (Filter_Access (Filter)).all);
+           (Upper (Filter).all);
       begin
          Store_Profile (S'Access, Prof);
          Set_Version
            (S'Access,
             Profile.Major_Version,
             Profile.Minor_Version);
+         pragma Debug (O ("Bind IIOP profile: leave"));
+         return S'Access;
       end;
-
-      --  The caller will invoke Register_Endpoint on TE.
    end Bind_Profile;
 
    function Get_Profile_Tag
      (Profile : IIOP_Profile_Type)
-     return Profile_Tag is
+     return Profile_Tag
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
    begin
       return Tag_Internet_IOP;
    end Get_Profile_Tag;
 
    function Get_Profile_Preference
      (Profile : IIOP_Profile_Type)
-     return Profile_Preference is
+     return Profile_Preference
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
    begin
       return Preference;
    end Get_Profile_Preference;
@@ -174,14 +200,17 @@ package body PolyORB.Binding_Data.IIOP is
    procedure Create_Factory
      (PF  : out IIOP_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
-      ORB : Components.Component_Access) is
+      ORB : Components.Component_Access)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
    begin
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;
 
    function Create_Profile
      (PF  : access IIOP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access
    is
@@ -195,15 +224,15 @@ package body PolyORB.Binding_Data.IIOP is
         renames IIOP_Profile_Type (Result.all);
    begin
       TResult.Object_Id := new Object_Id'(Oid);
-      TResult.Address   := Address_Of
-        (Socket_Access_Point (TAP.all));
+      TResult.Address   := PF.Address;
       TResult.Components := Null_Sequence;
       return  Result;
    end Create_Profile;
 
    function Is_Local_Profile
      (PF : access IIOP_Profile_Factory;
-      P : Profile_Access) return Boolean
+      P  : access Profile_Type'Class)
+      return Boolean
    is
       use type PolyORB.Sockets.Sock_Addr_Type;
    begin
@@ -214,7 +243,6 @@ package body PolyORB.Binding_Data.IIOP is
    --------------------------------
    -- Marshall_IIOP_Profile_Body --
    --------------------------------
-
 
    procedure Marshall_IIOP_Profile_Body
      (Buf     : access Buffer_Type;
@@ -230,8 +258,8 @@ package body PolyORB.Binding_Data.IIOP is
       Start_Encapsulation (Profile_Body);
 
       --  Version
-      Marshall (Profile_Body, Types.Octet (IIOP_Major_Version));
-      Marshall (Profile_Body, Types.Octet (IIOP_Minor_Version));
+      Marshall (Profile_Body, IIOP_Major_Version);
+      Marshall (Profile_Body, IIOP_Minor_Version);
 
       --  Marshalling of a Socket
       Marshall_Socket (Profile_Body, IIOP_Profile.Address);
@@ -250,7 +278,6 @@ package body PolyORB.Binding_Data.IIOP is
 
    end Marshall_IIOP_Profile_Body;
 
-
    ----------------------------------
    -- Unmarshall_IIOP_Profile_Body --
    ----------------------------------
@@ -262,21 +289,25 @@ package body PolyORB.Binding_Data.IIOP is
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
       --  Length         : CORBA.Long;
-      Result         : Profile_Access := new IIOP_Profile_Type;
+      Result         : constant Profile_Access := new IIOP_Profile_Type;
       TResult        : IIOP_Profile_Type
         renames IIOP_Profile_Type (Result.all);
 
 
    begin
+      pragma Debug (O ("Unmarshall_IIOP_Profile_body: enter"));
       Decapsulate (Profile_Body'Access, Profile_Buffer);
 
       TResult.Major_Version  := Unmarshall (Profile_Buffer);
       TResult.Minor_Version  := Unmarshall (Profile_Buffer);
+      pragma Debug
+        (O ("  Version = " & TResult.Major_Version'Img & "."
+            & TResult.Minor_Version'Img));
 
       Unmarshall_Socket (Profile_Buffer, TResult.Address);
-
+      pragma Debug (O ("  Address = " & Sockets.Image (TResult.Address)));
       declare
-         Str  : aliased Stream_Element_Array :=
+         Str  : aliased constant Stream_Element_Array :=
            Unmarshall (Profile_Buffer);
       begin
          TResult.Object_Id := new Object_Id'(Object_Id (Str));
@@ -286,6 +317,7 @@ package body PolyORB.Binding_Data.IIOP is
          end if;
       end;
       Release (Profile_Buffer);
+      pragma Debug (O ("Unmarshall_IIOP_Profile_body: leave"));
       return Result;
 
    end Unmarshall_IIOP_Profile_Body;
@@ -296,7 +328,7 @@ package body PolyORB.Binding_Data.IIOP is
    is
       use PolyORB.Sockets;
 
-      Str  : Types.String := To_PolyORB_String (Image (Sock.Addr));
+      Str  : constant Types.String := To_PolyORB_String (Image (Sock.Addr));
    begin
 
       --  Marshalling of the Host as a string
@@ -314,12 +346,14 @@ package body PolyORB.Binding_Data.IIOP is
    is
       use PolyORB.Sockets;
 
-      Str  : Types.String := Unmarshall (Buffer);
+      Addr_Image : constant Standard.String
+        := PolyORB.Types.To_Standard_String
+        (PolyORB.Types.String'(Unmarshall (Buffer)));
       Port : Types.Unsigned_Short;
    begin
 
       --  Unmarshalling of the Host
-      Sock.Addr := Inet_Addr (To_Standard_String (Str));
+      Sock.Addr := Inet_Addr (Addr_Image);
 
       --  Unmarshalling of the port
       Port := Unmarshall (Buffer);

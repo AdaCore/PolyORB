@@ -1,0 +1,77 @@
+Comment installer c4 un front-end de p4 proche de CVS
+*****************************************************
+
+Pour essayer de remédier, dans une certaine mesure, aux désagréments que
+peut apporter l'utilisation de Perforce lorsqu'on est habitué au modèle
+de travail de CVS, il existe un front-end pour Perforce qui permet
+d'avoir un fonctionnement plus proche de CVS : "c4".
+   
+Des binaires pour FreeBSD 4, FreeBSD 5, Linux et Solaris, ainsi qu'un
+README et une page de manuels, se trouvent dans : 
+  ~quinot/public/perforce/c4/.
+Ceux qui le souhaitent peuvent récupérer et utiliser ces binaires (il
+est nécessaire d'avoir le client "p4" dans le PATH, puisque c4 n'est
+qu'une façade).
+   
+Pour les autres architectures, les sources se trouvent dans :
+  ~quinot/projects/perforce/guest/thomas_quinot/perforce/utils/c4/.
+   
+Il suffit de faire "make".
+
+Comment installer polyorb sur les stations Sun de l'ENST
+********************************************************
+
+compilateur Ada : 3.14p, /usr/local/packages/gnat-3.14p/
+gmake : 3.79.1, verifier avec gmake -v
+
+Compilation de XMLAda
+*********************
+
+ - lancer ./configure
+ - dans le Makefile.module remplacer :
+       FPIC=
+   par FPIC= -fPIC
+ - gmake && gmake install
+ - mettre dans votre PATH <repertoire xmlada/bin>
+ et dans LD_LIBRARY_PATH <repertoire xmlada/lib>
+
+Compilation de PolyORB
+**********************
+
+*) Pour compiler directement PolyORB, executer les commandes suivantes :
+
+ support/reconfig
+ ./configure --enable-debug --enable-xmlada
+ make
+
+*) Pout compiler PolyORB dans un autre répertoire, on peux exécuter le script
+suivant depuis le répertoire où l'on souhaite construire PolyORB :
+
+ #!/bin/sh
+ LOCALDIR=`pwd`
+ cd <srcdir>
+ support/reconfig
+ cd $LOCALDIR
+ $HOME/stage/polyorb/configure --enable-debug --enable-xmlada --prefix=<installdir> --srcdir=<srcdir>
+
+ou
+ <srcdir>     repertoire contenant les sources de PolyORB
+ <installdir> repertoire ou installer PolyORB
+
+qui construira l'ensemble des Makefiles dans le répertoire de build. Puis,
+
+ make
+
+Ceci est notamment utile pour compiler PolyORB ailleurs que sur son
+compte, l'espace disque occupe etant de 300Mo ...
+
+*) Suivant les plates-formes de compilation utilisées, certains flags peuvent
+poser problème. Ainsi, pour la version de GNAT 3.14p, il est nécessaire de
+supprimer l'option `-fstack-check` du champs GNATFLAGS dans configure.in comme
+suit :
+
+ diff -r1.20 configure.in
+ 46c46
+ < [GNATFLAGS="-g -O0 -gnatfa -fstack-check -gnaty -gnatwae -Wall"
+ ---
+ > [GNATFLAGS="-g -O0 -gnatfa -gnaty -gnatwae -Wall"

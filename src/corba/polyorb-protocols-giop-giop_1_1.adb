@@ -33,16 +33,12 @@
 --  $Id$
 
 with Ada.Streams; use Ada.Streams;
-with Ada.Strings;
-with Ada.Strings.Unbounded;
 
-with CORBA;
-
+with PolyORB.Any;
 with PolyORB.Buffers;             use PolyORB.Buffers;
 with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Protocols;           use PolyORB.Protocols;
 with PolyORB.References;          use PolyORB.References;
 with PolyORB.Representations.CDR; use PolyORB.Representations.CDR;
@@ -58,9 +54,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
-      := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
+   ---------------
+   -- Constants --
+   ---------------
 
+   Major_Version : constant Types.Octet
+     := 1;
+   Minor_Version : constant Types.Octet
+     := 1;
 
    --------------------------
    -- Marshall_GIOP_Header --
@@ -106,19 +107,20 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          Types.Unsigned_Long (Message_Size - Message_Header_Size));
    end  Marshall_GIOP_Header;
 
+   -----------------------------------------
+   -- Marshaling of the GIOP 1.1 messages --
+   -----------------------------------------
 
-   ------------------------------------------------
-   --  Marshaling of the  GIOP 1.1 messages
-   ------------------------------------------------
-   -- Marshalling of the request Message ----------
-   ------------------------------------------------
+   ------------------------------
+   -- Marshall_Request_Message --
+   ------------------------------
 
    procedure Marshall_Request_Message
-     (Buffer             : access Buffers.Buffer_Type;
-      Request_Id         : in Types.Unsigned_Long;
-      Target_Profile     : in Binding_Data.Profile_Access;
-      Response_Expected  : in Boolean;
-      Operation          : in Requests.Operation_Id)
+     (Buffer            : access Buffers.Buffer_Type;
+      Request_Id        : in     Types.Unsigned_Long;
+      Target_Profile    : in     Binding_Data.Profile_Access;
+      Response_Expected : in     Boolean;
+      Operation         : in     String)
 
    is
       use Representations.CDR;
@@ -152,17 +154,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  Operation
       Marshall (Buffer, Operation);
 
-
       --  Principal
-      Marshall (Buffer,
-               Types.String (Nobody_Principal));
+      Marshall (Buffer, Nobody_Principal);
 
    end Marshall_Request_Message;
 
 
-   -----------------------------
-   ---  No Exception Reply
-   ------------------------------
+   ---------------------------
+   -- Marshall_No_Exception --
+   ---------------------------
 
    procedure Marshall_No_Exception
     (Buffer      : access Buffer_Type;
@@ -171,7 +171,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    is
       use Representations.CDR;
    begin
-
 
       --  Service context
       Marshall (Buffer, Types.Octet (ServiceId'Pos
@@ -187,17 +186,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    end Marshall_No_Exception;
 
-
-
-   -------------------------------------
-   --  System Exception Marshall
-   -------------------------------------
+   ------------------------
+   -- Marshall_Exception --
+   ------------------------
 
    procedure Marshall_Exception
     (Buffer           : access Buffer_Type;
      Request_Id       : in Types.Unsigned_Long;
      Exception_Type   : in Reply_Status_Type;
-     Occurence        : in CORBA.Exception_Occurrence)
+     Occurrence       : in Any.Any)
    is
       use Representations.CDR;
    begin
@@ -217,14 +214,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Marshall (Buffer, Exception_Type);
 
       --  Occurrence
-      Marshall (Buffer, Occurence);
+      Marshall (Buffer, Any.TypeCode.Id (Any.Get_Type (Occurrence)));
+      Marshall_From_Any (Buffer, Occurrence);
    end Marshall_Exception;
 
-
-
-   -------------------------------------
-   --   Location Forward Reply Marshall
-   ------------------------------------
+   -------------------------------
+   -- Marshall_Location_Forward --
+   -------------------------------
 
    procedure Marshall_Location_Forward
     (Buffer           : access Buffer_Type;
@@ -247,16 +243,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Marshall (Buffer, GIOP.Location_Forward);
 
       --  Object reference
-      References.IOR.Marshall (Buffer, Forward_Ref);
+      References.IOR.Marshall_IOR (Buffer, Forward_Ref);
 
    end Marshall_Location_Forward;
 
-
-
-   ---------------------------------------
-   ----- Fragment Message Marshall
-   ----------------------------------------
-
+   -----------------------
+   -- Marshall_Fragment --
+   -----------------------
 
    procedure Marshall_Fragment
     (Buffer      : access Buffer_Type;
@@ -271,9 +264,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    end Marshall_Fragment;
 
-   ----------------------------------
-   --- Request Unmarshalling
-   -----------------------------------------
+   -------------------------------------------
+   -- Unmarshaling of the GIOP 1.1 messages --
+   -------------------------------------------
+
+   --------------------------------
+   -- Unmarshall_Request_Message --
+   --------------------------------
 
    procedure Unmarshall_Request_Message
      (Buffer            : access Buffer_Type;
@@ -283,8 +280,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Operation         : out Types.String)
    is
       use PolyORB.Objects;
-      Service_Context1  : Types.Unsigned_Long := Unmarshall (Buffer);
-      Service_Context2  : Types.Unsigned_Long := Unmarshall (Buffer);
+      Service_Context1  : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
+      Service_Context2  : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
       Reserved          : Types.Octet;
       Principal         : Types.String;
    begin
@@ -311,7 +310,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       --  Object Key
       declare
-         Obj : Stream_Element_Array := Unmarshall (Buffer);
+         Obj : constant Stream_Element_Array := Unmarshall (Buffer);
       begin
          Object_Key := new Object_Id'(Object_Id (Obj));
       end;
@@ -324,10 +323,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    end Unmarshall_Request_Message;
 
-
-   -----------------------------------------
-   --- Reply  Unmarshalling
-   -----------------------------------------
+   ------------------------------
+   -- Unmarshall_Reply_Message --
+   ------------------------------
 
    procedure Unmarshall_Reply_Message
       (Buffer       : access Buffer_Type;
@@ -335,8 +333,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
        Reply_Status : out Reply_Status_Type)
 
    is
-      Service_Context1  : Types.Unsigned_Long := Unmarshall (Buffer);
-      Service_Context2  : Types.Unsigned_Long := Unmarshall (Buffer);
+      Service_Context1  : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
+      Service_Context2  : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
    begin
 
       --  Service context

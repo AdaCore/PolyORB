@@ -30,19 +30,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Conversion;
+
 with PolyORB.Object_Maps;
-with PolyORB.Object_Maps.Seq;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Locks;
 with PolyORB.Types; use PolyORB.Types;
 with PolyORB.Utils;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    use PolyORB.Locks;
    use PolyORB.Object_Maps;
-   use PolyORB.Object_Maps.Seq;
 
    ------------
    -- Create --
@@ -58,13 +59,12 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : System_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+     (Self           : System_Id_Policy;
+      Other_Policies : AllPolicies)
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
       null;
    end Check_Compatibility;
@@ -96,78 +96,86 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       return True;
    end Is_System;
 
-   ---------------------
-   -- Activate_Object --
-   ---------------------
+   ------------------------------
+   -- Assign_Object_Identifier --
+   ------------------------------
 
-   function Activate_Object
+   function Assign_Object_Identifier
      (Self   : System_Id_Policy;
       OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Object : Servant_Access)
-     return Object_Id_Access
+      Hint   : Object_Id_Access)
+     return Unmarshalled_Oid
    is
-      P_OA      : PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-      New_Entry : Seq_Object_Map_Entry_Access;
-      Index     : Integer;
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      New_Entry         := new Seq_Object_Map_Entry;
-      New_Entry.Servant := Object;
 
-      Lock_W (P_OA.Map_Lock);
-      if P_OA.Active_Object_Map = null then
-         P_OA.Active_Object_Map := Object_Map_Access (New_Map);
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
+      --  Object_Id_Info : Unmarshalled_Oid;
+      The_Entry : Object_Map_Entry_Access;
+      Index : Integer;
+
+      use PolyORB.Object_Maps;
+
+      function As_String_Ptr is new Ada.Unchecked_Conversion
+        (Object_Id_Access, Utils.Strings.String_Ptr);
+
+   begin
+      Lock_W (POA.Map_Lock);
+      if POA.Active_Object_Map = null then
+         POA.Active_Object_Map := new Object_Map;
       end if;
-      Index := Add (P_OA.Active_Object_Map.all'Access,
-                    Object_Map_Entry_Access (New_Entry));
+      pragma Assert (POA.Active_Object_Map /= null);
 
-      New_Entry.Oid := new Unmarshalled_Oid;
-      New_Entry.Oid.Id := To_PolyORB_String
-        (PolyORB.Utils.Trimmed_Image (Index));
-      New_Entry.Oid.System_Generated := True;
-      New_Entry.Oid.Persistency_Flag
-        := PolyORB.POA_Policies.Lifespan_Policy.Get_Time_Stamp
-           (P_OA.Lifespan_Policy.all, OA);
-      New_Entry.Oid.Creator := P_OA.Absolute_Address;
-      Unlock_W (P_OA.Map_Lock);
-      return U_Oid_To_Oid (New_Entry.Oid.all);
-   end Activate_Object;
+      if Hint /= null then
+         begin
+            Index := Integer'Value (As_String_Ptr (Hint).all);
+         exception
+            when others =>
+               raise PolyORB.POA.Invalid_Policy;
+         end;
 
-   -----------------------------
-   -- Activate_Object_With_Id --
-   -----------------------------
+         The_Entry := Get_By_Index
+           (POA.Active_Object_Map.all, Index);
+         Unlock_W (POA.Map_Lock);
 
-   --  XXX Oid should be passed as anonymous access.
+         if The_Entry = null then
+            raise PolyORB.POA.Invalid_Policy;
+            --  Could not determine the slot associated with
+            --  this index.
+            --  XXX if this is a POA with the PERSISTENT lifespan
+            --  policy, then dummy slots should be allocated to
+            --  bring this index back into existence.
+         end if;
+      else
 
-   procedure Activate_Object_With_Id
-     (Self   : System_Id_Policy;
-      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Object : Servant_Access;
-      Oid    : Object_Id)
-   is
-      P_OA      : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-      Oid_A : Object_Id_Access := new Object_Id'(Oid);
-      New_Entry : Seq_Object_Map_Entry_Access;
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      New_Entry         := new Seq_Object_Map_Entry;
-      New_Entry.Oid     := new Unmarshalled_Oid'(Oid_To_U_Oid (Oid_A));
-      Free (Oid_A);
-      New_Entry.Servant := Object;
+         --  XXX possible memory leak, to investigate.
+         --  XXX If the servant retention policy is NON_RETAIN,
+         --   should we not get rid of the active object map
+         --   altogether? But in that case how does system id
+         --   attribution cooperate with id_uniqueness_policy?
 
-      Lock_W (P_OA.Map_Lock);
-      Replace_By_Index
-        (P_OA.Active_Object_Map.all'Access,
-         Object_Map_Entry_Access (New_Entry),
-         Integer'Value (To_Standard_String (New_Entry.Oid.Id)));
-      Unlock_W (P_OA.Map_Lock);
-   end Activate_Object_With_Id;
+         The_Entry := new Object_Map_Entry;
+         Index := Add (POA.Active_Object_Map, The_Entry);
+         Unlock_W (POA.Map_Lock);
+
+         The_Entry.Oid := new Unmarshalled_Oid;
+         The_Entry.Oid.Id := To_PolyORB_String
+           (PolyORB.Utils.Trimmed_Image (Index));
+         The_Entry.Oid.System_Generated := True;
+         The_Entry.Oid.Persistency_Flag
+           := PolyORB.POA_Policies.Lifespan_Policy.Get_Lifespan_Cookie
+           (POA.Lifespan_Policy.all, OA);
+         The_Entry.Oid.Creator := POA.Absolute_Address;
+      end if;
+
+      return The_Entry.Oid.all;
+   exception
+      when others =>
+         Unlock_W (POA.Map_Lock);
+         raise;
+   end Assign_Object_Identifier;
 
    -----------------------
    -- Ensure_Oid_Origin --
@@ -185,104 +193,5 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          raise PolyORB.POA.Bad_Param;
       end if;
    end Ensure_Oid_Origin;
-
-   ---------------------------
-   -- Ensure_Oid_Uniqueness --
-   ---------------------------
-
-   procedure Ensure_Oid_Uniqueness
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-   is
-      An_Entry : Object_Map_Entry_Access;
-      P_OA      : PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-      Index : Integer := Integer'Value (To_Standard_String (U_Oid.Id));
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Lock_R (P_OA.Map_Lock);
-      An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
-      Unlock_R (P_OA.Map_Lock);
-      if An_Entry /= null then
-         raise PolyORB.POA.Object_Already_Active;
-      end if;
-   end Ensure_Oid_Uniqueness;
-
-   ------------------
-   -- Remove_Entry --
-   ------------------
-
-   procedure Remove_Entry
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-   is
-      An_Entry : Object_Map_Entry_Access;
-      Index    : Integer
-        := Integer'Value (To_Standard_String (U_Oid.Id));
-      P_OA     : PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Lock_W (P_OA.Map_Lock);
-      An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
-      if An_Entry = null then
-         raise PolyORB.POA.Object_Not_Active;
-      end if;
-      An_Entry := Remove_By_Index (P_OA.Active_Object_Map.all'Access, Index);
-      Unlock_W (P_OA.Map_Lock);
-      --  Frees only the Unmarshalled_Oid_Access and the entry.
-      --  The servant has to be freed by the application.
-      Free (An_Entry.Oid);
-      Free (Seq_Object_Map_Entry_Access (An_Entry));
-   end Remove_Entry;
-
-   -------------------
-   -- Id_To_Servant --
-   -------------------
-
-   function Id_To_Servant
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servant_Access
-   is
-      An_Entry : Object_Map_Entry_Access;
-      Index    : Integer
-        := Integer'Value (To_Standard_String (U_Oid.Id));
-      P_OA     : PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-      Servant  : Servant_Access;
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Lock_R (P_OA.Map_Lock);
-      An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
-      if An_Entry /= null then
-         Servant := An_Entry.Servant;
-      end if;
-      Unlock_R (P_OA.Map_Lock);
-      return Servant;
-   end Id_To_Servant;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free (Self : in     System_Id_Policy;
-                   Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (System_Id_Policy_Access (Ptr));
-   end Free;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

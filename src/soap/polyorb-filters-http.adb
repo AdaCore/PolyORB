@@ -44,7 +44,6 @@ with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Headers;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Opaque;
 with PolyORB.Protocols;
 --  For exception Protocol_Error.
@@ -124,12 +123,16 @@ package body PolyORB.Filters.HTTP is
      (Fact   : access HTTP_Filter_Factory;
       Filt   : out Filter_Access)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Fact);
+      pragma Warnings (On);
       Res : constant Filter_Access := new HTTP_Filter;
    begin
       Filt := Res;
    end Create;
 
    procedure Clear_Message_State (F : in out HTTP_Filter) is
+      Empty : PolyORB.Types.String;
    begin
       F.Version := Default_HTTP_Version;
       F.Status  := S_Unknown;
@@ -141,7 +144,8 @@ package body PolyORB.Filters.HTTP is
       Deallocate (F.Transfer_Encoding);
       F.Chunked := False;
       F.Transfer_Length := -1;
-      F.Entity := PolyORB.Types.To_PolyORB_String ("");
+      F.Entity := Empty;
+      F.SOAP_Action := Empty;
    end Clear_Message_State;
 
    procedure Initialize (F : in out HTTP_Filter) is
@@ -221,6 +225,8 @@ package body PolyORB.Filters.HTTP is
          Emit_No_Reply (F.Upper, S);
       elsif S in Disconnect_Request then
          return Emit (F.Lower, S);
+      elsif S in AWS_Get_SOAP_Action then
+         return AWS_SOAP_Action'(SOAP_Action => F.SOAP_Action);
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;
@@ -346,7 +352,7 @@ package body PolyORB.Filters.HTTP is
                   exception
                      when E : others =>
                         O ("Received exception in "
-                           & F.State'Img & " state:", Error);
+                           & HTTP_State'Image (F.State) & " state:", Error);
                         O (Ada.Exceptions.Exception_Information (E),
                            Error);
                         Clear_Message_State (F.all);
@@ -817,6 +823,17 @@ package body PolyORB.Filters.HTTP is
                   --  XXX Respond 501 not implemented per RFC 2616 3.6?
                end if;
             end;
+
+         when H_SOAPAction =>
+            Tok_Last := S'Last;
+            Trim_LWS (S, Tok_Last);
+            if Pos > Tok_Last then
+               raise Protocol_Error;
+            end if;
+            pragma Debug (O ("SOAP action is " & S (Pos .. Tok_Last)));
+            F.SOAP_Action := PolyORB.Types.To_PolyORB_String
+              (S (Pos .. Tok_Last));
+
          when others =>
             pragma Debug
               (O ("Ignoring HTTP header " & Header_Kind'Img & ":"));
@@ -909,7 +926,7 @@ package body PolyORB.Filters.HTTP is
    is
       function Cvt is new Ada.Unchecked_Conversion
         (Integer, HTTP_Status_Code);
-      Res : HTTP_Status_Code := Cvt (Status);
+      Res : constant HTTP_Status_Code := Cvt (Status);
 
       Unknown_Codes : constant array (Integer range <>) of HTTP_Status_Code
         := (1 => S_1xx_Other_Informational,
@@ -967,7 +984,7 @@ package body PolyORB.Filters.HTTP is
          Image (F.Version)
          --  XXX Should we reply with that version?
          & Integer'Image (To_Integer (Status)) & " "
-         & Status'Img);
+         & HTTP_Status_Code'Image (Status));
    end Put_Status_Line;
 
    procedure Error (F : access HTTP_Filter; Status : HTTP_Status_Code) is
@@ -1072,6 +1089,9 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       RD : AWS.Response.Data)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (RD);
+      pragma Warnings (On);
    begin
       --  Put_Line (F, Header (H_Date, To_HTTP_Date (OS_Lib.GMT_Clock)));
       Put_Line (F, Header (H_Server, "PolyORB"));

@@ -41,9 +41,7 @@ pragma Warnings (On);
 --  Internal GNAT unit.
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Soft_Links;  use PolyORB.Soft_Links;
 with PolyORB.Utils.Strings;
 
@@ -57,17 +55,6 @@ package body PolyORB.Protected_Objects is
      renames L.Output;
 
    Critical_Section : Protected_Adv_Mutex_Type;
-
-   pragma Warnings (Off);
-   --  XXX Work around bug 9707-004: inaccurate 'type unreferenced' warning.
-   protected type Barrier_PO is
-      entry Barrier_Wait;
-      procedure Signal (How_Many : Positive := 1);
-      procedure Signal_All (Permanent : Boolean);
-   private
-      Free : Natural := 0;
-      Perm : Boolean := False;
-   end Barrier_PO;
 
    --  Any number of task may be waiting on Wait. Signal unblocks How_Many
    --  tasks (the order depends on the queuing policy) and Signal_All
@@ -111,64 +98,6 @@ package body PolyORB.Protected_Objects is
      new Ada.Unchecked_Deallocation (Adv_Mutex_PO, Adv_Mutex_PO_Access);
    procedure Free is
      new Ada.Unchecked_Deallocation (Watcher_PO, Watcher_PO_Access);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Barrier_PO, Barrier_PO_Access);
-
-   ------------------
-   -- Barrier_PO --
-   ------------------
-
-   protected body Barrier_PO is
-
-      -----------------------
-      -- Barrier_PO.Signal --
-      -----------------------
-
-      procedure Signal (How_Many : Positive := 1) is
-      begin
-         if not Perm then
-            Free := Free + How_Many;
-         end if;
-      end Signal;
-
-      ---------------------------
-      -- Barrier_PO.Signal_All --
-      ---------------------------
-
-      procedure Signal_All (Permanent : Boolean) is
-      begin
-         if not Perm then
-            if Permanent then
-               Perm := True;
-            else
-               Free := Free + Barrier_Wait'Count;
-            end if;
-         end if;
-      end Signal_All;
-
-      ---------------------
-      -- Barrier_PO.Barrier_Wait --
-      ---------------------
-
-      entry Barrier_Wait when Perm or else Free > 0 is
-      begin
-         if not Perm then
-            Free := Free - 1;
-         end if;
-      end Barrier_Wait;
-
-   end Barrier_PO;
-
-   ------------
-   -- Create --
-   ------------
-
-   function Create return Barrier_Access is
-      B : Protected_Barrier_Type;
-   begin
-      B.X := new Barrier_PO;
-      return new Protected_Barrier_Type'(B);
-   end Create;
 
    ------------
    -- Create --
@@ -205,15 +134,6 @@ package body PolyORB.Protected_Objects is
       M.X := new Mutex_PO;
       return new Protected_Mutex_Type'(M);
    end Create;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy (B : in out Protected_Barrier_Type) is
-   begin
-      Free (B.X);
-   end Destroy;
 
    -------------
    -- Destroy --
@@ -306,7 +226,6 @@ package body PolyORB.Protected_Objects is
       Critical_Section.X.Level   := 0;
       Register_Enter_Critical_Section (Enter_Critical_Section'Access);
       Register_Leave_Critical_Section (Leave_Critical_Section'Access);
-      Register_Barrier_Creation_Function (Create'Access);
       Register_Watcher_Creation_Function (Create'Access);
       Register_Mutex_Creation_Function (Create'Access);
       Register_Adv_Mutex_Creation_Function (Create'Access);
@@ -322,28 +241,23 @@ package body PolyORB.Protected_Objects is
 
    procedure Leave (M : in Protected_Adv_Mutex_Type) is
    begin
-      pragma Assert (M.X /= null
-                       and then M.X.Mutex /= null
-                       and then M.X.Current = Current_Task
-                       and then M.X.Level > 0);
+      pragma Assert (M.X /= null);
+      pragma Assert (M.X.Mutex /= null);
+      pragma Assert (M.X.Current = Current_Task);
+      pragma Assert (M.X.Level > 0);
 
-      pragma Debug (O ("orb : leaving"));
-      if M.X = null then
-         null;
-         pragma Debug (O ("orb : mutex null"));
-      end if;
-
+      pragma Debug (O ("Prot_Adv_Mutex: leaving"));
       M.X.Level := M.X.Level - 1;
 
-      pragma Debug (O ("orb : checking level"));
+      pragma Debug (O ("Prot_Adv_Mutex: checking level"));
       if M.X.Level = 0 then
-         pragma Debug (O ("orb : level = 0"));
+         pragma Debug (O ("Prot_Adv_Mutex: level = 0"));
          M.X.Current := Null_Task_Id;
-         pragma Debug (O ("orb : setting current to null"));
+         pragma Debug (O ("Prot_Adv_Mutex: setting current to null"));
          M.X.Mutex.Leave;
-         pragma Debug (O ("orb : mutex left"));
+         pragma Debug (O ("Prot_Adv_Mutex: mutex left"));
       end if;
-      pragma Debug (O ("orb : leave left"));
+      pragma Debug (O ("Prot_Adv_Mutex: leave left"));
    end Leave;
 
    -----------
@@ -403,30 +317,6 @@ package body PolyORB.Protected_Objects is
    end Mutex_PO;
 
    ------------
-   -- Signal --
-   ------------
-
-   procedure Signal
-     (B : in Protected_Barrier_Type;
-      N : in Positive := 1) is
-   begin
-      pragma Assert (B.X /= null);
-      B.X.Signal (N);
-   end Signal;
-
-   ----------------
-   -- Signal_All --
-   ----------------
-
-   procedure Signal_All
-     (B : in Protected_Barrier_Type;
-      P : in Boolean := True) is
-   begin
-      pragma Assert (B.X /= null);
-      B.X.Signal_All (P);
-   end Signal_All;
-
-   ------------
    -- Update --
    ------------
 
@@ -435,16 +325,6 @@ package body PolyORB.Protected_Objects is
       pragma Assert (W.X /= null);
       W.X.Update;
    end Update;
-
-   ----------
-   -- Wait --
-   ----------
-
-   procedure Wait (B : in Protected_Barrier_Type) is
-   begin
-      pragma Assert (B.X /= null);
-      B.X.Barrier_Wait;
-   end Wait;
 
    ----------------
    -- Watcher_PO --
@@ -457,6 +337,9 @@ package body PolyORB.Protected_Objects is
       ----------------------
 
       entry Await (V : in Version_Id) when not Passing is
+         pragma Warnings (Off);
+         pragma Unreferenced (V);
+         pragma Warnings (On);
       begin
          if Await'Count = 0 then
             Passing := True;
@@ -503,6 +386,7 @@ package body PolyORB.Protected_Objects is
 
    task type Generic_Task is
       entry Start (Main : Parameterless_Procedure);
+      pragma Storage_Size (131072);
    end Generic_Task;
 
    task body Generic_Task is
@@ -517,7 +401,7 @@ package body PolyORB.Protected_Objects is
    type Generic_Task_Access is access Generic_Task;
 
    procedure Create_Task (Main : Parameterless_Procedure) is
-      T : Generic_Task_Access := new Generic_Task;
+      T : constant Generic_Task_Access := new Generic_Task;
    begin
       T.Start (Main);
    end Create_Task;

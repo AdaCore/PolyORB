@@ -33,7 +33,6 @@
 --  $Id$
 
 with PolyORB.Smart_Pointers;
-pragma Elaborate_All (PolyORB.Smart_Pointers);
 
 with CORBA.Impl;
 
@@ -80,6 +79,6 @@ private
 
    type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    Nil_Ref : constant Ref
-     := (PolyORB.Smart_Pointers.Nil_Ref with null record);
+     := (PolyORB.Smart_Pointers.Ref with null record);
 
 end CORBA.AbstractBase;

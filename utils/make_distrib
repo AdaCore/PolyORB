@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#4 $
+# $Id: //droopi/main/utils/make_distrib#5 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -23,13 +23,14 @@
 #
 
 if [ $# = 0 ]; then
-   echo "Usage: $0 [-k|-prcs|-n|-c] tag dir";
+   echo "Usage: $0 [-k|-prcs|-p4|-n|-c] tag dir";
    exit 0;
 fi;
 
 set -e
 
 prcs=false
+perforce=false
 kk=
 nocheckout=false
 s=false
@@ -42,6 +43,7 @@ fi
 case $1 in
   -k*)   kk=$1; shift;;
   -prcs) prcs=true; shift;;
+  -p4)   perforce=true; shift;;
   -n)    nocheckout=true; shift;;
   -c)    nocheckout=true; use_current=true; shift;;
   *)     ;;
@@ -57,6 +59,28 @@ if $prcs; then
   echo Extracting module ${name} from prcs using tag ${tag}
   cd ${tmp}/${dir}
   prcs checkout -r${tag} ${name}
+elif $perforce; then
+  . ./${P4CONFIG:-.p4}
+  export P4USER P4PORT P4PASSWD
+  view=`p4 files MANIFEST | sed 's,/MANIFEST#.*$,/...,'`
+  cd ${tmp}/${dir}
+  tmp=`pwd`
+  client=make_distrib_$$
+  p4 client -i <<__EOF__
+Client: $client
+Root: ${tmp}
+Options: allwrite clobber compress
+View: ${view} //${client}/...
+__EOF__
+  P4CLIENT=${client}; export P4CLIENT
+  set +e
+  p4 sync ...@${tag}
+  rc=$?
+  set -e
+  p4 client -d ${client}
+  if [ $rc != 0 ]; then
+    exit $rc
+  fi
 elif $usercurrent; then
   tar cf - . | (cd $tmp/$dir && tar xpBf -)
   cd $tmp/$dir

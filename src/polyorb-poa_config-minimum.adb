@@ -51,7 +51,8 @@ package body PolyORB.POA_Config.Minimum is
    -- Initialize --
    ----------------
 
-   My_Default_Policies : aliased PolicyList;
+   My_Default_Policies : PolicyList;
+   Initialized : Boolean := False;
 
    procedure Initialize
      (C : Minimum_Configuration)
@@ -59,32 +60,36 @@ package body PolyORB.POA_Config.Minimum is
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
-      use PolyORB.POA_Policies.Policy_Sequences;
-      P : constant Element_Array
-        := (Policy_Access (Id_Assignment_Policy.System.Create),
-            Policy_Access (Id_Uniqueness_Policy.Unique.Create),
-            Policy_Access (Implicit_Activation_Policy.No_Activation.Create),
-            Policy_Access (Lifespan_Policy.Transient.Create),
-            Policy_Access
-              (Request_Processing_Policy.Active_Object_Map_Only.Create),
-            Policy_Access (Servant_Retention_Policy.Retain.Create),
-            Policy_Access (Thread_Policy.ORB_Ctrl.Create));
    begin
-      for I in P'Range loop
-         PolyORB.POA_Policies.Policy_Repository.Register
-           (Policy_Id (P (I).all), P (I));
-      end loop;
-      My_Default_Policies := To_Sequence (P);
+      if Initialized then
+         return;
+      end if;
+
+      declare
+         use PolyORB.POA_Policies.Policy_Sequences;
+         P : constant Element_Array
+           := (Policy_Access (Id_Assignment_Policy.System.Create),
+               Policy_Access (Id_Uniqueness_Policy.Unique.Create),
+               Policy_Access (Implicit_Activation_Policy.No_Activation.Create),
+               Policy_Access (Lifespan_Policy.Transient.Create),
+               Policy_Access
+               (Request_Processing_Policy.Active_Object_Map_Only.Create),
+               Policy_Access (Servant_Retention_Policy.Retain.Create),
+               Policy_Access (Thread_Policy.ORB_Ctrl.Create));
+      begin
+         My_Default_Policies := To_Sequence (P);
+         Initialized := True;
+      end;
    end Initialize;
 
    function Default_Policies
      (C : Minimum_Configuration)
-     return PolyORB.POA_Policies.PolicyList_Access is
+     return PolyORB.POA_Policies.PolicyList is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (C);
-      pragma Warnings (On);
-      return My_Default_Policies'Access;
+      if not Initialized then
+         Initialize (C);
+      end if;
+      return My_Default_Policies;
    end Default_Policies;
 
 end PolyORB.POA_Config.Minimum;

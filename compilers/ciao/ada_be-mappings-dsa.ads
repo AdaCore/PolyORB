@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,11 +49,26 @@ package Ada_Be.Mappings.DSA is
       Node : Idl_Fe.Types.Node_Id)
      return String;
 
+   function Self_For_Operation
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String;
+
    procedure Map_Type_Name
      (Self : access DSA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id;
       Unit : out ASU.Unbounded_String;
       Typ  : out ASU.Unbounded_String);
+
+   function Calling_Stubs_Type
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String;
+
+   function Generate_Scope_In_Child_Package
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return Boolean;
 
    The_DSA_Mapping : constant DSA_Mapping_Type;
 

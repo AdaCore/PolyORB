@@ -30,18 +30,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#15 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#23 $
 
 with Ada.Exceptions;
 
+with PolyORB.Binding_Data;
+with PolyORB.Components;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Manager;
+with PolyORB.POA_Types;
 with PolyORB.References;
+with PolyORB.References.Binding;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
+with PolyORB.Servants;
 
 with PolyORB.CORBA_P.Exceptions;
 
@@ -56,7 +60,6 @@ package body PortableServer.POA is
    package L is new PolyORB.Log.Facility_Log ("portableserver.poa");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
 
    function Create_Ref
      (Referenced : PolyORB.Smart_Pointers.Entity_Ptr) return Ref;
@@ -182,7 +185,10 @@ package body PortableServer.POA is
       --  return USE_SERVANT_MANAGER
       --    (POA.Request_Processing_Policy).Servant_Manager
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Get_Servant_Manager (Self);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Get_Servant_Manager;
 
    procedure Set_Servant_Manager
@@ -225,7 +231,10 @@ package body PortableServer.POA is
    begin
       --  return To_POA (Self).Activator;
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Get_The_Activator (Self);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Get_The_Activator;
 
    procedure Set_The_Activator
@@ -254,12 +263,16 @@ package body PortableServer.POA is
      return Ref'Class
    is
       pragma Warnings (Off);
-      Res : PolyORB.POA.Obj_Adapter_Access;
-      --  XXX Never assigned a value.
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
-      --  XXX Never referenced.
+      pragma Unreferenced
+        (Self,
+         Adapter_Name,
+         A_POAManager,
+         Tp,
+         Lp);
       pragma Warnings (On);
+      --  Res : PolyORB.POA.Obj_Adapter_Access;
+      --  POA : constant PolyORB.POA.Obj_Adapter_Access
+      --    := To_POA (Self);
    begin
       --  Note - The NON_RETAIN policy requires either the USE_DEFAULT_SERVANT
       --  or USE_SERVANT_MANAGER policies.
@@ -309,6 +322,12 @@ package body PortableServer.POA is
       Activate_It  : CORBA.Boolean)
       return Ref'Class
    is
+      pragma Warnings (Off);
+      pragma Unreferenced
+        (Self,
+         Adapter_Name,
+         Activate_It);
+      pragma Warnings (On);
 --       The_POA : constant PolyORB.POA.Obj_Adapter_Access
 --         := To_POA (Self);
    begin
@@ -377,7 +396,10 @@ package body PortableServer.POA is
 
 --       return POA.Default_Servant;
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Get_Servant (Self);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Get_Servant;
 
    -----------------
@@ -420,9 +442,14 @@ package body PortableServer.POA is
 --          raise WrongPolicy;
 --       end if;
 
---       return PolyORB.POA.Activate_Object (POA, P_Servant);
-      raise PolyORB.Not_Implemented;
-      return Activate_Object (Self, P_Servant);
+      return ObjectId (PolyORB.POA.Activate_Object
+        (POA, PolyORB.Servants.Servant_Access
+         (To_PolyORB_Servant (P_Servant))));
+--       raise PolyORB.Not_Implemented;
+--       pragma Warnings (Off);
+--       return Activate_Object (Self, P_Servant);
+--       --  "Possible infinite recursion".
+--       pragma Warnings (On);
    end Activate_Object;
 
    -----------------------------
@@ -436,15 +463,21 @@ package body PortableServer.POA is
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
-
+      A_Oid : aliased PolyORB.POA_Types.Object_Id
+        := PolyORB.POA_Types.Object_Id (Oid);
+      pragma Warnings (Off);
+      R_Oid : constant PolyORB.POA_Types.Object_Id
+        := PolyORB.POA.Activate_Object
+        (POA, PolyORB.Servants.Servant_Access
+         (To_PolyORB_Servant (P_Servant)), A_Oid'Unchecked_Access);
+      pragma Unreferenced (R_Oid);
+      pragma Warnings (On);
    begin
 --       --  Cf 9-34: this operation requires RETAIN policy.
 --       if POA.Servant_Policy /= RETAIN then
 --          raise WrongPolicy;
 --       end if;
-
---       PolyORB.POA.Activate_Object_With_Id (POA, Oid, P_Servant);
-      raise PolyORB.Not_Implemented;
+      null;
    end Activate_Object_With_Id;
 
    -----------------------
@@ -487,7 +520,10 @@ package body PortableServer.POA is
 
 --       return PolyORB.POA.Create_Reference (POA, Intf);
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Reference (Self, Intf);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Reference;
 
    ------------------------------
@@ -505,7 +541,10 @@ package body PortableServer.POA is
 
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Create_Reference_With_Id (Self, Oid, Intf);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Create_Reference_With_Id;
 
    -------------------
@@ -532,7 +571,10 @@ package body PortableServer.POA is
 
 --       return PolyORB.POA.Servant_To_Skeleton (POA, P_Servant).Object_Id;
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Servant_To_Id (Self, P_Servant);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Servant_To_Id;
 
    --------------------------
@@ -546,12 +588,11 @@ package body PortableServer.POA is
       POA  : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
       Oid : aliased PolyORB.Objects.Object_Id
         := PolyORB.POA.Export (POA, To_PolyORB_Servant (P_Servant));
-      --  XXX
-      --  There is a pending possibility that Export is incorrect.
-      --  See caveats in its body.
+      TID : constant Standard.String
+        := CORBA.To_Standard_String (Get_Type_Id (P_Servant));
 
-      The_Ref : PolyORB.References.Ref;
---      Skel : PolyORB.POA.Skeleton_Ptr;
+      P_Result : PolyORB.References.Ref;
+      C_Result : CORBA.Object.Ref;
    begin
 --       --  FIXME: If Servant_To_Reference is called in the context
 --       --    of executing a request on the given servant, there are
@@ -568,18 +609,12 @@ package body PortableServer.POA is
 
 --       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
 
-      declare
-         TID : constant Standard.String
-           := CORBA.To_Standard_String (Get_Type_Id (P_Servant));
-         Result : CORBA.Object.Ref;
-      begin
-         PolyORB.ORB.Create_Reference
-           (PolyORB.Setup.The_ORB, Oid'Access, TID, The_Ref);
-         --  Obtain object reference.
+      PolyORB.ORB.Create_Reference
+        (PolyORB.Setup.The_ORB, Oid'Access, TID, P_Result);
+      --  Obtain object reference.
 
-         CORBA.Object.Convert_To_CORBA_Ref (The_Ref, Result);
-         return Result;
-      end;
+      CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+      return C_Result;
    end Servant_To_Reference;
 
    ---------------------
@@ -601,7 +636,10 @@ package body PortableServer.POA is
 
 --       return Skel.Object_Id;
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Reference_To_Id (Self, Reference);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Reference_To_Id;
 
    --------------------------
@@ -613,10 +651,23 @@ package body PortableServer.POA is
       Reference : CORBA.Object.Ref'Class)
      return Servant
    is
-      POA  : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-      --  Skel : PolyORB.POA.Skeleton_Ptr;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
 
+      The_Servant : PolyORB.Components.Component_Access;
+      The_Profile : PolyORB.Binding_Data.Profile_Access;
    begin
+      PolyORB.References.Binding.Bind
+        (CORBA.Object.To_PolyORB_Ref (Reference), PolyORB.Setup.The_ORB,
+         The_Servant, The_Profile, Local_Only => True);
+
+      --  Using 'Local_Only' should guarantee that The_Servant
+      --  is castable to PolyORB.Servants.Servant_Access.
+
+      return Servant (CORBA.Impl.To_CORBA_Servant
+        (PolyORB.Servants.Servant_Access (The_Servant)));
+
 --       Skel := PolyORB.POA.Ref_To_Skeleton (Reference);
 --       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
 --          raise WrongAdapter;
@@ -629,8 +680,6 @@ package body PortableServer.POA is
 --       end if;
 
 --       return PolyORB.POA.Skeleton_To_Servant (POA, Skel);
-      raise PolyORB.Not_Implemented;
-      return Reference_To_Servant (Self, Reference);
    end Reference_To_Servant;
 
    -------------------
@@ -658,7 +707,10 @@ package body PortableServer.POA is
 
 --       return Skel.P_Servant;
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Id_To_Servant (Self, Oid);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Id_To_Servant;
 
    ---------------------
@@ -685,7 +737,10 @@ package body PortableServer.POA is
 
 --       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Id_To_Reference (Self, Oid);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Id_To_Reference;
 
 end PortableServer.POA;

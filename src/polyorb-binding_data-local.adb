@@ -68,14 +68,19 @@ package body PolyORB.Binding_Data.Local is
    pragma Warnings (Off);
    --  Out parameters are not assigned a value.
 
-   procedure Bind_Profile
+   function Bind_Profile
      (Profile : Local_Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Session : out Components.Component_Access) is
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access is
    begin
       raise Program_Error;
-      --  May not happen (no such a profile does not support
-      --  connections).
+      --  May not happen currently, because the local case
+      --  is handled specially in PolyORB.References.Bind,
+      --  but could be implemented as (mostly):
+--        return Components.Component_Access
+--          (Find_Servant
+--             (Object_Adapter (Local_ORB), Profile.Object_Id));
+      return null;
    end Bind_Profile;
 
    pragma Warnings (On);

@@ -95,6 +95,9 @@ package SOAP.Types is
    XML_UShort : constant String := "xsd:unsignedShort";
    --  0 .. 65535
 
+   XML_UByte : constant String := "xsd:unsignedByte";
+   --  0 .. 255
+
 --    type XSD_Integer is new Scalar with private;
 
 --    function Image     (O : in XSD_Integer) return String;
@@ -234,30 +237,7 @@ package SOAP.Types is
 
 --    function V (O : in SOAP_Array) return NamedValue_Set;
 
---    ------------
---    -- Record --
---    ------------
-
---    type SOAP_Record is new Composite with private;
-
---    function Image     (O : in SOAP_Record) return String;
---    function XML_Image (O : in SOAP_Record) return String;
---    function XML_Type  (O : in SOAP_Record) return String;
-
---    function R
---      (V    : in NamedValue_Set;
---       Name : in String)
---      return SOAP_Record;
-
---    function V (O : in SOAP_Record; Name : in String) return NamedValue;
-
---    function Get (O : in NamedValue) return SOAP_Record;
---    --  Returns O value as a SOAP Struct.
---    --  Raises Data_Error if O is not a SOAP Struct.
-
---    function Get (O : in NamedValue) return SOAP_Array;
---    --  Returns O value as a SOAP Array.
---    --  Raises Data_Error if O is not a SOAP Array.
+   XML_AnyURI : constant String := "xsd:anyURI";
 
 --  private
 

@@ -39,7 +39,6 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.ORB.Interface;
 
 package body PolyORB.Transport is
@@ -66,8 +65,14 @@ package body PolyORB.Transport is
       raise Unhandled_Message;
       --  Small is beautiful.
 
+      pragma Warnings (Off);
+      --  Recent GNAT versions emit a warning for possible
+      --  infinite recursion here.
+
       return Handle_Message (TAP, Msg);
       --  Keep the compiler happy.
+
+      pragma Warnings (On);
    end Handle_Message;
 
    procedure Connect_Upper
@@ -124,7 +129,8 @@ package body PolyORB.Transport is
          end if;
 
          declare
-            Size : Stream_Element_Count := TE.Max;
+            use type Ada.Streams.Stream_Element_Count;
+            Size : Ada.Streams.Stream_Element_Count := TE.Max;
          begin
             Read (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size);
 
@@ -162,5 +168,16 @@ package body PolyORB.Transport is
       end if;
       return Nothing;
    end Handle_Message;
+
+   -----------
+   -- Upper --
+   -----------
+
+   function Upper (TE : Transport_Endpoint_Access)
+                   return Components.Component_Access
+   is
+   begin
+      return TE.Upper;
+   end Upper;
 
 end PolyORB.Transport;

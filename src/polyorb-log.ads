@@ -36,7 +36,7 @@
 
 package PolyORB.Log is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    --  Log_Levels are used to classify the importance of messages
 
@@ -69,7 +69,7 @@ package PolyORB.Log is
    --  Returns the user-requested log level for facility Flag.
 
    generic
-      Facility : String;
+      Facility :  String;
    package Facility_Log is
 
       procedure Output
@@ -79,5 +79,11 @@ package PolyORB.Log is
       --  level for Facility.
 
    end Facility_Log;
+
+   type Configuration_Hook is access
+     function (Section, Key, Default : String)
+               return String;
+
+   Get_Conf_Hook : Configuration_Hook := null;
 
 end PolyORB.Log;

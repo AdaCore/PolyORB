@@ -44,6 +44,11 @@ package PolyORB.Filters.AWS_Interface is
 
    use PolyORB.Filters.Interface;
 
+   type AWS_Get_SOAP_Action is new Root_Data_Unit with null record;
+   type AWS_SOAP_Action is new Root_Data_Unit with record
+      SOAP_Action : Types.String;
+   end record;
+
    type AWS_Request_Out is new Root_Data_Unit with record
       Request_Method : PolyORB.HTTP_Methods.Method;
       Relative_URI   : Types.String;

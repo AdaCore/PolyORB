@@ -76,6 +76,12 @@ interface all_types {
   };
   array_struct echoArrayStruct (in array_struct arg);
 
+  struct composite_struct {
+      fixed<12,3> fixedMember;
+      sequence<sequence<octet> > seqseqMember;
+      long double matrixMember[3][4];
+  };
+
   // Sequences
   // ---------
   typedef sequence<short> U_sequence;

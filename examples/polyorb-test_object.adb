@@ -71,7 +71,11 @@ package body PolyORB.Test_Object is
      (O : My_Object;
       S : Types.String;
       T : Types.Long)
-     return Types.String is
+     return Types.String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (O);
+      pragma Warnings (On);
    begin
       pragma Debug
         (L.Output ("waitAndEchoString is being executed with arguments "
@@ -86,7 +90,11 @@ package body PolyORB.Test_Object is
    function echoString
      (O : My_Object;
       S : Types.String)
-     return Types.String is
+     return Types.String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (O);
+      pragma Warnings (On);
    begin
 --  pragma Debug (O ("echoString is being executed with argument: " & S));
       return S;
@@ -95,7 +103,11 @@ package body PolyORB.Test_Object is
    function echoInteger
      (O : My_Object;
       I : Types.Long)
-     return Types.Long is
+     return Types.Long
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (O);
+      pragma Warnings (On);
    begin
 --  pragma Debug (O ("Echo_Integer is being executed with argument"
 --                   & Integer'Image (I)));
@@ -106,7 +118,7 @@ package body PolyORB.Test_Object is
    -- "Middleware glue" that should be generated automatically --
    --------------------------------------------------------------
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access My_Object;
       Msg : Components.Message'Class)
      return Components.Message'Class is
@@ -118,7 +130,8 @@ package body PolyORB.Test_Object is
          declare
             Req : Request_Access
               := Execute_Request (Msg).Req;
-            Args_Sequence : PolyORB.Any.NVList.Internals.NV_Sequence_Access
+            Args_Sequence :
+              constant PolyORB.Any.NVList.Internals.NV_Sequence_Access
               := PolyORB.Any.NVList.Internals.List_Of (Req.all.Args);
          begin
             pragma Debug (O ("The server is executing the request:"
@@ -142,7 +155,7 @@ package body PolyORB.Test_Object is
                   waitAndEchoString_Arg1 : Types.String :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 1).Argument);
-                  waitAndEchoString_Arg2 : Types.Long :=
+                  waitAndEchoString_Arg2 : constant Types.Long :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 2).Argument);
                begin
@@ -154,7 +167,7 @@ package body PolyORB.Test_Object is
                end;
             elsif Req.all.Operation = "echoInteger" then
                declare
-                  echoInteger_Arg : Types.Long :=
+                  echoInteger_Arg : constant Types.Long :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 1).Argument);
                begin
@@ -178,18 +191,18 @@ package body PolyORB.Test_Object is
          raise;
 
 
-   end Handle_Message;
+   end Execute_Servant;
 
    function Get_Parameter_Profile
-     (Method : Requests.Operation_Id)
+     (Method : String)
      return Any.NVList.Ref;
 
    function Get_Result_Profile
-     (Method : Requests.Operation_Id)
+     (Method : String)
      return Any.Any;
 
    function Get_Parameter_Profile
-     (Method : Requests.Operation_Id)
+     (Method : String)
      return Any.NVList.Ref
    is
       use Any;
@@ -223,7 +236,7 @@ package body PolyORB.Test_Object is
    end Get_Parameter_Profile;
 
    function Get_Result_Profile
-     (Method : Requests.Operation_Id)
+     (Method : String)
      return Any.Any
    is
       use Any;

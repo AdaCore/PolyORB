@@ -39,7 +39,6 @@ with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.Binding_Data is
 
@@ -68,5 +67,13 @@ package body PolyORB.Binding_Data is
    begin
       return Profile.Object_Id;
    end Get_Object_Key;
+
+   procedure Set_Continuation
+     (Prof         : access Profile_Type;
+      Continuation :        PolyORB.Smart_Pointers.Ref) is
+   begin
+      pragma Assert (Smart_Pointers.Is_Nil (Prof.Continuation));
+      Prof.Continuation := Continuation;
+   end Set_Continuation;
 
 end PolyORB.Binding_Data;

@@ -30,29 +30,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#13 $
+--  $Id: //droopi/main/src/corba/corba.adb#17 $
 
 with Ada.Characters.Handling;
 
 with PolyORB.CORBA_P.Exceptions;
-
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
-
 with PolyORB.Types;
 
 package body CORBA is
 
-   use PolyORB.Log;
    use PolyORB.Any;
-
-   package L is new PolyORB.Log.Facility_Log ("corba");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
-
-   package L2 is new PolyORB.Log.Facility_Log ("corba_refcnt");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L2.Output;
 
    ---------------------------------
    -- String conversion functions --
@@ -99,35 +86,46 @@ package body CORBA is
       To   : out System_Exception_Members)
      renames PolyORB.CORBA_P.Exceptions.Get_Members;
 
+   --------------------------------------
+   -- Get_Members for other exceptions --
+   --------------------------------------
 
-   ----------------------
-   -- other exceptions --
-   ----------------------
+   -----------------
+   -- Get_Members --
+   -----------------
 
-   ------------------
-   --  Get_Members --
-   ------------------
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InvalidName_Members) is
+      To : out InvalidName_Members)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (From);
+      pragma Warnings (On);
    begin
-      To := InvalidName_Members'(IDL_Exception_Members with null record);
+      To := InvalidName_Members'
+        (IDL_Exception_Members with null record);
    end Get_Members;
 
-   ------------------
-   --  Get_Members --
-   ------------------
+   -----------------
+   -- Get_Members --
+   -----------------
+
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InconsistentTypeCode_Members) is
+      To : out InconsistentTypeCode_Members)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (From);
+      pragma Warnings (On);
    begin
       To := InconsistentTypeCode_Members'
         (IDL_Exception_Members with null record);
    end Get_Members;
 
-   ------------------
-   --  Get_Members --
-   ------------------
+   -----------------
+   -- Get_Members --
+   -----------------
+
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
       To : out PolicyError_Members)
@@ -136,11 +134,9 @@ package body CORBA is
       PolyORB.CORBA_P.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
-
-
-   -------------------
-   --  Get_Members  --
-   -------------------
+   -----------------
+   -- Get_Members --
+   -----------------
 
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
@@ -339,25 +335,12 @@ package body CORBA is
    ----------------
    function Get_Type (The_Any : in Any) return  TypeCode.Object
      renames PolyORB.Any.Get_Type;
---    is
---    begin
---       pragma Debug (O ("Get_Type : enter & end"));
---       return The_Any.The_Type;
---    end Get_Type;
 
    ------------------------
-   --  Get_Precise_Type  --
+   --  Get_Unwound_Type  --
    ------------------------
-   function Get_Precise_Type (The_Any : in Any) return  TypeCode.Object
-     renames PolyORB.Any.Get_Precise_Type;
---    is
---       Result : TypeCode.Object := Get_Type (The_Any);
---    begin
---       while CORBA.TypeCode.Kind (Result) = Tk_Alias loop
---          Result := CORBA.TypeCode.Content_Type (Result);
---       end loop;
---       return Result;
---    end Get_Precise_Type;
+   function Get_Unwound_Type (The_Any : in Any) return  TypeCode.Object
+     renames PolyORB.Any.Get_Unwound_Type;
 
    ----------------
    --  Set_Type  --
@@ -366,9 +349,6 @@ package body CORBA is
      (The_Any  : in out Any;
       The_Type : in     TypeCode.Object)
      renames PolyORB.Any.Set_Type;
---    begin
---       The_Any.The_Type := The_Type;
---    end Set_Type;
 
    ---------------------------------
    --  Iterate_Over_Any_Elements  --

@@ -43,10 +43,12 @@ with CORBA.Object;
 with CORBA.ORB;
 
 with PolyORB.Any;
+with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
 with PolyORB.Requests;
@@ -64,7 +66,7 @@ package body PolyORB.Setup.Test is
    use PolyORB.ORB;
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
-   My_Servant : Servant_Access;
+   My_Servant : Servants.Servant_Access;
 
    procedure Initialize_Test_Object is
    begin
@@ -84,7 +86,7 @@ package body PolyORB.Setup.Test is
       --  Create application server object.
 
       declare
-         My_Id : Object_Id_Access
+         My_Id : constant Object_Id_Access
            := new Object_Id'(Obj_Adapters.Export (Obj_Adapter, My_Servant));
          --  Register it with the SOA.
          My_CORBA_Ref : CORBA.Object.Ref;
@@ -164,6 +166,7 @@ package body PolyORB.Setup.Test is
                   "waitAndEchoString",
                   Args,
                   Result,
+                  PolyORB.Any.ExceptionList.Nil_Ref,
                   Req);
                Put_Line ("Done...");
 

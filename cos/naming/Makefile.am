@@ -2,9 +2,20 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
-PROGS= ab_names test_naming
+if ENABLE_IR
+FORCE_IR=		force-ir
+IR_AB_NAMES=		ir_ab_names
+IR_GNATMAKE_FLAGS=	-I../ir -I$(srcdir)/../ir
+endif
+FORCE=	force $(FORCE_IR)
+
+PROGS= ab_names test_naming $(IR_AB_NAMES)
+TOOLS=	polyorb-corba_p-naming_tools.adb
+EXTRA=	$(TOOLS:.adb=.ali)
 
 COS_DIRS=../../idls/cos/naming
+COS_GNATMAKE_FLAGS=-I../../idls/cos/naming
+
 COS_IMPL=\
   cosnaming-bindingiterator-impl.adb \
   cosnaming-bindingiterator-impl.ads \
@@ -32,20 +43,17 @@ CLEANFILES += $(GEN) stamp-gen
 
 $(GEN): stamp-gen
 stamp-gen: $(IDL) $(IDLAC)
-	touch stamp-gen
 	$(IDLAC) $(IDL)
+	touch stamp-gen
 
-test_naming: force $(GEN) $(IMPL) $(COS_IMPL)
-	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+ab_names test_naming: $(FORCE) $(GEN)
+	$(GNATMAKE_FOR_TARGET) $@ $(GNATMAKE_FLAGS)
 
-ab_names: force $(GEN) $(IMPL) $(COS_IMPL) ab_names.adb
-	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+ir_ab_names: $(FORCE) $(GEN)
+	$(GNATMAKE_FOR_TARGET) $@ $(IR_GNATMAKE_FLAGS) $(GNATMAKE_FLAGS)
 
-naming_tools.o:
-	$(GNATMAKE) -c naming_tools $(GNATMAKE_FLAGS)
-
-naming_tools.o: naming_tools.ads naming_tools.adb cosnaming.ads
-naming_tools.o: cosnaming-namingcontext.ads cosnaming-namingcontext-helper.ads
+force-ir:
+	cd ../ir && $(MAKE)
 
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin

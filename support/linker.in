@@ -1,6 +1,6 @@
 #! /bin/sh
 
-ADA="@ADA@"
+ADA="@ADA_FOR_TARGET@"
 TOP=`dirname $0`/..
 
 ${TOP}/libtool --mode=link ${ADA} "$@"

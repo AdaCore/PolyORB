@@ -15,4 +15,4 @@ PROGS = test_time
 COS_DIRS=../../idls/cos/time
 
 test_time: force
-	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+	$(GNATMAKE_FOR_TARGET) $@ $(GNATMAKE_FLAGS)

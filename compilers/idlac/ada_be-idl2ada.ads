@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,12 +34,15 @@ package Ada_Be.Idl2Ada is
      (Use_Mapping :    Ada_Be.Mappings.Mapping_Type'Class;
       Node        : in Node_Id;
       Implement   :    Boolean                            := False;
+      Intf_Repo   :    Boolean                            := False;
       To_Stdout   :    Boolean                            := False);
    --  Generate the Ada mapping of the IDL tree
    --  rooted at Node.
    --  If Implement is true, produce only a template
    --  for the Impl package of each interface, to
    --  be completed by the user.
+   --  If Intf_Repo is true, also produce CORBA
+   --  Interface Repository packages.
    --  If To_Stdout is true, all produced source code
    --  is emitted on standard output (e. g. for use
    --  with GNATCHOP).
@@ -69,13 +72,15 @@ private
    --  The name of the Ada constant that contains
    --  the repository ID of K_Named Node.
 
---    procedure Add_With_Stream
---      (CU : in out Compilation_Unit;
---       Node : Node_Id);
-   --  Add a semantic dependency of CU on the
-   --  package that contains the marshalling and
-   --  unmarshalling subprograms for the type defined
-   --  by Node.
+   function Ada_TC_Name (Node : Node_Id) return String;
+   --  The name of the typecode corresponding to an Ada type
+
+   function Ada_Full_TC_Name (Node : Node_Id) return String;
+   --  The full name of the typecode corresponding to an Ada type
+
+   function Ada_Helper_Name (Node : in Node_Id) return String;
+   --  The name of the helper package where the TypeCode
+   --  corresponding to Node is defined
 
    --------------------------------------
    -- Top-level generation subprograms --
@@ -128,10 +133,10 @@ private
 
    procedure Gen_Operation_Profile
      (CU          : in out Compilation_Unit;
-      Object_Type : in String;
-      Node        : in Node_Id;
-      With_Name   : in Boolean := True;
-      Delegate    : in Boolean := False);
+      Node        : in     Node_Id;
+      Object_Type : in     String;
+      With_Name   : in     Boolean          := True;
+      Is_Delegate : in     Boolean          := False);
    --  Generate the profile for an K_Operation node,
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.

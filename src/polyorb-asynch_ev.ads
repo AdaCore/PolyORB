@@ -34,7 +34,7 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
 with PolyORB.Annotations;
 
@@ -144,7 +144,7 @@ private
       Notes   : aliased Annotations.Notepad;
    end record;
 
-   package Source_Seqs is new Sequences.Unbounded
+   package Source_Seqs is new PolyORB.Sequences.Unbounded
      (Asynch_Ev_Source_Access);
    subtype Source_Seq is Source_Seqs.Sequence;
 

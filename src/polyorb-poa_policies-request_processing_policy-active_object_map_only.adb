@@ -53,17 +53,23 @@ is
 
    procedure Check_Compatibility
      (Self : Active_Map_Only_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access) is
+      Other_Policies   : AllPolicies) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      if not
-        (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all in
-         POA_Policies.Servant_Retention_Policy.Retain.Retain_Policy)
-      then
-         raise PolyORB.POA.Invalid_Policy;
-      end if;
+      for I in Other_Policies'Range loop
+         if Other_Policies (I).all in
+           POA_Policies.Servant_Retention_Policy.ServantRetentionPolicy
+         then
+            if not
+              (Other_Policies (I).all in
+               POA_Policies.Servant_Retention_Policy.Retain.Retain_Policy)
+            then
+               raise PolyORB.POA.Invalid_Policy;
+            end if;
+         end if;
+      end loop;
    end Check_Compatibility;
 
    ---------------
@@ -99,72 +105,35 @@ is
    end Etherealize_All;
 
    -------------------
-   -- Servant_To_Id --
-   -------------------
-
-   function Servant_To_Id
-     (Self  : Active_Map_Only_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
-     return Object_Id_Access
-   is
-      use PolyORB.POA_Policies.Servant_Retention_Policy;
-
-      Oid : constant Object_Id_Access
-        := Servant_To_Id
-        (POA.Obj_Adapter_Access
-         (OA).Servant_Retention_Policy.all,
-         OA,
-         P_Servant);
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      return Oid;
-   end Servant_To_Id;
-
-   -------------------
    -- Id_To_Servant --
    -------------------
 
    function Id_To_Servant
-     (Self : Active_Map_Only_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid  : Object_Id)
-     return Servant_Access
+     (Self  : Active_Map_Only_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid)
+     return Servants.Servant_Access
    is
       use PolyORB.POA_Policies.Servant_Retention_Policy;
+      use type PolyORB.Servants.Servant_Access;
 
-      Oid_A : Object_Id_Access := new Object_Id'(Oid);
-      Servant : Servant_Access;
+      Servant : Servants.Servant_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      Servant := Id_To_Servant
+
+      Servant := Retained_Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all,
-         OA,
-         Oid_To_U_Oid (Oid_A));
-      Free (Oid_A);
+         OA, U_Oid);
+      --  USE_ACTIVE_OBJECT_MAP_ONLY: only look up the oid in
+      --  the object map, do not try to create or locate a servant
+      --  on-the-fly or use a default servant.
+
       if Servant = null then
          raise PolyORB.POA.Object_Not_Active;
       end if;
       return Servant;
    end Id_To_Servant;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free
-     (Self : in     Active_Map_Only_Policy;
-      Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (Active_Map_Only_Policy_Access (Ptr));
-   end Free;
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

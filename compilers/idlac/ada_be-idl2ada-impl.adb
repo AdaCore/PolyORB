@@ -34,9 +34,9 @@ package body Ada_Be.Idl2Ada.Impl is
    use Ada_Be.Source_Streams;
 
    procedure Gen_Node_Spec
-     (CU       : in out Compilation_Unit;
-      Node     : Node_Id;
-      Delegate : Boolean := False)
+     (CU          : in out Compilation_Unit;
+      Node        :        Node_Id;
+      Is_Delegate :        Boolean          := False)
    is
    begin
 
@@ -48,12 +48,12 @@ package body Ada_Be.Idl2Ada.Impl is
 
          when K_Operation =>
 
-            if Delegate then
+            if Is_Delegate then
                Gen_Operation_Profile
-                 (CU, "access Wrapped", Node, Delegate => True);
+                 (CU, Node, "access Wrapped", Is_Delegate => True);
                PL (CU, ";");
             elsif not Is_Implicit_Inherited (Node) then
-               Gen_Operation_Profile (CU, "access Object", Node);
+               Gen_Operation_Profile (CU, Node, "access Object");
                PL (CU, ";");
             end if;
 
@@ -87,7 +87,7 @@ package body Ada_Be.Idl2Ada.Impl is
                  := Kind (Operation_Type (Node)) /= K_Void;
             begin
                NL (CU);
-               Gen_Operation_Profile (CU, "access Object", Node);
+               Gen_Operation_Profile (CU, Node, "access Object");
                if Is_Function then
                   NL (CU);
                   PL (CU, "is");

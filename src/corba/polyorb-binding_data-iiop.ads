@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,11 +37,10 @@
 with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Sockets;
 with PolyORB.Storage_Pools;
 with PolyORB.Types;
-
-with Sequences.Unbounded;
 
 package PolyORB.Binding_Data.IIOP is
 
@@ -57,7 +56,7 @@ package PolyORB.Binding_Data.IIOP is
       Component_Data : Octets_Access;
    end record;
 
-   package Component_Seq is new Sequences.Unbounded (Tagged_Component);
+   package Component_Seq is new PolyORB.Sequences.Unbounded (Tagged_Component);
 
    procedure Initialize;
 
@@ -65,10 +64,10 @@ package PolyORB.Binding_Data.IIOP is
    procedure Adjust     (P : in out IIOP_Profile_Type);
    procedure Finalize   (P : in out IIOP_Profile_Type);
 
-   procedure Bind_Profile
-     (Profile   : IIOP_Profile_Type;
-      TE        : out Transport.Transport_Endpoint_Access;
-      Filter    : out Components.Component_Access);
+   function Bind_Profile
+     (Profile : IIOP_Profile_Type;
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access;
 
    function Get_Profile_Tag
      (Profile : IIOP_Profile_Type)
@@ -89,13 +88,13 @@ package PolyORB.Binding_Data.IIOP is
 
    function Create_Profile
      (PF  : access IIOP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
-      Oid : Objects.Object_Id)
+      Oid :        Objects.Object_Id)
      return Profile_Access;
 
    function Is_Local_Profile
      (PF : access IIOP_Profile_Factory;
-      P : Profile_Access) return Boolean;
+      P  : access Profile_Type'Class)
+      return Boolean;
 
    procedure Marshall_IIOP_Profile_Body
      (Buf     : access Buffer_Type;

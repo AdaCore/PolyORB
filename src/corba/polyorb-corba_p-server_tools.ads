@@ -41,11 +41,16 @@ package PolyORB.CORBA_P.Server_Tools is
 
    pragma Elaborate_Body;
 
+   type Hook_Type is access procedure;
+   Initiate_Server_Hook : Hook_Type;
+
    procedure Initiate_Server (Start_New_Task : Boolean := False);
    --  This procedure starts a new ORB. If Start_New_Task is True,
    --  a new task will be created and control will be returned to the
    --  caller. Otherwise, the ORB will be executing in the current
-   --  context.
+   --  context. If the Initiate_Server_Hook variable is not null,
+   --  the designated procedure will be called after initializing the ORB,
+   --  prior to entering the server loop.
 
    procedure Initiate_Servant
      (S : in PortableServer.Servant;

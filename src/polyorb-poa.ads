@@ -36,6 +36,8 @@
 
 with PolyORB.Locks;
 with PolyORB.Object_Maps;
+with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
 with PolyORB.POA_Policies.Thread_Policy;
@@ -72,31 +74,41 @@ package PolyORB.POA is
          POA_Manager                : PolyORB.POA_Manager.Ref;
          Boot_Time                  : Time_Stamp;
          Absolute_Address           : Types.String;
+
          Active_Object_Map          : PolyORB.Object_Maps.Object_Map_Access;
+         --  The active object map (NULL if the policies used for this POA
+         --  do not require one).
+
+         Default_Servant            : Servants.Servant_Access;
+         --  The default servant (NULL if the policies used for this POA
+         --  do not require one).
 
          --  Policies (one of each is required)
          Thread_Policy              : ThreadPolicy_Access             := null;
          Request_Processing_Policy  : RequestProcessingPolicy_Access  := null;
-         Id_Assignment_Policy       : IdAssignmentPolicy_Access      := null;
+         Id_Assignment_Policy       : IdAssignmentPolicy_Access       := null;
          Id_Uniqueness_Policy       : IdUniquenessPolicy_Access       := null;
          Servant_Retention_Policy   : ServantRetentionPolicy_Access   := null;
          Lifespan_Policy            : LifespanPolicy_Access           := null;
          Implicit_Activation_Policy : ImplicitActivationPolicy_Access := null;
 
-         --  Siblings
-         Father                     : Obj_Adapter_Access := null;
-         Children                   : POAList_Access     := null;
+         Father : Obj_Adapter_Access;
+         --  Parent POA.
 
-         --  Locks
+         Children : POAList_Access;
+         --  XXX should use a hash table instead.
+         --  All subPOAs of this POA.
+
          Children_Lock              : PolyORB.Locks.Rw_Lock_Access;
          Map_Lock                   : PolyORB.Locks.Rw_Lock_Access;
+         --  Locks
+
       end record;
 
+   type Obj_Adapter_Access is access all Obj_Adapter'Class;
    --  The POA object
    --  XXX Part of this should be private (locks, active object map, father...)
    --  The policies are used by all corba-policy-*, we can keep them public
-
-   type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    --------------------------------------------------
    --  Procedures and functions required by CORBA  --
@@ -106,7 +118,7 @@ package PolyORB.POA is
      (Self         : access Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        PolyORB.POA_Policies.PolicyList_Access)
+      Policies     :        PolyORB.POA_Policies.PolicyList)
      return Obj_Adapter_Access
       is abstract;
    --  Create a POA given its name and a list of policies
@@ -119,19 +131,25 @@ package PolyORB.POA is
       is abstract;
    --  Destroys recursively the POA and all his descendants
 
+   function Create_Object_Identification
+     (Self : access Obj_Adapter;
+      Hint :        Object_Id_Access := null)
+     return Unmarshalled_Oid
+      is abstract;
+   --  Reserve a complete object identifier, possibly using
+   --  the given Hint (if not null) for the construction of
+   --  the object identifier included in the Object_Id.
+
    function Activate_Object
      (Self      : access Obj_Adapter;
-      P_Servant : in     Servant_Access)
+      P_Servant :        Servants.Servant_Access := null;
+      Hint      :        Object_Id_Access := null)
      return Object_Id
       is abstract;
-   --  Activates an object
-
-   procedure Activate_Object_With_Id
-     (Self      : access Obj_Adapter;
-      P_Servant : in     Servant_Access;
-      Oid       : in     Object_Id)
-      is abstract;
-   --  Activates an object with a specified Id
+   --  Activates an object, i.e. associate it with a local
+   --  identification, possibly using the given Hint (if not null)
+   --  for the construction of the object identifier included
+   --  in the Object_Id.
 
    procedure Deactivate_Object
      (Self : access Obj_Adapter;
@@ -145,7 +163,7 @@ package PolyORB.POA is
 
    function Servant_To_Id
      (Self      : access Obj_Adapter;
-      P_Servant : in     Servant_Access)
+      P_Servant : in     Servants.Servant_Access)
      return Object_Id is abstract;
    --  Requires USE_DEFAULT_SERVANT or RETAIN and either UNIQUE_ID
    --  or IMPLICIT_ACTIVATION
@@ -163,7 +181,7 @@ package PolyORB.POA is
    function Id_To_Servant
      (Self : access Obj_Adapter;
       Oid  :        Object_Id)
-     return Servant_Access is abstract;
+     return Servants.Servant_Access is abstract;
    --  Requires RETAIN or USE_DEFAULT_SERVANT
    --  Case RETAIN:
    --    Look for the given Object_Id in the Active Object Map.

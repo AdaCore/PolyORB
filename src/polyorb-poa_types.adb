@@ -35,7 +35,6 @@
 with Ada.Streams;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Types;
 
 package body PolyORB.POA_Types is
@@ -86,7 +85,7 @@ package body PolyORB.POA_Types is
    function Create_Id
      (Name             : in Types.String;
       System_Generated : in Types.Boolean;
-      Persistency_Flag : in Time_Stamp;
+      Persistency_Flag : in Lifespan_Cookie;
       Creator          : in Types.String)
      return Unmarshalled_Oid_Access
    is
@@ -104,7 +103,7 @@ package body PolyORB.POA_Types is
    function Create_Id
      (Name             : in Types.String;
       System_Generated : in Types.Boolean;
-      Persistency_Flag : in Time_Stamp;
+      Persistency_Flag : in Lifespan_Cookie;
       Creator          : in Types.String)
      return Object_Id_Access
    is
@@ -279,27 +278,8 @@ package body PolyORB.POA_Types is
         (Creator => Creator,
          Id => Id,
          System_Generated => System_Generated,
-         Persistency_Flag => Time_Stamp (Persistency_Flag));
+         Persistency_Flag => Lifespan_Cookie (Persistency_Flag));
    end Oid_To_U_Oid;
-
---    ------------------
---    -- Oid_To_U_Oid --
---    ------------------
-
---    function Oid_To_U_Oid
---      (Oid : Object_Id)
---      return Unmarshalled_Oid_Access
---    is
---       Oid_Access : Object_Id_Access;
---       U_Oid      : Unmarshalled_Oid_Access;
---    begin
---       Oid_Access := new Object_Id'(Oid);
---       --  Oid_Access.all := Oid;
---       U_Oid := Oid_To_U_Oid (Oid_Access);
---       Free (Oid_Access);
---       return U_Oid;
---       --  ??? Does this work? Not tested yet.
---    end Oid_To_U_Oid;
 
    ------------------
    -- U_Oid_To_Oid --

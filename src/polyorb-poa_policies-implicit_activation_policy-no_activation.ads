@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    type No_Activation_Policy is new ImplicitActivationPolicy with null record;
@@ -41,23 +39,16 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    procedure Check_Compatibility
      (Self : No_Activation_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : No_Activation_Policy)
      return String;
 
-   function Activate_Servant
+   function Implicit_Activate_Servant
      (Self      : No_Activation_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
+      P_Servant : Servants.Servant_Access)
      return Object_Id_Access;
-
-   procedure Free (Self : in     No_Activation_Policy;
-                   Ptr  : in out Policy_Access);
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation (No_Activation_Policy,
-                                      No_Activation_Policy_Access);
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

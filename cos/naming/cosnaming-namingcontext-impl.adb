@@ -50,7 +50,6 @@ pragma Warnings (Off, CosNaming.NamingContext.Skel);
 
 with GNAT.HTable;
 
-with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
@@ -65,10 +64,6 @@ package body CosNaming.NamingContext.Impl is
    type String_Access is access String;
 
    package Names renames IDL_SEQUENCE_CosNaming_NameComponent;
-
-   Null_NC : constant NameComponent
-     := (Istring (Ada.Strings.Unbounded.Null_Unbounded_String),
-         Istring (Ada.Strings.Unbounded.Null_Unbounded_String));
 
    Null_Name : constant Name := Name (Names.Null_Sequence);
 
@@ -158,7 +153,7 @@ package body CosNaming.NamingContext.Impl is
    function Allocate return Key_Type;
    function Allocate return Key_Type is
       N : Natural  := Key_Size;
-      K : Key_Type := Seed;
+      K : constant Key_Type := Seed;
 
    begin
       while N > 0 loop
@@ -242,7 +237,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
 
          begin
             Enter_Critical_Section;
@@ -281,7 +276,7 @@ package body CosNaming.NamingContext.Impl is
          NamingContext.bind_context (Ctx, To_Name (Last), NC);
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
 
          begin
             Enter_Critical_Section;
@@ -389,8 +384,8 @@ package body CosNaming.NamingContext.Impl is
      return String
    is
       Len : Natural;
-      NI  : Natural := Length (N.id);
-      NK  : Natural := Length (N.kind);
+      NI  : constant Natural := Length (N.id);
+      NK  : constant Natural := Length (N.kind);
 
    begin
       Len := Key_Size + 1 + NI + 1 + NK + 1;
@@ -606,8 +601,11 @@ package body CosNaming.NamingContext.Impl is
      (Self : access Object)
      return NamingContext.Ref
    is
-      My_Ref : NamingContext.Ref;
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
 
+      My_Ref : NamingContext.Ref;
    begin
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Create), My_Ref);
@@ -635,7 +633,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
             BO  : Bound_Object_Ptr;
 
          begin
@@ -694,7 +692,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
             BO  : Bound_Object_Ptr;
 
          begin
@@ -760,7 +758,7 @@ package body CosNaming.NamingContext.Impl is
       BO.Next := null;
 
       declare
-         BON : String := Encode (NC, BO.BN);
+         BON : constant String := Encode (NC, BO.BN);
       begin
          BOHT.Set (BON'Unrestricted_Access, null);
       end;
@@ -789,7 +787,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
             BO  : Bound_Object_Ptr;
             Obj : CORBA.Object.Ref;
 
@@ -846,7 +844,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
             BO  : Bound_Object_Ptr;
 
          begin

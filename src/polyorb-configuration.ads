@@ -38,8 +38,8 @@ package PolyORB.Configuration is
 
    pragma Elaborate_Body;
 
-   Default_Filename  : constant String := "polyorb.conf";
-   Filename_Variable : constant String := "POLYORB_CONF";
+   PolyORB_Conf_Default_Filename  : constant String := "polyorb.conf";
+   PolyORB_Conf_Filename_Variable : constant String := "POLYORB_CONF";
    Syntax_Error      : exception;
 
    --  PolyORB supports a global runtime configuration file.
@@ -76,9 +76,29 @@ package PolyORB.Configuration is
    Environment_Configuration_Section : constant String
      := "environment";
 
+   procedure Load_Configuration_File (Conf_File_Name : String);
+   --  Load 'Conf_File_Name' configuration file.
+
    function Get_Conf (Section, Key : String; Default : String := "")
      return String;
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined.
+
+   function Get_Conf (Section, Key : String; Default : Boolean := False)
+     return Boolean;
+   --  Return the value of the global variable Key or Default if this
+   --  variable is not defined, interpreting the value as a Boolean:
+   --  * True if the value starts with '1' or 'Y' or 'y',
+   --    or is "on" or "enable" or "true"
+   --  * False if the value starts with '0' or 'n' or 'N',
+   --    or is "off" or "disable" or "false" or empty.
+   --  Constraint_Error is raised if the value is set to anything else.
+
+   function Get_Conf (Section, Key : String; Default : Integer := 0)
+     return Integer;
+   --  Return the value of the global variable Key or Default if this
+   --  variable is not defined, interpreting the value as the decimal
+   --  representation of an integer number.
+   --  Constraint_Error is raised if the value is set to anything else.
 
 end PolyORB.Configuration;

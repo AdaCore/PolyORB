@@ -37,10 +37,11 @@
 generic
 
    type Value is private;
+   No_Value : Value;
 
 package PolyORB.Dynamic_Dict is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    Key_Not_Found : exception;
 

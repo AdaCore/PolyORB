@@ -36,6 +36,11 @@
 
 package body PolyORB.Utils.Strings.Lists is
 
+   function Empty return List is
+   begin
+      return List (String_Ptr_Lists.Empty);
+   end Empty;
+
    function First (L : List) return Iterator is
    begin
       return Iterator (String_Ptr_Lists.Iterator'(First (L)));

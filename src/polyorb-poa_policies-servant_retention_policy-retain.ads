@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
    type Retain_Policy is new ServantRetentionPolicy with null record;
@@ -41,46 +39,33 @@ package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
    procedure Check_Compatibility
      (Self : Retain_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : Retain_Policy)
      return String;
 
-   function Activate_Object
+   procedure Retain_Servant_Association
      (Self      : Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
+      P_Servant : Servants.Servant_Access;
+      U_Oid     : Unmarshalled_Oid);
+
+   procedure Forget_Servant_Association
+     (Self  : Retain_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid);
+
+   function Retained_Servant_To_Id
+     (Self      : Retain_Policy;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servants.Servant_Access)
      return Object_Id_Access;
 
-   procedure Activate_Object_With_Id
-     (Self      : Retain_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access;
-      Oid       : Object_Id);
-
-   procedure Deactivate
-     (Self      : Retain_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid       : Object_Id);
-
-   function Servant_To_Id
-     (Self      : Retain_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access) return Object_Id_Access;
-
-   function Id_To_Servant
+   function Retained_Id_To_Servant
      (Self  : Retain_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Servant_Access;
-
-   procedure Free
-     (Self : in     Retain_Policy;
-      Ptr  : in out Policy_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Retain_Policy,
-      Retain_Policy_Access);
+     return Servants.Servant_Access;
 
 end PolyORB.POA_Policies.Servant_Retention_Policy.Retain;

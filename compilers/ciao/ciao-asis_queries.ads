@@ -11,13 +11,13 @@
 --  Ada'95 distributed systems annex  --
 --  Objects                           --
 ----------------------------------------
---  Copyright (c) 1999                --
+--  Copyright (c) 1999-2002           --
 --  École nationale supérieure des    --
 --  télécommunications                --
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.ads#3 $
+--  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.ads#4 $
 
 with Asis;
 with Asis.Exceptions;
@@ -312,5 +312,15 @@ package CIAO.ASIS_Queries is
    --  Appropriate Element_Kinds:
    --       A_Declaration
    --
+
+   type Unit_Categories is
+     (Pure, Remote_Types, Remote_Call_Interface, Other);
+   --  A type used to denote the category of a library unit
+   --  as defined by the Distributed Systems Annex.
+
+   function Unit_Category (LU : in ASIS.Compilation_Unit)
+     return Unit_Categories;
+   --  Returns the category (Pure, RT, RCI or Other)
+   --  of a library unit.
 
 end CIAO.ASIS_Queries;

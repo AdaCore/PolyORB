@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -96,7 +96,7 @@ package body Ada_Be.Mappings.CORBA is
 
          when others =>
             Error
-              ("A " & NK'Img
+              ("A " & Node_Kind'Image (NK)
                & " is not a mapped entity.",
                Fatal, Get_Location (Node));
       end case;
@@ -118,6 +118,20 @@ package body Ada_Be.Mappings.CORBA is
    begin
       return Client_Stubs_Unit_Name (Self, Node) & Skel_Suffix;
    end Server_Skel_Unit_Name;
+
+   function Self_For_Operation
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, Node);
+      pragma Warnings (On);
+   begin
+      return "Self";
+      --  In CORBA stubs, the target objet is always passed
+      --  as a formal parameter named Self.
+   end Self_For_Operation;
 
    procedure Map_Type_Name
      (Self : access CORBA_Mapping_Type;
@@ -216,7 +230,7 @@ package body Ada_Be.Mappings.CORBA is
             --  mapped to an Ada type.
 
             Error
-              ("This Ada_Type_Name : A " & NK'Img
+              ("This Ada_Type_Name : A " & Node_Kind'Image (NK)
                & " does not denote a type.",
                Fatal, Get_Location (Node));
 
@@ -225,5 +239,36 @@ package body Ada_Be.Mappings.CORBA is
 
       end case;
    end Map_Type_Name;
+
+   function Calling_Stubs_Type
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      if Abst (Node) then
+         return "Abstract_Ref";
+      else
+         return "Ref";
+      end if;
+   end Calling_Stubs_Type;
+
+   function Generate_Scope_In_Child_Package
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return Boolean
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      pragma Assert (Is_Gen_Scope (Node));
+      return True;
+      --  For CORBA, all Gen_Scopes are generated in
+      --  separate child packages.
+   end Generate_Scope_In_Child_Package;
 
 end Ada_Be.Mappings.CORBA;

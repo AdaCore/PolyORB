@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -92,7 +92,7 @@ package body Ada_Be.Expansion is
    --  1. splits it if there are several declarators
    --  2. Creates the corresponding _get_ and _set_ operations.
 
-   procedure Expand_Attribute_And_State_Member
+   procedure Expand_Attribute_Or_State_Member
      (Node : in Node_Id;
       The_Type : in Node_Id;
       Declarators : in Node_List;
@@ -247,14 +247,15 @@ package body Ada_Be.Expansion is
    -----------------
 
    procedure Expand_Node (Node : in Node_Id) is
+      NK : constant Node_Kind := Kind (Node);
    begin
       pragma Debug (O ("Expanding node : "
-                       & Node_Kind'Image (Kind (Node))));
+                       & Node_Kind'Image (NK)));
 
       --  If node has already been expanded, this is a bug
 
       if Expanded (Node) then
-         Error ("Node " & Kind (Node)'Img & " already expanded",
+         Error ("Node " & Node_Kind'Image (NK) & " already expanded",
                 Fatal, Get_Location (Node));
       end if;
 
@@ -262,20 +263,26 @@ package body Ada_Be.Expansion is
 
       Set_Expanded (Node, True);
 
-
       if Is_Named (Node) then
          if Is_Ada_Keyword (Name (Node)) then
 
             --  Rename nodes whose name collide with Ada
             --  reserved words.
 
-            Add_Identifier_With_Renaming (Node, "IDL_" & Name (Node));
+            pragma Debug
+              (O ("Renaming node" & Node_Id'Image (Node)
+                  & " with kind " & Node_Kind'Image (Kind (Node))
+                  & " to IDL_" & Name (Node)));
+            Add_Identifier_With_Renaming
+              (Node, "IDL_" & Name (Node),
+               Is_Inheritable => False);
          end if;
 
          --  Allocate a name for the node's repository ID
 
          if Kind (Node) /= K_Repository
-           and then Kind (Node) /= K_Ben_Idl_File then
+           and then Kind (Node) /= K_Ben_Idl_File
+         then
             declare
                RID_Name_Node : constant Node_Id
                  := Make_Named (Loc (Node));
@@ -291,6 +298,8 @@ package body Ada_Be.Expansion is
                     (RID_Name_Node, Name (Node) & "_Repository_Id",
                      Is_Inheritable => False);
                end if;
+               pragma Debug (O ("Allocated RID name:"
+                                & Name (RID_Name_Node)));
             end;
          end if;
       end if;
@@ -600,7 +609,7 @@ package body Ada_Be.Expansion is
       I_Node : Node_Id;
       Parents_Seen : Node_List
         := Nil_List;
-      Primary_Parent : Node_Id
+      Primary_Parent : constant Node_Id
         := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
    begin
       pragma Assert (Kind (Node) = K_Interface);
@@ -658,7 +667,7 @@ package body Ada_Be.Expansion is
         := Nil_List;
       Interfaces_Seen : Node_List
         := Nil_List;
-      Primary_Parent  : Node_Id
+      Primary_Parent  : constant Node_Id
         := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
    begin
       pragma Assert (Kind (Node) = K_ValueType);
@@ -726,14 +735,14 @@ package body Ada_Be.Expansion is
       Pop_Scope;
    end Expand_ValueType;
 
-   -----------------------
-   --  Expand_Attribute --
-   -----------------------
+   ----------------------
+   -- Expand_Attribute --
+   ----------------------
 
    procedure Expand_Attribute (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Attribute);
-      Expand_Attribute_And_State_Member
+      Expand_Attribute_Or_State_Member
         (Node,
          A_Type (Node),
          Declarators (Node),
@@ -741,9 +750,10 @@ package body Ada_Be.Expansion is
          Is_Writable => not Is_Readonly (Node));
    end Expand_Attribute;
 
-   --------------------------
-   --  Expand_State_Member --
-   --------------------------
+   -------------------------
+   -- Expand_State_Member --
+   -------------------------
+
    procedure Expand_State_Member
      (Node : in Node_Id) is
       Declarators : Node_List;
@@ -765,7 +775,7 @@ package body Ada_Be.Expansion is
       while not Is_End (It) loop
          pragma Debug (O ("Expand_State_Member:"));
          declare
-            New_State_Member : Node_Id
+            New_State_Member : constant Node_Id
               := Make_State_Member (Get_Location (Current_Decl));
             Decls : Node_List := Nil_List;
          begin
@@ -782,7 +792,7 @@ package body Ada_Be.Expansion is
                After => Node);
             Remove_Node (Declarators, Current_Decl);
 
-            Expand_Attribute_And_State_Member
+            Expand_Attribute_Or_State_Member
               (Node => New_State_Member,
                The_Type => State_Type (New_State_Member),
                Declarators => State_Declarators (New_State_Member),
@@ -792,7 +802,7 @@ package body Ada_Be.Expansion is
       end loop;
 
       --  and now expand the first declarator
-      Expand_Attribute_And_State_Member
+      Expand_Attribute_Or_State_Member
         (Node => Node,
          The_Type => State_Type (Node),
          Declarators => State_Declarators (Node),
@@ -801,10 +811,10 @@ package body Ada_Be.Expansion is
    end Expand_State_Member;
 
    ----------------------------------------
-   --  Expand_Attribute_And_State_Member --
+   --  Expand_Attribute_Or_State_Member --
    ----------------------------------------
 
-   procedure Expand_Attribute_And_State_Member
+   procedure Expand_Attribute_Or_State_Member
      (Node : in Node_Id;
       The_Type : in Node_Id;
       Declarators : in Node_List;
@@ -828,7 +838,6 @@ package body Ada_Be.Expansion is
       Init (Iterator, Declarators);
 
       while not Is_End (Iterator) loop
-
          Get_Next_Node (Iterator, Current_Declarator);
 
          if Exports_List = Nil_List then
@@ -896,8 +905,8 @@ package body Ada_Be.Expansion is
                Set_Operation_Type (Set_Method, Void_Node);
                --  parameters
                declare
-                  Param : Node_Id := Make_Param (Loc);
-                  Decl : Node_Id := Make_Declarator (Loc);
+                  Param : constant Node_Id := Make_Param (Loc);
+                  Decl  : constant Node_Id := Make_Declarator (Loc);
                   Params : Node_List := Nil_List;
                begin
                   --  new value parameter
@@ -929,8 +938,9 @@ package body Ada_Be.Expansion is
                Pop_Scope;
             end;
          end if;
+         Expand_Node (Current_Declarator);
       end loop;
-   end Expand_Attribute_And_State_Member;
+   end Expand_Attribute_Or_State_Member;
 
    procedure Expand_Operation
      (Node : in Node_Id)
@@ -1035,9 +1045,9 @@ package body Ada_Be.Expansion is
       end;
    end Expand_Exception;
 
-   ------------------------------
-   --  Expand_Type_Declarator  --
-   ------------------------------
+   ----------------------------
+   -- Expand_Type_Declarator --
+   ----------------------------
 
    procedure Expand_Type_Declarator
      (Node : Node_Id)
@@ -1235,6 +1245,8 @@ package body Ada_Be.Expansion is
                                        Get_Current_Gen_Scope);
             pragma Assert (Success);
 
+            Set_Original_Node (Declarator_Node, Fixed_Node);
+
             Set_Value (Fixed_Ref_Node, Declarator_Node);
 
             Insert_Before_Current (Typedef_Node);
@@ -1285,25 +1297,25 @@ package body Ada_Be.Expansion is
 
       declare
          Current_Gen_Scope : constant Node_Id := Get_Current_Gen_Scope;
-
-         Constr_Type_Node     : Node_Id := Node;
-         Constr_Type_Ref_Node : Node_Id := Make_Scoped_Name (Loc);
+         Constr_Type_Ref_Node : constant Node_Id := Make_Scoped_Name (Loc);
 
       begin
-         Insert_Before_Current (Constr_Type_Node);
+         Insert_Before_Current (Node);
+         --  Pull up the constructed type node into a declaration
+         --  by itself.
 
-         if Parent_Scope (Constr_Type_Node) /= Current_Gen_Scope then
+         if Parent_Scope (Node) /= Current_Gen_Scope then
             Add_Identifier_With_Renaming
-              (Constr_Type_Node, Name (Constr_Type_Node),
+              (Node, Name (Node),
                Current_Gen_Scope);
 
-            if Kind (Constr_Type_Node) = K_Enum then
+            if Kind (Node) = K_Enum then
                --  Also reparent all enumerators
                declare
                   It : Node_Iterator;
                   E_Node : Node_Id;
                begin
-                  Init (It, Enumerators (Constr_Type_Node));
+                  Init (It, Enumerators (Node));
 
                   while not Is_End (It) loop
                      Get_Next_Node (It, E_Node);
@@ -1315,7 +1327,7 @@ package body Ada_Be.Expansion is
             end if;
          end if;
 
-         Set_Value (Constr_Type_Ref_Node, Constr_Type_Node);
+         Set_Value (Constr_Type_Ref_Node, Node);
          Replacement_Node := Constr_Type_Ref_Node;
       end;
    end Expand_Constructed_Type;
@@ -1336,7 +1348,7 @@ package body Ada_Be.Expansion is
 
          if Kind (D_Node) /= K_Declarator then
             Error
-              ("Unexpected " & Kind (D_Node)'Img,
+              ("Unexpected " & Node_Kind'Image (Kind (D_Node)),
                Fatal, Get_Location (D_Node));
          end if;
 
@@ -1390,8 +1402,9 @@ package body Ada_Be.Expansion is
          Parent_Node       : constant Node_Id := Parent (Node);
          Array_Node        : constant Node_Id := Make_Declarator (Loc);
          Array_Type_Node   : constant Node_Id := Make_Type_Declarator (Loc);
+         Array_Ref_Node    : constant Node_Id := Make_Scoped_Name (Loc);
+
          Element_Type_Node : Node_Id;
-         Array_Ref_Node    : Node_Id          := Make_Scoped_Name (Loc);
          Success           : Boolean;
       begin
          pragma Debug (O ("Expand_Array_Declarator: enter"));
@@ -1405,6 +1418,11 @@ package body Ada_Be.Expansion is
                pragma Assert (False);
                null;
          end case;
+
+         Set_Original_Node (Array_Node, Node);
+
+         Set_Original_Node (Array_Ref_Node, Element_Type_Node);
+         Set_Original_Node (Array_Type_Node, Element_Type_Node);
 
          Set_Value (Array_Ref_Node, Array_Node);
 
@@ -1638,7 +1656,7 @@ package body Ada_Be.Expansion is
             --  Improper use: node N is not
             --  mapped to an Ada type.
 
-            Error ("A " & NK'Img
+            Error ("A " & Node_Kind'Image (NK)
                    & " cannot be used in a sequence.",
                    Fatal,
                    Get_Location (Node));

@@ -40,10 +40,10 @@ with GNAT.HTable;
 
 with PolyORB.CORBA_P.Names;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Smart_Pointers;
 
 with CORBA.AbstractBase;
+with CORBA.Object.Helper;
 with CORBA.ORB;
 
 package body CORBA.Object is
@@ -54,6 +54,9 @@ package body CORBA.Object is
    package L is new PolyORB.Log.Facility_Log ("corba.object");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   pragma Warnings (Off);
+   pragma Unreferenced (O);
+   pragma Warnings (On);
 
    type Internal_Object is new PolyORB.Smart_Pointers.Entity with record
       The_Object : PolyORB.Objects.Object_Id_Access;
@@ -76,9 +79,106 @@ package body CORBA.Object is
         (My_Hash (To_Standard_String (CORBA.ORB.Object_To_String (Self))));
    end Hash;
 
+   -------------------
+   -- Get_Interface --
+   -------------------
+
+   function Get_Interface
+     (Self : in Ref)
+     return CORBA.Object.Ref'Class
+   is
+      Operation_Name   : constant CORBA.Identifier
+        := CORBA.To_CORBA_String ("get_interface");
+
+      Request          : CORBA.Request.Object;
+      Ctx              : constant CORBA.Context.Ref
+        := CORBA.Context.Nil_Ref;
+      Arg_List         : CORBA.NVList.Ref;
+      Result           : CORBA.NamedValue;
+      Result_Name      : CORBA.String := To_CORBA_String ("Result");
+   begin
+      if Is_Nil (Self) then
+         raise Constraint_Error;
+      end if;
+
+      --  Create argument list (empty)
+      CORBA.ORB.Create_List (0, Arg_List);
+
+      --  Set result type (maybe void)
+      Result := (Name => CORBA.Identifier (Result_Name),
+                 Argument => Get_Empty_Any (TC_Object),
+                 Arg_Modes => 0);
+
+      CORBA.Object.Create_Request
+        (Self, Ctx, Operation_Name, Arg_List, Result, Request, 0);
+
+      CORBA.Request.Invoke (Request, 0);
+
+      --  Request has been synchronously invoked.
+
+      --  Retrieve return value.
+      return CORBA.Object.Helper.From_Any (Result.Argument);
+   end Get_Interface;
+
    ----------
    -- Is_A --
    ----------
+
+   function RPC_Is_A
+     (Self            : in Ref;
+      Logical_Type_Id : in Standard.String)
+     return CORBA.Boolean;
+   --  Perform a remote call on Self (a reference that designates
+   --  a CORBA object) for class membership determination.
+   --  Note: the body of RPC_Is_A is a copy of generated code.
+
+   function RPC_Is_A
+     (Self            : in Ref;
+      Logical_Type_Id : in Standard.String)
+     return CORBA.Boolean
+   is
+      Operation_Name   : constant CORBA.Identifier
+        := CORBA.To_CORBA_String ("_is_a");
+
+      Arg_Name_Type_Id : CORBA.Identifier
+        := To_CORBA_String ("Type_Id");
+      Request          : CORBA.Request.Object;
+      Ctx              : constant CORBA.Context.Ref
+        := CORBA.Context.Nil_Ref;
+      Argument_Type_Id : CORBA.Any := CORBA.To_Any
+        (To_CORBA_String (Logical_Type_Id));
+      Arg_List         : CORBA.NVList.Ref;
+      Result           : CORBA.NamedValue;
+      Result_Name      : CORBA.String := To_CORBA_String ("Result");
+   begin
+      if Is_Nil (Self) then
+         raise Constraint_Error;
+      end if;
+
+      --  Create argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      CORBA.NVList.Add_Item
+        (Arg_List,
+         Arg_Name_Type_Id,
+         Argument_Type_Id,
+         CORBA.ARG_IN);
+      --  Set result type (maybe void)
+      Result
+        := (Name => CORBA.Identifier (Result_Name),
+            Argument => Get_Empty_Any
+        (CORBA.TC_Boolean),
+         Arg_Modes => 0);
+
+      CORBA.Object.Create_Request
+        (Self, Ctx, Operation_Name, Arg_List, Result, Request, 0);
+
+      CORBA.Request.Invoke (Request, 0);
+
+      --  Request has been synchronously invoked.
+
+      --  Retrieve return value.
+      return CORBA.From_Any (Result.Argument);
+   end RPC_Is_A;
 
    function Is_A
      (Self            : in Ref;
@@ -105,9 +205,10 @@ package body CORBA.Object is
       --  If class membership cannot be determined locally,
       --  perform a remote call on the object.
 
-      --  XXX this is not implemented yet.
-      return False;
-
+      return RPC_Is_A (Self, Logical_Type_Id);
+   exception
+      when others =>
+         return False;
    end Is_A;
 
    -------------------
@@ -117,11 +218,15 @@ package body CORBA.Object is
    function Is_Equivalent
      (Self         : Ref;
       Other_Object : Ref'Class)
-     return Boolean
+      return Boolean
    is
-      use PolyORB.Smart_Pointers;
+      use PolyORB.References;
+
+      Left, Right : PolyORB.References.Ref;
    begin
-      return (Entity_Of (Self) = Entity_Of (Other_Object));
+      Set (Left, Entity_Of (Self));
+      Set (Right, Entity_Of (Other_Object));
+      return Is_Same_Object (Left, Right);
    end Is_Equivalent;
 
    ------------
@@ -140,7 +245,10 @@ package body CORBA.Object is
    function Non_Existent (Self : Ref) return CORBA.Boolean is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Non_Existent (Self);
+      --  "Possible infinite recursion"
+      pragma Warnings (On);
    end Non_Existent;
 
    --------------------

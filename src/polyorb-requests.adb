@@ -35,7 +35,6 @@
 --  $Id$
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.ORB;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols.Interface;
@@ -50,37 +49,56 @@ package body PolyORB.Requests is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --------------------
+   -- Create_Request --
+   --------------------
+
    procedure Create_Request
      (Target    : in     References.Ref;
       --  May or may not be local!
       --  Ctx       : in     Any.Context.Ref;
-      Operation : in     Operation_Id;
+      Operation : in     String;
       Arg_List  : in     Any.NVList.Ref;
       Result    : in out Any.NamedValue;
-      --  Exc_List  : in     ExceptionList.Ref;
+      Exc_List  : in     Any.ExceptionList.Ref
+        := Any.ExceptionList.Nil_Ref;
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access;
-      --  Req_Flags : in     Flags
+      Req_Flags : in     Flags := 0;
       Deferred_Arguments_Session : in Components.Component_Access := null
      )
    is
       Res : constant Request_Access := new Request;
-      Result_Any : PolyORB.Any.Any := Any.Get_By_Ref (Result.Argument);
    begin
       Res.Target    := Target;
       Res.Operation := To_PolyORB_String (Operation);
       Res.Args      := Arg_List;
       Res.Deferred_Arguments_Session := Deferred_Arguments_Session;
-      Res.Result    :=
-        (Name      => Result.Name,
-         Argument  => Result_Any,
-         Arg_Modes => Result.Arg_Modes);
+      Res.Result    := Result;
+      Res.Result.Arg_Modes := Any.ARG_OUT;
+      Res.Exc_List  := Exc_List;
+
+      if Req_Flags = 0 then
+         Res.Req_Flags := Default_Flags;
+      else
+         Res.Req_Flags := Req_Flags;
+      end if;
 
       Req := Res;
    end Create_Request;
 
-   procedure Invoke (Self : Request_Access)
+   ------------
+   -- Invoke --
+   ------------
+
+   procedure Invoke
+     (Self         : Request_Access;
+      Invoke_Flags : Flags := 0)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Invoke_Flags);
+      pragma Warnings (On);
+
       use PolyORB.ORB;
       use PolyORB.ORB.Interface;
       use PolyORB.Setup;
@@ -90,8 +108,8 @@ package body PolyORB.Requests is
         (The_ORB.Tasking_Policy, The_ORB,
          Queue_Request'
          (Request   => Self,
-          Requestor => null));
-      --  XXX Only synchronous requests are supported!
+          Requestor => Self.Requesting_Component));
+      --   Requestor => null));
 
       --  Execute the ORB until the request is completed.
       ORB.Run
@@ -101,6 +119,10 @@ package body PolyORB.Requests is
          May_Poll => True);
 
    end Invoke;
+
+   -----------------------
+   -- Pump_Up_Arguments --
+   -----------------------
 
    procedure Pump_Up_Arguments
      (Dst_Args        : in out Any.NVList.Ref;
@@ -158,7 +180,6 @@ package body PolyORB.Requests is
       --  (tricky. See how Ada compilers do parameter reconciliation with
       --  support for both named and positional parameter associations.)
 
-
       for Dst_Arg_Index in 1 .. Get_Count (Dst_Args) loop
          --  Index in Args (application layer arguments)
          declare
@@ -205,6 +226,10 @@ package body PolyORB.Requests is
 
    end Pump_Up_Arguments;
 
+   ---------------
+   -- Arguments --
+   ---------------
+
    procedure Arguments
      (Self : Request_Access;
       Args : in out Any.NVList.Ref)
@@ -213,6 +238,12 @@ package body PolyORB.Requests is
       use Components;
 
    begin
+      if Self.Arguments_Called then
+         pragma Debug (O ("Arguments called twice"));
+         raise Program_Error;
+      end if;
+      Self.Arguments_Called := True;
+
       if Is_Nil (Self.Args) then
          pragma Assert (Self.Deferred_Arguments_Session /= null);
          declare
@@ -244,6 +275,10 @@ package body PolyORB.Requests is
       Self.Out_Args := Args;
    end Arguments;
 
+   -----------
+   -- Image --
+   -----------
+
    function Image (Req : Request) return String
    is
       S1 : constant String
@@ -257,8 +292,53 @@ package body PolyORB.Requests is
       end;
    exception
       when others =>
-         --  Could not render arguments.
+         --  For some kinds of Any's, bugs in the respective
+         --  Image procedures may trigger exceptions. In such
+         --  cases, we do not want to fail here because we are
+         --  only computing an informational, debugging-oriented
+         --  message. Consequently, we return a placeholder
+         --  value rather than propagating the exception.
+
          return S1 & " with non-representable arguments";
    end Image;
+
+   ----------------
+   -- Set_Result --
+   ----------------
+
+   procedure Set_Result
+     (Self : Request_Access;
+      Val  : Any.Any)
+   is
+      use PolyORB.Any;
+   begin
+      if TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
+         Self.Result :=
+           (Name      => PolyORB.Types.To_PolyORB_String ("result"),
+            Argument  => Val,
+            Arg_Modes => ARG_OUT);
+      else
+         PolyORB.Any.Copy_Any_Value (Self.Result.Argument, Val);
+      end if;
+   end Set_Result;
+
+   ------------------
+   -- Set_Out_Args --
+   ------------------
+
+   procedure Set_Out_Args (Self : Request_Access) is
+   begin
+      Pump_Up_Arguments
+        (Dst_Args => Self.Args, Src_Args => Self.Out_Args,
+         Direction => PolyORB.Any.ARG_OUT,
+         Ignore_Src_Mode => False);
+      --  Copy back inout and out arguments from Out_Args
+      --  to Args, so the requestor finds them where
+      --  it expects.
+
+      --  XXX If a method has IN and OUT args and R.Args
+      --  contains only the IN arguments (and no empty
+      --  Any's for the OUT ones) what happens?
+   end Set_Out_Args;
 
 end PolyORB.Requests;

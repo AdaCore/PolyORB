@@ -1,11 +1,7 @@
 #! /bin/sh -ex
+libtoolize --copy --force
 aclocal -I support
 autoconf
 automake
 (cd compilers/idlac && python make_nodes.py nodes.txt > xxx \
  && gnatchop -w xxx && rm -f xxx)
-(cd src/soap && \
- for s in polyorb-http_headers.ads polyorb-http_methods.ads
- do
-   python gen_keywords $s
- done)

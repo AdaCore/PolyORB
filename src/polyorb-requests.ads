@@ -38,33 +38,29 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Annotations;
 with PolyORB.Any;
+with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.References;
 with PolyORB.Storage_Pools;
 with PolyORB.Task_Info;
 with PolyORB.Types;
+with PolyORB.Utils.Simple_Flags;
 
 package PolyORB.Requests is
 
-   -------------
-   -- Request --
-   -------------
-
-   subtype Operation_Id is String;
-   --  XXX or Types.Identifier??
+   type Flags is new PolyORB.Utils.Simple_Flags.Flags;
 
    ------------------------------------------
    -- Synchronisation of request execution --
    ------------------------------------------
 
-   type Synchronisation_Scope is
-     (None,
-      With_Transport,
-      With_Server,
-      With_Target);
-   --  A 'synchronistaion scope' value is associated with
-   --  each request object.
+   Sync_None           : constant Flags;
+   Sync_With_Transport : constant Flags;
+   Sync_With_Server    : constant Flags;
+   Sync_With_Target    : constant Flags;
+   Sync_Call_Back      : constant Flags;
+   --  Flags to be used for member Req_Flags of request.
 
    --  When a request is not synchronised, the middleware returns
    --  to the caller before passing the request to the transport
@@ -82,6 +78,13 @@ package PolyORB.Requests is
    --  When a request is synchronised With_Target, the middlware
    --  does not return to the caller before receinving a confirmation
    --  that the request has been executed by the target object.
+
+   -------------
+   -- Request --
+   -------------
+
+   Default_Flags       : constant Flags;
+   --  Default flag for member Req_Flags of request.
 
    type Request is limited record
       --  Ctx        : CORBA.Context.Ref;
@@ -108,18 +111,37 @@ package PolyORB.Requests is
       --  set to the Session on which the arguments are
       --  waiting to be unmarshalled.
 
+      Arguments_Called : Boolean := False;
+      --  Flag set to True once the Arguments operation has been
+      --  called on this request, to prevent it from being called
+      --  again.
+
       --  When creating a Request object with deferred arguments,
       --  it is the Protocol layer's responsibility to ensure that
       --  consistent information is presented when
       --  Unmarshall_Arguments is called.
 
       Result    : Any.NamedValue;
-      --  Exc_List   : CORBA.ExceptionList.Ref;
+      --  The result returned by the object after execution of
+      --  this request.
+
+      Exc_List   : PolyORB.Any.ExceptionList.Ref;
+      --  The list of user exceptions potentially raised by
+      --  this request.
+      --  XXX This is client-side info. How do we construct it
+      --      on a proxy object?
+
+      Exception_Info : Any.Any;
+      --  If non-empty, information relatuve to an exception
+      --  raised during execution of this request.
+
       --  Ctxt_List  : CORBA.ContextList.Ref;
-      --  Req_Flags  : CORBA.Flags;
+
+      Req_Flags : Flags;
 
       Completed : aliased Boolean := False;
       Requesting_Task : aliased Task_Info.Task_Info_Access;
+      Requesting_Component : Components.Component_Access;
 
       Notepad : Annotations.Notepad;
       --  Request objects are manipulated by both the
@@ -152,17 +174,20 @@ package PolyORB.Requests is
      (Target    : in     References.Ref;
       --  May or may not be local!
       --  Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Operation_Id;
+      Operation : in     String;
       Arg_List  : in     Any.NVList.Ref;
       Result    : in out Any.NamedValue;
-      --  Exc_List  : in     ExceptionList.Ref;
+      Exc_List  : in     Any.ExceptionList.Ref
+        := Any.ExceptionList.Nil_Ref;
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access;
-      --  Req_Flags : in     Flags;
+      Req_Flags : in     Flags := 0;
       Deferred_Arguments_Session : in Components.Component_Access := null
      );
 
-   procedure Invoke (Self : Request_Access);
+   procedure Invoke
+     (Self         : Request_Access;
+      Invoke_Flags : Flags := 0);
    --  Run Self.
 
    procedure Arguments
@@ -173,6 +198,15 @@ package PolyORB.Requests is
    --  if necessary. Should be called exactly once from within
    --  a servant's Invoke primitive. Args MUST be a correctly
    --  typed NVList for the signature of the method being invoked.
+
+   procedure Set_Result
+     (Self : Request_Access;
+      Val  : Any.Any);
+   --  Set the value of Self's result to Val.
+
+   procedure Set_Out_Args (Self : Request_Access);
+   --  Copy back the values of out and inout arguments
+   --  from Out_Args to Args.
 
    procedure Destroy_Request is new Ada.Unchecked_Deallocation
      (Request, Request_Access);
@@ -189,4 +223,11 @@ package PolyORB.Requests is
    --  protocol arguments list P_Args (either from a request, on server
    --  side, or for a reply, on client side) into A_Args.
 
+private
+   Sync_None           : constant Flags := 1;
+   Sync_With_Transport : constant Flags := 2;
+   Sync_With_Server    : constant Flags := 4;
+   Sync_With_Target    : constant Flags := 8;
+   Sync_Call_Back      : constant Flags := 16;
+   Default_Flags       : constant Flags := Sync_With_Target;
 end PolyORB.Requests;

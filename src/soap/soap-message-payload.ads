@@ -30,11 +30,13 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
 with SOAP.Parameters;
 
 package SOAP.Message.Payload is
 
    type Object is new Message.Object with private;
+   type Object_Access is access Object'Class;
 
    function Procedure_Name (P : in Object'Class) return String;
    --  Retruns the Payload procedure name.
@@ -50,8 +52,14 @@ package SOAP.Message.Payload is
    --  Retruns a Payload object initialized with the procedure name,
    --  parameters and name space.
 
+   procedure Free (X : in out Object_Access);
 private
 
    type Object is new Message.Object with null record;
+
+   procedure Do_Free is new Ada.Unchecked_Deallocation
+     (Object'Class, Object_Access);
+   procedure Free (X : in out Object_Access) renames Do_Free;
+
 
 end SOAP.Message.Payload;

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    type System_Id_Policy is new IdAssignmentPolicy with null record;
@@ -41,7 +39,7 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Check_Compatibility
      (Self : System_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : System_Id_Policy)
@@ -49,43 +47,14 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    function Is_System (Self : System_Id_Policy) return Boolean;
 
-   function Activate_Object
+   function Assign_Object_Identifier
      (Self   : System_Id_Policy;
       OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Object : Servant_Access) return Object_Id_Access;
-
-   procedure Activate_Object_With_Id
-     (Self   : System_Id_Policy;
-      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Object : Servant_Access;
-      Oid    : Object_Id);
+      Hint   : Object_Id_Access)
+     return Unmarshalled_Oid;
 
    procedure Ensure_Oid_Origin
      (Self  : System_Id_Policy;
       U_Oid : Unmarshalled_Oid);
-
-   procedure Ensure_Oid_Uniqueness
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid);
-
-   procedure Remove_Entry
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid);
-
-   function Id_To_Servant
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servant_Access;
-
-   procedure Free
-     (Self : in     System_Id_Policy;
-      Ptr  : in out Policy_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (System_Id_Policy,
-      System_Id_Policy_Access);
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

@@ -31,7 +31,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.POA_Types;     use PolyORB.POA_Types;
-
+with PolyORB.Servants;
 package PolyORB.POA_Policies.Request_Processing_Policy is
 
    type RequestProcessingPolicy is abstract new Policy with null record;
@@ -39,10 +39,6 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    type RequestProcessingPolicy_Access is
      access all RequestProcessingPolicy'Class;
    subtype Request_Processing_Policy_Access is RequestProcessingPolicy_Access;
-
-   function Create return RequestProcessingPolicy_Access is abstract;
-   --  The real creation function that has to be implemented for each
-   --  possible Request Processing Policy
 
    procedure Etherealize_All
      (Self  : RequestProcessingPolicy;
@@ -52,31 +48,11 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    --  If a servant manager is used, etherealize the servant(s) associated
    --  with the given Object_Id.
 
-   procedure Free
-     (P   : in     RequestProcessingPolicy;
-      Ptr : in out Policy_Access)
-      is abstract;
-
-   function Servant_To_Id
-     (Self      : RequestProcessingPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
-     return Object_Id_Access
-     is abstract;
-   --  Case USE_ACTIVE_OBJECT_MAP_ONLY:
-   --    Look for the given servant and returns its Id
-   --    Requires the RETAIN policy
-   --  Case USE_DEFAULT_SERVANT:
-   --    In case the given servant is not found in the object map,
-   --    returns the Id of the default servant.
-   --  Case USE_SERVANT_MANAGER:
-   --    Same than USE_ACTIVE_OBJECT_MAP_ONLY
-
    function Id_To_Servant
-     (Self : RequestProcessingPolicy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid  : Object_Id)
-     return Servant_Access
+     (Self  : RequestProcessingPolicy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid)
+     return Servants.Servant_Access
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:
    --    Asks the Servant Retention Policy to look for the given Oid.

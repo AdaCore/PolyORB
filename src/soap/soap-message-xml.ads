@@ -32,24 +32,37 @@
 
 with SOAP.Message.Payload;
 with SOAP.Message.Response;
+with Input_Sources;
+
+with PolyORB.Any.NVList;
 
 package SOAP.Message.XML is
 
-   function Load_Payload
-     (XML : in String)
-     return Message.Payload.Object;
-   --  Build a Payload object by parsing the XML payload string.
+   procedure Load_Payload
+     (Source    : access Input_Sources.Input_Source'Class;
+      Args      : in out PolyORB.Any.NVList.Ref;
+      R_Payload :    out Message.Payload.Object_Access);
+   --  Build a Payload object by parsing an XML payload from source.
+   --  Args is expected to designate a list of empty Any's,
+   --  whose typecodes are used to determine how to decode the
+   --  XML elements into typed data. On return, the values
+   --  of these Any's are set according to the decoded XML
+   --  elements.
 
    function Load_Response
-     (XML : in String)
-     return Message.Response.Object'Class;
+     (Source : access Input_Sources.Input_Source'Class;
+      Args   : in     PolyORB.Any.NVList.Ref)
+     return Message.Response.Object_Access;
    --  Build a Response object (either a standard response or an error
-   --  response) by parsing the XML response string.
+   --  response) by parsing an XML response from Source.
+   --  Args are used as above (for returned arguments).
+   --  XXX warning, return value vs. out args? Does the return
+   --  value need to be the first OUT element of the Args list?
 
-   function Image (O : in Object'Class) return String;
+   function Image (Obj : in Object'Class) return String;
    --  Returns XML representation of object O.
 
-   function Image (O : in Object'Class) return Unbounded_String;
+   function Image (Obj : in Object'Class) return Unbounded_String;
    --  Idem as above but returns an Unbounded_String instead of a String.
 
 end SOAP.Message.XML;

@@ -33,12 +33,14 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#7 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#12 $
 
 with Ada.Finalization;
 
 with PolyORB.Components;
 with PolyORB.Objects;
+with PolyORB.Smart_Pointers;
+pragma Elaborate_All (PolyORB.Smart_Pointers);
 with PolyORB.Transport;
 with PolyORB.Types;
 
@@ -86,16 +88,17 @@ package PolyORB.Binding_Data is
      return Objects.Object_Id_Access;
    --  Retrieve the opaque object key from Profile.
 
-   procedure Bind_Profile
+   function Bind_Profile
      (Profile : Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Filter  : out Components.Component_Access)
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access
       is abstract;
    --  Find or create a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,
    --  in order to send a message to the designated middleware.
-   --  The Transport_Endpoint at the bottom of the transport stack
-   --  and the Filter just above (ie the base of the protocol stack).
+   --  The Filter at the top of the protocol stack (i.e. the session)
+   --  is returned. Concrete implementations are responsible for
+   --  registering the TE with the ORB if necessary.
 
    function Get_Profile_Tag
      (Profile : Profile_Type)
@@ -124,25 +127,32 @@ package PolyORB.Binding_Data is
 
    function Create_Profile
      (PF  : access Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access
       is abstract;
    --  Create a profile of the type determined by PF, using
-   --  the address of TAP, and Oid as the object specification.
+   --  Oid as the object specification.
 
    procedure Destroy_Profile (P : in out Profile_Access);
    pragma Inline (Destroy_Profile);
 
    function Is_Local_Profile
      (PF : access Profile_Factory;
-      P : Profile_Access)
+      P  : access Profile_Type'Class)
      return Boolean is abstract;
    --  True iff P designates an object that can be contacted
    --  at the access point associated with PF.
 
    function Image (Prof : Profile_Type) return String is abstract;
    --  Used for debugging purposes
+
+   procedure Set_Continuation
+     (Prof         : access Profile_Type;
+      Continuation :        PolyORB.Smart_Pointers.Ref);
+   --  Associate profile Profile (a profile designating an object
+   --  on the local ORB) with the designated object as its actual
+   --  Continuation. Used for proxy profiles (which are actually
+   --  indirect pointers to remote objects).
 
 private
 
@@ -163,7 +173,8 @@ private
 
    type Profile_Type is
      abstract new Ada.Finalization.Limited_Controlled with record
-      Object_Id : Objects.Object_Id_Access;
+        Object_Id    : Objects.Object_Id_Access;
+        Continuation : PolyORB.Smart_Pointers.Ref;
      end record;
 
    type Profile_Factory is abstract tagged limited null record;

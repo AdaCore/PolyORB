@@ -35,9 +35,9 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
-with PolyORB.Binding_Data; use PolyORB.Binding_Data;
+with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -47,11 +47,15 @@ package PolyORB.References is
    pragma Elaborate_Body;
 
    package Profile_Seqs is
-      new Sequences.Unbounded (Binding_Data.Profile_Access);
+      new PolyORB.Sequences.Unbounded (Binding_Data.Profile_Access);
    subtype Profile_Array is Profile_Seqs.Element_Array;
 
    type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    --  An object reference of any kind.
+
+   function Is_Same_Object (Left, Right : Ref) return Boolean;
+   --  True iff it is determined that Left Right designate the
+   --  same object.
 
    procedure Create_Reference
      (Profiles : Profile_Array;
@@ -83,6 +87,10 @@ package PolyORB.References is
       Pro : Binding_Data.Profile_Access);
    --  Set BOC to be the binding object associated with R.
    --  R must not be already bound.
+
+   procedure Share_Binding_Info
+     (Dest   : Ref;
+      Source : Ref);
 
    function Image (R : Ref) return String;
    --  For debugging purposes.

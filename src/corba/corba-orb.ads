@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,21 +34,20 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
-
 with CORBA.Context;
 with CORBA.ExceptionList;
 with CORBA.NVList;
 with CORBA.Object;
 
 with PolyORB.References;
+with PolyORB.Sequences.Unbounded;
 
 package CORBA.ORB is
 
    pragma Elaborate_Body;
 
    package Octet_Sequence is
-      new Sequences.Unbounded (Octet);
+      new PolyORB.Sequences.Unbounded (Octet);
 
    type ServiceDetail is record
       Service_Detail_Type : ServiceDetailType;
@@ -56,10 +55,10 @@ package CORBA.ORB is
    end record;
 
    package IDL_Sequence_ServiceOption is new
-     Sequences.Unbounded (ServiceOption);
+     PolyORB.Sequences.Unbounded (ServiceOption);
 
    package IDL_Sequence_ServiceDetail is new
-     Sequences.Unbounded (ServiceDetail);
+     PolyORB.Sequences.Unbounded (ServiceDetail);
 
    type ServiceInformation is record
       service_options : IDL_Sequence_ServiceOption.Sequence;
@@ -69,7 +68,7 @@ package CORBA.ORB is
    type ObjectId is new CORBA.String;
 
    package IDL_Sequence_ObjectId is new
-     Sequences.Unbounded (ObjectId);
+     PolyORB.Sequences.Unbounded (ObjectId);
 
    type ObjectIdList is new IDL_Sequence_ObjectId.Sequence;
 
@@ -118,35 +117,11 @@ package CORBA.ORB is
      (Identifier : ObjectId)
      return CORBA.Object.Ref;
 
-   --  ??? Requires CORBA.StructMemberSeq
-
-   --    function  create_struct_tc
-   --      (Id      : in CORBA.RepositoryId;
-   --       Name    : in CORBA.Identifier;
-   --       Members : in CORBA.StructMemberSeq)
-   --      return CORBA.TypeCode.Object;
-
-   --  ??? Requires CORBA.EnumMemberSeq
-
-   --    function  create_enum_tc
-   --      (Id      : in CORBA.RepositoryId;
-   --       Name    : in CORBA.Identifier;
-   --       Members : in CORBA.EnumMemberSeq)
-   --      return CORBA.TypeCode.Object;
-
    function  Create_Alias_Tc
      (Id            : in CORBA.RepositoryId;
       Name          : in CORBA.Identifier;
       Original_Type : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
-
-   --  ??? Requires CORBA.StructMemberSeq
-
-   --    function  create_exception_tc
-   --      (Id      : in CORBA.RepositoryId;
-   --       Name    : in CORBA.Identifier;
-   --       Members : in CORBA.StructMemberSeq)
-   --      return CORBA.TypeCode.Object;
 
    function  Create_Interface_Tc
      (Id   : in CORBA.RepositoryId;
@@ -185,6 +160,13 @@ package CORBA.ORB is
      (Id   : in RepositoryId;
       Name : in Identifier)
      return CORBA.TypeCode.Object;
+
+   --  The following functions require CORBA.*MemberSeq sequence types
+   --  and are therefore defined only in CORBA.ORB.TypeCode (which is
+   --  part of the Interface Repository implementation):
+   --    function  create_struct_tc
+   --    function  create_enum_tc
+   --    function  create_exception_tc
 
    --  Thread related operations
 

@@ -26,6 +26,9 @@ package body all_functions.Impl is
      (Self : access Object)
       return CORBA.Short
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       return 18;
    end Get_the_readonly_attribute;
@@ -33,6 +36,9 @@ package body all_functions.Impl is
    procedure void_proc
      (Self : access Object)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       null;
    end void_proc;
@@ -43,6 +49,9 @@ package body all_functions.Impl is
       b : in CORBA.Short;
       c : in CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a, b, c);
+      pragma Warnings (On);
    begin
       null;
    end in_proc;
@@ -53,6 +62,9 @@ package body all_functions.Impl is
       b : out CORBA.Short;
       c : out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       a := 10;
       b := 11;
@@ -64,6 +76,9 @@ package body all_functions.Impl is
       a : in out CORBA.Short;
       b : in out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       a := a + 1;
       b := b + 1;
@@ -76,6 +91,9 @@ package body all_functions.Impl is
       c : out CORBA.Short;
       d : out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a, b);
+      pragma Warnings (On);
    begin
       c := 3;
       d := 4;
@@ -88,6 +106,9 @@ package body all_functions.Impl is
       c : in CORBA.Short;
       d : in out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a, c);
+      pragma Warnings (On);
    begin
       b := 36;
       d := 40;
@@ -100,6 +121,9 @@ package body all_functions.Impl is
       c : in out CORBA.Short;
       d : out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       a := 45;
       b := 46;
@@ -113,6 +137,9 @@ package body all_functions.Impl is
       b : out CORBA.Short;
       c : in out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a);
+      pragma Warnings (On);
    begin
       b := -54;
       c := c + 1;
@@ -122,6 +149,9 @@ package body all_functions.Impl is
      (Self : access Object)
       return CORBA.Short
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       return 3;
    end void_fun;
@@ -133,6 +163,9 @@ package body all_functions.Impl is
       c : in CORBA.Short)
       return CORBA.Short
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, a, b, c);
+      pragma Warnings (On);
    begin
       return 7;
    end in_fun;
@@ -144,6 +177,9 @@ package body all_functions.Impl is
       c : out CORBA.Short;
       Returns : out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       a := 5;
       b := 6;
@@ -157,6 +193,9 @@ package body all_functions.Impl is
       b : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       a := a + 1;
       b := b + 1;
@@ -171,6 +210,9 @@ package body all_functions.Impl is
       d : out CORBA.Short;
       Returns : out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       c := b;
       d := a;
@@ -185,6 +227,9 @@ package body all_functions.Impl is
       d : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       b := b + a;
       d := d + c;
@@ -199,6 +244,9 @@ package body all_functions.Impl is
       d : out CORBA.Short;
       Returns : out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       a := b;
       b := b + 1;
@@ -214,6 +262,9 @@ package body all_functions.Impl is
       c : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       b := a + 1;
       c := a + c;
@@ -223,6 +274,9 @@ package body all_functions.Impl is
    procedure oneway_void_proc
      (Self : access Object)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       Oneway_Value := 1;
       delay 5.0;
@@ -234,6 +288,9 @@ package body all_functions.Impl is
       a : in CORBA.Short;
       b : in CORBA.Short)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       Oneway_Value := a;
       delay 5.0;
@@ -241,6 +298,9 @@ package body all_functions.Impl is
    end oneway_in_proc;
 
    function oneway_checker (Self : access Object) return CORBA.Short is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       return Oneway_Value;
    end oneway_checker;

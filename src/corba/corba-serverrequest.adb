@@ -37,8 +37,6 @@
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
-with PolyORB.Types;
 
 package body CORBA.ServerRequest is
 
@@ -64,38 +62,17 @@ package body CORBA.ServerRequest is
 
    procedure Set_Result (O : access Object; Val : Any)
    is
-      use PolyORB.Any;
    begin
-      if TypeCode.Kind (Get_Type (O.Result.Argument)) = Tk_Void then
-         O.Result :=
-           (Name      => PolyORB.Types.To_PolyORB_String ("result"),
-            Argument  => Val,
-            Arg_Modes => ARG_OUT);
-      else
-         PolyORB.Any.Copy_Any_Value (O.Result.Argument, Val);
-      end if;
+      PolyORB.Requests.Set_Result
+        (PolyORB.Requests.Request_Access (O), Val);
    end Set_Result;
 
-   procedure Set_Exception (Obj : Object; Val : Any) is
+   procedure Set_Exception (Obj : access Object; Val : Any)
+   is
    begin
       pragma Debug
         (O ("Server notifies exception: " & Image (Val)));
-      --  O.Exception_Info := Val;
-      raise PolyORB.Not_Implemented;
+      Obj.Exception_Info := Val;
    end Set_Exception;
-
---    function To_PolyORB_Request
---      (O : Object)
---      return PolyORB.Requests.Request_Access is
---    begin
---       return PolyORB.Requests.Request_Access (O);
---    end To_PolyORB_Request;
-
---    function To_CORBA_ServerRequest
---      (R : PolyORB.Requests.Request_Access)
---      return Object is
---    begin
---       return Object (R);
---    end To_CORBA_ServerRequest;
 
 end CORBA.ServerRequest;

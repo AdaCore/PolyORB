@@ -54,7 +54,6 @@ with File.Helper;
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 with PolyORB.CORBA_P.Server_Tools;
 
-with PolyORB.ORB.Thread_Pool;
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
@@ -181,10 +180,10 @@ procedure Test_Naming is
 
    begin
       if Length (N) = 1 then
-         return From (S);
+         return From (S, Sep);
       else
          return CosNaming.NamingContext.Helper.To_Ref
-           (resolve (From (S), Name'(Head (N, Length (N) - 1, Null_NC))));
+           (resolve (From (S, Sep), Name'(Head (N, Length (N) - 1, Null_NC))));
       end if;
    end Parent;
 
@@ -213,7 +212,8 @@ procedure Test_Naming is
       Sep : in Character := '/')
      return NamingContext.Ref is
    begin
-      return NamingContext.Helper.To_Ref (resolve (From (S), To_Name (S)));
+      return NamingContext.Helper.To_Ref
+        (resolve (From (S, Sep), To_Name (S, Sep)));
    exception
       when others =>
          Ada.Text_IO.Put_Line ("No such directory " & S);
@@ -241,7 +241,7 @@ procedure Test_Naming is
       Sep : Character := '/')
      return CORBA.Object.Ref is
    begin
-      return resolve (From (S), To_Name (S));
+      return resolve (From (S, Sep), To_Name (S, Sep));
    exception
       when others =>
          Ada.Text_IO.Put_Line ("No such object " & S);
@@ -326,7 +326,7 @@ procedure Test_Naming is
    end Bind_Self;
 
 begin
-   PolyORB.ORB.Thread_Pool.Initialize (4, 10);
+   CORBA.ORB.Initialize ("ORB");
    PolyORB.CORBA_P.Server_Tools.Initiate_Server
      (Start_New_Task => True);
    begin

@@ -37,7 +37,6 @@
 
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.Filters.Slicers is
 

@@ -57,7 +57,7 @@ package CORBA.ServerRequest is
    procedure Arguments (O : access Object; NV : in out NVList.Ref);
    --  function Ctx return Context;
    procedure Set_Result (O : access Object; Val : Any);
-   procedure Set_Exception (Obj : Object; Val : Any);
+   procedure Set_Exception (Obj : access Object; Val : Any);
 
    --------------------------------------
    -- The following is PolyORB-specific --

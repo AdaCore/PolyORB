@@ -36,18 +36,20 @@
 --  $Id$
 
 with PolyORB.Initialization;
+
 with PolyORB.ORB.Thread_Per_Session;
-with PolyORB.Protected_Objects;
+with PolyORB.Profiles.Full_Tasking;
+with PolyORB.Tasking.Soft_Links;
 with PolyORB.Setup.Server;
 
-pragma Elaborate_All (PolyORB.Initialization);
 pragma Elaborate_All (PolyORB.ORB.Thread_Per_Session);
-pragma Elaborate_All (PolyORB.Protected_Objects);
+pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
+pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 pragma Elaborate_All (PolyORB.Setup.Server);
 
-pragma Warnings (Off, PolyORB.Initialization);
 pragma Warnings (Off, PolyORB.ORB.Thread_Per_Session);
-pragma Warnings (Off, PolyORB.Protected_Objects);
+pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
+pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
 package body PolyORB.Setup.Thread_Per_Session_Server is

@@ -1,0 +1,43 @@
+README for the PolyORB all_types example
+----------------------------------------
+
+$Id$
+
+This demo tests marshalling unmarshalling functions.
+
+Three executables are provided
+- server : a CORBA server application, provides echo<types> functions
+  where types are CORBA defined types.
+
+- client : a CORBA client application, built to interact with 'server',
+  test all CORBA types.
+
+- client_moma : a MOMA client application, built to interact with 'server'.
+  It tests string type. It is a demonstration of ORB/MOM interoperability.
+
+* To run these tests :
+
+1) client/server test :
+
+- launch server
+- launch client using the IOR string output by server as an argument
+
+The client will interact with the server, doing several tests. The different
+results are displayed on the client side.
+
+2) client_moma/server test:
+
+- launch 'server'
+- launch a MOMA message_pool node, for example example/moma/server
+- launch 'client_moma' using the IOR string output by the all_types server
+   as first argument, IOR string output by MOMA message_pool node as second
+   argument
+
+Here is the demo scenario :
+- 'client_moma' will first build a MExecute message
+- 'client_moma' sends it to the server as an RPC
+- 'server' will send the response back to 'client_moma'
+- a call back component will bounce the response to the message_pool
+
+If the MOMA node is set to persistent, the received messages will be stored
+into different files.

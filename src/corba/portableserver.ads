@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,7 +64,6 @@ package PortableServer is
       is abstract;
 
    type Servant is access all DynamicImplementation'Class;
-
    --  The root of all static implementations: Servant_Base,
    --  a type derived from DynamicImplementation (which provides
    --  a default implementation of the Invoke operation.)
@@ -167,39 +166,8 @@ package PortableServer is
    -- Specific to PolyORB --
    -------------------------
 
---    procedure Marshall
---      (Buffer : access Broca.Buffers.Buffer_Type;
---       Data   : in ObjectId);
-
---    function Unmarshall
---      (Buffer : access Broca.Buffers.Buffer_Type)
---      return ObjectId;
-
    function Get_Type_Id (For_Servant : Servant)
      return CORBA.RepositoryId;
-
---    procedure GIOP_Dispatch
---      (For_Servant       : in Servant;
---       Operation         : in String;
---       Request_Id        : in CORBA.Unsigned_Long;
---       Response_Expected : in CORBA.Boolean;
---       Request_Buffer    : access Broca.Buffers.Buffer_Type;
---       Reply_Buffer      : access Broca.Buffers.Buffer_Type);
---    --  Call an operation.
---    --  Only standard exceptions (defined in module CORBA) can be
---    --  caught outside of GIOP_DISPATCH, ie user defined exception must
---    --  be marshalled.
-
-
---    --  The data to be provided by the skeleton of an interface.
-
---    type GIOP_Dispatcher is access procedure
---      (For_Servant      : in Servant;
---       Operation        : in String;
---       Request_Id       : in CORBA.Unsigned_Long;
---       Reponse_Expected : in CORBA.Boolean;
---       Request_Buffer   : access Broca.Buffers.Buffer_Type;
---       Reply_Buffer     : access Broca.Buffers.Buffer_Type);
 
    type Request_Dispatcher is access procedure
      (For_Servant : in Servant;
@@ -239,7 +207,7 @@ private
    type DynamicImplementation is
      abstract new CORBA.Impl.Object with null record;
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access DynamicImplementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;

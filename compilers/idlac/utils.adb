@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -23,6 +23,10 @@
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
+
+--  Utilities for the IDLAC compiler.
 
 with Ada.Unchecked_Conversion;
 
@@ -41,8 +45,8 @@ package body Utils is
    -- Img --
    ---------
 
-   function Img (N : Long_Long_Integer) return String is
-      S : constant String := Long_Long_Integer'Image (N);
+   function Img (N : Idl_Integer) return String is
+      S : constant String := Idl_Integer'Image (N);
    begin
       if S (S'First) = ' ' then
          return S (S'First + 1 .. S'Last);
@@ -55,10 +59,10 @@ package body Utils is
    -- Img --
    ---------
 
-   function Img (N : Long_Integer) return String is
+   function Long_Integer_Img (N : Long_Integer) return String is
    begin
-      return Img (Long_Long_Integer (N));
-   end Img;
+      return Img (Idl_Integer (N));
+   end Long_Integer_Img;
 
    ---------
    -- Img --
@@ -66,16 +70,16 @@ package body Utils is
 
    function Img (N : Integer) return String is
    begin
-      return Img (Long_Long_Integer (N));
+      return Img (Idl_Integer (N));
    end Img;
 
    ---------
    -- Img --
    ---------
 
-   function Img (N : Long_Long_Float) return String is
+   function Img (N : Idl_Float) return String is
    begin
-      return Long_Long_Float'Image (N);
+      return Idl_Float'Image (N);
    end Img;
 
    ---------

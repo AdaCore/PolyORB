@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,8 +34,8 @@
 
 with CORBA.AbstractBase;
 with CORBA.Impl;
-with Sequences.Unbounded;
-pragma Elaborate (Sequences.Unbounded);
+with PolyORB.Sequences.Unbounded;
+pragma Elaborate (PolyORB.Sequences.Unbounded);
 
 package CORBA.ContextList is
 
@@ -71,7 +71,7 @@ package CORBA.ContextList is
 private
    --  The actual implementation of an ExceptionList:
    --  a list of CORBA.String
-   package Context_Sequence is new Sequences.Unbounded (CORBA.String);
+   package Context_Sequence is new PolyORB.Sequences.Unbounded (CORBA.String);
 
    type Object is new CORBA.Impl.Object with record
      List : Context_Sequence.Sequence := Context_Sequence.Null_Sequence;
@@ -79,4 +79,5 @@ private
 
    Nil_Ref : constant Ref
      := (CORBA.AbstractBase.Ref with null record);
+
 end CORBA.ContextList;

@@ -42,7 +42,7 @@ package CORBA.Test_POA is
    Incorrect_Execution : exception;
    Correct_Execution   : exception;
 
-   type My_Servant is new PolyORB.POA_Types.Servant with
+   type My_Servant is new PolyORB.Servants.Servant with
      record
         Nb   : Integer;
         Name : String;

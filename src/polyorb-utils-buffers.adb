@@ -130,7 +130,7 @@ package body PolyORB.Utils.Buffers is
    is
       Data_Address : Opaque_Pointer;
    begin
-      Align (Buffer, Alignment);
+      Pad_Align (Buffer, Alignment);
       Allocate_And_Insert_Cooked_Data
         (Buffer,
          Octets'Length,
@@ -153,7 +153,7 @@ package body PolyORB.Utils.Buffers is
    is
       Data_Address : Opaque_Pointer;
    begin
-      Align (Buffer, Alignment);
+      Align_Position (Buffer, Alignment);
       Extract_Data (Buffer, Data_Address, Size);
       return Data_Address.Zone
         (Data_Address.Offset .. Data_Address.Offset + Size - 1);

@@ -45,10 +45,19 @@ package body SOAP.Message.Response.Error is
 
    Start_Fault_Env            : constant String := "<SOAP-ENV:Fault>";
    End_Fault_Env              : constant String := "</SOAP-ENV:Fault>";
+
    Start_Faultcode            : constant String := "<faultcode>";
    End_Faultcode              : constant String := "</faultcode>";
    Start_Faultstring          : constant String := "<faultstring>";
    End_Faultstring            : constant String := "</faultstring>";
+
+   pragma Warnings (Off);
+   pragma Unreferenced
+     (Start_Faultcode,
+      End_Faultcode,
+      Start_Faultstring,
+      End_Faultstring);
+   pragma Warnings (On);
 
 
    function Fault_Code (Name, Subname : in String) return Faultcode;
@@ -117,8 +126,16 @@ package body SOAP.Message.Response.Error is
    -- From --
    ----------
 
-   function From (P : in Message.Payload.Object) return Object is
+   function From (P : in Message.Payload.Object) return Object
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       N : Object;
+      pragma Warnings (Off, N);
+      --  Not initialized.
+      --  XXX check whether any information from P should
+      --  be included in N.
    begin
       return N;
    end From;
@@ -127,7 +144,11 @@ package body SOAP.Message.Response.Error is
    -- Is_Error --
    --------------
 
-   function Is_Error (E : in Object) return Boolean is
+   function Is_Error (E : in Object) return Boolean
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (E);
+      pragma Warnings (On);
    begin
       return True;
    end Is_Error;

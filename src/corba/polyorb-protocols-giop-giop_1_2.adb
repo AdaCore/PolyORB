@@ -32,10 +32,10 @@
 
 --  $Id$
 
+with PolyORB.Any;
 with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Protocols;           use PolyORB.Protocols;
 with PolyORB.Representations.CDR; use PolyORB.Representations.CDR;
 
@@ -54,6 +54,27 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      ("polyorb.protocols.giop.giop_1_2");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   ---------------
+   -- Constants --
+   ---------------
+
+   Major_Version : constant Types.Octet
+     := 1;
+   Minor_Version : constant Types.Octet
+     := 2;
+
+   -------------------------
+   -- Marshalling helpers --
+   -------------------------
+
+   procedure Marshall
+     (Buffer  : access Buffers.Buffer_Type;
+      Addr    : Addressing_Disposition);
+
+   function Unmarshall
+     (Buffer  : access Buffers.Buffer_Type)
+     return Addressing_Disposition;
 
    --------------------------
    -- Marshall_GIOP_Header --
@@ -91,24 +112,24 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Message size
       Marshall
-        (Buffer,
-         Types.Unsigned_Long (Message_Size - Message_Header_Size));
+        (Buffer, Types.Unsigned_Long
+         (Message_Size - Message_Header_Size));
    end Marshall_GIOP_Header;
 
+   -------------------------------------
+   -- Marshaling of GIOP 1.2 messages --
+   -------------------------------------
 
-   ------------------------------------------------
-   --  Marshaling of the  GIOP 1.2 messages
-   ------------------------------------------------
-   -- Marshalling of the request Message ----------
-   ------------------------------------------------
-
+   ------------------------------
+   -- Marshall_Request_Message --
+   ------------------------------
 
    procedure Marshall_Request_Message
-     (Buffer            : access Buffers.Buffer_Type;
-      Request_Id        : in Types.Unsigned_Long;
-      Target_Ref        : in Target_Address;
-      Sync_Type         : in Sync_Scope;
-      Operation         : in Requests.Operation_Id)
+     (Buffer     : access Buffers.Buffer_Type;
+      Request_Id : in     Types.Unsigned_Long;
+      Target_Ref : in     Target_Address;
+      Sync_Type  : in     Sync_Scope;
+      Operation  : in     String)
 
    is
       use Representations.CDR;
@@ -121,15 +142,23 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Request id
       Marshall (Buffer, Request_Id);
 
-      --  Response_Flags
-      Marshall (Buffer, Types.Octet (Sync_Scope'Pos (Sync_Type)));
+      --  Response flags (see Chap 15.4.2.1, p15-35, CORBA 2.6)
+      case Sync_Type is
+         when NONE | WITH_TRANSPORT =>
+            Marshall (Buffer, Types.Octet (0));
+
+         when WITH_SERVER =>
+            Marshall (Buffer, Types.Octet (1));
+
+         when WITH_TARGET =>
+            Marshall (Buffer, Types.Octet (3));
+      end case;
       --  XXX inconsistency: is this Response_Flags or Sync_Type?
 
       --  Reserved
       for I in 1 .. 3 loop
          Marshall (Buffer, Reserved);
       end loop;
-
 
       --  Marshalling Target Reference
       Marshall (Buffer, Target_Ref.Address_Type);
@@ -140,11 +169,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Marshall
               (Buffer, Stream_Element_Array
                (Target_Ref.Object_Key.all));
+
          when Profile_Addr  =>
             Marshall_IIOP_Profile_Body (Buffer, Target_Ref.Profile);
+
          when Reference_Addr  =>
             Marshall (Buffer, Target_Ref.Ref.Selected_Profile_Index);
-            References.IOR.Marshall (Buffer, Target_Ref.Ref.IOR);
+            References.IOR.Marshall_IOR (Buffer, Target_Ref.Ref.IOR);
       end case;
 
       --  Operation
@@ -159,17 +190,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    end Marshall_Request_Message;
 
-
-
-   -----------------------------
-   --  Marshalling of Reply messages
-   --
-   --  Marshalling of Reply with
-   ----------------------------------
-
-   -----------------------------
-   --- No Exception Reply
-   ------------------------------
+   ----------------------------
+   --- Marshall_No_Exception --
+   ----------------------------
 
    procedure Marshall_No_Exception
     (Buffer      : access Buffer_Type;
@@ -185,33 +208,26 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Reply Status
       Marshall (Buffer, GIOP.No_Exception);
 
-
       --  Service context
       for I in Service_Context_List_1_2'Range loop
          Marshall
            (Buffer,
             Types.Octet (ServiceId'Pos (Service_Context_List_1_2 (I))));
       end loop;
-
-
    end Marshall_No_Exception;
 
-
-
-   -------------------------------------
-   --  Exception Marshall
-   -------------------------------------
+   ------------------------
+   -- Marshall_Exception --
+   ------------------------
 
    procedure Marshall_Exception
-    (Buffer      : access Buffers.Buffer_Type;
-     Request_Id  : Types.Unsigned_Long;
-     Reply_Type  : in Reply_Status_Type;
-     Occurence   : in CORBA.Exception_Occurrence)
-
+     (Buffer     : access Buffers.Buffer_Type;
+      Request_Id :        Types.Unsigned_Long;
+      Reply_Type : in     Reply_Status_Type;
+      Occurrence : in     Any.Any)
    is
       use  Representations.CDR;
    begin
-
       pragma Assert (Reply_Type in User_Exception .. System_Exception);
 
       --  Request id
@@ -219,7 +235,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Reply Status
       Marshall (Buffer, Reply_Type);
-
 
       --  Service context
       for I in Service_Context_List_1_2'Range loop
@@ -229,15 +244,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end loop;
 
       --  Occurrence
-      Marshall (Buffer, Occurence);
-
+      Marshall (Buffer, Any.TypeCode.Id (Any.Get_Type (Occurrence)));
+      Marshall_From_Any (Buffer, Occurrence);
    end  Marshall_Exception;
 
-
-
-   -------------------------------------
-   --  Location Forward Reply Marshall
-   ------------------------------------
+   -------------------------------
+   -- Marshall_Location_Forward --
+   -------------------------------
 
    procedure Marshall_Location_Forward
     (Buffer        :   access Buffers.Buffer_Type;
@@ -257,7 +270,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Reply Status
       Marshall (Buffer, Reply_Type);
 
-
       --  Service context
       for I in Service_Context_List_1_2'Range loop
          Marshall
@@ -266,12 +278,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end loop;
 
       --  Reference
-      References.IOR.Marshall (Buffer, Target_Ref);
+      References.IOR.Marshall_IOR (Buffer, Target_Ref);
 
    end Marshall_Location_Forward;
 
    ------------------------------------
-   --  Needs Addessing Mode Marshall
+   -- Marshall_Needs_Addressing_Mode --
    ------------------------------------
 
    procedure Marshall_Needs_Addressing_Mode
@@ -288,7 +300,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Reply Status
       Marshall (Buffer, GIOP.Needs_Addressing_Mode);
 
-
       --  Service context
       for I in Service_Context_List_1_2'Range loop
          Marshall (Buffer, Types.Octet (ServiceId'Pos
@@ -300,11 +311,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    end  Marshall_Needs_Addressing_Mode;
 
-
-   ------------------------------------------------
-   ---  Locate Request Message Marshall
-   -----------------------------------------------
-
+   ------------------------------
+   --- Marshall_Locate_Request --
+   ------------------------------
 
    procedure Marshall_Locate_Request
     (Buffer            : access Buffer_Type;
@@ -335,14 +344,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
          when Reference_Addr =>
             Marshall (Buffer, Target_Ref.Ref.Selected_Profile_Index);
-            References.IOR.Marshall (Buffer, Target_Ref.Ref.IOR);
+            References.IOR.Marshall_IOR (Buffer, Target_Ref.Ref.IOR);
       end case;
 
    end Marshall_Locate_Request;
 
-   -------------------------------
-   -- Fragment Message Marshall --
-   -------------------------------
+   -----------------------
+   -- Marshall_Fragment --
+   -----------------------
 
    procedure Marshall_Fragment
     (Buffer       : access Buffers.Buffer_Type;
@@ -356,15 +365,19 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    end Marshall_Fragment;
 
+   ---------------------------------------
+   -- Unmarshaling of GIOP 1.2 messages --
+   ---------------------------------------
 
-   ------------------------
-   -- Request Unmarshall --
-   ------------------------
+   --------------------------------
+   -- Unmarshall_Request_Message --
+   --------------------------------
 
    procedure Unmarshall_Request_Message
      (Buffer            : access Buffer_Type;
       Request_Id        :    out Types.Unsigned_Long;
       Response_Expected :    out Boolean;
+      Sync_Type         :    out Sync_Scope;
       Target_Ref        :    out Target_Address_Access;
       Operation         :    out Types.String)
    is
@@ -380,17 +393,29 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Request id
       Request_Id := Unmarshall (Buffer);
 
-      --  Response expected
+      --  Response flags (see Chap 15.4.2.1, p15-35, CORBA 2.6)
+      --  Dual of Marshall_Request_Message.
       Received_Flags := Unmarshall (Buffer);
 
-      if Received_Flags = 3 then
-         --  XXX Dubious.
-         --  I seem to remember that Response_Expected
-         --  is the LSBit of Flags.
-         Response_Expected := True;
-      else
-         Response_Expected := False;
-      end if;
+      case Received_Flags is
+         when 0 =>
+            Response_Expected := False;
+            Sync_Type := WITH_TRANSPORT;
+            --  XXX or NONE, equivalent at this stage
+            --  use WITH_TRANSPORT for tests done later
+
+         when 1 =>
+            Response_Expected := False;
+            Sync_Type := WITH_SERVER;
+
+         when 3 =>
+            Response_Expected := True;
+            Sync_Type := WITH_TARGET;
+
+         when others =>
+            raise Program_Error;
+            --  XXX should raise an exception ?
+      end case;
 
       --  Reserved
       for I in 1 .. 3 loop
@@ -404,7 +429,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when Key_Addr  =>
 
             declare
-               Obj : Stream_Element_Array :=  Unmarshall (Buffer);
+               Obj : constant Stream_Element_Array :=  Unmarshall (Buffer);
             begin
                Target_Ref := new Target_Address'
                  (Address_Type => Key_Addr,
@@ -424,7 +449,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             begin
                Temp_Ref.Selected_Profile_Index := Unmarshall (Buffer);
-               Temp_Ref.IOR := Unmarshall (Buffer);
+               Temp_Ref.IOR := Representations.CDR.Unmarshall (Buffer);
 
                Target_Ref := new Target_Address'
                  (Address_Type => Reference_Addr,
@@ -458,7 +483,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    end Unmarshall_Request_Message;
 
    ------------------------------
-   -- Reply Message Unmarshall --
+   -- Unmarshall_Reply_Message --
    ------------------------------
 
    procedure Unmarshall_Reply_Message
@@ -469,7 +494,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use  Representations.CDR;
       Service_Context   : array (0 .. 9) of Types.Octet;
    begin
-
 
       --  Request id
       Request_Id := Unmarshall (Buffer);
@@ -493,6 +517,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    end Unmarshall_Reply_Message;
 
+   -------------------------------
+   -- Unmarshall_Locate_Request --
+   -------------------------------
+
    procedure Unmarshall_Locate_Request
      (Buffer     : access Buffer_Type;
       Request_Id :    out Types.Unsigned_Long;
@@ -505,14 +533,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Request Id
       Request_Id := Unmarshall (Buffer);
 
-
       --  Target Ref
       Temp_Octet := Unmarshall (Buffer);
 
       case  Temp_Octet  is
          when Key_Addr  =>
             declare
-               Obj : Stream_Element_Array := Unmarshall (Buffer);
+               Obj : constant Stream_Element_Array := Unmarshall (Buffer);
             begin
                Target_Ref := Target_Address'
                  (Address_Type => Key_Addr,
@@ -530,7 +557,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                     := new IOR_Addressing_Info;
             begin
                   Temp_Ref.Selected_Profile_Index := Unmarshall (Buffer);
-                  Temp_Ref.IOR := Unmarshall (Buffer);
+                  Temp_Ref.IOR := Representations.CDR.Unmarshall (Buffer);
                   Target_Ref := Target_Address'
                     (Address_Type => Reference_Addr,
                      Ref  => Temp_Ref);
@@ -543,6 +570,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    end Unmarshall_Locate_Request;
 
+   --------------
+   -- Marshall --
+   --------------
+
    procedure Marshall
      (Buffer  : access Buffers.Buffer_Type;
       Addr    : Addressing_Disposition)
@@ -551,10 +582,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Marshall (Buffer, Types.Short (Addressing_Disposition'Pos (Addr)));
    end Marshall;
 
+   ----------------
+   -- Unmarshall --
+   ----------------
+
    function Unmarshall
      (Buffer  : access Buffers.Buffer_Type)
-     return Addressing_Disposition is
-      Value : Types.Short := Unmarshall (Buffer);
+     return Addressing_Disposition
+   is
+      Value : constant Types.Short := Unmarshall (Buffer);
    begin
       return Addressing_Disposition'Val (Value);
    end Unmarshall;

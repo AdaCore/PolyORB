@@ -49,6 +49,10 @@ package PolyORB.ORB.Thread_Pool is
       ORB : ORB_Access;
       C   : Active_Connection);
 
+   procedure Handle_Close_Server_Connection
+     (P   : access Thread_Pool_Policy;
+      TE  :        Transport_Endpoint_Access);
+
    procedure Handle_New_Client_Connection
      (P   : access Thread_Pool_Policy;
       ORB : ORB_Access;
@@ -57,7 +61,7 @@ package PolyORB.ORB.Thread_Pool is
    procedure Handle_Request_Execution
      (P   : access Thread_Pool_Policy;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class);
+      RJ  : access Request_Job'Class);
 
    procedure Idle
      (P : access Thread_Pool_Policy;
@@ -67,18 +71,6 @@ package PolyORB.ORB.Thread_Pool is
      (P   : access Thread_Pool_Policy;
       ORB : ORB_Access;
       Msg : Message'Class);
-
-   procedure Initialize
-     (Number_Of_Threads : Positive;
-      Queue_Size        : Positive);
-   --  This function must be called once before any other call in this package.
-   --  Number_Of_Threads indicates how many threads will be created to deal
-   --  with client requests.
-   --  Queue_Size indicates how many requests can be queued while waiting for
-   --  a thread to become available.
-   --  When this queue is full, calls to Handle_Request_Execution become
-   --  blocking.
-   --  See package body for more information.
 
 private
 

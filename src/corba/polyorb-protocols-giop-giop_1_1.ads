@@ -34,8 +34,6 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with CORBA;
-
 with PolyORB.Buffers;
 with PolyORB.References;
 with PolyORB.References.IOR;
@@ -56,37 +54,31 @@ package PolyORB.Protocols.GIOP.GIOP_1_1  is
       --  Total message size (including GIOP header).
       Fragment_Next : in Boolean);
 
-
    procedure Marshall_Request_Message
-     (Buffer                : access Buffers.Buffer_Type;
-      Request_Id            : in Types.Unsigned_Long;
-      Target_Profile        : in Binding_Data.Profile_Access;
-      Response_Expected     : in Boolean;
-      Operation             : in Requests.Operation_Id);
-
+     (Buffer            : access Buffers.Buffer_Type;
+      Request_Id        : in     Types.Unsigned_Long;
+      Target_Profile    : in     Binding_Data.Profile_Access;
+      Response_Expected : in     Boolean;
+      Operation         : in     String);
 
    procedure Marshall_Fragment
     (Buffer      : access Buffers.Buffer_Type;
      Request_Id  : in Types.Unsigned_Long);
 
-
    procedure Marshall_No_Exception
     (Buffer      : access Buffers.Buffer_Type;
      Request_Id  : in Types.Unsigned_Long);
-
 
    procedure Marshall_Exception
     (Buffer           : access Buffers.Buffer_Type;
      Request_Id       : in Types.Unsigned_Long;
      Exception_Type   : in Reply_Status_Type;
-     Occurence        : in CORBA.Exception_Occurrence);
-
+     Occurrence       : in Any.Any);
 
    procedure Marshall_Location_Forward
     (Buffer           : access Buffers.Buffer_Type;
      Request_Id       : in  Types.Unsigned_Long;
      Forward_Ref      : in  PolyORB.References.IOR.IOR_Type);
-
 
    procedure Unmarshall_Request_Message
      (Buffer            : access Buffers.Buffer_Type;
@@ -100,7 +92,6 @@ package PolyORB.Protocols.GIOP.GIOP_1_1  is
       Request_Id   : out Types.Unsigned_Long;
       Reply_Status : out Reply_Status_Type);
 
-
 private
 
    --  Explicit bounds are required in the nominal subtype
@@ -110,10 +101,5 @@ private
    Service_Context_List_1_1 : constant Service_Id_Array (0 .. 1)
      := (0 => Transaction_Service,
          1 => Code_Sets);
-
-   Major_Version : constant Types.Octet
-     := 1;
-   Minor_Version : constant Types.Octet
-     := 1;
 
 end PolyORB.Protocols.GIOP.GIOP_1_1;

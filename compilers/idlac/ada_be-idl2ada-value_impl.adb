@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---               A D A _ B E . I D L 2 A D A . V A L U E _ I M P L          --
+--            A D A _ B E . I D L 2 A D A . V A L U E _ I M P L             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -23,6 +23,8 @@
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -60,7 +62,7 @@ package body Ada_Be.Idl2Ada.Value_Impl is
 
             --  check parent
             declare
-               Primary_Parent : Node_Id
+               Primary_Parent : constant Node_Id
                  := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
             begin
                if Primary_Parent = No_Node then
@@ -148,9 +150,9 @@ package body Ada_Be.Idl2Ada.Value_Impl is
 
          when K_ValueType =>
             if Supports (Node) /= Nil_List then
-               Add_With (CU,
-                         Ada_Full_Name (Node)
-                         & Ada_Be.Idl2Ada.Skel.Suffix (Skel.Skeleton));
+               Add_With
+                 (CU, Ada_Full_Name (Node)
+                  & Ada_Be.Idl2Ada.Skel.Suffix (Is_Delegate => False));
 
             end if;
 
@@ -167,7 +169,7 @@ package body Ada_Be.Idl2Ada.Value_Impl is
                     := Kind (Operation_Type (Node)) /= K_Void;
                begin
                   NL (CU);
-                  Gen_Operation_Profile (CU, "access Object", Node);
+                  Gen_Operation_Profile (CU, Node, "access Object");
                   PL (CU, " is");
                   PL (CU, "begin");
                   II (CU);

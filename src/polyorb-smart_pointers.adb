@@ -30,16 +30,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#7 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#11 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.Soft_Links;
 with PolyORB.Utils.Strings;
@@ -204,7 +202,7 @@ package body PolyORB.Smart_Pointers is
 
    procedure Release (The_Ref : in out Ref) is
    begin
-      The_Ref := Nil_Ref;
+      The_Ref := (Ada.Finalization.Controlled with A_Ref => null);
    end Release;
 
    ---------------

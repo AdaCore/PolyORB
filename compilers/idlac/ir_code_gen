@@ -1,0 +1,13 @@
+Design notes for the Interface Repository Infor code generator
+--------------------------------------------------------------
+
+$Id$
+
+For each scope we generate a new package:
+ Foo.IR_Info
+that contains a function returning an IRObject reference
+for each entity in the scope (caching previous results if
+available).
+
+This is generated as a separate package so that applications
+that do not need the IR need not depend on it at all.

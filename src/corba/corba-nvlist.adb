@@ -44,20 +44,15 @@ package body CORBA.NVList is
       PolyORB.Any.NVList.Add_Item
         (To_PolyORB_Ref (Self),
          PolyORB.Types.Identifier (Item_Name),
-         Item, Item_Flags);
+         Item, PolyORB.Any.Flags (Item_Flags));
    end Add_Item;
 
    procedure Add_Item
      (Self : Ref;
       Item : in CORBA.NamedValue)
    is
-      PItem : PolyORB.Any.NamedValue;
-      for PItem'Address use Item'Address;
-      pragma Import (Ada, PItem);
-      --  Ugly but necessary; see comments in
-      --  CORBA.Request.Create_Request.
    begin
-      PolyORB.Any.NVList.Add_Item (To_PolyORB_Ref (Self), PItem);
+      Add_Item (Self, Item.Name, Item.Argument, Item.Arg_Modes);
    end Add_Item;
 
    function Get_Count (Self : Ref) return CORBA.Long is
@@ -65,7 +60,11 @@ package body CORBA.NVList is
       return CORBA.Long (PolyORB.Any.NVList.Get_Count (To_PolyORB_Ref (Self)));
    end Get_Count;
 
-   procedure Free (Self : Ref) is
+   procedure Free (Self : Ref)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       null;
    end Free;

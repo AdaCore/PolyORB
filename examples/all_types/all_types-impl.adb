@@ -6,8 +6,6 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.17 $
---                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
@@ -25,6 +23,8 @@
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Text_IO;
 
 with all_types.Skel;
 pragma Elaborate (all_types.Skel);
@@ -125,6 +125,10 @@ package body all_types.Impl is
       return CORBA.String
    is
    begin
+      Ada.Text_IO.Put_Line
+        ("Thus spake my client unto me: « "
+         & CORBA.To_Standard_String (Arg)
+         & " »");
       return arg;
    end echoString;
 

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    type Unique_Id_Policy is new IdUniquenessPolicy with null record;
@@ -41,7 +39,7 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    procedure Check_Compatibility
      (Self : Unique_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
      (Self : Unique_Id_Policy)
@@ -50,20 +48,13 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    procedure Ensure_Servant_Uniqueness
      (Self      : Unique_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access);
+      P_Servant : Servants.Servant_Access);
 
-   function Servant_To_Id
+   function Activate_Again
      (Self      : Unique_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
+      P_Servant : Servants.Servant_Access;
+      Oid       : Object_Id_Access)
      return Object_Id_Access;
-
-   procedure Free
-     (Self : in     Unique_Id_Policy;
-      Ptr  : in out Policy_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Unique_Id_Policy,
-      Unique_Id_Policy_Access);
 
 end PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;

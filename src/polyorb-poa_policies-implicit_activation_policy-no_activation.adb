@@ -47,12 +47,12 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    procedure Check_Compatibility
      (Self : No_Activation_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+      Other_Policies   : AllPolicies)
    is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
       null;
    end Check_Compatibility;
@@ -75,10 +75,10 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -- Activate_Servant --
    ----------------------
 
-   function Activate_Servant
+   function Implicit_Activate_Servant
      (Self      : No_Activation_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
+      P_Servant : Servants.Servant_Access)
      return Object_Id_Access
    is
    begin
@@ -88,20 +88,6 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       pragma Unreferenced (P_Servant);
       pragma Warnings (On);
       return null;
-   end Activate_Servant;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free (Self : in     No_Activation_Policy;
-                   Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (No_Activation_Policy_Access (Ptr));
-   end Free;
+   end Implicit_Activate_Servant;
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

@@ -33,15 +33,29 @@
 with Ada.Long_Float_Text_IO;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 
+with PolyORB.Any.ObjRef;
+with PolyORB.References;
+with PolyORB.References.Binding;
+with PolyORB.Binding_Data.SOAP;
+with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Utils;
+
+with SOAP.Utils;
 
 package body SOAP.Types is
 
    use Ada;
    use PolyORB.Any;
    use PolyORB.Types;
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log ("soap.types");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    function xsi_type (Name : in String) return String;
    --  Returns the xsi:type field for the XML type representation whose name
@@ -146,20 +160,32 @@ package body SOAP.Types is
 --    end Finalize;
 
    function TCK (A : Any) return TCKind;
-   --  Return the typecode kind of A.
+   pragma Warnings (Off);
+   pragma Unreferenced (TCK);
+   pragma Warnings (On);
+
+   function UTCK (A : Any) return TCKind;
+   --  Return the typecode kind of A. UTCK returns the
+   --  kind after unwinding all levels of typedef.
 
    function TCK (A : Any) return TCKind is
    begin
       return TypeCode.Kind (Get_Type (A));
    end TCK;
 
+   function UTCK (A : Any) return TCKind is
+   begin
+      return TypeCode.Kind (Get_Unwound_Type (A));
+   end UTCK;
+
    ---------
    -- Get --
    ---------
 
    function Get (O : in NamedValue) return Integer is
+      Kind : constant TCKind := UTCK (O.Argument);
    begin
-      case TCK (O.Argument) is
+      case Kind is
          when Tk_Short =>
             return Integer (Short'(From_Any (O.Argument)));
          when Tk_Long =>
@@ -169,47 +195,57 @@ package body SOAP.Types is
             return Integer (Unsigned_Short'(From_Any (O.Argument)));
          when Tk_Ulong =>
             return Integer (Unsigned_Long'(From_Any (O.Argument)));
+         when Tk_Octet =>
+            return Integer (Octet'(From_Any (O.Argument)));
 
          when others =>
             Exceptions.Raise_Exception
               (Data_Error'Identity,
-               "Integer expected, found " & TCKind'Image (TCK (O.Argument)));
+               "Integer expected, found " & TCKind'Image (Kind));
       end case;
    end Get;
 
    function Get (O : in NamedValue) return Long_Float is
+      Kind : constant TCKind := UTCK (O.Argument);
    begin
-      if TCK (O.Argument) = Tk_Double then
-         return Long_Float (Double'(From_Any (O.Argument)));
-      else
-         Exceptions.Raise_Exception
-           (Data_Error'Identity,
-            "Float expected, found " & TCKind'Image (TCK (O.Argument)));
-      end if;
+      case Kind is
+         when Tk_Float =>
+            return Long_Float (PolyORB.Types.Float'(From_Any (O.Argument)));
+         when Tk_Double =>
+            return Long_Float (PolyORB.Types.Double'(From_Any (O.Argument)));
+         when others =>
+            Exceptions.Raise_Exception
+              (Data_Error'Identity,
+               "Float expected, found " & TCKind'Image (Kind));
+      end case;
    end Get;
 
    function Get (O : in NamedValue) return String is
+      Kind : constant TCKind := UTCK (O.Argument);
    begin
-      if TCK (O.Argument) = Tk_String then
-         return To_Standard_String (From_Any (O.Argument));
-
-      else
-         Exceptions.Raise_Exception
-           (Data_Error'Identity,
-            "String expected, found " & TCKind'Image (TCK (O.Argument)));
-      end if;
+      case Kind is
+         when Tk_String =>
+            return To_Standard_String (From_Any (O.Argument));
+         when Tk_Char =>
+            return (1 => PolyORB.Types.Char'(From_Any (O.Argument)));
+         when others =>
+            Exceptions.Raise_Exception
+              (Data_Error'Identity,
+               "String/character expected, found " & TCKind'Image (Kind));
+      end case;
    end Get;
 
    function Get (O : in NamedValue) return Boolean is
+      Kind : constant TCKind := UTCK (O.Argument);
    begin
-      if TCK (O.Argument) = Tk_Boolean then
-         return From_Any (O.Argument);
-
-      else
-         Exceptions.Raise_Exception
-           (Data_Error'Identity,
-            "Boolean expected, found " & TCKind'Image (TCK (O.Argument)));
-      end if;
+      case Kind is
+         when Tk_Boolean =>
+            return From_Any (O.Argument);
+         when others =>
+            Exceptions.Raise_Exception
+              (Data_Error'Identity,
+               "Boolean expected, found " & TCKind'Image (Kind));
+      end case;
    end Get;
 
 --    function Get (O : in NamedValue) return SOAP_Record is
@@ -255,17 +291,23 @@ package body SOAP.Types is
 --    -----------
 
    function Image (O : NamedValue) return String is
-      K : constant TCKind := TCK (O.Argument);
+      TC : constant TypeCode.Object
+        := Get_Unwound_Type (O.Argument);
+      Kind : constant TCKind := TypeCode.Kind (TC);
    begin
-      case K is
+      pragma Debug
+        (SOAP.Types.O ("Image: enter, Kind is "
+                       & TCKind'Image (Kind)));
+      case Kind is
          when
            Tk_Long   |
            Tk_Short  |
            Tk_Ulong  |
-           Tk_Ushort =>
+           Tk_Ushort |
+           Tk_Octet  =>
             return PolyORB.Utils.Trimmed_Image (Get (O));
 
-         when Tk_Double =>
+         when Tk_Float | Tk_Double =>
 
             declare
                use Ada;
@@ -276,7 +318,7 @@ package body SOAP.Types is
                return Strings.Fixed.Trim (Result, Strings.Both);
             end;
 
-         when Tk_String =>
+         when Tk_String | Tk_Char =>
             return Get (O);
 
          when Tk_Boolean =>
@@ -286,11 +328,28 @@ package body SOAP.Types is
                return "0";
             end if;
 
+         when Tk_Enum =>
+            declare
+               use PolyORB.Any;
+
+               Pos : constant PolyORB.Types.Unsigned_Long
+                 := From_Any
+                 (Get_Aggregate_Element
+                  (O.Argument, TC_Unsigned_Long, 0));
+               Enumerator : constant PolyORB.Types.String
+                 := From_Any (TypeCode.Get_Parameter (TC, Pos + 2));
+            begin
+               return To_Standard_String (Enumerator);
+            end;
+
          when Tk_Void =>
             return "";
 
          when others =>
             --  XXX ???
+            pragma Debug
+              (SOAP.Types.O ("Image: Unsupported typecode kind:"
+                             & TCKind'Image (Kind)));
             raise Data_Error;
       end case;
    end Image;
@@ -493,19 +552,39 @@ package body SOAP.Types is
    -- XML_Image --
    ---------------
 
+   function XML_Record_Image (O : in NamedValue) return String;
+   function XML_Enum_Image (O : in NamedValue) return String;
+   function XML_ObjRef_Image (O : in NamedValue) return String;
+   function XML_Sequence_Image (O : in NamedValue) return String;
+
    function XML_Image (O : in NamedValue) return String is
+      Kind : constant TCKind := TypeCode.Kind
+        (Get_Unwound_Type (O.Argument));
    begin
-      case TCK (O.Argument) is
-         --  when Tk_Array =>
-         --  when Tk_Record =>
-         --  when Tk_Null =>
-         --  XXX see code below.
+      pragma Debug
+        (SOAP.Types.O ("XML_Image: arg """ & To_Standard_String (O.Name)
+            & """ is a " & TCKind'Image (Kind)));
+
+      case Kind is
+
+         when Tk_Struct =>
+            return XML_Record_Image (O);
+
+         when Tk_Enum =>
+            return XML_Enum_Image (O);
+
+         when Tk_Objref =>
+            return XML_ObjRef_Image (O);
+
+         when Tk_Sequence =>
+            return XML_Sequence_Image (O);
 
          when Tk_Void =>
             return "<" & To_Standard_String (O.Name)
               & " xsi:null=""1""/>";
 
          when others =>
+            pragma Debug (SOAP.Types.O ("Defaulting."));
             return "<" & To_Standard_String (O.Name)
               & xsi_type (XML_Type (O)) & '>'
               & Image (O)
@@ -577,21 +656,148 @@ package body SOAP.Types is
 --       return To_String (Result);
 --    end XML_Image;
 
---    function XML_Image (O : in SOAP_Record) return String is
---       Result : Unbounded_String;
---    begin
---       Append (Result, Utils.Tag (Name (O), Start => True));
---       Append (Result, New_Line);
+   function XML_Enum_Image (O : in NamedValue) return String is
+      Tag_Name : constant Standard.String
+        := To_Standard_String (O.Name);
+      Pos : constant PolyORB.Types.Unsigned_Long
+        := 1 + From_Any
+        (Get_Aggregate_Element (O.Argument, TC_Unsigned_Long, 0));
+   begin
+      return "<" & Tag_Name
+        & " id="""
+        & PolyORB.Utils.Trimmed_Image (Integer (Pos)) & """>"
+        & Image (O)
+        & "</" & Tag_Name & ">";
+   end XML_Enum_Image;
 
---       for K in O.Items.O'Range loop
---          Append (Result, XML_Image (O.Items.O (K).O.all));
---          Append (Result, New_Line);
---       end loop;
+   function XML_ObjRef_Image (O : in NamedValue) return String is
+      Tag_Name : constant Standard.String
+        := To_Standard_String (O.Name);
 
---       Append (Result, Utils.Tag (Name (O), Start => False));
+      Ref : constant PolyORB.References.Ref
+        := PolyORB.Any.ObjRef.From_Any (O.Argument);
 
---       return To_String (Result);
---    end XML_Image;
+      SOAP_Profile : PolyORB.Binding_Data.Profile_Access;
+
+      Result : PolyORB.Types.String;
+
+      use PolyORB.Any;
+      use type PolyORB.Binding_Data.Profile_Access;
+      use PolyORB.Binding_Data.SOAP;
+
+   begin
+      Result := To_PolyORB_String ("<" & Tag_Name
+        & " xsi:type="""
+        & PolyORB.References.Type_Id_Of (Ref)
+                                   & """>");
+      PolyORB.References.Binding.Get_Tagged_Profile
+        (Ref, PolyORB.Binding_Data.Tag_SOAP, SOAP_Profile);
+      --  If the real reference (Ref) does not contain a SOAP
+      --  profile, then Get_Tagged_Profile tries to create
+      --  a proxy profile instead. Only if it is not possible
+      --  to create such a proxy profile do we get a null pointer
+      --  in SOAP_Profile.
+
+      if SOAP_Profile /= null then
+         declare
+            URI : constant String
+              := To_URI (SOAP_Profile_Type (SOAP_Profile.all));
+         begin
+            pragma Debug
+              (SOAP.Types.O ("Exporting object with URI: " & URI));
+            Append (Result, URI);
+         end;
+      else
+         Append (Result, "#IOR:");
+
+         --  XXX Is there a possibility to include a stringified IOR
+         --  here anyway?
+      end if;
+      Append (Result, "</" & Tag_Name & ">");
+      return To_Standard_String (Result);
+   end XML_ObjRef_Image;
+
+   function XML_Sequence_Image (O : in NamedValue) return String
+   is
+      use Ada.Strings.Unbounded;
+
+      Result : Unbounded_String;
+      Element_Type : constant PolyORB.Any.TypeCode.Object
+        := TypeCode.Content_Type (Get_Unwound_Type (O.Argument));
+      New_Line : constant String := ASCII.CR & ASCII.LF;
+   begin
+      Append (Result, SOAP.Utils.Tag
+              (To_Standard_String (O.Name), Start => True));
+      Append (Result, New_Line);
+
+      declare
+         Nb : constant PolyORB.Types.Unsigned_Long
+           := PolyORB.Any.Get_Aggregate_Count (O.Argument);
+      begin
+         --  Note: element 0 in a Tk_Sequence aggregate holds the
+         --  length of the sequence, so we can assume that Nb > 0.
+         pragma Assert (Nb > 0);
+
+         for I in 1 .. Nb - 1 loop
+            Append
+              (Result, XML_Image
+               (PolyORB.Any.NamedValue'
+                (Name     => To_PolyORB_String ("e"),
+                 Argument =>
+                   PolyORB.Any.Get_Aggregate_Element
+                 (O.Argument, Element_Type, I),
+                 Arg_Modes => ARG_IN)));
+
+            Append (Result, New_Line);
+         end loop;
+      end;
+
+      Append (Result, SOAP.Utils.Tag
+              (To_Standard_String (O.Name), Start => False));
+
+      return To_String (Result);
+   end XML_Sequence_Image;
+
+   function XML_Record_Image (O : in NamedValue) return String is
+      use Ada.Strings.Unbounded;
+
+      Result : Unbounded_String;
+      Data_Type : constant PolyORB.Any.TypeCode.Object
+        := Get_Unwound_Type (O.Argument);
+      New_Line : constant String := ASCII.CR & ASCII.LF;
+   begin
+      pragma Debug (SOAP.Types.O ("XML_Record_Image: enter"));
+      Append (Result, SOAP.Utils.Tag
+              (To_Standard_String (O.Name), Start => True));
+      Append (Result, New_Line);
+
+      declare
+         Nb : constant PolyORB.Types.Unsigned_Long
+           := PolyORB.Any.Get_Aggregate_Count (O.Argument);
+      begin
+         for I in 0 .. Nb - 1 loop
+            Append
+              (Result, XML_Image
+               (PolyORB.Any.NamedValue'
+                (Name     =>
+                   PolyORB.Any.TypeCode.Member_Name (Data_Type, I),
+                 Argument =>
+                   PolyORB.Any.Get_Aggregate_Element
+                 (O.Argument, PolyORB.Any.TypeCode.Member_Type
+                  (Data_Type, I), I),
+                 Arg_Modes =>
+                   ARG_IN)));
+
+            Append (Result, New_Line);
+         end loop;
+      end;
+
+      Append (Result, SOAP.Utils.Tag
+              (To_Standard_String (O.Name), Start => False));
+
+      pragma Debug (SOAP.Types.O ("XML_Record_Image: leave"));
+      return To_String (Result);
+   end XML_Record_Image;
 
    --------------
    -- XML_Type --
@@ -599,7 +805,8 @@ package body SOAP.Types is
 
    function XML_Type (O : in NamedValue) return String
    is
-      K : constant TCKind := TCK (O.Argument);
+      K : constant TCKind := TypeCode.Kind
+        (Get_Unwound_Type (O.Argument));
    begin
       case K is
          when Tk_Long =>
@@ -610,10 +817,14 @@ package body SOAP.Types is
             return XML_UInt;
          when Tk_Ushort =>
             return XML_UShort;
+         when Tk_Octet =>
+            return XML_UByte;
 
+         when Tk_Float =>
+            return XML_Float;
          when Tk_Double =>
             return XML_Double;
-         when Tk_String =>
+         when Tk_String | Tk_Char =>
             return XML_String;
          when Tk_Boolean =>
             return XML_Boolean;

@@ -6,8 +6,6 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $LastChangedRevision$
---                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
@@ -49,8 +47,8 @@ with all_types.Helper;
 with PolyORB.CORBA_P.Naming_Tools;
 use PolyORB.CORBA_P.Naming_Tools;
 
-with PolyORB.Setup.CORBA_Client;
-pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
+with PolyORB.Setup.Client;
+pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure DynClient is
 

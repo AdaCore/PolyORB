@@ -97,7 +97,7 @@ package body Ada_Be.Source_Streams is
       end if;
 
       pragma Debug (O ("Adding depend of " & LU_Name
-                       & " (" & Unit.Kind'Img & ")"
+                       & " (" & Unit_Kind'Image (Unit.Kind) & ")"
                        & " upon " & Dep));
 
       if True
@@ -200,6 +200,8 @@ package body Ada_Be.Source_Streams is
    is
       Div : Diversion_Data renames CU.Diversions (D);
       Empty_Diversion : Diversion_Data;
+      pragma Warnings (Off, Empty_Diversion);
+      --  Use default initialization.
    begin
       if not Diversions_Allocation (D) then
          raise Program_Error;
@@ -312,6 +314,8 @@ package body Ada_Be.Source_Streams is
             Put_Line (File, "--  IDL to Ada compiler.");
          end if;
          Put_Line (File, "----------------------------------------------");
+         --  XXXXX To be removed later on
+         Put_Line (File, "pragma Warnings (Off);");
          New_Line (File);
       end Emit_Standard_Header;
 
@@ -400,7 +404,7 @@ package body Ada_Be.Source_Streams is
          Emit_Source_Code (Current_Output);
       else
          declare
-            File_Name : String
+            File_Name : constant String
               := Ada_File_Name (Unit.Library_Unit_Name.all, Unit.Kind);
             File : File_Type;
          begin
@@ -425,8 +429,9 @@ package body Ada_Be.Source_Streams is
    is
       Indent_String : constant String
         (1 .. Indent_Size
-           * Unit.Diversions (Unit.Current_Diversion).Indent_Level)
-          := (others => ' ');
+         * Unit.Diversions (Unit.Current_Diversion).Indent_Level)
+        := (others => ' ');
+      LF_Pos : Integer;
    begin
       Unit.Diversions (Unit.Current_Diversion).Empty := False;
       if Unit.Diversions (Unit.Current_Diversion).At_BOL then
@@ -435,15 +440,36 @@ package body Ada_Be.Source_Streams is
             Indent_String);
          Unit.Diversions (Unit.Current_Diversion).At_BOL := False;
       end if;
-      Append (Unit.Diversions (Unit.Current_Diversion).Library_Item, Text);
+
+      LF_Pos := Text'First;
+      while LF_Pos <= Text'Last
+        and then Text (LF_Pos) /= ASCII.LF
+      loop
+         LF_Pos := LF_Pos + 1;
+      end loop;
+
+      Append
+        (Unit.Diversions (Unit.Current_Diversion).Library_Item,
+         Text (Text'First .. LF_Pos - 1));
+
+      --  LF seen?
+
+      if LF_Pos <= Text'Last then
+         New_Line (Unit);
+      end if;
+
+      --  More?
+
+      if LF_Pos + 1 <= Text'Last then
+         Put (Unit, Text (LF_Pos + 1 .. Text'Last));
+      end if;
    end Put;
 
    procedure Put_Line
      (Unit : in out Compilation_Unit;
       Line : String) is
    begin
-      Put (Unit, Line);
-      New_Line (Unit);
+      Put (Unit, Line & ASCII.LF);
    end Put_Line;
 
    procedure New_Line (Unit : in out Compilation_Unit) is

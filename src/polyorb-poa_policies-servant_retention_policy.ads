@@ -31,6 +31,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.POA_Types;     use PolyORB.POA_Types;
+with PolyORB.Servants;
 
 package PolyORB.POA_Policies.Servant_Retention_Policy is
 
@@ -40,66 +41,38 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
      access all ServantRetentionPolicy'Class;
    subtype Servant_Retention_Policy_Access is ServantRetentionPolicy_Access;
 
-   function Create return ServantRetentionPolicy_Access is abstract;
-   --  The real creation function that has to be implemented for each
-   --  possible Policy
-
-   procedure Free (P   : in     ServantRetentionPolicy;
-                   Ptr : in out Policy_Access)
+   procedure Retain_Servant_Association
+     (Self      : ServantRetentionPolicy;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servants.Servant_Access;
+      U_Oid     : Unmarshalled_Oid)
      is abstract;
 
-   function Activate_Object
+
+   procedure Forget_Servant_Association
+     (Self : ServantRetentionPolicy;
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
+      Oid  : Unmarshalled_Oid)
+      is abstract;
+   --  Remove a previously-retained servant/oid association.
+
+   function Retained_Servant_To_Id
      (Self      : ServantRetentionPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
-     return Object_Id_Access is abstract;
-   --  Case RETAIN:
-   --    Activates the object (servant) in the Active Object Map
-   --    The Id_Uniqueness_Policy checks that the servant is not yet active
-   --    The Id_Assign_Policy generates an Object_Id
-   --  Case NON_RETAIN:
-   --    Raises a WrongPolicy exception
-
-   procedure Activate_Object_With_Id
-     (Self      : ServantRetentionPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access;
-      Oid       : Object_Id) is abstract;
-   --  Case RETAIN:
-   --    Registers the servant in the active objects map
-   --    Checks that the object_id is not yet used
-   --    The Id_Uniqueness_Policy checks that the servant is not yet
-   --    in the active objects map
-   --  Case NON_RETAIN:
-   --    Raises WrongPolicy
-
-   procedure Deactivate
-     (Self      : ServantRetentionPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid       : Object_Id) is abstract;
-   --  Case RETAIN:
-   --  Deactivates an object from the Active Object Map; waits for the
-   --  complection of current active requests. Calls etherealize if
-   --  necessary (ServantManager used).
-   --  Case NON_RETAIN:
-   --  Raises WrongPolicy
-
-   function Servant_To_Id (Self      : ServantRetentionPolicy;
-                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-                           P_Servant : Servant_Access) return Object_Id_Access
+      P_Servant : Servants.Servant_Access)
+     return Object_Id_Access
      is abstract;
    --  Case RETAIN:
-   --    Asks the Id_Uniqueness_Policy to return the Object_Id of the
-   --    specified servant.
-   --    If not found, raises an ServantNotActive exception.
+   --    Look up the active object map for an oid associated with
+   --    P_Servant.
    --  Case NON_RETAIN:
    --    Returns null
 
-   function Id_To_Servant
+   function Retained_Id_To_Servant
      (Self      : ServantRetentionPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid     : Unmarshalled_Oid)
-     return Servant_Access
+     return Servants.Servant_Access
       is abstract;
    --  Case RETAIN:
    --    Asks the Id_Assignment_Policy to look for the given Object_Id.

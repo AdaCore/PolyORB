@@ -32,14 +32,14 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#9 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#12 $
 
 with System;
 --  For bit-order information.
 
-with Ada.Streams;   use Ada.Streams;
+with Ada.Streams;
 
-with PolyORB.Opaque; use PolyORB.Opaque;
+with PolyORB.Opaque;
 --  General opaque data storage types.
 
 with PolyORB.Opaque.Chunk_Pools;
@@ -69,7 +69,8 @@ package PolyORB.Buffers is
    -- General operations --
    ------------------------
 
-   function Length (Buffer : access Buffer_Type) return Stream_Element_Count;
+   function Length (Buffer : access Buffer_Type)
+     return Ada.Streams.Stream_Element_Count;
    pragma Inline (Length);
    --  Return the length of Buffer.
 
@@ -86,10 +87,10 @@ package PolyORB.Buffers is
 
    procedure Initialize_Buffer
      (Buffer     : access Buffer_Type;
-      Size       : Stream_Element_Count;
-      Data       : Opaque_Pointer;
+      Size       : Ada.Streams.Stream_Element_Count;
+      Data       : Opaque.Opaque_Pointer;
       Endianness : Endianness_Type;
-      Initial_CDR_Position : Stream_Element_Offset);
+      Initial_CDR_Position : Ada.Streams.Stream_Element_Offset);
    --  Sets the contents of Buffer using data
    --  passed as a pointer Data and a size Size.
    --  Buffer must be a fresh, empty buffer.
@@ -103,7 +104,7 @@ package PolyORB.Buffers is
    type Reservation is private;
    function Reserve
      (Buffer : access Buffer_Type;
-      Amount : Stream_Element_Count)
+      Amount : Ada.Streams.Stream_Element_Count)
      return Reservation;
    --  Reserve Amount contiguous bytes in Buffer at the current
    --  position, to be filled later through a call to Copy_Data.
@@ -137,7 +138,7 @@ package PolyORB.Buffers is
 
    function To_Stream_Element_Array
      (Buffer   : access Buffer_Type)
-     return Stream_Element_Array;
+     return Ada.Streams.Stream_Element_Array;
    --  Dump the contents of Buffer into a Stream_Element_Array.
    --  Using this function is dangerous because it may overflow
    --  the stack with the contents of a big buffer. It is therefore
@@ -162,75 +163,44 @@ package PolyORB.Buffers is
    --  by the size of the data effectively marshalled or
    --  unmarshalled.
 
-   --  For any type T, the following subprograms shall
-   --  be generated:
-
-   --     procedure Marshall_By_Copy
-   --       (Buffer    : access Buffer_Type;
-   --        Data      : in T);
-   --     --  Marshall data of type T.
-   --
-   --     function Unmarshall_By_Copy
-   --       (Buffer    : access Buffer_Type)
-   --       return T;
-   --     --  Unmarshall data of type T.
-
-   --     procedure Marshall_By_Reference
-   --       (Buffer    : access Buffer_Type;
-   --        Data      : access T);
-   --     --  Marshall data of type T by reference.
-   --     --  The lifespan of Data shall be no less
-   --     --  than the lifespan of Buffer.
-   --
-   --     function Unmarshall_By_Reference
-   --       (Buffer    : access Buffer_Type)
-   --       return T_Access;
-   --     --  Unmarshall data of type T by reference.
-   --     --  The returned pointer is valid until
-   --     --  Buffer is released.
-
-   --  The marshall-by-copy routines shall allocate
-   --  memory from the buffer's chunk pool, store the
-   --  data in CDR format with Buffer's endianness in
-   --  that memory chunk, and insert the chunk at Buffer's
-   --  current CDR position, with proper alignment.
-
-   --  The marshall-by-reference routines shall be called
-   --  only when the native representation of type T is
-   --  fully compatible with the CDR representation for Buffer.
-   --  It shall insert a reference to the object's data at
-   --  the current CDR position.
-
    procedure Set_Initial_Position
      (Buffer   : access Buffer_Type;
-      Position : Stream_Element_Offset);
+      Position : Ada.Streams.Stream_Element_Offset);
    --  Sets the initial and current CDR positions
    --  of Buffer to Position. No data must have
    --  been inserted into Buffer yet.
 
-   procedure Align
+   procedure Pad_Align
      (Buffer    : access Buffer_Type;
-      Alignment : Alignment_Type);
-   --  Aligns Buffer on specified Alignment.
-   --  This subprogram must be called before data is
-   --  inserted into or retrieved from Buffer.
-   --  The effect of this operation is to advance the
-   --  current CDR position to a multiple of Alignment.
+      Alignment : Opaque.Alignment_Type);
+   --  Aligns Buffer on specified Alignment before inserting
+   --  aligned data. A padding chunk is inserted into Buffer
+   --  if necessary.
+
+   procedure Align_Position
+     (Buffer    : access Buffer_Type;
+      Alignment : Opaque.Alignment_Type);
+   --  Aligns Buffer on specified Alignment before retrieving
+   --  aligned data.
+
+   --  After execution of either of the two above operations,
+   --  the current CDR position of Buffer is advanced to a
+   --  multiple of Alignment.
 
    --  Inserting data into a buffer
 
    procedure Insert_Raw_Data
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Data      : Opaque_Pointer);
+      Size      : Ada.Streams.Stream_Element_Count;
+      Data      : Opaque.Opaque_Pointer);
    --  Inserts data into Buffer by reference at the current
    --  CDR position. This procedure is used to implement
    --  marshalling by reference.
 
    procedure Allocate_And_Insert_Cooked_Data
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Data      : out Opaque_Pointer);
+      Size      : Ada.Streams.Stream_Element_Count;
+      Data      : out Opaque.Opaque_Pointer);
    --  Allocates Size bytes within Buffer's memory
    --  pool, and inserts this chunk of memory into
    --  Buffer at the current CDR position.
@@ -241,7 +211,7 @@ package PolyORB.Buffers is
 
    procedure Unuse_Allocation
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count);
+      Size      : Ada.Streams.Stream_Element_Count);
    --  Cancel the allocation of Size bytes at the end
    --  of this Buffer's memory pool. Size must be no greater
    --  than the size of the last chunk inserted, which must
@@ -252,10 +222,10 @@ package PolyORB.Buffers is
 
    procedure Extract_Data
      (Buffer      : access Buffer_Type;
-      Data        : out Opaque_Pointer;
-      Size        : Stream_Element_Count;
+      Data        : out Opaque.Opaque_Pointer;
+      Size        : Ada.Streams.Stream_Element_Count;
       Use_Current : Boolean := True;
-      At_Position : Stream_Element_Offset := 0);
+      At_Position : Ada.Streams.Stream_Element_Offset := 0);
    --  Retrieve Size elements from Buffer. If Use_Current,
    --  the extraction starts at the current position in the
    --  buffer, else it starts at At_Position.
@@ -265,9 +235,14 @@ package PolyORB.Buffers is
    --  is advanced by Size.
 
    function CDR_Position (Buffer : access Buffer_Type)
-     return Stream_Element_Offset;
+     return Ada.Streams.Stream_Element_Offset;
    --  Return the current CDR position of the buffer
    --  in the marshalling stream.
+
+   function Remaining (Buffer : access Buffer_Type)
+     return Ada.Streams.Stream_Element_Count;
+   --  Return the number of bytes available from Buffer,
+   --  from the current position to the end of data.
 
    procedure Rewind (Buffer : access Buffer_Type);
    --  Reset the current position in Buffer to the initial
@@ -285,8 +260,8 @@ package PolyORB.Buffers is
    procedure Receive_Buffer
      (Buffer   : access Buffer_Type;
       Socket   : Sockets.Socket_Type;
-      Max      : Stream_Element_Count;
-      Received : out Stream_Element_Count);
+      Max      : Ada.Streams.Stream_Element_Count;
+      Received : out Ada.Streams.Stream_Element_Count);
    --  Received at most Max octets of data into Buffer at
    --  current position. On return, Received is set to the
    --  effective amount of data received. The current position
@@ -306,23 +281,21 @@ private
    -- Determination of the host byte order --
    ------------------------------------------
 
-   use System;
-
    Default_Bit_Order_To_Endianness :
-     constant array (Bit_Order) of Endianness_Type
-     := (High_Order_First => Big_Endian,
-         Low_Order_First  => Little_Endian);
+     constant array (System.Bit_Order) of Endianness_Type
+     := (System.High_Order_First => Big_Endian,
+         System.Low_Order_First  => Little_Endian);
 
    Host_Order : constant Endianness_Type :=
-     Default_Bit_Order_To_Endianness (Default_Bit_Order);
+     Default_Bit_Order_To_Endianness (System.Default_Bit_Order);
 
    --------------
    -- A Buffer --
    --------------
 
    type Iovec is record
-      Iov_Base : Opaque_Pointer;
-      Iov_Len  : Stream_Element_Count;
+      Iov_Base : Opaque.Opaque_Pointer;
+      Iov_Len  : Ada.Streams.Stream_Element_Count;
    end record;
    --  This is modeled after the POSIX iovec, but is not equivalent
    --  (because we cannot depend on being able to manipulate System.Address).
@@ -333,7 +306,7 @@ private
       --  associated by the Iovec pool and the Buffer (below)
       --  with each allocated chunk.
 
-      Last_Used : Stream_Element_Offset := 0;
+      Last_Used : Ada.Streams.Stream_Element_Offset := 0;
       --  The index within the chunk of the last
       --  used element.
    end record;
@@ -341,17 +314,17 @@ private
    --  A space pre-reservation within a buffer.
 
    type Reservation is record
-      Location     : Opaque_Pointer;
+      Location     : Opaque.Opaque_Pointer;
       Endianness   : Endianness_Type;
-      CDR_Position : Stream_Element_Offset;
-      Length       : Stream_Element_Count;
+      CDR_Position : Ada.Streams.Stream_Element_Offset;
+      Length       : Ada.Streams.Stream_Element_Count;
    end record;
 
    Null_Buffer_Chunk_Metadata : constant Buffer_Chunk_Metadata
      := (Last_Used => 0);
 
    package Buffer_Chunk_Pools is
-      new Chunk_Pools
+      new Opaque.Chunk_Pools
      (Chunk_Metadata => Buffer_Chunk_Metadata,
       Null_Metadata  => Null_Buffer_Chunk_Metadata);
 
@@ -373,8 +346,8 @@ private
 
       procedure Grow_Shrink
         (Iovec_Pool   : access Iovec_Pool_Type;
-         Size         : Stream_Element_Offset;
-         Data         : out Opaque_Pointer);
+         Size         : Ada.Streams.Stream_Element_Offset;
+         Data         : out Opaque.Opaque_Pointer);
       --  Augment/reduce the length of the last Iovec in
       --  Iovec_Pool by Size elements, if possible.
       --  On success, a pointer to the reserved
@@ -398,9 +371,9 @@ private
 
       procedure Extract_Data
         (Iovec_Pool : Iovec_Pool_Type;
-         Data       : out Opaque_Pointer;
-         Offset     : Stream_Element_Offset;
-         Size       : Stream_Element_Count);
+         Data       : out Opaque.Opaque_Pointer;
+         Offset     : Ada.Streams.Stream_Element_Offset;
+         Size       : Ada.Streams.Stream_Element_Count);
       --  Retrieve exactly Size octets of data from
       --  Iovec_Pool starting at Offset.
       --  The data must be stored contiguously.
@@ -424,10 +397,11 @@ private
       -- stream of an Iovec_Pool.          --
       ---------------------------------------
 
-      procedure Dump (Iovec_Pool : Iovec_Pool_Type; Into : Opaque_Pointer);
+      procedure Dump
+        (Iovec_Pool : Iovec_Pool_Type; Into : Opaque.Opaque_Pointer);
       --  Dump the content of an Iovec_Pool into Into.
 
-      function Dump (Iovec_Pool : Iovec_Pool_Type) return Zone_Access;
+      function Dump (Iovec_Pool : Iovec_Pool_Type) return Opaque.Zone_Access;
       --  Dump the contents of Iovec_Pool into an array of octets. The result
       --  must be deallocated when not used anymore.
 
@@ -477,11 +451,11 @@ private
       --  The byte order of the data stored in the
       --  buffer.
 
-      CDR_Position : Stream_Element_Offset := 0;
+      CDR_Position : Ada.Streams.Stream_Element_Offset := 0;
       --  The current position within the stream for
       --  marshalling and unmarshalling.
 
-      Initial_CDR_Position : Stream_Element_Offset := 0;
+      Initial_CDR_Position : Ada.Streams.Stream_Element_Offset := 0;
       --  The position within the stream of the first
       --  element of Buffer.
 
@@ -492,7 +466,7 @@ private
       --  A set of memory chunks used to store data
       --  marshalled by copy.
 
-      Length       : Stream_Element_Count := 0;
+      Length       : Ada.Streams.Stream_Element_Count := 0;
       --  Length of stored data.
    end record;
 

@@ -24,12 +24,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  Does not pass style checks...
-
 --  All_Types client.
 
 with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Exceptions;
 with Ada.Text_IO;
 
 with CORBA; use CORBA;
@@ -39,15 +37,15 @@ with CORBA.ORB;
 with all_types.Helper; use all_types, all_types.Helper;
 with Report;    use Report;
 
-with PolyORB.Setup.CORBA_Client;
-pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
+with PolyORB.Setup.Client;
+pragma Warnings (Off, PolyORB.Setup.Client);
 
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 
 procedure Client is
    Myall_types : all_types.Ref;
    Ok : Boolean;
-   One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
+   One_Shot : constant Boolean := Ada.Command_Line.Argument_Count /= 2
                  or else Boolean'Value (Ada.Command_Line.Argument (2));
 begin
    CORBA.ORB.Initialize ("ORB");
@@ -71,45 +69,51 @@ begin
    Output ("test not null", not all_types.Is_Nil (Myall_types));
 
    loop
+      Output ("test string",
+              To_Standard_String
+              (echoString
+               (Myall_types, To_CORBA_String ("hello distributed world")))
+              = "hello distributed world");
       Output ("test boolean", echoBoolean (Myall_types, True) = True);
       Output ("test short", echoShort (Myall_types, 123) = 123);
       Output ("test long",  echoLong (Myall_types, 456) = 456);
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
       Output ("test unsigned_long", echoULong (Myall_types, 123) = 123);
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
-      Output ("test double", echoDouble (Myall_types, 3.14) = 3.14);
-      Output ("test char", echoChar (Myall_types, 'A') = 'A');
-      Output ("test octet", echoOctet (Myall_types, 5) = 5);
-      Output ("test string",
-              To_Standard_String
-              (echoString (Myall_types, To_CORBA_String ("hello"))) = "hello");
-      Output ("test enum", echoColor (Myall_types, Blue) = Blue);
-
-      --  Refs
-      declare
-         X : all_types.Ref;
+      Output ("test double", echoDouble (Myall_types, 1.5) = 1.5);
       begin
-         X := echoRef (Myall_types, Myall_types);
-         Output ("test self reference", True);
+         Output ("test char", echoChar (Myall_types, 'A') = 'A');
+      exception
+         when E : others =>
+            Output ("test char", False);
+            Ada.Text_IO.Put_Line ("Got exception:");
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
+      Output ("test octet", echoOctet (Myall_types, 5) = 5);
+      begin
+         Output ("test enum", echoColor (Myall_types, Blue) = Blue);
+      exception
+         when E : others =>
+            Output ("test enum", False);
+            Ada.Text_IO.Put_Line ("Got exception:");
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
 
-         for I in 1 .. 15 loop
-            X := echoRef (X, X);
-         end loop;
-         Output ("test self reference consistency",
-                 echoLong (X, 31337) = 31337);
+      --  Unbounded sequences
+      declare
+         X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
+      begin
+         X := X & 1 & 2 & 3 & 4 & 5;
+         Output ("test unbounded sequence",
+                 echoUsequence (Myall_types, X) = X);
+      end;
 
-         X := Echootheralltypes (X, X);
-
-         Output ("test self reference typedef", echoLong (X, 31337) = 31337);
-
-         X := All_Types.Helper.To_Ref
-           (EchoObject (X, CORBA.Object.Ref (X)));
-         Output ("test object", echoLong (X, 23459) = 23459);
-
-         X := All_Types.Helper.To_Ref
-           (EchootherObject (X, CORBA.Object.Ref (X)));
-         Output ("test object typedef", echoLong (X, 34563) = 34563);
-
+      --  Bounded sequences
+      declare
+         X : B_sequence := B_sequence (IDL_SEQUENCE_short_10.Null_Sequence);
+      begin
+         X := X & 1 & 2 & 3 & 4 & 5;
+         Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       end;
 
       --  Fixed point
@@ -127,12 +131,32 @@ begin
          Output ("test struct",
                  echoStruct (Myall_types, Test_Struct) = Test_Struct);
       end;
+
+      --  Refs
       declare
-         Test_Struct : constant array_struct
-           :=  (A => (0, 1, 2, 3, 4, 5, 6, 7, 8, 9),  B => 65533);
+         X : all_types.Ref;
       begin
-         Output ("test array struct",
-                 echoArrayStruct (Myall_types, Test_Struct) = Test_Struct);
+         X := echoRef (Myall_types, Myall_types);
+         Output ("test self reference", True);
+
+         for I in 1 .. 15 loop
+            X := echoRef (X, X);
+         end loop;
+         Output ("test self reference consistency",
+                 echoLong (X, 31337) = 31337);
+
+         X := echoOtherAllTypes (X, X);
+
+         Output ("test self reference typedef", echoLong (X, 31337) = 31337);
+
+         X := all_types.Helper.To_Ref
+           (echoObject (X, CORBA.Object.Ref (X)));
+         Output ("test object", echoLong (X, 23459) = 23459);
+
+         X := all_types.Helper.To_Ref
+           (echoOtherObject (X, CORBA.Object.Ref (X)));
+         Output ("test object typedef", echoLong (X, 34563) = 34563);
+
       end;
 
       --  Unions
@@ -160,7 +184,8 @@ begin
          Pass : Boolean := True;
       begin
          for I in Test_Unions'Range loop
-            Pass := Pass and then echoUnionEnumSwitch (Myall_types, Test_Unions (I))
+            Pass := Pass
+              and then echoUnionEnumSwitch (Myall_types, Test_Unions (I))
               = Test_Unions (I);
             exit when not Pass;
          end loop;
@@ -169,58 +194,45 @@ begin
 
       --  Arrays
       declare
-         X : simple_array := (2, 3, 5, 7, 11);
+         X : constant simple_array := (2, 3, 5, 7, 11);
       begin
          Output ("test simple array", echoArray (Myall_types, X) = X);
       end;
       declare
-         M : matrix := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
+         M : constant matrix := ((165, 252, 375),
+                                 (377, 145, 222),
+                                 (202, 477, 147));
       begin
          Output ("test multi-dimensional array",
                  echoMatrix (Myall_types, M) = M);
       end;
 
---       declare
---          B : bigmatrix;
---       begin
---          for I in B'Range (1) loop
---             for J in B'Range (2) loop
---                B (I, J) := Long ((I + 1) * (J + 2));
---             end loop;
---          end loop;
---          Output ("test big multi-dimensional array",
---                  echoBigMatrix (Myall_types, B) = B);
---       end;
+      declare
+         B : bigmatrix;
+      begin
+         for I in B'Range (1) loop
+            for J in B'Range (2) loop
+               B (I, J) := Long ((I + 1) * (J + 2));
+            end loop;
+         end loop;
+         --  Output ("test big multi-dimensional array",
+         --      echoBigMatrix (Myall_types, B) = B);
+      end;
       Output ("test big multi-dimensional array", False);
+
       --  Test bigmatrix produces a server stack overflow.
 
       --  Attributes
       set_myColor (Myall_types, Green);
       Output ("test attribute", get_myColor (Myall_types) = Green);
       declare
-         Counter_First_Value : CORBA.Long
+         Counter_First_Value : constant CORBA.Long
            := get_Counter (Myall_types);
-         Counter_Second_Value : CORBA.Long
+         Counter_Second_Value : constant CORBA.Long
            := get_Counter (Myall_types);
       begin
          Output ("test read-only attribute",
                  Counter_Second_Value = Counter_First_Value + 1);
-      end;
-
-      --  Unbounded sequences
-      declare
-         X : U_Sequence := U_Sequence (IDL_Sequence_Short.Null_Sequence);
-      begin
-         X := X & 1 & 2 & 3 & 4 & 5;
-         Output ("test unbounded sequence",  echoUsequence (Myall_types, X) = X);
-      end;
-
-      --  Bounded sequences
-      declare
-         X : B_Sequence := B_Sequence (IDL_SEQUENCE_Short_10.Null_Sequence);
-      begin
-         X := X & 1 & 2 & 3 & 4 & 5;
-         Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       end;
 
       --  Exceptions
@@ -239,17 +251,19 @@ begin
       Output ("test user exception", Ok);
 
       Ok := False;
-      declare
-         Member : my_exception_Members;
+      --  declare
+      --    Member : my_exception_Members;
       begin
          testUnknownException (Myall_types, 2485);
       exception
-         when CORBA.UNKNOWN =>
+         when CORBA.Unknown =>
             Ok := True;
          when others =>
             null;
       end;
       Output ("test unknown exception", Ok);
+
+      --  XXX not implemented.
 
       exit when One_Shot;
    end loop;

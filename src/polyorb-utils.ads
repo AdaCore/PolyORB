@@ -113,4 +113,9 @@ package PolyORB.Utils is
      return Integer
      renames Find_Skip;
 
+private
+
+   pragma Inline (Hex_Value, To_String, To_Stream_Element_Array,
+                  URI_Encode, URI_Decode, Trimmed_Image, Find_Skip);
+
 end PolyORB.Utils;

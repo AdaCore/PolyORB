@@ -42,7 +42,6 @@ with PolyORB.HTTP_Methods;
 with PolyORB.ORB;
 with PolyORB.Types;
 with PolyORB.Utils.Strings.Lists;
-pragma Elaborate_All (PolyORB.Utils.Strings.Lists);
 with PolyORB.Utils.Strings;
 
 package PolyORB.Filters.HTTP is
@@ -280,6 +279,10 @@ private
       --  The contents of the entity, as transferred by the
       --  peer, according to the encoding specified in
       --  Transfer_Encoding.
+
+      SOAP_Action : PolyORB.Types.String;
+      --  The contents of a received SOAPAction HTTP header
+      --  (server-side only, optional).
    end record;
 
    procedure Clear_Message_State (F : in out HTTP_Filter);

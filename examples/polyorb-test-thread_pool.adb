@@ -36,14 +36,12 @@
 
 with PolyORB.Setup.Test; use PolyORB.Setup.Test;
 
-with PolyORB.ORB.Thread_Pool;
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 procedure PolyORB.Test.Thread_Pool is
 begin
-   ORB.Thread_Pool.Initialize (4, 10);
    Initialize_Test_Object;
    Run_Test;
 end PolyORB.Test.Thread_Pool;

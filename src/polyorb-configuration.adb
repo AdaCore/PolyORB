@@ -35,13 +35,13 @@
 --  $Id$
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
-with Ada.Text_IO;          use Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 
 with Interfaces.C.Strings; use Interfaces.C, Interfaces.C.Strings;
 with System;
 
 with PolyORB.Dynamic_Dict;
-pragma Elaborate_All (PolyORB.Dynamic_Dict);
+with PolyORB.Log;
 with PolyORB.Utils;
 with PolyORB.Utils.Strings;
 
@@ -56,10 +56,9 @@ package body PolyORB.Configuration is
    --  Output a diagnostic or error message.
 
    procedure O (S : String) is
-      use Ada.Text_IO;
    begin
       if Debug then
-         Put_Line (Standard_Error, S);
+         Ada.Text_IO.Put_Line (Standard_Error, S);
       end if;
    end O;
 
@@ -68,10 +67,7 @@ package body PolyORB.Configuration is
    --------------------------------------------
 
    package Variables is
-      new PolyORB.Dynamic_Dict (String_Ptr);
-
-   procedure Load_Configuration_File;
-   --  Load the configuration file.
+      new PolyORB.Dynamic_Dict (Value => String_Ptr, No_Value => null);
 
    procedure Set_Variable
      (Section : String;
@@ -90,13 +86,28 @@ package body PolyORB.Configuration is
    --  environment variables, returning Default if not found.
 
    function Make_Global_Key (Section, Key : String) return String;
+   --  Build Dynamic Dict key from (Section, Key) tuple.
 
    function Make_Env_Name (Section, Key : String) return String;
+   --  Build environment variable from (Section, Key) tuple.
+
+   function To_Boolean (V : String) return Boolean;
+   --  Convert a String value to a Boolean value according
+   --  to the rules indicated in the spec for boolean configuration
+   --  variables.
+
+   ---------------------
+   -- Make_Global_Key --
+   ---------------------
 
    function Make_Global_Key (Section, Key : String) return String is
    begin
       return "[" & Section & "]" & Key;
    end Make_Global_Key;
+
+   -------------------
+   -- Make_Env_Name --
+   -------------------
 
    function Make_Env_Name (Section, Key : String) return String is
       Result : String := "POLYORB_"
@@ -145,6 +156,49 @@ package body PolyORB.Configuration is
       end if;
    end Fetch;
 
+   ----------------
+   -- To_Boolean --
+   ----------------
+
+   function To_Boolean (V : String) return Boolean is
+      VV : constant String := To_Lower (V);
+   begin
+      if V'Length > 0 then
+         case V (V'First) is
+            when '0' | 'n' =>
+               return False;
+            when '1' | 'y' =>
+               return True;
+            when 'o' =>
+               if VV = "off" then
+                  return False;
+               elsif VV = "on" then
+                  return True;
+               end if;
+            when 'd' =>
+               if VV = "disable" then
+                  return False;
+               end if;
+            when 'e' =>
+               if VV = "enable" then
+                  return True;
+               end if;
+            when 'f' =>
+               if VV = "false" then
+                  return False;
+               end if;
+            when 't' =>
+               if VV = "true" then
+                  return True;
+               end if;
+            when others =>
+               null;
+         end case;
+      end if;
+      raise Constraint_Error;
+      --  return False;
+   end To_Boolean;
+
    --------------
    -- Get_Conf --
    --------------
@@ -167,6 +221,22 @@ package body PolyORB.Configuration is
       end if;
    end Get_Conf;
 
+   function Get_Conf (Section, Key : String; Default : Boolean := False)
+     return Boolean
+   is
+      Default_Value : constant array (Boolean'Range) of
+        String (1 .. 1) := (False => "0", True => "1");
+   begin
+      return To_Boolean (Get_Conf (Section, Key, Default_Value (Default)));
+   end Get_Conf;
+
+   function Get_Conf (Section, Key : String; Default : Integer := 0)
+     return Integer
+   is
+   begin
+      return Integer'Value (Get_Conf (Section, Key, Integer'Image (Default)));
+   end Get_Conf;
+
    -------------
    -- Get_Env --
    -------------
@@ -186,6 +256,10 @@ package body PolyORB.Configuration is
       end if;
    end Get_Env;
 
+   ------------------
+   -- Set_Variable --
+   ------------------
+
    procedure Set_Variable
      (Section : String;
       Key     : String;
@@ -201,7 +275,11 @@ package body PolyORB.Configuration is
       Variables.Register (K, +Value);
    end Set_Variable;
 
-   procedure Load_Configuration_File
+   -----------------------------
+   -- Load_Configuration_File --
+   -----------------------------
+
+   procedure Load_Configuration_File (Conf_File_Name : String)
    is
       Current_Section : String_Ptr
         := +Environment_Configuration_Section;
@@ -217,8 +295,6 @@ package body PolyORB.Configuration is
       end Set_Current_Section;
 
       Conf_File : File_Type;
-      Conf_File_Name : constant String
-        := Get_Env (Filename_Variable, Default_Filename);
 
       Line : String (1 .. 1_024);
       Last : Integer;
@@ -236,7 +312,7 @@ package body PolyORB.Configuration is
       exception
          when Name_Error =>
             --  No configuration file.
-            pragma Debug (O ("No configuration file."));
+            pragma Debug (O ("No " & Conf_File_Name & " configuration file."));
             null;
          when others =>
             raise;
@@ -260,6 +336,9 @@ package body PolyORB.Configuration is
                        or else Ket = Bra + 1
                        or else Ket /= Last
                      then
+                        pragma Debug (O ("Syntax error on line" &
+                                         Integer'Image (Current_Line) &
+                                         ": " & Line (Line'First .. Last)));
                         raise Syntax_Error;
                      end if;
 
@@ -273,6 +352,9 @@ package body PolyORB.Configuration is
                                 Line'First, '=');
                   begin
                      if Eq not in Line'First + 1 .. Last - 1 then
+                        pragma Debug (O ("Syntax error on line" &
+                                         Integer'Image (Current_Line) &
+                                         ": " & Line (Line'First .. Last)));
                         raise Syntax_Error;
                      end if;
 
@@ -287,5 +369,9 @@ package body PolyORB.Configuration is
    end Load_Configuration_File;
 
 begin
-   Load_Configuration_File;
+   Load_Configuration_File (Get_Env (PolyORB_Conf_Filename_Variable,
+                                     PolyORB_Conf_Default_Filename));
+   --  Read 'polyorb.conf' file.
+
+   PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
 end PolyORB.Configuration;

@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Requests;
 
 with CORBA.Context;
@@ -51,12 +52,13 @@ package body CORBA.Request is
       Request   :    out Object;
       Req_Flags : in     Flags)
    is
-      PResult : PolyORB.Any.NamedValue;
-      for PResult'Address use Result'Address;
-      pragma Import (Ada, PResult);
-      --  This is ugly but required because we want Result
-      --  to be strictly passed by reference, with no intervening
-      --  assignments.
+      pragma Warnings (Off);
+      pragma Unreferenced (Ctx);
+      pragma Warnings (On);
+      PResult : PolyORB.Any.NamedValue
+        := (Name      => PolyORB.Types.Identifier (Result.Name),
+            Argument  => Result.Argument,
+            Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
    begin
       PolyORB.Requests.Create_Request
         (Target    => CORBA.Object.To_PolyORB_Ref
@@ -64,7 +66,8 @@ package body CORBA.Request is
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
-         Req       => Request.The_Request);
+         Req       => Request.The_Request,
+         Req_Flags => PolyORB.Requests.Flags (Req_Flags));
    end Create_Request;
 
    procedure Create_Request
@@ -78,12 +81,13 @@ package body CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags)
    is
-      PResult : PolyORB.Any.NamedValue;
-      for PResult'Address use Result'Address;
-      pragma Import (Ada, PResult);
-      --  This is ugly but required because we want Result
-      --  to be strictly passed by reference, with no intervening
-      --  assignments.
+      pragma Warnings (Off);
+      pragma Unreferenced (Ctx, Ctxt_List);
+      pragma Warnings (On);
+      PResult : PolyORB.Any.NamedValue
+        := (Name      => PolyORB.Types.Identifier (Result.Name),
+            Argument  => Result.Argument,
+            Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
    begin
       PolyORB.Requests.Create_Request
         (Target    => CORBA.Object.To_PolyORB_Ref
@@ -91,15 +95,25 @@ package body CORBA.Request is
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
-         Req       => Request.The_Request);
+         Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref (Exc_List),
+         Req       => Request.The_Request,
+         Req_Flags => PolyORB.Requests.Flags (Req_Flags));
    end Create_Request;
 
    procedure Invoke
      (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0) is
+      Invoke_Flags : in     Flags  := 0)
+   is
    begin
-      PolyORB.Requests.Invoke (Self.The_Request);
-      --  XXX Some arguments are not taken into account!
+      --  XXX for now we do everything synchronously; flags
+      --  are ignored by P.R.Invoke.
+      PolyORB.Requests.Invoke
+        (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
+
+      if not Is_Empty (Self.The_Request.Exception_Info) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any
+           (Self.The_Request.Exception_Info);
+      end if;
    end Invoke;
 
    procedure Delete (Self : in out Object) is

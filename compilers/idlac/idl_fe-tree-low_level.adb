@@ -30,9 +30,8 @@ package body Idl_Fe.Tree.Low_Level is
      (Old_Node : in out Node_Id;
       New_Node : in out Node_Id)
    is
-      Temp_Node : Node_Access
-        := Nodes_Table.Table (Old_Node);
-      Temp_Id : Node_Id := Old_Node;
+      Temp_Node : constant Node_Access := Nodes_Table.Table (Old_Node);
+      Temp_Id   : constant Node_Id := Old_Node;
    begin
       Nodes_Table.Table (Old_Node) := Nodes_Table.Table (New_Node);
       Nodes_Table.Table (New_Node) := Temp_Node;

@@ -32,12 +32,10 @@
 
 --  $Id$
 
-with Sequences.Unbounded;
-pragma Elaborate_All (Sequences.Unbounded);
-
 with PolyORB.Any;
-with PolyORB.Types;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Smart_Pointers;
+with PolyORB.Types;
 
 package PolyORB.Any.NVList is
 
@@ -45,7 +43,7 @@ package PolyORB.Any.NVList is
 
    procedure Add_Item
      (Self       :    Ref;
-      Item_Name  : in Identifier;
+      Item_Name  : in Types.Identifier;
       Item       : in Any;
       Item_Flags : in Flags);
    --  Create a NamedValue and add it to this NVList.
@@ -77,7 +75,7 @@ package PolyORB.Any.NVList is
       --  The actual implementation of an NVList:
       --  a sequence of NamedValues.
 
-      package NV_Sequence is new Sequences.Unbounded (NamedValue);
+      package NV_Sequence is new PolyORB.Sequences.Unbounded (NamedValue);
       type NV_Sequence_Access is access all NV_Sequence.Sequence;
 
       function List_Of (NVList : Ref) return NV_Sequence_Access;
@@ -91,9 +89,6 @@ private
    type Object is new PolyORB.Smart_Pointers.Entity with record
       List : aliased NV_Sequence.Sequence;
    end record;
-
-   procedure Initialize (X : in out Object);
-   procedure Finalize (X : in out Object);
 
    type Object_Ptr is access all Object;
 

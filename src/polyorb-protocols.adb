@@ -35,13 +35,13 @@
 --  $Id$
 
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
 
 with PolyORB.Filters.Interface;
+with PolyORB.If_Descriptors;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects.Interface;
 with PolyORB.Protocols.Interface;
+with PolyORB.Types;
 
 package body PolyORB.Protocols is
 
@@ -49,20 +49,40 @@ package body PolyORB.Protocols is
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.Objects.Interface;
-   use PolyORB.ORB.Interface;
    use PolyORB.Protocols.Interface;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Session'Class, Session_Access);
+   --------------
+   -- Finalize --
+   --------------
 
-   procedure Destroy_Session (S : in out Session_Access) is
+   procedure Finalize (S : in out Session)
+   is
+      --  V : Version_Id;
    begin
-      Free (S);
-   end Destroy_Session;
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Warnings (On);
+      pragma Debug (O ("Finalizing Session."));
+      --      if S.Request_Watcher /= null then
+      --  Create (S.Finalize_Watcher);
+      --  Lookup (S.Finalize_Watcher, V);
+      --  S.Is_Open := False;
+      --  Update (S.Request_Watcher);
+      --  Differ (S.Finalize_Watcher, V);
+      --  Destroy (S.Request_Watcher);
+      --  Destroy (S.Finalize_Watcher);
+      --  Deallocate (S.Request_List);
+      --  end if;
+      null;
+   end Finalize;
+
+   ---------------------------------
+   -- Handle_Unmarshall_Arguments --
+   ---------------------------------
 
    procedure Handle_Unmarshall_Arguments
      (S    : access Session;
@@ -73,12 +93,17 @@ package body PolyORB.Protocols is
       --  unmarshalling.
    end Handle_Unmarshall_Arguments;
 
+   --------------------
+   -- Handle_Message --
+   --------------------
+
    function Handle_Message
      (Sess : access Session;
       S : Components.Message'Class)
      return Components.Message'Class
    is
       Nothing : Components.Null_Message;
+      Req : Request_Access;
    begin
       pragma Debug
         (O ("Handling message of type "
@@ -105,38 +130,82 @@ package body PolyORB.Protocols is
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
       elsif S in Execute_Request then
+         Req := Execute_Request (S).Req;
+
+         if Req.Deferred_Arguments_Session /= null then
+
+            --  This session object participates in a proxy
+            --  construct: now is the last place we can determine
+            --  the signature of the called method in order to
+            --  translate the request.
+
+            --  XXX this may require an interface repository lookup,
+            --      which is not implemented. For now we do our best,
+            --      hoping that the protocol on the server session
+            --      can make sense of the args without an arg list.
+
+            declare
+               use Protocols.Interface;
+               use PolyORB.If_Descriptors;
+
+               Desc : If_Descriptor_Access
+                 renames Default_If_Descriptor;
+
+               Args : Any.NVList.Ref
+                 := Get_Empty_Arg_List
+                 (Desc, Req.Target,
+                  Types.To_Standard_String (Req.Operation));
+
+               Reply : constant Components.Message'Class
+                 := Components.Emit
+                 (Req.Deferred_Arguments_Session,
+                  Unmarshall_Arguments'(Args => Args));
+
+            begin
+               pragma Assert (Reply in Unmarshalled_Arguments);
+               pragma Debug (O ("Unmarshalled deferred arguments"));
+               Req.Args := Unmarshalled_Arguments (Reply).Args;
+               Req.Result.Argument := Get_Empty_Result
+                 (Desc, Req.Target,
+                  Types.To_Standard_String (Req.Operation));
+               Req.Deferred_Arguments_Session := null;
+               pragma Debug (O ("Proxying request: " & Image (Req.all)));
+            end;
+
+         end if;
+
          Invoke_Request
-           (Session_Access (Sess),
-            Execute_Request (S).Req,
-            Execute_Request (S).Pro);
+           (Session_Access (Sess), Req, Execute_Request (S).Pro);
+
+         --  At this point, the request has been sent to the server
+         --  'With_Transport' synchronisation policy has been completed.
+
+         if Is_Set (Sync_With_Transport, Req.Req_Flags)
+           or else Is_Set (Sync_Call_Back, Req.Req_Flags)
+         then
+            Req.Completed := True;
+         end if;
+
       elsif S in Executed_Request then
          declare
-            Var_Req : Request_Access
+            Req : Request_Access
               := Executed_Request (S).Req;
          begin
-            Send_Reply
-              (Session_Access (Sess),
-               Executed_Request (S).Req);
-            pragma Debug (O ("Destroying request..."));
-            Destroy_Request (Var_Req);
-            pragma Debug (O ("... done."));
+            --  Send reply only if expected.
+            if Is_Set (Sync_With_Target, Req.Req_Flags) or
+              Is_Set (Sync_Call_Back, Req.Req_Flags) then
+               Send_Reply (Session_Access (Sess), Req);
+               Destroy_Request (Req);
+
+            elsif Is_Set (Sync_With_Server, Req.Req_Flags) then
+               Send_Reply (Session_Access (Sess), Req);
+
+               --   XXX The request has been deleted otherwise
+            end if;
          end;
+
       elsif S in Disconnect_Request then
          return Emit (Lower (Sess), S);
-      elsif S in Queue_Request then
-         --  XXX
-         --  This is very wrong:
-         --    * a session should not ever receive Queue_Request
-         --      (this is a message from the ORB interface!)
-         --    * Put_Line must NEVER EVER be used at all.
-         --      debugging messages MUST use the PolyORB.Log mechanism.
-         --
-         --  Therefore disabling all the branch.
-         --  Thomas 20010823
-         raise Program_Error;
---          Ada.Text_IO.Put_Line ("message is queue request");
---          Sess.Pending_Request := Queue_Request (S);
---          PolyORB.Soft_Links.Update (Sess.Request_Watcher);
       else
          raise Components.Unhandled_Message;
       end if;
@@ -144,39 +213,80 @@ package body PolyORB.Protocols is
    end Handle_Message;
 
    -------------------------
-   -- Get_Request_Watcher --
+   -- Get_Task_Info --
    -------------------------
 
-   function Get_Request_Watcher
+   function Get_Task_Info
      (S : in Session_Access)
-     return PolyORB.Soft_Links.Watcher_Access
+     return PolyORB.Annotations.Notepad_Access
    is
    begin
-      return S.Request_Watcher;
-   end Get_Request_Watcher;
+      return S.N;
+   end Get_Task_Info;
 
    -------------------------
    -- Set_Request_Watcher --
    -------------------------
 
-   procedure Set_Request_Watcher
+   procedure Set_Task_Info
      (S : in Session_Access;
-      W : PolyORB.Soft_Links.Watcher_Access)
+      N : PolyORB.Annotations.Notepad_Access)
    is
    begin
-      S.Request_Watcher := W;
-   end Set_Request_Watcher;
+      S.N := N;
+   end Set_Task_Info;
 
-   -------------------------
-   -- Get_Pending_Request --
-   -------------------------
+   --    -------------------------
+   --    -- Get_First_Request --
+   --    -------------------------
 
-   function Get_Pending_Request
-     (S : in Session_Access)
-     return ORB.Interface.Queue_Request
-   is
-   begin
-      return S.Pending_Request;
-   end Get_Pending_Request;
+   --    procedure Get_First_Request
+   --      (S      : in out Session_Access;
+   --       Result : out Request_Info)
+   --    is
+   --    begin
+   --       pragma Debug (O ("Get Length : "
+   --                        & Integer'Image (Length (S.Request_List))));
+   --       Request_Queue.Extract_Element (S.Request_List, 0, Result);
+   --       pragma Debug (O ("Get Length : "
+   --                        & Integer'Image (Length (S.Request_List))));
+   --    end Get_First_Request;
+
+   --    -----------------
+   --    -- Add_Request --
+   --    -----------------
+   --    procedure Add_Request
+   --      (S : in out Session_Access;
+   --       RI : Request_Info)
+   --    is
+   --    begin
+   --       pragma Debug (O ("Add Length : "
+   --                        & Integer'Image (Length (S.Request_List))));
+   --       Request_Queue.Append (S.Request_List, RI);
+   --       pragma Debug (O ("Add Length : "
+   --                        & Integer'Image (Length (S.Request_List))));
+   --       Update (S.Request_Watcher);
+   --    end Add_Request;
+
+   -------------
+   -- Is_Open --
+   -------------
+   --  function Is_Open
+   --      (S : in Session_Access)
+   --      return Boolean
+   --    is
+   --    begin
+   --       return S.Is_Open;
+   --    end Is_Open;
+
+   -----------------------
+   -- Can_Close_Session --
+   -----------------------
+   --    procedure Can_Close_Session
+   --      (S : Session_Access)
+   --    is
+   --    begin
+   --       Update (S.Finalize_Watcher);
+   --    end Can_Close_Session;
 
 end PolyORB.Protocols;

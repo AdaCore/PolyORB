@@ -34,8 +34,6 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with CORBA;
-
 with PolyORB.Buffers;
 with PolyORB.References;
 with PolyORB.References.IOR;
@@ -48,8 +46,6 @@ package PolyORB.Protocols.GIOP.GIOP_1_2 is
    type Service_Id_Array is array (Integer range <>) of ServiceId;
    Service_Context_List_1_2 : constant Service_Id_Array;
 
-
-
    procedure Marshall_GIOP_Header
      (Buffer       : access Buffers.Buffer_Type;
       Message_Type : in Msg_Type;
@@ -58,24 +54,21 @@ package PolyORB.Protocols.GIOP.GIOP_1_2 is
       Fragment_Next : in Boolean);
 
    procedure Marshall_Request_Message
-     (Buffer             : access Buffers.Buffer_Type;
-      Request_Id         : in Types.Unsigned_Long;
-      Target_Ref         : in Target_Address;
-      Sync_Type          : in Sync_Scope;
-      Operation          : in Requests.Operation_Id);
-
+     (Buffer     : access Buffers.Buffer_Type;
+      Request_Id : in     Types.Unsigned_Long;
+      Target_Ref : in     Target_Address;
+      Sync_Type  : in     Sync_Scope;
+      Operation  : in     String);
 
    procedure Marshall_No_Exception
     (Buffer      : access Buffers.Buffer_Type;
      Request_Id  : in Types.Unsigned_Long);
 
-
    procedure Marshall_Exception
     (Buffer      : access Buffers.Buffer_Type;
      Request_Id  : Types.Unsigned_Long;
      Reply_Type  : in Reply_Status_Type;
-     Occurence   : in CORBA.Exception_Occurrence);
-
+     Occurrence  : in Any.Any);
 
    procedure Marshall_Location_Forward
     (Buffer        : access Buffers.Buffer_Type;
@@ -88,25 +81,24 @@ package PolyORB.Protocols.GIOP.GIOP_1_2 is
      Request_Id          : in Types.Unsigned_Long;
      Address_Type        : in Addressing_Disposition);
 
-
    procedure Marshall_Locate_Request
     (Buffer            : access Buffers.Buffer_Type;
      Request_Id        : in Types.Unsigned_Long;
      Target_Ref        : in Target_Address);
 
-
    procedure Marshall_Fragment
     (Buffer   : access Buffers.Buffer_Type;
      Request_Id   : in Types.Unsigned_Long);
 
-   -------------------------------------
-   --  Unmarshall procedures
-   --------------------------------------
+   ---------------------------
+   -- Unmarshall procedures --
+   ---------------------------
 
    procedure Unmarshall_Request_Message
      (Buffer            : access Buffers.Buffer_Type;
       Request_Id        : out Types.Unsigned_Long;
       Response_Expected : out Boolean;
+      Sync_Type         : out Sync_Scope;
       Target_Ref        : out Target_Address_Access;
       Operation         : out Types.String);
    --  Storage for Target_Ref is dynamically allocated,
@@ -121,18 +113,6 @@ package PolyORB.Protocols.GIOP.GIOP_1_2 is
      (Buffer        : access Buffers.Buffer_Type;
       Request_Id    : out Types.Unsigned_Long;
       Target_Ref    : out Target_Address);
-
-   ---------------------------------
-   --    Utilities Marshalling procedures
-   ---------------------------------
-
-   procedure Marshall
-     (Buffer  : access Buffers.Buffer_Type;
-      Addr    : Addressing_Disposition);
-
-   function Unmarshall
-     (Buffer  : access Buffers.Buffer_Type)
-     return Addressing_Disposition;
 
 private
 
@@ -152,9 +132,5 @@ private
          8 => Forwarded_Identity,
          9 => Unknown_Exception_Info);
 
-   Major_Version : constant Types.Octet
-     := 1;
-   Minor_Version : constant Types.Octet
-     := 2;
 
 end PolyORB.Protocols.GIOP.GIOP_1_2;

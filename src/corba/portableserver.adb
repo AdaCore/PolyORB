@@ -32,15 +32,16 @@
 
 --  $Id$
 
-with PolyORB.Any;
+with Ada.Tags;
+
+with CORBA;
+
 with PolyORB.CORBA_P.Names;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Requests;
 with PolyORB.Objects.Interface;
 with PolyORB.Soft_Links;
 with PolyORB.Utils.Chained_Lists;
-pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
 package body PortableServer is
 
@@ -51,7 +52,7 @@ package body PortableServer is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access DynamicImplementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
@@ -61,7 +62,6 @@ package body PortableServer is
    begin
       if Msg in Execute_Request then
          declare
-            use PolyORB.Any;
             use PolyORB.Requests;
             use CORBA.ServerRequest;
 
@@ -72,24 +72,14 @@ package body PortableServer is
                     CORBA.ServerRequest.Object_Ptr (R));
             --  Redispatch
 
-            Pump_Up_Arguments
-              (Dst_Args => R.Args, Src_Args => R.Out_Args,
-               Direction => ARG_OUT,
-               Ignore_Src_Mode => False);
-            --  Copy back inout and out arguments from Out_Args
-            --  to Args, so the requestor finds them where
-            --  it expects.
-
-            --  XXX If a method has IN and OUT args and R.Args
-            --  contains only the IN arguments (and no empty
-            --  Any's for the OUT ones) what happens?
+            Set_Out_Args (R);
 
             return Executed_Request'(Req => R);
          end;
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;
-   end Handle_Message;
+   end Execute_Servant;
 
    procedure Invoke
      (Self    : access Servant_Base;
@@ -107,7 +97,10 @@ package body PortableServer is
      return POA_Forward.Ref is
    begin
       raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
       return Get_Default_POA (For_Servant);
+      --  "Possible infinite recursion".
+      pragma Warnings (On);
    end Get_Default_POA;
 
    procedure Get_Members
@@ -126,7 +119,6 @@ package body PortableServer is
 
    All_Skeletons : Skeleton_Lists.List;
 
-   Skeleton_Exists  : exception;
    Skeleton_Unknown : exception;
 
    ---------------
@@ -143,10 +135,15 @@ package body PortableServer is
       Info    : Skeleton_Info;
 
    begin
+      pragma Debug
+        (O ("Find_Info: servant of type "
+            & Ada.Tags.External_Tag (For_Servant'Tag)));
       Enter_Critical_Section;
       It := First (All_Skeletons);
 
       while not Last (It) loop
+         pragma Debug (O ("... skeleton id: "
+           & CORBA.To_Standard_String (Value (It).Type_Id)));
          exit when Value (It).Is_A (For_Servant);
          Next (It);
       end loop;
@@ -175,10 +172,10 @@ package body PortableServer is
    begin
       pragma Debug (O ("Register_Skeleton enter"));
       Enter_Critical_Section;
-      Append (All_Skeletons,
-              (Type_Id    => Type_Id,
-               Is_A       => Is_A,
-               Dispatcher => Dispatcher));
+      Prepend (All_Skeletons,
+               (Type_Id    => Type_Id,
+                Is_A       => Is_A,
+                Dispatcher => Dispatcher));
       pragma Debug (O ("Registered : type_id = " &
                        CORBA.To_Standard_String (Type_Id)));
       Leave_Critical_Section;

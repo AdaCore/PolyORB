@@ -78,12 +78,24 @@ Build instructions
 
 See file INSTALL.
 
+Developers building PolyORB from the version control repository
+who need to rebuild the configure and Makefile.in files should
+use the script support/reconfig for this purpose.
+
 Available options for the 'configure' script include:
-  --enable-xmlada: set if you have XmlAda and you want to build the
-                   SOAP protocol personality.
-  --enable-shared: build shared libraries.
-  --enable-debug:  enable debugging information generation and supplementary
-                   runtime checks.
+  --enable-corba  : set if you want to build the CORBA application personality
+                    and the GIOP protocol personality
+  --enable-ir     : set if you want to build the CORBA interface repository.
+  --enable-dsa    : set if you want to use the Ada95 Distributed System Annex.
+                    (experimental)
+  --enable-moma   : set if you want to build the MOMA application personality.
+  --enable-soap   : set if you have XmlAda and you want to build the
+                    SOAP protocol personality.
+  --enable-shared : build shared libraries.
+  --enable-debug  : enable debugging information generation and supplementary
+                    runtime checks.
+
+By default, only the CORBA and GIOP personalities are built.
 
 Documentation overview
 ----------------------
@@ -143,7 +155,22 @@ in its own elaboration code.
 Bug reports
 -----------
 
-Please send bug reports to the PolyORB team at polyorb-devel@polyorb.eu.org.
+If you find a bug or would like to submit patches, please do so indicating 
+the release you use. We accept patch files. To produce such a patch file, 
+put your files in the PolyORB directory and our files in the directory 
+PolyORB.orig, and use the following command:
+
+  diff --recursive --context PolyORB.orig PolyORB > patch_file
+
+and send us the patch_file via e-mail at the address 
+
+	polyorb-devel@polyorb.eu.org
+
+If your diff version do not understand the --recursive or --context
+option, please use the GNU diffutils package which may be found on any
+GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
+
+Note that unified diff files (-u option of GNU diff) are also welcomed.
 
 Contributors:
 -------------

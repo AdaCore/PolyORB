@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#15 $
+--  $Id: //droopi/main/src/corba/corba.ads#22 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -211,7 +211,7 @@ package CORBA is
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out IDL_Exception_Members) is abstract;
    --  This method return the member corresponding to an exception
-   --  occurence This methos must be redefined for each new member
+   --  occurence This method must be redefined for each new member
    --  type. That's why it is declared abstract.
 
    --  Free method associated to the type Idl_Exception_Members_Ptr
@@ -279,7 +279,6 @@ package CORBA is
 
    type Unknown_Members         is new System_Exception_Members
      with null record;
-
    type Bad_Param_Members       is new System_Exception_Members
      with null record;
    type No_Memory_Members       is new System_Exception_Members
@@ -336,7 +335,6 @@ package CORBA is
      with null record;
    type Invalid_Transaction_Members    is new System_Exception_Members
      with null record;
-
    type Adapter_Already_Exists_Members is new System_Exception_Members
      with null record;
    type Invalid_Policy_Members         is new System_Exception_Members
@@ -349,7 +347,7 @@ package CORBA is
    --  Defined in 4.7
    type PolicyType is new CORBA.Unsigned_Long;
 
-   --  excpetion PolicyError
+   --  exception PolicyError
    PolicyError : exception;
 
    type PolicyErrorCode is new Short;
@@ -381,14 +379,13 @@ package CORBA is
 
 
    -------------------------
-   -- types and constants --
+   -- Types and constants --
    -------------------------
    type ServiceType is new Unsigned_Short;
    type ServiceOption is new Unsigned_Long;
    type ServiceDetailType is new Unsigned_Long;
 
    Security : constant ServiceType := 1;
-
 
    -----------
    --  Any  --
@@ -520,7 +517,7 @@ package CORBA is
 
    --  not in spec : returns the most precise type of an Any. It
    --  means that it removes any alias level
-   function Get_Precise_Type (The_Any : in Any) return TypeCode.Object;
+   function Get_Unwound_Type (The_Any : in Any) return TypeCode.Object;
 
    --  not in spec : change the type of an any without changing its
    --  value : to be used carefully
@@ -601,22 +598,24 @@ package CORBA is
    --  Gets an element in an any agregate
    --  returns an any made of the typecode Tc and the value read in
    --  the aggregate
-   function Get_Aggregate_Element (Value : Any;
-                                   Tc : CORBA.TypeCode.Object;
-                                   Index : CORBA.Unsigned_Long)
-                                   return Any;
+   function Get_Aggregate_Element
+     (Value : Any;
+      Tc    : CORBA.TypeCode.Object;
+      Index : CORBA.Unsigned_Long)
+      return Any;
 
    --  returns an empty any aggregate
    --  puts its type to Tc
-   function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object)
-                                     return Any;
+   function Get_Empty_Any_Aggregate
+     (Tc : CORBA.TypeCode.Object)
+      return Any;
 
-   -----------------
-   --  NamedValue --
-   -----------------
+   ----------------
+   -- NamedValue --
+   ----------------
 
-   --  type Flags is new CORBA.Unsigned_Long;
-   subtype Flags is PolyORB.Any.Flags;
+   type Flags is new CORBA.Unsigned_Long;
+   --  subtype Flags is PolyORB.Any.Flags;
 
    ARG_IN :        constant Flags;
    ARG_OUT :       constant Flags;
@@ -644,6 +643,18 @@ package CORBA is
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
 
+   ------------------
+   -- RepositoryId --
+   ------------------
+
+   function Is_Equivalent (RI1, RI2 : RepositoryId)
+     return Boolean;
+
+   function Is_Equivalent (RI1, RI2 : Standard.String)
+     return Boolean;
+   --  Return True if, and only if, RI1 and RI2 denote the same
+   --  repository entity (a case-insensitive string match).
+
 private
 
    VTM_NONE        : constant ValueModifier := PolyORB.Any.VTM_NONE;
@@ -667,21 +678,9 @@ private
    -- Named_Value --
    -----------------
 
-   ARG_IN :        constant Flags := PolyORB.Any.ARG_IN;
-   ARG_OUT :       constant Flags := PolyORB.Any.ARG_OUT;
-   ARG_INOUT :     constant Flags := PolyORB.Any.ARG_INOUT;
-   IN_COPY_VALUE : constant Flags := PolyORB.Any.IN_COPY_VALUE;
-
-   ------------------
-   -- RepositoryId --
-   ------------------
-
-   function Is_Equivalent (RI1, RI2 : RepositoryId)
-     return Boolean;
-
-   function Is_Equivalent (RI1, RI2 : Standard.String)
-     return Boolean;
-   --  Return True if, and only if, RI1 and RI2 denote the same
-   --  repository entity (a case-insensitive string match).
+   ARG_IN :        constant Flags := Flags (PolyORB.Any.ARG_IN);
+   ARG_OUT :       constant Flags := Flags (PolyORB.Any.ARG_OUT);
+   ARG_INOUT :     constant Flags := Flags (PolyORB.Any.ARG_INOUT);
+   IN_COPY_VALUE : constant Flags := Flags (PolyORB.Any.IN_COPY_VALUE);
 
 end CORBA;

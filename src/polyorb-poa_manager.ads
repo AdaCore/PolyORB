@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with PolyORB.Servants;
 with PolyORB.POA_Types; use PolyORB.POA_Types;
 with PolyORB.Smart_Pointers;
 
@@ -51,15 +52,7 @@ package PolyORB.POA_Manager is
 
    type POAManager_Access is access all POAManager'Class;
 
-   subtype POAManager_Object_Ptr is POAManager_Access;
-   --  XXX for easier portability of legacy AdaBroker code.
-
    Invalid_Obj_Adapter : exception;
-
-   type Hold_Servant_Base is abstract new PolyORB.POA_Types.Servant
-     with null record;
-   type Hold_Servant_Base_Access is
-     access all Hold_Servant_Base'Class;
 
    ----------------------------------------------------------------------
    --  Procedures and functions to implement the POAManager interface  --
@@ -111,7 +104,7 @@ package PolyORB.POA_Manager is
    function Get_Hold_Servant
      (Self : access POAManager;
       OA   :        Obj_Adapter_Access)
-     return Hold_Servant_Base_Access
+     return PolyORB.Servants.Servant_Access
       is abstract;
 
 private

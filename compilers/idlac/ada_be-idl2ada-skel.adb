@@ -1,12 +1,12 @@
------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---            A D A _ B E . I D L 2 A D A . S K E L                         --
+--                  A D A _ B E . I D L 2 A D A . S K E L                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -24,6 +24,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
@@ -37,6 +39,8 @@ with Ada_Be.Idl2Ada.Value_Skel;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
+pragma Warnings (Off);
+
 package body Ada_Be.Idl2Ada.Skel is
 
    Flag : constant Natural := Ada_Be.Debug.Is_Active
@@ -47,19 +51,16 @@ package body Ada_Be.Idl2Ada.Skel is
    pragma Warnings (On);
 
    procedure Gen_Is_A
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id);
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean);
    --  Generate server-side support for the Is_A
    --  operation.
-   pragma Warnings (Off);
-   pragma Unreferenced (Gen_Is_A);
-   pragma Warnings (On);
 
    procedure Gen_Body_Common_Start
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id);
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean);
    --  generates code for skel_body that is common
    --  for interfaces and valuetypes supporting interfaces
    --  at the beginning of the package.
@@ -74,16 +75,16 @@ package body Ada_Be.Idl2Ada.Skel is
    -------------------
 
    procedure Gen_Node_Spec
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
          when K_ValueType =>
             --  ValueTypes cannot have delegates
-            pragma Assert (SK = Skeleton);
+            pragma Assert (not Is_Delegate);
 
             if Supports (Node) /= Nil_List then
                Add_Elaborate_Body (CU);
@@ -93,7 +94,7 @@ package body Ada_Be.Idl2Ada.Skel is
             if not Abst (Node) then
                --  No skel or impl packages are generated for
                --  abstract interfaces.
-               if SK = Skeleton then
+               if not Is_Delegate then
                   Add_Elaborate_Body (CU);
                end if;
             end if;
@@ -108,19 +109,19 @@ package body Ada_Be.Idl2Ada.Skel is
    -------------------
 
    procedure Gen_Node_Body
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
 
          when K_ValueType =>
-            pragma Assert (SK = Skeleton);
+            pragma Assert (not Is_Delegate);
             if Supports (Node) /= Nil_List then
-               Gen_Body_Common_Start (CU, SK, Node);
-               --  Gen_Is_A (CU, SK, Node);
+               Gen_Body_Common_Start (CU, Node, Is_Delegate);
+               Gen_Is_A (CU, Node, Is_Delegate);
                Gen_Invoke (CU, Node);
 
                declare
@@ -146,7 +147,7 @@ package body Ada_Be.Idl2Ada.Skel is
                          Use_It => False,
                          Elab_Control => Elaborate_All);
 
---                if SK = Skeleton then
+--                if not Is_Delegate then
 --                   Add_With (CU, Ada_Full_Name (Node) & Impl.Suffix);
 --                   NL (CU);
 --                   PL (CU,
@@ -156,8 +157,8 @@ package body Ada_Be.Idl2Ada.Skel is
 --                       & ".Object'Class;");
 --                end if;
 
-               Gen_Body_Common_Start (CU, SK, Node);
-               --  Gen_Is_A (CU, SK, Node);
+               Gen_Body_Common_Start (CU, Node, Is_Delegate);
+               Gen_Is_A (CU, Node, Is_Delegate);
                Gen_Invoke (CU, Node);
             end if;
 
@@ -170,17 +171,14 @@ package body Ada_Be.Idl2Ada.Skel is
       end case;
    end Gen_Node_Body;
 
-
    --------------
    -- Gen_Is_A --
    --------------
 
-   --  XXX To be reimplemented for PolyORB.
-
    procedure Gen_Is_A
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
@@ -188,24 +186,50 @@ package body Ada_Be.Idl2Ada.Skel is
                      or else (NK = K_ValueType));
       --  FIXME: Hard-coded string constant.
 
-      pragma Assert (False);
-      --  XXX this subprogram must be reimplemented.
-
-      Add_With (CU, "Broca.GIOP");
-      Add_With (CU, "Broca.CDR", Use_It => True);
-
       PL (CU, "if Operation = ""_is_a"" then");
       II (CU);
+
       PL (CU, "declare");
       II (CU);
-      PL (CU, "IDL_Logical_Type_Id : constant Standard.String");
-      PL (CU, "  := Unmarshall (Request_Buffer);");
-      PL (CU, T_Returns & " : constant CORBA.Boolean");
-      Put (CU, "  := ");
+
+      PL (CU, "Type_Id            : CORBA.String;");
+      PL (CU, "Arg_Name_Ü_Type_Id : constant CORBA.Identifier");
+      PL (CU, ":= CORBA.To_CORBA_String (""Type_Id"");");
+      PL (CU, "Argument_Ü_Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
+      PL (CU, "");
+      PL (CU, "Result_Ü           : CORBA.Boolean;");
+      PL (CU, "Argument_Ü_Result_Ü : CORBA.Any;");
+      PL (CU, "Ctx_Ü              : CORBA.Context.Ref");
+      PL (CU, "  := CORBA.Context.Nil_Ref;");
+      PL (CU, "Arg_List_Ü         : CORBA.NVList.Ref;");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "--  Create argument list");
+      NL (CU);
+      PL (CU, "CORBA.ORB.Create_List (0, Arg_List_Ü);");
+      PL (CU, "CORBA.NVList.Add_Item");
+      PL (CU, "(Arg_List_Ü,");
+      PL (CU, "Arg_Name_Ü_Type_Id,");
+      PL (CU, "Argument_Ü_Type_Id,");
+      PL (CU, "CORBA.ARG_IN);");
+      NL (CU);
+
+      PL (CU, "CORBA.ServerRequest.Arguments (Request, Arg_List_Ü);");
+      NL (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "--  Convert arguments from their Any");
+      NL (CU);
+      PL (CU, "Type_Id :=");
+      PL (CU, "  CORBA.From_Any (Argument_Ü_Type_Id);");
+      PL (CU, "--  Call implementation");
+      Put (CU, "Result_Ü := ");
+
       if NK = K_Interface then
          Put (CU, Ada_Full_Name (Node));
       else
-         pragma Assert (SK = Skeleton);
+         pragma Assert (not Is_Delegate);
          Add_With (CU,
                    Ada_Full_Name (Node)
                    & Ada_Be.Idl2Ada.Value_Skel.Suffix);
@@ -213,32 +237,22 @@ package body Ada_Be.Idl2Ada.Skel is
               Ada_Full_Name (Node)
               & Ada_Be.Idl2Ada.Value_Skel.Suffix);
       end if;
-      PL (CU, ".Is_A (IDL_Logical_Type_Id);");
+      PL (CU, ".Is_A");
+      PL (CU, "  (CORBA.To_Standard_String (Type_Id));");
       DI (CU);
-      PL (CU, "begin");
-      II (CU);
 
-      --  FIXME: The following code fragment is duplicated
-      --    (from Skel.Gen_Node_Body).
-      PL (CU, "--  Marshall service context");
-      PL (CU, "Marshall");
-      PL (CU, "  (Reply_Buffer,");
-      PL (CU, "   CORBA.Unsigned_Long (Broca.GIOP.No_Context));");
+      PL (CU, "end;");
       NL (CU);
-      PL (CU, "--  Marshall request ID");
-      PL (CU, "Marshall (Reply_Buffer, Request_Id);");
+      PL (CU, "-- Set Result");
       NL (CU);
-      PL (CU, "--  Marshall reply status");
-      PL (CU, "Broca.GIOP.Marshall");
-      PL (CU, "  (Reply_Buffer,");
-      PL (CU, "   Broca.GIOP.No_Exception);");
-      NL (CU);
-      PL (CU, "--  Marshall return value");
-      PL (CU, "Marshall (Reply_Buffer, " & T_Returns & ");");
+      PL (CU, "CORBA.ServerRequest.Set_Result");
+      PL (CU, "(Request,");
+      PL (CU, "CORBA.To_Any (");
+      PL (CU, "Result_Ü));");
+      PL (CU, "return;");
       DI (CU);
       PL (CU, "end;");
       DI (CU);
-      PL (CU, "end if;");
    end Gen_Is_A;
 
    ----------------------------
@@ -246,14 +260,13 @@ package body Ada_Be.Idl2Ada.Skel is
    ----------------------------
 
    procedure Gen_Body_Common_Start
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
-      pragma Assert ((NK = K_Interface)
-                     or else (NK = K_ValueType));
+      pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
       Add_With (CU, "PortableServer");
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
       --  CORBA.To_CORBA_String is used in skel elab.
@@ -274,7 +287,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "begin");
       II (CU);
       Put (CU, "return Obj.all in ");
-      if SK = Delegate then
+      if Is_Delegate then
          Put (CU, "Object'Class");
       elsif NK = K_Interface then
          Add_With (CU,
@@ -319,9 +332,9 @@ package body Ada_Be.Idl2Ada.Skel is
    -------------------------
 
    procedure Gen_Body_Common_End
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK     : constant Node_Kind := Kind (Node);
       It     : Node_Iterator;
@@ -329,13 +342,17 @@ package body Ada_Be.Idl2Ada.Skel is
    begin
       pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
       NL (CU);
+      PL (CU, "else");
+      II (CU);
       PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Bad_Operation;");
+      DI (CU);
+      PL (CU, "end if;");
       DI (CU);
       PL (CU, "end Invoke;");
 
       Divert (CU, Elaboration);
 
-      if SK = Skeleton then
+      if not Is_Delegate then
          Init (It, Parents (Node));
          while not Is_End (It) loop
             Get_Next_Node (It, P_Node);
@@ -349,7 +366,7 @@ package body Ada_Be.Idl2Ada.Skel is
       Put (CU, "  (CORBA.To_CORBA_String (");
       Put (CU, Ada_Full_Name (Node));
       PL (CU, "." & Repository_Id_Name (Node) &"),");
-      if SK = Skeleton then
+      if not Is_Delegate then
          PL (CU, "   Servant_Is_A'Access,");
          PL (CU, "   Invoke'Access);");
       else
@@ -362,12 +379,13 @@ package body Ada_Be.Idl2Ada.Skel is
    -- Suffix --
    ------------
 
-   function Suffix (SK : Skel_Kind) return String is
+   function Suffix (Is_Delegate : in Boolean) return String is
    begin
-      case SK is
-         when Skeleton => return ".Skel";
-         when Delegate => return ".Delegate";
-      end case;
+      if Is_Delegate then
+         return ".Delegate";
+      else
+         return ".Skel";
+      end if;
    end Suffix;
 
    ----------------
@@ -424,7 +442,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                NL (CU);
                PL (CU,
-                   "if Operation = """
+                   "elsif Operation = """
                    & Idl_Operation_Id (Node)
                    & """ then");
                II (CU);
@@ -475,8 +493,6 @@ package body Ada_Be.Idl2Ada.Skel is
                if Is_Function then
                   PL (CU, Justify (T_Result, Max_Len)
                       & " : " & Ada_Type_Name (O_Type) & ";");
-                  PL (CU, Justify (T_Argument & T_Result, Max_Len)
-                      & " : CORBA.Any;");
                end if;
 
                Add_With (CU, "CORBA.Context");
@@ -559,16 +575,22 @@ package body Ada_Be.Idl2Ada.Skel is
                      declare
                         Arg_Name : constant String
                           := Ada_Name (Declarator (P_Node));
+                        PT_Node : constant Node_Id
+                          := Param_Type (P_Node);
                         Helper_Name : constant String
-                          := Helper_Unit (Param_Type (P_Node));
+                          := Helper_Unit (PT_Node);
                      begin
                         if not Is_Returns (P_Node) then
                            if Mode (P_Node) = Mode_In
                              or else Mode (P_Node) = Mode_Inout
                            then
-                              PL (CU, Arg_Name
-                                  & " := " & Helper_Name & ".From_Any ("
-                                  & T_Argument & Arg_Name & ");");
+                              PL (CU, Arg_Name & " :=");
+                              Put (CU, "  ");
+                              Gen_Forward_Conversion
+                                (CU, PT_Node, "To_Forward",
+                                 Helper_Name & ".From_Any ("
+                                 & T_Argument & Arg_Name & ")");
+                              PL (CU, ";");
                            end if;
                         end if;
                      end;
@@ -638,7 +660,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            II (CU);
                            PL (CU, "Get_Members (E, Members);");
                            PL (CU, "CORBA.ServerRequest.Set_Exception");
-                           PL (CU, "  (Request.all,");
+                           PL (CU, "  (Request,");
                            II (CU);
                            PL (CU, Prefix & ".To_Any (Members));");
                            DI (CU);
@@ -649,10 +671,27 @@ package body Ada_Be.Idl2Ada.Skel is
                         end;
                      end loop;
                   end;
-
-                  PL (CU, "when others =>");
-                  PL (CU, "   null;");
                end if;
+
+--                PL (CU, "when others =>");
+--                II (CU);
+--                PL (CU, "declare");
+--                II (CU);
+--                PL (CU, "use CORBA;");
+--                PL (CU, "Members : constant Unknown_Members");
+--                PL (CU, "  := (Minor => 1, Completed => Completed_Maybe);");
+--                DI (CU);
+--                PL (CU, "begin");
+--                II (CU);
+--                PL (CU, "CORBA.ServerRequest.Set_Exception");
+--                PL (CU, "  (Request,");
+--                II (CU);
+--                PL (CU, "CORBA.To_Any (Members));");
+--                DI (CU);
+--                PL (CU, "return;");
+--                DI (CU);
+--                PL (CU, "end;");
+--                DI (CU);
 
                DI (CU);
                PL (CU, "end;");
@@ -717,8 +756,10 @@ package body Ada_Be.Idl2Ada.Skel is
                      NL (CU);
 
                      declare
+                        OT_Node : constant Node_Id
+                          := Original_Operation_Type (Node);
                         Prefix : constant String
-                          := Helper_Unit (Original_Operation_Type (Node));
+                          := Helper_Unit (OT_Node);
                      begin
                         Add_With (CU, Prefix);
 
@@ -726,14 +767,21 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, "CORBA.ServerRequest.Set_Result");
                            PL (CU, "  (Request, ");
                            II (CU);
-                           PL (CU, Prefix & ".To_Any ("
-                               & T_Result & "));");
+                           PL (CU, Prefix & ".To_Any (");
+                           Gen_Forward_Conversion
+                             (CU, OT_Node,
+                              "From_Forward", T_Result);
+                           PL (CU, "));");
                            DI (CU);
                         else
                            PL (CU, "CORBA.ServerRequest.Set_Result");
                            PL (CU, "  (Request, ");
                            II (CU);
-                           PL (CU, Prefix & ".To_Any (Returns));");
+                           PL (CU, Prefix & ".To_Any (");
+                           Gen_Forward_Conversion
+                             (CU, OT_Node,
+                              "From_Forward", "Returns");
+                           PL (CU, "));");
                            DI (CU);
                         end if;
                      end;
@@ -744,7 +792,6 @@ package body Ada_Be.Idl2Ada.Skel is
                DI (CU);
                PL (CU, "end;");
                DI (CU);
-               PL (CU, "end if;");
             end;
 
          when others =>

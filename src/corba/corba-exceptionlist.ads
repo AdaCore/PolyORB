@@ -33,9 +33,9 @@
 --  $Id$
 
 with CORBA.AbstractBase;
-with CORBA.Impl;
-with Sequences.Unbounded;
-pragma Elaborate (Sequences.Unbounded);
+pragma Elaborate_All (CORBA.AbstractBase);
+
+with PolyORB.Any.ExceptionList;
 
 package CORBA.ExceptionList is
 
@@ -43,11 +43,6 @@ package CORBA.ExceptionList is
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
    Nil_Ref : constant Ref;
-
-   type Object is new CORBA.Impl.Object with private;
-   type Object_Ptr is access all Object;
-
-   procedure Finalize (Obj : in out Object);
 
    function Get_Count
      (Self : in Ref)
@@ -73,16 +68,26 @@ package CORBA.ExceptionList is
       Name : in CORBA.RepositoryId)
      return CORBA.Unsigned_Long;
 
-private
-   --  The actual implementation of an ExceptionList:
-   --  a list of TypeCode
-   package Exception_Sequence is new Sequences.Unbounded
-     (CORBA.TypeCode.Object);
+   ------------------------------------------
+   -- The following is specific to PolyORB --
+   ------------------------------------------
 
-   type Object is new CORBA.Impl.Object with record
-     List : Exception_Sequence.Sequence := Exception_Sequence.Null_Sequence;
-   end record;
+   function To_PolyORB_Ref (Self : Ref)
+     return PolyORB.Any.ExceptionList.Ref;
+   function To_CORBA_Ref (Self : PolyORB.Any.ExceptionList.Ref)
+     return Ref;
+
+private
 
    Nil_Ref : constant Ref
-     := (CORBA.AbstractBase.Ref with null record);
+     := (CORBA.AbstractBase.Nil_Ref with null record);
+
+   pragma Inline
+     (Get_Count,
+      Add,
+      Item,
+      Remove,
+      Create_List,
+      Search_Exception_Id);
+
 end CORBA.ExceptionList;

@@ -25,7 +25,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Ada.Characters.Wide_Latin_1;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 
@@ -1262,7 +1261,7 @@ package body Idl_Fe.Parser is
               | K_Exception
               | K_Operation =>
                declare
-                  The_Scope : Node_Id := Get_Current_Scope;
+                  The_Scope : constant Node_Id := Get_Current_Scope;
                begin
                   Pop_Scope;
                   A_Name := Find_Identifier_Node
@@ -1271,7 +1270,7 @@ package body Idl_Fe.Parser is
                end;
             when K_Union =>
                declare
-                  The_Scope : Node_Id := Get_Current_Scope;
+                  The_Scope : constant Node_Id := Get_Current_Scope;
                begin
                   pragma Debug (O ("Parse_Scoped_Name : dealing with "
                                     & "a union scope"));
@@ -2471,8 +2470,8 @@ package body Idl_Fe.Parser is
       --  Is there a previous definition
       if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          declare
-            Definition : Identifier_Definition_Acc :=
-              Find_Identifier_Definition
+            Definition : constant Identifier_Definition_Acc
+              := Find_Identifier_Definition
               (Get_Token_String, Get_Lexer_Location);
          begin
             Errors.Error
@@ -2702,10 +2701,10 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       else
-         --  Is there a previous definition
+         --  Is there a previous definition?
          if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
             declare
-               Definition : Identifier_Definition_Acc
+               Definition : constant Identifier_Definition_Acc
                  := Find_Identifier_Definition
                  (Get_Token_String, Get_Lexer_Location);
             begin
@@ -5805,7 +5804,7 @@ package body Idl_Fe.Parser is
       end if;
 
       declare
-         Count : Long_Long_Integer := 1;
+         Count : Idl_Integer := 1;
       begin
          loop
             declare
@@ -5824,7 +5823,7 @@ package body Idl_Fe.Parser is
                      return;
                   end if;
                   Count := Count + 1;
-                  if Count = Idl_Enum_Max + 1 then
+                  if Count = Idl_Enum_Max then
                      Errors.Error
                        ("two much possible values in this " &
                         "enumeration : maximum is 2^32.",
@@ -7272,12 +7271,12 @@ package body Idl_Fe.Parser is
                   --  replace the former version, (should be 1.0)
                   declare
                      use Ada.Strings.Unbounded;
-                     New_Rep : Unbounded_String :=
-                       To_Unbounded_String (String_Value (Rep_Id));
-                     Smajor : String :=
-                       Interfaces.Unsigned_16'Image (Version.Major);
-                     Sminor : String :=
-                       Interfaces.Unsigned_16'Image (Version.Minor);
+                     New_Rep : Unbounded_String
+                       := To_Unbounded_String (String_Value (Rep_Id));
+                     Smajor : constant String
+                       := Interfaces.Unsigned_16'Image (Version.Major);
+                     Sminor : constant String
+                       := Interfaces.Unsigned_16'Image (Version.Minor);
                   begin
                      Replace_Slice
                        (New_Rep,
@@ -7445,19 +7444,19 @@ package body Idl_Fe.Parser is
          Offset := 2;
          case S (S'First + 1) is
             when LC_N =>
-               Result := Ada.Characters.Wide_Latin_1.LF;
+               Result := Wide_Character'Val (Character'Pos (ASCII.Lf));
             when LC_T =>
-               Result := Ada.Characters.Wide_Latin_1.HT;
+               Result := Wide_Character'Val (Character'Pos (ASCII.Ht));
             when LC_V =>
-               Result := Ada.Characters.Wide_Latin_1.VT;
+               Result := Wide_Character'Val (Character'Pos (ASCII.Vt));
             when LC_B =>
-               Result := Ada.Characters.Wide_Latin_1.BS;
+               Result := Wide_Character'Val (Character'Pos (ASCII.Bs));
             when LC_R =>
-               Result := Ada.Characters.Wide_Latin_1.CR;
+               Result := Wide_Character'Val (Character'Pos (CR));
             when LC_F =>
-               Result := Ada.Characters.Wide_Latin_1.FF;
+               Result := Wide_Character'Val (Character'Pos (FF));
             when LC_A =>
-               Result := Ada.Characters.Wide_Latin_1.BEL;
+               Result := Wide_Character'Val (Character'Pos (BEL));
             when '\' =>
                Result := '\';
             when '?' =>
@@ -7465,7 +7464,7 @@ package body Idl_Fe.Parser is
             when ''' =>
                Result := ''';
             when Quotation =>
-               Result := Ada.Characters.Wide_Latin_1.Quotation;
+               Result := Wide_Character'Val (Character'Pos (Quotation));
             when '0' .. '7' =>
                declare
                   Pos : Integer;
@@ -7540,7 +7539,7 @@ package body Idl_Fe.Parser is
    --  Get_Integer_Literal  --
    ---------------------------
    function Get_Integer_Literal return Idl_Integer is
-      S : String := Get_Token_String;
+      S : constant String := Get_Token_String;
       Result : Idl_Integer := 0;
       I : Natural := 0;
    begin
@@ -7590,7 +7589,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       declare
-         S : String := Get_Token_String;
+         S : constant String := Get_Token_String;
          Minor : Interfaces.Unsigned_16 := 0;
          Major : Interfaces.Unsigned_16 := 0;
          I : Natural := 0;
@@ -7663,7 +7662,7 @@ package body Idl_Fe.Parser is
       function Get_String_Literal return Idl_String;
 
       function Get_String_Literal return Idl_String is
-         S : String := Get_Token_String;
+         S : constant String := Get_Token_String;
          Result : String (1 .. S'Length);
          L : Natural := 0;
          I : Natural := 0;
@@ -7736,7 +7735,7 @@ package body Idl_Fe.Parser is
       function Get_WString_Literal return Idl_Wide_String;
 
       function Get_WString_Literal return Idl_Wide_String is
-         S : String := Get_Token_String;
+         S : constant String := Get_Token_String;
          Result : Wide_String (1 .. S'Length);
          L : Natural := 0;
          I : Natural := 0;
@@ -7868,7 +7867,7 @@ package body Idl_Fe.Parser is
    --  Get_Floating_Literal  --
    ----------------------------
    function Get_Float_Literal return Idl_Float is
-      S : String := Get_Token_String;
+      S : constant String := Get_Token_String;
       Result : Idl_Float := 0.0;
       I : Natural := 0;
    begin
@@ -7955,7 +7954,7 @@ package body Idl_Fe.Parser is
       procedure Get_Fixed_Literal;
 
       procedure Get_Fixed_Literal is
-         S : String := Get_Token_String;
+         S : constant String := Get_Token_String;
          Res : Idl_Integer := 0;
          I : Natural := 0;
          L1, L2 : Natural := 0;

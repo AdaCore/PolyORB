@@ -40,7 +40,7 @@ package PolyORB.POA_Config is
 
    pragma Elaborate_Body;
 
-   type Configuration_Type is abstract tagged null record;
+   type Configuration_Type is abstract tagged limited private;
    type Configuration_Access is access all Configuration_Type'Class;
 
    procedure Initialize
@@ -51,7 +51,7 @@ package PolyORB.POA_Config is
 
    function Default_Policies
      (C : Configuration_Type)
-     return PolyORB.POA_Policies.PolicyList_Access
+     return PolyORB.POA_Policies.PolicyList
       is abstract;
    --  Return the list of default OA policies for this configuration.
 
@@ -64,6 +64,8 @@ package PolyORB.POA_Config is
    --  The value set by Set_Configuration.
 
 private
+
+   type Configuration_Type is abstract tagged limited null record;
 
    pragma Inline (Set_Configuration);
    pragma Inline (Configuration);

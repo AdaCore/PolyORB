@@ -37,14 +37,27 @@ package body CORBA.Context is
    procedure Set_One_Value
      (Self      : in Ref;
       Prop_Name : in Identifier;
-      Value     : in CORBA.String) is
+      Value     : in CORBA.String)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced
+        (Self,
+         Prop_Name,
+         Value);
+      pragma Warnings (On);
    begin
       null;
    end Set_One_Value;
 
    procedure Set_Values
      (Self   : in Ref;
-      Values : in CORBA.NVList.Ref) is
+      Values : in CORBA.NVList.Ref)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced
+        (Self,
+         Values);
+      pragma Warnings (On);
    begin
       null;
    end Set_Values;
@@ -56,15 +69,31 @@ package body CORBA.Context is
       Prop_Name   : in     Identifier;
       Values      :    out CORBA.NVList.Ref)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced
+        (Self,
+         Start_Scope,
+         This_Object,
+         Prop_Name);
+      pragma Warnings (On);
+
       Dummy : CORBA.NVList.Ref;
       pragma Warnings (Off, Dummy);
+      --  No explicit initialization.
+
    begin
       Values := Dummy;
    end Get_Values;
 
    procedure Delete_Values
      (Self      : in Ref;
-      Prop_Name : in Identifier) is
+      Prop_Name : in Identifier)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced
+        (Self,
+         Prop_Name);
+      pragma Warnings (On);
    begin
       null;
    end Delete_Values;
@@ -74,15 +103,29 @@ package body CORBA.Context is
       Ctx_Name  : in     Identifier;
       Child_Ctx :    out Ref)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced
+        (Self,
+         Ctx_Name);
+      pragma Warnings (On);
+
       Dummy : Ref;
       pragma Warnings (Off, Dummy);
+      --  No explicit initialization.
+
    begin
       Child_Ctx := Dummy;
    end Create_Child;
 
    procedure Delete
-     (Self       : in Ref;
-      Del_Flagfs : in Flags) is
+     (Self      : in Ref;
+      Del_Flags : in Flags)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced
+        (Self,
+         Del_Flags);
+      pragma Warnings (On);
    begin
       null;
    end Delete;

@@ -11,14 +11,14 @@
 --  Ada'95 distributed systems annex  --
 --  Objects                           --
 ----------------------------------------
---  Copyright (c) 1999                --
+--  Copyright (c) 1999-2002           --
 --  École nationale supérieure des    --
 --  télécommunications                --
 ----------------------------------------
 
 --  This unit generates a decorated IDL tree by traversing
 --  the ASIS tree of a DSA package specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.ads#3 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.ads#4 $
 
 with Asis;
 
@@ -33,11 +33,6 @@ package CIAO.Translator is
    Not_Implemented : exception;
    --  A construct was encountered whose translation is not implemented
    --  in this version of the CIAO translator.
-
-   type Unit_Categories is
-     (Pure, Remote_Types, Remote_Call_Interface, Other);
-   --  A type used to denote the category of the unit
-   --  being translated.
 
    -----------------------------------------------
    -- Translate                                 --

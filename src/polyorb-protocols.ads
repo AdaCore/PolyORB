@@ -41,8 +41,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Filters; use PolyORB.Filters;
 with PolyORB.Requests; use PolyORB.Requests;
-with PolyORB.Soft_Links; use PolyORB.Soft_Links;
-with PolyORB.ORB.Interface;
+with PolyORB.Annotations;
 
 package PolyORB.Protocols is
 
@@ -63,33 +62,42 @@ package PolyORB.Protocols is
       Session : out Filter_Access)
       is abstract;
    --  Create a Session for protocol Proto using filter Lower.
+   --  Request_Watcher should not be created here, it will
+   --  be positioned by the thread policy, if necessary.
 
-   --  XXXXX: does not create request_watcher !
+   procedure Finalize (S : in out Session);
 
-   procedure Destroy_Session (S : in out Session_Access);
-   --  Destroy the session associated with S, return any associated
-   --  resources to the system, and assign null to S.
+   --------------------------------------------------
+   -- Primitives needed with some tasking policies --
+   --------------------------------------------------
 
-   procedure Set_Request_Watcher
+   procedure Set_Task_Info
      (S : in Session_Access;
-      W : PolyORB.Soft_Links.Watcher_Access);
-   --
+      N : PolyORB.Annotations.Notepad_Access);
+   --  Set the notes associated with session
 
-   function Get_Request_Watcher
+   function Get_Task_Info
      (S : in Session_Access)
-     return PolyORB.Soft_Links.Watcher_Access;
-   --  Return the request watcher associated with session.
+      return PolyORB.Annotations.Notepad_Access;
+   --  Return the notes  associated with session.
 
-   function Get_Pending_Request
-     (S : in Session_Access)
-     return ORB.Interface.Queue_Request;
-   --  Return the request watcher associated with session.
-   --  XXX The comment above is wrong, please update it.
-   --  XXX The use of the term 'Pending_Request' is inappropriate
-   --      in this context. A pending request is a request object
-   --      on the client side of a connection which has been
-   --      sent to the target object and for which a response
-   --      is expected. Please find another, more explicit term.
+   --  procedure Get_First_Request
+   --  (S      : in out Session_Access;
+   --   Result : out Request_Info);
+   --  Return in Result the first request in the list associated with session.
+
+   ---  procedure Add_Request
+   --  (S : in out Session_Access;
+   --   RI : Request_Info);
+   --  Add a request RI at the end of the list associated with the session.
+
+   --  function Is_Open
+   --      (S : in Session_Access)
+   --       return Boolean;
+   --  return false if the session is about to be closed
+
+   --    procedure Can_Close_Session
+   --      (S : in Session_Access);
 
    -----------------------------------------------------
    -- Protocol primitives (interface to upper layers) --
@@ -158,14 +166,10 @@ private
    type Protocol is abstract new Filters.Factory with null record;
 
    type Session is abstract new Filters.Filter with record
-      Server          : Components.Component_Access;
-      Request_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
-      Pending_Request : ORB.Interface.Queue_Request;
-      --  XXX Change 'Pending' to something else (see above).
-      --  XXX Storage of a Message'Class is questionable (Messages
-      --    are supposed to be synchronously delivered, as per the
-      --    documentation in the spec of PolyORB.Components.
-      --    Store-and-forward behaviour is not expected.)
+      Server : Components.Component_Access;
+      N      : PolyORB.Annotations.Notepad_Access := null;
+      --  Is_Open         : Boolean := True;
+      --  Finalize_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
    end record;
 
 end PolyORB.Protocols;

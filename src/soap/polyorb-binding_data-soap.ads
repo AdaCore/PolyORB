@@ -50,10 +50,10 @@ package PolyORB.Binding_Data.SOAP is
    procedure Adjust     (P : in out SOAP_Profile_Type);
    procedure Finalize   (P : in out SOAP_Profile_Type);
 
-   procedure Bind_Profile
-     (Profile   : SOAP_Profile_Type;
-      TE        : out Transport.Transport_Endpoint_Access;
-      Filter    : out Components.Component_Access);
+   function Bind_Profile
+     (Profile : SOAP_Profile_Type;
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access;
 
    function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)
@@ -78,13 +78,17 @@ package PolyORB.Binding_Data.SOAP is
 
    function Create_Profile
      (PF  : access SOAP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
+     return Profile_Access;
+
+   function Create_Profile
+     (URI : Types.String)
      return Profile_Access;
 
    function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
-      P : Profile_Access) return Boolean;
+      P  : access Profile_Type'Class)
+      return Boolean;
 
    procedure Marshall_SOAP_Profile_Body
      (Buf     : access Buffers.Buffer_Type;
@@ -95,6 +99,7 @@ package PolyORB.Binding_Data.SOAP is
     return  Profile_Access;
 
    function Image (Prof : SOAP_Profile_Type) return String;
+   function To_URI (Prof : SOAP_Profile_Type) return String;
 
 private
 

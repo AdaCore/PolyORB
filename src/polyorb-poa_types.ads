@@ -39,22 +39,29 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Obj_Adapters;
-with PolyORB.Objects;         use PolyORB.Objects;
-with PolyORB.Requests;
+with PolyORB.Objects;
 with PolyORB.Storage_Pools;
-with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Types;
 
-with Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded;
 
 package PolyORB.POA_Types is
 
    pragma Elaborate_Body;
+
+   use PolyORB.Objects;
+   use PolyORB.Types;
 
    Invalid_Object_Id : exception
      renames PolyORB.Obj_Adapters.Invalid_Object_Id;
    Invalid_Method    : exception renames PolyORB.Obj_Adapters.Invalid_Method;
 
    subtype Time_Stamp is Unsigned_Long;
+   --  A time marker.
+
+   subtype Lifespan_Cookie is Unsigned_Long;
+   --  A piece of information embedded in an object id by the lifespan
+   --  policy for control of reference validity across ORB executions.
 
    --  Base types for the PolyORB POA
 
@@ -63,11 +70,11 @@ package PolyORB.POA_Types is
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    type Parameter_Profile_Description is
-     access function (Method : PolyORB.Requests.Operation_Id)
+     access function (Method : String)
      return PolyORB.Any.NVList.Ref;
 
    type Result_Profile_Description is
-     access function (Method : PolyORB.Requests.Operation_Id)
+     access function (Method : String)
      return PolyORB.Any.Any;
 
    type Interface_Description is record
@@ -78,18 +85,8 @@ package PolyORB.POA_Types is
       RP_Desc : Result_Profile_Description;
    end record;
 
-   type Servant is abstract new PolyORB.Objects.Servant with
-      record
-         If_Desc : Interface_Description;
-         --  Description of the most derived interface supported
-         --  by this servant. This must be set either by the
-         --  personality-specific generated code (for servers
-         --  that are statically described in the personality)
-         --  or by the user (for dynamic servers).
-      end record;
-   type Servant_Access is access all Servant'Class;
-
-   package POA_Sequences is new Sequences.Unbounded (Obj_Adapter_Access);
+   package POA_Sequences is new PolyORB.Sequences.Unbounded
+     (Obj_Adapter_Access);
    subtype POAList is POA_Sequences.Sequence;
    type POAList_Access is access all POAList;
 
@@ -103,13 +100,10 @@ package PolyORB.POA_Types is
          Creator          : Types.String;
          Id               : Types.String;
          System_Generated : Boolean;
-         Persistency_Flag : Time_Stamp;
+         Persistency_Flag : Lifespan_Cookie;
      end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
    for Unmarshalled_Oid_Access'Storage_Pool use Storage_Pools.Debug_Pool;
-
-   function "=" (Left, Right : in Servant) return Standard.Boolean
-      is abstract;
 
    function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
 

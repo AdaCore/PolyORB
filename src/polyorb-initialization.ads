@@ -36,7 +36,6 @@
 
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
-pragma Elaborate_All (PolyORB.Utils.Strings.Lists);
 
 package PolyORB.Initialization is
 
@@ -48,11 +47,30 @@ package PolyORB.Initialization is
 
    type Module_Info is record
       Name : Utils.Strings.String_Ptr;
+      --  The unique name of this module.
+
       Provides  : String_Lists.List;
+      --  A list of 'virtual' modules provided by this one.
+      --  Several different implementations of the same
+      --  service may exist: they shall have different Names,
+      --  but will list the same common name in their Provides
+      --  list.
+
       Depends   : String_Lists.List;
+      --  The list of modules this one depends upon. If
+      --  a question mark is appended to a name in Depends,
+      --  then the dependency is optional, which means that
+      --  the presence of the depended-upon module is not required,
+      --  but that if that module is present, then it must be
+      --  initialized before this one.
+
       Conflicts : String_Lists.List;
+      --  The list of modules that cannot be instantiated
+      --  simultaneously with this one.
 
       Init : Initializer;
+      --  The initialization procedure for this module.
+
    end record;
 
    procedure Register_Module (Info : Module_Info);

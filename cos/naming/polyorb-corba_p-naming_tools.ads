@@ -36,6 +36,7 @@ with Ada.Finalization;
 with CORBA;
 with CORBA.Object;
 with CosNaming;
+with CosNaming.NamingContext;
 
 package PolyORB.CORBA_P.Naming_Tools is
 
@@ -45,11 +46,20 @@ package PolyORB.CORBA_P.Naming_Tools is
    function Locate
      (Name : CosNaming.Name)
      return CORBA.Object.Ref;
+   function Locate
+     (Context : CosNaming.NamingContext.Ref;
+      Name    : CosNaming.Name)
+     return CORBA.Object.Ref;
    --  Locate an object given its name, given as an array of name components.
 
    function Locate
      (IOR_Or_Name : String;
-      Sep : Character := '/')
+      Sep         : Character := '/')
+     return CORBA.Object.Ref;
+   function Locate
+     (Context     : CosNaming.NamingContext.Ref;
+      IOR_Or_Name : String;
+      Sep         : Character                   := '/')
      return CORBA.Object.Ref;
    --  Locate an object by IOR or name. If the string does not start with
    --  "IOR:", the name will be parsed before it is looked up, using

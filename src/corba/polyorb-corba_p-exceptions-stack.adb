@@ -30,12 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions-stack.adb#2 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions-stack.adb#5 $
 
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.Soft_Links;
 
@@ -44,7 +43,8 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
    use PolyORB.Log;
    use PolyORB.Soft_Links;
 
-   package L is new PolyORB.Log.Facility_Log ("broca.exceptions.stack");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.corba_p.exceptions.stack");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -250,7 +250,7 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
 
    function Image (V : Exc_Occ_Id_Type) return String is
    begin
-      return Magic & V'Img;
+      return Magic & Exc_Occ_Id_Type'Image (V);
    end Image;
 
    ---------------------

@@ -37,14 +37,19 @@
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
 with PolyORB.POA;
-with PolyORB.POA.Basic_POA; use PolyORB.POA.Basic_POA;
+with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Config;
+with PolyORB.POA_Manager;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Soft_Links;
+with PolyORB.Types;
 
 with PolyORB.POA_Config.Minimum;
---  XXX hardcoded POA configuration!!!!!!
+--  The configuration for the root POA.
+
+with PolyORB.POA_Config.Proxies;
+--  XXX should be depended upon only when proxies are desired.
 
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
@@ -61,44 +66,72 @@ with PortableServer.POAManager;
 pragma Elaborate_All (PortableServer.POA);
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.CORBA_P.Server_Tools is
 
    use PolyORB.Log;
+   use PolyORB.POA.Basic_POA;
+   use type PolyORB.POA.Obj_Adapter_Access;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.server_tools");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
    Root_POA : PortableServer.POA.Ref;
+   Root_POA_Object : POA.Obj_Adapter_Access;
 
    procedure Initiate_RootPOA;
+   procedure Initiate_Proxies_POA;
 
    ----------------------
    -- Initiate_RootPOA --
    ----------------------
 
    procedure Initiate_RootPOA is
-      Obj_Adapter : PolyORB.POA.Obj_Adapter_Access;
    begin
-      pragma Debug (O ("Initializing OA configuration... "));
-      PolyORB.POA_Config.Set_Configuration
-        (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
-      pragma Debug (O ("Creating object adapter... "));
-      Obj_Adapter := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-      PolyORB.POA.Basic_POA.Create
-        (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
-      --  Create object adapter
+      pragma Assert (Root_POA_Object = null);
+      pragma Debug (O ("Initializing default POA configuration..."));
+      POA_Config.Set_Configuration
+        (new POA_Config.Minimum.Minimum_Configuration);
 
-      PolyORB.ORB.Set_Object_Adapter
-        (PolyORB.Setup.The_ORB,
-         PolyORB.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter));
+      pragma Debug (O ("Initializing root POA..."));
+      Root_POA_Object := new POA.Basic_POA.Basic_Obj_Adapter;
+      POA.Basic_POA.Create
+        (Basic_Obj_Adapter (Root_POA_Object.all)'Access);
+
+      ORB.Set_Object_Adapter
+        (Setup.The_ORB, Obj_Adapters.Obj_Adapter_Access (Root_POA_Object));
       --  Link object adapter with ORB.
 
       PortableServer.POA.Set
-        (Root_POA, PolyORB.Smart_Pointers.Entity_Ptr (Obj_Adapter));
+        (Root_POA, Smart_Pointers.Entity_Ptr (Root_POA_Object));
+
+      Initiate_Proxies_POA;
+
    end Initiate_RootPOA;
+
+   --------------------------
+   -- Initiate_Proxies_POA --
+   --------------------------
+
+   Proxies_POA_Configuration :
+     PolyORB.POA_Config.Proxies.Configuration;
+
+   procedure Initiate_Proxies_POA is
+      use PolyORB.POA_Manager;
+   begin
+      pragma Assert (Root_POA_Object /= null);
+      POA.Basic_POA.Set_Proxies_OA
+        (POA.Basic_POA.Basic_Obj_Adapter_Access (Root_POA_Object),
+         POA.Basic_POA.Basic_Obj_Adapter_Access
+         (POA.Basic_POA.Create_POA
+          (Basic_Obj_Adapter (Root_POA_Object.all)'Access,
+           Types.To_PolyORB_String ("Proxies"),
+           POAManager_Access (Entity_Of (Root_POA_Object.POA_Manager)),
+           POA_Config.Default_Policies
+           (POA_Config.Configuration_Type'Class
+            (Proxies_POA_Configuration)))));
+   end Initiate_Proxies_POA;
 
    ---------------------
    -- Initiate_Server --
@@ -113,6 +146,10 @@ package body PolyORB.CORBA_P.Server_Tools is
 
       PortableServer.POAManager.Activate
         (PortableServer.POA.Get_The_POAManager (Root_POA));
+
+      if Initiate_Server_Hook /= null then
+         Initiate_Server_Hook.all;
+      end if;
 
       if Start_New_Task then
          PolyORB.Soft_Links.Create_Task (CORBA.ORB.Run'Access);

@@ -43,23 +43,39 @@ package PolyORB.References.Binding is
    pragma Elaborate_Body;
 
    procedure Bind
-     (R         : Ref;
-      Local_ORB : ORB.ORB_Access;
-      Servant   : out Components.Component_Access;
-      Pro       : out Binding_Data.Profile_Access);
+     (R          : Ref'Class;
+      Local_ORB  : ORB.ORB_Access;
+      Servant    : out Components.Component_Access;
+      Pro        : out Binding_Data.Profile_Access;
+      Local_Only : Boolean := False);
    --  Bind R to a servant, and return that servant (or a surrogate
    --  thereof) and the object id corresponding to the profile of R
    --  that was used.
    --  Local_ORB is the local middleware. It is used to determine
    --  whether reference profiles are local. Its object adapter
    --  is queried to resolve local object ids into servants.
+
    --  When a remote reference is to be bound, Local_ORB is in
    --  charge of all the transport and communication aspects
    --  of the binding operation. It must then return a remote
-   --  surrogate of the object designated by R.
+   --  surrogate of the object designated by R. If Local_Only
+   --  is set to True, no remote binding is done. In that
+   --  case, only references to local objects can be bound,
+   --  and the returned Servant will be an actual local servant
+   --  (not a surrogate).
 
    Invalid_Reference : exception;
    --  Raised when an attempt is made to bind a reference
    --  that is null or has no supported profile.
+
+   procedure Get_Tagged_Profile
+     (R         :     Ref;
+      Tag       :     Binding_Data.Profile_Tag;
+      Pro       : out Binding_Data.Profile_Access);
+   --  Find a profile in R that matches Tag, and return it.
+   --  If R has no profile with a matching tag, create a
+   --  proxy profile that designates R using this ORB as
+   --  a proxy. If R has no profile matching Tag, and this
+   --  ORB cannot behave as a proxy either, null is returned.
 
 end PolyORB.References.Binding;

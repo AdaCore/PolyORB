@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -24,10 +24,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Interfaces;
+
 with Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
+
+with Errors; use Errors;
 
 package body Idl_Fe.Tree.Synthetic is
 
@@ -183,6 +187,32 @@ package body Idl_Fe.Tree.Synthetic is
 
    end Idl_Repository_Id;
 
+   function Version (Node : Node_Id) return Version_Type is
+      Id : constant String := Idl_Repository_Id (Node);
+      Dot : Integer := Id'Last;
+      Colon : Integer;
+   begin
+      while Dot >= Id'First and then Id (Dot) /= '.' loop
+         Dot := Dot - 1;
+      end loop;
+
+      Colon := Dot - 1;
+      while Colon >= Id'First and then Id (Colon) /= ':' loop
+         Colon := Colon - 1;
+      end loop;
+
+      if Colon < Id'First then
+         Error ("Cannot determine version, rid=«" & Id & "»",
+                Fatal, Get_Location (Node));
+      end if;
+
+      return
+        (Major => Interfaces.Unsigned_16'Value
+         (Id (Colon + 1 .. Dot - 1)),
+         Minor => Interfaces.Unsigned_16'Value
+         (Id (Dot + 1 .. Id'Last)));
+   end Version;
+
    function All_Ancestors
      (Node : Node_Id;
       Exclude : Node_List := Nil_List)
@@ -274,9 +304,9 @@ package body Idl_Fe.Tree.Synthetic is
 
    function Float_Value
      (Node : Node_Id)
-     return Long_Long_Float is
+     return Idl_Float is
    begin
-      return Long_Long_Float (Expr_Value (Node).Float_Value);
+      return Idl_Float (Expr_Value (Node).Float_Value);
    end Float_Value;
 
    function String_Value

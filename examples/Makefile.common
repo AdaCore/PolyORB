@@ -7,13 +7,17 @@ GNATMAKE_FLAGS = \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/generic \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/corba \
+	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/moma \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/soap \
+	-I$(srcdir)/$(EXAMPLES_ROOT)/../src/srp \
 	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
 	-I$(EXAMPLES_ROOT) \
 	-I$(EXAMPLES_ROOT)/generic \
 	-I$(EXAMPLES_ROOT)/../src \
 	-I$(EXAMPLES_ROOT)/../src/corba \
+	-I$(EXAMPLES_ROOT)/../src/moma \
 	-I$(EXAMPLES_ROOT)/../src/soap \
+	-I$(EXAMPLES_ROOT)/../src/srp \
 	-I$(EXAMPLES_ROOT)/../cos/naming \
 	-I$(EXAMPLES_ROOT)/../idls/cos/naming \
 	$(XMLADA_INCLUDE) \
@@ -21,10 +25,7 @@ GNATMAKE_FLAGS = \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	../../src/libpolyorb.la \
-	../../src/corba/libpolyorb-corba.la \
-	../../src/soap/libpolyorb-soap.la \
-	$(XMLADA_LIBS) 
+	$(POLYORB_LIBS) $(XMLADA_LIBS) 
 
 #	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
 #	-I$(EXAMPLES_ROOT)/../cos/naming \
@@ -32,15 +33,13 @@ GNATMAKE_FLAGS = \
 
 # Due to a bug in Automake 1.4, this line must not be splitted.
 
-CLEANFILES = b~*.* *.o *.ali $(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb $(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb $(EXAMPLE).ads $(EXAMPLE).adb $(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb $(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb $(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb $(EXAMPLE)-delegate.ads $(EXAMPLE)-delegate.adb
+CLEANFILES = b~*.* *.o *.ali $(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb $(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb $(EXAMPLE).ads $(EXAMPLE).adb $(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb $(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb $(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb $(EXAMPLE)-delegate.ads $(EXAMPLE)-delegate.adb $(EXAMPLE)-ir_info.adb $(EXAMPLE)-ir_info.ads $(EXAMPLE)_idl_file-ir_info.adb $(EXAMPLE)_idl_file-ir_info.ads
 
-DISTCLEANFILES = client server
+DISTCLEANFILES = client server $(EXTRA)
 
-all-local: client server $(EXTRA)
+all-local: err client server $(EXTRA)
 
 SUFFIXES = .idl .ads .adb
-
-$(EXAMPLE).ads: $(EXAMPLE).idl $(IDLAC)
 
 .idl.ads:
 	$(IDLAC) $(IDLAC_FLAGS) $<
@@ -48,13 +47,16 @@ $(EXAMPLE).ads: $(EXAMPLE).idl $(IDLAC)
 .idl.adb:
 	$(IDLAC) $(IDLAC_FLAGS) $<
 
-$(IDLAC): force
-	cd $(EXAMPLES_ROOT)/../compilers/idlac && $(MAKE) idlac
-
 client server $(EXTRA): force $(EXAMPLE).ads
-	@chmod +x $(LINKER)
-	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
 
-force::
+force: src $(COS)
+
+src:
 	cd $(EXAMPLES_ROOT)/../src && $(MAKE)
+
+cos:
 	cd $(EXAMPLES_ROOT)/../cos/naming && $(MAKE)
+
+err:
+	$(ERR)

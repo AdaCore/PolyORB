@@ -50,8 +50,11 @@ package CORBA.Object is
 
    --  Requires CORBA.InterfaceDef to be implemented.
 
-   --  function Get_Interface
-   --    (Self : in Ref) return CORBA.InterfaceDef.Ref;
+   function Get_Interface
+     (Self : in Ref)
+     return CORBA.Object.Ref'Class;
+   --  Return a reference to the InterfaceDef that describes
+   --  the designated object.
 
    function Is_Nil  (Self : in Ref) return CORBA.Boolean;
    function Is_Null (Self : in Ref) return CORBA.Boolean

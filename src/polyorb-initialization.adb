@@ -34,12 +34,10 @@
 
 --  $Id$
 
+with PolyORB.Configuration;
 with PolyORB.Dynamic_Dict;
-pragma Elaborate_All (PolyORB.Dynamic_Dict);
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Utils.Chained_Lists;
-pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
 package body PolyORB.Initialization is
 
@@ -75,24 +73,25 @@ package body PolyORB.Initialization is
 
    Initialized : Boolean := False;
    World : Dep_Lists.List;
-   package World_Dict is new PolyORB.Dynamic_Dict (Module_Access);
+   package World_Dict is new PolyORB.Dynamic_Dict
+     (Value => Module_Access, No_Value => null);
 
    function Lookup_Module (Name : String) return Module_Access;
 
    function Lookup_Module (Name : String) return Module_Access is
    begin
-      return World_Dict.Lookup (Name);
-   exception
-      when World_Dict.Key_Not_Found =>
-         return null;
-      when others =>
-         raise;
+      return World_Dict.Lookup (Name, Default => null);
    end Lookup_Module;
 
    procedure Register_Module (Info : Module_Info)
    is
       M : Module;
    begin
+      if not Configuration.Get_Conf ("modules", Info.Name.all, True) then
+         pragma Debug (O (Info.Name.all & " is disabled."));
+         return;
+      end if;
+
       M.Info := Info;
       Append (World, new Module'(M));
    end Register_Module;
@@ -188,20 +187,34 @@ package body PolyORB.Initialization is
          Current := Value (MI).all;
          SI := First (Current.Info.Depends);
          while not Last (SI) loop
-            Prepend (Current.Deps, World_Dict.Lookup (Value (SI).all));
+            declare
+               Dep_Name : String renames Value (SI).all;
+               Dep_Module : Module_Access;
+               Last : Integer := Dep_Name'Last;
+               Optional : Boolean := False;
+            begin
+               if Last in Dep_Name'Range
+                 and then Dep_Name (Last) = '?'
+               then
+                  Optional := True;
+                  Last := Last - 1;
+               end if;
+               Dep_Module := Lookup_Module
+                 (Dep_Name (Dep_Name'First .. Last));
+               if Dep_Module /= null then
+                  Prepend (Current.Deps, Dep_Module);
+               elsif not Optional then
+                  O ("Unresolved dependency: "
+                       & Current.Info.Name.all & " -> "
+                       & Dep_Name, Critical);
+                  raise Unresolved_Dependency;
+               end if;
+            end;
             Next (SI);
          end loop;
 
          Next (MI);
       end loop;
-   exception
-      when World_Dict.Key_Not_Found =>
-         O ("Unresolved dependency: "
-            & Current.Info.Name.all & " -> "
-            & Value (SI).all, Critical);
-         raise Unresolved_Dependency;
-      when others =>
-         raise;
    end Resolve_Dependencies;
 
    -----------------------------------------------------------

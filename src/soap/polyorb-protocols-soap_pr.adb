@@ -33,6 +33,7 @@
 --  $Id$
 
 with Ada.Strings.Unbounded;
+with Ada.Exceptions;
 
 with AWS.Response;
 
@@ -42,22 +43,20 @@ with SOAP.Message.Payload;
 with SOAP.Message.Response;
 with SOAP.Parameters;
 
-with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Data.SOAP;
+with PolyORB.Buffer_Sources;
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Methods;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
-with PolyORB.Utils.Text_Buffers;
 
 package body PolyORB.Protocols.SOAP_Pr is
 
@@ -70,10 +69,6 @@ package body PolyORB.Protocols.SOAP_Pr is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Request_Note is new Annotations.Note with record
-      SOAP_Req : SOAP.Message.Payload.Object;
-   end record;
-
    --------------------
    -- Implementation --
    --------------------
@@ -82,6 +77,10 @@ package body PolyORB.Protocols.SOAP_Pr is
      (Proto   : access SOAP_Protocol;
       Session : out Filter_Access)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Proto);
+      pragma Warnings (On);
+
       Result : constant Filter_Access
         := new SOAP_Session;
    begin
@@ -105,12 +104,23 @@ package body PolyORB.Protocols.SOAP_Pr is
       --  with a mutex on Session.Pending_Request that would be taken
       --  here in Invoke_Request and released when the answer is
       --  received.
-      P := SOAP.Message.Payload.Build
-        (Types.To_Standard_String (R.Operation),
-         SOAP.Parameters.List'(R.Args with null record));
 
-      pragma Debug (O ("SOAP message constructed: "));
-      pragma Debug (O (SOAP.Message.XML.Image (P)));
+      begin
+         P := SOAP.Message.Payload.Build
+           (Types.To_Standard_String (R.Operation),
+            SOAP.Parameters.List'(R.Args with null record));
+
+         pragma Debug (O ("SOAP message constructed: "));
+         pragma Debug (O (SOAP.Message.XML.Image (P)));
+      exception
+         when E : others =>
+            pragma Debug (O ("SOAP message: exception in Image:"));
+            pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
+            --  Cleanup before propagating exception to caller.
+            S.Pending_Rq := null;
+            raise;
+      end;
+
       --  RD := (R_Headers, R_Body => SOAP.Message.XML.Image (P));
       Components.Emit_No_Reply
         (Lower (S),
@@ -135,9 +145,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       (S : access SOAP_Session;
        R : Requests.Request_Access)
    is
-      N : Request_Note;
    begin
-      Annotations.Get_Note (R.Notepad, N);
       declare
          use PolyORB.Any;
          use PolyORB.Any.NVList;
@@ -147,13 +155,15 @@ package body PolyORB.Protocols.SOAP_Pr is
          use SOAP.Parameters;
 
          RO : SOAP.Message.Response.Object
-           := SOAP.Message.Response.From (N.SOAP_Req);
+           := SOAP.Message.Response.From
+           (SOAP.Message.Payload.Object (S.Current_SOAP_Req.all));
          RP : SOAP.Parameters.List;
 
          Args : constant NV_Sequence_Access
            := List_Of (R.Args);
          A : Any.NamedValue;
       begin
+         SOAP.Message.Payload.Free (S.Current_SOAP_Req);
          RP := +R.Result;
          for I in 1 .. Get_Count (R.Args) loop
             A :=  NV_Sequence.Element_Of (Args.all, Positive (I));
@@ -184,75 +194,77 @@ package body PolyORB.Protocols.SOAP_Pr is
       end;
    end Send_Reply;
 
-   procedure Process_Reply
-     (S : access SOAP_Session;
-      Entity : String);
+   procedure Process_Reply (S   : access SOAP_Session);
 
-   procedure Process_Reply
-     (S : access SOAP_Session;
-      Entity : String)
+   procedure Process_Reply (S   : access SOAP_Session)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Sequence;
 
-      M : constant Standard.SOAP.Message.Response.Object'Class
-        := Standard.SOAP.Message.XML.Load_Response (Entity);
-      Return_Args : constant Any.NVList.Ref
-        := Any.NVList.Ref (Message.Parameters (M));
-
       R : constant Requests.Request_Access := S.Pending_Rq;
+
+      Return_Args : PolyORB.Any.NVList.Ref := R.Args;
+      Src : aliased Buffer_Sources.Input_Source;
 
    begin
       if R = null then
          raise Protocol_Error;
          --  Received a reply with no pending request.
       end if;
+      R.Result.Arg_Modes := ARG_OUT;
+      --  Ensure proper mode for Result.
+      List_Of (Return_Args).all := R.Result & List_Of (Return_Args).all;
+
+      Buffer_Sources.Set_Buffer (Src, S.In_Buf);
+      declare
+         M : SOAP.Message.Response.Object_Access
+           := Standard.SOAP.Message.XML.Load_Response
+           (Src'Access, Return_Args);
+      begin
+         SOAP.Message.Response.Free (M);
+      end;
+      --  Only evaluate the side effects of Load_Response.
+      --  The values designated by the any's in Return_Args
+      --  will be modified in-place: no copy is necessary.
 
       --  XXX BAD BAD this subprogram does not take into account
       --  the case where a FAULT or EXCEPTION has been received
       --  instead of a normal reply!!
 
       S.Pending_Rq := null;
-      declare
-         Result_Any : Any.Any
-           := Element_Of (List_Of (Return_Args).all, 1).Argument;
-      begin
-         Copy_Any_Value (R.Result.Argument, Result_Any);
-      end;
-      Delete (List_Of (Return_Args).all, 1, 1);
-      --  XXX assumes that method result is arg #1.
 
-      PolyORB.Requests.Pump_Up_Arguments
-        (Dst_Args => R.Args, Src_Args => Return_Args,
-         Direction => ARG_OUT);
-      --  XXX Ignore_Src_Mode => True!
+      Buffers.Release_Contents (S.In_Buf.all);
 
       Components.Emit_No_Reply
-        (S.Server,
+        (R.Requesting_Component,
          Objects.Interface.Executed_Request'(Req => R));
-
    end Process_Reply;
+
+   procedure Handle_Unmarshall_Arguments
+     (S    : access SOAP_Session;
+      Args : in out PolyORB.Any.NVList.Ref)
+   is
+      Src : aliased Buffer_Sources.Input_Source;
+   begin
+      Buffer_Sources.Set_Buffer (Src, S.In_Buf);
+      Message.XML.Load_Payload
+        (Src'Access, Args, S.Current_SOAP_Req);
+      Buffers.Release_Contents (S.In_Buf.all);
+   end Handle_Unmarshall_Arguments;
 
    procedure Handle_Data_Indication
      (S : access SOAP_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count)
    is
-      Entity : String (1 .. Integer (Data_Amount));
-      --  XXX BAD BAD should be a Types.String so as not to
-      --  overflow the stack.
    begin
-      Utils.Text_Buffers.Unmarshall_String (S.In_Buf, Entity);
-      pragma Debug (O ("SOAP entity received: " & Entity));
       if S.Role = Server then
          declare
             use Ada.Streams;
             use PolyORB.Binding_Data.Local;
             use PolyORB.Types;
 
-            M : constant Message.Payload.Object
-              := Message.XML.Load_Payload (Entity);
             Req : Request_Access;
 
             Result : Any.NamedValue;
@@ -262,7 +274,7 @@ package body PolyORB.Protocols.SOAP_Pr is
             ORB : constant ORB_Access := ORB_Access (S.Server);
 
             Target : References.Ref;
-            Target_Profile : Binding_Data.Profile_Access
+            Target_Profile : constant Binding_Data.Profile_Access
               := new Local_Profile_Type;
             --  Should be free'd when Target is finalized.
 
@@ -286,6 +298,15 @@ package body PolyORB.Protocols.SOAP_Pr is
 
             The_Oid : Objects.Object_Id_Access := Path_To_Oid (S.Target);
 
+            SOAP_Action_Msg : constant AWS_Interface.AWS_SOAP_Action
+              := AWS_Interface.AWS_SOAP_Action
+              (Components.Emit
+               (Lower (S), AWS_Interface.AWS_Get_SOAP_Action'
+                (null record)));
+
+            Args : Any.NVList.Ref;
+            --  Nil (not initialised).
+
          begin
             Create_Local_Profile
               (The_Oid.all, Local_Profile_Type (Target_Profile.all));
@@ -298,18 +319,15 @@ package body PolyORB.Protocols.SOAP_Pr is
             Result.Name := To_PolyORB_String ("Result");
             Create_Request
               (Target    => Target,
-               Operation => Standard.SOAP.Message.Payload.Procedure_Name (M),
-               Arg_List  => Any.NVList.Ref
-               (Standard.SOAP.Message.Parameters (M)),
+               Operation => To_Standard_String
+               (SOAP_Action_Msg.SOAP_Action),
+               Arg_List  => Args,
                Result    => Result,
-               Deferred_Arguments_Session => null,
+               Deferred_Arguments_Session =>
+                 Components.Component_Access (S),
                Req       => Req);
             S.Target := Types.To_PolyORB_String ("");
-
-            Annotations.Set_Note
-              (Req.Notepad,
-               Request_Note'(Annotations.Note
-                             with SOAP_Req => M));
+            S.Entity_Length := Data_Amount;
 
             PolyORB.ORB.Queue_Request_To_Handler
               (ORB.Tasking_Policy, ORB,
@@ -318,7 +336,7 @@ package body PolyORB.Protocols.SOAP_Pr is
                 Requestor => Components.Component_Access (S)));
          end;
       else
-         Process_Reply (S, Entity);
+         Process_Reply (S);
       end if;
    end Handle_Data_Indication;
 
@@ -360,7 +378,8 @@ package body PolyORB.Protocols.SOAP_Pr is
          Sess.Target := Set_Target_Object (S).Target;
          return Result;
       else
-         return Handle_Message (Session (Sess.all)'Access, S);
+         return PolyORB.Protocols.Handle_Message
+           (Session (Sess.all)'Access, S);
          --  Call ancestor method.
       end if;
    end Handle_Message;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,18 +35,14 @@
 with Ada.Streams;   use Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
-with CORBA;
---  For Exception_Occurrence.
-
-with Sequences.Unbounded;
-
 with PolyORB.Buffers;
 with PolyORB.Binding_Data;
+with PolyORB.Objects;
+with PolyORB.ORB;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Requests;
-with PolyORB.Objects;
-with PolyORB.ORB;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Storage_Pools;
 with PolyORB.Types;
 with PolyORB.Representations.CDR;
@@ -324,9 +320,10 @@ private
 
    procedure Request_Message
      (Ses               : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
+      Pend_Req          : access Pending_Request;
       Response_Expected : in Boolean;
-      Fragment_Next     : out Boolean);
+      Fragment_Next     : out Boolean;
+      Sync_Type         : in Sync_Scope);
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
@@ -337,7 +334,7 @@ private
      (Ses             : access GIOP_Session;
       Request         :  Requests.Request_Access;
       Exception_Type  : in Reply_Status_Type;
-      Occurence       : in CORBA.Exception_Occurrence;
+      Occurence       : in Any.Any;
       Fragment_Next   : out Boolean);
 
    procedure Location_Forward_Reply
@@ -346,7 +343,7 @@ private
       Forward_Ref     : in PolyORB.References.IOR.IOR_Type;
       Fragment_Next   : out Boolean);
 
-   procedure Need_Addressing_Mode_Message
+   procedure Needs_Addressing_Mode_Message
      (Ses             : access GIOP_Session;
       Request         : Requests.Request_Access;
       Address_Type    : in Addressing_Disposition);
@@ -355,13 +352,11 @@ private
      (Ses             : access GIOP_Session;
       Request         : Requests.Request_Access);
 
-
    procedure Locate_Request_Message
      (Ses             : access GIOP_Session;
       Request         : Requests.Request_Access;
       Object_Key      : access Objects.Object_Id;
       Fragment_Next   : out Boolean);
-
 
    procedure Locate_Reply_Message
      (Ses             : access GIOP_Session;
@@ -431,6 +426,13 @@ private
    --  XXX The components of GIOP session should be documented!
 
    type GIOP_Protocol is new Protocol with null record;
+
+   ----------------------------------------------
+   -- Constants shared by all versions of GIOP --
+   ----------------------------------------------
+
+   Nobody_Principal : constant Types.String
+     := Types.To_PolyORB_String ("nobody");
 
    Message_Header_Size : constant Stream_Element_Offset := 12;
 
