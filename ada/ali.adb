@@ -29,6 +29,7 @@
 with Binderr; use Binderr;
 with Butil;   use Butil;
 with Debug;   use Debug;
+with Fname;   use Fname;
 with Namet;   use Namet;
 with Opt;     use Opt;
 with Osint;   use Osint;
@@ -799,6 +800,7 @@ package body ALI is
          Unit.Table (Unit.Last).Elaborate_Body := False;
          Unit.Table (Unit.Last).Version        := "00000000";
          Unit.Table (Unit.Last).First_With     := Withs.Last + 1;
+         Unit.Table (Unit.Last).Elab_Position  := 0;
 
          if Debug_Flag_U then
             Write_Str (" ----> reading unit ");
@@ -1080,71 +1082,38 @@ package body ALI is
          Checkc (' ');
          Checkc ('"');
 
-         declare
-            Lbuf : String (1 .. 16_000);
-            Llen : Natural := 0;
-            Lptr : Natural;
-            Dup  : Boolean;
-            Tptr : Natural;
+         Name_Len := 0;
 
-         begin
-            loop
-               C := Getc;
-
-               if C < ' ' then
-                  Fatal_Error;
-               end if;
-
-               exit when C = '"';
-               Llen := Llen + 1;
-               Lbuf (Llen) := C;
-            end loop;
-
-            Llen := Llen + 1;
-            Lbuf (Llen) := Ascii.NUL;
-
-            Skip_Eol;
+         loop
             C := Getc;
 
-            --  Now see if we already have this string stored
-
-            Dup := False;
-            Lptr := 0;
-            Tptr := 1;
-
-            while Tptr <= Linker_Options.Last loop
-               Lptr := Lptr + 1;
-
-               if Linker_Options.Table (Tptr) = Lbuf (Lptr) then
-                  if Lptr = Llen then
-                     Dup := True;
-                     exit;
-                  end if;
-
-               elsif Linker_Options.Table (Tptr) = Ascii.Nul then
-                  Lptr := 0;
-
-               else
-                  loop
-                     Tptr := Tptr + 1;
-                     exit when Linker_Options.Table (Tptr) = Ascii.NUL;
-                  end loop;
-
-                  Lptr := 0;
-               end if;
-
-               Tptr := Tptr + 1;
-            end loop;
-
-            --  If not a duplicate, add new string to table
-
-            if not Dup then
-               for J in 1 .. Llen loop
-                  Linker_Options.Increment_Last;
-                  Linker_Options.Table (Linker_Options.Last) := Lbuf (J);
-               end loop;
+            if C < ' ' then
+               Fatal_Error;
             end if;
-         end;
+
+            exit when C = '"';
+            Add_Char_To_Name_Buffer (C);
+         end loop;
+
+         Add_Char_To_Name_Buffer (Ascii.NUL);
+
+         Skip_Eol;
+         C := Getc;
+
+         Linker_Options.Increment_Last;
+
+         Linker_Options.Table (Linker_Options.Last).Name
+           := Name_Enter;
+
+         Linker_Options.Table (Linker_Options.Last).Unit
+           := ALIs.Table (Id).First_Unit;
+
+         Linker_Options.Table (Linker_Options.Last).Internal_File
+           := Is_Internal_File_Name (F);
+
+         Linker_Options.Table (Linker_Options.Last).Original_Pos
+           := Linker_Options.Last;
+
       end loop;
 
       --  Scan out source dependency lines for this ALI file

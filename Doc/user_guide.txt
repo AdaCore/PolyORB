@@ -118,10 +118,10 @@ distributed application:
    by calling gnatmake on the sources of the various partitions.
    This step can be skipped by using the -n option.
 
-2. Stubs are generated and compiled into object modules (a stub is the
-   software that allows a partition running on machine A to communicate
-   with a partition running on machine B). Several timestamp checks
-   are performed to avoid useless recompilation.
+2. Stubs are compiled into object modules (a stub is the software that
+   allows a partition running on machine A to communicate with a
+   partition running on machine B).  Several timestamp checks are
+   performed to avoid useless recompilation.
 
 3. gnatdist performs a number of consistency checks, for instance it
    checks that all packages marked as remote call interfaces (RCI, see
@@ -329,7 +329,7 @@ have to do is:
 Warnings.
 ---------
 
-All GLADE intermediate files (stubs, objects, etc) are stored under a
+All GLADE intermediate files (object files, etc) are stored under a
 common directory named "dsa". You may remove this whole directory and
 its content when you do not intend to rebuild your distributed
 applications.

@@ -877,11 +877,12 @@ package body Make is
             Comp_Args (Args'First + 1 .. Comp_Last) := Args;
          end if;
 
-         --  The directory name needs to be stripped from the source file S
-         --  because Fname.Is_Predefined_File_Name cannot deal with directory
-         --  prefixes.
+         --  Set -gnatg for predefined files (for this purpose the renamings
+         --  such as Text_IO do not count as predefined). Note that we strip
+         --  the directory name from the source file name becase the call to
+         --  Fname.Is_Predefined_File_Name cannot deal with directory prefixes.
 
-         if Is_Predefined_File_Name (Strip_Directory (S)) then
+         if Is_Predefined_File_Name (Strip_Directory (S), False) then
             Comp_Last := Comp_Last + 1;
             Comp_Args (Comp_Last) := GNAT_Flag;
          end if;

@@ -1,3 +1,54 @@
+1998-01-05  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garfil.adb, s-garfil.ads: Complete rewritting of filters. Use
+ 	System.Garlic.Table to improve readibility and complexity of this
+ 	unit. Partition names are not exchanged at this level any
+ 	more. Remove Print_Params abstract procedure and add Free_Params
+ 	abstract procedure. 
+
+	* s-gafizi.ads, s-gafizi.adb, s-gafino.ads, s-gafino.adb: Use new
+	implementation of System.Garlic.Filters.
+
+	* s-ganata.adb, s-ganata.ads: Change Name_Id range to avoid
+ 	erroneous casts and add debugging info.
+
+	* s-garhea.adb: Allow to dump incoming or outgoing streams. Store
+ 	partition name in the partition map. When partitions register,
+ 	their name is sent to the boot server. The boot partition case is
+ 	a little bit tricky as its location is already defined.
+
+	* s-garsta.adb: Force proper initialization of partition map for
+ 	boot server. Basically, some fields were not initialized but some
+ 	others were.
+
+	* s-garstr.ads, s-garstr.adb: Add new procedure Dump to dump a
+ 	stream. Signature similar to Print_Debug_Info.
+
+	* s-gartcp.adb: Add partition name into initial message during
+ 	boot phase.
+
+	* s-parint.adb: Fix some bugs (infinite loops through message
+ 	passing).
+
+1998-01-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartyp.ads: New file containing preelaborated types. The only
+	one currently is String_Access.
+
+	* s-garuti.ads, s-garopt.ads, s-garopt.adb, s-garhea.ads, s-garhea.adb,
+	 s-gaphlo.ads, s-gaphlo.adb, s-ganata.adb, s-garuni.ads, s-garnam.ads,
+	 s-garnam.adb: use String_Access from s-gartyp.ads
+
+	* Makefile.am: Add s-gartyp.{ads,o,ali}
+	Add a new "fast" target using gnatmake instead of dependencies
+
+	* header.txt: Updated for (c) 1996-1998
+
+1997-12-30  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.sh: Do not include linux/fcntl.h, this is useless and
+ 	makes the build of s-garcon.ads fail.
+
 1997-12-15  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garnam.adb: Use Mutex from System.Garlic.Utils

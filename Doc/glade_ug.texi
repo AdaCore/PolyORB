@@ -8,8 +8,8 @@
 
 @title GLADE User's Guide
 @subtitle GLADE, GNAT Library for Ada Distributed Environment
-@subtitle Version 1.02 (DRAFT)
-@subtitle April 13, 1997
+@subtitle Version 2.01 (DRAFT)
+@subtitle December 16, 1997
 @author Laurent Pautet, Samuel Tardieu
 
 @page
@@ -81,8 +81,6 @@ The GLADE configuration language
 The GLADE Building Model
 
 * Parsing The Configuration File::
-* Generating Stub Ada Files::
-* Generating Stub Ada Files::
 * Generating Partition Ada Files::
 * Linking A Partition::
 

@@ -21,7 +21,9 @@ New Functionnalities
     GNAT does not generate plain Ada stubs anymore but generates
     object file directly instead. GNATDIST takes advantages from this
     and compilation times are reduced by an important factor for
-    distributed programs that contain a lot of RCI packages.
+    distributed programs that contain a lot of RCI packages. This
+    justifies the new major number for GLADE, which gets bumped to
+    version 2.01.
 
   * Parallel compilation
     GNATDIST now partially supports the -jN flag, where N is the
@@ -67,6 +69,8 @@ Misc
 ----
 
   * Less tasks are created by the partition communication subsystem
+
+  * Adapted for use with the GNU libc under Linux
 
 Changes since GLADE 1.02
 ========================

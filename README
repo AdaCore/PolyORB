@@ -144,12 +144,6 @@ etc during this process).
 Please include COMPLETE identification of the version of the system
 you are running.
 
-Also please add, at the beginning of your mail, the output of the 
-"gnatdist -V" command, especially the part surrounded by bracketed lines.
-The information contained in these cryptic lines (this is in fact the
-file Dist/glade_version.txt in the distribution) helps us to track the
-exact version you got.
-
 To be maximally helpful, for a report that contains multiple separate
 compilation units, and hence multiple files, submit them in the form
 of a single file that is acceptable input to gnatchop i.e. contains no
@@ -193,11 +187,14 @@ GLADE History.
 GLADE has been jointly developed by Ada Core Technologies and a
 research team from the Ecole Nat. Sup. de Telecommunication (Paris &
 Brittany). The ENST teams comprise:
-  Yvon Kermarrec (yvon.kermarrec@enst-bretagne.fr),
-  Laurent Nana   (Laurent.Nana@enst-bretagne.fr),
   Laurent Pautet (pautet@inf.enst.fr),
   Samuel Tardieu (sam@inf.enst.fr).
 
+GLADE has been jointly developed by Ada Core Technologies and a research
+team from the École Nationale Supérieure des Télécommunications (ENST).
+The ENST team is composed of:
+  Laurent Pautet (pautet@inf.enst.fr),
+  Samuel Tardieu (sam@inf.enst.fr).
 
 Contributions.
 ---------------

@@ -247,6 +247,11 @@ package ALI is
       --  is used for informational output, and also for constructing the
       --  main unit if it is being built in Ada.
 
+      Elab_Position : aliased Natural;
+      --  Initialized to zero. Set non-zero when a unit is chosen and
+      --  placed in the elaboration order. The value represents the
+      --  ordinal position in the elaboration order.
+
    end record;
 
    package Unit is new Table.Table (
@@ -309,8 +314,15 @@ package ALI is
    --  second entry is suppressed. Each entry is a character sequence
    --  terminated by a NUL character.
 
+   type Linker_Option_Record is record
+      Name          : Name_Id;
+      Unit          : Unit_Id;
+      Internal_File : Boolean;
+      Original_Pos  : Positive;
+   end record;
+
    package Linker_Options is new Table.Table (
-     Table_Component_Type => Character,
+     Table_Component_Type => Linker_Option_Record,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,
      Table_Initial        => 200,
