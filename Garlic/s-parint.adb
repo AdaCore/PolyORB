@@ -317,7 +317,7 @@ package body System.Partition_Interface is
    end Get_Active_Partition_ID;
 
    ------------------------------
-   -- Get_RCI_package_Receiver --
+   -- Get_RCI_Package_Receiver --
    ------------------------------
 
    function Get_RCI_Package_Receiver
@@ -476,7 +476,7 @@ package body System.Partition_Interface is
 
       pragma Debug (D (D_Debug, "Request " & Code'Img & " for " & Name.all));
 
-      --  Dispatch accoring to opcode.
+      --  Dispatch according to opcode.
 
       case Code is
 
@@ -534,8 +534,6 @@ package body System.Partition_Interface is
             end if;
 
             Units_Keeper.Unlock (Modified);
-
-
 
          when Unset_Unit_Info =>
 
@@ -764,7 +762,7 @@ package body System.Partition_Interface is
    end Get_Active_Version;
 
    ------------------------------
-   -- Get_RCI_package_Receiver --
+   -- Get_RCI_Package_Receiver --
    ------------------------------
 
    function Get_RCI_Package_Receiver

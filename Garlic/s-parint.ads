@@ -43,9 +43,8 @@ package System.Partition_Interface is
    --  This type is used exclusively by stubs.
 
    subtype Unit_Name is String;
-   type Unit_Name_Access is access String;
-   --  Name of RCI unit. The access type should be access Unit_Name. Will
-   --  be changed back for GNAT 3.10+ (XXXXX)
+   type Unit_Name_Access is access Unit_Name;
+   --  Name of RCI unit.
 
    function Get_Local_Partition_ID return RPC.Partition_ID;
    --  Return the Partition_ID of the current partition.
