@@ -97,118 +97,183 @@ package NetBufferedStream is
 
 
    procedure Marshall (A : in Corba.Char ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.Char into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Char ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.Char from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Char ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.Boolean ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.Boolean into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Boolean ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.Boolean from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Boolean ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.Short ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.Short into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Short ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.Short from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Short ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.Unsigned_Short ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.Unsigned_Short into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Unsigned_Short ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.Unsigned_Short from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Unsigned_Short ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.Long ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.Long into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Long ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.Long from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Long ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.Unsigned_Long ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.Unsigned_Long into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Unsigned_Long ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.Unsigned_Long from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Unsigned_Long ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.Float ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.Float into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Float ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.Float from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Float ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.Double ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.Double into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Double ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.Double from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Double ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.String ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.String into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.String ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.String from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.String ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.Completion_Status ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba.Completion_Status into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Completion_Status ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba.Completion_Status from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Completion_Status ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.Ex_Body'Class ;
-                       S : in out Object'Class);
+                       S : in out Object'Class) ;
    -- Marshalls a Corba system exception into a netbufferedstream object
 
 
    procedure UnMarshall (A : out Corba.Ex_Body'Class ;
-                         S : in out Object'Class);
+                         S : in out Object'Class) ;
    -- UnMarshalls a Corba system exception from a netbufferedstream object
 
 
+   function Align_Size (A : in Corba.Ex_Body ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
 
    function Is_Reusing_Existing_Connection (Self : in Object'Class)
-                                            return CORBA.Boolean;
+                                            return CORBA.Boolean ;
    -- Indicates whether the netbufferedstream is reusing an existing
    -- connection or not.
    -- (see rope.h L400 for more details)
@@ -216,9 +281,9 @@ package NetBufferedStream is
 
 private
 
-   function Constructor return Object'Class;
-   pragma CPP_Constructor (Constructor);
-   pragma Import (CPP,Constructor,"__21Ada_netBufferedStream");
+   function Constructor return Object'Class ;
+   pragma CPP_Constructor (Constructor) ;
+   pragma Import (CPP,Constructor,"__21Ada_netBufferedStream") ;
    -- default constructor of the C class.
    -- Actually, this constructor does nothing and you must
    -- call Init to init properly an object.

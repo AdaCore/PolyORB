@@ -54,6 +54,34 @@ with Ada.Exceptions ;
 
 package body Giop_S is
 
+   -- C_To_Ada_Unsigned_Long
+   -------------------------
+   function C_To_Ada_Unsigned_Long is
+     new Ada.Unchecked_Conversion (Interfaces.C.Unsigned_Long,
+                                   Corba.Unsigned_Long) ;
+   -- needed to change C type Interfaces.C.Unsigned_Long
+   -- into Ada type Corba.Unsigned_Long
+
+
+   -- C_Reply_Header_Size
+   ----------------------
+   function C_Reply_Header_Size (Self : in Object'Class)
+                                 return Interfaces.C.Unsigned_Long ;
+   pragma Import (CPP,C_Reply_Header_Size,"ReplyHeaderSize__6GIOP_S") ;
+
+   -- Reply_Header_Size
+   --------------------
+   function Reply_Header_Size (Self : in Object'Class)
+                               return Corba.Unsigned_Long is
+      C_Result : Interfaces.C.Unsigned_Long ;
+   begin
+      -- calls the C function ...
+      C_Result := C_Reply_Header_Size (Self) ;
+      -- ... and transforms the result into an Ada type
+      return C_To_ada_Unsigned_Long (C_Result) ;
+   end ;
+
+
    -- C_Request_Received
    ---------------------
    procedure C_Request_Received (Self : in Object'Class ;

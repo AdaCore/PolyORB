@@ -156,10 +156,10 @@ iop.ali : iop.ads iop.adb netbufferedstream.ali membufferedstream.ali \
 corba.ali
 
 membufferedstream.ali : membufferedstream.ads membufferedstream.adb \
-corba.ali sys_dep.ali Ada_memBufferedStream.o
+corba.ali sys_dep.ali Ada_memBufferedStream.o omni.ali
 
 netbufferedstream.ali : netbufferedstream.ads netbufferedstream.adb \
-corba.ali sys_dep.ali rope.ali Ada_netBufferedStream.o
+corba.ali sys_dep.ali rope.ali Ada_netBufferedStream.o omni.ali
 
 omni.ali: omni.ads omni.adb corba.ali
 

@@ -63,6 +63,7 @@ with Interfaces.C ;
 with Corba ;
 use type Corba.String ;
 use type Corba.Unsigned_Long ;
+with Omni ;
 
 package body NetBufferedStream is
 
@@ -118,8 +119,8 @@ package body NetBufferedStream is
    -- into C type Interfaces.C.Char
 
 
-   -- C_Marshall
-   -------------
+   -- C_Marshall_1
+   ---------------
    procedure C_Marshall_1 (A : in Interfaces.C.Char ;
                            S : in out System.Address) ;
    pragma Import (C,C_Marshall_1,"marshall__21Ada_netBufferedStreamUcR17NetBufferedStream") ;
@@ -170,7 +171,19 @@ package body NetBufferedStream is
    end;
 
 
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Char ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+   begin
+      -- no alignment needed here
+      return Initial_Offset + 1 ;
+   end ;
+
+
    -- C_Marshall_2
+   ---------------
    procedure C_Marshall_2 (A : in Sys_Dep.C_Boolean ;
                            S : in out System.Address) ;
    pragma Import (C,C_Marshall_2,"marshall__21Ada_netBufferedStreambR17NetBufferedStream") ;
@@ -219,6 +232,18 @@ package body NetBufferedStream is
       -- ... and calls the C procedure
       C_UnMarshall_2 (C_A,C_S) ;
    end;
+
+
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Boolean ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+   begin
+      -- no alignment needed here
+      return Initial_Offset + 1 ;
+      -- Boolean is marshalled as an unsigned_char
+   end ;
 
 
    -- Ada_To_C_Short
@@ -291,6 +316,18 @@ package body NetBufferedStream is
    -- into C type Interfaces.C.Unsigned_Short
 
 
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Short ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+      Tmp : Corba.Unsigned_Long ;
+   begin
+      Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_2) ;
+      return Tmp + 2 ;
+   end ;
+
+
    -- C_Marshall_4
    ---------------
    procedure C_Marshall_4 (A : in Interfaces.C.Unsigned_Short ;
@@ -341,6 +378,18 @@ package body NetBufferedStream is
       -- ... and calls the C procedure
       C_UnMarshall_4 (C_A,C_S) ;
    end;
+
+
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Unsigned_Short ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+      Tmp : Corba.Unsigned_Long ;
+   begin
+      Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_2) ;
+      return Tmp + 2 ;
+   end ;
 
 
    -- Ada_To_C_Long
@@ -404,6 +453,18 @@ package body NetBufferedStream is
    end;
 
 
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Long ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+      Tmp : Corba.Unsigned_Long ;
+   begin
+      Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
+      return Tmp + 4 ;
+   end ;
+
+
    -- C_Marshall_6
    ---------------
    procedure C_Marshall_6 (A : in Interfaces.C.Unsigned_Long ;
@@ -454,6 +515,18 @@ package body NetBufferedStream is
       -- ... and calls the C procedure
       C_UnMarshall_6 (C_A,C_S) ;
    end;
+
+
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Unsigned_Long ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+      Tmp : Corba.Unsigned_Long ;
+   begin
+      Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
+      return Tmp + 4 ;
+   end ;
 
 
    -- Ada_To_C_Float
@@ -517,6 +590,18 @@ package body NetBufferedStream is
    end;
 
 
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Float ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+      Tmp : Corba.Unsigned_Long ;
+   begin
+      Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
+      return Tmp + 4 ;
+   end ;
+
+
    -- Ada_To_C_Double
    ------------------
    function Ada_To_C_Double is
@@ -578,6 +663,18 @@ package body NetBufferedStream is
    end;
 
 
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Double ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+      Tmp : Corba.Unsigned_Long ;
+   begin
+      Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_8) ;
+      return Tmp + 8 ;
+   end ;
+
+
    -- Marshall
    -----------
    procedure Marshall (A : in Corba.String ;
@@ -637,6 +734,18 @@ package body NetBufferedStream is
    end ;
 
 
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.String ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+   begin
+      -- no alignment needed here
+      return Initial_Offset + Corba.Length (A) + 1 ;
+      -- + 1 is for the null character (the strings ar marshalled in C style)
+   end ;
+
+
    -- Marshall
    -----------
    procedure Marshall (A : in Corba.Completion_Status ;
@@ -652,7 +761,7 @@ package body NetBufferedStream is
          when Corba.Completed_Maybe =>
             Marshall (Corba.Unsigned_Short (3),S) ;
       end case ;
-   end;
+   end ;
 
 
    -- UnMarshall
@@ -677,7 +786,19 @@ package body NetBufferedStream is
                                             "Short out of range" & Corba.CRLF &
                                             "(see netbufferedstream L660)");
       end case ;
-   end;
+   end ;
+
+
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Completion_Status ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+   begin
+      -- no alignment needed here
+      return Initial_Offset + 1 ;
+      -- a Completion_Status is marshalled as an unsigned_short
+   end ;
 
 
    -- Marshall
@@ -705,6 +826,20 @@ package body NetBufferedStream is
       A.Minor := Minor ;
       A.Completed := Completed ;
    end;
+
+
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Ex_Body ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+      Tmp : Corba.Unsigned_Long ;
+   begin
+      Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
+      return Initial_Offset + 5 ;
+      -- an Ex_body has two fields : an unsigned_long -> 4 bytes
+      --                             and a Completion_Status -> 1 bytes
+   end ;
 
 
    -- C_Is_Reusing_Existing_Connection

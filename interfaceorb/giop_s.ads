@@ -76,6 +76,11 @@ package Giop_S is
    -- type pointer on type Object
 
 
+   function Reply_Header_Size (Self : in Object'Class)
+                               return Corba.Unsigned_Long ;
+   -- compute the size of the header for a reply
+
+
    procedure Request_Received (Self : in Object'Class ;
                                Skip : in Boolean) ;
    -- informs the ORB that the request was received
