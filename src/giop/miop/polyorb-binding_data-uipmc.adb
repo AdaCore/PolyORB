@@ -145,6 +145,8 @@ package body PolyORB.Binding_Data.UIPMC is
 
       Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
 
+      Set_Allocation_Class (TE.all, Dynamic);
+
       Binding_Objects.Setup_Binding_Object
         (ORB.ORB_Access (The_ORB),
          TE,
