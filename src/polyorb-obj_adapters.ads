@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,13 +57,6 @@ package PolyORB.Obj_Adapters is
 
    procedure Destroy (OA : access Obj_Adapter) is abstract;
    --  Finalize.
-
-   Invalid_Object_Id : exception;
-   --  An invalid object identifier was passed to an object
-   --  adapter subprogram.
-
-   Invalid_Method : exception;
-   --  A method was invoked on an object that does not implement it.
 
    procedure Set_ORB
      (OA      : access Obj_Adapter;
