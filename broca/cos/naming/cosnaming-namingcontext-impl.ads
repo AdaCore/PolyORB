@@ -3,36 +3,36 @@ with PortableServer;
 
 package CosNaming.NamingContext.Impl is
 
-   NC_Id_Size : constant := 4;
-   type NC_Id is new String (1 .. NC_Id_Size);
+   Key_Size : constant := 4;
+   type Key_Type is new String (1 .. Key_Size);
 
    type String_Access is access String;
 
-   type Bounded_Object;
-   type Bounded_Object_Ptr is access Bounded_Object;
+   type Bound_Object;
+   type Bound_Object_Ptr is access Bound_Object;
 
    type Object;
    type NamingContext_Ptr is access all Object'Class;
 
-   type Bounded_Object is
+   type Bound_Object is
       record
          BN   : NameComponent;
          BT   : BindingType;
          Obj  : CORBA.Object.Ref;
-         Prev : Bounded_Object_Ptr;
-         Next : Bounded_Object_Ptr;
+         Prev : Bound_Object_Ptr;
+         Next : Bound_Object_Ptr;
          NC   : NamingContext_Ptr;
       end record;
 
    type Object is
      new PortableServer.Servant_Base with
       record
-         Id   : NC_Id;
+         Key  : Key_Type;
          Self : NamingContext_Ptr;
          Prev : NamingContext_Ptr;
          Next : NamingContext_Ptr;
-         Head : Bounded_Object_Ptr;
-         Tail : Bounded_Object_Ptr;
+         Head : Bound_Object_Ptr;
+         Tail : Bound_Object_Ptr;
       end record;
 
    procedure Bind
