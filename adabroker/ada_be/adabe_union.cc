@@ -15,7 +15,7 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
   ada_name.compute;
   temp += "type " + ada_name
   name = disc_type().get_ada_name().compute
-  temp += "(Switch : "  + get_ada_type(pd_udisc_type) + " := " + name + "'first) is record";
+  temp += "(Switch : "  + disc_type().dump_name() + " := " + name + "'first) is record";
   temp += "\n case Switch is"
   for each node in UTL_scope:    //this
   {
@@ -50,14 +50,6 @@ IMPL_NARROW_FROM_SCOPE(adabe_union);
 //void produce_impl_adb(std::fstream& s);
 
 
-string
-adabe_union::get_ada_type(AST_Expression::ExprType pd_udisc_type)
-  /*
-    determine the ada type of pd_udisc_type with a case of the EV_type
-    warning: the EV_any correspond to the enum type
-  */
-
-};
 
 
 

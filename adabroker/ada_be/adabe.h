@@ -200,9 +200,6 @@ public:
   //  void produce_impl_ads(std::fstream& s);
   //  void produce_impl_adb(std::fstream& s);
 
- private:
-  string get_ada_type(AST_Expression::ExprType pd_udisc_type);
-
 };
 
 
