@@ -1,3 +1,9 @@
+2000-01-19  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garthi.ads: Default address family for Sockaddr_In is AF_INET.
+
+	* constants.sh (constants): Add PF_INET constant.
+
 1999-12-13  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* Makefile.am, Makefile.in: Rebuild because of configure.in
