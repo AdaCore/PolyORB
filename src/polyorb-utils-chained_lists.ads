@@ -75,6 +75,9 @@ package PolyORB.Utils.Chained_Lists is
    function "&" (L1, L2 : List) return List;
    --  Concatenate L1 and L2;
 
+   function Duplicate (L : List) return List;
+   --  Return a copy of list L.
+
    procedure Deallocate (L : in out List);
 
    pragma Inline (First);

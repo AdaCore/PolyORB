@@ -79,6 +79,35 @@ package body PolyORB.Utils.Chained_Lists is
       L.Last := null;
    end Deallocate;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate (L : List) return List is
+      D : List          := Empty;
+      N : Node_Access   := L.First;
+      P : Node_Access;
+      Q : Node_Access;
+   begin
+      if N = null then
+         return D;
+      end if;
+      D.First := new Node'(Value => N.Value,
+                           Next => null);
+      P := D.First;
+      Q := D.First;
+      N := N.Next;
+      while N /= null loop
+         P := Q;
+         Q := new Node'(Value => N.Value,
+                             Next => null);
+         P.Next := Q;
+         N := N.Next;
+      end loop;
+      D.Last := Q;
+      return D;
+   end Duplicate;
+
    -------------
    -- Element --
    -------------
