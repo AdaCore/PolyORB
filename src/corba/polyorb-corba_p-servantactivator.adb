@@ -49,8 +49,7 @@ package body PolyORB.CORBA_P.ServantActivator is
    begin
       Self := new CORBA_ServantActivator;
 
-      CORBA_ServantActivator (Self.all).SA
-        := PortableServer.ServantActivator.SA_Ptr (SA);
+      CORBA_ServantActivator (Self.all).SA := SA_Ptr (SA);
    end Create;
 
    -------------------------

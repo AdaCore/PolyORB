@@ -71,8 +71,10 @@ package PolyORB.CORBA_P.ServantActivator is
 
 private
 
+   type SA_Ptr is access all PortableServer.ServantActivator.Ref'Class;
+
    type CORBA_ServantActivator is new PPT.ServantActivator with record
-      SA : PortableServer.ServantActivator.SA_Ptr;
+      SA : SA_Ptr;
    end record;
 
 end PolyORB.CORBA_P.ServantActivator;

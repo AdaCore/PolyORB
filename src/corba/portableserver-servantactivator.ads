@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantactivator.ads#4 $
+--  $Id: //droopi/main/src/corba/portableserver-servantactivator.ads#5 $
 
 with CORBA;
 with PortableServer.ServantManager;
@@ -44,8 +44,6 @@ with PortableServer.ServantManager;
 package PortableServer.ServantActivator is
 
    type Ref is new PortableServer.ServantManager.Ref with private;
-
-   type SA_Ptr is access all PortableServer.ServantActivator.Ref'Class;
 
    function Incarnate
      (Self    : in Ref;
