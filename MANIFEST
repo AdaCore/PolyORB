@@ -135,6 +135,8 @@ Garlic/2ugtplsp.ads
 Garlic/2wgarcon.ads
 Garlic/2wgtplsp.ads
 Garlic/2xgtplsp.ads
+Garlic/DALL
+Garlic/DOFF
 Garlic/Makefile.am
 Garlic/Makefile.in
 Garlic/Makefile.zip

@@ -2,6 +2,7 @@ with Server; use Server;
 with Types; use Types;
 with Text_IO; use Text_IO;
 with Message; use Message;
+with Terminal; use Terminal;
 
 procedure Client is
 

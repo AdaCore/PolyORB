@@ -110,7 +110,6 @@ AC_ARG_WITH(platform,
   sparc-sun-sunos4*)   PLATFORM_SPECIFIC=u;;
   *-linux*)            PLATFORM_SPECIFIC=l;;
   alpha-*-osf*)        PLATFORM_SPECIFIC=a;
-                       GNATFLAGS="${GNATFLAGS} -O0";;
   i?86-*-cygwin32)     PLATFORM_SPECIFIC=w;;
   mips-sgi-irix*)      PLATFORM_SPECIFIC=g;;
   mips-sni-sysv4)      PLATFORM_SPECIFIC=x;;

@@ -1,3 +1,7 @@
+1998-02-12  Laurent Guerby  <guerby@gnat.com>
+
+	* DOFF: new command file.
+
 1998-01-26  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gartyp.ads: Expose the type of Portable_Address so that it is

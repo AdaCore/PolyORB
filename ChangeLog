@@ -1,3 +1,7 @@
+1998-02-12  Laurent Guerby  <guerby@gnat.com>
+
+	* MANIFEST: Add Garlic/DALL and Garlic/DOFF to the distribution.
+
 1998-02-11  Laurent Guerby  <guerby@gnat.com>
 
 	* README: Fix typos.

@@ -1,4 +1,4 @@
-with Text_IO;
+with Text_IO; use Text_IO;
 with Types; use Types;
 with Server; use Server;
 with Alarm; use Alarm;
@@ -278,6 +278,7 @@ package body Bank is
       ID_1 : Customer_ID := Find (Donator);
       ID_2 : Customer_ID := Find (Customer);
       Term : Terminal_Access;
+      Ok   : Boolean := False;
    begin
       if ID_1 = Null_ID then
          raise Wrong_Donator;
@@ -292,8 +293,15 @@ package body Bank is
          if Term /= null then
             begin
                Notify (Term, Donator, Amount);
+               Ok := True;
             exception when others => null;
             end;
+         end if;
+         if not Ok then
+            New_Line;
+            New_Line;
+            Put_Line ("=> Warning: couldn't notify client of a transfer");
+            New_Line;
          end if;
       else
          raise Wrong_Password;
