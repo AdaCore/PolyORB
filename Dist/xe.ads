@@ -649,6 +649,10 @@ package XE is
    --  Return N name key if its value is in ALI_Id range, otherwise
    --  return No_ALI_Id.
 
+   function Already_Loaded (Unit : Name_Id) return Boolean;
+   --  Check that this unit has not been previously loaded in order
+   --  to avoid multiple entries in GNAT tables.
+
    procedure Load_All_Units (From : Unit_Name_Type);
    --  Recursively update GNAT internal tables by downloading all Uname
    --  dependent units if available.

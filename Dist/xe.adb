@@ -169,6 +169,9 @@ package body XE is
          Write_Name (From);
          Write_Eol;
       end if;
+      if Already_Loaded (From) then
+         return;
+      end if;
       File := From & ADB_Suffix;
       if Full_Source_Name (File) = No_Name then
          File := From & ADS_Suffix;
@@ -192,6 +195,27 @@ package body XE is
       end if;
       Read_ALI (Scan_ALI (Lib, Text));
    end Load_All_Units;
+
+   --------------------
+   -- Already_Loaded --
+   --------------------
+
+   function Already_Loaded (Unit : Name_Id) return Boolean is
+   begin
+      Get_Name_String (Unit);
+      Name_Len := Name_Len + 1;
+      Name_Buffer (Name_Len) := '%';
+      Name_Len := Name_Len + 1;
+      Name_Buffer (Name_Len) := 'b';
+      if Get_Name_Table_Info (Name_Find) /= 0 then
+         return True;
+      end if;
+      Name_Buffer (Name_Len) := 's';
+      if Get_Name_Table_Info (Name_Find) /= 0 then
+         return True;
+      end if;
+      return False;
+   end Already_Loaded;
 
    ----------------------
    -- Create_Partition --

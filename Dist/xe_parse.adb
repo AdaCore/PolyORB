@@ -1097,15 +1097,34 @@ package body XE_Parse is
          P_Full_Ada_Identifier;
          Expression_Name := Token_Name;
 
-         --  Increase the ada unit enumeration type.
+         Search_Variable (Expression_Name, Expression_Node);
 
-         Declare_Variable
-           (Configuration_Node,
-            Expression_Name,
-            Ada_Unit_Type_Node,
-            Unique,
-            Expression_Sloc,
-            Expression_Node);
+         --  Has this ada unit already been declared.
+
+         if Expression_Node /= Null_Variable then
+
+            if Get_Variable_Type (Expression_Node) /= Ada_Unit_Type_Node then
+               Write_Location (Expression_Sloc);
+               Write_Str  ("""");
+               Write_Name (Expression_Name);
+               Write_Str  (""" conflicts with a previous declaration");
+               Write_Eol;
+               Exit_On_Parsing_Error;
+            end if;
+
+         else
+
+            --  Increase the ada unit enumeration type.
+
+            Declare_Variable
+              (Configuration_Node,
+               Expression_Name,
+               Ada_Unit_Type_Node,
+               Unique,
+               Expression_Sloc,
+               Expression_Node);
+
+         end if;
 
          --  As a naming convention, we use the keyword Conf_Ada_Unit
          --  as a anonymous component name.

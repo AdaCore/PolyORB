@@ -89,45 +89,49 @@ package body XE_Check is
             for CUID in CUnit.First .. CUnit.Last loop
                Name := CUnit.Table (CUID).CUname;
 
-               --  Taken from Gnatmake.
+               if not Already_Loaded (Name) then
 
-               Look_For_Full_File_Name :
-               begin
-                  Full_Name := Get_File_Name (Name & Body_Suffix);
-                  if Full_Source_Name (Full_Name) = No_File then
-                     Full_Name := Get_File_Name (Name & Spec_Suffix);
+                  --  Taken from Gnatmake.
+
+                  Look_For_Full_File_Name :
+                  begin
+                     Full_Name := Get_File_Name (Name & Body_Suffix);
                      if Full_Source_Name (Full_Name) = No_File then
-                        Osint.Write_Program_Name;
-                        Write_Str (": """);
-                        Write_Name (Name);
-                        Write_Str (""" cannot be found");
-                        Write_Eol;
-                        Exit_Program (E_Fatal);
+                        Full_Name := Get_File_Name (Name & Spec_Suffix);
+                        if Full_Source_Name (Full_Name) = No_File then
+                           Osint.Write_Program_Name;
+                           Write_Str (": """);
+                           Write_Name (Name);
+                           Write_Str (""" cannot be found");
+                           Write_Eol;
+                           Exit_Program (E_Fatal);
+                        end if;
                      end if;
+                     Internal := Is_Predefined_File_Name (Full_Name);
+                  end Look_For_Full_File_Name;
+
+                  --  Taken from Gnatmake.
+
+                  Compile_Sources
+                    (Main_Source           => Full_Name,
+                     Args                  => Args,
+                     First_Compiled_File   => Compiled,
+                     Most_Recent_Obj_File  => Obj,
+                     Most_Recent_Obj_Stamp => Stamp,
+                     Main_Unit             => Main,
+                     Check_Internal_Files  => Internal,
+                     Dont_Execute          => False,
+                     Force_Compilations    => Opt.Force_Compilations and
+                     not Internal,
+                     Initialize_Ali_Data   => False,
+                     Max_Process           => 1);
+
+                  --  Use later on to avoid unnecessary bind + link phases.
+
+                  if Compiled = No_File then
+                     Maybe_Most_Recent_Stamp (Stamp);
                   end if;
-                  Internal := Is_Predefined_File_Name (Full_Name);
-               end Look_For_Full_File_Name;
 
-               --  Taken from Gnatmake.
-
-               Compile_Sources
-                 (Main_Source           => Full_Name,
-                  Args                  => Args,
-                  First_Compiled_File   => Compiled,
-                  Most_Recent_Obj_File  => Obj,
-                  Most_Recent_Obj_Stamp => Stamp,
-                  Main_Unit             => Main,
-                  Check_Internal_Files  => Internal,
-                  Dont_Execute          => False,
-                  Force_Compilations    => Opt.Force_Compilations and
-                                           not Internal,
-                  Initialize_Ali_Data   => False,
-                  Max_Process           => 1);
-
-               --  Use later on to avoid unnecessary bind + link phases.
-
-               if Compiled = No_File then
-                  Maybe_Most_Recent_Stamp (Stamp);
                end if;
 
             end loop;
@@ -164,6 +168,17 @@ package body XE_Check is
          Set_ALI_Id (Name_Find, Unit.Table (U).My_ALI);
       end loop;
 
+      --  Check that the main program is really a main program.
+
+      if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
+         Write_Program_Name;
+         Write_Str (": ");
+         Write_Name (Main_Subprogram);
+         Write_Str (" is not a main program");
+         Write_Eol;
+         raise Partitioning_Error;
+      end if;
+
       --  Set partition name key to Null_PID.              (4)
 
       for P in Partitions.First .. Partitions.Last loop
@@ -180,6 +195,10 @@ package body XE_Check is
          --  The configured unit is not an Ada unit.
 
          if Ali = No_ALI_Id then
+
+            --  This unit is not an ada unit
+            --  as no ali file has been found.
+
             Write_Program_Name;
             Write_Str (": unit from configuration file ");
             Write_Name (CUnit.Table (U).CUname);
@@ -196,19 +215,19 @@ package body XE_Check is
                   --  If not null, we have already set this
                   --  configured rci unit name to a partition.
 
-                  if CUnit.Table (U).My_ALI /= No_ALI_Id then
+                  if Get_CUID (Unit.Table (I).Uname) /= Null_CUID  then
                      Write_Program_Name;
                      Write_Str  (": RCI unit ");
                      Write_Name (CUnit.Table (U).CUname);
                      Write_Str  (" has been assigned twice");
                      Write_Eol;
                      Inconsistent := True;
-
-                  --  Confirm that this RCI has been assigned.     (5)
-
-                  else
-                     Set_CUID (Unit.Table (I).Uname, U);
                   end if;
+
+                  --  This RCI has been assigned                  (5)
+                  --  and it won't be assigned again.
+
+                  Set_CUID (Unit.Table (I).Uname, U);
 
                end if;
 
@@ -265,18 +284,13 @@ package body XE_Check is
          Set_PID (Unit.Table (U).Uname, Null_PID);
       end loop;
 
+      --  Is it still used ?
+
+      for U in CUnit.First .. CUnit.Last loop
+         Set_ALI_Id (CUnit.Table (U).CUname, CUnit.Table (U).My_ALI);
+      end loop;
+
       if Inconsistent then
-         raise Partitioning_Error;
-      end if;
-
-      --  Check that the main program is really a main program.
-
-      if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
-         Write_Program_Name;
-         Write_Str (": ");
-         Write_Name (Main_Subprogram);
-         Write_Str (" is not a main program");
-         Write_Eol;
          raise Partitioning_Error;
       end if;
 
