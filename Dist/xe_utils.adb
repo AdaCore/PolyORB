@@ -26,38 +26,33 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
 with Unchecked_Deallocation;
 
-with ALI;            use ALI;
-with GNAT.OS_Lib;    use GNAT.OS_Lib;
-with Csets;          use Csets;
-with Debug;          use Debug;
-with Fname;          use Fname;
-with Make;           use Make;
-with Namet;          use Namet;
+with ALI;                        use ALI;
+with GNAT.OS_Lib;                use GNAT.OS_Lib;
+with GNAT.Directory_Operations;  use GNAT.Directory_Operations;
+with Csets;                      use Csets;
+with Debug;                      use Debug;
+with Fname;                      use Fname;
+with Make;                       use Make;
+with Namet;                      use Namet;
 with Opt;
-with Osint;          use Osint;
-with Output;         use Output;
-with Types;          use Types;
-with XE;             use XE;
-with XE_Defs;        use XE_Defs;
+with Osint;                      use Osint;
+with Output;                     use Output;
+with Types;                      use Types;
+with XE;                         use XE;
+with XE_Defs;                    use XE_Defs;
+with XE_Sysdep;                  use XE_Sysdep;
 
-with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Command_Line;           use Ada.Command_Line;
 
 pragma Elaborate_All (Csets, Debug, Make, Namet, Opt, Osint, Output);
 
 package body XE_Utils is
 
-   Path         : constant String_Access := GNAT.OS_Lib.Getenv ("PATH");
-
    GNAT_Verbose   : String_Access;
    Gcc            : String_Access;
-   Mkdir          : String_Access;
-   Copy           : String_Access;
    Link           : String_Access;
-   Chmod          : String_Access;
-   Rm             : String_Access;
    Gnatbind       : String_Access;
    Gnatlink       : String_Access;
    Gnatmake       : String_Access;
@@ -67,9 +62,7 @@ package body XE_Utils is
    EOL : constant String := (1 => Ascii.LF);
 
    Output_Flag           : constant String_Access := new String' ("-o");
-   Preserve              : constant String_Access := new String' ("-lf");
    Symbolic              : constant String_Access := new String' ("-s");
-   Force                 : constant String_Access := new String' ("-f");
    Compile_Flag          : constant String_Access := new String' ("-c");
    Exclude_File_Flag     : constant String_Access := new String' ("-x");
    Receiver_Compile_Flag : constant String_Access := new String' ("-gnatzr");
@@ -84,6 +77,10 @@ package body XE_Utils is
      (Exec_Name  : String;
       Show_Error : Boolean := True)
      return String_Access;
+   --  look for Exec_Name on the path. If Exec_Name is found then the full
+   --  pathname for Exec_Name is returned. If Exec_Name is not found and
+   --  Show_Error is set to False then null is returned. If Exec_Name is not
+   --  found and Show_Error is set to True then Fatal_Error is raised.
 
    function Has_Standard_Extension (File : File_Name_Type) return Boolean;
    --  Check whether File has a standard extension for GCC and hence does
@@ -128,12 +125,6 @@ package body XE_Utils is
    ----------------
 
    procedure Change_Dir (To : in File_Name_Type) is
-
-      C_Path : String (1 .. Strlen (To) + 1);
-
-      function Chdir (Path : System.Address) return Int;
-      pragma Import (C, Chdir, "chdir");
-
    begin
 
       if Debug_Mode then
@@ -141,12 +132,7 @@ package body XE_Utils is
       end if;
 
       Get_Name_String (To);
-      C_Path (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
-      C_Path (Name_Len + 1) := Ascii.Nul;
-      if Chdir (C_Path'Address) /= 0 then
-         Message ("cannot change dir to", To);
-         raise Fatal_Error;
-      end if;
+      Change_Dir (Name_Buffer (1 .. Name_Len));
 
       if Building_Script then
          if Name_Len < 3 or else Name_Buffer (1 .. 3) /= "../" then
@@ -162,6 +148,10 @@ package body XE_Utils is
          Write_Eol  (Standout);
       end if;
 
+   exception
+      when GNAT.Directory_Operations.Directory_Error =>
+         Message ("cannot change dir to", To);
+         raise Fatal_Error;
    end Change_Dir;
 
    -----------------------
@@ -208,7 +198,9 @@ package body XE_Utils is
 
    procedure Copy_With_File_Stamp
      (Source, Target : in File_Name_Type;
-      Maybe_Symbolic : in Boolean := False) is
+      Maybe_Symbolic : in Boolean := False)
+   is
+
       S : String_Access := new String (1 .. Strlen (Source));
       T : String_Access := new String (1 .. Strlen (Target));
 
@@ -217,16 +209,20 @@ package body XE_Utils is
       S.all := Name_Buffer (1 .. Name_Len);
       Get_Name_String (Target);
       T.all := Name_Buffer (1 .. Name_Len);
+
       if Link = null then
-         Execute (Copy, (Preserve, S, T));
+         Copy_File (S.all, T.all);
+
       else
-         Execute (Rm, (Force, T));
+         Force_Remove (T.all);
+
          if Maybe_Symbolic then
             Execute (Link, (Symbolic, S, T));
          else
             Execute (Link, (S, T));
          end if;
       end if;
+
       Free (S);
       Free (T);
    end Copy_With_File_Stamp;
@@ -238,7 +234,8 @@ package body XE_Utils is
    procedure Create
      (File : in out File_Descriptor;
       Name : in File_Name_Type;
-      Exec : in Boolean := False) is
+      Exec : in Boolean := False)
+   is
       File_Name_Len : Natural := Strlen (Name);
       File_Name     : String (1 .. File_Name_Len + 1);
    begin
@@ -258,10 +255,7 @@ package body XE_Utils is
       end if;
 
       if Exec then
-         Execute
-           (Chmod,
-            (1 => new String'("u+x"),
-             2 => new String'(File_Name (1 .. File_Name_Len))));
+         Set_Executable_Attribute (File_Name (1 .. File_Name_Len));
       end if;
 
    end Create;
@@ -277,13 +271,12 @@ package body XE_Utils is
       Get_Name_String (To);
       Dir_Name := Name_Buffer (1 .. Name_Len);
       for Index in Dir_Name'Range loop
-
-         --  ???
          if Dir_Name (Index) = Directory_Separator and then Index > 1 and then
-            not Is_Directory (Dir_Name (1 .. Index - 1)) then
-            Execute (Mkdir, (1 => new String'(Dir_Name (1 .. Index - 1))));
+            not Is_Directory (Dir_Name (1 .. Index - 1))
+         then
+            Make_Dir (Dir_Name (1 .. Index - 1));
          elsif Index = Dir_Name'Last then
-            Execute (Mkdir, (1 => new String'(Dir_Name)));
+            Make_Dir (Dir_Name);
          end if;
       end loop;
 
@@ -319,19 +312,25 @@ package body XE_Utils is
       pragma Assert (D1 /= No_File);
 
       Get_Name_String (D1);
+
       if D2 = No_File then
          return Name_Find;
       end if;
+
       Add_Char_To_Name_Buffer (Directory_Separator);
       Get_Name_String_And_Append (D2);
+
       if D3 = No_File then
          return Name_Find;
       end if;
+
       Add_Char_To_Name_Buffer (Directory_Separator);
       Get_Name_String_And_Append (D3);
+
       if D4 = No_File then
          return Name_Find;
       end if;
+
       Add_Char_To_Name_Buffer (Directory_Separator);
       Get_Name_String_And_Append (D4);
       return Name_Find;
@@ -355,6 +354,7 @@ package body XE_Utils is
          else
             Write_Str (Prog.all);
          end if;
+
          for Index in Args'Range loop
             if Args (Index) /= null then
                if Building_Script then
@@ -366,6 +366,7 @@ package body XE_Utils is
                end if;
             end if;
          end loop;
+
          if Building_Script then
             Write_Eol (Standout);
          else
@@ -630,11 +631,7 @@ package body XE_Utils is
       Exe_Suffix           := Str_To_Id (Get_Executable_Suffix.all);
 
       Gcc             := Locate ("gcc");
-      Mkdir           := Locate ("mkdir");
-      Copy            := Locate ("cp");
       Link            := Locate ("ln", False);
-      Chmod           := Locate ("chmod");
-      Rm              := Locate ("rm");
       Gnatbind        := Locate ("gnatbind");
       Gnatlink        := Locate ("gnatlink");
       Gnatmake        := Locate ("gnatmake");
@@ -852,12 +849,12 @@ package body XE_Utils is
    function Find_Source
      (Uname : Unit_Name_Type;
       Fatal : Boolean := False)
-      return File_Name_Type is
+      return File_Name_Type
+   is
       Info : Int;
       File : File_Name_Type;
       Name : Unit_Name_Type;
       Spec : Boolean;
-
    begin
       Get_Name_String (Uname);
       if Name_Len < 3 or else Name_Buffer (Name_Len - 1) /= '%' then
@@ -927,7 +924,8 @@ package body XE_Utils is
    function Locate
      (Exec_Name  : String;
       Show_Error : Boolean := True)
-     return String_Access is
+      return String_Access
+   is
       Loc : String_Access;
    begin
       Name_Len := Exec_Name'Length;
@@ -1113,13 +1111,9 @@ package body XE_Utils is
    -----------------
 
    procedure Unlink_File (File : in File_Name_Type) is
-      File_Name : String_Access := new String (1 .. Strlen (File));
-      --  procedure Free is new Unchecked_Deallocation (String, String_Access);
    begin
       Get_Name_String (File);
-      File_Name.all := Name_Buffer (1 .. Name_Len);
-      Execute (Rm, (Force, File_Name));
-      Free (File_Name);
+      Force_Remove (Name_Buffer (1 .. Name_Len));
    end Unlink_File;
 
    ---------------------------
