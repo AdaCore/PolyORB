@@ -1,0 +1,4 @@
+interface Weapon {
+  typedef string name;
+  void shoot (in name weapon_name);
+};
