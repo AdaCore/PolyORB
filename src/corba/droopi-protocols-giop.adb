@@ -12,45 +12,50 @@ with Ada.Streams;                use Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with CORBA;
-with CORBA.NvList;
+with CORBA.NVList;
 
 with Sequences.Unbounded;
 
-with Droopi.Exceptions;
+with Broca.Exceptions;
 with Droopi.Opaque;              use Droopi.Opaque;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
 with Droopi.Protocols;           use Droopi.Protocols;
+with Droopi.Protocols.GIOP.GIOP_1_0;
+with Droopi.Protocols.GIOP.GIOP_1_1;
+with Droopi.Protocols.GIOP.GIOP_1_2;
 with Droopi.References;
 with Droopi.Representations;     use Droopi.Representations;
-with Droopi.Representations.CDR;
+with Droopi.Representations.CDR; use Droopi.Representations.CDR;
 with Droopi.Obj_Adapters.Simple;
-with Droopi.Orb;
+with Droopi.ORB;
 
-with Droopi.LOg;
+with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Protocols.GIOP is
+
+   use Droopi.Log;
 
    package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Bits_8 is new CORBA.Octet;
-
-   Magic : constant Octet_Array :=
+   Magic : constant Stream_Element_Array :=
      (Character'Pos ('G'),
       Character'Pos ('I'),
       Character'Pos ('O'),
       Character'Pos ('P'));
 
-   --  The offset of the byte_order boolean field in a GIOP message
+   --  The offset of the byte_order Boolean field in a GIOP message
    --  header.
 
-   Prof_Factory : Filters.Factory := new IIOP_Profile_Factory;
+   Prof_Factory : Binding_Data.Profile_Factory_Access
+     := new Binding_Data.IIOP.IIOP_Profile_Factory;
+   --  XXX Dynamic allocation during elaboration must be removed.
 
    Response_Flags : constant array (0 .. 3) of CORBA.Octet := (0, 1, 2, 3);
-   --  ???
+   --  XXX WHAT IS THAT ?????????
 
    Pend_Req : Pending_Request;
 
@@ -116,9 +121,37 @@ package body Droopi.Protocols.GIOP is
          4 => Loc_System_Exception,
          5 => Loc_Needs_Addressing_Mode);
 
-   --------------
-   -- Marshall --
-   --------------
+   --------------------------------------
+   -- Internal marshalling subprograms --
+   --------------------------------------
+
+   --  Specs
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Value  : in Msg_Type);
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Value  : in Reply_Status_Type);
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Value  : in Locate_Status_Type);
+
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return Msg_Type;
+
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return Reply_Status_Type;
+
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return Locate_Status_Type;
+
+   --  Implementations
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -127,20 +160,12 @@ package body Droopi.Protocols.GIOP is
       Marshall (Buffer, MsgType_To_Octet (Value));
    end Marshall;
 
-   --------------
-   -- Marshall --
-   --------------
-
    procedure Marshall
      (Buffer : access Buffer_Type;
       Value  : in Reply_Status_Type) is
    begin
       Marshall (Buffer, ReplyStatusType_To_Unsigned_Long (Value));
    end Marshall;
-
-   --------------
-   -- Marshall --
-   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -149,10 +174,6 @@ package body Droopi.Protocols.GIOP is
       Marshall (Buffer, LocateStatusType_To_Unsigned_Long (Value));
    end Marshall;
 
-   --------------
-   -- Marshall --
-   --------------
-
    function Unmarshall
      (Buffer : access Buffer_Type)
      return Msg_Type is
@@ -160,20 +181,12 @@ package body Droopi.Protocols.GIOP is
       return Octet_To_MsgType (Unmarshall (Buffer));
    end Unmarshall;
 
-   --------------
-   -- Marshall --
-   --------------
-
    function Unmarshall
      (Buffer : access Buffer_Type)
      return Reply_Status_Type is
    begin
       return Unsigned_Long_To_ReplyStatusType (Unmarshall (Buffer));
    end Unmarshall;
-
-   --------------
-   -- Marshall --
-   --------------
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -216,7 +229,7 @@ package body Droopi.Protocols.GIOP is
       Marshall (Buffer, Request_Id);
 
       --  Object Key
-      Marshall (Buffer, Object_key);
+      Marshall (Buffer, Stream_Element_Array (Object_Key));
 
    end Locate_Request_Marshall;
 
@@ -227,7 +240,7 @@ package body Droopi.Protocols.GIOP is
    procedure Locate_Reply_Marshall
      (Buffer         : access Buffer_Type;
       Request_Id     : in CORBA.Unsigned_Long;
-      Locate_Status  : in Locate_Reply_Status) is
+      Locate_Status  : in Locate_Status_Type) is
    begin
 
       --  Request id
@@ -248,8 +261,11 @@ package body Droopi.Protocols.GIOP is
       Fragment_Next         : out CORBA.Boolean;
       Success               : out Boolean)
    is
+
+      use CORBA;
+
       --  Buffer_In : Buffer_Type renames S.Buffer_In;
-      Message_Magic : Element_Stream_Array (Magic'Range);
+      Message_Magic : Stream_Element_Array (Magic'Range);
       Message_Major_Version : CORBA.Octet;
       Message_Minor_Version : CORBA.Octet;
       Flags :  CORBA.Octet;
@@ -259,7 +275,7 @@ package body Droopi.Protocols.GIOP is
 
       --  Magic
       for I in Message_Magic'Range loop
-         Message_Magic (I) := Opaque.Octet
+         Message_Magic (I) := Stream_Element
            (CORBA.Octet'(Unmarshall (Ses.Buffer_In)));
       end loop;
 
@@ -268,12 +284,13 @@ package body Droopi.Protocols.GIOP is
          return;
       end if;
 
-      --  test if the GIOP version of the Message received is supported
+      --  Test if the GIOP version of the Message received is supported
       Message_Major_Version := Unmarshall (Ses.Buffer_In);
       Message_Minor_Version := Unmarshall (Ses.Buffer_In);
 
       if not (Message_Major_Version =  Ses.Major_Version)
-        or else (Ses.Minor_Version < Message_Minor_Version) then
+        or else (Ses.Minor_Version < Message_Minor_Version)
+      then
          pragma Debug
            (O ("Unmarshall_GIOP_Header: GIOP version not supported"));
          return;
@@ -282,7 +299,9 @@ package body Droopi.Protocols.GIOP is
       if Message_Minor_Version = 0 then
 
          --  Byte order
-         if Unmarshall (Ses.Buffer_In) = 0  then
+
+         --  XXX Set_Endianness does not exist!!
+         if Octet'(Unmarshall (Ses.Buffer_In)) = 0  then
             Set_Endianness (Ses.Buffer_In, Little_Endian);
          else
             Set_Endianness (Ses.Buffer_In, Big_Endian);
@@ -291,31 +310,29 @@ package body Droopi.Protocols.GIOP is
 
       else
          --  Flags
-         Flags := Unmarshall (Buffer_In);
+         Flags := Unmarshall (Ses.Buffer_In);
 
-         if (Flags and 2**Endianess_Bit = True) then
+         if (Flags and 2 ** Endianess_Bit) /= 0 then
             Set_Endianness (Ses.Buffer_In, Little_Endian);
          else
             Set_Endianness (Ses.Buffer_In, Big_Endian);
          end if;
 
-         if (Flags and 2**Fragment_Bit = true) then
-            Fragment_Next := true;
-         else
-            Fragment_Next := False;
-         end if;
-
+         Fragment_Next := ((Flags and 2 ** Fragment_Bit) /= 0);
       end if;
 
       --  Message type
       Message_Type := Unmarshall (Ses.Buffer_In);
 
       --  Message size
+      --  XXX Where is Message_Endianness defined????
       if Message_Endianness = Big_Endian then
          Message_Size := Unmarshall (Ses.Buffer_In);
       else
          raise Program_Error;
       end if;
+      --  XXX Does this means that only big endian peers
+      --  are supported???? This is certainly very wrong!!!
 
       --  Everything allright
       Ses.Major_Version := Message_Major_Version;
@@ -328,6 +345,8 @@ package body Droopi.Protocols.GIOP is
    -- Unmarshall_Request_Message --
    --------------------------------
 
+   --  XXX missing prototype!!
+
    procedure Unmarshall_Request_Message
      (Buffer        : access Buffer_Type;
       Request_Id    : out CORBA.Unsigned_Long;
@@ -337,39 +356,43 @@ package body Droopi.Protocols.GIOP is
       Request_Id := Unmarshall (Buffer);
 
       --  Reply Status
-      Object_Key := Unmarshall (Buffer);
+      --  XXX The comment 'Reply_Status' is almost certainly wrong!
+      Object_Key := Objects.Object_Id
+        (Stream_Element_Array'(Unmarshall (Buffer)));
    end Unmarshall_Request_Message;
 
    ------------------------------
    --  Unmarshall_Locate_Reply --
    ------------------------------
 
-   procedure Unmarshall_Locate_Reply
+   procedure Locate_Reply_Unmarshall
      (Buffer        : access Buffer_Type;
       Request_Id    : out CORBA.Unsigned_Long;
       Locate_Status : out Locate_Status_Type) is
    begin
-      --  Request id
       Request_Id := Unmarshall (Buffer);
-
-      --  Reply Status
-      Reply_Status := Unmarshall (Buffer);
-   end Unmarshall_Locate_Reply;
+      Locate_Status := Unmarshall (Buffer);
+   end Locate_Reply_Unmarshall;
 
    ---------------------
    -- Request_Message --
    ---------------------
 
-   --  What does this mean ???
+   --  XXX What does this mean ???
+
+   --  XXX Who asks 'What does this mean ???' ?
 
    procedure Request_Message
      (Ses               : access GIOP_Session;
       Response_Expected : in Boolean;
       Message_Size      : in CORBA.Unsigned_Long;
-      Fragment_Next     : out boolean)
+      Fragment_Next     : out Boolean)
    is
-      Header_Buffer : aliased Buffer_Type;
-      Body_Buffer   : aliased Buffer_Type;
+      Header_Buffer : Buffer_Access := new Buffer_Type;
+      Body_Buffer   : Buffer_Access := new Buffer_Type;
+      --  XXX Probably wrong. Should use the session's
+      --  output buffer.
+
       Sync          : Sync_Scope;
 
    begin
@@ -433,10 +456,21 @@ package body Droopi.Protocols.GIOP is
                Message_Size + Length (Body_Buffer'Access),
                Fragment_Next);
 
+         when others =>
+            raise Program_Error;
+            --  XXX WRONG! Why should this ever happen?
+
       end case;
 
       Prepend (Header_Buffer, Body_Buffer'Access);
       Ses.Buffer_Out := Body_Buffer;
+      --  XXX probable awful memory leak!!
+      --  If assignment is to be used, should release old
+      --  Buffer_Out. But actually, Ses.Buffer_Out should be
+      --  used throughout this subprogram instead of Body_Buffer.
+
+      Release (Header_Buffer);
+      Release (Body_Buffer);
 
    end Request_Message;
 
@@ -445,12 +479,13 @@ package body Droopi.Protocols.GIOP is
    ------------------------
 
    --  What does this mean ???
+   --  XXX who asks?
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
       Request_Id    : in CORBA.Unsigned_Long;
       Message_Size  : in CORBA.Unsignd_Long;
-      Fragment_Next : out boolean)
+      Fragment_Next : out Boolean)
 
    is
       Header_Buffer : aliased Buffer_Type;
@@ -777,7 +812,7 @@ package body Droopi.Protocols.GIOP is
 
    procedure Locate_Request_Message
      (Ses             : access GIOP_Session;
-      Object_key      : in Objects.Objects_Id;
+      Object_Key      : in Objects.Object_Id;
       Fragment_Next   : out Boolean)
    is
       Header_Buffer : aliased Buffer_Type;
@@ -820,8 +855,8 @@ package body Droopi.Protocols.GIOP is
                Pend_Req.Request_Id, 0,
                Object_Key);
 
-            if Message_Size + Length (Body_Buffer'Access) >
-              Maximum_Message_Size
+            if Message_Size
+              + Length (Body_Buffer'Access) > Maximum_Message_Size
             then
                Fragment_Next := True;
             end if;
@@ -1012,7 +1047,7 @@ package body Droopi.Protocols.GIOP is
       --  unmarshalling of arguments not yet implemented
       Result := (Name     => To_CORBA_String ("Result"),
                  Argument => Obj_Adapters.Get_Empty_Result
-                 (Object_Adapter (ORB).all, Object_key, Operation),
+                 (Object_Adapter (ORB).all, Object_Key, Operation),
                  Arg_Modes => 0);
 
       if Ses.Minor_Version /= 2 then
@@ -1270,8 +1305,7 @@ package body Droopi.Protocols.GIOP is
      (Ses : access GIOP_Session;
       R   : access Requests.Request)
    is
-      use Buffers;
-      Buf            : aliased Buffer_Type;
+      Buf            : Buffer_Access := new Buffer_Type;
       Sli            : Filters.Slicers.Slicer_Filter;
       TE_Socket      : Socket_EndPoint;
       Fragment_Next  : Boolean := False;
@@ -1300,11 +1334,12 @@ package body Droopi.Protocols.GIOP is
 
 
       if Ses.Object_Found = False then
-         if  Ses.Nb_Tries <= Max_Nb_Tries then
+         if  Ses.Nbr_Tries <= Max_Nbr_Tries then
             Locate_Request_Message (Ses, Ses.Object_Id, Fragment_Next);
-            Ses.Nb_Tries := Ses.Nb_Tries + 1;
+            Ses.Nbr_Tries := Ses.Nbr_Tries + 1;
          else
             pragma Debug (O ("Number of tries exceeded"));
+            Release (Buf);
             return;
          end if;
       else
@@ -1321,7 +1356,7 @@ package body Droopi.Protocols.GIOP is
          Ses.Buffer_Out := Buf'Access;
 
          Ses.Object_Found := True;
-         Ses.Nb_Tries := 0;
+         Ses.Nbr_Tries := 0;
       end if;
 
 
@@ -1333,6 +1368,14 @@ package body Droopi.Protocols.GIOP is
       --  Expecting data
       Expect_Data (Ses, Ses.Buffer_In, Header_Message_Size);
 
+      Release (Buf);
+
+   exception
+
+      when others =>
+         Release (Buf);
+         raise;
+
    end Invoque_Request;
 
 
@@ -1340,7 +1383,7 @@ package body Droopi.Protocols.GIOP is
    --  Send Reply
    --------------------------------------
 
-   procedure Send_Reply (Ses : access Echo_Session; R : Request)
+   procedure Send_Reply (Ses : access GIOP_Session; R : Request)
    is
       use Buffers;
       use Representations.Cdr;
@@ -1384,21 +1427,25 @@ package body Droopi.Protocols.GIOP is
    --  Handle Connect Indication ----
    ----------------------------------
 
-   procedure Handle_Connect_Indication (S : access Echo_Session)
-   is
-      Filt_Slicer : constant Filters.Filter := Lower (S);
+   procedure Handle_Connect_Indication (S : access GIOP_Session) is
    begin
       pragma Debug (O ("Received new connection to echo service..."));
 
       Expect_Data (S, S.Buffer_In, Header_Message_Size);
-      Emit_No_Reply
-        (Port   => Lower (Filt_Slicer),
-         Msg    => Data_Expected'(In_Buf => In_Buf, Max => Max_Data_Received));
 
+      --  XXX REMOVE!
+      --  XXX FORBIDDEN DIRECT ACCESS TO Lower!
+      --  Lower () must NEVER be called on another filter, only
+      --  on oneself. Expect_Data is expected to propagate
+      --  the Data_Expected message to all filters that need it.
+      --  Emit_No_Reply
+      --    (Port   => Lower (Filt_Slicer),
+      --     Msg    => Data_Expected'
+      --       (In_Buf => In_Buf, Max => Max_Data_Received));
    end Handle_Connect_Indication;
 
 
-   procedure Handle_Connect_Confirmation (S : access Echo_Session) is
+   procedure Handle_Connect_Confirmation (S : access GIOP_Session) is
    begin
       null;
       --  No setup is necessary for newly-created client connections.
@@ -1411,6 +1458,7 @@ package body Droopi.Protocols.GIOP is
       use CORBA.NVList;
       use Binding_Data.IIOP;
       use Objects;
+      use ORB;
       use References;
 
    begin
@@ -1469,51 +1517,62 @@ package body Droopi.Protocols.GIOP is
 
             when Cancel_Request =>
                if S.Role = Client then
-                  --  not yet implemented
-                  return null;
+                  --  XXX not yet implemented
+                  raise Not_Implemented;
                else
                   raise GIOP_Error;
                end if;
 
             when Locate_Request =>
                if S.Role = Server then
-                  --  not yet implemented
-                  return null;
+                  --  XXX not yet implemented
+                  raise Not_Implemented;
                else
                   raise GIOP_Error;
                end if;
 
             when Locate_Reply =>
                if S.Role = Client  then
+
                   declare
                      Req_Id        : CORBA.Unsigned_Long;
                      Locate_Status : Locate_Status_Type;
                   begin
-                     Locate_Reply_Unmarshall (S.Buffer_In, Req_Id,
-                                              Locate_Status);
+                     Locate_Reply_Unmarshall
+                       (S.Buffer_In, Req_Id, Locate_Status);
+
                      case Locate_Status is
+
                         when Object_Here =>
                            S.Object_Found := True;
                            Invoque_Request (S, Pending_Req.Req);
 
                         when Unknown_Object =>
-                           raise GIOP.Error;
+                           raise GIOP_Error;
 
                         when Object_Forward =>
-                           declare
-                              Sock : Socket_Type;
-                              TE_Socket : Socket_EndPoint := Lower (Lower (S));
-                           begin
-                              Select_Profile (S.Buffer_In, Pend_Req.Profile);
-                              Create_Socket (Sock);
-                              Connect_Socket (Sock, Pend_Req.Profile.Address);
-                              Create (Socket_Endpoint (TE_Socket.all), Sock);
-                              Invoque_Request (S, Pend_Req.Req);
-                           end;
+
+                           raise Not_Implemented;
+
+                           --  XXX Sockets must not ever be manipulated out of
+                           --  Droopi.Transports.Sockets or
+                           --  Droopi.Asynch_Events.Sockets.
+
+--                         declare
+--                            Sock : Socket_Type;
+--                            TE_Socket : Socket_EndPoint := Lower (Lower (S));
+--                         begin
+--                            Select_Profile (S.Buffer_In, Pend_Req.Profile);
+--                            Create_Socket (Sock);
+--                            Connect_Socket (Sock, Pend_Req.Profile.Address);
+--                            Create (Socket_Endpoint (TE_Socket.all), Sock);
+--                            Invoque_Request (S, Pend_Req.Req);
+--                         end;
                      end case;
                   end;
                else
                   raise GIOP_Error;
+                  --  XXX Is this proper behaviour for bidir. GIOP ?
                end if;
 
             when Close_Connection =>

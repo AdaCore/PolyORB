@@ -181,8 +181,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Occurence   : in CORBA.Exception_Occurrence)
 
    is
-     use  representations.CDR
+      use Droopi.Representations.CDR;
+
    begin
+      pragma Assert (Reply_Type in User_Exception..System_Exception);
+
       -- Request id
       Marshall(Buffer, Request_Id);
 
@@ -208,10 +211,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Reply_Type    :   in  Reply_Status_Type  range Location_Forward .. Location_Forward_Perm;
       Target_Ref    :   in  Droopi.References)
     is
-       use  representations.CDR;
+       use Droopi.epresentations.CDR;
     begin
-
-         -- Request id
+       pragma Assert (Reply_Type in Location_Forward .. Location_Forward_Perm);
+       -- Request id
       Marshall(Buffer, Request_Id);
 
       -- Reply Status

@@ -13,8 +13,8 @@ with Ada.Exceptions;
 
 with Interfaces;
 
-with Droopi.Buffers ; use Broca.Buffers;
-with Droopi.Opaque; use Broca.Opaque;
+with Droopi.Buffers; use Droopi.Buffers;
+with Droopi.Opaque;  use Droopi.Opaque;
 
 with CORBA;
 

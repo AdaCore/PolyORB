@@ -83,6 +83,12 @@ package body Droopi.Binding_Data.Iiop is
       return Preference_Default;
    end Get_Profile_Preference;
 
+   procedure Create_Factory
+     (PF : out IIOP_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access) is
+   begin
+      PF.Address := Address_Of (Socket_Access_Point (TAP.all));
+   end Create_Factory;
 
    function Create_Profile
      (PF  : access Iiop_Profile_Factory;
@@ -104,6 +110,13 @@ package body Droopi.Binding_Data.Iiop is
       return  Result;
    end Create_Profile;
 
+   function Is_Local_Profile
+     (PF : access IIOP_Profile_Factory;
+      P : Profile_Access) return Boolean is
+   begin
+      return P.all in IIOP_Profile_Type
+        and then IIOP_Profile_Type (P.all).Address = PF.Address;
+   end Is_Local_Profile;
 
    --------------------------------
    -- Marshall_IIOP_Profile_Body --

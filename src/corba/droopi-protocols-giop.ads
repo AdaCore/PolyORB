@@ -172,7 +172,8 @@ package Droopi.Protocols.GIOP is
    procedure Locate_Request_Marshall
      (Buffer           : access Buffer_Type;
       Request_Id       : in CORBA.Unsigned_Long;
-      Profile_Ref      : in Binding_Data.Profile_Type);
+      Object_Key       : in Objects.Object_Id);
+--  XXX REMOVE      Profile_Ref      : in Binding_Data.Profile_Type);
 
    procedure Locate_Reply_Marshall
      (Buffer         : access Buffer_Type;
@@ -183,7 +184,7 @@ package Droopi.Protocols.GIOP is
    --  Unmarshall
    ----------------------------------
 
-   procedure Unmarshall_GIOP_Header
+   procedure GIOP_Header_Unmarshall
      (Ses                   : access GIOP_Session;
       Message_Type          : out Msg_Type;
       Message_Size          : out CORBA.Unsigned_Long;
@@ -194,8 +195,6 @@ package Droopi.Protocols.GIOP is
      (Buffer        : access Buffer_Type;
       Request_Id    : out CORBA.Unsigned_Long;
       Locate_Status : out Locate_Status_Type);
-
-
 
    ---------------------------------------
    ---  Marshalling switch  -----------
