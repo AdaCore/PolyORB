@@ -1,0 +1,141 @@
+#! /bin/sh
+
+# cobuild: Build AdaBroker from a checked-out wavefront.
+
+# $Id: //depot/adabroker/main/broca/utils/cobuild#1 $
+
+usage () {
+  echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
+  echo "  Build is done in OUTPUT_DIR/build"
+  echo "  Install is done in OUTPUT_DIR/install"
+  exit 1
+}
+
+while getopts C:c:o:m: opt
+do
+  case $opt in
+    C)
+      CLIENT_TOP=$OPTARG
+      ;;
+    c)
+      CHANGELIST="@$OPTARG"
+      ;;
+    o)
+      OUTDIR=$OPTARG
+      ;;
+    m)
+      MAILTO=$OPTARG
+      ;;
+    *)
+      usage
+      ;;
+   esac
+done
+
+if [ "x$OUTDIR" = "x" ]
+then
+  usage
+fi
+
+if [ "x$CLIENT_TOP" = "x" ]
+then
+  usage
+fi
+
+: ${MAILTO:=root}
+
+P4CONFIG=.p4
+TMPDIR=/var/tmp
+
+export P4CONFIG MAILTO OUTDIR CLIENT_TOP TMPDIR
+
+set -eT
+# halt on errors
+# asynchronous traps (BSD-specific)
+
+# Kill any previous build.
+
+PIDFILE=$OUTDIR/build.pid
+LOGFILE=$OUTDIR/build.log
+
+lockfile $PIDFILE.lock
+trap 'rm -f $PIDFILE.lock' 0
+
+if [ -f $PIDFILE ]
+then
+  OLDPID=`cat $PIDFILE`
+  kill $OLDPID > /dev/null 2>&1 || true
+fi
+
+# Here comes the hot builder.
+
+exec > $LOGFILE 2>&1
+
+# Prepare execution.
+
+cd $CLIENT_TOP
+#p4 sync "#none"
+#rm -fr $CLIENT_TOP/*
+p4 sync $CHANGELIST
+
+CHANGE=`p4 changes -m 1 ...#have | awk '{print \$2}'`
+export CHANGE
+
+/usr/local/bin/rungroup /bin/sh -c '(
+  set -e
+  #sleep 120
+  echo "Build started: `date`"
+
+  ./support/reconfig
+  cd $OUTDIR
+  mkdir build || true
+  mkdir install || true
+  cd build
+
+  $CLIENT_TOP/configure --disable-shared --prefix=$OUTDIR/install &&
+  make &&
+  make install
+)' &
+
+# The build is now running in background. Save PID and
+# release mutex.
+
+THISPID=$!
+echo $THISPID > $PIDFILE
+
+trap '' 0
+rm -f $PIDFILE.lock
+
+set +e
+wait $THISPID
+RC=$?
+set -e
+
+if [ $RC = 0 ]
+then
+  STATUS="completed"
+  MSG="Build completed successfully -- see details at $OUTDIR/build.log"
+  SUCCESS=true
+elif [ $RC -ge 128 ]
+then
+  STATUS="aborted"
+  MSG="The build process was interrupted by a signal."
+  SUCCESS=true
+else
+  SUCCESS=false
+fi
+
+if $SUCCESS
+then
+  echo $MSG | Mail -s "AdaBroker build $CHANGE $STATUS" $MAILTO
+else
+  cat $OUTDIR/build.log | Mail -s "AdaBroker BUILD $CHANGE FAILED" $MAILTO
+fi
+
+lockfile $PIDFILE.lock
+THATPID=`cat $PIDFILE`
+if [ "$THATPID" = "$THISPID" ]
+then
+  rm -f $PIDFILE
+fi
+rm -f $PIDFILE.lock
