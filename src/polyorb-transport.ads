@@ -77,11 +77,11 @@ package PolyORB.Transport is
       Msg : Components.Message'Class)
      return Components.Message'Class;
 
-   ----------------------------------------------------------------
-   -- A transport service endpoint:                              --
-   -- An object that represent a connection that was established --
-   -- when a transport access point was contacted.               --
-   ----------------------------------------------------------------
+   -----------------------------------------------------------------
+   -- A transport service endpoint:                               --
+   -- An object that represents a connection that was established --
+   -- when a transport access point was contacted.                --
+   -----------------------------------------------------------------
 
    type Transport_Endpoint
       is abstract new Components.Component with private;
