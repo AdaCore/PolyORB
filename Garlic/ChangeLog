@@ -1,5 +1,7 @@
 2001-03-08  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Makefile.am: Update dependencies.
+
 	* s-gasoli.ads: Make lock structures limited and pass them in-out
 	when it is logical to do so.
 
@@ -11,8 +13,7 @@
 	Remove many uses of pointers when they are not needed.
 	Test that in case of contention, the task holding the lock is not
 	terminated.
-	Release the watcher lock as we enter the queue, as this can be a
-	blocking operation.
+	Rewrite the watcher to remove all interaction with any other lock.
 
 	* s-gardeb.ads, s-gardeb.adb: Add new procedure to debug the global
 	lock.
