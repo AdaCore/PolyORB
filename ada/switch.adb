@@ -412,6 +412,7 @@ package body Switch is
 
             if Program = Compiler then
                Inline_All := True;
+               Inline_Processing_Required := True;
             else
                raise Bad_Switch;
             end if;
@@ -632,63 +633,8 @@ package body Switch is
          elsif C = 'x' then
             Ptr := Ptr + 1;
 
-            --  Note: the setting of the Xref_Flag_n are obsolescent, since
-            --  they are only for gnatf. For now we treat any other character
-            --  than 0/1/2 as 2 for gnat purposes. If no character follows
-            --  x, then we assume -gnatx1 for gnat1.
-
             if Program = Compiler then
-
-               case Switches (Ptr) is
-
-                  --  Following tests are for obsolescent GNATF switches,
-                  --  to be removed when GNATF is finally retired. ???
-
-                  when '0' =>
-                     Xref_Active := False;
-                     Ptr := Ptr + 1;
-
-                  when '1' =>
-                     Xref_Flag_1 := True;
-                     Ptr := Ptr + 1;
-
-                  when '2' =>
-                     Xref_Flag_2 := True;
-                     Ptr := Ptr + 1;
-
-                  when '3' =>
-                     Xref_Flag_3 := True;
-                     Ptr := Ptr + 1;
-
-                  when '4' =>
-                     Xref_Flag_4 := True;
-                     Ptr := Ptr + 1;
-
-                  when '5' =>
-                     Xref_Flag_5 := True;
-                     Ptr := Ptr + 1;
-
-                  when '6' =>
-                     Xref_Flag_6 := True;
-                     Ptr := Ptr + 1;
-
-                  when '9' =>
-                     Xref_Flag_9 := True;
-                     Ptr := Ptr + 1;
-
-                  when 'b' =>
-                     Xref_Flag_B := True;
-                     Ptr := Ptr + 1;
-
-                  when 's' =>
-                     Xref_Flag_S := True;
-                     Ptr := Ptr + 1;
-
-                  --  This is the normal case of -gnatx to supress xrefs
-
-                  when others =>
-                     Xref_Active := False;
-               end case;
+               Xref_Active := False;
 
             elsif Program = Binder then
                All_Sources := False;

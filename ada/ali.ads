@@ -30,10 +30,11 @@
 --  of Ada Library Information (ALI) acquired from the ALI files generated
 --  by the front end.
 
-with Casing; use Casing;
-with Rident; use Rident;
+with Casing;  use Casing;
+with Gnatvsn; use Gnatvsn;
+with Rident;  use Rident;
 with Table;
-with Types;  use Types;
+with Types;   use Types;
 
 package ALI is
 
@@ -100,7 +101,7 @@ package ALI is
       --  to the name of the source file in the first unit table entry for
       --  this ALI file, since the body if present is always first).
 
-      Ver : String (1 .. 16);
+      Ver : Library_Version_Type;
       --  Value of library version (V line in ALI file)
 
       First_Unit : Unit_Id;
@@ -153,16 +154,19 @@ package ALI is
       --  Set to float format (set to I if no float-format given)
 
       No_Object : Boolean;
-      --  Set to True if unit generated no object file
+      --  Set to True if no object file generated
+
+      No_Run_Time : Boolean;
+      --  Set to True if file was compiled with pragma No_Run_Time
 
       Normalize_Scalars : Boolean;
-      --  Set to True if unit was compiled with Normalize_Scalars
+      --  Set to True if file was compiled with Normalize_Scalars
 
       Unit_Exception_Table : Boolean;
       --  Set to True if unit exception table pointer generated
 
       Zero_Cost_Exceptions : Boolean;
-      --  Set to True if unit is compiled with zero cost exceptions
+      --  Set to True if file was compiled with zero cost exceptions
 
       Restrictions : Restrictions_String;
       --  Copy of restrictions letters from R line

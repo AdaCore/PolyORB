@@ -76,9 +76,7 @@ package Opt is
 
    Assertions_Enabled : Boolean := False;
    --  GNAT
-   --  Enable assertions made using pragma Assert. Used only by GNATF, ignored
-   --  by GNAT1 (actually the pragmas are still processed, but if no code is
-   --  generated, they have no effect).
+   --  Enable assertions made using pragma Assert.
 
    Bind_Main_Program : Boolean := True;
    --  GNATBIND
@@ -244,13 +242,19 @@ package Opt is
    --  GNAT
    --  Set True to activate pragma Inline processing across modules. Default
    --  for now is not to inline across module boundaries.
-   --  Used by GNAT1, ignored by GNATF.
+
+   Inline_Processing_Required : Boolean := False;
+   --  GNAT
+   --  Set True if inline processing is required. Inline processing is
+   --  required if an active Inline pragma is processed. The flag is set
+   --  for a pragma Inline or Inline_Always that is actually active.
+   --  This flag is also set True if Inline_All is set.
 
    Inline_All : Boolean := False;
    --  GNAT
    --  Set True to activate Inline processing across modules for all
-   --  subprograms, regardless of individual pragmas.
-   --  Used by GNAT1, ignored by GNATF.
+   --  subprograms, regardless of whether a pragma Inline appears for
+   --  a subprogram or not.
 
    In_Place_Mode : Boolean := False;
    --  GNATMAKE
@@ -274,7 +278,7 @@ package Opt is
    --  directly in a Makefile.
 
    Locking_Policy : Character := ' ';
-   --  GNAT1, GNATF, GNATBIND
+   --  GNAT, GNATBIND
    --  Set to ' ' for the default case (no locking policy specified). Reset to
    --  first character (upper case) of locking policy name if a valid pragma
    --  Locking_Policy is encountered. In the binder, this is set to a non-blank
@@ -310,6 +314,9 @@ package Opt is
    --  For GNAT, set True if a pragma Normalize_Scalars applies to the current
    --  unit. For GNATBIND, set True if Normalize_Scalars applies to any unit.
 
+   No_Run_Time : Boolean := False;
+   --  Set True if a valid pragma No_Run_Time is processed
+
    type Operating_Mode_Type is (Check_Syntax, Check_Semantics, Generate_Code);
    Operating_Mode : Operating_Mode_Type := Generate_Code;
    --  GNAT
@@ -319,8 +326,7 @@ package Opt is
    --  only mode. Operating_Mode can also be modified as a result of detecting
    --  errors during the compilation process. In particular if any error is
    --  detected then this flag is reset from Generate_Code to Check_Semantics
-   --  after generating an error message. For GNATF, Generate_Code is treated
-   --  as equivalent to Check_Semantics.
+   --  after generating an error message.
 
    Output_Filename_Present : Boolean := False;
    --  GNATBIND, GNAT
@@ -344,7 +350,7 @@ package Opt is
    --  pragma applies to the extended main unit.
 
    Queuing_Policy : Character := ' ';
-   --  GNAT1, GNATF, GNATBIND
+   --  GNAT, GNATBIND
    --  Set to ' ' for the default case (no queuing policy specified). Reset to
    --  Reset to first character (upper case) of locking policy name if a valid
    --  Queuing_Policy pragma is encountered. In the binder, this is set to a
@@ -365,8 +371,7 @@ package Opt is
    --  Set to True by Osint.Initialize if the target requires the software
    --  approach to integer arithmetic overflow checking (i.e. the use of
    --  double length arithmetic followed by a range check). Set to False
-   --  if the target implements hardware overflow checking. Used only by
-   --  GNAT1, not used by GNATF.
+   --  if the target implements hardware overflow checking.
 
    Strict_Math : aliased Boolean := False;
    --  GNAT
@@ -408,7 +413,7 @@ package Opt is
    --  used if no -gnatT switch appears.
 
    Task_Dispatching_Policy : Character := ' ';
-   --  GNAT1, GNATF, GNATBIND
+   --  GNAT, GNATBIND
    --  Set to ' ' for the default case (no task dispatching policy specified).
    --  Reset to first character (upper case) of task dispatching policy name
    --  if a valid Task_Dispatching_Policy pragma is encountered. In the binder,
@@ -447,7 +452,7 @@ package Opt is
    Unreserve_All_Interrupts : Boolean := False;
    --  GNAT, GNATBIND
    --  Normally set False, set True if a valid Unreserve_All_Interrupts
-   --  pragma appears anywhere in the main unit for GNAT1, or if any ALI
+   --  pragma appears anywhere in the main unit for GNAT, or if any ALI
    --  file has the corresponding attribute set in GNATBIND.
 
    Upper_Half_Encoding : Boolean := False;
@@ -494,49 +499,6 @@ package Opt is
    Xref_Active : Boolean := True;
    --  GNAT
    --  Set if cross-referencing is enabled (i.e. xref info in ali files)
-
-   ---------------------------------
-   -- Obsolescent flags for GNATF --
-   ---------------------------------
-
-   --  To be removed when GNATF is fully retired from action. Note that
-   --  other flags defined previously as applying to GNAT also apply to
-   --  GNATF (at least those that are concerned with front end semantics).
-
-   Xref_Flag_1 : Boolean := False;
-   --  Set to generate warning messages for unused with clauses.
-
-   Xref_Flag_2 : Boolean := False;
-   --  Set to generate warning messages for unused entities (including
-   --  unused with clauses).
-
-   Xref_Flag_3 : Boolean := False;
-   --  Set to generate cross-reference file listing all references in the
-   --  compiled files (also generates warning messages described above).
-
-   Xref_Flag_4 : Boolean := False;
-   --  Set to include in the reference list all informations about entities
-   --  declared in bodies if the corresponding spec declares inlined
-   --  subprograms or generics. Includes effects of Xref_Flag_1,2,3).
-
-   Xref_Flag_5 : Boolean := False;
-   --  Set to include all information in cross-reference listing.
-   --  (includes effects of Xref_Flag_1,2,3 described above).
-
-   Xref_Flag_6 : Boolean := False;
-   --  Same thing as Xef_Flag_5 except that a global xref file is generated
-
-   Xref_Flag_9 : Boolean := False;
-   --  Set to generate a cross-reference listing of Ada 95 features used. This
-   --  listing is sorted by category and output to the standard output file.
-
-   Xref_Flag_B : Boolean := False;
-   --  If set, cross-reference file includes information on required interfaces
-   --  for library unit bodies.
-
-   Xref_Flag_S : Boolean := False;
-   --  If set, cross-reference file includes information on required interfaces
-   --  for library package specs.
 
    -----------------
    -- Subprograms --

@@ -120,7 +120,9 @@ package body Opt is
       Tree_Read_Bool (Immediate_Errors);
       Tree_Read_Bool (Inline_Active);
       Tree_Read_Bool (Inline_All);
+      Tree_Read_Bool (Inline_Processing_Required);
       Tree_Read_Bool (List_Units);
+      Tree_Read_Bool (No_Run_Time);
       Tree_Read_Data (Operating_Mode'Address,
                       Operating_Mode_Type'Object_Size / Storage_Unit);
       Tree_Read_Bool (Software_Overflow_Checking);
@@ -159,7 +161,9 @@ package body Opt is
       Tree_Write_Bool (Immediate_Errors);
       Tree_Write_Bool (Inline_Active);
       Tree_Write_Bool (Inline_All);
+      Tree_Write_Bool (Inline_Processing_Required);
       Tree_Write_Bool (List_Units);
+      Tree_Write_Bool (No_Run_Time);
       Tree_Write_Data (Operating_Mode'Address,
                        Operating_Mode_Type'Object_Size / Storage_Unit);
       Tree_Write_Bool (Software_Overflow_Checking);

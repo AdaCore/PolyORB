@@ -668,21 +668,29 @@ package body ALI is
       Id := ALIs.Last;
       Set_Name_Table_Info (F, Int (Id));
 
-      ALIs.Table (Id).Afile                   := F;
-      ALIs.Table (Id).First_Unit              := No_Unit_Id;
-      ALIs.Table (Id).Float_Format            := 'I';
-      ALIs.Table (Id).Locking_Policy          := ' ';
-      ALIs.Table (Id).Main_Priority           := -1;
-      ALIs.Table (Id).Main_Program            := None;
-      ALIs.Table (Id).No_Object               := False;
-      ALIs.Table (Id).Normalize_Scalars       := False;
-      ALIs.Table (Id).Ofile_Full_Name         := Full_Object_File_Name;
-      ALIs.Table (Id).Queuing_Policy          := ' ';
-      ALIs.Table (Id).Task_Dispatching_Policy := ' ';
-      ALIs.Table (Id).Time_Slice_Value        := -1;
-      ALIs.Table (Id).WC_Encoding             := '8';
-      ALIs.Table (Id).Unit_Exception_Table    := False;
-      ALIs.Table (Id).Zero_Cost_Exceptions    := False;
+      ALIs.Table (Id) := (
+        Afile                   => F,
+        First_Sdep              => No_Sdep_Id,
+        First_Unit              => No_Unit_Id,
+        Float_Format            => 'I',
+        Last_Sdep               => No_Sdep_Id,
+        Last_Unit               => No_Unit_Id,
+        Locking_Policy          => ' ',
+        Main_Priority           => -1,
+        Main_Program            => None,
+        No_Object               => False,
+        No_Run_Time             => False,
+        Normalize_Scalars       => False,
+        Ofile_Full_Name         => Full_Object_File_Name,
+        Queuing_Policy          => ' ',
+        Restrictions            => (others => ' '),
+        Sfile                   => No_Name,
+        Task_Dispatching_Policy => ' ',
+        Time_Slice_Value        => -1,
+        WC_Encoding             => '8',
+        Unit_Exception_Table    => False,
+        Ver                     => (others => ' '),
+        Zero_Cost_Exceptions    => False);
 
       --  Acquire library version
 
@@ -782,6 +790,10 @@ package body ALI is
             if C = 'O' then
                ALIs.Table (Id).No_Object := True;
                No_Object := True;
+
+            elsif C = 'R' then
+               No_Run_Time := True;
+               ALIs.Table (Id).No_Run_Time := True;
 
             elsif C = 'S' then
                ALIs.Table (Id).Normalize_Scalars := True;

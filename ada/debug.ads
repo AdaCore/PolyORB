@@ -118,13 +118,6 @@ pragma Preelaborate (Debug);
    Debug_Flag_8 : Boolean := False;
    Debug_Flag_9 : Boolean := False;
 
-   Fatal_Error_Node  : Node_Id;
-   --  Set to the node giving the location at which the compiler abort
-   --  is to be signalled. This is not necessarily perfectly accurate,
-   --  it is just a convenient best guess. This is used to output the
-   --  source location in the abort message by Comperr, and also to
-   --  implement the d3 debugging flag.
-
    function Get_Debug_Flag_K return Boolean;
    --  This function is called from C code to get the setting of the K flag
    --  (it does not work to try to access a constant object directly).
