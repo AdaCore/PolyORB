@@ -131,7 +131,7 @@ package body RCI is
    function getRAS return echo_RAS is
       Func : constant echo_RAS := echoString'Access;
    begin
-      Put_Line (Fun.all ("Checking local (bypass) RAS call"));
+      Put_Line (Func.all ("Checking local (bypass) RAS call"));
       return Func;
    end getRAS;
 
