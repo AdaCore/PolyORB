@@ -9,7 +9,7 @@ configuration Test_Abort is
    for part2'Host use "YYYYY";
    for part2'Storage_Dir use "XXXXX/bin";
 
-   procedure Test_Abort is in part1;
+   procedure Main_Abort is in part1;
 
 begin
 end Test_Abort;
