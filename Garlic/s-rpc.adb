@@ -359,10 +359,10 @@ package body System.RPC is
    begin
       D (D_Debug,
          "Doing a APC for partition" & Partition_ID'Image (Partition));
-      if Partition = Get_My_Partition_ID then
-         D (D_Debug, "Cannot yet handle All_Calls_Remote");
-         raise Communication_Error;
-      end if;
+      --  if Partition = Get_My_Partition_ID then
+      --     D (D_Debug, "Cannot yet handle All_Calls_Remote");
+      --     raise Communication_Error;
+      --  end if;
       if not Public_Receiver_Is_Installed then
          D (D_Debug, "Checking the the GARLIC receiver is installed");
          Public_Receiver_Installed.Check;
@@ -392,10 +392,10 @@ package body System.RPC is
    begin
       D (D_Debug,
          "Doing a RPC for partition" & Partition_ID'Image (Partition));
-      if Partition = Get_My_Partition_ID then
-         D (D_Debug, "Cannot yet handle All_Calls_Remote");
-         raise Communication_Error;
-      end if;
+      --  if Partition = Get_My_Partition_ID then
+      --     D (D_Debug, "Cannot yet handle All_Calls_Remote");
+      --     raise Communication_Error;
+      --  end if;
       if not Public_Receiver_Is_Installed then
          D (D_Debug, "Checking the the GARLIC receiver is installed");
          Public_Receiver_Installed.Check;

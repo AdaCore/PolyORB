@@ -801,10 +801,10 @@ package body System.Garlic.Heart is
       Op_Params : aliased Params_Stream_Type (0);
       use type Ada.Streams.Stream_Element_Array;
    begin
-      if Partition = Get_My_Partition_ID_Immediately then
-         D (D_Garlic, "Cannot send to myself, huh ?");
-         raise Communication_Error;
-      end if;
+      --  if Partition = Get_My_Partition_ID_Immediately then
+      --     D (D_Garlic, "Cannot send to myself, huh ?");
+      --     raise Communication_Error;
+      --  end if;
       Opcode'Write (Op_Params'Access, Operation);
       declare
          use type Ada.Streams.Stream_Element_Offset;

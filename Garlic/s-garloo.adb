@@ -2,6 +2,7 @@
 --  $Id$
 --
 
+with Ada.Streams;
 with System.Garlic.Heart;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols; use System.Garlic.Protocols;
@@ -9,6 +10,7 @@ with System.Garlic.Protocols; use System.Garlic.Protocols;
 package body System.Garlic.Loopback is
 
    use type System.RPC.Partition_ID;
+   use type Ada.Streams.Stream_Element_Offset;
 
    ------------
    -- Create --
@@ -46,11 +48,11 @@ package body System.Garlic.Loopback is
    procedure Send
      (Protocol  : access Loopback_Protocol;
       Partition : in System.RPC.Partition_ID;
-      Data      : access Ada.Streams.Stream_Element_Array)
-   is
+      Data      : access Ada.Streams.Stream_Element_Array) is
    begin
       pragma Assert (Partition = System.Garlic.Heart.Get_My_Partition_ID);
-      System.Garlic.Heart.Has_Arrived (Partition, Data.all);
+      System.Garlic.Heart.Has_Arrived
+        (Partition, Data (Data'First + Unused_Space .. Data'Last));
    end Send;
 
    -------------------
