@@ -76,7 +76,7 @@ adabe_structure::produce_marshal_ads(dep_list &with, string &body, string &previ
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Giop_C.Object) ;\n\n";
+  body += "                         S : in out Giop_C.Object) ;\n\n";
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
@@ -111,7 +111,7 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
   align_size += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
   align_size += "                        N : in Corba.Unsigned_Long := 1)\n";
   align_size += "                        return Corba.Unsigned_Long is\n";
-  align_size += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
+  align_size += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
   align_size += "   begin\n";
   align_size += "      for I in (1..N) loop\n";
   

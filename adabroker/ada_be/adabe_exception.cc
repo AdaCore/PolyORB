@@ -54,7 +54,6 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
       body += "   end record\n";
     }
   
-  // Problem in the mapping  ????
   body += "   procedure Get_Members(From : in Ada.Exceptions.Exception_Occurence ;\n";
   body += "                         To : out " + get_ada_local_name() + "_Members ) ;\n";
 }
@@ -70,84 +69,134 @@ adabe_exception::produce_adb (dep_list& with,string &body, string &previous)
 }
 
 void
+adabe_exception::produce_skel_adb (dep_list &with, string &body)
+{
+  UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
+  bool has_member = !activator.is_done();
+  
+  body += "            when except : ";
+  body += get_ada_local_name ();
+  body += " =>\n";
+  body += "               declare\n";
+  body += "                  Repo_Id : Corba.String := ";
+  body += get_ada_local_name ();
+  body += "_Repository_Id ;\n";
+
+  if (has_member) {
+    body += "                  Member : ";
+    body += get_ada_local_name ();
+    body += "_Members ;\n";
+  }
+  body += "               begin\n";
+  if (has_member) {
+    body += "                  Member := Get_Member(except) ;\n";
+  }
+  body += "                  -- compute the size of the replied message\n";
+  body += "                  Mesg_Size := Giop_S.Reply_Header_Size ;\n";
+  body += "                  Mesg_Size := Align_Size (Repo_Id, Mesg_Size) ;\n";
+  if (has_member) {
+    body += "                  Mesg_Size := Align_Size (Member, Mesg_Size) ;\n";
+  }  
+  body += "                  -- Initialisation of the reply\n";
+  body += "                  Giop_S.Initialize_Reply (Orls, Corba.User_Exception, Mesg_Size) ;\n";
+
+  body += "                  -- Marshall the exception\n";
+
+  body += "                  Marshall(Repo_Id, Orls) ;\n";
+  if (has_member) {
+    body += "                  Marshall(Member, Orls) ;\n";
+  }
+  body += "                  -- inform the orb\n";
+  body += "                  Giop_S.Reply_Completed (Orls) ;\n";
+
+  body += "                  Returns := True ;\n";
+  body += "               end ;\n\n";
+}
+
+void
 adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previous)
 {
-  body += "   procedure Marshall (A : in ";
-  body += get_ada_local_name();
-  body += "_Members ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
-
-  body += "   procedure UnMarshall (A : out ";
-  body += get_ada_local_name();
-  body += "_Members ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
-
-  body += "   function Align_Size (A : in";
-  body += get_ada_local_name();
-  body += "_Members ;\n";
-  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "               N : in Corba.Unsigned_Long := 1)\n";
-  body += "               return Corba.Unsigned_Long ;\n\n\n";
-
+  UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
+  if (!activator.is_done())
+    {
+      body += "   procedure Marshall (A : in ";
+      body += get_ada_local_name();
+      body += "_Members ;\n";
+      body += "                       S : in out Giop_C.Object) ;\n\n";
+      
+      body += "   procedure UnMarshall (A : out ";
+      body += get_ada_local_name();
+      body += "_Members ;\n";
+      body += "                         S : in out Giop_C.Object) ;\n\n";
+      
+      body += "   function Align_Size (A : in";
+      body += get_ada_local_name();
+      body += "_Members ;\n";
+      body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+      body += "                        N : in Corba.Unsigned_Long := 1)\n";
+      body += "                        return Corba.Unsigned_Long ;\n\n\n";
+    }
   set_already_defined ();
 }
 
 void
 adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previous)
 {
-  string marshall = "";
-  string unmarshall = "";
-  string align_size = "";
-
-  marshall += "   procedure Marshall(A : in ";
-  marshall += get_ada_local_name();
-  marshall += "_Members ;\n";
-  marshall += "                      S : in out Giop_C.Object) is\n";
-  marshall += "   begin\n";
-  
-  unmarshall += "   procedure UnMarshall(A : out ";
-  unmarshall += get_ada_local_name();
-  unmarshall += "_Members ;\n";
-  unmarshall += "                        S : in out Giop_C.Object) is\n";
-  unmarshall += "   begin\n";
-  
-  align_size += "   function Align_Size (A : in ";
-  align_size += get_ada_local_name();
-  align_size += "_Members ;\n";
-  align_size += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  align_size += "                        N : in Corba.Unsigned_Long := 1)\n";
-  align_size += "                        return Corba.Unsigned_Long is\n";
-  align_size += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
-  align_size += "   begin\n";
-  align_size += "      for I in (1..N) loop\n";
-  
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
-  while (!activator.is_done())
+  if (!activator.is_done())
     {
-      AST_Decl *d = activator.item();
-      switch(d->node_type())
+      string marshall = "";
+      string unmarshall = "";
+      string align_size = "";
+      
+      marshall += "   procedure Marshall(A : in ";
+      marshall += get_ada_local_name();
+      marshall += "_Members ;\n";
+      marshall += "                      S : in out Giop_C.Object) is\n";
+      marshall += "   begin\n";
+      
+      unmarshall += "   procedure UnMarshall(A : out ";
+      unmarshall += get_ada_local_name();
+      unmarshall += "_Members ;\n";
+      unmarshall += "                        S : in out Giop_C.Object) is\n";
+      unmarshall += "   begin\n";
+      
+      align_size += "   function Align_Size (A : in ";
+      align_size += get_ada_local_name();
+      align_size += "_Members ;\n";
+      align_size += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+      align_size += "                        N : in Corba.Unsigned_Long := 1)\n";
+      align_size += "                        return Corba.Unsigned_Long is\n";
+      align_size += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
+      align_size += "   begin\n";
+      align_size += "      for I in (1..N) loop\n";
+      
+      while (!activator.is_done())
 	{
-	case AST_Decl::NT_field:
-	  {
-	    (dynamic_cast<adabe_field *>(d))->produce_marshal_adb(with, body, marshall, unmarshall, align_size);
-	    break;
-	  }
-	default:
-	  cerr << d->node_type() << endl;
-	  throw adabe_internal_error (__FILE__,__LINE__,"unexpected decl in exception scope");
-	}      
-      activator.next();
+	  AST_Decl *d = activator.item();
+	  switch(d->node_type())
+	    {
+	    case AST_Decl::NT_field:
+	      {
+		(dynamic_cast<adabe_field *>(d))->produce_marshal_adb(with, body, marshall, unmarshall, align_size);
+		break;
+	      }
+	    default:
+	      cerr << d->node_type() << endl;
+	      throw adabe_internal_error (__FILE__,__LINE__,"unexpected decl in exception scope");
+	    }      
+	  activator.next();
+	}
+      marshall += "   end ;\n\n";
+      unmarshall += "   end ;\n\n";
+      align_size += "      end loop ;\n";
+      align_size += "      return Tmp ;\n";
+      align_size += "   end ;\n\n\n";
+      
+      body += marshall;
+      body += unmarshall;
+      body += align_size;
     }
-  marshall += "   end ;\n";
-  unmarshall += "   end ;\n";
-  align_size += "      end loop ;\n";
-  align_size += "      return Tmp ;\n";
-  align_size += "   end ;\n";
-
-  body += marshall;
-  body += unmarshall;
-  body += align_size;
-
   set_already_defined();
 }
 

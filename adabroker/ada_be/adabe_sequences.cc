@@ -25,18 +25,22 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   adabe_base_type =  dynamic_cast<adabe_name *> (base_type());
   string type_name =  adabe_base_type->dump_name(with, previous);
   string short_type_name = type_name.substr(type_name.find_last_of('.') + 1) ;
+
   if (short_type_name == "Sequence") 
     {
       short_type_name = type_name.substr(type_name.find_first_of('_') + 1) ;
       short_type_name = short_type_name.substr(0,short_type_name.length()-9);
     }
-  set_ada_local_name("IDL_SEQUENCE_" + short_type_name);
-  body += "   type IDL_SEQUENCE_" + short_type_name +"_Array is ";
+  if (get_ada_local_name () == "")
+    set_ada_local_name("IDL_SEQUENCE_" + short_type_name);
+  
+  body += "   type " + get_ada_local_name () +"_Array is ";
   body += "array (Integer range <>) of " + type_name +" ;\n";
   body += "\n";
-  body += "   package  IDL_SEQUENCE_" + short_type_name +" is new\n";
+  body += "   package " + get_ada_local_name () +" is new\n";
   body += "      Corba.Sequences." + is_bounded;
-  body += "(" +type_name + ", IDL_SEQUENCE_" + short_type_name +"_Array);\n";
+  body += "(" +type_name + ", " + get_ada_local_name () +"_Array);\n";
+  
   set_already_defined();
 }
 void
@@ -45,14 +49,14 @@ adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previou
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "                       S : in out Giop_C.Object) ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "                         S : in out Giop_C.Object) ;\n\n";
 
-  body += "   function Align_Size (A : in";
+  body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
@@ -66,14 +70,11 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
 {
   string name = (dynamic_cast<adabe_name *> (base_type()))->marshal_name(with, body); 
   
-  body += "   -- Marshall\n";
-  body += "   -----------\n";
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name ();
   body += " ;\n"; 
   body += "                       S : in out Object'Class) is\n";
-  body += "      Len : Corba.Unsigned_Long\n";
-  body += "        := Corba.Unsigned_Long (Length(A)) ;\n";
+  body += "      Len : Corba.Unsigned_Long := Corba.Unsigned_Long (Length(A)) ;\n";
   body += "   begin\n";
   body += "      Marshall (Len,S) ;\n";
   body += "      for I in (1..Len) loop\n";
@@ -81,8 +82,6 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "      end loop ;\n";
   body += "   end ;\n\n\n";
   
-  body += "   -- UnMarshall\n";
-  body += "   -------------\n";
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name ();
   body += " ;\n"; 
@@ -100,8 +99,6 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "      end ;\n";
   body += "   end ;\n\n\n";
 
-  body += "   -- Align_Size\n";
-  body += "   -------------\n";
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name ();
   body += " ;\n"; 

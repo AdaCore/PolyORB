@@ -48,7 +48,7 @@ adabe_union_branch::produce_marshal_adb (dep_list& with,
 					 string &align_size,
 					 AST_ConcreteType *concrete)
 {
-  string tmp = "      when ";
+  string tmp = "         when ";
   if (label()->label_kind() != AST_UnionLabel::UL_default)
     {
       tmp += produce_disc_value(concrete, label()->label_val());

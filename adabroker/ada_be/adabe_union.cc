@@ -80,8 +80,8 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += "   function Align_Size (A : in";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "               Initial_Offset : in Corba.Unsigned_Long)\n";
-  body += "               return Corba.Unsigned_Long ;\n\n\n";
+  body += "                        Initial_Offset : in Corba.Unsigned_Long)\n";
+  body += "                        return Corba.Unsigned_Long ;\n\n\n";
 
   set_already_defined ();
 }
@@ -97,7 +97,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   marshall += "   procedure Marshall(A : in ";
   marshall += get_ada_local_name();
   marshall += " ;\n";
-  marshall += "      S : in out Giop_C.Object) is\n";
+  marshall += "                      S : in out Giop_C.Object) is\n";
   marshall += "   begin\n";
   marshall += "      Marshall (Switch,S) ;\n";
   marshall += "      case Switch is\n";
@@ -117,11 +117,11 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   unmarshall += "(Switch) ;\n";
   unmarshall += "      case Switch is\n";
   
-  align_size += "   function Align_Size (A : in";
+  align_size += "   function Align_Size (A : in ";
   align_size += get_ada_local_name();
   align_size += " ;\n";
-  align_size += "               Initial_Offset : in Corba.Unsigned_Long)\n";
-  align_size += "               return Corba.Unsigned_Long is\n";
+  align_size += "                        Initial_Offset : in Corba.Unsigned_Long)\n";
+  align_size += "                        return Corba.Unsigned_Long is\n";
   align_size += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
   align_size += "   begin\n";
   align_size += "      Tmp := Align_Size (Switch,Initial_Offset) ;\n";

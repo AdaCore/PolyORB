@@ -535,9 +535,9 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
     body += "            Mesg_Size := Align_Size (Result, Mesg_Size) ;\n";
 
     body += "            -- Initialisation of the reply\n";
-    body += "            Giop_S.Initialize_Reply (Orls, Giop_NO_EXCEPTION, Mesg_Size) ;\n";
+    body += "            Giop_S.Initialize_Reply (Orls, Corba.No_Exception, Mesg_Size) ;\n";
 
-    body += "            -- Marshall the raguments\n";
+    body += "            -- Marshall the arguments\n";
 
     body += marshall;
     if (is_function()) body += "            Marshall (Result, Orls) ;\n";
@@ -548,6 +548,30 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
 
   body += "            Returns := True ;\n";
   body += "            return ;\n";
+
+  UTL_ExceptlistActiveIterator except_iterator(exceptions()) ;
+
+#ifdef DEBUG_OPERATION
+  bool user_exceptions = (! except_iterator.is_done()) ;
+  cerr << "begin of exception generation" << endl;
+  if (user_exceptions)
+    cerr << "     there is some exceptions" << endl;
+  else
+    cerr << "     actually, there is no exceptions" << endl;
+#endif
+
+  if (user_exceptions) {
+    body += "\n         exception\n";
+    string tmp = "";
+    while (!except_iterator.is_done())
+      {
+	AST_Decl *d = except_iterator.item();
+	dynamic_cast<adabe_exception *>(d)->produce_skel_adb(with, tmp);
+	body += tmp;
+	except_iterator.next();
+      }
+  }
+    
   body += "         end ;\n";
   body += "      end if ;\n\n";
 }
