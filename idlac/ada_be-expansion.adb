@@ -294,8 +294,10 @@ package body Ada_Be.Expansion is
             begin
                Set_Repository_Id_Identifier (Node, RID_Name_Node);
                if Is_Gen_Scope (Node) then
+                  Push_Scope (Node);
                   Add_Identifier_With_Renaming
                     (RID_Name_Node, "Repository_Id");
+                  Pop_Scope;
                else
                   Add_Identifier_With_Renaming
                     (RID_Name_Node, Name (Node) & "_Repository_Id");
