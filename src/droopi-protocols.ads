@@ -16,6 +16,9 @@ package Droopi.Protocols is
    --  A protocol is a factory of sessions. Each session corresponds
    --  to a connection to a remote protocol entity.
 
+   --  This package needs some comments and in particular the callback
+   --  and the demux stuff.
+
    type Protocol is abstract new Filters.Factory with private;
    type Protocol_Access is access all Protocol'Class;
 
@@ -27,6 +30,8 @@ package Droopi.Protocols is
       Session : out Filter_Access)
       is abstract;
    --  Create a Session for protocol Proto using filter Lower.
+
+   --  XXXXX: Filter_Access should be Filter_Access
 
    procedure Destroy_Session (S : in out Session_Access);
    --  Destroy the session associated with S, return any associated
