@@ -15,7 +15,6 @@ pragma Elaborate_All (Droopi.Log);
 with Droopi.Utils;
 with Droopi.Representations.CDR;
 with Droopi.CORBA_P.Exceptions;
-with Ada.Text_IO; use Ada.Text_IO;
 with Sequences.Unbounded;
 with Droopi.Binding_Data;
 with Droopi.Types;
@@ -70,9 +69,6 @@ package body Droopi.References.IOR is
 
                Element_Of (Callbacks, I).
                          Marshall_Profile_Body (Buffer, Profs (N));
-               Put_Line ("Profile_tag : " & (Integer'Image (Integer
-                    (CORBA.Unsigned_Long
-                    (Get_Profile_Tag (Profs (N).all))))));
                Counter := Counter + 1;
             end if;
          end loop;
@@ -116,19 +112,19 @@ package body Droopi.References.IOR is
                   Tag      : constant Profile_Tag :=
                                  Profile_Tag (Temp_Tag);
                begin
+
                   for I in 1 .. Length (Callbacks) loop
                      if Element_Of (Callbacks, I).Tag = Tag then
                         Profs (N) := Element_Of (Callbacks, I).
                                      Unmarshall_Profile_Body (Buffer);
                      end if;
                   end loop;
-                  --       Profs (N) := Callbacks (Tag).
-                  --          Unmarshall_Profile_Body (Buffer);
-
                end;
             end loop;
 
-            Result.Ref.Profiles := To_Sequence (Profs);
+            Result.Ref := Ref'(Nil_Ref => False,
+               Profiles => To_Sequence (Profs));
+
             return Result;
       end;
    end Unmarshall;
@@ -193,30 +189,9 @@ package body Droopi.References.IOR is
             Octets : aliased Encapsulation  :=
                       Encapsulation (To_Stream_Element_Array (S
                                     (S'First + 4 .. S'Last)));
-            --  Octets : aliased Encapsulation  :=
-            --         Encapsulation (To_Stream_Element_Array (
-            --                        ("allons-y")));
       begin
-            Set_Initial_Position (Buf, 0);
-            Put_Line ("CDR : " &
-              Stream_Element_Offset'Image (CDR_Position (Buf)));
+
             Decapsulate (Octets'Access, Buf);
-            Set_Initial_Position (Buf, 0);
-            Put_Line ("CDR : " &
-              Stream_Element_Offset'Image (CDR_Position (Buf)));
-            Show (Buf.all);
-
-            --   declare
-            --    Tt : CORBA.Unsigned_Long := Unmarshall (Buf);
-            --   begin
-            --    Put_Line ("LONG : " &
-            --       CORBA.Unsigned_Long'Image (Tt));
-            --   Put_Line ("CDR : " &
-            --   Stream_Element_Offset'Image (CDR_Position (Buf)));
-            --  end;
-
-            --  return IOR;
-
             IOR := Unmarshall (Buf);
             return IOR;
       end;

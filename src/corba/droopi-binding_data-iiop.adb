@@ -205,7 +205,7 @@ package body Droopi.Binding_Data.IIOP is
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
       Major_Version  : CORBA.Octet;
       Minor_Version  : CORBA.Octet;
-      Length         : CORBA.Long;
+      --  Length         : CORBA.Long;
       Result         : Profile_Access := new IIOP_Profile_Type;
       TResult        : IIOP_Profile_Type
                        renames IIOP_Profile_Type (Result.all);
@@ -216,6 +216,7 @@ package body Droopi.Binding_Data.IIOP is
 
       Major_Version  := Unmarshall (Profile_Buffer);
       Minor_Version  := Unmarshall (Profile_Buffer);
+
 
       if Major_Version /=  IIOP_Major_Version
         or else Minor_Version > IIOP_Minor_Version
@@ -233,12 +234,13 @@ package body Droopi.Binding_Data.IIOP is
 
             TResult.Object_Id := new Object_Id'(Object_Id (Str));
             if Minor_Version /= 0 then
-               Length := Unmarshall (Profile_Buffer);
-               if Length /= 0 then
-                  Release (Profile_Buffer);
-                  --  FIXME: Multiple components are not yet handled.
-                  Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
-               end if;
+               --  Length := Unmarshall (Profile_Buffer);
+               --  if Length /= 0 then
+               --   Release (Profile_Buffer);
+               --   FIXME: Multiple components are not yet handled.
+               --   Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
+               --  end if;
+               null;
             end if;
       end;
       Release (Profile_Buffer);
