@@ -1,3 +1,8 @@
+2003-03-03  Pascal Obry  <obry@gnat.com>
+
+	* xe_build:
+	Change some variables to constant to fix warnings.
+	
 2003-11-18  Laurent Pautet  <pautet@enst.fr>
 
 	* xe_back.adb, xe_back.ads, xe_stubs.adb, xe_stubs.ads,
