@@ -425,6 +425,7 @@ package body Idl_Fe.Lexer is
    --  Is_Idl_Keyword  --
    ----------------------
    procedure Is_Idl_Keyword (S : in String;
+                             Is_Escaped : in Boolean;
                              Is_A_Keyword : out Idl_Keyword_State;
                              Tok : out Idl_Token) is
       Result : Ident_Equality;
@@ -437,13 +438,25 @@ package body Idl_Fe.Lexer is
             when Differ =>
                null;
             when Case_Differ =>
-               Is_A_Keyword := Idl_Keyword_State (Bad_Case);
-               Tok := Idl_Token'Val (Pos);
-               return;
+               if Is_Escaped then
+                  Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
+                  Tok := Idl_Token (T_Error);
+                  return;
+               else
+                  Is_A_Keyword := Idl_Keyword_State (Bad_Case);
+                  Tok := Idl_Token'Val (Pos);
+                  return;
+               end if;
             when Equal =>
-               Is_A_Keyword := Idl_Keyword_State (Is_Keyword);
-               Tok := Idl_Token'Val (Pos);
-               return;
+               if Is_Escaped then
+                  Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
+                  Tok := Idl_Token (T_Error);
+                  return;
+               else
+                  Is_A_Keyword := Idl_Keyword_State (Is_Keyword);
+                  Tok := Idl_Token'Val (Pos);
+                  return;
+               end if;
          end case;
       end loop;
       Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
@@ -742,12 +755,13 @@ package body Idl_Fe.Lexer is
    -----------------------
    --  Scan_Identifier  --
    -----------------------
-   function Scan_Identifier return Idl_Token is
+   function Scan_Identifier (Is_Escaped : Boolean) return Idl_Token is
       Is_A_Keyword : Idl_Keyword_State;
       Tok : Idl_Token;
    begin
       Set_Mark;
-      if Get_Current_Char = 'L'
+      if not Is_Escaped
+        and Get_Current_Char = 'L'
         and View_Next_Char = ''' then
          Skip_Char;
          Set_End_Mark;
@@ -759,7 +773,8 @@ package body Idl_Fe.Lexer is
             when others =>
                raise Errors.Internal_Error;
          end case;
-      elsif Get_Current_Char = 'L'
+      elsif not Is_Escaped
+        and Get_Current_Char = 'L'
         and View_Next_Char = Quotation then
          Skip_Char;
          Set_End_Mark;
@@ -778,6 +793,7 @@ package body Idl_Fe.Lexer is
          end loop;
          Set_End_Mark;
          Is_Idl_Keyword (Get_Marked_Text,
+                         Is_Escaped,
                          Is_A_Keyword,
                          Tok);
          case Is_A_Keyword is
@@ -883,22 +899,7 @@ package body Idl_Fe.Lexer is
    begin
       if Is_Alphabetic_Character (View_Next_Char) then
          Skip_Char;
-         return Scan_Identifier;
-
-         --  FIXME: unreachable code below
-         pragma Warnings (Off);
-         if Current_Token = T_Identifier then
-            Errors.Error
-              ("Invalid identifier name. An identifier cannot begin" &
-               " with '_', except if the end is an idl keyword",
-               Errors.Error,
-               Get_Real_Location);
-            return T_Error;
-         else
-            return T_Identifier;
-         end if;
-         pragma Warnings (On);
-
+         return Scan_Identifier (True);
       else
          Errors.Error ("Invalid character '_'",
                                     Errors.Error,
@@ -1338,7 +1339,7 @@ package body Idl_Fe.Lexer is
               | LC_German_Sharp_S
               | LC_Y_Diaeresis =>
                Set_Token_Location;
-               return Scan_Identifier;
+               return Scan_Identifier (False);
             when '_' =>
                Set_Token_Location;
                return Scan_Underscore;
