@@ -71,11 +71,11 @@ package body System.Garlic.Heart is
    --  by more than one task (in fact, they should not be modified after
    --  the elaboration is terminated).
 
-   Elaboration_Barrier : Barrier_Type;
+   Elaboration_Barrier : Barrier_Access;
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
-   Self_PID_Barrier : Barrier_Type;
+   Self_PID_Barrier : Barrier_Access;
    --  Block any task until Self_PID is different from Null_PID
 
    Handlers : array (External_Opcode) of Request_Handler;

@@ -33,15 +33,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;        use Ada.Exceptions;
-with Ada.Streams;           use Ada.Streams;
-with System.Garlic;         use System.Garlic;
-with System.Garlic.Debug;   use System.Garlic.Debug;
-with System.Garlic.Heart;   use System.Garlic.Heart;
+with Ada.Exceptions;           use Ada.Exceptions;
+with Ada.Streams;              use Ada.Streams;
+with System.Garlic;            use System.Garlic;
+with System.Garlic.Debug;      use System.Garlic.Debug;
+with System.Garlic.Heart;      use System.Garlic.Heart;
+with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 with System.Garlic.Streams;
 with System.Garlic.Table;
 with System.Garlic.Types;
-with System.Garlic.Utils;   use System.Garlic.Utils;
+with System.Garlic.Utils;      use System.Garlic.Utils;
 
 package body System.RPC.Stream_IO is
 
@@ -61,9 +62,9 @@ package body System.RPC.Stream_IO is
          Mode      : Stream_Mode;
          Incoming  : aliased Streams.Params_Stream_Type (0);
          Outgoing  : aliased Streams.Params_Stream_Type (0);
-         Consumer  : Barrier_Type;
-         Available : Mutex_Type;
-         Critical  : Mutex_Type;
+         Consumer  : Barrier_Access;
+         Available : Mutex_Access;
+         Critical  : Mutex_Access;
       end record;
    type Partition_Stream_Access is access Partition_Stream_Record;
 

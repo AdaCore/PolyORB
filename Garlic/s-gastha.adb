@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Interfaces.C;
+with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 
 package body System.Garlic.Storage_Handling is
 
@@ -70,17 +71,17 @@ package body System.Garlic.Storage_Handling is
          return;
       end if;
 
-      Utils.Enter (Pool.Mutex);
+      Enter (Pool.Mutex);
       for I in 1 .. Max_Objects loop
          if not Pool.Used (I) then
             Pool.Used (I)   := True;
             Storage_Address := Pool.Addresses (I);
             Pool.N_Objects := Pool.N_Objects + 1;
-            Utils.Leave (Pool.Mutex);
+            Leave (Pool.Mutex);
             return;
          end if;
       end loop;
-      Utils.Leave (Pool.Mutex);
+      Leave (Pool.Mutex);
       Storage_Address := malloc (IC.int (Size_In_Storage_Elements));
       if Storage_Address = Null_Address then
          raise Storage_Error;
@@ -128,7 +129,7 @@ package body System.Garlic.Storage_Handling is
       for I in 1 .. Max_Objects loop
          free (Pool.Addresses (I));
       end loop;
-      Utils.Destroy (Pool.Mutex);
+      Destroy (Pool.Mutex);
    end Finalize;
 
    ----------------
@@ -142,7 +143,7 @@ package body System.Garlic.Storage_Handling is
       for I in 1 .. Max_Objects loop
          Pool.Addresses (I) := malloc (IC.int (Static_Object_Size));
       end loop;
-      Utils.Create (Pool.Mutex);
+      Create (Pool.Mutex);
    end Initialize;
 
    ------------------

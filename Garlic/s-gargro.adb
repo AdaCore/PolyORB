@@ -38,6 +38,7 @@ with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Options;
 pragma Warnings (Off, System.Garlic.Options);
 with System.Garlic.Partitions; use System.Garlic.Partitions;
+with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Utils;      use System.Garlic.Utils;
@@ -52,7 +53,7 @@ package body System.Garlic.Group is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   Group_Mutex : Mutex_Type;
+   Group_Mutex : Mutex_Access;
 
    procedure Handle_Request
      (Partition : in Partition_ID;

@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Utils;
+with System.Garlic.Soft_Links;
 with System.Storage_Elements;
 with System.Storage_Pools;
 
@@ -76,7 +76,7 @@ private
         pragma Atomic (N_Objects);
         Addresses : Array_Of_Addresses;
         Used      : Array_Of_Boolean;
-        Mutex     : Utils.Mutex_Type;
+        Mutex     : Soft_Links.Mutex_Access;
      end record;
 
 end System.Garlic.Storage_Handling;

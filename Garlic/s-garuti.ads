@@ -68,105 +68,24 @@ package System.Garlic.Utils is
    --  not considered as being an error until Throw has been called.
    --  Catch, Raise_Communication_Error and Content cancel the error.
 
-   type Barrier_Type is limited private;
-
-   procedure Create (B : out Barrier_Type);
-   pragma Inline (Create);
-   --  Allocate a barrier.
-
-   procedure Destroy (B : in out Barrier_Type);
-   pragma Inline (Destroy);
-   --  Destroy a barrier.
-
-   procedure Signal (B : in Barrier_Type; N : in Positive := 1);
-   pragma Inline (Signal);
-   --  Release N processes waiting on the barrier.
-
-   procedure Signal_All (B : in Barrier_Type; P : in Boolean := True);
-   pragma Inline (Signal_All);
-   --  Release all processes waiting on the barrier. If P is true, this
-   --  barrier is no longer blocking.
-
-   procedure Wait (B : in Barrier_Type);
-   pragma Inline (Wait);
-   --  Wait on barrier
-
-   type Mutex_Type is limited private;
-
-   procedure Create (M : out Mutex_Type);
-   --  Allocate a mutex
-
-   procedure Enter (M : in Mutex_Type);
-   pragma Inline (Enter);
-   --  Enter one level of critical section
-
-   procedure Destroy (M : in out Mutex_Type);
-   --  Free the memory used by a Mutex_Type
-
-   procedure Leave (M : in Mutex_Type);
-   pragma Inline (Leave);
-   --  Leave one level of critical section
-
    type Version_Id is mod 2 ** 8;
    No_Version : constant Version_Id := 0;
 
    function "<" (L, R : Version_Id) return Boolean;
 
-   type Watcher_Type is limited private;
+   type Portable_Address is mod 2 ** 64;
+   --  This type can contain an object of type System.Address on any platform
+   --  where GNAT is supported. It is made public on purpose so that it is
+   --  possible to take a 'Image of it.
 
-   procedure Lookup (W : in Watcher_Type; V : out Version_Id);
-   pragma Inline (Lookup);
-   --  Fetch W stamp
-
-   procedure Create (W : out Watcher_Type);
-   pragma Inline (Create);
-   --  Allocate a watcher
-
-   procedure Destroy (W : in out Watcher_Type);
-   pragma Inline (Destroy);
-   --  Destroy a watcher
-
-   procedure Differ (W : in Watcher_Type; V : in Version_Id);
-   pragma Inline (Differ);
-   --  Await until T stamp differs from S
-
-   procedure Update (W : in Watcher_Type);
-   pragma Inline (Update);
-   --  Increment stamp in W
-
-   type Adv_Mutex_Type is private;
-
-   procedure Create (M : out Adv_Mutex_Type);
-   --  Allocate an advances mutex
-
-   procedure Enter (M : in Adv_Mutex_Type);
-   pragma Inline (Enter);
-   --  Enter one level of critical section
-
-   procedure Destroy (M : in out Adv_Mutex_Type);
-   --  Free the memory used by an Adv_Mutex
-
-   procedure Leave (M : in Adv_Mutex_Type);
-   pragma Inline (Leave);
-   --  Leave one level of critical section
+   function To_Address (Addr : Portable_Address) return Address;
+   function To_Portable_Address (Addr : Address) return Portable_Address;
+   --  Conversion routines
 
 private
 
-   type Barrier_PO;
-
-   type Barrier_Type is access Barrier_PO;
-
-   type Watcher_PO;
-
-   type Watcher_Type is access Watcher_PO;
-
-   type Mutex_PO;
-
-   type Mutex_Type is access Mutex_PO;
-
-   type Adv_Mutex_PO;
-
-   type Adv_Mutex_Type is access Adv_Mutex_PO;
+   pragma Inline (To_Address);
+   pragma Inline (To_Portable_Address);
 
    type Error_Type is access String;
 

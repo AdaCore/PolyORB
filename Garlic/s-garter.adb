@@ -58,7 +58,7 @@ package body System.Garlic.Termination is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   Mutex : Mutex_Type;
+   Mutex : Mutex_Access;
 
    Non_Terminating_Tasks : Natural := 0;
    pragma Atomic (Non_Terminating_Tasks);

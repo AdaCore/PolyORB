@@ -1,3 +1,26 @@
+1999-09-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* all files: Use soft links for POs in order to have a light run
+ 	time in the near future. Adapt code to changes above. Rename
+ 	Fail_Until_Restart into Failed_Until_Restart to have consistent
+ 	notation.
+
+	* s-garuti.adb, s-garuti.ads: Move protected objects to s-gaprob.
+
+	* s-gasoli.ads: Define abstract types for synchronization objects
+ 	(soft links for all the Garlic PO).
+
+	* s-gaprob.adb, s-gaprob.ads: Concrete implementation of
+	synchronization objects.
+
+	* Makefile.in, Makefile.am: Remove use of s-garloc.* and add
+ 	s-gaprob.* (s-garloc.adb and s-garloc.ads are not removed from
+ 	repository).
+	
+	* s-gartyp.ads: Move some procedures to Garlic.Utils. Body is no
+ 	longer needed (removed from repository to avoid compilation
+ 	problems).
+
 1999-08-24  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-stratt.adb: Initialize variables in some unmarshalling

@@ -69,7 +69,7 @@ package body System.RPC is
      renames Print_Debug_Info;
 
    RPC_Allowed : Boolean := False;
-   RPC_Barrier : Barrier_Type;
+   RPC_Barrier : Barrier_Access;
    --  The current RPC receiver and its associated barrier
 
    type RPC_Status is (Unknown, Running, Aborted, Completed);
@@ -84,7 +84,7 @@ package body System.RPC is
    subtype Valid_RPC_Id is RPC_Id range APC + 1 .. RPC_Id'Last;
 
    Callers : array (Valid_RPC_Id) of RPC_Info;
-   Callers_Watcher : Watcher_Type;
+   Callers_Watcher : Watcher_Access;
 
    type Abort_Keeper is new Ada.Finalization.Controlled with record
       Sent : Boolean := False;

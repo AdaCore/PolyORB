@@ -37,8 +37,6 @@ with System.Garlic.Streams;
 
 package System.Garlic.Types is
 
-   pragma Elaborate_Body;
-
    type Status_Type is (None, Busy, Done, Dead);
    --  General status type for automaton
 
@@ -80,15 +78,6 @@ package System.Garlic.Types is
    type Word is mod 2 ** 32;
    --  Unsigned 32-bit integer
 
-   type Portable_Address is mod 2 ** 64;
-   --  This type can contain an object of type System.Address on any platform
-   --  where GNAT is supported. It is made public on purpose so that it is
-   --  possible to take a 'Image of it.
-
-   function To_Address (Addr : Portable_Address) return Address;
-   function To_Portable_Address (Addr : Address) return Portable_Address;
-   --  Conversion routines
-
    type Shutdown_Type is (Shutdown_On_Any_Partition_Error,
                           Shutdown_On_Boot_Partition_Error,
                           Never_Shutdown_On_Partition_Error);
@@ -115,10 +104,5 @@ package System.Garlic.Types is
       access procedure (Params : access Streams.Params_Stream_Type;
                         Result : access Streams.Params_Stream_Type);
    --  Similar to System.RPC.RPC_Receiver
-
-private
-
-   pragma Inline (To_Address);
-   pragma Inline (To_Portable_Address);
 
 end System.Garlic.Types;

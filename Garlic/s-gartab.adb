@@ -92,8 +92,8 @@ package body System.Garlic.Table is
 
       procedure Validate (N : Index_Type);
 
-      Mutex   : Mutex_Type;
-      Watcher : Watcher_Type;
+      Mutex   : Mutex_Access;
+      Watcher : Watcher_Access;
 
       --  This lock is used to block tasks until the table is
       --  modified. This uses special behaviour of Utils.Mutex_Record.
@@ -348,7 +348,7 @@ package body System.Garlic.Table is
       type Usage_Table_Access is access Usage_Table_Type;
 
       Usage : Usage_Table_Access;
-      Mutex : Mutex_Type;
+      Mutex : Mutex_Access;
 
       function Allocate return Index_Type;
       --  Allocate a new component.

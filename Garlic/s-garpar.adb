@@ -41,6 +41,7 @@ with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Partitions;        use System.Garlic.Partitions;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;         use System.Garlic.Protocols;
+with System.Garlic.Soft_Links;        use System.Garlic.Soft_Links;
 with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Table;
 with System.Garlic.Types;             use System.Garlic.Types;
@@ -137,10 +138,10 @@ package body System.Garlic.Partitions is
    Boot_Mirrors : Natural := 0;
    --  Number of boot mirrors
 
-   Allocator_Mutex : Mutex_Type;
+   Allocator_Mutex : Mutex_Access;
    --  Critical section for PID allocator.
 
-   Allocator_Ready : Barrier_Type;
+   Allocator_Ready : Barrier_Access;
    --  Allocating a partition id can generate a group
    --  communication. We block until we have a reply from the other
    --  boot mirrors.
