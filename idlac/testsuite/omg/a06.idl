@@ -1,0 +1,2 @@
+
+typedef sequence<sequence<octet>> Ragged8;

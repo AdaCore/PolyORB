@@ -1,0 +1,21 @@
+* parenthetized expressions
+* constant reduction (computation)
+* warnings for impossible mapping (interface post reference, inter module ref)
+* warning for identifier clash (Returns, TC_, IDL_, Context, Set_, Get_,
+	_Array, _Declarator ...)
+* indentifiers case.
+* handling of comments
+* handling of pragmas
+* logical filename, line number.
+* GNAT output
+* tokens: check all tokens
+* parse: adding remaining rules.
+* interfaces (scope, sem during parse, inheritance).
+* convert a file name into an Ada identifier, this is needed for file package.
+* attribute/argument if the enclosing interface type.
+* indentation of output.
+* flags for ada: always generate file package.
+* literal mapping (base, fp, fixed, char, string...)
+* add comments about generated code.
+* add blank lines.
+
