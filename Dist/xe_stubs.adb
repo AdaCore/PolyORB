@@ -1060,7 +1060,7 @@ package body XE_Stubs is
       end if;
 
       --  Load new line (Unix, DOS or Windows).
-      if Buffer (Ptr) /= Ascii.LF and then Buffer (Ptr) = Ascii.CR then
+      if Buffer (Ptr) /= Ascii.LF and then Buffer (Ptr) /= Ascii.CR then
          return True;
       end if;
 
@@ -1091,9 +1091,13 @@ package body XE_Stubs is
          return True;
       end if;
 
-      --  Load new line.
-      if Buffer (Ptr) /= Ascii.LF then
+      --  Load new line (Unix, DOS or Windows).
+      if Buffer (Ptr) /= Ascii.LF and then Buffer (Ptr) /= Ascii.CR then
          return True;
+      end if;
+
+      if Buffer (Ptr) = Ascii.CR then
+         Ptr := Ptr + 1;
       end if;
       Ptr := Ptr + 1;
 
