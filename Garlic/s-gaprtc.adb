@@ -389,10 +389,10 @@ package body System.Garlic.Protocols.Tcp is
      return Boolean
    is
       Dummy   : C.int;
-      Rfds    : aliased Fd_Set := 0;
-      Sfds    : aliased Fd_Set := 0;
+      Rfds    : aliased Fd_Set;
+      Sfds    : aliased Fd_Set;
       Last    : C.int := 0;
-      TVal    : aliased Timeval := (0, C.int (Timeout * 1000));
+      TVal    : aliased Timeval := (0, Timeval_Unit (Timeout * 1000));
       TPtr    : Timeval_Access;
       Info    : Socket_Info;
       Done    : Boolean := False;
@@ -400,6 +400,9 @@ package body System.Garlic.Protocols.Tcp is
       PID     : Partition_ID;
 
    begin
+      Clear (Rfds);
+      Clear (Sfds);
+
       if Timeout = 0 then
          TPtr := null;
       else
@@ -419,7 +422,7 @@ package body System.Garlic.Protocols.Tcp is
                if Last < Info.Socket then
                   Last := Info.Socket;
                end if;
-               Rfds := Rfds + 2 ** Integer (Info.Socket);
+               Set (Rfds, Socket_Fd (Info.Socket));
             end if;
          end if;
       end loop;
@@ -443,7 +446,7 @@ package body System.Garlic.Protocols.Tcp is
       for O in First_PID .. Outgoings.Last loop
          Info := Outgoings.Get_Component (O);
          if Info.Socket /= Failure
-           and then (Rfds / 2 ** Natural (Info.Socket)) mod 2 = 1
+           and then Is_Set (Rfds, Socket_Fd (Info.Socket))
          then
             pragma Debug (D ("something available from partition" & O'Img));
 
