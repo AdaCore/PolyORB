@@ -42,16 +42,128 @@ with GNAT.Source_Info;
 
 with Test_Suite.Scenarios;
 with Test_Suite.Output.File;
+with Test_Suite.Output.Text;
 
 procedure Test_Driver is
 
    use Ada.Text_IO;
    use GNAT.Command_Line;
 
+   use Test_Suite.Output;
    use Test_Suite.Output.File;
+   use Test_Suite.Output.Text;
+
+   procedure Run;
+   --  Run test driver.
+
+   procedure Scan_Command_Line;
+   --  Scan the command line.
 
    procedure Usage;
    --  Print usage information.
+
+   type String_Access is access all String;
+
+   type Action is (Run_Scenario,
+                   Run_All_Scenarios);
+
+   Scan_Succesful : Boolean := False;
+   To_Do       : Action;
+   Output      : TSO_Access;
+   Item        : String_Access;
+
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run is
+   begin
+      --  Execute test_driver ..
+      Open (Test_Suite_Output'Class (Output.all));
+      Log (Test_Suite_Output'Class (Output.all), "Test driver launched.");
+
+      case To_Do is
+         when Run_Scenario =>
+            Test_Suite.Scenarios.Run_Scenario
+              (Item.all, 1,
+               Test_Suite_Output'Class (Output.all));
+
+         when Run_All_Scenarios =>
+            Test_Suite.Scenarios.Run_All_Scenarios
+              (Item.all,
+               Test_Suite_Output'Class (Output.all));
+      end case;
+
+      Log (Test_Suite_Output'Class (Output.all), "Test driver exited.");
+      Close (Test_Suite_Output'Class (Output.all));
+
+   exception
+      when E : others =>
+         Error (Test_Suite_Output'Class (Output.all),
+                "==> Internal Error <==");
+         Error (Test_Suite_Output'Class (Output.all),
+                " Got exception: "
+                & Ada.Exceptions.Exception_Name (E)
+                & ", "
+                & Ada.Exceptions.Exception_Message (E));
+         Close (Test_Suite_Output'Class (Output.all));
+   end Run;
+
+   -----------------------
+   -- Scan_Command_Line --
+   -----------------------
+
+   procedure Scan_Command_Line
+   is
+      No_Output : exception;
+
+   begin
+      loop
+         case Getopt ("scenario: full: output:") is
+            when ASCII.NUL =>
+               exit;
+
+            when 's' =>
+               if Full_Switch = "scenario" then
+                  To_Do := Run_Scenario;
+                  Item := new String '(Parameter);
+                  Scan_Succesful := True;
+               end if;
+
+            when 'f' =>
+               if Full_Switch = "full" then
+                  To_Do := Run_All_Scenarios;
+                  Item := new String '(Parameter);
+                  Scan_Succesful := True;
+               end if;
+
+            when 'o' =>
+               if Full_Switch = "output" then
+                  if Parameter = "text" then
+                     Output := new Text_Output;
+                  elsif Parameter = "file" then
+                     Output := new File_Output;
+                  else
+                     raise No_Output;
+                  end if;
+               end if;
+
+            when others =>
+               raise Program_Error;
+         end case;
+      end loop;
+
+   exception
+      when Invalid_Switch =>
+         Put_Line (Standard_Error, "Invalid Switch " & Full_Switch);
+
+      when Invalid_Parameter =>
+         Put_Line (Standard_Error, "No parameter for " & Full_Switch);
+
+      when No_Output =>
+         Put_Line (Standard_Error, "No output defined.");
+
+   end Scan_Command_Line;
 
    -----------
    -- Usage --
@@ -65,84 +177,35 @@ procedure Test_Driver is
    begin
       New_Line;
       Put_Line (Standard_Error, "Usage: " & Executable_Name
-                & " -scenario scenario_file|full directory,");
+                & " -scenario scenario_file|-full directory"
+                & " -output file|text,");
       Put_Line (Standard_Error,
                 "  -scenario scenario_file : plays scenario_file,");
       Put_Line (Standard_Error,
                 "  -full     directory     : plays all scenarios" &
                 " in directory.");
+      Put_Line (Standard_Error,
+                "  -output   file|text     : output to stdout or files");
       New_Line;
    end Usage;
-
-   type Action is (Run_Scenario,
-                   Run_All_Scenarios);
-
-   Scan_Succesful : Boolean := False;
-
-   To_Do : Action;
-   Output : File_Output;
 
    --  Main procedure begins here.
 
 begin
 
-   --  Scan the command line.
-   loop
-      case Getopt ("scenario: full:") is
-         when ASCII.NUL =>
-            exit;
+   Scan_Command_Line;
 
-         when 's' =>
-            if Full_Switch = "scenario" then
-               To_Do := Run_Scenario;
-               Scan_Succesful := True;
-            end if;
-
-         when 'f' =>
-            if Full_Switch = "full" then
-               To_Do := Run_All_Scenarios;
-               Scan_Succesful := True;
-            end if;
-
-         when others =>
-            raise Program_Error;
-      end case;
-   end loop;
-
-   --  Print usage if scan is unsuccesful.
-   if not Scan_Succesful then
+   if Scan_Succesful
+     and then Output /= null then
+      Run;
+   else
       Usage;
-      return;
    end if;
 
-   --  Execute test_driver ..
-   Open (Output);
-   Log (Output, "Test driver launched.");
-
-   case To_Do is
-      when Run_Scenario =>
-         Test_Suite.Scenarios.Run_Scenario (Parameter, 1, Output);
-
-      when Run_All_Scenarios =>
-         Test_Suite.Scenarios.Run_All_Scenarios (Parameter, Output);
-   end case;
-
-   Log (Output, "Test driver exited.");
-   Close (Output);
-
 exception
-   when Invalid_Switch =>
-      Put_Line (Standard_Error, "Invalid Switch " & Full_Switch);
-      Usage;
-
-   when Invalid_Parameter =>
-      Put_Line (Standard_Error, "No parameter for " & Full_Switch);
-      Usage;
-
    when E : others =>
       Put_Line (Standard_Error, "==> Internal Error <==");
-      Put_Line (Standard_Error,
-                " Got exception: "
+      Put_Line (Standard_Error, " Got exception: "
                 & Ada.Exceptions.Exception_Name (E)
                 & ", "
                 & Ada.Exceptions.Exception_Message (E));

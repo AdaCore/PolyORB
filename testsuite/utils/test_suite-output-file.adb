@@ -35,10 +35,16 @@
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
+with GNAT.Directory_Operations;
+with GNAT.IO_Aux;
+
 package body Test_Suite.Output.File is
 
    use Ada.Strings.Unbounded;
    use Ada.Text_IO;
+
+   use GNAT.Directory_Operations;
+   use GNAT.IO_Aux;
 
    Error_File   : File_Type;
    Log_File     : File_Type;
@@ -47,6 +53,10 @@ package body Test_Suite.Output.File is
    Test_File  : File_Type;
    Test_Name  : Unbounded_String;
    In_Test    : Boolean := False;
+
+   Initial_Dir : Unbounded_String;
+   Current_Dir : Unbounded_String;
+   Base_Output_Dir_Name : constant String := "output";
 
    ----------
    -- Open --
@@ -57,10 +67,21 @@ package body Test_Suite.Output.File is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
+      Initial_Dir := To_Unbounded_String (Get_Current_Dir);
+
+      if not File_Exists (Base_Output_Dir_Name) then
+         Make_Dir (Base_Output_Dir_Name);
+      end if;
+
+      Change_Dir (Base_Output_Dir_Name);
+
       Create (Error_File, Out_File, "error");
       Create (Log_File, Out_File, "log");
       Create (Tests_Failed, Out_File, "failed");
+
+      Change_Dir (To_String (Initial_Dir));
    end Open;
 
    -----------
@@ -141,7 +162,10 @@ package body Test_Suite.Output.File is
    begin
       Test_Name := To_Unbounded_String (Name);
       In_Test := True;
+
+      Change_Dir (To_String (Current_Dir));
       Create (Test_File, Out_File, Name);
+      Change_Dir (To_String (Initial_Dir));
 
       New_Line (Test_File);
       Put_Line (Test_File, "-- Begin of Test " & Name);
@@ -182,10 +206,20 @@ package body Test_Suite.Output.File is
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
-      pragma Unreferenced (Name);
       pragma Warnings (On); --  WAG:3.14
+
    begin
-      null;
+      Change_Dir (Base_Output_Dir_Name);
+      if not File_Exists (Name) then
+         Make_Dir (Name);
+      end if;
+
+      Change_Dir (To_String (Initial_Dir));
+
+      Current_Dir := To_Unbounded_String
+        (Base_Output_Dir_Name
+         & Dir_Separator
+         & Name);
    end Open_Scenario_Output_Context;
 
    -----------------------------------
