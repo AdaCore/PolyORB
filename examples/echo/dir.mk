@@ -1,25 +1,35 @@
-FLAGS = -g -A$(EXPORT_TREE)/$(LIBDIR) $(IMPORT_LIBRARY_FLAGS)
-
-all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
-	gnatmake -gnatf -gnata -m -i client.adb $(FLAGS)
-	gnatmake -gnatf -gnata -m -i server.adb $(FLAGS)
-
-server:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
-	gnatmake -gnatf -gnata -m -i server.adb $(FLAGS)
-
 IDL_INTERFACE = echo
 
-GENERATED_FILES = $(IDL_INTERFACE).ad*
-GENERATED_FILES += $(IDL_INTERFACE)-proxy.ad*
-GENERATED_FILES += $(IDL_INTERFACE)-stream.ad*
-GENERATED_FILES += $(IDL_INTERFACE)-skel.ad*
-GENERATED_FILES += $(IDL_INTERFACE)_idl_file.ad*
-GENERATED_FILES += $(IDL_INTERFACE)_idl_file-stream.ad*
+GENERATED_FILES =\
+echo-skel.adb\
+echo-skel.ads\
+echo-stream.adb\
+echo-stream.ads\
+echo.adb\
+echo.ads\
+echo_idl_file.ads
+
+
+BROCA_FLAGS += -I../generic
+
+all:: client server
+
+#client:: $(CORBA_LIB_DEPEND) $(GENERATED_FILES) client.adb
+client:: $(GENERATED_FILES) force
+	$(GNATMAKE) $(BROCA_FLAGS) -i client.adb
+
+#server:: $(CORBA_LIB_DEPEND) $(GENERATED_FILES) server.adb ../generic/genericserver.ads ../generic/genericserver.adb
+server:: $(GENERATED_FILES) force
+	$(GNATMAKE) $(BROCA_FLAGS) -i server.adb
+
+$(GENERATED_FILES):: $(IDL_INTERFACE).idl
+	@echo Not mapping IDL contract...
+
+stubs:: $(IDL_INTERFACE).idl
+	$(ADABROKER) -i $(IDL_INTERFACE).idl
+
+force::
 
 clean::
-	-rm -f *.o *.ali *~ server client b_*.c $(GENERATED_FILES)
+	-rm -f b~*.ad[sb] *.o *.ali *~ server client $(GENERATED_FILES)
 
-echo.ads: echo.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker -i echo.idl
-
-ada:: echo.ads

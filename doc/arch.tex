@@ -1,0 +1,654 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage{graphicx}
+\usepackage{french}
+\usepackage[latin1]{inputenc}
+\author{T. Gingold}
+\title{Conception et prototypage d'un ORB en Ada}
+\begin{document}
+\maketitle
+\tableofcontents
+
+% TODO: completion status.
+\chapter{Introduction}
+Le but de ce mémoire est d'implémenter en Ada95 un prototype d'ORB CORBA v2.2. 
+Il reprend dans l'esprit, le projet adabroker, qui lui fournissait une
+implémentation basée sur OmniOrb2, ORB écrit en C++.  Cependant, la majorité
+des problèmes se concentraient sur l'interfaçage entre C++ et Ada, ce qui
+n'était pas très motivant, d'autant plus que la gestion des threads en C++
+laisse vraiement à désirer.
+
+Étant donné la taille du problème, je me suis concentré sur quelques points
+bien précis:
+\begin{itemize}
+\item C'est en réalité un prototype: de nombreuses fonctionnalités ont été
+implémentées, certaines en partie seulement.  Par exemple, seules
+quelques exceptions systèmes sont supportées, la gestion exhaustive
+n'étant pas plus complexe.
+\item Un point a été particulièrement étudié, c'est le POA.  Tous les cas
+ont été prévus, cependant, ils n'ont pas été tous testés, par manque de temps.
+\item Un compilateur IDL vers Ada a été légèrement modifié et est fonctionnel
+pour au moins un exemple.  Ici encore, de nombreuses fonctionnalités ont été
+pensées et écrites, les tests restent souvent à faire.
+\end{itemize}
+
+Le rapport présente donc l'architecture utilisée, souvent justifiée, mais
+aussi les points non-implémentés ou manquants.
+
+On supposera une certaine familiarité avec les termes CORBA, le POA
+est cependant présenté.
+
+\chapter{Structures de base de l'ORB}
+\section{Introduction}
+Sont exposées dans ce chapitre les différentes structures utilisées dans
+l'ensemble de l'ORB.  Elles sont plus ou moins déjà définies par les
+spécifications CORBA, on présente donc leur mise en \oe{}uvre.
+
+\section{La Référence (\texttt{Broca.Refs.Ref})}
+Une référence est un objet utilisateur donnant un accès vers un objet
+interne à l'ORB, tel qu'un objet proxy.
+
+C'est un type contr\^olé, qui contient comme unique champ un accès
+vers un type taggé, privé et limité
+(\texttt{Broca.Refs.Ref\_Type}\footnote{ce nom est nom peu judicieux,
+toute proposition est la bienvenue}), dont tout objet interne pouvant
+\^etre référencé doit dériver.  Les objets internes contienent un compteur,
+mis à jour lors des manipulations de références et détruisant l'objet interne
+lorsqu'il tombe à zéro.  Ce compteur peut cependant \^etre désactivé,
+lorsqu'il s'agit d'un objet utilisateur.
+
+Le type \texttt{CORBA.Object.Ref} dérive de \texttt{Broca.Refs.Ref}, et une
+instance peut \^etre créée par:
+\begin{itemize}
+\item la fonction \texttt{CORBA.ORB.String\_To\_Object}, l'argument devant
+\^etre un IOR.
+\item la fonction \texttt{CORBA.Object.To\_Ref}
+\item une assignation (qui implémente \texttt{CORBA::OBJECT.duplicate})
+\item une opération unmarshall (l'argument étant un IOR).
+\end{itemize}
+
+Une référence peut \^etre détruite par \texttt{CORBA.Object.Release}\footnote{Non implémentée}.
+
+Toute nouvelle interface, qui dérive de \texttt{CORBA::Object}, doit créer un
+type dérivé de \texttt{CORBA.Object.Ref}.  Les méthodes de cette nouvelle
+interface ont comme param\^etre dispatchant une référence.
+
+En suspend:
+\begin{itemize}
+\item Référence dans un serveur.  Il n'y a pas d'optimisation dans le cas d'un
+appel local, c'est à dire que les opérations passent par le réseau. Le
+fonctionnement n'est pas garanti, si le serveur est monothread.
+\end{itemize}
+
+\subsection{Primitives de \texttt{CORBA.Object.Ref}}
+\begin{itemize}
+\item \texttt{CORBA.Object.Is\_Nil}
+Renvoie vrai ssi le champ accédant à l'objet interne de la référence est non
+nul.
+\end{itemize}
+
+Les opérations de narrowing sont à la charge du stub.
+
+La gestion de l'héritage multiple est aussi à la charge du stub.
+
+Dans ces deux cas, on pourra se référer à \ref{chap:compilateur}.
+
+\section{Le repository (\texttt{Broca.Repository})}
+Son but est de convertir un \texttt{CORBA::RepositoryID} (cha\^\i{}ne de
+caractère) en un objet taggé.  Il contient l'ensemble des interfaces
+connues par le client.
+
+Il est pour l'instant totalement indépendant du repository de CORBA.
+Une réflexion s'impose si on envisage d'ajouter l'interface
+repository (IR, chapitre 8 de CORBA).
+
+Le type abstrait et taggé
+\texttt{Broca.Repository.Object\_Class\_Type}\footnote{Pour plus de clareté,
+il faudrait changer le nom en object factory} définit une inteface.
+Toute nouvelle interface doit créer un type dérivé de
+\texttt{Object\_Class\_Type}, et s'enregistrer auprès du repository.
+
+Le type \texttt{Object\_Class\_Type} contient un champ
+\texttt{Type\_Id} dont le type est \texttt{CORBA::RepositoryID}. Ce champ est
+comparée avec le champ \texttt{Type\_Id} d'un IOR pour la création
+d'un nouvel objet.
+
+L'unique primitive de \texttt{Object\_Class\_Type} est \texttt{Create\_Object},
+qui crée une référence (non initialisée) du type associé à celui de
+\texttt{Object\_Class\_Type}.  L'unique intéret est d'utiliser l'argument
+dispatchant pour créer une nouvelle référence.
+
+La procédure \texttt{Register} permet d'enregistrer une nouvelle interface et
+peut \^etre appelé pendant l'élaboration.
+
+Un type ne doit \^etre enregistré qu'une seule fois.
+Il ne doit y avoir qu'un seul objet créé par type dérivé de
+\texttt{Object\_Class\_Type}.
+
+\section{L'objet interne (\texttt{Broca.Object})} 
+L'objet interne est l'object référencer par \texttt{CORBA.Object.Ref} ou
+ses héritiés. Il contient toutes les informations permettant d'invoquer
+une opération d'une interface. C'est l'objet proxy.  C'est lui qui est
+référencé par toute référence créée pour une interface.
+
+La création ne se fait que lors d'un appel à \texttt{String\_To\_Object}.
+
+Il contient une liste de profiles, extraite à partir de l'IOR.
+
+\chapter{Structures et fonctionnement de l'ORB}
+
+\section{Introduction}
+L'ORB permet de convoyer des messages d'un module à un autre.  Ceci nécessite
+des accès réseaux, des fonctions de localisation et de représentation.  Elles
+sont présentées ici.
+
+\section{Le descripteur de buffer (\texttt{Broca.Types})}
+Le descripteur de buffer\footnote{Le package où est défini
+ce type est mal choisi, il faudrait certainement le définir dans
+\texttt{Broca.Marshalling}} contient un ensemble de données brutes (qui ont été
+marshallées).  Il contient un buffer (séquence d'octets), un flag
+(Little\_Endian), donnant le sens des octets marshallés et un index
+(Pos) indiquant la position courrante dans le buffer.
+
+Les buffers sont intimement associés au package \texttt{Broca.Marshalling},
+qui permet de mettre des données dans le buffer ou d'en extraire.
+
+Le marshalling d'un message (ou d'un ensemble de valeurs) se fait en plusieurs
+phases:
+\begin{enumerate}
+\item L'index est initialisé à la position du début du message dans le buffer.
+\item Les procedures \texttt{Marshall\_Size} sont appelées pour chaque valeur
+à mettre dans le buffer, dans l'ordre.  Le but est de connaitre la taille
+totale du buffer nécessaire, elles incrémentent donc l'index selon le type
+à marshaller et l'alignement à respecter.
+\item Le buffer est alloué par \texttt{Allocate\_Buffer}, qui remet l'index
+à zéro.
+\item Les procédures \texttt{Marshall} sont appelées pour écrire les valeurs
+dans le buffer.  Elles mettent à jour l'index.
+\end{enumerate}
+
+L'opération inverse, l'extraction ds valeurs à partir d'un buffer s'effectue
+avec les procédures \texttt{Unmarshall}.
+
+Il existe d'autres sous-programmes dans le package \texttt{Broca.Marshalling}
+permettant d'autres opérations parfois utiles (sauter un type).  Il est
+aussi possible de manipuler directement le buffer, ce qui est à déconseiller.
+Le type buffer doit être considéré comme privé à l'extérieur de l'ORB.
+
+\section{Le profile (\texttt{Broca.Object})}
+Le profile décrit un moyen d'accéder à l'objet. C'est un type taggé et
+abstrait, créé à partir d'un IOR.
+
+Deux primitives existent: \texttt{Get\_Object\_Key} qui retourne la clef
+associée au profile et \texttt{Find\_Connection} qui retourne une connexion
+pour l'objet distant.
+
+Le choix d'un profile pour un objet est pour l'instant trivial: le premier
+profile est choisi.  Il faudrait affiner le modèle, et une réflexion s'impose
+surtout dans le cas ou plusieurs profiles sont possibles (que faire dans le
+cas de plusieurs adresses IP ?).
+
+Le seul type de profile implémenté est IIOP.
+
+\section{La connexion (\texttt{Broca.Object})}
+C'est un type abstrait et taggé, décrivant une connexion au sens
+réseau du terme, dont l'implémentation dépend du profile associé.
+
+Le seul protocole autorisé sur une connexion est GIOP.  La mise en \oe{}uvre
+d'autres protocoles (ce qui peut changer la représentation des
+données), n'est pas prévue et demanderait un certain effort si l'on
+désire une grande efficacité.  Une possibilité est le pont externe (comme un
+bridge entre deux ORB) ou la conversion en interne, c'est à dire convertir
+les données marshallées avant un envoi.
+
+Associées aux connexions, il y a quelques primitives:
+\begin{description}
+\item[\texttt{Get\_Request\_Id}] retourne un numéro unique.  Ceci permet
+d'identifier une requ\^ete, sa gestion est pour l'instant un peu trop
+trivial (incrémentation à chaque appel).
+\item[\texttt{Send}] envoit un buffer dans la connextion.
+\item[\texttt{Receive}] attend un buffer de taille connu en provenance de la
+connextion.
+\end{description}
+
+Une connexion est obtenue par l'appel de \texttt{Find\_Connection}, qui peut
+créer ou allouer une connexion déjà existante à partir d'un profile.
+
+Dans l'architecture de l'ORB, pour le client, il ne peut y avoir simultanément
+qu'une  transaction (au sens request-reply) par connexion.
+
+Reste à implémenter:
+\begin{itemize}
+\item  lors de l'allocation d'une connexion, un verrou sur
+l'objet est posé, puis une connexion est créée ou allouée.  Chaque
+connexion possède donc un flag, permettant de savoir si elle est
+allouée.  Une fois la connexion obtenue, le verrou global est libéré.
+Une implémentation plus fine pourrait utiliser uniquement un verrou
+par connexion.
+
+\item libération des ressources d'une connexion: en cas de
+manque de ressources (notament de descripteur de fichier), il peut
+\^etre utile de fermer certains descripteurs de connexion non
+utilisée.  Ceci peut se faire par un LRU sur l'ensemble des
+connexions.
+\end{itemize}
+
+La destruction d'une connexion ne se fait à priori que lors de la
+destruction de l'objet.
+
+\section{Envoi d'un message}
+Pour l'instant, ceci est réalisé de manière simple par le stubs:
+\begin{enumerate}
+\item demande d'un profile
+\item allocation d'une connexion associée au profile
+\item calcul de la longueur du message à envoyer
+\item construction du message
+\item envoi proprement dit du message par les couches basses.  On utilise
+pour ce faire le binding \texttt{adasocket} sur les appels systèmes sockets.
+\item attente d'une en-t\^ete de message réponse
+\item attente du corps du message réponse (la longueur étant connue)
+\item décodage du message
+\item retour de la valeur
+\end{enumerate}
+
+A prévoir:
+\begin{itemize}
+\item Réflexion sur la gestion des buffers (1 buffer de grande taille,
+allocation à chaque message...)
+\item \'Ecoute avant d'émettre: en effet, le serveur peut spontanément envoyer
+un message \texttt{GIOP::CloseConnection} et fermer la connexion.
+\item Gestion de \texttt{GIOP:MessageError}, qui est envoyé lorsqu'une erreur
+de protocole est détectée
+\end{itemize}
+
+\section{Exception}
+Il s'agit de pouvoir associer un objet à une exception.  Ceci n'est pas
+trivial car Ada95 ne permet d'associer à une exception un message (une chaîne
+d'au plus 200 caractères).
+
+Le mapping Ada ne spécifie pas comment lever une exception CORBA.
+
+Le message associé à une exception Ada peut \^etre utilisé:
+\begin{itemize}
+\item l'objet peut-\^etre stocké dans ce champ, mais sa taille maximum est
+de 200 caractères.  La procédure \texttt{Get\_Members} créé un object à partir
+de ce champ.
+\item un accès (ou une référence) peut-\^etre stockée dans le message.  Pas
+de problème de taille, mais un problème de durée de vie et de récupération
+de l'objet quand l'occurence n'existe plus.  Malheureusement, il semble
+impossible de savoir quand une telle condition existe.
+\end{itemize}
+
+L'encodage des exceptions utilisateurs est à la charge du stub et du
+skeleton.
+
+Pour les exceptions systèmes, la première méthode est utilisée, voir
+les commentaires de \texttt{broca-exceptions.adb} pour plus de détails.
+
+\section{Serveur de requ\^etes (\texttt{Broca.Server})}
+Un serveur de requ\^ete gère des connexions du c\^oté serveur.  Il n'existe
+pour l'instant aucun lien entre les connexions du c\^oté client et du
+c\^oté serveur, ce qui est f\^acheux.
+
+Tout serveur dérive du type \texttt{Broca.Server.Server\_Type}, qui
+définit une primitive pour mouliner en interne et deux autres pour
+gérer les profiles.  Pour informations complémentaires sur les
+différents champs du type taggé, voir \texttt{broca-server.ads}.
+
+Le seul véritable serveur est implémenté dans
+\texttt{broca-inet\_server}, qui gère les requ\^etes internet, mais il
+existe aussi un pseudo-serveur gérant la liste des requ\^etes à
+traiter.
+
+\section{Le serveur (\texttt{Broca.Server})}
+\begin{figure}
+\label{fig:requests}
+\begin{center}
+\includegraphics[angle=90]{requests.eps}
+\end{center}
+\end{figure}
+
+Le serveur global gère les serveurs de requ\^etes qui se sont
+enregistrés, ainsi que deux files: la file des requ\^etes suspendues, et
+celle des requ\^etes à traiter. Le traitement des requêtes s'effectue
+selon le principe suivant (voir la figure \ref{fig:requests}):
+\begin{enumerate}
+\item Des tâches (dont le nombre est modifiable au lancement par l'option
+de ligne \texttt{-ORBserver-taks}) sont créées et se bloquent en attente
+de requêtes au niveau des serveurs de requêtes.
+\item Dès qu'une requête arrive, une tâche la prend en charge.
+\item Le POA auquel est destiné la requête est identifié.
+\item Si le POA est dans l'état \texttt{Holding}, la requête est placée dans
+la file des requêtes suspendues.
+\item Si le POA est dans l'état \texttt{Discard}, l'exception
+\texttt{CORBA::TRANSIENT} est renvoyée.
+\item Si le POA est prêt, la requête lui est transmise.
+\end{enumerate}
+
+Pour une vision générale de l'organisation des POA, voir \ref{fig:server}.
+
+Ce serveur est multi-tâche, et doit avoir au moins autant de t\^aches que de
+serveurs de requ\^etes.
+
+L'idée générale est que seule une t\^ache du serveur peut éxécuter les
+requ\^etes ou les opérations engistrées auprès d'un POA.
+
+\`A prévoir:
+\begin{itemize}
+\item Serveur single thread en polling.  Dans le cas d'une seule tâche allouée
+au serveur ou même d'absence de tâche (cas absolument pas géré), la tâche
+pourrait être bloquée sur un serveur, alors que d'autres requêtes sont
+disponibles sur un autre serveur.  Une méthode de polling, bien qu'inefficace
+peut résoudre ce problème.
+\end{itemize}
+
+\section{Serveur internet (\texttt{Broca.Inet\_Server})}
+Son initialisation consiste à retrouver une adresse IP de l'h\^ote, et à
+ouvrir une socket passive sur cette adresse.  On recupère ainsi une
+adresse et un port, utilisés pour créer un IOR.
+
+Il accepte des connexions et écoute sur toutes ses sockets.  Grâce à une
+boucle, le serveur accpte une nouvelle connexsion ou un message.
+
+Notons ici que ce serveur utilise un appel système bloquant, ce qui
+nécessite une gestion des tâches Ada au niveau système.
+
+\chapter{Introduction au POA}
+Le POA (Portable Object Adaptator) est une couche entre le c\oe{}ur de l'ORB
+est les implémentations des interfaces.
+
+Chaque objet est identifié par son \texttt{ObjectId}, qui est un nom, auquel
+est associé un \texttt{Servant} qui éxécute les opérations.
+
+Le POA définit comment doit être traiter une requête sur un objet.
+
+Pour commencer, chaque POA possède un état, parmi:
+\begin{description}
+\item[Active] Le POA traite les messages.
+\item[Holding] Le POA suspend les message arrivant.
+\item[Discard] Le POA renvoie l'exception \texttt{CORBA::Transient} pour tout
+message arrivant.
+\item[Inactive] Le POA n'accepte plus de message.
+\end{description}
+
+La politique décrit aussi comment est associé un \texttt{Servant} à un 
+\texttt{ObjectId}. Il existe plusieurs possibilités:
+\begin{itemize}
+\item Association à l'enregistrement d'un objet.
+\item Association par défaut: un \texttt{Servant} est associé alors à tous
+les objets d'un POA.
+\item Association définie par l'utilisateur, une primitive est alors appelée
+pour obtenir un \texttt{Servant} dès qu'une requête arrive et juste après
+que la requête soit traitée.
+\end{itemize}
+
+Le POA fixe aussi si des appels concurrents sont permis.
+
+Une politique décrit aussi la durée de vie d'un object, qui peut être
+persistant pendant plusieurs POA, pendant un unique POA, ou bien, l'objet
+est créé seulement pendant l'appel.
+
+Ces différentes politiques et leurs combinaisons offrent de nombreuses
+possibilités, mais sont complexes à implémemter.
+
+\chapter{Structure du POA}
+\section{Introduction}
+Le POA (décrit dans le chapitre 9) définit comment traiter une requ\^ete
+arrivant vers un objet donné.  Il agit donc selon une politique, appelée
+politique d'activation.  De nombreuses solutions sont offertes, allant
+de la suspension de la requ\^ete, à son rejet, à la création de l'objet,
+à la création d'un objet intermédiaire\dots{}
+
+\begin{figure}
+\label{fig:server}
+\begin{center}
+\includegraphics[angle=90]{server.eps}
+\end{center}
+\end{figure}
+
+\section{Le Servant (\texttt{PortableServer})}
+C'est le type dont dérive toute implémentation d'interface.  Il est décrit
+dans le mapping Ada.
+
+Seules les exceptions du module CORBA et les exceptions définies
+par l'utilisateur dans l'IDL peuvent sortir d'un servant.
+
+\section{Le POA (\texttt{PortableServer.Poa})}
+En tant qu'objet, le POA définit la politique d'action d'un ensemble d'objets.
+Le type \texttt{Ref} définit seulement une référence vers l'objet interne,
+\texttt{poa\_object} défini dans \texttt{Broca.Poa}.
+
+Ce type contient plusieurs champs, définissant les caractéristiques (attributs)
+du POA mais aussi permettant de construire l'arbre des POA ou de mettre en
+oeuvre certaines politiques.  Il contient ainsi des verrous.  Voir le fichier
+source et les commentaires pour plus de détails.
+
+Le package \texttt{Broca.Rootpoa} définit une implémentation de
+POAManager et de POA.  Il définit aussi un RootPOA, qui s'enregistre
+lors de l'élaboration auprès de la base des références initiales.
+
+Un POAManager contient un tableau des POA qu'il contr\^ole.  Ceci est
+nécessaire lors des changements d'états, pour changer les requ\^etes
+de files d'attente.
+
+Le POA contient une table des servants qu'il gère et se contente
+de renvoyer les requ\^etes GIOP qu'il reçoit vers le servant approprié.
+
+Le POA ne gère jamais son état.
+
+\section{Codage des \texttt{PortableServer::ObjectId}}
+L'ObjectId identifie un objet associé à un POA.
+
+Le système peut créer l'\texttt{ObjectId}, si la politique du POA est
+\texttt{SYSTEM\_ID}.  Un \texttt{ObjectId} étant une \texttt{CORBA::String},
+la seule contrainte est qu'il ne doit pas contenir de caractère
+nul\footnote{Ceci n'est pas encore respecté}.  Notons, qu'il n'y a
+aucun risque de collisions avec un \texttt{Objectid} utilisateur, car
+sa portée est limitée au POA.  Notons de m\^eme, qu'un objectid doit
+pouvoir \^etre unique sur plusieurs instanciations d'un POA, s'il a
+une politique persistante.
+
+L'\texttt{ObjectId} permet de référencer des donnée internes, de son codage
+dépend la vitesse de certaines opérations.
+
+Dans le cas d'une polique \texttt{SYSTEM\_ID}, il contient un index.
+
+\section{Codage des clefs d'objets}
+Point délicat\footnote{Se référer à \texttt{broca-server.adb}}: une
+clef est transmise aux clients par les IORs, et permet d'identifier un
+objet.  Sa durée de vie peut \^etre plus grande que celle d'un
+serveur, et m\^eme de l'objet; en effet lors d'une invocation, une
+chaîne de POA peut se créer, et un objet peut aussi se créer.
+
+L'ORB ne doit pas pouvoir créer deux clefs identiques.
+
+Il contient au plus:
+\begin{enumerate}
+\item la date de naissance du serveur
+\item l'index du poa dans la table \texttt{All\_POAs}
+\item la date de l'index
+\item le nombre de poa dans le chemin, zéro dans le cas transient.
+\item le chemin complet (par nom) pour atteindre le poa dans l'arbre
+\item une clef donnée par le POA (en général date, index et ObjectId).
+\end{enumerate}
+
+Dans le cas simple d'une politique TRANSIENT, la clef peut contenir
+la date de l'ORB, le numéro d'index dans la table et une pseudo-date de
+l'indexe (de façon à pouvoir réutiliser les slots).
+
+Dans le cas d'une politique PERSISTANT, il doit de toute façon contenir
+la cha\^\i ne de POA et l'objectid.  Cependant, dans ce dernier cas, une
+recherche peut prendre beaucoup de temps.  On peut aussi associer une clef
+comme dans le cas précédent, et utiliser\footnote{Non encore implémenté}
+le méchanisme de \texttt{locationforward} si elle n'est pas à jour, c'est
+à dire renvoyer au client le nouvel IOR mis à jour et lui demander de
+reformuler sa requête.
+
+\section{Commentaires sur le POA}
+Le POA est au final une structure relativement complexe, offrant de
+nombreuses possibilités, mais:
+\begin{itemize}
+\item Le mapping Ada souffre de quelques imprécisions (certains packages
+comportent des erreurs).
+\item Le mapping Ada spécifie une fonction \texttt("=") pour tester
+l'égalité entre deux objets du type \texttt{Servant}, ce qui est
+difficile à implémenter (la primitive par défaut aurait pu suffir).
+\item Il n'est pas clair, dans le cas d'un servant par défaut pour un
+poa persistent, si une requ\^ete vers un objet créé dans une session
+antérieure mais pas dans la session courrante doit créer cet objet.
+\item le chapitre 9 parle souvent de l'exception \texttt{OBJECT\_ADAPTER}
+au lieu de \texttt{OBJ\_ADAPTER} définie au chapitre 3.
+\end{itemize}
+
+\chapter{Le compilateur IDL}
+\label{chap:compilateur}
+\section{Introduction}
+Le compilateur permet de traduire un fichier IDL en Ada, selon les
+spécifications du mapping.
+
+
+Le compilateur utilisé est le même que celui d'adabroker, si bien que les
+changements à effectuer ont été minimes.
+
+À partir d'un fichier IDL, au plus 6 fichiers peuvent être produits:
+\begin{description}
+\item[ex.ads] Déclarations pour le client.
+\item[ex.adb] Définitions pour le client.
+\item[ex-stream.ads] Déclarations des sous-programmes de marshalling.
+\item[ex-stream.adb] Définitions du précédant.
+\item[ex-impl.ads] Déclarations pour le serveur.  Les opérations sont
+déclarées abstraite et l'utilisateur peut donc dériver le type pour
+créer sa propre implémentation.
+\item[ex-impl.adb] Définition contient aussi le code interne pour dispatcher
+les messages.
+\end{description}
+
+Je décris ici quelques points particulièrement aigus.
+
+\section{L'opération \texttt{Is\_A}}
+Cette opération retourne vrai si et seulement si une référence (passée
+en premier argument) est du type passé en second argument.  Ce type
+est sous forme de \texttt{RepositoryID}.
+
+Ceci n'est pas forcément évident à cause de l'héritage multiple.
+
+Pour l'instant, l'implémentation contient la liste des types pour lesquels
+il doit retourner vrai.
+
+Cependant, reste à savoir si le \texttt{RepositoryID} d'un type est unique.
+
+On pourrait de plus réduire la liste, car elle est construite par
+récursion et les ancêtres communs ne sont pas identifiés.  On pourrait aussi
+contruire une table de hashage parfaite ou un arbre pour accélérer la
+recherche.
+
+Enfin, l'opération \texttt{Is\_A} n'est pas définie dans le serveur, ce qui
+est génant surtout avec les invocations dynamiques.
+
+\section{Les opérations \texttt{To\_Ref}}
+Ce sont les opérations de conversions (narrowing et widening).  Rien de très
+compliqué, les vérifications sont faites grâce à \texttt{Is\_A}.
+
+\section{Le marshalling}
+Toute nouvelle déclaration d'un type entraine la création de 3 sous-programmes
+de marshalling:
+\begin{description}
+\item[Marshall] qui met dans un descripteur de buffer une donnée.
+\item[Unmarshall] qui retire une donnée d'un descripteur de buffer.
+\item[Marshall\_Size] qui met à jour l'index en selon la donnée.  Ceci est
+nécessaire pour calculer la taille d'un descripteur.
+\end{description}
+Il n'y a rien de très compliqué, ces sous-programmes utilisent les mêmes
+sous-programmes mais pour les types de base.
+
+\section{Les exceptions}
+Elles ne sont pour l'instant pas entièrement gérées.
+
+Il faut définir les sous-programmes de marshalling pour le body associé
+à l'exception et les sous-programmes pour lever une exception et extraire
+le body d'une exception.
+
+Enfin, pour chaque primitive, il faut ajouter le traitement des
+exceptions: récupération et marshalling pour le serveur, levée d'une
+exception pour le client.
+
+\chapter{Une démonstraion}
+\section{le client}
+\begin{verbatim}
+$ ./client `cat ior`
+host: 137.194.168.25
+port:  36603
+host: 137.194.168.25
+port:  36603
+dec_usage: deallocate BROCA.OBJECT.OBJECT_TYPE
+I said : Hello Ada !
+The object answered : Hello Ada !
+dec_usage: deallocate BROCA.OBJECT.OBJECT_TYPE
+\end{verbatim}
+L'application consiste en un écho d'une string.  Le résultat est un peu
+noyé dans les informations complémenataires.
+
+Ici, l'IOR est passé via un fichier.
+
+\section{Le serveur}
+Deux POA sont créés, dont l'un, \texttt{test\_1}, par un adapter activator.
+Ce dernier contient l'objet effectuant l'écho.
+L'autre POA contient un objet dont tout message qui lui est destiné
+entraine l'appel d'une procédure d'invocation qui au lieu de retourner
+un \texttt{Servant} lève une exception de forwarding vers l'objet précédant.
+Un IOR est donc renvoyé lors du premier message, le client reformule alors
+sa requête vers la nouvelle destination.
+\begin{verbatim}
+$ ./serverp -ORBlog --save-ior ior
+listening on host: 137.194.168.25, port:  36603
+ORB log: register_poa: root
+ORB log: register_poa: test_1
+unknown_adapter called
+ORB log: register_poa: test_1
+ORB log: ObjectId created
+ORB log: register_poa: test_st
+ORB log: ObjectId created
+'IOR:000000000000000d49444c3a4563686f3a312e300000000
+0000000010000000000000038000100000000000f3133372e313
+9342e3136382e323500008efb000000000018000000000000000
+300000000000000000000000400000000'
+ORB log: unqueue requests
+ORB log: poll on fd
+ORB log: accepting a connection of fd 9 
+from 137.194.168.25 port 36608
+ORB log: message received from fd 9
+ORB log: handle request message
+ORB log: invoke method
+preinvoke: forward request
+ORB log: poll on fd
+ORB log: accepting a connection of fd 10
+from 137.194.168.25 port 36609
+ORB log: message received from fd 10
+ORB log: handle request message
+ORB log: invoke method
+ORB log: poll on fd
+ORB log: connection closed on fd 9
+ORB log: connection closed on fd 10
+\end{verbatim}
+
+\chapter{Conclusion}
+Ce travail m'a permis de faire connaissance avec CORBA et ses dernières
+spécifications.  J'ai aussi revu et mieux compris certains aspects d'Ada.
+
+Étant donnés le temps imparti et la taille du projet, tout n'a pas été
+écrit ou testé.  Ce rapport décrit l'état des lieux. Même si de nombreux
+aspects ont été balayé ou entre-vu, il reste encore du travail à faire et
+de nombreux détails à voir.
+
+%\section{misc}
+%Ligne de commande et arguments.
+
+%Mapper BOA sur POA.
+
+%\section{Résultats}
+%Au 19-05: le client fonctionne avec le serveur \texttt{echo/eg2\_impl}
+%d'omniorb.
+
+%Au 22-05: le serveur fonctionne avec le client et aussi avec le client
+%\texttt{echo/eg2\_clt}.  Mise en place des vérous, écriture d'un client mt.
+
+\end{document}
