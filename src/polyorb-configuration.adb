@@ -84,12 +84,6 @@ package body PolyORB.Configuration is
    package Variables is
       new PolyORB.Dynamic_Dict (Value => String_Ptr);
 
-   procedure Set_Variable
-     (Section : String;
-      Key     : String;
-      Value   : String);
-   --  Set a variable in a section from the configuration file.
-
    function Fetch (Key : String) return String;
    --  Get the string from a file (if Key starts with file: and the file
    --  exists, otherwise it is an empty string), or the string itself
@@ -296,14 +290,13 @@ package body PolyORB.Configuration is
       end if;
    end Get_Env;
 
-   ------------------
-   -- Set_Variable --
-   ------------------
+   --------------
+   -- Set_Conf --
+   --------------
 
-   procedure Set_Variable
-     (Section : String;
-      Key     : String;
-      Value   : String)
+   procedure Set_Conf
+     (Section, Key : String;
+      Value        : String);
    is
       K : constant String := Make_Global_Key (Section, Key);
       P : String_Ptr := Variables.Lookup (K, null);
@@ -315,7 +308,7 @@ package body PolyORB.Configuration is
       end if;
 
       Variables.Register (K, +Value);
-   end Set_Variable;
+   end Set_Conf;
 
    -----------------------------
    -- Load_Configuration_File --
@@ -401,7 +394,7 @@ package body PolyORB.Configuration is
                         raise Syntax_Error;
                      end if;
 
-                     Set_Variable
+                     Set_Conf
                        (Section => Current_Section.all,
                         Key     => Line (Line'First .. Eq - 1),
                         Value   => Line (Eq + 1 .. Last));
@@ -411,17 +404,17 @@ package body PolyORB.Configuration is
       end loop;
    end Load_Configuration_File;
 
-   ---------------------------------
-   -- PolyORB_Configuration_File  --
-   ---------------------------------
+   -----------------------------
+   -- Configuration_File_Name --
+   -----------------------------
 
-   function PolyORB_Configuration_File
+   function Configuration_File_Name
      return String is
    begin
       return Get_Env (PolyORB_Conf_Filename_Variable,
                       PolyORB_Conf_Default_Filename);
 
-   end PolyORB_Configuration_File;
+   end Configuration_File_Name;
 
    ----------------
    -- Initialize --

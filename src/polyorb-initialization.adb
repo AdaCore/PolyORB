@@ -383,7 +383,7 @@ package body PolyORB.Initialization is
       PolyORB.Configuration.Initialize;
       --  Initialize Configuration subsystem.
 
-      Load_Configuration_File (PolyORB_Configuration_File);
+      Load_Configuration_File (Configuration_File_Name);
       --  Load PolyORB's configuration file.
 
       --  Initialize registered packages:

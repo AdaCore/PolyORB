@@ -80,11 +80,16 @@ package PolyORB.Configuration is
    procedure Load_Configuration_File (Conf_File_Name : String);
    --  Load Conf_File_Name configuration file.
 
-   function PolyORB_Configuration_File return String;
-   --  Return PolyORB Configuration file filename.
+   function Configuration_File_Name return String;
+   --  Return PolyORB Configuration file name.
 
    procedure Initialize;
    --  Initialize Configuration subsystem.
+
+   procedure Set_Conf
+     (Section, Key : String;
+      Value        : String);
+   --  Sets the value of the given Key in the named Section.
 
    function Get_Conf (Section, Key : String; Default : String := "")
      return String;
