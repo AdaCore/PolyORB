@@ -868,7 +868,8 @@ package body XE_Utils is
                   Add_List_Switch (Argv);
                   Add_Make_Switch (Argv);
 
-               when 'g'
+               when 'f'
+                 |  'g'
                  |  'O' =>
                   Add_Make_Switch (Argv);
 
