@@ -43,9 +43,9 @@ with Output;
 
 with PolyORB.References;
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-pragma Elaborate_All (Polyorb.Setup.No_Tasking_Server);
+with PolyORB.Setup.Client;
+pragma Warnings (Off, PolyORB.Setup.Client);
+pragma Elaborate_All (Polyorb.Setup.Client);
 
 with PolyORB.Initialization;
 
