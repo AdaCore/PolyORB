@@ -34,8 +34,6 @@
 
 --  $Id$
 
-with System.Address_To_Access_Conversions;
-
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Requests;
 
@@ -44,9 +42,6 @@ with CORBA.NVList;
 with CORBA.Object;
 
 package body CORBA.Request is
-
-   package PAAC is new System.Address_To_Access_Conversions
-     (PolyORB.Any.NamedValue);
 
    procedure Create_Request
      (Self      : in     CORBA.AbstractBase.Ref;
@@ -62,27 +57,17 @@ package body CORBA.Request is
         (Ctx,
          Req_Flags);
       pragma Warnings (On);
-      --  PResult : PolyORB.Any.NamedValue;
-      --  for PResult'Address use Result'Address;
-      --  pragma Import (Ada, PResult);
-
-      --  This is ugly but required because we want Result
-      --  to be strictly passed by reference, with no intervening
-      --  assignments.
-
-      --  Furthermore this version based on representation clause
-      --  and pragma Import fails due to a bug in GNAT, which causes
-      --  PResult to be erroneously finalized. Consequently, it
-      --  is now implemented using an Addess_To_Access conversion.
-
+      PResult : PolyORB.Any.NamedValue
+        := (Name      => PolyORB.Types.Identifier (Result.Name),
+            Argument  => Result.Argument,
+            Arg_Modes => Result.Arg_Modes);
    begin
       PolyORB.Requests.Create_Request
         (Target    => CORBA.Object.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
-         --  Result    => PResult,
-         Result    => PAAC.To_Pointer (Result'Address).all,
+         Result    => PResult,
          Req       => Request.The_Request);
    end Create_Request;
 
@@ -103,20 +88,17 @@ package body CORBA.Request is
          Ctxt_List,
          Req_Flags);
       pragma Warnings (On);
---       PResult : PolyORB.Any.NamedValue;
---       for PResult'Address use Result'Address;
---       pragma Import (Ada, PResult);
-      --  This is ugly but required because we want Result
-      --  to be strictly passed by reference, with no intervening
-      --  assignments.
+      PResult : PolyORB.Any.NamedValue
+        := (Name      => PolyORB.Types.Identifier (Result.Name),
+            Argument  => Result.Argument,
+            Arg_Modes => Result.Arg_Modes);
    begin
       PolyORB.Requests.Create_Request
         (Target    => CORBA.Object.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
-         --  Result    => PResult,
-         Result    => PAAC.To_Pointer (Result'Address).all,
+         Result    => PResult,
          Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref (Exc_List),
          Req       => Request.The_Request);
    end Create_Request;
