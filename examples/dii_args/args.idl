@@ -1,6 +1,0 @@
-interface Args {
-  long Plus1 (in long a);
-  long Plus2 (in long a, in long b);
-  long Plus3 (in long a, in long b, in long c);
-  void Plus_Minus(in long a, in long b, out long p, out long m);
-};
