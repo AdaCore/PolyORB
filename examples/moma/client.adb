@@ -83,13 +83,17 @@ procedure Client is
    use MOMA.Messages;
    use MOMA.Types;
 
+   use PolyORB.References;
    use PolyORB.Services.Naming.Tools;
    use PolyORB.Types;
 
    use Report;
 
-   Pool_Ref           : PolyORB.References.Ref;
-   Router_Ref         : PolyORB.References.Ref;
+   Arg1               : MOMA.Types.String;
+   Arg2               : MOMA.Types.String;
+   Arg3               : MOMA.Types.String;
+   Pool_Ref           : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
+   Router_Ref         : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
    MOMA_Factory       : Connection_Factory_Queue;
    MOMA_Connection    : MOMA.Connections.Queues.Queue;
    MOMA_Session       : MOMA.Sessions.Queues.Session_Queue;
@@ -103,7 +107,7 @@ procedure Client is
    type Scenario_T is (Full, Stor, Retr, Sub);
    Scenario : Scenario_T;
 
-   type Kind_T is (Pool, Topic);
+   type Kind_T is (Naming, Pool, Topic);
    Kind : Kind_T;
 
    ----------------------
@@ -345,64 +349,101 @@ procedure Client is
 
    end Test_MText;
 
+   ---------------
+   -- Put_Usage --
+   ---------------
+
+   procedure Put_Usage;
+
+   procedure Put_Usage
+   is
+   begin
+      Put_Line ("usage : client <scenario> <kind> <IOR>");
+      Put_Line (" where <scenario> is in {full, stor, retr}");
+      Put_Line ("  - full : full demo, send and receive messages");
+      Put_Line ("  - stor : only send messages");
+      Put_Line ("  - retr : only retrieve messages");
+      Put_Line (" where <kind> is in {pool, naming}");
+      Put_Line ("  - pool   : <IOR> is the IOR of a message pool");
+      Put_Line ("  - naming : <IOR> is the IOR of a naming service");
+      New_Line;
+      Put_Line ("or    : client stor topic <IOR>");
+      Put_Line (" where <IOR> is the IOR of a router");
+      New_Line;
+      Put_Line ("or    : client sub <IOR1> <IOR2>");
+      Put_Line (" where <IOR1> is the IOR of the message pool to subscribe");
+      Put_Line (" and   <IOR2> is the IOR of a router");
+      New_Line;
+      Put_Line ("{stor, retr} scenarios are to test persistency");
+   end Put_Usage;
+
+   ---------------------
+   -- Check_Arguments --
+   ---------------------
+
+   function Check_Arguments return Boolean;
+
+   function Check_Arguments return Boolean
+   is
+   begin
+      if Argument_Count /= 3 then
+         return False;
+      end if;
+      Arg1 := To_MOMA_String (Ada.Command_Line.Argument (1));
+      Arg2 := To_MOMA_String (Ada.Command_Line.Argument (2));
+      Arg3 := To_MOMA_String (Ada.Command_Line.Argument (3));
+      if Arg1 = "full" then
+         Scenario := Full;
+      elsif Arg1 = "stor" then
+         Scenario := Stor;
+      elsif Arg1 = "retr" then
+         Scenario := Retr;
+      elsif Arg1 = "sub" then
+         Scenario := Sub;
+         Kind := Topic;
+         return True;
+      else
+         return False;
+      end if;
+      if Arg2 = "pool" then
+         Kind := Pool;
+      elsif Arg2 = "naming" then
+         Kind := Naming;
+      elsif Arg2 = "topic" then
+         Kind := Topic;
+         if Arg1 /= "stor" then
+            return False;
+         end if;
+      else
+         return False;
+      end if;
+      return True;
+   end Check_Arguments;
+
    --------------------
-   -- Main procedure --
+   -- Main Procedure --
    --------------------
 
 begin
 
    --  Argument check
-   if Argument_Count < 3 or Argument_Count > 4 then
-      Put_Line ("usage : client <scenario> <kind> <IOR1> [IOR2]");
-      Put_Line (" where 'scenario' is in {full, stor, retr}");
-      Put_Line ("  - full : full demo, send and receive messages");
-      Put_Line ("  - stor : only send messages");
-      Put_Line ("  - retr : only retrieve messages");
-      New_Line;
-      Put_Line (" where 'kind' is in {pool, naming, topic}");
-      Put_Line ("  - pool   : <IOR1> is the IOR of a message pool");
-      Put_Line ("  - naming : <IOR1> is the IOR of a naming service");
-      Put_Line ("  - topic  : <IOR1> is the IOR of a router");
-      Put_Line ("             <IOR2> is the IOR of a message pool");
-      New_Line;
-      Put_Line ("{stor, retr} scenarios are to test persistency");
+   if not (Check_Arguments) then
+      Put_Usage;
       return;
    end if;
 
-   --  Determine scenario to run
-   if Ada.Command_Line.Argument (1) = "full" then
-      Scenario := Full;
-   elsif Ada.Command_Line.Argument (1) = "stor" then
-      Scenario := Stor;
-   elsif Ada.Command_Line.Argument (1) = "retr" then
-      Scenario := Retr;
-   elsif Ada.Command_Line.Argument (1) = "sub" then
-      Scenario := Sub;
-   end if;
-
    --  Get a reference on the message pool to use.
-   if Ada.Command_Line.Argument (2) = "pool" then
-      Pool_Ref := PolyORB.References.IOR.String_To_Object
-        (To_PolyORB_String
-         (Ada.Command_Line.Argument (3)));
-      Kind := Pool;
-   elsif Ada.Command_Line.Argument (2) = "naming" then
-      Init (PolyORB.References.IOR.String_To_Object
-            (To_PolyORB_String
-             (Ada.Command_Line.Argument (3))));
-
+   if Kind = Pool then
+      Pool_Ref := PolyORB.References.IOR.String_To_Object (Arg3);
+   elsif Kind = Naming then
+      Init (PolyORB.References.IOR.String_To_Object (Arg3));
       Pool_Ref := Locate ("Pool_1");
       Kind := Pool;
-   elsif Ada.Command_Line.Argument (2) = "topic" then
-      Router_Ref := PolyORB.References.IOR.String_To_Object
-        (To_PolyORB_String
-         (Ada.Command_Line.Argument (3)));
+   elsif Kind = Topic then
+      Router_Ref := PolyORB.References.IOR.String_To_Object (Arg3);
       if Scenario = Sub then
-         Pool_Ref := PolyORB.References.IOR.String_To_Object
-            (To_PolyORB_String
-         (Ada.Command_Line.Argument (4)));
+         Pool_Ref := PolyORB.References.IOR.String_To_Object (Arg2);
       end if;
-      Kind := Topic;
    end if;
 
    --  Initialize the connection factory
@@ -417,10 +458,12 @@ begin
    --  (should be usually done by the administrator).
    --  NB : in this example the destination and the provider are references
    --       to the same thing (Pool_Ref). This will probably change later.
-   MOMA_Dest_Pool := MOMA.Sessions.Queues.Create_Destination
-      (To_MOMA_String ("queue1"),
-       Pool_Ref);
-   if Kind = Topic then
+   if Pool_Ref /= PolyORB.References.Nil_Ref then
+      MOMA_Dest_Pool := MOMA.Sessions.Queues.Create_Destination
+         (To_MOMA_String ("queue1"),
+          Pool_Ref);
+   end if;
+   if Router_Ref /= PolyORB.References.Nil_Ref then
       MOMA_Dest_Router := MOMA.Destinations.Create
          (To_MOMA_String ("Test"),
           Router_Ref,
