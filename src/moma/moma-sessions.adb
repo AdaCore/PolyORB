@@ -110,6 +110,7 @@ package body MOMA.Sessions is
                         Servant_Ref);
       MOMA.Message_Handlers.Initialize (
          Handler, Message_Cons, Servant_Ref, null, null);
+      MOMA.Provider.Message_Handler.Initialize (Servant, Handler);
       return Handler;
    end Create_Handler;
 

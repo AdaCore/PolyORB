@@ -57,6 +57,18 @@ package body MOMA.Provider.Message_Handler is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (
+      Self                 : access Object;
+      MOMA_Message_Handler : MOMA.Message_Handlers.Message_Handler_Acc)
+   is
+   begin
+      Self.MOMA_Message_Handler := MOMA_Message_Handler;
+   end Initialize;
+
    ------------
    -- Invoke --
    ------------
