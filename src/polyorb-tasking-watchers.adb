@@ -72,7 +72,7 @@ package body PolyORB.Tasking.Watchers is
       W.Version := Version_Id'First;
       PTM.Create (W.WMutex);
       PTCV.Create (W.WCondition);
-      W.Passing := True;
+      W.Updated := False;
       W.Await_Count := 0;
    end Create;
 
@@ -113,25 +113,33 @@ package body PolyORB.Tasking.Watchers is
      (W : in out Watcher_Type;
       V : in Version_Id) is
    begin
+      pragma Debug (O ("Differ: enter, V =" & Version_Id'Image (V));
       PTM.Enter (W.WMutex);
-      pragma Debug (O ("Differ: begin"));
+      pragma Debug (O ("... W.Version =" & Version_Id'Image (W.Version)));
 
       while W.Version = V loop
-         while not W.Passing loop
-            pragma Debug (O ("Wait for update"));
+
+         while W.Updated loop
+            pragma Debug (O ("Pending update"));
             PTCV.Wait (W.WCondition, W.WMutex);
-            pragma Debug (O ("Reevaluation"));
+            pragma Debug (O ("Resumed from pending update, W.Version ="
+              & Version_Id'Image (W.Version)));
          end loop;
 
          if W.Version = V then
             W.Await_Count := W.Await_Count + 1;
-            while W.Passing loop
+            pragma Debug (O ("Differ: suspend, Cnt =" & W.Await_Count'Img));
+            while not W.Updated loop
                PTCV.Wait (W.WCondition, W.WMutex);
+               pragma Debug (O ("Differ: resume, Cnt =" & W.Await_Count'Img,
+                 & ", W.Version =" & Version_Id'Image (W.Version)));
             end loop;
+            pragma Debug (O ("Differ: updated!"));
             W.Await_Count := W.Await_Count - 1;
 
             if W.Await_Count = 0 then
-               W.Passing := True;
+               pragma Debug (O ("Clearing Updated"));
+               W.Updated := False;
                PTCV.Broadcast (W.WCondition);
             end if;
 
@@ -177,12 +185,12 @@ package body PolyORB.Tasking.Watchers is
    begin
       Enter (W.WMutex);
 
-      pragma Debug (O ("Update"));
       W.Version := W.Version + 1;
+      pragma Debug (O ("Update: new version " & Version_Id'Image (W.Version)));
 
       if W.Await_Count /= 0 then
-         pragma Debug (O ("Update provokes a reevaluation"));
-         W.Passing := False;
+         pragma Debug (O ("Clients waiting:" & W.Await_Count'Img));
+         W.Updated := True;
          Broadcast (W.WCondition);
       end if;
 

@@ -123,7 +123,7 @@ private
 
       --  Several conditions used by the algorithm :
 
-      Passing     : Boolean;
+      Updated     : Boolean;
       WCondition  : Condition_Access;
 
    end record;
