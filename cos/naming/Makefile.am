@@ -2,14 +2,14 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
-corba_exe=ab_names test_naming test_naming_corba
+corba_exe=ab_names test_naming_corba_i test_naming_corba
 ir_exe=ir_ab_names
 
-PROGS= po_names test_naming_generic @APPLI_EXES@ @SERVICE_EXES@
+PROGS= @APPLI_EXES@ @SERVICE_EXES@
 
 FORCE=	force
 
-TOOLS=	polyorb-corba_p-naming_tools.adb polyorb-services-naming-tools.adb
+TOOLS=	polyorb-corba_p-naming_tools.adb
 EXTRA=	$(TOOLS:.adb=.ali)
 
 COS_DIRS=../../idls/cos/naming

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                          T E S T _ N A M I N G                           --
+--                  T E S T _ N A M I N G _ C O R B A _ I                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,7 +62,7 @@ with PolyORB.Setup.Thread_Pool_Server;
 pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
-procedure Test_Naming is
+procedure Test_Naming_CORBA_I is
 
    package Names renames CosNaming.IDL_SEQUENCE_CosNaming_NameComponent;
 
@@ -626,4 +626,4 @@ begin
       end if;
    end loop;
 
-end Test_Naming;
+end Test_Naming_CORBA_I;
