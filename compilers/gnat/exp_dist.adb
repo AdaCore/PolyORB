@@ -399,6 +399,26 @@ package body Exp_Dist is
       Declarations     : in List_Id);
    --  Add the TypeCode TSS for this RACW type.
 
+   procedure Add_RAS_From_Any
+     (RAS_Type     : in Entity_Id;
+      Declarations : in List_Id);
+   pragma Unreferenced (Add_RAS_From_Any);
+   --  Add the From_Any TSS for this RAS type.
+
+   procedure Add_RAS_To_Any
+     (Designated_Type : in Entity_Id;
+      RAS_Type        : in Entity_Id;
+      Declarations    : in List_Id);
+   pragma Unreferenced (Add_RAS_To_Any);
+   --  Add the To_Any TSS for this RAS type.
+
+   procedure Add_RAS_TypeCode
+     (Designated_Type : in Entity_Id;
+      RAS_Type        : in Entity_Id;
+      Declarations    : in List_Id);
+   pragma Unreferenced (Add_RAS_TypeCode);
+   --  Add the TypeCode TSS for this RAS type.
+
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
       Package_Spec : Node_Id)
@@ -1612,8 +1632,8 @@ package body Exp_Dist is
 
       Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
       --  NOTE: The usage occurrences of RACW_Parameter must
-      --  refer to the entity in the declaration spec, not those
-      --  of the body spec.
+      --  refer to the entity in the declaration spec, not in
+      --  the body spec.
 
       Func_Body :=
         Make_Subprogram_Body (Loc,
@@ -1630,9 +1650,9 @@ package body Exp_Dist is
       Set_Renaming_TSS (RACW_Type, Fnam, Name_uTo_Any);
    end Add_RACW_To_Any;
 
-   ---------------------
-   -- Add_RACW_To_Any --
-   ---------------------
+   -----------------------
+   -- Add_RACW_TypeCode --
+   -----------------------
 
    procedure Add_RACW_TypeCode
      (Designated_Type  : in Entity_Id;
@@ -1874,7 +1894,7 @@ package body Exp_Dist is
 
    ------------------------
    -- Add_RAS_Access_TSS --
-   -------------------------
+   ------------------------
 
    procedure Add_RAS_Access_TSS (N : in Node_Id) is
       Loc : constant Source_Ptr := Sloc (N);
@@ -2379,6 +2399,257 @@ package body Exp_Dist is
       Set_TSS (Fat_Type, Defining_Unit_Name (Proc_Spec));
 
    end Add_RAS_Dereference_TSS;
+
+   procedure Add_RAS_From_Any
+     (RAS_Type     : in Entity_Id;
+      Declarations : in List_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (RAS_Type);
+
+      Fnam : constant Entity_Id
+        := Make_Defining_Identifier (Loc, New_Internal_Name ('F'));
+
+      Func_Spec : Node_Id;
+      Func_Decl : Node_Id;
+      Func_Body : Node_Id;
+
+      Statements : List_Id;
+
+      Any_Parameter : constant Entity_Id
+        := Make_Defining_Identifier (Loc, Name_A);
+
+   begin
+
+      Statements := New_List (
+        Make_Return_Statement (Loc,
+          Expression =>
+            Make_Aggregate (Loc,
+              Component_Associations => New_List (
+                Make_Component_Association (Loc,
+                  Choices => New_List (
+                    Make_Identifier (Loc, Name_Ras)),
+                  Expression =>
+                    Build_From_Any_Call (
+                      Underlying_RACW_Type (RAS_Type),
+                      New_Occurrence_Of (Any_Parameter, Loc),
+                      No_List))))));
+
+      Func_Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name =>
+            Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                Any_Parameter,
+              Parameter_Type =>
+                New_Occurrence_Of (RTE (RE_Any), Loc))),
+          Subtype_Mark => New_Occurrence_Of (RAS_Type, Loc));
+
+      Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+      --  NOTE: The usage occurrences of RACW_Parameter must
+      --  refer to the entity in the declaration spec, not those
+      --  of the body spec.
+
+      Func_Body :=
+        Make_Subprogram_Body (Loc,
+          Specification              =>
+            Copy_Specification (Loc, Func_Spec),
+          Declarations               => No_List,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Statements));
+
+      Insert_After (Declaration_Node (RAS_Type), Func_Decl);
+      Append_To (Declarations, Func_Body);
+
+      Set_Renaming_TSS (RAS_Type, Fnam, Name_uFrom_Any);
+   end Add_RAS_From_Any;
+
+   procedure Add_RAS_To_Any
+     (Designated_Type : in Entity_Id;
+      RAS_Type        : in Entity_Id;
+      Declarations    : in List_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (RAS_Type);
+
+      Fnam : Entity_Id;
+
+      Decls : List_Id;
+      Statements : List_Id;
+
+      Func_Spec : Node_Id;
+      Func_Decl : Node_Id;
+      Func_Body : Node_Id;
+
+      Any : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+
+      RAS_Parameter : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+
+   begin
+
+      --  Object declarations
+
+      Decls := New_List (
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Any,
+          Object_Definition =>
+            New_Occurrence_Of (RTE (RE_Any), Loc),
+          Expression =>
+            Build_To_Any_Call (
+              Make_Selected_Component (Loc,
+                Prefix =>
+                  New_Occurrence_Of (RAS_Parameter, Loc),
+                Selector_Name =>
+                  Make_Identifier (Loc, Name_Ras)),
+               No_List)));
+
+      Statements := New_List (
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Set_TC), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Any, Loc),
+            Build_TypeCode_Call (Loc, RAS_Type, No_List))),
+        Make_Return_Statement (Loc,
+          Expression =>
+            New_Occurrence_Of (Any, Loc)));
+
+      Fnam := Make_Defining_Identifier (
+        Loc, New_Internal_Name ('T'));
+
+      Func_Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name =>
+            Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                RAS_Parameter,
+              Parameter_Type =>
+                New_Occurrence_Of (RAS_Type, Loc))),
+          Subtype_Mark => New_Occurrence_Of (RTE (RE_Any), Loc));
+
+      Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+      --  NOTE: The usage occurrences of RAS_Parameter must
+      --  refer to the entity in the declaration spec, not in
+      --  the body spec.
+
+      Func_Body :=
+        Make_Subprogram_Body (Loc,
+          Specification              =>
+            Copy_Specification (Loc, Func_Spec),
+          Declarations               => Decls,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Statements));
+
+      Insert_After (Declaration_Node (RAS_Type), Func_Decl);
+      Append_To (Declarations, Func_Body);
+
+      Set_Renaming_TSS (RAS_Type, Fnam, Name_uTo_Any);
+   end Add_RAS_To_Any;
+
+   ----------------------
+   -- Add_RAS_TypeCode --
+   ----------------------
+
+   procedure Add_RAS_TypeCode
+     (Designated_Type : in Entity_Id;
+      RAS_Type        : in Entity_Id;
+      Declarations    : in List_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (RAS_Type);
+
+      Fnam : Entity_Id;
+
+      Func_Spec : Node_Id;
+      Func_Decl : Node_Id;
+      Func_Body : Node_Id;
+
+      Name_String : String_Id;
+      Repo_Id_String : String_Id;
+
+      RAS_Parameter : constant Entity_Id
+        := Make_Defining_Identifier (Loc, Name_R);
+
+   begin
+
+      Fnam := Make_Defining_Identifier (
+        Loc, New_Internal_Name ('T'));
+
+      Func_Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name =>
+            Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                RAS_Parameter,
+              Parameter_Type =>
+                Make_Access_Definition (Loc,
+                  New_Occurrence_Of (RAS_Type, Loc)))),
+          Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
+      --  Dummy 'access RAS' argument, just over overload.
+
+      Func_Decl := Make_Subprogram_Declaration (Loc, Func_Spec);
+      --  NOTE: The usage occurrences of RAS_Parameter must
+      --  refer to the entity in the declaration spec, not those
+      --  of the body spec.
+
+      --  XXX the following is heavily borrowed from Exp_Hlpr
+      --  and should be factored out.
+
+      Get_Name_String (Chars
+        (Defining_Identifier (Declaration_Node (RAS_Type))));
+      Name_String := String_From_Name_Buffer;
+      Repo_Id_String := Name_String;
+      --  XXX should compute a proper repository id!
+
+      Func_Body :=
+        Make_Subprogram_Body (Loc,
+          Specification              =>
+            Copy_Specification (Loc, Func_Spec),
+          Declarations               => Empty_List,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => New_List (
+                Make_Return_Statement (Loc,
+                  Expression =>
+                    Make_Function_Call (Loc,
+                      Name =>
+                        New_Occurrence_Of (RTE (RE_TC_Build), Loc),
+                      Parameter_Associations => New_List (
+                        New_Occurrence_Of (RTE (RE_TC_Alias), Loc),
+                        Make_Aggregate (Loc,
+                          Expressions =>
+                            New_List (
+                              Make_Function_Call (Loc,
+                                Name =>
+                                  New_Occurrence_Of (RTE (RE_TA_String), Loc),
+                                Parameter_Associations => New_List (
+                                  Make_String_Literal (Loc, Name_String))),
+                              Make_Function_Call (Loc,
+                                Name =>
+                                  New_Occurrence_Of (RTE (RE_TA_String), Loc),
+                                Parameter_Associations => New_List (
+                                  Make_String_Literal (Loc, Repo_Id_String))),
+                              Make_Function_Call (Loc,
+                                Name =>
+                                  New_Occurrence_Of (RTE (RE_TA_TC), Loc),
+                                Parameter_Associations => New_List (
+                              Build_TypeCode_Call (Loc,
+                                Underlying_RACW_Type (RAS_Type),
+                                No_List)))))))))));
+
+      Insert_After (Declaration_Node (RAS_Type), Func_Decl);
+      Append_To (Declarations, Func_Body);
+
+      Set_Renaming_TSS (RAS_Type, Fnam, Name_uTypeCode);
+   end Add_RAS_TypeCode;
 
    -----------------------
    -- Add_RAST_Features --

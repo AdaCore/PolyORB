@@ -154,6 +154,23 @@ package body System.PolyORB_Interface is
    --  the USER_ID, NON_RETAIN and USE_DEFAULT_SERVANT policies).
    --  The components of Servant are set appropriately.
 
+   -------------------------
+   -- Any_Aggregate_Build --
+   -------------------------
+
+   function Any_Aggregate_Build
+     (TypeCode : PolyORB.Any.TypeCode.Object;
+      Contents : Any_Array)
+      return Any
+   is
+     Result : Any := Get_Empty_Any_Aggregate (TypeCode);
+   begin
+      for J in Contents'Range loop
+         Add_Aggregate_Element (Result, Contents (J));
+      end loop;
+      return Result;
+   end Any_Aggregate_Build;
+
    ------------------------
    -- Caseless_String_Eq --
    ------------------------

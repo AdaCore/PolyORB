@@ -346,6 +346,11 @@ package System.PolyORB_Interface is
    procedure Copy_Any_Value (Dest, Src : Any)
      renames PolyORB.Any.Copy_Any_Value;
 
+   function Any_Aggregate_Build
+     (TypeCode : PolyORB.Any.TypeCode.Object;
+      Contents : Any_Array)
+      return Any;
+
    --------------
    -- Requests --
    --------------
