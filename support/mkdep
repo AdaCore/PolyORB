@@ -73,7 +73,7 @@ cp ${makefile} ${makefile}.bak
 (sed -e "/$MKDEP/,\$d" < ${makefile}.bak
 echo $MKDEP
 IFS=":${IFS}"
-for alifile in *.ali; do
+for alifile in `echo *.ali | sort`; do
   echo "Processing ${alifile}..." > /dev/stderr
   i="${alifile%.ali}"
   withlist=
