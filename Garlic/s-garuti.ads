@@ -41,6 +41,7 @@ package System.Garlic.Utils is
    pragma Elaborate_Body;
 
    type String_Access is access String;
+
    function String_To_Access (S : String) return String_Access;
    function Access_To_String (S : String_Access) return String;
    pragma Stream_Convert (Entity => String_Access,
@@ -57,6 +58,12 @@ package System.Garlic.Utils is
    pragma Inline (To_Lower);
    --  In place transformation of a string with all the upper-case letters
    --  changed into corresponding lower-case ones.
+
+   subtype Error_Type is String_Access;
+   No_Error : constant Error_Type := null;
+   function Found (Error : Error_Type) return Boolean;
+   procedure Throw (Error : in out Error_Type; Message : in String);
+   procedure Catch (Error : in out Error_Type);
 
    type Barrier_Type is limited private;
 

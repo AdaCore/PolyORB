@@ -72,6 +72,11 @@ package body System.Garlic.Physical_Location is
    Protocols_List : array (1 .. 10) of Protocol_Access;
    --  This should be enough but may be increased in the future if needed
 
+   procedure Free is
+     new Unchecked_Deallocation (Node, Node_Ptr);
+   procedure Free_Location is
+     new Unchecked_Deallocation (Location_Body, Location_Type);
+
    procedure Register_Partition
      (P : in Types.Partition_ID;
       L : in Location_Type);
@@ -79,6 +84,20 @@ package body System.Garlic.Physical_Location is
 
    function Lookup_Protocol (P : String) return Protocol_Access;
    --  Return a protocol or null if no protocol with this name was found
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (Location : in out Location_Type) is
+   begin
+      if Location /= null then
+         if Location.Data /= null then
+            Free (Location.Data);
+         end if;
+         Free_Location (Location);
+      end if;
+   end Free;
 
    --------------
    -- Get_Data --
@@ -290,7 +309,6 @@ package body System.Garlic.Physical_Location is
      (P : in Types.Partition_ID;
       L : in String := "")
    is
-      procedure Free is new Unchecked_Deallocation (Node, Node_Ptr);
       Current  : List renames Partition_ID_To_Location (P);
       New_Node : Node_Ptr;
       Old_Node : Node_Ptr;

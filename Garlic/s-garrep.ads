@@ -53,12 +53,14 @@ package System.Garlic.Replay is
      (Protocol  : access Replay_Protocol;
       Self_Data : in Utils.String_Access := null;
       Boot_Data : in Utils.String_Access := null;
-      Boot_Mode : in Boolean := False);
+      Boot_Mode : in Boolean := False;
+      Error     : in out Utils.Error_Type);
 
    procedure Send
       (Protocol  : access Replay_Protocol;
        Partition : in Types.Partition_ID;
-       Data      : access Ada.Streams.Stream_Element_Array);
+       Data      : access Ada.Streams.Stream_Element_Array;
+       Error     : in out Utils.Error_Type);
 
    procedure Shutdown (Protocol : access Replay_Protocol);
 

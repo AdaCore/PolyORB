@@ -60,7 +60,8 @@ package System.Garlic.Protocols is
      (Protocol  : access Protocol_Type;
       Self_Data : in Utils.String_Access := null;
       Boot_Data : in Utils.String_Access := null;
-      Boot_Mode : in Boolean := False)
+      Boot_Mode : in Boolean := False;
+      Error     : in out Utils.Error_Type)
      is abstract;
    --  Initialize protocol. When Boot_Data is non-null, use this location
    --  to contact boot partition. When Boot_Mode is true, initialize this
@@ -81,7 +82,8 @@ package System.Garlic.Protocols is
    procedure Send
      (Protocol  : access Protocol_Type;
       Partition : in Types.Partition_ID;
-      Data      : access Ada.Streams.Stream_Element_Array) is abstract;
+      Data      : access Ada.Streams.Stream_Element_Array;
+      Error     : in out Utils.Error_Type) is abstract;
    --  Send data to a remote partition. See comment about Unused_Space
    --  above.
 

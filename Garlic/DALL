@@ -8,6 +8,7 @@ export S_GARGRO=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GARHEA=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GARNAM=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GAROPT=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
+export S_GARPAR=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GARREM=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GARREP=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GARSTA=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y

@@ -164,9 +164,15 @@ package body System.Garlic.Debug is
             C := Character'Val (Character'Pos (C) - Character'Pos ('a') +
                                 Character'Pos ('A'));
          end if;
-         L := Reverse_Character_Map (C);
-         if L /= No_Debug then
-            Flags_Map (Current, L) := True;
+         if C = '+' then
+            for L in Debug_Level loop
+               Flags_Map (Current, L) := True;
+            end loop;
+         else
+            L := Reverse_Character_Map (C);
+            if L /= No_Debug then
+               Flags_Map (Current, L) := True;
+            end if;
          end if;
       end loop;
       return Current;

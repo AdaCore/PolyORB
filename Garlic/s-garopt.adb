@@ -57,6 +57,7 @@ package body System.Garlic.Options is
 
    procedure Next_Argument (Index : in out Natural);
 
+   function Value (S : String) return Reconnection_Type;
    function Value (S : String) return Termination_Type;
 
    procedure Free is
@@ -68,15 +69,16 @@ package body System.Garlic.Options is
 
    procedure Initialize_Default_Options is
    begin
-      Execution_Mode := Normal_Mode;
-      Boot_Mirror    := False;
-      Set_Connection_Hits (128);
-      Set_Detach (False);
-      Set_Is_Slave (False);
-      Set_Nolaunch (False);
-      Set_Reconnection (Rejected_On_Restart);
-      Set_Self_Location ("");
-      Set_Termination (Global_Termination);
+      Execution_Mode  := Normal_Mode;
+      Connection_Hits := 128;
+      Detach          := False;
+      Mirror_Excepted := False;
+      Has_Light_PCS   := not Has_RCI_Pkg_Or_RACW_Var;
+      Is_Boot_Mirror  := False;
+      Is_Boot_Server  := False;
+      Nolaunch        := False;
+      Reconnection    := Rejected_On_Restart;
+      Termination     := Global_Termination;
    end Initialize_Default_Options;
 
    -----------------------------
@@ -105,7 +107,7 @@ package body System.Garlic.Options is
       end if;
       Free (EV);
 
-      EV := GNAT.OS_Lib.Getenv ("LOCATION");
+      EV := GNAT.OS_Lib.Getenv ("SELF_LOCATION");
       if EV.all /= "" then
          Set_Self_Location (EV.all);
       end if;
@@ -113,7 +115,7 @@ package body System.Garlic.Options is
 
       EV := GNAT.OS_Lib.Getenv ("BOOT_MIRROR");
       if EV.all /= "" then
-         Set_Boot_Mirror (EV.all);
+         Set_Boot_Mirror (True);
       end if;
       Free (EV);
 
@@ -125,11 +127,23 @@ package body System.Garlic.Options is
 
       EV := GNAT.OS_Lib.Getenv ("SLAVE");
       if EV.all /= "" then
-         Set_Is_Slave (True);
+         Set_Slave (True);
       end if;
       Free (EV);
 
-      EV := GNAT.OS_Lib.Getenv ("TERMINATE");
+      EV := GNAT.OS_Lib.Getenv ("MIRROR_EXPECTED");
+      if EV.all /= "" then
+         Set_Mirror_Excepted (True);
+      end if;
+      Free (EV);
+
+      EV := GNAT.OS_Lib.Getenv ("RECONNECTION");
+      if EV.all /= "" then
+         Set_Reconnection (Value (EV.all));
+      end if;
+      Free (EV);
+
+      EV := GNAT.OS_Lib.Getenv ("TERMINATION");
       if EV.all /= "" then
          Set_Termination (Value (EV.all));
       end if;
@@ -150,13 +164,12 @@ package body System.Garlic.Options is
             pragma Debug
               (D (D_Debug, "--boot_mirror available on command line"));
 
-            Next_Argument (Index);
-            Set_Boot_Mirror (Argument (Index));
+            Set_Boot_Mirror (True);
 
-         elsif Argument (Index) = "--location" then
+         elsif Argument (Index) = "--self_location" then
 
             pragma Debug
-              (D (D_Debug, "--location available on command line"));
+              (D (D_Debug, "--self_location available on command line"));
 
             Next_Argument (Index);
             Set_Self_Location (Argument (Index));
@@ -177,12 +190,20 @@ package body System.Garlic.Options is
          elsif Argument (Index) = "--slave" then
 
             pragma Debug (D (D_Debug, "--slave available on command line"));
-            Set_Is_Slave (True);
+            Set_Slave (True);
 
-         elsif Argument (Index) = "--terminate" then
+         elsif Argument (Index) = "--reconnection" then
 
             pragma Debug (D (D_Debug,
-                             "--terminate available on command line"));
+                             "--reconnection available on command line"));
+
+            Next_Argument (Index);
+            Set_Reconnection (Value (Argument (Index)));
+
+         elsif Argument (Index) = "--termination" then
+
+            pragma Debug (D (D_Debug,
+                             "--termination available on command line"));
 
             Next_Argument (Index);
             Set_Termination (Value (Argument (Index)));
@@ -207,8 +228,8 @@ package body System.Garlic.Options is
          Index := Index + 1;
       end loop;
 
-      if Boot_Server = null then
-         if (Boot_Partition and then Nolaunch)
+      if Boot_Location = null then
+         if (Is_Boot_Server and then Nolaunch)
            or else Default_Boot_Server = ""
          then
             Set_Boot_Server ("tcp");
@@ -217,6 +238,17 @@ package body System.Garlic.Options is
          end if;
       end if;
 
+      if Self_Location = null then
+         if Is_Boot_Server then
+            Self_Location := Boot_Location;
+         else
+            Self_Location := new String'("");
+         end if;
+      end if;
+
+      if Is_Boot_Server then
+         Is_Boot_Mirror := True;
+      end if;
    end Initialize_User_Options;
 
    -------------------
@@ -237,20 +269,14 @@ package body System.Garlic.Options is
    -- Set_Boot_Mirror --
    ---------------------
 
-   procedure Set_Boot_Mirror (Default : in String) is
+   procedure Set_Boot_Mirror (Default : in Boolean) is
    begin
-      if Boot_Mirror then
+      if Is_Boot_Mirror then
          Ada.Exceptions.Raise_Exception
            (Program_Error'Identity,
-            "Partition is already a boot mirror");
+            "Partition is already a boot mirror partition");
       end if;
-      if Self_Location.all /= "" then
-         Ada.Exceptions.Raise_Exception
-           (Program_Error'Identity,
-            "Partition has already set its location");
-      end if;
-      Self_Location := new String'(Default);
-      Boot_Mirror   := True;
+      Is_Boot_Mirror := True;
    end Set_Boot_Mirror;
 
    ---------------------
@@ -259,10 +285,10 @@ package body System.Garlic.Options is
 
    procedure Set_Boot_Server (Default : in String) is
    begin
-      if Boot_Server /= null then
-         Free (Boot_Server);
+      if Boot_Location /= null then
+         Free (Boot_Location);
       end if;
-      Boot_Server := new String'(Default);
+      Boot_Location := new String'(Default);
    end Set_Boot_Server;
 
    -------------------------
@@ -297,14 +323,28 @@ package body System.Garlic.Options is
       Execution_Mode := Default;
    end Set_Execution_Mode;
 
-   ------------------
-   -- Set_Is_Slave --
-   ------------------
+   -------------------
+   -- Set_Light_PCS --
+   -------------------
 
-   procedure Set_Is_Slave (Default : in Boolean) is
+   procedure Set_Light_PCS (Default : in Boolean) is
    begin
-      Boot_Partition := not Default;
-   end Set_Is_Slave;
+      if Has_Light_PCS and then not Default then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Partition is configured for a light PCS");
+      end if;
+      Has_Light_PCS := True;
+   end Set_Light_PCS;
+
+   -------------------------
+   -- Set_Mirror_Excepted --
+   -------------------------
+
+   procedure Set_Mirror_Excepted (Default : in Boolean) is
+   begin
+      Mirror_Excepted := Default;
+   end Set_Mirror_Excepted;
 
    ------------------
    -- Set_Nolaunch --
@@ -343,16 +383,20 @@ package body System.Garlic.Options is
 
    procedure Set_Self_Location (Default : in String) is
    begin
-      if Boot_Mirror then
-         Ada.Exceptions.Raise_Exception
-           (Program_Error'Identity,
-            "Partition has already set its location");
-      end if;
       if Self_Location /= null then
          Free (Self_Location);
       end if;
       Self_Location := new String'(Default);
    end Set_Self_Location;
+
+   ---------------
+   -- Set_Slave --
+   ---------------
+
+   procedure Set_Slave (Default : in Boolean) is
+   begin
+      Is_Boot_Server := not Default;
+   end Set_Slave;
 
    --------------------------
    -- Set_Task_Pool_Bounds --
@@ -390,20 +434,26 @@ package body System.Garlic.Options is
    -- Value --
    -----------
 
+   function Value (S : String) return Reconnection_Type is
+   begin
+      return Reconnection_Type'Value (S);
+   exception when others =>
+      Ada.Exceptions.Raise_Exception
+        (Program_Error'Identity,
+         "Unknown reconnection mode """ & S & """");
+   end Value;
+
+   -----------
+   -- Value --
+   -----------
+
    function Value (S : String) return Termination_Type is
    begin
-      pragma Debug (D (D_Debug,
-                       "Termination selected: " &
-                       Termination_Type'Image (Termination_Type'Value
-                                               (S & "_termination"))));
-      return Termination_Type'Value (S & "_termination");
-   exception
-      when others =>
-         pragma Debug (D (D_Debug,
-                          "Unknown termination policy """ & S & """"));
-         Ada.Exceptions.Raise_Exception
-           (Program_Error'Identity,
-            "Unknown termination policy """ & S & """");
+      return Termination_Type'Value (S);
+   exception when others =>
+      Ada.Exceptions.Raise_Exception
+        (Program_Error'Identity,
+         "Unknown termination mode """ & S & """");
    end Value;
 
 end System.Garlic.Options;

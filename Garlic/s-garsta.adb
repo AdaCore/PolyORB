@@ -37,6 +37,7 @@ with Ada.Exceptions;                  use Ada.Exceptions;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Elaboration;
 pragma Elaborate_All (System.Garlic.Elaboration);
+with System.Garlic.Exceptions;        use System.Garlic.Exceptions;
 with System.Garlic.Filters;
 with System.Garlic.Group;             use System.Garlic.Group;
 pragma Elaborate_All (System.Garlic.Group);
@@ -67,6 +68,9 @@ package body System.Garlic.Startup is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   PID   : Partition_ID;
+   Error : Error_Type;
+
 begin
 
    pragma Debug (D (D_Elaborate, "Entering partition startup phase"));
@@ -92,7 +96,7 @@ begin
 
    declare
       Boot_Location : constant Location_Type
-        := To_Location (Options.Boot_Server.all);
+        := To_Location (Options.Boot_Location.all);
       Boot_Protocol : constant Protocol_Access
         := Get_Protocol (Boot_Location);
       Boot_Data     : constant String_Access
@@ -126,18 +130,21 @@ begin
          if Config.Protocol_Table (I) = Boot_Protocol then
 
             --  This call initializes the boot protocol with the data
-            --  returned by Options.Boot_Server. For the boot partition,
+            --  returned by Options.Boot_Location. For the boot partition,
             --  Boot_Data is incomplete, it will be updated. For a non
             --  boot partition, the location used for the boot protocol
             --  is computed. Note that this may be wrong in a multiple
             --  protocols context.
 
-            Initialize (Boot_Protocol, Self_Data, Boot_Data, True);
+            Initialize (Boot_Protocol, Self_Data, Boot_Data, True, Error);
+            if Found (Error) then
+               Raise_Communication_Error (Error.all);
+            end if;
 
             --  Get the location used by the boot protocol for this
             --  partition and store it internally in Heart.
 
-            if Options.Boot_Partition then
+            if Options.Is_Boot_Server then
                Set_Boot_Location
                  (To_Location (Boot_Protocol, Get_Info (Boot_Protocol)));
             else
@@ -145,7 +152,10 @@ begin
                  (To_Location (Boot_Protocol, Boot_Data.all));
             end if;
          else
-            Initialize (Config.Protocol_Table (I));
+            Initialize (Config.Protocol_Table (I), null, null, False, Error);
+            if Found (Error) then
+               Raise_Communication_Error (Error.all);
+            end if;
          end if;
       end loop;
    end;
@@ -168,8 +178,9 @@ begin
 
    --  Let boot server know about this partition
 
-   if Get_My_Partition_ID = Null_PID then
-      raise Program_Error;
+   Get_My_Partition_ID (PID, Error);
+   if PID = Null_PID then
+      Raise_Communication_Error (Error.all);
    end if;
 
    pragma Debug (D (D_Elaborate, "Startup phase terminated"));

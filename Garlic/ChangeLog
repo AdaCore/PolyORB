@@ -1,3 +1,117 @@
+1998-12-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gaphlo.adb, s-gaphlo.ads: Add a procedure to free a location
+ 	and all its components.
+
+	* s-gardeb.adb: '+' is a special character that allows to set all 
+	debug levels to true.
+
+	* s-garfil.ads, s-garfil.adb: Add a parameter Error to some
+	subprograms and remove use of exceptions.
+
+	* s-garopt.ads, s-garopt.adb: Define two strings Boot_Location and
+ 	Self_Location. Define three new flags Is_Boot_Server,
+ 	Is_Boot_Mirror (true when a partition has a copy of units or
+ 	partitions tables) and Mirrors_Expected (true when a partition can
+ 	boot only with more than one boot mirror partition). Check for new
+ 	env. var (and update old ones, for instance, LOCATION into
+ 	SELF_LOCATION) and command line args (and update old ones). Check
+ 	also option inconsistencies. Split Initialize in two procedures,
+ 	one for the defaults, one for user options.
+
+	* s-garuti.ads, s-garuti.adb: Add error code management in order
+ 	to remove use of exception. It is sometimes quite difficult to
+ 	track an exception in the middle of critical sections. By using
+ 	error code, the source code is easier to understand.
+
+	* s-garrem.adb: Do not add --slave on command line to launch a
+ 	slave. This is already included in the slave code. Adding --slave
+ 	also forbids some configuration.
+
+	* s-garstr.ads, s-garstr.adb: Change Deep_Copy into Move because
+	this procedure is supposed to move a source stream content into a
+	target stream. Add procedure Copy to make a copy of a source
+	stream into a target stream. Add a Deallocate procedure to
+	deallocate a Params_Stream_Type and all its components.
+
+	* s-gartyp.ads: Add a Dead status to partition status.
+	
+	* s-garpro.ads: Add an Error parameter to some of the abstract
+ 	subprograms to remove use of exceptions. Do not raise
+ 	Communication_Error in those subprograms because it is sometimes
+ 	too difficult to track an exception in the middle of critical
+ 	sections.
+
+	* s-garrep.ads, s-garrep.adb: Update overriden subprograms
+	according to Garlic.Protocols changes.
+
+	* s-gartcp.adb: Update overriden subprograms according to
+ 	Garlic.Protocols changes. Do not raise Communication_Error
+ 	anymore. Propagate an error code using error utilities from
+ 	Garlic.Utils. Fix some bugs due to bad critical section exit.
+
+	* s-garter.adb, s-rpc.adb, s-rpcpoo.adb, s-rpstio.adb: Use new
+ 	error model. 
+
+	* s-garsta.adb: Use new error model. Initialize boot protocol with
+ 	self location for non boot server partition. This way, a protocol
+ 	does not bind its location randomly for a slave partition.
+
+	* s-gargro.ads, s-gargro.adb: Add an Error parameter to some
+ 	subprograms. Use new stream utilities. Fix some bugs due to bad
+ 	critical section exit. Broadcasts are asynchronous and it is not
+ 	possible to start a new broadcast operation once the first one has
+ 	completed. In Handle_Request, parameter Reply which was never used
+ 	allows now to start a new broadcast when the current request has
+ 	just completed.
+		
+	* s-garhea.ads, s-garhea.adb: Add an Error parameter to some
+ 	subprograms. Add a Send_Boot_Server procedure to send a stream to
+ 	boot server. When the boot server is dead, try to find a boot
+ 	mirror. Throw an error only when there is no boot mirror left. Add
+ 	a Wait_For_My_Partition_ID procedure that blocks until the
+ 	partition id of the current partition has been computed. Move some
+ 	procedures from Heart to Partitions in order to have all the
+ 	primitives on the partition info table in the same package.
+
+	* s-garpar.ads, s-garpar.adb: Add some fault tolerance
+ 	functionalities. Info of a given partition includes now the
+ 	partition id of its boot server and a flag set to true when it is
+ 	a boot mirror. Partition info requests now include a request to
+ 	update the partition info table on all the mirroring
+ 	partitions. Add an Error parameter to some subprograms. Add an
+ 	Invalidate_Partition subprogram that finds a new boot partition
+ 	when the invalidated partition is the boot server partition and
+ 	notifies the partition invalidation to it (and propagate this
+ 	invalidation to other mirrors). Add a function N_Boot_Mirrors to
+ 	evaluate the number of boot mirrors already registered. Add two
+ 	procedures to marshal and unmarshal the partition info table. Move
+ 	some procedures from Heart to Partitions in order to have all the
+ 	primitives on the partition info table in the same package. This
+ 	concerns Handle_Partition_Request, Next_Partition, Get_Location,
+ 	Get_Name, Get_Protocol, Invalidate_Partition. The choice of a
+ 	partition id for a new partition is now a distributed
+ 	computation. When a new partition registers itself or when a
+ 	partition is invalidated, a copy of the new table is
+ 	broadcast. When two new copies are broadcast, we merge them in the
+ 	table. The number of updates could be optimized.
+
+	* s-garuni.ads, s-garuni.adb: Add some fault tolerance
+ 	functionalities. Add new requests to broadcast the units info
+ 	table. Add an Error parameter to some subprograms. Improve the way
+ 	units are invalidated when their partition is invalidated. Add two
+ 	subprograms to marshal and unmarshal the units info table. Add a
+ 	new subprogram Register_Units_On_Boot_Server in order to take into
+ 	account boot server failures. Broadcast the units info table to
+ 	the boot mirror partitions. Improve also the restarting features
+ 	especially to resolve conflicts of duplicated registrations. A
+ 	newly created partition registers its units and then asks for info
+ 	on its units back. If this info is different, then Program_Error
+ 	is raised. Such an info is definitively registered when all the
+ 	mirrors have successfully merged the new copy sent by the
+ 	partition boot server. When a conflict occurs, the validated unit
+ 	is the one with the smallest partition id.
+		
 1998-10-26  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* 5bgtplsp.ads: New file, AIX version.

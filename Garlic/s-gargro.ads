@@ -35,12 +35,14 @@
 
 with System.Garlic.Heart;
 with System.Garlic.Streams;
+with System.Garlic.Utils;
 
 package System.Garlic.Group is
 
    procedure Broadcast
      (Opcode : in Heart.Any_Opcode;
-      Params : access Streams.Params_Stream_Type);
+      Params : access Streams.Params_Stream_Type;
+      Error  : in out Utils.Error_Type);
 
    procedure Initialize;
 

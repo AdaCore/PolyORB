@@ -39,10 +39,10 @@ with Ada.Unchecked_Conversion;
 with GNAT.HTable;              use GNAT.HTable;
 with GNAT.Table;
 with System.Garlic.Debug;      use System.Garlic.Debug;
-with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Options;    use System.Garlic.Options;
+with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Remote;     use System.Garlic.Remote;
 with System.Garlic.Soft_Links;
 with System.Garlic.Startup;
@@ -139,6 +139,8 @@ package body System.Partition_Interface is
 
    procedure Free is new Ada.Unchecked_Deallocation (Caller_Node, Caller_List);
 
+   procedure Raise_Communication_Error (S : String);
+
    -----------
    -- Check --
    -----------
@@ -218,13 +220,20 @@ package body System.Partition_Interface is
    is
       N : String := Name;
       U : Unit_Id;
+      I : Unit_Info;
+      E : Error_Type;
    begin
       pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
 
       To_Lower (N);
       U := Units.Get_Index (N);
 
-      return RPC.Partition_ID (Get_Unit_Info (U).Partition);
+      Get_Unit_Info (U, I, E);
+      if Found (E) then
+         Raise_Communication_Error (E.all);
+      end if;
+
+      return RPC.Partition_ID (I.Partition);
    end Get_Active_Partition_ID;
 
    ------------------------
@@ -237,13 +246,20 @@ package body System.Partition_Interface is
    is
       N : String := Name;
       U : Unit_Id;
+      I : Unit_Info;
+      E : Error_Type;
    begin
       pragma Debug (D (D_Debug, "Request Get_Active_Version"));
 
       To_Lower (N);
       U := Units.Get_Index (N);
 
-      return Get_Unit_Info (U).Version.all;
+      Get_Unit_Info (U, I, E);
+      if Found (E) then
+         Raise_Communication_Error (E.all);
+      end if;
+
+      return I.Version.all;
    end Get_Active_Version;
 
    ----------------------------
@@ -263,9 +279,15 @@ package body System.Partition_Interface is
    function Get_Partition_Name
      (Partition : Integer)
      return String is
+      Name  : String_Access;
+      Error : Error_Type;
    begin
-      return System.Garlic.Heart.Name
-        (System.Garlic.Types.Partition_ID (Partition));
+      System.Garlic.Partitions.Get_Name
+        (System.Garlic.Types.Partition_ID (Partition), Name, Error);
+      if Found (Error) then
+         Raise_Communication_Error (Error.all);
+      end if;
+      return Name.all;
    end Get_Partition_Name;
 
    ------------------------------
@@ -298,13 +320,20 @@ package body System.Partition_Interface is
    is
       N : String := Name;
       U : Unit_Id;
+      I : Unit_Info;
+      E : Error_Type;
    begin
       pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
 
       To_Lower (N);
       U := Units.Get_Index (N);
 
-      return Get_Unit_Info (U).Receiver;
+      Get_Unit_Info (U, I, E);
+      if Found (E) then
+         Raise_Communication_Error (E.all);
+      end if;
+
+      return I.Receiver;
    end Get_RCI_Package_Receiver;
 
    -------------------------------
@@ -385,6 +414,15 @@ package body System.Partition_Interface is
         "Illegal usage of remote access to class-wide type. See RM E.4(18)");
    end Raise_Program_Error_For_E_4_18;
 
+   -------------------------------
+   -- Raise_Communication_Error --
+   -------------------------------
+
+   procedure Raise_Communication_Error (S : String) is
+   begin
+      Ada.Exceptions.Raise_Exception (RPC.Communication_Error'Identity, S);
+   end Raise_Communication_Error;
+
    ------------------------------
    -- Register_Passive_Package --
    ------------------------------
@@ -407,23 +445,13 @@ package body System.Partition_Interface is
       Version  : in String := "")
    is
       N : String := Name;
-      U : Unit_Id;
    begin
       pragma Debug (D (D_Debug, "Request Register_Receiving_Stub"));
 
       To_Lower (N);
-      U := Units.Get_Index (N);
-
-      Set_Unit_Info
-        (U, Interfaces.Unsigned_64 (System.Address'(Convert (Receiver))),
+      Register_Unit
+        (N, Interfaces.Unsigned_64 (System.Address'(Convert (Receiver))),
          new String'(Version));
-
-      if Get_Unit_Info (U).Partition /= Self_PID then
-         Soft_Shutdown;
-         Ada.Exceptions.Raise_Exception
-           (Program_Error'Identity,
-            "RCI unit " & Name & " is already registered");
-      end if;
    end Register_Receiving_Stub;
 
    --------------
@@ -441,8 +469,14 @@ package body System.Partition_Interface is
 
       function Get_Active_Partition_ID return RPC.Partition_ID
       is
-         Info : Unit_Info := Get_Unit_Info (Unit);
+         Info  : Unit_Info;
+         Error : Error_Type;
       begin
+         Get_Unit_Info (Unit, Info, Error);
+         if Found (Error) then
+            Raise_Communication_Error (Error.all);
+         end if;
+
          if Info.Status = Invalid then
             Raise_Communication_Error
               ("Partition" & Info.Partition'Img & " is unreachable");
@@ -456,8 +490,14 @@ package body System.Partition_Interface is
 
       function Get_RCI_Package_Receiver return Interfaces.Unsigned_64
       is
-         Info : Unit_Info := Get_Unit_Info (Unit);
+         Info  : Unit_Info;
+         Error : Error_Type;
       begin
+         Get_Unit_Info (Unit, Info, Error);
+         if Found (Error) then
+            Raise_Communication_Error (Error.all);
+         end if;
+
          if Info.Status = Invalid then
             Raise_Communication_Error
               ("Partition" & Info.Partition'Img & " is unreachable");
@@ -499,7 +539,7 @@ package body System.Partition_Interface is
             --  If not boot partition, then terminate without waiting for
             --  boot partition request.
 
-            if not Boot_Partition then
+            if not Is_Boot_Server then
                Set_Termination (Local_Termination);
             end if;
 

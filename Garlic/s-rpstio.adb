@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;        use Ada.Exceptions;
 with Ada.Streams;           use Ada.Streams;
 with System.Garlic;         use System.Garlic;
 with System.Garlic.Debug;   use System.Garlic.Debug;
@@ -81,20 +82,29 @@ package body System.RPC.Stream_IO is
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Garlic.Streams.Params_Stream_Type;
-      Reply     : access Garlic.Streams.Params_Stream_Type);
+      Reply     : access Garlic.Streams.Params_Stream_Type;
+      Error     : in out Error_Type);
 
    -----------
    -- Close --
    -----------
 
    procedure Close
-     (Stream : in out Partition_Stream_Type) is
+     (Stream : in out Partition_Stream_Type)
+   is
+      Err : Error_Type;
       Str : Partition_Stream_Access := Fetch (Stream.PID);
    begin
       pragma Debug (D (D_Debug, "Close stream" & Stream.PID'Img));
 
       if Str.Mode = Out_Mode then
-         Send (Types.Partition_ID (Stream.PID), Msgcode, Str.Outgoing'Access);
+         Send (Types.Partition_ID (Stream.PID),
+               Msgcode,
+               Str.Outgoing'Access,
+               Err);
+         if Found (Err) then
+            Raise_Exception (Communication_Error'Identity, Err.all);
+         end if;
       end if;
 
       pragma Debug (D (D_Debug, "Close - Unlock stream" & Stream.PID'Img));
@@ -241,7 +251,8 @@ package body System.RPC.Stream_IO is
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Garlic.Streams.Params_Stream_Type;
-      Reply     : access Garlic.Streams.Params_Stream_Type) is
+      Reply     : access Garlic.Streams.Params_Stream_Type;
+      Error     : in out Error_Type) is
       SEA : Stream_Element_Array (1 .. Query.Count);
       Len : Stream_Element_Offset;
       Str : Partition_Stream_Access := Fetch (Partition_ID (Partition));

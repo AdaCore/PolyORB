@@ -41,6 +41,7 @@ with System.Garlic.Partitions;    use System.Garlic.Partitions;
 with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
 with System.Garlic.Streams;       use System.Garlic.Streams;
 with System.Garlic.Types;         use System.Garlic.Types;
+with System.Garlic.Utils;         use System.Garlic.Utils;
 
 with System.Task_Primitives.Operations;
 with System.Tasking.Debug;    use System.Tasking, System.Tasking.Debug;
@@ -110,7 +111,8 @@ package body System.Garlic.Termination is
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type);
+      Reply     : access Params_Stream_Type;
+      Error     : in out Error_Type);
    --  Receive a message from Garlic
 
    procedure Initialize;
@@ -123,7 +125,8 @@ package body System.Garlic.Termination is
    procedure Send
      (PID   : in Partition_ID;
       Code  : in Termination_Code;
-      Stamp : in Stamp_Type);
+      Stamp : in Stamp_Type;
+      Error : in out Error_Type);
 
    procedure Shutdown;
    --  Shutdown any active task
@@ -211,7 +214,8 @@ package body System.Garlic.Termination is
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Params_Stream_Type;
-      Reply    : access Params_Stream_Type)
+      Reply     : access Params_Stream_Type;
+      Error     : in out Error_Type)
    is
       Code  : Termination_Code;
       Stamp : Stamp_Type;
@@ -296,13 +300,14 @@ package body System.Garlic.Termination is
    procedure Send
      (PID   : in Partition_ID;
       Code  : in Termination_Code;
-      Stamp : in Stamp_Type)
+      Stamp : in Stamp_Type;
+      Error : in out Error_Type)
    is
       Query : aliased Params_Stream_Type (0);
    begin
       Termination_Code'Write (Query'Access, Code);
       Stamp_Type'Write (Query'Access, Stamp);
-      Send (PID, Shutdown_Service, Query'Access);
+      Send (PID, Shutdown_Service, Query'Access, Error);
    end Send;
 
    --------------
@@ -340,7 +345,7 @@ package body System.Garlic.Termination is
       --  shutdown is already in progress, we do not have anything to
       --  negotiate.
 
-      if Shutdown_In_Progress or else not Options.Boot_Partition then
+      if Shutdown_In_Progress or else not Options.Is_Boot_Server then
          return;
       end if;
 
@@ -371,28 +376,27 @@ package body System.Garlic.Termination is
                Success  : Boolean;
                Deadline : Duration;
                PID      : Partition_ID;
-               Next     : Partition_ID;
                Info     : Partition_Info;
                Count    : Natural := 0;
+               Error    : Error_Type := No_Error;
             begin
                --  First of all, check if there is any alive partition whose
                --  termination is local. If this is the case, that means
                --  that these partitions have not terminated yet.
 
-               Next := Null_PID;
+               PID := Null_PID;
                loop
-                  PID := Next;
-                  Next_Partition (Next);
-                  exit when Next <= PID;
-                  Info := Partitions.Get_Component (Next);
+                  Next_Partition (PID);
+                  exit when PID = Null_PID;
+                  Info := Partitions.Get_Component (PID);
 
-                  if Next /= Self_PID
+                  if PID /= Self_PID
                     and then Info.Status = Done
                     and then Info.Termination = Local_Termination
                   then
                      pragma Debug
                        (D (D_Debug,
-                           "Partition" & Next'Img & " still active"));
+                           "Partition" & PID'Img & " still active"));
                      Ready := False;
                      exit;
                   end if;
@@ -412,23 +416,19 @@ package body System.Garlic.Termination is
                   --  Send a first wave of requests to indicate the new
                   --  stamp.
 
-                  Next := Null_PID;
+                  PID := Null_PID;
                   loop
-                     PID := Next;
-                     Next_Partition (Next);
-                     exit when Next <= PID;
-                     Info := Partitions.Get_Component (Next);
+                     Next_Partition (PID);
+                     exit when PID = Null_PID;
+                     Info := Partitions.Get_Component (PID);
 
-                     if Next /= Self_PID
+                     if PID /= Self_PID
                        and then Info.Status = Done
                        and then Info.Termination /= Local_Termination
                      then
-                        begin
-                           Send (Next, Set_Stamp, Stamp);
-                           Count := Count + 1;
-                        exception when Communication_Error =>
-                           null;
-                        end;
+                        Send (PID, Set_Stamp, Stamp, Error);
+                        Count := Count + 1;
+                        Catch (Error);
                      end if;
                   end loop;
 
@@ -447,22 +447,18 @@ package body System.Garlic.Termination is
                   --  has received a request from another partition since
                   --  the first wave .
 
-                  Next := Null_PID;
+                  PID := Null_PID;
                   loop
-                     PID := Next;
-                     Next_Partition (Next);
-                     exit when Next <= PID;
-                     Info := Partitions.Get_Component (Next);
+                     Next_Partition (PID);
+                     exit when PID = Null_PID;
+                     Info := Partitions.Get_Component (PID);
 
-                     if Next /= Self_PID
+                     if PID /= Self_PID
                        and then Info.Status = Done
                        and then Info.Termination /= Local_Termination
                      then
-                        begin
-                           Send (Next, Check_Stamp, Stamp);
-                        exception when Communication_Error =>
-                           null;
-                        end;
+                        Send (PID, Check_Stamp, Stamp, Error);
+                        Catch (Error);
                      end if;
                   end loop;
 

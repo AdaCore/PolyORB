@@ -8,6 +8,7 @@ export S_GARHEA=
 export S_GARNAM=
 export S_GARGRO=
 export S_GAROPT=
+export S_GARPAR=
 export S_GARREM=
 export S_GARREP=
 export S_GARSTA=

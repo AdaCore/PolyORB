@@ -47,6 +47,40 @@ package body System.Garlic.Streams is
    procedure Free is
       new Ada.Unchecked_Deallocation (Node, Node_Ptr);
 
+   ----------
+   -- Copy --
+   ----------
+
+   procedure Copy
+     (Source : in Params_Stream_Type;
+      Target : in out Params_Stream_Type)
+   is
+      TN, SN : Node_Ptr;
+   begin
+      Deallocate (Target);
+      Target.Insert := Source.Insert;
+      Target.Count  := Source.Count;
+      if Source.First = null then
+         Target.First   := null;
+         Target.Current := null;
+      else
+         Target.First := new Node'(Source.First.all);
+         if Source.Current = Source.First then
+            Target.Current := Target.First;
+         end if;
+         SN := Source.First;
+         TN := Target.First;
+         while SN.Next /= null loop
+            TN.Next := new Node'(SN.Next.all);
+            if Source.Current = SN.Next then
+               Target.Current := TN.Next;
+            end if;
+            TN := TN.Next;
+            SN := SN.Next;
+         end loop;
+      end if;
+   end Copy;
+
    ----------------
    -- Deallocate --
    ----------------
@@ -65,23 +99,19 @@ package body System.Garlic.Streams is
       Free (Stream);
    end Deallocate;
 
-   ---------------
-   -- Deep_Copy --
-   ---------------
+   ----------------
+   -- Deallocate --
+   ----------------
 
-   procedure Deep_Copy
-     (Source : in out Params_Stream_Type;
-      Target : access Params_Stream_Type) is
+   procedure Deallocate (Stream : in out Params_Stream_Type) is
+      Next : Node_Ptr;
    begin
-      if Target.First /= null then
-         Free (Target.First);
-      end if;
-      Target.First   := Source.First;
-      Target.Current := Source.Current;
-      Target.Insert  := Source.Insert;
-      Target.Count   := Source.Count;
-      Source.First   := null;
-   end Deep_Copy;
+      while Stream.First /= null loop
+         Next := Stream.First.Next;
+         Free (Stream.First);
+         Stream.First := Next;
+      end loop;
+   end Deallocate;
 
    ----------
    -- Dump --
@@ -131,6 +161,22 @@ package body System.Garlic.Streams is
    begin
       Params.Insert := True;
    end Insert;
+
+   ----------
+   -- Move --
+   ----------
+
+   procedure Move
+     (Source : in out Params_Stream_Type;
+      Target : in out Params_Stream_Type) is
+   begin
+      Deallocate (Target);
+      Target.First   := Source.First;
+      Target.Current := Source.Current;
+      Target.Insert  := Source.Insert;
+      Target.Count   := Source.Count;
+      Source.First   := null;
+   end Move;
 
    ----------
    -- Read --

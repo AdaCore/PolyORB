@@ -37,6 +37,7 @@ with Ada.Streams;              use Ada.Streams;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Name_Table; use System.Garlic.Name_Table;
+with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Table;      use System.Garlic.Table;
 with System.Garlic.Types;      use System.Garlic.Types;
@@ -51,11 +52,6 @@ package body System.Garlic.Filters is
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
-
-   function Name (Partition : Partition_ID) return String
-     renames Heart.Name;
-   --  Renaming used to make sure that this function gets precedence over
-   --  the System.Name type.
 
    --  This unit can be elaborated and used while its children (filters)
    --  are not elaborated. When System.Garlic.Elaboration is initialized, a
@@ -143,17 +139,20 @@ package body System.Garlic.Filters is
 
    procedure Get_Params_For_Incoming
      (Partition : in Partition_ID;
-      Request   : in Request_Type);
+      Request   : in Request_Type;
+      Error     : in out Error_Type);
    --  This procedure initializes and extracts the half incoming channel.
 
    procedure Get_Params_For_Outgoing
      (Partition : in Partition_ID;
-      Request   : in Request_Type);
+      Request   : in Request_Type;
+      Error     : in out Error_Type);
    --  This procedure initializes and extracts the half outgoing channel.
 
-   function Get_Partition_Filter
-     (Partition : Partition_ID)
-      return Filter_Access;
+   procedure Get_Partition_Filter
+     (Partition : in Partition_ID;
+      Filter    : out Filter_Access;
+      Error     : in out Error_Type);
    --  Retrieve the filter to apply on this channel. This procedure uses
    --  the naming convention. Info of name "partition name" + "'filter" is
    --  the name of the filter to apply on the channel.
@@ -162,37 +161,45 @@ package body System.Garlic.Filters is
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type);
+      Reply     : access Params_Stream_Type;
+      Error     : in out Error_Type);
    --  Handle a remote request Get_Params and Set_Params. When needed, use
    --  registration filter.
 
    procedure Install_Channel
      (Partition : in Partition_ID;
-      Channel   : in out Channel_Type);
+      Channel   : in out Channel_Type;
+      Error     : in out Error_Type);
    --  Find which filter to use and install it (but not the local and
    --  remote data for incoming and outgoing).
+
+   function Name (P : Partition_ID) return String;
 
    procedure Send
      (Partition : in Partition_ID;
       Request   : in Request_Id;
-      Channel   : in Channel_Type);
+      Channel   : in Channel_Type;
+      Error     : in out Error_Type);
    --  Send a remote request Get_Params and Set_Params. When needed, use
    --  registration filter.
 
    procedure Set_Params_For_Outgoing
      (Partition : in Partition_ID;
-      Request   : in Request_Type);
+      Request   : in Request_Type;
+      Error     : in out Error_Type);
    --  This procedure initializes the half outgoing channel.
 
    ---------------------
    -- Filter_Incoming --
    ---------------------
 
-   function Filter_Incoming
-      (Partition : in Types.Partition_ID;
-       Opcode    : in System.Garlic.Heart.Any_Opcode;
-       Stream    : in Ada.Streams.Stream_Element_Array)
-      return Streams.Stream_Element_Access is
+   procedure Filter_Incoming
+      (Partition : in Partition_ID;
+       Opcode    : in Any_Opcode;
+       Stream    : in Stream_Element_Array;
+       Result    : out Stream_Element_Access;
+       Error     : in out Error_Type)
+   is
    begin
       --  Only remote calls are filtered
 
@@ -201,7 +208,10 @@ package body System.Garlic.Filters is
          --  Check that this half channel is initialized
 
          if Channels.Table (Partition).Incoming.Status /= Done then
-            Get_Params_For_Incoming (Partition, Init);
+            Get_Params_For_Incoming (Partition, Init, Error);
+            if Found (Error) then
+               return;
+            end if;
          end if;
 
          --  Check whether stream management is needed
@@ -212,27 +222,30 @@ package body System.Garlic.Filters is
                   "Partition " & Name (Partition) &
                   " incoming filter non null"));
 
-            return Filter_Incoming
+            Result := Filter_Incoming
               (Channels.Table (Partition).Filter.all,
                Channels.Table (Partition).Incoming.Local,
                Stream);
+            return;
          end if;
       end if;
 
       --  When possible, avoid unnecessary buffer copies
 
-      return new Stream_Element_Array'(Stream);
+      Result := new Stream_Element_Array'(Stream);
    end Filter_Incoming;
 
    ---------------------
    -- Filter_Outgoing --
    ---------------------
 
-   function Filter_Outgoing
-      (Partition : in     Types.Partition_ID;
-       Opcode    : in     System.Garlic.Heart.Any_Opcode;
-       Stream    : access Streams.Params_Stream_Type)
-      return Streams.Stream_Element_Access is
+   procedure Filter_Outgoing
+      (Partition : in     Partition_ID;
+       Opcode    : in     Any_Opcode;
+       Stream    : access Params_Stream_Type;
+       Result    : out    Stream_Element_Access;
+       Error     : in out Error_Type)
+   is
    begin
       --  Only remote calls are filtered
 
@@ -241,7 +254,10 @@ package body System.Garlic.Filters is
          --  Check  that this half channel is initialized
 
          if Channels.Table (Partition).Outgoing.Status /= Done then
-            Get_Params_For_Outgoing (Partition, Init);
+            Get_Params_For_Outgoing (Partition, Init, Error);
+            if Found (Error) then
+               return;
+            end if;
          end if;
 
          --  Check whether stream management is needed
@@ -252,16 +268,17 @@ package body System.Garlic.Filters is
                   "Partition " & Name (Partition) &
                   " outgoing filter non null"));
 
-            return Filter_Outgoing
+            Result := Filter_Outgoing
               (Channels.Table (Partition).Filter.all,
                Channels.Table (Partition).Outgoing.Local,
                Stream);
+            return;
          end if;
       end if;
 
       --  When possible, avoid unnecessary buffer copies
 
-      return To_Stream_Element_Access (Stream);
+      Result := To_Stream_Element_Access (Stream);
    end Filter_Outgoing;
 
    -----------------------------
@@ -270,7 +287,8 @@ package body System.Garlic.Filters is
 
    procedure Get_Params_For_Incoming
      (Partition : in Partition_ID;
-      Request   : in Request_Type)
+      Request   : in Request_Type;
+      Error     : in out Error_Type)
    is
       Channel : Channel_Type;
    begin
@@ -284,7 +302,11 @@ package body System.Garlic.Filters is
       Channel := Channels.Get_Component (Partition);
 
       if not Channel.Installed then
-         Install_Channel (Partition, Channel);
+         Install_Channel (Partition, Channel, Error);
+         if Found (Error) then
+            Channels.Leave;
+            return;
+         end if;
       end if;
 
       if Channel.Incoming.Status = None then
@@ -316,7 +338,8 @@ package body System.Garlic.Filters is
 
    procedure Get_Params_For_Outgoing
      (Partition : in Partition_ID;
-      Request   : in Request_Type)
+      Request   : in Request_Type;
+      Error     : in out Error_Type)
    is
       Channel : Channel_Type;
       Version : Version_Id;
@@ -329,7 +352,11 @@ package body System.Garlic.Filters is
          Channel := Channels.Get_Component (Partition);
 
          if not Channel.Installed then
-            Install_Channel (Partition, Channel);
+            Install_Channel (Partition, Channel, Error);
+            if Found (Error) then
+               Channels.Leave;
+               return;
+            end if;
          end if;
 
          if Channel.Outgoing.Status = None then
@@ -363,7 +390,11 @@ package body System.Garlic.Filters is
                Free (Channel.Outgoing.Remote);
                Free (Channel.Outgoing.Local);
 
-               Send (Partition, Get_Params, Channel);
+               Send (Partition, Get_Params, Channel, Error);
+               if Found (Error) then
+                  Channels.Leave;
+                  return;
+               end if;
 
                pragma Debug
                  (D (D_Debug,
@@ -388,14 +419,19 @@ package body System.Garlic.Filters is
    -- Get_Partition_Filter --
    --------------------------
 
-   function Get_Partition_Filter
-     (Partition : Partition_ID)
-      return Filter_Access is
+   procedure Get_Partition_Filter
+     (Partition : in Partition_ID;
+      Filter    : out Filter_Access;
+      Error     : in out Error_Type)
+   is
       P : Name_Id;
       F : Name_Id;
-
    begin
-      P := Name (Partition);
+      Get_Name (Partition, P, Error);
+
+      if Found (Error) then
+         return;
+      end if;
 
       --  Info of "partition name" + "'filter" corresponds to the name of
       --  the filter to apply on this channel.
@@ -406,13 +442,14 @@ package body System.Garlic.Filters is
            (D (D_Debug,
                "Use filter " & Get (F) & " with partition " & Get (P)));
 
-         return Filters.Get_Component (Filters.Get_Index (Get (F)));
+         Filter := Filters.Get_Component (Filters.Get_Index (Get (F)));
+
+      else
+         pragma Debug
+           (D (D_Debug, "Use default filter with partition " & Get (P)));
+
+         Filter := Default;
       end if;
-
-      pragma Debug
-        (D (D_Debug, "Use default filter with partition " & Get (P)));
-
-      return Default;
    end Get_Partition_Filter;
 
    --------------------
@@ -423,7 +460,8 @@ package body System.Garlic.Filters is
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type)
+      Reply     : access Params_Stream_Type;
+      Error     : in out Error_Type)
    is
       --  We may have to filter the original stream. We will interpret the
       --  message once the stream has been filtered. That's why the job is
@@ -431,9 +469,14 @@ package body System.Garlic.Filters is
 
       S1, S2 : Stream_Element_Access;
 
-      procedure Internal_Handler (P : access Params_Stream_Type);
+      procedure Internal_Handler
+        (Stream : access Params_Stream_Type;
+         Error  : in out Error_Type);
 
-      procedure Internal_Handler (P : access Params_Stream_Type) is
+      procedure Internal_Handler
+        (Stream : access Params_Stream_Type;
+         Error  : in out Error_Type)
+      is
          Request : Request_Type;
          Filter  : Filter_Access;
 
@@ -445,7 +488,7 @@ package body System.Garlic.Filters is
          pragma Warnings (On);
 
       begin
-         Request_Id'Read (P, Request.Command);
+         Request_Id'Read (Stream, Request.Command);
 
          pragma Debug
            (D (D_Debug,
@@ -453,19 +496,36 @@ package body System.Garlic.Filters is
                " from " & PName & " -" & Partition'Img));
 
          if Request.Command = Set_Params then
-            Filter := Get_Partition_Filter (Partition);
+            Get_Partition_Filter (Partition, Filter, Error);
+            if Found (Error) then
+               return;
+            end if;
+
             Request.Parameter :=
-              Filter_Params_Read (Filter.all, To_Stream_Element_Array (P));
-            Set_Params_For_Outgoing (Partition, Request);
+              Filter_Params_Read (Filter.all,
+                                  To_Stream_Element_Array (Stream));
+            Set_Params_For_Outgoing (Partition, Request, Error);
+            if Found (Error) then
+               return;
+            end if;
 
          else
-            Get_Params_For_Incoming (Partition, Request);
+            Get_Params_For_Incoming (Partition, Request, Error);
+            if Found (Error) then
+               return;
+            end if;
 
             --  Provide the remote part to the other partition ouside
             --  from critical section because Send can also require to
             --  enter in a critical section.
 
-            Send (Partition, Set_Params, Channels.Get_Component (Partition));
+            Send (Partition,
+                  Set_Params,
+                  Channels.Get_Component (Partition),
+                  Error);
+            if Found (Error) then
+               return;
+            end if;
          end if;
       end Internal_Handler;
 
@@ -482,11 +542,11 @@ package body System.Garlic.Filters is
             Write (Params, S2.all);
             Free (S1);
             Free (S2);
-            Internal_Handler (Params'Access);
+            Internal_Handler (Params'Access, Error);
          end;
 
       else
-         Internal_Handler (Query);
+         Internal_Handler (Query, Error);
       end if;
    end Handle_Request;
 
@@ -535,14 +595,20 @@ package body System.Garlic.Filters is
 
    procedure Install_Channel
      (Partition : in Partition_ID;
-      Channel   : in out Channel_Type) is
+      Channel   : in out Channel_Type;
+      Error     : in out Error_Type)
+   is
    begin
       pragma Debug
         (D (D_Debug,
             "Partition " & Name (Partition) &
             " filter installed"));
 
-      Channel.Filter    := Get_Partition_Filter (Partition);
+      Get_Partition_Filter (Partition, Channel.Filter, Error);
+      if Found (Error) then
+         return;
+      end if;
+
       Channel.Installed := True;
 
       if Channel.Filter = null then
@@ -552,6 +618,23 @@ package body System.Garlic.Filters is
 
       Channels.Set_Component (Partition, Channel);
    end Install_Channel;
+
+   ----------
+   -- Name --
+   ----------
+
+   function Name (P : Partition_ID) return String is
+      N : String_Access;
+      E : Error_Type := No_Error;
+   begin
+      Get_Name (P, N, E);
+      if Found (E) then
+         Catch (E);
+         return "<error>";
+      else
+         return N.all;
+      end if;
+   end Name;
 
    ---------------------
    -- Register_Filter --
@@ -571,7 +654,8 @@ package body System.Garlic.Filters is
    procedure Send
      (Partition : in Partition_ID;
       Request   : in Request_Id;
-      Channel   : in Channel_Type)
+      Channel   : in Channel_Type;
+      Error     : in out Error_Type)
    is
       Stream : aliased Params_Stream_Type (0);
       Params : Stream_Element_Access;
@@ -592,17 +676,15 @@ package body System.Garlic.Filters is
       --  When parameters are exchanged, stream may have to be filtered
 
       if Register.Filter /= null then
-
          Params := Filter_Outgoing
            (Register.Filter.all,
             Register.Outgoing.Local,
             Stream'Access);
          Write (Stream, Params.all);
          Free (Params);
-
       end if;
 
-      Send (Partition, Filtering_Service, Stream'Access);
+      Send (Partition, Filtering_Service, Stream'Access, Error);
    end Send;
 
    ------------------------
@@ -630,7 +712,8 @@ package body System.Garlic.Filters is
 
    procedure Set_Params_For_Outgoing
      (Partition : in Partition_ID;
-      Request   : in Request_Type)
+      Request   : in Request_Type;
+      Error     : in out Error_Type)
    is
       Channel : Channel_Type;
    begin
@@ -643,7 +726,11 @@ package body System.Garlic.Filters is
       Channel := Channels.Get_Component (Partition);
 
       if not Channel.Installed then
-         Install_Channel (Partition, Channel);
+         Install_Channel (Partition, Channel, Error);
+         if Found (Error) then
+            Channels.Leave;
+            return;
+         end if;
       end if;
 
       --  If this request (Set_Params) is the answer to a remote

@@ -47,6 +47,7 @@ with System.Garlic.Priorities;   use System.Garlic.Priorities;
 with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
 with System.Garlic.Streams;
 with System.Garlic.Types;
+with System.Garlic.Utils;        use System.Garlic.Utils;
 
 package body System.RPC.Pool is
 
@@ -297,10 +298,14 @@ package body System.RPC.Pool is
             declare
                Empty  : aliased Streams.Params_Stream_Type (0);
                Header : constant RPC_Header := (Abortion_Reply, RPC);
+               Error  : Error_Type := No_Error;
             begin
                pragma Debug (D (D_Debug, "Abortion queried by caller"));
                Insert_RPC_Header (Empty'Access, Header);
-               Send (PID, Remote_Call, Empty'Access);
+               Send (PID, Remote_Call, Empty'Access, Error);
+               if Found (Error) then
+                  Raise_Exception (Communication_Error'Identity, Error.all);
+               end if;
                Cancelled := True;
             end;
          then abort
@@ -326,10 +331,14 @@ package body System.RPC.Pool is
          else
             declare
                Header : constant RPC_Header := (RPC_Reply, RPC);
+               Error  : Error_Type := No_Error;
             begin
                pragma Debug (D (D_Debug, "Result will be sent"));
                Insert_RPC_Header (Result, Header);
-               Send (PID, Remote_Call, Result);
+               Send (PID, Remote_Call, Result, Error);
+               if Found (Error) then
+                  Raise_Exception (Communication_Error'Identity, Error.all);
+               end if;
                Streams.Free (Result);
             end;
          end if;
@@ -377,6 +386,9 @@ package body System.RPC.Pool is
          end if;
       end loop;
       Sub_Non_Terminating_Task;
+   exception when others =>
+      Sub_Non_Terminating_Task;
+      raise;
    end Background_Creation;
 
    ---------------------
@@ -405,7 +417,9 @@ package body System.RPC.Pool is
       entry Get_Task (Identifier : out Task_Identifier_Access)
       when Free_Tasks_Count > 0 or else Total_Tasks_Count < Max_Mark is
       begin
-         if Free_Tasks_Count > 0 then
+         if Shutdown_In_Progress then
+            Identifier := null;
+         elsif Free_Tasks_Count > 0 then
             Identifier       := Free_Tasks_List;
             Free_Tasks_List  := Identifier.Next;
             Free_Tasks_Count := Free_Tasks_Count - 1;
@@ -424,7 +438,9 @@ package body System.RPC.Pool is
                        Accepted   : out Boolean)
       is
       begin
-         if Total_Tasks_Count <= High_Mark then
+         if Shutdown_In_Progress then
+            Accepted := False;
+         elsif Total_Tasks_Count <= High_Mark then
             Accepted         := True;
             Identifier.Next  := Free_Tasks_List;
             Free_Tasks_List  := Identifier;
@@ -467,7 +483,7 @@ package body System.RPC.Pool is
       when Shutdown_In_Progress or else Total_Tasks_Count < High_Mark is
       begin
          Shutdown := Shutdown_In_Progress;
-         if not Shutdown then
+         if not Shutdown_In_Progress then
             Total_Tasks_Count := Total_Tasks_Count + 1;
          end if;
          Status;

@@ -34,10 +34,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with System.Garlic.Name_Table;
 with System.Garlic.Physical_Location;
 with System.Garlic.Streams;
 with System.Garlic.Types;
+with System.Garlic.Utils;
 
 --  These ones should not be needed, but the binder needs them to get a
 --  correct dependencies order ???
@@ -56,7 +56,7 @@ package System.Garlic.Heart is
    -----------------
 
    procedure Initialize;
-   --  Initialize the package
+   --  Initialize package
 
    procedure Set_Boot_Location
      (Location : in System.Garlic.Physical_Location.Location_Type);
@@ -65,35 +65,6 @@ package System.Garlic.Heart is
    --------------
    -- Settings --
    --------------
-
-   procedure Next_Partition
-     (Partition : in out Types.Partition_ID;
-      Increment : in Boolean := True;
-      Allocated : in Boolean := True);
-   --  Find next partition id after Partition which is Allocated (or
-   --  un-allocated when Allocated is False). If Partition is
-   --  Null_Partition, start from the first partition id. If there
-   --  is no candidate, keep Partition unmodified. If Increment is false,
-   --  then scan table by decrementing.
-
-   function Reconnection_Policy (Partition : Types.Partition_ID)
-     return Types.Reconnection_Type;
-   --  Return policy to use when reconnecting to Partition
-
-   function Termination_Policy (Partition : Types.Partition_ID)
-     return Types.Termination_Type;
-   --  Return the termination policy of a remote partition
-
-   function Name (Partition : Types.Partition_ID)
-     return Name_Table.Name_Id;
-   function Name (Partition : Types.Partition_ID)
-     return String;
-   --  Return the name of a partition in its coded or plaintext form
-
-   function Location (Partition : Types.Partition_ID)
-     return Physical_Location.Location_Type;
-   pragma Inline (Location);
-   --  Return the location of a partition
 
    procedure Set_Policy
      (Shutdown     : Types.Shutdown_Type     :=
@@ -122,13 +93,18 @@ package System.Garlic.Heart is
    -- Local partition --
    ---------------------
 
-   function Get_My_Partition_ID return Types.Partition_ID;
-   --  Return the Partition_ID of the running partition. If the
+   procedure Get_My_Partition_ID
+     (PID   :    out Types.Partition_ID;
+      Error : in out Utils.Error_Type);
+   --  Return the Partition_ID of the current partition. If the
    --  Partition_ID isn't known yet the function will block until
    --  the server gives it to us.
 
-   procedure Set_My_Partition_ID (Partition : Types.Partition_ID);
-   --  Set my partition ID
+   procedure Set_My_Partition_ID (Error : in out Utils.Error_Type);
+   --  Used when the current partition id has been computed
+
+   procedure Wait_For_My_Partition_ID;
+   --  Wait for the partition id to be computed
 
    function Can_Have_A_Light_Runtime return Boolean;
    --  Return True if this partition is suitable for having a light runtime.
@@ -139,17 +115,21 @@ package System.Garlic.Heart is
    -- Remote partition --
    ----------------------
 
-   procedure Remote_Partition_Error
+   procedure Notify_Partition_Error
      (Partition : in Types.Partition_ID);
-   --  Signal that a partition is dead
+   --  Signal that a partition is dead. This is ignored when shutdown is in
+   --  progress. First we invalidate this partition to Garlic.Partitions.
+   --  Depending on the shutdown policy, Soft_Shutdown is
+   --  called. Otherwise, RPC shutdown is called to notify pending RPC
+   --  callers of a communication error.
 
    type RPC_Error_Notifier_Type is
       access procedure (Partition : in Types.Partition_ID);
 
-   procedure Register_Partition_Error_Notification
+   procedure Register_RPC_Error_Notifier
      (Callback : in RPC_Error_Notifier_Type);
    --  Register a procedure that will be called whenever a communication
-   --  error occurs during a remote call.
+   --  error occurs during a remote subprogram call.
 
    type Any_Opcode is
       (Invalid_Operation,
@@ -178,29 +158,45 @@ package System.Garlic.Heart is
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Streams.Params_Stream_Type;
-      Reply     : access Streams.Params_Stream_Type);
-   --  A procedure which will get the requests
+      Reply     : access Streams.Params_Stream_Type;
+      Error     : in out Utils.Error_Type);
+   --  A procedure which will get the requests. Except for group requests,
+   --  a request is stored in Query and if needed, the request answer is
+   --  stored in Reply. For group request, see Garlic.Group special
+   --  handling.
 
    procedure Analyze_Stream
      (Partition  : out Types.Partition_ID;
       Opcode     : out Any_Opcode;
       Unfiltered : out Streams.Stream_Element_Access;
       Filtered   : in  Streams.Stream_Element_Access;
-      Offset     : in Ada.Streams.Stream_Element_Count := 0);
-   --  Called by a protocol to signal that something has arrived. Data has
-   --  not been unfiltered yet. Offset represents the number of bytes that
-   --  should not been considered.
+      Offset     : in Ada.Streams.Stream_Element_Count;
+      Error      : in out Utils.Error_Type);
+   --  Called by a protocol to signal that something has arrived. Filtered
+   --  has not been unfiltered yet. Offset represents the number of bytes
+   --  that should not been considered. Extract the beginning of the
+   --  stream: PID, Opcode and Unfiltered. This way, the protocol task
+   --  knows the partition it has in charge.
 
    procedure Handle_Any_Request
      (Partition : in Types.Partition_ID;
       Opcode    : in Any_Opcode;
       Query     : access Streams.Params_Stream_Type;
-      Reply     : access Streams.Params_Stream_Type);
+      Reply     : access Streams.Params_Stream_Type;
+      Error     : in out Utils.Error_Type);
+   --  A procedure which will get the requests. Except for group requests,
+   --  a request is stored in Query and if needed, the request answer is
+   --  stored in Reply. For group request, see Garlic.Group special
+   --  handling.
 
    procedure Process_Stream
      (Partition  : in Types.Partition_ID;
       Opcode     : in Any_Opcode;
-      Unfiltered : in Streams.Stream_Element_Access);
+      Unfiltered : in Streams.Stream_Element_Access;
+      Error      : in out Utils.Error_Type);
+   --  The stream has been already analyzed. PID and Opcode are known. The
+   --  stream is also unfiltered. Execute the request handler corresponding
+   --  to Opcode.
 
    procedure Register_Handler
      (Opcode  : in Any_Opcode;
@@ -211,8 +207,17 @@ package System.Garlic.Heart is
    procedure Send
      (Partition : in Types.Partition_ID;
       Opcode    : in Any_Opcode;
-      Params    : access Streams.Params_Stream_Type);
+      Params    : access Streams.Params_Stream_Type;
+      Error     : in out Utils.Error_Type);
    --  Send something to a remote partition after calling the appropriate
    --  filter.
+
+   procedure Send_Boot_Server
+     (Opcode : in Any_Opcode;
+      Params : access Streams.Params_Stream_Type;
+      Error  : in out Utils.Error_Type);
+   --  Send something to boot server. When this partition is no longer
+   --  available, then try to find a boot mirror. When no boot mirror is
+   --  available, signal an error.
 
 end System.Garlic.Heart;

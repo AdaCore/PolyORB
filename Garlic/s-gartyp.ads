@@ -39,7 +39,7 @@ package System.Garlic.Types is
 
    pragma Elaborate_Body;
 
-   type Status_Type is (None, Busy, Done);
+   type Status_Type is (None, Busy, Done, Dead);
 
    type Partition_ID is range 0 .. 63;
 

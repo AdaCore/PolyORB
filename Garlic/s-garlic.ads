@@ -46,7 +46,7 @@ package System.Garlic is
    --       operations. An instance of Protocol_Type'Class defines a
    --       communication mean (e.g. TCP) and performs some basic operations.
    --    System.Garlic.Options
-   --       This package gets the Boot_Server and other informations from
+   --       This package gets the Boot_Location and other informations from
    --       the command line.
    --    System.Garlic.Startup
    --       This package 'withes' the different protocols to link them into
@@ -90,10 +90,10 @@ package System.Garlic is
    --      System.Garlic.Heart.Is_Boot_Partition.
    --
    --  (4) The elaboration code of System.Garlic.Startup initializes the
-   --      Boot_Server data and call the default protocol to get a usable
-   --      Boot_Server string in case where we are on the default partition.
+   --      Boot_Location data and call the default protocol to get a usable
+   --      Boot_Location string in case where we are on the default partition.
    --      It also calls the various protocols in an arbitrary order to
-   --      to give them the Boot_Server data as well as a flag to indicate
+   --      to give them the Boot_Location data as well as a flag to indicate
    --      whether we are on the boot server or not.
    --
    --  (5) It initializes the filtering system.

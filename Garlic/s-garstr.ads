@@ -87,14 +87,22 @@ package System.Garlic.Streams is
    type Stream_Element_Access is access Ada.Streams.Stream_Element_Array;
    for Stream_Element_Access'Storage_Pool use Streams_Pool;
 
-   procedure Deep_Copy
+   procedure Copy
+     (Source : in Params_Stream_Type;
+      Target : in out Params_Stream_Type);
+   pragma Inline (Copy);
+   --  Assign an exact copy of Source to Target.
+
+   procedure Move
      (Source : in out Params_Stream_Type;
-      Target : access Params_Stream_Type);
-   pragma Inline (Deep_Copy);
-   --  Deep copy Source into Target and read the original packet. This is
+      Target : in out Params_Stream_Type);
+   pragma Inline (Move);
+   --  Move Source into Target and read the original packet. This is
    --  needed to be able to drop the Params_Stream_Type without losing its
    --  content.
 
+   procedure Deallocate (Stream : in out Params_Stream_Type);
+   pragma Inline (Deallocate);
    procedure Deallocate (Stream : in out Params_Stream_Access);
    pragma Inline (Deallocate);
    --  This procedure make sure that unconsumed data has been freed. This

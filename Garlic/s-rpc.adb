@@ -108,21 +108,22 @@ package body System.RPC is
    --  Handle abortion from Do_RPC
 
    procedure Send_Abort_Message
-     (PID : in Types.Partition_ID;
-      RPC : in RPC_Id);
+     (PID   : in Types.Partition_ID;
+      RPC   : in RPC_Id);
    --  Send an abort message for a request
 
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Streams.Params_Stream_Type;
-      Reply     : access Streams.Params_Stream_Type);
+      Reply     : access Streams.Params_Stream_Type;
+      Error     : in out Error_Type);
    --  Receive data
 
    procedure Shutdown;
    --  Shutdown System.RPC and its private child packages
 
-   procedure Partition_Error_Notification
+   procedure Notify_Partition_Error
      (Partition : in Types.Partition_ID);
    --  Call this procedure to unblock tasks waiting for RPC results from
    --  a dead partition.
@@ -174,17 +175,20 @@ package body System.RPC is
       Params    : access Params_Stream_Type)
    is
       Header : constant RPC_Header := (Kind => APC_Query);
+      Error  : Error_Type := No_Error;
    begin
       pragma Debug
         (D (D_Debug, "Doing a APC for partition" & Partition'Img));
       Insert_RPC_Header (Params.X'Access, Header);
       Partition_ID'Write (Params, Partition);
       Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
-      Send (Types.Partition_ID (Partition), Remote_Call, Params.X'Access);
-   exception
-      when E : System.Garlic.Communication_Error =>
-         Raise_Exception (Communication_Error'Identity,
-                          Exception_Message (E));
+      Send (Types.Partition_ID (Partition),
+            Remote_Call,
+            Params.X'Access,
+            Error);
+      if Found (Error) then
+         Raise_Exception (Communication_Error'Identity, Error.all);
+      end if;
    end Do_APC;
 
    ------------
@@ -200,10 +204,11 @@ package body System.RPC is
       Header : RPC_Header (RPC_Query);
       Stream : Streams.Stream_Element_Access;
       Keeper : Abort_Keeper;
-
+      Error  : Error_Type;
    begin
       pragma Debug
         (D (D_Debug, "Doing a RPC for partition" & Partition'Img));
+
       begin
          pragma Abort_Defer;
          Allocate (RPC, Types.Partition_ID (Partition));
@@ -211,7 +216,13 @@ package body System.RPC is
          Insert_RPC_Header (Params.X'Access, Header);
          Partition_ID'Write (Params, Partition);
          Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
-         Send (Types.Partition_ID (Partition), Remote_Call, Params.X'Access);
+         Send (Types.Partition_ID (Partition),
+               Remote_Call,
+               Params.X'Access,
+               Error);
+         if Found (Error) then
+            Raise_Exception (Communication_Error'Identity, Error.all);
+         end if;
          Keeper.RPC  := RPC;
          Keeper.PID  := Types.Partition_ID (Partition);
          Keeper.Sent := True;
@@ -227,10 +238,6 @@ package body System.RPC is
          Streams.Free (Stream);
       end;
       pragma Debug (D (D_Debug, "Returning from Do_RPC"));
-   exception
-      when E : System.Garlic.Communication_Error =>
-         Raise_Exception (Communication_Error'Identity,
-                          Exception_Message (E));
    end Do_RPC;
 
    ----------------------------
@@ -241,17 +248,17 @@ package body System.RPC is
      (Partition : in Partition_ID;
       Receiver  : in RPC_Receiver)
    is
+      Error : Error_Type := No_Error;
    begin
       pragma Debug
         (D (D_Debug, "Setting RPC receiver for partition" & Partition'Img));
+      Register_Units_On_Boot_Server (Error);
+      if Found (Error) then
+         Raise_Exception (Communication_Error'Identity, Error.all);
+      end if;
       RPC_Allowed := True;
       Signal_All (RPC_Barrier);
-      Register_Partition_Error_Notification
-        (Partition_Error_Notification'Access);
-   exception
-      when E : System.Garlic.Communication_Error =>
-         Raise_Exception (Communication_Error'Identity,
-                          Exception_Message (E));
+      Register_RPC_Error_Notifier (Notify_Partition_Error'Access);
    end Establish_RPC_Receiver;
 
    --------------
@@ -298,21 +305,19 @@ package body System.RPC is
       RPC_Header'Output (Params, Header);
    end Insert_RPC_Header;
 
-   ----------------------------------
-   -- Partition_Error_Notification --
-   ----------------------------------
+   ----------------------------
+   -- Notify_Partition_Error --
+   ----------------------------
 
-   procedure Partition_Error_Notification
+   procedure Notify_Partition_Error
      (Partition : in Types.Partition_ID)
    is
    begin
-      if Shutdown_In_Progress then
-         return;
+      if not Shutdown_In_Progress then
+         Invalidate_Partition_Units (Partition);
+         Raise_Partition_Error (Partition);
       end if;
-
-      Invalidate_Partition (Partition);
-      Raise_Partition_Error (Partition);
-   end Partition_Error_Notification;
+   end Notify_Partition_Error;
 
    --------------------
    -- Handle_Request --
@@ -322,7 +327,8 @@ package body System.RPC is
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Streams.Params_Stream_Type;
-      Reply     : access Streams.Params_Stream_Type)
+      Reply     : access Streams.Params_Stream_Type;
+      Error     : in out Error_Type)
    is
       Header : constant RPC_Header := RPC_Header'Input (Query);
    begin
@@ -339,7 +345,7 @@ package body System.RPC is
                  (D (D_Debug,
                      "RPC or APC request received from partition" &
                      Partition'Img));
-               Streams.Deep_Copy (Query.all, Params_Copy);
+               Streams.Move (Query.all, Params_Copy.all);
                if not Asynchronous then
                   RPC := Header.RPC;
                   pragma Debug
@@ -428,15 +434,17 @@ package body System.RPC is
    ------------------------
 
    procedure Send_Abort_Message
-     (PID : in Types.Partition_ID;
-      RPC : in RPC_Id)
+     (PID   : in Types.Partition_ID;
+      RPC   : in RPC_Id)
    is
       Params : aliased Streams.Params_Stream_Type (0);
       Header : constant RPC_Header := (Abortion_Query, RPC);
+      Error  : Error_Type := No_Error;
    begin
       pragma Debug (D (D_Debug, "Sending abortion message"));
       Insert_RPC_Header (Params'Access, Header);
-      Send (PID, Remote_Call, Params'Access);
+      Send (PID, Remote_Call, Params'Access, Error);
+      Catch (Error);
    end Send_Abort_Message;
 
    --------------
@@ -447,8 +455,11 @@ package body System.RPC is
    is
    begin
       pragma Debug (D (D_Debug, "Shutdown has been called"));
-      Destroy (Callers_Mutex);
       Pool.Shutdown;
+
+      --  Resume tasks waiting for an update of units info table.
+
+      Units.Update;
    end Shutdown;
 
    --------------

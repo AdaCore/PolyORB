@@ -81,9 +81,10 @@ package body System.Garlic.Replay is
    -----------------
 
    task body Engine_Type is
-      PID  : Partition_ID;
-      Code : Any_Opcode;
-      Data : Stream_Element_Access;
+      PID   : Partition_ID;
+      Code  : Any_Opcode;
+      Data  : Stream_Element_Access;
+      Error : Error_Type;
    begin
       pragma Debug (D (D_Debug, "Replay engine started"));
 
@@ -114,10 +115,14 @@ package body System.Garlic.Replay is
 
             --  Deliver message
 
-            Analyze_Stream (PID, Code, Data, Trace.Data);
+            Analyze_Stream (PID, Code, Data, Trace.Data, 0, Error);
             Free (Trace.Data);
-            Process_Stream (PID, Code, Data);
+            exit when Found (Error);
+
+            Process_Stream (PID, Code, Data, Error);
             Free (Data);
+
+            exit when Found (Error);
 
             pragma Debug (D (D_Debug, "Message delivered"));
          end;
@@ -128,7 +133,7 @@ package body System.Garlic.Replay is
       --  incoming message is available. Thus, the replay has to
       --  initiate the shutdown itself.
 
-      if Boot_Partition then
+      if Is_Boot_Server then
          Soft_Shutdown;
       end if;
    end Engine_Type;
@@ -150,7 +155,8 @@ package body System.Garlic.Replay is
      (Protocol  : access Replay_Protocol;
       Self_Data : in Utils.String_Access := null;
       Boot_Data : in Utils.String_Access := null;
-      Boot_Mode : in Boolean := False)
+      Boot_Mode : in Boolean := False;
+      Error     : in out Error_Type)
    is
    begin
       --  Replay protocol is always loaded because its activation
@@ -167,11 +173,17 @@ package body System.Garlic.Replay is
             Set_Trace_File_Name (Boot_Data.all);
          end if;
 
-         Open (Trace_File, In_File, Trace_File_Name.all);
+         begin
+            Open (Trace_File, In_File, Trace_File_Name.all);
+         exception when others =>
+            Throw (Error, "Cannot open " & Trace_File_Name.all);
+         end;
 
-         --  We create an unnamed task on which we keep no reference
+         if not Found (Error) then
+            --  We create an unnamed task on which we keep no reference
 
-         Engine := new Engine_Type;
+            Engine := new Engine_Type;
+         end if;
 
       end if;
 
@@ -184,7 +196,8 @@ package body System.Garlic.Replay is
    procedure Send
      (Protocol  : access Replay_Protocol;
       Partition : in Partition_ID;
-      Data      : access Ada.Streams.Stream_Element_Array) is
+      Data      : access Ada.Streams.Stream_Element_Array;
+      Error     : in out Error_Type) is
    begin
       pragma Debug
          (D (D_Debug, "Send (but do nothing)" & Data'Length'Img & " bytes"));

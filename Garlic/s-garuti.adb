@@ -35,8 +35,17 @@
 
 with Ada.Unchecked_Deallocation;
 with System.Tasking_Soft_Links; use System.Tasking_Soft_Links;
+with System.Garlic.Debug;       use System.Garlic.Debug;
 
 package body System.Garlic.Utils is
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GARUTI", "(s-garuti): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    use Ada.Task_Identification;
 
@@ -436,5 +445,46 @@ package body System.Garlic.Utils is
       end Update;
 
    end Watcher_PO;
+
+   -----------
+   -- Catch --
+   -----------
+
+   procedure Catch (Error : in out Error_Type)
+   is
+   begin
+      if Error /= null then
+         pragma Debug (D (D_Debug, "*** Catch *** " & Error.all));
+
+         Free (Error);
+      end if;
+   end Catch;
+
+   -----------
+   -- Found --
+   -----------
+
+   function Found (Error : Error_Type) return Boolean is
+   begin
+      return Error /= null;
+   end Found;
+
+   -----------
+   -- Throw --
+   -----------
+
+   procedure Throw (Error : in out Error_Type; Message : in String)
+   is
+   begin
+      if Error /= null then
+         pragma Debug (D (D_Exception, "*** Abort *** " & Error.all));
+
+         Free (Error);
+      end if;
+
+      Error := new String'(Message);
+
+      pragma Debug (D (D_Exception, "*** Throw *** " & Error.all));
+   end Throw;
 
 end System.Garlic.Utils;

@@ -132,7 +132,7 @@ package body System.Garlic.Remote is
       Executable_Name : in String)
    is
       Full_Command : constant String :=
-        Executable_Name & " " & "--detach --slave --boot_server " &
+        Executable_Name & " " & "--detach --boot_server " &
         Get_Boot_Server;
    begin
       Launch (Launcher, Host, Full_Command);

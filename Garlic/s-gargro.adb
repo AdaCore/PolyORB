@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;              use Ada.Streams;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
@@ -60,23 +59,33 @@ package body System.Garlic.Group is
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type);
+      Reply     : access Params_Stream_Type;
+      Error     : in out Error_Type);
 
-   function Neighbor (Right : Boolean := True) return Partition_ID;
+   procedure Send_Neighbor
+     (Opcode : in Any_Opcode;
+      Params : access Streams.Params_Stream_Type;
+      Error  : in out Error_Type);
 
-   ------------------------
-   -- Initiate_Broadcast --
-   ------------------------
+   ---------------
+   -- Broadcast --
+   ---------------
 
    procedure Broadcast
      (Opcode : in Any_Opcode;
-      Params : access Streams.Params_Stream_Type) is
+      Params : access Streams.Params_Stream_Type;
+      Error  : in out Error_Type)
+   is
    begin
       Wait (Barrier);
+      pragma Debug (D (D_Debug, "Broadcast facility is locked"));
       Insert (Params.all);
       Partition_ID'Write (Params, Self_PID);
       Any_Opcode'Write (Params, Opcode);
-      Send (Neighbor, Group_Service, Params);
+      Send_Neighbor (Group_Service, Params, Error);
+      if Found (Error) then
+         Signal (Barrier);
+      end if;
    end Broadcast;
 
    --------------------
@@ -87,44 +96,54 @@ package body System.Garlic.Group is
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Streams.Params_Stream_Type;
-      Reply     : access Streams.Params_Stream_Type)
+      Reply     : access Streams.Params_Stream_Type;
+      Error     : in out Error_Type)
    is
       Inner_PID   : Partition_ID;
       Inner_Code  : Any_Opcode;
       Inner_Query : aliased Params_Stream_Type (Query.Count);
-      Inner_Reply : aliased Params_Stream_Type (0);
-
-      subtype QSEA is Stream_Element_Array (1 .. Query.Count);
-      Query_Copy  : aliased Stream_Element_Array
-        := QSEA (To_Stream_Element_Array (Query));
+      Inner_Reply : aliased Params_Stream_Type (Query.Count);
    begin
       pragma Debug (D (D_Debug, "Handle broadcast request"));
-      Write (Inner_Query, Query_Copy);
+      Copy (Query.all, Inner_Query);
 
       Partition_ID'Read (Inner_Query'Access, Inner_PID);
-      Any_Opcode'Read (Inner_Query'Access, Inner_Code);
+      Any_Opcode'Read   (Inner_Query'Access, Inner_Code);
       Handle_Any_Request
-        (Inner_PID, Inner_Code, Inner_Query'Access, Inner_Reply'Access);
+        (Inner_PID,
+         Inner_Code,
+         Inner_Query'Access,
+         Inner_Reply'Access,
+         Error);
+      if Found (Error) then
+         return;
+      end if;
 
       if Inner_PID = Self_PID then
-         Signal (Barrier);
+         if Empty (Reply) then
+            pragma Debug (D (D_Debug, "Broadcast facility is unlocked"));
+            Signal (Barrier);
+
+         else
+            pragma Debug (D (D_Debug, "Continue broacast for a second time"));
+
+            Send_Neighbor (Group_Service, Reply, Error);
+         end if;
 
       else
-         if Empty (Inner_Reply'Access) then
+         if Empty (Inner_Query'Access) then
             pragma Debug (D (D_Debug, "Forward same query"));
-            Dump (D_Debug, Query_Copy'Access, Private_Debug_Key);
-            QSEA'Write (Inner_Reply'Access, QSEA (Query_Copy));
+            Copy (Query.all, Inner_Query);
 
          else
             pragma Debug (D (D_Debug, "Forward new query"));
-            Insert (Inner_Reply);
-            Partition_ID'Write (Inner_Reply'Access, Inner_PID);
-            Any_Opcode'Write (Inner_Reply'Access, Inner_Code);
+            Insert (Inner_Query);
+            Partition_ID'Write (Inner_Query'Access, Inner_PID);
+            Any_Opcode'Write   (Inner_Query'Access, Inner_Code);
          end if;
 
-         Send (Neighbor, Group_Service, Inner_Reply'Access);
+         Send_Neighbor (Group_Service, Inner_Query'Access, Error);
       end if;
-
    end Handle_Request;
 
    ----------------
@@ -138,22 +157,46 @@ package body System.Garlic.Group is
       Signal (Barrier);
    end Initialize;
 
-   --------------
-   -- Neighbor --
-   --------------
+   -------------------
+   -- Send_Neighbor --
+   -------------------
 
-   function Neighbor (Right : Boolean := True) return Partition_ID
+   procedure Send_Neighbor
+     (Opcode : in Any_Opcode;
+      Params : access Streams.Params_Stream_Type;
+      Error  : in out Error_Type)
    is
+      Last : Partition_ID := Partitions.Table'Last;
       PID  : Partition_ID := Self_PID;
       Info : Partition_Info;
    begin
       loop
-         Next_Partition (PID, Right, True);
-         exit when PID = Self_PID;
-         Info := Partitions.Get_Component (PID);
-         exit when Info.Boot_Mirror;
+         loop
+            Next_Partition (PID);
+
+            --  To avoid infinite loop.
+
+            if PID > Last then
+               Throw (Error, "Send_Neighbor: group corrupted");
+               return;
+            end if;
+
+            --  When there is no next partition after PID, restart from
+            --  first partition id and update last to avoid infinite loop.
+
+            if PID = Null_PID then
+               Last := Self_PID;
+
+            else
+               Info := Partitions.Get_Component (PID);
+               exit when Info.Is_Boot_Mirror and then Info.Status = Done;
+            end if;
+         end loop;
+
+         Send (PID, Opcode, Params, Error);
+         exit when not Found (Error);
+         Catch (Error);
       end loop;
-      return PID;
-   end Neighbor;
+   end Send_Neighbor;
 
 end System.Garlic.Group;

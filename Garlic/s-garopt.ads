@@ -49,12 +49,14 @@ package System.Garlic.Options is
 
    Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
 
+   Has_Light_PCS   : Boolean;
+   Mirror_Excepted : Boolean;
    Self_Location   : Utils.String_Access;
-   Boot_Server     : Utils.String_Access;
-   Boot_Mirror     : Boolean;
+   Boot_Location   : Utils.String_Access;
+   Is_Boot_Mirror  : Boolean;
+   Is_Boot_Server  : Boolean;
    Connection_Hits : Natural;
    Detach          : Boolean;
-   Boot_Partition  : Boolean;
    Nolaunch        : Boolean;
    Reconnection    : Types.Reconnection_Type;
    Termination     : Types.Termination_Type;
@@ -67,7 +69,7 @@ package System.Garlic.Options is
 
    procedure Initialize_User_Options;
 
-   procedure Set_Boot_Mirror (Default : in String);
+   procedure Set_Boot_Mirror (Default : in Boolean);
 
    procedure Set_Boot_Server (Default : in String);
 
@@ -77,7 +79,7 @@ package System.Garlic.Options is
 
    procedure Set_Execution_Mode (Default : in Types.Execution_Mode_Type);
 
-   procedure Set_Is_Slave (Default : in Boolean);
+   procedure Set_Light_PCS (Default : in Boolean);
 
    procedure Set_Nolaunch (Default : in Boolean);
 
@@ -87,11 +89,15 @@ package System.Garlic.Options is
 
    procedure Set_Self_Location (Default : in String);
 
+   procedure Set_Slave (Default : in Boolean);
+
    procedure Set_Task_Pool_Bounds (Low, High, Max : in Positive);
 
    procedure Set_Termination (Default : in Types.Termination_Type);
 
    procedure Set_Trace_File_Name (Name : in String);
+
+   procedure Set_Mirror_Excepted (Default : in Boolean);
 
 end System.Garlic.Options;
 

@@ -53,6 +53,8 @@ package System.Garlic.Physical_Location is
 
    No_Such_Location, Malformed_Location : exception;
 
+   procedure Free (Location : in out Location_Type);
+
    procedure Register_Protocol (P : in Protocols.Protocol_Access);
    --  Register a protocol to be able to use it later
 
