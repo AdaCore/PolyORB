@@ -282,6 +282,7 @@ package body Ada_Be.Expansion is
    procedure Expand_Node_List (List : in Node_List) is
    begin
       if List /= Nil_List then
+         O ("toto");
          Expand_Node (List.Car);
          Expand_Node_List (List.Cdr);
       end if;
