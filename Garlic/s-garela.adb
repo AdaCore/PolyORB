@@ -33,6 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Tasking;
+pragma Elaborate (System.Garlic.Tasking);
+
 package body System.Garlic.Elaboration is
 
    --  This package body is provided for linking purpose. It will be
@@ -40,7 +43,7 @@ package body System.Garlic.Elaboration is
 
    procedure Initialize is
    begin
-      null;
+      System.Garlic.Tasking.Initialize;
    end Initialize;
 
 end System.Garlic.Elaboration;

@@ -35,6 +35,7 @@
 
 with System.Garlic.Options;
 pragma Warnings (Off, System.Garlic.Options);
+pragma Elaborate (System.Garlic.Options);
 
 package System.Garlic.Elaboration is
 
