@@ -340,7 +340,7 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.Annotations;
       use PolyORB.Types;
 
-      Current_Req   : Pending_Request_Access;
+      Current_Req   : Pending_Request;
       Current_Note  : Request_Note;
       Buffer        : Buffer_Access;
       Success       : Boolean;
@@ -383,7 +383,7 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.ORB;
       use PolyORB.Components;
 
-      Req          : Pending_Request_Access;
+      Current_Req  : Pending_Request;
       Success      : Boolean;
 
       ORB          : constant ORB_Access := ORB_Access (Sess.Server);
@@ -399,7 +399,7 @@ package body PolyORB.Protocols.GIOP.Common is
                        & ", id ="
                        & Types.Unsigned_Long'Image (Request_Id)));
 
-      Get_Pending_Request (Sess, Request_Id, Req, Success);
+      Get_Pending_Request (Sess, Request_Id, Current_Req, Success);
       if not Success then
          raise GIOP_Error;
       end if;
@@ -410,7 +410,7 @@ package body PolyORB.Protocols.GIOP.Common is
             --  Unmarshall reply body.
 
             if TypeCode.Kind
-              (Get_Type (Req.Req.Result.Argument))
+              (Get_Type (Current_Req.Req.Result.Argument))
               /= Tk_Void
             then
                Align_Position (Sess.Buffer_In, Arguments_Alignment);
@@ -418,26 +418,26 @@ package body PolyORB.Protocols.GIOP.Common is
             end if;
 
             Unmarshall_To_Any
-              (Sess.Buffer_In, Req.Req.Result.Argument);
+              (Sess.Buffer_In, Current_Req.Req.Result.Argument);
 
             Unmarshall_Argument_List
-              (Sess.Implem, Sess.Buffer_In, Req.Req.Args,
+              (Sess.Implem, Sess.Buffer_In, Current_Req.Req.Args,
                PolyORB.Any.ARG_OUT, Arguments_Alignment);
 
             Emit_No_Reply
-              (Req.Req.Requesting_Component,
+              (Current_Req.Req.Requesting_Component,
                Servants.Interface.Executed_Request'
-               (Req => Req.Req));
+               (Req => Current_Req.Req));
 
          when System_Exception =>
             Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
 
             Unmarshall_System_Exception_To_Any
-              (Sess.Buffer_In, Req.Req.Exception_Info);
+              (Sess.Buffer_In, Current_Req.Req.Exception_Info);
             Emit_No_Reply
               (Component_Access (ORB),
                Servants.Interface.Executed_Request'
-               (Req => Req.Req));
+               (Req => Current_Req.Req));
 
          when User_Exception =>
             Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
@@ -449,7 +449,7 @@ package body PolyORB.Protocols.GIOP.Common is
                  := Unmarshall (Sess.Buffer_In);
                Except_Index : constant PolyORB.Types.Unsigned_Long
                  := Any.ExceptionList.Search_Exception_Id
-                 (Req.Req.Exc_List, RepositoryId);
+                 (Current_Req.Req.Exc_List, RepositoryId);
             begin
                pragma Debug (O ("Exception repository ID:"
                                 & To_Standard_String (RepositoryId)));
@@ -497,25 +497,25 @@ package body PolyORB.Protocols.GIOP.Common is
                                      (Slash .. Exception_Name'Last))));
                      TypeCode.Add_Parameter
                        (TC, To_Any (RepositoryId));
-                     Req.Req.Exception_Info
+                     Current_Req.Req.Exception_Info
                        := PolyORB.Any.Get_Empty_Any_Aggregate (TC);
                   end;
                else
-                  Req.Req.Exception_Info
+                  Current_Req.Req.Exception_Info
                     := PolyORB.Any.Get_Empty_Any
                     (Any.ExceptionList.Item
-                     (Req.Req.Exc_List, Except_Index));
+                     (Current_Req.Req.Exc_List, Except_Index));
                   Unmarshall_To_Any
                     (Sess.Buffer_In,
-                     Req.Req.Exception_Info);
+                     Current_Req.Req.Exception_Info);
                   pragma Debug
                     (O ("Exception: "
-                        & Any.Image (Req.Req.Exception_Info)));
+                        & Any.Image (Current_Req.Req.Exception_Info)));
                end if;
                Emit_No_Reply
                  (Component_Access (ORB),
                   Servants.Interface.Executed_Request'
-                  (Req => Req.Req));
+                  (Req => Current_Req.Req));
             end;
 
          when Location_Forward | Location_Forward_Perm =>
@@ -548,10 +548,10 @@ package body PolyORB.Protocols.GIOP.Common is
                   --  (as is done in the case of an initial bind failure).
                end if;
 
-               Req.Target_Profile := Prof;
+               Current_Req.Target_Profile := Prof;
                Invoke_Request
                  (GIOP_Session (Get_Component (New_BO).all)'Access,
-                  Req.Req, Prof);
+                  Current_Req.Req, Prof);
             end;
 
          when others =>

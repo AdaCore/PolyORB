@@ -354,7 +354,11 @@ package body PolyORB.Protocols.GIOP is
       New_Pending_Req.Target_Profile := Profile_Access (Pro);
 
       if Is_Set (Sync_With_Transport, R.Req_Flags) then
-         --  XXX avoiding memory leaks with one way calls
+
+         --  Oneway call: we won't see any reply for this request,
+         --  therefore we need to destroy the pending request
+         --  information now.
+
          New_Pending_Req.Request_Id := Get_Request_Id (Sess);
          Send_Request (Sess.Implem, Sess, New_Pending_Req);
          Free (New_Pending_Req);
@@ -767,21 +771,23 @@ package body PolyORB.Protocols.GIOP is
    procedure Get_Pending_Request
      (Sess    : access GIOP_Session;
       Id      :        Types.Unsigned_Long;
-      Req     :    out Pending_Request_Access;
+      Req     :    out Pending_Request;
       Success :    out Boolean)
    is
       use Pend_Req_List;
 
       It : Iterator := First (Sess.Pending_Reqs);
-
+      PRA : Pending_Request_Access;
    begin
       pragma Debug (O ("Retrieving pending request with id"
                        & Types.Unsigned_Long'Image (Id)));
 
       while not Last (It) loop
          if Pending_Request_Access (Value (It).all).Request_Id = Id then
-            Req := Pending_Request_Access (Value (It).all);
+            PRA := Pending_Request_Access (Value (It).all);
             Remove (Sess.Pending_Reqs, It);
+            Req := PRA.all;
+            Free (PRA);
             Success := True;
             return;
          end if;
