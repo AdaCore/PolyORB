@@ -33,9 +33,10 @@
 
 --  The following subprograms still have to be implemented :
 --
--- Get_Default_Context --
--- Get_Service_Information --
--- List_Initial_Services --
+--  Get_Default_Context --
+--  Create_Fixed_Tc --
+--  Create_Native_Tc --
+--  Create_Recursive_Sequence_Tc --
 
 --  $Id$
 
@@ -44,7 +45,6 @@ with Ada.Exceptions;
 with PolyORB.CORBA_P.Policy;
 
 with PolyORB.Configuration;
-with PolyORB.Dynamic_Dict;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -54,6 +54,8 @@ with PolyORB.Objects;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.HFunctions.Mul;
+with PolyORB.Utils.HTables.Perfect;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 
@@ -67,8 +69,14 @@ package body CORBA.ORB is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   package Referenced_Objects is new PolyORB.Dynamic_Dict
-     (Value => CORBA.Object.Ref);
+   package Referenced_Objects_HTables is new PolyORB.Utils.HTables.Perfect
+     (CORBA.Object.Ref,
+      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Hash,
+      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
+
+   Referenced_Objects : Referenced_Objects_HTables.Table_Instance;
    --  For initial references.
 
    procedure Register_Initial_Reference
@@ -270,22 +278,50 @@ package body CORBA.ORB is
    procedure Get_Service_Information
      (Service_Type        : in     CORBA.ServiceType;
       Service_Information :    out ServiceInformation;
-      Returns             :    out CORBA.Boolean) is
+      Returns             :    out CORBA.Boolean)
+   is
+      pragma Warnings (Off); --  WAg:3.15
+      pragma Unreferenced (Service_Type);
+      pragma Warnings (On); --  WAg:3.15
+
+      Null_Service_Information : constant ServiceInformation :=
+        ServiceInformation'(IDL_Sequence_ServiceOption.Null_Sequence,
+                            IDL_Sequence_ServiceDetail.Null_Sequence);
+
    begin
-      raise PolyORB.Not_Implemented;
+
+      --  Service information is not (yet) supported, we return false
+      --  for all values of Service_Type.
+
+      Service_Information := Null_Service_Information;
+      Returns := False;
+
    end Get_Service_Information;
 
    ---------------------------
    -- List_Initial_Services --
    ---------------------------
 
-   function List_Initial_Services return ObjectIdList is
+   function List_Initial_Services return ObjectIdList
+   is
+      use Referenced_Objects_HTables;
+
+      It : Iterator := First (Referenced_Objects);
+
+      Result : ObjectIdList;
    begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return List_Initial_Services;
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      pragma Debug (O ("List_Initial_Services: enter"));
+
+      while not Last (It) loop
+         pragma Debug (O ("Service name: " & Key (It)));
+         IDL_Sequence_ObjectId.Append
+           (IDL_Sequence_ObjectId.Sequence (Result),
+            To_CORBA_String (Key (It)));
+         Next (It);
+      end loop;
+
+      pragma Debug (O ("List_Initial_Services: end"));
+      return Result;
    end List_Initial_Services;
 
    ------------------
@@ -303,9 +339,42 @@ package body CORBA.ORB is
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
-      Ref        : CORBA.Object.Ref) is
+      Ref        : CORBA.Object.Ref)
+   is
+      use CORBA.Object;
+      use Referenced_Objects_HTables;
+
+      Id : constant Standard.String := To_Standard_String (Identifier);
+
+      Nil_Ref : CORBA.Object.Ref;
    begin
-      Referenced_Objects.Register (To_Standard_String (Identifier), Ref);
+      pragma Debug (O ("Register_Initial_Reference: " & Id));
+
+      --  If string id is empty or id is already registered,
+      --  then raise InvalidName.
+
+      if Id = ""
+        or else not Is_Nil (Lookup (Referenced_Objects, Id, Nil_Ref)) then
+         declare
+            Excp_Memb : InvalidName_Members := (null record);
+         begin
+            Raise_InvalidName (Excp_Memb);
+         end;
+      end if;
+
+      --  If Ref is null, then raise Bad_Param with minor code 27
+
+      if Is_Nil (Ref) then
+         declare
+            Excp_Memb : System_Exception_Members :=
+              System_Exception_Members'(Minor     => 27,
+                                        Completed => Completed_No);
+         begin
+            Raise_Bad_Param (Excp_Memb);
+         end;
+      end if;
+
+      Insert (Referenced_Objects, Id, Ref);
    end Register_Initial_Reference;
 
    procedure Register_Initial_Reference
@@ -326,16 +395,28 @@ package body CORBA.ORB is
      (Identifier : ObjectId)
      return CORBA.Object.Ref
    is
+      use CORBA.Object;
+      use Referenced_Objects_HTables;
+
       Id : constant Standard.String := To_Standard_String (Identifier);
 
+      Nil_Ref : CORBA.Object.Ref;
+
+      Result : CORBA.Object.Ref;
    begin
-      return Referenced_Objects.Lookup (Id);
-   exception
-      when E : others =>
-         pragma Debug
-           (O ("Got exception while looking up " & Id & ":"));
-         pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
-         raise CORBA.InvalidName;
+      pragma Debug (O ("Resolve_Initial_References: " & Id));
+
+      Result := Lookup (Referenced_Objects, Id, Nil_Ref);
+
+      if Is_Nil (Result) then
+         declare
+            Excp_Memb : InvalidName_Members := (null record);
+         begin
+            Raise_InvalidName (Excp_Memb);
+         end;
+      end if;
+
+      return Result;
    end Resolve_Initial_References;
 
    ---------
@@ -440,8 +521,7 @@ package body CORBA.ORB is
            new PolyORB.Objects.Object_Id'
            (CORBA.Object.To_PolyORB_Object (Object));
       begin
-         PolyORB.ORB.Create_Reference
-           (The_ORB, Oid, Typ, Result);
+         PolyORB.ORB.Create_Reference (The_ORB, Oid, Typ, Result);
 
          return Result;
       end;
@@ -516,7 +596,12 @@ package body CORBA.ORB is
       Naming_IOR : constant Standard.String :=
         PolyORB.Configuration.Get_Conf
         (Section => "corba", Key => "naming_ior", Default => "");
+
    begin
+
+      --  Initialize Referenced_Objects hash table
+
+      Referenced_Objects_HTables.Initialize (Referenced_Objects);
 
       --  Register initial reference for NamingService
 
