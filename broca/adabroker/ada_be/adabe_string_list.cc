@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -89,13 +89,17 @@ string *adabe_string_list::produce (string repeat) {
   int i;
   string *output;
   output = new string ("");
+  
   for (i = 0; i < nb_item_in_list; i++) {
-    (*output) += repeat + *str_list[i] +";"; 
-    string substring =str_list[i]->substr (str_list[i]->find_last_of ('.') + 1);
-    string lower_string = lower (substring.c_str ());
-    //    if ((lower_string ==  "marshal") && (repeat != "use "))      
-    //      (*output) += " use " + *str_list[i] +";\n";
-    /* else*/  (*output) += "\n";
+      unsigned int space = str_list[i]->find_first_of (' ');
+      if (space >= str_list[i]->length ())
+	  (*output) += repeat + *str_list[i] + ";\n"; 
+      else {
+	  string prefix = str_list[i]->substr (0, space + 1);
+
+	  if (prefix == repeat)
+	      (*output) += *str_list[i] + ";\n";
+      }
   }
   return output;
 }

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.6 $
+//                            $Revision: 1.7 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -182,7 +182,7 @@ adabe_sequence::produce_stream_adb (dep_list & with,
     "         for I in Elements'Range loop\n"
     "            Unmarshall (Stream, Elements (I));\n"
     "         end loop;\n"
-    "         Res := IDL_Sequence_Short.To_Sequence (Elements);\n"
+    "         Res := " + inter_name + ".To_Sequence (Elements);\n"
     "      end;\n"
     "   end Unmarshall;\n"
     "\n"

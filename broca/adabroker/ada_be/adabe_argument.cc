@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.9 $
+//                            $Revision: 1.10 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -216,7 +216,7 @@ adabe_argument::produce_skel_adb (dep_list & with,
 
   e->is_marshal_imported (with);
 
-  in_decls += "            ";
+  in_decls += "            IDL_";
   in_decls += get_ada_local_name ();
   in_decls += " : ";
   in_decls += type_name;
@@ -226,22 +226,22 @@ adabe_argument::produce_skel_adb (dep_list & with,
       (direction () == AST_Argument::dir_INOUT))
     {
       no_in = false;
-      unmarshall += "            Unmarshall (Stream, ";
+      unmarshall += "            Unmarshall (Stream, IDL_";
       unmarshall += get_ada_local_name ();
       unmarshall += ");\n";
     }
 
-  call_args += ", ";
+  call_args += ", IDL_";
   call_args += get_ada_local_name ();
 
   if ((direction () == AST_Argument::dir_OUT)
       || (direction () == AST_Argument::dir_INOUT))
     {
       no_out = false;
-      marshall += "            Marshall (Stream, ";
+      marshall += "            Marshall (Stream, IDL_";
       marshall += get_ada_local_name ();
       marshall += ");\n";
-      align_size += "            Size := Compute_New_Size (Stream, ";
+      align_size += "            Compute_New_Size (Stream, IDL_";
       align_size += get_ada_local_name ();
       align_size += ");\n";
     }      

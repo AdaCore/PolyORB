@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.16 $
+//                            $Revision: 1.17 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -199,15 +199,16 @@ adabe_operation::produce_adb (dep_list & with,
       i.next ();
     }
 
-  // For a function, the return type is mapped into an argument Result.
+  // For an operation that returns a non-void type but
+  // cannot be mapped as a function because it has out parameters,
+  // the return type is mapped into an out parameter Returns.
   if ((!return_is_void ()) && (!is_function ()))
     {
-      // The result is mapped into an out argument.
       out_args += ", Returns";
       AST_Decl *b = return_type ();
       string tmp = dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
       dynamic_cast<adabe_name *>(b)->is_marshal_imported (with);
-      in_decls += ";\n              " + space + "Returns : out " +  tmp;
+      in_decls += ";\n" + space + "Returns : out " +  tmp;
     }
   in_decls += ")";
   in_args += ");\n";
@@ -249,7 +250,7 @@ adabe_operation::produce_adb (dep_list & with,
 	(dynamic_cast<adabe_name *>(b))->dump_name (with, previous);
       body += name;
       body += "\n   is\n";
-      body += "      Result : ";
+      body += "      Returns : ";
       body += name;
       body += ";\n";
     }
@@ -276,7 +277,7 @@ adabe_operation::produce_adb (dep_list & with,
     "           (Handler, Broca.Object.Object_Ptr (Get (Self)),\n"
     "           " + operation_name + ");\n"
     "\n"
-    "         --  In and inout parameter.\n";
+    "         --  In and inout parameters.\n";
   body +=  marshall_size;
   body +=
     "\n"
@@ -292,8 +293,7 @@ adabe_operation::produce_adb (dep_list & with,
   body += ", Sr_Res);\n"
     "         case Sr_Res is\n"
     "            when Broca.Giop.Sr_Reply =>\n"
-    "               --  OD: Operation dependant.\n"
-    "               --  Outcoming arguments.\n";
+    "               --  Inout and out parameters.\n";
   if (oneway)
     {
       body +=
@@ -302,12 +302,17 @@ adabe_operation::produce_adb (dep_list & with,
   else
     {
       body += unmarshall;
+
+      if (!return_is_void ()) {
+	  body += "               Unmarshall (Handler.Buffer, Returns);\n";
+      }
+
       if (is_function ())
 	body +=	
-	  "               Unmarshall (Handler.Buffer, Result);\n"
-	  "               return Result;\n";
+	    "               return Returns;\n";
       else
-	body +=	"               return;\n";
+	body +=
+	    "               return;\n";
     }
   body +=
     "            when Broca.Giop.Sr_No_Reply =>\n";

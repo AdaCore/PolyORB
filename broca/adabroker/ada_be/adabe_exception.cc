@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.13 $
+//                            $Revision: 1.14 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -239,6 +239,9 @@ adabe_exception::produce_op_adb (dep_list & with,
     // Add the package in which the exception is defined.
     with.add (pack);
 
+    // Depend on CORBA for CORBA."=" (CORBA_String, String)
+    with.add ("CORBA");
+
     // We now map the interface
     body += 
         "                  if Exception_Repository_Id = \""
@@ -295,16 +298,17 @@ adabe_exception::produce_stream_ads (dep_list & with,
   UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
   // We must define marshall, unmarshall and align size only if
   // there's an argument in the scope of the exception.
-  if (!activator.is_done ())
-    gen_marshalling_declarations (body, get_ada_local_name () + "_Members");
-
-  body +=
-    "   procedure Unmarshall_And_Raise_" + get_ada_local_name () + "\n"
-    "      (Stream : in out Broca.Buffers.Buffer_Descriptor);\n"
-    "\n"
-    "   procedure Raise_" + get_ada_local_name () + "\n"
-    "      (Bod : " + get_ada_local_name () + "_Members);\n";
-
+  if (!activator.is_done ()) {
+      gen_marshalling_declarations (body, get_ada_local_name () + "_Members");
+      
+      body +=
+	  "   procedure Unmarshall_And_Raise_" + get_ada_local_name () + "\n"
+	  "      (Stream : in out Broca.Buffers.Buffer_Descriptor);\n"
+	  "\n"
+	  "   procedure Raise_" + get_ada_local_name () + "\n"
+	  "      (Bod : " + get_ada_local_name () + "_Members);\n";
+  }
+  
   set_already_defined ();
 }
 

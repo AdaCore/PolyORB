@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.13 $
+//                            $Revision: 1.14 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -648,6 +648,8 @@ adabe_name::is_imported (dep_list& with)
 bool
 adabe_name::is_marshal_imported (dep_list& with)
 {
+    string dummy;
+
   // this function is the same as the previous one
   // except, that the added file is the same
   // with a ".marshal" at the end
@@ -655,28 +657,33 @@ adabe_name::is_marshal_imported (dep_list& with)
     {
       return 0;
     }
-  //XXX TQ 19991027
-  // if (this == adabe_global::adabe_current_file ()) 
-  //   return 0;
+
   AST_Decl::NodeType NT = node_type ();
-  if (NT == AST_Decl::NT_interface)
-    {
-      if ((string) local_name ()->get_string () == "Object")  return 1;
-      else
-	with.add (get_ada_full_name ()+".Stream");
-      return 1;
+  switch (NT) {
+
+  case AST_Decl::NT_interface:
+    if ((string) local_name ()->get_string () == "Object")  return 1;
+    else {
+	if (dynamic_cast<adabe_interface *>(this)->is_forwarded ()) {
+	    with.add ("use " + get_ada_full_name () + "_Forward");
+	} else {
+	    with.add (get_ada_full_name () + ".Stream");
+	}
     }
-  if (NT == AST_Decl::NT_module)
-    {
-      with.add (get_ada_full_name ()+".Stream");
-      return 1;
-    }
-   if (NT == AST_Decl::NT_root)
-    {
-      with.add (get_ada_full_name ()+".Stream");
-      return 1;
-    }
-   return (dynamic_cast<adabe_name *>(defined_in ()))->is_marshal_imported (with); 
+    return 1;
+
+  case AST_Decl::NT_module:
+    with.add (get_ada_full_name ()+".Stream");
+    return 1;
+
+  case AST_Decl::NT_root:
+    with.add (get_ada_full_name ()+".Stream");
+    return 1;
+
+  default:
+    return (dynamic_cast<adabe_name *>(defined_in ()))->is_marshal_imported (with);
+  }
+
 }
 
 ///////////////////////////////////////

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.12 $
+//                            $Revision: 1.13 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -1012,14 +1012,11 @@ adabe_interface::dump_name (dep_list & with,
 // marshal_name
 //-------------
 string
-adabe_interface::marshal_name (dep_list& with, string &previous)
+adabe_interface::marshal_name (dep_list& with, string &previous) {
   // Return name of a given interface. If the interface is imported,
   // return a short name. Otherwise, return a full name after
   // verifying if it is a forward declaration or not
 
-  // It is exactly the same as dump_name but not for every kind of object
-  // that's why both are defined.
-{
   // if imported, short name
   if (!is_imported (with))
     return "Ref";
