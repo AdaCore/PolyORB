@@ -21,7 +21,6 @@ with Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
 with Ada.Text_Io;
 with Types; use Types;
-with Idents;
 with Tokens;
 
 package body Be_Ada is
@@ -155,7 +154,6 @@ package body Be_Ada is
    function Map_Identifier (N : String) return String is
       use Ada.Characters.Handling;
       use Tokens;
-      use Idents;
       Id : Uniq_Id;
       Str : String (1 .. N'Length + 1);
       Index : Positive;
@@ -174,11 +172,12 @@ package body Be_Ada is
       --  Note: case, exception, in, out are IDL keywords too.
       Id := Get_Identifier (N);
 
-      if Id in Id_First_Ada_Word .. Id_Last_Ada_Word
-        or else Id = Id_Pragma
-      then
-         return "IDL_" & N;
-      end if;
+      --  FIXME : to be rewrote without the use of Idents
+--       if Id in Id_First_Ada_Word .. Id_Last_Ada_Word
+--         or else Id = Id_Pragma
+--       then
+--          return "IDL_" & N;
+--       end if;
 
       Index := Str'First;
       for I in N'Range loop

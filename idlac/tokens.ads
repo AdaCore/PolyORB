@@ -20,6 +20,54 @@ with Types; use Types;
 
 package Tokens is
 
+   --  All the idl_keywords
+   --  must be synchronized with the token declarations
+   All_Idl_Keywords : array (1 .. 38) of String_Cacc :=
+     (new String'("any"),
+      new String'("attribute"),
+      new String'("boolean"),
+      new String'("case"),
+      new String'("char"),
+      new String'("const"),
+      new String'("context"),
+      new String'("default"),
+      new String'("double"),
+      new String'("enum"),
+      new String'("exception"),
+      new String'("FALSE"),
+      new String'("fixed"),
+      new String'("float"),
+      new String'("in"),
+      new String'("inout"),
+      new String'("interface"),
+      new String'("long"),
+      new String'("module"),
+      new String'("native"),
+      new String'("Object"),
+      new String'("octet"),
+      new String'("oneway"),
+      new String'("out"),
+      new String'("raises"),
+      new String'("readonly"),
+      new String'("sequence"),
+      new String'("short"),
+      new String'("string"),
+      new String'("struct"),
+      new String'("switch"),
+      new String'("TRUE"),
+      new String'("typedef"),
+      new String'("unsigned"),
+      new String'("union"),
+      new String'("void"),
+      new String'("wchar"),
+      new String'("wstring")
+      );
+
+   --  the three kinds of identifiers : keywords, true
+   --  identifiers or miscased keywords.
+   type Idl_Keyword_State is
+     (Is_Keyword, Is_Identifier, Bad_Case);
+
    --  All the possible tokens.
    type Idl_Token is
       (
@@ -28,7 +76,7 @@ package Tokens is
 
    --  Keywords.
    --  Must start at position 1.
-   --  Must be synchronised with idents.ads, idents.adb and tokens.adb
+   --  Must be synchronised with tokens.adb
        T_Any,
        T_Attribute,
        T_Boolean,
@@ -107,6 +155,18 @@ package Tokens is
    --  Misc
        T_Eof
        );
+
+   --  checks whether s is an Idl keyword or not
+   --  the result can be Is_Keyword if it is,
+   --  Is_Identifier if it is not and Bad_Case if
+   --  it is one but with bad case
+   --  CORBA V2.3, 3.2.4 :
+   --  keywords must be written exactly as in the above list. Identifiers
+   --  that collide with keywords (...) are illegal.
+   procedure Is_Idl_Keyword (S : in String;
+                             Is_A_Keyword : out Idl_Keyword_State;
+                             Tok : out Idl_Token);
+
 
    subtype Idl_Keywords is Idl_Token range T_Any .. T_Wstring;
 

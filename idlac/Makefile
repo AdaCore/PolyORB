@@ -2,7 +2,7 @@ GNAT_STYLE=-gnaty3bcefhikmt
 GNATMAKE_FLAGS=-g $(GNAT_STYLE) -gnatf -gnatwu -gnatwe
 all: gidlac # idlac
 
-myidlac gidlac idlac: force
+gidlac idlac: force
 	gnatmake $(GNATMAKE_FLAGS) $@
 
 TEST_FILES=\

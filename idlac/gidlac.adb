@@ -20,7 +20,6 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with GNAT.Command_Line; use GNAT.Command_Line;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
-with Idents;
 with Tree;
 with Tokens;
 with Parse;
@@ -130,7 +129,6 @@ begin
       Set_Input (Idl_File);
    end if;
 
-   Idents.Initialize;
    Tokens.Initialize;
 
    Rep := Parse.Parse_Specification;

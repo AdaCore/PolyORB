@@ -21,7 +21,6 @@ with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 --  with Ada.Characters.Handling;
 with Gnat.Case_Util;
 with Types; use Types;
-with Idents;
 with Errors;
 
 package body Tokens is
@@ -74,11 +73,40 @@ package body Tokens is
       Replacement_Token := Tok;
    end Set_Replacement_Token;
 
+
+   --  checks whether s is an Idl keyword or not
+   procedure Is_Idl_Keyword (S : in String;
+                             Is_A_Keyword : out Idl_Keyword_State;
+                             Tok : out Idl_Token) is
+      Result : Ident_Equality;
+      Pos : Natural := 0;
+   begin
+      for I in All_Idl_Keywords'Range loop
+         Pos := Pos + 1;
+         Result := Idl_Identifier_Equal (S, All_Idl_Keywords (I).all);
+         case Result is
+            when Differ =>
+               null;
+            when Case_Differ =>
+               Is_A_Keyword := Idl_Keyword_State (Bad_Case);
+               Tok := Idl_Token'Val (Pos);
+               return;
+            when Equal =>
+               Is_A_Keyword := Idl_Keyword_State (Is_Keyword);
+               Tok := Idl_Token'Val (Pos);
+               return;
+         end case;
+      end loop;
+      Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
+      Tok := Idl_Token (T_Error);
+      return;
+   end Is_Idl_Keyword;
+
    --  Called when the current character is a letter.
    --  This procedure sets TOKEN and return.
    function Scan_Identifier return Idl_Token is
-      use Idents;
-      Id : Uniq_Id;
+      Is_A_Keyword : Idl_Keyword_State;
+      Tok : Idl_Token;
    begin
       Current_Str_Start := Col;
 
@@ -95,12 +123,26 @@ package body Tokens is
 
       --  The identifier was scanned.
       Current_Str_End := Col - 1;
-      Id := Get_Identifier (Line (Current_Str_Start .. Current_Str_End));
-      if Id in Id_First_Tok .. Id_Last_Tok then
-         return Idl_Token'Val (Uniq_Id'Pos (Id));
-      else
-         return T_Identifier;
-      end if;
+
+      --  check if it is a reserved keyword or not :
+      --  CORBA V2.3, 3.2.4 :
+      --  keywords must be written exactly as in the above list. Identifiers
+      --  that collide with keywords (...) are illegal.
+      Is_Idl_Keyword (Line (Current_Str_Start .. Current_Str_End),
+                      Is_A_Keyword,
+                      tok);
+      case Is_A_Keyword is
+         when Idl_Keyword_State (Is_Keyword) =>
+            return Tok;
+         when Idl_Keyword_State (Is_Identifier) =>
+            return T_Identifier;
+         when Idl_Keyword_State (Bad_Case) =>
+            Errors.Display_Error ("Bad identifier or bad case for idl keyword",
+                                  Current_State.Line_Number,
+                                  Col,
+                                  Errors.Error);
+            raise Fatal_Error;
+      end case;
    end Scan_Identifier;
 
    --  IDL Syntax and semantics, § 3.2.5
