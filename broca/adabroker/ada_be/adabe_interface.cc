@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.9 $
+//                            $Revision: 1.10 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -507,21 +507,21 @@ adabe_interface::produce_adb (dep_list& with,
   string factory_type = get_ada_local_name () + "_Factory_Type";
   string factory_name = get_ada_local_name () + "_Factory";
   body +=
-    "   type " + factory_type + " is new Broca.Repository.Object_Class_Type\n"
+    "   type " + factory_type + " is new Broca.Repository.Factory_Type\n"
     "      with null record;\n"
-    "   function Create_Object (Class : access " + factory_type + ")\n"
-    "                           return CORBA.Object.Ref'Class;\n"
+    "   function Create (Factory : access " + factory_type + ")\n"
+    "                    return CORBA.Object.Ref'Class;\n"
     "\n"
-    "   function Create_Object (Class : access " + factory_type + ")\n"
-    "                           return CORBA.Object.Ref'Class is\n"
+    "   function Create (Factory : access " + factory_type + ")\n"
+    "                    return CORBA.Object.Ref'Class is\n"
     "      Res : Ref;\n"
     "   begin\n"
     "      Broca.Refs.Set (Broca.Refs.Ref (Res),\n"
     "                      new Broca.Object.Object_Type);\n"
     "      return Res;\n"
-    "   end Create_Object;\n"
+    "   end Create;\n"
     "\n"
-    "   " + factory_name + " : constant Broca.Repository.Object_Class_Ptr :=\n"
+    "   " + factory_name + " : constant Broca.Repository.Factory_Ptr :=\n"
     "      new " + factory_type + "'\n"
     "        (Next => null, Type_Id => CORBA.RepositoryId (Repository_Id));\n"
     "begin\n"
