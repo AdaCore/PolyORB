@@ -954,12 +954,16 @@ src/polyorb-utils-chained_lists.adb
 src/polyorb-utils-chained_lists.ads
 src/polyorb-utils-dynamic_tables.adb
 src/polyorb-utils-dynamic_tables.ads
+src/polyorb-utils-hfunctions-hyper.adb
+src/polyorb-utils-hfunctions-hyper.ads
 src/polyorb-utils-hfunctions-mul.adb
 src/polyorb-utils-hfunctions-mul.ads
 src/polyorb-utils-hfunctions.ads
 src/polyorb-utils-htables-perfect.adb
 src/polyorb-utils-htables-perfect.ads
 src/polyorb-utils-htables.ads
+src/polyorb-utils-random.adb
+src/polyorb-utils-random.ads
 src/polyorb-utils-report.adb
 src/polyorb-utils-report.ads
 src/polyorb-utils-rt_calendar.ads
