@@ -1,3 +1,8 @@
+1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add missing Examples/Filters/Makefile.am.
+	Add Garlic/s-ganase.ad[bs] to the distribution.
+	Add Garlic/s-gapise.ad[bs] to the distribution.
 1998-09-02  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in: To build isthriob, don't compile s-stratt.adb
@@ -535,5 +540,5 @@
         * configure.in, Garlic/Makefile.am: Several new variables :
         [PROTOCOLS|NON_EMBEDDED]_[SOURCES|OBJECTS]
         PROTOCOLS    :  list of protocols
-        NON_EMBEDDED :  do we laucnh partition
+        NON_EMBEDDED :  do we launch partition
         

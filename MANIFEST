@@ -110,6 +110,7 @@ Examples/Eratho/spiral/prime_2.ads
 Examples/Eratho/spiral/prime_3.adb
 Examples/Eratho/spiral/prime_3.ads
 Examples/Eratho/spiral/spiral.cfg
+Examples/Filters/Makefile.am
 Examples/Filters/Makefile.in
 Examples/Filters/README
 Examples/Filters/common.ads
@@ -166,12 +167,16 @@ Garlic/s-galite.adb
 Garlic/s-galite.ads
 Garlic/s-ganobl.ads
 Garlic/s-gafizi.ads
+Garlic/s-ganese.ads
+Garlic/s-ganese.adb
 Garlic/s-ganata.adb
 Garlic/s-ganata.ads
 Garlic/s-ganeut.adb
 Garlic/s-ganeut.ads
 Garlic/s-gaphlo.adb
 Garlic/s-gaphlo.ads
+Garlic/s-gapise.ads
+Garlic/s-gapise.adb
 Garlic/s-gaplsp.ads.in
 Garlic/s-gaprco.adb.in
 Garlic/s-gaprco.ads
