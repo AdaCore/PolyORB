@@ -73,36 +73,49 @@ package body PolyORB.Annotations is
    -- Get_Note --
    --------------
 
-   procedure Get_Note (NP : Notepad;
-                       N : out Note'Class)
+   procedure Get_Note_If_Present
+     (NP : Notepad;
+      N  : out Note'Class;
+      Present : out Boolean);
+
+   procedure Get_Note_If_Present
+     (NP : Notepad;
+      N  : out Note'Class;
+      Present : out Boolean)
    is
       It : Iterator := First (NP);
    begin
       while not Last (It) loop
          if Value (It).all'Tag = N'Tag then
             N := Value (It).all.all;
+            Present := True;
             return;
          end if;
          Next (It);
       end loop;
+      Present := False;
+   end Get_Note_If_Present;
 
+   procedure Get_Note
+     (NP : Notepad;
+      N : out Note'Class)
+   is
+      Present : Boolean;
+   begin
+      Get_Note_If_Present (NP, N, Present);
    end Get_Note;
 
-   procedure Get_Note (NP : Notepad;
-                       N : out Note'Class;
-                       Default : Note'Class)
+   procedure Get_Note
+     (NP : Notepad;
+      N : out Note'Class;
+      Default : Note'Class)
    is
-      It : Iterator := First (NP);
+      Present : Boolean;
    begin
-      while not Last (It) loop
-         if Value (It).all'Tag = N'Tag then
-            N := Value (It).all.all;
-            return;
-         end if;
-         Next (It);
-      end loop;
-
-      N := Default;
+      Get_Note_If_Present (NP, N, Present);
+      if not Present then
+         N := Default;
+      end if;
    end Get_Note;
 
    -------------
