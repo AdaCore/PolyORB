@@ -270,7 +270,7 @@ AC_ARG_WITH(data-location,
   DEFSTORAGENAME="dfs"
   DEFSTORAGEDATA=""
 ])
-AC_MSG_CHECKING(for default data location])
+AC_MSG_CHECKING([for default data location])
 AC_MSG_RESULT([${DEFSTORAGENAME}://${DEFSTORAGEDATA}])
 AC_SUBST(DEFSTORAGENAME)
 AC_SUBST(DEFSTORAGEDATA)
@@ -286,7 +286,7 @@ AC_ARG_WITH(boot-location,
 [
   DEFPROTOCOLDATA=`echo 000$$ | ${SED} 's,^.*\(...\)$,localhost:5\1,'`
 ])
-AC_MSG_CHECKING(for default boot location])
+AC_MSG_CHECKING([for default boot location])
 AC_MSG_RESULT([${DEFPROTOCOLNAME}://${DEFPROTOCOLDATA}])
 AC_SUBST(DEFPROTOCOLNAME)
 AC_SUBST(DEFPROTOCOLDATA)
@@ -301,7 +301,7 @@ AC_ARG_WITH(filters,
 [
   FILTERSLIST="zip"
 ])
-AC_MSG_CHECKING(for default filters])
+AC_MSG_CHECKING([for default filters])
 [
 if test -d Garlic; then
   :
