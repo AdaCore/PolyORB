@@ -323,6 +323,7 @@ package body System.Garlic.Table is
 
       procedure Validate (N : Index_Type) is
          Dummy : Index_Type;
+         pragma Unreferenced (Dummy);
       begin
          pragma Assert (Min <= N);
          while N > Max loop
@@ -514,6 +515,7 @@ package body System.Garlic.Table is
 
       procedure Validate (N : Index_Type) is
          Dummy : Index_Type;
+         pragma Unreferenced (Dummy);
       begin
          pragma Assert (Min <= N);
          while N > Max loop

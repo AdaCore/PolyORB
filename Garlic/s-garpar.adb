@@ -1152,14 +1152,16 @@ package body System.Garlic.Partitions is
       Info   : in out Partition_Info;
       Error  : in out Error_Type)
    is
-      Net_Locations  : String            := String'Input (Stream);
-      Mem_Locations  : String            := String'Input (Stream);
-      Termination    : Termination_Type  := Termination_Type'Input (Stream);
-      Reconnection   : Reconnection_Type := Reconnection_Type'Input (Stream);
-      Is_Pure_Client : Boolean           := Boolean'Input (Stream);
-      Is_Boot_Mirror : Boolean           := Boolean'Input (Stream);
-      Boot_Partition : Partition_ID      := Partition_ID'Input (Stream);
-      Status         : Status_Type       := Status_Type'Input (Stream);
+      Net_Locations  : constant String   := String'Input (Stream);
+      Mem_Locations  : constant String   := String'Input (Stream);
+      Termination    : constant Termination_Type  :=
+                         Termination_Type'Input (Stream);
+      Reconnection   : constant Reconnection_Type :=
+                         Reconnection_Type'Input (Stream);
+      Is_Pure_Client : constant Boolean  := Boolean'Input (Stream);
+      Is_Boot_Mirror : constant Boolean  := Boolean'Input (Stream);
+      Boot_Partition : constant Partition_ID := Partition_ID'Input (Stream);
+      Status         : constant Status_Type  := Status_Type'Input (Stream);
 
    begin
       if Info.Allocated
@@ -1193,8 +1195,8 @@ package body System.Garlic.Partitions is
             elsif Net_Locations /= "" then
                Info.Net_Locations := new String'(Net_Locations);
                declare
-                  SA : String_List_Access
-                    := Split_String (Info.Net_Locations.all);
+                  SA : constant String_List_Access
+                         := Split_String (Info.Net_Locations.all);
                   UL : Location_Type;
                begin
                   --  Try to find a usable location. If we cannot
@@ -1252,8 +1254,8 @@ package body System.Garlic.Partitions is
       while Boolean'Input (Stream) loop
          Partition_ID'Read (Stream, PID);
          declare
-            Active : Boolean := Boolean'Input (Stream);
-            Name   : String  := String'Input (Stream);
+            Active : constant Boolean := Boolean'Input (Stream);
+            Name   : constant String  := String'Input (Stream);
 
          begin
             Info := Partitions.Get_Component (PID);
@@ -1374,7 +1376,8 @@ package body System.Garlic.Partitions is
             Partitions.Enter;
             for P in First_PID .. Partitions.Last loop
                declare
-                  Info : Partition_Info := Partitions.Get_Component (P);
+                  Info : constant Partition_Info :=
+                           Partitions.Get_Component (P);
 
                begin
                   if Info.Status = Done
