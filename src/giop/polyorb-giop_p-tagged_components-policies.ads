@@ -43,6 +43,8 @@ package PolyORB.GIOP_P.Tagged_Components.Policies is
 
    type TC_Policies is new Tagged_Component (Tag_Policies) with private;
 
+   type TC_Policies_Access is access all TC_Policies;
+
    procedure Marshall (C : access TC_Policies; Buffer : access Buffer_Type);
 
    procedure Unmarshall (C : access TC_Policies; Buffer : access Buffer_Type);

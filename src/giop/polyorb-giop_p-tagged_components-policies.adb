@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -110,8 +111,23 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
    ----------------------
 
    procedure Release_Contents (C : access TC_Policies) is
+      procedure Free is
+         new Ada.Unchecked_Deallocation (TC_Policies, TC_Policies_Access);
+
+      procedure Free is
+         new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
+
+      CC : TC_Policies_Access := TC_Policies_Access (C);
+      It : Iterator := First (C.Policies);
+
    begin
+      while not Last (It) loop
+         Free (Value (It).P_Value);
+         Remove (C.Policies, It);
+      end loop;
+
       Deallocate (C.Policies);
+      Free (CC);
    end Release_Contents;
 
    ----------------
