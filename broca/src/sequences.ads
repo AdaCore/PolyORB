@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                       C O R B A . R E Q U E S T                          --
+--                      C O R B A . S E Q U E N C E S                       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,50 +31,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
-with CORBA.Object;
-with CORBA.NVList;
+--  CORBA.Sequences is the parent of the bounded and unbounded sequence
+--  packages.  Some exceptions and types common to both are declared here
+--  (following the structure of Ada.Strings).
+--
+--  Length_Error is raised when sequence lengths are exceeded.
+--  Pattern_Error is raised when a null pattern string is
+--  passed. Index_Error is raised when indexes are out of range.
 
-package CORBA.Request is
+package Sequences is
 
-   type Object is private;
+   Length_Error, Pattern_Error, Index_Error : exception;
 
-   procedure Add_Arg
-     (Self      : in out Object;
-      Arg_Type  : in     CORBA.TypeCode.Object;
-      Value     : in     System.Address;
-      Len       : in     Long;
-      Arg_Flags : in     Flags);
+   type Alignment is (Left, Right, Center);
+   type Truncation is (Left, Right, Error);
+   type Membership is (Inside, Outside);
+   type Direction is (Forward, Backward);
 
-   procedure Add_Arg
-     (Self : in out Object;
-      Arg  : in     NamedValue);
+   type Trim_End is (Left, Right, Both);
 
-   procedure Invoke
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
-
-   procedure Delete (Self : in out Object);
-
-   procedure Send
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
-
-   procedure Get_Response
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
-
-   function Poll_Response (Self : in Object) return Boolean;
-
-private
-
-   type Object is
-      record
-         Target     : CORBA.Object.Ref;
-         Operation  : CORBA.Identifier;
-         Args_List  : CORBA.NVList.Ref;
-         Result     : CORBA.NamedValue;
-         Req_Flags  : CORBA.Flags;
-      end record;
-
-end CORBA.Request;
+end Sequences;

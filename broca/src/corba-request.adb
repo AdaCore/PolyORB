@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Broca.GIOP;
+with Broca.Object;
+
 package body CORBA.Request is
 
    procedure Add_Arg
@@ -47,14 +50,50 @@ package body CORBA.Request is
      (Self : in out Object;
       Arg  : in     NamedValue) is
    begin
-      null;
+      CORBA.NVList.Add_Item (Self.Args_List, Arg);
    end Add_Arg;
 
    procedure Invoke
      (Self         : in out Object;
       Invoke_Flags : in     Flags  := 0) is
+      Handler : Broca.GIOP.Request_Handler;
+      Send_Request_Result : Broca.GIOP.Send_Request_Result_Type;
    begin
-      null;
+      loop
+         --  create the request handler
+         Broca.GIOP.Send_Request_Marshall
+           (Handler,
+            Broca.Object.Object_Ptr (CORBA.Object.Get (Self.Target)),
+            True,
+            Self.Operation);
+
+         --  Marshall in and inout arguments.
+         CORBA.NVList.Marshall (Handler.Buffer'Access,
+                                Self.Args_List);
+
+         --  send the request
+         Broca.GIOP.Send_Request_Send
+           (Handler,
+            Broca.Object.Object_Ptr (CORBA.Object.Get (Self.Target)),
+            True,
+            Send_Request_Result);
+
+         case Send_Request_Result is
+            when Broca.GIOP.Sr_Reply =>
+               --  Unmarshall return value.
+               Self.Result :=
+                 CORBA.Unmarshall (Handler.Buffer'Access);
+               Broca.GIOP.Release (Handler);
+            when Broca.GIOP.Sr_No_Reply =>
+               Broca.GIOP.Release (Handler);
+               raise Program_Error;
+            when Broca.GIOP.Sr_User_Exception =>
+               Broca.GIOP.Release (Handler);
+               raise Program_Error;
+            when Broca.GIOP.Sr_Forward =>
+               null;
+         end case;
+      end loop;
    end Invoke;
 
    procedure Delete (Self : in out Object) is

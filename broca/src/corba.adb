@@ -1486,6 +1486,28 @@ package body CORBA is
       null;
    end Iterate_Over_Any_Elements;
 
+   ------------------
+   --  Named_Value --
+   ------------------
+
+   ----------------
+   --  Marshall  --
+   ----------------
+   procedure Marshall
+     (Buffer : access Broca.Buffers.Buffer_Type;
+      Data   : NamedValue) is
+   begin
+      null;
+   end Marshall;
+
+   ------------------
+   --  Unmarshall  --
+   ------------------
+   function Unmarshall (Buffer : access Broca.Buffers.Buffer_Type)
+                        return NamedValue is
+   begin
+      return (Null_Identifier, To_Any (CORBA.Short (0)), 0);
+   end Unmarshall;
 
 --    --------------------------
 --    --  Force_Any_TypeCode  --

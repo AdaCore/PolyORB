@@ -95,6 +95,15 @@ package body CORBA.NVList is
       return Length (Get_NVList (Self));
    end Get_Count;
 
+   ----------------
+   --  Marshall  --
+   ----------------
+   procedure Marshall
+     (Buffer : access Broca.Buffers.Buffer_Type;
+      Data   : Ref) is
+   begin
+      null;
+   end Marshall;
 
    ------------------------------------------
    --  implementation of the private part  --

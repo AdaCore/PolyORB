@@ -34,6 +34,7 @@
 with CORBA.Object;
 with System;
 with Ada.Unchecked_Deallocation;
+with Broca.Buffers;
 
 package CORBA.NVList is
 
@@ -62,6 +63,15 @@ package CORBA.NVList is
    procedure Free_Memory (Self : Ref);
 
    function Get_Count (Self : Ref) return CORBA.Long;
+
+   --  Not in spec
+   ---------------
+
+   --  to marshall all the NamedValues of an NVList
+   procedure Marshall
+     (Buffer : access Broca.Buffers.Buffer_Type;
+      Data   : Ref);
+
 
 private
    --  the actual implementation of an NVList, just a list of NamedValue
