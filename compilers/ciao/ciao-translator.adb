@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#7 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#8 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -505,8 +505,7 @@ package body CIAO.Translator is
                   --  Subprogram type.
                   Node := Make_Interface (No_Location);
                   Append_Node_To_Contents
-                    (State.Current_Node,
-                     Node);
+                    (State.Current_Node, Node);
                   Success := Add_Identifier
                     (Node, Map_Defining_Name
                      (Defining_Names (Defining_Names'First)));
@@ -652,6 +651,8 @@ package body CIAO.Translator is
                         --  are mapped to an opaque type.
                         Set_T_Type (Node, New_Opaque_Type);
                      else
+                        Set_Previous_Current_Node
+                          (Element, State.Current_Node);
                         State.Current_Node := Node;
 
 --                         declare
