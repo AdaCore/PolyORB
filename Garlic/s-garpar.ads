@@ -48,7 +48,7 @@ private package System.Garlic.Partitions is
       Termination  : Types.Termination_Type;
       Reconnection : Types.Reconnection_Type;
       Light_RTS    : Boolean;
-      Boot_Ability : Boolean;
+      Boot_Mirror  : Boolean;
       Boot_Server  : Types.Partition_ID;
       Status       : Types.Status_Type;
       Allocated    : Boolean;
@@ -71,7 +71,7 @@ private package System.Garlic.Partitions is
       Termination  => Types.Global_Termination,
       Reconnection => Types.Rejected_On_Restart,
       Light_RTS    => False,
-      Boot_Ability => False,
+      Boot_Mirror  => False,
       Boot_Server  => Types.Null_PID,
       Status       => Types.None);
 

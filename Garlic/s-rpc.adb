@@ -72,7 +72,7 @@ package body System.RPC is
      renames Print_Debug_Info;
 
    RPC_Allowed : Boolean := False;
-   RPC_Barrier : Barrier_Access := Create;
+   RPC_Barrier : Barrier_Type;
    --  The current RPC receiver and its associated barrier
 
    type RPC_Status is (Unknown, Running, Aborted, Completed);
@@ -87,8 +87,8 @@ package body System.RPC is
    subtype Valid_RPC_Id is RPC_Id range APC + 1 .. RPC_Id'Last;
 
    Callers : array (Valid_RPC_Id) of RPC_Info;
-   Callers_Mutex   : Mutex_Access := Create;
-   Callers_Watcher : Watcher_Access := Create;
+   Callers_Mutex   : Mutex_Type;
+   Callers_Watcher : Watcher_Type;
 
    type Abort_Keeper is new Ada.Finalization.Controlled with record
       Sent : Boolean := False;
@@ -505,6 +505,9 @@ package body System.RPC is
    end Write;
 
 begin
+   Create (RPC_Barrier);
+   Create (Callers_Mutex);
+   Create (Callers_Watcher);
    Register_Handler (Remote_Call, Handle_Request'Access);
    Pool.Initialize;
    Stream_IO.Initialize;

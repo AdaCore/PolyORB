@@ -94,8 +94,8 @@ package body System.Garlic.TCP is
    end record;
 
    Socket_Table : array (Valid_Partition_ID) of Socket_Type;
-   Socket_Table_Mutex   : Mutex_Access   := Create;
-   Socket_Table_Watcher : Watcher_Access := Create;
+   Socket_Table_Mutex   : Mutex_Type;
+   Socket_Table_Watcher : Watcher_Type;
 
    Self : Socket_Type;
 
@@ -532,21 +532,45 @@ package body System.Garlic.TCP is
    ----------------
 
    procedure Initialize
-     (Protocol : access TCP_Protocol;
-      Default  : in Utils.String_Access := null;
-      Bootmode : in Boolean := False)
+     (Protocol  : access TCP_Protocol;
+      Self_Data : in Utils.String_Access := null;
+      Boot_Data : in Utils.String_Access := null;
+      Boot_Mode : in Boolean := False)
    is
+      Current_Host : constant Host_Location := Split_Data (Host_Name);
    begin
       pragma Debug (D (D_Warning, "Initialize protocol TCP"));
 
       if Acceptor = null then
-         Self.Location := Split_Data (Host_Name);
+         Create (Socket_Table_Mutex);
+         Create (Socket_Table_Watcher);
+
+         if Self_Data /= null
+           and then Self_Data.all /= ""
+         then
+            Self.Location := Split_Data (Self_Data.all);
+            declare
+               Name : constant String := Name_Of (Image (Self.Location.Addr));
+            begin
+               if Name /= "localhost"
+                 and then Name /= Name_Of (Image (Current_Host.Addr))
+               then
+                  Ada.Exceptions.Raise_Exception
+                    (Program_Error'Identity,
+                     "Incorrect tcp self location: " & Self_Data.all);
+               end if;
+            end;
+         else
+            Self.Location := Current_Host;
+         end if;
       end if;
 
-      if Bootmode then
+      if Boot_Mode then
          Enter (Boot_PID);
-         if Default /= null then
-            Socket_Table (Boot_PID).Location := Split_Data (Default.all);
+         if Boot_Data /= null
+           and then Boot_Data.all /= ""
+         then
+            Socket_Table (Boot_PID).Location := Split_Data (Boot_Data.all);
          end if;
 
          --  If this partition is the lead partition, then the bootmode is
@@ -572,6 +596,7 @@ package body System.Garlic.TCP is
             null;
          end if;
       end if;
+
       pragma Debug (D (D_Debug, "Protocol TCP initialized"));
    end Initialize;
 
@@ -579,7 +604,7 @@ package body System.Garlic.TCP is
    -- Leave --
    -----------
 
-   procedure Leave (PID : Partition_ID) is
+   procedure Leave (PID : in Partition_ID) is
    begin
       Enter (Socket_Table_Mutex);
       pragma Debug (D (D_Debug, "Unlock partition" & PID'Img));

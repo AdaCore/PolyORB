@@ -49,7 +49,9 @@ package System.Garlic.Options is
 
    Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
 
+   Self_Location   : Utils.String_Access;
    Boot_Server     : Utils.String_Access;
+   Boot_Mirror     : Boolean;
    Connection_Hits : Natural;
    Detach          : Boolean;
    Boot_Partition  : Boolean;
@@ -61,7 +63,11 @@ package System.Garlic.Options is
    Trace_File_Name : Utils.String_Access;
    Checksum        : Types.Word;
 
-   procedure Initialize;
+   procedure Initialize_Default_Options;
+
+   procedure Initialize_User_Options;
+
+   procedure Set_Boot_Mirror (Default : in String);
 
    procedure Set_Boot_Server (Default : in String);
 
@@ -78,6 +84,8 @@ package System.Garlic.Options is
    procedure Set_Partition_Name (Name : in String);
 
    procedure Set_Reconnection (Default : in Types.Reconnection_Type);
+
+   procedure Set_Self_Location (Default : in String);
 
    procedure Set_Task_Pool_Bounds (Low, High, Max : in Positive);
 

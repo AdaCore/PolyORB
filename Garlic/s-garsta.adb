@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;                  use Ada.Exceptions;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Elaboration;
 pragma Elaborate_All (System.Garlic.Elaboration);
@@ -41,7 +42,7 @@ with System.Garlic.Group;             use System.Garlic.Group;
 pragma Elaborate_All (System.Garlic.Group);
 with System.Garlic.Heart;             use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
-with System.Garlic.Options;           use System.Garlic.Options;
+with System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 pragma Elaborate_All (System.Garlic.Physical_Location);
 with System.Garlic.Protocols;         use System.Garlic.Protocols;
@@ -72,8 +73,9 @@ begin
 
    --  Phase (0) (see s-garlic.ads)
 
-   System.Garlic.Options.Initialize;
+   System.Garlic.Options.Initialize_Default_Options;
    System.Garlic.Elaboration.Initialize;
+   System.Garlic.Options.Initialize_User_Options;
 
    --  Phase (1) (see s-garlic.ads)
 
@@ -89,14 +91,32 @@ begin
    System.Garlic.Protocols.Config.Initialize;
 
    declare
-      Boot_Location : constant Location_Type  := To_Location (Boot_Server.all);
-      Boot_Protocol : constant Protocol_Access := Get_Protocol (Boot_Location);
-      Boot_Data     : constant String_Access  := Get_Data (Boot_Location);
+      Boot_Location : constant Location_Type
+        := To_Location (Options.Boot_Server.all);
+      Boot_Protocol : constant Protocol_Access
+        := Get_Protocol (Boot_Location);
+      Boot_Data     : constant String_Access
+        := Get_Data (Boot_Location);
+      Self_Location : constant Location_Type
+        := To_Location (Options.Self_Location.all);
+      Self_Protocol : constant Protocol_Access
+        := Get_Protocol (Self_Location);
+      Self_Data     : constant String_Access
+        := Get_Data (Self_Location);
    begin
 
       if Boot_Protocol = null then
-         pragma Debug (D (D_Elaborate, "No boot protocol, aborting"));
-         raise Program_Error;
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "No boot protocol, aborting");
+      end if;
+
+      if Self_Protocol /= null
+        and then Self_Protocol /= Boot_Protocol
+      then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Self protocol different from boot protocol");
       end if;
 
       --  Phase (4) (see s-garlic.ads)
@@ -112,12 +132,12 @@ begin
             --  is computed. Note that this may be wrong in a multiple
             --  protocols context.
 
-            Initialize (Boot_Protocol, Boot_Data, True);
+            Initialize (Boot_Protocol, Self_Data, Boot_Data, True);
 
             --  Get the location used by the boot protocol for this
             --  partition and store it internally in Heart.
 
-            if Boot_Partition then
+            if Options.Boot_Partition then
                Set_Boot_Location
                  (To_Location (Boot_Protocol, Get_Info (Boot_Protocol)));
             else

@@ -40,28 +40,28 @@ package body System.Garlic.Utils is
 
    use Ada.Task_Identification;
 
-   protected type Barrier_Type is
+   protected type Barrier_PO is
       entry Wait;
       procedure Signal (How_Many : Positive := 1);
       procedure Signal_All (Permanent : Boolean);
    private
       Free : Natural := 0;
       Perm : Boolean := False;
-   end Barrier_Type;
+   end Barrier_PO;
    --  Any number of task may be waiting on Wait. Signal unblocks How_Many
    --  tasks (the order depends on the queuing policy) and Signal_All
    --  unblocks all the tasks and Wait will no longer be blocking. If
    --  How_Many is more than the number of tasks waiting, new tasks will be
    --  awakened as well.
 
-   protected type Mutex_Type is
+   protected type Mutex_PO is
       entry Enter;
       procedure Leave;
    private
       Locked : Boolean := False;
-   end Mutex_Type;
+   end Mutex_PO;
 
-   protected type Watcher_Type is
+   protected type Watcher_PO is
       function Commit return Version_Id;
       procedure Update;
       entry Differ (V : in Version_Id);
@@ -69,10 +69,10 @@ package body System.Garlic.Utils is
       entry Await (V : in Version_Id);
       Current : Version_Id := Version_Id'First;
       Passing : Boolean := True;
-   end Watcher_Type;
+   end Watcher_PO;
 
-   type Adv_Mutex_Type is limited record
-      Mutex     : Mutex_Access;
+   type Adv_Mutex_PO is limited record
+      Mutex     : Mutex_Type;
       Current   : Ada.Task_Identification.Task_Id;
       pragma Atomic (Current);
       Level     : Natural;
@@ -84,13 +84,13 @@ package body System.Garlic.Utils is
    --  times Enter has been successful.
 
    procedure Free is
-     new Ada.Unchecked_Deallocation (Mutex_Type, Mutex_Access);
+     new Ada.Unchecked_Deallocation (Mutex_PO, Mutex_Type);
    procedure Free is
-     new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
+     new Ada.Unchecked_Deallocation (Adv_Mutex_PO, Adv_Mutex_Type);
    procedure Free is
-     new Ada.Unchecked_Deallocation (Watcher_Type, Watcher_Access);
+     new Ada.Unchecked_Deallocation (Watcher_PO, Watcher_Type);
    procedure Free is
-     new Ada.Unchecked_Deallocation (Barrier_Type, Barrier_Access);
+     new Ada.Unchecked_Deallocation (Barrier_PO, Barrier_Type);
 
    ----------------------
    -- Access_To_String --
@@ -102,10 +102,10 @@ package body System.Garlic.Utils is
    end Access_To_String;
 
    ------------------
-   -- Barrier_Type --
+   -- Barrier_PO --
    ------------------
 
-   protected body Barrier_Type is
+   protected body Barrier_PO is
 
       ------------
       -- Signal --
@@ -144,53 +144,51 @@ package body System.Garlic.Utils is
          end if;
       end Wait;
 
-   end Barrier_Type;
+   end Barrier_PO;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Barrier_Access is
+   procedure Create (B : out Barrier_Type) is
    begin
-      return new Barrier_Type;
+      B := new Barrier_PO;
    end Create;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Watcher_Access is
+   procedure Create (W : out Watcher_Type) is
    begin
-      return new Watcher_Type;
+      W := new Watcher_PO;
    end Create;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Adv_Mutex_Access is
-      Item : Adv_Mutex_Access := new Adv_Mutex_Type;
-
+   procedure Create (M : out Adv_Mutex_Type) is
    begin
-      Item.Mutex   := new Mutex_Type;
-      Item.Current := Null_Task_Id;
-      return Item;
+      M := new Adv_Mutex_PO;
+      Create (M.Mutex);
+      M.Current := Null_Task_Id;
    end Create;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Mutex_Access is
+   procedure Create (M : out Mutex_Type) is
    begin
-      return new Mutex_Type;
+      M := new Mutex_PO;
    end Create;
 
    -------------
    -- Destroy --
    -------------
 
-   procedure Destroy (B : in out Barrier_Access) is
+   procedure Destroy (B : in out Barrier_Type) is
    begin
       Free (B);
    end Destroy;
@@ -199,7 +197,7 @@ package body System.Garlic.Utils is
    -- Destroy --
    -------------
 
-   procedure Destroy (W : in out Watcher_Access) is
+   procedure Destroy (W : in out Watcher_Type) is
    begin
       Free (W);
    end Destroy;
@@ -208,9 +206,9 @@ package body System.Garlic.Utils is
    -- Destroy --
    -------------
 
-   procedure Destroy (M : in out Adv_Mutex_Access) is
+   procedure Destroy (M : in out Adv_Mutex_Type) is
    begin
-      Free (M.Mutex);
+      Destroy (M.Mutex);
       Free (M);
    end Destroy;
 
@@ -218,7 +216,7 @@ package body System.Garlic.Utils is
    -- Destroy --
    -------------
 
-   procedure Destroy (M : in out Mutex_Access) is
+   procedure Destroy (M : in out Mutex_Type) is
    begin
       Free (M);
    end Destroy;
@@ -227,8 +225,9 @@ package body System.Garlic.Utils is
    -- Differ --
    ------------
 
-   procedure Differ (W : in Watcher_Access; V : in Version_Id) is
+   procedure Differ (W : in Watcher_Type; V : in Version_Id) is
    begin
+      pragma Assert (W /= null);
       W.Differ (V);
    end Differ;
 
@@ -236,7 +235,7 @@ package body System.Garlic.Utils is
    -- Enter --
    -----------
 
-   procedure Enter (M : Mutex_Access) is
+   procedure Enter (M : Mutex_Type) is
    begin
       pragma Assert (M /= null);
       Abort_Defer.all;
@@ -247,12 +246,12 @@ package body System.Garlic.Utils is
    -- Enter --
    -----------
 
-   procedure Enter (M : Adv_Mutex_Access) is
+   procedure Enter (M : Adv_Mutex_Type) is
       Self : constant Task_Id := Current_Task;
    begin
       pragma Assert (M /= null);
       if M.Current /= Self then
-         M.Mutex.Enter;
+         Enter (M.Mutex);
          M.Current := Self;
       end if;
       M.Level := M.Level + 1;
@@ -262,8 +261,9 @@ package body System.Garlic.Utils is
    -- Commit --
    -----------
 
-   procedure Commit (W : in Watcher_Access; V : out Version_Id) is
+   procedure Commit (W : in Watcher_Type; V : out Version_Id) is
    begin
+      pragma Assert (W /= null);
       V := W.Commit;
    end Commit;
 
@@ -271,7 +271,7 @@ package body System.Garlic.Utils is
    -- Leave --
    -----------
 
-   procedure Leave (M : in Adv_Mutex_Access) is
+   procedure Leave (M : in Adv_Mutex_Type) is
    begin
       pragma Assert (M /= null
                      and then M.Current = Current_Task
@@ -279,7 +279,7 @@ package body System.Garlic.Utils is
       M.Level := M.Level - 1;
       if M.Level = 0 then
          M.Current := Null_Task_Id;
-         M.Mutex.Leave;
+         Leave (M.Mutex);
       end if;
    end Leave;
 
@@ -287,18 +287,18 @@ package body System.Garlic.Utils is
    -- Leave --
    -----------
 
-   procedure Leave (M : in Mutex_Access) is
+   procedure Leave (M : in Mutex_Type) is
    begin
       pragma Assert (M /= null);
       Abort_Undefer.all;
       M.Leave;
    end Leave;
 
-   ----------------
-   -- Mutex_Type --
-   ----------------
+   --------------
+   -- Mutex_PO --
+   --------------
 
-   protected body Mutex_Type is
+   protected body Mutex_PO is
 
       -----------
       -- Enter --
@@ -318,7 +318,7 @@ package body System.Garlic.Utils is
          Locked := False;
       end Leave;
 
-   end Mutex_Type;
+   end Mutex_PO;
 
    ----------------------
    -- String_To_Access --
@@ -333,8 +333,9 @@ package body System.Garlic.Utils is
    -- Signal --
    ------------
 
-   procedure Signal (B : in Barrier_Access; N : in Positive := 1) is
+   procedure Signal (B : in Barrier_Type; N : in Positive := 1) is
    begin
+      pragma Assert (B /= null);
       B.Signal (N);
    end Signal;
 
@@ -342,8 +343,9 @@ package body System.Garlic.Utils is
    -- Signal_All --
    ----------------
 
-   procedure Signal_All (B : in Barrier_Access; P : in Boolean := True) is
+   procedure Signal_All (B : in Barrier_Type; P : in Boolean := True) is
    begin
+      pragma Assert (B /= null);
       B.Signal_All (P);
    end Signal_All;
 
@@ -367,8 +369,9 @@ package body System.Garlic.Utils is
    -- Update --
    ------------
 
-   procedure Update (W : in Watcher_Access) is
+   procedure Update (W : in Watcher_Type) is
    begin
+      pragma Assert (W /= null);
       W.Update;
    end Update;
 
@@ -376,16 +379,17 @@ package body System.Garlic.Utils is
    -- Wait --
    ----------
 
-   procedure Wait (B : in Barrier_Access) is
+   procedure Wait (B : in Barrier_Type) is
    begin
+      pragma Assert (B /= null);
       B.Wait;
    end Wait;
 
-   ------------------
-   -- Watcher_Type --
-   ------------------
+   ----------------
+   -- Watcher_PO --
+   ----------------
 
-   protected body Watcher_Type is
+   protected body Watcher_PO is
 
       -----------
       -- Await --
@@ -431,6 +435,6 @@ package body System.Garlic.Utils is
          end if;
       end Update;
 
-   end Watcher_Type;
+   end Watcher_PO;
 
 end System.Garlic.Utils;

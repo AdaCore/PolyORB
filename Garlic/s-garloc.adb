@@ -33,13 +33,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Task_Identification;  use Ada.Task_Identification;
 with System.Garlic.Soft_Links;
+with System.Garlic.Utils; use System.Garlic.Utils;
 with System.Garlic.Debug; use System.Garlic.Debug;
 
 package body System.Garlic.Locking is
 
-   procedure Enter_Critical_Section;
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARLOC", "(s-garloc): ");
    procedure D
@@ -48,26 +47,12 @@ package body System.Garlic.Locking is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   Critical_Section : Adv_Mutex_Type;
+
+   procedure Enter_Critical_Section;
+
    procedure Leave_Critical_Section;
    --  Procedures that will be registered through the soft-links mechanism
-
-   protected Lock is
-      entry Enter (Id : in Task_Id);
-      --  Enter the critical section
-
-      procedure Leave (Id : in Task_Id);
-      --  Leave the critical section
-
-   private
-      entry Enter_Wait (Id : in Task_Id);
-      --  Enter the critical section whenever it is not locked at all
-
-      Lock_Level : Natural := 0;
-      --  Number of levels of locks, 0 means unlocked
-
-      Lock_Owner : Task_Id;
-      --  Task locking the critical section
-   end Lock;
 
    ----------------------------
    -- Enter_Critical_Section --
@@ -75,7 +60,7 @@ package body System.Garlic.Locking is
 
    procedure Enter_Critical_Section is
    begin
-      Lock.Enter (Current_Task);
+      Enter (Critical_Section);
    end Enter_Critical_Section;
 
    ----------------------------
@@ -84,73 +69,11 @@ package body System.Garlic.Locking is
 
    procedure Leave_Critical_Section is
    begin
-      Lock.Leave (Current_Task);
+      Leave (Critical_Section);
    end Leave_Critical_Section;
 
-   ----------
-   -- Lock --
-   ----------
-
-   protected body Lock is
-
-      -----------
-      -- Enter --
-      -----------
-
-      entry Enter (Id : in Task_Id) when True is
-      begin
-         pragma Debug
-           (D (D_Debug,
-               "Enter critical section when" &
-               " o = "  & Image (Lock_Owner) &
-               " l ="   & Lock_Level'Img &
-               " m = " & Image (Id)));
-
-         if Lock_Level > 0 and then Id = Lock_Owner then
-
-            --  The task already has one or more locks on this object. In this
-            --  case, we just need to increase the lock level.
-
-            Lock_Level := Lock_Level + 1;
-         else
-            requeue Enter_Wait with abort;
-         end if;
-      end Enter;
-
-      ----------------
-      -- Enter_Wait --
-      ----------------
-
-      entry Enter_Wait (Id : in Task_Id) when Lock_Level = 0 is
-      begin
-         Lock_Level := 1;
-         Lock_Owner := Id;
-      end Enter_Wait;
-
-      -----------
-      -- Leave --
-      -----------
-
-      procedure Leave (Id : in Task_Id) is
-      begin
-         pragma Assert (Id = Lock_Owner);
-         if Lock_Level > 0 then
-            Lock_Level := Lock_Level - 1;
-         else
-            raise Program_Error;
-         end if;
-         pragma Debug
-           (D (D_Debug,
-               "Leave critical section when" &
-               " o = "  & Image (Lock_Owner) &
-               " l ="   & Lock_Level'Img &
-               " m = " & Image (Id)));
-
-      end Leave;
-
-   end Lock;
-
 begin
+   Create (Critical_Section);
    Soft_Links.Register_Enter_Critical_Section (Enter_Critical_Section'Access);
    Soft_Links.Register_Leave_Critical_Section (Leave_Critical_Section'Access);
 end System.Garlic.Locking;

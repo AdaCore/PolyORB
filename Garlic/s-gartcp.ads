@@ -51,9 +51,10 @@ package System.Garlic.TCP is
    function Get_Info (Protocol  : access TCP_Protocol) return String;
 
    procedure Initialize
-     (Protocol : access TCP_Protocol;
-      Default  : in Utils.String_Access := null;
-      Bootmode : in Boolean := False);
+     (Protocol  : access TCP_Protocol;
+      Self_Data : in Utils.String_Access := null;
+      Boot_Data : in Utils.String_Access := null;
+      Boot_Mode : in Boolean := False);
 
    procedure Send
      (Protocol  : access TCP_Protocol;

@@ -33,11 +33,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line;         use Ada.Command_Line;
-with Ada.Exceptions;           use Ada.Exceptions;
-with System.Garlic.Debug;      use System.Garlic.Debug;
-with System.Garlic.Types;      use System.Garlic.Types;
-with System.Garlic.Utils;      use System.Garlic.Utils;
+with Ada.Command_Line;                use Ada.Command_Line;
+with Ada.Exceptions;                  use Ada.Exceptions;
+with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
+with System.Garlic.Types;             use System.Garlic.Types;
+with System.Garlic.Utils;             use System.Garlic.Utils;
 with GNAT.OS_Lib;
 with Unchecked_Deallocation;
 
@@ -54,70 +55,85 @@ package body System.Garlic.Options is
      renames Print_Debug_Info;
    --  Debugging stuff
 
+   procedure Next_Argument (Index : in out Natural);
+
    function Value (S : String) return Termination_Type;
 
    procedure Free is
      new Unchecked_Deallocation (String, GNAT.OS_Lib.String_Access);
 
-   ----------------
-   -- Initialize --
-   ----------------
+   --------------------------------
+   -- Initialize_Default_Options --
+   --------------------------------
 
-   procedure Initialize is
+   procedure Initialize_Default_Options is
+   begin
+      Execution_Mode := Normal_Mode;
+      Boot_Mirror    := False;
+      Set_Connection_Hits (128);
+      Set_Detach (False);
+      Set_Is_Slave (False);
+      Set_Nolaunch (False);
+      Set_Reconnection (Rejected_On_Restart);
+      Set_Self_Location ("");
+      Set_Termination (Global_Termination);
+   end Initialize_Default_Options;
+
+   -----------------------------
+   -- Initialize_User_Options --
+   -----------------------------
+
+   procedure Initialize_User_Options is
       Index : Natural := 1;
       EV    : GNAT.OS_Lib.String_Access;
    begin
-      Execution_Mode := Normal_Mode;
-
       EV := GNAT.OS_Lib.Getenv ("BOOT_SERVER");
       if EV.all /= "" then
          Set_Boot_Server (EV.all);
-      else
-         Set_Boot_Server ("tcp");
       end if;
       Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("CONNECTION_HITS");
       if EV.all /= "" then
          Set_Connection_Hits (Natural'Value (EV.all));
-      else
-         Set_Connection_Hits (128);
       end if;
       Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("DETACH");
       if EV.all /= "" then
          Set_Detach (True);
-      else
-         Set_Detach (False);
       end if;
       Free (EV);
 
-      EV := GNAT.OS_Lib.Getenv ("SLAVE");
+      EV := GNAT.OS_Lib.Getenv ("LOCATION");
       if EV.all /= "" then
-         Set_Is_Slave (True);
-      else
-         Set_Is_Slave (False);
+         Set_Self_Location (EV.all);
       end if;
       Free (EV);
 
-      EV := GNAT.OS_Lib.Getenv ("TERMINATE");
+      EV := GNAT.OS_Lib.Getenv ("BOOT_MIRROR");
       if EV.all /= "" then
-         Set_Termination (Value (EV.all));
-      else
-         Set_Termination (Global_Termination);
+         Set_Boot_Mirror (EV.all);
       end if;
       Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("NOLAUNCH");
       if EV.all /= "" then
          Set_Nolaunch (True);
-      else
-         Set_Nolaunch (False);
       end if;
       Free (EV);
 
-      Set_Reconnection (Rejected_On_Restart);
+      EV := GNAT.OS_Lib.Getenv ("SLAVE");
+      if EV.all /= "" then
+         Set_Is_Slave (True);
+      end if;
+      Free (EV);
+
+      EV := GNAT.OS_Lib.Getenv ("TERMINATE");
+      if EV.all /= "" then
+         Set_Termination (Value (EV.all));
+      end if;
+      Free (EV);
 
       while Index <= Argument_Count loop
 
@@ -126,25 +142,31 @@ package body System.Garlic.Options is
             pragma Debug
               (D (D_Debug, "--boot_server available on command line"));
 
-            --  Need a second argument
-            if Index = Argument_Count then
-               raise Program_Error;
-            end if;
-
-            Index := Index + 1;
+            Next_Argument (Index);
             Set_Boot_Server (Argument (Index));
+
+         elsif Argument (Index) = "--boot_mirror" then
+
+            pragma Debug
+              (D (D_Debug, "--boot_mirror available on command line"));
+
+            Next_Argument (Index);
+            Set_Boot_Mirror (Argument (Index));
+
+         elsif Argument (Index) = "--location" then
+
+            pragma Debug
+              (D (D_Debug, "--location available on command line"));
+
+            Next_Argument (Index);
+            Set_Self_Location (Argument (Index));
 
          elsif Argument (Index) = "--connection_hits" then
 
             pragma Debug
               (D (D_Debug, "--connection_hits available on command line"));
 
-            --  Need a second argument
-            if Index = Argument_Count then
-               raise Program_Error;
-            end if;
-
-            Index := Index + 1;
+            Next_Argument (Index);
             Set_Connection_Hits (Natural'Value (Argument (Index)));
 
          elsif Argument (Index) = "--detach" then
@@ -162,11 +184,7 @@ package body System.Garlic.Options is
             pragma Debug (D (D_Debug,
                              "--terminate available on command line"));
 
-            if Index = Argument_Count then
-               raise Program_Error;
-            end if;
-
-            Index := Index + 1;
+            Next_Argument (Index);
             Set_Termination (Value (Argument (Index)));
 
          elsif Argument (Index) = "--nolaunch" then
@@ -189,7 +207,51 @@ package body System.Garlic.Options is
          Index := Index + 1;
       end loop;
 
-   end Initialize;
+      if Boot_Server = null then
+         if (Boot_Partition and then Nolaunch)
+           or else Default_Boot_Server = ""
+         then
+            Set_Boot_Server ("tcp");
+         else
+            Set_Boot_Server (Default_Boot_Server);
+         end if;
+      end if;
+
+   end Initialize_User_Options;
+
+   -------------------
+   -- Next_Argument --
+   -------------------
+
+   procedure Next_Argument (Index : in out Natural) is
+   begin
+      if Index = Argument_Count then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Missing argument on command line");
+      end if;
+      Index := Index + 1;
+   end Next_Argument;
+
+   ---------------------
+   -- Set_Boot_Mirror --
+   ---------------------
+
+   procedure Set_Boot_Mirror (Default : in String) is
+   begin
+      if Boot_Mirror then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Partition is already a boot mirror");
+      end if;
+      if Self_Location.all /= "" then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Partition has already set its location");
+      end if;
+      Self_Location := new String'(Default);
+      Boot_Mirror   := True;
+   end Set_Boot_Mirror;
 
    ---------------------
    -- Set_Boot_Server --
@@ -228,8 +290,9 @@ package body System.Garlic.Options is
    procedure Set_Execution_Mode (Default : in Execution_Mode_Type) is
    begin
       if Execution_Mode /= Normal_Mode then
-         pragma Debug (D (D_Debug, "Execution mode has already been set"));
-         raise Program_Error;
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Partition has already set its execution mode");
       end if;
       Execution_Mode := Default;
    end Set_Execution_Mode;
@@ -273,6 +336,23 @@ package body System.Garlic.Options is
    begin
       Reconnection := Default;
    end Set_Reconnection;
+
+   -----------------------
+   -- Set_Self_Location --
+   -----------------------
+
+   procedure Set_Self_Location (Default : in String) is
+   begin
+      if Boot_Mirror then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Partition has already set its location");
+      end if;
+      if Self_Location /= null then
+         Free (Self_Location);
+      end if;
+      Self_Location := new String'(Default);
+   end Set_Self_Location;
 
    --------------------------
    -- Set_Task_Pool_Bounds --
@@ -321,8 +401,9 @@ package body System.Garlic.Options is
       when others =>
          pragma Debug (D (D_Debug,
                           "Unknown termination policy """ & S & """"));
-         Raise_Exception (Program_Error'Identity,
-                          "Unknown termination policy """ & S & """");
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Unknown termination policy """ & S & """");
    end Value;
 
 end System.Garlic.Options;

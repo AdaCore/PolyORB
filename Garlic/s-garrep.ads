@@ -50,9 +50,10 @@ package System.Garlic.Replay is
    function Get_Name (P : access Replay_Protocol) return String;
 
    procedure Initialize
-     (Protocol : access Replay_Protocol;
-      Default  : in Utils.String_Access := null;
-      Bootmode : in Boolean := False);
+     (Protocol  : access Replay_Protocol;
+      Self_Data : in Utils.String_Access := null;
+      Boot_Data : in Utils.String_Access := null;
+      Boot_Mode : in Boolean := False);
 
    procedure Send
       (Protocol  : access Replay_Protocol;

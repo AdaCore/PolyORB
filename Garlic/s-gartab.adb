@@ -85,11 +85,11 @@ package body System.Garlic.Table is
 
       function Valid (N : Index_Type) return Boolean;
 
-      Mutex   : Mutex_Access   := Create;
-      Watcher : Watcher_Access := Create;
+      Mutex   : Mutex_Type;
+      Watcher : Watcher_Type;
 
       --  This lock is used to block tasks until the table is
-      --  modified. This uses special behaviour of Utils.Mutex_Type.
+      --  modified. This uses special behaviour of Utils.Mutex_Record.
       --  Basically, Local_Mutex.Leave (Postponed) lets the run-time know
       --  that the mutex has been postponed and that it should be resumed
       --  when a Local_Mutex.Leave (Modified) occurs.
@@ -298,6 +298,8 @@ package body System.Garlic.Table is
       end Valid;
 
    begin
+      Create (Mutex);
+      Create (Watcher);
       Table := new Component_Table_Type'(Min .. Max => Null_Component);
       Usage := new Usage_Table_Type    '(Min .. Max => Null_Usage);
    end Complex;
@@ -324,7 +326,7 @@ package body System.Garlic.Table is
       type Usage_Table_Access is access Usage_Table_Type;
 
       Usage : Usage_Table_Access;
-      Mutex : Mutex_Access := Create;
+      Mutex : Mutex_Type;
 
       function Allocate return Index_Type;
       --  Allocate a new component.

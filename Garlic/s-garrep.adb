@@ -147,9 +147,10 @@ package body System.Garlic.Replay is
    ----------------
 
    procedure Initialize
-     (Protocol : access Replay_Protocol;
-      Default  : in Utils.String_Access := null;
-      Bootmode : in Boolean := False)
+     (Protocol  : access Replay_Protocol;
+      Self_Data : in Utils.String_Access := null;
+      Boot_Data : in Utils.String_Access := null;
+      Boot_Mode : in Boolean := False)
    is
    begin
       --  Replay protocol is always loaded because its activation
@@ -162,8 +163,8 @@ package body System.Garlic.Replay is
 
          --  Boot data provides a way to give an alternate trace file name
 
-         if Default /= null and then Default'Length /= 0 then
-            Set_Trace_File_Name (Default.all);
+         if Boot_Data /= null and then Boot_Data'Length /= 0 then
+            Set_Trace_File_Name (Boot_Data.all);
          end if;
 
          Open (Trace_File, In_File, Trace_File_Name.all);

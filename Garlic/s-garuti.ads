@@ -58,101 +58,101 @@ package System.Garlic.Utils is
    --  In place transformation of a string with all the upper-case letters
    --  changed into corresponding lower-case ones.
 
-   type Barrier_Access is private;
+   type Barrier_Type is limited private;
 
-   function Create return Barrier_Access;
+   procedure Create (B : out Barrier_Type);
    pragma Inline (Create);
    --  Allocate a barrier.
 
-   procedure Destroy (B : in out Barrier_Access);
+   procedure Destroy (B : in out Barrier_Type);
    pragma Inline (Destroy);
    --  Destroy a barrier.
 
-   procedure Signal (B : in Barrier_Access; N : in Positive := 1);
+   procedure Signal (B : in Barrier_Type; N : in Positive := 1);
    pragma Inline (Signal);
    --  Release N processes waiting on the barrier.
 
-   procedure Signal_All (B : in Barrier_Access; P : in Boolean := True);
+   procedure Signal_All (B : in Barrier_Type; P : in Boolean := True);
    pragma Inline (Signal_All);
    --  Release all processes waiting on the barrier. If P is true, this
    --  barrier is no longer blocking.
 
-   procedure Wait (B : in Barrier_Access);
+   procedure Wait (B : in Barrier_Type);
    pragma Inline (Wait);
    --  Wait on barrier.
 
-   type Mutex_Access is private;
+   type Mutex_Type is limited private;
 
-   function Create return Mutex_Access;
+   procedure Create (M : out Mutex_Type);
    --  Allocate a mutex
 
-   procedure Enter (M : in Mutex_Access);
+   procedure Enter (M : in Mutex_Type);
    pragma Inline (Enter);
    --  Enter one level of critical section
 
-   procedure Destroy (M : in out Mutex_Access);
-   --  Free the memory used by a Mutex_Access
+   procedure Destroy (M : in out Mutex_Type);
+   --  Free the memory used by a Mutex_Type
 
-   procedure Leave (M : in Mutex_Access);
+   procedure Leave (M : in Mutex_Type);
    pragma Inline (Leave);
    --  Leave one level of critical section
 
    type Version_Id is mod 2 ** 8;
 
-   type Watcher_Access is private;
+   type Watcher_Type is limited private;
 
-   procedure Commit (W : in Watcher_Access; V : out Version_Id);
+   procedure Commit (W : in Watcher_Type; V : out Version_Id);
    pragma Inline (Commit);
    --  Fetch W stamp
 
-   function Create return Watcher_Access;
+   procedure Create (W : out Watcher_Type);
    pragma Inline (Create);
    --  Allocate a watcher
 
-   procedure Destroy (W : in out Watcher_Access);
+   procedure Destroy (W : in out Watcher_Type);
    pragma Inline (Destroy);
    --  Destroy a watcher
 
-   procedure Differ (W : in Watcher_Access; V : in Version_Id);
+   procedure Differ (W : in Watcher_Type; V : in Version_Id);
    pragma Inline (Differ);
    --  Await until T stamp differs from S
 
-   procedure Update (W : in Watcher_Access);
+   procedure Update (W : in Watcher_Type);
    pragma Inline (Update);
    --  Increment stamp in W
 
-   type Adv_Mutex_Access is private;
+   type Adv_Mutex_Type is private;
 
-   function Create return Adv_Mutex_Access;
+   procedure Create (M : out Adv_Mutex_Type);
    --  Allocate an advances mutex
 
-   procedure Enter (M : in Adv_Mutex_Access);
+   procedure Enter (M : in Adv_Mutex_Type);
    pragma Inline (Enter);
    --  Enter one level of critical section
 
-   procedure Destroy (M : in out Adv_Mutex_Access);
+   procedure Destroy (M : in out Adv_Mutex_Type);
    --  Free the memory used by an Adv_Mutex
 
-   procedure Leave (M : in Adv_Mutex_Access);
+   procedure Leave (M : in Adv_Mutex_Type);
    pragma Inline (Leave);
    --  Leave one level of critical section
 
 private
 
-   type Barrier_Type;
+   type Barrier_PO;
 
-   type Barrier_Access is access Barrier_Type;
+   type Barrier_Type is access Barrier_PO;
 
-   type Watcher_Type;
+   type Watcher_PO;
 
-   type Watcher_Access is access Watcher_Type;
+   type Watcher_Type is access Watcher_PO;
 
-   type Mutex_Type;
+   type Mutex_PO;
 
-   type Mutex_Access is access Mutex_Type;
+   type Mutex_Type is access Mutex_PO;
 
-   type Adv_Mutex_Type;
+   type Adv_Mutex_PO;
 
-   type Adv_Mutex_Access is access Adv_Mutex_Type;
+   type Adv_Mutex_Type is access Adv_Mutex_PO;
 
 end System.Garlic.Utils;

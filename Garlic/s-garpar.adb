@@ -56,10 +56,10 @@ package body System.Garlic.Partitions is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   Allocator_Mutex : Mutex_Access := Create;
+   Allocator_Mutex : Mutex_Type;
    --  Critical section of PID allocator.
 
-   Allocator_Ready : Barrier_Access := Create;
+   Allocator_Ready : Barrier_Type;
    --  Barrier to block until the confirmation comes back.
 
    Allocator_Value : Partition_ID;
@@ -139,7 +139,7 @@ package body System.Garlic.Partitions is
       D (D_Dump, "  Location:     " & To_String (Info.Location));
       D (D_Dump, "  Termination:  " & Info.Termination'Img);
       D (D_Dump, "  Reconnection: " & Info.Reconnection'Img);
-      D (D_Dump, "  Boot_Ability: " & Info.Boot_Ability'Img);
+      D (D_Dump, "  Boot_Mirror: " & Info.Boot_Mirror'Img);
       D (D_Dump, "  Boot_Server: "  & Info.Boot_Server'Img);
       D (D_Dump, "  Status:       " & Status_Type'Image (Info.Status));
    end Dump_Partition_Info;
@@ -277,4 +277,7 @@ package body System.Garlic.Partitions is
       end if;
    end Validate_PID;
 
+begin
+   Create (Allocator_Mutex);
+   Create (Allocator_Ready);
 end System.Garlic.Partitions;

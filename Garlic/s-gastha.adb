@@ -141,7 +141,7 @@ package body System.Garlic.Storage_Handling is
       Pool.Used      := (others => False);
       for I in 1 .. Max_Objects loop
          Pool.Addresses (I) := malloc (IC.int (Static_Object_Size));
-         Pool.Mutex := Utils.Create;
+         Utils.Create (Pool.Mutex);
       end loop;
    end Initialize;
 

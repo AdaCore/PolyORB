@@ -1,3 +1,50 @@
+1998-10-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am: Add BOOT_SERVER macros.
+
+	* s-gaplsp.ads.in: Add Default_Boot_Server variable.
+
+	* s-garuti.adb, s-garuti.ads: GLADE basic PO are now limited
+ 	private types to have a finer control on them.
+
+	* s-gargro.adb, s-garnam.adb, s-gartab.adb, s-gastha.adb,
+ 	s-rpc.adb, s-rpstio.adb: Updated from new Garlic.Utils spec.
+
+	* s-garpar.ads, s-garpar.adb: Change Boot_Ability into
+	Boot_Mirror.
+
+	* s-garhea.adb: Updated from new Garlic.Utils and
+ 	Garlic.Partitions specs.
+
+	* s-garloc.adb: Use Garlic.Utils PO instead of its own PO. One PO
+ 	removed.
+
+	* s-garopt.adb, s-garopt.ads: Use Default_Boot_Server to
+ 	initialize defaults. Split Initialize in two procedures. The first
+ 	one for default options, the second one for command line
+ 	options. In between, initialize with configuration options
+ 	(Garlic.Elaboration). Add Set_Boot_Mirror and Set_Self_Location
+ 	procedures (env variables BOOT_MIRROR and LOCATION, command line
+	argument --boot_mirror and --location). When LOCATION is set to a
+	given location (tcp://<host>:<port>, for instance), the partition
+	has to accept messages from other partitions on this location. I
+	cannot compute its location dynamically. When BOOT_MIRROR is set to 
+	a given location, then its self location is set to this location and
+	the partition becomes an alternate boot server. It will own a copy 
+	of the partition info table.
+
+	* s-garpro.ads: Add a new parameter in Initialize to force a
+ 	protocol to receive messages from a given location.
+
+	* s-garrep.adb, s-garrep.ads, s-gartcp.adb, s-gartcp.ads: Updated
+ 	from new Garlic.Protocols and Garlic.Utils spec. Use self location 
+	when required.
+
+	* s-garsta.adb: Split initialization in three steps (See above).
+	Force a given location when BOOT_MIRROR or LOCATION is provided.
+
+	
+	
 1998-10-20  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* isthrbio.adb: Do not require the package name to be created on

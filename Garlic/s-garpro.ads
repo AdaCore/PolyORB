@@ -57,14 +57,17 @@ package System.Garlic.Protocols is
    --  Return a string containing the name of the protocol
 
    procedure Initialize
-     (Protocol : access Protocol_Type;
-      Default  : in Utils.String_Access := null;
-      Bootmode : in Boolean := False)
+     (Protocol  : access Protocol_Type;
+      Self_Data : in Utils.String_Access := null;
+      Boot_Data : in Utils.String_Access := null;
+      Boot_Mode : in Boolean := False)
      is abstract;
-   --  Initialize protocol. When Default is null, initialize with internal
-   --  default data. When Bootmode is true, initialize this protocol as a
-   --  boot protocol. Note that this procedure can be called again to reset
-   --  the protocol in a normal mode once the partition has booted.
+   --  Initialize protocol. When Boot_Data is non-null, use this location
+   --  to contact boot partition. When Boot_Mode is true, initialize this
+   --  protocol as a boot protocol. Note that this procedure can be called
+   --  again to reset the protocol in a normal mode once the partition has
+   --  booted. When Self_Data is non-null, use this location to receive
+   --  messages. When Data are null, compute an internal location.
 
    function Get_Info (Protocol : access Protocol_Type) return String;
    --  Return a string which holds enough information to be usable by

@@ -77,11 +77,11 @@ package body System.Garlic.Heart is
    --  by more than one task (in fact, they should not be modified after
    --  the elaboration is terminated).
 
-   Elaboration_Barrier : Barrier_Access := Create;
+   Elaboration_Barrier : Barrier_Type;
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
-   Self_PID_Barrier : Barrier_Access := Create;
+   Self_PID_Barrier : Barrier_Type;
    --  Block any task until Self_PID is different from Null_PID
 
    Handlers : array (External_Opcode) of Request_Handler;
@@ -322,7 +322,7 @@ package body System.Garlic.Heart is
                Termination   => Options.Termination,
                Reconnection  => Options.Reconnection,
                Light_RTS     => Can_Have_A_Light_Runtime,
-               Boot_Ability  => False,
+               Boot_Mirror   => False,
                Boot_Server   => Null_PID,
                Status        => Done);
 
@@ -469,7 +469,7 @@ package body System.Garlic.Heart is
             --  Add this partition in the list of potential boot servers.
 
             Info := Partitions.Get_Component (Partition);
-            Info.Boot_Ability := True;
+            Info.Boot_Mirror := True;
             Partitions.Set_Component (Partition, Info);
 
             --  Broadcast to any partition in the group. This is step 8.
@@ -584,14 +584,14 @@ package body System.Garlic.Heart is
                Booted := True;
 
                Info := Partitions.Get_Component (Self_PID);
-               Info.Boot_Ability := not Info.Light_RTS;
+               Info.Boot_Mirror  := Options.Boot_Mirror;
                Info.Boot_Server  := Partition;
                Partitions.Set_Component (Self_PID, Info);
 
                --  If this partition wants to join the boot server group,
                --  send an add partition info request. This is step 7.
 
-               if Info.Boot_Ability then
+               if Info.Boot_Mirror then
                   Request_Type'Output
                     (Reply, Request_Type'(Kind => Add_Partition_Info));
                end if;
@@ -627,6 +627,8 @@ package body System.Garlic.Heart is
 
    procedure Initialize is
    begin
+      Create (Elaboration_Barrier);
+      Create (Self_PID_Barrier);
       Self_PID := Null_PID;
       Boot_PID := Last_PID;
    end Initialize;
@@ -962,7 +964,7 @@ package body System.Garlic.Heart is
          Reconnection => Rejected_On_Restart,
          Termination  => Global_Termination,
          Light_RTS    => False,
-         Boot_Ability => True,
+         Boot_Mirror  => True,
          Boot_Server  => Null_PID,
          Status       => Done);
    begin

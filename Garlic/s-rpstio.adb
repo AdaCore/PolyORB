@@ -58,9 +58,9 @@ package body System.RPC.Stream_IO is
          Mode      : Stream_Mode;
          Incoming  : aliased Streams.Params_Stream_Type (0);
          Outgoing  : aliased Streams.Params_Stream_Type (0);
-         Consumer  : Barrier_Access;
-         Available : Mutex_Access;
-         Critical  : Mutex_Access;
+         Consumer  : Barrier_Type;
+         Available : Mutex_Type;
+         Critical  : Mutex_Type;
       end record;
    type Partition_Stream_Access is access Partition_Stream_Record;
 
@@ -114,9 +114,9 @@ package body System.RPC.Stream_IO is
          Enter (Any.Critical);
          if Streams (Partition) = null then
             Streams (Partition) := new Partition_Stream_Record;
-            Streams (Partition).Consumer  := Create;
-            Streams (Partition).Available := Create;
-            Streams (Partition).Critical  := Create;
+            Create (Streams (Partition).Consumer);
+            Create (Streams (Partition).Available);
+            Create (Streams (Partition).Critical);
             if First_Partition = Partition_ID'Last
               or else First_Partition > Partition
             then
@@ -141,8 +141,8 @@ package body System.RPC.Stream_IO is
    procedure Initialize is
    begin
       Streams (Any_Partition) := new Partition_Stream_Record;
-      Streams (Any_Partition).Available := Create;
-      Streams (Any_Partition).Critical  := Create;
+      Create (Streams (Any_Partition).Available);
+      Create (Streams (Any_Partition).Critical);
       Register_Handler (Msgcode, Handle_Request'Access);
    end Initialize;
 

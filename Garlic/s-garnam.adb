@@ -73,7 +73,7 @@ package body System.Garlic.Naming is
       Message : in String);
    --  Raise the exception Naming_Error with an appropriate error message
 
-   Get_Host_Mutex : Mutex_Access := Create;
+   Get_Host_Mutex : Mutex_Type;
    --  This protected object will be used to protect calls to gethostbyname,
    --  since this function is not reentrant and returns statically allocated
    --  data.
@@ -414,4 +414,6 @@ package body System.Garlic.Naming is
               H4 => Address_Component (Converted.S_B4));
    end Value;
 
+begin
+   Create (Get_Host_Mutex);
 end System.Garlic.Naming;
