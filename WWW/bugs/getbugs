@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/local/lib/juniper-gnats/cgi-bin/query-pr-summary.cgi --quiet $*

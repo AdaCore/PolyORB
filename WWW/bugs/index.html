@@ -1,0 +1,62 @@
+<html>
+<head>
+<title>AdaBroker Bug Tracking System</title>
+<link rev="made" href="mailto:quinot@adabroker.eu.org">
+</head>
+<body bgcolor="#ffffff" text="#000033" link="#2244cc" vlink="#112288">
+
+<font size=+3>
+Bug Tracking System
+</font>
+<br clear=all>
+<hr>
+
+<h3>Submiting/editing problem reports</h3>
+
+<dl>
+
+<dt> <dd> <img alt="o" src="/icons/ball.red.gif" width=14 height=14 >
+<a href="/bugs/submit-pr.cgi">Submit a problem report</a>
+
+</dl>
+
+<h3>Problem report summaries</h3>
+
+<dl>
+<dt> <dd> <img alt="o" src="/icons/ball.red.gif" width=14 height=14 >
+<a href="/bugs/query-pr-summary.cgi?query">Construct a custom search</a>
+
+<dt> <dd> <img alt="o" src="/icons/ball.red.gif" width=14 height=14 >
+<a href="/bugs/query-pr-summary.cgi">Summary of active problem reports -- by severity</a>
+
+<dt> <dd> <img alt="o" src="/icons/ball.red.gif" width=14 height=14 >
+<a href="/bugs/query-pr-summary.cgi?priority=summary">Summary of active problem reports -- by priority</a>
+
+<dt> <dd> <img alt="o" src="/icons/ball.red.gif" width=14 height=14 >
+<a href="/bugs/query-pr-summary.cgi?category=summary">Summary of active problem reports -- by category</a>
+
+<dt> <dd> <img alt="o" src="/icons/ball.red.gif" width=14 height=14 >
+<a href="/bugs/query-pr-summary.cgi?responsible=summary">Summary of active problem reports -- by responsible party</a>
+
+<dt> <dd> <img alt="o" src="/icons/ball.red.gif" width=14 height=14 >
+<a href="/bugs/query-pr-summary.cgi?state=summary">Summary of active problem reports -- by state</a>
+
+</dl>
+
+<h3>Query a specific problem report</h3>
+
+<p>Please enter the PR number you wish to query:</p>
+<FORM METHOD=GET ACTION="/bugs/query-pr.cgi">
+<INPUT TYPE=TEXT NAME=pr></FORM>
+
+<hr>
+
+<p>
+<address>
+AdaBroker /
+<a href="mailto:quinot@adabroker.eu.org">quinot@adabroker.eu.org</a>
+</address>
+<!--#config timefmt="Updated %B %d, %Y at %H:%M (%Z)" -->
+<!--#echo var="LAST_MODIFIED" -->
+</body>
+</html>
