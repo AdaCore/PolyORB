@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS = -I support
-SUBDIRS = idlac adasockets src
+SUBDIRS = idlac adasockets src examples
 
 autoconf::
 	aclocal -I support && autoconf && automake

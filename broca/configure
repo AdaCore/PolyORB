@@ -2099,7 +2099,10 @@ ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
 trap 'rm -fr `echo "Makefile idlac/Makefile idlac/platform.ads src/Makefile
-           support/adacompiler idlac/testsuite/Makefile src/adabroker-config" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+           support/adacompiler idlac/testsuite/Makefile src/adabroker-config
+           examples/Makefile examples/all_functions/Makefile
+           examples/all_types/Makefile examples/echo/Makefile
+           examples/module/Makefile examples/random/Makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -2214,7 +2217,10 @@ EOF
 cat >> $CONFIG_STATUS <<EOF
 
 CONFIG_FILES=\${CONFIG_FILES-"Makefile idlac/Makefile idlac/platform.ads src/Makefile
-           support/adacompiler idlac/testsuite/Makefile src/adabroker-config"}
+           support/adacompiler idlac/testsuite/Makefile src/adabroker-config
+           examples/Makefile examples/all_functions/Makefile
+           examples/all_types/Makefile examples/echo/Makefile
+           examples/module/Makefile examples/random/Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then

@@ -36,4 +36,7 @@ AM_ADA_PREREQ(19990629, 3.12p)
 # Output
 #
 AC_OUTPUT([Makefile idlac/Makefile idlac/platform.ads src/Makefile
-           support/adacompiler idlac/testsuite/Makefile src/adabroker-config])
+           support/adacompiler idlac/testsuite/Makefile src/adabroker-config
+           examples/Makefile examples/all_functions/Makefile
+           examples/all_types/Makefile examples/echo/Makefile
+           examples/module/Makefile examples/random/Makefile])
