@@ -1,5 +1,7 @@
 Thu Oct 17 08:53:59 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
+	* s-garloo.adb: Skip Header.
+
 	* s-garhea.adb, s-rpc.adb: Let send a message to myself.
 
 Wed Oct 16 21:32:52 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
