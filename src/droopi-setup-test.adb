@@ -69,7 +69,7 @@ is
      (DAP  : in out Decorated_Access_Point;
       Port : Port_Type) is
    begin
-      Put ("Creating socket...");
+      Put ("Socket...");
 
       Create_Socket (DAP.Socket);
 
@@ -83,25 +83,13 @@ is
          Socket_Level,
          (Reuse_Address, True));
 
-      loop
-         begin
-            Put (" binding to port" & DAP.Address.Port'Img & "...");
-            Bind_Socket (DAP.Socket, DAP.Address);
-            Put_Line ("done.");
-            exit;
-         exception
-            when Droopi.Sockets.Socket_Error =>
-               --  Address already in use.
-               DAP.Address.Port := DAP.Address.Port + 1;
-            when others =>
-               raise;
-         end;
-      end loop;
-
+      Put (" Bind" & DAP.Address.Port'Img & "...");
+      Bind_Socket (DAP.Socket, DAP.Address);
       Listen_Socket (DAP.Socket);
 
       Create (Socket_Access_Point (DAP.SAP.all), DAP.Socket);
       Create_Factory (DAP.PF.all, DAP.SAP);
+      Put_Line (" done.");
    end Initialize_Socket;
 
    --  The 'test' access point.
