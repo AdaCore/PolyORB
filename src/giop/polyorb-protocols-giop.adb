@@ -37,18 +37,13 @@ with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Components;
-with PolyORB.GIOP_P.Exceptions;
-
-with PolyORB.Log;
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Configuration;
-with PolyORB.Utils.Strings;
+with PolyORB.GIOP_P.Exceptions;
+with PolyORB.Log;
 with PolyORB.ORB;
+with PolyORB.References;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
-with PolyORB.References;
 
 package body PolyORB.Protocols.GIOP is
 
@@ -913,29 +908,5 @@ package body PolyORB.Protocols.GIOP is
         & "."
         & Trimmed_Image (Integer (Implem.Version.Minor));
    end Get_Conf_Chain;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      null;
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"protocols.giop",
-       Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => Empty,
-       Init      => Initialize'Access));
 
 end PolyORB.Protocols.GIOP;

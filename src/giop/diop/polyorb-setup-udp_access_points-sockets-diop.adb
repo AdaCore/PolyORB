@@ -95,10 +95,10 @@ package body PolyORB.Setup.UDP_Access_Points.Sockets.DIOP is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"udp_access_points.diop",
+      (Name      => +"udp_access_points.diop",
        Conflicts => String_Lists.Empty,
-       Depends => +"protocols.giop",
-       Provides => String_Lists.Empty,
-       Init => Initialize_Access_Points'Access));
+       Depends   => +"orb" & "sockets",
+       Provides  => String_Lists.Empty,
+       Init      => Initialize_Access_Points'Access));
 
 end PolyORB.Setup.UDP_Access_Points.Sockets.DIOP;

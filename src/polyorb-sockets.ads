@@ -34,4 +34,9 @@
 --  $Id$
 
 with GNAT.Sockets;
+
+with PolyORB.Sockets_Initialization;
+pragma Warnings (Off, PolyORB.Sockets_Initialization);
+--  Not referenced.
+
 package PolyORB.Sockets renames GNAT.Sockets;

@@ -455,7 +455,7 @@ begin
      (Module_Info'
       (Name      => +"binding_data.soap",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"sockets",
        Provides  => +"binding_factories",
        Init      => Initialize'Access));
 

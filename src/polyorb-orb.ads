@@ -346,7 +346,7 @@ private
 
       Polling : Boolean;
       --  True if, and only if, one task is blocked waiting
-      --  for external events on ORB_Sockets.
+      --  for external events on an Asynchronous Event Monitor.
       --  XXX This flag is for debug purpose only, keep it for a while
       --  to test implementation consistency.
 

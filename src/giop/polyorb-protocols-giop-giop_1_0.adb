@@ -693,8 +693,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
    procedure Initialize is
    begin
-      Global_Register_GIOP_Version (GIOP_Version'(Major => 1, Minor => 0),
-                                    New_Implem'Access);
+      Global_Register_GIOP_Version
+        (GIOP_Version'(Major => 1, Minor => 0), New_Implem'Access);
    end Initialize;
 
    use PolyORB.Initialization;
@@ -704,9 +704,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"protocols.giop.giop_1_0",
+      (Name      => +"protocols.giop.giop_1_0",
        Conflicts => Empty,
-       Depends => +"protocols.giop",
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => Empty,
+       Init      => Initialize'Access));
 end PolyORB.Protocols.GIOP.GIOP_1_0;

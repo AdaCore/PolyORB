@@ -524,7 +524,7 @@ begin
      (Module_Info'
       (Name      => +"binding_data.iiop",
        Conflicts => Empty,
-       Depends   => +"protocols.giop.iiop",
+       Depends   => +"protocols.giop.iiop" & "sockets",
        Provides  => +"binding_factories",
        Init      => Initialize'Access));
 

@@ -607,8 +607,8 @@ begin
      (Module_Info'
       (Name      => +"binding_data.uipmc",
        Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => Empty,
+       Depends   => +"sockets",
+       Provides  => +"binding_factories",
        Init      => Initialize'Access));
 
 end PolyORB.Binding_Data.UIPMC;

@@ -109,10 +109,10 @@ package body PolyORB.Setup.UDP_Access_Points.MCast.UIPMC is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"mcast_access_points.corba",
+      (Name      => +"mcast_access_points.corba",
        Conflicts => String_Lists.Empty,
-       Depends => +"orb",
-       Provides => String_Lists.Empty,
-       Init => Initialize_Access_Points'Access));
+       Depends   => +"orb" & "sockets",
+       Provides  => String_Lists.Empty,
+       Init      => Initialize_Access_Points'Access));
 
 end PolyORB.Setup.UDP_Access_Points.MCast.UIPMC;
