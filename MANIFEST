@@ -116,6 +116,8 @@ cos/Makefile.common
 cos/Makefile.in
 cos/event/Makefile.am
 cos/event/Makefile.in
+cos/event/auto_print.adb
+cos/event/auto_print.ads
 cos/event/consumer.cmd
 cos/event/coseventchanneladmin-consumeradmin-impl.adb
 cos/event/coseventchanneladmin-consumeradmin-impl.ads
