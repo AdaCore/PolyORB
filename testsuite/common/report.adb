@@ -3,6 +3,7 @@ with Ada.Text_IO;
 package body Report is
 
    Max : constant Natural := 60;
+   Passed : Boolean := True;
 
    ------------
    -- Output --
@@ -24,6 +25,7 @@ package body Report is
       else
          Ada.Text_IO.Put_Line (Line & ": FAILED");
       end if;
+      Passed := Passed and then Result;
    end Output;
 
    ----------------
@@ -32,7 +34,7 @@ package body Report is
 
    procedure End_Report is
    begin
-      Output ("END TESTS", True);
+      Output ("END TESTS", Passed);
    end End_Report;
 
 end Report;
