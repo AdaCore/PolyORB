@@ -38,7 +38,7 @@ with Interfaces.C;
 package System.Garlic.OS_Lib is
 
    function C_Errno return Interfaces.C.int;
-   --  Return C variable errno.
+   --  Return C variable errno
 
    function Getenv (Name : String) return String;
    --  Return the value of the environment variable Name or an empty

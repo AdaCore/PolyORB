@@ -42,17 +42,19 @@ package System.Garlic.Physical_Location is
    --  This package implements the mapping between Partition_ID and
    --  physical locations.
 
-   type Location is private;
+   type Location_Type is private;
    --  This type may be exchanged between partitions. It represents
    --  the physical location of a partition.
 
-   type Locations is array (Positive range <>) of Location;
-   --  This represents the whole set of locations for a given partition.
+   Null_Location : constant Location_Type;
+
+   type Locations is array (Positive range <>) of Location_Type;
+   --  This represents the whole set of locations for a given partition
 
    No_Such_Location, Malformed_Location : exception;
 
    procedure Register_Protocol (P : in Protocols.Protocol_Access);
-   --  Register a protocol to be able to use it later.
+   --  Register a protocol to be able to use it later
 
    procedure Register_Partition
      (P : in System.RPC.Partition_ID;
@@ -63,7 +65,7 @@ package System.Garlic.Physical_Location is
    procedure Register_Partition
      (P : in System.RPC.Partition_ID;
       L : in Locations);
-   --  Idem, but for the whole set.
+   --  Idem, but for the whole set
 
    procedure Unregister_Partition
      (P : in System.RPC.Partition_ID;
@@ -81,22 +83,22 @@ package System.Garlic.Physical_Location is
 
    function Get_Partition
      (P : System.RPC.Partition_ID)
-     return Location;
-   --  Get a partition location or raise No_Such_Location.
+     return Location_Type;
+   --  Get a partition location or raise No_Such_Location
 
    function Get_Protocol
-     (L : Location)
+     (L : Location_Type)
      return Protocols.Protocol_Access;
-   --  Get the protocol type of a given location.
+   --  Get the protocol type of a given location
 
    function Get_Data
-     (L : Location)
+     (L : Location_Type)
      return String;
    --  Return the additionnal data (used by protocols).
 
    function To_Location
      (L : String)
-      return Location;
+      return Location_Type;
    --  Conversion function. The syntax of the string can be:
    --    protocol
    --    protocol:
@@ -109,16 +111,16 @@ package System.Garlic.Physical_Location is
    function To_Location
      (P : Protocols.Protocol_Access;
       D : String)
-     return Location;
-   --  From a protocol and a data string, build a whole location.
+     return Location_Type;
+   --  From a protocol and a data string, build a whole location
 
    function To_String
-     (L : Location)
+     (L : Location_Type)
       return String;
-   --  Conversion function.
+   --  Conversion function
 
    procedure Shutdown;
-   --  Shutdown every protocol.
+   --  Shutdown every protocol
 
 private
 
@@ -126,17 +128,19 @@ private
 
    type Location_Body;
 
-   type Location is access Location_Body;
+   type Location_Type is access Location_Body;
 
    procedure Location_Read_Attribute
      (P : access Ada.Streams.Root_Stream_Type'Class;
-      L : out Location);
+      L : out Location_Type);
 
    procedure Location_Write_Attribute
      (P : access Ada.Streams.Root_Stream_Type'Class;
-      L : in Location);
+      L : in Location_Type);
 
-   for Location'Read  use Location_Read_Attribute;
-   for Location'Write use Location_Write_Attribute;
+   for Location_Type'Read  use Location_Read_Attribute;
+   for Location_Type'Write use Location_Write_Attribute;
+
+   Null_Location : constant Location_Type := null;
 
 end System.Garlic.Physical_Location;

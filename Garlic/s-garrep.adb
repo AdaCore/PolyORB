@@ -44,6 +44,9 @@ with System.Garlic.Protocols;         use System.Garlic.Protocols;
 
 package body System.Garlic.Replay is
 
+   --  This package should be modified not to require the Storage_Size
+   --  pragma on the Engine_Type task ???
+
    use type System.RPC.Partition_ID;
 
    Private_Debug_Key : constant Debug_Key :=
@@ -64,13 +67,13 @@ package body System.Garlic.Replay is
       end record;
 
    Trace_File : File_Type;
-   --  Where to read the traces.
+   --  Where to read the traces
 
    task type Engine_Type is
       pragma Storage_Size (3_000_000);
    end Engine_Type;
    type Engine_Type_Access is access Engine_Type;
-   --  Reads and delivers the messages from the trace file.
+   --  Reads and delivers the messages from the trace file
 
    ------------
    -- Create --
@@ -100,7 +103,7 @@ package body System.Garlic.Replay is
       then abort
          while not End_Of_File (Trace_File) loop
 
-            --  Read a new trace from file (new incoming message).
+            --  Read a new trace from file (new incoming message)
 
             declare
                Trace : constant Trace_Type :=
@@ -123,7 +126,7 @@ package body System.Garlic.Replay is
                   delay Latency;
                end;
 
-               --  Deliver message.
+               --  Deliver message
 
                Has_Arrived (Trace.PID, Trace.Data);
             end;
@@ -132,15 +135,6 @@ package body System.Garlic.Replay is
 
       Soft_Shutdown;
    end Engine_Type;
-
-   --------------
-   -- Get_Info --
-   --------------
-
-   function Get_Info (P : access Replay_Protocol) return String is
-   begin
-      return "";
-   end Get_Info;
 
    --------------
    -- Get_Name --
@@ -188,7 +182,7 @@ package body System.Garlic.Replay is
 
       if Options.Execution_Mode = Replay_Mode then
 
-         --  Boot data provides a way to give an alternate trace file name.
+         --  Boot data provides a way to give an alternate trace file name
 
          if Boot_Data /= ""  then
             Set_Trace_File_Name (Boot_Data);
@@ -209,6 +203,7 @@ package body System.Garlic.Replay is
          end if;
 
          --  We create an unnamed task on which we keep no reference
+
          Engine := new Engine_Type;
 
       end if;

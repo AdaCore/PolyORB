@@ -50,10 +50,10 @@ package System.Garlic.Trace is
    --  previous recording) and record it in the partition trace file.
 
    procedure Trace_Partition_ID (Partition : in System.RPC.Partition_ID);
-   --  Save the partition ID to the trace file.
+   --  Save the partition ID to the trace file
 
    procedure Shutdown;
-   --  Close trace file in trace mode.
+   --  Close trace file in trace mode
 
 end System.Garlic.Trace;
 

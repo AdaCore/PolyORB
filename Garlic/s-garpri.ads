@@ -45,7 +45,7 @@ package System.Garlic.Priorities is
    --  was using System.Default_Priority as the base priority.
 
    Background_Creation_Priority : constant Priority := Priority'First;
-   --  Priority at which background task creation will occur.
+   --  Priority at which background task creation will occur
 
    Master_Termination_Priority : constant Priority := Priority'First + 1;
    --  The main termination algorithm needs to run only when no other

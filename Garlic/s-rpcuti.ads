@@ -37,7 +37,7 @@ with Ada.Unchecked_Deallocation;
 
 private package System.RPC.Util is
 
-   --  This package contains utility routines for System.RPC and children.
+   --  This package contains utility routines for System.RPC and children
 
    procedure Free is
       new Ada.Unchecked_Deallocation (Node, Node_Ptr);
@@ -45,7 +45,7 @@ private package System.RPC.Util is
    procedure Free is
       new Ada.Unchecked_Deallocation
           (Params_Stream_Type, Params_Stream_Access);
-   --  Deallocate a Params_Stream_Access.
+   --  Deallocate a Params_Stream_Access
 
    procedure Deep_Free (Stream : in out Params_Stream_Access);
    pragma Inline (Deep_Free);

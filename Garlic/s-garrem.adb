@@ -68,6 +68,13 @@ package body System.Garlic.Remote is
         C.Strings.New_String ("/dev/null");
    begin
       Dummy_P := C_Setsid;
+
+      --  The following sequence is a hack to simulate calling dup2() on
+      --  file descriptors 0, 1 and 2 (stdin, stdout and stderr); dup2()
+      --  is broken in some Linux threads packages (MIT threads for example)
+      --  and this results into system crashes. The use of dup2() should be
+      --  restored sometimes in the future ???
+
       Dummy := C_Close (0);
       Dev_Null := C_Open (Dev_Null_Name, O_Rdonly);
       pragma Assert (Dev_Null = 0);

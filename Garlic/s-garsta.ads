@@ -35,6 +35,6 @@
 
 package System.Garlic.Startup is
 
-   pragma Elaborate_Body (System.Garlic.Startup);
+   pragma Elaborate_Body;
 
 end System.Garlic.Startup;

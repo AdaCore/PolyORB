@@ -1,3 +1,38 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                            GLADE COMPONENTS                              --
+--                                                                          --
+--                S Y S T E M . R P C . S T R E A M _ I O                   --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--                            $Revision$                             --
+--                                                                          --
+--         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--                                                                          --
+-- GARLIC is free software;  you can redistribute it and/or modify it under --
+-- terms of the  GNU General Public License  as published by the Free Soft- --
+-- ware Foundation;  either version 2,  or (at your option)  any later ver- --
+-- sion.  GARLIC is distributed  in the hope that  it will be  useful,  but --
+-- WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHANTABI- --
+-- LITY or  FITNESS FOR A PARTICULAR PURPOSE.  See the  GNU General Public  --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License  distributed with GARLIC;  see file COPYING.  If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--               GLADE  is maintained by ACT Europe.                        --
+--               (email: glade-report@act-europe.fr)                        --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with Ada.Streams;          use Ada.Streams;
 with System.RPC;           use System.RPC;
 with System.Garlic.Debug;  use System.Garlic.Debug;
@@ -5,6 +40,8 @@ with System.Garlic.Heart;  use System.Garlic.Heart;
 with System.Garlic.Utils;  use System.Garlic.Utils;
 
 package body System.RPC.Stream_IO is
+
+   --  This package needs comments ???
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("STREAMIO", "(s-rpstio): ");
@@ -20,8 +57,8 @@ package body System.RPC.Stream_IO is
          Incoming  : aliased Params_Stream_Type (0);
          Outgoing  : aliased Params_Stream_Type (0);
          Consumer  : Barrier_Type;
-         Available : Semaphore_Type;
-         Critical  : Semaphore_Type;
+         Available : Mutex_Type;
+         Critical  : Mutex_Type;
       end record;
    type Partition_Stream_Access is access Partition_Stream_Record;
 
@@ -30,8 +67,6 @@ package body System.RPC.Stream_IO is
    Streams : array (Partition_ID'Range) of Partition_Stream_Access;
 
    Any : Partition_Stream_Access renames Streams (Any_Partition);
-
-   Global : Semaphore_Type;
 
    First_Partition : Partition_ID := Partition_ID'Last;
    Last_Partition  : Partition_ID := Partition_ID'First;
@@ -53,7 +88,6 @@ package body System.RPC.Stream_IO is
      (Stream : in out Partition_Stream_Type) is
       Str : Partition_Stream_Access := Fetch (Stream.PID);
    begin
-
       pragma Debug (D (D_Debug, "Close stream" & Stream.PID'Img));
 
       if Str.Mode = Out_Mode then
@@ -61,8 +95,7 @@ package body System.RPC.Stream_IO is
       end if;
 
       pragma Debug (D (D_Debug, "Close - Unlock stream" & Stream.PID'Img));
-      Str.Available.Unlock;
-
+      Str.Available.Leave;
    end Close;
 
    -----------
@@ -75,7 +108,7 @@ package body System.RPC.Stream_IO is
    begin
       if Streams (Partition) = null then
          pragma Debug (D (D_Debug, "Allocate stream" & Partition'Img));
-         Any.Critical.Lock;
+         Any.Critical.Enter;
          if Streams (Partition) = null then
             Streams (Partition) := new Partition_Stream_Record;
             if First_Partition = Partition_ID'Last
@@ -89,7 +122,7 @@ package body System.RPC.Stream_IO is
                Last_Partition := Partition;
             end if;
          end if;
-         Any.Critical.Unlock;
+         Any.Critical.Leave;
       end if;
       return Streams (Partition);
    end Fetch;
@@ -114,7 +147,6 @@ package body System.RPC.Stream_IO is
       Mode      : in     Stream_Mode) is
       Str : Partition_Stream_Access;
    begin
-
       pragma Debug (D (D_Debug, "Open stream" & Partition'Img));
 
       if Mode = Out_Mode
@@ -127,11 +159,10 @@ package body System.RPC.Stream_IO is
       Stream.PID := Partition;
 
       pragma Debug (D (D_Debug, "Open - Lock stream" & Partition'Img));
-      Str.Available.Lock;
+      Str.Available.Enter;
       Str.Mode := Mode;
 
       pragma Debug (D (D_Debug, "Open - Resume stream" & Partition'Img));
-
    end Open;
 
    ----------
@@ -157,7 +188,6 @@ package body System.RPC.Stream_IO is
       pragma Debug (D (D_Debug, "Read new message"));
 
       while Len = 0 loop
-
          pragma Debug (D (D_Debug, "Read - Wait for stream" & Stream.PID'Img));
          Str.Consumer.Wait;
 
@@ -170,15 +200,14 @@ package body System.RPC.Stream_IO is
          end if;
 
          for P in FID .. LID loop
-
             pragma Debug (D (D_Debug, "Read - Lock stream" & P'Img));
-            Streams (P).Critical.Lock;
+            Streams (P).Critical.Enter;
 
             pragma Debug (D (D_Debug, "Read from stream" & P'Img));
             Read (Streams (P).Incoming, Item, Len);
 
             pragma Debug (D (D_Debug, "Read - Unlock stream" & P'Img));
-            Streams (P).Critical.Unlock;
+            Streams (P).Critical.Leave;
 
             if Len /= 0 then
                if Streams (P).Incoming.Count /= 0 then
@@ -188,14 +217,11 @@ package body System.RPC.Stream_IO is
                end if;
                exit;
             end if;
-
          end loop;
 
          exit when Len /= 0;
-
       end loop;
       Last := Len;
-
    end Read;
 
    -------------
@@ -210,23 +236,19 @@ package body System.RPC.Stream_IO is
       Len : Stream_Element_Offset;
       Str : Partition_Stream_Access := Fetch (Partition);
    begin
-
       pragma Debug (D (D_Debug, "Receive new message"));
-
       pragma Debug (D (D_Debug, "Receive - Lock stream" & Partition'Img));
-      Str.Critical.Lock;
+      Str.Critical.Enter;
 
       Read (Params.all, SEA, Len);
       Write (Str.Incoming, SEA);
 
       pragma Debug (D (D_Debug, "Receive - Unlock stream" & Partition'Img));
-      Str.Critical.Unlock;
+      Str.Critical.Leave;
 
       pragma Debug (D (D_Debug, "Signal to all streams"));
-
       Str.Consumer.Signal;
       Any.Consumer.Signal;
-
    end Receive;
 
    -----------
@@ -238,7 +260,6 @@ package body System.RPC.Stream_IO is
       Item   : in     Ada.Streams.Stream_Element_Array) is
       Str : Partition_Stream_Access := Fetch (Stream.PID);
    begin
-
       pragma Debug (D (D_Debug, "Send new message"));
 
       if Str.Mode /= Out_Mode then
@@ -247,14 +268,13 @@ package body System.RPC.Stream_IO is
       end if;
 
       pragma Debug (D (D_Debug, "Write - Lock stream" & Stream.PID'Img));
-      Str.Critical.Lock;
+      Str.Critical.Enter;
 
       pragma Debug (D (D_Debug, "Write to stream" & Stream.PID'Img));
       Write (Str.Outgoing, Item);
 
       pragma Debug (D (D_Debug, "Write - Unlock stream" & Stream.PID'Img));
-      Str.Critical.Unlock;
-
+      Str.Critical.Leave;
    end Write;
 
 end System.RPC.Stream_IO;

@@ -56,7 +56,8 @@ package body System.RPC.Pool is
 
    Max_Tasks : constant := 512;
    --  This one must match the maximum value of Task_Pool_Max_Bound defined
-   --  in s-garopt.ads.
+   --  in s-garopt.ads. Use a named constant somewhere to make sure that
+   --  they match ???
 
    type Cancel_Type is record
       Partition : Partition_ID;
@@ -110,7 +111,8 @@ package body System.RPC.Pool is
       pragma Storage_Size (3_000_000);
    end Anonymous_Task;
    type Anonymous_Task_Access is access Anonymous_Task;
-   --  An anonymous task will serve a request.
+   --  An anonymous task will serve a request. Is the pragma Storage_Size
+   --  still needed there ???
 
    type Task_Identifier is record
       Task_Pointer : Anonymous_Task_Access;
@@ -124,7 +126,7 @@ package body System.RPC.Pool is
       new Ada.Unchecked_Deallocation (Task_Identifier, Task_Identifier_Access);
 
    function Create_New_Task return Task_Identifier_Access;
-   --  Create a new task.
+   --  Create a new task
 
    Low_Mark  : Positive renames System.Garlic.Options.Task_Pool_Low_Bound;
    High_Mark : Positive renames System.Garlic.Options.Task_Pool_High_Bound;
@@ -154,7 +156,7 @@ package body System.RPC.Pool is
       --  is a shutdown in progress.
 
       procedure Shutdown;
-      --  This procedure will be called upon shutdown.
+      --  This procedure will be called upon shutdown
 
       procedure Status;
       --  This procedure will print a status when in debug mode.
@@ -181,8 +183,9 @@ package body System.RPC.Pool is
    -- Abort_Task --
    ----------------
 
-   procedure Abort_Task (Partition : in Partition_ID;
-                         Id        : in Request_Id)
+   procedure Abort_Task
+     (Partition : in Partition_ID;
+      Id        : in Request_Id)
    is
    begin
       Task_Manager.Abort_One (Partition, Id);
@@ -192,10 +195,11 @@ package body System.RPC.Pool is
    -- Allocate_Task --
    -------------------
 
-   procedure Allocate_Task (Partition    : in Partition_ID;
-                            Id           : in Request_Id;
-                            Params       : in Params_Stream_Access;
-                            Asynchronous : in Boolean)
+   procedure Allocate_Task
+     (Partition    : in Partition_ID;
+      Id           : in Request_Id;
+      Params       : in Params_Stream_Access;
+      Asynchronous : in Boolean)
    is
       Identifier : Task_Identifier_Access;
    begin

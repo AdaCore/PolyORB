@@ -62,10 +62,10 @@ package System.Garlic.Termination is
    --  Let Garlic know that a task is no longer a non terminating task.
 
    procedure Shutdown;
-   --  Shutdown any active task.
+   --  Shutdown any active task
 
    procedure Initialize;
-   --  Initialization.
+   --  Initialization
 
    procedure Activity_Detected;
    pragma Inline (Activity_Detected);

@@ -44,16 +44,16 @@ private package System.RPC.Pool is
                             Id           : in Request_Id;
                             Params       : in Params_Stream_Access;
                             Asynchronous : in Boolean);
-   --  Start a new anonymous task to handle the request.
+   --  Start a new anonymous task to handle the request
 
    procedure Abort_Task (Partition : in Partition_ID;
                          Id        : in Request_Id);
-   --  Abort a running task.
+   --  Abort a running task
 
    procedure Initialize;
-   --  Initialize this package.
+   --  Initialize this package
 
    procedure Shutdown;
-   --  Called on shutdown.
+   --  Called on shutdown
 
 end System.RPC.Pool;

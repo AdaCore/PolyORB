@@ -36,8 +36,8 @@
 with Ada.Streams;
 with System.Garlic.Heart;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
-with System.Garlic.Protocols; use System.Garlic.Protocols;
-with System.Garlic.Debug; use System.Garlic.Debug;
+with System.Garlic.Protocols;         use System.Garlic.Protocols;
+with System.Garlic.Debug;             use System.Garlic.Debug;
 
 package body System.Garlic.Loopback is
 

@@ -51,28 +51,28 @@ package System.Garlic.Non_Blocking is
       Addr    : Thin.Sockaddr_Access;
       Addrlen : access C.int)
      return C.int;
-   --  Thread blocking accept.
+   --  Thread blocking accept
 
    function C_Connect
      (S       : C.int;
       Name    : Thin.Sockaddr_Access;
       Namelen : C.int)
      return C.int;
-   --  Thread blocking connect.
+   --  Thread blocking connect
 
    function C_Read
      (Filedes : C.int;
       Buf     : Strings.chars_ptr;
       Nbyte   : C.int)
      return C.int;
-   --  Thread blocking read.
+   --  Thread blocking read
 
    function C_Write
      (Fildes : C.int;
       Buf    : Strings.chars_ptr;
       Nbyte  : C.int)
      return C.int;
-   --  Thread blocking write.
+   --  Thread blocking write
 
 end System.Garlic.Non_Blocking;
 

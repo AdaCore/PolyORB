@@ -40,33 +40,33 @@ package System.Partition_Interface is
    pragma Elaborate_Body;
 
    type Subprogram_Id is new Natural;
-   --  This type is used exclusively by stubs.
+   --  This type is used exclusively by stubs
 
    subtype Unit_Name is String;
-   --  Name of Ada units.
+   --  Name of Ada units
 
    function Get_Local_Partition_ID return RPC.Partition_ID;
-   --  Return the Partition_ID of the current partition.
+   --  Return the Partition_ID of the current partition
 
    function Get_Active_Partition_ID
      (Name : Unit_Name)
       return RPC.Partition_ID;
-   --  Similar in some respects to RCI_Info.Get_Active_Partition_ID.
+   --  Similar in some respects to RCI_Info.Get_Active_Partition_ID
 
    function Get_Passive_Partition_ID
      (Name : Unit_Name)
      return RPC.Partition_ID;
-   --  Return the Partition_ID of the given shared passive partition.
+   --  Return the Partition_ID of the given shared passive partition
 
    function Get_RCI_Package_Receiver
      (Name : Unit_Name)
       return RPC.RPC_Receiver;
-   --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver.
+   --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver
 
    function Get_Active_Version
       (Name : Unit_Name)
        return String;
-   --  Similar in some respects to Get_Active_Partition_ID.
+   --  Similar in some respects to Get_Active_Partition_ID
 
    procedure Register_Receiving_Stub
      (Name     : in Unit_Name;
@@ -77,7 +77,7 @@ package System.Partition_Interface is
 
    procedure Invalidate_Receiving_Stub
      (Name     : in Unit_Name);
-   --  Declare this receiving stub as corrupted to the RCI Name Server.
+   --  Declare this receiving stub as corrupted to the RCI Name Server
 
    generic
       RCI_Name : String;
@@ -85,14 +85,15 @@ package System.Partition_Interface is
       function Get_RCI_Package_Receiver return System.RPC.RPC_Receiver;
       function Get_Active_Partition_ID  return System.RPC.Partition_ID;
    end RCI_Info;
-   --  RCI package information caching.
+   --  RCI package information caching
 
    type RACW_Stub_Type is record
       Origin   : System.RPC.Partition_ID;
       Receiver : System.RPC.RPC_Receiver;
       Addr     : System.Address;
    end record;
-
    type RACW_Stub_Type_Access is access RACW_Stub_Type;
+   --  This type is used in the stub when expanding a remote access to
+   --  class-wide type.
 
 end System.Partition_Interface;

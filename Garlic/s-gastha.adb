@@ -71,17 +71,17 @@ package body System.Garlic.Storage_Handling is
          return;
       end if;
 
-      Pool.Semaphore.Lock;
+      Pool.Mutex.Enter;
       for I in 1 .. Max_Objects loop
          if not Pool.Used (I) then
             Pool.Used (I)   := True;
             Storage_Address := Pool.Addresses (I);
             Pool.N_Objects := Pool.N_Objects + 1;
-            Pool.Semaphore.Unlock;
+            Pool.Mutex.Leave;
             return;
          end if;
       end loop;
-      Pool.Semaphore.Unlock;
+      Pool.Mutex.Leave;
       Storage_Address := malloc (IC.int (Size_In_Storage_Elements));
       if Storage_Address = Null_Address then
          raise Storage_Error;

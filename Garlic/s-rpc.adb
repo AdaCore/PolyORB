@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Dynamic_Priorities;
+with Ada.Exceptions;
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;        use System.Garlic.Debug;
@@ -43,9 +44,10 @@ with System.Garlic.Utils;        use System.Garlic.Utils;
 pragma Elaborate (System.Garlic.Utils);
 with System.RPC.Pool;            use System.RPC.Pool;
 with System.RPC.Util;            use System.RPC.Util;
-with Ada.Exceptions;
 
 package body System.RPC is
+
+   --  This package needs extra comments ???
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("RPC", "(s-rpc   ): ");
@@ -56,15 +58,15 @@ package body System.RPC is
      renames Print_Debug_Info;
 
    use Ada.Streams;
-   --  A lot of shortcuts.
+   --  Shortcuts
 
    Current_RPC_Receiver         : RPC_Receiver;
    pragma Atomic (Current_RPC_Receiver);
    Current_RPC_Receiver_Barrier : Barrier_Type;
-   --  The current RPC receiver and its associated barrier.
+   --  The current RPC receiver and its associated barrier
 
    Min_Size : constant Stream_Element_Count := 1024;
-   --  No packet below this size will be allowed.
+   --  No packet below this size will be allocated
 
    procedure Copy
      (Source : in out Params_Stream_Type;
@@ -93,6 +95,8 @@ package body System.RPC is
 
    Request_Id_Server : Request_Id_Server_Access :=
      new Request_Id_Server_Type;
+   --  Kludge to raise Program_Error at deallocation time. To be removed
+   --  in the future ???
 
    type Result_Type is record
       Result    : Params_Stream_Access;
@@ -129,18 +133,18 @@ package body System.RPC is
       Id        : Request_Id;
    end record;
    procedure Finalize (Keeper : in out Abort_Keeper);
-   --  Handle abortion from Do_RPC.
+   --  Handle abortion from Do_RPC
 
    procedure Send_Abort_Message
      (Partition : in Partition_ID;
       Id        : in Request_Id);
-   --  Send an abort message for a request.
+   --  Send an abort message for a request
 
    procedure Public_RPC_Receiver
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
       Params    : access System.RPC.Params_Stream_Type);
-   --  Receive data.
+   --  Receive data
 
    procedure Partition_Error_Notification
      (Partition : in System.RPC.Partition_ID);
@@ -421,7 +425,7 @@ package body System.RPC is
       Stream.Count := Stream.Count - (Offset - Item'First);
       if First = null then
 
-         --  Set Current to null to allow further Write to be done.
+         --  Set Current to null to allow further Write to be done
 
          Stream.Current := null;
 
@@ -443,7 +447,7 @@ package body System.RPC is
       begin
          for Id in Request_Id'First .. Latest loop
             if Destination (Id) = Partition then
-               pragma Warnings (Off);  --  XXXXX
+               pragma Warnings (Off);  --  ???
                Result_Watcher.Raise_Error (Id);
                pragma Warnings (On);
                Free (Id);
@@ -508,7 +512,7 @@ package body System.RPC is
       begin
          Get (Id, Res);
          Deep_Free (Res.Result);
-         pragma Warnings (Off);  --  XXXXX
+         pragma Warnings (Off);  --  ???
          Request_Id_Server.Free (Id);
          pragma Warnings (On);
       end Free;
@@ -609,7 +613,7 @@ package body System.RPC is
       if Current = null then
          if Stream.First = null then
 
-            --  This is the first call (maybe after a full read).
+            --  This is the first call (maybe after a full read)
 
             Stream.First :=
               new Node (Stream_Element_Count'Max

@@ -35,11 +35,9 @@
 
 with Ada.Real_Time;         use Ada.Real_Time;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-
 with System.Garlic.Options; use System.Garlic.Options;
 with System.Garlic.Debug;   use System.Garlic.Debug;
 with System.Garlic.Heart;   use System.Garlic.Heart;
-
 with System.RPC;
 
 package body System.Garlic.Trace is
@@ -61,10 +59,10 @@ package body System.Garlic.Trace is
       end record;
 
    Trace_File : File_Type;
-   --  Where to file in the traces.
+   --  File containing the traces
 
    Trace_Time : Time;
-   --  When did the last trace occur.
+   --  Date of the last trace
 
    ----------------
    -- Initialize --

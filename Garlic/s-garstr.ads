@@ -67,12 +67,12 @@ package System.Garlic.Streams is
      (Params : access System.RPC.Params_Stream_Type;
       Unused : Ada.Streams.Stream_Element_Count := 0)
      return Stream_Element_Access;
-   --  Same thing, but return a dynamically allocated pointer.
+   --  Same thing, but return a dynamically allocated pointer
 
    procedure To_Params_Stream_Type
      (Content : Ada.Streams.Stream_Element_Array;
       Params  : access System.RPC.Params_Stream_Type);
    pragma Inline (To_Params_Stream_Type);
-   --  Other way.
+   --  Other way
 
 end System.Garlic.Streams;

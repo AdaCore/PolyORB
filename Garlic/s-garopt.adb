@@ -48,43 +48,17 @@ package body System.Garlic.Options is
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
-   --  Debugging stuff.
+   --  Debugging stuff
 
    function Value (S : String) return Termination_Type;
-
-   -----------
-   -- Value --
-   -----------
-
-   function Value (S : String) return Termination_Type is
-   begin
-      if S = "local" then
-         pragma Debug (D (D_Debug,
-                          "local termination is selected"));
-         return Local_Termination;
-      elsif S = "global" then
-         pragma Debug (D (D_Debug,
-                          "global termination is selected"));
-         return Global_Termination;
-      elsif S = "deferred" then
-         pragma Debug (D (D_Debug,
-                          "deferred termination is selected"));
-         return Deferred_Termination;
-      else
-         return Unknown_Termination;
-      end if;
-   end Value;
 
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize is
-
       Index : Natural := 1;
-
    begin
-
       Execution_Mode := Normal_Mode;
 
       declare
@@ -142,7 +116,7 @@ package body System.Garlic.Options is
             pragma Debug
               (D (D_Debug, "--boot_server available on command line"));
 
-            --  Need a second argument.
+            --  Need a second argument
             if Index = Argument_Count then
                raise Program_Error;
             end if;
@@ -155,8 +129,7 @@ package body System.Garlic.Options is
             pragma Debug
               (D (D_Debug, "--connection_hits available on command line"));
 
-
-            --  Need a second argument.
+            --  Need a second argument
             if Index = Argument_Count then
                raise Program_Error;
             end if;
@@ -167,13 +140,11 @@ package body System.Garlic.Options is
          elsif Argument (Index) = "--detach" then
 
             pragma Debug (D (D_Debug, "--detach available on command line"));
-
             Set_Detach (True);
 
          elsif Argument (Index) = "--slave" then
 
             pragma Debug (D (D_Debug, "--slave available on command line"));
-
             Set_Is_Slave (True);
 
          elsif Argument (Index) = "--terminate" then
@@ -191,25 +162,21 @@ package body System.Garlic.Options is
          elsif Argument (Index) = "--nolaunch" then
 
             pragma Debug (D (D_Debug, "--nolaunch available on command line"));
-
             Set_Nolaunch (True);
 
          elsif Argument (Index) = "--trace" then
 
             pragma Debug (D (D_Debug, "--trace available on command line"));
-
             Set_Execution_Mode (Trace_Mode);
 
          elsif Argument (Index) = "--replay" then
 
             pragma Debug (D (D_Debug, "--replay available on command line"));
-
             Set_Execution_Mode (Replay_Mode);
 
          end if;
 
          Index := Index + 1;
-
       end loop;
 
    end Initialize;
@@ -308,5 +275,28 @@ package body System.Garlic.Options is
       end if;
       Trace_File_Name := new String'(Name);
    end Set_Trace_File_Name;
+
+   -----------
+   -- Value --
+   -----------
+
+   function Value (S : String) return Termination_Type is
+   begin
+      if S = "local" then
+         pragma Debug (D (D_Debug,
+                          "local termination has been selected"));
+         return Local_Termination;
+      elsif S = "global" then
+         pragma Debug (D (D_Debug,
+                          "global termination has been selected"));
+         return Global_Termination;
+      elsif S = "deferred" then
+         pragma Debug (D (D_Debug,
+                          "deferred termination has been selected"));
+         return Deferred_Termination;
+      else
+         return Unknown_Termination;
+      end if;
+   end Value;
 
 end System.Garlic.Options;

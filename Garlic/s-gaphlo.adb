@@ -56,7 +56,7 @@ package body System.Garlic.Physical_Location is
    type Node;
    type Node_Ptr is access Node;
    type Node is record
-      Content : Location;
+      Content : Location_Type;
       Next    : Node_Ptr;
    end record;
 
@@ -68,22 +68,22 @@ package body System.Garlic.Physical_Location is
    Partition_ID_To_Location : array (System.RPC.Partition_ID) of List;
 
    Protocols_List : array (1 .. 10) of Protocol_Access;
-   --  This should be enough but may be increased in the future if needed.
+   --  This should be enough but may be increased in the future if needed
 
    procedure Register_Partition
      (P : in System.RPC.Partition_ID;
-      L : in Location);
-   --  Add a partition into the base.
+      L : in Location_Type);
+   --  Add a partition into the base
 
    function Lookup_Protocol (P : String) return Protocol_Access;
-   --  Return a protocol or null if no protocol with this name was found.
+   --  Return a protocol or null if no protocol with this name was found
 
    --------------
    -- Get_Data --
    --------------
 
    function Get_Data
-     (L : Location)
+     (L : Location_Type)
      return String
    is
    begin
@@ -96,7 +96,7 @@ package body System.Garlic.Physical_Location is
 
    function Get_Partition
      (P : System.RPC.Partition_ID)
-      return Location
+      return Location_Type
    is
       First : Node_Ptr renames Partition_ID_To_Location (P) .First;
    begin
@@ -116,7 +116,7 @@ package body System.Garlic.Physical_Location is
       return String
    is
    begin
-      return To_String (Location'(Get_Partition (P)));
+      return To_String (Location_Type'(Get_Partition (P)));
    end Get_Partition;
 
    ------------------
@@ -124,7 +124,7 @@ package body System.Garlic.Physical_Location is
    ------------------
 
    function Get_Protocol
-     (L : Location)
+     (L : Location_Type)
       return Protocol_Access
    is
    begin
@@ -137,7 +137,7 @@ package body System.Garlic.Physical_Location is
 
    procedure Location_Read_Attribute
      (P : access Ada.Streams.Root_Stream_Type'Class;
-      L : out Location)
+      L : out Location_Type)
    is
       Text : constant String := String'Input (P);
    begin
@@ -150,7 +150,7 @@ package body System.Garlic.Physical_Location is
 
    procedure Location_Write_Attribute
      (P : access Ada.Streams.Root_Stream_Type'Class;
-      L : in Location)
+      L : in Location_Type)
    is
    begin
       String'Output (P, To_String (L));
@@ -180,7 +180,7 @@ package body System.Garlic.Physical_Location is
 
    procedure Register_Partition
      (P : in System.RPC.Partition_ID;
-      L : in Location)
+      L : in Location_Type)
    is
       Current  : List renames Partition_ID_To_Location (P);
       N        : Node_Ptr := Current.First;
@@ -257,7 +257,7 @@ package body System.Garlic.Physical_Location is
    -- To_Location --
    -----------------
 
-   function To_Location (L : String) return Location is
+   function To_Location (L : String) return Location_Type is
    begin
       for Look_For_Colon in L'Range loop
          if L (Look_For_Colon) = ':' then
@@ -289,7 +289,7 @@ package body System.Garlic.Physical_Location is
    function To_Location
      (P : Protocols.Protocol_Access;
       D : String)
-     return Location
+     return Location_Type
    is
    begin
       return new Location_Body'(Protocol => P,
@@ -300,7 +300,7 @@ package body System.Garlic.Physical_Location is
    -- To_String --
    ---------------
 
-   function To_String (L : Location) return String is
+   function To_String (L : Location_Type) return String is
    begin
       return Get_Name (Get_Protocol (L)) & "://" & Get_Data (L);
    end To_String;

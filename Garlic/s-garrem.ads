@@ -61,14 +61,14 @@ package System.Garlic.Remote is
      (Launcher : in String;
       Host     : in String;
       Command  : in String);
-   --  Local launcher. This one can only launch partitions on the same machine.
+   --  Local launcher. This one can only launch partitions on the same machine
 
    procedure Install_Launcher (Launcher : in Launcher_Type);
    --  Install the launcher
 
    procedure Exchange_Launcher (Launcher     : in Launcher_Type;
                                 Old_Launcher : out Launcher_Type);
-   --  Install a launcher and return the previous one.
+   --  Install a launcher and return the previous one
 
    procedure Launch
      (Launcher : in String;
@@ -86,7 +86,7 @@ package System.Garlic.Remote is
    --  command line.
 
    function Get_Host (Partition : String) return String;
-   --  Ask a host name for a partition and return it.
+   --  Ask a host name for a partition and return it
 
    procedure Detach;
    --  Detach a procedure by setsid() and closing the 0, 1 and 2 file

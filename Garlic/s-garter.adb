@@ -33,14 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Debug; use System.Garlic.Debug;
-with System.Garlic.Heart; use System.Garlic.Heart;
+with System.Garlic.Debug;         use System.Garlic.Debug;
+with System.Garlic.Heart;         use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Priorities;
 with System.Garlic.Utils;
-with System.RPC; use System.RPC;
+with System.RPC;                  use System.RPC;
 with System.Task_Primitives.Operations;
-with System.Tasking.Utilities; use System.Tasking, System.Tasking.Utilities;
+with System.Tasking.Utilities;    use System.Tasking, System.Tasking.Utilities;
 pragma Elaborate_All (System.Tasking);
 pragma Elaborate_All (System.Tasking.Utilities);
 
@@ -67,7 +67,8 @@ package body System.Garlic.Termination is
    --  Sub_Non_Terminating_Task inconditionnally after the end select).
 
    type Stamp is mod 2 ** 8;
-   --  The famous stamp type.
+   --  A Stamp value is assigned at each round of the termination protocol
+   --  to distinguish between different rounds.
 
    protected Termination_Watcher is
       procedure Set_Stamp (S : in Stamp);
@@ -100,7 +101,7 @@ package body System.Garlic.Termination is
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
       Params    : access Params_Stream_Type);
-   --  Receive a message from Garlic.
+   --  Receive a message from Garlic
 
    type Termination_Code is
       (Set_Stamp, Check_Stamp, Positive_Ack, Negative_Ack);
@@ -108,7 +109,7 @@ package body System.Garlic.Termination is
    --  a stamp.
 
    procedure Initiate_Synchronization;
-   --  This procedure sends the two messages to everyone.
+   --  This procedure sends the two messages to everyone
 
    function Get_Active_Task_Count return Natural;
    --  Active task count (i.e. tasks in a non-terminating state -
@@ -356,7 +357,7 @@ package body System.Garlic.Termination is
 
       Main_Loop : loop
 
-         --  Wait for a given time.
+         --  Wait for a given time
 
          pragma Debug (D (D_Debug, "Waiting for some time"));
 
@@ -476,7 +477,7 @@ package body System.Garlic.Termination is
          Count := N;
          if Count = 0 then
 
-            --  There are no other active partitions.
+            --  There are no other active partitions
 
             Result    := True;
             Available := True;

@@ -39,6 +39,8 @@ with System.RPC;
 
 package System.Garlic.Replay is
 
+   --  This package needs comments ???
+
    type Replay_Protocol is
       new System.Garlic.Protocols.Protocol_Type with private;
 
@@ -51,8 +53,6 @@ package System.Garlic.Replay is
       Is_Boot_Protocol : in Boolean := False;
       Boot_Data        : in String  := "";
       Is_Master        : in Boolean := False);
-
-   function Get_Info (P : access Replay_Protocol) return String;
 
    procedure Send
       (Protocol  : access Replay_Protocol;

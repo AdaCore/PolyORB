@@ -48,9 +48,12 @@ package body System.Garlic.Services is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
    procedure Initialize is
    begin
-
       if Options.Detach then
          pragma Debug
             (D (D_Elaborate,
@@ -58,7 +61,6 @@ package body System.Garlic.Services is
          @LAUNCHING_INCLUDED@Remote.Detach;
          null;
       end if;
-
    end Initialize;
 
 end System.Garlic.Services;

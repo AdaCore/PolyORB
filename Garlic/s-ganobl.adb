@@ -74,24 +74,24 @@ package body System.Garlic.Non_Blocking is
         (Buf    : in chars_ptr;
          Nbyte  : in int;
          Result : out int);
-      --  You may wait for data to be here by setting Nbyte to zero.
+      --  You may wait for data to be here by setting Nbyte to zero
 
       entry Write (Descriptors)
         (Buf    : in chars_ptr;
          Nbyte  : in int;
          Result : out int);
-      --  You may wait for data to be written by setting Nbyte to zero.
+      --  You may wait for data to be written by setting Nbyte to zero
 
       procedure Get_Masks
         (Read_M  : out Desc_Set;
          Write_M : out Desc_Set;
          Max     : out int);
-      --  Get the masks on which select should apply.
+      --  Get the masks on which select should apply
 
       procedure Set_Masks
         (Read_M  : in Desc_Set;
          Write_M : in Desc_Set);
-      --  Set the masks as returned by C_Select.
+      --  Set the masks as returned by C_Select
 
    private
 
@@ -120,11 +120,11 @@ package body System.Garlic.Non_Blocking is
 
    procedure Set_Asynchronous (FD : in Descriptors);
    pragma Inline (Set_Asynchronous);
-   --  Set a file descriptor to be asynchronous.
+   --  Set a file descriptor to be asynchronous
 
    procedure Set_Non_Blocking (FD : in Descriptors);
    pragma Inline (Set_Non_Blocking);
-   --  Set a file descriptor to be non-blocking.
+   --  Set a file descriptor to be non-blocking
 
    protected Sigio_Keeper is
       entry Wait;
@@ -137,12 +137,12 @@ package body System.Garlic.Non_Blocking is
    task Sigio_Simulation is
       pragma Priority (Priorities.Polling_Priority);
    end Sigio_Simulation;
-   --  This task will simulate SIGIOs every <N> seconds.
+   --  This task will simulate SIGIOs every <N> seconds
 
    task Selection is
       pragma Priority (Priorities.Polling_Priority);
    end Selection;
-   --  This task is in charge of calling C_Select.
+   --  This task is in charge of calling C_Select
 
    -----------------------
    -- Asynchronous_Type --
@@ -396,7 +396,7 @@ package body System.Garlic.Non_Blocking is
 
                if RFD (I) or else WFD (I) then
 
-                  --  There is something to do on this file descriptor.
+                  --  There is something to do on this file descriptor
 
                   Pfd.Fd := I;
                   Pfd.Events := 0;

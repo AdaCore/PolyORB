@@ -36,12 +36,20 @@
 package System.Garlic.Name_Table is
 
    subtype Name_Id is Natural;
-   Null_Name : constant Name_Id := 0;
+   Null_Name  : constant Name_Id;
+   First_Name : constant Name_Id;
+
+   --  These subprograms need documentation ???
 
    function  Get (S : String)  return Name_Id;
    function  Get (N : Name_Id) return String;
 
    function  Get_Info (N : Name_Id) return Integer;
    procedure Set_Info (N : Name_Id; I : Integer);
+
+private
+
+   Null_Name  : constant Name_Id := Name_Id'First;
+   First_Name : constant Name_Id := Name_Id'Succ (Null_Name);
 
 end System.Garlic.Name_Table;

@@ -51,7 +51,7 @@ package System.Garlic.Thin is
 
    type Int_Access is access all C.int;
    pragma Convention (C, Int_Access);
-   --  Access to C integers.
+   --  Access to C integers
 
    type pid_t is new C.int;
    pragma Convention (C, pid_t);
@@ -68,20 +68,20 @@ package System.Garlic.Thin is
    package Chars_Ptr_Pointers is
       new Pointers (C.size_t, Strings.chars_ptr, Chars_Ptr_Array,
                     Strings.Null_Ptr);
-   --  Arrays of C (char *).
+   --  Arrays of C (char *)
 
    type In_Addr is record
       S_B1, S_B2, S_B3, S_B4 : C.Unsigned_Char;
    end record;
    pragma Convention (C, In_Addr);
-   --  Internet address.
+   --  Internet address
 
    type In_Addr_Access is access all In_Addr;
    pragma Convention (C, In_Addr_Access);
-   --  Access to internet address.
+   --  Access to internet address
 
    Inaddr_Any : aliased constant In_Addr := (others => 0);
-   --  Any internet address (all the interfaces).
+   --  Any internet address (all the interfaces)
 
    type In_Addr_Access_Array is array (Positive range <>)
      of aliased In_Addr_Access;
@@ -89,18 +89,18 @@ package System.Garlic.Thin is
    package In_Addr_Access_Pointers is
      new Pointers (Positive, In_Addr_Access, In_Addr_Access_Array,
                    null);
-   --  Array of internet addresses.
+   --  Array of internet addresses
 
    type Sockaddr is record
       Sa_Family : C.Unsigned_Short;
       Sa_Data   : C.Char_Array (1 .. 14);
    end record;
    pragma Convention (C, Sockaddr);
-   --  Socket address.
+   --  Socket address
 
    type Sockaddr_Access is access all Sockaddr;
    pragma Convention (C, Sockaddr_Access);
-   --  Access to socket address.
+   --  Access to socket address
 
    type Sockaddr_In is record
       Sin_Family : C.Unsigned_Short;
@@ -109,11 +109,11 @@ package System.Garlic.Thin is
       Sin_Zero   : C.Char_Array (1 .. 8) := (others => C.Char'Val (0));
    end record;
    pragma Convention (C, Sockaddr_In);
-   --  Internet socket address.
+   --  Internet socket address
 
    type Sockaddr_In_Access is access all Sockaddr_In;
    pragma Convention (C, Sockaddr_In_Access);
-   --  Access to internet socket address.
+   --  Access to internet socket address
 
    type Hostent is record
       H_Name      : Strings.chars_ptr;
@@ -123,25 +123,25 @@ package System.Garlic.Thin is
       H_Addr_List : In_Addr_Access_Pointers.Pointer;
    end record;
    pragma Convention (C, Hostent);
-   --  Host entry.
+   --  Host entry
 
    type Hostent_Access is access all Hostent;
    pragma Convention (C, Hostent_Access);
-   --  Access to host entry.
+   --  Access to host entry
 
    type Caddr_T is new Strings.chars_ptr;
-   --  Type Caddr_T is in fact a (char *).
+   --  Type Caddr_T is in fact a (char *)
 
    type Iovec is record
       Iov_Base : Caddr_T;
       Iov_Len  : C.int;
    end record;
    pragma Convention (C, Iovec);
-   --  Iovec C type.
+   --  Iovec C type
 
    type Iovec_Access is access all Iovec;
    pragma Convention (C, Iovec_Access);
-   --  Access to Iovec structure.
+   --  Access to Iovec structure
 
    type Msghdr is record
       Msg_Name         : Caddr_T;
@@ -152,7 +152,7 @@ package System.Garlic.Thin is
       Msg_Accrightslen : C.int;
    end record;
    pragma Convention (C, Msghdr);
-   --  Message header.
+   --  Message header
 
    type Msghdr_Access is access all Msghdr;
    pragma Convention (C, Msghdr_Access);
@@ -160,7 +160,7 @@ package System.Garlic.Thin is
 
    type Two_Int is array (0 .. 1) of C.int;
    pragma Convention (C, Two_Int);
-   --  Used with pipe().
+   --  Used with pipe()
 
    type Pollfd is record
       Fd      : C.int;

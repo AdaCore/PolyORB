@@ -41,18 +41,17 @@ package System.Garlic.Protocols is
    type Protocol_Type is abstract tagged limited null record;
    --  New protocols must derivate from this tagged type. They must
    --  implement versions of the procedures below which are marked as
-   --  abstract
-
-   type Protocol_Access is access all Protocol_Type'Class;
-   --  Pointer on Protocol_Type or derivative
-
+   --  abstract.
    --  Each protocol must define a 'Create' function which returns a
    --  Protocol_Access instance which is in fact a protocol instance.
    --  This will be called from System.Garlic.Startup.
 
+   type Protocol_Access is access all Protocol_Type'Class;
+   --  Pointer on Protocol_Type and any child
+
    function Get_Name (P : access Protocol_Type) return String
      is abstract;
-   --  A string returning the name of the protocol.
+   --  Return a string containing the name of the protocol
 
    procedure Set_Boot_Data
      (Protocol         : access Protocol_Type;

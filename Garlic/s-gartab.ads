@@ -38,70 +38,98 @@ with System.Garlic.Utils;
 package System.Garlic.Table is
 
    generic
-      type Index_Type     is range <>;
+      type Index_Type is range <>;
+      Null_Index     : Index_Type;
+      First_Index    : Index_Type;
+
       Initial_Size   : Positive;
-      Increment_Size : Positive;
+      Increment_Size : Natural;
 
       type Component_Type is private;
       Null_Component : Component_Type;
 
       type Parameter_Type is private;
+      --  This parameter at least needs documentation ???
 
-   package Concurrent is
+   package Complex is
 
-      Null_Index : constant Index_Type := Index_Type'First;
+      type Component_Table_Type is
+         array (Index_Type range <>) of Component_Type;
 
-      --  These procedures are task-safe.
+      type Component_Table_Access is access Component_Table_Type;
 
-      function  Allocate (N : Positive := 1) return Index_Type;
+      Table : Component_Table_Access;
 
-      function  Get (S : String) return Index_Type;
-      function  Get (N : Index_Type) return String;
-      procedure Set (N : Index_Type; S : String);
-      --  Associate a name to an index.
+      --  These procedures are atomic. They cannot be aborted
 
-      function  Get (N : Index_Type) return Component_Type;
-      procedure Set (N : Index_Type; C : Component_Type);
-      --  Associate an index to a component.
+      function  Get_Component (N : Index_Type) return Component_Type;
+      --  Check whether component of index N corresponds to an allocated
+      --  component. When N is not allocated, allocate it. Raise
+      --  Constraint_Error when N is not in range of current table.
+
+      function  Get_Index (S : String) return Index_Type;
+      --  Check whether this name is already related to a component index.
+      --  If not, allocate a component, associate its index to its name
+      --  and return its index.
+
+      function  Get_Name (N : Index_Type) return String;
+      --  Return the name related to component of index N. Return an
+      --  empty string when this index corresponds to a non-allocated
+      --  component.
+
+      procedure Set_Component (N : Index_Type; C : Component_Type);
+      --  Set component of index N to C. When N is not allocated, allocate
+      --  it. Raise Constraint_Error when N is not in range of current table.
+
+      procedure Set_Name  (N : Index_Type; S : String);
+      --  Set component name of index N to S. When N is not allocated, allocate
+      --  it. Raise Constraint_Error when N is not in range of current table.
+
+      --  Apply provides a critical section in which Process is executed.
+      --  This Process procedure applies to a Component and takes a
+      --  Parameter. If Status is Modified or Postponed, update the
+      --  component of Index with Component. If Status is Postponed,
+      --  this means that the process has been postponed and should be
+      --  re-executed when Component value has been modified. If component
+      --  of index N is not allocated, then allocate it.
 
       type Process_Type is access procedure
         (N         : in Index_Type;
          Parameter : in Parameter_Type;
          Component : in out Component_Type;
          Status    : out Utils.Status_Type);
-      --  Procedure to execute into a critical section. This procedure
-      --  applies to Component and takes a Parameter. If Status returns the
-      --  result of this procedure on Component (Modified or
-      --  Unmodified). If Status is Postponed, this means that the request
-      --  has been postponed and should be re-executed when Component value
-      --  has been modified.
 
       procedure Apply
         (N         : in Index_Type;
          Parameter : in Parameter_Type;
          Process   : in Process_Type);
-      --  Apply Process to Component of index N. Use Parameter as parameter
-      --  of Process.
+      --  Needs documentation ???
 
-   end Concurrent;
+   end Complex;
 
    generic
       type Index_Type     is range <>;
+      Null_Index     : Index_Type;
+      First_Index    : Index_Type;
+
       Initial_Size   : Positive;
       Increment_Size : Positive;
 
       type Component_Type is private;
       Null_Component : Component_Type;
 
-   package Sequential is
+   package Simple is
 
-      Null_Index : constant Index_Type := Index_Type'First;
+      type Component_Table_Type is
+         array (Index_Type range <>) of Component_Type;
 
-      function  Allocate (N : Positive := 1) return Index_Type;
+      type Component_Table_Access is access Component_Table_Type;
 
-      function  Get (N : Index_Type) return Component_Type;
-      procedure Set (N : Index_Type; C : Component_Type);
+      Table : Component_Table_Access;
 
-   end Sequential;
+      function  Allocate return Index_Type;
+
+   end Simple;
+   --  This generic package needs documentation ???
 
 end System.Garlic.Table;

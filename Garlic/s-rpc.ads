@@ -55,25 +55,22 @@ package System.RPC is
      (Stream : in out Params_Stream_Type;
       Item   : in Ada.Streams.Stream_Element_Array);
 
-   --  Synchronous call
-
    procedure Do_RPC
      (Partition  : in Partition_ID;
       Params     : access Params_Stream_Type;
       Result     : access Params_Stream_Type);
-
-   --  Asynchronous call
+   --  Synchronous call
 
    procedure Do_APC
      (Partition  : in Partition_ID;
       Params     : access Params_Stream_Type);
-
-   --  The handler for incoming RPCs.
+   --  Asynchronous call
 
    type RPC_Receiver is
      access procedure
        (Params     : access Params_Stream_Type;
         Result     : access Params_Stream_Type);
+   --  Handled used for incoming RPC
 
    procedure Establish_RPC_Receiver (
       Partition : in Partition_ID;
@@ -105,14 +102,14 @@ private
    type Params_Stream_Access is access Params_Stream_Type;
 
    type Request_Id is mod 2 ** 8;
-   --  The Request_Id identifies the request being sent.
+   --  The Request_Id identifies the request being sent
 
    type RPC_Opcode is (RPC_Request,
                        RPC_Answer,
                        RPC_Request_Cancellation,
                        RPC_Cancellation_Accepted,
                        APC_Request);
-   --  Type of operation.
+   --  Type of operation
 
    type Request_Header (Kind : RPC_Opcode) is record
       case Kind is
@@ -127,17 +124,17 @@ private
    procedure Insert_Request
      (Params : access Params_Stream_Type;
       Header : in Request_Header);
-   --  This procedure adds a Request_Header in front of Params.
+   --  Add a Request_Header in front of Params
 
    procedure Initialize;
-   --  Initialize the runtime of System.RPC.
+   --  Initialize the runtime of System.RPC
 
    procedure Shutdown;
-   --  Shutdown System.RPC and its private child packages.
+   --  Shutdown System.RPC and its private child packages
 
    function Get_RPC_Receiver return RPC_Receiver;
    --  Get the currently installed RPC_Receiver. If none has been installed
-   --  yet, it waits until one is.
+   --  yet, wait until one is.
 
 end System.RPC;
 

@@ -850,7 +850,7 @@ package body System.Garlic.Filters is
             --  filter!
             declare
                Buffer          : Ada.Streams.Stream_Element_Array
-                 := To_Stream_Element_Array (Params);
+                 := Ada.Streams.Stream_Element_Array'Input (Params);
                Filtered_Data   : Stream_Element_Access
                  := Default_Filter_Incoming (Partition, Buffer);
                Filtered_Params : aliased Params_Stream_Type

@@ -38,10 +38,12 @@ with System.Garlic.Utils;
 
 package System.Garlic.Options is
 
+   --  This package needs comments ???
+
    Task_Pool_Low_Bound  : Positive := 1;
    Task_Pool_High_Bound : Positive := 5;
    Task_Pool_Max_Bound  : Positive range 1 .. 512 := 512;
-   --  This one must match the definition of Max_Tasks from s-rpcpoo.adb.
+   --  This one must match the definition of Max_Tasks from s-rpcpoo.adb
 
    Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
 

@@ -41,8 +41,11 @@ with System.RPC;
 
 package System.Garlic.Units is
 
+   --  This package needs comments ???
+
    type Unit_Id is new Natural;
-   Null_Unit_Id : constant Unit_Id := 0;
+   Null_Unit_Id  : constant Unit_Id := 0;
+   First_Unit_Id : constant Unit_Id := 1;
 
    type Request_List is array (RPC.Partition_ID) of Boolean;
    type Request_Id is (Get_Unit, Set_Unit);
@@ -99,19 +102,25 @@ package System.Garlic.Units is
          Cache     : Cache_Access;
       end record;
 
-   Null_Request : constant Request_Type
-     := (Command   => Get_Unit,
-         Partition => System.Garlic.Heart.Null_Partition_ID,
-         Receiver  => null,
-         Version   => null,
-         Cache     => null);
+   Null_Request : constant Request_Type;
 
-   package Units is new System.Garlic.Table.Concurrent
+   package Units is new System.Garlic.Table.Complex
      (Index_Type     => Unit_Id,
+      Null_Index     => Null_Unit_Id,
+      First_Index    => First_Unit_Id,
       Initial_Size   => 20,
       Increment_Size => 20,
       Component_Type => Unit_Type,
       Null_Component => Null_Unit,
       Parameter_Type => Request_Type);
+
+private
+
+   Null_Request : constant Request_Type :=
+     (Command   => Get_Unit,
+      Partition => System.Garlic.Heart.Null_Partition_ID,
+      Receiver  => null,
+      Version   => null,
+      Cache     => null);
 
 end System.Garlic.Units;

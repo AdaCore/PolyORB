@@ -40,28 +40,51 @@ with System.Garlic.Name_Table; use System.Garlic.Name_Table;
 
 package body System.Garlic.Table is
 
-   package body Concurrent is
+   -------------
+   -- Complex --
+   -------------
 
-      --  This table is more complex than the sequential one. Each entry
-      --  includes a name and a component. This allows to retrieve the
-      --  name of a component with its index.
+   package body Complex is
 
-      type Fat_Component_Type is record
+      Min_Pos : constant Integer    := Index_Type'Pos (First_Index);
+      Max_Pos :          Integer    := Min_Pos + Initial_Size - 1;
+
+      Min     : constant Index_Type := Index_Type'Val (Min_Pos);
+      Max     :          Index_Type := Index_Type'Val (Max_Pos);
+
+      type Usage_Type is record
          Name : Name_Id;
-         Data : Component_Type;
+         Free : Boolean;
       end record;
-      Null_Fat_Component : Fat_Component_Type := (Null_Name, Null_Component);
+      Null_Usage : constant Usage_Type := (Null_Name, True);
 
-      package Sequential is new Table.Sequential
-        (Index_Type, Initial_Size, Increment_Size,
-         Fat_Component_Type, Null_Fat_Component);
+      type Usage_Table_Type   is array (Index_Type range <>) of Usage_Type;
+      type Usage_Table_Access is access Usage_Table_Type;
 
-      Sema : Semaphore_Type;
+      Usage   : Usage_Table_Access;
+
+      function Allocate (N : Index_Type := Null_Index) return Index_Type;
+      --  Allocate a new component. When N /= Null_Index then allocate
+      --  N. When this component index is not free, return Null_Index.
+
+      procedure Check (N : Index_Type);
+      --  Check whether N is in range of current table. Otherwise,
+      --  raise Constraint_Error.
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+        (Component_Table_Type, Component_Table_Access);
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+        (Usage_Table_Type, Usage_Table_Access);
+
+      Local_Mutex : Mutex_Type;
       --  This lock is used to block tasks until the table is
-      --  modified. This uses special behaviour of
-      --  Utils.Semaphore_Type. Basically, Sema.Unlock (Postponed) lets the
-      --  run-time know that the lock has been postponed and that it should
-      --  be resume when a Sema.Unlock (Modified) occurs.
+      --  modified. This uses special behaviour of Utils.Mutex_Type.
+      --  Basically, Local_Mutex.Leave (Postponed) lets the run-time know
+      --  that the mutex has been postponed and that it should be resumed
+      --  when a Local_Mutex.Leave (Modified) occurs.
 
       --  Most of these subprograms are abort deferred. At the beginning of
       --  them, the code enter a critical section. At the end, it leaves
@@ -72,16 +95,66 @@ package body System.Garlic.Table is
       -- Allocate --
       --------------
 
-      function Allocate (N : Positive := 1) return Index_Type is
-         Index : Index_Type;
+      function Allocate (N : Index_Type := Null_Index) return Index_Type is
+         Old_Max   : Index_Type;
+         Old_Table : Component_Table_Access;
+         Old_Usage : Usage_Table_Access;
 
       begin
-         pragma Abort_Defer;
 
-         Enter;
-         Index := Sequential.Allocate (N);
-         Leave;
-         return Index;
+         --  Try to allocate N as required.
+
+         if N /= Null_Index then
+            if Max < N then
+               return Null_Index;
+            end if;
+            if Usage (N).Free then
+               Usage (N).Free := False;
+               Table (N)      := Null_Component;
+            end if;
+            return N;
+         end if;
+
+         --  Try to allocate a free one
+
+         for Index in Min .. Max loop
+            if Usage (Index).Free then
+               Usage (Index).Free := False;
+               return Index;
+            end if;
+         end loop;
+
+         --  Allocate new table
+
+         Old_Max   := Max;
+         Old_Table := Table;
+         Old_Usage := Usage;
+
+         Max_Pos   := Max_Pos + Increment_Size;
+         Max       := Index_Type'Val (Max_Pos);
+         Table     := new Component_Table_Type (Min .. Max);
+         Usage     := new Usage_Table_Type     (Min .. Max);
+
+         --  Copy old table in new table
+
+         for Index in Min .. Old_Max loop
+            Table (Index) := Old_Table (Index);
+            Usage (Index) := Old_Usage (Index);
+         end loop;
+
+         --  Intialize incremented part of new table
+
+         for Index in Old_Max + 1 .. Max loop
+            Table (Index) := Null_Component;
+            Usage (Index) := Null_Usage;
+         end loop;
+
+         Free (Old_Table);
+         Free (Old_Usage);
+
+         Usage (Old_Max + 1).Free := False;
+
+         return Old_Max + 1;
       end Allocate;
 
       -----------
@@ -93,39 +166,64 @@ package body System.Garlic.Table is
          Parameter : in Parameter_Type;
          Process   : in Process_Type) is
          Status    : Status_Type;
-         Component : Fat_Component_Type;
 
       begin
          pragma Abort_Defer;
 
+         Check (N);
          loop
-            Sema.Lock;
-            Enter;
+            Local_Mutex.Enter;
+            Enter (Global_Mutex);
+            Process (N, Parameter, Table (N), Status);
+            Leave (Global_Mutex);
+            Local_Mutex.Leave (Status);
 
-            Component := Sequential.Get (N);
-            Process (N, Parameter, Component.Data, Status);
-
-            --  If the component has not been modified, then don't update
-            --  it in the table.
-
-            if Status /= Unmodified then
-               Sequential.Set (N, Component);
-            end if;
-
-            Leave;
-            Sema.Unlock (Status);
-
-            --  Loop when the subprogram execution has been postponed.
+            --  Loop when the subprogram execution has been postponed
 
             exit when Status /= Postponed;
          end loop;
       end Apply;
 
-      ---------
-      -- Get --
-      ---------
+      -----------
+      -- Check --
+      -----------
 
-      function Get (S : String) return Index_Type is
+      procedure Check (N : Index_Type) is
+         Error : Boolean;
+
+      begin
+         Enter (Global_Mutex);
+         Error := (Allocate (N) = Null_Index);
+         Leave (Global_Mutex);
+
+         if Error then
+            raise Constraint_Error;
+         end if;
+      end Check;
+
+      -------------------
+      -- Get_Component --
+      -------------------
+
+      function Get_Component (N : Index_Type) return Component_Type is
+         Component : Component_Type;
+
+      begin
+         pragma Abort_Defer;
+
+         Check (N);
+         Enter (Global_Mutex);
+         Component := Table (N);
+         Leave (Global_Mutex);
+
+         return Component;
+      end Get_Component;
+
+      ---------------
+      -- Get_Index --
+      ---------------
+
+      function Get_Index (S : String) return Index_Type is
          Index : Index_Type;
          Name  : Name_Id;
          Info  : Integer;
@@ -133,162 +231,129 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         Enter;
+         Enter (Global_Mutex);
          Name  := Get (S);
          Info  := Get_Info (Name);
          if Info = 0 then
 
-            --  Info has a null value. Create a new component and store its
-            --  index as the name info.
+            --  Info is a null index. Create new component and set its
+            --  index as name info.
 
             Index := Allocate;
-            Sequential.Set (Index, (Name, Null_Component));
+            Table (Index) := Null_Component;
+            Usage (Index).Name := Name;
             Set_Info (Name, Integer (Index_Type'Pos (Index)));
          else
             Index := Index_Type'Val (Info);
          end if;
-         Leave;
+         Leave (Global_Mutex);
+
          return Index;
-      end Get;
+      end Get_Index;
 
-      ---------
-      -- Get --
-      ---------
+      --------------
+      -- Get_Name --
+      --------------
 
-      function Get (N : Index_Type) return String is
-      begin
-         return Get (Sequential.Get (N).Name);
-      end Get;
-
-      ---------
-      -- Get --
-      ---------
-
-      function Get (N : Index_Type) return Component_Type is
-         Component : Fat_Component_Type;
-
-      begin
-         pragma Abort_Defer;
-
-         Enter;
-         Component := Sequential.Get (N);
-         Leave;
-         return Component.Data;
-      end Get;
-
-      ---------
-      -- Set --
-      ---------
-
-      procedure Set (N : Index_Type; C : Component_Type) is
-      begin
-         pragma Abort_Defer;
-
-         Enter;
-         Sequential.Set (N, (Sequential.Get (N).Name, C));
-         Leave;
-      end Set;
-
-      ---------
-      -- Set --
-      ---------
-
-      procedure Set (N : Index_Type; S : String) is
+      function  Get_Name  (N : Index_Type) return String is
          Name : Name_Id;
-         Data : Fat_Component_Type;
+
       begin
          pragma Abort_Defer;
 
-         Enter;
-         Name := Get (S);
-         Set_Info (Name, Integer (Index_Type'Pos (N)));
+         Enter (Global_Mutex);
+         if Max < N or else Usage (N).Free then
+            Name := Null_Name;
+         else
+            Name := Usage (N).Name;
+         end if;
+         Leave (Global_Mutex);
 
-         Data := Sequential.Get (N);
-         Data.Name := Name;
+         return Get (Name);
+      end Get_Name;
 
-         Sequential.Set (N, Data);
-         Leave;
-      end Set;
+      -------------------
+      -- Set_Component --
+      -------------------
 
-   end Concurrent;
+      procedure Set_Component (N : Index_Type; C : Component_Type) is
+      begin
+         pragma Abort_Defer;
 
-   package body Sequential is
+         Check (N);
+         Enter (Global_Mutex);
+         Table (N) := C;
+         Leave (Global_Mutex);
+      end Set_Component;
 
-      Min_Pos : constant Integer := Index_Type'Pos (Null_Index) + 1;
-      Max_Pos :          Integer := Min_Pos + Initial_Size;
+      --------------
+      -- Set_Name --
+      --------------
+
+      procedure Set_Name (N : Index_Type; S : String) is
+      begin
+         pragma Abort_Defer;
+
+         Check (N);
+         Enter (Global_Mutex);
+         Usage (N).Name := Get (S);
+         Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
+         Leave (Global_Mutex);
+      end Set_Name;
+
+   begin
+      Table := new Component_Table_Type'(Min .. Max => Null_Component);
+      Usage := new Usage_Table_Type    '(Min .. Max => Null_Usage);
+   end Complex;
+
+   ------------
+   -- Simple --
+   ------------
+
+   package body Simple is
+
+      Min_Pos : constant Integer := Index_Type'Pos (First_Index);
+      Max_Pos :          Integer := Min_Pos + Initial_Size - 1;
 
       Min     : constant Index_Type := Index_Type'Val (Min_Pos);
       Max     :          Index_Type := Index_Type'Val (Max_Pos);
 
-      type Table_Type is array (Index_Type range <>) of Component_Type;
-      type Table_Ptr  is access Table_Type;
-
-      procedure Free is new Ada.Unchecked_Deallocation (Table_Type, Table_Ptr);
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+        (Component_Table_Type, Component_Table_Access);
 
       Last  : Index_Type := Null_Index;
-      Table : Table_Ptr   := new Table_Type'(Min .. Max => Null_Component);
-
-      procedure Reallocate;
 
       --------------
       -- Allocate --
       --------------
 
-      function Allocate (N : Positive := 1) return Index_Type is
-         Pos   : Integer;
-         Index : Index_Type;
+      function Allocate return Index_Type is
+         Old : Component_Table_Access;
 
       begin
-         Pos   := Index_Type'Pos (Last);
-         Index := Index_Type'Val (Pos + 1);
-         Pos   := Pos + N;
-         Last  := Index_Type'Val (Pos);
+         if Last = Max then
+            Max_Pos := Max_Pos + Increment_Size;
+            Max     := Index_Type'Val (Max_Pos);
+            Old     := Table;
+            Table   := new Component_Table_Type (Min .. Max);
 
-         if Pos > Max_Pos then
-            Reallocate;
+            for Index in Min .. Last loop
+               Table (Index) := Old (Index);
+            end loop;
+            for Index in Last + 1 .. Max loop
+               Table (Index) := Null_Component;
+            end loop;
+
+            Free (Old);
          end if;
 
-         return Index;
+         Last := Last + 1;
+         return Last;
       end Allocate;
 
-      ---------
-      -- Get --
-      ---------
-
-      function Get (N : Index_Type) return Component_Type is
-      begin
-         return Table (N);
-      end Get;
-
-      ----------------
-      -- Reallocate --
-      ----------------
-
-      procedure Reallocate is
-         New_Pos   : Integer    := Max_Pos + Increment_Size;
-         New_Max   : Index_Type := Index_Type'Val (New_Pos);
-         New_Table : Table_Ptr   := new Table_Type (Min .. New_Max);
-
-      begin
-         for Index in Min .. Last loop
-            New_Table (Index) := Table (Index);
-         end loop;
-         for Index in Last + 1 .. Max loop
-            New_Table (Index) := Null_Component;
-         end loop;
-         Free (Table);
-         Table := New_Table;
-      end Reallocate;
-
-      ---------
-      -- Set --
-      ---------
-
-      procedure Set (N : Index_Type; C : Component_Type) is
-      begin
-         Table (N) := C;
-      end Set;
-
-   end Sequential;
+   begin
+      Table := new Component_Table_Type'(Min .. Max => Null_Component);
+   end Simple;
 
 end System.Garlic.Table;

@@ -39,6 +39,8 @@ with System.RPC;
 
 package System.Garlic.TCP is
 
+   --  This package needs documentation ???
+
    type TCP_Protocol is new System.Garlic.Protocols.Protocol_Type with private;
 
    function Create return System.Garlic.Protocols.Protocol_Access;

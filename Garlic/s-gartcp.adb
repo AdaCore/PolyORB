@@ -33,24 +33,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;                  use Ada.Exceptions;
+with Ada.Exceptions;                      use Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
-with System.Garlic.Constants;         use System.Garlic.Constants;
-with System.Garlic.Debug;             use System.Garlic.Debug;
-with System.Garlic.Heart;             use System.Garlic.Heart;
-with System.Garlic.Naming;            use System.Garlic.Naming;
+with System.Garlic.Constants;             use System.Garlic.Constants;
+with System.Garlic.Debug;                 use System.Garlic.Debug;
+with System.Garlic.Heart;                 use System.Garlic.Heart;
+with System.Garlic.Naming;                use System.Garlic.Naming;
 pragma Elaborate_All (System.Garlic.Naming);
 with System.Garlic.Options;
-with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
+with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
 with System.Garlic.Priorities;
-with System.Garlic.Streams;           use System.Garlic.Streams;
-with System.Garlic.Termination;       use System.Garlic.Termination;
-with System.Garlic.Thin;              use System.Garlic.Thin;
+with System.Garlic.Streams;               use System.Garlic.Streams;
+with System.Garlic.Termination;           use System.Garlic.Termination;
+with System.Garlic.Thin;                  use System.Garlic.Thin;
 with System.Garlic.TCP.Platform_Specific;
-with System.Garlic.Utils;             use System.Garlic.Utils;
-with System.Storage_Elements;         use System.Storage_Elements;
+with System.Garlic.Utils;                 use System.Garlic.Utils;
+with System.Storage_Elements;             use System.Storage_Elements;
 
 package body System.Garlic.TCP is
 
@@ -75,20 +75,21 @@ package body System.Garlic.TCP is
    package Strings renames C.Strings;
    use type C.int;
    use type C.unsigned_short;
-   --  Shortcuts.
+   --  Shortcuts
 
    package Net renames Platform_Specific.Net;
 
    function Port_To_Network (Port : C.unsigned_short)
      return C.unsigned_short;
    pragma Inline (Port_To_Network);
-   --  Convert a port number to a network port number.
+   --  Convert a port number into a network port number
 
    function Network_To_Port (Net_Port : C.unsigned_short)
      return C.unsigned_short
      renames Port_To_Network;
    pragma Inline (Network_To_Port);
-   --  Symetric operation.
+   --  Symetric operation. Since this is an endianness conversion, the reverse
+   --  operation is exactly the same.
 
    In_Address_Any : constant Naming.Address := Any_Address;
 
@@ -131,26 +132,28 @@ package body System.Garlic.TCP is
    procedure Free is
       new Ada.Unchecked_Deallocation (Partition_Map_Type,
                                       Partition_Map_Access);
-
    Partition_Map : Partition_Map_Access :=
      new Partition_Map_Type;
+   --  Kludge to raise Program_Error at deallocation time. Should be removed
+   --  in the future ???
 
    subtype Operation_Code is String (1 .. 4);
-   --  An operation code.
+   --  Operation code which identifies what should be done (low-level
+   --  operation).
 
    Open_Code : constant Operation_Code := "OOOO";
-   --  Code corresponding to the opening of a new connection.
+   --  Code corresponding to the opening of a new connection
 
    Data_Code : constant Operation_Code := "DDDD";
-   --  Code corresponding to transfer of data.
+   --  Code corresponding to transfer of data
 
    Quit_Code : constant Operation_Code := "QQQQ";
-   --  Code corresponding to a shutdown operation.
+   --  Code corresponding to a shutdown operation
 
    function Establish_Connection (Location  : Host_Location;
                                   Operation : Operation_Code)
       return C.int;
-   --  Establish a socket to a remote location and return the file descriptor.
+   --  Establish a socket to a remote location and return the file descriptor
 
    procedure Establish_Listening_Socket;
    --  Establish a socket according to the information in Self_Host (and
@@ -177,29 +180,29 @@ package body System.Garlic.TCP is
    --  sent.
 
    procedure Send_My_Partition_ID (FD : in C.int);
-   --  Transmit my partition ID to the remote end.
+   --  Transmit my partition ID to the remote end
 
    Partition_ID_Length_Cache : Stream_Element_Count := 0;
    function Partition_ID_Length return Stream_Element_Count;
    pragma Inline (Partition_ID_Length);
-   --  Return the length in stream elements needed to store a Partition_ID.
+   --  Return the length in stream elements needed to store a Partition_ID
 
    procedure Receive_And_Send_To_Heart
      (Length    : in Stream_Element_Count;
       FD        : in C.int;
       Partition : in Partition_ID);
-   --  Receive some data from FD and send it to Garlic heart.
+   --  Receive some data from FD and send it to Garlic heart
 
    Stream_Element_Count_Length_Cache : Stream_Element_Count := 0;
    function Stream_Element_Count_Length return Stream_Element_Count;
    pragma Inline (Stream_Element_Count_Length);
-   --  Idem for a stream element count.
+   --  Idem for a stream element count
 
    task Accept_Handler is
       pragma Priority (Priorities.RPC_Priority);
       entry Start;
    end Accept_Handler;
-   --  The task which will accept new connections.
+   --  The task which will accept new connections
 
    task type Incoming_Connection_Handler (FD        : C.Int;
                                           Receiving : Boolean;
@@ -208,7 +211,7 @@ package body System.Garlic.TCP is
    end Incoming_Connection_Handler;
    type Incoming_Connection_Handler_Access is
       access Incoming_Connection_Handler;
-   --  Handler for an incoming connection.
+   --  Handler for an incoming connection
 
    function Read_Code (FD : C.int) return Operation_Code;
    pragma Inline (Read_Code);
@@ -218,7 +221,7 @@ package body System.Garlic.TCP is
    function To_Stream_Element_Array (Code : Operation_Code)
      return Stream_Element_Array;
    pragma Inline (To_Stream_Element_Array);
-   --  Return the stream element array corresponding to the code.
+   --  Return the stream element array corresponding to the code
 
    --------------------
    -- Accept_Handler --
@@ -226,8 +229,7 @@ package body System.Garlic.TCP is
 
    task body Accept_Handler is
    begin
-
-      --  Wait for start or terminate.
+      --  Wait for start or terminate
 
       select
          accept Start;
@@ -235,7 +237,7 @@ package body System.Garlic.TCP is
          terminate;
       end select;
 
-      --  Infinite loop on C_Accept.
+      --  Infinite loop on C_Accept
 
       loop
          declare
@@ -545,7 +547,7 @@ package body System.Garlic.TCP is
               (D (D_Debug,
                   "Will receive a packet of length" & Length'Img));
 
-            --  No Add_Non_Terminating_Task either (see above).
+            --  No Add_Non_Terminating_Task either (see above)
 
             Receive_And_Send_To_Heart (Length, FD, Partition);
 
@@ -560,9 +562,9 @@ package body System.Garlic.TCP is
          --  occurred. In the case, the entry will be freed, except if we
          --  are terminating since this is not worth freeing anything.
 
-         if Partition /= Null_Partition_ID and then
-           not Shutdown_Keeper.Is_In_Progress then
-
+         if Partition /= Null_Partition_ID
+           and then not Shutdown_Keeper.Is_In_Progress
+         then
             --  Set the entry in the table correctly only we are not
             --  executing a shutdown operation. If we are, then
             --  it is likely that Partition_Map is already deallocated.
@@ -581,7 +583,7 @@ package body System.Garlic.TCP is
             Dummy := C_Close (FD);
          end;
 
-         --  Signal to the heart that we got an error on this partition.
+         --  Signal to the heart that we got an error on this partition
 
          if Partition = Null_Partition_ID then
             pragma Debug
@@ -608,7 +610,6 @@ package body System.Garlic.TCP is
          begin
             Dummy := C_Close (FD);
          end;
-
    end Incoming_Connection_Handler;
 
    -------------------------
@@ -731,10 +732,10 @@ package body System.Garlic.TCP is
       while Rest > 0 loop
 
          Code := Net.C_Read (FD, To_Chars_Ptr (Current), Rest);
-
          if Code <= 0 then
             Raise_Communication_Error ("Read error");
          end if;
+
          Current := Current + Storage_Offset (Code);
          Rest := Rest - Code;
       end loop;
@@ -757,6 +758,7 @@ package body System.Garlic.TCP is
          if Code <= 0 then
             Raise_Communication_Error ("Write error");
          end if;
+
          Current := Current + Storage_Offset (Code);
          Rest := Rest - Code;
       end loop;
@@ -807,10 +809,10 @@ package body System.Garlic.TCP is
         Stream_Element_Count_Length;
       Header        : aliased Params_Stream_Type (Header_Length);
    begin
-      --  XXXXX The following select-then abort construct is commented out
+      --  The following select-then abort construct is commented out
       --  since this leads in GNAT 3.09 to bogus runtime locking. This may
       --  hardly be a problem, except that this may block the termination.
-      --  In the meantime, it has been replaced with a begin-end block
+      --  In the meantime, it has been replaced with a begin-end block ???
       --  select
       --    Shutdown_Keeper.Wait;
       --    raise Communication_Error;
@@ -824,7 +826,7 @@ package body System.Garlic.TCP is
                Temp : Host_Location;
             begin
                Temp := Split_Data
-                 (Get_Data (Get_Partition_Location (Partition)));
+                 (Get_Data (Get_Partition_Data (Partition).Location));
                Partition_Map.Lock (Partition);
                Remote_Data := Partition_Map.Get_Immediate (Partition);
                Remote_Data.Location := Temp;
@@ -886,7 +888,7 @@ package body System.Garlic.TCP is
                   Send_My_Partition_ID (Remote_Data.FD);
                end if;
 
-               --  Now create a task to get data on this connection.
+               --  Now create a task to get data on this connection
 
                declare
                   NT : Incoming_Connection_Handler_Access;
@@ -924,7 +926,7 @@ package body System.Garlic.TCP is
                Partition_Map.Unlock (Partition);
                raise;
          end;
-      --  XXXXX Should be end select (see above)
+      --  Should be end select (see above) ???
       end;
    end Send;
 
@@ -1007,7 +1009,6 @@ package body System.Garlic.TCP is
       Free (Partition_Map);
 
       pragma Debug (D (D_Debug, "Shutdown completed"));
-
    end Shutdown;
 
    ----------------

@@ -67,12 +67,12 @@ package body System.Partition_Interface is
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
       Params    : access Params_Stream_Type);
-   --  Global message receiver.
+   --  Global message receiver
 
    procedure Partition_RPC_Receiver
      (Params : access Params_Stream_Type;
       Result : access Params_Stream_Type);
-   --  Global RPC receiver.
+   --  Global RPC receiver
 
    procedure Send
      (Partition : in Partition_ID;
@@ -80,8 +80,8 @@ package body System.Partition_Interface is
       Unit      : in Unit_Id);
 
    Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
-   Get_Unit_Request : constant Request_Type
-     := (Get_Unit, Local_Partition, null, null, null);
+   Get_Unit_Request : constant Request_Type :=
+     (Get_Unit, Local_Partition, null, null, null);
 
    -----------------------------
    -- Get_Active_Partition_ID --
@@ -95,11 +95,11 @@ package body System.Partition_Interface is
 
    begin
       To_Lower (N);
-      U := Units.Get (N);
+      U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
 
       Units.Apply (U, Get_Unit_Request, Process'Access);
-      return Units.Get (U).Partition;
+      return Units.Get_Component (U).Partition;
    end Get_Active_Partition_ID;
 
    ------------------------
@@ -114,11 +114,11 @@ package body System.Partition_Interface is
 
    begin
       To_Lower (N);
-      U := Units.Get (N);
+      U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Version"));
 
       Units.Apply (U, Get_Unit_Request, Process'Access);
-      return Units.Get (U).Version.all;
+      return Units.Get_Component (U).Version.all;
    end Get_Active_Version;
 
    ----------------------------
@@ -154,11 +154,11 @@ package body System.Partition_Interface is
 
    begin
       To_Lower (N);
-      U := Units.Get (N);
+      U := Units.Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
 
       Units.Apply (U, Get_Unit_Request, Process'Access);
-      return Units.Get (U).Receiver;
+      return Units.Get_Component (U).Receiver;
    end Get_RCI_Package_Receiver;
 
    -------------------------------
@@ -208,7 +208,7 @@ package body System.Partition_Interface is
             end if;
 
             if Unit.Status = Known then
-               pragma Debug (D (D_Debug, Units.Get (N) & " is known"));
+               pragma Debug (D (D_Debug, Units.Get_Name (N) & " is known"));
 
                Status := Unmodified;
 
@@ -230,20 +230,21 @@ package body System.Partition_Interface is
                end if;
 
             else
-               pragma Debug (D (D_Debug, Units.Get (N) & " is unknown"));
+               pragma Debug (D (D_Debug, Units.Get_Name (N) & " is unknown"));
 
                Status := Postponed;
 
                if not Is_Boot_Partition then
 
+                  --  Ask the boot server for this info
+
                   Send (Server, Request, N);
-                  --  Ask the boot server for this info.
 
                elsif Request.Partition /= Server then
                   pragma Debug
                     (D (D_Debug,
                         "Queuing request from" & Request.Partition'Img &
-                        " on " & Units.Get (N)));
+                        " on " & Units.Get_Name (N)));
 
                   --  Queue this request in order to answer it when info is
                   --  available.
@@ -263,16 +264,20 @@ package body System.Partition_Interface is
 
             if not Is_Boot_Partition then
                pragma Debug
-                 (D (D_Debug, Units.Get (N) & " registered on boot server"));
+                 (D (D_Debug, Units.Get_Name (N) &
+                     " registered on boot server"));
+
+               --  Send this info to boot server once it is saved locally
 
                Send (Server, Request, N);
-               --  Send this info to boot server once it is saved locally.
 
             elsif Unit.Pending then
                pragma Debug
-                 (D (D_Debug, "Answer pending requests on " & Units.Get (N)));
+                 (D (D_Debug,
+                     "Answer pending requests on " &
+                     Units.Get_Name (N)));
 
-               --  Dequeue pending requests in the boot server.
+               --  Dequeue pending requests in the boot server
 
                for P in Unit.Requests'Range loop
                   if Unit.Requests (P) then
@@ -299,7 +304,7 @@ package body System.Partition_Interface is
       N : Unit_Name := Unit_Name'(Unit_Name'Input (Params));
 
    begin
-      U := Units.Get (N);
+      U := Units.Get_Index (N);
 
       Request_Id'Read (Params, R.Command);
       if R.Command = Set_Unit then
@@ -335,7 +340,7 @@ package body System.Partition_Interface is
       pragma Debug (D (D_Debug, "Request Register_Receiving_Stub"));
 
       To_Lower (Uname);
-      Units.Apply (Units.Get (Uname), Request, Process'Access);
+      Units.Apply (Units.Get_Index (Uname), Request, Process'Access);
    end Register_Receiving_Stub;
 
    --------------
@@ -364,7 +369,7 @@ package body System.Partition_Interface is
             pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
 
             Units.Apply (Uname, Request, Process'Access);
-            Unit := Units.Get (Uname);
+            Unit := Units.Get_Component (Uname);
             Cache.Set_RCI_Data (Unit.Receiver, Unit.Partition);
          end if;
          return Unit.Partition;
@@ -391,7 +396,7 @@ package body System.Partition_Interface is
 
    begin
       To_Lower (Name);
-      Uname := Units.Get (Name);
+      Uname := Units.Get_Index (Name);
    end RCI_Info;
 
    ----------
@@ -403,7 +408,7 @@ package body System.Partition_Interface is
       Request   : in Request_Type;
       Unit      : in Unit_Id) is
       Params : aliased Params_Stream_Type (0);
-      Name   : String := Units.Get (Unit);
+      Name   : String := Units.Get_Name (Unit);
 
    begin
       pragma Debug

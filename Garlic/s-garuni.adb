@@ -42,10 +42,9 @@ with System.Garlic.Termination;
 pragma Elaborate_All (System.Garlic.Termination);
 with System.Garlic.Utils; use System.Garlic.Utils;
 pragma Elaborate_All (System.Garlic.Utils);
-with System.RPC; use System.RPC;
+with System.RPC;          use System.RPC;
 pragma Elaborate_All (System.RPC);
-
-with GNAT.IO; use GNAT.IO;
+with GNAT.IO;             use GNAT.IO;
 
 package body System.Garlic.Units is
 

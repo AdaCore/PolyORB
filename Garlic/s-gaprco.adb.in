@@ -44,11 +44,22 @@ pragma Elaborate_All (System.Garlic.Replay);
 
 package body System.Garlic.Protocols.Config is
 
-   --  This package should be created during GARLIC installation.
-   --  It should register all the protocols present in the distribution
+   --  This package should be created during GARLIC installation. It
+   --  should register all the protocols present in the distribution.
 
    procedure Register (P : in Protocol_Access);
-   --  Register the protocol as a present protocol.
+   --  Register the protocol as a present protocol
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Register (System.Garlic.Loopback.Create);
+      Register (System.Garlic.Replay.Create);
+      @TCP_INCLUDED@Register (System.Garlic.TCP.Create);
+   end Initialize;
 
    --------------
    -- Register --
@@ -64,16 +75,5 @@ package body System.Garlic.Protocols.Config is
       end loop;
       raise Constraint_Error;
    end Register;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      Register (System.Garlic.Loopback.Create);
-      Register (System.Garlic.Replay.Create);
-      @TCP_INCLUDED@Register (System.Garlic.TCP.Create);
-   end Initialize;
 
 end System.Garlic.Protocols.Config;

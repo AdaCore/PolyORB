@@ -43,6 +43,8 @@ generic
    Static_Object_Size : System.Storage_Elements.Storage_Count;
 package System.Garlic.Storage_Handling is
 
+   --  This package needs comments ???
+
    type Garlic_Storage_Pool is
      new System.Storage_Pools.Root_Storage_Pool with private;
 
@@ -75,7 +77,7 @@ private
         pragma Atomic (N_Objects);
         Addresses : Array_Of_Addresses;
         Used      : Array_Of_Boolean;
-        Semaphore : Utils.Semaphore_Type;
+        Mutex     : Utils.Mutex_Type;
      end record;
 
 end System.Garlic.Storage_Handling;
