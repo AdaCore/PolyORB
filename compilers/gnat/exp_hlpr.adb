@@ -96,6 +96,18 @@ package body Exp_Hlpr is
 
    --  Common subprograms for building record helpers
 
+   function Make_Array_Iterator
+     (Loc           : Source_Ptr;
+      Typ           : Entity_Id;
+      Innermost_Stm : Node_Id;
+      Indices       : List_Id)
+      return Node_Id;
+   --  Build nested loop statements that iterate over the elements
+   --  of an array of type Typ. Statement Innermost_Stm is executed
+   --  for each element; Indices is the list of indices to be used
+   --  in the construction of the indexed component that denotes
+   --  the current element.
+
    generic
       with procedure Process_One_Field (E : Entity_Id);
    procedure Add_Component_List (Clist : Node_Id);
@@ -468,12 +480,8 @@ package body Exp_Hlpr is
 
       elsif (Is_Array_Type (Typ) and then Is_Constrained (Typ)) then
 
-         --  XXX This complicated block of code is quite similar
-         --  to the one for to_any below, should be factored out.
-
          declare
-            Ndim : constant Pos := Number_Dimensions (Typ);
-            Inner_Stm : Node_Id;
+            Assign_Component : Node_Id;
             Indices : constant List_Id := New_List;
 
             Res : constant Entity_Id
@@ -506,7 +514,7 @@ package body Exp_Hlpr is
                 Expression =>
                   Build_TypeCode_Call (Loc, Component_Type (Typ), Decls)));
 
-            Inner_Stm := Make_Block_Statement (Loc,
+            Assign_Component := Make_Block_Statement (Loc,
               Handled_Statement_Sequence =>
                 Make_Handled_Sequence_Of_Statements (Loc,
                   Statements => New_List (
@@ -537,31 +545,12 @@ package body Exp_Hlpr is
                          Right_Opnd =>
                            Make_Integer_Literal (Loc, 1))))));
 
-            for J in 1 .. Ndim loop
-               Append_To (Indices,
-                 Make_Identifier (Loc, New_External_Name ('L', J)));
+	    Append_To (Stms,
+              Make_Array_Iterator (Loc,
+                Typ, 
+		Assign_Component,
+		Indices));
 
-               Inner_Stm :=
-                 Make_Implicit_Loop_Statement (Fnam,
-                   Iteration_Scheme =>
-                     Make_Iteration_Scheme (Loc,
-                       Loop_Parameter_Specification =>
-                         Make_Loop_Parameter_Specification (Loc,
-                           Defining_Identifier =>
-                             Make_Defining_Identifier (Loc,
-                               Chars => New_External_Name ('L', Ndim - J + 1)),
-
-                           Discrete_Subtype_Definition =>
-                             Make_Attribute_Reference (Loc,
-                               Prefix => New_Occurrence_Of (Res, Loc),
-                               Attribute_Name => Name_Range,
-
-                               Expressions => New_List (
-                                 Make_Integer_Literal (Loc, Ndim - J + 1))))),
-                   Statements => New_List (Inner_Stm));
-            end loop;
-
-            Append_To (Stms, Inner_Stm);
             Append_To (Stms,
               Make_Return_Statement (Loc,
                 Expression => New_Occurrence_Of (Res, Loc)));
@@ -928,9 +917,8 @@ package body Exp_Hlpr is
          end if;
 
       elsif (Is_Array_Type (Typ) and then Is_Constrained (Typ)) then
+
          declare
-            Ndim : constant Pos := Number_Dimensions (Typ);
-            Inner_Stm : Node_Id;
             Indices : constant List_Id := New_List;
             Component : Node_Id;
          begin
@@ -945,39 +933,17 @@ package body Exp_Hlpr is
               Prefix => New_Occurrence_Of (Expr_Parameter, Loc),
               Expressions => Indices);
             Set_Etype (Component, Component_Type (Typ));
-            Inner_Stm := Make_Procedure_Call_Statement (Loc,
-              Name =>
-                New_Occurrence_Of (RTE (RE_Add_Aggregate_Element), Loc),
-              Parameter_Associations => New_List (
-                New_Occurrence_Of (Any, Loc),
-                Build_To_Any_Call (Component, Decls)));
 
-            for J in 1 .. Ndim loop
-               Append_To (Indices,
-                 Make_Identifier (Loc, New_External_Name ('L', J)));
-
-               Inner_Stm :=
-                 Make_Implicit_Loop_Statement (Fnam,
-                   Iteration_Scheme =>
-                     Make_Iteration_Scheme (Loc,
-                       Loop_Parameter_Specification =>
-                         Make_Loop_Parameter_Specification (Loc,
-                           Defining_Identifier =>
-                             Make_Defining_Identifier (Loc,
-                               Chars => New_External_Name ('L', Ndim - J + 1)),
-
-                           Discrete_Subtype_Definition =>
-                             Make_Attribute_Reference (Loc,
-                               Prefix => New_Occurrence_Of (
-                                 Expr_Parameter, Loc),
-                               Attribute_Name => Name_Range,
-
-                               Expressions => New_List (
-                                 Make_Integer_Literal (Loc, Ndim - J + 1))))),
-                   Statements => New_List (Inner_Stm));
-            end loop;
-
-            Append_To (Stms, Inner_Stm);
+	    Append_To (Stms,
+              Make_Array_Iterator (Loc,
+                Typ,
+                Make_Procedure_Call_Statement (Loc,
+                  Name =>
+                    New_Occurrence_Of (RTE (RE_Add_Aggregate_Element), Loc),
+                  Parameter_Associations => New_List (
+                    New_Occurrence_Of (Any, Loc),
+                    Build_To_Any_Call (Component, Decls))),
+		Indices));
 
          end;
       elsif Is_Integer_Type (Typ) or else Is_Unsigned_Type (Typ) then
@@ -1396,6 +1362,7 @@ package body Exp_Hlpr is
          end if;
 
       elsif (Is_Array_Type (Typ) and then Is_Constrained (Typ)) then
+
          declare
             Ndim : constant Pos := Number_Dimensions (Typ);
             Inner_TypeCode : Node_Id;
@@ -1612,6 +1579,46 @@ package body Exp_Hlpr is
       --  XXX numeric types with a biased representation??
 
    end Find_Numeric_Representation;
+
+   -------------------------
+   -- Make_Array_Iterator --
+   -------------------------
+
+   function Make_Array_Iterator
+     (Loc           : Source_Ptr;
+      Typ           : Entity_Id;
+      Innermost_Stm : Node_Id;
+      Indices       : List_Id)
+      return Node_Id
+   is
+      Ndim : constant Pos := Number_Dimensions (Typ);
+      Inner_Stm : Node_Id := Innermost_Stm;
+
+   begin
+      for J in 1 .. Ndim loop
+         Append_To (Indices,
+           Make_Identifier (Loc, New_External_Name ('L', J)));
+         Inner_Stm :=
+           Make_Implicit_Loop_Statement (Fnam,
+             Iteration_Scheme =>
+               Make_Iteration_Scheme (Loc,
+                 Loop_Parameter_Specification =>
+                   Make_Loop_Parameter_Specification (Loc,
+                     Defining_Identifier =>
+                       Make_Defining_Identifier (Loc,
+                         Chars => New_External_Name ('L', Ndim - J + 1)),
+
+                     Discrete_Subtype_Definition =>
+                       Make_Attribute_Reference (Loc,
+                         Prefix => New_Occurrence_Of (Res, Loc),
+                         Attribute_Name => Name_Range,
+
+                         Expressions => New_List (
+                           Make_Integer_Literal (Loc, Ndim - J + 1))))),
+             Statements => New_List (Inner_Stm));
+      end loop;
+      return Inner_Stm;
+   end Make_Array_Iterator;
 
    -----------------------------------------
    -- Make_Stream_Procedure_Function_Name --
