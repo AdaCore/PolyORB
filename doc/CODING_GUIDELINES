@@ -70,6 +70,8 @@ copyright years must remain consistent with package content.
 Always update the MANIFEST file and any makefile.am when the source
 tree is modified.
 
+Always update (or create if necessary) README file for each example.
+
 Rebuild dependences every time package dependences are modified.
 
 To rebuild dependences, run 'make depend' from PolyORB's root directory.
