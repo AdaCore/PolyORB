@@ -83,8 +83,8 @@ test051/tin.idl
 test052/tin.idl
 test053/tin.idl
 test054/tin.idl
-#aif_b01/tin.idl
-#aif_p01/tin.idl
+aif_b01/tin.idl
+aif_p01/tin.idl
 #avt_b01/tin.idl
 #avt_p01/tin.idl
 #va_f01/tin.idl
