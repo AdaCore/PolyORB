@@ -126,6 +126,29 @@ begin
 
    PolyORB.RTCORBA_P.Setup.Set_Priority_Mapping (Priority_Mapping);
 
+   --  Getting the CORBA Object
+
+   CORBA.ORB.String_To_Object
+     (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), myecho);
+
+   --  Checking if it worked
+
+   if Echo.Is_Nil (myecho) then
+      Put_Line ("main : cannot invoke on a nil reference");
+      return;
+   end if;
+
+   --  Sending message
+
+   Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello Ada !"));
+   Running_Priority := Echo.echoString (myecho, Sent_Msg);
+
+   --  Printing result
+
+   Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
+   Put_Line ("Request executed at priority:"
+             & CORBA.Short'Image (Running_Priority));
+
    declare
       Current : RTCORBA.Current.Ref
         := RTCORBA.Current.To_Ref
@@ -153,18 +176,6 @@ begin
                     & "CORBA.Initialize",
                     True);
       end;
-
-      --  Getting the CORBA Object
-
-      CORBA.ORB.String_To_Object
-        (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), myecho);
-
-      --  Checking if it worked
-
-      if Echo.Is_Nil (myecho) then
-         Put_Line ("main : cannot invoke on a nil reference");
-         return;
-      end if;
 
       --  Test #1, invocation with priority Client_Priority_1
 

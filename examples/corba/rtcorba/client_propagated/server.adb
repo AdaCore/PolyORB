@@ -148,8 +148,9 @@ begin
 
       Ref_Server_1 : CORBA.Object.Ref;
 
-      Default_Priority_1 : constant RTCORBA.Priority := 10000;
-      Default_Priority_2 : constant RTCORBA.Priority := 20000;
+      Base_Priority      : constant RTCORBA.Priority := 1_000;
+      Default_Priority_1 : constant RTCORBA.Priority := 10_000;
+      Default_Priority_2 : constant RTCORBA.Priority := 20_000;
 
    begin
 
@@ -180,11 +181,16 @@ begin
         := Create_Priority_Model_Policy
         (RT_ORB,
          CLIENT_PROPAGATED,
-         Default_Priority_1);
+         Base_Priority);
 
       Output ("CLIENT_PROPAGATED policy declared", True);
 
-      --  Create Lane
+      --  Create Lanes
+
+      Append (Lanes,
+              RTCORBA.ThreadpoolLane'(Lane_Priority => Base_Priority,
+                                      Static_Threads => 2,
+                                      Dynamic_Threads => 0));
 
       Append (Lanes,
                RTCORBA.ThreadpoolLane'(Lane_Priority => Default_Priority_1,
@@ -240,8 +246,10 @@ begin
 
       --  Output object IOR
 
-      Put_Line ("IOR of object #1, attached to thread pool with 2 lanes "
+      Put_Line ("IOR of object #1, attached to thread pool with 3 lanes "
                 & "with priorities"
+                & RTCORBA.Priority'Image (Base_Priority)
+                & ","
                 & RTCORBA.Priority'Image (Default_Priority_1)
                 & ","
                 & RTCORBA.Priority'Image (Default_Priority_2));
