@@ -190,6 +190,13 @@ package body all_types.Impl is
         (My_Exception'Identity, Members.all);
    end testException;
 
+   procedure testUnknownException
+     (Self : access Object;
+      arg  : in CORBA.Long) is
+   begin
+      raise Constraint_Error;
+   end TestUnknownException;
+
    function echoStruct
      (Self : access Object;
       arg  : in simple_struct)

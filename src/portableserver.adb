@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with Ada.Unchecked_Conversion;
 
 with CORBA; use CORBA;
 
@@ -203,7 +202,7 @@ package body PortableServer is
       return Find_Info (For_Servant).Type_Id;
    exception
       when Skeleton_Unknown =>
-         return CORBA.To_CORBA_String (OMG_RepositoryId ("OBJECT"));
+         return CORBA.To_CORBA_String (OMG_RepositoryId ("CORBA/OBJECT"));
       when others =>
          raise;
    end Get_Type_Id;
@@ -223,8 +222,9 @@ package body PortableServer is
       Info : Skeleton_Info;
 
    begin
-      pragma Debug (O ("GIOP_Dispatch"));
+      pragma Debug (O ("GIOP_Dispatch : enter"));
       Info := Find_Info (For_Servant);
+      pragma Debug (O ("GIOP_Dispatch : info found"));
       Info.Dispatcher
         (For_Servant,
          Operation,
@@ -232,11 +232,13 @@ package body PortableServer is
          Response_Expected,
          Request_Buffer,
          Reply_Buffer);
+      pragma Debug (O ("GIOP_Dispatch : dispatcher called"));
    exception
       when Skeleton_Unknown =>
          pragma Debug (O ("Skeleton is unknown"));
          Broca.Exceptions.Raise_Bad_Operation;
       when others =>
+         pragma Debug (O ("GIOP_Dispatch : exception raised"));
          raise;
    end GIOP_Dispatch;
 
@@ -279,14 +281,6 @@ package body PortableServer is
       Broca.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
-   function ObjectId_To_Octet_Sequence is
-      new Ada.Unchecked_Conversion
-       (ObjectId, Broca.Sequences.Octet_Sequence);
-
-   function Octet_Sequence_To_ObjectId is
-      new Ada.Unchecked_Conversion
-       (Broca.Sequences.Octet_Sequence, ObjectId);
-
    --------------
    -- Marshall --
    --------------
@@ -296,7 +290,7 @@ package body PortableServer is
       Data   : in ObjectId) is
    begin
       Broca.Sequences.Marshall
-        (Buffer, ObjectId_To_Octet_Sequence (Data));
+        (Buffer, Broca.Sequences.Octet_Sequence (Data));
    end Marshall;
 
    ----------------
@@ -307,8 +301,7 @@ package body PortableServer is
      (Buffer : access Broca.Buffers.Buffer_Type)
      return ObjectId is
    begin
-      return Octet_Sequence_To_ObjectId
-        (Broca.Sequences.Unmarshall (Buffer));
+      return ObjectId (Broca.Sequences.Unmarshall (Buffer));
    end Unmarshall;
 
 end PortableServer;

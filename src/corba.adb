@@ -1774,11 +1774,11 @@ package body CORBA is
    function Get_Empty_Any (Tc : TypeCode.Object) return Any is
       Result : Any;
    begin
+      pragma Debug (O ("Get_Empty_Any : enter"));
       Set_Type (Result, Tc);
+      pragma Debug (O ("Get_Empty_Any : type set"));
       Inc_Usage (Result);
-      --  we put ref_count to 1 even if there is no pointer is
-      --  because if there were one in the future, we would have
-      --  a reference on it here.
+      pragma Debug (O ("Get_Empty_Any : usage incremented"));
       return Result;
    end Get_Empty_Any;
 
@@ -1802,14 +1802,14 @@ package body CORBA is
                             Value : CORBA.Octet) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Octet then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Octet then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Octet_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Octet_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Octet'(Value => Value);
+         Any_Value.The_Value.all := new Content_Octet'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -1821,14 +1821,14 @@ package body CORBA is
                             Value : in CORBA.Short) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Short then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Short then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Short_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Short_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Short'(Value => Value);
+         Any_Value.The_Value.all := new Content_Short'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
       pragma Debug (O ("Set_Any_Value : the any value is "
@@ -1844,14 +1844,14 @@ package body CORBA is
                             Value : in CORBA.Long) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Long then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Long then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Long_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Long_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Long'(Value => Value);
+         Any_Value.The_Value.all := new Content_Long'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -1863,14 +1863,14 @@ package body CORBA is
                             Value : in CORBA.Long_Long) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Longlong then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Longlong then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Long_Long_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Long_Long_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Long_Long'(Value => Value);
+         Any_Value.The_Value.all := new Content_Long_Long'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -1882,14 +1882,14 @@ package body CORBA is
                             Value : in CORBA.Unsigned_Short) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Ushort then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ushort then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_UShort_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_UShort_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_UShort'(Value => Value);
+         Any_Value.The_Value.all := new Content_UShort'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -1901,14 +1901,14 @@ package body CORBA is
                             Value : in CORBA.Unsigned_Long) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Ulong then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ulong then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_ULong_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_ULong_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_ULong'(Value => Value);
+         Any_Value.The_Value.all := new Content_ULong'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -1920,14 +1920,15 @@ package body CORBA is
                             Value : in CORBA.Unsigned_Long_Long) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Ulonglong then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
+        Tk_Ulonglong then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_ULong_Long_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_ULong_Long_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value :=
+         Any_Value.The_Value.all :=
           new Content_ULong_Long'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
@@ -1940,14 +1941,14 @@ package body CORBA is
                             Value : in CORBA.Boolean) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Boolean then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Boolean then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Boolean_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Boolean_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Boolean'(Value => Value);
+         Any_Value.The_Value.all := new Content_Boolean'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -1959,14 +1960,14 @@ package body CORBA is
                             Value : in CORBA.Char) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Char then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Char then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Char_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Char_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Char'(Value => Value);
+         Any_Value.The_Value.all := new Content_Char'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -1978,14 +1979,14 @@ package body CORBA is
                             Value : in CORBA.Wchar) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Widechar then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Widechar then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Wchar_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Wchar_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Wchar'(Value => Value);
+         Any_Value.The_Value.all := new Content_Wchar'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -1997,14 +1998,14 @@ package body CORBA is
                             Value : in CORBA.String) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_String then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_String then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_String_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_String_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_String'(Value => Value);
+         Any_Value.The_Value.all := new Content_String'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -2016,14 +2017,14 @@ package body CORBA is
                             Value : in CORBA.Wide_String) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Wstring then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Wstring then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Wide_String_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Wide_String_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Wide_String'(Value => Value);
+         Any_Value.The_Value.all := new Content_Wide_String'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -2035,14 +2036,14 @@ package body CORBA is
                             Value : in CORBA.Float) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Float then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Float then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Float_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Float_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Float'(Value => Value);
+         Any_Value.The_Value.all := new Content_Float'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -2054,14 +2055,14 @@ package body CORBA is
                             Value : in CORBA.Double) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Double then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Double then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Double_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Double_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Double'(Value => Value);
+         Any_Value.The_Value.all := new Content_Double'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -2073,14 +2074,15 @@ package body CORBA is
                             Value : in CORBA.Long_Double) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Longdouble then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
+        Tk_Longdouble then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Long_Double_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Long_Double_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Long_Double'(Value => Value);
+         Any_Value.The_Value.all := new Content_Long_Double'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -2092,14 +2094,14 @@ package body CORBA is
                             Value : in CORBA.TypeCode.Object) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_TypeCode then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_TypeCode then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_TypeCode_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_TypeCode_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_TypeCode'(Value => Value);
+         Any_Value.The_Value.all := new Content_TypeCode'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -2111,14 +2113,14 @@ package body CORBA is
                             Value : in CORBA.Any) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Any then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Any then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value /= null then
-         Content_Any_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Any_Ptr (Any_Value.The_Value.all).Value := Value;
       else
-         Any_Value.The_Value := new Content_Any'(Value => Value);
+         Any_Value.The_Value.all := new Content_Any'(Value => Value);
       end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
@@ -2141,8 +2143,8 @@ package body CORBA is
       end if;
       pragma Debug (O ("Set_Any_Aggregate_Value : no exception raised"));
       Any_Value.Any_Lock.Lock_W;
-      if Any_Value.The_Value = null then
-         Any_Value.The_Value :=
+      if Any_Value.The_Value.all = Null_Content_Ptr then
+         Any_Value.The_Value.all :=
           new Content_Aggregate'(Value => Null_Content_List);
       end if;
       Any_Value.Any_Lock.Unlock_W;
@@ -2171,20 +2173,20 @@ package body CORBA is
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
       Value.Any_Lock.Lock_W;
-      Cl := Content_Aggregate_Ptr (Value.The_Value).Value;
+      Cl := Content_Aggregate_Ptr (Value.The_Value.all).Value;
       pragma Debug (O ("Add_Aggregate_Element : element kind is "
                        & CORBA.TCKind'Image
                        (CORBA.TypeCode.Kind
                         (CORBA.Get_Type (Element)))));
       if Cl = Null_Content_List then
-         Content_Aggregate_Ptr (Value.The_Value).Value
-           := new Content_Cell' (Duplicate (Element.The_Value),
+         Content_Aggregate_Ptr (Value.The_Value.all).Value
+           := new Content_Cell' (Duplicate (Element.The_Value.all),
                                  Null_Content_List);
       else
          while Cl.Next /= Null_Content_List loop
             Cl := Cl.Next;
          end loop;
-         Cl.Next := new Content_Cell' (Duplicate (Element.The_Value),
+         Cl.Next := new Content_Cell' (Duplicate (Element.The_Value.all),
                                        Null_Content_List);
       end if;
       Value.Any_Lock.Unlock_W;
@@ -2203,7 +2205,7 @@ package body CORBA is
    begin
       pragma Debug (O ("Get_Aggregate_Element : enter"));
       Value.Any_Lock.Lock_R;
-      Ptr := Content_Aggregate_Ptr (Value.The_Value).Value;
+      Ptr := Content_Aggregate_Ptr (Value.The_Value.all).Value;
       pragma Debug (O ("Get_Aggregate_Element : Index = "
                        & CORBA.Unsigned_Long'Image (Index)
                        & ", aggregate_count = "
@@ -2217,7 +2219,7 @@ package body CORBA is
       end if;
       pragma Assert (Ptr /= null);
       pragma Assert (Ptr.The_Value /= null);
-      Result.The_Value := Duplicate (Ptr.The_Value);
+      Result.The_Value.all := Duplicate (Ptr.The_Value);
       Value.Any_Lock.Unlock_R;
       Inc_Usage (Result);
       Set_Type (Result, Tc);
@@ -2490,6 +2492,7 @@ package body CORBA is
       pragma Debug (O2 ("Initialize"));
       Object.Ref_Counter := new Natural'(0);
       Object.Any_Lock := new Broca.Locks.Rw_Lock_Type;
+      Object.The_Value := new Any_Content_Ptr'(Null_Content_Ptr);
    end Initialize;
 
    --------------
@@ -2501,17 +2504,18 @@ package body CORBA is
       if Object.As_Reference then
          Inc_Usage (Object);
       else
+         pragma Assert (Object.Any_Lock /= null);
          if Get_Value (Object) /= Null_Content_Ptr then
             pragma Debug (O2 ("object type is "
-                             & Ada.Tags.External_Tag
-                             (Get_Value (Object).all'Tag)));
-            pragma Assert (Object.Any_Lock /= null);
-            Object.Any_Lock.Lock_R;
-            Object.The_Value := Duplicate (Object.The_Value);
-            Object.Any_Lock.Unlock_R;
-            Object.Ref_Counter := new Natural'(1);
-            Object.Any_Lock := new Broca.Locks.Rw_Lock_Type;
+                              & Ada.Tags.External_Tag
+                              (Get_Value (Object).all'Tag)));
+            Object.The_Value :=
+             new Any_Content_Ptr'(Duplicate (Get_Value (Object)));
+         else
+            Object.The_Value := new Any_Content_Ptr'(Null_Content_Ptr);
          end if;
+         Object.Ref_Counter := new Natural'(1);
+         Object.Any_Lock := new Broca.Locks.Rw_Lock_Type;
       end if;
       pragma Debug (O2 ("Adjust : end"));
    end Adjust;
@@ -2522,7 +2526,6 @@ package body CORBA is
    procedure Finalize (Object : in out Any) is
    begin
       pragma Debug (O2 ("Finalize : enter"));
-      pragma Debug (O2 ("Finalize"));
       Dec_Usage (Object);
       pragma Debug (O2 ("Finalize : end"));
    end Finalize;
@@ -2533,7 +2536,7 @@ package body CORBA is
    procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr) is
    begin
       Obj.Any_Lock.Lock_W;
-      Obj.The_Value := The_Value;
+      Obj.The_Value.all := The_Value;
       Obj.Any_Lock.Unlock_W;
    end Set_Value;
 
@@ -2547,16 +2550,26 @@ package body CORBA is
       Obj.Any_Lock.Unlock_W;
    end Set_Counter;
 
-   -----------------
-   --  Get_Value  --
-   -----------------
-   function Get_Value (Obj : Any) return Any_Content_Ptr is
-      Content : Any_Content_Ptr;
+   ---------------------
+   --  Get_Value_Ptr  --
+   ---------------------
+   function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr is
+      Content : Any_Content_Ptr_Ptr;
    begin
       Obj.Any_Lock.Lock_R;
       Content := Obj.The_Value;
       Obj.Any_Lock.Unlock_R;
       return Content;
+   end Get_Value_Ptr;
+
+   -----------------
+   --  Get_Value  --
+   -----------------
+   function Get_Value (Obj : Any) return Any_Content_Ptr is
+      Content : Any_Content_Ptr_Ptr;
+   begin
+      Content := Get_Value_Ptr (Obj);
+      return Content.all;
    end Get_Value;
 
    -------------------
@@ -2589,7 +2602,6 @@ package body CORBA is
    procedure Dec_Usage (Obj : in out Any) is
    begin
       pragma Debug (O2 ("Dec_Usage : enter"));
-      pragma Debug (O2 ("Dec_Usage"));
       Obj.Any_Lock.Lock_W;
       pragma Debug (O2 ("Dec_Usage : lock placed"));
       if Obj.Ref_Counter.all > 1 then
@@ -2598,17 +2610,18 @@ package body CORBA is
          Obj.Any_Lock.Unlock_W;
          pragma Debug (O2 ("Dec_Usage : lock released"));
       else
-         if Obj.The_Value /= Null_Content_Ptr then
-            Deallocate (Obj.The_Value);
-            Deallocate (Obj.Ref_Counter);
-            pragma Debug (O2 ("Dec_Usage : counter deallocated"));
-            Obj.Any_Lock.Unlock_W;
-            pragma Debug (O2 ("Dec_Usage : lock released"));
-            Deallocate (Obj.Any_Lock);
-         else
-            Obj.Any_Lock.Unlock_W;
-            pragma Debug (O2 ("Dec_Usage : lock released"));
+         pragma Debug (O2 ("Dec_Usage : about to release the any"));
+         if Obj.The_Value.all /= Null_Content_Ptr then
+            Deallocate (Obj.The_Value.all);
          end if;
+         pragma Debug (O2 ("Dec_Usage : content released"));
+         Deallocate_Any_Content_Ptr (Obj.The_Value);
+         pragma Debug (O2 ("Dec_Usage : content_Ptr released"));
+         Deallocate (Obj.Ref_Counter);
+         pragma Debug (O2 ("Dec_Usage : counter deallocated"));
+         Obj.Any_Lock.Unlock_W;
+         pragma Debug (O2 ("Dec_Usage : lock released"));
+         Deallocate (Obj.Any_Lock);
       end if;
       pragma Debug (O2 ("Dec_Usage : end"));
    end Dec_Usage;

@@ -46,8 +46,9 @@ with Report;    use Report;
 with All_Types; use All_Types;
 with All_Types.Helper;
 
+with Naming_Tools;
+
 procedure DynClient is
-   IOR : CORBA.String;
    Myall_Types : CORBA.Object.Ref;
    One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
                  or else Boolean'Value (Ada.Command_Line.Argument (2));
@@ -74,7 +75,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Boolean (True)),
+                 Argument => Get_Empty_Any (CORBA.TC_Boolean),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -125,7 +126,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoShort;
 
    function EchoLong
@@ -163,7 +164,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoLong;
 
    function EchoUShort
@@ -201,7 +202,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoUShort;
 
    function EchoULong
@@ -239,7 +240,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoULong;
 
    function EchoFloat
@@ -277,7 +278,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoFloat;
 
    function EchoDouble
@@ -315,7 +316,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoDouble;
 
    function EchoChar
@@ -353,7 +354,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoChar;
 
    function EchoOctet
@@ -391,7 +392,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoOctet;
 
    function EchoString
@@ -429,7 +430,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoString;
 
    function EchoRef
@@ -468,7 +469,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return CORBA.Object.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoRef;
 
    function EchoColor
@@ -507,7 +508,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoColor;
 
    function EchoArray
@@ -546,7 +547,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoArray;
 
    function EchoMatrix
@@ -585,7 +586,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoMatrix;
 
    function EchoBigMatrix
@@ -624,7 +625,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoBigMatrix;
 
    function EchoStruct
@@ -663,7 +664,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoStruct;
 
    function EchoArrayStruct
@@ -702,7 +703,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoArrayStruct;
 
    function EchoUnion
@@ -741,7 +742,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoUnion;
 
    function EchoUsequence
@@ -780,7 +781,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoUsequence;
 
    function EchoBsequence
@@ -819,7 +820,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoBsequence;
 
    procedure Set_MyColor
@@ -884,7 +885,7 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end Get_MyColor;
 
    function Get_Counter (Self : in CORBA.Object.Ref)
@@ -913,8 +914,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return CORBA.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end Get_Counter;
 
    procedure TestException
@@ -959,18 +959,61 @@ procedure DynClient is
       CORBA.Request.Invoke (Request, 0);
    end TestException;
 
+   procedure TestUnknownException
+     (Self : in CORBA.Object.Ref;
+      Arg : in CORBA.Long) is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("testUnknownException");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Excp_List : CORBA.ExceptionList.Ref;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result : CORBA.NamedValue;
+   begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      Argument := CORBA.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  creating the exception list
+      CORBA.ORB.Create_List (Excp_List);
+      CORBA.ExceptionList.Add (Excp_List,
+                               All_Types.Helper.TC_My_Exception);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Excp_List,
+                                   CORBA.ContextList.Nil_Ref,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+   end TestUnknownException;
+
 begin
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
-         ("usage : client <IOR_string_from_server> [oneshot]");
+         ("usage : client <IOR_string_from_server|name|-i> [oneshot]");
       return;
    end if;
 
    --  transforms the Ada string into CORBA.String
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-
-   --  getting the CORBA.Object
-   CORBA.ORB.String_To_Object (IOR, Myall_types);
+   if Ada.Command_Line.Argument (1) = "-i" then
+      Myall_types := Naming_Tools.Locate ("all_types");
+   else
+      Myall_types := Naming_Tools.Locate (Ada.Command_Line.Argument (1));
+   end if;
 
    loop
       --  boolean
@@ -1100,19 +1143,38 @@ begin
          Ok := False;
          declare
             Member : UnknownUserException_Members;
-            Info : CORBA.Long;
+            Actual_Member : My_Exception_Members;
          begin
             testException (Myall_types, 2485);
          exception
             when E : UnknownUserException =>
                Get_Members (E, Member);
-               Info := From_Any
-                 (Get_Aggregate_Element (Member.IDL_Exception,
-                                         CORBA.TC_Long,
-                                         CORBA.Unsigned_Long (0)));
-               Ok := (Info = 2485);
+               Actual_Member :=
+                 All_Types.Helper.From_Any (Member.IDL_Exception);
+               Ok := (Actual_Member.Info = 2485);
+            when others =>
+              null;
          end;
-         Output ("test exception", Ok);
+         Output ("test user exception", Ok);
+      end;
+
+      declare
+         Ok : Boolean;
+      begin
+         Ok := False;
+         declare
+            Member : UnknownUserException_Members;
+            Actual_Member : My_Exception_Members;
+         begin
+            testUnknownException (Myall_types, 2485);
+         exception
+            when CORBA.UNKNOWN =>
+               Ok := True;
+
+            when others =>
+               null;
+         end;
+         Output ("test unknown exception", Ok);
       end;
 
       exit when One_Shot;

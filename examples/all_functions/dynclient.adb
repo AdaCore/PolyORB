@@ -44,7 +44,7 @@ procedure Dynclient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end Get_The_Attribute;
 
    procedure Set_The_Attribute (Self : in CORBA.Object.Ref;
@@ -107,7 +107,7 @@ procedure Dynclient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end Get_The_Readonly_Attribute;
 
    procedure Void_Proc (Self : in CORBA.Object.Ref) is
@@ -507,7 +507,7 @@ procedure Dynclient is
       CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -520,7 +520,7 @@ procedure Dynclient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end Void_Fun;
 
    function In_Fun (Self : in CORBA.Object.Ref;
@@ -555,7 +555,7 @@ procedure Dynclient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -568,7 +568,7 @@ procedure Dynclient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end In_Fun;
 
    procedure Out_Fun
@@ -604,7 +604,7 @@ procedure Dynclient is
                              CORBA.ARG_OUT);
       --  Set the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  Create a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -620,7 +620,7 @@ procedure Dynclient is
       A := CORBA.From_Any (Argument_A);
       B := CORBA.From_Any (Argument_B);
       C := CORBA.From_Any (Argument_C);
-      Returns := From_Any (CORBA.Request.Return_Value (Request).Argument);
+      Returns := From_Any (Result.Argument);
    end Out_Fun;
 
    procedure Inout_Fun
@@ -651,7 +651,7 @@ procedure Dynclient is
                              CORBA.ARG_INOUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -666,7 +666,7 @@ procedure Dynclient is
       --  get out arguments
       A := CORBA.From_Any (Argument_A);
       B := CORBA.From_Any (Argument_B);
-      Returns := From_Any (CORBA.Request.Return_Value (Request).Argument);
+      Returns := From_Any (Result.Argument);
    end Inout_Fun;
 
    procedure In_Out_Fun
@@ -709,7 +709,7 @@ procedure Dynclient is
                              CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -724,7 +724,7 @@ procedure Dynclient is
       --  get out arguments
       C := CORBA.From_Any (Argument_C);
       D := CORBA.From_Any (Argument_D);
-      Returns := From_Any (CORBA.Request.Return_Value (Request).Argument);
+      Returns := From_Any (Result.Argument);
    end In_Out_Fun;
 
    procedure In_Inout_Fun
@@ -770,7 +770,7 @@ procedure Dynclient is
                              CORBA.ARG_INOUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -785,7 +785,7 @@ procedure Dynclient is
       --  get out arguments
       B := CORBA.From_Any (Argument_B);
       D := CORBA.From_Any (Argument_D);
-      Returns := From_Any (CORBA.Request.Return_Value (Request).Argument);
+      Returns := From_Any (Result.Argument);
    end In_Inout_Fun;
 
    procedure Out_Inout_Fun
@@ -831,7 +831,7 @@ procedure Dynclient is
                              CORBA.ARG_OUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -848,7 +848,7 @@ procedure Dynclient is
       B := CORBA.From_Any (Argument_B);
       C := CORBA.From_Any (Argument_C);
       D := CORBA.From_Any (Argument_D);
-      Returns := From_Any (CORBA.Request.Return_Value (Request).Argument);
+      Returns := From_Any (Result.Argument);
    end Out_Inout_Fun;
 
    procedure In_Out_Inout_Fun (Self : in CORBA.Object.Ref;
@@ -886,7 +886,7 @@ procedure Dynclient is
                              CORBA.ARG_INOUT);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -901,7 +901,7 @@ procedure Dynclient is
       --  get out arguments
       B := CORBA.From_Any (Argument_B);
       C := CORBA.From_Any (Argument_C);
-      Returns := From_Any (CORBA.Request.Return_Value (Request).Argument);
+      Returns := From_Any (Result.Argument);
    end In_Out_Inout_Fun;
 
    procedure Oneway_Void_Proc (Self : in CORBA.Object.Ref) is
@@ -982,7 +982,7 @@ procedure Dynclient is
       CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => To_Any (CORBA.Short (0)),
+                 Argument => Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -995,7 +995,7 @@ procedure Dynclient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end Oneway_Checker;
 
 begin
@@ -1183,8 +1183,8 @@ begin
          delay 5.0;
          Ok := Oneway_Checker (Myall_Functions) = 2;
       end if;
---   exception when others =>
---      Ok := False;
+   exception when others =>
+      Ok := False;
    end;
     Output ("test void one way procedure", Ok);
 

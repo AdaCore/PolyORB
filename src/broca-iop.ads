@@ -41,6 +41,8 @@ with Broca.Sequences;
 
 package Broca.IOP is
 
+   pragma Elaborate_Body;
+
    -----------------------------------
    -- Abstract GIOP connection type --
    -----------------------------------

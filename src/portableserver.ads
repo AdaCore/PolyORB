@@ -34,11 +34,11 @@
 with CORBA;
 with CORBA.Object;
 with CORBA.Impl;
-with CORBA.Sequences.Unbounded;
 with CORBA.Forward;
 pragma Elaborate_All (CORBA.Forward);
 
 with Broca.Buffers;
+with Broca.Sequences;
 
 package PortableServer is
 
@@ -74,8 +74,7 @@ package PortableServer is
    --       (For_Servant : Servant_Base)
    --       return Boolean;
 
-   package IDL_SEQUENCE_Octet is
-      new CORBA.Sequences.Unbounded (CORBA.Octet);
+   package IDL_SEQUENCE_Octet renames Broca.Sequences.Octet_Sequences;
    type ObjectId is new IDL_SEQUENCE_Octet.Sequence;
 
    -------------------------------

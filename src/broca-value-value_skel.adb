@@ -43,7 +43,12 @@ package body Broca.Value.Value_Skel is
      return CORBA.Boolean;
    --  The Is_A operation for the root value type,
    --  CORBA::ValueBase.
+   --  Actually, it should never be called since CORBA.Value.Impl_Base
+   --  is abstract.
 
+   ------------
+   --  Is_A  --
+   ------------
    function Is_A
      (Type_Id : in Standard.String)
      return CORBA.Boolean
@@ -52,7 +57,7 @@ package body Broca.Value.Value_Skel is
    begin
       return Broca.Repository.Is_Equivalent
         (Type_Id,
-         Broca.Names.OMG_RepositoryId ("ValueBase"));
+         Broca.Names.OMG_RepositoryId ("CORBA/ValueBase"));
    end Is_A;
 
 begin

@@ -913,6 +913,8 @@ private
    type Content is abstract tagged null record;
    type Any_Content_Ptr is access all Content'Class;
    Null_Content_Ptr : constant Any_Content_Ptr := null;
+   type Any_Content_Ptr_Ptr is access Any_Content_Ptr;
+   Null_Content_Ptr_Ptr : constant Any_Content_Ptr_Ptr := null;
 
    --  This function duplicates its argument and give back
    --  a deep copy of it.
@@ -928,6 +930,9 @@ private
    --  Frees an Any_Content_Ptr
    procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
      (Content'Class, Any_Content_Ptr);
+   --  Frees an Any_Content_Ptr_Ptr
+   procedure Deallocate_Any_Content_Ptr is new Ada.Unchecked_Deallocation
+     (Any_Content_Ptr, Any_Content_Ptr_Ptr);
 
    type Content_Octet is new Content with
       record
@@ -1119,7 +1124,7 @@ private
    --  the Any has a semantic of reference or of value and the last
    --  one counts the number of references on the field The_Value.
    type Any is new Ada.Finalization.Controlled with record
-      The_Value : Any_Content_Ptr;
+      The_Value : Any_Content_Ptr_Ptr;
       The_Type  : CORBA.TypeCode.Object;
       As_Reference : Boolean := False;
       Ref_Counter : Natural_Ptr;
@@ -1134,6 +1139,7 @@ private
    procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr);
    procedure Set_Counter (Obj : in out Any; The_Counter : in Natural_Ptr);
    function Get_Value (Obj : Any) return Any_Content_Ptr;
+   function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr;
    function Get_Counter (Obj : Any) return Natural_Ptr;
 
    --  The control procedures to the Any type

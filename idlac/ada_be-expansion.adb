@@ -408,9 +408,14 @@ package body Ada_Be.Expansion is
                   Pop_Scope;
                   Push_Scope (Node);
                end if;
-               Success := Add_Identifier
-                 (Idl_File_Node,
-                  Filename.all & "_IDL_File");
+               declare
+                  Base_Name : constant String
+                     := Filename.all (Filename'First .. Filename'Last - 4);
+                  --  Omit ".idl"
+               begin
+                  Success := Add_Identifier
+                    (Idl_File_Node, Base_Name  & "_IDL_File");
+               end;
                pragma Assert (Success);
 
                --  add the new node to the hashtable.
@@ -720,6 +725,9 @@ package body Ada_Be.Expansion is
    begin
       pragma Assert (Kind (Node) = K_State_Member);
       Declarators := State_Declarators (Node);
+
+      --  expand the type
+      Expand_Node (State_Type (Node));
 
       Init (It, Declarators);
       pragma Assert (not Is_End (It));

@@ -362,6 +362,7 @@ package body Broca.IIOP is
       then
          pragma Debug (O ("Unmarshall_IIOP_Profile_Body : "
                           & "Invalid IIOP version number"));
+         --  null;
          Broca.Exceptions.Raise_Bad_Param;
       end if;
 
@@ -378,7 +379,7 @@ package body Broca.IIOP is
       end if;
 
       Result := new Profile_IIOP_Type;
-      
+
       Result.Version := Version;
       Result.Host    := Host;
       Result.Port    := Port;

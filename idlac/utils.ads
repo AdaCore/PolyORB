@@ -30,6 +30,7 @@ with System;
 
 package Utils is
 
+   function Img (N : Character) return String;
    function Img (N : Integer) return String;
    function Img (N : Long_Integer) return String;
    function Img (N : Long_Long_Integer) return String;
@@ -52,5 +53,8 @@ package Utils is
 
    pragma Inline (Img);
    --  All versions of Img are covered by this pragma
+
+   function Img (A : Constant_Value_Ptr) return String;
+   --  return the image of a constant
 
 end Utils;

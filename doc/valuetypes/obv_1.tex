@@ -5,8 +5,8 @@
 \subsection{The abstract concepts}
 
 \paragraph{}The {\bf O}bject {\bf M}anagement {\bf G}roup is a consortium created in 1989 
-that put together more than 850 actors of the new economy :
-contructors like Sun or IBM, software seller like Netscape, Inprise or Visigenic, users like Boeing or Alcatel and institutions or
+that puts together more than 850 actors of the new economy :
+contructors like Sun or IBM, software sellers like Netscape, Inprise or Visigenic, users like Boeing or Alcatel and institutions or
 universities like NASA, INRIA, LIFL. The goal of this group is to create standards for the integration of heterogeneous applications
 on distributed systems using object oriented technologies. The key concepts are thus reusability, interoperability and portability
 of software components.
@@ -18,7 +18,7 @@ applications.
 
 \paragraph{}The CORBA bus provides an object oriented client-server model for the cooperation between distributed applications.
 Each application can export some of its functionnalities (services) as CORBA objects : that's the abstraction component of the model.
-The interactions between the applications are then materialized as remote invocations of methods of objects : that's the cooperation part.
+The interactions between the applications are then materialized as remote invocations of methods on objects : that's the cooperation part.
 The client-server notion only appears when an object is used : the application actually implemented the object is seen as a server
 whereas the application using it is seen as a client. Of course, one
 application can be client and server at the same time.
@@ -87,6 +87,7 @@ with small descriptions and explanations. This part should be readable
 by anybody having a small knowledge of CORBA. Part 3 presents the
 implementation choices made to support the CORBA 2.3 features that were needed before
 valuetypes could be implemented. Part 4 presents the architecture design chosen to
-support valuetypes in AdaBroker. Part 3 and 4 are very technical since
+support valuetypes in AdaBroker. Part 3 (object hierarchy) , 4
+(valuetypes) and 5 (marshalling valuetypes) are very technical since
 they are meant to be a documentation for the product source code as well.
 

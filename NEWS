@@ -4,10 +4,19 @@ AdaBroker news
 New features in version 1.0pre3
 ===============================
 
+COS Naming and COS Events are implemented. A stand-alone name server,
+ab_names, is provided.
+
+UNIX manual pages are provided.
+
+Some support for Dynamic Invocation Interface, Interface Repository and
+valuetypes.
+
+A shell-script ab_gnome lets you use GNOME name service (as well as others)
+from AdaBroker.
+
 A package Broca.Parameters allows the person installing AdaBroker to
 change the default stack size in server tasks.
-
-A stand-alone COS Naming server is now provided.
 
 Bugs fixed include:
   Usage of a constant as the length of an array is now
@@ -18,6 +27,12 @@ Bugs fixed include:
 
   The handling of escaped keywords as identifiers was fixed.
   (Problem reported by Mehtap Kologlu of Eurocontrol).
+
+  Unknown profiles in IORs are now processed correctly.
+  (Problem noted while interoperating with ORBit).
+
+  Unknown exceptions are now correctly map to the UNKNOWN
+  system exception.
 
 Incompatible changes in version 1.0pre3
 =======================================

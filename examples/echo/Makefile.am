@@ -1,3 +1,4 @@
+EXAMPLES_ROOT=..
 EXAMPLE = echo
 
 EXTRA = dynclient

@@ -1,0 +1,18 @@
+module calculators {
+  
+  interface simple_calculator {
+    long add (in long left_op1, in long right_op2);  
+    long subtract (in long left_op1, in long right_op2);  
+  };
+
+  interface calculator_plus {
+    long add (in long left_op1, in long right_op2);  
+    long subtract (in long left_op1, in long right_op2);
+    long multiply (in long left_op1, in long right_op2);  
+    long divide (in long left_op1, in long right_op2);  
+    long add3 (in long op1, in long op2, in long op3);
+    long add4 (in long op1, in long op2, in long op3, in long op4);
+    long square (in long op);
+  };
+    
+};

@@ -482,7 +482,7 @@ package body Broca.Inet_Server is
       Result : Interfaces.C.int;
       Used_Port : Natural;
    begin
-      pragma Debug (O ("Initialize : enter"));
+      pragma Debug (O ("Start: enter"));
 
       if Port = 0 then
          Used_Port := Natural'Value
@@ -497,6 +497,14 @@ package body Broca.Inet_Server is
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
       pragma Debug (O ("Socket created"));
+
+      declare
+         One    : aliased Integer := 1;
+         Result : int;
+      begin
+         Result :=
+           C_Setsockopt (Sock, Sol_Socket, So_Reuseaddr, One'Address, 4);
+      end;
 
       --  Find an address for this host.
       Get_Host_Address;
@@ -552,9 +560,12 @@ package body Broca.Inet_Server is
 
    procedure Ensure_Started is
    begin
+      pragma Debug (O ("Ensure_Started: enter"));
       if not Server_Started then
+         pragma Debug (O ("Ensure_Started: not yet"));
          Start;
       end if;
+      pragma Debug (O ("Ensure_Started: leave"));
    end Ensure_Started;
 
    --  Calling this function will cause the BOA to start accepting requests

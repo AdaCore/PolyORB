@@ -99,6 +99,19 @@ package body Ada_Be.Idl2Ada.Skel is
             if Supports (Node) /= Nil_List then
                Gen_Body_Common_Start (CU, Node);
                Gen_Is_A (CU, Node);
+
+               declare
+                  It : Node_Iterator;
+                  P_Node : Node_Id;
+               begin
+                  Init (It, Supports (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, P_Node);
+                     Add_With (CU,
+                               Ada_Full_Name (P_Node) & ".Skel",
+                               Elab_Control => Elaborate);
+                  end loop;
+               end;
             end if;
 
          when K_Interface =>
@@ -278,7 +291,11 @@ package body Ada_Be.Idl2Ada.Skel is
                if Is_Supported then
                   PL (CU, Ada_Be.Temporaries.T_Value_Operation);
                   Add_With (CU, "CORBA.Impl");
-                  Put (CU, "  (CORBA.Impl.Object_Ptr (Obj)");
+                  PL (CU, "  (CORBA.Impl.Object_Ptr");
+                  Put (CU, "   ("
+                       & Ada_Full_Name (I_Node)
+                       & Ada_Be.Idl2Ada.Helper.Suffix
+                       & ".Servant_Ref (Obj).Value)");
                else
                   PL (CU, Ada_Full_Name (I_Node) & Impl.Suffix
                       & "." & Ada_Name (Node));
@@ -305,19 +322,17 @@ package body Ada_Be.Idl2Ada.Skel is
 
                DI (CU);
 
+               PL (CU, "exception");
+               II (CU);
+
                declare
                   It : Node_Iterator;
                   R_Node : Node_Id;
                   E_Node : Node_Id;
-                  First : Boolean := True;
                begin
                   Init (It, Raises (Node));
 
                   while not Is_End (It) loop
-                     if First then
-                        PL (CU, "exception");
-                        First := False;
-                     end if;
 
                      Get_Next_Node (It, R_Node);
                      E_Node := Value (R_Node);
@@ -326,7 +341,6 @@ package body Ada_Be.Idl2Ada.Skel is
 
                      Add_With_Entity (CU, E_Node);
                      NL (CU);
-                     II (CU);
                      PL (CU, "when E : " & Ada_Full_Name (E_Node)
                          & " =>");
                      II (CU);
@@ -372,11 +386,22 @@ package body Ada_Be.Idl2Ada.Skel is
                      PL (CU, "end;");
 
                      DI (CU);
-                     DI (CU);
                   end loop;
+
+                  PL (CU, "when E : others =>");
+                  II (CU);
+                  NL (CU);
+                  PL (CU, "--  An exception was raised which is not listed");
+                  PL (CU, "--  in this operation's ""raises"" clause.");
+                  NL (CU);
+                  PL (CU, "Broca.Exceptions.User_Purge_Members (E);");
+                  PL (CU, "Broca.Exceptions.Raise_Unknown");
+                  PL (CU, "  (Status => CORBA.Completed_Maybe);");
+                  DI (CU);
+                  DI (CU);
+                  PL (CU, "end;");
                end;
 
-               PL (CU, "end;");
 
                --  FIXME: This code is duplicated (above for each
                --    exception that can be raised by this operation,

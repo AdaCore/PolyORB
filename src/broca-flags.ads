@@ -34,8 +34,9 @@
 with CORBA;
 
 package Broca.Flags is
+
    --  The body is in charge to decode options during elaboration.
-   pragma Elaborate_Body (Broca.Flags);
+   pragma Elaborate_Body;
 
    --  Not highly used.
    Verbose : Boolean := True;

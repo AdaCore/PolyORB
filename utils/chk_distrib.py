@@ -6,21 +6,38 @@ import string, sys, re, os, glob
 # All dirs: check MANIFEST vs. files
 
 def get_subdirs (dir):
-  return map (lambda s, d=dir: d + "/" + s,
-    string.split (re.match \
-    ("^SUBDIRS = (.*)$",
-     open (dir + "/Makefile.am", "r").readlines ()[0]).group (1), ' '))
+  res = []
+  m = re.match \
+      ("^SUBDIRS\s*=\s*(.*)$",
+       open (dir + "/Makefile.am", "r").readlines ()[0])
+  if not m:
+    return [dir]
+  
+  dirs = map (lambda s, d=dir: d + "/" + s,
+    string.split (m.group (1), ' '))
+
+  for d in dirs:
+    if re.match (dir + "/\.?$", d):
+      continue
+    sub = get_subdirs (d)
+    if len (sub) > 0:
+      res = res + sub
+    else:
+      res = res + [d]
+  return res
 
 def read_MANIFEST (dir):
   MANIFEST = []
   for l in open ("MANIFEST", "r").readlines ():
-    m = re.match ("^(" + dir + "/(Make.*|.*\.ad[sb]))$", l)
+    m = re.match ("^(" + dir + "/(Makefile\.(common|am)|[^/]*\.ad[sb]))$", l)
     if m:
       MANIFEST.append (m.group (1))
   return MANIFEST
 
 def read_files (dir):
-  return glob.glob (dir + "/*.ad[sb]") + glob.glob (dir + "/Make*")
+  return glob.glob (dir + "/*.ad[sb]") \
+         + glob.glob (dir + "/Makefile.am") \
+         + glob.glob (dir + "/Makefile.common")
 
 # Additional checks for src/:
 #  Makefile.am
@@ -109,7 +126,7 @@ if len (sys.argv) > 1:
   allsrc = read_allsrc (sys.argv[1])
   compare_lists ("files", "allsrc", 0)
 
-subdirs = [ 'idlac' ] + get_subdirs ("examples")  + get_subdirs ("cos") 
+subdirs = [ 'idlac', 'src/ir' ] + get_subdirs ("examples") + get_subdirs ("cos") 
 for d in subdirs:
   print "Checking " + d + "/...\n"
   

@@ -635,6 +635,8 @@ package body Broca.Server is
                   pragma Debug (O ("Handle_Request : invoking "
                                    & To_Standard_String (Operation)));
 
+                  Broca.Buffers.Show (Key_Buffer);
+
                   declare
                      Object_Id : aliased Encapsulation
                        := Unmarshall (Key_Buffer'Access);
@@ -1057,7 +1059,7 @@ package body Broca.Server is
       pragma Debug (O ("Marshall : enter"));
 
       --   0 ..  3: boot time or 0 if persistent POA.
-      if The_POA.Lifespan_Policy = PortableServer.TRANSIENT then
+      if The_POA.Lifespan_Policy = PortableServer.PERSISTENT then
          Marshall (Buffer, CORBA.Unsigned_Long'(0));
 
       else
@@ -1126,10 +1128,17 @@ package body Broca.Server is
       --  Lock the table, so that we are sure the poa won't be destroyed.
       Broca.POA.All_POAs_Lock.Lock_R;
 
-      if All_POAs /= null
-        and then POA_Index in All_POAs.all'Range
-        and then All_POAs (POA_Index).Date = POA_Date
-      then
+      if Boot_Time /= 0 then
+
+         --  We are dealing with a transient POA
+
+         if All_POAs = null
+           or else POA_Index not in All_POAs.all'Range
+           or else All_POAs (POA_Index).Date /= POA_Date
+         then
+            Broca.Exceptions.Raise_Object_Not_Exist;
+         end if;
+
          POA := All_POAs (POA_Index).POA;
 
          --  Neither the POA won't be destroyed, nor its children.
@@ -1162,6 +1171,9 @@ package body Broca.Server is
          --  Unmarshall number of POAs in path name.
          Path_Size := Unmarshall (Buffer);
 
+         pragma Debug (O ("Demarshalling path of size" &
+                          CORBA.Unsigned_Long'Image (Path_Size)));
+
          --  Start with the root POA
          Current_POA := All_POAs (Broca.POA.Root_POA_Index).POA;
 
@@ -1183,12 +1195,18 @@ package body Broca.Server is
             Dec_Usage (Get_The_POAManager (POA_Object_Of (Current_POA)).all);
 
             POA_Name := Unmarshall (Buffer);
+
+            pragma Debug (O ("Next POA in path is " &
+                             CORBA.To_Standard_String (POA_Name)));
+
             Old_POA  := Current_POA;
             Current_POA := Broca.POA.Ref
               (Broca.POA.Find_POA
                (POA_Object_Of (Current_POA), POA_Name, True));
 
             if Is_Nil (Current_POA) then
+               pragma Debug (O ("POA " & CORBA.To_Standard_String (POA_Name) &
+                                " could not be found"));
                POA_Object_Of (Old_POA).Link_Lock.Unlock_R;
                Broca.Exceptions.Raise_Object_Not_Exist;
             end if;

@@ -83,8 +83,6 @@ package Broca.ORB is
    Interface_Repository_ObjectId   : constant CORBA.ORB.ObjectId;
    Name_Service_ObjectId           : constant CORBA.ORB.ObjectId;
 
-   Initial_References_RepositoryId : constant CORBA.RepositoryId;
-
 private
 
    Root_POA_ObjectId               : constant CORBA.ORB.ObjectId :=
@@ -98,8 +96,5 @@ private
 
    Name_Service_ObjectId           : constant CORBA.ORB.ObjectId :=
      CORBA.ORB.To_CORBA_String ("NamingService");
-
-   Initial_References_RepositoryId : constant CORBA.RepositoryId :=
-     CORBA.To_CORBA_String ("IDL/InitialReferences:1.0");
 
 end Broca.ORB;

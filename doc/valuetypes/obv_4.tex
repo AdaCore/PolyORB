@@ -67,7 +67,7 @@ end WeightedBinaryTree.Helper;
 \end{verbatim}
 
 \paragraph{} The mapping is rather straightfoward. In practice, the
-Value\_Ref type points to a Value\_Impl.Object object. Subprograms
+Value\_Ref type points to a Value\_\-Impl.Object object. Subprograms
 defined in the main package are only pass-through to their actual
 implementation which is in the .Value\_Impl package.
 
@@ -163,7 +163,7 @@ all the the standard sequence mapping. An issue was sent to the OMG to
 mention that.
 
 \paragraph{}Then, the last line of this ada code does not compile. As
-a matter of fact, LongSeq\_Value\_Box.Box\_Ref is a tagged
+a matter of fact, LongSeq\_Value\_\-Box.\-Box\_Ref is a tagged
 type. Therefore, LongSeq must be either a subtype, or explicitely
 define a ``null record'' extension.
 
@@ -174,14 +174,16 @@ define a ``null record'' extension.
 (LongSeq\_Value\_Box.Box\_Ref and LongSeq), and therefore is lighter.
 \end{itemize}
 
-\paragraph{}Here are the advantages of the ``type extension option'':
+\paragraph{}Here are the advantages and drawbacks of the ``type extension option'':
 \begin{itemize}
 \item It imports all the functions defined in CORBA.Value.Box in the
 current scope since they are inherited by LongSeq.
+\item Operation ``Create'' of CORBA.Value.Box has to be overloaded
+each time.
 \end{itemize}
 
-\paragraph{} I chose the latter option since it is simpler for the
-CORBA programmer, and raised an issue to the OMG.
+\paragraph{} I chose the former option because it would be heavy to
+overload ``Create'' each time. An issue to the OMG was raised.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Widening and narrowing valuetypes
@@ -198,7 +200,7 @@ the programmer.\end{it}
 \paragraph{}Here is what the ada mapping version 1.2 reads (paragraph 1.10.2.4):
 \begin{it}Instances of abstract or stateful valuetypes may be widened
 to inherited abstract valuetypes through the
-``To\_Abstract\_Value\_Ref'' function defined in the value helper
+``To\_Abstract\_\-Value\_Ref'' function defined in the value helper
 package of the abstract parent value type.''\end{it}. For concrete
 value types, paragraph 1.10.2.3 reads that \begin{it}The derived
 valuetype may be widened to the parent value through Ada's view
@@ -225,12 +227,12 @@ must be copied down to the actual value type, and that operations
 defined on the Value\_Ref type are only ``pass-throughs'' to their
 acutal implementations defined on the ``Value\_Impl.Object'' type.
 
-\paragraph{}This mapping seems rather simple, but there is comlex
+\paragraph{}This mapping seems rather simple, but there is complex
 hidden issue. Consider the following IDL:
 
 \begin{verbatim}
 // IDL
-module comlex_issue {
+module complex_issue {
 
 	abstract valuetype Drink {
 		void killThirst();
@@ -395,8 +397,8 @@ end Bar2.Value_Skel;
 \paragraph{} Note that we cannot register directly the actual
 implementation (Bar2.Value\_Impl.Foo), because its parameter type is
 ``access Bar2.Value\_Impl.Object'', which is not
-``CORBA.Impl.Object\_Ptr''. Moreover, the signature of Foo\_Type could
-not take an ``access Bar2.Value\_Impl.Object'' as parameter, since
+``CORBA.Impl.\-Object\_Ptr''. Moreover, the signature of Foo\_Type could
+not take an ``access Bar2.Value\_Impl.\-Object'' as parameter, since
 this type is not known when ``Bar.Value\_Skel'' is compiled.
 
 \subsubsection{Actual call of a valuetype operation}
@@ -508,69 +510,29 @@ the child's fields ?
 more precise and does not break the rule too much.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Marshalling valuetypes
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Marshalling valuetypes}
-
-\paragraph{}Since valuetypes are transmitted by value over the wire, a
-precise marshalling into a GIOP stream is defined in chapter 15 of the
-CORBA specification v 2.3. Here are the several steps to implement to
-fully support marshalling of valuetypes.
-
-\subsection{Marshalling basis valuetypes}
-Marshalling basic valuetypes is easy. It is assumed that the type of
-the formal
-parameter of the subprogram is the same as that of the actual
-parameter. No type information has to be encoded, and only state
-members have to be encoded. We suppose there is no recursivity in the
-type. This is fully supported and interoperation with java orbacus has
-been succesfully tested\footnote{Java orbacus version 4.0.1 was
-used for the tests. It uses IIOP 1.2 protocol, whereas adabroker uses version 1.0,
-but they still can interoperate if the version check is deactivated in
-adabroker.}.
-
-\subsection{Type information optimization}
-\paragraph{}When the type of the actual parameter is not the same as
-that of the formal one, type information has to be encoded. This can
-be made only when valuetypes are defined ``truncatable''.
-
-\paragraph{}This is not supported yet.
-
-\subsection{Handling recursivity}
-\paragraph{} Objects by value can define arbitrarily complex
-structures, that may be recursive. A standard sequential encoding
-would not work to encode them on the GIOP stream. Therefore, the CORBA
-specification introduces the notion of indirection. Once an object has
-been encoded in the stream, its next occurrence is not encoding, but
-an indirection flagk, pointing to the location in the stream where the
-first occurrence was encoded, is marshalled.
-
-\paragraph{}This is not supported yet.
-
-\subsection{}Since valuetypes can be very big, a mechanism is provided
-to split them into several chunks that are sequentially sent over the
-wire.
-
-\paragraph{}This is not supported yet.
-
-\subsection{Custom Marshalling}A CORBA programmer can define his own
-marshalling functions for the valuetypes he defines. This is possible
-when the valuetype is defined as ``custom''. It requires some
-special processing from the ORB, including the support for chunking.
-
-\paragraph{}This is not supported yet.
-
-\subsection{Supporting interfaces}
-\paragraph{}Valuetypes supporting interfaces can be marshalled as
-interfaces. Moreover Abstract interfaces can be marshalled either as
-valuetypes or as interfaces, depending on the actual parameter. These
-two cases require special processing from the ORB.
-
-\paragraph{}This is not supported yet.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Valuetypes supporting interfaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Valuetypes supporting interfaces}
 
+\paragraph{}An advanced feature of valuetypes is that they can support
+interfaces. When a value types supports an interface, a PortableServant
+object can be created to reference this value type. Then, through this
+PortableServant, remote invocations on the valuetype can be performed,
+and a reference to the valuetype can be sent ``by reference'' as a
+subprogram parameter.
+
+\paragraph{}The code for valuetypes supporting interfaces has been
+written. One half is given by the CORBA specification. It is what the
+``.Helper'' package contains.
+
+\paragraph{}The other half is adabroker specific. For each
+PortableServer.Servant\_Base object, a \linebreak GIOP\_Dis\-patch and a Is\_A
+function have to be defined. This is therefore true for
+PortableServer.Servant\_Base Objects created specifically for
+valuetypes supporting interfaces. These operations are generated in a
+``.Skel'' child package of the main valuetype package.
+
+\paragraph{}All the code has been written, but I did not have time to
+test it.

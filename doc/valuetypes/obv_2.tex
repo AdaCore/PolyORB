@@ -21,7 +21,7 @@ figure~\ref{fig::simple_hierarchy}.
 \end{figure}
 
 \begin{description}
-\item[CORBA.AbstractBase] is the root of all references to interfaces of
+\item[CORBA.AbstractBase] is the root of all references to interfaces or
 valuetypes. It is responsible for reference counting and automatic
 memory deallocation. It basically refers to an instance of CORBA.Impl.Object.
 
@@ -63,7 +63,7 @@ concrete valuetype. Abstract valuetypes however, support multiple inheritance.
 
 \paragraph{}An advanced feature of valuetypes is that they can
 ``support'' interfaces. A valuetype that supports an interface
-corresponds to an implemetation of this interface. Take the following
+corresponds to an implemetation of this interface. Consider the following
 example:
 
 \begin{verbatim}
@@ -97,8 +97,11 @@ parameter is a regular interface, then it will be passed by
 reference. However, if it is a valuetype, then it will be passed by
 value.
 
-\paragraph{}Abstract interfaces are not present on the diagram. They inherit
-directly from CORBA.AbstractBase.Ref.
+\paragraph{}
+Abstract interfaces are not present on the diagram.
+They inherit
+directly from \\
+CORBA.AbstractBase.Ref.
 
 
 %%% Revised mapping for interfaces

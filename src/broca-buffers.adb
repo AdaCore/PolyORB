@@ -198,10 +198,10 @@ package body Broca.Buffers is
       end if;
 
       Initialize_Buffer
-        (Buffer     => Buffer,
-         Size       => Octets.all'Length - 1,
-         Data       => Octets (Octets'First + 1)'Address,
-         Endianness => Endianness,
+        (Buffer               => Buffer,
+         Size                 => Octets'Length - 1,
+         Data                 => Octets (Octets'First + 1)'Address,
+         Endianness           => Endianness,
          Initial_CDR_Position => 1);
 
    end Decapsulate;
@@ -289,7 +289,7 @@ package body Broca.Buffers is
         (Iovec_Pool => Buffer.Contents,
          An_Iovec   => Data_Iovec);
       Buffer.CDR_Position := Buffer.CDR_Position + Size;
-      Buffer.Length := Buffer.Length;
+      Buffer.Length := Buffer.Length + Size;
    end Insert_Raw_Data;
 
    procedure Allocate_And_Insert_Cooked_Data
@@ -340,6 +340,13 @@ package body Broca.Buffers is
       Buffer.CDR_Position := Buffer.CDR_Position + Size;
    end Extract_Data;
 
+
+   function CDR_Position (Buffer : access Buffer_Type) return Index_Type is
+   begin
+      return Buffer.CDR_Position;
+   end CDR_Position;
+
+
    -------------------------
    -- Utility subprograms --
    -------------------------
@@ -388,8 +395,8 @@ package body Broca.Buffers is
                        & Endianness_Type'Image (Buffer.Endianness)
                        & " buffer, CDR position is "
                        & Index_Type'Image
-                       (Buffer.CDR_Position) & " (of" &
-                       Index_Type'Image (Buffer.Length) & ")"));
+                       (Buffer.CDR_Position) & " (length is" &
+                       Buffer.Length'Img & ")"));
 
       Show (Iovec_Pools.Dump (Buffer.Contents));
    end Show;

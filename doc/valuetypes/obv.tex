@@ -1,6 +1,7 @@
 \documentclass[a4paper,12pt]{report}
 
 \usepackage{graphicx}
+\usepackage[latin1]{inputenc}
 
 \setlength {\textheight}{247mm}
 \setlength {\textwidth}{168mm}
@@ -13,18 +14,30 @@
 \setlength{\unitlength}{1cm}
 \setlength{\parindent}{0cm}
 
-\title{Implementation of valuetypes in AdaBroker}
-\author{Fabien Azavant}
+\title{Implementation of valuetypes in AdaBroker\\ - \\Implémentation des
+types par valeur dans AdaBroker}
+\author{{\it Auteur :}\\ Fabien Azavant\\(Option IDL)\\ \\{\it Encadrants :}\\Laurent
+Pautet,\\Thomas Quinot,\\Samuel Tardieu}
 \date{\today}
+
+
 
 \begin{document}
 
 \maketitle
 \tableofcontents
 
+\include{abstract}
 \include{obv_1}
 \include{obv_2}
 \include{obv_3}
 \include{obv_4}
+\include{obv_5}
+\include{obv_ccl}
+
+\appendix
+\include{obv_app1}
+
+\include{obv_bib}
 
 \end{document}

@@ -117,6 +117,10 @@ package all_types.Impl is
      (Self : access Object;
       arg : in CORBA.Long);
 
+   procedure testUnknownException
+     (Self : access Object;
+      arg : in CORBA.Long);
+
    function echoStruct
      (Self : access Object;
       arg  : in simple_struct)

@@ -40,14 +40,15 @@ package Broca.Value.Value_Skel is
 
    pragma Elaborate_Body;
 
+   --  Store for Is_A operation
+   ----------------------------
    type Is_A_Type is access
      function
      (Type_Id : in Standard.String)
      return CORBA.Boolean;
 
-   --  This is where we store all the Is_A operations for
-   --  valuetypes
    package Is_A_Store is
       new Broca.Value.Operation_Store (Is_A_Type);
+
 
 end Broca.Value.Value_Skel;

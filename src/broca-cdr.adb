@@ -35,11 +35,18 @@ with Ada.Unchecked_Conversion;
 with System.Address_To_Access_Conversions;
 with Interfaces;
 with Broca.Debug;
+
 with Broca.Exceptions;
+with Broca.Exceptions.Stack;
+with Ada.Exceptions;
 with Broca.Object;
+with Broca.Opaque;            use Broca.Opaque;
 
 with CORBA.Impl;
 with CORBA.Object.Helper;
+
+with CORBA.Value;
+with Broca.Value.Stream;
 
 package body Broca.CDR is
 
@@ -98,6 +105,21 @@ package body Broca.CDR is
    --  Align Buffer on Alignment, then unmarshall a copy of
    --  Size octets from it.
    --  The data is returned in the host's byte order.
+
+   procedure Align_Marshall_Copy
+     (Buffer    : access Buffer_Type;
+      Octets    : in Octet_Array;
+      Alignment : Alignment_Type := 1);
+   --  Align Buffer on Alignment, then marshall a copy
+   --  of Octets into Buffer, as is.
+
+   function Align_Unmarshall_Copy
+     (Buffer    : access Buffer_Type;
+      Size      : Index_Type;
+      Alignment : Alignment_Type := 1)
+     return Octet_Array;
+   --  Align Buffer on Alignment, then unmarshall a copy
+   --  of Size octets from Buffer's data, as is.
 
    ------------------------------------------
    -- Conversions between CORBA signed and --
@@ -413,112 +435,82 @@ package body Broca.CDR is
       Data_Type : CORBA.TypeCode.Object := CORBA.Get_Precise_Type (Data);
    begin
       pragma Debug (O ("Marshall_From_Any : enter"));
+
       case CORBA.TypeCode.Kind (Data_Type) is
-         when Tk_Null
-           | Tk_Void =>
+
+         when Tk_Null | Tk_Void =>
             pragma Debug
               (O ("Marshall_From_Any : dealing with a void or null"));
             null;
+
          when Tk_Short =>
             pragma Debug (O ("Marshall_From_Any : dealing with a short"));
-            declare
-               S : CORBA.Short := From_Any (Data);
-            begin
-               Marshall (Buffer, S);
-            end;
+            Marshall (Buffer, CORBA.Short'(From_Any (Data)));
+
          when Tk_Long =>
             pragma Debug (O ("Marshall_From_Any : dealing with a long"));
-            declare
-               L : CORBA.Long := From_Any (Data);
-            begin
-               Marshall (Buffer, L);
-            end;
+            Marshall (Buffer, CORBA.Long'(From_Any (Data)));
+
          when Tk_Ushort =>
             pragma Debug (O ("Marshall_From_Any : dealing with a Ushort"));
-            declare
-               Us : CORBA.Unsigned_Short := From_Any (Data);
-            begin
-               Marshall (Buffer, Us);
-            end;
+            Marshall (Buffer, CORBA.Unsigned_Short'(From_Any (Data)));
+
          when Tk_Ulong =>
-               pragma Debug (O ("Marshall_From_Any : dealing with a Ulong"));
-            declare
-               Ul : CORBA.Unsigned_Long := From_Any (Data);
-            begin
-               Marshall (Buffer, Ul);
-            end;
+            pragma Debug (O ("Marshall_From_Any : dealing with a Ulong"));
+            Marshall (Buffer, CORBA.Unsigned_Long'(From_Any (Data)));
+
          when Tk_Float =>
             pragma Debug (O ("Marshall_From_Any : dealing with a float"));
-            declare
-               F : CORBA.Float := From_Any (Data);
-            begin
-               Marshall (Buffer, F);
-            end;
+            Marshall (Buffer, CORBA.Float'(From_Any (Data)));
+
          when Tk_Double =>
             pragma Debug (O ("Marshall_From_Any : dealing with a double"));
-            declare
-               D : CORBA.Double := From_Any (Data);
-            begin
-               Marshall (Buffer, D);
-            end;
+            Marshall (Buffer, CORBA.Double'(From_Any (Data)));
+
          when Tk_Boolean =>
             pragma Debug (O ("Marshall_From_Any : dealing with a boolean"));
-            declare
-               B : CORBA.Boolean := From_Any (Data);
-            begin
-               Marshall (Buffer, B);
-            end;
+            Marshall (Buffer, CORBA.Boolean'(From_Any (Data)));
+
          when Tk_Char =>
             pragma Debug (O ("Marshall_From_Any : dealing with a char"));
-            declare
-               C : CORBA.Char := From_Any (Data);
-            begin
-               Marshall (Buffer, C);
-            end;
+            Marshall (Buffer, CORBA.Char'(From_Any (Data)));
+
          when Tk_Octet =>
             pragma Debug (O ("Marshall_From_Any : dealing with an octet"));
-            declare
-               Oc : CORBA.Octet := From_Any (Data);
-            begin
-               Marshall (Buffer, Oc);
-            end;
+            Marshall (Buffer, CORBA.Octet'(From_Any (Data)));
+
          when Tk_Any =>
             pragma Debug (O ("Marshall_From_Any : dealing with an any"));
-            declare
-               A : CORBA.Any := From_Any (Data);
-            begin
-               Marshall (Buffer, A);
-            end;
+            Marshall (Buffer, CORBA.Any'(From_Any (Data)));
+
          when Tk_TypeCode =>
             pragma Debug (O ("Marshall_From_Any : dealing with a typecode"));
-            declare
-               T : CORBA.TypeCode.Object := From_Any (Data);
-            begin
-               Marshall (Buffer, T);
-            end;
+            Marshall (Buffer, CORBA.TypeCode.Object'(From_Any (Data)));
+
          when Tk_Principal =>
             --  FIXME : to be done
             null;
+
          when Tk_Objref =>
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
             Marshall (Buffer, CORBA.Object.Helper.From_Any (Data));
+
          when Tk_Struct =>
             pragma Debug (O ("Marshall_From_Any : dealing with a struct"));
             declare
-               Nb : CORBA.Unsigned_Long :=
+               Nb : constant CORBA.Unsigned_Long :=
                  CORBA.Get_Aggregate_Count (Data);
                Value : CORBA.Any;
             begin
-               if Nb /= 0 then
-                  for I in 0 .. Nb - 1 loop
-                     Value := CORBA.Get_Aggregate_Element
-                       (Data,
-                        CORBA.TypeCode.Member_Type (Data_Type, I),
-                        I);
-                     Marshall_From_Any (Buffer, Value);
-                  end loop;
-               end if;
+               for I in 0 .. Nb - 1 loop
+                  Value := CORBA.Get_Aggregate_Element
+                    (Data,
+                     CORBA.TypeCode.Member_Type (Data_Type, I),
+                     I);
+                  Marshall_From_Any (Buffer, Value);
+               end loop;
             end;
+
          when Tk_Union =>
             pragma Debug (O ("Marshall_From_Any : dealing with an union"));
             declare
@@ -550,30 +542,24 @@ package body Broca.CDR is
                   end loop;
                end if;
             end;
+
          when Tk_Enum =>
             pragma Debug (O ("Marshall_From_Any : dealing with an enum"));
-            declare
-               Value : CORBA.Any;
-            begin
-               Value := CORBA.Get_Aggregate_Element
-                 (Data,
-                  CORBA.TypeCode.TC_Unsigned_Long,
-                  CORBA.Unsigned_Long (0));
-               pragma Debug (O ("Marshall_From_Any : got the first param "
-                                & "of the aggregate"));
-               Marshall_From_Any (Buffer, Value);
-            end;
+            Marshall_From_Any
+              (Buffer,
+               CORBA.Get_Aggregate_Element
+               (Data,
+                CORBA.TypeCode.TC_Unsigned_Long,
+                CORBA.Unsigned_Long (0)));
+
          when Tk_String =>
             pragma Debug (O ("Marshall_From_Any : dealing with a string"));
-            declare
-               S : CORBA.String := From_Any (Data);
-            begin
-               Marshall (Buffer, S);
-            end;
+            Marshall (Buffer, CORBA.String'(From_Any (Data)));
+
          when Tk_Sequence =>
             pragma Debug (O ("Marshall_From_Any : dealing with a sequence"));
             declare
-               Nb : CORBA.Unsigned_Long :=
+               Nb : constant CORBA.Unsigned_Long :=
                  CORBA.Get_Aggregate_Count (Data);
                Value : CORBA.Any;
             begin
@@ -592,10 +578,11 @@ package body Broca.CDR is
                   end loop;
                end if;
             end;
+
          when Tk_Array =>
             pragma Debug (O ("Marshall_From_Any : dealing with an array"));
             declare
-               Nb : CORBA.Unsigned_Long :=
+               Nb : constant CORBA.Unsigned_Long :=
                  CORBA.Get_Aggregate_Count (Data);
                Value : CORBA.Any;
                Content_True_Type : CORBA.TypeCode.Object :=
@@ -605,95 +592,84 @@ package body Broca.CDR is
                   Content_True_Type :=
                     CORBA.TypeCode.Content_Type (Content_True_Type);
                end loop;
-               if Nb /= 0 then
-                  for I in 0 .. Nb - 1 loop
-                     Value := CORBA.Get_Aggregate_Element
-                       (Data,
-                        Content_True_Type,
-                        I);
-                     pragma Debug (O ("Marshall_From_Any : value kind is "
-                                      & CORBA.TCKind'Image
-                                      (CORBA.TypeCode.Kind
-                                       (CORBA.Get_Type (Value)))));
-                     Marshall_From_Any (Buffer, Value);
-                  end loop;
-               end if;
+               for I in 0 .. Nb - 1 loop
+                  Value := CORBA.Get_Aggregate_Element
+                    (Data,
+                     Content_True_Type,
+                     I);
+                  pragma Debug (O ("Marshall_From_Any : value kind is "
+                                   & CORBA.TCKind'Image
+                                   (CORBA.TypeCode.Kind
+                                    (CORBA.Get_Type (Value)))));
+                  Marshall_From_Any (Buffer, Value);
+               end loop;
             end;
+
          when Tk_Alias =>
             --  we should never reach this point
+            pragma Assert (False);
             raise Program_Error;
+
          when Tk_Except =>
             pragma Debug (O ("Marshall_From_Any : dealing with an exception"));
             declare
-               Nb : CORBA.Unsigned_Long :=
+               Nb : constant CORBA.Unsigned_Long :=
                  CORBA.Get_Aggregate_Count (Data);
                Value : CORBA.Any;
             begin
-               if Nb /= 0 then
-                  for I in 0 .. Nb - 1 loop
-                     Value := CORBA.Get_Aggregate_Element
-                       (Data,
-                        CORBA.TypeCode.Member_Type (Data_Type, I),
-                        I);
-                     Marshall_From_Any (Buffer, Value);
-                  end loop;
-               end if;
+               for I in 0 .. Nb - 1 loop
+                  Value := CORBA.Get_Aggregate_Element
+                    (Data,
+                     CORBA.TypeCode.Member_Type (Data_Type, I),
+                     I);
+                  Marshall_From_Any (Buffer, Value);
+               end loop;
             end;
+
          when Tk_Longlong =>
             pragma Debug (O ("Marshall_From_Any : "
                              & "dealing with a long long"));
-            declare
-               Ll : CORBA.Long_Long := From_Any (Data);
-            begin
-               Marshall (Buffer, Ll);
-            end;
+            Marshall (Buffer, CORBA.Long_Long'(From_Any (Data)));
+
          when Tk_Ulonglong =>
             pragma Debug (O ("Marshall_From_Any : "
                              & "dealing with a ULongLong"));
-            declare
-               Ull : CORBA.Unsigned_Long_Long := From_Any (Data);
-            begin
-               Marshall (Buffer, Ull);
-            end;
+            Marshall (Buffer, CORBA.Unsigned_Long_Long'(From_Any (Data)));
+
          when Tk_Longdouble =>
             pragma Debug (O ("Marshall_From_Any : dealing with a "
                              & "long double"));
-            declare
-               Ld : CORBA.Long_Double := From_Any (Data);
-            begin
-               Marshall (Buffer, Ld);
-            end;
+            Marshall (Buffer, CORBA.Long_Double'(From_Any (Data)));
+
          when Tk_Widechar =>
             pragma Debug (O ("Marshall_From_Any : dealing with a Wchar"));
-            declare
-               Wc : CORBA.Wchar := From_Any (Data);
-            begin
-               Marshall (Buffer, Wc);
-            end;
+            Marshall (Buffer, CORBA.Wchar'(From_Any (Data)));
+
          when Tk_Wstring =>
             pragma Debug (O ("Marshall_From_Any : dealing with "
                              & "a wide string"));
-            declare
-               Ws : CORBA.Wide_String := From_Any (Data);
-            begin
-               Marshall (Buffer, Ws);
-            end;
+            Marshall (Buffer, CORBA.Wide_String'(From_Any (Data)));
+
          when Tk_Fixed =>
             --  FIXME : to be done
                pragma Debug (O ("Marshall_From_Any : dealing with a fixed"));
             null;
+
          when Tk_Value =>
             --  FIXME : to be done
                pragma Debug (O ("Marshall_From_Any : dealing with a value"));
             null;
+
          when Tk_Valuebox =>
             --  FIXME : to be done
             pragma Debug (O ("Marshall_From_Any : dealing with a valuebox"));
             null;
+
          when Tk_Native =>
             --  FIXME : to be done
             pragma Debug (O ("Marshall_From_Any : dealing with a native"));
             null;
+
          when Tk_Abstract_Interface =>
             --  FIXME : to be done
             pragma Debug (O ("Marshall_From_Any : dealing with "
@@ -742,7 +718,12 @@ package body Broca.CDR is
          when Tk_Principal =>
             Marshall (Buffer, CORBA.Unsigned_Long'(13));
          when Tk_Objref =>
+            pragma Debug (O ("Marshall (TypeCode) : dealing with an ObjRef"));
             Marshall (Buffer, CORBA.Unsigned_Long'(14));
+            pragma Debug (O ("Marshall (TypeCode) : it has "
+                             & CORBA.Unsigned_Long'Image
+                             (CORBA.TypeCode.Parameter_Count (Data))
+                             & " parameters"));
             Marshall (Buffer, CORBA.TypeCode.Id (Data));
             Marshall (Buffer, CORBA.TypeCode.Name (Data));
          when Tk_Struct =>
@@ -1320,8 +1301,8 @@ package body Broca.CDR is
       Equiv  : String (1 .. Natural (Length) - 1);
 
    begin
-      pragma Debug (O ("Unmarshall (String) : enter"));
-      pragma Debug (O ("Unmarshall (String) : length is " &
+      pragma Debug (O ("Unmarshall (String): enter"));
+      pragma Debug (O ("Unmarshall (String): length is " &
                     CORBA.Unsigned_Long'Image (Length)));
       for I in Equiv'Range loop
          Equiv (I) := Character'Val (CORBA.Char'Pos
@@ -1333,7 +1314,7 @@ package body Broca.CDR is
          Broca.Exceptions.Raise_Marshal;
       end if;
 
-      pragma Debug (O ("Unmarshall (String) : end"));
+      pragma Debug (O ("Unmarshall (String): -> " & Equiv));
 
       return Equiv;
    end Unmarshall;
@@ -2133,17 +2114,16 @@ package body Broca.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return Encapsulation
    is
-      Length : CORBA.Unsigned_Long;
+      Length : constant CORBA.Unsigned_Long := Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (Encapsulation) : enter"));
-      Length := Unmarshall (Buffer);
+      pragma Debug (O ("Unmarshall (Encapsulation): length is" & Length'Img));
       declare
          E : Encapsulation (1 .. Index_Type (Length));
       begin
          for I in E'Range loop
             E (I) := BO_Octet (CORBA.Octet'(Unmarshall (Buffer)));
          end loop;
-         pragma Debug (O ("Unmarshall (Encapsulation) : end"));
+         pragma Debug (O ("Unmarshall (Encapsulation): end"));
          return E;
       end;
    end Unmarshall;
@@ -2307,20 +2287,44 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in CORBA.AbstractBase.Ref'Class) is
    begin
-      if CORBA.AbstractBase.Is_Nil (Data) then
-         Broca.Exceptions.Raise_Marshal;
-      end if;
+      --  !!!!!!!!!!!!!!!!!
+      --  FIXME: I've just noticed that abstract interfaces must be
+      --  encoded as unions
+      --  with a boolean discriminator, cf spec and change code below.
+      --  !!!!!!!!!!!!!!!!!
 
-      --  Make a redispatching call on the designated
-      --  object.
-      declare
-         P : constant CORBA.Impl.Object_Ptr
-           := CORBA.AbstractBase.Object_Of (Data);
-      begin
-         CORBA.Impl.Marshall
-           (Buffer,
-            CORBA.Impl.Object'Class (P.all));
-      end;
+      --  1. if Data is a valuetype, call the valuetype marshalling function
+      if Data in CORBA.Value.Base'Class then
+         Broca.Value.Stream.Marshall (Buffer,
+                                      CORBA.Value.Base'Class (Data));
+
+         --  2. check if Data is a nil ref, raise marshall if true
+      elsif CORBA.AbstractBase.Is_Nil (Data) then
+         Broca.Exceptions.Raise_Marshal;
+
+         --  3. If Data is an abstract interface and the referenced object is
+         --     a valuetype, then call the valuetype marshalling function.
+         --  In practice, just check if the referenced object is a valuetype.
+      elsif CORBA.AbstractBase.Object_Of (Data).all
+        in CORBA.Value.Impl_Base'Class then
+         --  Broca.Value.Stream.Marshall (Buffer,
+         --                             Data);
+         null;
+         --  Not implemented yet
+
+      --  4. Call the interface marshalling function
+      else
+         --  Make a redispatching call on the designated
+         --  object.
+         declare
+            P : constant CORBA.Impl.Object_Ptr
+              := CORBA.AbstractBase.Object_Of (Data);
+         begin
+            CORBA.Impl.Marshall
+              (Buffer,
+               CORBA.Impl.Object'Class (P.all));
+         end;
+      end if;
    end Marshall;
 
    ----------------
@@ -2350,6 +2354,58 @@ package body Broca.CDR is
       Unmarshall (Buffer, New_Ref);
       return New_Ref;
    end Unmarshall;
+
+   -----------------------
+   -- System exceptions --
+   -----------------------
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Excpt  : in CORBA.Exception_Occurrence)
+   is
+      Members : CORBA.System_Exception_Members;
+   begin
+      Broca.Exceptions.Get_Members (Excpt, Members);
+      Marshall
+        (Buffer, CORBA.String (Broca.Exceptions.Occurrence_To_Name (Excpt)));
+      Marshall (Buffer, Members.Minor);
+      Marshall
+        (Buffer, Broca.Exceptions.To_Unsigned_Long (Members.Completed));
+   end Marshall;
+
+   procedure Unmarshall_And_Raise
+     (Buffer : access Buffer_Type)
+   is
+      use Ada.Exceptions;
+
+      Minor      : CORBA.Unsigned_Long;
+      Status     : CORBA.Unsigned_Long;
+      Identity   : Exception_Id;
+      Repository : CORBA.String;
+
+   begin
+      Repository := Unmarshall (Buffer);
+      Identity := Broca.Exceptions.Get_ExcepId_By_RepositoryId
+        (CORBA.To_Standard_String (Repository));
+
+      if Identity = Null_Id then
+         --  If not found, this is a marshal error.
+         Identity := CORBA.Marshal'Identity;
+         Minor := 0;
+         Status := Completion_Status'Pos (Completed_Maybe);
+      end if;
+
+      Minor  := Unmarshall (Buffer);
+      Status := Unmarshall (Buffer);
+
+      --  Raise the exception
+
+      Broca.Exceptions.Stack.Raise_Exception
+        (Identity,
+         CORBA.System_Exception_Members'
+         (Minor,
+          Broca.Exceptions.To_Completion_Status (Status)));
+   end Unmarshall_And_Raise;
 
    -----------------
    -- Fixed_Point --

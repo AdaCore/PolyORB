@@ -102,6 +102,7 @@ package body Broca.Refs is
          Free (Obj);
       end if;
 
+      pragma Debug (O ("Leaving Dec_Usage"));
    end Dec_Usage;
 
    procedure Set
@@ -146,6 +147,7 @@ package body Broca.Refs is
 
    procedure Finalize (The_Ref : in out Ref) is
    begin
+      pragma Debug (O ("Finalize : enter"));
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
       end if;
