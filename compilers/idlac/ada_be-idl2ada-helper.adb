@@ -186,9 +186,9 @@ package body Ada_Be.Idl2Ada.Helper is
    -- End of internal subprograms declarations --
    ----------------------------------------------
 
-   --------------------
-   -- Gen_Scope_Spec --
-   --------------------
+   -------------------
+   -- Gen_Node_Spec --
+   -------------------
 
    procedure Gen_Node_Spec
      (CU        : in out Compilation_Unit;
@@ -251,9 +251,9 @@ package body Ada_Be.Idl2Ada.Helper is
       end case;
    end Gen_Node_Spec;
 
-   --------------------
-   -- Gen_Scope_Body --
-   --------------------
+   -------------------
+   -- Gen_Node_Body --
+   -------------------
 
    procedure Gen_Node_Body
      (CU   : in out Compilation_Unit;
@@ -268,9 +268,9 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Enum_Body (CU, Node);
 
          when K_Type_Declarator =>
-            if Is_Interface_Type (T_Type (Node)) then
-               null;
-            elsif Kind (T_Type (Node)) = K_Fixed then
+--            if Is_Interface_Type (T_Type (Node)) then
+--               null;
+            if Kind (T_Type (Node)) = K_Fixed then
                Gen_Fixed_Body (CU, Node);
             else
                declare

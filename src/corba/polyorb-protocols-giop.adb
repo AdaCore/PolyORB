@@ -1232,7 +1232,11 @@ package body PolyORB.Protocols.GIOP is
          Arg := NV_Sequence.Element_Of (List.all, Positive (I));
          if False
            or else Arg.Arg_Modes = Direction
-           or else Arg.Arg_Modes = ARG_INOUT then
+           or else Arg.Arg_Modes = ARG_INOUT
+         then
+            pragma Debug (O ("Marshalling argument "
+              & Types.To_Standard_String (Arg.Name)
+              & " = " & Image (Arg.Argument)));
             Marshall (Ses.Buffer_Out, Arg);
          end if;
       end loop;

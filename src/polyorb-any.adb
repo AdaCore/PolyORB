@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#40 $
+--  $Id: //droopi/main/src/polyorb-any.adb#41 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1381,7 +1381,7 @@ package body PolyORB.Any is
    end Image;
 
    function Image (A : Any) return Standard.String is
-      Kind : constant TCKind := TypeCode.Kind (A.The_Type);
+      Kind : constant TCKind := TypeCode.Kind (Get_Unwound_Type (A));
    begin
       case Kind is
          when Tk_Short =>
