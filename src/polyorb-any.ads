@@ -33,7 +33,7 @@
 
 --  Definition of the container type 'Any'
 
---  $Id: //droopi/main/src/polyorb-any.ads#33 $
+--  $Id: //droopi/main/src/polyorb-any.ads#34 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -202,6 +202,13 @@ package PolyORB.Any is
       --  Return the label of a given member associated with a typecode
       --  in case its kind is union.
       --  Raise 'BadKind' else.
+      --  If there is not enough members, Raise 'Bounds'.
+
+      function Enumerator_Name
+        (Self  : in Object;
+         Index : in Types.Unsigned_Long)
+        return Types.Identifier;
+      --  Return the name of the Index'th enumerator in an enumeration.
       --  If there is not enough members, Raise 'Bounds'.
 
       function Discriminator_Type
@@ -421,8 +428,8 @@ package PolyORB.Any is
       --     discriminator type. The fourth will be the index of the
       --     default case as a long. If there's no default case, then
       --     you'll find -1. Then we'll have alternatively a
-      --     member label, a member type and a member name. At least,
-      --     for the default label, the member label will contain a
+      --     member label, a member type and a member name.
+      --     For the default label, the member label will contain a
       --     valid label but without any semantic significance.
       --     So the number of parameters will be 3 * number_of_members + 4
       --

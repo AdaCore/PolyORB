@@ -822,6 +822,30 @@ package body PolyORB.Any is
          end case;
       end Member_Label;
 
+      ---------------------
+      -- Enumerator_Name --
+      ---------------------
+
+      function Enumerator_Name
+        (Self  : in Object;
+         Index : in Unsigned_Long)
+        return Types.Identifier
+      is
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
+      begin
+         case Kind (Self) is
+            when Tk_Enum =>
+               if Param_Nb < Index + 3 then
+                  raise Bounds;
+               end if;
+               return Types.Identifier
+                 (Types.String'(From_Any (Get_Parameter (Self, Index + 2))));
+
+            when others =>
+               raise BadKind;
+         end case;
+      end Enumerator_Name;
+
       ------------------------
       -- Discriminator_Type --
       ------------------------
@@ -1101,9 +1125,9 @@ package body PolyORB.Any is
          --  See the big explanation after the declaration of
          --  TypeCode.Object in the private part of PolyORB.Any
          --  to understand the magic numbers used here.
-         pragma Debug (O ("Member_Count_With_Label : enter"));
+         pragma Debug (O ("Member_Count_With_Label: enter"));
          if TypeCode.Kind (Self) = Tk_Union then
-            pragma Debug (O ("Member_Count_With_Label : Member_Count = "
+            pragma Debug (O ("Member_Count_With_Label: Member_Count = "
                              & Unsigned_Long'Image (Member_Count (Self))));
             for J in 0 .. Member_Count (Self) - 1 loop
                if Member_Label (Self, J) = Label then
@@ -1116,12 +1140,12 @@ package body PolyORB.Any is
             if Result = 0 then
                Result := Default_Nb;
             end if;
-            pragma Debug (O ("Member_Count_With_Label : Result = "
+            pragma Debug (O ("Member_Count_With_Label: Result = "
                              & Unsigned_Long'Image (Result)));
-            pragma Debug (O ("Member_Count_With_Label : end"));
+            pragma Debug (O ("Member_Count_With_Label: end"));
             return Result;
          else
-            pragma Debug (O ("Member_Count_With_Label : end "
+            pragma Debug (O ("Member_Count_With_Label: end "
                              & "with exception"));
             raise BadKind;
          end if;
@@ -1685,7 +1709,8 @@ package body PolyORB.Any is
      (A : Any)
      return Standard.String
    is
-      Kind : constant TCKind := TypeCode.Kind (Get_Unwound_Type (A));
+      TC   : constant TypeCode.Object := Get_Unwound_Type (A);
+      Kind : constant TCKind := TypeCode.Kind (TC);
    begin
       if Is_Empty (A) then
          return "<empty>";
@@ -1728,8 +1753,14 @@ package body PolyORB.Any is
          when Tk_Ulonglong =>
             return Unsigned_Long_Long'Image (From_Any (A));
 
+         when Tk_Enum =>
+            return Types.To_Standard_String
+              (TypeCode.Enumerator_Name
+               (TC, From_Any (Get_Aggregate_Element
+                              (A, TC_Unsigned_Long, 0))));
+
          when Tk_Value =>
-            return "<Any:"
+            return "<Value:"
               & Image (Get_Type (A)) & ":"
               & System.Address_Image (Get_Value (A)'Address) & ">";
 
@@ -1750,7 +1781,8 @@ package body PolyORB.Any is
      (Left, Right : in Any)
      return Boolean is
    begin
-      pragma Debug (O ("Equal (Any) : enter"));
+      pragma Debug (O ("Equal (Any): enter, "
+                       & Image (Left) & " =? " & Image (Right)));
       if not TypeCode.Equal (Get_Type (Left), Get_Type (Right)) then
          pragma Debug (O ("Equal (Any) : end"));
          return False;

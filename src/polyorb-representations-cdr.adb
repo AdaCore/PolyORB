@@ -750,6 +750,13 @@ package body PolyORB.Representations.CDR is
                Add_Aggregate_Element (Arg, Val);
                Copy_Any_Value (Result, Arg);
                --  XXX Inefficient, see comment for Tk_Struct above.
+               pragma Debug
+                 (O ("enum -> ["
+                     & Utils.Trimmed_Image
+                     (Integer (Types.Unsigned_Long'(From_Any (Val))))
+                     & "] "
+                     & Types.To_Standard_String
+                     (TypeCode.Enumerator_Name (Tc, From_Any (Val)))));
             end;
 
          when Tk_String =>
