@@ -477,7 +477,6 @@ src/corba/corba-serverrequest.adb
 src/corba/corba-serverrequest.ads
 src/corba/corba.adb
 src/corba/corba.ads
-src/corba/gnat.adc
 src/corba/polyorb-corba_p-adapteractivator.adb
 src/corba/polyorb-corba_p-adapteractivator.ads
 src/corba/polyorb-corba_p-exceptions.adb
@@ -536,7 +535,6 @@ src/giop/Makefile.am
 src/giop/Makefile.in
 src/giop/diop/Makefile.am
 src/giop/diop/Makefile.in
-src/giop/diop/gnat.adc
 src/giop/diop/polyorb-binding_data-diop.adb
 src/giop/diop/polyorb-binding_data-diop.ads
 src/giop/diop/polyorb-protocols-giop-diop.adb
@@ -545,10 +543,8 @@ src/giop/diop/polyorb-setup-access_points-diop.adb
 src/giop/diop/polyorb-setup-access_points-diop.ads
 src/giop/diop/polyorb-setup-diop.adb
 src/giop/diop/polyorb-setup-diop.ads
-src/giop/gnat.adc
 src/giop/iiop/Makefile.am
 src/giop/iiop/Makefile.in
-src/giop/iiop/gnat.adc
 src/giop/iiop/polyorb-binding_data-iiop.adb
 src/giop/iiop/polyorb-binding_data-iiop.ads
 src/giop/iiop/polyorb-protocols-giop-iiop.adb
@@ -559,7 +555,6 @@ src/giop/iiop/polyorb-setup-iiop.adb
 src/giop/iiop/polyorb-setup-iiop.ads
 src/giop/miop/Makefile.am
 src/giop/miop/Makefile.in
-src/giop/miop/gnat.adc
 src/giop/miop/polyorb-binding_data-uipmc.adb
 src/giop/miop/polyorb-binding_data-uipmc.ads
 src/giop/miop/polyorb-filters-miop-miop_in.adb
@@ -596,11 +591,8 @@ src/giop/polyorb-protocols-giop-giop_1_2.adb
 src/giop/polyorb-protocols-giop-giop_1_2.ads
 src/giop/polyorb-protocols-giop.adb
 src/giop/polyorb-protocols-giop.ads
-src/gnat.adc
-src/gnat.adc.exclude
 src/moma/Makefile.am
 src/moma/Makefile.in
-src/moma/gnat.adc
 src/moma/moma-configuration-server.adb
 src/moma/moma-configuration-server.ads
 src/moma/moma-configuration.adb
@@ -998,7 +990,6 @@ src/polyorb.conf
 src/soap/Makefile.am
 src/soap/Makefile.in
 src/soap/gen_http_body
-src/soap/gnat.adc
 src/soap/polyorb-binding_data-soap.adb
 src/soap/polyorb-binding_data-soap.ads
 src/soap/polyorb-buffer_sources.adb
@@ -1033,7 +1024,6 @@ src/soap/polyorb-soap_p-types.ads
 src/soap/polyorb-soap_p.ads
 src/srp/Makefile.am
 src/srp/Makefile.in
-src/srp/gnat.adc
 src/srp/polyorb-binding_data-srp.adb
 src/srp/polyorb-binding_data-srp.ads
 src/srp/polyorb-protocols-srp.adb
@@ -1055,7 +1045,6 @@ src/web_common/aws-url.ads
 src/web_common/aws-utils.adb
 src/web_common/aws-utils.ads
 src/web_common/aws.ads
-src/web_common/gnat.adc
 src/web_common/md5.adb
 src/web_common/md5.ads
 src/web_common/soap-utils.adb
