@@ -152,7 +152,7 @@ CLEANFILES = *.ali s-garcon.ads *.o s-gaprco.adb s-galiop.ads\
 	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads\
 	inlining gnatlib/* constants_nodef linktest
 
-DISTCLEANFILES = config.h
+DISTCLEANFILES = config.h Garlic/s-gatcop.ads
 
 SUFFIXES = .adb .ads .ali .o .xrb
 

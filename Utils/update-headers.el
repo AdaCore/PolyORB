@@ -28,7 +28,7 @@
     (if (re-search-forward "package body \\(.+\\) is" nil t)
 	(setq name (buffer-substring (match-beginning 1) (match-end 1)))
       (goto-char (point-min))
-      (if (re-search-forward "package \\(.+\\) is" nil t)
+      (if (re-search-forward "package \\(.+\\) \\(is\\|renames\\)" nil t)
 	  (setq name (buffer-substring (match-beginning 1) (match-end 1))
 		spec t)
 	(goto-char (point-min))
@@ -50,7 +50,7 @@
     (insert (center-ada ""))
     (insert (center-ada (if spec "S p e c" "B o d y")))
     (insert (center-ada ""))
-    (insert (center-ada (concat "$" "Revision: 1.99 $")))
+    (insert (center-ada (concat "$" "Revision: 1.99 $") 'omit-terminator))
     (re-search-forward "----------")
     (next-line 1)
     (let ((beg (point)))
@@ -64,11 +64,14 @@
   (if (<= (length n) 1) n
     (concat (substring n 0 1) " " (expand-ada-name (substring n 1)))))
 
-(defun center-ada (l)
+(defun center-ada (l &optional omit-terminator)
   (let* ((tt 71)
 	 (n (length l))
 	 (s (/ (- tt n) 2)))
-    (concat "-- " (spaces-ada s) l (spaces-ada (- tt (+ s n))) "  --\n")))
+    (concat "-- " (spaces-ada s) l
+	    (if omit-terminator ""
+	      (concat (spaces-ada (- tt (+ s n))) "  --"))
+	    "\n")))
 
 (defun spaces-ada (n)
   (if (<= n 0) ""
@@ -77,7 +80,7 @@
 (defun update-headers ()
   "Update headers of files given on the command line"
   (interactive)
-  (let ((l (directory-files "." nil "\\.ad.$" nil t)))
+  (let ((l (directory-files "." nil "\\.ad[bs]\\(\\.in\\|\\)$" nil t)))
     (while l
       (let ((current (car l)))
 	(message "Updating %s..." current)

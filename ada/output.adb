@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -161,6 +161,16 @@ package body Output is
          Write_Char (Character'Val ((Val mod 10) + Character'Pos ('0')));
       end if;
    end Write_Int;
+
+   ----------------
+   -- Write_Line --
+   ----------------
+
+   procedure Write_Line (S : String) is
+   begin
+      Write_Str (S);
+      Write_Eol;
+   end Write_Line;
 
    ---------------
    -- Write_Str --

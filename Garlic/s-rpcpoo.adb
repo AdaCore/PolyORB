@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -37,6 +37,8 @@ with Ada.Dynamic_Priorities;
 with Ada.Exceptions;
 pragma Warnings (Off, Ada.Exceptions);
 with Ada.Unchecked_Deallocation;
+with Ada.Unchecked_Conversion;
+with Interfaces;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
@@ -63,6 +65,10 @@ package body System.RPC.Pool is
    --  This one must match the maximum value of Task_Pool_Max_Bound defined
    --  in s-garopt.ads. Use a named constant somewhere to make sure that
    --  they match ???
+
+   function Convert is
+      new Ada.Unchecked_Conversion
+     (System.Address, Types.RPC_Receiver);
 
    type Cancel_Type is record
       Partition : Types.Partition_ID;
@@ -299,7 +305,8 @@ package body System.RPC.Pool is
             end;
          then abort
             pragma Debug (D (D_Debug, "Job to achieve"));
-            Types.RPC_Receiver'Read (Params, Receiver);
+            Receiver := Convert
+               (System.Address (Interfaces.Unsigned_64'Input (Params)));
             Receiver (Params, Result);
             pragma Debug (D (D_Debug, "Job achieved without abortion"));
          end select;

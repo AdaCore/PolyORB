@@ -24,7 +24,7 @@ foreach $i (@ARGV) {
       print " $fl columns...";
     }
     $save = $_;
-    if (/^--\s+(\$Revi(d?)sion: \S+ \$)\s+--$/ &&
+    if (/^--\s\s+(\$Revi(d?)sion: \S+ \$)\s+/ &&
 	(length($_) != ($fl + 1)) &&
 	!$modified) {
       if (!$fl) {

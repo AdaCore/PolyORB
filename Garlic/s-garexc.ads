@@ -2,11 +2,11 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---            S Y S T E M . G A R L I C . E X C E P T I O N S               --
+--             S Y S T E M . G A R L I C . E X C E P T I O N S              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --

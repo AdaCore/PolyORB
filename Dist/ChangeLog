@@ -1,3 +1,7 @@
+1998-10-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* All files: update headers.
+
 1998-10-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Fix stub generation for SP units. Use the body

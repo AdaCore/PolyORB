@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                            --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -30,10 +30,11 @@
 
 --  Note: this version of the package should be usable in both Unix and DOS
 
-with Debug; use Debug;
-with Osint; use Osint;
-with Opt;   use Opt;
-with Types; use Types;
+with Debug;   use Debug;
+with Osint;   use Osint;
+with Opt;     use Opt;
+with Stylesw; use Stylesw;
+with Types;   use Types;
 
 with System.WCh_Con; use System.WCh_Con;
 
@@ -68,12 +69,21 @@ package body Switch is
       --  always case sensitive and therefore not folded to upper case since
       --  that is the convention in GCC.
 
+      function Scan_Nat return Nat;
+      --  Scan natural integer parameter for switch. On entry, Ptr points
+      --  just past the switch character, on exit it points past the last
+      --  digit of the integer value.
+
       function Scan_Pos return Pos;
       --  Scan positive integer parameter for switch. On entry, Ptr points
       --  just past the switch character, on exit it points past the last
       --  digit of the integer value.
 
-      function Scan_Pos return Pos is
+      --------------
+      -- Scan_Nat --
+      --------------
+
+      function Scan_Nat return Nat is
          Val : Int := 0;
 
       begin
@@ -86,12 +96,27 @@ package body Switch is
               Character'Pos (Switches (Ptr)) - Character'Pos ('0');
             Ptr := Ptr + 1;
 
-            if Val = 0 or else Val > Switch_Max_Value then
+            if Val > Switch_Max_Value then
                raise Bad_Switch_Value;
             end if;
          end loop;
 
          return Val;
+      end Scan_Nat;
+
+      --------------
+      -- Scan_Pos --
+      --------------
+
+      function Scan_Pos return Pos is
+         Result : constant Int := Scan_Nat;
+
+      begin
+         if Result = 0 then
+            raise Bad_Switch_Value;
+         else
+            return Result;
+         end if;
       end Scan_Pos;
 
    --  Start of processing for Scan_Switches
@@ -258,12 +283,13 @@ package body Switch is
 
             if Program = Compiler then
                GNAT_Mode                := True;
-               RM_Column_Check          := True;
                Style_Check              := True;
                Identifier_Character_Set := 'n';
                Warning_Mode             := Treat_As_Error;
                Check_Unreferenced       := True;
                Check_Withs              := True;
+
+               Set_Default_Style_Check_Options;
 
             elsif Program = Make then
                raise Bad_Switch;
@@ -502,9 +528,7 @@ package body Switch is
          elsif C = 'r' then
             Ptr := Ptr + 1;
 
-            if Program = Compiler then
-               RM_Column_Check := True;
-            elsif Program = Binder then
+            if Program = Binder then
                Bind_Alternate_Main_Name := True;
             else
                raise Bad_Switch;
@@ -522,6 +546,13 @@ package body Switch is
                Check_Source_Files := True;
             else
                raise Bad_Switch;
+            end if;
+
+         elsif C = 'S' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler or else Program = Binder then
+               Time_Slice_Value := Scan_Pos;
             end if;
 
          --  Processing for t switch
@@ -543,7 +574,8 @@ package body Switch is
             Ptr := Ptr + 1;
 
             if Program = Compiler or else Program = Binder then
-               Table_Factor := Scan_Pos;
+               Time_Slice_Set := True;
+               Time_Slice_Value := Scan_Nat;
             else
                raise Bad_Switch;
             end if;
@@ -581,9 +613,9 @@ package body Switch is
             if Program = Compiler or else Program = Binder then
 
                case Switches (Ptr) is
-                  when 's' => Warning_Mode       := Suppress;
-                  when 'e' => Warning_Mode       := Treat_As_Error;
-                  when 'l' => Elab_Warnings      := True;
+                  when 's' => Warning_Mode  := Suppress;
+                  when 'e' => Warning_Mode  := Treat_As_Error;
+                  when 'l' => Elab_Warnings := True;
 
                   when 'u' =>
                      Check_Unreferenced := True;
@@ -644,12 +676,42 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
+         elsif C = 'y' then
+            if Program = Compiler then
+               Ptr := Ptr + 1;
+               Style_Check := True;
+
+               if Ptr > Max then
+                  Set_Default_Style_Check_Options;
+
+               else
+                  declare
+                     OK : Boolean;
+
+                  begin
+                     while Ptr <= Max loop
+                        C := Switches (Ptr);
+                        Set_Style_Check_Option (C, OK);
+
+                        if not OK then
+                           raise Bad_Switch;
+                        else
+                           Ptr := Ptr + 1;
+                        end if;
+                     end loop;
+                  end;
+               end if;
+
+            else
+               raise Bad_Switch;
+            end if;
+
          --  Processing for z switch
 
          elsif C = 'z' then
             Ptr := Ptr + 1;
 
-            --  Allowed only for compiler, and only if this is the only
+            --  Allowed for compiler, only if this is the only
             --  -z switch, we do not allow multiple occurrences
 
             if Program = Compiler
@@ -667,6 +729,11 @@ package body Switch is
                end case;
 
                Ptr := Ptr + 1;
+
+            elsif Program = Binder
+              or else Program = Make
+            then
+               No_Main_Subprogram := True;
 
             else
                raise Bad_Switch;

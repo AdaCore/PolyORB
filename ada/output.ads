@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -72,6 +72,9 @@ pragma Elaborate_Body (Output);
    --  end of line is handled separately using WRITE_EOL, so the string
    --  should not contain either of the characters LF or CR, but it may
    --  contain horizontal tab characters.
+
+   procedure Write_Line (S : String);
+   --  Equivalent to Write_Str (S) followed by Write_Eol;
 
    --------------------------
    -- Debugging Procedures --

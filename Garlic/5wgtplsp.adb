@@ -2,11 +2,11 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---  S Y S T E M . G A R L I C . T C P . P L A T F O R M _ S P E C I F I C   --
+--  S Y S T E M . G A R L I C . T C P _ P L A T F O R M _ S P E C I F I C   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$
 --                                                                          --
 --         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --

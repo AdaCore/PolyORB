@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -139,6 +139,13 @@ begin
 
    Write_Switch_Char;
    Write_Str ("v       Motivate all (re)compilations");
+   Write_Eol;
+   Write_Eol;
+
+   --  Line for -z
+
+   Write_Switch_Char;
+   Write_Str ("z       No main subprogram (zero main)");
    Write_Eol;
    Write_Eol;
 

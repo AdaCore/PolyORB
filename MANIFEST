@@ -333,6 +333,8 @@ ada/output.adb
 ada/output.ads
 ada/rident.ads
 ada/sdefault.ads
+ada/stylesw.adb
+ada/stylesw.ads
 ada/switch.adb
 ada/switch.ads
 ada/table.adb

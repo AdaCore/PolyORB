@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                            --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -309,6 +309,11 @@ package Opt is
    --  GNATMAKE
    --  Set to True if minimal recompilation mode requested.
 
+   No_Main_Subprogram : Boolean := False;
+   --  GNATMAKE, GNATBIND
+   --  Set to True if compilation/binding of a program without main
+   --  subprogram requested.
+
    Normalize_Scalars : Boolean := False;
    --  GNAT, GNATBIND
    --  For GNAT, set True if a pragma Normalize_Scalars applies to the current
@@ -360,12 +365,6 @@ package Opt is
    --  GNATMAKE
    --  Set to True if the list of compilation commands should not be output.
 
-   RM_Column_Check : Boolean := False;
-   --  GNAT
-   --  Flag set to cause column alignment to be taken into account in
-   --  determining legality of various constructs, using the layout rules
-   --  specified in the RM.
-
    Software_Overflow_Checking : Boolean;
    --  GNAT
    --  Set to True by Osint.Initialize if the target requires the software
@@ -388,8 +387,10 @@ package Opt is
    --  GNAT
    --  Set True to perform style checks. Activates checks carried out
    --  in package Style (see body of this package for details of checks)
+   --  This flag is set True by either the -gnatg or -gnaty switches.
 
    System_Extend_Pragma_Arg : Node_Id := Empty;
+   --  GNAT
    --  Set non-empty if and only if a correct Extend_System pragma was present
    --  in which case it points to the argument of the pragma, and the name can
    --  be located as Chars (Expression (System_Extend_Pragma_Arg)).
@@ -424,7 +425,8 @@ package Opt is
    --  output of the Q line in ali files.
 
    Time_Slice_Set : Boolean := False;
-   --  Set True if a pragma Time_Slice is processed in the main unit.
+   --  Set True if a pragma Time_Slice is processed in the main unit, or
+   --  if the T switch is present to set a time slice value.
 
    Time_Slice_Value : Nat;
    --  Time slice value. Valid only if Time_Slice_Set is True, i.e. if a

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -167,6 +167,22 @@ package Osint is
    --  path information in order to locate it. If the source file cannot be
    --  opened, or Name = No_File, and all blank time stamp is returned (this is
    --  not an error situation).
+
+   procedure Record_Time_From_Last_Bind;
+   --  Trigger the computing of the time from the last bind of the same
+   --  program.
+
+   function Time_From_Last_Bind return Nat;
+   --  This function give an approximate number of minute from the last bind.
+   --  It bases its computation on file stamp and therefore does gibe not
+   --  any meaningful result before the new output binder file is written.
+   --  So it returns Nat'last if
+   --   - it is the first bind of this  specific program
+   --   - Record_Time_From_Last_Bind was not Called first
+   --   - Close_Binder_Output was not called first
+   --  otherwise returns the number of minutes
+   --  till the last bind. The computation does not try to be completely
+   --  accurate and in particular does not take leap years into account.
 
    function To_Canonical_Dir_Spec
      (Host_Dir     : String;

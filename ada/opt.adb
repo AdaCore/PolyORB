@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -126,9 +126,7 @@ package body Opt is
       Tree_Read_Data (Operating_Mode'Address,
                       Operating_Mode_Type'Object_Size / Storage_Unit);
       Tree_Read_Bool (Software_Overflow_Checking);
-      Tree_Read_Bool (Style_Check);
       Tree_Read_Bool (Try_Semantics);
-      Tree_Read_Bool (RM_Column_Check);
       Tree_Read_Data (Wide_Character_Encoding_Method'Address,
                       WC_Encoding_Method'Object_Size / Storage_Unit);
       Tree_Read_Bool (Upper_Half_Encoding);
@@ -167,9 +165,7 @@ package body Opt is
       Tree_Write_Data (Operating_Mode'Address,
                        Operating_Mode_Type'Object_Size / Storage_Unit);
       Tree_Write_Bool (Software_Overflow_Checking);
-      Tree_Write_Bool (Style_Check);
       Tree_Write_Bool (Try_Semantics);
-      Tree_Write_Bool (RM_Column_Check);
       Tree_Write_Data (Wide_Character_Encoding_Method'Address,
                        WC_Encoding_Method'Object_Size / Storage_Unit);
       Tree_Write_Bool (Upper_Half_Encoding);

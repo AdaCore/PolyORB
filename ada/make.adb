@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -725,47 +725,126 @@ package body Make is
    --------------------------
 
    procedure Check_Linker_Options
-     (E_Stamp : Time_Stamp_Type;
-      O_File  : out File_Name_Type;
-      O_Stamp : out Time_Stamp_Type)
+     (E_Stamp   : Time_Stamp_Type;
+      O_File    : out File_Name_Type;
+      O_Stamp   : out Time_Stamp_Type)
    is
       procedure Check_File (File : File_Name_Type);
       --  Update O_File and O_Stamp if the given file is younger than E_Stamp
       --  and O_Stamp, or if O_File is No_File and File does not exist.
+
+      function Get_Library_File (Name : String) return File_Name_Type;
+      --  Return the full file name including path of a library based
+      --  on the name specified with the -l linker option, using the
+      --  Ada object path. Return No_File if no such file can be found.
+
+      type Char_Array is array (Natural) of Character;
+      type Char_Array_Access is access constant Char_Array;
+
+      Template : Char_Array_Access;
+      pragma Import (C, Template, "_gnat_library_template");
+
+      ----------------------
+      -- Get_Library_Name --
+      ----------------------
+
+      --  See comments in a-adaint.c about template syntax
+
+      function Get_Library_File (Name : String) return File_Name_Type is
+         File     : File_Name_Type := No_File;
+      begin
+         Name_Len := 0;
+
+         for Ptr in Template'Range loop
+            case Template (Ptr) is
+               when '*'       => Add_Str_To_Name_Buffer (Name);
+               when ';'       => File := Full_Lib_File_Name (Name_Find);
+                                 exit when File /= No_File;
+                                 Name_Len := 0;
+               when Ascii.Nul => exit;
+
+               when others    => Add_Char_To_Name_Buffer (Template (Ptr));
+            end case;
+         end loop;
+
+         --  The for loop exited because the end of the template
+         --  was reached. File contains the last possible filename
+         --  for the library.
+
+         if File = No_File and then Name_Len > 0 then
+            File := Full_Lib_File_Name (Name_Find);
+         end if;
+
+         return File;
+      end Get_Library_File;
+
 
       ----------------
       -- Check_File --
       ----------------
 
       procedure Check_File (File : File_Name_Type) is
-         Stamp   : Time_Stamp_Type;
+         Stamp : Time_Stamp_Type;
+         Name  : File_Name_Type := File;
 
       begin
-         --  Only check if File is not a switch
+         Get_Name_String (Name);
 
-         if Name_Len > 0 and then Name_Buffer (1) /= Get_Switch_Character
-            and then Name_Buffer (1) /= '-'
+         --  Remove any trailing Ascii.NUL characters
+
+         while Name_Len >= Name_Buffer'First
+           and then Name_Buffer (Name_Len) = Ascii.NUL
+         loop
+            Name_Len := Name_Len - 1;
+         end loop;
+
+         if Name_Len <= 0 then
+            return;
+
+         elsif Name_Buffer (1) = Get_Switch_Character
+           or else Name_Buffer (1) = '-'
          then
-            Stamp := File_Stamp (File);
+            --  Do not check if File is a switch other than "-l"
 
-            --  Find the youngest object file that is younger than the
-            --  executable. If no such file exist, record the first object
-            --  file that is not found.
+            if Name_Buffer (2) /= 'l' then
+               return;
+            end if;
 
-            if (O_Stamp < Stamp and then E_Stamp < Stamp)
-              or else (O_File = No_File and then Stamp (Stamp'First) = ' ')
-            then
-               O_Stamp := Stamp;
-               O_File := File;
+            --  The argument is a library switch, get actual name. It
+            --  is necessary to make a copy of the relevant part of
+            --  Name_Buffer as Get_Library_Name uses Name_Buffer as well.
 
-               --  Strip the trailing Ascii.Nul if present
+            declare
+               Base_Name : constant String := Name_Buffer (3 .. Name_Len);
 
-               Get_Name_String (O_File);
+            begin
+               Name := Get_Library_File (Base_Name);
+            end;
 
-               if Name_Buffer (Name_Len) = Ascii.Nul then
-                  Name_Len := Name_Len - 1;
-                  O_File := Name_Find;
-               end if;
+            if Name = No_File then
+               return;
+            end if;
+         end if;
+
+         Stamp := File_Stamp (Name);
+
+         --  Find the youngest object file that is younger than the
+         --  executable. If no such file exist, record the first object
+         --  file that is not found.
+
+         if (O_Stamp < Stamp and then E_Stamp < Stamp)
+           or else (O_File = No_File and then Stamp (Stamp'First) = ' ')
+         then
+            O_Stamp := Stamp;
+            O_File := Name;
+
+            --  Strip the trailing Ascii.Nul if present
+
+            Get_Name_String (O_File);
+
+            if Name_Buffer (Name_Len) = Ascii.Nul then
+               Name_Len := Name_Len - 1;
+               O_File := Name_Find;
             end if;
          end if;
       end Check_File;
@@ -1705,6 +1784,13 @@ package body Make is
             Pos => Binder_Switches.First);
       end if;
 
+      --  If the user wants a program without a main subprogram, add the
+      --  appropriate switch to the binder.
+
+      if Opt.No_Main_Subprogram then
+         Add_Switch ("-z", Binder);
+      end if;
+
       Display_Commands (not Opt.Quiet_Output);
 
       --  Here is where the make process is started
@@ -1806,10 +1892,11 @@ package body Make is
 
          --    4) Made unit cannot be a main unit
 
-         if Opt.Do_Not_Execute
-           or Opt.List_Dependencies
-           or Opt.Compile_Only
-           or not Is_Main_Unit
+         if (Opt.Do_Not_Execute
+             or Opt.List_Dependencies
+             or Opt.Compile_Only
+             or not Is_Main_Unit)
+           and then not No_Main_Subprogram
          then
             return;
          end if;

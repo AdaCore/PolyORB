@@ -2,11 +2,11 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                             I S T H R B I O                              --
+--         S Y S T E M . G A R L I C . T C P . O P E R A T I O N S          --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --

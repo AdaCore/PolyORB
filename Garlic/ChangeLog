@@ -1,3 +1,15 @@
+1998-10-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* All files: Update headers.
+
+	* Makefile.am (DISTCLEANFILES): Add s-gatcop.ads.
+
+1998-10-15  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garhea.adb, s-rpcpoo.adb: Do not read RPC_Receiver from
+ 	stream. Instead read an unsigned_64 and convert it to a
+ 	RPC_Receiver.
+
 1998-10-14  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* s-garhea.adb, s-garhea.ads: Move some procedures to manage

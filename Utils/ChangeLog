@@ -1,3 +1,19 @@
+1998-10-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* nokeywords.pl: Remove trailing -- instead of just suppressing
+	the keyword.
+
+	* update-headers.el (update-header): Do not add trailing --
+	automatically onto the Revision line.
+	Handle package renamings and .ad[bs].in files as well.
+
+	* normalize.pl: Properly reformat Revision lines without --
+	terminators.
+
+1998-10-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* VERSION.INFO: Set version for this branch as being 4.12w.
+
 1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* normalize.pl: Bug fixes.

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -35,6 +35,8 @@
 
 with Ada.Exceptions;                  use Ada.Exceptions;
 pragma Warnings (Off, Ada.Exceptions);
+with Ada.Unchecked_Conversion;
+with Interfaces;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Filters;           use System.Garlic.Filters;
 with System.Garlic.Group;             use System.Garlic.Group;
@@ -127,6 +129,9 @@ package body System.Garlic.Heart is
 
    procedure Shutdown;
    --  Generates a local shutdown
+
+   function Convert is
+      new Ada.Unchecked_Conversion (System.Address, RPC_Receiver);
 
    --------------------
    -- Analyze_Stream --
@@ -725,9 +730,9 @@ package body System.Garlic.Heart is
      (Params : access Streams.Params_Stream_Type;
       Result : access Streams.Params_Stream_Type)
    is
-      Receiver : RPC_Receiver;
+      Receiver : constant RPC_Receiver :=
+        Convert (System.Address (Interfaces.Unsigned_64'Input (Params)));
    begin
-      RPC_Receiver'Read (Params, Receiver);
       Receiver (Params, Result);
    end Partition_RPC_Receiver;
 
