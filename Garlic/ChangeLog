@@ -1,3 +1,9 @@
+Wed May 14 15:05:52 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpcpoo.adb: Use values provided by System.Garlic.Options.
+
+	* s-garopt.ads: Changed constants with reasonable values *evil grin*
+
 Wed May 14 14:35:11 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* s-garopt.ads: Add three variables to handle anonymous task pool.

@@ -38,6 +38,7 @@ with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
+with System.Garlic.Options;
 with System.Garlic.Priorities;   use System.Garlic.Priorities;
 with System.Garlic.Termination;  use System.Garlic.Termination;
 
@@ -54,6 +55,8 @@ package body System.RPC.Pool is
      renames Print_Debug_Info;
 
    Max_Tasks : constant := 512;
+   --  This one must match the maximum value of Task_Pool_Max_Bound defined
+   --  in s-garopt.ads.
 
    type Cancel_Type is record
       Partition : Partition_ID;
@@ -123,9 +126,9 @@ package body System.RPC.Pool is
    function Create_New_Task return Task_Identifier_Access;
    --  Create a new task.
 
-   Low_Mark  : constant := 5;
-   High_Mark : constant := 10;
-   Max_Mark  : constant := 20;
+   Low_Mark  : Positive renames System.Garlic.Options.Task_Pool_Low_Bound;
+   High_Mark : Positive renames System.Garlic.Options.Task_Pool_High_Bound;
+   Max_Mark  : Positive renames System.Garlic.Options.Task_Pool_Max_Bound;
 
    protected Free_Tasks is
 

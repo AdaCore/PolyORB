@@ -37,9 +37,10 @@ with System.Garlic.Heart;
 
 package System.Garlic.Options is
 
-   Task_Pool_Low_Bound  : Positive := 3;
-   Task_Pool_High_Bound : Positive := 6;
-   Task_Pool_Max_Bound  : Positive := 9;
+   Task_Pool_Low_Bound  : Positive := 1;
+   Task_Pool_High_Bound : Positive := 5;
+   Task_Pool_Max_Bound  : Positive range 1 .. 512 := 512;
+   --  This one must match the definition of Max_Tasks from s-rpcpoo.adb.
 
    function Get_Boot_Server return String;
    --  Return value specified by --boot_server command line arg or else
