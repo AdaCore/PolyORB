@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,107 +33,15 @@
 
 --  PolyORB runtime configuration facility
 
-with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
-with PolyORB.Utils.Strings;
+with PolyORB.Utils;
 
 package body PolyORB.Parameters is
-
-   use PolyORB.Utils.Strings;
-
-   -------
-   -- O --
-   -------
-
-   procedure O (S : String);
-   pragma Inline (O);
-   --  Output a diagnostic or error message.
-
-   --  Note: We are currently initializing structures on which
-   --  PolyORB.Log.Facility_Log depends. Thus we cannot instantiate
-   --  this package and use PolyORB.Log.Internals.Put_Line instead.
-
-   Debug : constant Boolean := True;
-
-   procedure O (S : String) is
-   begin
-      if Debug then
-         PolyORB.Log.Internals.Put_Line (S);
-      end if;
-   end O;
-
-   --------------------------------------------
-   -- The configuration variables dictionary --
-   --------------------------------------------
-
-   package Variables is
-      new PolyORB.Dynamic_Dict (Value => String_Ptr);
-
-   function Fetch (Key : String) return String;
-   --  Get the string from a file (if Key starts with file: and the file
-   --  exists, otherwise it is an empty string), or the string itself
-   --  otherwise.
-
-   function Make_Global_Key (Section, Key : String) return String;
-   --  Build Dynamic Dict key from (Section, Key) tuple
-
-   function Make_Env_Name (Section, Key : String) return String;
-   --  Build environment variable from (Section, Key) tuple
 
    function To_Boolean (V : String) return Boolean;
    --  Convert a String value to a Boolean value according
    --  to the rules indicated in the spec for boolean configuration
    --  variables.
-
-   ---------------------
-   -- Make_Global_Key --
-   ---------------------
-
-   function Make_Global_Key (Section, Key : String) return String is
-   begin
-      return "[" & Section & "]" & Key;
-   end Make_Global_Key;
-
-   -------------------
-   -- Make_Env_Name --
-   -------------------
-
-   function Make_Env_Name (Section, Key : String) return String is
-      Result : String := "POLYORB_"
-        & PolyORB.Utils.To_Upper (Section & "_" & Key);
-
-   begin
-      for J in Result'Range loop
-         case Result (J) is
-            when
-              '0' .. '9' |
-              'A' .. 'Z' |
-              'a' .. 'z' |
-              '_'        =>
-               null;
-            when others =>
-               Result (J) := '_';
-         end case;
-      end loop;
-
-      return Result;
-   end Make_Env_Name;
-
-   -----------
-   -- Fetch --
-   -----------
-
-   function Fetch (Key : String) return String is
-   begin
-      if PolyORB.Utils.Has_Prefix (Key, "file:")
-        and then Fetch_From_File_Hook /= null
-      then
-         return Fetch_From_File_Hook.all (Key);
-
-      else
-         return Key;
-      end if;
-   end Fetch;
 
    ----------------
    -- To_Boolean --
@@ -195,19 +103,12 @@ package body PolyORB.Parameters is
       Default      : String := "")
      return String
    is
-      From_Env : constant String
-        := Get_Env (Make_Env_Name (Section, Key));
-
-      Default_Value : aliased String := Default;
-
    begin
-      if From_Env /= "" then
-         return Fetch (From_Env);
+      if Get_Conf_Hook /= null then
+         return Get_Conf_Hook.all (Section, Key, Default);
+
       else
-         return Fetch
-           (Variables.Lookup
-            (Make_Global_Key (Section, Key),
-             String_Ptr'(Default_Value'Unchecked_Access)).all);
+         return Default;
       end if;
    end Get_Conf;
 
@@ -256,17 +157,13 @@ package body PolyORB.Parameters is
      (Section, Key : String;
       Value        : String)
    is
-      K : constant String := Make_Global_Key (Section, Key);
-      P : String_Ptr := Variables.Lookup (K, null);
-
    begin
-      pragma Debug (O (K & "=" & Value));
-      if P /= null then
-         Variables.Unregister (K);
-         Free (P);
-      end if;
+      if Set_Conf_Hook /= null then
+         Set_Conf_Hook.all (Section, Key, Value);
 
-      Variables.Register (K, +Value);
+      else
+         raise Program_Error;
+      end if;
    end Set_Conf;
 
    ----------------
@@ -282,6 +179,14 @@ package body PolyORB.Parameters is
    -- Reset --
    -----------
 
-   procedure Reset renames Variables.Reset;
+   procedure Reset is
+   begin
+      if Reset_Hook /= null then
+         Reset_Hook.all;
+
+      else
+         raise Program_Error;
+      end if;
+   end Reset;
 
 end PolyORB.Parameters;

@@ -51,7 +51,7 @@ package body PolyORB.Parameters.File is
 
    procedure O (S : String);
    pragma Inline (O);
-   --  Output a diagnostic or error message.
+   --  Output a diagnostic or error message
 
    --  Note: We are currently initializing structures on which
    --  PolyORB.Log.Facility_Log depends. Thus we cannot instantiate
@@ -219,7 +219,8 @@ begin
      (Module_Info'
       (Name      => +"parameters.file",
        Conflicts => Empty,
-       Depends   => +"parameters.environment?"
+       Depends   => +"parameters.registry"
+       & "parameters.environment?"
        & "log?",
        Provides  => +"parameters",
        Implicit  => True,

@@ -57,6 +57,10 @@ pragma Elaborate_All
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 
+with PolyORB.Parameters.Registry;
+pragma Warnings (Off, PolyORB.Parameters.Registry);
+pragma Elaborate_All (PolyORB.Parameters.Registry);
+
 with PolyORB.Parameters.File;
 pragma Warnings (Off, PolyORB.Parameters.File);
 pragma Elaborate_All (PolyORB.Parameters.File);

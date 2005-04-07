@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -94,5 +94,20 @@ private
      access function (Key : String; Default : String := "") return String;
 
    Fetch_From_Env_Hook : Fetch_From_Env_T := null;
+
+   type Get_Conf_T is
+     access function (Section, Key : String; Default : String := "")
+     return String;
+
+   Get_Conf_Hook : Get_Conf_T := null;
+
+   type Set_Conf_T is
+     access procedure (Section, Key : String; Value : String);
+
+   Set_Conf_Hook : Set_Conf_T := null;
+
+   type Reset_T is access procedure;
+
+   Reset_Hook : Reset_T := null;
 
 end PolyORB.Parameters;

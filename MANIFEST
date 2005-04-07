@@ -1090,6 +1090,8 @@ src/polyorb-parameters-environment.adb
 src/polyorb-parameters-environment.ads
 src/polyorb-parameters-file.adb
 src/polyorb-parameters-file.ads
+src/polyorb-parameters-registry.adb
+src/polyorb-parameters-registry.ads
 src/polyorb-parameters.adb
 src/polyorb-parameters.ads
 src/polyorb-poa-basic_poa.adb

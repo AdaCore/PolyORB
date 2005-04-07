@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   P O L Y O R B . S E T U P . B A S E                    --
+--          P O L Y O R B . P A R A M E T E R S . R E G I S T R Y           --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,22 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
+package PolyORB.Parameters.Registry is
 
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
+   pragma Elaborate_Body;
 
-with PolyORB.Parameters.Environment;
-pragma Warnings (Off, PolyORB.Parameters.Environment);
-pragma Elaborate_All (PolyORB.Parameters.Environment);
-
-with PolyORB.Parameters.Registry;
-pragma Warnings (Off, PolyORB.Parameters.Registry);
-pragma Elaborate_All (PolyORB.Parameters.Registry);
-
-package body PolyORB.Setup.Base is
-
-end PolyORB.Setup.Base;
+end PolyORB.Parameters.Registry;

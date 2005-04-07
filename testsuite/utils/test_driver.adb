@@ -49,6 +49,10 @@ with PolyORB.Log.Stderr;
 pragma Warnings (Off, PolyORB.Log.Stderr);
 pragma Elaborate_All (PolyORB.Log.Stderr);
 
+with PolyORB.Parameters.Registry;
+pragma Warnings (Off, PolyORB.Parameters.Registry);
+pragma Elaborate_All (PolyORB.Parameters.Registry);
+
 procedure Test_Driver is
 
    use Ada.Text_IO;

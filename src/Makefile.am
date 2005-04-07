@@ -65,6 +65,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-parameters.ads \
 		polyorb-parameters-environment.ads \
 		polyorb-parameters-file.ads \
+		polyorb-parameters-registry.ads \
 		polyorb-poa-basic_poa.ads \
 		polyorb-poa.ads \
 		polyorb-poa_config.ads \
