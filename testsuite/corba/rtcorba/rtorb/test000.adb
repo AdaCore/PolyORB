@@ -73,9 +73,9 @@ with PolyORB.Setup.Tasking.Full_Tasking;
 pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
 pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
 
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
+with PolyORB.Setup.Base;
+pragma Warnings (Off, PolyORB.Setup.Base);
+pragma Elaborate_All (PolyORB.Setup.Base);
 
 with PolyORB.Setup.OA.Basic_RT_POA;
 pragma Warnings (Off, PolyORB.Setup.OA.Basic_RT_POA);
