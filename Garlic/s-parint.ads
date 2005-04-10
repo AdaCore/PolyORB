@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -90,8 +90,8 @@ package System.Partition_Interface is
       --  are marshalled.
    end record;
 
-   type RPC_Receiver is
-      access procedure (Request : Request_Access);
+   type RPC_Receiver is access procedure (Request : Request_Access);
+   pragma No_Strict_Aliasing (RPC_Receiver);
 
    procedure Check
      (Name    : in Unit_Name;
@@ -132,8 +132,7 @@ package System.Partition_Interface is
    --  check that these units are uniquely defined.
 
    function Get_Active_Partition_ID
-     (Name : Unit_Name)
-      return System.RPC.Partition_ID;
+     (Name : Unit_Name) return System.RPC.Partition_ID;
    --  Similar in some respects to RCI_Locator.Get_Active_Partition_ID
    --  XXXXX: Rename it in Get_RCI_Partition_ID
 
@@ -147,13 +146,11 @@ package System.Partition_Interface is
    --  Return the Partition_ID of the current partition
 
    function Get_Partition_Name
-     (Partition : Integer)
-     return String;
+     (Partition : Integer) return String;
    --  Return the name of the partition
 
    function Get_Passive_Partition_ID
-     (Name : Unit_Name)
-     return System.RPC.Partition_ID;
+     (Name : Unit_Name) return System.RPC.Partition_ID;
    --  Return the Partition_ID of the given shared passive partition
    --  XXXXX: Rename it in Get_SP_Partition_ID
 
@@ -162,8 +159,7 @@ package System.Partition_Interface is
    --  XXXXX: Rename it in Get_SP_Version
 
    function Get_RCI_Package_Receiver
-     (Name : Unit_Name)
-      return Interfaces.Unsigned_64;
+     (Name : Unit_Name) return Interfaces.Unsigned_64;
    --  Similar in some respects to RCI_Locator.Get_RCI_Package_Receiver
 
    procedure Register_Receiving_Stub
