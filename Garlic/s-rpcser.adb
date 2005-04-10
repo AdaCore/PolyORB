@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -85,11 +85,9 @@ package body System.RPC.Server is
          Inner : Inner_Abort_Handler_Type;
       end record;
 
-   procedure Finalize
-     (Handler : in out Inner_Abort_Handler_Type);
+   procedure Finalize (Handler : in out Inner_Abort_Handler_Type);
 
-   procedure Adjust
-     (Self : in out Outer_Abort_Handler_Type);
+   procedure Adjust (Self : in out Outer_Abort_Handler_Type);
 
    function Convert is
       new Ada.Unchecked_Conversion
@@ -112,8 +110,8 @@ package body System.RPC.Server is
    --  Abort a running task
 
    procedure Execute_Remote_Subprogram
-     (Params   : Streams.Params_Stream_Access;
-      Result   : Streams.Params_Stream_Access);
+     (Params : Streams.Params_Stream_Access;
+      Result : Streams.Params_Stream_Access);
    --  Extract access to subprogram from Params and execute it
    --  locally. Parameters for this subprogram are also marshalled in
    --  Params. The returned parameters are marshalled in Result.
@@ -127,8 +125,7 @@ package body System.RPC.Server is
    type Task_Identifier;
    type Task_Identifier_Access is access Task_Identifier;
 
-   function Create_RPC_Handler
-     return Task_Identifier_Access;
+   function Create_RPC_Handler return Task_Identifier_Access;
 
    procedure Destroy_RPC_Handler
      (Identifier : in out Task_Identifier_Access);
@@ -208,8 +205,7 @@ package body System.RPC.Server is
    -- Adjust --
    ------------
 
-   procedure Adjust
-     (Self : in out Outer_Abort_Handler_Type) is
+   procedure Adjust (Self : in out Outer_Abort_Handler_Type) is
    begin
       Self.Inner.Outer.Partition     := Self.Partition;
       Self.Inner.Outer.Waiting    := Self.Waiting;
@@ -503,8 +499,7 @@ package body System.RPC.Server is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (Handler : in out Inner_Abort_Handler_Type) is
+   procedure Finalize (Handler : in out Inner_Abort_Handler_Type) is
    begin
       Finalize
         (Handler.Outer.Partition,

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -216,8 +216,7 @@ package body System.Partition_Interface is
    -----------------------------
 
    function Get_Active_Partition_ID
-     (Name : Unit_Name)
-      return RPC.Partition_ID
+     (Name : Unit_Name) return RPC.Partition_ID
    is
       N : String := Name;
       E : aliased Error_Type;
@@ -241,10 +240,7 @@ package body System.Partition_Interface is
    -- Get_Active_Version --
    ------------------------
 
-   function Get_Active_Version
-     (Name : Unit_Name)
-      return String
-   is
+   function Get_Active_Version (Name : Unit_Name) return String is
       N : String := Name;
       V : Version_Type;
       E : aliased Error_Type;
@@ -264,8 +260,7 @@ package body System.Partition_Interface is
    -- Get_Local_Partition_ID --
    ----------------------------
 
-   function Get_Local_Partition_ID
-     return RPC.Partition_ID is
+   function Get_Local_Partition_ID return RPC.Partition_ID is
    begin
       return RPC.Partition_ID (Self_PID);
    end Get_Local_Partition_ID;
@@ -274,9 +269,7 @@ package body System.Partition_Interface is
    -- Get_Partition_Name --
    ------------------------
 
-   function Get_Partition_Name
-     (Partition : Integer)
-     return String is
+   function Get_Partition_Name (Partition : Integer) return String is
       Name  : String_Access;
       Error : aliased Error_Type;
    begin
@@ -292,8 +285,7 @@ package body System.Partition_Interface is
    ------------------------------
 
    function Get_Passive_Partition_ID
-     (Name : Unit_Name)
-      return RPC.Partition_ID is
+     (Name : Unit_Name) return RPC.Partition_ID is
    begin
       return Get_Active_Partition_ID (Name);
    end Get_Passive_Partition_ID;
@@ -370,10 +362,7 @@ package body System.Partition_Interface is
    -- Get_RCI_Package_Receiver --
    ------------------------------
 
-   function Get_RCI_Package_Receiver
-     (Name : Unit_Name)
-      return Unsigned_64
-   is
+   function Get_RCI_Package_Receiver (Name : Unit_Name) return Unsigned_64 is
       N : String := Name;
       R : Unsigned_64;
       E : aliased Error_Type;
@@ -583,8 +572,7 @@ package body System.Partition_Interface is
       -- Get_Active_Partition_ID --
       -----------------------------
 
-      function Get_Active_Partition_ID return RPC.Partition_ID
-      is
+      function Get_Active_Partition_ID return RPC.Partition_ID is
          Partition : Partition_ID;
          Error     : aliased Error_Type;
       begin
@@ -599,8 +587,7 @@ package body System.Partition_Interface is
       -- Get_RCI_Package_Receiver --
       ------------------------------
 
-      function Get_RCI_Package_Receiver return Unsigned_64
-      is
+      function Get_RCI_Package_Receiver return Unsigned_64 is
          Receiver : Unsigned_64;
          Error    : aliased Error_Type;
       begin
@@ -620,9 +607,7 @@ package body System.Partition_Interface is
    -- Run --
    ---------
 
-   procedure Run
-     (Main : in Main_Subprogram_Type := null)
-   is
+   procedure Run (Main : in Main_Subprogram_Type := null) is
       Caller   : Caller_List := Callers;
       Dummy    : Caller_List;
       Error    : aliased Error_Type;
@@ -712,8 +697,8 @@ package body System.Partition_Interface is
      (Subprograms : in RCI_Subp_Info_Array;
       Receiver    : in System.Address)
    is
-      function To_Proxy is new Ada.Unchecked_Conversion
-      (System.Address, RAS_Proxy_Type_Access);
+      function To_Proxy is
+         new Ada.Unchecked_Conversion (System.Address, RAS_Proxy_Type_Access);
    begin
       for Subp_Id in Subprograms'Range loop
          To_Proxy (Subprograms (Subp_Id).Addr).Receiver := Receiver;
