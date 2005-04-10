@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -42,6 +42,7 @@ package System.Garlic.Exceptions is
    pragma Elaborate_Body;
 
    procedure Raise_With_Errno (Id : in Ada.Exceptions.Exception_Id);
+   pragma No_Return (Raise_With_Errno);
    pragma Inline (Raise_With_Errno);
    --  Raise an exception with a message corresponding to errno
 
@@ -52,10 +53,14 @@ package System.Garlic.Exceptions is
    --  If an alternate message is given, it will be used instead.
 
    type Error_Type is limited private;
+
    function Found (Error : Error_Type) return Boolean;
    procedure Throw (Error : in out Error_Type; Message : in String);
    procedure Catch (Error : in out Error_Type);
+
    procedure Raise_Communication_Error (Error : in out Error_Type);
+   pragma No_Return (Raise_Communication_Error);
+
    function Content (Error : access Error_Type) return String;
    --  Error type and associated primitives. By default, an Error_Type is
    --  not considered as being an error until Throw has been called.
