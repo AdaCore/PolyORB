@@ -1,3 +1,29 @@
+2005-04-10  Pascal Obry  <obry@adacore.com>
+
+	* s-garexc.adb:
+	(Raise_Communication_Error): Remove recursive call to avoid
+	 compiler warning. Not needed here now.
+	(Raise_With_Errno): Add a recursive call here to avoid GNAT warnings.
+	Fix GLADE build warning.
+	Minor reformatting.
+	Update copyright notice.	
+
+	* s-garexc.ads:
+	(Raise_With_Errno] [Exception_Id]: Add pragma No_Return.
+	Fix GLADE build warning.
+	Minor reformatting.
+	Update copyright notice.	
+
+	* s-parint.ads:
+	(RPC_Receiver): Add pragma No_Strict_Aliasing.
+	Fix GLADE build failure.
+	Minor reformatting.
+	Update copyright notice.
+
+	* s-rpcser.adb, s-parint.adb:
+	Minor reformatting.
+	Update copyright notice.
+
 2004-11-22  Pascal Obry  <obry@adacore.com>
 
 	* 5wgarrem.adb, s-garrem.ads:
