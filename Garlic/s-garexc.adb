@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -54,8 +54,7 @@ package body System.Garlic.Exceptions is
    -- Catch --
    -----------
 
-   procedure Catch (Error : in out Error_Type)
-   is
+   procedure Catch (Error : in out Error_Type) is
    begin
       if Error /= null then
          pragma Debug (D ("*** Catch *** " & Error.all));
@@ -93,8 +92,7 @@ package body System.Garlic.Exceptions is
       Error_Message : constant String := Error.all;
    begin
       Free (Error);
-      Ada.Exceptions.Raise_Exception
-        (Communication_Error'Identity, Error_Message);
+      Raise_Exception (Communication_Error'Identity, Error_Message);
    end Raise_Communication_Error;
 
    -------------------------------
@@ -108,7 +106,6 @@ package body System.Garlic.Exceptions is
       else
          Raise_Exception (Communication_Error'Identity, Msg);
       end if;
-      Raise_Communication_Error;  -- Keep the compiler happy
    end Raise_Communication_Error;
 
    ----------------------
@@ -118,14 +115,15 @@ package body System.Garlic.Exceptions is
    procedure Raise_With_Errno (Id : in Exception_Id) is
    begin
       Raise_Exception (Id, "Error" & Integer'Image (Errno));
+      --  Next line will never be called, just to avoid GNAT warnings
+      Raise_With_Errno (Id);
    end Raise_With_Errno;
 
    -----------
    -- Throw --
    -----------
 
-   procedure Throw (Error : in out Error_Type; Message : in String)
-   is
+   procedure Throw (Error : in out Error_Type; Message : in String) is
    begin
       if Error /= null then
          pragma Debug (D ("*** Abort *** " & Error.all));
