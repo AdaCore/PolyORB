@@ -91,7 +91,6 @@ package System.Partition_Interface is
    end record;
 
    type RPC_Receiver is access procedure (Request : Request_Access);
-   pragma No_Strict_Aliasing (RPC_Receiver);
 
    procedure Check
      (Name    : in Unit_Name;
