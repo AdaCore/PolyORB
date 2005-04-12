@@ -389,7 +389,7 @@ package body PolyORB.Protocols.GIOP is
          Free (New_Pending_Req);
 
          if Found (Error) then
-            R.Exception_Info := Error_To_Any (Error);
+            Set_Exception (R, Error);
             Catch (Error);
 
             declare
@@ -424,7 +424,7 @@ package body PolyORB.Protocols.GIOP is
             raise GIOP_Error;
          end if;
 
-         R.Exception_Info := Error_To_Any (Error);
+         Set_Exception (R, Error);
          Catch (Error);
 
          declare
@@ -753,7 +753,6 @@ package body PolyORB.Protocols.GIOP is
          Info := Error_To_Any (Error);
          Catch (Error);
       end if;
-
    end Unmarshall_System_Exception_To_Any;
 
    --  Version management

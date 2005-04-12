@@ -31,16 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The Request object.
+--  The Request object
 
 with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
+with PolyORB.Errors;
 with PolyORB.References;
 with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
-with PolyORB.Errors;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
 with PolyORB.Utils.Strings;
@@ -261,6 +261,9 @@ package PolyORB.Requests is
       Val   :        Any.Any;
       Error : in out Error_Container);
    --  Set the value of Self's result to Val
+
+   procedure Set_Exception (Self : Request_Access; Error : Error_Container);
+   pragma Inline (Set_Exception);
 
    procedure Set_Out_Args
      (Self           :        Request_Access;

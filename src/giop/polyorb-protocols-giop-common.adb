@@ -428,7 +428,7 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
 
                if Found (Error) then
-                  Req.Req.Exception_Info := Error_To_Any (Error);
+                  Set_Exception (Req.Req, Error);
                   Catch (Error);
 
                   Components.Emit_No_Reply
@@ -603,8 +603,7 @@ package body PolyORB.Protocols.GIOP.Common is
                --  the server did not provide a valid codeset
                --  component. We convert this exception to Inv_ObjRef 2.
 
-               Current_Req.Req.Exception_Info := Error_To_Any (Error);
-
+               Set_Exception (Current_Req.Req, Error);
                Catch (Error);
 
             else
@@ -619,8 +618,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   --  the server did not provide a valid codeset
                   --  component. We convert this exception to Inv_ObjRef 2.
 
-                  Current_Req.Req.Exception_Info := Error_To_Any (Error);
-
+                  Set_Exception (Current_Req.Req, Error);
                   Catch (Error);
                end if;
             end if;
@@ -718,8 +716,7 @@ package body PolyORB.Protocols.GIOP.Common is
                      --  the server did not provide a valid codeset
                      --  component. We convert this exception to Inv_ObjRef 2.
 
-                     Current_Req.Req.Exception_Info := Error_To_Any (Error);
-
+                     Set_Exception (Current_Req.Req, Error);
                      Catch (Error);
                   end if;
 

@@ -835,6 +835,15 @@ package body PolyORB.Requests is
       pragma Assert (not Is_Error (Error));
    end Set_Result;
 
+   -------------------
+   -- Set_Exception --
+   -------------------
+
+   procedure Set_Exception (Self : Request_Access; Error : Error_Container) is
+   begin
+      Self.Exception_Info := PolyORB.Errors.Error_To_Any (Error);
+   end Set_Exception;
+
    ------------------
    -- Set_Out_Args --
    ------------------

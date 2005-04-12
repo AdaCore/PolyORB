@@ -179,12 +179,17 @@ package body PolyORB.Protocols is
 
                else
                   pragma Debug (O ("Unmarshall deferred arguments error"));
-                  Req.Exception_Info :=
-                    PolyORB.Errors.Error_To_Any
-                    (Arguments_Error (Reply).Error);
+                  Set_Exception (Req, Arguments_Error (Reply).Error);
+
+                  --  Free data associated to Arguments_Error (Reply).Error
+
+                  declare
+                     Error : Error_Container := Arguments_Error (Reply).Error;
+                  begin
+                     Catch (Error);
+                  end;
                end if;
             end;
-
          end if;
 
          if not Found (Error) then

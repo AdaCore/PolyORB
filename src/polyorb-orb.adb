@@ -887,8 +887,7 @@ package body PolyORB.ORB is
                --  implies a problem within the object adapter. We bounce the
                --  exception to the user for further processing.
 
-               J.Request.Exception_Info := Error_To_Any (Error);
-
+               Set_Exception (J.Request, Error);
                Catch (Error);
 
                Emit_No_Reply (J.Requestor,

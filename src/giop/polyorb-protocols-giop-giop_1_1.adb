@@ -454,7 +454,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          Error);
 
       if Found (Error) then
-         Request.Exception_Info := Error_To_Any (Error);
+         Set_Exception (Request, Error);
          Catch (Error);
 
          Common_Send_Reply
