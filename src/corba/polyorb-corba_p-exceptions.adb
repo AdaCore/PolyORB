@@ -34,6 +34,7 @@
 with CORBA;
 
 with PolyORB.Any;
+with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Types;
@@ -44,6 +45,7 @@ package body PolyORB.CORBA_P.Exceptions is
 
    use PolyORB.Any;
    use PolyORB.Errors;
+   use PolyORB.Errors.Helper;
    use PolyORB.Exceptions;
    use PolyORB.Log;
    use PolyORB.Types;
@@ -168,7 +170,7 @@ package body PolyORB.CORBA_P.Exceptions is
                   Completed =>
                     From_Any
                   (Get_Aggregate_Element
-                   (Occurrence, PolyORB.Errors.TC_Completion_Status,
+                   (Occurrence, TC_Completion_Status,
                     PolyORB.Types.Unsigned_Long (1))));
 
             when others =>

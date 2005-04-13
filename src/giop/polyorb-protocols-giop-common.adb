@@ -33,7 +33,7 @@
 
 with PolyORB.Any.ExceptionList;
 with PolyORB.Buffers;
-with PolyORB.Errors;
+with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
@@ -150,6 +150,7 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.Buffers;
       use PolyORB.Components;
       use PolyORB.Errors;
+      use PolyORB.Errors.Helper;
       use PolyORB.Types;
       use type PolyORB.Any.TypeCode.Object;
 
@@ -467,7 +468,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
                begin
                   Req.Req.Exception_Info :=
-                    PolyORB.Errors.To_Any
+                    PolyORB.Errors.Helper.To_Any
                     (PolyORB.Errors.ForwardRequest_Members'
                      (Forward_Reference => Smart_Pointers.Ref (Ref)));
                end;
@@ -737,7 +738,7 @@ package body PolyORB.Protocols.GIOP.Common is
                Ref : constant References.Ref := Unmarshall (Sess.Buffer_In);
             begin
                Current_Req.Req.Exception_Info :=
-                 PolyORB.Errors.To_Any
+                 PolyORB.Errors.Helper.To_Any
                  (PolyORB.Errors.ForwardRequest_Members'
                   (Forward_Reference => Smart_Pointers.Ref (Ref)));
             end;

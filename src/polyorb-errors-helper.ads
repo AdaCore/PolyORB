@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                       P O L Y O R B . E R R O R S                        --
+--                P O L Y O R B . E R R O R S . H E L P E R                 --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,66 +31,62 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log;
+with PolyORB.Any;
 
-package body PolyORB.Errors is
+package PolyORB.Errors.Helper is
 
-   use PolyORB.Log;
+   -----------------------
+   -- Completion_Status --
+   -----------------------
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.errors");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
+   To_Completion_Status :
+     constant array (PolyORB.Types.Unsigned_Long range 0 .. 2)
+         of Completion_Status
+     := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
 
-   -----------
-   -- Found --
-   -----------
+   To_Unsigned_Long :
+     constant array (Completion_Status) of PolyORB.Types.Unsigned_Long
+     := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
 
-   function Found (Error : in Error_Container) return Boolean is
-   begin
-      return Error.Kind /= No_Error;
-   end Found;
+   function From_Any (Item : PolyORB.Any.Any) return Completion_Status;
 
-   -----------
-   -- Throw --
-   -----------
+   function To_Any (Item : Completion_Status) return Any.Any;
 
-   procedure Throw
-     (Error  : in out Error_Container;
-      Kind   : in     Error_Id;
-      Member : in     Exception_Members'Class)
-   is
-   begin
-      if Error.Kind /= No_Error then
-         pragma Debug (O ("*** Abort *** "
-                          & Error_Id'Image (Error.Kind)));
+   function TC_Completion_Status return PolyORB.Any.TypeCode.Object;
+   --  The typecode for standard enumeration type completion_status
 
-         Free (Error.Member);
-      end if;
+   --  Null_Members
 
-      Error.Kind := Kind;
-      Error.Member := new Exception_Members'Class'(Member);
+   function To_Any
+     (Name   : Standard.String;
+      Member : Null_Members)
+     return PolyORB.Any.Any;
 
-      pragma Debug (O ("*** Throw *** " & Error_Id'Image (Error.Kind)));
-   end Throw;
+   --  System_Exception_Members
 
-   -----------
-   -- Catch --
-   -----------
+   function System_Exception_TypeCode
+     (Name : Standard.String)
+     return PolyORB.Any.TypeCode.Object;
+   --  Return the TypeCode corresponding to the indicated
+   --  system exception name.
 
-   procedure Catch
-     (Error : in out Error_Container) is
-   begin
-      Error.Kind := No_Error;
-      Free (Error.Member);
-   end Catch;
+   function To_Any
+     (Name   : Standard.String;
+      Member : System_Exception_Members)
+     return PolyORB.Any.Any;
 
-   --------------
-   -- Is_Error --
-   --------------
+   --  ForwardRequest_Members
 
-   function Is_Error (Error : in Error_Container) return Boolean is
-   begin
-      return Error.Kind /= No_Error;
-   end Is_Error;
+   function To_Any
+     (Item : ForwardRequest_Members)
+      return PolyORB.Any.Any;
 
-end PolyORB.Errors;
+   function From_Any
+     (Item : PolyORB.Any.Any)
+      return ForwardRequest_Members;
+
+   function TC_ForwardRequest return PolyORB.Any.TypeCode.Object;
+
+   function Error_To_Any (Error : in Error_Container) return PolyORB.Any.Any;
+
+end PolyORB.Errors.Helper;

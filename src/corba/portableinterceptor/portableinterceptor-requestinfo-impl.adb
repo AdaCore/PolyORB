@@ -41,7 +41,7 @@ with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Slots;
-with PolyORB.Errors;
+with PolyORB.Errors.Helper;
 with PolyORB.References;
 with PolyORB.Request_QoS.Service_Contexts;
 with PolyORB.Smart_Pointers;
@@ -139,7 +139,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
       declare
          Members : PolyORB.Errors.ForwardRequest_Members
-           := PolyORB.Errors.From_Any (Self.Request.Exception_Info);
+           := PolyORB.Errors.Helper.From_Any (Self.Request.Exception_Info);
          Ref     : PolyORB.References.Ref;
          Result  : CORBA.Object.Ref;
       begin

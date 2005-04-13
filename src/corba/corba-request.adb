@@ -36,6 +36,7 @@
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 
+with PolyORB.Errors.Helper;
 with PolyORB.Initialization;
 with PolyORB.Requests;
 with PolyORB.References;
@@ -137,13 +138,13 @@ package body CORBA.Request is
 
          exit when PolyORB.Any.Is_Empty (Cur_Req.Exception_Info)
            or else PolyORB.Any.Get_Type (Cur_Req.Exception_Info)
-                     /= PolyORB.Errors.TC_ForwardRequest;
+                     /= PolyORB.Errors.Helper.TC_ForwardRequest;
 
          --  Prepare request for new target
 
          declare
             Members : constant PolyORB.Errors.ForwardRequest_Members
-              := PolyORB.Errors.From_Any (Cur_Req.Exception_Info);
+              := PolyORB.Errors.Helper.From_Any (Cur_Req.Exception_Info);
             Ref     : PolyORB.References.Ref;
             Aux_Req : PolyORB.Requests.Request_Access;
          begin

@@ -1018,6 +1018,8 @@ src/polyorb-components.ads
 src/polyorb-constants.ads
 src/polyorb-dynamic_dict.adb
 src/polyorb-dynamic_dict.ads
+src/polyorb-errors-helper.adb
+src/polyorb-errors-helper.ads
 src/polyorb-errors.adb
 src/polyorb-errors.ads
 src/polyorb-exceptions.adb

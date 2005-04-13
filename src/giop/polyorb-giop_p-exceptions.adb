@@ -33,7 +33,7 @@
 
 with PolyORB.Any;
 with PolyORB.Dynamic_Dict;
-with PolyORB.Errors;
+with PolyORB.Errors.Helper;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Utils;
@@ -42,6 +42,7 @@ package body PolyORB.GIOP_P.Exceptions is
 
    use PolyORB.Any;
    use PolyORB.Errors;
+   use PolyORB.Errors.Helper;
    use PolyORB.Log;
    use PolyORB.Types;
    use PolyORB.Utils;

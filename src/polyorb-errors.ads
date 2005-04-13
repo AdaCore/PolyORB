@@ -34,8 +34,6 @@
 --  Errors management subsystem
 
 with Ada.Unchecked_Deallocation;
-
-with PolyORB.Any;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -71,35 +69,9 @@ package PolyORB.Errors is
    --  Characterize the completion state of the execution process when
    --  systeme exception has been raised.
 
-   To_Completion_Status :
-     constant array (PolyORB.Types.Unsigned_Long range 0 .. 2)
-         of Completion_Status
-     := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
-
-   To_Unsigned_Long :
-     constant array (Completion_Status) of PolyORB.Types.Unsigned_Long
-     := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
-
-   function From_Any
-     (Item : PolyORB.Any.Any)
-     return Completion_Status;
-
-   function To_Any
-     (Item : Completion_Status)
-     return Any.Any;
-
-   function TC_Completion_Status
-     return PolyORB.Any.TypeCode.Object;
-   --  The typecode for standard enumeration type completion_status.
-
    --  Null_Members
 
    type Null_Members is new Exception_Members with null record;
-
-   function To_Any
-     (Name   : Standard.String;
-      Member : Null_Members)
-     return PolyORB.Any.Any;
 
    Null_Member : constant Null_Members
      := Null_Members'(Exception_Members with null record);
@@ -110,17 +82,6 @@ package PolyORB.Errors is
       Minor     : PolyORB.Types.Unsigned_Long;
       Completed : Completion_Status;
    end record;
-
-   function System_Exception_TypeCode
-     (Name : Standard.String)
-     return PolyORB.Any.TypeCode.Object;
-   --  Return the TypeCode corresponding to the indicated
-   --  system exception name.
-
-   function To_Any
-     (Name   : Standard.String;
-      Member : System_Exception_Members)
-     return PolyORB.Any.Any;
 
    --  InvalidPolicy_Members
 
@@ -133,16 +94,6 @@ package PolyORB.Errors is
    type ForwardRequest_Members is new Exception_Members with record
       Forward_Reference : PolyORB.Smart_Pointers.Ref;
    end record;
-
-   function To_Any
-     (Item : ForwardRequest_Members)
-      return PolyORB.Any.Any;
-
-   function From_Any
-     (Item : PolyORB.Any.Any)
-      return ForwardRequest_Members;
-
-   function TC_ForwardRequest return PolyORB.Any.TypeCode.Object;
 
    ----------------
    -- ORB Errors --
@@ -252,8 +203,6 @@ package PolyORB.Errors is
 
    function Is_Error (Error : in Error_Container) return Boolean;
    --  True iff Error is not No_Error
-
-   function Error_To_Any (Error : in Error_Container) return PolyORB.Any.Any;
 
    ------------------
    -- Exception Id --

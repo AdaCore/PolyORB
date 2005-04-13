@@ -30,6 +30,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-components.ads \
 		polyorb-dynamic_dict.ads \
 		polyorb-errors.ads \
+		polyorb-errors-helper.ads \
 		polyorb-exceptions.ads \
 		polyorb-filters.ads \
 		polyorb-filters-fragmenter.ads \

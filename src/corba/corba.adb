@@ -35,7 +35,7 @@ with Ada.Characters.Handling;
 
 with PolyORB.CORBA_P.Exceptions;
 
-with PolyORB.Errors;
+with PolyORB.Errors.Helper;
 with PolyORB.Exceptions;
 
 with PolyORB.Initialization;
@@ -1372,10 +1372,13 @@ package body CORBA is
    end From_Any;
 
    function From_Any (Item : CORBA.Any) return Completion_Status is
+      Result : constant PolyORB.Errors.Completion_Status :=
+        PolyORB.Errors.Helper.From_Any
+        (PolyORB.Any.Get_Aggregate_Element
+         (Internals.To_PolyORB_Any (Item),
+          PolyORB.Any.TypeCode.TC_Unsigned_Long, 0));
    begin
-      return From_Any (PolyORB.Any.Get_Aggregate_Element
-                       (Internals.To_PolyORB_Any (Item),
-                        PolyORB.Any.TypeCode.TC_Unsigned_Long, 0));
+      return CORBA.Completion_Status (Result);
    end From_Any;
 
    --------------

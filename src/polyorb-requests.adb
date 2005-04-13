@@ -35,6 +35,7 @@
 
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Errors.Helper;
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
 with PolyORB.Protocols.Iface;
@@ -841,7 +842,7 @@ package body PolyORB.Requests is
 
    procedure Set_Exception (Self : Request_Access; Error : Error_Container) is
    begin
-      Self.Exception_Info := PolyORB.Errors.Error_To_Any (Error);
+      Self.Exception_Info := PolyORB.Errors.Helper.Error_To_Any (Error);
    end Set_Exception;
 
    ------------------

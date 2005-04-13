@@ -37,6 +37,7 @@ with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Errors.Helper;
 with PolyORB.Protocols.GIOP.Common;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
@@ -750,7 +751,7 @@ package body PolyORB.Protocols.GIOP is
       Unmarshall_To_Any (Repr, Buffer, Info, Error);
 
       if Found (Error) then
-         Info := Error_To_Any (Error);
+         Info := Helper.Error_To_Any (Error);
          Catch (Error);
       end if;
    end Unmarshall_System_Exception_To_Any;

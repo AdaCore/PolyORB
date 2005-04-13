@@ -9,7 +9,7 @@ with SOAP.Types;
 with SOAP.Message.Payload;
 with SOAP.Parameters;
 
-with PolyORB.Errors;
+with PolyORB.Errors.Helper;
 with PolyORB.Any.NVList;
 with PolyORB.Requests;
 with PolyORB.Objects;
@@ -47,6 +47,7 @@ package body AWS.Server.Servants is
       PolyORB_Request : in PolyORB.Requests.Request_Access)
    is
       use PolyORB.Errors;
+      use PolyORB.Errors.Helper;
 
       HTTP_10      : constant String := "HTTP/1.0";
 
