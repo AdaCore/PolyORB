@@ -42,33 +42,38 @@ package body PolyORB.Parameters.Environment is
    use Interfaces.C;
    use Interfaces.C.Strings;
 
-   --------------------
-   -- Fetch_From_Env --
-   --------------------
+   function Make_Env_Name (Section, Key : String) return String;
+   --  Build environment variable from (Section, Key) tuple
 
-   function Fetch_From_Env
-     (Key     : String;
-      Default : String := "")
-     return String;
+   -----------------------------
+   -- Environment data source --
+   -----------------------------
 
-   function Fetch_From_Env
-     (Key     : String;
-      Default : String := "")
-     return String
+   type Env_Source is new Parameters_Source with null record;
+   function Get_Conf
+     (Source       : access Env_Source;
+      Section, Key : String) return String;
+
+   The_Env_Source : aliased Env_Source;
+
+   function Get_Conf
+     (Source       : access Env_Source;
+      Section, Key : String) return String
    is
+      pragma Unreferenced (Source);
       function getenv (Key : System.Address) return chars_ptr;
       pragma Import (C, getenv, "getenv");
 
-      C_Key   : aliased char_array := To_C (Key);
+      C_Key   : aliased char_array := To_C (Make_Env_Name (Section, Key));
       C_Value : constant chars_ptr := getenv (C_Key'Address);
 
    begin
       if C_Value = Null_Ptr then
-         return Default;
+         return "";
       else
          return Value (C_Value);
       end if;
-   end Fetch_From_Env;
+   end Get_Conf;
 
    ----------------
    -- Initialize --
@@ -78,8 +83,36 @@ package body PolyORB.Parameters.Environment is
 
    procedure Initialize is
    begin
-      Fetch_From_Env_Hook := Fetch_From_Env'Access;
+      Register_Source (The_Env_Source'Access);
    end Initialize;
+
+   -------------------
+   -- Make_Env_Name --
+   -------------------
+
+   function Make_Env_Name (Section, Key : String) return String is
+      Result : String := "POLYORB_"
+        & PolyORB.Utils.To_Upper (Section & "_" & Key);
+      Last : Positive := Result'Last;
+
+   begin
+      for J in Result'Range loop
+         case Result (J) is
+            when
+              '0' .. '9' |
+              'A' .. 'Z' |
+              'a' .. 'z' |
+              '_'        =>
+               null;
+            when others =>
+               Result (J) := '_';
+         end case;
+      end loop;
+      while Result (Last) = '_' loop
+         Last := Last - 1;
+      end loop;
+      return Result (Result'First .. Last);
+   end Make_Env_Name;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

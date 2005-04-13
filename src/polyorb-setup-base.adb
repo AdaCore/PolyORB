@@ -35,17 +35,13 @@ with PolyORB.Log.Stderr;
 pragma Warnings (Off, PolyORB.Log.Stderr);
 pragma Elaborate_All (PolyORB.Log.Stderr);
 
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
-
 with PolyORB.Parameters.Environment;
 pragma Warnings (Off, PolyORB.Parameters.Environment);
 pragma Elaborate_All (PolyORB.Parameters.Environment);
 
-with PolyORB.Parameters.Registry;
-pragma Warnings (Off, PolyORB.Parameters.Registry);
-pragma Elaborate_All (PolyORB.Parameters.Registry);
+with PolyORB.Parameters.File;
+pragma Warnings (Off, PolyORB.Parameters.File);
+pragma Elaborate_All (PolyORB.Parameters.File);
 
 package body PolyORB.Setup.Base is
 

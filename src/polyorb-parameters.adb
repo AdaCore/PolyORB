@@ -35,6 +35,7 @@
 
 with PolyORB.Log;
 with PolyORB.Utils;
+with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.Parameters is
 
@@ -42,6 +43,90 @@ package body PolyORB.Parameters is
    --  Convert a String value to a Boolean value according
    --  to the rules indicated in the spec for boolean configuration
    --  variables.
+
+   package Source_Lists is
+     new PolyORB.Utils.Chained_Lists (Parameters_Source_Access);
+   Sources : Source_Lists.List;
+
+   function Fetch (Key : String) return String;
+   --  Get the string from a file (if Key starts with file: and the file
+   --  exists, otherwise it is an empty string), or the string itself
+   --  otherwise.
+
+   -----------
+   -- Fetch --
+   -----------
+
+   function Fetch (Key : String) return String is
+   begin
+      if PolyORB.Utils.Has_Prefix (Key, "file:")
+        and then Fetch_From_File_Hook /= null
+      then
+         return Fetch_From_File_Hook.all (Key);
+
+      else
+         return Key;
+      end if;
+   end Fetch;
+
+   -----------------------
+   -- Get_Conf (String) --
+   -----------------------
+
+   function Get_Conf
+     (Section, Key : String;
+      Default      : String := "") return String
+   is
+      use Source_Lists;
+      It : Iterator := First (Sources);
+   begin
+      while not Last (It) loop
+         declare
+            V : constant String := Get_Conf (Value (It).all, Section, Key);
+         begin
+            if V'Length > 0 then
+               return Fetch (V);
+            end if;
+         end;
+         Next (It);
+      end loop;
+      return Default;
+   end Get_Conf;
+
+   ------------------------
+   -- Get_Conf (Boolean) --
+   ------------------------
+
+   function Get_Conf
+     (Section, Key : String;
+      Default      : Boolean := False) return Boolean
+   is
+      Default_Value : constant array (Boolean'Range) of
+        String (1 .. 1) := (False => "0", True => "1");
+   begin
+      return To_Boolean (Get_Conf (Section, Key, Default_Value (Default)));
+   end Get_Conf;
+
+   ------------------------
+   -- Get_Conf (Integer) --
+   ------------------------
+
+   function Get_Conf
+     (Section, Key : String;
+      Default      : Integer := 0) return Integer
+   is
+   begin
+      return Integer'Value (Get_Conf (Section, Key, Integer'Image (Default)));
+   end Get_Conf;
+
+   ---------------------
+   -- Register_Source --
+   ---------------------
+
+   procedure Register_Source (Source : Parameters_Source_Access) is
+   begin
+      Source_Lists.Append (Sources, Source);
+   end Register_Source;
 
    ----------------
    -- To_Boolean --
@@ -62,6 +147,7 @@ package body PolyORB.Parameters is
             when 'o' =>
                if VV = "off" then
                   return False;
+
                elsif VV = "on" then
                   return True;
                end if;
@@ -94,99 +180,13 @@ package body PolyORB.Parameters is
       raise Constraint_Error;
    end To_Boolean;
 
-   --------------
-   -- Get_Conf --
-   --------------
-
-   function Get_Conf
-     (Section, Key : String;
-      Default      : String := "")
-     return String
-   is
-   begin
-      if Get_Conf_Hook /= null then
-         return Get_Conf_Hook.all (Section, Key, Default);
-
-      else
-         return Default;
-      end if;
-   end Get_Conf;
-
-   function Get_Conf
-     (Section, Key : String;
-      Default      : Boolean := False)
-     return Boolean
-   is
-      Default_Value : constant array (Boolean'Range) of
-        String (1 .. 1) := (False => "0", True => "1");
-   begin
-      return To_Boolean (Get_Conf (Section, Key, Default_Value (Default)));
-   end Get_Conf;
-
-   function Get_Conf
-     (Section, Key : String;
-      Default      : Integer := 0)
-     return Integer
-   is
-   begin
-      return Integer'Value (Get_Conf (Section, Key, Integer'Image (Default)));
-   end Get_Conf;
-
-   -------------
-   -- Get_Env --
-   -------------
-
-   function Get_Env
-     (Key     : String;
-      Default : String := "")
-     return String
-   is
-   begin
-      if Fetch_From_Env_Hook /= null then
-         return Fetch_From_Env_Hook.all (Key, Default);
-      else
-         return Default;
-      end if;
-   end Get_Env;
-
-   --------------
-   -- Set_Conf --
-   --------------
-
-   procedure Set_Conf
-     (Section, Key : String;
-      Value        : String)
-   is
-   begin
-      if Set_Conf_Hook /= null then
-         Set_Conf_Hook.all (Section, Key, Value);
-
-      else
-         raise Program_Error;
-      end if;
-   end Set_Conf;
-
-   ----------------
-   -- Initialize --
-   ----------------
+   ---------------
+   -- Set_Hooks --
+   ---------------
 
    procedure Set_Hooks is
    begin
       PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
    end Set_Hooks;
-
-   -----------
-   -- Reset --
-   -----------
-
-   procedure Reset is
-   begin
-      if Reset_Hook /= null then
-         Reset_Hook.all;
-
-      else
-         raise Program_Error;
-      end if;
-   end Reset;
 
 end PolyORB.Parameters;

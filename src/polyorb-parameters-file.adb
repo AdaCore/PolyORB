@@ -33,6 +33,7 @@
 
 with Ada.Text_IO;
 
+with PolyORB.Dynamic_Dict;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -66,6 +67,26 @@ package body PolyORB.Parameters.File is
       end if;
    end O;
 
+   -------------------------------------------------------------
+   -- Dictionary of configuration parameters loaded from file --
+   -------------------------------------------------------------
+
+   package Variables is new PolyORB.Dynamic_Dict (Value => String_Ptr);
+
+   function Make_Global_Key (Section, Key : String) return String;
+   --  Build Dynamic Dict key from (Section, Key) tuple
+
+   ----------------------
+   -- File data source --
+   ----------------------
+
+   type File_Source is new Parameters_Source with null record;
+   function Get_Conf
+     (Source       : access File_Source;
+      Section, Key : String) return String;
+
+   The_File_Source : aliased File_Source;
+
    ---------------------
    -- Fetch_From_File --
    ---------------------
@@ -87,6 +108,26 @@ package body PolyORB.Parameters.File is
       when Name_Error =>
          return "";
    end Fetch_From_File;
+
+   --------------
+   -- Get_Conf --
+   --------------
+
+   function Get_Conf
+     (Source       : access File_Source;
+      Section, Key : String) return String
+   is
+      pragma Unreferenced (Source);
+
+      V : constant String_Ptr := Variables.Lookup
+                                   (Make_Global_Key (Section, Key), null);
+   begin
+      if V /= null then
+         return V.all;
+      else
+         return "";
+      end if;
+   end Get_Conf;
 
    -----------------------------
    -- Load_Configuration_File --
@@ -174,10 +215,11 @@ package body PolyORB.Parameters.File is
                         raise Constraint_Error;
                      end if;
 
-                     Set_Conf
-                       (Section => Current_Section.all,
-                        Key     => Line (Line'First .. Eq - 1),
-                        Value   => Line (Eq + 1 .. Last));
+                     Variables.Register (
+                       Make_Global_Key (
+                         Section => Current_Section.all,
+                         Key     => Line (Line'First .. Eq - 1)),
+                       +(Line (Eq + 1 .. Last)));
                   end;
             end case;
          end if;
@@ -192,8 +234,12 @@ package body PolyORB.Parameters.File is
 
    function Configuration_File_Name return String is
    begin
-      return Get_Env (PolyORB_Conf_Filename_Variable,
-                      PolyORB_Conf_Default_Filename);
+      return Get_Conf (Section => "conf", Key => "",
+                       Default => PolyORB_Conf_Default_Filename);
+      --  XXX special case for backwards compatibility: we want the
+      --  associated environment variable to be POLYORB_CONF for now.
+      --  Ultimately this should become Section => "configuration",
+      --  Key => "file".
    end Configuration_File_Name;
 
    ----------------
@@ -205,10 +251,19 @@ package body PolyORB.Parameters.File is
    procedure Initialize is
    begin
       Load_Configuration_File (Configuration_File_Name);
-      --  Load PolyORB's configuration file
+      Register_Source (The_File_Source'Access);
 
       Fetch_From_File_Hook := Fetch_From_File'Access;
    end Initialize;
+
+   ---------------------
+   -- Make_Global_Key --
+   ---------------------
+
+   function Make_Global_Key (Section, Key : String) return String is
+   begin
+      return "[" & Section & "]" & Key;
+   end Make_Global_Key;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -219,9 +274,9 @@ begin
      (Module_Info'
       (Name      => +"parameters.file",
        Conflicts => Empty,
-       Depends   => +"parameters.registry"
-       & "parameters.environment?"
-       & "log?",
+       Depends   => +"log?"
+         & "parameters.environment?"
+         & "parameters.overrides?",
        Provides  => +"parameters",
        Implicit  => True,
        Init      => Initialize'Access));
