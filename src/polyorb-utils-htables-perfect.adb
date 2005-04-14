@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -937,10 +937,7 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Delete --
    ------------
 
-   procedure Delete
-     (T   : Table_Instance;
-      Key : String)
-   is
+   procedure Delete (T   : Table_Instance; Key : String) is
       Index : Natural;
    begin
       Delete (T.T.HTable, Key, Index);
@@ -948,16 +945,13 @@ package body PolyORB.Utils.HTables.Perfect is
       if Index /= 0 then
          Free_Item (T.T.Items.Table (Index));
       end if;
-
    end Delete;
 
    --------------
    -- Is_Empty --
    --------------
 
-   function Is_Empty
-     (T : Table_Instance)
-     return Boolean is
+   function Is_Empty (T : Table_Instance) return Boolean is
    begin
       return T.T.HTable.Info.Count = 0;
    end Is_Empty;
@@ -966,10 +960,7 @@ package body PolyORB.Utils.HTables.Perfect is
    -- First --
    -----------
 
-   function First
-     (T : Table_Instance)
-     return Iterator
-   is
+   function First (T : Table_Instance) return Iterator is
       Elements : Element_Array renames T.T.HTable.Elements;
 
    begin
@@ -986,10 +977,7 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Value --
    -----------
 
-   function Value
-     (I : Iterator)
-     return Item
-   is
+   function Value (I : Iterator) return Item is
       Elements : Dynamic_Element_Array.Table_Ptr
         renames I.On_Table.T.HTable.Elements.Table;
       Items : Dynamic_Item_Array.Table_Ptr
@@ -1003,13 +991,9 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Key --
    ---------
 
-   function Key
-     (I : Iterator)
-     return String
-   is
+   function Key (I : Iterator) return String is
       Elements : Dynamic_Element_Array.Table_Ptr
         renames I.On_Table.T.HTable.Elements.Table;
-
    begin
       return Elements (I.Position).Key.all;
    end Key;
@@ -1018,28 +1002,22 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Last --
    ----------
 
-   function Last
-     (I : Iterator)
-     return Boolean
-   is
+   function Last (I : Iterator) return Boolean is
       Elements : Element_Array renames I.On_Table.T.HTable.Elements;
-
-      Result : Boolean := True;
    begin
       for J in I.Position .. Last (Elements) loop
-         Result := Result and not Elements.Table (J).Used;
+         if Elements.Table (J).Used then
+            return False;
+         end if;
       end loop;
-
-      return Result;
+      return True;
    end Last;
 
    ----------
    -- Next --
    ----------
 
-   procedure Next
-     (I : in out Iterator)
-   is
+   procedure Next (I : in out Iterator) is
       Elements : Element_Array renames I.On_Table.T.HTable.Elements;
 
    begin
