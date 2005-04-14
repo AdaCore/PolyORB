@@ -79,8 +79,10 @@ package body PolyORB.Dynamic_Dict is
    --------------
 
    procedure For_Each (Action : Dict_Action) is
-      It : Iterator := First (T);
+      It : Iterator;
    begin
+      Ensure_Initialization;
+      It := First (T);
       while not Last (It) loop
          Action (K => Key (It), V => Perfect_HTable.Value (It));
          Next (It);
