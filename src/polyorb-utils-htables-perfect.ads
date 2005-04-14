@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -154,7 +154,7 @@ package PolyORB.Utils.HTables.Perfect is
 
    function Last (I : Iterator)
                  return Boolean;
-   --  True if I is on the last element of the Table_Instance on which
+   --  True if I is past the last element of the Table_Instance on which
    --  it operates.
 
    procedure Next (I : in out Iterator);
