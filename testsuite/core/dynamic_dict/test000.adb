@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,16 +32,15 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Dynamic_Dict;
-
 with PolyORB.Utils.Report;
+with PolyORB.Utils.Strings;
 
 procedure Test000 is
 
    use PolyORB.Utils.Report;
+   use PolyORB.Utils.Strings;
 
-   type String_Access is access all String;
-
-   package My_Dict is new PolyORB.Dynamic_Dict (Value => String_Access);
+   package My_Dict is new PolyORB.Dynamic_Dict (Value => String_Ptr);
 
    ---------------------
    -- Test_Regression --
@@ -53,34 +52,34 @@ procedure Test000 is
    procedure Test_Regression
    is
 
-      Values : constant array (Positive range <>) of String_Access :=
-        (new String'("tasking.profiles.full_tasking.threads"),
-         new String'("tasking.threads"),
-         new String'("tasking.profiles.full_tasking.mutexes"),
-         new String'("tasking.mutexes"),
-         new String'("tasking.profiles.full_tasking.condition_variables"),
-         new String'("tasking.condition_variables"),
-         new String'("exceptions.stack"),
-         new String'("exceptions"),
-         new String'("smart_pointers"),
-         new String'("binding_data.iiop"),
-         new String'("protocols.giop"),
-         new String'("orb.thread_pool"),
-         new String'("orb.tasking_policy"),
-         new String'("orb.threads_init"),
-         new String'("orb.tasking_policy_init"),
-         new String'("orb"),
-         new String'("corba.orb"),
-         new String'("corba.initial_references"),
-         new String'("tcp_access_points.corba"),
-         new String'("tcp_access_points.srp"),
-         new String'("tasking.soft_links"),
-         new String'("soft_links"));
+      Values : constant array (Positive range <>) of String_Ptr :=
+        (+"tasking.profiles.full_tasking.threads",
+         +"tasking.threads",
+         +"tasking.profiles.full_tasking.mutexes",
+         +"tasking.mutexes",
+         +"tasking.profiles.full_tasking.condition_variables",
+         +"tasking.condition_variables",
+         +"exceptions.stack",
+         +"exceptions",
+         +"smart_pointers",
+         +"binding_data.iiop",
+         +"protocols.giop",
+         +"orb.thread_pool",
+         +"orb.tasking_policy",
+         +"orb.threads_init",
+         +"orb.tasking_policy_init",
+         +"orb",
+         +"corba.orb",
+         +"corba.initial_references",
+         +"tcp_access_points.corba",
+         +"tcp_access_points.srp",
+         +"tasking.soft_links",
+         +"soft_links");
 
-      Result : String_Access;
+      Result : String_Ptr;
    begin
       for J in Values'Range loop
-         My_Dict.Register (Values (J).all, new String'("foo"));
+         My_Dict.Register (Values (J).all, +"foo");
 
          for K in Values'First .. J loop
             Result := My_Dict.Lookup (Values (K).all, Default => null);
@@ -132,14 +131,12 @@ procedure Test000 is
                Count : constant String := Natural'Image (J);
                Key   : constant String := Key_Root
                  & Count (Count'First + 1 .. Count'Last);
-               Content : constant String_Access
+               Content : constant String_Ptr
                  := My_Dict.Lookup (Key, Default => null);
                Value : constant String := Value_Root
                  & Count (Count'First + 1 .. Count'Last);
             begin
-               if Content = null
-                 or else Value /= Content.all then
-
+               if Content = null or else Value /= Content.all then
                   Output ("Regression occured for key "
                           & Key
                           & " at stage #"
@@ -161,7 +158,7 @@ procedure Test000 is
               & Count (Count'First + 1 .. Count'Last);
 
          begin
-            My_Dict.Register (Key, new String'(Value));
+            My_Dict.Register (Key, +Value);
             Test_Lookup (J);
          end;
       end loop;
@@ -169,10 +166,57 @@ procedure Test000 is
 
    end Test_Register;
 
+   -------------------
+   -- Test_For_Each --
+   -------------------
+
+   procedure Test_For_Each;
+   --  Test for generic key/value associations iterator
+
+   subtype Indices is Integer range 1 .. 64;
+   type Bool_Arr is array (Indices) of Boolean;
+   Seen : Bool_Arr := (others => False);
+
+   function Value_For (J : Indices) return String;
+   function Value_For (J : Indices) return String is
+   begin
+      return "-->" & J'Img & "<--";
+   end Value_For;
+
+   procedure Check_Association (K : String; V : String_Ptr);
+   procedure Check_Association (K : String; V : String_Ptr) is
+      J : Indices;
+   begin
+      J := Indices'Value (K);
+      if V.all /= Value_For (J) then
+         Output ("Invalid association:" & K & " => " & V.all, False);
+      elsif Seen (J) then
+         Output ("Key" & K & "already seen", False);
+      else
+         Seen (J) := True;
+      end if;
+   exception
+      when others =>
+         Output ("invalid key: " & K, False);
+   end Check_Association;
+
+   procedure Test_For_Each is
+      Val : array (Indices) of String_Ptr;
+
+   begin
+      My_Dict.Reset;
+      for J in Val'Range loop
+         My_Dict.Register (J'Img, +Value_For (J));
+      end loop;
+      My_Dict.For_Each (Check_Association'Access);
+      Output ("test For_Each", Seen = Bool_Arr'(others => True));
+   end Test_For_Each;
+
 begin
    Output ("Initialization", True);
    Test_Register (500);
    Test_Regression;
+   Test_For_Each;
    End_Report;
 
 end Test000;

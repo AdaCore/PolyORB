@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,6 +58,10 @@ package PolyORB.Dynamic_Dict is
    --  Default is returned for non-registered keys.
 
    procedure Reset;
-   --  Remove all key associations.
+   --  Remove all key associations
+
+   type Dict_Action is access procedure (K : String; V : Value);
+   procedure For_Each (Action : Dict_Action);
+   --  Execute Action for each association that exists in the dictionary
 
 end PolyORB.Dynamic_Dict;
