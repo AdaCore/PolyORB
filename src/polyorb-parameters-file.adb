@@ -76,6 +76,9 @@ package body PolyORB.Parameters.File is
    function Make_Global_Key (Section, Key : String) return String;
    --  Build Dynamic Dict key from (Section, Key) tuple
 
+   procedure Reset_Variables;
+   --  Clear the Variables dictionary
+
    ----------------------
    -- File data source --
    ----------------------
@@ -156,6 +159,8 @@ package body PolyORB.Parameters.File is
    begin
       pragma Debug (O ("Loading configuration from " & Conf_File_Name));
 
+      Reset_Variables;
+
       begin
          Open (Conf_File, In_File, Conf_File_Name);
       exception
@@ -215,11 +220,17 @@ package body PolyORB.Parameters.File is
                         raise Constraint_Error;
                      end if;
 
-                     Variables.Register (
-                       Make_Global_Key (
-                         Section => Current_Section.all,
-                         Key     => Line (Line'First .. Eq - 1)),
-                       +(Line (Eq + 1 .. Last)));
+                     declare
+                        K : constant String := Make_Global_Key (
+                              Section => Current_Section.all,
+                              Key     => Line (Line'First .. Eq - 1));
+                        V : String_Ptr := Variables.Lookup (K, null);
+                     begin
+                        if V /= null then
+                           Free (V);
+                        end if;
+                        Variables.Register (K, +(Line (Eq + 1 .. Last)));
+                     end;
                   end;
             end case;
          end if;
@@ -264,6 +275,26 @@ package body PolyORB.Parameters.File is
    begin
       return "[" & Section & "]" & Key;
    end Make_Global_Key;
+
+   ---------------------
+   -- Reset_Variables --
+   ---------------------
+
+   procedure Deallocate_Value (K : String; V : String_Ptr);
+   --  Deallocate V
+
+   procedure Deallocate_Value (K : String; V : String_Ptr) is
+      pragma Unreferenced (K);
+      VV : String_Ptr := V;
+   begin
+      Free (VV);
+   end Deallocate_Value;
+
+   procedure Reset_Variables is
+   begin
+      Variables.For_Each (Action => Deallocate_Value'Access);
+      Variables.Reset;
+   end Reset_Variables;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
