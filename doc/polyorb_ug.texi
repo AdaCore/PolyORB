@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#55 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#56 $
 
 @include version.texi
 
@@ -147,6 +147,7 @@ Installation
 * Supported Platforms::
 * Build requirements::
 * Build instructions::
+* Additional instructions for cross platforms::
 * Building the documentation and PolyORB's examples::
 * Platform notes::
 
@@ -475,6 +476,7 @@ Reusable Object-Oriented Polymorphic Infrastructure}
 * Supported Platforms::
 * Build requirements::
 * Build instructions::
+* Additional instructions for cross platforms::
 * Building the documentation and PolyORB's examples::
 * Platform notes::
 @end menu
@@ -545,6 +547,21 @@ another prefix than @file{/usr/local}, give configure a
 @option{--prefix=whereveryouwant} argument.
 
 Note: at this time, you MUST use GNU make to compile this software.
+
+@c -------------------------------------------------------------------
+@node Additional instructions for cross platforms
+@section Additional instructions for cross platforms
+@c -------------------------------------------------------------------
+
+@noindent
+The @file{RANLIB} environment variable must be set to the path of the
+cross @file{ranlib} prior to running @file{configure} with the
+appropriate @code{--target} option.
+
+Only one PolyORB installation (native or cross) is currently possible
+with a given @code{--prefix}. If both a native and a cross
+installation are needed on the same machine, distinct prefixes must be
+used.
 
 @c -------------------------------------------------------------------
 @node Building the documentation and PolyORB's examples
