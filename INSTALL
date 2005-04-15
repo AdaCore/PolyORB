@@ -108,3 +108,13 @@ what compiler should be used with the following syntax:
 
 ADA=/path/to/good/compiler/gcc ./configure [options]
 
+Additional instructions for cross platforms
+-------------------------------------------
+
+The RANLIB environment variable must be set to the path of the
+cross ranlib prior to running configure with the appropriate --target
+option.
+
+Only one PolyORB installation (native or cross) is currently possible
+with a given --prefix. If both a native and a cross installation are
+needed on the same machine, distinct prefixes must be used.
