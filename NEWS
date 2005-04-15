@@ -42,6 +42,10 @@ IDL specification. (9213)
 
 idlac now supports typeid declarations. (9212)
 
+Some inefficiencies in the buffer management subsystem have been fixed,
+giving a major improvement in performances when large data is passed
+in request parameters.
+
 Incompatible changes
 --------------------
 
