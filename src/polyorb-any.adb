@@ -375,7 +375,7 @@ package body PolyORB.Any is
         return Boolean
       is
          Nb_Param : Unsigned_Long;
-         Res : Boolean := True;
+
       begin
          pragma Debug (O ("Equal (TypeCode) : enter"));
 
@@ -387,6 +387,7 @@ package body PolyORB.Any is
          pragma Debug (O ("Equal (TypeCode) : parameter number comparison"));
 
          Nb_Param := Parameter_Count (Right);
+
          if Nb_Param /= Parameter_Count (Left) then
             pragma Debug (O ("Equal (TypeCode) : end"));
             return False;
@@ -397,20 +398,20 @@ package body PolyORB.Any is
             return True;
          end if;
 
-         --  recursive comparison
+         --  Recursive comparison
+
          pragma Debug (O ("Equal (TypeCode) : recursive comparison"));
 
          for J in 0 .. Nb_Param - 1 loop
-            Res := Res and
-              Equal (Get_Parameter (Left, J), Get_Parameter (Right, J));
-            if Res = False then
+            if not Equal (Get_Parameter (Left, J),
+                          Get_Parameter (Right, J)) then
                pragma Debug (O ("Equal (TypeCode) : end"));
                return False;
             end if;
          end loop;
 
          pragma Debug (O ("Equal (TypeCode) : end"));
-         return Res;
+         return True;
       end "=";
 
       ----------------
@@ -566,8 +567,9 @@ package body PolyORB.Any is
          end case;
          --    * The results of the digits and scale operations are compared.
          if Kind (Left) = Tk_Fixed then
-            if Fixed_Digits (Left) /= Fixed_Digits (Right) or
-              Fixed_Scale (Left) /= Fixed_Scale (Right) then
+            if Fixed_Digits (Left) /= Fixed_Digits (Right)
+              or else Fixed_Scale (Left) /= Fixed_Scale (Right)
+            then
                return False;
             end if;
          end if;
