@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Text_IO;
+
 with Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
+with Idl_Fe.Display_Tree;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
@@ -282,6 +285,103 @@ package body Idl_Fe.Tree.Synthetic is
       return False;
    end Supports_Non_Abstract_Interface;
 
+   -------------------------
+   -- Has_Local_Component --
+   -------------------------
+
+   function Has_Local_Component (Node : in Node_Id) return Boolean is
+   begin
+      case Kind (Node) is
+         when K_Void
+            | K_Float
+            | K_Double
+            | K_Long_Double
+            | K_Short
+            | K_Long
+            | K_Long_Long
+            | K_Unsigned_Short
+            | K_Unsigned_Long
+            | K_Unsigned_Long_Long
+            | K_Char
+            | K_Wide_Char
+            | K_Boolean
+            | K_Octet
+            | K_Any
+            | K_Object
+            | K_Enum
+            | K_ValueType
+            | K_Forward_ValueType
+            | K_Boxed_ValueType
+            | K_String
+            | K_Wide_String
+            | K_Fixed =>
+            return False;
+
+         when K_Interface
+            | K_Forward_Interface =>
+            return Local (Node);
+
+         when K_Struct
+            | K_Exception =>
+            declare
+               Iter   : Node_Iterator;
+               Member : Node_Id;
+
+            begin
+               Init (Iter, Members (Node));
+
+               while not Is_End (Iter) loop
+                  Get_Next_Node (Iter, Member);
+
+                  if Has_Local_Component (M_Type (Member)) then
+                     return True;
+                  end if;
+               end loop;
+
+               return False;
+            end;
+
+         when K_Union =>
+            declare
+               Iter      : Node_Iterator;
+               Case_Node : Node_Id;
+
+            begin
+               Init (Iter, Cases (Node));
+
+               while not Is_End (Iter) loop
+                  Get_Next_Node (Iter, Case_Node);
+
+                  if Has_Local_Component (Case_Type (Case_Node)) then
+                     return True;
+                  end if;
+               end loop;
+
+               return False;
+            end;
+
+         when K_Scoped_Name =>
+            return Has_Local_Component (Value (Node));
+
+         when K_Declarator =>
+            return Has_Local_Component (Parent (Node));
+
+         when K_Type_Declarator =>
+            return Has_Local_Component (T_Type (Node));
+
+         when K_Sequence_Instance =>
+            return Has_Local_Component (Sequence (Node));
+
+         when K_Sequence =>
+            return Has_Local_Component (Sequence_Type (Node));
+
+         when others =>
+            Ada.Text_IO.Put_Line (Node_Kind'Image (Kind (Node)));
+            Display_Tree.Disp_Tree (Node);
+            raise Program_Error;
+            return False;
+      end case;
+   end Has_Local_Component;
 
    function Integer_Value
      (Node : Node_Id)

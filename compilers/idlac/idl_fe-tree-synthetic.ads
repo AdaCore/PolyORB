@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -133,6 +133,12 @@ package Idl_Fe.Tree.Synthetic is
      return Boolean;
    --  For a valuetype, returns true if it supports at least one
    --  non abstract interface
+
+   function Has_Local_Component (Node : in Node_Id) return Boolean;
+   --  For a node that is a type, True if the type is a local interface,
+   --  a forward declaration of a local interface, or a composite or
+   --  constructed type that has one such component, or that has a component
+   --  for which Has_Local_Component is True.
 
    function Integer_Value
      (Node : Node_Id)
