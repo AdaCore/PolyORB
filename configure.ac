@@ -291,6 +291,13 @@ AC_SUBST(XMLADA_INCS)
 AC_SUBST(XMLADA_LIBS)
 
 ##########################################
+# SSL/TLS Support with OpenSSL
+##########################################
+
+AM_WITH_OPENSSL
+AM_CONDITIONAL(HAVE_SSL, [test "x$HAVE_SSL" = "xyes"])
+
+##########################################
 # Test : if a CORBA COS is built
 #        then CORBA must be built
 ##########################################
@@ -502,6 +509,7 @@ AC_OUTPUT([
 	src/aws/Makefile
 	src/soap/Makefile
 	src/srp/Makefile
+	src/ssl/Makefile
 	src/polyorb-setup-client.adb
 	src/polyorb-setup-server.adb
 	src/ravenscar.adc

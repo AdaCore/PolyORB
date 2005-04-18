@@ -9,6 +9,10 @@ web_common_dir= web_common
 
 SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@ @LIBS_DIRS@
 
+if HAVE_SSL
+SUBDIRS += ssl
+endif
+
 include $(srcdir)/Makefile.common
 
 alidir = $(includedir)/polyorb

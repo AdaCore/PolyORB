@@ -1423,6 +1423,14 @@ src/srp/polyorb-setup-access_points-srp.adb
 src/srp/polyorb-setup-access_points-srp.ads
 src/srp/polyorb-utils-srp.adb
 src/srp/polyorb-utils-srp.ads
+src/ssl/Makefile.am
+src/ssl/Makefile.in
+src/ssl/polyorb-ssl.adb
+src/ssl/polyorb-ssl.ads
+src/ssl/polyorb-transport-connected-sockets-ssl.adb
+src/ssl/polyorb-transport-connected-sockets-ssl.ads
+src/ssl/polyorb-utils-ssl_access_points.adb
+src/ssl/polyorb-utils-ssl_access_points.ads
 src/web_common/Makefile.am
 src/web_common/Makefile.in
 src/web_common/aws-mime.adb
@@ -1459,6 +1467,7 @@ support/mkinstalldirs
 support/move-if-change
 support/reconfig
 support/run_script.adb
+support/ssl.m4
 tools/Makefile.am
 tools/Makefile.common
 tools/Makefile.in
