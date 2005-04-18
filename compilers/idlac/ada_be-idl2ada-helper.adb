@@ -492,23 +492,27 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "  return " & Type_Name & ";");
       end;
 
-      if not Local (Node) then
-         --  TypeCode
-         NL (CU);
-         Add_With (CU, "CORBA");
-         Add_With (CU, "PolyORB.Any");
+      --  TypeCode
 
-         PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object");
-         PL (CU, "  := CORBA.TypeCode.Internals.To_CORBA_Object "
-             & "(PolyORB.Any.TypeCode.TC_Object);");
+      NL (CU);
+      Add_With (CU, "CORBA");
+      Add_With (CU, "PolyORB.Any");
+
+      PL (CU, Ada_TC_Name (Node)
+          & " : CORBA.TypeCode.Object");
+      PL (CU, "  := CORBA.TypeCode.Internals.To_CORBA_Object "
+          & "(PolyORB.Any.TypeCode.TC_Object);");
+
+      if not Local (Node) then
 
          --  From_Any
+
          NL (CU);
          Gen_From_Any_Profile (CU, Node);
          PL (CU, ";");
 
          --  To_Any
+
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
@@ -1276,33 +1280,33 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "return A;");
          DI (CU);
          PL (CU, "end To_Any;");
-
-         --  Fill in the typecode TC_<name of the type>
-
-         Divert (CU, Deferred_Initialization);
-         NL (CU);
-         PL (CU, "declare");
-         II (CU);
-         Add_With (CU, "CORBA");
-         PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
-             & Ada_Name (Node)
-             & """);");
-         PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
-             & Idl_Repository_Id (Node)
-             & """);");
-         DI (CU);
-         PL (CU, "begin");
-         II (CU);
-         PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-             & Ada_TC_Name (Node)
-             & ", CORBA.To_Any (Name));");
-         PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
-             & Ada_TC_Name (Node)
-             & ", CORBA.To_Any (Id));");
-         DI (CU);
-         PL (CU, "end;");
-         Divert (CU, Visible_Declarations);
       end if;
+
+      --  Fill in the typecode TC_<name of the type>
+
+      Divert (CU, Deferred_Initialization);
+      NL (CU);
+      PL (CU, "declare");
+      II (CU);
+      Add_With (CU, "CORBA");
+      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+          & Ada_Name (Node)
+          & """);");
+      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+          & Idl_Repository_Id (Node)
+          & """);");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+          & Ada_TC_Name (Node)
+          & ", CORBA.To_Any (Name));");
+      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter ("
+          & Ada_TC_Name (Node)
+          & ", CORBA.To_Any (Id));");
+      DI (CU);
+      PL (CU, "end;");
+      Divert (CU, Visible_Declarations);
    end Gen_Interface_Body;
 
    --------------------------------
