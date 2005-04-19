@@ -528,6 +528,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Node      : in     Node_Id) is
    begin
       --  Unchecked_To_<reference>
+
       declare
          Short_Type_Name : constant String
            := Ada_Type_Defining_Name (Mapping, Node);
@@ -538,29 +539,36 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
          PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
-         PL (CU, "  return " & Type_Name & ";");
+         PL (CU, "   return " & Type_Name & ";");
+         NL (CU);
          PL (CU, "function To_" & Short_Type_Name);
          PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
-         PL (CU, "  return " & Type_Name & ";");
+         PL (CU, "   return " & Type_Name & ";");
       end;
 
       --  TypeCode
+
       NL (CU);
       Add_With (CU, "CORBA");
+      Add_With (CU, "PolyORB.Any");
 
       PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object");
       PL (CU, "  := CORBA.TypeCode.Internals.To_CORBA_Object "
           & "(PolyORB.Any.TypeCode.TC_Object);");
 
-      --  From_Any
-      NL (CU);
-      Gen_From_Any_Profile (CU, Node);
-      PL (CU, ";");
+      if not Local (Node) then
+         --  From_Any
 
-      --  To_Any
-      NL (CU);
-      Gen_To_Any_Profile (CU,  Node);
-      PL (CU, ";");
+         NL (CU);
+         Gen_From_Any_Profile (CU, Node);
+         PL (CU, ";");
+
+         --  To_Any
+
+         NL (CU);
+         Gen_To_Any_Profile (CU,  Node);
+         PL (CU, ";");
+      end if;
    end Gen_Forward_Interface_Spec;
 
    ------------------------
@@ -1373,33 +1381,35 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "end To_" & Short_Type_Name & ";");
       end;
 
-      --  From_Any
+      if not Local (Node) then
+         --  From_Any
 
-      Add_With (CU, "CORBA.Object.Helper");
-      NL (CU);
-      Gen_From_Any_Profile (CU, Node);
-      PL (CU, " is");
-      PL (CU, "begin");
-      II (CU);
-      PL (CU, "return To_"
-          & Ada_Type_Defining_Name (Mapping, Node)
-          & " (CORBA.Object.Helper."
-          & "From_Any (Item));");
-      DI (CU);
-      PL (CU, "end From_Any;");
+         Add_With (CU, "CORBA.Object.Helper");
+         NL (CU);
+         Gen_From_Any_Profile (CU, Node);
+         PL (CU, " is");
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "return To_"
+             & Ada_Type_Defining_Name (Mapping, Node)
+             & " (CORBA.Object.Helper."
+             & "From_Any (Item));");
+         DI (CU);
+         PL (CU, "end From_Any;");
 
-      --  To_Any
+         --  To_Any
 
-      Add_With (CU, "CORBA.Object.Helper");
-      NL (CU);
-      Gen_To_Any_Profile (CU, Node);
-      PL (CU, " is");
-      PL (CU, "begin");
-      II (CU);
-      PL (CU, "return CORBA.Object.Helper.To_Any "
-          & "(CORBA.Object.Ref (Item));");
-      DI (CU);
-      PL (CU, "end To_Any;");
+         Add_With (CU, "CORBA.Object.Helper");
+         NL (CU);
+         Gen_To_Any_Profile (CU, Node);
+         PL (CU, " is");
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "return CORBA.Object.Helper.To_Any "
+             & "(CORBA.Object.Ref (Item));");
+         DI (CU);
+         PL (CU, "end To_Any;");
+      end if;
 
       --  Fill in the typecode TC_<name of the type>
 
@@ -1462,7 +1472,7 @@ package body Ada_Be.Idl2Ada.Helper is
    end Gen_Enum_Spec;
 
    -------------------
-   -- Gen_Enum_body --
+   -- Gen_Enum_Body --
    -------------------
 
    procedure Gen_Enum_Body
