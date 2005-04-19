@@ -1636,7 +1636,10 @@ package body Ada_Be.Expansion is
    -----------------------
 
    procedure Expand_Scoped_Name (Node : Node_Id) is
-      V                   : constant Node_Id := Value (Node);
+      V          : constant Node_Id := Value (Node);
+      V_Scope    : Node_Id;
+      This_Scope : constant Node_Id := Get_Current_Gen_Scope;
+
       Forward_Declaration : Node_Id;
 
       function Create_Forward_Declaration (Node : in Node_Id) return Node_Id;
@@ -1679,65 +1682,42 @@ package body Ada_Be.Expansion is
          return;
       end if;
 
+      V_Scope := Parent_Scope (V);
+      loop
+         exit when V_Scope = No_Node or else V_Scope = This_Scope;
+         V_Scope := Parent_Scope (V_Scope);
+      end loop;
+
       Forward_Declaration := Forward (V);
-      if Forward_Declaration = No_Node then
+      if V_Scope = This_Scope then
 
-         --  If there is no explicit forward declaration, check whether an
-         --  implicit one is necessary to avoid a circular dependency between
-         --  Ada units.
+         if Forward_Declaration = No_Node then
 
-         if Kind (Get_Current_Scope) = K_Struct
-           and then Parent_Scope (V) = Parent_Scope (Get_Current_Scope)
-         then
-            declare
-               Enclosing_Scope : constant Node_Id
-                 := Parent_Scope (Get_Current_Scope);
-               Enclosing_List  : Node_List := Contents (Enclosing_Scope);
-            begin
-               Forward_Declaration := Create_Forward_Declaration (V);
-               Insert_Before
-                 (List   => Enclosing_List,
-                  Node   => Forward_Declaration,
-                  Before => Get_Current_Scope);
-               Set_Contents (Enclosing_Scope, Enclosing_List);
+            --  If there is no explicit forward declaration, create one to
+            --  avoid a circular dependency between Ada units.
 
-               Set_Value (Node, Forward_Declaration);
-            end;
-
-         elsif Kind (Get_Current_Scope) = K_Module
-           and then Parent_Scope (V) = Get_Current_Scope
-         then
             Forward_Declaration := Create_Forward_Declaration (V);
-            Insert_Before_Current (Forward_Declaration);
 
-            Set_Value (Node, Forward_Declaration);
+            if This_Scope = Get_Current_Scope then
+               Insert_Before_Current (Forward_Declaration);
+            else
+               declare
+                  Enclosing_Scope : Node_Id := Get_Current_Scope;
+                  Enclosing_List  : Node_List := Contents (This_Scope);
+               begin
+                  while Parent_Scope (Enclosing_Scope) /= This_Scope loop
+                     Enclosing_Scope := Parent_Scope (Enclosing_Scope);
+                  end loop;
+                  Insert_Before
+                    (List   => Enclosing_List,
+                     Node   => Forward_Declaration,
+                     Before => Enclosing_Scope);
+                  Set_Contents (This_Scope, Enclosing_List);
+               end;
+            end if;
          end if;
-
-         return;
+         Set_Value (Node, Forward_Declaration);
       end if;
-
-      --  Check whether V is within the current scope
-
-      declare
-         Current_Scope : Node_Id := Get_Current_Scope;
-         Par_Scope     : Node_Id := Parent_Scope (V);
-      begin
-         if Kind (Current_Scope) = K_Struct then
-            --  Unwind one scope level because structure by itself is scope
-
-            Current_Scope := Parent_Scope (Current_Scope);
-         end if;
-
-         while not (Par_Scope = Current_Scope
-            or else Par_Scope = No_Node)
-         loop
-            Par_Scope := Parent_Scope (Par_Scope);
-         end loop;
-
-         if Par_Scope = Current_Scope then
-            Set_Value (Node, Forward_Declaration);
-         end if;
-      end;
    end Expand_Scoped_Name;
 
    -----------------------
