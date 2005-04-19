@@ -9,19 +9,21 @@ AC_ARG_WITH(openssl,
     for dir in $withval /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr; do
         ssldir="$dir"
         if test -f "$dir/include/openssl/ssl.h"; then
+            AC_MSG_NOTICE([OpenSSL found in $ssldir]);
             found_ssl="yes";
-            CFLAGS="$CFLAGS -I$ssldir/include -DHAVE_SSL";
-            #CXXFLAGS="$CXXFLAGS -I$ssldir/include -DHAVE_SSL";
+            CPPFLAGS="$CPPFLAGS -I$ssldir/include -DHAVE_SSL";
+            # Special case for RedHat Linux 9
+            if test -f /usr/kerberos/include/krb5.h; then
+                CPPFLAGS="-I/usr/kerberos/include/ ${CPPFLAGS}"
+            fi
+            LDFLAGS="$LDFLAGS -L$ssldir/lib";
+            #LIBS="$LIBS -lssl -lcrypto";
+            HAVE_SSL=yes
             break;
         fi
     done
     if test x$found_ssl != xyes; then
-        AC_MSG_ERROR(Cannot find SSL libraries)
-    else
-        echo "... OpenSSL found in $ssldir";
-        #LIBS="$LIBS -lssl -lcrypto";
-        LDFLAGS="$LDFLAGS -L$ssldir/lib";
-        HAVE_SSL=yes
+        AC_MSG_ERROR(Cannot find OpenSSL)
     fi
     AC_SUBST(HAVE_SSL)
 ],
