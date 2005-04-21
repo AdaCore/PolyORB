@@ -612,6 +612,7 @@ src/corba/corba-serverrequest.ads
 src/corba/corba.adb
 src/corba/corba.ads
 src/corba/dynamicany/Makefile.am
+src/corba/dynamicany/Makefile.in
 src/corba/dynamicany/dynamicany-dynany-helper.adb
 src/corba/dynamicany/dynamicany-dynany-helper.ads
 src/corba/dynamicany/dynamicany-dynany-impl.adb
