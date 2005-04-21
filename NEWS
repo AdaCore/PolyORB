@@ -33,6 +33,8 @@
 New features
 ------------
 
+Base support for the DynamicAny interface. (9282)
+
 Support for CORBA Policy management, including Domain policy management.
 A domain policy manager can be specified using configuration variable
 policy_domain_manager in section [corba]

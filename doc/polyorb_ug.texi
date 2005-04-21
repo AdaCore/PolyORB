@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#56 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#57 $
 
 @include version.texi
 
@@ -2789,7 +2789,8 @@ implemented except for context data.
 @item Chapter 9 describes Dynamic Management of Any Values
 
 @noindent 
-PolyORB does not support this chapter.
+PolyORB partially supports this chapter: this interface is fully
+implemented except for object references and value types.
 
 @item Chapter 10 describes The Interface Repository
 
