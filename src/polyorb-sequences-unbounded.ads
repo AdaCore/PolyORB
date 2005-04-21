@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -303,11 +303,8 @@ private
    procedure Adjust (Object : in out Sequence);
    procedure Finalize (Object : in out Sequence);
 
-   procedure Allocate
-     (Source : in out Sequence;
-      Length : in Natural);
-   --  Allocate Source.Content and set Source.Length to Length. Do not
-   --  release previous Source.Content.
+   function New_Sequence (Length : in Natural) return Sequence;
+   --  Create a new sequence with the given Length
 
 end PolyORB.Sequences.Unbounded;
 

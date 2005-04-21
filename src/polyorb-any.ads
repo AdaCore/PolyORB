@@ -388,7 +388,23 @@ package PolyORB.Any is
       function Parameter_Count
         (Self : in Object)
         return Types.Unsigned_Long;
-      --  Return the number of parameters in typecode Self.
+      --  Return the number of parameters in typecode Self
+
+      ----------------------------------------
+      -- Constructors for complex typecodes --
+      ----------------------------------------
+
+      type Any_Array is array (Natural range <>) of Any;
+      function Build_Complex_TC
+        (Base : TypeCode.Object;
+         Parameters : Any_Array)
+         return TypeCode.Object;
+      --  XXX need comment
+
+      function Build_Sequence_TC (Element_TC : TypeCode.Object; Max : Natural)
+                                  return TypeCode.Object;
+      --  Build typecode for bounded sequence (if Max > 0), for unbounded
+      --  sequence (if Max = 0).
 
       procedure Initialize;
 

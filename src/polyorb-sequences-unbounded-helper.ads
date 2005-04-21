@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,27 +26,21 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any conversion subprograms for unbounded sequences.
+--  Any conversion subprograms for unbounded sequences
 
 with PolyORB.Any;
 
 generic
-
    with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
    with function Element_To_Any   (Item : Element) return PolyORB.Any.Any;
-
 package PolyORB.Sequences.Unbounded.Helper is
-
    function From_Any (Item : PolyORB.Any.Any) return Sequence;
    function To_Any   (Item : Sequence) return PolyORB.Any.Any;
-
-   function Sequence_TC return PolyORB.Any.TypeCode.Object;
-
-   procedure Initialize (Element_TC : PolyORB.Any.TypeCode.Object);
-
+   procedure Initialize
+     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object);
 end PolyORB.Sequences.Unbounded.Helper;

@@ -39,8 +39,8 @@ package body IOP.Helper is
 
    package IDL_Sequence_IOP_TaggedComponent_Helper is
      new IDL_Sequence_IOP_TaggedComponent.CORBA_Helper
-     (Element_To_Any   => To_Any,
-      Element_From_Any => From_Any);
+       (Element_To_Any   => To_Any,
+        Element_From_Any => From_Any);
 
    function From_Any (Item : in CORBA.Any)
       return IDL_Sequence_IOP_TaggedComponent.Sequence
@@ -53,8 +53,8 @@ package body IOP.Helper is
 
    package IDL_Sequence_IOP_TaggedProfile_Helper is
      new IDL_Sequence_IOP_TaggedProfile.CORBA_Helper
-     (Element_To_Any   => To_Any,
-      Element_From_Any => From_Any);
+       (Element_To_Any   => To_Any,
+        Element_From_Any => From_Any);
 
    function From_Any (Item : in CORBA.Any)
       return IDL_Sequence_IOP_TaggedProfile.Sequence
@@ -67,8 +67,8 @@ package body IOP.Helper is
 
    package IDL_Sequence_Octet_Helper is
      new IDL_Sequence_Octet.CORBA_Helper
-     (Element_To_Any   => CORBA.To_Any,
-      Element_From_Any => CORBA.From_Any);
+       (Element_To_Any   => CORBA.To_Any,
+        Element_From_Any => CORBA.From_Any);
 
    function From_Any (Item : in CORBA.Any)
       return IDL_Sequence_Octet.Sequence
@@ -81,8 +81,8 @@ package body IOP.Helper is
 
    package IDL_Sequence_IOP_ServiceContext_Helper is
      new IDL_Sequence_IOP_ServiceContext.CORBA_Helper
-     (Element_To_Any   => To_Any,
-      Element_From_Any => From_Any);
+       (Element_To_Any   => To_Any,
+        Element_From_Any => From_Any);
 
    function From_Any (Item : in CORBA.Any)
       return IDL_Sequence_IOP_ServiceContext.Sequence
@@ -368,8 +368,11 @@ package body IOP.Helper is
            (TC_ProfileId, CORBA.To_Any (CORBA.TC_Unsigned_Long));
       end;
 
-      IDL_Sequence_Octet_Helper.Initialize (CORBA.TC_Octet);
-      TC_IDL_Sequence_Octet := IDL_Sequence_Octet_Helper.Sequence_TC;
+      TC_IDL_Sequence_Octet :=
+        CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Octet, 0);
+      IDL_Sequence_Octet_Helper.Initialize
+       (Element_TC  => CORBA.TC_Octet,
+        Sequence_TC => TC_IDL_Sequence_Octet);
 
       declare
          Name                  : CORBA.String
@@ -395,9 +398,11 @@ package body IOP.Helper is
            (TC_TaggedProfile, CORBA.To_Any (Arg_Name_Profile_Data));
       end;
 
-      IDL_Sequence_IOP_TaggedProfile_Helper.Initialize (TC_TaggedProfile);
       TC_IDL_Sequence_IOP_TaggedProfile :=
-        IDL_Sequence_IOP_TaggedProfile_Helper.Sequence_TC;
+        CORBA.TypeCode.Internals.Build_Sequence_TC (TC_TaggedProfile, 0);
+      IDL_Sequence_IOP_TaggedProfile_Helper.Initialize
+       (Element_TC  => TC_TaggedProfile,
+        Sequence_TC => TC_IDL_Sequence_IOP_TaggedProfile);
 
       declare
          Name              : CORBA.String := CORBA.To_CORBA_String ("IOR");
@@ -458,9 +463,11 @@ package body IOP.Helper is
            (TC_TaggedComponent, CORBA.To_Any (Arg_Name_Component_Data));
       end;
 
-      IDL_Sequence_IOP_TaggedComponent_Helper.Initialize (TC_TaggedComponent);
       TC_IDL_Sequence_IOP_TaggedComponent :=
-        IDL_Sequence_IOP_TaggedComponent_Helper.Sequence_TC;
+        CORBA.TypeCode.Internals.Build_Sequence_TC (TC_TaggedComponent, 0);
+      IDL_Sequence_IOP_TaggedComponent_Helper.Initialize
+        (Element_TC  => TC_TaggedComponent,
+         Sequence_TC => TC_IDL_Sequence_IOP_TaggedComponent);
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("TaggedComponentSeq");
@@ -528,9 +535,11 @@ package body IOP.Helper is
            (TC_ServiceContext, CORBA.To_Any (Arg_Name_Context_Data));
       end;
 
-      IDL_Sequence_IOP_ServiceContext_Helper.Initialize (TC_ServiceContext);
-      TC_IDL_Sequence_IOP_ServiceContext
-        := IDL_Sequence_IOP_ServiceContext_Helper.Sequence_TC;
+      TC_IDL_Sequence_IOP_ServiceContext :=
+        CORBA.TypeCode.Internals.Build_Sequence_TC (TC_ServiceContext, 0);
+      IDL_Sequence_IOP_ServiceContext_Helper.Initialize
+       (Element_TC  => TC_ServiceContext,
+        Sequence_TC => TC_IDL_Sequence_IOP_ServiceContext);
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("ServiceContextList");

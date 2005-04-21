@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                POLYORB.SEQUENCES.UNBOUNDED.CORBA_HELPER                  --
+--             P O L Y O R B . S E Q U E N C E S . H E L P E R              --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -31,16 +31,70 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any conversion subprograms for unbounded sequences
+--  Any conversion subprograms for sequences
 
-with CORBA;
+with PolyORB.Types;
 
-generic
-   with function Element_From_Any (Item : CORBA.Any) return Element;
-   with function Element_To_Any   (Item : Element) return CORBA.Any;
-package PolyORB.Sequences.Unbounded.CORBA_Helper is
-   function From_Any (Item : CORBA.Any) return Sequence;
-   function To_Any   (Item : Sequence) return CORBA.Any;
+package body PolyORB.Sequences.Helper is
+
+   use PolyORB.Any;
+
+   Initialized : Boolean := False;
+   Sequence_TC, Element_TC : PolyORB.Any.TypeCode.Object;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Item : Any.Any) return Sequence is
+      Len : constant Integer
+        := Integer
+        (Types.Unsigned_Long'
+         (From_Any (Get_Aggregate_Element (Item, TC_Unsigned_Long, 0))));
+
+      Result : constant Sequence := New_Sequence (Len);
+
+   begin
+      pragma Assert (Initialized);
+      for J in 1 .. Len loop
+         Element_Accessor (Result, J).all := Element_From_Any
+           (Get_Aggregate_Element
+            (Item, Element_TC,
+             Types.Unsigned_Long (J)));
+      end loop;
+      return Result;
+   end From_Any;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
    procedure Initialize
-     (Element_TC, Sequence_TC : CORBA.TypeCode.Object);
-end PolyORB.Sequences.Unbounded.CORBA_Helper;
+     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object)
+   is
+   begin
+      Helper.Element_TC  := Element_TC;
+      Helper.Sequence_TC := Sequence_TC;
+      Initialized := True;
+   end Initialize;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any (Item : Sequence) return Any.Any is
+      pragma Assert (Initialized);
+      Result : Any.Any := Get_Empty_Any_Aggregate (Sequence_TC);
+
+   begin
+      Add_Aggregate_Element
+        (Result, To_Any (Types.Unsigned_Long (Length (Item))));
+
+      for J in 1 .. Length (Item) loop
+         Add_Aggregate_Element (Result,
+           Element_To_Any (Element_Accessor (Item, J).all));
+      end loop;
+      return Result;
+   end To_Any;
+
+end PolyORB.Sequences.Helper;

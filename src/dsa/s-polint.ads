@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -448,12 +448,13 @@ package System.PolyORB_Interface is
      renames PolyORB.Any.TypeCode.TC_Object;
    --  Empty Tk_ObjRef typecode.
 
-   type Any_Array is array (Natural range <>) of Any;
+   subtype Any_Array is PolyORB.Any.TypeCode.Any_Array;
 
    function TC_Build
      (Base       : PolyORB.Any.TypeCode.Object;
       Parameters : Any_Array)
-      return PolyORB.Any.TypeCode.Object;
+      return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.Build_Complex_TC;
 
    procedure Copy_Any_Value (Dest, Src : Any)
      renames PolyORB.Any.Copy_Any_Value;

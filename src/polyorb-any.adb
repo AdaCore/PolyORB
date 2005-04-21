@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -413,6 +413,37 @@ package body PolyORB.Any is
          pragma Debug (O ("Equal (TypeCode) : end"));
          return True;
       end "=";
+
+      ----------------------
+      -- Build_Complex_TC --
+      ----------------------
+
+      function Build_Complex_TC
+        (Base : TypeCode.Object;
+         Parameters : Any_Array)
+         return TypeCode.Object
+      is
+         Result : TypeCode.Object := Base;
+      begin
+         for I in Parameters'Range loop
+            TypeCode.Add_Parameter (Result, Parameters (I));
+         end loop;
+         return Result;
+      end Build_Complex_TC;
+
+      -----------------------
+      -- Build_Sequence_TC --
+      -----------------------
+
+      function Build_Sequence_TC
+        (Element_TC : TypeCode.Object; Max : Natural)
+         return TypeCode.Object
+      is
+      begin
+         return Build_Complex_TC (TC_Sequence,
+           (To_Any (Types.Unsigned_Long (Max)),
+            To_Any (Element_TC)));
+      end Build_Sequence_TC;
 
       ----------------
       -- Equivalent --

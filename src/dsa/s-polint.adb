@@ -108,6 +108,9 @@ package body System.PolyORB_Interface is
      (Element_From_Any => PolyORB.Any.From_Any,
       Element_To_Any   => PolyORB.Any.To_Any);
 
+   TC_Opaque_Cache : PATC.Object;
+   --  Typecode for the opaque octet sequence
+
    --------------------------------------------------------------
    -- Special operation names for remote call interface objets --
    --------------------------------------------------------------
@@ -1107,9 +1110,12 @@ package body System.PolyORB_Interface is
       Error : Error_Container;
 
    begin
-      PTM.Create (Critical_Section);
+      TC_Opaque_Cache := PATC.Build_Sequence_TC (TC_Octet, 0);
+      Octet_Sequences_Helper.Initialize
+        (Element_TC  => PolyORB.Any.TC_Octet,
+         Sequence_TC => TC_Opaque_Cache);
 
-      Octet_Sequences_Helper.Initialize (PolyORB.Any.TC_Octet);
+      PTM.Create (Critical_Section);
 
       pragma Debug (O ("Initializing DSA library units"));
       It := First (All_Receiving_Stubs);
@@ -1501,36 +1507,13 @@ package body System.PolyORB_Interface is
 
    end Setup_Object_RPC_Receiver;
 
-   --------------
-   -- TC_Build --
-   --------------
-
-   function TC_Build
-     (Base : PATC.Object;
-      Parameters : Any_Array)
-      return PATC.Object
-   is
-      Result : PATC.Object
-        := Base;
-   begin
-      for I in Parameters'Range loop
-         PATC.Add_Parameter
-           (Result, Parameters (I));
-      end loop;
-      return Result;
-   end TC_Build;
-
    ---------------
    -- TC_Opaque --
    ---------------
 
-   function TC_Opaque return PATC.Object
-   is
-      Result : PATC.Object := PATC.TC_Sequence;
+   function TC_Opaque return PATC.Object is
    begin
-      PATC.Add_Parameter (Result, TA_U (0));
-      PATC.Add_Parameter (Result, To_Any (TC_Octet));
-      return Result;
+      return TC_Opaque_Cache;
    end TC_Opaque;
 
    ------------

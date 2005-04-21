@@ -713,7 +713,11 @@ package CORBA is
 
          function To_CORBA_Object
            (Self : PolyORB.Any.TypeCode.Object)
-           return CORBA.TypeCode.Object;
+            return CORBA.TypeCode.Object;
+
+         function Build_Sequence_TC (Element_TC : Object; Max : Natural)
+           return Object;
+
       end Internals;
 
    private

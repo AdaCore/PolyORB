@@ -882,6 +882,18 @@ package body CORBA is
          end Add_Parameter;
 
          -----------------------
+         -- Build_Sequence_TC --
+         -----------------------
+
+         function Build_Sequence_TC (Element_TC : Object; Max : Natural)
+           return Object is
+         begin
+            return To_CORBA_Object (
+              PolyORB.Any.TypeCode.Build_Sequence_TC (
+                To_PolyORB_Object (Element_TC), Max));
+         end Build_Sequence_TC;
+
+         -----------------------
          -- To_PolyORB_Object --
          -----------------------
 

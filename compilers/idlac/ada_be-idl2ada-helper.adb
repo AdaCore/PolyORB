@@ -2625,9 +2625,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_With (CU, "PolyORB.Any");
 
       PL (CU, Ada_TC_Name (Node)
-          & " : CORBA.TypeCode.Object");
-      PL (CU, "  := CORBA.TypeCode.Internals.To_CORBA_Object "
-          & "(PolyORB.Any.TypeCode.TC_Sequence);");
+          & " : CORBA.TypeCode.Object;");
 
       --  From_Any
 
@@ -2650,25 +2648,35 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU   : in out Compilation_Unit;
       Node : in     Node_Id)
    is
-      Seq_Helper_Name : constant String := Ada_Name (Node) & "_Helper";
-      Elt_Helper_Name : constant String
-        := Helper_Unit (Sequence_Type (Sequence (Node)));
+      Seq_Helper_Name : constant String  := Ada_Name (Node) & "_Helper";
+      Seq_TC_Name     : constant String  := Ada_TC_Name (Node);
 
+      Elt_Type        : constant Node_Id := Sequence_Type (Sequence (Node));
+      Elt_Helper_Name : constant String  := Helper_Unit (Elt_Type);
+      Elt_TC_Name     : constant String  := Ada_Full_TC_Name (Elt_Type);
+
+      B_Node  : constant Node_Id := Bound (Sequence (Node));
+      B_Value : Integer := 0;
    begin
-      if Bound (Sequence (Node)) = No_Node then
+      if B_Node = No_Node then
          Add_With (CU, "PolyORB.Sequences.Unbounded.CORBA_Helper");
       else
          Add_With (CU, "PolyORB.Sequences.Bounded.CORBA_Helper");
+         B_Value := Integer_Value (B_Node);
       end if;
 
       Add_With (CU, Elt_Helper_Name);
+      --  For element To_Any/From_Any
+
+      Add_With (CU, Ada_Helper_Unit_Name (Mapping, Elt_Type));
+      --  For element TypeCode
 
       NL (CU);
       PL (CU, "package " & Seq_Helper_Name
           & " is new " & Ada_Name (Node) & ".CORBA_Helper");
       Put (CU, "  (");
       II (CU);
-      PL (CU, "Element_To_Any =>" & ASCII.LF
+      PL (CU, "Element_To_Any   =>" & ASCII.LF
           & "  " & Elt_Helper_Name & ".To_Any,");
       PL (CU, "Element_From_Any =>" & ASCII.LF
           & "  " & Elt_Helper_Name & ".From_Any);");
@@ -2685,13 +2693,16 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Divert (CU, Deferred_Initialization);
       NL (CU);
-      Add_With (CU,
-        Ada_Helper_Unit_Name (Mapping, Sequence_Type (Sequence (Node))));
-      PL (CU, Seq_Helper_Name & ".Initialize ("
-          & Ada_Full_TC_Name
-          (Sequence_Type (Sequence (Node))) & ");");
-      PL (CU, Ada_TC_Name (Node) & " := "
-          & Seq_Helper_Name & ".Sequence_TC;");
+      PL (CU, Ada_TC_Name (Node) & " := ");
+      PL (CU, "  CORBA.TypeCode.Internals.Build_Sequence_TC");
+      PL (CU, "    (" & Elt_TC_Name
+          & "," & Integer'Image (B_Value) & ");");
+
+      Put (CU, Seq_Helper_Name & ".Initialize" & ASCII.LF & "  (");
+      II (CU);
+      PL (CU, "Element_TC  => " & Elt_TC_Name & ",");
+      PL (CU, "Sequence_TC => " & Seq_TC_Name & ");");
+      DI (CU);
       Divert (CU, Visible_Declarations);
    end Gen_Sequence_Body;
 

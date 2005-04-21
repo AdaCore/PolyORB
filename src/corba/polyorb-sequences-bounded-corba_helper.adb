@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any conversion subprograms for bounded sequences.
+--  Any conversion subprograms for bounded sequences
 
 with PolyORB.Any;
 with PolyORB.Sequences.Bounded.Helper;
@@ -61,7 +61,8 @@ package body PolyORB.Sequences.Bounded.CORBA_Helper is
    end Element_To_Any_Wrapper;
 
    package Neutral_Helper is new PolyORB.Sequences.Bounded.Helper
-     (Element_From_Any_Wrapper, Element_To_Any_Wrapper);
+     (Element_From_Any => Element_From_Any_Wrapper,
+      Element_To_Any   => Element_To_Any_Wrapper);
 
    --------------
    -- From_Any --
@@ -76,21 +77,13 @@ package body PolyORB.Sequences.Bounded.CORBA_Helper is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Element_TC : CORBA.TypeCode.Object) is
+   procedure Initialize (Element_TC, Sequence_TC : CORBA.TypeCode.Object) is
+      use CORBA.TypeCode.Internals;
    begin
       Neutral_Helper.Initialize
-        (CORBA.TypeCode.Internals.To_PolyORB_Object (Element_TC));
+        (Element_TC  => To_PolyORB_Object (Element_TC),
+         Sequence_TC => To_PolyORB_Object (Sequence_TC));
    end Initialize;
-
-   -----------------
-   -- Sequence_TC --
-   -----------------
-
-   function Sequence_TC return CORBA.TypeCode.Object is
-   begin
-      return CORBA.TypeCode.Internals.To_CORBA_Object
-        (Neutral_Helper.Sequence_TC);
-   end Sequence_TC;
 
    ------------
    -- To_Any --

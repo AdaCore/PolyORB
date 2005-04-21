@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -243,8 +243,11 @@ package body Messaging.Helper is
 
    procedure Deferred_Initialization is
    begin
-      IDL_Sequence_Octet_Helper.Initialize (CORBA.TC_Octet);
-      TC_IDL_Sequence_Octet := IDL_Sequence_Octet_Helper.Sequence_TC;
+      TC_IDL_Sequence_Octet :=
+        CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Octet, 0);
+      IDL_Sequence_Octet_Helper.Initialize
+        (Element_TC  => CORBA.TC_Octet,
+         Sequence_TC => TC_IDL_Sequence_Octet);
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("RebindMode");
@@ -377,9 +380,11 @@ package body Messaging.Helper is
           (TC_PolicyValue, CORBA.To_Any (Arg_Name_PValue));
       end;
 
-      IDL_Sequence_Messaging_PolicyValue_Helper.Initialize (TC_PolicyValue);
       TC_IDL_Sequence_Messaging_PolicyValue :=
-        IDL_Sequence_Messaging_PolicyValue_Helper.Sequence_TC;
+        CORBA.TypeCode.Internals.Build_Sequence_TC (TC_PolicyValue, 0);
+      IDL_Sequence_Messaging_PolicyValue_Helper.Initialize
+        (Element_TC  => TC_PolicyValue,
+         Sequence_TC => TC_IDL_Sequence_Messaging_PolicyValue);
 
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("PolicyValueSeq");

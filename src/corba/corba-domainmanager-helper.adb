@@ -39,16 +39,16 @@ with PolyORB.Sequences.Unbounded.CORBA_Helper;
 
 package body CORBA.DomainManager.Helper is
 
-   package IDL_Sequence_DomainManager_Helper is
-     new IDL_Sequence_DomainManager.CORBA_Helper
-     (Element_To_Any   => To_Any,
-      Element_From_Any => From_Any);
-
-   procedure Deferred_Initialization;
-
    TC_DomainManager_Cache              : TypeCode.Object;
    TC_IDL_Sequence_DomainManager_Cache : TypeCode.Object;
    TC_DomainManagersList_Cache         : TypeCode.Object;
+
+   package IDL_Sequence_DomainManager_Helper is
+     new IDL_Sequence_DomainManager.CORBA_Helper
+       (Element_To_Any   => To_Any,
+        Element_From_Any => From_Any);
+
+   procedure Deferred_Initialization;
 
    -----------------------------
    -- Deferred_Initialization --
@@ -63,9 +63,11 @@ package body CORBA.DomainManager.Helper is
       TypeCode.Internals.Add_Parameter
         (TC_DomainManager_Cache, To_Any (To_CORBA_String (Repository_Id)));
 
-      IDL_Sequence_DomainManager_Helper.Initialize (TC_DomainManager);
       TC_IDL_Sequence_DomainManager_Cache :=
-        IDL_Sequence_DomainManager_Helper.Sequence_TC;
+        CORBA.TypeCode.Internals.Build_Sequence_TC (TC_DomainManager_Cache, 0);
+      IDL_Sequence_DomainManager_Helper.Initialize
+        (Element_TC  => TC_DomainManager_Cache,
+         Sequence_TC => TC_IDL_Sequence_DomainManager_Cache);
 
       TC_DomainManagersList_Cache :=
         TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);

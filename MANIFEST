@@ -1199,6 +1199,8 @@ src/polyorb-sequences-bounded-helper.adb
 src/polyorb-sequences-bounded-helper.ads
 src/polyorb-sequences-bounded.adb
 src/polyorb-sequences-bounded.ads
+src/polyorb-sequences-helper.adb
+src/polyorb-sequences-helper.ads
 src/polyorb-sequences-unbounded-helper.adb
 src/polyorb-sequences-unbounded-helper.ads
 src/polyorb-sequences-unbounded-search.adb

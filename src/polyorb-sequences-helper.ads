@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                POLYORB.SEQUENCES.UNBOUNDED.CORBA_HELPER                  --
+--             P O L Y O R B . S E Q U E N C E S . H E L P E R              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,16 +31,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any conversion subprograms for unbounded sequences
+--  Any conversion subprograms for sequences
 
-with CORBA;
+with PolyORB.Any;
 
 generic
-   with function Element_From_Any (Item : CORBA.Any) return Element;
-   with function Element_To_Any   (Item : Element) return CORBA.Any;
-package PolyORB.Sequences.Unbounded.CORBA_Helper is
-   function From_Any (Item : CORBA.Any) return Sequence;
-   function To_Any   (Item : Sequence) return CORBA.Any;
+   type Element is private;
+   type Element_Access is access Element;
+   type Sequence is private;
+
+   with function Length (Seq : Sequence) return Natural;
+   --  Return Seq's current length
+
+   with function New_Sequence (Length : Natural) return Sequence;
+   --  Create a new sequence of the given Length
+
+   with function Element_Accessor (Seq : Sequence; Index : Positive)
+     return Element_Access;
+   --  Access to the Index'th (1-based) element in Seq
+
+   with function Element_From_Any (Item : PolyORB.Any.Any) return Element;
+   with function Element_To_Any   (Item : Element) return PolyORB.Any.Any;
+
+package PolyORB.Sequences.Helper is
+
+   function From_Any (Item : PolyORB.Any.Any) return Sequence;
+   function To_Any   (Item : Sequence) return PolyORB.Any.Any;
+
    procedure Initialize
-     (Element_TC, Sequence_TC : CORBA.TypeCode.Object);
-end PolyORB.Sequences.Unbounded.CORBA_Helper;
+     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object);
+
+end PolyORB.Sequences.Helper;

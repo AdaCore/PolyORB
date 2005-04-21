@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,98 +26,91 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any conversion subprograms for bounded sequences.
+--  Any conversion subprograms for bounded sequences
 
-with PolyORB.Types;
+with PolyORB.Sequences.Helper;
 
 package body PolyORB.Sequences.Bounded.Helper is
 
    use PolyORB.Any;
 
-   The_Element_TC, The_Sequence_TC : Any.TypeCode.Object;
-   Initialized : Boolean := False;
+   type Element_Access is access all Element;
+
+   function Element_Accessor (Seq : Sequence; Index : Positive)
+     return Element_Access;
+   --  Return an access to the Index'th element in Seq
+
+   function Check_Length (Length : Natural) return Sequence;
+   --  Return an empty sequence initialized with the given Length, unless
+   --  Length > Max, in which case Constraint_Error is raised.
+
+   package Bounded_Helper is new Sequences.Helper
+     (Element          => Element,
+      Element_Access   => Element_Access,
+      Sequence         => Sequence,
+      Length           => Length,
+      New_Sequence     => Check_Length,
+      Element_Accessor => Element_Accessor,
+      Element_From_Any => Element_From_Any,
+      Element_To_Any   => Element_To_Any);
+
+   ------------------
+   -- Check_Length --
+   ------------------
+
+   function Check_Length (Length : Natural) return Sequence is
+   begin
+      if Length > Max then
+         raise Constraint_Error;
+      end if;
+      declare
+         Seq : Sequence;
+      begin
+         Seq.Length := Length;
+         return Seq;
+      end;
+   end Check_Length;
+
+   ----------------------
+   -- Element_Accessor --
+   ----------------------
+
+   function Element_Accessor (Seq : Sequence; Index : Positive)
+     return Element_Access is
+   begin
+      return Seq.Content (Index)'Unrestricted_Access;
+   end Element_Accessor;
 
    --------------
    -- From_Any --
    --------------
 
-   function From_Any (Item : Any.Any) return Sequence is
-      Len : constant Integer
-        := Integer
-        (Types.Unsigned_Long'
-         (From_Any (Get_Aggregate_Element (Item, TC_Unsigned_Long, 0))));
-
-      Result : Sequence;
-
-   begin
-      if Len > Max then
-         raise Constraint_Error;
-      end if;
-
-      Result.Length := Len;
-
-      for J in Result.Content'First .. Result.Content'First + Len - 1 loop
-         Result.Content (J) := Element_From_Any
-           (Get_Aggregate_Element
-            (Item, The_Element_TC,
-             Types.Unsigned_Long (1 + J - Result.Content'First)));
-      end loop;
-      return Result;
-   end From_Any;
+   function From_Any (Item : Any.Any) return Sequence
+     renames Bounded_Helper.From_Any;
 
    ----------------
    -- Initialize --
    ----------------
 
-   procedure Initialize (Element_TC : Any.TypeCode.Object) is
+   procedure Initialize
+     (Element_TC, Sequence_TC : PolyORB.Any.TypeCode.Object)
+   is
    begin
-      if Initialized then
-         return;
-      end if;
-
-      The_Element_TC  := Element_TC;
-      The_Sequence_TC := TypeCode.TC_Sequence;
-
-      TypeCode.Add_Parameter
-        (The_Sequence_TC, To_Any (Types.Unsigned_Long (Max)));
-
-      TypeCode.Add_Parameter
-        (The_Sequence_TC, To_Any (The_Element_TC));
-      --  Element type
-
-      Initialized := True;
+      Bounded_Helper.Initialize
+        (Element_TC => Element_TC,
+         Sequence_TC => Sequence_TC);
    end Initialize;
-
-   -----------------
-   -- Sequence_TC --
-   -----------------
-
-   function Sequence_TC return Any.TypeCode.Object is
-   begin
-      pragma Assert (Initialized);
-      return The_Sequence_TC;
-   end Sequence_TC;
 
    ------------
    -- To_Any --
    ------------
 
-   function To_Any   (Item : Sequence) return Any.Any is
-      Result : Any.Any := Get_Empty_Any_Aggregate (Sequence_TC);
-
-   begin
-      Add_Aggregate_Element
-        (Result, To_Any (Types.Unsigned_Long (Item.Length)));
-
-      for J in Item.Content'First .. Item.Content'First + Item.Length - 1 loop
-         Add_Aggregate_Element (Result, Element_To_Any (Item.Content (J)));
-      end loop;
-      return Result;
-   end To_Any;
+   function To_Any (Item : Sequence) return Any.Any
+     renames Bounded_Helper.To_Any;
 
 end PolyORB.Sequences.Bounded.Helper;
