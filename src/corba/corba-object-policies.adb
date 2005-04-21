@@ -133,7 +133,7 @@ package body CORBA.Object.Policies is
       Result :=
         (Name      => PolyORB.Types.Identifier (Result_Name),
          Argument  => CORBA.Internals.To_PolyORB_Any
-         (Get_Empty_Any
+         (CORBA.Internals.Get_Empty_Any
           (CORBA.DomainManager.Helper.TC_IDL_Sequence_DomainManager)),
          Arg_Modes => 0);
 

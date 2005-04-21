@@ -85,7 +85,7 @@ procedure DynClient is
       --  Setting the result type
 
       Result := (Name => CORBA.Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_String),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_String),
                  Arg_Modes => 0);
 
       --  Creating a request

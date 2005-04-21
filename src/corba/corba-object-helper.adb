@@ -55,10 +55,11 @@ package body CORBA.Object.Helper is
 
       declare
          A : Any;
+
       begin
          A.The_Any := PolyORB.Any.ObjRef.To_Any
            (CORBA.Object.Internals.To_PolyORB_Ref (Item));
-         Set_Type (A, CORBA.Object.TC_Object);
+         CORBA.Internals.Set_Type (A, CORBA.Object.TC_Object);
 
          return A;
       end;

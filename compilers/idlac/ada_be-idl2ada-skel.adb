@@ -557,7 +557,8 @@ package body Ada_Be.Idl2Ada.Skel is
                            Add_With (CU, Helper_Name);
 
                            PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
-                               & " : CORBA.Any := CORBA.Get_Empty_Any");
+                               & " : CORBA.Any := "
+                               & "CORBA.Internals.Get_Empty_Any");
                            PL (CU, "  (" & Ada_Full_TC_Name (P_Typ) & ");");
 
                            NL (CU);

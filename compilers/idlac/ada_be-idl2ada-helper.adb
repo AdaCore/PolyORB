@@ -781,7 +781,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "is");
       II (CU);
       PL (CU, "--  Get the ID, and then check the association list.");
-      PL (CU, "ID_Tag : CORBA.Any := CORBA.Get_Aggregate_Element");
+      PL (CU, "ID_Tag : CORBA.Any := CORBA.Internals.Get_Aggregate_Element");
       PL (CU, "   (Item, CORBA.TC_String, CORBA.Unsigned_Long (0));");
       PL (CU, "Temp_String : CORBA.String := CORBA.From_Any (ID_Tag);");
       PL (CU, "My_ID : Any_ID;");
@@ -839,7 +839,8 @@ package body Ada_Be.Idl2Ada.Helper is
                      Get_Next_Node (It2, Decl_Node);
 
                      PL (CU, "--  Common code.");
-                     PL (CU, "Temp_Any := CORBA.Get_Aggregate_Element");
+                     PL (CU,
+                         "Temp_Any := CORBA.Internals.Get_Aggregate_Element");
                      PL (CU, "   (Item, "
                          & Ada_Full_TC_Name (State_Type (Member_Node))
                          & ", CORBA.Unsigned_Long ("
@@ -941,7 +942,7 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "Temp_Result := CORBA.Get_Empty_Any_Aggregate ("
+      PL (CU, "Temp_Result := CORBA.Internals.Get_Empty_Any_Aggregate ("
           & Ada_TC_Name (Node) & ");");
       PL (CU, "Object_U := " & Ada_Full_Name (Node)
           & ".Value_Impl.Object_Ptr");
@@ -955,7 +956,7 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
 
       PL (CU, "--  Put the ID first into the aggregate.");
-      PL (CU, "CORBA.Add_Aggregate_Element");
+      PL (CU, "CORBA.Internals.Add_Aggregate_Element");
       PL (CU, "   (Temp_Result, CORBA.To_Any");
       PL (CU, "       (CORBA.To_CORBA_String (My_ID)));");
       PL (CU, "pragma Debug (O (""To_Any: ID="" & My_ID));");
@@ -996,7 +997,8 @@ package body Ada_Be.Idl2Ada.Helper is
                            PL (CU, "   Temp_Any : CORBA.Any;");
                            PL (CU, "begin");
                            II (CU);
-                           PL (CU, "Temp_Any := Get_Empty_Any_Aggregate"
+                           PL (CU, "Temp_Any := "
+                               & "CORBA.Internals.Get_Empty_Any_Aggregate"
                                & " ("
                                & Ada_Full_TC_Name (State_Type (Member_Node))
                                & ");");
@@ -1007,7 +1009,8 @@ package body Ada_Be.Idl2Ada.Helper is
                            PL (CU, "pragma Debug (O (""To_Any: member="""
                                & " & CORBA.Image (Temp_Any)));");
                            PL (CU,
-                               "CORBA.Add_Aggregate_Element (Temp_Result,");
+                               "CORBA.Internals.Add_Aggregate_Element "
+                               & "(Temp_Result,");
                            PL (CU,
                                "                             Temp_Any);");
                            DI (CU);
@@ -1015,7 +1018,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
                         else
                            PL (CU, "--  Regular member.");
-                           PL (CU, "CORBA.Add_Aggregate_Element");
+                           PL (CU, "CORBA.Internals.Add_Aggregate_Element");
                            PL (CU, "  (Temp_Result, "
                                & Helper_Name
                                & ".To_Any (Object_U."
@@ -1044,7 +1047,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "   Result_ID : Any_ID := List_Item.Any;");
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.Add_Aggregate_Element");
+      PL (CU, "CORBA.Internals.Add_Aggregate_Element");
       PL (CU, "  (Result, CORBA.To_Any");
       PL (CU, "     (CORBA.To_CORBA_String (Result_ID)));");
       PL (CU, "pragma Debug (O (""To_Any: pointer="" & Result_ID));");
@@ -1284,7 +1287,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU, "CORBA.Set_Type (A, " & Ada_TC_Name (Node) & ");");
+         PL (CU, "CORBA.Internals.Set_Type (A, " & Ada_TC_Name (Node) & ");");
          PL (CU, "return A;");
          DI (CU);
          PL (CU, "end To_Any;");
@@ -1489,9 +1492,11 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_With (CU, "CORBA");
       PL (CU, "Index : CORBA.Any :=");
       II (CU);
-      PL (CU, "CORBA.Get_Aggregate_Element (Item,");
-      PL (CU, "                             CORBA.TC_Unsigned_Long,");
-      PL (CU, "                             CORBA.Unsigned_Long (0));");
+      PL (CU, "CORBA.Internals.Get_Aggregate_Element (Item,");
+      PL (CU, "                                       "
+          & "CORBA.TC_Unsigned_Long,");
+      PL (CU, "                                       "
+          & "CORBA.Unsigned_Long (0));");
       DI (CU);
       PL (CU, "Position : constant CORBA.Unsigned_Long "
           & ":= CORBA.From_Any (Index);");
@@ -1511,12 +1516,13 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_With (CU, "CORBA");
       PL (CU, "Result : CORBA.Any :=");
       II (CU);
-      PL (CU, "CORBA.Get_Empty_Any_Aggregate (" & Ada_TC_Name (Node) & ");");
+      PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
+          & Ada_TC_Name (Node) & ");");
       DI (CU);
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.Add_Aggregate_Element");
+      PL (CU, "CORBA.Internals.Add_Aggregate_Element");
       II (CU);
       PL (CU, "(Result,");
       PL (CU, " CORBA.To_Any (CORBA.Unsigned_Long ("
@@ -1710,7 +1716,8 @@ package body Ada_Be.Idl2Ada.Helper is
                   while not Is_End (It2) loop
                      Get_Next_Node (It2, Decl_Node);
 
-                     PL (CU, "Index := CORBA.Get_Aggregate_Element (Item,");
+                     PL (CU, "Index := "
+                       & "CORBA.Internals.Get_Aggregate_Element (Item,");
 
                      Add_With (CU,
                        Ada_Helper_Unit_Name (
@@ -1784,7 +1791,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_With (CU, "CORBA");
       PL (CU, "Result : CORBA.Any :=");
       II (CU);
-      PL (CU, "CORBA.Get_Empty_Any_Aggregate ("
+      PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
           & Ada_TC_Name (Node)
           & ");");
       DI (CU);
@@ -1812,7 +1819,7 @@ package body Ada_Be.Idl2Ada.Helper is
                Init (It2, Decl (Member_Node));
                while not Is_End (It2) loop
                   Get_Next_Node (It2, Decl_Node);
-                  PL (CU, "CORBA.Add_Aggregate_Element");
+                  PL (CU, "CORBA.Internals.Add_Aggregate_Element");
                   II (CU);
                   PL (CU, "(Result, "
                       & Helper_Name
@@ -2057,7 +2064,7 @@ package body Ada_Be.Idl2Ada.Helper is
       II (CU);
       PL (CU, "Label_Any : CORBA.Any :=");
       II (CU);
-      PL (CU, "CORBA.Get_Aggregate_Element (Item,");
+      PL (CU, "CORBA.Internals.Get_Aggregate_Element (Item,");
       PL (CU, "                             "
           & Ada_Full_TC_Name (Switch_Type (Node)) & ",");
       PL (CU, "                             CORBA.Unsigned_Long (0));");
@@ -2112,7 +2119,7 @@ package body Ada_Be.Idl2Ada.Helper is
                end if;
                PL (CU, " =>");
                II (CU);
-               PL (CU, "Index := CORBA.Get_Aggregate_Element");
+               PL (CU, "Index := CORBA.Internals.Get_Aggregate_Element");
                II (CU);
                PL (CU, "(Item,");
 
@@ -2151,14 +2158,14 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_With (CU, "CORBA");
       PL (CU, "Result : CORBA.Any :=");
       II (CU);
-      PL (CU, "CORBA.Get_Empty_Any_Aggregate ("
+      PL (CU, "CORBA.Internals.Get_Empty_Any_Aggregate ("
           & Ada_TC_Name (Node)
           & ");");
       DI (CU);
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "CORBA.Add_Aggregate_Element");
+      PL (CU, "CORBA.Internals.Add_Aggregate_Element");
       II (CU);
       PL (CU, "(Result, "
           & Switch_Helper_Name
@@ -2202,7 +2209,7 @@ package body Ada_Be.Idl2Ada.Helper is
                end if;
                PL (CU, " =>");
                II (CU);
-               PL (CU, "CORBA.Add_Aggregate_Element");
+               PL (CU, "CORBA.Internals.Add_Aggregate_Element");
                II (CU);
                PL (CU, "(Result, "
                    & Helper_Name
@@ -2510,7 +2517,7 @@ package body Ada_Be.Idl2Ada.Helper is
                 & ".From_Any");
             II (CU);
             Add_With (CU, "CORBA");
-            PL (CU, "(CORBA.Get_Aggregate_Element");
+            PL (CU, "(CORBA.Internals.Get_Aggregate_Element");
             PL (CU, " (Item, "
                 & Ada_Full_TC_Name (Type_Node)
                 & ", " & T_J & "));");
@@ -2550,7 +2557,8 @@ package body Ada_Be.Idl2Ada.Helper is
       if Is_Array then
 
          Add_With (CU, "CORBA");
-         PL (CU, "Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate");
+         PL (CU,
+             "Result : CORBA.Any := CORBA.Internals.Get_Empty_Any_Aggregate");
          PL (CU, "  (" & Ada_TC_Name (Node) & ");");
          DI (CU);
          PL (CU, "begin");
@@ -2573,7 +2581,7 @@ package body Ada_Be.Idl2Ada.Helper is
                II (CU);
             end loop;
 
-            PL (CU, "CORBA.Add_Aggregate_Element (Result,");
+            PL (CU, "CORBA.Internals.Add_Aggregate_Element (Result,");
             Put (CU, "                             "
                  & Helper_Name
                  & ".To_Any (Item (" & Loop_Parameter (0));
@@ -2599,7 +2607,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU, "CORBA.Set_Type (Result, "
+         PL (CU, "CORBA.Internals.Set_Type (Result, "
              & Ada_TC_Name (Node)
              & ");");
          PL (CU, "return Result;");

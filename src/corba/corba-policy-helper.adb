@@ -83,7 +83,7 @@ package body CORBA.Policy.Helper is
    function To_Any (Item : in Ref) return Any is
       Result : Any := Object.Helper.To_Any (Object.Ref (Item));
    begin
-      Set_Type (Result, TC_Policy);
+      Internals.Set_Type (Result, TC_Policy);
       return Result;
    end To_Any;
 

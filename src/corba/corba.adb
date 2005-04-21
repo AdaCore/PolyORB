@@ -1253,10 +1253,11 @@ package body CORBA is
      (Item : Completion_Status)
      return CORBA.Any
    is
-      Result : CORBA.Any := Get_Empty_Any_Aggregate (TC_Completion_Status);
+      Result : CORBA.Any
+        := Internals.Get_Empty_Any_Aggregate (TC_Completion_Status);
 
    begin
-      Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
         (Result, To_Any (Unsigned_Long (Completion_Status'Pos (Item))));
 
       return Result;
@@ -1402,115 +1403,6 @@ package body CORBA is
       return CORBA.TypeCode.Internals.To_CORBA_Object
         (PolyORB.Any.Get_Type (Internals.To_PolyORB_Any (The_Any)));
    end Get_Type;
-
-   ----------------------
-   -- Get_Unwound_Type --
-   ----------------------
-
-   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object is
-   begin
-      return CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.Get_Unwound_Type (Internals.To_PolyORB_Any (The_Any)));
-   end Get_Unwound_Type;
-
-   --------------
-   -- Set_Type --
-   --------------
-
-   procedure Set_Type
-     (The_Any  : in out Any;
-      The_Type : TypeCode.Object)
-   is
-   begin
-      PolyORB.Any.Set_Type
-        (The_Any.The_Any,
-         CORBA.TypeCode.Internals.To_PolyORB_Object (The_Type));
-   end Set_Type;
-
-   -------------------------------
-   -- Iterate_Over_Any_Elements --
-   -------------------------------
-
-   procedure Iterate_Over_Any_Elements (In_Any : Any) is
-   begin
-      raise Program_Error;
-   end Iterate_Over_Any_Elements;
-
-   -------------------
-   -- Get_Empty_Any --
-   -------------------
-
-   function Get_Empty_Any (Tc : TypeCode.Object) return Any is
-   begin
-      return CORBA.Any'
-        (The_Any => PolyORB.Any.Get_Empty_Any
-         (CORBA.TypeCode.Internals.To_PolyORB_Object (Tc)));
-   end Get_Empty_Any;
-
-   --------------
-   -- Is_Empty --
-   --------------
-
-   function Is_Empty (Any_Value : Any) return Boolean is
-   begin
-      return PolyORB.Any.Is_Empty (Internals.To_PolyORB_Any (Any_Value));
-   end Is_Empty;
-
-   -----------------------------
-   -- Set_Any_Aggregate_Value --
-   -----------------------------
-
-   procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any) is
-   begin
-      PolyORB.Any.Set_Any_Aggregate_Value (Any_Value.The_Any);
-   end Set_Any_Aggregate_Value;
-
-   -------------------------
-   -- Get_Aggregate_Count --
-   -------------------------
-
-   function Get_Aggregate_Count (Value : Any) return Unsigned_Long is
-   begin
-      return Unsigned_Long (PolyORB.Any.Get_Aggregate_Count
-                            (Internals.To_PolyORB_Any (Value)));
-   end Get_Aggregate_Count;
-
-   ---------------------------
-   -- Add_Aggregate_Element --
-   ---------------------------
-
-   procedure Add_Aggregate_Element (Value : in out Any; Element : in Any) is
-   begin
-      PolyORB.Any.Add_Aggregate_Element
-        (Value.The_Any,
-         Internals.To_PolyORB_Any (Element));
-   end Add_Aggregate_Element;
-
-   ---------------------------
-   -- Get_Aggregate_Element --
-   ---------------------------
-
-   function Get_Aggregate_Element
-     (Value : Any;
-      Tc    : CORBA.TypeCode.Object;
-      Index : CORBA.Unsigned_Long)
-     return Any is
-   begin
-      return CORBA.Any'(The_Any => PolyORB.Any.Get_Aggregate_Element
-                         (Internals.To_PolyORB_Any (Value),
-                          CORBA.TypeCode.Internals.To_PolyORB_Object (Tc),
-                          PolyORB.Types.Unsigned_Long (Index)));
-   end Get_Aggregate_Element;
-
-   -----------------------------
-   -- Get_Empty_Any_Aggregate --
-   -----------------------------
-
-   function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object) return Any is
-   begin
-      return CORBA.Any'(The_Any => PolyORB.Any.Get_Empty_Any_Aggregate
-                        (CORBA.TypeCode.Internals.To_PolyORB_Object (Tc)));
-   end Get_Empty_Any_Aggregate;
 
    -----------
    -- Image --
@@ -1684,14 +1576,126 @@ package body CORBA is
 
    package body Internals is
 
+      ---------------------------
+      -- Add_Aggregate_Element --
+      ---------------------------
+
+      procedure Add_Aggregate_Element (Value : in out Any; Element : in Any) is
+      begin
+         PolyORB.Any.Add_Aggregate_Element
+           (Value.The_Any,
+            Internals.To_PolyORB_Any (Element));
+      end Add_Aggregate_Element;
+
+      -------------------------
+      -- Get_Aggregate_Count --
+      -------------------------
+
+      function Get_Aggregate_Count (Value : Any) return Unsigned_Long is
+      begin
+         return Unsigned_Long (PolyORB.Any.Get_Aggregate_Count
+                               (Internals.To_PolyORB_Any (Value)));
+      end Get_Aggregate_Count;
+
+      ---------------------------
+      -- Get_Aggregate_Element --
+      ---------------------------
+
+      function Get_Aggregate_Element
+        (Value : Any;
+         Tc    : CORBA.TypeCode.Object;
+         Index : CORBA.Unsigned_Long)
+        return Any is
+      begin
+         return CORBA.Any'(The_Any => PolyORB.Any.Get_Aggregate_Element
+                            (Internals.To_PolyORB_Any (Value),
+                             CORBA.TypeCode.Internals.To_PolyORB_Object (Tc),
+                             PolyORB.Types.Unsigned_Long (Index)));
+      end Get_Aggregate_Element;
+
+      -------------------
+      -- Get_Empty_Any --
+      -------------------
+
+      function Get_Empty_Any (Tc : TypeCode.Object) return Any is
+      begin
+         return CORBA.Any'
+           (The_Any => PolyORB.Any.Get_Empty_Any
+            (CORBA.TypeCode.Internals.To_PolyORB_Object (Tc)));
+      end Get_Empty_Any;
+
+      -----------------------------
+      -- Get_Empty_Any_Aggregate --
+      -----------------------------
+
+      function Get_Empty_Any_Aggregate
+        (Tc : CORBA.TypeCode.Object)
+         return Any
+      is
+      begin
+         return CORBA.Any'(The_Any => PolyORB.Any.Get_Empty_Any_Aggregate
+                           (CORBA.TypeCode.Internals.To_PolyORB_Object (Tc)));
+      end Get_Empty_Any_Aggregate;
+
+      ----------------------
+      -- Get_Unwound_Type --
+      ----------------------
+
+      function Get_Unwound_Type (The_Any : Any) return TypeCode.Object is
+      begin
+         return CORBA.TypeCode.Internals.To_CORBA_Object
+           (PolyORB.Any.Get_Unwound_Type (Internals.To_PolyORB_Any (The_Any)));
+      end Get_Unwound_Type;
+
+      --------------
+      -- Is_Empty --
+      --------------
+
+      function Is_Empty (Any_Value : Any) return Boolean is
+      begin
+         return PolyORB.Any.Is_Empty (Internals.To_PolyORB_Any (Any_Value));
+      end Is_Empty;
+
+      -------------------------------
+      -- Iterate_Over_Any_Elements --
+      -------------------------------
+
+      procedure Iterate_Over_Any_Elements (In_Any : Any) is
+      begin
+         raise Program_Error;
+      end Iterate_Over_Any_Elements;
+
       --------------------
-      -- To_PolyORB_Any --
+      -- Move_Any_Value --
       --------------------
 
-      function To_PolyORB_Any (Self : in CORBA.Any) return PolyORB.Any.Any is
+      procedure Move_Any_Value (Dest : in Any; Src : in Any) is
       begin
-         return Self.The_Any;
-      end To_PolyORB_Any;
+         PolyORB.Any.Move_Any_Value (Dest.The_Any, Src.The_Any);
+      end Move_Any_Value;
+
+      -----------------------------
+      -- Set_Any_Aggregate_Value --
+      -----------------------------
+
+      procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any) is
+      begin
+         PolyORB.Any.Set_Any_Aggregate_Value (Any_Value.The_Any);
+      end Set_Any_Aggregate_Value;
+
+      --------------
+      -- Set_Type --
+      --------------
+
+      procedure Set_Type
+        (The_Any  : in out Any;
+         The_Type : TypeCode.Object)
+      is
+      begin
+         PolyORB.Any.Set_Type
+           (The_Any.The_Any,
+            CORBA.TypeCode.Internals.To_PolyORB_Object (The_Type));
+      end Set_Type;
 
       ------------------
       -- To_CORBA_Any --
@@ -1703,13 +1707,13 @@ package body CORBA is
       end To_CORBA_Any;
 
       --------------------
-      -- Move_Any_Value --
+      -- To_PolyORB_Any --
       --------------------
 
-      procedure Move_Any_Value (Dest : in Any; Src : in Any) is
+      function To_PolyORB_Any (Self : in CORBA.Any) return PolyORB.Any.Any is
       begin
-         PolyORB.Any.Move_Any_Value (Dest.The_Any, Src.The_Any);
-      end Move_Any_Value;
+         return Self.The_Any;
+      end To_PolyORB_Any;
 
    end Internals;
 

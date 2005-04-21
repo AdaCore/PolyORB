@@ -78,7 +78,7 @@ package body CORBA.DomainManager is
       Result :=
         (Name      => PolyORB.Types.Identifier (Result_Name),
          Argument  => CORBA.Internals.To_PolyORB_Any
-         (Get_Empty_Any (CORBA.Policy.Helper.TC_Policy)),
+         (CORBA.Internals.Get_Empty_Any (CORBA.Policy.Helper.TC_Policy)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request

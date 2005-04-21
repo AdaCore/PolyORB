@@ -404,9 +404,9 @@ package body PortableServer is
      return ThreadPolicyValue
    is
       Index : CORBA.Any :=
-        CORBA.Get_Aggregate_Element (Item,
-                                     CORBA.TC_Unsigned_Long,
-                                     CORBA.Unsigned_Long (0));
+        CORBA.Internals.Get_Aggregate_Element (Item,
+                                               CORBA.TC_Unsigned_Long,
+                                               CORBA.Unsigned_Long (0));
       Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
    begin
       return ThreadPolicyValue'Val (Position);
@@ -417,9 +417,9 @@ package body PortableServer is
      return LifespanPolicyValue
    is
       Index : CORBA.Any :=
-        CORBA.Get_Aggregate_Element (Item,
-                                     CORBA.TC_Unsigned_Long,
-                                     CORBA.Unsigned_Long (0));
+        CORBA.Internals.Get_Aggregate_Element (Item,
+                                               CORBA.TC_Unsigned_Long,
+                                               CORBA.Unsigned_Long (0));
       Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
    begin
       return LifespanPolicyValue'Val (Position);
@@ -430,9 +430,9 @@ package body PortableServer is
      return IdUniquenessPolicyValue
    is
       Index : CORBA.Any :=
-        CORBA.Get_Aggregate_Element (Item,
-                                     CORBA.TC_Unsigned_Long,
-                                     CORBA.Unsigned_Long (0));
+        CORBA.Internals.Get_Aggregate_Element (Item,
+                                               CORBA.TC_Unsigned_Long,
+                                               CORBA.Unsigned_Long (0));
       Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
    begin
       return IdUniquenessPolicyValue'Val (Position);
@@ -443,9 +443,9 @@ package body PortableServer is
      return IdAssignmentPolicyValue
    is
       Index : CORBA.Any :=
-        CORBA.Get_Aggregate_Element (Item,
-                                     CORBA.TC_Unsigned_Long,
-                                     CORBA.Unsigned_Long (0));
+        CORBA.Internals.Get_Aggregate_Element (Item,
+                                               CORBA.TC_Unsigned_Long,
+                                               CORBA.Unsigned_Long (0));
       Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
    begin
       return IdAssignmentPolicyValue'Val (Position);
@@ -456,9 +456,9 @@ package body PortableServer is
      return ImplicitActivationPolicyValue
    is
       Index : CORBA.Any :=
-        CORBA.Get_Aggregate_Element (Item,
-                                     CORBA.TC_Unsigned_Long,
-                                     CORBA.Unsigned_Long (0));
+        CORBA.Internals.Get_Aggregate_Element (Item,
+                                               CORBA.TC_Unsigned_Long,
+                                               CORBA.Unsigned_Long (0));
       Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
    begin
       return ImplicitActivationPolicyValue'Val (Position);
@@ -469,9 +469,9 @@ package body PortableServer is
      return ServantRetentionPolicyValue
    is
       Index : CORBA.Any :=
-        CORBA.Get_Aggregate_Element (Item,
-                                     CORBA.TC_Unsigned_Long,
-                                     CORBA.Unsigned_Long (0));
+        CORBA.Internals.Get_Aggregate_Element (Item,
+                                               CORBA.TC_Unsigned_Long,
+                                               CORBA.Unsigned_Long (0));
       Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
    begin
       return ServantRetentionPolicyValue'Val (Position);
@@ -482,9 +482,9 @@ package body PortableServer is
      return RequestProcessingPolicyValue
    is
       Index : CORBA.Any :=
-        CORBA.Get_Aggregate_Element (Item,
-                                     CORBA.TC_Unsigned_Long,
-                                     CORBA.Unsigned_Long (0));
+        CORBA.Internals.Get_Aggregate_Element (Item,
+                                               CORBA.TC_Unsigned_Long,
+                                               CORBA.Unsigned_Long (0));
       Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
    begin
       return RequestProcessingPolicyValue'Val (Position);
@@ -499,12 +499,14 @@ package body PortableServer is
      return CORBA.Any
    is
       Result : CORBA.Any :=
-        CORBA.Get_Empty_Any_Aggregate (TC_ThreadPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ThreadPolicyValue);
+
    begin
-      CORBA.Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
         (Result,
          CORBA.To_Any
          (CORBA.Unsigned_Long (ThreadPolicyValue'Pos (Item))));
+
       return Result;
    end To_Any;
 
@@ -513,12 +515,14 @@ package body PortableServer is
      return CORBA.Any
    is
       Result : CORBA.Any :=
-        CORBA.Get_Empty_Any_Aggregate (TC_LifespanPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_LifespanPolicyValue);
+
    begin
-      CORBA.Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
         (Result,
          CORBA.To_Any
          (CORBA.Unsigned_Long (LifespanPolicyValue'Pos (Item))));
+
       return Result;
    end To_Any;
 
@@ -527,12 +531,14 @@ package body PortableServer is
      return CORBA.Any
    is
       Result : CORBA.Any :=
-        CORBA.Get_Empty_Any_Aggregate (TC_IdUniquenessPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_IdUniquenessPolicyValue);
+
    begin
-      CORBA.Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
         (Result,
          CORBA.To_Any
          (CORBA.Unsigned_Long (IdUniquenessPolicyValue'Pos (Item))));
+
       return Result;
    end To_Any;
 
@@ -541,12 +547,14 @@ package body PortableServer is
      return CORBA.Any
    is
       Result : CORBA.Any :=
-        CORBA.Get_Empty_Any_Aggregate (TC_IdAssignmentPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_IdAssignmentPolicyValue);
+
    begin
-      CORBA.Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
         (Result,
          CORBA.To_Any
          (CORBA.Unsigned_Long (IdAssignmentPolicyValue'Pos (Item))));
+
       return Result;
    end To_Any;
 
@@ -555,12 +563,15 @@ package body PortableServer is
      return CORBA.Any
    is
       Result : CORBA.Any :=
-        CORBA.Get_Empty_Any_Aggregate (TC_ImplicitActivationPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate
+        (TC_ImplicitActivationPolicyValue);
+
    begin
-      CORBA.Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
         (Result,
          CORBA.To_Any
          (CORBA.Unsigned_Long (ImplicitActivationPolicyValue'Pos (Item))));
+
       return Result;
    end To_Any;
 
@@ -569,12 +580,15 @@ package body PortableServer is
      return CORBA.Any
    is
       Result : CORBA.Any :=
-        CORBA.Get_Empty_Any_Aggregate (TC_ServantRetentionPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate
+        (TC_ServantRetentionPolicyValue);
+
    begin
-      CORBA.Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
         (Result,
          CORBA.To_Any
          (CORBA.Unsigned_Long (ServantRetentionPolicyValue'Pos (Item))));
+
       return Result;
    end To_Any;
 
@@ -583,12 +597,15 @@ package body PortableServer is
      return CORBA.Any
    is
       Result : CORBA.Any :=
-        CORBA.Get_Empty_Any_Aggregate (TC_RequestProcessingPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate
+        (TC_RequestProcessingPolicyValue);
+
    begin
-      CORBA.Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
         (Result,
          CORBA.To_Any
          (CORBA.Unsigned_Long (RequestProcessingPolicyValue'Pos (Item))));
+
       return Result;
    end To_Any;
 

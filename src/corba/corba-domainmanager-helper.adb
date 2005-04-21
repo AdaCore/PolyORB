@@ -133,7 +133,7 @@ package body CORBA.DomainManager.Helper is
    function To_Any (Item : in Ref) return Any is
       Result : Any := Object.Helper.To_Any (Object.Ref (Item));
    begin
-      Set_Type (Result, TC_DomainManager);
+      Internals.Set_Type (Result, TC_DomainManager);
       return Result;
    end To_Any;
 

@@ -116,7 +116,7 @@ package body CORBA.Object is
       --  Set result type (maybe void)
 
       Result := (Name      => CORBA.Identifier (Result_Name),
-                 Argument  => Get_Empty_Any (TC_Object),
+                 Argument  => CORBA.Internals.Get_Empty_Any (TC_Object),
                  Arg_Modes => 0);
 
       CORBA.Object.Create_Request
@@ -179,7 +179,7 @@ package body CORBA.Object is
 
       Result
         := (Name      => CORBA.Identifier (Result_Name),
-            Argument  => Get_Empty_Any (CORBA.TC_Boolean),
+            Argument  => CORBA.Internals.Get_Empty_Any (CORBA.TC_Boolean),
             Arg_Modes => 0);
 
       CORBA.Object.Create_Request

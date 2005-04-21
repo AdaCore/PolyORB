@@ -2235,7 +2235,8 @@ package body Ada_Be.Idl2Ada is
                                          (Mapping, P_Typ);
                                     begin
                                        Add_With (CU, TC_Helper_Name);
-                                       PL (CU, "  := CORBA.Get_Empty_Any");
+                                       PL (CU, "  := "
+                                         & "CORBA.Internals.Get_Empty_Any");
                                        II (CU);
                                        PL (CU, "("
                                          & Ada_Full_TC_Name (P_Typ) & ");");
@@ -2355,7 +2356,7 @@ package body Ada_Be.Idl2Ada is
                          & "CORBA.Internals.To_PolyORB_Any ");
 
                      Add_With (CU, Ada_Helper_Unit_Name (Mapping, Org_O_Type));
-                     PL (CU, "  (Get_Empty_Any ("
+                     PL (CU, "  (CORBA.Internals.Get_Empty_Any ("
                          & TC_Name (Org_O_Type) & ")),");
                      II (CU);
                      PL (CU, "Arg_Modes => 0);");

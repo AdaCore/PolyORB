@@ -110,7 +110,7 @@ package body CORBA.DomainManager.Skel is
             Policy_Type            : CORBA.PolicyType;
             Arg_Name_Ü_Policy_Type : constant CORBA.Identifier :=
               CORBA.To_CORBA_String ("policy_type");
-            Argument_Ü_Policy_Type : CORBA.Any := CORBA.Get_Empty_Any
+            Argument_Ü_Policy_Type : CORBA.Any := CORBA.Internals.Get_Empty_Any
               (CORBA.Helper.TC_PolicyType);
 
             Result_Ü               : CORBA.Policy.Ref;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -62,40 +62,46 @@ package body CORBA.Fixed_Point is
 
    function To_Any (Item : in F) return CORBA.Any is
       Tco : CORBA.TypeCode.Object;
+
    begin
       CORBA.TypeCode.Internals.Set_Kind (Tco, PolyORB.Any.Tk_Fixed);
       CORBA.TypeCode.Internals.Add_Parameter
         (Tco, CORBA.To_Any (CORBA.Unsigned_Short (F'Digits)));
       CORBA.TypeCode.Internals.Add_Parameter
         (Tco, CORBA.To_Any (CORBA.Short (F'Scale)));
+
       declare
-         Result : Any := CORBA.Get_Empty_Any_Aggregate (Tco);
+         Result : Any := CORBA.Internals.Get_Empty_Any_Aggregate (Tco);
          Octets : constant Ada.Streams.Stream_Element_Array
            := CDR_Fixed_F.Fixed_To_Octets (Item);
+
       begin
          for I in Octets'Range loop
-            CORBA.Add_Aggregate_Element
+            CORBA.Internals.Add_Aggregate_Element
               (Result,
                CORBA.To_Any (CORBA.Octet (Octets (I))));
          end loop;
+
          return Result;
       end;
    end To_Any;
 
-   ----------------
-   --  From_Any  --
-   ----------------
+   --------------
+   -- From_Any --
+   --------------
+
    function From_Any (Item : in Any) return F is
       use type PolyORB.Any.TCKind;
+
    begin
       pragma Debug (O ("From_Any (Fixed) : enter"));
-      if TypeCode.Kind (Get_Unwound_Type (Item))
+      if TypeCode.Kind (Internals.Get_Unwound_Type (Item))
         /= PolyORB.Any.Tk_Fixed
       then
          pragma Debug
            (O ("From_Any (Fixed) : Bad_TypeCode, type is " &
                CORBA.TCKind'Image
-               (TypeCode.Kind (Get_Unwound_Type (Item)))));
+               (TypeCode.Kind (Internals.Get_Unwound_Type (Item)))));
          raise Bad_TypeCode;
       end if;
 
@@ -103,7 +109,7 @@ package body CORBA.Fixed_Point is
          use Ada.Streams;
 
          Nb : constant CORBA.Unsigned_Long :=
-           CORBA.Get_Aggregate_Count (Item);
+           CORBA.Internals.Get_Aggregate_Count (Item);
          Octets : Stream_Element_Array (1 .. Stream_Element_Offset (Nb)) :=
            (others => 0);
          Element : CORBA.Any;
@@ -111,14 +117,16 @@ package body CORBA.Fixed_Point is
          for I in Octets'Range loop
             pragma Debug (O ("From_Any (Fixed) : yet another octet"));
             Element :=
-              CORBA.Get_Aggregate_Element (Item,
-                                           CORBA.TC_Octet,
-                                           CORBA.Unsigned_Long (I - 1));
+              CORBA.Internals.Get_Aggregate_Element
+              (Item,
+               CORBA.TC_Octet,
+               CORBA.Unsigned_Long (I - 1));
             Octets (I) := Stream_Element
               (CORBA.Octet'(CORBA.From_Any (Element)));
          end loop;
          pragma Debug (O ("From_Any (Fixed) : return"));
          return CDR_Fixed_F.Octets_To_Fixed (Octets);
+
       exception when CORBA.Marshal =>
          pragma Debug (O ("From_Any (Fixed) : exception catched" &
                           "while returning"));

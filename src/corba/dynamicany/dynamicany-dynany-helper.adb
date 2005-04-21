@@ -165,7 +165,8 @@ package body DynamicAny.DynAny.Helper is
    function To_Any (Item : in InvalidValue_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_InvalidValue);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidValue);
 
    begin
       return Result;
@@ -174,7 +175,9 @@ package body DynamicAny.DynAny.Helper is
    function To_Any (Item : in TypeMismatch_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_TypeMismatch);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_TypeMismatch);
+
    begin
       return Result;
    end To_Any;

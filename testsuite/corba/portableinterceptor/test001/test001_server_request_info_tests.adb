@@ -327,7 +327,7 @@ package body Test001_Server_Request_Info_Tests is
       Operation : constant String := "set_slot";
 
    begin
-      Set_Slot (Info, 100, Get_Empty_Any (TC_Null));
+      Set_Slot (Info, 100, CORBA.Internals.Get_Empty_Any (TC_Null));
       --  Operation must raise InvalidSlot exception because slot is not
       --  allocated. The slot allocation, Get_Slot/Set_Slot Requests and
       --  PICurrent operations tested in test002.

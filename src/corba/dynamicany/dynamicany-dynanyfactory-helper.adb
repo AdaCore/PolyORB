@@ -117,7 +117,7 @@ package body DynamicAny.DynAnyFactory.Helper is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any
-        := CORBA.Get_Empty_Any_Aggregate (TC_InconsistentTypeCode);
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_InconsistentTypeCode);
 
    begin
       return Result;

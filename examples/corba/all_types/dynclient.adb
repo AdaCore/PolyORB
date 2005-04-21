@@ -89,7 +89,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Boolean),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Boolean),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -127,7 +127,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -165,7 +165,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Long),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Long),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -203,7 +203,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Unsigned_Short),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Unsigned_Short),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -241,7 +241,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Unsigned_Long),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Unsigned_Long),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -279,7 +279,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Float),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Float),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -317,7 +317,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Double),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Double),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -355,7 +355,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Char),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Char),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -393,7 +393,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Octet),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Octet),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -431,7 +431,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_String),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_String),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -469,7 +469,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any
+                 Argument => Internals.Get_Empty_Any
                  (CORBA.Object.Helper.TC_Object),
                  Arg_Modes => 0);
       --  creating a request
@@ -509,7 +509,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => CORBA.Get_Empty_Any (all_types.Helper.TC_Color),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Color),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -548,7 +549,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => CORBA.Get_Empty_Any (all_types.Helper.TC_Money),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Money),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -587,7 +589,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Simple_Array),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Simple_Array),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -626,7 +629,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Matrix),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Matrix),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -665,7 +669,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_BigMatrix),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_BigMatrix),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -704,7 +709,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Simple_Struct),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Simple_Struct),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -743,7 +749,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_array_struct),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_array_struct),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -782,7 +789,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Myunion),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Myunion),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -821,7 +829,9 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_MyunionEnumSwitch),
+                 Argument =>
+                   Internals.Get_Empty_Any
+                   (all_types.Helper.TC_MyunionEnumSwitch),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -860,7 +870,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_U_sequence),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_U_sequence),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -899,7 +910,8 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_B_sequence),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_B_sequence),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -937,7 +949,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Void),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -964,7 +976,8 @@ procedure DynClient is
       CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Color),
+                 Argument =>
+                   Internals.Get_Empty_Any (all_types.Helper.TC_Color),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -994,7 +1007,7 @@ procedure DynClient is
       CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Long),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Long),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -1036,7 +1049,7 @@ procedure DynClient is
                                all_types.Helper.TC_My_Exception);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Void),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -1078,7 +1091,7 @@ procedure DynClient is
                                all_types.Helper.TC_My_Exception);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Void),
+                 Argument => Internals.Get_Empty_Any (CORBA.TC_Void),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,

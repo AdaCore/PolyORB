@@ -66,7 +66,7 @@ package body RTCosScheduling.Helper is
       pragma Unreferenced (Item);
 
       Result : CORBA.Any :=
-        CORBA.Get_Empty_Any_Aggregate (TC_UnknownName);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_UnknownName);
 
    begin
       return Result;

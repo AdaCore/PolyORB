@@ -807,65 +807,6 @@ package CORBA is
 
    function Get_Type (The_Any : Any) return TypeCode.Object;
 
-   function Get_Unwound_Type (The_Any : Any) return TypeCode.Object;
-   --  Not from standard: returns the most precise type of an Any (unwinding
-   --  all typedefs).
-
-   procedure Set_Type
-     (The_Any  : in out Any;
-      The_Type : TypeCode.Object);
-   --  Not from standard: change the type of an any without changing its
-   --  value (to be used carefully).
-
-   generic
-      with procedure Process
-        (The_Any  : in  Any;
-         Continue : out Boolean);
-   procedure Iterate_Over_Any_Elements (In_Any : in Any);
-
-   function Get_Empty_Any (Tc : TypeCode.Object) return Any;
-   --  Return an empty any with the given Typecode but not value
-
-   function Is_Empty (Any_Value : CORBA.Any) return Boolean;
-   --  True iff Any_Value does not have a value
-
-   procedure Set_Any_Aggregate_Value
-     (Any_Value : in out CORBA.Any);
-   --  This one is a bit special: it doesn't put any value but
-   --  create the aggregate value if it does not exist.
-
-   --  Not in spec : some methods to deal with any aggregates.
-   --  What is called any aggregate is an any, made of an aggregate
-   --  of values, instead of one unique. It is used for structs,
-   --  unions, enums, arrays, sequences, objref, values...
-
-   function Get_Aggregate_Count
-     (Value : Any)
-     return CORBA.Unsigned_Long;
-   --  Return the number of elements in an any aggregate
-
-   procedure Add_Aggregate_Element
-     (Value   : in out CORBA.Any;
-      Element : in     CORBA.Any);
-   --  Append the value of Element to aggregate Value (note that the typeCode
-   --  of Element is discarded: it is assumed that the necessary type
-   --  information is contained within the typecode of Value.
-
-
-   function Get_Aggregate_Element
-     (Value : Any;
-      Tc    : CORBA.TypeCode.Object;
-      Index : CORBA.Unsigned_Long)
-      return Any;
-   --  Return an any constructed with typecode Tc and the value extracted from
-   --  position Index in aggregate Value.
-
-   function Get_Empty_Any_Aggregate
-     (Tc : CORBA.TypeCode.Object)
-      return Any;
-   --  Return an Any with an aggregate value containing zero elements and
-   --  having the specified typecode.
-
    ----------------
    -- NamedValue --
    ----------------
@@ -912,7 +853,69 @@ package CORBA is
       function To_CORBA_Any (Self : in PolyORB.Any.Any) return CORBA.Any;
       pragma Inline (To_CORBA_Any);
 
+      function Get_Unwound_Type (The_Any : Any) return TypeCode.Object;
+      --  Returns the most precise type of an Any (unwinding all typedefs)
+
+      procedure Set_Type
+        (The_Any  : in out Any;
+         The_Type : TypeCode.Object);
+      --  Change the type of an any without changing its value (to be used
+      --  carefully)
+
+      function Get_Empty_Any (Tc : TypeCode.Object) return Any;
+      --  Return an empty any with the given Typecode but not value
+
+      function Is_Empty (Any_Value : CORBA.Any) return Boolean;
+      --  True iff Any_Value does not have a value
+
+      procedure Set_Any_Aggregate_Value
+        (Any_Value : in out CORBA.Any);
+      --  This one is a bit special: it doesn't put any value but
+      --  create the aggregate value if it does not exist.
+
+      --  Not in spec : some methods to deal with any aggregates.
+      --  What is called any aggregate is an any, made of an aggregate
+      --  of values, instead of one unique. It is used for structs,
+      --  unions, enums, arrays, sequences, objref, values...
+
+      function Get_Empty_Any_Aggregate
+        (Tc : CORBA.TypeCode.Object)
+         return Any;
+      --  Return an Any with an aggregate value containing zero elements and
+      --  having the specified typecode
+
+      function Get_Aggregate_Count
+        (Value : Any)
+        return CORBA.Unsigned_Long;
+      --  Return the number of elements in an any aggregate
+
+      procedure Add_Aggregate_Element
+        (Value   : in out CORBA.Any;
+         Element : in     CORBA.Any);
+      --  Append the value of Element to aggregate Value (note that the
+      --  TypeCode of Element is discarded: it is assumed that the necessary
+      --  type information is contained within the typecode of Value.
+
+      function Get_Aggregate_Element
+        (Value : Any;
+         Tc    : CORBA.TypeCode.Object;
+         Index : CORBA.Unsigned_Long)
+         return Any;
+      --  Return an any constructed with typecode Tc and the value extracted
+      --  from position Index in aggregate Value
+
       procedure Move_Any_Value (Dest : in Any; Src : in Any);
+
+      generic
+         with procedure Process
+           (The_Any  : in  Any;
+            Continue : out Boolean);
+      procedure Iterate_Over_Any_Elements (In_Any : in Any);
+
+   private
+
+      pragma Inline (Get_Aggregate_Count);
+      pragma Inline (Get_Aggregate_Element);
 
    end Internals;
 
@@ -935,8 +938,6 @@ private
    pragma Inline (From_Any);
    pragma Inline (To_Any);
    pragma Inline (To_CORBA_String);
-   pragma Inline (Get_Aggregate_Count);
-   pragma Inline (Get_Aggregate_Element);
 
    ----------------
    -- NamedValue --

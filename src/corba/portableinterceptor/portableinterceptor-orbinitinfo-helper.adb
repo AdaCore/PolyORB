@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -108,9 +108,9 @@ package body PortableInterceptor.ORBInitInfo.Helper is
       Index       : CORBA.Any;
       Result_Name : CORBA.String;
    begin
-      Index := CORBA.Get_Aggregate_Element (Item,
-                                            CORBA.TC_String,
-                                            CORBA.Unsigned_Long (0));
+      Index := CORBA.Internals.Get_Aggregate_Element (Item,
+                                                      CORBA.TC_String,
+                                                      CORBA.Unsigned_Long (0));
       Result_Name := CORBA.From_Any (Index);
 
       return (Name => Result_Name);
@@ -183,24 +183,29 @@ package body PortableInterceptor.ORBInitInfo.Helper is
    ------------
 
    function To_Any (Item : in DuplicateName_Members) return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_DuplicateName);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_DuplicateName);
+
    begin
-      CORBA.Add_Aggregate_Element (Result, CORBA.To_Any (Item.Name));
+      CORBA.Internals.Add_Aggregate_Element (Result, CORBA.To_Any (Item.Name));
       return Result;
    end To_Any;
 
    function To_Any (Item : in InvalidName_Members) return CORBA.Any is
       pragma Unreferenced (Item);
 
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_InvalidName);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidName);
+
    begin
       return Result;
    end To_Any;
 
    function To_Any (Item : in ObjectId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_ObjectId);
+      CORBA.Internals.Set_Type (Result, TC_ObjectId);
       return Result;
    end To_Any;
 

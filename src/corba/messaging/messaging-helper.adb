@@ -69,13 +69,13 @@ package body Messaging.Helper is
       Result_PValue : IDL_Sequence_Octet.Sequence;
    begin
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
          (Item,
           CORBA.Helper.TC_PolicyType,
           CORBA.Unsigned_Long (0));
       Result_PType := CORBA.Helper.From_Any (Index);
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
          (Item,
           TC_IDL_Sequence_Octet,
           CORBA.Unsigned_Long (1));
@@ -102,13 +102,13 @@ package body Messaging.Helper is
       Result_Max : Priority;
    begin
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
          (Item,
           TC_Priority,
           CORBA.Unsigned_Long (0));
       Result_Min := From_Any (Index);
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
          (Item,
           TC_Priority,
           CORBA.Unsigned_Long (1));
@@ -135,13 +135,13 @@ package body Messaging.Helper is
       Result_Max : RoutingType;
    begin
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
          (Item,
           TC_RoutingType,
           CORBA.Unsigned_Long (0));
       Result_Min := From_Any (Index);
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
          (Item,
           TC_RoutingType,
           CORBA.Unsigned_Long (1));
@@ -169,69 +169,81 @@ package body Messaging.Helper is
 
    function To_Any (Item : in Ordering) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Short (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_Ordering);
+      CORBA.Internals.Set_Type (Result, TC_Ordering);
       return Result;
    end To_Any;
 
    function To_Any (Item : in PolicyValue) return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_PolicyValue);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_PolicyValue);
+
    begin
-      CORBA.Add_Aggregate_Element (Result, CORBA.Helper.To_Any (Item.PType));
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.PValue));
+      CORBA.Internals.Add_Aggregate_Element
+        (Result, CORBA.Helper.To_Any (Item.PType));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.PValue));
       return Result;
    end To_Any;
 
    function To_Any (Item : in PolicyValueSeq) return CORBA.Any is
       Result : CORBA.Any
         := To_Any (IDL_Sequence_Messaging_PolicyValue.Sequence (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_PolicyValueSeq);
+      CORBA.Internals.Set_Type (Result, TC_PolicyValueSeq);
       return Result;
    end To_Any;
 
    function To_Any (Item : in Priority) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_Priority);
+      CORBA.Internals.Set_Type (Result, TC_Priority);
       return Result;
    end To_Any;
 
    function To_Any (Item : in PriorityRange) return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_PriorityRange);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_PriorityRange);
+
    begin
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Min));
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Max));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Min));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Max));
       return Result;
    end To_Any;
 
    function To_Any (Item : in RebindMode) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_RebindMode);
+      CORBA.Internals.Set_Type (Result, TC_RebindMode);
       return Result;
    end To_Any;
 
    function To_Any (Item : in RoutingType) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_RoutingType);
+      CORBA.Internals.Set_Type (Result, TC_RoutingType);
       return Result;
    end To_Any;
 
    function To_Any (Item : in RoutingTypeRange) return CORBA.Any is
       Result : CORBA.Any
-        := CORBA.Get_Empty_Any_Aggregate (TC_RoutingTypeRange);
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_RoutingTypeRange);
+
    begin
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Min));
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Max));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Min));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Max));
       return Result;
    end To_Any;
 
    function To_Any (Item : in SyncScope) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_SyncScope);
+      CORBA.Internals.Set_Type (Result, TC_SyncScope);
       return Result;
    end To_Any;
 

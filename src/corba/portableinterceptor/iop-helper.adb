@@ -110,17 +110,17 @@ package body IOP.Helper is
       Result_Minor_Version : CORBA.Octet;
    begin
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, TC_EncodingFormat, CORBA.Unsigned_Long (0));
       Result_Format := From_Any (Index);
 
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, CORBA.TC_Octet, CORBA.Unsigned_Long (1));
       Result_Major_Version := CORBA.From_Any (Index);
 
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, CORBA.TC_Octet, CORBA.Unsigned_Long (2));
       Result_Minor_Version := CORBA.From_Any (Index);
 
@@ -142,12 +142,12 @@ package body IOP.Helper is
       Result_Profiles : IDL_Sequence_IOP_TaggedProfile.Sequence;
    begin
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, CORBA.TC_String, CORBA.Unsigned_Long (0));
       Result_Type_Id := CORBA.From_Any (Index);
 
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, TC_IDL_Sequence_IOP_TaggedProfile, CORBA.Unsigned_Long (1));
       Result_Profiles := From_Any (Index);
 
@@ -175,12 +175,12 @@ package body IOP.Helper is
       Result_Context_Data : IDL_Sequence_Octet.Sequence;
    begin
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, TC_ServiceId, CORBA.Unsigned_Long (0));
       Result_Context_Id := From_Any (Index);
 
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, TC_IDL_Sequence_Octet, CORBA.Unsigned_Long (1));
       Result_Context_Data := From_Any (Index);
 
@@ -208,12 +208,12 @@ package body IOP.Helper is
       Result_Component_Data : IDL_Sequence_Octet.Sequence;
    begin
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, TC_ComponentId, CORBA.Unsigned_Long (0));
       Result_Tag := From_Any (Index);
 
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, TC_IDL_Sequence_Octet, CORBA.Unsigned_Long (1));
       Result_Component_Data := From_Any (Index);
 
@@ -235,12 +235,12 @@ package body IOP.Helper is
       Result_Profile_Data : IDL_Sequence_Octet.Sequence;
    begin
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, TC_ProfileId, CORBA.Unsigned_Long (0));
       Result_Tag := From_Any (Index);
 
       Index :=
-        CORBA.Get_Aggregate_Element
+        CORBA.Internals.Get_Aggregate_Element
         (Item, TC_IDL_Sequence_Octet, CORBA.Unsigned_Long (1));
       Result_Profile_Data := From_Any (Index);
 
@@ -255,94 +255,116 @@ package body IOP.Helper is
 
    function To_Any (Item : in ComponentId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_ComponentId);
+      CORBA.Internals.Set_Type (Result, TC_ComponentId);
       return Result;
    end To_Any;
 
    function To_Any (Item : in Encoding) return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_Encoding);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_Encoding);
+
    begin
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Format));
-      CORBA.Add_Aggregate_Element (Result, CORBA.To_Any (Item.Major_Version));
-      CORBA.Add_Aggregate_Element (Result, CORBA.To_Any (Item.Minor_Version));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Format));
+      CORBA.Internals.Add_Aggregate_Element
+        (Result, CORBA.To_Any (Item.Major_Version));
+      CORBA.Internals.Add_Aggregate_Element
+        (Result, CORBA.To_Any (Item.Minor_Version));
       return Result;
    end To_Any;
 
    function To_Any (Item : in EncodingFormat) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_EncodingFormat);
+      CORBA.Internals.Set_Type (Result, TC_EncodingFormat);
       return Result;
    end To_Any;
 
    function To_Any (Item : in IOR) return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_IOR);
+      Result : CORBA.Any := CORBA.Internals.Get_Empty_Any_Aggregate (TC_IOR);
+
    begin
-      CORBA.Add_Aggregate_Element (Result, CORBA.To_Any (Item.Type_Id));
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Profiles));
+      CORBA.Internals.Add_Aggregate_Element
+        (Result, CORBA.To_Any (Item.Type_Id));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Profiles));
       return Result;
    end To_Any;
 
    function To_Any (Item : in MultipleComponentProfile) return CORBA.Any is
       Result : CORBA.Any
         := To_Any (IDL_Sequence_IOP_TaggedComponent.Sequence (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_MultipleComponentProfile);
+      CORBA.Internals.Set_Type (Result, TC_MultipleComponentProfile);
       return Result;
    end To_Any;
 
    function To_Any (Item : in ProfileId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_ProfileId);
+      CORBA.Internals.Set_Type (Result, TC_ProfileId);
       return Result;
    end To_Any;
 
    function To_Any (Item : in ServiceContext) return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_ServiceContext);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServiceContext);
+
    begin
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Context_Id));
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Context_Data));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Context_Id));
+      CORBA.Internals.Add_Aggregate_Element
+        (Result, To_Any (Item.Context_Data));
       return Result;
    end To_Any;
 
    function To_Any (Item : in ServiceContextList) return CORBA.Any is
       Result : CORBA.Any
         := To_Any (IDL_Sequence_IOP_ServiceContext.Sequence (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_ServiceContextList);
+      CORBA.Internals.Set_Type (Result, TC_ServiceContextList);
       return Result;
    end To_Any;
 
    function To_Any (Item : in ServiceId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_ServiceId);
+      CORBA.Internals.Set_Type (Result, TC_ServiceId);
       return Result;
    end To_Any;
 
    function To_Any (Item : in TaggedComponent) return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_TaggedComponent);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_TaggedComponent);
+
    begin
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Tag));
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Component_Data));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Tag));
+      CORBA.Internals.Add_Aggregate_Element
+        (Result, To_Any (Item.Component_Data));
       return Result;
    end To_Any;
 
    function To_Any (Item : in TaggedComponentSeq) return CORBA.Any is
       Result : CORBA.Any
         := To_Any (IDL_Sequence_IOP_TaggedComponent.Sequence (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_TaggedComponentSeq);
+      CORBA.Internals.Set_Type (Result, TC_TaggedComponentSeq);
       return Result;
    end To_Any;
 
    function To_Any (Item : in TaggedProfile) return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_TaggedProfile);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_TaggedProfile);
+
    begin
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Tag));
-      CORBA.Add_Aggregate_Element (Result, To_Any (Item.Profile_Data));
+      CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Tag));
+      CORBA.Internals.Add_Aggregate_Element
+        (Result, To_Any (Item.Profile_Data));
 
       return Result;
    end To_Any;

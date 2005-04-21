@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -175,82 +175,64 @@ package body PortableInterceptor.Helper is
 
    function From_Any (Item : in CORBA.Any) return AdapterManagerId is
       Result : constant CORBA.String := CORBA.From_Any (Item);
+
    begin
       return AdapterManagerId (Result);
    end From_Any;
 
-   --------------
-   -- From_Any --
-   --------------
-
    function From_Any (Item : in CORBA.Any) return AdapterState is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
+
    begin
       return AdapterState (Result);
    end From_Any;
 
-   --------------
-   -- From_Any --
-   --------------
-
    function From_Any (Item : in CORBA.Any) return ForwardRequest_Members is
       Index          : CORBA.Any;
       Result_Forward : CORBA.Object.Ref;
+
    begin
-      Index := CORBA.Get_Aggregate_Element (Item,
-                                            CORBA.Object.Helper.TC_Object,
-                                            CORBA.Unsigned_Long (0));
+      Index :=
+        CORBA.Internals.Get_Aggregate_Element (Item,
+                                               CORBA.Object.Helper.TC_Object,
+                                               CORBA.Unsigned_Long (0));
       Result_Forward := CORBA.Object.Helper.From_Any (Index);
       return (Forward => Result_Forward);
    end From_Any;
 
-   --------------
-   -- From_Any --
-   --------------
-
    function From_Any (Item : in CORBA.Any) return InvalidSlot_Members is
       pragma Unreferenced (Item);
+
       Result : InvalidSlot_Members;
+
    begin
       return Result;
    end From_Any;
 
-   --------------
-   -- From_Any --
-   --------------
-
    function From_Any (Item : in CORBA.Any) return ORBId is
       Result : constant CORBA.String := CORBA.From_Any (Item);
+
    begin
       return ORBId (Result);
    end From_Any;
 
-   --------------
-   -- From_Any --
-   --------------
-
    function From_Any (Item : in CORBA.Any) return ReplyStatus is
       Result : constant CORBA.Short := CORBA.From_Any (Item);
+
    begin
       return ReplyStatus (Result);
    end From_Any;
 
-   --------------
-   -- From_Any --
-   --------------
-
    function From_Any (Item : in CORBA.Any) return ServerId is
       Result : constant CORBA.String := CORBA.From_Any (Item);
+
    begin
       return ServerId (Result);
    end From_Any;
 
-   --------------
-   -- From_Any --
-   --------------
-
    function From_Any (Item : in CORBA.Any) return SlotId is
       Result : constant CORBA.Unsigned_Long := CORBA.From_Any (Item);
+
    begin
       return SlotId (Result);
    end From_Any;
@@ -309,86 +291,69 @@ package body PortableInterceptor.Helper is
 
    function To_Any (Item : in AdapterManagerId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_AdapterManagerId);
+      CORBA.Internals.Set_Type (Result, TC_AdapterManagerId);
       return Result;
    end To_Any;
-
-   ------------
-   -- To_Any --
-   ------------
 
    function To_Any (Item : in AdapterState) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_AdapterState);
+      CORBA.Internals.Set_Type (Result, TC_AdapterState);
       return Result;
    end To_Any;
 
-   ------------
-   -- To_Any --
-   ------------
-
    function To_Any (Item : in ForwardRequest_Members) return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_ForwardRequest);
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_ForwardRequest);
+
    begin
-      CORBA.Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
          (Result, CORBA.Object.Helper.To_Any (Item.Forward));
       return Result;
    end To_Any;
 
-   ------------
-   -- To_Any --
-   ------------
-
    function To_Any (Item : in InvalidSlot_Members) return CORBA.Any is
       pragma Unreferenced (Item);
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate (TC_InvalidSlot);
+
+      Result : CORBA.Any
+        := CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidSlot);
+
    begin
       return Result;
    end To_Any;
-
-   ------------
-   -- To_Any --
-   ------------
 
    function To_Any (Item : in ORBId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_ORBId);
+      CORBA.Internals.Set_Type (Result, TC_ORBId);
       return Result;
    end To_Any;
-
-   ------------
-   -- To_Any --
-   ------------
 
    function To_Any (Item : in ReplyStatus) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Short (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_ReplyStatus);
+      CORBA.Internals.Set_Type (Result, TC_ReplyStatus);
       return Result;
    end To_Any;
-
-   ------------
-   -- To_Any --
-   ------------
 
    function To_Any (Item : in ServerId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_ServerId);
+      CORBA.Internals.Set_Type (Result, TC_ServerId);
       return Result;
    end To_Any;
 
-   ------------
-   -- To_Any --
-   ------------
-
    function To_Any (Item : in SlotId) return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
+
    begin
-      CORBA.Set_Type (Result, TC_SlotId);
+      CORBA.Internals.Set_Type (Result, TC_SlotId);
       return Result;
    end To_Any;
 
