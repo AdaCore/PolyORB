@@ -496,6 +496,7 @@ AC_OUTPUT([
 	doc/Makefile
 	src/Makefile
 	src/corba/Makefile
+	src/corba/dynamicany/Makefile
 	src/corba/messaging/Makefile
 	src/corba/portableinterceptor/Makefile
 	src/corba/rtcorba/Makefile

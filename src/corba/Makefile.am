@@ -1,4 +1,4 @@
-SUBDIRS = . messaging portableinterceptor rtcorba
+SUBDIRS = . dynamicany messaging portableinterceptor rtcorba
 
 include $(srcdir)/../Makefile.common
 
@@ -63,6 +63,7 @@ ADA_SPECS_WITH_BODY = \
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	corba-current.ads \
+	corba-idl_sequences.ads \
 	corba-local.ads \
 	corba-repository_root.ads \
 	corba-sequences-bounded.ads \

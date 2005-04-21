@@ -103,8 +103,8 @@ do
 
  if [ "x$P" = "xcorba" ]
  then
-   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/messaging -I${includedir}/polyorb/corba/portableinterceptor -I${includedir}/polyorb/corba/rtcorba"
-   polyorb_lib="$polyorb_lib -lpolyorb-corba-messaging -lpolyorb-corba-portableinterceptor -lpolyorb-corba-rtcorba"
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/dynamicany -I${includedir}/polyorb/corba/messaging -I${includedir}/polyorb/corba/portableinterceptor -I${includedir}/polyorb/corba/rtcorba"
+   polyorb_lib="$polyorb_lib -lpolyorb-corba-dynamicany -lpolyorb-corba-messaging -lpolyorb-corba-portableinterceptor -lpolyorb-corba-rtcorba"
    polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-time"
    for S in $services
    do
