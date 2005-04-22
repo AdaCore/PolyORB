@@ -2765,7 +2765,6 @@ package body DynamicAny.DynAny.Impl is
       case Kind is
          when Tk_Struct
            | Tk_Union
-           | Tk_Enum
            | Tk_Sequence
            | Tk_Array
            | Tk_Except
