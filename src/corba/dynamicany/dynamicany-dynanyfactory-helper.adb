@@ -51,10 +51,25 @@ package body DynamicAny.DynAnyFactory.Helper is
    procedure Deferred_Initialization is
    begin
       declare
+         Name : constant CORBA.String
+           := CORBA.To_CORBA_String ("DynAnyFactory");
+         Id   : constant CORBA.String
+           := CORBA.To_CORBA_String
+           ("IDL:omg.org/DynamicAny/DynAnyFactory:1.0");
+
+      begin
+         CORBA.TypeCode.Internals.Add_Parameter
+           (TC_DynAnyFactory, CORBA.To_Any (Name));
+         CORBA.TypeCode.Internals.Add_Parameter
+           (TC_DynAnyFactory, CORBA.To_Any (Id));
+      end;
+
+      declare
          Name : CORBA.String := CORBA.To_CORBA_String ("InconsistentTypeCode");
          Id   : CORBA.String
            := CORBA.To_CORBA_String
            ("IDL:omg.org/DynamicAny/DynAnyFactory/InconsistentTypeCode:1.0");
+
       begin
          CORBA.TypeCode.Internals.Add_Parameter
            (TC_InconsistentTypeCode, CORBA.To_Any (Name));
@@ -161,18 +176,15 @@ begin
       use PolyORB.Initialization;
       use PolyORB.Initialization.String_Lists;
       use PolyORB.Utils.Strings;
+
    begin
       Register_Module
         (Module_Info'
          (Name      => +"DynamicAny.DynAnyFactory.Helper",
           Conflicts => Empty,
-          Depends   =>
-                  Empty
-                  & "exceptions"
-          ,
+          Depends   => +"exceptions",
           Provides  => Empty,
           Implicit  => False,
           Init      => Deferred_Initialization'Access));
    end;
-
 end DynamicAny.DynAnyFactory.Helper;

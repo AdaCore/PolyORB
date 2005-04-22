@@ -11,24 +11,34 @@ ADA_SPECS_WITH_BODY = \
 	dynamicany-dynanyfactory-helper.ads \
 	dynamicany-dynanyfactory-impl.ads \
 	dynamicany-dynanyfactory.ads \
+	dynamicany-dynarray-helper.ads \
 	dynamicany-dynarray-impl.ads \
 	dynamicany-dynarray.ads \
+	dynamicany-dynenum-helper.ads \
 	dynamicany-dynenum-impl.ads \
 	dynamicany-dynenum.ads \
+	dynamicany-dynfixed-helper.ads \
 	dynamicany-dynfixed-impl.ads \
 	dynamicany-dynfixed.ads \
+	dynamicany-dynsequence-helper.ads \
 	dynamicany-dynsequence-impl.ads \
 	dynamicany-dynsequence.ads \
+	dynamicany-dynstruct-helper.ads \
 	dynamicany-dynstruct-impl.ads \
 	dynamicany-dynstruct.ads \
+	dynamicany-dynunion-helper.ads \
 	dynamicany-dynunion-impl.ads \
 	dynamicany-dynunion.ads \
+	dynamicany-dynvalue-helper.ads \
 	dynamicany-dynvalue-impl.ads \
 	dynamicany-dynvalue.ads \
+	dynamicany-dynvaluebox-helper.ads \
 	dynamicany-dynvaluebox-impl.ads \
 	dynamicany-dynvaluebox.ads \
+	dynamicany-dynvaluecommon-helper.ads \
 	dynamicany-dynvaluecommon-impl.ads \
 	dynamicany-dynvaluecommon.ads \
+	dynamicany-helper.ads \
 	dynamicany.ads \
 	polyorb-corba_p-dynamic_any.ads
 

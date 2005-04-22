@@ -36,6 +36,12 @@ with PolyORB.Any;
 
 package DynamicAny.DynAnyFactory.Helper is
 
+   --  DynAnyFactory interface
+
+   TC_DynAnyFactory : CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+     (PolyORB.Any.TypeCode.TC_Object);
+
    function Unchecked_To_Local_Ref
      (The_Ref : in CORBA.Object.Ref'Class)
       return Local_Ref;
@@ -43,6 +49,8 @@ package DynamicAny.DynAnyFactory.Helper is
    function To_Local_Ref
      (The_Ref : in CORBA.Object.Ref'Class)
       return Local_Ref;
+
+   --  InconsistentTypeCode exception
 
    TC_InconsistentTypeCode : CORBA.TypeCode.Object :=
       CORBA.TypeCode.Internals.To_CORBA_Object

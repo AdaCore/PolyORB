@@ -77,9 +77,9 @@ package DynamicAny is
 
    --  AnySeq sequence
 
-   package IDL_SEQUENCE_any is new CORBA.Sequences.Unbounded (CORBA.Any);
+   package IDL_SEQUENCE_Any is new CORBA.Sequences.Unbounded (CORBA.Any);
 
-   type AnySeq is new IDL_SEQUENCE_any.Sequence;
+   type AnySeq is new IDL_SEQUENCE_Any.Sequence;
 
    --  DynAnySeq sequence
 

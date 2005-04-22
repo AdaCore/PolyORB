@@ -38,6 +38,10 @@ package DynamicAny.DynAny.Helper is
 
    --  DynAny interface
 
+   TC_DynAny : CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+     (PolyORB.Any.TypeCode.TC_Object);
+
    function Unchecked_To_Local_Ref
      (The_Ref : in CORBA.Object.Ref'Class)
       return Local_Ref;

@@ -52,6 +52,17 @@ package body DynamicAny.DynAny.Helper is
    procedure Deferred_Initialization is
    begin
       declare
+         Name : constant CORBA.String := CORBA.To_CORBA_String ("DynAny");
+         Id   : constant CORBA.String
+           := CORBA.To_CORBA_String ("IDL:omg.org/DynamicAny/DynAny:1.0");
+
+      begin
+         CORBA.TypeCode.Internals.Add_Parameter
+           (TC_DynAny, CORBA.To_Any (Name));
+         CORBA.TypeCode.Internals.Add_Parameter (TC_DynAny, CORBA.To_Any (Id));
+      end;
+
+      declare
          Name : constant CORBA.String
            := CORBA.To_CORBA_String ("InvalidValue");
          Id   : constant CORBA.String
