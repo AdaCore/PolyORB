@@ -32,13 +32,17 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Smart_Pointers;
+with PolyORB.Types;
 
-with DynamicAny.DynAny;
+with DynamicAny.DynAny.Helper;
+with DynamicAny.DynAny.Impl;
 
 package body DynamicAny.DynEnum.Impl is
 
    use PolyORB.Any;
    use PolyORB.Any.TypeCode;
+   use type PolyORB.Types.Identifier;
+   use type PolyORB.Types.Unsigned_Long;
 
    function Is_Destroyed
      (Self : access DynAny.Impl.Object'Class)
@@ -50,15 +54,22 @@ package body DynamicAny.DynEnum.Impl is
    -------------------
 
    function Get_As_String (Self : access Object) return CORBA.String is
-      Result : CORBA.String;
-
    begin
       if Is_Destroyed (Self) then
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
       end if;
 
-      raise Program_Error;
-      return Result;
+      declare
+         Value : constant PolyORB.Any.Any
+           := DynAny.Impl.Internals.Get_Value (Self);
+         TC    : constant PolyORB.Any.TypeCode.Object := Get_Type (Value);
+         Index : constant PolyORB.Types.Unsigned_Long
+           := From_Any
+           (Get_Aggregate_Element (Value, PolyORB.Any.TC_Unsigned_Long, 0));
+
+      begin
+         return CORBA.String (Member_Name (TC, Index));
+      end;
    end Get_As_String;
 
    ------------------
@@ -71,8 +82,18 @@ package body DynamicAny.DynEnum.Impl is
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
       end if;
 
-      raise Program_Error;
-      return 0;
+      declare
+         Value : constant PolyORB.Any.Any
+           := DynAny.Impl.Internals.Get_Value (Self);
+
+      begin
+         return
+           CORBA.Unsigned_Long
+           (PolyORB.Types.Unsigned_Long'
+            (From_Any
+             (Get_Aggregate_Element
+              (Value, PolyORB.Any.TC_Unsigned_Long, 0))));
+      end;
    end Get_As_ULong;
 
    ---------------
@@ -176,14 +197,29 @@ package body DynamicAny.DynEnum.Impl is
      (Self  : access Object;
       Value : in     CORBA.String)
    is
-      pragma Unreferenced (Value);
-
    begin
       if Is_Destroyed (Self) then
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
       end if;
 
-      raise Program_Error;
+      declare
+         Val        : constant PolyORB.Any.Any
+           := DynAny.Impl.Internals.Get_Value (Self);
+         TC         : constant PolyORB.Any.TypeCode.Object := Get_Type (Val);
+         Enum_Value : PolyORB.Any.Any
+           := Get_Aggregate_Element (Val, PolyORB.Any.TC_Unsigned_Long, 0);
+
+      begin
+         for J in 0 .. Member_Count (TC) - 1 loop
+            if Member_Name (TC, J) = PolyORB.Types.Identifier (Value) then
+               Set_Any_Value (Enum_Value, J);
+               return;
+            end if;
+         end loop;
+      end;
+
+      DynAny.Helper.Raise_InvalidValue
+        ((CORBA.IDL_Exception_Members with null record));
    end Set_As_String;
 
    ------------------
@@ -194,14 +230,27 @@ package body DynamicAny.DynEnum.Impl is
      (Self  : access Object;
       Value : in     CORBA.Unsigned_Long)
    is
-      pragma Unreferenced (Value);
-
    begin
       if Is_Destroyed (Self) then
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
       end if;
 
-      raise Program_Error;
+      declare
+         Val        : constant PolyORB.Any.Any
+           := DynAny.Impl.Internals.Get_Value (Self);
+         TC         : constant PolyORB.Any.TypeCode.Object := Get_Type (Val);
+         Enum_Value : PolyORB.Any.Any
+           := Get_Aggregate_Element (Val, PolyORB.Any.TC_Unsigned_Long, 0);
+
+      begin
+         if PolyORB.Types.Unsigned_Long (Value) < Member_Count (TC) then
+            Set_Any_Value (Enum_Value, PolyORB.Types.Unsigned_Long (Value));
+
+         else
+            DynAny.Helper.Raise_InvalidValue
+              ((CORBA.IDL_Exception_Members with null record));
+         end if;
+      end;
    end Set_As_ULong;
 
 end DynamicAny.DynEnum.Impl;

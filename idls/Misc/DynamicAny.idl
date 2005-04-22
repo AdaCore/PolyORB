@@ -194,12 +194,12 @@ module DynamicAny {
     };
     
     local interface DynEnum : DynAny {
-//PolyORB:NI:        string          get_as_string();
-//PolyORB:NI:        void            set_as_string(in string value) 
-//PolyORB:NI:	  raises(InvalidValue);
-//PolyORB:NI:        unsigned long   get_as_ulong();
-//PolyORB:NI:        void            set_as_ulong( in unsigned long value) 
-//PolyORB:NI:	  raises(InvalidValue);
+        string          get_as_string();
+        void            set_as_string(in string value) 
+	  raises(InvalidValue);
+        unsigned long   get_as_ulong();
+        void            set_as_ulong( in unsigned long value) 
+	  raises(InvalidValue);
     };
     typedef string FieldName;
     struct NameValuePair {
