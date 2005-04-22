@@ -29,7 +29,7 @@ module DynamicAny {
 	  raises(TypeMismatch, InvalidValue);
         any to_any();
 
-//PolyORB:NI:        boolean equal(      in DynAny   dyn_any);
+        boolean equal(      in DynAny   dyn_any);
 
         void destroy();
         DynAny copy();

@@ -257,15 +257,12 @@ package body DynamicAny.DynAny.Impl is
       Dyn_Any : in     Local_Ref'Class)
       return CORBA.Boolean
    is
-      pragma Unreferenced (Dyn_Any);
-
    begin
       if Is_Destroyed (Self) then
          CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
       end if;
 
-      raise Program_Error;
-      return False;
+      return Self.Value = Get_Value (Object_Ptr (Entity_Of (Dyn_Any)));
    end Equal;
 
    --------------
