@@ -824,6 +824,7 @@ package PolyORB.Any is
    --  Gets an element in an any agregate
    --  Return an any made of the typecode Tc and the value read in
    --  the aggregate. The first element has index 0.
+   --  XXX Tc is no longer used, and could be removed
 
    procedure Copy_Any_Value (Dest : Any; Src : Any);
    --  Set the value of Dest from a copy of the value of Src (as
