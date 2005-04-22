@@ -41,7 +41,7 @@ with CORBA.Sequences.Unbounded;
 package CORBA.IDL_Sequences is
 
    --  Implementation Note: this package defines all sequences types
-   --  in the CORBA module. These definitions are separate to avoir
+   --  in the CORBA module. These definitions are separate to avoid
    --  dragging to much code.
 
    --  AnySeq sequence
