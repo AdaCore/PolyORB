@@ -102,7 +102,6 @@ package System.Garlic.Streams is
    for Stream_Element_Access'Read  use Read;
    for Stream_Element_Access'Write use Write;
 
-
    procedure Copy
      (Source : in Params_Stream_Type;
       Target : in out Params_Stream_Type);

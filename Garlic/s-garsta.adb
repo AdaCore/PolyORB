@@ -262,7 +262,6 @@ begin
       Destroy (Options.Self_Location);
    end if;
 
-
    --  (8) The elaboration code of System.Garlic.Startup
    --      re-initializes Options.Boot_Locations. Size of
    --      New_Boot_Location may be to large because some
@@ -407,4 +406,3 @@ exception when others =>
    Heart.Activate_Shutdown;
    raise;
 end System.Garlic.Startup;
-

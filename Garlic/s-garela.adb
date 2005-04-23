@@ -47,6 +47,3 @@ package body System.Garlic.Elaboration is
    end Initialize;
 
 end System.Garlic.Elaboration;
-
-
-

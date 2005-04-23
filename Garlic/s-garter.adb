@@ -385,7 +385,6 @@ package body System.Garlic.Termination is
          Raise_Exception (Constraint_Error'Identity, "Invalid control");
       end if;
 
-
       pragma Debug (D ("Request from" & Partition'Img &
                        " about " & Control'Img &
                        " stamp" & Stamp'Img));

@@ -297,8 +297,7 @@ package body System.Garlic.Protocols.Replay is
    -- Shutdown --
    --------------
 
-   procedure Shutdown (Protocol : access Replay_Protocol)
-   is
+   procedure Shutdown (Protocol : access Replay_Protocol) is
       pragma Unreferenced (Protocol);
    begin
       if Execution_Mode = Replay_Mode
@@ -310,4 +309,3 @@ package body System.Garlic.Protocols.Replay is
    end Shutdown;
 
 end System.Garlic.Protocols.Replay;
-

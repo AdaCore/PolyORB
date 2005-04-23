@@ -67,5 +67,3 @@ package System.Garlic.Trace is
    for Trace_Type'Write use Write;
 
 end System.Garlic.Trace;
-
-

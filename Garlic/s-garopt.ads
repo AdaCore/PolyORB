@@ -117,4 +117,3 @@ package System.Garlic.Options is
    procedure Set_Mirror_Expected (Default : in Boolean);
 
 end System.Garlic.Options;
-

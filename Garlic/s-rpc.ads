@@ -154,4 +154,3 @@ private
    --  Handle abortion from Do_RPC
 
 end System.RPC;
-

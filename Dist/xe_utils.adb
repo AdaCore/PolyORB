@@ -84,7 +84,6 @@ package body XE_Utils is
       S2 : String := No_Str;
       S3 : String := No_Str);
 
-
    type Sigint_Handler is access procedure;
 
    procedure Install_Int_Handler (Handler : Sigint_Handler);

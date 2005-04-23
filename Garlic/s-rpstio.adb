@@ -127,7 +127,6 @@ package body System.RPC.Stream_IO is
                Err);
       end if;
 
-
       pragma Debug (D ("Close - Unlock stream" & Stream.PID'Img));
       Stream.Open := False;
       System.Garlic.Soft_Links.Leave (Str.Available);

@@ -157,7 +157,3 @@ package body System.Garlic.Trace is
    end Write;
 
 end System.Garlic.Trace;
-
-
-
-

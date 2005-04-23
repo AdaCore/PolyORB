@@ -50,7 +50,6 @@ package body System.Garlic.Physical_Location is
      renames Print_Debug_Info;
    pragma Unreferenced (D);
 
-
    function Lookup_Protocol (P : String) return Protocol_Access;
    --  Return a protocol or null if no protocol with this name was found
 

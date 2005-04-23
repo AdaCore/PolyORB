@@ -266,7 +266,6 @@ package System.Garlic.Soft_Links is
 
    function Abort_Handler return Abort_Handler_Type'Class;
 
-
    type Float_Parameter_Procedure is access procedure (F : in Float);
 
 --   procedure Register_Set_Stamp (P : in Float_Parameter_Procedure);
