@@ -50,7 +50,7 @@ package body XE_IO is
    function Format_Pathname
      (Path  : File_Name_Type;
       Style : Path_Style)
-     return  File_Name_Type;
+      return  File_Name_Type;
    --  See GNAT.Directory_Operations.Format_Pathname
 
    ----------------
@@ -187,7 +187,7 @@ package body XE_IO is
 
       Get_Name_String (Fname);
       Name_Buffer (Name_Len + 1) := ASCII.NUL;
-      File := Create_File (Name_Buffer'Address, Text);
+      File := Create_File (Name_Buffer'Address, Binary);
 
       if File = Invalid_FD then
          Message ("cannot create file", Fname);
