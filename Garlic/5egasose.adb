@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -37,7 +37,6 @@ with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
 with System.Garlic.Thin;    use System.Garlic.Thin;
-
 
 package body System.Garlic.Sockets.Selectors is
 
@@ -101,8 +100,7 @@ package body System.Garlic.Sockets.Selectors is
    -- Empty --
    -----------
 
-   function Empty
-     (Set : Socket_Set_Type) return Boolean is
+   function Empty (Set : Socket_Set_Type) return Boolean is
    begin
       return Set = null or else Set.all = 0;
    end Empty;
@@ -123,8 +121,7 @@ package body System.Garlic.Sockets.Selectors is
    -- Create_Selector --
    ---------------------
 
-   function Create_Selector return Selector_Access
-   is
+   function Create_Selector return Selector_Access is
       Selector : Selector_Access := new Selector_Type;
       Sockets  : aliased Two_Int;
       Result   : C.int;
@@ -248,8 +245,7 @@ package body System.Garlic.Sockets.Selectors is
    -- Select_Abort --
    ------------------
 
-   procedure Abort_Select (Selector : access Selector_Type)
-   is
+   procedure Abort_Select (Selector : access Selector_Type) is
       Dummy : Ada.Streams.Stream_Element_Array (0 .. 0) := (others => 0);
       Last  : Ada.Streams.Stream_Element_Offset;
 

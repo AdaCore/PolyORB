@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -71,7 +71,6 @@ package body System.Garlic.Sockets is
      renames Port_To_Network;
    --  Symetric operation
 
-
    subtype Inet_Addr_Comp_Type is Natural range 0 .. 255;
    type Inet_Addr_Type is array (Natural range <>) of Inet_Addr_Comp_Type;
 
@@ -104,7 +103,6 @@ package body System.Garlic.Sockets is
    --  int connect (int sockfd, const struct sockaddr * serv_addr,
    --  socklen_t addrlen);
    --  Raise Socket_Error on error.
-
 
    Default_Buffer_Size : constant := 16384;
 
@@ -161,7 +159,6 @@ package body System.Garlic.Sockets is
    function To_Host_Addr (Addr : String) return Inet_Addr_V4_Type;
    --  The IP address corresponding to a dotted form
 
-
    -----------
    -- Image --
    -----------
@@ -195,8 +192,7 @@ package body System.Garlic.Sockets is
    -- Host_Name --
    ---------------
 
-   function Host_Name return String
-   is
+   function Host_Name return String is
       Name : aliased char_array (1 .. 64);
       Res  : constant int := C_Gethostname (Name'Address, Name'Length);
    begin
@@ -210,9 +206,7 @@ package body System.Garlic.Sockets is
    -- Official_Name --
    -------------------
 
-   function Official_Name (Image : String)
-     return String
-   is
+   function Official_Name (Image : String) return String is
       Hostent : Host_Entry := To_Host_Entry (Image);
    begin
       if Hostent.Length = 0 then
@@ -227,10 +221,7 @@ package body System.Garlic.Sockets is
    -- New_Socket --
    ----------------
 
-   function New_Socket
-     (Mode : Mode_Type := SOCK_STREAM)
-     return Socket_Type
-   is
+   function New_Socket (Mode : Mode_Type := SOCK_STREAM) return Socket_Type is
       Result : C.int;
 
    begin
@@ -245,10 +236,7 @@ package body System.Garlic.Sockets is
    -- Accept_Socket --
    -------------------
 
-   function Accept_Socket
-     (Socket  : Socket_Type)
-     return Socket_Type
-   is
+   function Accept_Socket (Socket  : Socket_Type) return Socket_Type is
       Res : C.int;
       Sin : aliased Sockaddr_In;
       Len : aliased C.int := Sin'Size / 8;
@@ -266,9 +254,7 @@ package body System.Garlic.Sockets is
    -- Close_Socket --
    ------------------
 
-   procedure Close_Socket
-     (Socket : in Socket_Type)
-   is
+   procedure Close_Socket (Socket : in Socket_Type) is
       Res : C.int;
 
    begin
@@ -281,7 +267,7 @@ package body System.Garlic.Sockets is
 
    function Get_Socket_Name
      (Socket : Socket_Type)
-     return Sock_Addr_Type'Class
+      return Sock_Addr_Type'Class
    is
       Sin  : aliased Sockaddr_In;
       Len  : aliased C.int := Sin'Size / 8;
@@ -385,8 +371,9 @@ package body System.Garlic.Sockets is
    -- Port_To_Network --
    ---------------------
 
-   function Port_To_Network (Port : C.unsigned_short)
-     return C.unsigned_short
+   function Port_To_Network
+     (Port : C.unsigned_short)
+      return C.unsigned_short
    is
       use type C.unsigned_short;
    begin
@@ -412,7 +399,7 @@ package body System.Garlic.Sockets is
    function Image
      (Val : Inet_Addr_Type;
       Hex : Boolean := False)
-     return String
+      return String
    is
       --  A Host_Addr_Comp_Type image has at most a length of 4
 
@@ -512,9 +499,7 @@ package body System.Garlic.Sockets is
    -- Name_To_Host_Entry --
    ------------------------
 
-   function Name_To_Host_Entry (Name : String)
-     return Host_Entry
-   is
+   function Name_To_Host_Entry (Name : String) return Host_Entry is
       RA : Hostent_Access;
       HN : char_array := To_C (Name);
    begin
@@ -536,9 +521,7 @@ package body System.Garlic.Sockets is
    -- Addr_To_Host_Entry --
    ------------------------
 
-   function Addr_To_Host_Entry (Addr : Inet_Addr_V4_Type)
-     return Host_Entry
-   is
+   function Addr_To_Host_Entry (Addr : Inet_Addr_V4_Type) return Host_Entry is
       Add : aliased In_Addr := To_In_Addr (Addr);
       Res : Hostent_Access;
    begin
@@ -562,9 +545,7 @@ package body System.Garlic.Sockets is
    -- To_Host_Entry --
    -------------------
 
-   function To_Host_Entry (Image : String)
-     return Host_Entry
-   is
+   function To_Host_Entry (Image : String) return Host_Entry is
    begin
       if Is_IPv4_Address (Image) then
          declare
@@ -583,9 +564,7 @@ package body System.Garlic.Sockets is
    -- Is_IPv4_Address --
    ---------------------
 
-   function Is_IPv4_Address (Image : String)
-     return Boolean
-   is
+   function Is_IPv4_Address (Image : String) return Boolean is
    begin
       for Index in Image'Range loop
          declare
@@ -605,9 +584,7 @@ package body System.Garlic.Sockets is
    -- Is_IPv6_Address --
    ---------------------
 
-   function Is_IPv6_Address (Image : String)
-     return Boolean
-   is
+   function Is_IPv6_Address (Image : String) return Boolean is
    begin
       return False;
    end Is_IPv6_Address;
@@ -616,9 +593,7 @@ package body System.Garlic.Sockets is
    -- Parse_Entry --
    -----------------
 
-   function Parse_Entry (Host : Hostent)
-     return Host_Entry
-   is
+   function Parse_Entry (Host : Hostent) return Host_Entry is
       C_Addr : constant In_Addr_Access_Array
         := In_Addr_Access_Pointers.Value (Host.H_Addr_List);
 
@@ -691,8 +666,7 @@ package body System.Garlic.Sockets is
    -- To_Host_Addr --
    ------------------
 
-   function To_Host_Addr (Addr : String) return Inet_Addr_V4_Type
-   is
+   function To_Host_Addr (Addr : String) return Inet_Addr_V4_Type is
       function Convert is
          new Ada.Unchecked_Conversion
             (Source => Interfaces.Unsigned_32,
@@ -709,8 +683,7 @@ package body System.Garlic.Sockets is
    -- Value --
    -----------
 
-   function Value (Image : String) return Inet_Addr_Type
-   is
+   function Value (Image : String) return Inet_Addr_Type is
       function Convert is
          new Ada.Unchecked_Conversion (Source => Interfaces.Unsigned_32,
                                        Target => In_Addr);
