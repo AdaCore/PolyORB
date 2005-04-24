@@ -31,12 +31,10 @@ package body AWS.Server.Servants is
      renames L.Output;
    --  the polyorb logging facility
 
-
    procedure Request_Handler
      (PolyORB_Servant : access HTTP'Class;
       PolyORB_Request : in PolyORB.Requests.Request_Access);
    --  handles the requests made to the servants.  Replaces protocol_handler
-
 
    ---------------------
    -- Request_Handler --
@@ -65,7 +63,6 @@ package body AWS.Server.Servants is
       procedure Integrate_Context;
 
       procedure Integrate_Data;
-
 
       ---------------------
       -- Extract_Context --
@@ -391,7 +388,6 @@ package body AWS.Server.Servants is
       end if;
 
    end Request_Handler;
-
 
    ---------------------
    -- Execute_Servant --

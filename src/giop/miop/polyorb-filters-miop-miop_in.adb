@@ -295,7 +295,6 @@ package body PolyORB.Filters.MIOP.MIOP_In is
             end case;
          end;
 
-
       elsif False
         or else S in Connect_Indication
         or else S in Connect_Confirmation

@@ -14,7 +14,6 @@ pragma Warnings (Off, CORBA.Repository_Root.StringDef.Skel);
 
 package body CORBA.Repository_Root.StringDef.Impl is
 
-
    ----------------------
    --  Procedure init  --
    ----------------------
@@ -41,7 +40,6 @@ package body CORBA.Repository_Root.StringDef.Impl is
       return CORBA.ORB.Create_String_Tc (Self.Bound);
    end get_type;
 
-
    function get_bound
      (Self : access Object)
      return CORBA.Unsigned_Long
@@ -49,7 +47,6 @@ package body CORBA.Repository_Root.StringDef.Impl is
    begin
       return Self.Bound;
    end get_bound;
-
 
    procedure set_bound
      (Self : access Object;

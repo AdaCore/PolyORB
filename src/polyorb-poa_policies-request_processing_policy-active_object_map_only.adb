@@ -67,7 +67,6 @@ is
 
       use Ada.Tags;
 
-
       use PolyORB.POA_Policies.Servant_Retention_Policy;
       use PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 

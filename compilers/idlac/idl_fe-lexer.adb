@@ -642,7 +642,6 @@ package body Idl_Fe.Lexer is
       Tok := T_Error;
    end Is_Idl_Keyword;
 
-
    --------------------------------------
    -- Scanners for chars, identifiers, --
    --  numerics, string literals, and  --
@@ -820,7 +819,6 @@ package body Idl_Fe.Lexer is
       end if;
       return Result;
    end Scan_Char;
-
 
    -----------------
    -- Scan_String --

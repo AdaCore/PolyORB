@@ -538,7 +538,6 @@ package body CIAO.Generator.Proxy is
                DI (Convert_Package.Unit_Body);
             end if;
 
-
             Append (Convert_Package.Unit_Body, "begin");
             II (Convert_Package.Unit_Body);
             if Unchecked_Conversion then

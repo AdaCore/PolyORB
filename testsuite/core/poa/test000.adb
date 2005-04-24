@@ -398,7 +398,6 @@ procedure Test000 is
 
       use Test_Servant;
 
-
       S1  : My_Servant_Access;
       Root_POA : Obj_Adapter_Access;
 
@@ -411,7 +410,6 @@ procedure Test000 is
       S1 := new My_Servant;
       S1.Nb    := 1;
       S1.Name  := To_PolyORB_String ("Servant1");
-
 
       begin
          Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;

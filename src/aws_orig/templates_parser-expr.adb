@@ -286,7 +286,6 @@ package body Expr is
             return new Node'(Var, Build (No_Quote (L_Tok)));
          end if;
 
-
       else
          if Index > Expression'Last then
             --  This is the latest token

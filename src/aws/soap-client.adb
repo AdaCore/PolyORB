@@ -54,7 +54,6 @@ package body SOAP.Client is
      renames L.Output;
    --  the polyorb logging facility
 
-
 --   use Ada.Strings.Unbounded;
 
    function Handle_Request
@@ -133,8 +132,6 @@ package body SOAP.Client is
       end;
 
    end Handle_Request;
-
-
 
    ----------
    -- Call --

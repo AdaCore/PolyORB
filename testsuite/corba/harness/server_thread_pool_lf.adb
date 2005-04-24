@@ -49,7 +49,6 @@ with PolyORB.ORB_Controller.Leader_Followers;
 pragma Warnings (Off, PolyORB.ORB_Controller.Leader_Followers);
 pragma Elaborate_All (PolyORB.ORB_Controller.Leader_Followers);
 
-
 procedure Server_Thread_Pool_LF is
 begin
    Server_Common.Launch_Server;

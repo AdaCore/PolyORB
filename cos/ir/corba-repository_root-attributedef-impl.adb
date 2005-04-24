@@ -14,7 +14,6 @@ pragma Warnings (Off, CORBA.Repository_Root.AttributeDef.Skel);
 
 package body CORBA.Repository_Root.AttributeDef.Impl is
 
-
    ----------------------
    --  Procedure init  --
    ----------------------
@@ -39,7 +38,6 @@ package body CORBA.Repository_Root.AttributeDef.Impl is
       Self.Mode := Mode;
    end Init;
 
-
    function get_type
      (Self : access Object)
      return CORBA.TypeCode.Object
@@ -55,7 +53,6 @@ package body CORBA.Repository_Root.AttributeDef.Impl is
           (Obj)));
    end get_type;
 
-
    function get_type_def
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
@@ -64,14 +61,12 @@ package body CORBA.Repository_Root.AttributeDef.Impl is
       return Self.Type_Def;
    end get_type_def;
 
-
    procedure set_type_def
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
       Self.Type_Def := To;
    end set_type_def;
-
 
    function get_mode
      (Self : access Object)
@@ -81,14 +76,12 @@ package body CORBA.Repository_Root.AttributeDef.Impl is
       return Self.Mode;
    end get_mode;
 
-
    procedure set_mode
      (Self : access Object;
       To : in CORBA.Repository_Root.AttributeMode) is
    begin
       Self.Mode := To;
    end set_mode;
-
 
    ----------------
    --  Describe  --

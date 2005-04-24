@@ -80,7 +80,6 @@ pragma Elaborate_All
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 
-
 with PolyORB.Utils.Report;
 
 procedure RTCurrent is

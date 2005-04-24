@@ -18,7 +18,6 @@ pragma Warnings (Off, CORBA.Repository_Root.ArrayDef.Skel);
 
 package body CORBA.Repository_Root.ArrayDef.Impl is
 
-
    ----------------------
    --  Procedure init  --
    ----------------------
@@ -36,7 +35,6 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
       Self.Element_Type_Def := Element_Type_Def;
    end Init;
 
-
    ----------------
    --  get_type  --
    ----------------
@@ -49,7 +47,6 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
         (Self.Length, get_element_type (Self));
    end get_type;
 
-
    function get_length
      (Self : access Object)
      return CORBA.Unsigned_Long
@@ -58,14 +55,12 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
       return Self.Length;
    end get_length;
 
-
    procedure set_length
      (Self : access Object;
       To : in CORBA.Unsigned_Long) is
    begin
       Self.Length := To;
    end set_length;
-
 
    function get_element_type
      (Self : access Object)
@@ -80,7 +75,6 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
          (IRObject.Impl.Object_Ptr
           (Obj)));
    end get_element_type;
-
 
    function get_element_type_def
      (Self : access Object)

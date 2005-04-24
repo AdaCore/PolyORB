@@ -20,8 +20,6 @@ PACKAGE BODY REPORT IS
      NO_NAME : CONSTANT STRING (1..7) := "NO_NAME";
      TEST_NAME_LEN : INTEGER RANGE 0..MAX_NAME_LEN := 0;
 
-
-
      ACVC_VERSION : CONSTANT STRING := "2.1";  
                                        -- VERSION OF ACVC BEING RUN (X.XX).
 

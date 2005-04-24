@@ -35,7 +35,6 @@ package body CORBA.Repository_Root.SequenceDef.Impl is
       Self.Element_Type_Def := Element_Type_Def;
    end Init;
 
-
    ----------------
    --  get_type  --
    ----------------
@@ -48,7 +47,6 @@ package body CORBA.Repository_Root.SequenceDef.Impl is
         (Self.Bound, get_element_type (Self));
    end get_type;
 
-
    function get_bound
      (Self : access Object)
      return CORBA.Unsigned_Long
@@ -57,14 +55,12 @@ package body CORBA.Repository_Root.SequenceDef.Impl is
       return Self.Bound;
    end get_bound;
 
-
    procedure set_bound
      (Self : access Object;
       To : in CORBA.Unsigned_Long) is
    begin
       Self.Bound := To;
    end set_bound;
-
 
    function get_element_type
      (Self : access Object)
@@ -80,7 +76,6 @@ package body CORBA.Repository_Root.SequenceDef.Impl is
           (Obj)));
    end get_element_type;
 
-
    function get_element_type_def
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
@@ -88,7 +83,6 @@ package body CORBA.Repository_Root.SequenceDef.Impl is
    begin
       return Self.Element_Type_Def;
    end get_element_type_def;
-
 
    procedure set_element_type_def
      (Self : access Object;

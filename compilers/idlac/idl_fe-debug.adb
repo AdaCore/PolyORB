@@ -100,7 +100,3 @@ begin
    end;
 end Idl_Fe.Debug;
 
-
-
-
-

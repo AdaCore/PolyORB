@@ -76,7 +76,6 @@ package body PolyORB.Filters.Fragmenter is
       Fragmenter := Res;
    end Create;
 
-
    --  copy data between buffer
    --  do not change CDR_Position of destination buffer
    procedure Copy

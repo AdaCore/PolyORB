@@ -276,7 +276,6 @@ package MOMA.Types is
    --  Only notify messages, send the message when received for Handle,
    --  or None.
 
-
    --  Message_Pool type and accessors.
 
    type Message_Pool is private;

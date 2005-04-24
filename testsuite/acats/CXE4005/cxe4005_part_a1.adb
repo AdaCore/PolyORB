@@ -40,7 +40,6 @@ package body CXE4005_Part_A1 is
 
   ----------
 
-
   function Get_RACWT (Which_Type : Type_Selection) 
        return CXE4005_Part_A1.RACWT is
   begin

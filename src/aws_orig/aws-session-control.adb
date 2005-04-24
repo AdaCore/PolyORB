@@ -41,7 +41,6 @@ package body AWS.Session.Control is
       procedure Free is
          new Ada.Unchecked_Deallocation (Cleaner, Cleaner_Access);
 
-
       Need_Release : Boolean;
 
    begin

@@ -288,5 +288,4 @@ package body CosNotifyComm.PullSupplier.Impl is
       return Supplier;
    end Create;
 
-
 end CosNotifyComm.PullSupplier.Impl;

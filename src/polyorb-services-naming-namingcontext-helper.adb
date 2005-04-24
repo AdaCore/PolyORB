@@ -179,7 +179,6 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
       return Result;
    end From_Any;
 
-
    ---------------------------------
    -- Raise_AlreadyBound_From_Any --
    ---------------------------------

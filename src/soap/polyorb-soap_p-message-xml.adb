@@ -335,7 +335,6 @@ package body PolyORB.SOAP_P.Message.XML is
              Faultstring => Ada.Exceptions.Exception_Message (E)));
    end Load_Response;
 
-
    procedure Load_Response
      (Source : access Input_Sources.Input_Source'Class;
       Args   : in out PolyORB.Any.NVList.Ref)
@@ -362,7 +361,6 @@ package body PolyORB.SOAP_P.Message.XML is
 
       Free (Doc);
    end Load_Response;
-
 
    -----------------
    -- Parse_Array --

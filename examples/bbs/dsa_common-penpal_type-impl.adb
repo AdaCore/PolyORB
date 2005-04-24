@@ -40,14 +40,12 @@ pragma Warnings (Off, DSA_Common.Penpal_Type.Skel);
 
 package body DSA_Common.Penpal_Type.Impl is
 
-
    procedure Initialize
      (Self : access Object;
       Name : in CORBA.String) is
    begin
       Self.Name := Name;
    end Initialize;
-
 
    function Name_Of
      (Self : access Object)
@@ -56,7 +54,6 @@ package body DSA_Common.Penpal_Type.Impl is
    begin
       return Self.Name;
    end Name_Of;
-
 
    procedure New_Message
      (Self : access Object;

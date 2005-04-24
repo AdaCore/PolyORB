@@ -335,7 +335,6 @@ package body Idl_Fe.Display_Tree is
                        N_Indent + Offset,
                        Full);
 
-
          when K_Initializer =>
             Put_Line ("initializer " & Name (N));
             if Param_Decls (N) /= Nil_List then
@@ -494,7 +493,6 @@ package body Idl_Fe.Display_Tree is
             Disp_List (Decl (N), N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (M_Type (N), N_Indent + Offset, Full);
-
 
          when K_Declarator =>
             Put_Line ("declarator " & Name (N));

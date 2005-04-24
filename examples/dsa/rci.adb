@@ -35,7 +35,6 @@ with Ada.Text_IO; use Ada.Text_IO;
 with System.Address_Image;
 with Ada.Real_Time; use Ada.Real_Time;
 
-
 package body RCI is
 
    type String_Ptr is access all String;

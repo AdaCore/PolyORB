@@ -91,7 +91,6 @@ procedure Dynclient is
 
    procedure Set_The_Attribute (To   : in CORBA.Short);
 
-
    procedure Set_The_Attribute (To   : in CORBA.Short)
    is
       Operation_Name : CORBA.Identifier

@@ -23,7 +23,6 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    procedure Destroy_Item  (Item : in Key_Type);
    procedure Destroy (Item : in Key_Type) renames Destroy_Item;
 
-
    type Link_List_Type is array (Positive range <>) of Link_Type;
 
    Max_Free_List_Size : Natural := 0;
@@ -136,7 +135,6 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       return Ptr;
    end Search_Max;
    pragma Inline (Search_Max);
-
 
 --  / CONSTRUCTORS:
 
@@ -484,7 +482,6 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
             end;
       end case;
    end Balance_Right;
-
 
    procedure Remove (Table : in out Table_Type; Key : in Key_Type) is
       Found : Boolean;
@@ -941,7 +938,6 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
       end loop;
    end Search_Greater;
    pragma Inline (Search_Greater);
-
 
    procedure Get_Less_Item (Table : in Table_Type;
                             Key : in out Key_Type;
@@ -1504,7 +1500,6 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
          return Right < Left;
       end ">";
 
-
       function ">=" (Left, Right : in Table_Type) return Boolean is
       begin --  ">="
          return Right <= Left;
@@ -1741,6 +1736,5 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
    end Destroy_Item;
    pragma Inline (Assign_Item);
    pragma Inline (Destroy_Item);
-
 
 end Table_Of_Static_Keys_And_Dynamic_Values_G;

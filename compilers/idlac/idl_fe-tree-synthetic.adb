@@ -264,7 +264,6 @@ package body Idl_Fe.Tree.Synthetic is
       return No_Node;
    end Primary_Parent;
 
-
    ---------------------------------------
    --  Supports_Non_Abstract_Interface  --
    ---------------------------------------

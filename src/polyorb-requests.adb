@@ -533,7 +533,6 @@ package body PolyORB.Requests is
                                  --  by their names, since we then do not
                                  --  consider the names.
 
-
                               elsif Identification_By_Name
                                 and then Name_Exists
                                 (Value (Dst_It).Name, From => Src_It)
@@ -550,7 +549,6 @@ package body PolyORB.Requests is
                                  --  position any more. Thus
                                  --  identification by name has the
                                  --  priority.
-
 
                               else
                                  Identification_By_Name := False;

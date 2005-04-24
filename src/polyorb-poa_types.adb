@@ -161,7 +161,6 @@ package body PolyORB.POA_Types is
    -- Get_ULong --
    ---------------
 
-
    Hex_Val : constant array (Stream_Element) of Types.Unsigned_Long :=
      (Character'Pos ('0') => 0,
       Character'Pos ('1') => 1,

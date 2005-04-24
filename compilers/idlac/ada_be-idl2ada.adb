@@ -1621,7 +1621,6 @@ package body Ada_Be.Idl2Ada is
               (CU, "Value_Ref'Class", Node);
             PL (CU, ";");
 
-
          when K_Operation =>
 
             if not Is_Implicit_Inherited (Node) then

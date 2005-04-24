@@ -3203,7 +3203,6 @@ package body Templates_Parser is
                return Image (A.Mat_Value.M.Max);
             end Mat_Max_Column;
 
-
          begin
             for K in Translations'Range loop
                if Var.Name = Translations (K).Variable then

@@ -96,7 +96,6 @@ package CORBA.Repository_Root.Contained.Impl is
       new_name : in CORBA.Identifier;
       new_version : in CORBA.Repository_Root.VersionSpec);
 
-
    ------------------------------------
    -- A useful sequence of contained --
    ------------------------------------
@@ -157,18 +156,4 @@ private
      end record;
 
 end CORBA.Repository_Root.Contained.Impl;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

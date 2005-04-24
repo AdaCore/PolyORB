@@ -129,7 +129,6 @@ package body PolyORB.Transport.Connected is
                (TE => Transport_Endpoint_Access (TE)));
          end if;
 
-
       elsif Msg in Data_Indication then
          pragma Debug (O ("Data received"));
 

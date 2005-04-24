@@ -208,7 +208,6 @@ package body Idl_Fe.Types is
       Real_Free (C);
    end Free;
 
-
    ---------------------
    -- A list of nodes --
    ---------------------
@@ -761,7 +760,6 @@ package body Idl_Fe.Types is
    -------------------------
    -- Add_Int_Val_Forward --
    -------------------------
-
 
    procedure Add_Int_Val_Forward
      (Node : in Node_Id)
@@ -1523,7 +1521,6 @@ package body Idl_Fe.Types is
         Table (Index).Is_Inheritable := Is_Inheritable;
       pragma Debug (O2 ("Add_Definition_To_Storage : end"));
    end Add_Definition_To_Storage;
-
 
    -----------------------------------------
    -- Find_Imported_Identifier_Definition --

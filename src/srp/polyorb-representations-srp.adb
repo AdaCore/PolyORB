@@ -293,7 +293,6 @@ package body PolyORB.Representations.SRP is
       return Result;
    end Encode_URL;
 
-
    ----------------
    -- Encode_URL --
    ----------------
@@ -351,7 +350,6 @@ package body PolyORB.Representations.SRP is
    function To_Unsigned_Short is
       new Ada.Unchecked_Conversion
      (PolyORB.Types.Short, PolyORB.Types.Unsigned_Short);
-
 
    ----------------
    -- Unmarshall --
@@ -919,7 +917,6 @@ package body PolyORB.Representations.SRP is
       Marshall (Buffer, " ");
       Marshall (Buffer, Stream_Element_Array (Info_SRP.Oid.all));
 
-
       if Current_Arg /= null then
          Marshall (Buffer, "?");
       end if;
@@ -1450,7 +1447,6 @@ package body PolyORB.Representations.SRP is
          when Tk_Short =>
             pragma Debug (O ("Marshall_From_Any : dealing with a short"));
             Marshall (Buffer, PolyORB.Types.Short'(From_Any (Data)));
-
 
          when Tk_Long =>
             pragma Debug (O ("Marshall_From_Any : dealing with a long"));
@@ -2187,7 +2183,6 @@ package body PolyORB.Representations.SRP is
             --   end;
             raise Program_Error;
 
-
          when Tk_Value =>
 
             --  declare
@@ -2374,7 +2369,6 @@ package body PolyORB.Representations.SRP is
 
       return Result;
    end Unmarshall;
-
 
    -----------------------
    -- Unmarshall_To_Any --

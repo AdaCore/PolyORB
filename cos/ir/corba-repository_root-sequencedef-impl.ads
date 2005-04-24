@@ -21,7 +21,6 @@ package CORBA.Repository_Root.SequenceDef.Impl is
                    Bound : CORBA.Unsigned_Long;
                    Element_Type_Def : CORBA.Repository_Root.IDLType.Ref);
 
-
    --  overload the get_type from IDLType
    function get_type
      (Self : access Object)

@@ -57,7 +57,6 @@ package body PolyORB.SOAP_P.Message.Response.Error is
       End_Faultstring);
    pragma Warnings (On);
 
-
    function Fault_Code (Name, Subname : in String) return Faultcode;
    --  Returns the Faultcode for Name and Subname. If Subname is empty it
    --  returns Name otherwise it returns Name & '.' & Subname.

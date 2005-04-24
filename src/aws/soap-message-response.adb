@@ -34,7 +34,6 @@
 
 package body SOAP.Message.Response is
 
-
    ----------
    -- From --
    ----------

@@ -14,7 +14,6 @@ pragma Warnings (Off, CORBA.Repository_Root.ConstantDef.Skel);
 
 package body CORBA.Repository_Root.ConstantDef.Impl is
 
-
    -----------------
    --  To_Object  --
    -----------------
@@ -79,7 +78,6 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
           (Obj)));
    end get_type;
 
-
    function get_type_def
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
@@ -88,14 +86,12 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
       return Self.Type_Def;
    end get_type_def;
 
-
    procedure set_type_def
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
       Self.Type_Def := To;
    end set_type_def;
-
 
    function get_value
      (Self : access Object)
@@ -104,7 +100,6 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
    begin
       return Self.Value;
    end get_value;
-
 
    procedure set_value
      (Self : access Object;
@@ -141,6 +136,5 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
                  Value => CORBA.Repository_Root.Helper.To_Any (Desc));
       return Result;
    end describe;
-
 
 end CORBA.Repository_Root.ConstantDef.Impl;

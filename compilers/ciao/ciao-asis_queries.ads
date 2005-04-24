@@ -61,7 +61,6 @@ package CIAO.ASIS_Queries is
    --       A_Defining_Name
    --
 
-
    function Corresponding_Entity_Name_Declaration
      (Reference : Asis.Expression)
      return Asis.Declaration;

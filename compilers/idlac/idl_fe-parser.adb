@@ -258,7 +258,6 @@ package body Idl_Fe.Parser is
       Current_Index := Current_Index + 1;
    end Next_Token;
 
-
    -------------------------
    -- View_Previous_Token --
    -------------------------
@@ -5405,7 +5404,6 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Struct_Type;
 
-
    -------------------------
    --  Parse_Member_List  --
    -------------------------
@@ -7595,7 +7593,6 @@ package body Idl_Fe.Parser is
       return Result;
    end Interface_Is_Importable;
 
-
    ----------------------------
    -- Parse_Attr_Raises_Expr --
    ----------------------------
@@ -7843,7 +7840,6 @@ package body Idl_Fe.Parser is
 
       pragma Debug (O2 ("Parse_Pragma: leave"));
    end Parse_Pragma;
-
 
    ---------------------------
    --  Parsing of literals  --
@@ -8951,7 +8947,6 @@ package body Idl_Fe.Parser is
          return;
       end if;
    end Check_Context_String;
-
 
    -------------------------------
    -- Evaluation of expressions --

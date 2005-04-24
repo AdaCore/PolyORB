@@ -39,7 +39,6 @@ package body CORBA.Repository_Root.PrimitiveDef.Impl is
       return Self.IDL_Type;
    end get_type;
 
-
    function get_kind
      (Self : access Object)
      return CORBA.Repository_Root.PrimitiveKind

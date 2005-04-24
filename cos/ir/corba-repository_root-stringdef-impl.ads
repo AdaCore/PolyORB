@@ -6,7 +6,6 @@
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
 
-
 package CORBA.Repository_Root.StringDef.Impl is
 
    type Object is

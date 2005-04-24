@@ -49,7 +49,6 @@ with PolyORB.ORB_Controller.Half_Sync_Half_Async;
 pragma Warnings (Off, PolyORB.ORB_Controller.Half_Sync_Half_Async);
 pragma Elaborate_All (PolyORB.ORB_Controller.Half_Sync_Half_Async);
 
-
 procedure Server_Thread_Pool_HAHS is
 begin
    Server_Common.Launch_Server;

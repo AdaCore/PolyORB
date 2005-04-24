@@ -181,7 +181,6 @@ package body RTPortableServer.POA is
          A_Oid : aliased PolyORB.POA_Types.Object_Id
            := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
 
-
          P_Result : PolyORB.References.Ref;
          C_Result : CORBA.Object.Ref;
       begin

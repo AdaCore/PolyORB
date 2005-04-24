@@ -186,7 +186,6 @@ package body PolyORB.Representations.CDR is
          when Tk_Ushort =>
             Marshall (Buffer, TC_Unsigned_Short_Id);
 
-
          when Tk_Ulong =>
             Marshall (Buffer, TC_Unsigned_Long_Id);
 

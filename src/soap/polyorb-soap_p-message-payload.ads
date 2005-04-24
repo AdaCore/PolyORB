@@ -59,5 +59,4 @@ private
      (Object'Class, Object_Access);
    procedure Free (X : in out Object_Access) renames Do_Free;
 
-
 end PolyORB.SOAP_P.Message.Payload;

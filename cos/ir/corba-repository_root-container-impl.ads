@@ -55,7 +55,6 @@ package CORBA.Repository_Root.Container.Impl is
      (Self : CORBA.Repository_Root.IRObject.Impl.Object_Ptr)
      return Object_Ptr;
 
-
    --  Check if a node of this Id already exists in self.
    --  If yes, raise BAD_PARAM (Minor => 2).
    procedure Check_Id

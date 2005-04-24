@@ -88,7 +88,6 @@ package body AWS.Client is
    --  creates a PolyORB neutral request from parameters, sends it and
    --  fill in Result with the response
 
-
 --     procedure Get_Response
 --       (Connection : in out HTTP_Connection;
 --        Result     :    out Response.Data;
@@ -432,7 +431,6 @@ package body AWS.Client is
 --         end if;
       end if;
    end Disconnect;
-
 
    --------------------
    -- Handle_Request --
@@ -1058,7 +1056,6 @@ package body AWS.Client is
             Handle_Request (Connection, "HEAD", Parameters, Result);
          end;
       end if;
-
 
    end Head;
 
@@ -1714,7 +1711,6 @@ package body AWS.Client is
       --  this is the main 'post' function, as all other 'post'
       --  functions call this one
 
-
 --      No_Data   : Unbounded_String renames Null_Unbounded_String;
 --      Try_Count : Natural := Connection.Retry;
 
@@ -2140,13 +2136,11 @@ package body AWS.Client is
       return Connection.Host;
    end Host;
 
-
    function Host_URL (Connection : in HTTP_Connection) return AWS.URL.Object
    is
    begin
       return Connection.Host_URL;
    end Host_URL;
-
 
    ------------
    -- Upload --

@@ -1,5 +1,4 @@
 
-
 package body CXE4006_Normal is
   procedure Single_Controlling_Operand (
       RTT         : in out Normal_Spec_Tagged_Type;

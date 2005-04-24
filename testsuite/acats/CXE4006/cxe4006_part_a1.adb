@@ -1,7 +1,6 @@
 
 -----------------------------------------------------------------------------
 
-
 with Report;
 with CXE4006_Part_A2;
 with CXE4006_Part_B;
@@ -62,7 +61,6 @@ package body CXE4006_Part_A1 is
     RTT.Common_Record_Field := Expected + 6;
     Callee := Part_A1_1_Spec;
   end Single_Controlling_Operand;
-
 
   procedure Single_Controlling_Operand (
       RTT         : in out A1_Tagged_Type_2;

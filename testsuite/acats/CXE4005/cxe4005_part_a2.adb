@@ -10,7 +10,6 @@ package body CXE4005_Part_A2 is
   RT_Obj   : aliased CXE4005_Remote_Types.RT_Tagged_Type;
   Normal_Obj : aliased CXE4005_Normal.Cant_Use_In_Remote_Call;
 
-
   function Get_RACWT (Which_Type : Type_Selection) 
        return CXE4005_Part_A1.RACWT is
   begin

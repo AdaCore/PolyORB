@@ -20,7 +20,6 @@ package body Parser is
    --  Take the sequence of tokens in the paremter list to return the
    --  node of the IDL predefined type.
 
-
    function Is_Param_Type_Spec (E : Node_Id) return Boolean;
    --  Return true when the type specifier N belongs to the restricted
    --  parameter type specifier set.

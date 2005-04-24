@@ -76,7 +76,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       return Repository.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
-
    function lookup_id
      (Self : access Object;
       search_id : in CORBA.RepositoryId)
@@ -91,7 +90,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       Result_Object := Contained.Impl.Lookup_Id (Get_Contents (Self),
                                                  search_id);
 
-
       --  Return a nil_ref if not found
       if Result_Object = null then
          return Nil_Ref;
@@ -101,7 +99,6 @@ package body CORBA.Repository_Root.Repository.Impl is
         (Contained.Impl.To_Forward (Result_Object));
 
    end lookup_id;
-
 
    function get_canonical_typecode
      (Self : access Object;
@@ -119,7 +116,6 @@ package body CORBA.Repository_Root.Repository.Impl is
 
       return Result;
    end get_canonical_typecode;
-
 
    ---------------------
    --  get_primitive  --
@@ -193,15 +189,12 @@ package body CORBA.Repository_Root.Repository.Impl is
                               IDL_Type,
                               kind);
 
-
-
       --  activate it
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
       return PrimitiveDef.Convert_Forward.To_Forward (Result);
    end get_primitive;
-
 
    function create_string
      (Self : access Object;
@@ -229,7 +222,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       return StringDef.Convert_Forward.To_Forward (Result);
    end create_string;
 
-
    function create_wstring
      (Self : access Object;
       bound : in CORBA.Unsigned_Long)
@@ -255,7 +247,6 @@ package body CORBA.Repository_Root.Repository.Impl is
 
       return WstringDef.Convert_Forward.To_Forward (Result);
    end create_wstring;
-
 
    function create_sequence
      (Self : access Object;
@@ -288,7 +279,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       return SequenceDef.Convert_Forward.To_Forward (Result);
    end create_sequence;
 
-
    function create_array
      (Self : access Object;
       length : in CORBA.Unsigned_Long;
@@ -318,7 +308,6 @@ package body CORBA.Repository_Root.Repository.Impl is
 
       return ArrayDef.Convert_Forward.To_Forward (Result);
    end create_array;
-
 
    function create_fixed
      (Self : access Object;

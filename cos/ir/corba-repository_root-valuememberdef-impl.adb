@@ -14,7 +14,6 @@ pragma Warnings (Off, CORBA.Repository_Root.ValueMemberDef.Skel);
 
 package body CORBA.Repository_Root.ValueMemberDef.Impl is
 
-
    ----------------------
    --  Procedure init  --
    ----------------------
@@ -39,7 +38,6 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
       Self.IDL_Access := IDL_Access;
    end Init;
 
-
    function get_type
      (Self : access Object)
      return CORBA.TypeCode.Object
@@ -55,7 +53,6 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
           (Obj)));
    end get_type;
 
-
    function get_type_def
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
@@ -64,14 +61,12 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
       return Self.Type_Def;
    end get_type_def;
 
-
    procedure set_type_def
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
       Self.Type_Def := To;
    end set_type_def;
-
 
    function get_access
      (Self : access Object)
@@ -81,14 +76,12 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
       return Self.IDL_Access;
    end get_access;
 
-
    procedure set_access
      (Self : access Object;
       To : in CORBA.Visibility) is
    begin
       Self.IDL_Access := To;
    end set_access;
-
 
    ----------------
    --  Describe  --

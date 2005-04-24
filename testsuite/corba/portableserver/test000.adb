@@ -1552,7 +1552,6 @@ procedure Test000 is
                         if Are_Policies_Valid
                           (ORB_CTRL_MODEL, Lp, Up, Ap, Ip, Sp, Rp) then
 
-
                            pragma Debug (O (" "));
                            pragma Debug (O ("Testing: " &
                                             Policies_Image

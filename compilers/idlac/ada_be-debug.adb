@@ -99,8 +99,3 @@ begin
       null;
    end;
 end Ada_Be.Debug;
-
-
-
-
-

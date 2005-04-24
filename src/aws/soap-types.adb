@@ -75,7 +75,6 @@ package body SOAP.Types is
    package XML_Indent is new Ada.Task_Attributes (Natural, 0);
    --  Thread safe Indentation counter.
 
-
    ---------------------
    -- From_NamedValue --
    ---------------------
@@ -114,7 +113,6 @@ package body SOAP.Types is
 
       return NV;
    end To_NamedValue;
-
 
    ---------
    -- "+" --
@@ -1029,7 +1027,6 @@ package body SOAP.Types is
    --------------
    -- From_Any --
    --------------
-
 
    function From_Any (Item : in PolyORB.Any.Any) return Object_Access
    is

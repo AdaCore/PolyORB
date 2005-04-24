@@ -23,7 +23,6 @@ package body Scopes is
    procedure Insert_Into_Homonyms (N : Node_Id);
    procedure Remove_From_Homonyms (N : Node_Id);
 
-
    -------------------
    -- Current_Scope --
    -------------------

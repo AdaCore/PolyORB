@@ -84,7 +84,6 @@ package body CORBA.Repository_Root.IDLType.Impl is
       end case;
    end To_IDLType;
 
-
    ----------------------
    --  Procedure init  --
    ----------------------
@@ -98,7 +97,6 @@ package body CORBA.Repository_Root.IDLType.Impl is
 --                          Def_Kind);
 --       pragma Debug (O2 ("init  end"));
 --   end Init;
-
 
    function get_type
      (Self : access Object)

@@ -41,7 +41,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
       return StructDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
-
    ------------
    --  INIT  --
    ------------
@@ -129,7 +128,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
       return Self.Members;
    end get_members;
 
-
    procedure set_members
      (Self : access Object;
       To : in CORBA.Repository_Root.StructMemberSeq) is
@@ -150,7 +148,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                     Search_Name);
    end lookup;
 
-
    function contents
      (Self : access Object;
       limit_type : in CORBA.Repository_Root.DefinitionKind;
@@ -162,7 +159,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                       Limit_Type,
                                       Exclude_Inherited);
    end contents;
-
 
    function lookup_name
      (Self : access Object;
@@ -180,7 +176,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                          Exclude_Inherited);
    end lookup_name;
 
-
    function describe_contents
      (Self : access Object;
       limit_type : in CORBA.Repository_Root.DefinitionKind;
@@ -195,7 +190,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                                Max_Returned_Objs);
    end describe_contents;
 
-
    function create_module
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -209,7 +203,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                            Name,
                                            Version);
    end create_module;
-
 
    function create_constant
      (Self : access Object;
@@ -229,7 +222,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                              Value);
    end create_constant;
 
-
    function create_struct
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -245,7 +237,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                            Version,
                                            Members);
    end create_struct;
-
 
    function create_union
      (Self : access Object;
@@ -265,7 +256,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                           Members);
    end create_union;
 
-
    function create_enum
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -282,7 +272,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                          Members);
    end create_enum;
 
-
    function create_alias
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -298,7 +287,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                           Version,
                                           Original_Type);
    end create_alias;
-
 
    function create_interface
      (Self : access Object;
@@ -317,7 +305,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                               Base_Interfaces,
                                               Is_Abstract);
    end create_interface;
-
 
    function create_value
      (Self : access Object;
@@ -347,7 +334,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                           Initializers);
    end create_value;
 
-
    function create_value_box
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -364,7 +350,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                               Original_Type_Def);
    end create_value_box;
 
-
    function create_exception
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -380,7 +365,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                                               Version,
                                               Members);
    end create_exception;
-
 
    function create_native
      (Self : access Object;

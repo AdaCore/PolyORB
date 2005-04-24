@@ -138,7 +138,6 @@ package body AWS.Server is
       null;
    end Init_AWS;
 
-
    protected Counter is
 
       procedure Add;
@@ -517,7 +516,6 @@ package body AWS.Server is
             null;
          else
             pragma Debug (O ("Start: a new POA has been created"));
-
 
             PolyORB.POA_Manager.Basic_Manager.Activate
               (The_POA_Manager,

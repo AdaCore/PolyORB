@@ -305,5 +305,4 @@ package body CosNotifyComm.SequencePullSupplier.Impl is
       return Supplier;
    end Create;
 
-
 end CosNotifyComm.SequencePullSupplier.Impl;

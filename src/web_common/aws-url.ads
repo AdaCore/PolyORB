@@ -162,7 +162,6 @@ package AWS.URL is
    --  the Encode routine.
    --  For the SOAP personnality
 
-
    --
    --  URL Encoding and Decoding
    --

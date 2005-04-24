@@ -1003,7 +1003,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);
 
-
       NL (CU);
       PL (CU, "declare");
       II (CU);

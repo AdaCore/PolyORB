@@ -221,5 +221,4 @@ package body Ada_Be.Idl2Ada.Value_Impl is
       end case;
    end Gen_Node_Body;
 
-
 end Ada_Be.Idl2Ada.Value_Impl;

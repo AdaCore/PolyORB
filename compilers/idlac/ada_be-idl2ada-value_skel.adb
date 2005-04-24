@@ -140,7 +140,6 @@ package body Ada_Be.Idl2Ada.Value_Skel is
             NL (CU);
             Divert (CU, Visible_Declarations);
 
-
          when K_Operation =>
 
             declare

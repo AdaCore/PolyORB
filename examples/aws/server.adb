@@ -109,7 +109,6 @@ begin
    AWS.Server.Initialization;
    Put_Line ("initialized");
 
-
    declare
       SOAP_Server : AWS.Server.Servants.SOAP_Servant;
       Web_Server : AWS.Server.Servants.Web_Servant;
@@ -135,11 +134,8 @@ begin
       Put_Line ((PolyORB.References.IOR.Object_To_String
                  (AWS.Server.Get_Server_Reference (Web_Server))));
 
-
       AWS.Server.Run;
    end;
 
 end Server;
-
-
 

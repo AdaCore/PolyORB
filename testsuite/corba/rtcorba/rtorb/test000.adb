@@ -193,7 +193,6 @@ begin
             pragma Warnings (Off, Thread_Pool_2); --  WAG:5.02 DB08-008
             --  Assigned but never read
 
-
          begin
             Thread_Pool_2 := RTCORBA.RTORB.Create_Threadpool_Policy
               (RT_ORB, Thread_Pool_Id + 1);

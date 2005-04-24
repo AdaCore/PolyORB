@@ -178,7 +178,6 @@ package body PolyORB.CORBA_P.POA_Config is
                           (Result,
                            Policy_Access (Lifespan_Policy.Transient.Create));
 
-
                      when PERSISTENT =>
                         PL.Append
                           (Result,

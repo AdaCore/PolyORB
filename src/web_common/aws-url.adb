@@ -189,7 +189,6 @@ package body AWS.URL is
       return To_String (URL.Host);
    end Host;
 
-
    --------------
    -- Protocol --
    --------------
@@ -198,7 +197,6 @@ package body AWS.URL is
    begin
       return To_String (URL.Protocol);
    end Protocol;
-
 
    --------------
    -- Is_Valid --
@@ -491,7 +489,6 @@ package body AWS.URL is
          end if;
 
          --  Checks for prefix
-
 
          Parse (L3_URL (L3_URL'First .. P), True);
       end;

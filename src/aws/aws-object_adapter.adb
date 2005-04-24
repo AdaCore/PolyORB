@@ -21,7 +21,6 @@ package body AWS.Object_Adapter is
      renames L.Output;
    --  the polyorb logging facility
 
-
    ---------------------
    -- Unknown_Adapter --
    ---------------------
@@ -138,6 +137,5 @@ package body AWS.Object_Adapter is
       --  tell wether an object exists or not, whatever the path to it
       --  may be.
    end Unknown_Adapter;
-
 
 end AWS.Object_Adapter;

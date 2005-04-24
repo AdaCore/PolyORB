@@ -390,7 +390,6 @@ package body Ada_Be.Expansion is
       end case;
    end Expand_Node;
 
-
    -------------------------------------------
    --  and now one procedure per node type  --
    -------------------------------------------
@@ -677,7 +676,6 @@ package body Ada_Be.Expansion is
       Expand_Node_List (Contents (Node), True);
       Pop_Scope;
    end Expand_Ben_Idl_File;
-
 
    ---------------------------------
    --  Recursive_Copy_Operations  --

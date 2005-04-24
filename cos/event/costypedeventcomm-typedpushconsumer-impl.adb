@@ -177,7 +177,6 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
       end if;
    end Disconnect_Push_Consumer;
 
-
    ------------
    -- Create --
    ------------

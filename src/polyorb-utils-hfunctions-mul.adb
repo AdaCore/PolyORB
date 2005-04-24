@@ -106,6 +106,3 @@ package body PolyORB.Utils.HFunctions.Mul is
 
 end PolyORB.Utils.HFunctions.Mul;
 
-
-
-

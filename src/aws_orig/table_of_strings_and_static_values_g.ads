@@ -131,7 +131,6 @@ package Table_Of_Strings_And_Static_Values_G is
    --  (i.e. by a call to INSERT), an element is recovered from the free list
    --  if it is not empty. Otherwise, new space is taken from the system.
 
-
    type Table_Type is limited private;
 
    Duplicate_Item_Error,
@@ -202,7 +201,6 @@ package Table_Of_Strings_And_Static_Values_G is
    --    If there is no entry with the given key, the exception
    --  MISSING_ITEM_ERROR is raised.
 
-
    procedure Remove (Table : in out Table_Type;
                      Key : in String_Type;
                      Found : out Boolean);
@@ -247,7 +245,6 @@ package Table_Of_Strings_And_Static_Values_G is
    --  key, except that FOUND is set to false.
 
    --  QUERIES:
-
 
    function Size (Table : in Table_Type) return Natural;
    --  OVERVIEW:
@@ -555,7 +552,6 @@ package Table_Of_Strings_And_Static_Values_G is
    --    For your actual procedure  ACTION, you must not use a procedure
    --  which modifies the traversed table.
 
-
    generic
       with procedure Action (Key : in String_Type;
                              Value : in Value_Type;
@@ -661,14 +657,12 @@ package Table_Of_Strings_And_Static_Values_G is
    --    Releases all items from the free list giving their space back to the
    --  system.
 
-
    procedure Set_Max_Free_List_Size (Max_Free_List_Size : in Natural);
    --  OVERVIEW:
    --    Sets the maximum length of the internal free list which is 0 by
    --  default.
    --  If parameter MAX_FREE_LIST_SIZE is smaller than the current size
    --  of the list, the items in excess are returned to the system.
-
 
    function Free_List_Size return Natural;
    --  OVERVIEW:

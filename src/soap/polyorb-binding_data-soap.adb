@@ -472,7 +472,6 @@ package body PolyORB.Binding_Data.SOAP is
       end if;
    end URI_To_Profile;
 
-
    -----------
    -- Image --
    -----------

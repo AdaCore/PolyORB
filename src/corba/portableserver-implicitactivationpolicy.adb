@@ -68,7 +68,6 @@ package body PortableServer.ImplicitActivationPolicy is
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-
       declare
          Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
            new Policy_Object_Type;

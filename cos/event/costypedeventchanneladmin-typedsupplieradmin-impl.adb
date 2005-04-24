@@ -308,5 +308,4 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
       return Ref;
    end Pull;
 
-
 end CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl;

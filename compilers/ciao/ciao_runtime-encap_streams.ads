@@ -45,5 +45,4 @@ private
    procedure Write (St : in out Stream;
                     Item : in Stream_Element_Array);
 
-
 end CIAO_Runtime.Encap_Streams;

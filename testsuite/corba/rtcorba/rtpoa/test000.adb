@@ -208,7 +208,6 @@ begin
                        True);
          end;
 
-
          --  Create reference with id and priority
 
          begin

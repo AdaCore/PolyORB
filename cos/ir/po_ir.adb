@@ -48,7 +48,6 @@ with PolyORB.Setup.No_Tasking_Server;
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 
-
 procedure PO_IR is
    Repository_Obj : CORBA.Repository_Root.Repository.Impl.Object_Ptr;
    Ref            : CORBA.Object.Ref;

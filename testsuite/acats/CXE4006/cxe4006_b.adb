@@ -54,7 +54,6 @@ begin
                    Type_Decl_Location'Image (Callee));
   end if;
 
-
   Start_Test (1002);  -- remote
   A1_1_Obj.Common_Record_Field := 110;
   Single_Controlling_Operand (
@@ -68,7 +67,6 @@ begin
     Report.Failed ("test 1002 callee was " &
                    Type_Decl_Location'Image (Callee));
   end if;
-
 
   Start_Test (1003);  -- remote
   A1_2_Obj.Common_Record_Field := 120;
@@ -84,7 +82,6 @@ begin
                    Type_Decl_Location'Image (Callee));
   end if;
 
-
   Start_Test (1004);  -- remote
   A2_Obj.Common_Record_Field := 130;
   A2_Obj.A2_Component := "12345678901234567890";
@@ -99,7 +96,6 @@ begin
     Report.Failed ("test 1004 callee was " &
                    Type_Decl_Location'Image (Callee));
   end if;
-
 
   Start_Test (1005);
   B_Obj.Common_Record_Field := 140;
@@ -150,7 +146,6 @@ begin
                    Type_Decl_Location'Image (Callee));
   end if;
 
-
   Start_Test (2002);
   A1_1_Obj.Common_Record_Field := 210;
   CXE4006_Part_A2.Call_B (A1_1_Obj, 2002, Callee);
@@ -162,7 +157,6 @@ begin
     Report.Failed ("test 2002 callee was " &
                    Type_Decl_Location'Image (Callee));
   end if;
-
 
   Start_Test (2003);  -- remote
   A1_2_Obj.Common_Record_Field := 220;
@@ -176,7 +170,6 @@ begin
                    Type_Decl_Location'Image (Callee));
   end if;
 
-
   Start_Test (2004);  -- remote
   A2_Obj.Common_Record_Field := 230;
   A2_Obj.A2_Component := "24680135790987654321";
@@ -189,7 +182,6 @@ begin
     Report.Failed ("test 2004 callee was " &
                    Type_Decl_Location'Image (Callee));
   end if;
-
 
   Start_Test (2005);
   B_Obj.Common_Record_Field := 240;

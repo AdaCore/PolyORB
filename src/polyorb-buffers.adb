@@ -328,7 +328,6 @@ package body PolyORB.Buffers is
 
       Grow_Shrink (Buffer.Contents'Access, Padding, Padding_Space);
 
-
       if Is_Null (Padding_Space) then
 
          --  Grow_Shrink was unable to extend the last Iovec:

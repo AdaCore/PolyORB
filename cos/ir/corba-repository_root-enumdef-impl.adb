@@ -9,7 +9,6 @@ pragma Warnings (Off, CORBA.Repository_Root.EnumDef.Skel);
 
 package body CORBA.Repository_Root.EnumDef.Impl is
 
-
    -----------------
    --  To_Object  --
    -----------------
@@ -79,7 +78,6 @@ package body CORBA.Repository_Root.EnumDef.Impl is
    begin
       return Self.Members;
    end get_members;
-
 
    procedure set_members
      (Self : access Object;

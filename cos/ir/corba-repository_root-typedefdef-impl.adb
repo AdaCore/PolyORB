@@ -56,7 +56,6 @@ package body CORBA.Repository_Root.TypedefDef.Impl is
       return IDLType.Impl.Get_Type (Self.IDLType_View);
    end get_type;
 
-
    ----------------
    --  Describe  --
    ----------------

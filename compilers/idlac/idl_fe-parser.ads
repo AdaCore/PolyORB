@@ -99,7 +99,6 @@ private
    --  Returns the location of the current_token
    function Get_Next_Token_Location return Errors.Location;
 
-
    --  The next three methods unreference a pointer without any
    --  verification. that's because the verification is useless
    --  in this case if this package is correctly written.
@@ -151,7 +150,6 @@ private
 
 --    --  Frees all the set of already used values
 --    procedure Release_All_Used_Values;
-
 
    --------------------------
    --  Parsing of the idl  --
@@ -798,7 +796,6 @@ private
    procedure Parse_Fixed_Array_Size (Result : out Node_Id;
                                      Success : out Boolean);
 
-
    --  Rule 85:
    --  <attr_dcl> ::= <readonly_attr_spec>
    --             |   <attr_spec>
@@ -1081,7 +1078,6 @@ private
    --  constraints.
    procedure Check_Context_String (S : in String);
 
-
    ---------------------------------
    --  evaluation of expressions  --
    ---------------------------------
@@ -1142,7 +1138,6 @@ private
 
    --  not operator between two Idl_Integer
    function "not" (X : Idl_Integer) return Idl_Integer;
-
 
    ------------------------------
    --  To resume after errors  --

@@ -292,5 +292,4 @@ package body CosNotifyComm.StructuredPullSupplier.Impl is
       return Supplier;
    end Create;
 
-
 end CosNotifyComm.StructuredPullSupplier.Impl;

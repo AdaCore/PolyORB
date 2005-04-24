@@ -240,7 +240,6 @@ package body AWS.Response.Set is
       D.Mode := SOAP_Message;
    end Message_Body;
 
-
    ----------
    -- Mode --
    ----------

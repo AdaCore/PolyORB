@@ -75,7 +75,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       pragma Debug (O2 ("init (contained) end"));
    end Init;
 
-
    -----------------
    --  To_Object  --
    -----------------
@@ -347,7 +346,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       return;
    end To_Contained;
 
-
    function To_Contained
      (Self : IRObject.Impl.Object_Ptr)
      return  Object_ptr
@@ -421,7 +419,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       end case;
    end To_Contained;
 
-
    -----------------------
    -- IR implementation --
    -----------------------
@@ -433,7 +430,6 @@ package body CORBA.Repository_Root.Contained.Impl is
    begin
       return Self.Id;
    end get_id;
-
 
    procedure set_id
      (Self : access Object;
@@ -452,7 +448,6 @@ package body CORBA.Repository_Root.Contained.Impl is
                                             Completed => CORBA.Completed_No));
       end if;
    end set_id;
-
 
    function get_name
      (Self : access Object)
@@ -487,7 +482,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       end if;
    end set_name;
 
-
    function get_version
      (Self : access Object)
      return VersionSpec
@@ -496,14 +490,12 @@ package body CORBA.Repository_Root.Contained.Impl is
       return Self.Version;
    end get_version;
 
-
    procedure set_version
      (Self : access Object;
       To : in VersionSpec) is
    begin
       Self.Version := To;
    end set_version;
-
 
    ----------------------
    --  get_defined_in  --
@@ -515,7 +507,6 @@ package body CORBA.Repository_Root.Contained.Impl is
    begin
       return Self.Defined_In;
    end get_defined_in;
-
 
    function get_defined_in
      (Self : access Object)
@@ -580,7 +571,6 @@ package body CORBA.Repository_Root.Contained.Impl is
            (To_Contained (Get_Real_Object (To_Object (Self.Defined_In))));
       end if;
    end get_containing_repository;
-
 
    ----------------
    --  describe  --
@@ -723,7 +713,6 @@ package body CORBA.Repository_Root.Contained.Impl is
    ------------------------
    -- A Seq of contained --
    ------------------------
-
 
    ------------------------------
    --  Simplify_Contained_Seq  --
@@ -991,13 +980,5 @@ package body CORBA.Repository_Root.Contained.Impl is
 
    end;
 
-
 end CORBA.Repository_Root.Contained.Impl;
-
-
-
-
-
-
-
 

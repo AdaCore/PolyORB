@@ -18,7 +18,6 @@ pragma Warnings (Off, CORBA.Repository_Root.AliasDef.Skel);
 
 package body CORBA.Repository_Root.AliasDef.Impl is
 
-
    -----------------
    --  To_Object  --
    -----------------
@@ -89,7 +88,6 @@ package body CORBA.Repository_Root.AliasDef.Impl is
                                                   Orig_TC);
    end get_type;
 
-
    function get_original_type_def
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
@@ -97,7 +95,6 @@ package body CORBA.Repository_Root.AliasDef.Impl is
    begin
       return Self.Original_Type_Def;
    end get_original_type_def;
-
 
    procedure set_original_type_def
      (Self : access Object;

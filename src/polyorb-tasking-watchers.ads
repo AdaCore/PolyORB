@@ -119,7 +119,6 @@ private
       Await_Count : Integer;
       --  Number of tasks waiting on Differ.
 
-
       --  Several conditions used by the algorithm :
 
       Updated     : Boolean;

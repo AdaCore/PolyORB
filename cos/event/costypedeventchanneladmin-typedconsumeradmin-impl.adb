@@ -171,7 +171,6 @@ package body CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
       return Its_Ref;
    end obtain_typed_pull_supplier;
 
-
    --------------------------------
    -- Obtain_Typed_Push_Supplier --
    --------------------------------

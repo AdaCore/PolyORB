@@ -61,7 +61,6 @@ package body CosNotifyComm.SequencePushSupplier.Impl is
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
 
-
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("sequencepushsupplier");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)

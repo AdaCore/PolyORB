@@ -78,7 +78,6 @@ package body PolyORB.POA_Config.Root_POA is
       Append (My_Default_Policies,
               Policy_Access (Lifespan_Policy.Transient.Create));
 
-
       Append (My_Default_Policies,
               Policy_Access
               (Request_Processing_Policy.Active_Object_Map_Only.Create));

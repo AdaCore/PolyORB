@@ -58,4 +58,3 @@ package body PolyORB.Tasking.Threads.Annotations is
 
 end PolyORB.Tasking.Threads.Annotations;
 
-

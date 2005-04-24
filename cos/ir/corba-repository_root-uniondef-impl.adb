@@ -85,7 +85,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       return Self.Container_View;
    end Get_Container_View;
 
-
    --------------------------
    --  Initialize_Members  --
    --------------------------
@@ -107,7 +106,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
 
       Self.Members := Seq;
    end Initialize_Members;
-
 
    ----------------
    --  get_type  --
@@ -134,7 +132,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                     (IRObject.Impl.Object_Ptr (Obj)));
    end get_discriminator_type;
 
-
    function get_discriminator_type_def
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
@@ -143,14 +140,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       return Self.Discriminator_Type_Def;
    end get_discriminator_type_def;
 
-
    procedure set_discriminator_type_def
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
       Self.Discriminator_Type_Def := To;
    end set_discriminator_type_def;
-
 
    function get_members
      (Self : access Object)
@@ -160,14 +155,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       return Self.Members;
    end get_members;
 
-
    procedure set_members
      (Self : access Object;
       To : in CORBA.Repository_Root.UnionMemberSeq) is
    begin
       Initialize_Members (Self, To);
    end set_members;
-
 
    --------------------------------
    --  Inherited from container  --
@@ -182,7 +175,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                     Search_Name);
    end lookup;
 
-
    function contents
      (Self : access Object;
       limit_type : in CORBA.Repository_Root.DefinitionKind;
@@ -194,7 +186,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                       Limit_Type,
                                       Exclude_Inherited);
    end contents;
-
 
    function lookup_name
      (Self : access Object;
@@ -212,7 +203,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                          Exclude_Inherited);
    end lookup_name;
 
-
    function describe_contents
      (Self : access Object;
       limit_type : in CORBA.Repository_Root.DefinitionKind;
@@ -227,7 +217,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                                Max_Returned_Objs);
    end describe_contents;
 
-
    function create_module
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -241,7 +230,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                            Name,
                                            Version);
    end create_module;
-
 
    function create_constant
      (Self : access Object;
@@ -261,7 +249,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                              Value);
    end create_constant;
 
-
    function create_struct
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -277,7 +264,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                            Version,
                                            Members);
    end create_struct;
-
 
    function create_union
      (Self : access Object;
@@ -297,7 +283,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                           Members);
    end create_union;
 
-
    function create_enum
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -314,7 +299,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                          Members);
    end create_enum;
 
-
    function create_alias
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -330,7 +314,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                           Version,
                                           Original_Type);
    end create_alias;
-
 
    function create_interface
      (Self : access Object;
@@ -349,7 +332,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                               Base_Interfaces,
                                               Is_Abstract);
    end create_interface;
-
 
    function create_value
      (Self : access Object;
@@ -379,7 +361,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                           Initializers);
    end create_value;
 
-
    function create_value_box
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -396,7 +377,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                               Original_Type_Def);
    end create_value_box;
 
-
    function create_exception
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -412,7 +392,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                               Version,
                                               Members);
    end create_exception;
-
 
    function create_native
      (Self : access Object;

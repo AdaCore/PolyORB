@@ -47,7 +47,6 @@ package body CORBA.Repository_Root.Container.Impl is
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
      reNames L2.Output;
 
-
    ----------------------
    --  Procedure init  --
    ----------------------
@@ -61,7 +60,6 @@ package body CORBA.Repository_Root.Container.Impl is
       IRObject.Impl.Init (IRObject.Impl.Object_Ptr (Self), Real_Object, Def_kind);
       Self.Contents := Contents;
    end Init;
-
 
    -----------------
    --  To_Object  --
@@ -521,7 +519,6 @@ package body CORBA.Repository_Root.Container.Impl is
 
    end lookup;
 
-
    ----------------
    --  contents  --
    ----------------
@@ -651,7 +648,6 @@ package body CORBA.Repository_Root.Container.Impl is
 
       return Result;
    end contents;
-
 
    -------------------
    --  Lookup_Name  --
@@ -821,7 +817,6 @@ package body CORBA.Repository_Root.Container.Impl is
       return Result;
    end lookup_name;
 
-
    -------------------------
    --  describe_contents  --
    -------------------------
@@ -879,7 +874,6 @@ package body CORBA.Repository_Root.Container.Impl is
       return Result;
    end describe_contents;
 
-
    ---------------------
    --  create_<node>  --
    ---------------------
@@ -929,7 +923,6 @@ package body CORBA.Repository_Root.Container.Impl is
       end;
    end create_module;
 
-
    function create_constant
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -965,7 +958,6 @@ package body CORBA.Repository_Root.Container.Impl is
          return ConstantDef.Impl.To_Forward (Obj);
       end;
    end create_constant;
-
 
    function create_struct
      (Self : access Object;
@@ -1007,7 +999,6 @@ package body CORBA.Repository_Root.Container.Impl is
          return StructDef.Impl.To_Forward (Obj);
       end;
    end create_struct;
-
 
    function create_union
      (Self : access Object;
@@ -1052,7 +1043,6 @@ package body CORBA.Repository_Root.Container.Impl is
       end;
    end create_union;
 
-
    function create_enum
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -1089,7 +1079,6 @@ package body CORBA.Repository_Root.Container.Impl is
          return EnumDef.Impl.To_Forward (Obj);
       end;
    end create_enum;
-
 
    function create_alias
      (Self : access Object;
@@ -1188,7 +1177,6 @@ package body CORBA.Repository_Root.Container.Impl is
       end;
    end create_interface;
 
-
    function create_value
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -1251,7 +1239,6 @@ package body CORBA.Repository_Root.Container.Impl is
       end;
    end create_value;
 
-
    function create_value_box
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -1290,7 +1277,6 @@ package body CORBA.Repository_Root.Container.Impl is
          return ValueBoxDef.Impl.To_Forward (Obj);
       end;
    end create_value_box;
-
 
    function create_exception
      (Self : access Object;

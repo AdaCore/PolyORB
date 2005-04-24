@@ -1,6 +1,4 @@
 
-
-
 package body CXE4005_Remote_Types is
   --
   -- The serial number for all objects of RT_Tagged_Type will contain

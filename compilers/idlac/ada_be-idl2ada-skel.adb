@@ -482,7 +482,6 @@ package body Ada_Be.Idl2Ada.Skel is
 
          when K_Operation =>
 
-
             declare
                O_Type : constant Node_Id
                  := Operation_Type (Node);
@@ -614,7 +613,6 @@ package body Ada_Be.Idl2Ada.Skel is
                PL (CU, "CORBA.ServerRequest.Arguments (Request, "
                    & T_Arg_List & ");");
                NL (CU);
-
 
                PL (CU, "begin");
                II (CU);

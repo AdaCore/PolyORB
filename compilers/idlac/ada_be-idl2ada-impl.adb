@@ -88,7 +88,6 @@ package body Ada_Be.Idl2Ada.Impl is
                return;
             end if;
 
-
             declare
                Is_Function : constant Boolean
                  := Kind (Operation_Type (Node)) /= K_Void;

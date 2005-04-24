@@ -103,7 +103,6 @@ with TypedTest_Interface.Helper;
 with TypedTest_Interface.Impl;
 --  Mutually Agreed Interface between Consumers and Suppliers
 
-
 procedure TypedTest_Event is
 
    use Ada.Exceptions;
@@ -253,7 +252,6 @@ procedure TypedTest_Event is
             raise Syntax_Error;
       end case;
    end Connect_Entity;
-
 
    -----------------------------
    -- Get_Typed_Object_Entity --
