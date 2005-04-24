@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -36,15 +36,15 @@
 with Ada.Unchecked_Deallocation;
 
 with GNAT.IO;
-with GNAT.Sockets;                    use GNAT.Sockets;
-with GNAT.Strings;                    use GNAT.Strings;
+with GNAT.Sockets;               use GNAT.Sockets;
+with GNAT.Strings;               use GNAT.Strings;
 
-with Interfaces.C;                    use Interfaces.C;
+with Interfaces.C;               use Interfaces.C;
 
-with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Options;
-with System.Garlic.Partitions;        use System.Garlic.Partitions;
-with System.Garlic.Utils;             use System.Garlic.Utils;
+with System.Garlic.Partitions;   use System.Garlic.Partitions;
+with System.Garlic.Utils;        use System.Garlic.Utils;
 
 package body System.Garlic.Remote is
 
@@ -96,7 +96,6 @@ package body System.Garlic.Remote is
 
    List : Partition_List;
 
-
    ------------
    -- Detach --
    ------------
@@ -119,8 +118,8 @@ package body System.Garlic.Remote is
    -----------------
 
    procedure Full_Launch
-     (Host        : in String;
-      Command     : in String)
+     (Host    : in String;
+      Command : in String)
    is
       Arguments : constant String :=
         "--detach --boot_location '" & Get_Boot_Locations & "' &";
@@ -161,10 +160,7 @@ package body System.Garlic.Remote is
    -- Get_Host --
    --------------
 
-   function Get_Host
-     (Partition : String)
-     return String
-   is
+   function Get_Host (Partition : String) return String is
       Buffer : String (1 .. 64);
       Last   : Natural;
    begin
@@ -177,10 +173,7 @@ package body System.Garlic.Remote is
    -- Is_Local_Host --
    -------------------
 
-   function Is_Local_Host
-     (Host : String)
-     return Boolean
-   is
+   function Is_Local_Host (Host : String) return Boolean is
       Name_Of_Host : constant String
         := Official_Name (Get_Host_By_Name (Host));
    begin
@@ -193,8 +186,7 @@ package body System.Garlic.Remote is
    -- Launch_Registered_Partitions --
    ----------------------------------
 
-   procedure Launch_Registered_Partitions
-   is
+   procedure Launch_Registered_Partitions is
       P : Partition_List;
 
    begin
@@ -243,8 +235,7 @@ package body System.Garlic.Remote is
    -- Spawn --
    -----------
 
-   procedure Spawn (Command : in String)
-   is
+   procedure Spawn (Command : in String) is
       C_Command : aliased String := Command & ASCII.NUL;
    begin
       if C_System (C_Command'Address) / 256 /= 0 then
