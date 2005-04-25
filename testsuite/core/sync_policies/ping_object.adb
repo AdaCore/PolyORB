@@ -123,4 +123,3 @@ package body Ping_Object is
    end Execute_Servant;
 
 end Ping_Object;
-

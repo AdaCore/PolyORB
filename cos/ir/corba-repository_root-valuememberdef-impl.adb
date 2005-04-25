@@ -106,4 +106,3 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
    end describe;
 
 end CORBA.Repository_Root.ValueMemberDef.Impl;
-

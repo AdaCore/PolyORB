@@ -195,4 +195,3 @@ package body PolyORB.Setup.Test_SOA is
    end Run_Test;
 
 end PolyORB.Setup.Test_SOA;
-

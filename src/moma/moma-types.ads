@@ -325,4 +325,3 @@ private
    end record;
 
 end MOMA.Types;
-

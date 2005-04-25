@@ -199,4 +199,3 @@ begin
        Implicit  => False,
        Init      => Initialize'Access));
 end RTCORBA.Current;
-

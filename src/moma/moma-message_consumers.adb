@@ -240,4 +240,3 @@ package body MOMA.Message_Consumers is
    end Set_Ref;
 
 end MOMA.Message_Consumers;
-

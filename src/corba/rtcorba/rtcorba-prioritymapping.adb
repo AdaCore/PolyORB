@@ -74,4 +74,3 @@ package body RTCORBA.PriorityMapping is
    end To_Native;
 
 end RTCORBA.PriorityMapping;
-

@@ -304,4 +304,3 @@ package body PolyORB.Protocols.Echo is
    end Handle_Flush;
 
 end PolyORB.Protocols.Echo;
-

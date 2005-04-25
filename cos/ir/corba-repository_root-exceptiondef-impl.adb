@@ -265,4 +265,3 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
    end Get_ExcDescriptionSeq;
 
 end CORBA.Repository_Root.ExceptionDef.Impl;
-

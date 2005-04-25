@@ -60,4 +60,3 @@ package body Echo.Impl is
    end EchoString;
 
 end Echo.Impl;
-

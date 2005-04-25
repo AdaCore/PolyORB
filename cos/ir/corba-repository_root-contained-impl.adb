@@ -981,4 +981,3 @@ package body CORBA.Repository_Root.Contained.Impl is
    end;
 
 end CORBA.Repository_Root.Contained.Impl;
-

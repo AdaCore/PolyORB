@@ -185,4 +185,3 @@ begin
    end;
 
 end CORBA.DomainManager.Skel;
-

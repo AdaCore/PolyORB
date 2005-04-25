@@ -84,4 +84,3 @@ package body PolyORB.Utils.Report is
    end New_Test;
 
 end PolyORB.Utils.Report;
-

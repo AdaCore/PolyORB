@@ -307,4 +307,3 @@ private
    --  Create a new sequence with the given Length
 
 end PolyORB.Sequences.Unbounded;
-

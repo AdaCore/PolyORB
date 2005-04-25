@@ -83,4 +83,3 @@ package body RTCORBA.PriorityMapping.Direct is
    end To_Native;
 
 end RTCORBA.PriorityMapping.Direct;
-

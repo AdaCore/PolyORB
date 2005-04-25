@@ -146,4 +146,3 @@ package body PolyORB.SOAP_P.Message is
    end XML_Image;
 
 end PolyORB.SOAP_P.Message;
-

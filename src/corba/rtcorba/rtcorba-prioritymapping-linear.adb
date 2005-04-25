@@ -87,4 +87,3 @@ package body RTCORBA.PriorityMapping.Linear is
    end To_Native;
 
 end RTCORBA.PriorityMapping.Linear;
-

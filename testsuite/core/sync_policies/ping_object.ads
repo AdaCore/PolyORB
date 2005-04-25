@@ -46,4 +46,3 @@ package Ping_Object is
      return PolyORB.Components.Message'Class;
 
 end Ping_Object;
-

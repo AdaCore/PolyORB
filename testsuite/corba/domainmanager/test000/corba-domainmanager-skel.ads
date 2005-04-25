@@ -13,4 +13,3 @@ package CORBA.DomainManager.Skel is
    pragma Elaborate_Body;
 
 end CORBA.DomainManager.Skel;
-

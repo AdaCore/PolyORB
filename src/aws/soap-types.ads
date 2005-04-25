@@ -360,4 +360,3 @@ private
    type SOAP_Record is new Composite with null record;
 
 end SOAP.Types;
-

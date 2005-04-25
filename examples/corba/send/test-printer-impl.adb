@@ -103,4 +103,3 @@ package body Test.Printer.Impl is
    end EchoLong;
 
 end Test.Printer.Impl;
-

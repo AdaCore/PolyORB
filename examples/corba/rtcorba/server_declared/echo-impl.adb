@@ -118,4 +118,3 @@ package body Echo.Impl is
       return Echo_Objects;
    end Echoers;
 end Echo.Impl;
-

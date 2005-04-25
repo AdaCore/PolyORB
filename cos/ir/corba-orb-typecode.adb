@@ -365,4 +365,3 @@ package body CORBA.ORB.Typecode is
    end Create_Abstract_Interface_Tc;
 
 end CORBA.ORB.Typecode;
-

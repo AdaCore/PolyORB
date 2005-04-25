@@ -84,4 +84,3 @@ private
    pragma Inline (Notepad_Of);
 
 end PolyORB.Call_Back;
-

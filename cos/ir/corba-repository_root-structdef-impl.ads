@@ -223,4 +223,3 @@ private
    end record;
 
 end CORBA.Repository_Root.StructDef.Impl;
-

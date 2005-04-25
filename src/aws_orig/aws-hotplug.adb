@@ -188,4 +188,3 @@ package body AWS.Hotplug is
    end Unregister;
 
 end AWS.Hotplug;
-

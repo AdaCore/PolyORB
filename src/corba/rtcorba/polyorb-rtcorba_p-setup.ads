@@ -79,4 +79,3 @@ package PolyORB.RTCORBA_P.Setup is
    --  Return RT-ORB global Priority Mapping object.
 
 end PolyORB.RTCORBA_P.Setup;
-

@@ -1018,4 +1018,3 @@ package body PolyORB.Sequences.Unbounded is
    end Tail;
 
 end PolyORB.Sequences.Unbounded;
-

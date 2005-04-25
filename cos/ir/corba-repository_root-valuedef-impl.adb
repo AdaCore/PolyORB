@@ -570,4 +570,3 @@ package body CORBA.Repository_Root.ValueDef.Impl is
    end Get_RepositoryIdSeq;
 
 end CORBA.Repository_Root.ValueDef.Impl;
-

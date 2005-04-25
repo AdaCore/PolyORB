@@ -2027,4 +2027,3 @@ package body PolyORB.Sequences.Bounded is
    end Replicate;
 
 end PolyORB.Sequences.Bounded;
-

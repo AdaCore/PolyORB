@@ -101,4 +101,3 @@ package body CORBA.Repository_Root.IRObject.Impl is
    end destroy;
 
 end CORBA.Repository_Root.IRObject.Impl;
-

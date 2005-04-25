@@ -2101,4 +2101,3 @@ package body CIAO.Translator is
    end Translate;
 
 end CIAO.Translator;
-

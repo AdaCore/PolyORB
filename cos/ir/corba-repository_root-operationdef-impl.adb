@@ -151,4 +151,3 @@ package body CORBA.Repository_Root.OperationDef.Impl is
    end describe;
 
 end CORBA.Repository_Root.OperationDef.Impl;
-

@@ -252,4 +252,3 @@ package body PolyORB.Test_Object_SOA is
    end If_Desc;
 
 end PolyORB.Test_Object_SOA;
-

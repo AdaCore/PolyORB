@@ -415,4 +415,3 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    end Get_RepositoryIdSeq;
 
 end CORBA.Repository_Root.InterfaceDef.Impl;
-

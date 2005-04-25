@@ -168,4 +168,3 @@ package body PolyORB.Test_Object_POA is
    end Execute_Servant;
 
 end PolyORB.Test_Object_POA;
-

@@ -42,4 +42,3 @@ package body AWS.Resources.Streams is
    end Create;
 
 end AWS.Resources.Streams;
-

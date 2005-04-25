@@ -81,4 +81,3 @@ private
    type Thread_Per_Request_Policy is new Tasking_Policy_Type with null record;
 
 end PolyORB.ORB.Thread_Per_Request;
-

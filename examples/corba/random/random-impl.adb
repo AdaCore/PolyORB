@@ -71,4 +71,3 @@ begin
    l48_Random.Reset (l48_Gen);
    m48_Random.Reset (m48_Gen);
 end Random.Impl;
-

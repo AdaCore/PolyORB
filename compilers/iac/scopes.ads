@@ -36,4 +36,3 @@ package Scopes is
    Root_Name : Name_Id;
 
 end Scopes;
-

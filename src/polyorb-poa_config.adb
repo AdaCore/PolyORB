@@ -63,4 +63,3 @@ package body PolyORB.POA_Config is
    end Configuration;
 
 end PolyORB.POA_Config;
-

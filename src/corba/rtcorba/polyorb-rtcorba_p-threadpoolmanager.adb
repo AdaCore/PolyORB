@@ -193,4 +193,3 @@ begin
        Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.RTCORBA_P.ThreadPoolManager;
-
