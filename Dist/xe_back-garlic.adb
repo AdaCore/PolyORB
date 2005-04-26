@@ -2,13 +2,11 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                              X E _ B A C K                               --
+--                       X E _ B A C K . G A R L I C                        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
---                                                                          --
---         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -21,8 +19,8 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---                 GLADE  is maintained by ACT Europe.                      --
---                 (email: glade-report@act-europe.fr)                      --
+--                   GLADE  is maintained by AdaCore                        --
+--                      (email: sales@adacore.com)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,7 +35,12 @@ with XE_Types;    use XE_Types;
 with XE_Units;    use XE_Units;
 with XE_Utils;    use XE_Utils;
 
-package body XE_Back is
+package body XE_Back.GARLIC is
+
+   type GARLIC_Backend is new Backend with null record;
+
+   procedure Initialize (Self : access GARLIC_Backend);
+   procedure Run_Backend (Self : access GARLIC_Backend);
 
    Build_Stamp_File      : File_Name_Type;
    Elaboration_File      : File_Name_Type;
@@ -307,132 +310,6 @@ package body XE_Back is
          Length := Length - 1;
       end loop;
    end Apply_Casing_Rules;
-
-   -------------
-   -- Backend --
-   -------------
-
-   procedure Backend is
-      Afile   : File_Name_Type;
-      PID     : Partition_Id;
-      Unit    : Unit_Id;
-      Uname   : Unit_Name_Type;
-      Current : Partition_Type;
-
-   begin
-      if Project_File_Name /= null then
-         Generate_Partition_Project_File (Stub_Dir_Name);
-      end if;
-
-      for J in Partitions.First + 1 .. Partitions.Last loop
-         Current := Partitions.Table (J);
-         if Current.To_Build and then Current.Passive /= BTrue then
-
-            --  Create directories in which resp skels, main partition
-            --  unit, elaboration unit and executables are stored
-
-            Create_Dir (Current.Partition_Dir);
-            Create_Dir (Current.Executable_Dir);
-
-            if Present (Current.Executable_Dir) then
-               Get_Name_String (Current.Executable_Dir);
-               Set_Str_To_Name_Buffer
-                 (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
-               Partitions.Table (J).Executable_Dir := Name_Find;
-            end if;
-
-            Get_Name_String (Current.Executable_File);
-            Set_Str_To_Name_Buffer
-              (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
-            Current.Executable_File := Name_Find;
-
-            if Project_File_Name /= null then
-               Generate_Partition_Project_File (Current.Partition_Dir, J);
-            end if;
-
-            for K in ALIs.First .. ALIs.Last loop
-               Afile := ALIs.Table (K).Afile;
-               Unit  := ALIs.Table (K).Last_Unit;
-               Uname := Units.Table (Unit).Uname;
-
-               --  Remove possible copies of unit object
-
-               if (not Units.Table (Unit).RCI
-                   and then not Units.Table (Unit).Shared_Passive)
-                 or else Get_Partition_Id (Uname) /= J
-               then
-                  Afile := Strip_Directory (Afile);
-                  Afile := Dir (Current.Partition_Dir, Afile);
-                  Delete_File (Afile);
-                  Delete_File (To_Ofile (Afile));
-               end if;
-            end loop;
-         end if;
-      end loop;
-
-      --  Create stub files. Create skel files as well when we have to
-      --  build the partition on which this unit is mapped.
-
-      for J in ALIs.First .. ALIs.Last loop
-         Unit := ALIs.Table (J).Last_Unit;
-
-         if not Units.Table (Unit).Is_Generic
-           and then (Units.Table (Unit).RCI
-                     or else Units.Table (Unit).Shared_Passive)
-         then
-            Uname := Name (Units.Table (Unit).Uname);
-            PID   := Get_Partition_Id (Uname);
-
-            if PID /= No_Partition_Id
-              and then Partitions.Table (PID).To_Build
-              and then Partitions.Table (PID).Passive /= BTrue
-            then
-               if Debug_Mode then
-                  Message ("create caller and receiver stubs for", Uname);
-               end if;
-
-               Generate_Stub (J);
-               Generate_Skel (J, PID);
-
-            else
-               if Debug_Mode then
-                  Message ("create caller stubs for", Uname);
-               end if;
-
-               Generate_Stub (J);
-            end if;
-
-         end if;
-      end loop;
-
-      --  Create partition files and fill partition directories
-
-      for J in Partitions.First + 1 .. Partitions.Last loop
-         if Partitions.Table (J).To_Build then
-            Current := Partitions.Table (J);
-
-            if Current.To_Build and then Current.Passive /= BTrue then
-               if Rebuild_Partition (J) then
-                  if not Quiet_Mode then
-                     Message ("building partition", Current.Name);
-                  end if;
-
-                  Generate_Partition_Main_File (J);
-                  Generate_Elaboration_File (J);
-                  Generate_Protocol_Config_File (J);
-                  Generate_Storage_Config_File (J);
-                  Generate_Executable_File (J);
-                  Generate_Stamp_File (J);
-               end if;
-
-            elsif Verbose_Mode then
-               Message ("no need to expand", Current.Name);
-            end if;
-         end if;
-      end loop;
-
-      Generate_Starter_File;
-   end Backend;
 
    -------------------------------
    -- Generate_Elaboration_File --
@@ -1659,7 +1536,9 @@ package body XE_Back is
    -- Initialize --
    ----------------
 
-   procedure Initialize is
+   procedure Initialize (Self : access GARLIC_Backend) is
+      pragma Unreferenced (Self);
+
       Position : Integer;
       Length   : Natural;
 
@@ -1873,6 +1752,134 @@ package body XE_Back is
       To_Lower (Rules (Rules_Last).From.all);
    end Register_Casing_Rule;
 
+      -----------------
+   -- Run_Backend --
+   -----------------
+
+   procedure Run_Backend (Self : access GARLIC_Backend) is
+      pragma Unreferenced (Self);
+
+      Afile   : File_Name_Type;
+      PID     : Partition_Id;
+      Unit    : Unit_Id;
+      Uname   : Unit_Name_Type;
+      Current : Partition_Type;
+
+   begin
+      if Project_File_Name /= null then
+         Generate_Partition_Project_File (Stub_Dir_Name);
+      end if;
+
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         Current := Partitions.Table (J);
+         if Current.To_Build and then Current.Passive /= BTrue then
+
+            --  Create directories in which resp skels, main partition
+            --  unit, elaboration unit and executables are stored
+
+            Create_Dir (Current.Partition_Dir);
+            Create_Dir (Current.Executable_Dir);
+
+            if Present (Current.Executable_Dir) then
+               Get_Name_String (Current.Executable_Dir);
+               Set_Str_To_Name_Buffer
+                 (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
+               Partitions.Table (J).Executable_Dir := Name_Find;
+            end if;
+
+            Get_Name_String (Current.Executable_File);
+            Set_Str_To_Name_Buffer
+              (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
+            Current.Executable_File := Name_Find;
+
+            if Project_File_Name /= null then
+               Generate_Partition_Project_File (Current.Partition_Dir, J);
+            end if;
+
+            for K in ALIs.First .. ALIs.Last loop
+               Afile := ALIs.Table (K).Afile;
+               Unit  := ALIs.Table (K).Last_Unit;
+               Uname := Units.Table (Unit).Uname;
+
+               --  Remove possible copies of unit object
+
+               if (not Units.Table (Unit).RCI
+                   and then not Units.Table (Unit).Shared_Passive)
+                 or else Get_Partition_Id (Uname) /= J
+               then
+                  Afile := Strip_Directory (Afile);
+                  Afile := Dir (Current.Partition_Dir, Afile);
+                  Delete_File (Afile);
+                  Delete_File (To_Ofile (Afile));
+               end if;
+            end loop;
+         end if;
+      end loop;
+
+      --  Create stub files. Create skel files as well when we have to
+      --  build the partition on which this unit is mapped.
+
+      for J in ALIs.First .. ALIs.Last loop
+         Unit := ALIs.Table (J).Last_Unit;
+
+         if not Units.Table (Unit).Is_Generic
+           and then (Units.Table (Unit).RCI
+                     or else Units.Table (Unit).Shared_Passive)
+         then
+            Uname := Name (Units.Table (Unit).Uname);
+            PID   := Get_Partition_Id (Uname);
+
+            if PID /= No_Partition_Id
+              and then Partitions.Table (PID).To_Build
+              and then Partitions.Table (PID).Passive /= BTrue
+            then
+               if Debug_Mode then
+                  Message ("create caller and receiver stubs for", Uname);
+               end if;
+
+               Generate_Stub (J);
+               Generate_Skel (J, PID);
+
+            else
+               if Debug_Mode then
+                  Message ("create caller stubs for", Uname);
+               end if;
+
+               Generate_Stub (J);
+            end if;
+
+         end if;
+      end loop;
+
+      --  Create partition files and fill partition directories
+
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         if Partitions.Table (J).To_Build then
+            Current := Partitions.Table (J);
+
+            if Current.To_Build and then Current.Passive /= BTrue then
+               if Rebuild_Partition (J) then
+                  if not Quiet_Mode then
+                     Message ("building partition", Current.Name);
+                  end if;
+
+                  Generate_Partition_Main_File (J);
+                  Generate_Elaboration_File (J);
+                  Generate_Protocol_Config_File (J);
+                  Generate_Storage_Config_File (J);
+                  Generate_Executable_File (J);
+                  Generate_Stamp_File (J);
+               end if;
+
+            elsif Verbose_Mode then
+               Message ("no need to expand", Current.Name);
+            end if;
+         end if;
+      end loop;
+
+      Generate_Starter_File;
+   end Run_Backend;
+
    ----------------
    -- Write_Call --
    ----------------
@@ -2038,4 +2045,6 @@ package body XE_Back is
       end if;
    end Write_With_Clause;
 
-end XE_Back;
+begin
+   Register_Backend ("garlic", new GARLIC_Backend);
+end XE_Back.GARLIC;
