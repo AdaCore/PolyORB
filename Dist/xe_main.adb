@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
---                                                                          --
---         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -21,33 +19,35 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---                 GLADE  is maintained by ACT Europe.                      --
---                 (email: glade-report@act-europe.fr)                      --
+--                   GLADE  is maintained by AdaCore                        --
+--                      (email: sales@adacore.com)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE;        use XE;
-with XE_Back;   use XE_Back;
-with XE_Flags;  use XE_Flags;
-with XE_Front;  use XE_Front;
-with XE_IO;     use XE_IO;
-with XE_Names;  use XE_Names;
-with XE_Parse;  use XE_Parse;
-with XE_Types;  use XE_Types;
-with XE_Sem;    use XE_Sem;
-with XE_Scan;   use XE_Scan;
-with XE_Stdcnf; use XE_Stdcnf;
-with XE_Utils;  use XE_Utils;
-with XE_Units;  use XE_Units;
+with XE;              use XE;
+with XE_Back;         use XE_Back;
+with XE_Back.GARLIC;  use XE_Back.GARLIC;
+with XE_Back.PolyORB; use XE_Back.PolyORB;
+with XE_Defs;         use XE_Defs;
+with XE_Flags;        use XE_Flags;
+with XE_Front;        use XE_Front;
+with XE_IO;           use XE_IO;
+with XE_Names;        use XE_Names;
+with XE_Parse;        use XE_Parse;
+with XE_Types;        use XE_Types;
+with XE_Sem;          use XE_Sem;
+with XE_Scan;         use XE_Scan;
+with XE_Stdcnf;       use XE_Stdcnf;
+with XE_Utils;        use XE_Utils;
+with XE_Units;        use XE_Units;
 with XE_Usage;
 
 procedure XE_Main is
    Partition : Partition_Id;
-
+   Backend   : XE_Back.Backend_Access;
 begin
    XE_Names.Initialize;
    XE_Utils.Initialize;
-   XE_Back.Initialize;
 
    if XE_Utils.Number_Of_Files = 0 then
       XE_Usage;
@@ -139,7 +139,9 @@ begin
    --  build the distributed system.
 
    Analyze;
-   Backend;
+   Backend := XE_Back.Find_Backend (Get_PCS_Name);
+   XE_Back.Initialize (Backend);
+   XE_Back.Run_Backend (Backend);
 
    --  Everything went fine
 
