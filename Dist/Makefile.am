@@ -11,12 +11,12 @@ RSH_OPT       = @RSH_OPT@
 srcdir        = @srcdir@
 
 bin_PROGRAMS = gnatdist
-gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.o xe_back.o
+gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.o
 gnatdist_SOURCES =
 gnatdist_LDADD =
 
 CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT) b_xe_defs$(EXEEXT) \
-             xe_defs.adb xe_sysdep.adb xe_back.adb
+             xe_defs.adb xe_sysdep.adb
 
 force: 
 
@@ -53,9 +53,3 @@ xe_sysdep.o: xe_sysdep.adb xe_sysdep.ads
 
 xe_defs.o: xe_defs.adb xe_defs.ads
 	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) $<
-
-xe_back.o: xe_back.adb xe_back.ads
-	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) $<
-
-xe_back.adb: Makefile
-	cp xe_back-$(PCSNAME).adb xe_back.adb
