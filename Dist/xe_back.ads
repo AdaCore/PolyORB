@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
---                                                                          --
---         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -21,8 +19,8 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---                 GLADE  is maintained by ACT Europe.                      --
---                 (email: glade-report@act-europe.fr)                      --
+--                   GLADE  is maintained by AdaCore                        --
+--                      (email: sales@adacore.com)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -32,9 +30,23 @@
 
 package XE_Back is
 
-   procedure Backend;
+   type Backend is abstract tagged limited private;
+   type Backend_Access is access all Backend'Class;
+
+   procedure Initialize (Self : access Backend) is abstract;
+   --  Initialize the backend
+
+   procedure Run_Backend (Self : access Backend) is abstract;
    --  Generate stubs, skels, PCS units and executables.
 
-   procedure Initialize;
+   function Find_Backend (PCS_Name : String) return Backend_Access;
+   --  Return an instance of the backend appropriate for the specified PCS
+
+private
+
+   type Backend is abstract tagged limited null record;
+
+   procedure Register_Backend
+     (PCS_Name : String; The_Backend : Backend_Access);
 
 end XE_Back;
