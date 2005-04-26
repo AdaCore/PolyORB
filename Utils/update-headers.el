@@ -49,8 +49,6 @@
     (insert (center-ada (upcase (expand-ada-name name))))
     (insert (center-ada ""))
     (insert (center-ada (if spec "S p e c" "B o d y")))
-    (insert (center-ada ""))
-    (insert (center-ada (concat "$" "Revision: 1.99 $") 'omit-terminator))
     (re-search-forward "----------")
     (next-line 1)
     (let ((beg (point)))
