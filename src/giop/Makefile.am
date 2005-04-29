@@ -55,7 +55,8 @@ all-gen_codeset:
 
 polyorb-giop_p-code_sets-data.ads: $(GEN_CODESET) $(srcdir)/cs_registry1.2h Makefile
 	$(GEN_CODESET) -c "PolyORB.GIOP_P.Code_Sets.Data" \
-	  < $(srcdir)/cs_registry1.2h > polyorb-giop_p-code_sets-data.ads.new
+	  polyorb-giop_p-code_sets-data.ads.new \
+	  < $(srcdir)/cs_registry1.2h
 	$(MOVEIFCHANGE) polyorb-giop_p-code_sets-data.ads.new polyorb-giop_p-code_sets-data.ads
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
