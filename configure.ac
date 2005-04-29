@@ -375,27 +375,25 @@ AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
 #       tools/po_catref/po_catref_setup.adb
 ##########################################
 
-PROTO_CLIENT_WITHS=${srcdir}/proto_client_withs.adb
-PROTO_SERVER_WITHS=${srcdir}/proto_server_withs.adb
-PO_CATREF_WITHS=${srcdir}/po_catref_withs.adb
+PROTO_CLIENT_WITHS=proto_client_withs.adb.$$
+PROTO_SERVER_WITHS=proto_server_withs.adb.$$
+PO_CATREF_WITHS=po_catref_withs.adb.$$
+
+rm -f ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS} ${PO_CATREF_WITHS}
 
 for P in ${PROTO_LIST}
 do
    c1=`echo "-- ${P} --" | tr a-z A-Z`
    c2=`echo "$c1" | sed s/./-/g`
-   cat >>${PROTO_CLIENT_WITHS} <<EOF
+
+   for f in ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS} ${PO_CATREF_WITHS}; do
+   cat >>${f} <<EOF
 
 $c2
 $c1
 $c2
 EOF
-
-   cat >>${PROTO_SERVER_WITHS} <<EOF
-
-$c2
-$c1
-$c2
-EOF
+   done
 
 for F in `${FIND} ${srcdir}/src/${P} -type f \
         | ${GREP} 'polyorb-setup-[[a-z]]*\.ads$'`
@@ -457,15 +455,19 @@ done
 
 for F in ${PO_CATREF_WITHS} ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS}
 do
-   cp $F /tmp/x
-   ${SED} -e 1d -e '/PolyORB\.Binding_Data\.GIOP\.INET.*/d' < ${F} > ${F}.new
-   cp $F.new /tmp/x
+   SEDCMD="${SED} -e 1d -e '/PolyORB\.Binding_Data\.GIOP\.INET.*/d'"
+   if [ "${F}" = ${PO_CATREF_WITHS} ]; then
+     SEDCMD="${SEDCMD} -e '/PolyORB\.Binding_Data\.GIOP\.Print.*/d'"
+   fi
+   eval "${SEDCMD}" < ${F} > ${F}.new
    mv ${F}.new ${F}
 done
 
 for F in ${PO_CATREF_WITHS}
 do
-   ${SED} -e 1d -e '/PolyORB\.Binding_Data\.GIOP\.Print.*/d' < ${F} > ${F}.new
+   cp $F /tmp/x
+   ${SED} < ${F} > ${F}.new
+   cp $F.new /tmp/x
    mv ${F}.new ${F}
 done
 
