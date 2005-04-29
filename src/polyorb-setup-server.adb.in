@@ -44,8 +44,8 @@ with PolyORB.Setup.OA.Basic_POA;
 pragma Warnings (Off, PolyORB.Setup.OA.Basic_POA);
 pragma Elaborate_All (PolyORB.Setup.OA.Basic_POA);
 
+--  Personalities setup
 @PROTO_SERVER_WITHS@
 
 package body PolyORB.Setup.Server is
-
 end PolyORB.Setup.Server;

@@ -376,22 +376,25 @@ AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
 ##########################################
 
 PROTO_CLIENT_WITHS=${srcdir}/proto_client_withs.adb
-echo "" > ${PROTO_CLIENT_WITHS}
-
 PROTO_SERVER_WITHS=${srcdir}/proto_server_withs.adb
-echo "" > ${PROTO_SERVER_WITHS}
-
 PO_CATREF_WITHS=${srcdir}/po_catref_withs.adb
-echo "" > ${PO_CATREF_WITHS}
 
 for P in ${PROTO_LIST}
 do
+   c1=`echo "-- ${P} --" | tr a-z A-Z`
+   c2=`echo "$c1" | sed s/./-/g`
    cat >>${PROTO_CLIENT_WITHS} <<EOF
--- ${P} --
+
+$c2
+$c1
+$c2
 EOF
 
    cat >>${PROTO_SERVER_WITHS} <<EOF
--- ${P} --
+
+$c2
+$c1
+$c2
 EOF
 
 for F in `${FIND} ${srcdir}/src/${P} -type f \
@@ -399,16 +402,16 @@ for F in `${FIND} ${srcdir}/src/${P} -type f \
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
+
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
-
 EOF
    cat >>${PROTO_CLIENT_WITHS} <<EOF
+
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
-
 EOF
 
 done
@@ -417,39 +420,34 @@ for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_CLIENT_WITHS} <<EOF
+
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
-
 EOF
-
 done
-
 
 for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-access_points-*.ads'`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
+
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
-
 EOF
-
 done
 
 for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PO_CATREF_WITHS} <<EOF
+
 with ${U}.Print;
 pragma Elaborate_All (${U}.Print);
 pragma Warnings (Off, ${U}.Print);
-
 EOF
-
 done
-
 
 done
 
@@ -459,13 +457,15 @@ done
 
 for F in ${PO_CATREF_WITHS} ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS}
 do
-   ${SED} -e 's/.*PolyORB.Binding_Data.GIOP.INET.*//g' < ${F} > ${F}.new
+   cp $F /tmp/x
+   ${SED} -e 1d -e '/PolyORB\.Binding_Data\.GIOP\.INET.*/d' < ${F} > ${F}.new
+   cp $F.new /tmp/x
    mv ${F}.new ${F}
 done
 
 for F in ${PO_CATREF_WITHS}
 do
-   ${SED} -e 's/.*PolyORB.Binding_Data.GIOP.Print.*//g' < ${F} > ${F}.new
+   ${SED} -e 1d -e '/PolyORB\.Binding_Data\.GIOP\.Print.*/d' < ${F} > ${F}.new
    mv ${F}.new ${F}
 done
 

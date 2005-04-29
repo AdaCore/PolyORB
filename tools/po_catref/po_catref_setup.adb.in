@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Personalities setup
 @PO_CATREF_WITHS@
 
 package body PO_CatRef_Setup is
-
 end PO_CatRef_Setup;
