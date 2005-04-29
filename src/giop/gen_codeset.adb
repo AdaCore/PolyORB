@@ -524,7 +524,7 @@ begin
    then
       ATIO.Put_Line (ATIO.Standard_Error, "Usage:");
       ATIO.Put_Line (ATIO.Standard_Error,
-        "gen_codesets <data_switch> <package_name>");
+        "gen_codesets <data_switch> <package_name> <output_file>");
       ATIO.Put_Line (ATIO.Standard_Error, "<data_switch>:");
       ATIO.Put_Line (ATIO.Standard_Error, "   -d  Code sets description");
       ATIO.Put_Line (ATIO.Standard_Error, "   -c  Code sets compatibility");
