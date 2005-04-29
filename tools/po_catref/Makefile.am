@@ -13,5 +13,6 @@ install-exec-local:
 
 polyorb-giop_p-code_sets-description_data.ads: $(GEN_CODESET) $(top_srcdir)/src/giop/cs_registry1.2h Makefile
 	$(GEN_CODESET) -d "PolyORB.GIOP_P.Code_Sets.Description_Data" \
-	  < $(top_srcdir)/src/giop/cs_registry1.2h > polyorb-giop_p-code_sets-description_data.ads.new
+	  polyorb-giop_p-code_sets-description_data.ads.new \
+	  < $(top_srcdir)/src/giop/cs_registry1.2h 
 	$(MOVEIFCHANGE) polyorb-giop_p-code_sets-description_data.ads.new polyorb-giop_p-code_sets-description_data.ads
