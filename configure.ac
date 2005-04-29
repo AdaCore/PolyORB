@@ -455,19 +455,11 @@ done
 
 for F in ${PO_CATREF_WITHS} ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS}
 do
-   SEDCMD="${SED} -e 1d -e '/PolyORB\.Binding_Data\.GIOP\.INET.*/d'"
-   if [ "${F}" = ${PO_CATREF_WITHS} ]; then
-     SEDCMD="${SEDCMD} -e '/PolyORB\.Binding_Data\.GIOP\.Print.*/d'"
+   SEDCMD="${SED} -e 1d -e '/PolyORB\.Binding_Data\.GIOP\.INET/d'"
+   if test "${F}" = "${PO_CATREF_WITHS}"; then
+     SEDCMD="${SEDCMD} -e '/PolyORB\.Binding_Data\.GIOP\.Print/d'"
    fi
    eval "${SEDCMD}" < ${F} > ${F}.new
-   mv ${F}.new ${F}
-done
-
-for F in ${PO_CATREF_WITHS}
-do
-   cp $F /tmp/x
-   ${SED} < ${F} > ${F}.new
-   cp $F.new /tmp/x
    mv ${F}.new ${F}
 done
 
