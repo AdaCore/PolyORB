@@ -125,12 +125,10 @@ private
       Locate_Req_Id  : Types.Unsigned_Long;
       Request_Id     : Types.Unsigned_Long;
       Target_Profile : Binding_Data.Profile_Access;
-      --  XXX This attribute should be removed, and
-      --  Get_Reference_Info on Req.Target should be
-      --  used instead when it is necessary to access the target
-      --  profile.
+      --  XXX This attribute should be removed, and Get_Reference_Info on
+      --  Req.Target should be used instead when it is necessary to access the
+      --  target profile.
    end record;
-
    type Pending_Request_Access is access all Pending_Request;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -141,7 +139,7 @@ private
        (Pending_Request_Access, Doubly_Chained => True);
 
    --------------------
-   -- GIOP Send Mode --
+   -- GIOP send mode --
    --------------------
 
    Default_Locate_Then_Request : constant Boolean := True;
@@ -164,43 +162,47 @@ private
    procedure Get_GIOP_Implem
      (Sess    : access GIOP_Session;
       Version :        GIOP_Version);
-   --  Get a GIOP_Implem from GIOP Version
+   --  Retrieve a GIOP_Implem for the specified GIOP Version, and associate
+   --  it with Sess.
 
    Max_GIOP_Implem : constant Natural := 3;
-   --  number of GIOP Implem that system can handle
+   --  Number of GIOP Implem that system can handle
 
    -----------------
    -- GIOP_Implem --
    -----------------
 
+   --  A GIOP implementation encapsulates the version-specific behaviour
+   --  of a GIOP stack.
+
    type GIOP_Implem is abstract tagged record
       Version               : GIOP_Version;
-      --  This values must be set at Implem initialization !
+      --  This values must be set at Implem initialization
+
       Data_Alignment        : Buffers.Alignment_Type;
       Locate_Then_Request   : Boolean;
       --  Configuration values
+
       Section               : Types.String;
       Prefix                : Types.String;
-      --  Allowed Req Flags
+      --  XXX ??? what are these?
+
       Permitted_Sync_Scopes : PolyORB.Requests.Flags;
+      --  Allowed Req Flags
    end record;
-
    type GIOP_Implem_Access is access all GIOP_Implem'Class;
-
-   --  Function which are version specific
-   --  Must be implemented by each implem
 
    procedure Initialize_Implem
      (Implem : access GIOP_Implem)
       is abstract;
-   --  Initialize global parameters for implem
+   --  Initialize global parameters for Implem
    --  Called at PolyORB initialization
 
    procedure Initialize_Session
      (Implem : access GIOP_Implem;
       S      : access Session'Class)
       is abstract;
-   --  Initialize parameters for a session (a ctx for example)
+   --  Initialize parameters for a session
    --  Called at GIOP Session initialization
 
    procedure Finalize_Session
@@ -230,21 +232,23 @@ private
       S      : access Session'Class;
       Buffer :        PolyORB.Buffers.Buffer_Access;
       Error  : in out Errors.Error_Container);
-   --  function which emit data to lower layer
-   --  can be overidden to fragment messages
+   --  Emit message contained in Buffer to lower layer of the protocol stack.
+   --  Implementations may override this operation to provide outgoing messages
+   --  fragmentation.
 
    procedure Process_Abort_Request
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
       R      : in     Request_Access)
       is abstract;
-   --  cancel a request
+   --  Cancel a request
 
    procedure Send_Reply
      (Implem  : access GIOP_Implem;
       S       : access Session'Class;
       Request :        Requests.Request_Access)
       is abstract;
+   --  Send a reply
 
    procedure Send_Request
      (Implem : access GIOP_Implem;
@@ -260,7 +264,7 @@ private
       R      :        Pending_Request_Access;
       Error  : in out Errors.Error_Container)
       is abstract;
-   --  Send a locate request to loacte an object
+   --  Send a locate request to locate an object
 
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
@@ -271,12 +275,10 @@ private
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
       Error               : in out Errors.Error_Container);
-   --  Internal subprogram: Marshall arguments from Args
-   --  into Buf.
-   --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
-   --  with Arg_Modes equal to either ARG_INOUT or Direction
-   --  will be considered. The first argument marshalled will
-   --  be aligned on First_Arg_Alignment.
+   --  Internal subprogram: Marshall arguments from Args into Buf.
+   --  Direction may be ARG_IN or ARG_OUT. Only NamedValues with Arg_Modes
+   --  equal to either ARG_INOUT or Direction will be considered. The first
+   --  argument marshalled will be aligned on First_Arg_Alignment.
 
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
@@ -289,11 +291,9 @@ private
       Error               : in out Errors.Error_Container);
    --  Internal subprogram: set the values of arguments in
    --  Args by unmarshalling them from Ses.
-   --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
-   --  with Arg_Modes equal to either ARG_INOUT or Direction
-   --  will be considered. The first argument is assumed to
-   --  be aligned on First_Arg_Alignment.
---  functions used to factorize code
+   --  Direction may be ARG_IN or ARG_OUT. Only NamedValues with Arg_Modes
+   --  equal to either ARG_INOUT or Direction will be considered. The first
+   --  argument is assumed to be aligned on First_Arg_Alignment.
 
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem;
@@ -303,77 +303,100 @@ private
       is abstract;
 
    --  GIOP Implem management
+
    type GIOP_Create_Implem_Func is access
      function return GIOP_Implem_Access;
 
    type GIOP_Implem_Array is array (1 .. Max_GIOP_Implem)
      of GIOP_Implem_Access;
 
-   --  Register a GIOP Implem
    procedure Global_Register_GIOP_Version
      (Version : GIOP_Version;
       Implem  : GIOP_Create_Implem_Func);
 
-   ------------------------------------------------
+   --------------------------
+   -- GIOP message context --
+   --------------------------
 
-   --  Giop Context
-   --  will be extended by each implem
-   type GIOP_Ctx is tagged record
+   --  Version-specific information associated with a GIOP message
+
+   type GIOP_Message_Context is abstract tagged null record;
+
+   ---------------------------
+   --  GIOP session context --
+   ---------------------------
+
+   --  Version-specific information associated with a GIOP sesssion
+
+   type GIOP_Session_Context is abstract tagged record
       Message_Endianness : PolyORB.Buffers.Endianness_Type
         := PolyORB.Buffers.Host_Order;
-      Message_Size       : Types.Unsigned_Long;
+      Message_Size : Types.Unsigned_Long;
+      --  XXX Message-specific information, must be moved to Message_Context!
    end record;
 
-   type GIOP_Ctx_Access is access all GIOP_Ctx'Class;
+   type GIOP_Session_Context_Access is access all GIOP_Session_Context'Class;
+   subtype GIOP_Ctx is GIOP_Session_Context;
 
-   ---------------------------------------------------
+   ------------------------
+   -- GIOP configuration --
+   ------------------------
 
    type GIOP_Conf is record
-      --  Default GIOP Version
       GIOP_Def_Ver          : GIOP_Version;
-      --  List of activated GIOP Implem
+      --  Default GIOP Version
+
       GIOP_Implem_List      : GIOP_Implem_Array := (others => null);
-      --  Nb of activated GIOP Implem
+      --  List of activated GIOP Implem
+
       Nb_Implem             : Natural range  0 .. Max_GIOP_Implem := 0;
-      --  Allowed Req Flags
+      --  Nb of activated GIOP Implem
+
       Permitted_Sync_Scopes : PolyORB.Requests.Flags;
+      --  Allowed Req Flags
    end record;
    type GIOP_Conf_Access is access all GIOP_Conf;
 
-   --  Initialize a GIOP Configuration, reading PolyORB configuration
-   procedure Initialize
+      procedure Initialize
      (Conf                  : access GIOP_Conf;
-      Version               : in     GIOP_Version;
-      Permitted_Sync_Scopes : in     PolyORB.Requests.Flags;
-      Locate_Then_Request   : in     Boolean;
-      Section               : in     String;
-      Prefix                : in     String);
-
-   ---------------------------------------------------
+      Version               : GIOP_Version;
+      Permitted_Sync_Scopes : PolyORB.Requests.Flags;
+      Locate_Then_Request   : Boolean;
+      Section               : String;
+      Prefix                : String);
+   --  Initialize a GIOP Configuration, reading PolyORB configuration
 
    ------------------
    -- GIOP_Session --
    ------------------
 
    type GIOP_Session is new Session with record
-      --  Access to current implem
       Implem       : GIOP_Implem_Access;
-      --  GIOP state
+      --  Access to current implem
+
       State        : GIOP_State := Not_Initialized;
-      --  Current GIOP context, implem dependant
-      Ctx          : GIOP_Ctx_Access;
-      --  GIOP Buffer in
+      --  GIOP state
+
+      Ctx          : GIOP_Session_Context_Access;
+      --  GIOP session context, implem dependant
+
       Buffer_In    : Buffers.Buffer_Access;
-      --  Role of session for ORB
+      --  GIOP Buffer in
+
       Role         : ORB.Endpoint_Role;
-      --  List of pendings request
+      --  Role of session for ORB
+
       Pending_Reqs : Pend_Req_List.List;
-      --  Counter to have new Request Index
+      --  List of pendings request
+
       Req_Index    : Types.Unsigned_Long := 1;
-      --  Access to GIOP_Protocol, which contain GIOP_Implems
+      --  Counter to have new Request Index
+
       Conf         : GIOP_Conf_Access;
-      --  Marshalling/unmarshalling repsentation object
+      --  Access to GIOP_Protocol, which contain GIOP_Implems
+
       Repr         : Representations.CDR.CDR_Representation_Access;
+      --  Marshalling/unmarshalling repsentation object
    end record;
 
    type GIOP_Session_Access is access all GIOP_Session;
@@ -395,8 +418,6 @@ private
    --  Location of flags in GIOP packet
    Flags_Index       : constant Stream_Element_Offset := 7;
    Bit_Little_Endian : constant Octet_Flags.Bit_Count := 0;
-
-   ---------------------------------------------------
 
    ---------------------------
    -- Global GIOP Functions --
