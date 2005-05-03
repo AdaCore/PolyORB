@@ -141,8 +141,7 @@ package body PolyORB.Protocols.GIOP.Common is
    procedure Common_Send_Reply
      (Sess           : access GIOP_Session;
       Request        :        Requests.Request_Access;
-      Request_Id_Ptr : access Types.Unsigned_Long;
-      Reply_Stat_Ptr : access Reply_Status_Type;
+      MCtx           : access GIOP_Message_Context'Class;
       Error          : in out Errors.Error_Container)
    is
       use PolyORB.Annotations;
@@ -208,12 +207,13 @@ package body PolyORB.Protocols.GIOP.Common is
 
       --  Set parameter for header request marshalling
 
-      Request_Id_Ptr.all := Request_Id;
-      Reply_Stat_Ptr.all := Reply_Status;
+      MCtx.Request_Id   := Request_Id;
+      MCtx.Reply_Status := Reply_Status;
 
       --  Marshall reply header
 
-      Marshall_GIOP_Header_Reply (Sess.Implem, Sess, Request, Buffer_Out);
+      Marshall_GIOP_Header_Reply
+        (Sess.Implem, Sess, Request, MCtx, Buffer_Out);
 
       case Reply_Status is
          when User_Exception | System_Exception =>
@@ -314,10 +314,10 @@ package body PolyORB.Protocols.GIOP.Common is
 
       --  Marshall Header
 
-      Sess.Ctx.Message_Size := Types.Unsigned_Long
+      MCtx.Message_Size := Types.Unsigned_Long
         (Length (Buffer_Out) - GIOP_Header_Size);
 
-      Marshall_Global_GIOP_Header (Sess, Header_Buffer);
+      Marshall_Global_GIOP_Header (Sess, MCtx, Header_Buffer);
 
       --  Copy Header
 
@@ -326,7 +326,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
       --  Emit reply
 
-      Emit_Message (Sess.Implem, Sess, Buffer_Out, Error);
+      Emit_Message (Sess.Implem, Sess, MCtx, Buffer_Out, Error);
 
       Release (Buffer_Out);
       pragma Debug (O ("Reply sent"));
@@ -338,9 +338,9 @@ package body PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Locate_Reply
      (Sess               : access GIOP_Session;
-      Locate_Request_Id  :        Types.Unsigned_Long;
-      Loc_Type           :        Locate_Reply_Type;
-      Forward_Ref        :        References.Ref;
+      MCtx               : access GIOP_Message_Context'Class;
+      Loc_Type           : Locate_Reply_Type;
+      Forward_Ref        : References.Ref;
       Error              : in out Errors.Error_Container)
    is
       use PolyORB.Components;
@@ -349,35 +349,36 @@ package body PolyORB.Protocols.GIOP.Common is
       Buffer        : Buffer_Access := new Buffer_Type;
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Header_Space  : constant Reservation :=
-        Reserve (Buffer, GIOP_Header_Size);
+                        Reserve (Buffer, GIOP_Header_Size);
+
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
                      (Sess.Implem.Version = GIOP_Version'(1, 1)) or
                      (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       pragma Debug (O ("Sending Locate Reply, Request Id :"
-                       & Locate_Request_Id'Img
+                       & MCtx.Request_Id'Img
                        & " , type : "
                        & Loc_Type'Img));
 
-      Marshall (Buffer, Locate_Request_Id);
+      Marshall (Buffer, MCtx.Request_Id);
       Marshall (Buffer, Loc_Type);
 
       if Loc_Type = Object_Forward then
          References.IOR.Marshall_IOR (Buffer, Forward_Ref);
       end if;
 
-      Sess.Ctx.Message_Size :=
+      MCtx.Message_Size :=
         Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
 
-      Marshall_Global_GIOP_Header (Sess, Header_Buffer);
+      Marshall_Global_GIOP_Header (Sess, MCtx, Header_Buffer);
 
       --  Copy Header
 
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
 
-      Emit_Message (Sess.Implem, Sess, Buffer, Error);
+      Emit_Message (Sess.Implem, Sess, MCtx, Buffer, Error);
       Release (Buffer);
    end Common_Locate_Reply;
 
@@ -502,6 +503,7 @@ package body PolyORB.Protocols.GIOP.Common is
    procedure Common_Process_Abort_Request
      (Sess  : access GIOP_Session;
       R     :        Request_Access;
+      MCtx  : access GIOP_Message_Context'Class;
       Error : in out Errors.Error_Container)
    is
       use PolyORB.Annotations;
@@ -511,6 +513,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Current_Note  : Request_Note;
       Buffer        : Buffer_Access;
       Success       : Boolean;
+
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
                      (Sess.Implem.Version = GIOP_Version'(1, 1)) or
@@ -523,15 +526,13 @@ package body PolyORB.Protocols.GIOP.Common is
       end if;
 
       Buffer := new Buffer_Type;
-
-      Sess.Ctx.Message_Size := Types.Unsigned_Long'Size / Types.Octet'Size;
-      Marshall_Global_GIOP_Header (Sess, Buffer);
-
+      MCtx.Message_Size := Types.Unsigned_Long'Size / Types.Octet'Size;
+      Marshall_Global_GIOP_Header (Sess, MCtx, Buffer);
       Marshall (Buffer, Current_Req.Request_Id);
 
       --  Sending the message
 
-      Emit_Message (Sess.Implem, Sess, Buffer, Error);
+      Emit_Message (Sess.Implem, Sess, MCtx.all'Access, Buffer, Error);
 
       Release (Buffer);
    end Common_Process_Abort_Request;

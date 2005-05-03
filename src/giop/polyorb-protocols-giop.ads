@@ -113,6 +113,21 @@ package PolyORB.Protocols.GIOP is
         State : GIOP_State;
      end record;
 
+   --------------------------
+   -- GIOP message context --
+   --------------------------
+
+   type GIOP_Message_Context is abstract tagged private;
+   type GIOP_Message_Context_Access is access all GIOP_Message_Context'Class;
+
+   type Reply_Status_Type is
+     (No_Exception,
+      User_Exception,
+      System_Exception,
+      Location_Forward,
+      Location_Forward_Perm,    -- 1.2 specific, but not implemented
+      Needs_Addressing_Mode);   -- 1.2 specific, but not implemented
+
 private
 
    type GIOP_Protocol is abstract new Protocol with null record;
@@ -168,6 +183,35 @@ private
    Max_GIOP_Implem : constant Natural := 3;
    --  Number of GIOP Implem that system can handle
 
+   --------------------------
+   -- GIOP message context --
+   --------------------------
+
+   --  Version-specific information associated with a GIOP message
+
+   type GIOP_Message_Context is abstract tagged record
+      Message_Endianness : PolyORB.Buffers.Endianness_Type
+        := PolyORB.Buffers.Host_Order;
+      Message_Size : Types.Unsigned_Long;
+      Request_Id   : aliased Types.Unsigned_Long;
+      Reply_Status : Reply_Status_Type;
+   end record;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (GIOP_Message_Context'Class, GIOP_Message_Context_Access);
+
+   ---------------------------
+   --  GIOP session context --
+   ---------------------------
+
+   --  Version-specific information associated with a GIOP sesssion
+
+   type GIOP_Session_Context is abstract tagged null record;
+   type GIOP_Session_Context_Access is access all GIOP_Session_Context'Class;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (GIOP_Session_Context'Class, GIOP_Session_Context_Access);
+
    -----------------
    -- GIOP_Implem --
    -----------------
@@ -212,14 +256,16 @@ private
    --  Finalize for a session (free parameters)
 
    procedure Unmarshall_GIOP_Header
-     (Implem  : access GIOP_Implem;
-      S       : access Session'Class)
+     (Implem : access GIOP_Implem;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access Buffers.Buffer_Type)
       is abstract;
 
    procedure Marshall_GIOP_Header
      (Implem  : access GIOP_Implem;
       S       : access Session'Class;
-      Buffer  : access PolyORB.Buffers.Buffer_Type)
+      MCtx    : access GIOP_Message_Context'Class;
+      Buffer  : access Buffers.Buffer_Type)
       is abstract;
 
    procedure Process_Message
@@ -230,7 +276,8 @@ private
    procedure Emit_Message
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      Buffer :        PolyORB.Buffers.Buffer_Access;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : PolyORB.Buffers.Buffer_Access;
       Error  : in out Errors.Error_Container);
    --  Emit message contained in Buffer to lower layer of the protocol stack.
    --  Implementations may override this operation to provide outgoing messages
@@ -299,6 +346,7 @@ private
      (Implem  : access GIOP_Implem;
       S       : access Session'Class;
       R       : Request_Access;
+      MCtx    : access GIOP_Message_Context'Class;
       Buffer  : access PolyORB.Buffers.Buffer_Type)
       is abstract;
 
@@ -313,30 +361,6 @@ private
    procedure Global_Register_GIOP_Version
      (Version : GIOP_Version;
       Implem  : GIOP_Create_Implem_Func);
-
-   --------------------------
-   -- GIOP message context --
-   --------------------------
-
-   --  Version-specific information associated with a GIOP message
-
-   type GIOP_Message_Context is abstract tagged null record;
-
-   ---------------------------
-   --  GIOP session context --
-   ---------------------------
-
-   --  Version-specific information associated with a GIOP sesssion
-
-   type GIOP_Session_Context is abstract tagged record
-      Message_Endianness : PolyORB.Buffers.Endianness_Type
-        := PolyORB.Buffers.Host_Order;
-      Message_Size : Types.Unsigned_Long;
-      --  XXX Message-specific information, must be moved to Message_Context!
-   end record;
-
-   type GIOP_Session_Context_Access is access all GIOP_Session_Context'Class;
-   subtype GIOP_Ctx is GIOP_Session_Context;
 
    ------------------------
    -- GIOP configuration --
@@ -377,8 +401,11 @@ private
       State        : GIOP_State := Not_Initialized;
       --  GIOP state
 
-      Ctx          : GIOP_Session_Context_Access;
+      SCtx         : GIOP_Session_Context_Access;
       --  GIOP session context, implem dependant
+
+      MCtx         : GIOP_Message_Context_Access;
+      --  GIOP message context for the message being received
 
       Buffer_In    : Buffers.Buffer_Access;
       --  GIOP Buffer in
@@ -398,7 +425,6 @@ private
       Repr         : Representations.CDR.CDR_Representation_Access;
       --  Marshalling/unmarshalling repsentation object
    end record;
-
    type GIOP_Session_Access is access all GIOP_Session;
 
    procedure Initialize (S : in out GIOP_Session);
@@ -423,15 +449,20 @@ private
    -- Global GIOP Functions --
    ---------------------------
 
-   --  GIOP_Header, non specific version
    procedure Unmarshall_Global_GIOP_Header
-     (Buffer  : access Buffers.Buffer_Type;
-      Version :    out GIOP_Version);
+     (Sess    : access GIOP_Session;
+      Buffer  : access Buffers.Buffer_Type;
+      Version : out GIOP_Version);
+   --  XXX description required
 
    procedure Marshall_Global_GIOP_Header
      (Sess   : access GIOP_Session;
+      MCtx   : access GIOP_Message_Context'Class;
       Buffer : access PolyORB.Buffers.Buffer_Type);
+   --  XXX description required
 
+   procedure Expect_GIOP_Header
+     (Sess : access GIOP_Session);
    --  Prepare S to receive next GIOP message.
    --  This must be called once when a session is established
    --  (in Handle_Connect_Indication for a server session,
@@ -441,20 +472,18 @@ private
    --  message sends and receives can be interleaved in an
    --  arbitrary way, and Expect_Message must not be called
    --  twice in a row).
-   procedure Expect_GIOP_Header
-     (Sess : access GIOP_Session);
 
+   type Request_Note is new PolyORB.Annotations.Note with record
+     Id : Types.Unsigned_Long;
+   end record;
    --  A note can be attached to a PolyORB request to augment
    --  it with personality-specific information. The GIOP stack
    --  uses such a note to associate the Request with its
    --  Request_Id.
-   type Request_Note is new PolyORB.Annotations.Note with record
-     Id : Types.Unsigned_Long;
-   end record;
 
-   --  cancel all current requests
    procedure Cancel_Pending_Request
      (Sess : access GIOP_Session);
+   --  Cancel all requests that are pending on Sess
 
    --------------------------------
    -- Pending Request management --

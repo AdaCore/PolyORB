@@ -72,14 +72,6 @@ package PolyORB.Protocols.GIOP.Common is
    -- Common Process Reply --
    --------------------------
 
-   type Reply_Status_Type is
-     (No_Exception,
-      User_Exception,
-      System_Exception,
-      Location_Forward,
-      Location_Forward_Perm,    -- 1.2 specific, but not implemented
-      Needs_Addressing_Mode);   -- 1.2 specific, but not implemented
-
    procedure Marshall
      (Buffer : access PolyORB.Buffers.Buffer_Type;
       Val    :        Reply_Status_Type);
@@ -90,10 +82,10 @@ package PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Send_Reply
      (Sess           : access GIOP_Session;
-      Request        :        Requests.Request_Access;
-      Request_Id_Ptr : access Types.Unsigned_Long;
-      Reply_Stat_Ptr : access Reply_Status_Type;
+      Request        : Requests.Request_Access;
+      MCtx           : access GIOP_Message_Context'Class;
       Error          : in out Errors.Error_Container);
+   --  XXX documentation required!!!
 
    ------------------
    -- Locate Reply --
@@ -117,9 +109,9 @@ package PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Locate_Reply
      (Sess               : access GIOP_Session;
-      Locate_Request_Id  :        Types.Unsigned_Long;
-      Loc_Type           :        Locate_Reply_Type;
-      Forward_Ref        :        References.Ref;
+      MCtx               : access GIOP_Message_Context'Class;
+      Loc_Type           : Locate_Reply_Type;
+      Forward_Ref        : References.Ref;
       Error              : in out Errors.Error_Container);
 
    procedure Common_Process_Locate_Reply
@@ -133,7 +125,8 @@ package PolyORB.Protocols.GIOP.Common is
 
    procedure Common_Process_Abort_Request
      (Sess  : access GIOP_Session;
-      R     :        Request_Access;
+      R     : Request_Access;
+      MCtx  : access GIOP_Message_Context'Class;
       Error : in out Errors.Error_Container);
 
    ---------------------------

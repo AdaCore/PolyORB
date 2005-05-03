@@ -31,24 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Protocols.GIOP.Common;
-pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
-
 package PolyORB.Protocols.GIOP.GIOP_1_0 is
-
-   use PolyORB.Protocols.GIOP.Common;
-
-   type GIOP_Implem_1_0 is tagged private;
-   type GIOP_Implem_1_0_Access is access all GIOP_Implem_1_0'Class;
-
-   type GIOP_Ctx_1_0 is tagged private;
-   type GIOP_Ctx_1_0_Access is access all GIOP_Ctx_1_0;
 
 private
 
    type GIOP_Implem_1_0 is new GIOP_Implem with null record;
+   type GIOP_Implem_1_0_Access is access all GIOP_Implem_1_0'Class;
 
-   --  GIOP Message Type
+   --  GIOP 1.0 message type
 
    type Msg_Type is
      (Request,
@@ -59,12 +49,10 @@ private
       Close_Connection,
       Message_Error);
 
-   --  GIOP 1.0 context
+   --  GIOP 1.0 message context
 
-   type GIOP_Ctx_1_0 is new GIOP_Ctx with record
+   type GIOP_Message_Context_1_0 is new GIOP_Message_Context with record
       Message_Type : Msg_Type;
-      Request_Id   : aliased Types.Unsigned_Long;
-      Reply_Status : aliased Reply_Status_Type;
    end record;
 
    procedure Initialize_Implem
@@ -79,19 +67,22 @@ private
       S      : access Session'Class);
 
    procedure Unmarshall_GIOP_Header
-     (Implem  : access GIOP_Implem_1_0;
-      S       : access Session'Class);
+     (Implem : access GIOP_Implem_1_0;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access Buffers.Buffer_Type);
 
    procedure Marshall_GIOP_Header
-     (Implem  : access GIOP_Implem_1_0;
-      S       : access Session'Class;
-      Buffer  : access PolyORB.Buffers.Buffer_Type);
+     (Implem : access GIOP_Implem_1_0;
+      S      : access Session'Class;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access Buffers.Buffer_Type);
 
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_0;
       S       : access Session'Class;
       R       : Request_Access;
-      Buffer  : access PolyORB.Buffers.Buffer_Type);
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer  : access Buffers.Buffer_Type);
 
    procedure Process_Message
      (Implem : access GIOP_Implem_1_0;

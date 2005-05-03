@@ -31,20 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Protocols.GIOP.Common;
-pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
-
 package PolyORB.Protocols.GIOP.GIOP_1_1 is
-
-   use PolyORB.Protocols.GIOP.Common;
-
-   type GIOP_Implem_1_1 is tagged private;
-
-   type GIOP_Implem_1_1_Access is access all GIOP_Implem_1_1'Class;
-
-   type GIOP_Ctx_1_1 is tagged private;
-
-   type GIOP_Ctx_1_1_Access is access all GIOP_Ctx_1_1;
 
 private
 
@@ -64,28 +51,14 @@ private
       Close_Connection,
       Message_Error,
       Fragment);
-
-   --  minimal size for fragmented messages
-
-   Default_Max_GIOP_Message_Size_1_1 : constant Integer := 1000;
-
-   --  fragmenting state
-
-   type Fragment_State is (None, Fragment);
+   --  Note: this implementation does not actually support GIOP 1.1
+   --  fragmentation: incoming fragmented messages won't be accepted, and
+   --  outgoing messages will never be fragmented.
 
    --  GIOP 1.1 context
 
-   type GIOP_Ctx_1_1 is new GIOP_Ctx with record
+   type GIOP_Message_Context_1_1 is new GIOP_Message_Context with record
       Message_Type : Msg_Type;
-      Fragmented   : Types.Boolean;
-      Request_Id   : aliased Types.Unsigned_Long;
-      Reply_Status : aliased Reply_Status_Type;
-      --  For fragmenting management
-      Frag_State   : Fragment_State := None;
-      Frag_Type    : Msg_Type;
-      Frag_Size    : Types.Unsigned_Long;
-      Frag_Next    : Types.Unsigned_Long;
-      Frag_Buf     : PolyORB.Buffers.Buffer_Access;
    end record;
 
    procedure Initialize_Implem
@@ -100,19 +73,22 @@ private
       S      : access Session'Class);
 
    procedure Unmarshall_GIOP_Header
-     (Implem  : access GIOP_Implem_1_1;
-      S       : access Session'Class);
+     (Implem : access GIOP_Implem_1_1;
+      MCtx    : access GIOP_Message_Context'Class;
+      Buffer  : access Buffers.Buffer_Type);
 
    procedure Marshall_GIOP_Header
      (Implem  : access GIOP_Implem_1_1;
       S       : access Session'Class;
-      Buffer  : access PolyORB.Buffers.Buffer_Type);
+      MCtx    : access GIOP_Message_Context'Class;
+      Buffer  : access Buffers.Buffer_Type);
 
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_1;
       S       : access Session'Class;
       R       : Request_Access;
-      Buffer  : access PolyORB.Buffers.Buffer_Type);
+      MCtx    : access GIOP_Message_Context'Class;
+      Buffer  : access Buffers.Buffer_Type);
 
    procedure Process_Message
      (Implem : access GIOP_Implem_1_1;
@@ -142,7 +118,7 @@ private
 
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem_1_1;
-      Buffer              :        PolyORB.Buffers.Buffer_Access;
+      Buffer              :        Buffers.Buffer_Access;
       Representation      : in
         PolyORB.Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;

@@ -34,28 +34,19 @@
 with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.Request_QoS.Code_Sets;
-with PolyORB.Protocols.GIOP.Common;
-pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 
 package PolyORB.Protocols.GIOP.GIOP_1_2 is
-   use PolyORB.Protocols.GIOP.Common;
-
-   type GIOP_Implem_1_2 is tagged private;
-
-   type GIOP_Implem_1_2_Access is access all GIOP_Implem_1_2'Class;
-
-   type GIOP_Ctx_1_2 is tagged private;
-
-   type GIOP_Ctx_1_2_Access is access all GIOP_Ctx_1_2;
 
 private
+
+   use PolyORB.Types;
 
    type GIOP_Implem_1_2 is new GIOP_Implem with record
       Max_GIOP_Message_Size : Types.Unsigned_Long;
       Max_Body              : Types.Unsigned_Long;
    end record;
 
-   --  GIOP Message Type
+   --  GIOP 1.2 message types
 
    type Msg_Type is
      (Request,
@@ -67,36 +58,55 @@ private
       Message_Error,
       Fragment);
 
-   --  minimal size for fragmented messages
+   --  Maximal size for unfragmented messages
 
    Default_Max_GIOP_Message_Size_1_2 : constant Integer := 1000;
 
-   --  fragmenting state
+   --  Fragment reassembly state state
 
    type Fragment_State is
-     (None,       --  no current defragmenting
-      First,      --  wait for the first body fragment
-      Req,        --  wait for the fragment header, the request_id
-      Fragment);  --  wait for the body fragment
+     (First,      --  Expecting first body fragment
+      Req,        --  Expecting request id in fragment header
+      Fragment);  --  Expecting fragment body
 
-   --  GIOP 1.2 context
+   --  GIOP 1.2 message context
 
-   type GIOP_Ctx_1_2 is new GIOP_Ctx with record
-      Message_Type : Msg_Type;
-      Fragmented   : Types.Boolean;
-      Request_Id   : aliased Types.Unsigned_Long;
-      Reply_Status : aliased Reply_Status_Type;
-      --  For fragmenting management
-      Frag_State   : Fragment_State := None;
-      Frag_Type    : Msg_Type;
-      Frag_Req_Id  : Types.Unsigned_Long;
-      Frag_Size    : Types.Unsigned_Long;
-      Frag_Next    : Types.Unsigned_Long;
-      Frag_Buf     : PolyORB.Buffers.Buffer_Access;
+   package GIOP_Message_Context_Lists is
+     new PolyORB.Utils.Chained_Lists
+       (T => GIOP_Message_Context_Access,
+        Doubly_Chained => True);
+
+   type GIOP_Message_Context_1_2 is new GIOP_Message_Context with record
+      Message_Type  : Msg_Type;
+      Fragmented    : Types.Boolean;
+
+      --  The following components are used while reassembling a fragmented
+      --  message
+
+      Frag_State    : Fragment_State := First;
+      --  Fragment reassembly state
+
+      Frag_Buf      : Buffers.Buffer_Access;
+      --  Reassembly buffer holding body of reassembled message
+
+      Frag_Size     : Types.Unsigned_Long;
+      --  Amount of data from (non-first) fragment that corresponds to actual
+      --  fragmented payload.
+
+      Frag_Type     : Msg_Type;
+      --  Type of the unfragmented message
+
+      Frag_Position : GIOP_Message_Context_Lists.Iterator;
+      --  Iterator used to remove this element from the reassembly list when
+      --  last fragment is processed.
+   end record;
+
+   type GIOP_Session_Context_1_2 is new GIOP_Session_Context with record
       --  For code sets negotiation
       CSN_Complete : Boolean := False;
       CS_Context   :
         PolyORB.Request_QoS.Code_Sets.QoS_GIOP_Code_Sets_Parameter_Access;
+      Reassembly_Contexts : GIOP_Message_Context_Lists.List;
    end record;
 
    procedure Initialize_Implem
@@ -111,19 +121,22 @@ private
       S      : access Session'Class);
 
    procedure Unmarshall_GIOP_Header
-     (Implem  : access GIOP_Implem_1_2;
-      S       : access Session'Class);
+     (Implem : access GIOP_Implem_1_2;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access Buffers.Buffer_Type);
 
    procedure Marshall_GIOP_Header
      (Implem  : access GIOP_Implem_1_2;
       S       : access Session'Class;
-      Buffer  : access PolyORB.Buffers.Buffer_Type);
+      MCtx    : access GIOP_Message_Context'Class;
+      Buffer  : access Buffers.Buffer_Type);
 
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_2;
       S       : access Session'Class;
       R       : Request_Access;
-      Buffer  : access PolyORB.Buffers.Buffer_Type);
+      MCtx    : access GIOP_Message_Context'Class;
+      Buffer  : access Buffers.Buffer_Type);
 
    procedure Process_Message
      (Implem : access GIOP_Implem_1_2;
@@ -137,7 +150,8 @@ private
    procedure Emit_Message
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
-      Buffer :        PolyORB.Buffers.Buffer_Access;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer :        Buffers.Buffer_Access;
       Error  : in out Errors.Error_Container);
 
    procedure Locate_Object
@@ -159,7 +173,23 @@ private
 
    Bidirectionnal_GIOP_Not_Implemented : exception;
 
-   --  Synchornisation scope for 1.2
+   --  Reassembly management
+
+   procedure Store_Reassembly_Context
+     (SCtx : access GIOP_Session_Context_1_2;
+      MCtx : GIOP_Message_Context_Access);
+   function Get_Reassembly_Context
+     (SCtx : access GIOP_Session_Context_1_2;
+      Request_Id : Types.Unsigned_Long) return GIOP_Message_Context_Access;
+   procedure Remove_Reassembly_Context
+     (SCtx : access GIOP_Session_Context_1_2;
+      MCtx : in out GIOP_Message_Context_Access);
+   --  XXX documentation required
+   --  Note: These subprograms assume exclusive access to SCtx, which is
+   --  guaranteed by the fact that they are only ever called within
+   --  Handle_Data_Indication.
+
+   --  Synchronisation scope for 1.2
 
    type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
 
@@ -197,7 +227,7 @@ private
 
    --  Fragment header size
 
-   Frag_Header_Size : constant Stream_Element_Offset :=
+   Frag_Header_Size : constant Types.Unsigned_Long :=
      Types.Unsigned_Long'Size / Types.Octet'Size;
 
 end PolyORB.Protocols.GIOP.GIOP_1_2;

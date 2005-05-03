@@ -43,6 +43,8 @@ with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB.Iface;
+with PolyORB.Protocols.GIOP.Common;
+pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 with PolyORB.References;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_1_0;
@@ -56,6 +58,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    use PolyORB.GIOP_P.Service_Contexts;
    use PolyORB.Log;
    use PolyORB.Objects;
+   use PolyORB.Protocols.GIOP.Common;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Representations.CDR.GIOP_1_0;
    use PolyORB.Request_QoS;
@@ -65,10 +68,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
      ("polyorb.protocols.giop.giop_1_0");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation
-     (GIOP_Ctx_1_0, GIOP_Ctx_1_0_Access);
 
    procedure Free is
       new Ada.Unchecked_Deallocation
@@ -95,7 +94,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Object_Key : PolyORB.Objects.Object_Id_Access);
 
    procedure Unmarshall_Request_Message
-     (Buffer           : access PolyORB.Buffers.Buffer_Type;
+     (Buffer           : access Buffer_Type;
       Request_Id       :    out Types.Unsigned_Long;
       Resp_Exp         :    out Boolean;
       Object_Key       :    out PolyORB.Objects.Object_Id_Access;
@@ -113,9 +112,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    procedure Process_Locate_Request
      (S : in out Session'Class);
 
-   ---------------
-   -- Functions --
-   ---------------
+   -----------------------
+   -- Initialize_Implem --
+   -----------------------
 
    procedure Initialize_Implem
      (Implem : access GIOP_Implem_1_0)
@@ -142,7 +141,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
       pragma Debug (O ("Initialize context for GIOP session 1.0"));
 
-      Sess.Ctx  := new GIOP_Ctx_1_0;
+      Sess.MCtx  := new GIOP_Message_Context_1_0;
+      --  Sess.SCtx := new GIOP_Session_Context_1_0;
+
       Sess.Repr := new GIOP_1_0_CDR_Representation;
    end Initialize_Session;
 
@@ -160,7 +161,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
    begin
-      Free (GIOP_Ctx_1_0_Access (Sess.Ctx));
+      Free (Sess.MCtx);
+      --  Free (Sess.SCtx);
       Free (GIOP_1_0_CDR_Representation_Access (Sess.Repr));
       pragma Debug (O ("Finalize context for GIOP session 1.0"));
    end Finalize_Session;
@@ -181,9 +183,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.Types;
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
-      Ctx  : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      MCtx : GIOP_Message_Context_1_0
+               renames GIOP_Message_Context_1_0 (Sess.MCtx.all);
    begin
-      case Ctx.Message_Type is
+      case MCtx.Message_Type is
          when Request =>
             if Sess.Role /= Server then
                raise GIOP_Error;
@@ -394,19 +397,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.Errors;
 
       Sess  : GIOP_Session renames GIOP_Session (S.all);
-      Ctx   : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      MCtx  : aliased GIOP_Message_Context_1_0;
       Error : Errors.Error_Container;
    begin
       if Sess.Role = Client then
          raise GIOP_Error;
       end if;
 
-      Ctx.Message_Type := Reply;
+      MCtx.Message_Type := Reply;
       Common_Send_Reply
         (Sess'Access,
          Request,
-         Ctx.Request_Id'Access,
-         Ctx.Reply_Status'Access,
+         MCtx'Access,
          Error);
 
       if Found (Error) then
@@ -416,8 +418,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          Common_Send_Reply
            (Sess'Access,
             Request,
-            Ctx.Request_Id'Access,
-            Ctx.Reply_Status'Access,
+            MCtx'Access,
             Error);
 
          if Found (Error) then
@@ -437,20 +438,28 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.Errors;
 
       Sess    : GIOP_Session renames GIOP_Session (S);
-      Ctx     : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      MCtx    : aliased GIOP_Message_Context_1_0 :=
+                  GIOP_Message_Context_1_0 (Sess.MCtx.all);
       Buffer  : Buffer_Access renames Sess.Buffer_In;
 
       Request_Id   : constant Types.Unsigned_Long := Unmarshall (Buffer);
+
       pragma Warnings (Off);
-      Obj          : constant Stream_Element_Array :=  Unmarshall (Buffer);
+      Obj          : constant Stream_Element_Array := Unmarshall (Buffer);
+      --  XXX missing documentation for use of pragma Warnings (Off)
       pragma Warnings (On);
+
       Target       : References.Ref;
       Result       : Locate_Reply_Type;
       Error        : Errors.Error_Container;
    begin
       Result := Object_Here;
-      Ctx.Message_Type := Locate_Reply;
-      Common_Locate_Reply (Sess'Access, Request_Id, Result, Target, Error);
+
+      MCtx.Message_Type := Locate_Reply;
+      MCtx.Request_Id   := Request_Id;
+
+      Common_Locate_Reply (Sess'Access, MCtx'Access,
+                           Result, Target, Error);
       if Found (Error) then
          Catch (Error);
          raise GIOP_Error;
@@ -478,7 +487,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
-      Ctx           : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      MCtx          : aliased GIOP_Message_Context_1_0;
       Buffer        : Buffer_Access;
       Header_Buffer : Buffer_Access;
       Header_Space  : Reservation;
@@ -499,14 +508,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          R.Locate_Req_Id,
          Get_Object_Key (R.Target_Profile.all));
 
-      Ctx.Message_Type := Locate_Request;
-      Ctx.Message_Size := Types.Unsigned_Long (Length (Buffer))
-        - Types.Unsigned_Long (GIOP_Header_Size);
+      MCtx.Message_Type := Locate_Request;
+      MCtx.Message_Size :=
+        Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
 
-      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
+      Marshall_Global_GIOP_Header (Sess'Access, MCtx'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
-      Emit_Message (Sess.Implem, S, Buffer, Error);
+      Emit_Message (Sess.Implem, S, MCtx'Access, Buffer, Error);
       Release (Buffer);
    end Locate_Object;
 
@@ -529,7 +538,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
-      Ctx           : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      MCtx          : aliased GIOP_Message_Context_1_0;
       Buffer        : Buffer_Access;
       Header_Buffer : Buffer_Access;
       Header_Space  : Reservation;
@@ -570,15 +579,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          return;
       end if;
 
-      Ctx.Message_Type := Request;
-      Ctx.Message_Size := Types.Unsigned_Long (Length (Buffer))
-        - Types.Unsigned_Long (GIOP_Header_Size);
+      MCtx.Message_Type := Request;
+      MCtx.Message_Size :=
+        Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
 
-      Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
+      Marshall_Global_GIOP_Header (Sess'Access, MCtx'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
-      Emit_Message (Sess.Implem, Sess'Access, Buffer, Error);
-      pragma Debug (O ("Request sent, Id :" & Ctx.Message_Size'Img));
+      Emit_Message (Sess.Implem, Sess'Access, MCtx'Access, Buffer, Error);
+      pragma Debug (O ("Request sent, Id :" & MCtx.Message_Size'Img));
       Release (Buffer);
    end Send_Request;
 
@@ -599,15 +608,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.ORB;
 
       Sess  : GIOP_Session renames GIOP_Session (S.all);
-      Ctx   : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      MCtx  : aliased GIOP_Message_Context_1_0;
       Error : Errors.Error_Container;
    begin
       if Sess.Role = Server then
          raise GIOP_Error;
       end if;
 
-      Ctx.Message_Type := Cancel_Request;
-      Common_Process_Abort_Request (Sess'Access, R, Error);
+      MCtx.Message_Type := Cancel_Request;
+      Common_Process_Abort_Request (Sess'Access, R, MCtx'Access, Error);
       if Found (Error) then
          Catch (Error);
          raise GIOP_Error;
@@ -623,8 +632,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    ----------------------------
 
    procedure Unmarshall_GIOP_Header
-     (Implem  : access GIOP_Implem_1_0;
-      S       : access Session'Class)
+     (Implem : access GIOP_Implem_1_0;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access Buffers.Buffer_Type)
    is
       use Octet_Flags;
       use PolyORB.Types;
@@ -633,34 +643,33 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
-      Sess    : GIOP_Session renames GIOP_Session (S.all);
-      Ctx     : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
-      Buffer  : Buffer_Access renames Sess.Buffer_In;
+      MCtx_1_0 : GIOP_Message_Context_1_0
+                   renames GIOP_Message_Context_1_0 (MCtx.all);
       Flags   : Types.Boolean;
    begin
       Flags := Unmarshall (Buffer);
 
       if Flags then
-         Ctx.Message_Endianness := Little_Endian;
+         MCtx_1_0.Message_Endianness := Little_Endian;
       else
-         Ctx.Message_Endianness := Big_Endian;
+         MCtx_1_0.Message_Endianness := Big_Endian;
       end if;
-      pragma Assert (Ctx.Message_Endianness = Endianness (Buffer));
+      pragma Assert (MCtx_1_0.Message_Endianness = Endianness (Buffer));
 
       pragma Debug (O ("Message Endianness : "
-                       & Ctx.Message_Endianness'Img));
+                       & MCtx_1_0.Message_Endianness'Img));
 
       --  Extract type
 
-      Ctx.Message_Type := Unmarshall (Buffer);
+      MCtx_1_0.Message_Type := Unmarshall (Buffer);
       pragma Debug (O ("Message Type       : "
-                       & Ctx.Message_Type'Img));
+                       & MCtx_1_0.Message_Type'Img));
 
       --  Extract size
 
-      Ctx.Message_Size := Unmarshall (Buffer);
+      MCtx_1_0.Message_Size := Unmarshall (Buffer);
       pragma Debug (O ("Message Size       :"
-                       & Ctx.Message_Size'Img));
+                       & MCtx_1_0.Message_Size'Img));
    end Unmarshall_GIOP_Header;
 
    --------------------------
@@ -670,21 +679,17 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    procedure Marshall_GIOP_Header
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
-      Buffer : access PolyORB.Buffers.Buffer_Type)
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access Buffer_Type)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Implem);
-      pragma Warnings (On);
-
-      use Octet_Flags;
-
-      Sess : GIOP_Session renames GIOP_Session (S.all);
-      Ctx  : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
-
+      pragma Unreferenced (S, Implem);
+      MCtx_1_0 : GIOP_Message_Context_1_0
+                   renames GIOP_Message_Context_1_0 (MCtx.all);
    begin
-      Marshall (Buffer, Endianness (Buffer) = Little_Endian);
-      Marshall (Buffer, Ctx.Message_Type);
-      Marshall (Buffer, Ctx.Message_Size);
+      pragma Assert (Endianness (Buffer) = MCtx_1_0.Message_Endianness);
+      Marshall (Buffer, MCtx_1_0.Message_Endianness = Little_Endian);
+      Marshall (Buffer, MCtx_1_0.Message_Type);
+      Marshall (Buffer, MCtx_1_0.Message_Size);
    end Marshall_GIOP_Header;
 
    --------------------------------
@@ -692,7 +697,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    --------------------------------
 
    procedure Unmarshall_Request_Message
-     (Buffer           : access PolyORB.Buffers.Buffer_Type;
+     (Buffer           : access Buffer_Type;
       Request_Id       :    out Types.Unsigned_Long;
       Resp_Exp         :    out Types.Boolean;
       Object_Key       :    out PolyORB.Objects.Object_Id_Access;
@@ -744,22 +749,23 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
      (Implem  : access GIOP_Implem_1_0;
       S       : access Session'Class;
       R       : Request_Access;
-      Buffer  : access PolyORB.Buffers.Buffer_Type)
+      MCtx    : access GIOP_Message_Context'Class;
+      Buffer  : access Buffer_Type)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Implem);
+      pragma Unreferenced (Implem, S);
       pragma Warnings (On);
 
-      Sess    : GIOP_Session renames GIOP_Session (S.all);
-      Ctx     : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      MCtx_1_0 : GIOP_Message_Context_1_0
+                   renames GIOP_Message_Context_1_0 (MCtx.all);
    begin
       Rebuild_Reply_Service_Contexts (R);
       Marshall_Service_Context_List
         (Buffer,
          QoS_GIOP_Service_Contexts_Parameter_Access
            (Extract_Reply_Parameter (GIOP_Service_Contexts, R)));
-      Marshall (Buffer, Ctx.Request_Id);
-      Marshall (Buffer, Ctx.Reply_Status);
+      Marshall (Buffer, MCtx_1_0.Request_Id);
+      Marshall (Buffer, MCtx_1_0.Reply_Status);
    end Marshall_GIOP_Header_Reply;
 
    -----------------------------

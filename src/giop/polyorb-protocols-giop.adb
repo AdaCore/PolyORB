@@ -217,7 +217,6 @@ package body PolyORB.Protocols.GIOP is
       pragma Warnings (Off);
       pragma Unreferenced (Data_Amount);
       pragma Warnings (On);
-
       Version : GIOP_Version;
    begin
       pragma Debug (O ("Received data in state " & Sess.State'Img));
@@ -228,30 +227,23 @@ package body PolyORB.Protocols.GIOP is
 
          when Expect_Header =>
 
-            Unmarshall_Global_GIOP_Header (Sess.Buffer_In, Version);
-
-            if Sess.Implem = null then
-               Get_GIOP_Implem (Sess, Version);
-            elsif Version /= Sess.Implem.Version then
-               raise GIOP_Error;
-            end if;
-
-            Unmarshall_GIOP_Header (Sess.Implem, Sess);
+            Unmarshall_Global_GIOP_Header (Sess, Sess.Buffer_In, Version);
+            Unmarshall_GIOP_Header (Sess.Implem, Sess.MCtx, Sess.Buffer_In);
 
             Sess.State := Expect_Body;
 
             pragma Debug (O ("GIOP Header OK, ask for body, size :"
-                             & Sess.Ctx.Message_Size'Img));
+                             & Sess.MCtx.Message_Size'Img));
 
-            if Sess.Ctx.Message_Size = 0 then
+            if Sess.MCtx.Message_Size = 0 then
                Process_Message (Sess.Implem, Sess);
             else
                Emit_No_Reply
                  (Port => Lower (Sess),
                   Msg  => GIOP_Data_Expected'
-                  (In_Buf => Sess.Buffer_In,
-                   Max    => Stream_Element_Count (Sess.Ctx.Message_Size),
-                   State  => Sess.State));
+                    (In_Buf => Sess.Buffer_In,
+                     Max    => Stream_Element_Count (Sess.MCtx.Message_Size),
+                     State  => Sess.State));
             end if;
 
          when Expect_Body =>
@@ -486,11 +478,12 @@ package body PolyORB.Protocols.GIOP is
    procedure Emit_Message
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      Buffer :        Buffer_Access;
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : Buffer_Access;
       Error  : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Implem);
+      pragma Unreferenced (Implem, MCtx);
       pragma Warnings (On);
 
       use PolyORB.Filters.Iface;
@@ -542,18 +535,20 @@ package body PolyORB.Protocols.GIOP is
           State  => Sess.State));
    end Expect_GIOP_Header;
 
-   ----------------------------
-   -- Unmarshall_GIOP_Header --
-   ----------------------------
+   -----------------------------------
+   -- Unmarshall_Global_GIOP_Header --
+   -----------------------------------
 
    procedure Unmarshall_Global_GIOP_Header
-     (Buffer  : access Buffer_Type;
-      Version :    out GIOP_Version)
+     (Sess    : access GIOP_Session;
+      Buffer  : access Buffer_Type;
+      Version : out GIOP_Version)
    is
       use Octet_Flags;
 
       Message_Magic : Stream_Element_Array (Magic'Range);
       Flags         : Types.Octet;
+
    begin
       --  Get Endianness
       --  This code works only if the endianness bit dont move
@@ -588,6 +583,12 @@ package body PolyORB.Protocols.GIOP is
                        & Version.Major'Img
                        & "."
                        & Version.Minor'Img));
+
+      if Sess.Implem = null then
+         Get_GIOP_Implem (Sess, Version);
+      elsif Version /= Sess.Implem.Version then
+         raise GIOP_Error;
+      end if;
    end Unmarshall_Global_GIOP_Header;
 
    ---------------------------------
@@ -596,8 +597,8 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Marshall_Global_GIOP_Header
      (Sess   : access GIOP_Session;
-      Buffer : access PolyORB.Buffers.Buffer_Type)
-   is
+      MCtx   : access GIOP_Message_Context'Class;
+      Buffer : access PolyORB.Buffers.Buffer_Type) is
    begin
       --  Magic
 
@@ -612,8 +613,7 @@ package body PolyORB.Protocols.GIOP is
 
       --  Implem-specific data
 
-      Marshall_GIOP_Header (Sess.Implem, Sess, Buffer);
-
+      Marshall_GIOP_Header (Sess.Implem, Sess, MCtx, Buffer);
    end Marshall_Global_GIOP_Header;
 
    ------------------------------
