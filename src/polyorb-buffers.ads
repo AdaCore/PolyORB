@@ -228,17 +228,27 @@ package PolyORB.Buffers is
 
    procedure Extract_Data
      (Buffer      : access Buffer_Type;
-      Data        :    out Opaque.Opaque_Pointer;
-      Size        :        Ada.Streams.Stream_Element_Count;
-      Use_Current :        Boolean := True;
-      At_Position :        Ada.Streams.Stream_Element_Offset := 0);
-   --  Retrieve Size elements from Buffer. If Use_Current,
-   --  the extraction starts at the current position in the
-   --  buffer, else it starts at At_Position.
-
-   --  On return, Data contains an access to the retrieved
-   --  Data, and if Use_Current, then the CDR current position
-   --  is advanced by Size.
+      Data        : out Opaque.Opaque_Pointer;
+      Size        : Ada.Streams.Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Ada.Streams.Stream_Element_Offset := 0);
+   procedure Partial_Extract_Data
+     (Buffer      : access Buffer_Type;
+      Data        : out Opaque.Opaque_Pointer;
+      Size        : in out Ada.Streams.Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Ada.Streams.Stream_Element_Offset := 0;
+      Partial     : Boolean := True);
+   --  Retrieve Size elements of contiguous data from Buffer. If Use_Current
+   --  is True, the extraction starts at the current position in the buffer,
+   --  else it starts at At_Position.
+   --  For the Partial version, if Partial is Trye, less data may be returned
+   --  than requested, in which case Size is adjusted accordingly. If Partial
+   --  is False, the behaviour is the same as Extract_Data.
+   --  On return, Data contains an access to the retrieved Data, and if
+   --  Use_Current, then the CDR current position is advanced by Size.
+   --  An exception is raised if less than Size elements of contiguous data
+   --  are available and Partial is not True.
 
    function CDR_Position
      (Buffer : access Buffer_Type)
@@ -394,13 +404,10 @@ private
         (Iovec_Pool : in out Iovec_Pool_Type;
          Data       : out Opaque.Opaque_Pointer;
          Offset     :     Ada.Streams.Stream_Element_Offset;
-         Size       :     Ada.Streams.Stream_Element_Count);
-      --  Retrieve exactly Size octets of data from
-      --  Iovec_Pool starting at Offset.
-      --  The data must be stored contiguously.
-      --  If there are not Size octets of data
-      --  contiguously stored in Iovec_Pool at Offset,
-      --  then exception Constraint_Error is raised.
+         Size       : in out Ada.Streams.Stream_Element_Count);
+      --  Retrieve at most Size octets of contiguous data from Iovec_Pool,
+      --  starting at Offset. The effective amount of available contiguous
+      --  data available at this position is returned in Size.
 
       procedure Release
         (Iovec_Pool : in out Iovec_Pool_Type);

@@ -482,13 +482,33 @@ package body PolyORB.Buffers is
 
    procedure Extract_Data
      (Buffer      : access Buffer_Type;
+      Data        : out Opaque_Pointer;
+      Size        : Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Stream_Element_Offset := 0)
+   is
+      Extracted_Size : Stream_Element_Count := Size;
+   begin
+      Partial_Extract_Data (Buffer, Data, Extracted_Size,
+        Use_Current, At_Position,
+        Partial => False);
+      pragma Assert (Extracted_Size = Size);
+   end Extract_Data;
+
+   --------------------------
+   -- Partial_Extract_Data --
+   --------------------------
+
+   procedure Partial_Extract_Data
+     (Buffer      : access Buffer_Type;
       Data        :    out Opaque_Pointer;
-      Size        :        Stream_Element_Count;
+      Size        : in out Stream_Element_Count;
       Use_Current :        Boolean := True;
-      At_Position :        Stream_Element_Offset := 0)
+      At_Position :        Stream_Element_Offset := 0;
+      Partial     :        Boolean := True)
    is
       Start_Position : Stream_Element_Offset;
-
+      Requested_Size : constant Stream_Element_Count := Size;
    begin
       if Use_Current then
          Start_Position := Buffer.CDR_Position;
@@ -500,10 +520,14 @@ package body PolyORB.Buffers is
         (Buffer.Contents, Data,
          Start_Position - Buffer.Initial_CDR_Position, Size);
 
+      if Size < Requested_Size and then not Partial then
+         raise Program_Error;
+      end if;
+
       if Use_Current then
          Buffer.CDR_Position := Buffer.CDR_Position + Size;
       end if;
-   end Extract_Data;
+   end Partial_Extract_Data;
 
    ------------------
    -- CDR_Position --
@@ -979,7 +1003,7 @@ package body PolyORB.Buffers is
         (Iovec_Pool : in out Iovec_Pool_Type;
          Data       : out Opaque_Pointer;
          Offset     :     Stream_Element_Offset;
-         Size       :     Stream_Element_Count)
+         Size       : in out Stream_Element_Count)
       is
          Vecs_Address : constant System.Address
            := Iovecs_Address (Iovec_Pool);
@@ -1005,8 +1029,16 @@ package body PolyORB.Buffers is
             Last_Index       := Last_Index       + 1;
          end loop;
 
-         pragma Assert (Offset_Remainder + Storage_Offset (Size)
-                          <= Vecs (Last_Index).Iov_Len);
+         declare
+            Contiguous_Size : constant Stream_Element_Count :=
+                                Stream_Element_Count (
+                                  Vecs (Last_Index).Iov_Len
+                                  - Offset_Remainder);
+         begin
+            if Size > Contiguous_Size then
+               Size := Contiguous_Size;
+            end if;
+         end;
 
          Data := Vecs (Last_Index).Iov_Base + Offset_Remainder;
       end Extract_Data;
