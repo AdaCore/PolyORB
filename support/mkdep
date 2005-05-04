@@ -77,7 +77,6 @@ echo $MKDEP
 IFS=":${IFS}"
 for alifile in `echo *.ali | sort`; do
   echo "Processing ${alifile}..." > /dev/stderr
-  i="${alifile%.ali}"
   withlist=
   while read key unit rest; do
     case "${key}" in
@@ -93,7 +92,7 @@ for alifile in `echo *.ali | sort`; do
         ;;
     esac
   done < ${alifile}
-  ${ucbecho} -n "${i}.lo:"
+  ${ucbecho} -n "${alifile%.ali}.lo:"
   withlist="${withlist#:}"
   echo "${withlist}" | tr ':' '
 ' | sort | uniq | while read dep; do
