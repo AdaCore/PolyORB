@@ -59,6 +59,7 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Representations.CDR;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Representations.CDR.GIOP_Utils;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");
@@ -178,6 +179,7 @@ package body PolyORB.Protocols.GIOP is
      (S : in out GIOP_Session) is
    begin
       pragma Debug (O ("Initializing GIOP session"));
+      Tasking.Mutexes.Create (S.Mutex);
       S.Buffer_In  := new Buffer_Type;
    end Initialize;
 
@@ -191,6 +193,7 @@ package body PolyORB.Protocols.GIOP is
    begin
       pragma Debug (O ("Destroying GIOP session"));
 
+      Enter (S.Mutex);
       pragma Assert (Pend_Req_List.Length (S.Pending_Reqs) = 0);
       --  XXX Check the session has no pending requests.
       --  What if there is one ? Should we emit an error message ?
@@ -202,6 +205,8 @@ package body PolyORB.Protocols.GIOP is
       if S.Implem /= null then
          Finalize_Session (S.Implem, S'Access);
       end if;
+
+      Destroy (S.Mutex);
 
       Protocols.Destroy (Protocols.Session (S));
    end Destroy;
@@ -369,6 +374,7 @@ package body PolyORB.Protocols.GIOP is
       New_Pending_Req.Req := R;
       New_Pending_Req.Target_Profile := Profile_Access (Pro);
 
+      Enter (Sess.Mutex);
       if Is_Set (Sync_None, R.Req_Flags)
         or else Is_Set (Sync_With_Transport, R.Req_Flags)
       then
@@ -378,6 +384,7 @@ package body PolyORB.Protocols.GIOP is
          --  information now.
 
          New_Pending_Req.Request_Id := Get_Request_Id (Sess);
+         Leave (Sess.Mutex);
          Send_Request (Sess.Implem, Sess, New_Pending_Req, Error);
          Free (New_Pending_Req);
 
@@ -403,9 +410,11 @@ package body PolyORB.Protocols.GIOP is
       if Sess.Implem.Locate_Then_Request then
          New_Pending_Req.Locate_Req_Id := Get_Request_Id (Sess);
          Add_Pending_Request (Sess, New_Pending_Req);
+         Leave (Sess.Mutex);
          Locate_Object (Sess.Implem, Sess, New_Pending_Req, Error);
       else
          Add_Pending_Request (Sess, New_Pending_Req);
+         Leave (Sess.Mutex);
          Send_Request (Sess.Implem, Sess, New_Pending_Req, Error);
       end if;
 
@@ -791,7 +800,7 @@ package body PolyORB.Protocols.GIOP is
 
       for J in 1 .. Sess.Conf.Nb_Implem loop
          if Sess.Conf.GIOP_Implem_List (J).Version = Version then
-
+            pragma Debug (O ("Implementation found"));
             Sess.Implem := Sess.Conf.GIOP_Implem_List (J);
             Initialize_Session (Sess.Implem, Sess);
             return;
@@ -813,12 +822,15 @@ package body PolyORB.Protocols.GIOP is
    is
       use Pend_Req_List;
 
-      It : Iterator := First (Sess.Pending_Reqs);
+      It : Iterator;
       PRA : Pending_Request_Access;
    begin
       pragma Debug (O ("Retrieving pending request with id"
                        & Types.Unsigned_Long'Image (Id)));
 
+      Success := False;
+      Enter (Sess.Mutex);
+      It := First (Sess.Pending_Reqs);
       while not Last (It) loop
          if Pending_Request_Access (Value (It).all).Request_Id = Id then
             PRA := Pending_Request_Access (Value (It).all);
@@ -826,12 +838,12 @@ package body PolyORB.Protocols.GIOP is
             Req := PRA.all;
             Free (PRA);
             Success := True;
-            return;
+            exit;
          end if;
          Next (It);
       end loop;
+      Leave (Sess.Mutex);
 
-      Success := False;
    end Get_Pending_Request;
 
    -----------------------------------
@@ -845,23 +857,23 @@ package body PolyORB.Protocols.GIOP is
       Success :    out Boolean)
    is
       use Pend_Req_List;
-
-      It : Iterator := First (Sess.Pending_Reqs);
-
+      It : Iterator;
    begin
       pragma Debug (O ("Retrieving pending request with locate id"
                        & Types.Unsigned_Long'Image (Id)));
 
+      Success := False;
+      Enter (Sess.Mutex);
+      It := First (Sess.Pending_Reqs);
       while not Last (It) loop
          if Pending_Request_Access (Value (It).all).Locate_Req_Id = Id then
             Req := Pending_Request_Access (Value (It).all);
             Success := True;
-            return;
+            exit;
          end if;
          Next (It);
       end loop;
-
-      Success := False;
+      Leave (Sess.Mutex);
    end Get_Pending_Request_By_Locate;
 
    ----------------------------
@@ -875,24 +887,26 @@ package body PolyORB.Protocols.GIOP is
    is
       use Pend_Req_List;
 
-      It : Iterator := First (Sess.Pending_Reqs);
+      It : Iterator;
       PRA : Pending_Request_Access;
    begin
       pragma Debug (O ("Retrieving pending request with id"
                        & Types.Unsigned_Long'Image (Id)));
 
+      Success := False;
+      Enter (Sess.Mutex);
+      It := First (Sess.Pending_Reqs);
       while not Last (It) loop
          if Pending_Request_Access (Value (It).all).Request_Id = Id then
             PRA := Pending_Request_Access (Value (It).all);
             Remove (Sess.Pending_Reqs, It);
             Free (PRA);
             Success := True;
-            return;
+            exit;
          end if;
          Next (It);
       end loop;
-
-      Success := False;
+      Leave (Sess.Mutex);
    end Remove_Pending_Request;
 
    --------------------------------------
@@ -906,25 +920,27 @@ package body PolyORB.Protocols.GIOP is
    is
       use Pend_Req_List;
 
-      It  : Iterator := First (Sess.Pending_Reqs);
+      It  : Iterator;
       PRA : Pending_Request_Access;
 
    begin
       pragma Debug (O ("Removing pending request with locate id"
                        & Types.Unsigned_Long'Image (Id)));
 
+      Success := False;
+      Enter (Sess.Mutex);
+      It := First (Sess.Pending_Reqs);
       while not Last (It) loop
          if Pending_Request_Access (Value (It).all).Locate_Req_Id = Id then
             PRA := Pending_Request_Access (Value (It).all);
             Remove (Sess.Pending_Reqs, It);
             Free (PRA);
             Success := True;
-            return;
+            exit;
          end if;
          Next (It);
       end loop;
-
-      Success := False;
+      Leave (Sess.Mutex);
    end Remove_Pending_Request_By_Locate;
 
    -------------------------
@@ -936,11 +952,10 @@ package body PolyORB.Protocols.GIOP is
       Pend_Req : in     Pending_Request_Access)
    is
       use Pend_Req_List;
-
-      Request_Id : constant Types.Unsigned_Long := Get_Request_Id (Sess);
+      Request_Id : Types.Unsigned_Long;
    begin
-      pragma Debug (O ("Adding pending request with id"
-                       & Request_Id'Img));
+      Request_Id := Get_Request_Id (Sess);
+      pragma Debug (O ("Adding pending request with id" & Request_Id'Img));
       Set_Note
         (Pend_Req.Req.Notepad,
          Request_Note'(Annotations.Note with Id => Request_Id));
@@ -953,15 +968,10 @@ package body PolyORB.Protocols.GIOP is
    --------------------
 
    function Get_Request_Id
-     (Sess : access GIOP_Session)
-     return Types.Unsigned_Long
+     (Sess : access GIOP_Session) return Types.Unsigned_Long
    is
-      R : Types.Unsigned_Long;
+      R : constant Types.Unsigned_Long := Sess.Req_Index;
    begin
-
-      --  XXX should we protect Sess.Req_Index against concurrent accesses ?
-
-      R := Sess.Req_Index;
       Sess.Req_Index := Sess.Req_Index + 1;
       return R;
    end Get_Request_Id;

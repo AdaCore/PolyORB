@@ -38,6 +38,7 @@ with PolyORB.Buffers;
 with PolyORB.Errors;
 with PolyORB.ORB;
 with PolyORB.Representations.CDR;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Simple_Flags;
@@ -398,6 +399,9 @@ private
       Implem       : GIOP_Implem_Access;
       --  Access to current implem
 
+      Repr         : Representations.CDR.CDR_Representation_Access;
+      --  Marshalling/unmarshalling repsentation object
+
       State        : GIOP_State := Not_Initialized;
       --  GIOP state
 
@@ -413,17 +417,25 @@ private
       Role         : ORB.Endpoint_Role;
       --  Role of session for ORB
 
+      Conf         : GIOP_Conf_Access;
+      --  Access to GIOP_Protocol, which contain GIOP_Implems
+
+      --------------------------------------
+      -- Global state of the GIOP session --
+      --------------------------------------
+
+      --  These components must be accessed under mutual exclusion at
+      --  the session level.
+
+      Mutex : Tasking.Mutexes.Mutex_Access;
+      --  Critical section for concurrent access to Pending_Reqs and
+      --  Req_Index.
+
       Pending_Reqs : Pend_Req_List.List;
       --  List of pendings request
 
       Req_Index    : Types.Unsigned_Long := 1;
       --  Counter to have new Request Index
-
-      Conf         : GIOP_Conf_Access;
-      --  Access to GIOP_Protocol, which contain GIOP_Implems
-
-      Repr         : Representations.CDR.CDR_Representation_Access;
-      --  Marshalling/unmarshalling repsentation object
    end record;
    type GIOP_Session_Access is access all GIOP_Session;
 
@@ -490,24 +502,26 @@ private
    --------------------------------
 
    function Get_Request_Id
-     (Sess : access GIOP_Session)
-     return Types.Unsigned_Long;
-   --  Obtain a new, unique request identifier.
+     (Sess : access GIOP_Session) return Types.Unsigned_Long;
+   --  Obtain a new, unique request identifier. The caller is responsible
+   --  for ensuring that this function is called under mutual exclusion.
 
    procedure Add_Pending_Request
      (Sess     : access GIOP_Session;
-      Pend_Req : in     Pending_Request_Access);
+      Pend_Req : Pending_Request_Access);
    --  Add Pend_Req to the list of pending requests on S.
-   --  The Req and Target_Profile fields must be already
-   --  initialized; this procedure sets the Request_Id.
+   --  The Req and Target_Profile fields must be already initialized; this
+   --  procedure sets the Request_Id. The caller is reponsible for ensuring
+   --  that this procedure is called under mutual exclusion.
 
    procedure Get_Pending_Request
      (Sess    : access GIOP_Session;
       Id      :        Types.Unsigned_Long;
       Req     :    out Pending_Request;
       Success :    out Boolean);
-   --  Retrieve a pending request of Ses by its request id,
-   --  and remove it from the list of pending requests.
+   --  Retrieve a pending request of Ses by its request id, and remove it
+   --  from the list of pending requests. This procedure ensures proper
+   --  mutual exclusion.
 
    procedure Get_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;
@@ -515,21 +529,22 @@ private
       Req     :    out Pending_Request_Access;
       Success :    out Boolean);
    --  Retrieve a pending request of Ses by its locate request id.
-   --  The request is left on Ses' pending requests list.
+   --  The request is left on Ses' pending requests list. This procedure
+   --  ensures proper mutual exclusion.
 
    procedure Remove_Pending_Request
      (Sess    : access GIOP_Session;
       Id      : in     Types.Unsigned_Long;
       Success :    out Boolean);
-   --  Remove pending request by its request id from the list of
-   --  pending requests on Sess.
+   --  Remove pending request by its request id from the list of pending
+   --  requests on Sess. This procedure ensures proper mutual exclusion.
 
    procedure Remove_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;
       Id      : in     Types.Unsigned_Long;
       Success :    out Boolean);
-   --  Remove pending request by locate request id from the list of
-   --  pending requests on Sess.
+   --  Remove pending request by locate request id from the list of pending
+   --  requests on Sess. This procedure ensures proper mutual exclusion.
 
    ---------------------------------
    -- Marshall Unmarshall helpers --
