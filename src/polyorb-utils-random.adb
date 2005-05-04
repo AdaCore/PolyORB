@@ -40,8 +40,6 @@ package body PolyORB.Utils.Random is
    Upper_Mask   : constant := 16#80000000#;   -- Most significant w-r bits
    Lower_Mask   : constant := 16#7FFFFFFF#;   -- Least significant r bits
 
-   type State_Access is access all State;
-
    -----------
    -- Magic --
    -----------
@@ -62,14 +60,13 @@ package body PolyORB.Utils.Random is
    -- Random --
    ------------
 
-   function Random (G : in Generator) return PolyORB.Types.Unsigned_Long is
-      Gen_State : constant State_Access := G.Gen_State'Unrestricted_Access;
+   function Random (G : access Generator) return PolyORB.Types.Unsigned_Long is
       S : Unsigned_Long;
 
    begin
-      if Gen_State.Condition >= N then
+      if G.Gen_State.Condition >= N then
 
-         if Gen_State.Condition = Invalid then
+         if G.Gen_State.Condition = Invalid then
 
             --  The generator is not initialized
 
@@ -78,38 +75,38 @@ package body PolyORB.Utils.Random is
 
          for J in 0 .. N - M - 1 loop
 
-            S := (Gen_State.Vector_N (J) and Upper_Mask)
-              or (Gen_State.Vector_N (J + 1) and Lower_Mask);
+            S := (G.Gen_State.Vector_N (J) and Upper_Mask)
+              or (G.Gen_State.Vector_N (J + 1) and Lower_Mask);
 
-            Gen_State.Vector_N (J) := Gen_State.Vector_N (J + M)
+            G.Gen_State.Vector_N (J) := G.Gen_State.Vector_N (J + M)
               xor Shift_Right (S, 1) xor Magic (S);
 
          end loop;
 
          for J in N - M .. N - 2 loop
 
-            S := (Gen_State.Vector_N (J) and Upper_Mask)
-              or (Gen_State.Vector_N (J + 1) and Lower_Mask);
+            S := (G.Gen_State.Vector_N (J) and Upper_Mask)
+              or (G.Gen_State.Vector_N (J + 1) and Lower_Mask);
 
-            Gen_State.Vector_N (J) := Gen_State.Vector_N (J + (M - N))
+            G.Gen_State.Vector_N (J) := G.Gen_State.Vector_N (J + (M - N))
               xor Shift_Right (S, 1) xor Magic (S);
 
          end loop;
 
-         S := (Gen_State.Vector_N (N - 1) and Upper_Mask)
-           or (Gen_State.Vector_N (0) and Lower_Mask);
+         S := (G.Gen_State.Vector_N (N - 1) and Upper_Mask)
+           or (G.Gen_State.Vector_N (0) and Lower_Mask);
 
-         Gen_State.Vector_N (N - 1) := Gen_State.Vector_N (M - 1)
+         G.Gen_State.Vector_N (N - 1) := G.Gen_State.Vector_N (M - 1)
            xor Shift_Right (S, 1) xor Magic (S);
 
-         Gen_State.Condition := 0;
+         G.Gen_State.Condition := 0;
       end if;
 
       --  Tempering
 
-      S := Gen_State.Vector_N (Gen_State.Condition);
+      S := G.Gen_State.Vector_N (G.Gen_State.Condition);
 
-      Gen_State.Condition := Gen_State.Condition + 1;
+      G.Gen_State.Condition := G.Gen_State.Condition + 1;
 
       S := S xor Shift_Right (S, 11);
       S := S xor (Shift_Left (S,  7) and 16#9D2C5680#);
@@ -123,28 +120,27 @@ package body PolyORB.Utils.Random is
    -- Reset --
    -----------
 
-   procedure Reset (G : in Generator; Seed : in Seed_Type := Default_Seed) is
-      Gen_State : constant State_Access := G.Gen_State'Unrestricted_Access;
-
+   procedure Reset (G : access Generator; Seed : in Seed_Type := Default_Seed)
+   is
    begin
-      Gen_State.Seed := Seed;
-      Gen_State.Vector_N (0) := Unsigned_Long (Gen_State.Seed)
+      G.Gen_State.Seed := Seed;
+      G.Gen_State.Vector_N (0) := Unsigned_Long (G.Gen_State.Seed)
         and 16#FFFFFFFF#;
 
       --  See Knuth, "The Art Of Computer Programming" (Vol2. 3rd Ed. p.106)
       --  for multiplier.
 
       for J in 1 .. N loop
-         Gen_State.Vector_N (J)
+         G.Gen_State.Vector_N (J)
            := 1_812_433_253
-           * (Gen_State.Vector_N (J - 1)
-              xor Shift_Right (Gen_State.Vector_N (J - 1), 30))
+           * (G.Gen_State.Vector_N (J - 1)
+              xor Shift_Right (G.Gen_State.Vector_N (J - 1), 30))
            + Unsigned_Long (J);
 
-         Gen_State.Vector_N (J) := Gen_State.Vector_N (J) and 16#FFFFFFFF#;
+         G.Gen_State.Vector_N (J) := G.Gen_State.Vector_N (J) and 16#FFFFFFFF#;
       end loop;
 
-      Gen_State.Condition := N;
+      G.Gen_State.Condition := N;
    end Reset;
 
 end PolyORB.Utils.Random;

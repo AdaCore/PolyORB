@@ -51,9 +51,9 @@ package PolyORB.Utils.Random is
 
    Default_Seed : constant Seed_Type;
 
-   function Random (G : in Generator) return PolyORB.Types.Unsigned_Long;
+   function Random (G : access Generator) return PolyORB.Types.Unsigned_Long;
 
-   procedure Reset (G : in Generator; Seed : in Seed_Type := Default_Seed);
+   procedure Reset (G : access Generator; Seed : in Seed_Type := Default_Seed);
 
 private
 

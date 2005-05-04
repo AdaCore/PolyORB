@@ -52,17 +52,16 @@ package body PolyORB.Utils.HFunctions.Hyper is
      return Natural
    is
       Result : Long_Long_Integer := 0;
-
-      G : Generator;
+      G : aliased Generator;
    begin
 
-      Reset (G, Seed_Type (Seed));
+      Reset (G'Access, Seed_Type (Seed));
 
       --  Loop
 
       for J in S'Range loop
          Result := (Result
-                    + Long_Long_Integer (Random.Random (G))
+                    + Long_Long_Integer (Random.Random (G'Access))
                     * Long_Long_Integer (Character'Pos (S (J))))
            mod Long_Long_Integer (Prime);
       end loop;

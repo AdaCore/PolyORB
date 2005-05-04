@@ -43,15 +43,15 @@ procedure Test000 is
    use PolyORB.Utils.Random;
    use PolyORB.Utils.Report;
 
-   G : PolyORB.Utils.Random.Generator;
+   G : aliased PolyORB.Utils.Random.Generator;
 
 begin
    New_Test ("Pseudo-random generator");
 
-   Reset (G, 42);
+   Reset (G'Access, 42);
 
    for J in 1 .. 10 loop
-      Put_Line (Random (G)'Img);
+      Put_Line (Random (G'Access)'Img);
    end loop;
 
    End_Report;
