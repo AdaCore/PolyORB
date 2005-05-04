@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#57 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#58 $
 
 @include version.texi
 
@@ -2993,7 +2993,8 @@ Support for IOR and @code{corbaloc} addressing mechanisms is supported
 in CORBA personality, see @ref{CORBA} for more details.
 
 PolyORB does not support the optional IIOP IOR Profile Components,
-Bi-directional GIOP, IIOP/SSL.
+Bi-directional GIOP, IIOP/SSL. PolyORB also does not support fragmentation
+in GIOP 1.1.
 
 @item Chapter 16 describes the DCE ESIOP protocol.
 
