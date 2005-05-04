@@ -66,8 +66,6 @@ package PolyORB.Protocols is
       Session :    out Filter_Access)
       is abstract;
    --  Create a Session for protocol Proto using filter Lower.
-   --  Request_Watcher should not be created here, it will
-   --  be positioned by the thread policy, if necessary.
 
    --------------------------------------------------
    -- Primitives needed with some tasking policies --
