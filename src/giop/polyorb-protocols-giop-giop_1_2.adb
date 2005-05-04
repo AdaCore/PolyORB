@@ -167,13 +167,16 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
       pragma Warnings (On);
-
-      Sess : GIOP_Session renames GIOP_Session (S.all);
    begin
-      Sess.MCtx := new GIOP_Message_Context_1_2;
-      Sess.SCtx := new GIOP_Session_Context_1_2;
-      Sess.Repr := new GIOP_1_2_CDR_Representation;
-      pragma Debug (O ("Initialize context for GIOP session 1.2"));
+      pragma Debug (O ("Initializing GIOP session for version 1.2"));
+      declare
+         Sess : GIOP_Session renames GIOP_Session (S.all);
+      begin
+         Sess.MCtx := new GIOP_Message_Context_1_2;
+         Sess.SCtx := new GIOP_Session_Context_1_2;
+         Sess.Repr := new GIOP_1_2_CDR_Representation;
+      end;
+      pragma Debug (O ("... done"));
    end Initialize_Session;
 
    ----------------------
@@ -831,7 +834,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Buffer  : Buffer_Access renames Sess.Buffer_In;
 
       Request_Id   : Types.Unsigned_Long;
-      Target_Ref   : Target_Address_Access;
       Target       : References.Ref;
       Address_Disp : Addressing_Disposition;
       Result       : Locate_Reply_Type;
@@ -941,10 +943,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end;
       pragma Debug (O ("Locate_Request: result is "
                        & Locate_Reply_Type'Image (Result)));
-
-      Free (Target_Ref);
-
-      --  XXX double check Target_Ref deallocation
 
       Reply_MCtx.Fragmented   := False;
       Reply_MCtx.Message_Type := Locate_Reply;
