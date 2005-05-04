@@ -143,6 +143,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Sess.MCtx  := new GIOP_Message_Context_1_0;
       --  Sess.SCtx := new GIOP_Session_Context_1_0;
+      --  There is no SCtx for GIOP 1.0
 
       Sess.Repr := new GIOP_1_0_CDR_Representation;
    end Initialize_Session;
@@ -163,6 +164,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
       Free (Sess.MCtx);
       --  Free (Sess.SCtx);
+      --  There is no SCtx for GIOP 1.0
+
       Free (GIOP_1_0_CDR_Representation_Access (Sess.Repr));
       pragma Debug (O ("Finalize context for GIOP session 1.0"));
    end Finalize_Session;
