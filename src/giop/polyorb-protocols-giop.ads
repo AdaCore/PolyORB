@@ -400,7 +400,7 @@ private
       --  Access to current implem
 
       Repr         : Representations.CDR.CDR_Representation_Access;
-      --  Marshalling/unmarshalling repsentation object
+      --  Marshalling/unmarshalling representation object
 
       State        : GIOP_State := Not_Initialized;
       --  GIOP state
@@ -519,18 +519,18 @@ private
       Id      :        Types.Unsigned_Long;
       Req     :    out Pending_Request;
       Success :    out Boolean);
-   --  Retrieve a pending request of Ses by its request id, and remove it
-   --  from the list of pending requests. This procedure ensures proper
-   --  mutual exclusion.
+   --  Retrieve a pending request of Sess by its request id, and
+   --  remove it from the list of pending requests. This procedure
+   --  ensures proper mutual exclusion.
 
    procedure Get_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;
       Id      :        Types.Unsigned_Long;
       Req     :    out Pending_Request_Access;
       Success :    out Boolean);
-   --  Retrieve a pending request of Ses by its locate request id.
-   --  The request is left on Ses' pending requests list. This procedure
-   --  ensures proper mutual exclusion.
+   --  Retrieve a pending request of Sess by its locate request id.
+   --  The request is left on Sess' pending requests list. This
+   --  procedure ensures proper mutual exclusion.
 
    procedure Remove_Pending_Request
      (Sess    : access GIOP_Session;
