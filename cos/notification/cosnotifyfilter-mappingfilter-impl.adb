@@ -93,9 +93,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
      (Self : access Object)
      return CORBA.String
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
       MyGrammar : CORBA.String;
    begin
       pragma Debug (O ("get_constraint_grammar in mappingfilter"));
@@ -117,9 +115,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
       MyObj : CORBA.TypeCode.Object;
    begin
       pragma Debug (O ("get_value_type in mappingfilter"));
@@ -140,9 +136,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
      (Self : access Object)
      return CORBA.Any
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
       MyValue : CORBA.Any;
    begin
       pragma Debug (O ("get_default_value in mappingfilter"));
@@ -164,9 +158,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Pair_List : in CosNotifyFilter.MappingConstraintPairSeq)
      return CosNotifyFilter.MappingConstraintInfoSeq
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Pair_List);
-      pragma Warnings (On);  --  WAG:3.14
       MySeq : CosNotifyFilter.MappingConstraintInfoSeq;
    begin
       pragma Debug (O ("add_mapping_constraints in mappingfilter"));
@@ -188,9 +180,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Del_List    : in CosNotifyFilter.ConstraintIDSeq;
       Modify_List : in CosNotifyFilter.MappingConstraintInfoSeq)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Del_List, Modify_List);
-      pragma Warnings (On);  --  WAG:3.14
    begin
       pragma Debug (O ("modify_mapping_constraints in mappingfilter"));
 
@@ -209,9 +199,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Id_List : in CosNotifyFilter.ConstraintIDSeq)
      return CosNotifyFilter.MappingConstraintInfoSeq
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Id_List);
-      pragma Warnings (On);  --  WAG:3.14
       MySeq : CosNotifyFilter.MappingConstraintInfoSeq;
    begin
       pragma Debug (O ("get_mapping_constraints in mappingfilter"));
@@ -232,9 +220,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
      (Self : access Object)
      return CosNotifyFilter.MappingConstraintInfoSeq
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
       MySeq : CosNotifyFilter.MappingConstraintInfoSeq;
    begin
       pragma Debug (O ("get_all_mapping_constraints in mappingfilter"));
@@ -254,9 +240,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
    procedure Remove_All_Mapping_Constraints
      (Self : access Object)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
    begin
       pragma Debug (O ("remove_all_mapping_constraints in mappingfilter"));
 
@@ -274,9 +258,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
    procedure Destroy
      (Self : access Object)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self);
-      pragma Warnings (On);  --  WAG:3.14
    begin
       pragma Debug (O ("destroy in mappingfilter"));
 
@@ -297,11 +279,8 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Result_To_Set   : out CORBA.Any;
       Returns         : out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Filterable_Data);
-      pragma Warnings (On);  --  WAG:3.14
       ResSet : CORBA.Any;
-      Res    : CORBA.Boolean;
    begin
       pragma Debug (O ("match in mappingfilter"));
 
@@ -311,8 +290,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Leave (Self_Mutex);
 
       Result_To_Set := ResSet;
-      Res := true;
-      Returns := Res;
+      Returns := True;
    end Match;
 
    ----------------------
@@ -325,11 +303,8 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Result_To_Set   : out CORBA.Any;
       Returns         : out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Filterable_Data);
-      pragma Warnings (On);  --  WAG:3.14
       ResSet : CORBA.Any;
-      Res    : CORBA.Boolean;
    begin
       pragma Debug (O ("match_structured in mappingfilter"));
 
@@ -339,8 +314,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Leave (Self_Mutex);
 
       Result_To_Set := ResSet;
-      Res := true;
-      Returns := Res;
+      Returns := True;
    end Match_Structured;
 
    -----------------
@@ -353,9 +327,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Result_To_Set   : out CORBA.Any;
       Returns         : out CORBA.Boolean)
    is
-      pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Self, Filterable_Data);
-      pragma Warnings (On);  --  WAG:3.14
       ResSet : CORBA.Any;
       Res    : CORBA.Boolean;
    begin
@@ -367,8 +339,7 @@ package body CosNotifyFilter.MappingFilter.Impl is
       Leave (Self_Mutex);
 
       Result_To_Set := ResSet;
-      Res := true;
-      Returns := Res;
+      Returns := True;
    end Match_Typed;
 
    ------------
