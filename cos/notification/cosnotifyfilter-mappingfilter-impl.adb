@@ -329,7 +329,6 @@ package body CosNotifyFilter.MappingFilter.Impl is
    is
       pragma Unreferenced (Self, Filterable_Data);
       ResSet : CORBA.Any;
-      Res    : CORBA.Boolean;
    begin
       pragma Debug (O ("match_typed in mappingfilter"));
 
