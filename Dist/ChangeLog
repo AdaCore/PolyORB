@@ -1,3 +1,13 @@
+2005-05-09  Pascal Obry  <obry@adacore.com>
+
+	* xe_usage.adb:
+	Fix a memory corruption in the check for the
+	 version number. Set version to 5.03a and update copyright
+	 notice. Slightly update the usage output layout to match the
+	 format used by other tools.
+	Part of this patch is merged from HEAD.
+	Fixes E509-013.
+
 2004-10-30  Laurent Pautet  <pautet@enst.fr>
 
 	* xe_sem.adb: Change selection of tasking policy for a
