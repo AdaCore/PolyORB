@@ -136,4 +136,4 @@ Building GLADE under Windows NT
 4) If using the Cygwin environment you also need to specify the host/target
    triplet when configuring GLADE.
 
-   ./configure --prefix=$HOME/glade i686-pc-mingw32
+   ./configure --prefix=$HOME/glade --build=i686-pc-mingw32
