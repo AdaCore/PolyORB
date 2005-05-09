@@ -36,7 +36,6 @@ with CORBA.ORB;
 with Test_Support;
 
 with Test.Factory.Skel;
-pragma Elaborate (Test.Factory.Skel);
 pragma Warnings (Off, Test.Factory.Skel);
 
 package body Test.Factory.Impl is

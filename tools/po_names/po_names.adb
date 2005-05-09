@@ -46,7 +46,6 @@ with PolyORB.References.IOR;
 with PolyORB.Types;
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with PolyORB.Services.Naming.NamingContext.Servant;

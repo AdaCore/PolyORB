@@ -40,15 +40,12 @@ with PolyORB.Setup.Test_POA;
 
 with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 
 with PolyORB.ORB_Controller.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB_Controller.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB_Controller.No_Tasking);
 
 with PolyORB.Setup.Tasking.No_Tasking;
 pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
 
 procedure PolyORB.Test.No_Tasking_POA is
 begin

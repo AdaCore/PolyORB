@@ -93,7 +93,6 @@ with PortableServer;
 with PolyORB.CORBA_P.Server_Tools;
 
 with PolyORB.Setup.Thread_Pool_Server;
-pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 with GNAT.OS_Lib;

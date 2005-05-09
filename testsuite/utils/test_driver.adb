@@ -47,7 +47,6 @@ with PolyORB.Initialization;
 
 with PolyORB.Log.Stderr;
 pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
 
 procedure Test_Driver is
 

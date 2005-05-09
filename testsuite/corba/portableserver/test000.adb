@@ -42,7 +42,6 @@ with PolyORB.Utils.Report;
 
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
-pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 
 with PolyORB.Tasking.Threads;
 

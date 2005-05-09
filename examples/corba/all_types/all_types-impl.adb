@@ -35,7 +35,6 @@ with Ada.Text_IO;
 with CORBA.ORB;
 
 with all_types.Skel;
-pragma Elaborate (all_types.Skel);
 pragma Warnings (Off, all_types.Skel);
 
 with all_types.Helper;

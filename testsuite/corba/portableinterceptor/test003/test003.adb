@@ -38,7 +38,6 @@ with IOP.CodecFactory.Helper;
 with PolyORB.Utils.Report;
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 procedure Test003 is

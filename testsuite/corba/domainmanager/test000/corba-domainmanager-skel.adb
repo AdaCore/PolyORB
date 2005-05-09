@@ -2,7 +2,6 @@ pragma Style_Checks (Off);
 
 with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with CORBA.Policy.Helper;
 with CORBA.Helper;
 with CORBA.ORB;
@@ -11,9 +10,7 @@ with CORBA.NVList;
 with CORBA.ServerRequest;
 with CORBA.DomainManager.Impl;
 with CORBA;
-pragma Elaborate_All (CORBA);
 with PortableServer;
-pragma Elaborate_All (PortableServer);
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.IR_Hooks;
 with PolyORB.CORBA_P.Domain_Management;

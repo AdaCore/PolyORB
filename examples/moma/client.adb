@@ -37,7 +37,6 @@ with Ada.Command_Line;
 with Ada.Text_IO;
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 --  XXX do not change Tasking model for now, otherwise there is a risk
 --  of a race condition between producer and consumer ...

@@ -43,7 +43,6 @@ with PolyORB.References;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
-pragma Elaborate_All (Polyorb.Setup.Client);
 
 with PolyORB.Initialization;
 
@@ -53,7 +52,6 @@ with PolyORB.Utils;
 
 with PO_CatRef_Setup;
 pragma Warnings (Off, PO_CatRef_Setup);
-pragma Elaborate_All (PO_CatRef_Setup);
 
 procedure PO_CatRef is
 

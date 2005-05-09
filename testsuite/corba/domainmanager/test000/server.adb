@@ -44,16 +44,13 @@ with PortableServer.POAManager;
 with Test.DomainManager.Impl;
 with Test.DomainManager.Skel;
 pragma Warnings (Off, Test.DomainManager.Skel);
-pragma Elaborate_All (Test.DomainManager.Skel);
 
 with Test.Echo.Impl;
 with Test.Echo.Skel;
 pragma Warnings (Off, Test.Echo.Skel);
-pragma Elaborate_All (Test.Echo.Skel);
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 
 procedure Server is
    Ref : CORBA.Object.Ref;

@@ -55,8 +55,6 @@ with PolyORB.Utils.Report;
 --  Our application object.
 with PolyORB.Test_Object_SOA;
 
-pragma Elaborate_All (PolyORB.ORB);
-
 package body PolyORB.Setup.Test_SOA is
 
    use Ada.Text_IO;

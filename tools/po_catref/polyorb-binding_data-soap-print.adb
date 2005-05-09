@@ -36,7 +36,6 @@ with Output;
 
 with PolyORB.Binding_Data.Print;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Utils.Strings;
 

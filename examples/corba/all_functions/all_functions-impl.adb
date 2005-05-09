@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with all_functions.Skel;
-pragma Elaborate (all_functions.Skel);
 pragma Warnings (Off, all_functions.Skel);
 
 package body all_functions.Impl is

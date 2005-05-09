@@ -34,7 +34,6 @@
 with Test000_Idl.TestInterface.Helper;
 
 with Test000_Idl.TestInterface.Skel;
-pragma Elaborate (Test000_Idl.TestInterface.Skel);
 pragma Warnings (Off, Test000_Idl.TestInterface.Skel);
 
 with Test000_Globals;

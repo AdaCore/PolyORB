@@ -37,14 +37,13 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Errors;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
-with PolyORB.Setup;
 with PolyORB.POA;
-with PolyORB.RT_POA.Basic_RT_POA;
-with PolyORB.POA_Manager;
-
 with PolyORB.POA_Config.Root_POA;
 --  The configuration for the RootPOA.
 
+with PolyORB.POA_Manager;
+with PolyORB.RT_POA.Basic_RT_POA;
+with PolyORB.Setup;
 with PolyORB.Setup.Proxies_POA;
 --  XXX should be depended upon only when proxies are desired.
 

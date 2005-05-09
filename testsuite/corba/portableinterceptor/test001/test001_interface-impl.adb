@@ -36,7 +36,6 @@ with CORBA;
 with Test001_Globals;
 
 with Test001_Interface.Skel;
-pragma Elaborate (Test001_Interface.Skel);
 pragma Warnings (Off, Test001_Interface.Skel);
 
 package body Test001_Interface.Impl is

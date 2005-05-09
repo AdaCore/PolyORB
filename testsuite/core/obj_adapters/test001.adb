@@ -39,15 +39,12 @@ with PolyORB.Utils.Report;
 
 with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 
 with PolyORB.ORB_Controller.Workers;
 pragma Warnings (Off, PolyORB.ORB_Controller.Workers);
-pragma Elaborate_All (PolyORB.ORB_Controller.Workers);
 
 with PolyORB.Setup.Tasking.No_Tasking;
 pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
 
 with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Config.Root_POA;

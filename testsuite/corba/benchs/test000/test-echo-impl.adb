@@ -33,7 +33,6 @@
 
 with CORBA;
 with Test.Echo.Skel;
-pragma Elaborate (Test.Echo.Skel);
 pragma Warnings (Off, Test.Echo.Skel);
 
 package body Test.Echo.Impl is

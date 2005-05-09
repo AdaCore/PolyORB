@@ -39,11 +39,9 @@ with Ada.Text_IO;
 with TypedTest_Interface;
 
 with TypedTest_Interface.Skel;
-pragma Elaborate (TypedTest_Interface.Skel);
 pragma Warnings (Off, TypedTest_Interface.Skel);
 
 with TypedTest_Interface.Helper;
-pragma Elaborate (TypedTest_Interface.Helper);
 pragma Warnings (Off, TypedTest_Interface.Helper);
 
 with PortableServer;

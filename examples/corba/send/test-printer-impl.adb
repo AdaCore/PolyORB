@@ -34,7 +34,6 @@
 with Ada.Text_IO;
 
 with Test.Printer.Skel;
-pragma Elaborate (Test.Printer.Skel);
 pragma Warnings (Off, Test.Printer.Skel);
 
 package body Test.Printer.Impl is

@@ -42,7 +42,6 @@
 
 with CORBA.AbstractBase;
 with CORBA.Impl;
-
 with CORBA.Sequences.Unbounded;
 pragma Elaborate (CORBA.Sequences.Unbounded);
 

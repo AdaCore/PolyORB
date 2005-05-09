@@ -42,7 +42,6 @@ with Test.Factory;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
-pragma Elaborate_All (PolyORB.Setup.Client);
 
 with PolyORB.Utils.Report;
 

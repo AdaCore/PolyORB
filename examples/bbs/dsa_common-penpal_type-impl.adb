@@ -35,7 +35,6 @@ with Ada.Text_IO;
 
 with CORBA;
 with DSA_Common.Penpal_Type.Skel;
-pragma Elaborate (DSA_Common.Penpal_Type.Skel);
 pragma Warnings (Off, DSA_Common.Penpal_Type.Skel);
 
 package body DSA_Common.Penpal_Type.Impl is

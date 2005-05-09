@@ -358,7 +358,8 @@ begin
          when E : my_exception =>
             Get_Members (E, Member);
             Ok := (Member.info = 2485);
-         when others =>
+         when E : others =>
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
             null;
       end;
       Output ("test user exception", Ok);

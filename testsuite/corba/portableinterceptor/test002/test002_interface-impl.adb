@@ -36,7 +36,6 @@ with PolyORB.Utils.Report;
 with PortableInterceptor.Current;
 
 with Test002_Interface.Skel;
-pragma Elaborate (Test002_Interface.Skel);
 pragma Warnings (Off, Test002_Interface.Skel);
 
 with Test002_Globals;

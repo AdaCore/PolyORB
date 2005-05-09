@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with CORBA.Object;

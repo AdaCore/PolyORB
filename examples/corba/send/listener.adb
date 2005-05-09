@@ -34,7 +34,6 @@
 with Ada.Text_IO;
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 --  Note: this test relies on the fact that the server is mono
 --  tasking, see Test.Printer.Impl for more details.

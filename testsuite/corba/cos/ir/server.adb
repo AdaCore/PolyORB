@@ -45,7 +45,6 @@ with PortableServer;
 with PolyORB.CORBA_P.Server_Tools;
 
 with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 procedure Server is

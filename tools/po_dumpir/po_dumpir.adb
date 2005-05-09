@@ -49,7 +49,6 @@ with CORBA.Repository_Root.ValueDef.Helper;
 with CORBA.Repository_Root.ModuleDef.Helper;
 
 with PolyORB.Setup.Client;
-pragma Elaborate_All (PolyORB.Setup.Client);
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure PO_DumpIR is
