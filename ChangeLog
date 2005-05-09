@@ -1,3 +1,9 @@
+2005-05-09  Pascal Obry  <obry@adacore.com>
+
+	* INSTALL:
+	Update build procedure on Windows.
+	Work for E426-001.
+
 2004-10-11  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* configure.in, configure: Add flag --with-pcs=X where X
