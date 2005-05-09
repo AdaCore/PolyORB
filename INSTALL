@@ -4,8 +4,6 @@
 --                                                                          --
 --                              I N S T A L L                               --
 --                                                                          --
---                            $Revision$                              --
---                                                                          --
 -- GLADE is  free software;  you  can  redistribute  it  and/or  modify  it --
 -- under terms of the  GNU General Public License  as published by the Free --
 -- Software  Foundation;  either version 2,  or  (at your option) any later --
@@ -89,6 +87,7 @@ in Doc/install_guide.txt.
 % cd Eratho/absolute             <--- go in the first example directory
 % ./mainloop                     <--- run the distributed application
 
+
 Building GLADE under Windows NT
 -------------------------------
 
@@ -113,8 +112,7 @@ Building GLADE under Windows NT
 	sleep.exe
 	uname.exe
 
-   All these tools can be found in the User's Tools Kit (usertools.exe) from
-   CYGNUS.
+   All these tools can be found in the Cygwin or MSYS environment.
 
    Some others tools are needed but they are provided with the GNAT for NT
    distribution :
@@ -134,3 +132,8 @@ Building GLADE under Windows NT
 
    This is required because GLADE need to build the libz library which is
    written in C.
+
+4) If using the Cygwin environment you also need to specify the host/target
+   triplet when configuring GLADE.
+
+   ./configure --prefix=$HOME/glade i686-pc-mingw32
