@@ -143,7 +143,11 @@ package body Backend.BE_Ada is
    begin
       Write_Str (Hdr);
       Write_Str ("-i       Generate implementation packages");
+      Write_Eol;
+      Write_Str (Hdr);
       Write_Str ("-ta      Dump Ada tree");
+      Write_Eol;
+      Write_Str (Hdr);
       Write_Str ("-ti      Dump IDL tree");
       Write_Eol;
    end Usage;
