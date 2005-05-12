@@ -10,4 +10,3 @@ test002_interface.ads: test002_interface.idl
 	$(IDLAC) $(IDLAC_FLAGS) -I $(srcdir) \
 	-I $(top_srcdir)/idls/CORBA_IDL -I $(top_srcdir)/idls/CORBA_PIDL \
 	-I $(top_srcdir)/idls/Misc -I $(top_srcdir)/idls/Interop $<
-	rm -f portableinterceptor*.ad[sb]
