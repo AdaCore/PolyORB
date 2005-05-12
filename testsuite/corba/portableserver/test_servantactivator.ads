@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,58 +26,21 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-with PortableServer.ServantActivator;
-
 package Test_ServantActivator is
 
-   --  Activator that does nothing
-
-   type Null_Activator_Ref is new PortableServer.ServantActivator.Ref
-     with null record;
-
-   type Null_Activator_Access is access all Null_Activator_Ref;
-
-   function Incarnate
-     (Self    : in Null_Activator_Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant;
-
-   procedure Etherealize
-     (Self                  : in Null_Activator_Ref;
-      Oid                   : in PortableServer.ObjectId;
-      Adapter               : in PortableServer.POA_Forward.Ref;
-      Serv                  : in PortableServer.Servant;
-      Cleanup_In_Progress   : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean);
-
-   --  Simple activator that creates a servant on demand
-
-   type Simple_Activator_Ref is new PortableServer.ServantActivator.Ref
-     with null record;
-
-   type Simple_Activator_Access is access all Simple_Activator_Ref;
-
-   function Incarnate
-     (Self    : in Simple_Activator_Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant;
-
-   procedure Etherealize
-     (Self                  : in Simple_Activator_Ref;
-      Oid                   : in PortableServer.ObjectId;
-      Adapter               : in PortableServer.POA_Forward.Ref;
-      Serv                  : in PortableServer.Servant;
-      Cleanup_In_Progress   : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean);
-
    procedure Run_Test_ServantActivator;
+
+   --  Global variables for reporting result of ServantManagers execution
+
+   Null_Activator_Incarnate_Called     : Boolean := False;
+
+   Simple_Activator_Incarnate_Called   : Boolean := False;
+
+   Simple_Activator_Etherealize_Called : Boolean := False;
 
 end Test_ServantActivator;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                T E S T _ S E R V A N T A C T I V A T O R                 --
+--   P O R T A B L E S E R V E R . S E R V A N T L O C A T O R . I M P L    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,50 +31,76 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-with PortableServer;
+package body PortableServer.ServantLocator.Impl is
 
-with Test_Globals;
+   ----------
+   -- Is_A --
+   ----------
 
-package body Test_ServantActivator is
-
-   ---------------
-   -- Incarnate --
-   ---------------
-
-   function Incarnate
-     (Self    : in Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant
+   function Is_A
+     (Self            : access Object;
+      Logical_Type_Id :        Standard.String)
+      return Boolean
    is
-      pragma Unreferenced (Self, Oid, Adapter);
+      pragma Unreferenced (Self);
 
    begin
-      PortableServer.Raise_ForwardRequest
-        (PortableServer.ForwardRequest_Members'
-         (Forward_Reference => CORBA.Object.Ref (Test_Globals.Object_1)));
+      return
+        CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         PortableServer.ServantLocator.Repository_Id)
+        or else CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         "IDL:omg.org/CORBA/Object:1.0")
+        or else CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         PortableServer.ServantManager.Repository_Id);
+   end Is_A;
 
-      return null;
-   end Incarnate;
+   ---------------
+   -- Preinvoke --
+   ---------------
 
-   -----------------
-   -- Etherealize --
-   -----------------
-
-   procedure Etherealize
-     (Self                  : in Ref;
-      Oid                   : in PortableServer.ObjectId;
-      Adapter               : in PortableServer.POA_Forward.Ref;
-      Serv                  : in PortableServer.Servant;
-      Cleanup_In_Progress   : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean)
+   procedure Preinvoke
+     (Self       : access Object;
+      Oid        :        PortableServer.ObjectId;
+      Adapter    :        PortableServer.POA_Forward.Ref;
+      Operation  :        CORBA.Identifier;
+      The_Cookie :    out PortableServer.ServantLocator.Cookie;
+      Returns    :    out PortableServer.Servant)
    is
-      pragma Unreferenced (Self, Oid, Adapter, Serv);
-      pragma Unreferenced (Cleanup_In_Progress, Remaining_Activations);
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Oid);
+      pragma Unreferenced (Adapter);
+      pragma Unreferenced (Operation);
+      pragma Unreferenced (The_Cookie);
+      pragma Unreferenced (Returns);
 
    begin
       null;
-   end Etherealize;
+   end Preinvoke;
 
-end Test_ServantActivator;
+   ----------------
+   -- Postinvoke --
+   ----------------
+
+   procedure Postinvoke
+     (Self        : access Object;
+      Oid         :        PortableServer.ObjectId;
+      Adapter     :        PortableServer.POA_Forward.Ref;
+      Operation   :        CORBA.Identifier;
+      The_Cookie  :        PortableServer.ServantLocator.Cookie;
+      The_Servant :        PortableServer.Servant)
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Oid);
+      pragma Unreferenced (Adapter);
+      pragma Unreferenced (Operation);
+      pragma Unreferenced (The_Cookie);
+      pragma Unreferenced (The_Servant);
+
+   begin
+      null;
+   end Postinvoke;
+
+end PortableServer.ServantLocator.Impl;

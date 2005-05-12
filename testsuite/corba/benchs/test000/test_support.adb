@@ -34,11 +34,13 @@
 with Ada.Streams;
 with Ada.Text_IO;
 
+with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
 with PortableServer.POA.Helper;
 
+with Test.Activator.Impl;
 with Test.Echo.Helper;
 with Test.Echo.Impl;
 with Test.Factory.Impl;
@@ -48,29 +50,6 @@ package body Test_Support is
    function To_ObjectId (Item : in Wide_String) return PortableServer.ObjectId;
 
    My_POA : PortableServer.POA.Ref;
-
-   ---------------
-   -- Incarnate --
-   ---------------
-
-   function Incarnate
-     (Self    : in Activator;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant
-   is
-      pragma Unreferenced (Self);
-
-      Srv : constant Test.Echo.Impl.Object_Ptr := new Test.Echo.Impl.Object;
-
-   begin
-      PortableServer.POA.Activate_Object_With_Id
-       (PortableServer.POA.Helper.To_Ref (Adapter),
-        Oid,
-        PortableServer.Servant (Srv));
-
-      return PortableServer.Servant (Srv);
-   end Incarnate;
 
    ----------------
    -- Initialize --
@@ -114,7 +93,16 @@ package body Test_Support is
             PortableServer.POA.Get_The_POAManager (Root_POA),
             Policies));
 
-      PortableServer.POA.Set_Servant_Manager (My_POA, new Activator);
+      declare
+         Obj : constant Test.Activator.Impl.Object_Ptr
+           := new Test.Activator.Impl.Object;
+         Ref : Test.Activator.Local_Ref;
+
+      begin
+         Test.Activator.Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+
+         PortableServer.POA.Set_Servant_Manager (My_POA, Ref);
+      end;
 
       declare
          Srv : constant Test.Factory.Impl.Object_Ptr

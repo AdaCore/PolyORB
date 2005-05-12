@@ -150,11 +150,11 @@ package PortableServer.POA is
 
    function Get_Servant_Manager
      (Self : in Ref)
-     return PortableServer.ServantManager.Ref'Class;
+     return PortableServer.ServantManager.Local_Ref'Class;
 
    procedure Set_Servant_Manager
-     (Self : in     Ref;
-      Imgr : access PortableServer.ServantManager.Ref'Class);
+     (Self : Ref;
+      Imgr : PortableServer.ServantManager.Local_Ref'Class);
 
    --  operations for the USE_DEFAULT_SERVANT policy
 

@@ -840,10 +840,16 @@ src/corba/portableserver-poamanager.adb
 src/corba/portableserver-poamanager.ads
 src/corba/portableserver-requestprocessingpolicy.adb
 src/corba/portableserver-requestprocessingpolicy.ads
+src/corba/portableserver-servantactivator-impl.adb
+src/corba/portableserver-servantactivator-impl.ads
 src/corba/portableserver-servantactivator.adb
 src/corba/portableserver-servantactivator.ads
+src/corba/portableserver-servantlocator-impl.adb
+src/corba/portableserver-servantlocator-impl.ads
 src/corba/portableserver-servantlocator.adb
 src/corba/portableserver-servantlocator.ads
+src/corba/portableserver-servantmanager-impl.adb
+src/corba/portableserver-servantmanager-impl.ads
 src/corba/portableserver-servantmanager.ads
 src/corba/portableserver-servantretentionpolicy.adb
 src/corba/portableserver-servantretentionpolicy.ads

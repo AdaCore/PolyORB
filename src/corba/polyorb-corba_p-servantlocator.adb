@@ -41,14 +41,14 @@ package body PolyORB.CORBA_P.ServantLocator is
    ------------
 
    procedure Create
-     (Self :    out PPT.ServantLocator_Access;
-      SL   : access PortableServer.ServantLocator.Ref'Class)
+     (Self : out PPT.ServantLocator_Access;
+      SL   :     PortableServer.ServantLocator.Local_Ref'Class)
    is
       Locator : constant Object_Ptr := new Object;
 
    begin
       Self := new CORBA_ServantLocator;
-      Locator.SL := SL_Ptr (SL);
+      Locator.SL := PortableServer.ServantLocator.Local_Ref (SL);
 
       Set (CORBA_ServantLocator (Self.all),
            PolyORB.Smart_Pointers.Entity_Ptr (Locator));
@@ -60,12 +60,12 @@ package body PolyORB.CORBA_P.ServantLocator is
 
    function Get_Servant_Manager
      (Self : CORBA_ServantLocator)
-     return PortableServer.ServantLocator.Ref'Class
+     return PortableServer.ServantLocator.Local_Ref'Class
    is
       Locator : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
 
    begin
-      return Locator.SL.all;
+      return Locator.SL;
    end Get_Servant_Manager;
 
    ---------------
@@ -74,9 +74,9 @@ package body PolyORB.CORBA_P.ServantLocator is
 
    procedure Preinvoke
      (Self       : access CORBA_ServantLocator;
-      Oid        : in     PPT.Object_Id;
+      Oid        :        PPT.Object_Id;
       Adapter    : access PPT.Obj_Adapter'Class;
-      Operation  : in     PolyORB.Types.Identifier;
+      Operation  :        PolyORB.Types.Identifier;
       The_Cookie :    out PPT.Cookie;
       Returns    :    out PolyORB.Servants.Servant_Access;
       Error      : in out PolyORB.Errors.Error_Container)
@@ -85,8 +85,8 @@ package body PolyORB.CORBA_P.ServantLocator is
 
       CORBA_Servant : PortableServer.Servant;
 
-      Locator : PortableServer.ServantLocator.Ref'Class :=
-        PortableServer.ServantLocator.Ref'Class
+      Locator : PortableServer.ServantLocator.Local_Ref'Class :=
+        PortableServer.ServantLocator.Local_Ref'Class
         (Get_Servant_Manager (Self.all));
 
    begin
@@ -142,8 +142,8 @@ package body PolyORB.CORBA_P.ServantLocator is
         PortableServer.Servant (CORBA.Impl.Internals.To_CORBA_Servant
                                 (The_Servant));
 
-      Locator : PortableServer.ServantLocator.Ref'Class :=
-        PortableServer.ServantLocator.Ref'Class
+      Locator : PortableServer.ServantLocator.Local_Ref'Class :=
+        PortableServer.ServantLocator.Local_Ref'Class
         (Get_Servant_Manager (Self.all));
 
    begin

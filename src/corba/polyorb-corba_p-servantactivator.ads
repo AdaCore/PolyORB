@@ -48,36 +48,34 @@ package PolyORB.CORBA_P.ServantActivator is
    type CORBA_ServantActivator is new PPT.ServantActivator with private;
 
    procedure Create
-     (Self :    out PPT.ServantActivator_Access;
-      SA   : access PortableServer.ServantActivator.Ref'Class);
+     (Self : out PPT.ServantActivator_Access;
+      SA   :     PortableServer.ServantActivator.Local_Ref'Class);
 
    function Get_Servant_Manager
      (Self : CORBA_ServantActivator)
-     return PortableServer.ServantActivator.Ref'Class;
+     return PortableServer.ServantActivator.Local_Ref'Class;
 
    procedure Incarnate
      (Self    : access CORBA_ServantActivator;
-      Oid     : in     PPT.Object_Id;
+      Oid     :        PPT.Object_Id;
       Adapter : access PPT.Obj_Adapter'Class;
       Returns :    out PolyORB.Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Etherealize
      (Self                  : access CORBA_ServantActivator;
-      Oid                   : in     PPT.Object_Id;
+      Oid                   :        PPT.Object_Id;
       Adapter               : access PPT.Obj_Adapter'Class;
-      Serv                  : in     PolyORB.Servants.Servant_Access;
-      Cleanup_In_Progress   : in     Boolean;
-      Remaining_Activations : in     Boolean);
+      Serv                  :        PolyORB.Servants.Servant_Access;
+      Cleanup_In_Progress   :        Boolean;
+      Remaining_Activations :        Boolean);
 
 private
 
    type CORBA_ServantActivator is new PPT.ServantActivator with null record;
 
-   type SA_Ptr is access all PortableServer.ServantActivator.Ref'Class;
-
    type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity with record
-      SA : SA_Ptr;
+      SA : PortableServer.ServantActivator.Local_Ref;
    end record;
 
    type Object_Ptr is access all Object;

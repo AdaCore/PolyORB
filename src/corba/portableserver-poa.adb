@@ -573,7 +573,7 @@ package body PortableServer.POA is
 
    function Get_Servant_Manager
      (Self : Ref)
-     return PortableServer.ServantManager.Ref'Class
+     return PortableServer.ServantManager.Local_Ref'Class
    is
       use PolyORB.POA_Types;
       use PolyORB.CORBA_P.ServantActivator;
@@ -585,9 +585,9 @@ package body PortableServer.POA is
 
       Manager : ServantManager_Access;
 
-      Result : PortableServer.ServantManager.Ref;
-   begin
+      Result : PortableServer.ServantManager.Local_Ref;
 
+   begin
       PolyORB.POA.Get_Servant_Manager
         (POA,
          Manager,
@@ -621,8 +621,8 @@ package body PortableServer.POA is
    -------------------------
 
    procedure Set_Servant_Manager
-     (Self : in     Ref;
-      Imgr : access PortableServer.ServantManager.Ref'Class)
+     (Self : Ref;
+      Imgr : PortableServer.ServantManager.Local_Ref'Class)
    is
       use PolyORB.POA_Types;
       use PolyORB.CORBA_P.ServantActivator;
@@ -639,13 +639,17 @@ package body PortableServer.POA is
              Completed => CORBA.Completed_No));
       end if;
 
-      if Imgr.all in PortableServer.ServantActivator.Ref'Class then
+      if CORBA.Object.Is_A
+         (CORBA.Object.Ref (Imgr),
+          PortableServer.ServantActivator.Repository_Id)
+      then
          declare
             CORBA_Servant_Manager : ServantActivator_Access;
+
          begin
             PolyORB.CORBA_P.ServantActivator.Create
               (CORBA_Servant_Manager,
-               PortableServer.ServantActivator.Ref (Imgr.all)'Access);
+               PortableServer.ServantActivator.Local_Ref (Imgr));
 
             PolyORB.POA.Set_Servant_Manager
               (POA,
@@ -657,13 +661,17 @@ package body PortableServer.POA is
             end if;
          end;
 
-      elsif Imgr.all in PortableServer.ServantLocator.Ref'Class then
+      elsif CORBA.Object.Is_A
+            (CORBA.Object.Ref (Imgr),
+             PortableServer.ServantLocator.Repository_Id)
+      then
          declare
             CORBA_Servant_Manager : ServantLocator_Access;
+
          begin
             Create
               (CORBA_Servant_Manager,
-               PortableServer.ServantLocator.Ref'Class (Imgr.all)'Access);
+               PortableServer.ServantLocator.Local_Ref (Imgr));
 
             PolyORB.POA.Set_Servant_Manager
               (POA,
@@ -681,7 +689,6 @@ package body PortableServer.POA is
             (Minor     => 4,
              Completed => CORBA.Completed_No));
       end if;
-
    end Set_Servant_Manager;
 
    -----------------

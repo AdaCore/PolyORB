@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ with PolyORB.POA_Types;
 
 package PortableServer.ServantLocator is
 
-   type Ref is new PortableServer.ServantManager.Ref with private;
+   type Local_Ref is new PortableServer.ServantManager.Local_Ref with private;
 
    type Root_Cookie is new PolyORB.POA_Types.Cookie_Base with private;
 
@@ -53,24 +53,28 @@ package PortableServer.ServantLocator is
    type Cookie is access all Cookie_Base'Class;
 
    procedure Preinvoke
-     (Self       : in  Ref;
-      Oid        : in  ObjectId;
-      Adapter    : in  PortableServer.POA_Forward.Ref;
-      Operation  : in  CORBA.Identifier;
+     (Self       :     Local_Ref;
+      Oid        :     ObjectId;
+      Adapter    :     PortableServer.POA_Forward.Ref;
+      Operation  :     CORBA.Identifier;
       The_Cookie : out Cookie;
       Returns    : out Servant);
 
    procedure Postinvoke
-     (Self        : in Ref;
-      Oid         : in ObjectId;
-      Adapter     : in PortableServer.POA_Forward.Ref;
-      Operation   : in CORBA.Identifier;
-      The_Cookie  : in Cookie;
-      The_Servant : in Servant);
+     (Self        : Local_Ref;
+      Oid         : ObjectId;
+      Adapter     : PortableServer.POA_Forward.Ref;
+      Operation   : CORBA.Identifier;
+      The_Cookie  : Cookie;
+      The_Servant : Servant);
+
+   Repository_Id : constant Standard.String
+     := "IDL:omg.org/PortableServer/ServantLocator:1.0";
 
 private
 
-   type Ref is new PortableServer.ServantManager.Ref with null record;
+   type Local_Ref is
+     new PortableServer.ServantManager.Local_Ref with null record;
 
    type Root_Cookie is new PolyORB.POA_Types.Cookie_Base with null record;
 

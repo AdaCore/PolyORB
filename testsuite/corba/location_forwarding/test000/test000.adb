@@ -37,6 +37,7 @@ with CORBA.Policy;
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 with PolyORB.Utils.Report;
+with PolyORB.Smart_Pointers;
 
 with PortableServer.POA.Helper;
 with PortableServer.POAManager;
@@ -44,7 +45,7 @@ with PortableServer.POAManager;
 with Test_Globals;
 with Test_Interface.Helper;
 with Test_Interface.Impl;
-with Test_ServantActivator;
+with Test_ServantActivator.Impl;
 
 procedure Test000 is
    Root_POA : PortableServer.POA.Ref;
@@ -81,6 +82,11 @@ begin
               (PortableServer.USE_SERVANT_MANAGER));
 
       Policies : CORBA.Policy.PolicyList;
+
+      Obj : constant Test_ServantActivator.Impl.Object_Ptr
+        := new Test_ServantActivator.Impl.Object;
+      Ref : Test_ServantActivator.Local_Ref;
+
    begin
       Append (Policies, Implicit_Activation_Policy);
       Append (Policies, Id_Assignment_Policy);
@@ -92,8 +98,8 @@ begin
             CORBA.To_CORBA_String ("My_POA"),
             PortableServer.POA.Get_The_POAManager (Root_POA),
             Policies));
-      PortableServer.POA.Set_Servant_Manager
-       (My_POA, new Test_ServantActivator.Ref);
+      Test_ServantActivator.Set (Ref, PolyORB.Smart_Pointers.Entity_Ptr (Obj));
+      PortableServer.POA.Set_Servant_Manager (My_POA, Ref);
       PortableServer.POAManager.Activate
        (PortableServer.POA.Get_The_POAManager (My_POA));
    end;

@@ -2,11 +2,16 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O R T A B L E S E R V E R . S E R V A N T A C T I V A T O R       --
+--   P O R T A B L E S E R V E R . S E R V A N T L O C A T O R . I M P L    --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,52 +36,37 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PortableServer.ServantActivator.Impl;
+with PortableServer.ServantManager.Impl;
 
-package body PortableServer.ServantActivator is
+package PortableServer.ServantLocator.Impl is
 
-   ---------------
-   -- Incarnate --
-   ---------------
+   type Object is new PortableServer.ServantManager.Impl.Object with private;
 
-   function Incarnate
-     (Self    : Local_Ref;
-      Oid     : PortableServer.ObjectId;
-      Adapter : PortableServer.POA_Forward.Ref)
-      return PortableServer.Servant
-   is
-   begin
-      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Self)) then
-         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
-      end if;
+   type Object_Ptr is access all Object'Class;
 
-      return Impl.Incarnate (Impl.Object_Ptr (Entity_Of (Self)), Oid, Adapter);
-   end Incarnate;
+   procedure Preinvoke
+     (Self       : access Object;
+      Oid        :        PortableServer.ObjectId;
+      Adapter    :        PortableServer.POA_Forward.Ref;
+      Operation  :        CORBA.Identifier;
+      The_Cookie :    out PortableServer.ServantLocator.Cookie;
+      Returns    :    out PortableServer.Servant);
 
-   -----------------
-   -- Etherealize --
-   -----------------
+   procedure Postinvoke
+     (Self        : access Object;
+      Oid         :        PortableServer.ObjectId;
+      Adapter     :        PortableServer.POA_Forward.Ref;
+      Operation   :        CORBA.Identifier;
+      The_Cookie  :        PortableServer.ServantLocator.Cookie;
+      The_Servant :        PortableServer.Servant);
 
-   procedure Etherealize
-     (Self                  : Local_Ref;
-      Oid                   : PortableServer.ObjectId;
-      Adapter               : PortableServer.POA_Forward.Ref;
-      Serv                  : PortableServer.Servant;
-      Cleanup_In_Progress   : CORBA.Boolean;
-      Remaining_Activations : CORBA.Boolean)
-   is
-   begin
-      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Self)) then
-         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
-      end if;
+private
 
-      Impl.Etherealize
-        (Impl.Object_Ptr (Entity_Of (Self)),
-         Oid,
-         Adapter,
-         Serv,
-         Cleanup_In_Progress,
-         Remaining_Activations);
-   end Etherealize;
+   type Object is
+     new PortableServer.ServantManager.Impl.Object with null record;
 
-end PortableServer.ServantActivator;
+   function Is_A
+     (Self            : access Object;
+      Logical_Type_Id :        Standard.String) return Boolean;
+
+end PortableServer.ServantLocator.Impl;

@@ -2,11 +2,16 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                T E S T _ S E R V A N T A C T I V A T O R                 --
+--   P O R T A B L E S E R V E R . S E R V A N T M A N A G E R . I M P L    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,31 +31,23 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-with PortableServer.ServantActivator;
+with CORBA.Local;
 
-package Test_ServantActivator is
+package PortableServer.ServantManager.Impl is
 
-   type Ref is new PortableServer.ServantActivator.Ref
-     with null record;
+   type Object is new CORBA.Local.Object with null record;
 
-   function Incarnate
-     (Self    : in Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-      return PortableServer.Servant;
+   type Object_Ptr is access all Object'Class;
 
-   procedure Etherealize
-     (Self                  : in Ref;
-      Oid                   : in PortableServer.ObjectId;
-      Adapter               : in PortableServer.POA_Forward.Ref;
-      Serv                  : in PortableServer.Servant;
-      Cleanup_In_Progress   : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean);
+private
 
-end Test_ServantActivator;
+   function Is_A
+     (Self            : access Object;
+      Logical_Type_Id :        Standard.String) return Boolean;
+
+end PortableServer.ServantManager.Impl;

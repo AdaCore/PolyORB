@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                T E S T _ S E R V A N T A C T I V A T O R                 --
+--            T E S T _ S I M P L E A C T I V A T O R . I M P L             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,50 +31,89 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
-with PortableServer;
+with CORBA.Impl;
+with PortableServer.POA;
+with PortableServer.ServantManager;
 
-with Test_Globals;
+with Echo.Impl;
+with Test_ServantActivator;
 
-package body Test_ServantActivator is
-
-   ---------------
-   -- Incarnate --
-   ---------------
-
-   function Incarnate
-     (Self    : in Ref;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref)
-     return PortableServer.Servant
-   is
-      pragma Unreferenced (Self, Oid, Adapter);
-
-   begin
-      PortableServer.Raise_ForwardRequest
-        (PortableServer.ForwardRequest_Members'
-         (Forward_Reference => CORBA.Object.Ref (Test_Globals.Object_1)));
-
-      return null;
-   end Incarnate;
+package body Test_SimpleActivator.Impl is
 
    -----------------
    -- Etherealize --
    -----------------
 
    procedure Etherealize
-     (Self                  : in Ref;
-      Oid                   : in PortableServer.ObjectId;
-      Adapter               : in PortableServer.POA_Forward.Ref;
-      Serv                  : in PortableServer.Servant;
-      Cleanup_In_Progress   : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean)
+     (Self                  : access Object;
+      Oid                   :        PortableServer.ObjectId;
+      Adapter               :        PortableServer.POA_Forward.Ref;
+      Serv                  :        PortableServer.Servant;
+      Cleanup_In_Progress   :        CORBA.Boolean;
+      Remaining_Activations :        CORBA.Boolean)
    is
       pragma Unreferenced (Self, Oid, Adapter, Serv);
       pragma Unreferenced (Cleanup_In_Progress, Remaining_Activations);
 
    begin
-      null;
+      Test_ServantActivator.Simple_Activator_Etherealize_Called := True;
    end Etherealize;
 
-end Test_ServantActivator;
+   ---------------
+   -- Incarnate --
+   ---------------
+
+   function Incarnate
+     (Self    : access Object;
+      Oid     :        PortableServer.ObjectId;
+      Adapter :        PortableServer.POA_Forward.Ref)
+      return PortableServer.Servant
+   is
+      pragma Unreferenced (Self);
+
+      Obj : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
+
+      package Convert is new
+        PortableServer.POA_Forward.Convert (PortableServer.POA.Ref);
+
+      POA : constant PortableServer.POA.Ref := Convert.To_Ref (Adapter);
+
+   begin
+      Test_ServantActivator.Simple_Activator_Incarnate_Called := True;
+
+      PortableServer.POA.Activate_Object_With_Id
+        (POA,
+         Oid,
+         PortableServer.Servant (Obj));
+
+      return PortableServer.Servant (Obj);
+   end Incarnate;
+
+   ----------
+   -- Is_A --
+   ----------
+
+   function Is_A
+     (Self            : access Object;
+      Logical_Type_Id :        Standard.String)
+      return Boolean
+   is
+      pragma Unreferenced (Self);
+
+   begin
+      return
+        CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         Test_SimpleActivator.Repository_Id)
+        or else CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         "IDL:omg.org/CORBA/Object:1.0")
+        or else CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         PortableServer.ServantActivator.Repository_Id)
+        or else CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         PortableServer.ServantManager.Repository_Id);
+   end Is_A;
+
+end Test_SimpleActivator.Impl;

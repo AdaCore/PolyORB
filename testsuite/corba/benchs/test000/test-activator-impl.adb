@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O R T A B L E S E R V E R . S E R V A N T A C T I V A T O R       --
+--                  T E S T . A C T I V A T O R . I M P L                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,52 +31,62 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PortableServer.ServantActivator.Impl;
+with CORBA;
+with PortableServer.POA.Helper;
+with PortableServer.ServantManager;
 
-package body PortableServer.ServantActivator is
+with Test.Echo.Impl;
+
+package body Test.Activator.Impl is
 
    ---------------
    -- Incarnate --
    ---------------
 
    function Incarnate
-     (Self    : Local_Ref;
-      Oid     : PortableServer.ObjectId;
-      Adapter : PortableServer.POA_Forward.Ref)
+     (Self    : access Object;
+      Oid     :        PortableServer.ObjectId;
+      Adapter :        PortableServer.POA_Forward.Ref)
       return PortableServer.Servant
    is
-   begin
-      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Self)) then
-         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
-      end if;
+      pragma Unreferenced (Self);
 
-      return Impl.Incarnate (Impl.Object_Ptr (Entity_Of (Self)), Oid, Adapter);
+      Srv : constant Test.Echo.Impl.Object_Ptr := new Test.Echo.Impl.Object;
+
+   begin
+      PortableServer.POA.Activate_Object_With_Id
+       (PortableServer.POA.Helper.To_Ref (Adapter),
+        Oid,
+        PortableServer.Servant (Srv));
+
+      return PortableServer.Servant (Srv);
    end Incarnate;
 
-   -----------------
-   -- Etherealize --
-   -----------------
+   ----------
+   -- Is_A --
+   ----------
 
-   procedure Etherealize
-     (Self                  : Local_Ref;
-      Oid                   : PortableServer.ObjectId;
-      Adapter               : PortableServer.POA_Forward.Ref;
-      Serv                  : PortableServer.Servant;
-      Cleanup_In_Progress   : CORBA.Boolean;
-      Remaining_Activations : CORBA.Boolean)
+   function Is_A
+     (Self            : access Object;
+      Logical_Type_Id :        Standard.String)
+      return Boolean
    is
+      pragma Unreferenced (Self);
+
    begin
-      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Self)) then
-         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
-      end if;
+      return
+        CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         Test.Activator.Repository_Id)
+        or else CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         "IDL:omg.org/CORBA/Object:1.0")
+        or else CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         PortableServer.ServantActivator.Repository_Id)
+        or else CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         PortableServer.ServantManager.Repository_Id);
+   end Is_A;
 
-      Impl.Etherealize
-        (Impl.Object_Ptr (Entity_Of (Self)),
-         Oid,
-         Adapter,
-         Serv,
-         Cleanup_In_Progress,
-         Remaining_Activations);
-   end Etherealize;
-
-end PortableServer.ServantActivator;
+end Test.Activator.Impl;
