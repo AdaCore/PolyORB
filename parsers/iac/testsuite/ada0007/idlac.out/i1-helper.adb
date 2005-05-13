@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -53,7 +53,7 @@ package body i1.Helper is
       A : CORBA.Any := CORBA.Object.Helper.To_Any
         (CORBA.Object.Ref (Item));
    begin
-      CORBA.Set_Type (A, TC_i1);
+      CORBA.Internals.Set_Type (A, TC_i1);
       return A;
    end To_Any;
 
@@ -69,19 +69,21 @@ package body i1.Helper is
      return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Float (Item));
    begin
-      CORBA.Set_Type (Result, TC_New_Float);
+      CORBA.Internals.Set_Type (Result, TC_New_Float);
       return Result;
    end To_Any;
 
    function From_Any (Item : in CORBA.Any)
       return i1.Tab_Float is
       Result : i1.Tab_Float;
+      use type CORBA.Unsigned_Long;
+      J_Ü : CORBA.Unsigned_Long := 0;
    begin
-      for I0 in 0 .. 10 - 1 loop
-         Result (I0) := CORBA.From_Any
-            (CORBA.Get_Aggregate_Element (Item,
-                                          CORBA.TC_Float,
-                                          CORBA.Unsigned_Long (I0)));
+      for J_Ü0 in 0 .. 10 - 1 loop
+         Result (J_Ü0) := CORBA.From_Any
+            (CORBA.Internals.Get_Aggregate_Element
+             (Item, CORBA.TC_Float, J_Ü));
+         J_Ü := J_Ü + 1;
       end loop;
       return Result;
    end From_Any;
@@ -89,18 +91,18 @@ package body i1.Helper is
    function To_Any
      (Item : in i1.Tab_Float)
      return CORBA.Any is
-      Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate
+      Result : CORBA.Any := CORBA.Internals.Get_Empty_Any_Aggregate
         (TC_Tab_Float);
    begin
-      for I0 in 0 .. 10 - 1 loop
-         CORBA.Add_Aggregate_Element (Result,
-                                      CORBA.To_Any (Item (I0)));
+      for J_Ü0 in 0 .. 10 - 1 loop
+         CORBA.Internals.Add_Aggregate_Element (Result,
+                                      CORBA.To_Any (Item (J_Ü0)));
       end loop;
       return Result;
    end To_Any;
+   
    procedure Deferred_Initialization is
    begin
-      null;
    
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("i1");
@@ -124,6 +126,7 @@ package body i1.Helper is
          CORBA.TypeCode.Internals.Add_Parameter (TC_Tab_Float, CORBA.To_Any (CORBA.Unsigned_Long (10)));
          CORBA.TypeCode.Internals.Add_Parameter (TC_Tab_Float, CORBA.To_Any (CORBA.TC_Float));
       end;
+   
    end Deferred_Initialization;
 
 begin
