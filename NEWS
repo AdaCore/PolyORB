@@ -52,7 +52,7 @@ Incompatible changes
 --------------------
 
 The implementation of CORBA POA's servant managers has been corrected
-to match the IDL-to-Ada specifications, resulting in changes int the
+to match the IDL-to-Ada specifications, resulting in changes in the
 API. (9322)
 
 PolyORB.ORB_Controller.Basic has been renamed and is now
