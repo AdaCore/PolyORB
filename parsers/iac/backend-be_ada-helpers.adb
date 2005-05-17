@@ -458,6 +458,18 @@ package body Backend.BE_Ada.Helpers is
             Value : Value_Id)
             return Node_Id;
 
+         --  To handle the case of multi-dimension arrays. A TpeCode variable
+         --  will be declared for each dimension of an array.
+         function Declare_Dimension
+           (Var_Name  : Name_Id)
+           return Node_Id;
+
+         --  To generate a new variable name for dimension "Dimension" of the
+         --  array.
+         function Get_Dimension_Variable_Name
+           (Dimension : Natural)
+           return Name_Id;
+
          -------------------
          -- Add_Parameter --
          -------------------
@@ -502,6 +514,43 @@ package body Backend.BE_Ada.Helpers is
             return N;
          end Declare_Name;
 
+         -----------------------
+         -- Declare_Dimension --
+         -----------------------
+
+         function Declare_Dimension
+           (Var_Name  : Name_Id)
+            return Node_Id
+         is
+            N : Node_Id;
+         begin
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (Var_Name),
+               Object_Definition   => RE (RE_Object),
+               Expression          =>
+                 Make_Subprogram_Call
+               (RE (RE_To_CORBA_Object),
+                Make_List_Id (RE (RE_TC_Array))));
+            return N;
+         end Declare_Dimension;
+
+         ---------------------------------
+         -- Get_Dimension_Variable_Name --
+         ---------------------------------
+
+         function Get_Dimension_Variable_Name
+           (Dimension : Natural)
+           return Name_Id
+         is
+            Result : Name_Id;
+         begin
+            Set_Nat_To_Name_Buffer (Nat (Dimension));
+            Result := Name_Find;
+            Result := Add_Prefix_To_Name ("TC_", Result);
+            return Result;
+         end Get_Dimension_Variable_Name;
+
          Stub             : Node_Id;
          Helper           : Node_Id;
          N                : Node_Id;
@@ -525,29 +574,108 @@ package body Backend.BE_Ada.Helpers is
 
             when K_Complex_Declarator =>
                declare
-                  V      : Value_Type;
-                  Sizes  : constant List_Id :=
+                  V          : Value_Type;
+                  TC_Dim     : Node_Id          := No_Node;
+                  TC_Pr_Name : Name_Id          := No_Name;
+                  TC_Name    : Name_Id          := No_Name;
+                  Sizes      : constant List_Id :=
                     Range_Constraints
                     (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
+                  Sizes_Rev  : constant List_Id := New_List (K_List_Id);
+                  Constraint : Node_Id;
+                  Dimension  : constant Natural := Length (Sizes);
+                  From_N     : Node_Id          := No_Node;
+                  To_N       : Node_Id          := No_Node;
                begin
-                  --  Need to see the correct Mapping of multiple dimention
-                  --  arrays helpers
-                  if Length (Sizes) > 1 then
-                     raise Program_Error;
-                  end if;
+                  --  If the dimension of the array is greater than 1, we must
+                  --  generate a TypeCode variable (TC_1, TC_2...) for each
+                  --  dimension. The last variable name is TC_"Array_Name".
 
-                  V := Value (Last (First_Node (Sizes)));
-                  V.IVal := V.IVal + 1;
-                  Param1 := Make_Subprogram_Call
-                    (RE (RE_Unsigned_Long),
-                     Make_List_Id
-                     (Make_Literal (New_Value (V))));
+                  if Dimension > 1 then
 
-                  if Is_Base_Type (Type_Spec (Declaration (E))) then
-                     Param2 := Base_Type_TC
-                       (FEN.Kind (Type_Spec (Declaration (E))));
-                  else
-                     raise Program_Error;
+                     --  First of all, we create a new list which contains the
+                     --  elements of the list Sizes. All manipulations on this
+                     --  list will not affect the list Sizes because we create
+                     --  new nodes.
+
+                     From_N := First_Node (Sizes);
+                     while Present (From_N) loop
+                        To_N := New_Node (K_Range_Constraint);
+                        Set_Last (To_N, Last (From_N));
+                        Append_Node_To_List
+                          (To_N,
+                           Sizes_Rev);
+                        From_N := Next_Node (From_N);
+                     end loop;
+
+                     --  Then, startin from the last node of the new list, we
+                     --  take the corresponding size and we generate the TC_
+                     --  variable. The first variable (the deepest dimension)
+                     --  is the one containing the real type of the array.
+
+                     Constraint := Last_Node (Sizes_Rev);
+                     for Index in 1 .. Dimension - 1 loop
+                        TC_Pr_Name := TC_Name;
+                        TC_Name := Get_Dimension_Variable_Name (Index);
+                        TC_Dim  := Declare_Dimension (TC_Name);
+                        V := Value (Last (Constraint));
+                        V.IVal := V.IVal + 1;
+                        Append_Node_To_List (TC_Dim, Declarative_Part);
+                        Param1 := Make_Subprogram_Call
+                          (RE (RE_Unsigned_Long),
+                           Make_List_Id
+                           (Make_Literal (New_Value (V))));
+
+                        if TC_Pr_Name = No_Name then -- The deepest dimension
+
+                           if Is_Base_Type (Type_Spec (Declaration (E))) then
+                              Param2 := Base_Type_TC
+                                (FEN.Kind (Type_Spec (Declaration (E))));
+                           else
+                              raise Program_Error;
+                           end if;
+                        else --  Not the deepest dimension
+                           Param2 := Make_Designator (TC_Pr_Name);
+                        end if;
+
+                        TC_Dim := Add_Parameter
+                          (TC_Name,
+                           Param1);
+                        Append_Node_To_List (TC_Dim, Statements);
+                        TC_Dim := Add_Parameter
+                          (TC_Name,
+                           Param2);
+                        Append_Node_To_List (TC_Dim, Statements);
+                        Remove_Node_From_List (Constraint, Sizes_Rev);
+                        Constraint := Last_Node (Sizes_Rev);
+                     end loop;
+
+                     --  The case of the last TC_ variable which represents the
+                     --  whole array is handled apart.
+
+                     V := Value (Last (Constraint));
+                     V.IVal := V.IVal + 1;
+                     Param1 := Make_Subprogram_Call
+                       (RE (RE_Unsigned_Long),
+                        Make_List_Id
+                        (Make_Literal (New_Value (V))));
+                     Param2 := Make_Designator (TC_Name);
+
+                  else --  1 dimension array
+
+                     V := Value (Last (First_Node (Sizes)));
+                     V.IVal := V.IVal + 1;
+                     Param1 := Make_Subprogram_Call
+                       (RE (RE_Unsigned_Long),
+                        Make_List_Id
+                        (Make_Literal (New_Value (V))));
+
+                     if Is_Base_Type (Type_Spec (Declaration (E))) then
+                        Param2 := Base_Type_TC
+                          (FEN.Kind (Type_Spec (Declaration (E))));
+                     else
+                        raise Program_Error;
+                     end if;
                   end if;
                end;
 
