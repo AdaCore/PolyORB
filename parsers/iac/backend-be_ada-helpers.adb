@@ -432,6 +432,11 @@ package body Backend.BE_Ada.Helpers is
         return Node_Id;
       --  return widening object reference helper.
 
+      function TC_Designator
+        (E : Node_Id)
+        return Node_Id;
+      --  return a designator for a non-base type
+
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
@@ -439,6 +444,26 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Structure_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
+
+      -------------------
+      -- TC_Designator --
+      -------------------
+      function TC_Designator
+        (E : Node_Id)
+        return Node_Id
+      is
+         T      : Node_Id;
+         Result : Node_Id;
+         TC     : Name_Id;
+      begin
+         T := E;
+         T := Reference (T);
+         T := Stub_Node (BE_Node (Identifier (T)));
+         TC := Add_Prefix_To_Name
+           ("TC_", BEN.Name (Defining_Identifier (T)));
+         Result := Make_Designator (TC);
+         return Result;
+      end TC_Designator;
 
       -----------------------------------
       -- Deferred_Initialization_Block --
@@ -458,14 +483,14 @@ package body Backend.BE_Ada.Helpers is
             Value : Value_Id)
             return Node_Id;
 
-         --  To handle the case of multi-dimension arrays. A TpeCode variable
+         --  To handle the case of multi-dimension arrays. A TypeCode variable
          --  is declared for each dimension of an array.
          function Declare_Dimension
            (Var_Name  : Name_Id)
            return Node_Id;
 
-         --  To generate a new variable name to designate a given dimension for
-         --  dimension of the array.
+         --  Generation of a new variable name to designate a given dimension
+         --  of the array.
          function Get_Dimension_Variable_Name
            (Dimension : Natural)
            return Name_Id;
@@ -586,6 +611,7 @@ package body Backend.BE_Ada.Helpers is
                   Dimension        : constant Natural := Length (Sizes);
                   From_N           : Node_Id          := No_Node;
                   To_N             : Node_Id          := No_Node;
+                  T                : Node_Id;
                begin
                   --  If the dimension of the array is greater than 1, we must
                   --  generate a TypeCode variable (TC_1, TC_2...) for each
@@ -608,7 +634,7 @@ package body Backend.BE_Ada.Helpers is
                         From_N := Next_Node (From_N);
                      end loop;
 
-                     --  Then, startin from the last node of the new list, we
+                     --  Then, starting from the last node of the new list, we
                      --  take the corresponding size and we generate the TC_
                      --  variable. The first variable (the deepest dimension)
                      --  is the one containing the real type of the array.
@@ -629,9 +655,16 @@ package body Backend.BE_Ada.Helpers is
                         if TC_Previous_Name = No_Name then
                            --  The deepest dimension
 
-                           if Is_Base_Type (Type_Spec (Declaration (E))) then
+                           --  If the type of the array is a base type, then
+                           --  we have immediate access to this type name. The
+                           --  personal types need more work to get the type
+                           --  name.
+                           T := Type_Spec (Declaration (E));
+                           if Is_Base_Type (T) then
                               Param2 := Base_Type_TC
-                                (FEN.Kind (Type_Spec (Declaration (E))));
+                                (FEN.Kind (T));
+                           elsif FEN.Kind (T) = K_Scoped_Name then
+                              Param2 := TC_Designator (T);
                            else
                               raise Program_Error;
                            end if;
@@ -671,9 +704,15 @@ package body Backend.BE_Ada.Helpers is
                         Make_List_Id
                         (Make_Literal (New_Value (V))));
 
-                     if Is_Base_Type (Type_Spec (Declaration (E))) then
-                        Param2 := Base_Type_TC
-                          (FEN.Kind (Type_Spec (Declaration (E))));
+                     --  If the type of the array is a base type, then
+                     --  we have immediate access to this type name. The
+                     --  personal types need more work to get the type
+                     --  name.
+                     T := Type_Spec (Declaration (E));
+                     if Is_Base_Type (T) then
+                        Param2 := Base_Type_TC (FEN.Kind (T));
+                     elsif FEN.Kind (T) = K_Scoped_Name then
+                        Param2 := TC_Designator (T);
                      else
                         raise Program_Error;
                      end if;
@@ -926,6 +965,12 @@ package body Backend.BE_Ada.Helpers is
 
             if Is_Base_Type (Type_Spec (Declaration (E))) then
                TC := Base_Type_TC (FEN.Kind (Type_Spec (Declaration (E))));
+               Helper := RE (RE_From_Any_0);
+            elsif FEN.Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
+               TC := TC_Designator
+                 (Type_Spec
+                  (Declaration
+                   (E)));
                Helper := RE (RE_From_Any_0);
             else
                raise Program_Error;
@@ -1309,6 +1354,8 @@ package body Backend.BE_Ada.Helpers is
             end loop;
 
             if Is_Base_Type (Type_Spec (Declaration (E))) then
+               Helper := RE (RE_To_Any_0);
+            elsif FEN.Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
                Helper := RE (RE_To_Any_0);
             else
                raise Program_Error;
