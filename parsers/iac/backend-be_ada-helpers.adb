@@ -459,13 +459,13 @@ package body Backend.BE_Ada.Helpers is
             return Node_Id;
 
          --  To handle the case of multi-dimension arrays. A TpeCode variable
-         --  will be declared for each dimension of an array.
+         --  is declared for each dimension of an array.
          function Declare_Dimension
            (Var_Name  : Name_Id)
            return Node_Id;
 
-         --  To generate a new variable name for dimension "Dimension" of the
-         --  array.
+         --  To generate a new variable name to designate a given dimension for
+         --  dimension of the array.
          function Get_Dimension_Variable_Name
            (Dimension : Natural)
            return Name_Id;
@@ -574,18 +574,18 @@ package body Backend.BE_Ada.Helpers is
 
             when K_Complex_Declarator =>
                declare
-                  V          : Value_Type;
-                  TC_Dim     : Node_Id          := No_Node;
-                  TC_Pr_Name : Name_Id          := No_Name;
-                  TC_Name    : Name_Id          := No_Name;
-                  Sizes      : constant List_Id :=
+                  V                : Value_Type;
+                  TC_Dim           : Node_Id          := No_Node;
+                  TC_Previous_Name : Name_Id          := No_Name;
+                  TC_Name          : Name_Id          := No_Name;
+                  Sizes            : constant List_Id :=
                     Range_Constraints
                     (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
-                  Sizes_Rev  : constant List_Id := New_List (K_List_Id);
-                  Constraint : Node_Id;
-                  Dimension  : constant Natural := Length (Sizes);
-                  From_N     : Node_Id          := No_Node;
-                  To_N       : Node_Id          := No_Node;
+                  Sizes_Reverse    : constant List_Id := New_List (K_List_Id);
+                  Constraint       : Node_Id;
+                  Dimension        : constant Natural := Length (Sizes);
+                  From_N           : Node_Id          := No_Node;
+                  To_N             : Node_Id          := No_Node;
                begin
                   --  If the dimension of the array is greater than 1, we must
                   --  generate a TypeCode variable (TC_1, TC_2...) for each
@@ -604,7 +604,7 @@ package body Backend.BE_Ada.Helpers is
                         Set_Last (To_N, Last (From_N));
                         Append_Node_To_List
                           (To_N,
-                           Sizes_Rev);
+                           Sizes_Reverse);
                         From_N := Next_Node (From_N);
                      end loop;
 
@@ -613,9 +613,9 @@ package body Backend.BE_Ada.Helpers is
                      --  variable. The first variable (the deepest dimension)
                      --  is the one containing the real type of the array.
 
-                     Constraint := Last_Node (Sizes_Rev);
+                     Constraint := Last_Node (Sizes_Reverse);
                      for Index in 1 .. Dimension - 1 loop
-                        TC_Pr_Name := TC_Name;
+                        TC_Previous_Name := TC_Name;
                         TC_Name := Get_Dimension_Variable_Name (Index);
                         TC_Dim  := Declare_Dimension (TC_Name);
                         V := Value (Last (Constraint));
@@ -626,7 +626,8 @@ package body Backend.BE_Ada.Helpers is
                            Make_List_Id
                            (Make_Literal (New_Value (V))));
 
-                        if TC_Pr_Name = No_Name then -- The deepest dimension
+                        if TC_Previous_Name = No_Name then
+                           --  The deepest dimension
 
                            if Is_Base_Type (Type_Spec (Declaration (E))) then
                               Param2 := Base_Type_TC
@@ -635,7 +636,7 @@ package body Backend.BE_Ada.Helpers is
                               raise Program_Error;
                            end if;
                         else --  Not the deepest dimension
-                           Param2 := Make_Designator (TC_Pr_Name);
+                           Param2 := Make_Designator (TC_Previous_Name);
                         end if;
 
                         TC_Dim := Add_Parameter
@@ -646,8 +647,8 @@ package body Backend.BE_Ada.Helpers is
                           (TC_Name,
                            Param2);
                         Append_Node_To_List (TC_Dim, Statements);
-                        Remove_Node_From_List (Constraint, Sizes_Rev);
-                        Constraint := Last_Node (Sizes_Rev);
+                        Remove_Node_From_List (Constraint, Sizes_Reverse);
+                        Constraint := Last_Node (Sizes_Reverse);
                      end loop;
 
                      --  The case of the last TC_ variable which represents the
