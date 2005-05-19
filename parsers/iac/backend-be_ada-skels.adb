@@ -144,6 +144,10 @@ package body Backend.BE_Ada.Skels is
            (Make_Designator (SN (S_Servant_Is_A)), A_Access);
          Append_Node_To_List (N, Profile);
 
+         N := Make_Type_Attribute
+           (Make_Designator (SN (S_Is_A)), A_Access);
+         Append_Node_To_List (N, Profile);
+
          N := Make_Type_Attribute (Make_Designator (SN (S_Invoke)), A_Access);
          Append_Node_To_List (N, Profile);
 
@@ -287,7 +291,8 @@ package body Backend.BE_Ada.Skels is
             Param := First_Node (Parameter_Profile (S));
             Param := Next_Node (Param);
             loop
-               if  BEN.Parameter_Mode (Param) = Mode_In then
+               if  BEN.Parameter_Mode (Param) = Mode_In
+                 or else BEN.Parameter_Mode (Param) = Mode_Inout then
                   Param_Name := BEN.Name (Defining_Identifier (Param));
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
@@ -374,6 +379,52 @@ package body Backend.BE_Ada.Skels is
                (Make_Designator (PN (P_Request)),
                 C));
             Append_Node_To_List (N, Statements);
+         end if;
+
+         --  Set out arguments
+
+         if Count > 1 then
+            Param := First_Node (Parameter_Profile (S));
+            Param := Next_Node (Param);
+            loop
+               if  BEN.Parameter_Mode (Param) = Mode_Out
+                 or else BEN.Parameter_Mode (Param) = Mode_Inout then
+                  Param_Name := BEN.Name (Defining_Identifier (Param));
+                  New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
+
+                  if Is_Base_Type (BEN.FE_Node (Parameter_Type (Param))) then
+                     To_Any_Helper := RE (RE_To_Any_0);
+                  else
+                     C := Identifier (FE_Node (Parameter_Type (Param)));
+                     C := Helper_Node
+                       (BE_Node
+                        (Identifier (Reference (Corresponding_Entity (C)))));
+                     To_Any_Helper := Expand_Designator
+                       (Next_Node (C));
+                  end if;
+
+                  declare
+                     Arg_List : constant List_Id := New_List (K_List_Id);
+                  begin
+                     Append_Node_To_List
+                       (Make_Defining_Identifier (New_Name),
+                        Arg_List);
+                     Append_Node_To_List
+                       (Make_Subprogram_Call
+                        (To_Any_Helper,
+                         Make_List_Id (Make_Designator (Param_Name))),
+                        Arg_List);
+
+                     N := Make_Subprogram_Call
+                       (RE (RE_Move_Any_Value),
+                        Arg_List);
+                     Append_Node_To_List (N, Statements);
+                  end;
+               end if;
+
+               Param := Next_Node (Param);
+               exit when No (Param);
+            end loop;
          end if;
 
          N := Make_Return_Statement (No_Node);
