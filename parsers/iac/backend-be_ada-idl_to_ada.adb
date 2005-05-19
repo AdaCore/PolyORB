@@ -585,6 +585,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
            | FEN.K_Simple_Declarator
            | FEN.K_Complex_Declarator
            | FEN.K_Enumeration_Type
+           | FEN.K_Exception_Declaration
+           | FEN.K_Operation_Declaration
            | FEN.K_Union_Type =>
             Get_Name_String
               (To_Ada_Name (FEN.IDL_Name (FEN.Identifier (Entity))));
