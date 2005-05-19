@@ -192,11 +192,22 @@ package body Backend.BE_Ada.Stubs is
 
       begin
          Set_Main_Spec;
+
+         --  Declaration of the exception
+
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Identifier := Make_Defining_Identifier (Name_Find);
          Append_Node_To_List
            (Make_Exception_Declaration (Identifier),
             Visible_Part (Current_Package));
+
+         --  Insert repository declaration
+
+         Append_Node_To_List
+           (Map_Repository_Declaration (E),
+            Visible_Part (Current_Package));
+
+         --  Definition of the "Exception_Name"_Members type
 
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Add_Str_To_Name_Buffer ("_Members");
@@ -210,6 +221,8 @@ package body Backend.BE_Ada.Stubs is
               Make_Record_Definition
              (Map_Members_Definition (Members (E))))),
             Visible_Part (Current_Package));
+
+         --  Insert the Get_Members procedure specification
 
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
@@ -372,6 +385,11 @@ package body Backend.BE_Ada.Stubs is
          Subp_Spec := Make_Subprogram_Specification
            (Map_Defining_Identifier (E), Profile, Returns);
          Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
+
+         Append_Node_To_List
+           (Map_Repository_Declaration (E),
+            Visible_Part (Current_Package));
+
          Bind_FE_To_Stub (Identifier (E), Subp_Spec);
       end Visit_Operation_Declaration;
 
@@ -488,6 +506,8 @@ package body Backend.BE_Ada.Stubs is
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
+      procedure Visit_Exception_Declaration (E : Node_Id);
+      procedure Visit_Module (E : Node_Id);
 
       -----------
       -- Visit --
@@ -506,7 +526,7 @@ package body Backend.BE_Ada.Stubs is
                null;
 
             when K_Exception_Declaration =>
-               null;
+               Visit_Exception_Declaration (E);
 
             when K_Interface_Declaration =>
                Visit_Interface_Declaration (E);
@@ -527,7 +547,7 @@ package body Backend.BE_Ada.Stubs is
                null;
 
             when K_Module =>
-               null;
+               Visit_Module (E);
 
             when others =>
                null;
@@ -572,6 +592,88 @@ package body Backend.BE_Ada.Stubs is
             A := Next_Entity (A);
          end loop;
       end Visit_Attribute_Declaration;
+
+      ---------------------------------
+      -- Visit_Exception_Declaration --
+      ---------------------------------
+
+      procedure Visit_Exception_Declaration (E : Node_Id) is
+         Spec : Node_Id := No_Node;
+         D    : constant List_Id := No_List;
+         S    : constant List_Id := New_List (K_List_Id);
+         N    : Node_Id;
+         Profile : List_Id;
+         Parameters : List_Id;
+         Parameter : Node_Id;
+         Identifier : Node_Id;
+      begin
+         Set_Main_Body;
+
+         --  Getting the _Member type identifier
+
+         Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
+         Add_Str_To_Name_Buffer ("_Members");
+         Identifier := Make_Defining_Identifier (Name_Find);
+
+         --  Building the parameter lists for the "Get_Members" procedure and
+         --  for the "PolyORB.Exceptions.User_Get_Members" procedure.
+
+         Profile  := New_List (K_Parameter_Profile);
+         Parameters := New_List (K_List_Id);
+
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_From)),
+            RE (RE_Exception_Occurrence));
+         Append_Node_To_List (Parameter, Profile);
+
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_To)),
+            Identifier,
+            Mode_Out);
+         Append_Node_To_List (Parameter, Profile);
+
+         Append_Node_To_List
+           (Make_Defining_Identifier (PN (P_From)), Parameters);
+         Append_Node_To_List
+           (Make_Defining_Identifier (PN (P_To)), Parameters);
+
+         --  Re-generating un spec for the "Get_Members" procedure
+
+         Spec := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_Get_Members)), Profile, No_Node);
+
+         N := Make_Subprogram_Call
+           (RE (RE_User_Get_Members),
+            Parameters);
+         Append_Node_To_List (N, S);
+
+         N := Make_Subprogram_Implementation
+           (Specification => Spec,
+            Declarations => D,
+            Statements => S);
+         Append_Node_To_List (N, Statements (Current_Package));
+      end Visit_Exception_Declaration;
+
+      ------------------
+      -- Visit_Module --
+      ------------------
+
+      procedure Visit_Module (E : Node_Id) is
+         S : Node_Id;
+         D : Node_Id;
+      begin
+         S := Stub_Node (BE_Node (Identifier (E)));
+         Push_Entity (S);
+         Set_Main_Body;
+         Append_Node_To_List
+           (Map_Repository_Declaration (E), Visible_Part (Current_Package));
+         D := First_Entity (Definitions (E));
+         while Present (D) loop
+            Visit (D);
+            D := Next_Entity (D);
+         end loop;
+         Pop_Entity;
+      end Visit_Module;
 
       ---------------------
       -- Visit_Interface --
@@ -914,6 +1016,48 @@ package body Backend.BE_Ada.Stubs is
          N := Make_Return_Statement
            (Make_Subprogram_Call (N, Make_List_Id (C)));
          Append_Node_To_List (N, Marshaller_Statements);
+      end if;
+
+      --  Retrieve out arguments values
+
+      if Count > 1 then
+         P :=  BEN.Parameter_Profile (Subp_Spec);
+         I := First_Node (P);
+         I := Next_Node (I);
+         loop
+            if  BEN.Parameter_Mode (I) = Mode_Out
+              or else BEN.Parameter_Mode (I) = Mode_Inout then
+               declare
+                  Param_Name      : Name_Id;
+                  New_Name        : Name_Id;
+                  C               : Node_Id;
+                  From_Any_Helper : Node_Id;
+               begin
+                  Param_Name := BEN.Name (Defining_Identifier (I));
+                  New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
+
+                  if Is_Base_Type (BEN.FE_Node (Parameter_Type (I))) then
+                     From_Any_Helper := RE (RE_From_Any_0);
+                  else
+                     C := Identifier (FE_Node (Parameter_Type (I)));
+                     C := Helper_Node
+                       (BE_Node
+                        (Identifier (Reference (Corresponding_Entity (C)))));
+                     From_Any_Helper := Expand_Designator
+                       (Next_Node (C));
+                  end if;
+                  N := Make_Subprogram_Call
+                    (From_Any_Helper,
+                     Make_List_Id (Make_Designator (New_Name)));
+                  N := Make_Assignment_Statement
+                    (Make_Designator (Param_Name),
+                     N);
+                  Append_Node_To_List (N, Marshaller_Statements);
+               end;
+            end if;
+            I := Next_Node (I);
+            exit when No (I);
+         end loop;
       end if;
 
       return Marshaller_Statements;
