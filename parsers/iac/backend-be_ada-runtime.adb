@@ -151,6 +151,8 @@ package body Backend.BE_Ada.Runtime is
       Declare_Subunit (RUD (RU_CORBA_TypeCode_Internals));
       Declare_Subunit (RUD (RU_PolyORB_Any_TypeCode));
       Declare_Subunit (RUD (RU_PolyORB_Any_TypeCode_Internals));
+      Declare_Subunit (RUD (RU_CORBA_Object_Internals));
+      Declare_Subunit (RUD (RU_PortableServer_Internals));
 
       --  Package Standard is not a subunit but it has to be handled
       --  in a specific way as well as subunit.
