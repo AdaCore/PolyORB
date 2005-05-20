@@ -664,9 +664,6 @@ package body Backend.BE_Ada.Stubs is
       begin
          S := Stub_Node (BE_Node (Identifier (E)));
          Push_Entity (S);
-         Set_Main_Body;
-         Append_Node_To_List
-           (Map_Repository_Declaration (E), Visible_Part (Current_Package));
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);
@@ -1032,17 +1029,20 @@ package body Backend.BE_Ada.Stubs is
                   New_Name        : Name_Id;
                   C               : Node_Id;
                   From_Any_Helper : Node_Id;
+                  Par_Type        : Node_Id;
                begin
                   Param_Name := BEN.Name (Defining_Identifier (I));
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
-                  if Is_Base_Type (BEN.FE_Node (Parameter_Type (I))) then
+                  Par_Type := BEN.FE_Node (Parameter_Type (I));
+                  if Is_Base_Type (Par_Type) then
                      From_Any_Helper := RE (RE_From_Any_0);
                   else
-                     C := Identifier (FE_Node (Parameter_Type (I)));
-                     C := Helper_Node
-                       (BE_Node
-                        (Identifier (Reference (Corresponding_Entity (C)))));
+                     if FEN.Kind (Par_Type) = K_Scoped_Name then
+                        Par_Type := Reference (Par_Type);
+                     end if;
+                     C := Identifier (Par_Type);
+                     C := Helper_Node (BE_Node (C));
                      From_Any_Helper := Expand_Designator
                        (Next_Node (C));
                   end if;

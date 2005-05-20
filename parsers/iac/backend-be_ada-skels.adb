@@ -296,16 +296,22 @@ package body Backend.BE_Ada.Skels is
                   Param_Name := BEN.Name (Defining_Identifier (Param));
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
-                  if Is_Base_Type (BEN.FE_Node (Parameter_Type (Param))) then
-                     From_Any_Helper := RE (RE_From_Any_0);
-                  else
-                     C := Identifier (FE_Node (Parameter_Type (Param)));
-                     C := Helper_Node
-                       (BE_Node
-                        (Identifier (Reference (Corresponding_Entity (C)))));
-                     From_Any_Helper := Expand_Designator
-                       (Next_Node (C));
-                  end if;
+                  declare
+                     Par_Type : Node_Id :=
+                       BEN.FE_Node (Parameter_Type (Param));
+                  begin
+                     if Is_Base_Type (Par_Type) then
+                        From_Any_Helper := RE (RE_From_Any_0);
+                     else
+                        if FEN.Kind (Par_Type) = K_Scoped_Name then
+                           Par_Type := Reference (Par_Type);
+                        end if;
+                        C := Identifier (Par_Type);
+                        C := Helper_Node (BE_Node (C));
+                        From_Any_Helper := Expand_Designator
+                          (Next_Node (C));
+                     end if;
+                  end;
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (Param_Name),
@@ -392,16 +398,22 @@ package body Backend.BE_Ada.Skels is
                   Param_Name := BEN.Name (Defining_Identifier (Param));
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
-                  if Is_Base_Type (BEN.FE_Node (Parameter_Type (Param))) then
-                     To_Any_Helper := RE (RE_To_Any_0);
-                  else
-                     C := Identifier (FE_Node (Parameter_Type (Param)));
-                     C := Helper_Node
-                       (BE_Node
-                        (Identifier (Reference (Corresponding_Entity (C)))));
-                     To_Any_Helper := Expand_Designator
-                       (Next_Node (C));
-                  end if;
+                  declare
+                     Par_Type : Node_Id :=
+                       BEN.FE_Node (Parameter_Type (Param));
+                  begin
+                     if Is_Base_Type (Par_Type) then
+                        To_Any_Helper := RE (RE_To_Any_0);
+                     else
+                        if FEN.Kind (Par_Type) = K_Scoped_Name then
+                           Par_Type := Reference (Par_Type);
+                        end if;
+                        C := Identifier (Par_Type);
+                        C := Helper_Node (BE_Node (C));
+                        To_Any_Helper := Expand_Designator
+                          (Next_Node (Next_Node (C)));
+                     end if;
+                  end;
 
                   declare
                      Arg_List : constant List_Id := New_List (K_List_Id);
