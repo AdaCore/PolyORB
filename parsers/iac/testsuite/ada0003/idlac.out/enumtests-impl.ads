@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 -------------------------------------------------
 pragma Style_Checks (Off);
 

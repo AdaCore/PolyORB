@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -13,6 +13,9 @@ with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
 with mod1.Helper;
 with mod1.Int1.Helper;
+with PolyORB.CORBA_P.Domain_Management;
+with PolyORB.CORBA_P.IR_Hooks;
+with CORBA.Object.Helper;
 with CORBA.ORB;
 with CORBA.NVList;
 with CORBA.ServerRequest;
@@ -51,12 +54,12 @@ package body mod1.Int1.Skel is
       CORBA.ORB.Create_List (0, Arg_List_Ü);
       if Operation = "_is_a" then
          declare
-            Type_Id            : CORBA.String;
+            Type_Id : CORBA.String;
             Arg_Name_Ü_Type_Id : constant CORBA.Identifier
             := CORBA.To_CORBA_String ("Type_Id");
             Argument_Ü_Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);
             
-            Result_Ü           : CORBA.Boolean;
+            Result_Ü : CORBA.Boolean;
          begin
             CORBA.NVList.Add_Item
             (Arg_List_Ü,
@@ -81,10 +84,33 @@ package body mod1.Int1.Skel is
 
             CORBA.ServerRequest.Set_Result
             (Request,
-            CORBA.To_Any (
-            Result_Ü));
+            CORBA.To_Any (Result_Ü));
             return;
          end;
+
+      elsif Operation = "_interface" then
+
+         CORBA.ServerRequest.Arguments (Request, Arg_List_Ü);
+
+         CORBA.ServerRequest.Set_Result
+           (Request,
+            CORBA.Object.Helper.To_Any
+            (CORBA.Object.Ref
+             (PolyORB.CORBA_P.IR_Hooks.Get_Interface_Definition
+              (CORBA.To_CORBA_String (Repository_Id)))));
+
+         return;
+
+      elsif Operation = "_domain_managers" then
+
+         CORBA.ServerRequest.Arguments (Request, Arg_List_Ü);
+
+         CORBA.ServerRequest.Set_Result
+           (Request,
+            PolyORB.CORBA_P.Domain_Management.Get_Domain_Managers
+            (Self));
+
+         return;
 
       elsif Operation = "_get_Real_Number" then
 
@@ -103,12 +129,11 @@ package body mod1.Int1.Skel is
                  (mod1.Int1.Impl.Object'Class (Self.all)'Access);
             end;
 
-            -- Set Result
+            -- Set result
 
             CORBA.ServerRequest.Set_Result
               (Request, 
-               mod1.Int1.Helper.To_Any (
-               Result_Ü));
+               mod1.Int1.Helper.To_Any (Result_Ü));
             return;
          end;
 
@@ -116,9 +141,9 @@ package body mod1.Int1.Skel is
 
          declare
             To            : mod1.Int1.New_Float;
-            Arg_Name_Ü_To : constant CORBA.Identifier
-              := CORBA.To_CORBA_String ("To");
-            Argument_Ü_To : CORBA.Any := CORBA.Get_Empty_Any
+            Arg_Name_Ü_To : constant CORBA.Identifier :=
+              CORBA.To_CORBA_String ("To");
+            Argument_Ü_To : CORBA.Any := CORBA.Internals.Get_Empty_Any
               (mod1.Int1.Helper.TC_New_Float);
 
          begin
@@ -161,12 +186,11 @@ package body mod1.Int1.Skel is
                  (mod1.Int1.Impl.Object'Class (Self.all)'Access);
             end;
 
-            -- Set Result
+            -- Set result
 
             CORBA.ServerRequest.Set_Result
               (Request, 
-               mod1.Int1.Helper.To_Any (
-               Result_Ü));
+               mod1.Int1.Helper.To_Any (Result_Ü));
             return;
          end;
 
@@ -174,9 +198,9 @@ package body mod1.Int1.Skel is
 
          declare
             To            : mod1.Int1.Color;
-            Arg_Name_Ü_To : constant CORBA.Identifier
-              := CORBA.To_CORBA_String ("To");
-            Argument_Ü_To : CORBA.Any := CORBA.Get_Empty_Any
+            Arg_Name_Ü_To : constant CORBA.Identifier :=
+              CORBA.To_CORBA_String ("To");
+            Argument_Ü_To : CORBA.Any := CORBA.Internals.Get_Empty_Any
               (mod1.Int1.Helper.TC_Color);
 
          begin
@@ -219,12 +243,11 @@ package body mod1.Int1.Skel is
                  (mod1.Int1.Impl.Object'Class (Self.all)'Access);
             end;
 
-            -- Set Result
+            -- Set result
 
             CORBA.ServerRequest.Set_Result
               (Request, 
-               mod1.Helper.To_Any (
-               Result_Ü));
+               mod1.Helper.To_Any (Result_Ü));
             return;
          end;
 
@@ -232,9 +255,9 @@ package body mod1.Int1.Skel is
 
          declare
             To            : mod1.bool;
-            Arg_Name_Ü_To : constant CORBA.Identifier
-              := CORBA.To_CORBA_String ("To");
-            Argument_Ü_To : CORBA.Any := CORBA.Get_Empty_Any
+            Arg_Name_Ü_To : constant CORBA.Identifier :=
+              CORBA.To_CORBA_String ("To");
+            Argument_Ü_To : CORBA.Any := CORBA.Internals.Get_Empty_Any
               (mod1.Helper.TC_bool);
 
          begin
@@ -272,13 +295,15 @@ package body mod1.Int1.Skel is
             return;
          end;
    end Invoke;
+   
    procedure Deferred_Initialization is
    begin
-      null;
-      PortableServer.Register_Skeleton
+      PortableServer.Internals.Register_Skeleton
         (CORBA.To_CORBA_String (mod1.Int1.Repository_Id),
          Servant_Is_A'Access,
+         Is_A'Access,
          Invoke'Access);
+   
    end Deferred_Initialization;
 
 begin

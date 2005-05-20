@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -25,6 +25,8 @@ package body Inter2 is
      (Self : Ref)
      return Inter2.New_Float
    is
+      --  Prepare in arguments
+
 
       Operation_Name_Ü : constant Standard.String
         := "_get_attr1";
@@ -44,16 +46,18 @@ package body Inter2 is
       --  Create argument list
       PolyORB.Any.NVList.Create
         (Arg_List_Ü);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (Inter2.Helper.TC_New_Float)),
+        (CORBA.Internals.Get_Empty_Any (Inter2.Helper.TC_New_Float)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -64,17 +68,18 @@ package body Inter2 is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
 
-      --  Retrieve return value.
+      --  Retrieve return value
+
       return Inter2.Helper.From_Any
         (CORBA.Internals.To_CORBA_Any (Result_Ü.Argument));
    end get_attr1;
@@ -83,12 +88,13 @@ package body Inter2 is
      (Self : Ref;
       To : in Inter2.New_Float)
    is
+      --  Prepare in arguments
+
       Arg_Name_Ü_To : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("To");
       Argument_Ü_To : CORBA.Any
         := Inter2.Helper.To_Any
         (To);
-
       Operation_Name_Ü : constant Standard.String
         := "_set_attr1";
       Self_Ref_Ü : CORBA.Object.Ref
@@ -112,16 +118,18 @@ package body Inter2 is
          Arg_Name_Ü_To,
          CORBA.Internals.To_PolyORB_Any (Argument_Ü_To),
          PolyORB.Any.ARG_IN);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (CORBA.TC_Void)),
+        (CORBA.Internals.Get_Empty_Any (CORBA.TC_Void)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -132,13 +140,13 @@ package body Inter2 is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
    end set_attr1;
@@ -148,12 +156,13 @@ package body Inter2 is
       N : in CORBA.Float)
      return Inter2.New_Float
    is
+      --  Prepare in arguments
+
       Arg_Name_Ü_N : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("N");
       Argument_Ü_N : CORBA.Any
         := CORBA.To_Any
         (N);
-
       Operation_Name_Ü : constant Standard.String
         := "ConvertNew";
       Self_Ref_Ü : CORBA.Object.Ref
@@ -177,16 +186,18 @@ package body Inter2 is
          Arg_Name_Ü_N,
          CORBA.Internals.To_PolyORB_Any (Argument_Ü_N),
          PolyORB.Any.ARG_IN);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (Inter2.Helper.TC_New_Float)),
+        (CORBA.Internals.Get_Empty_Any (Inter2.Helper.TC_New_Float)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -197,17 +208,18 @@ package body Inter2 is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
 
-      --  Retrieve return value.
+      --  Retrieve return value
+
       return Inter2.Helper.From_Any
         (CORBA.Internals.To_CORBA_Any (Result_Ü.Argument));
    end ConvertNew;

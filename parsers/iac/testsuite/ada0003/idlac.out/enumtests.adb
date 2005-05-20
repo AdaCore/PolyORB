@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -25,6 +25,8 @@ package body EnumTests is
      (Self : Ref)
      return EnumTests.Color
    is
+      --  Prepare in arguments
+
 
       Operation_Name_Ü : constant Standard.String
         := "_get_attr_enum";
@@ -44,16 +46,18 @@ package body EnumTests is
       --  Create argument list
       PolyORB.Any.NVList.Create
         (Arg_List_Ü);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (EnumTests.Helper.TC_Color)),
+        (CORBA.Internals.Get_Empty_Any (EnumTests.Helper.TC_Color)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -64,17 +68,18 @@ package body EnumTests is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
 
-      --  Retrieve return value.
+      --  Retrieve return value
+
       return EnumTests.Helper.From_Any
         (CORBA.Internals.To_CORBA_Any (Result_Ü.Argument));
    end get_attr_enum;
@@ -83,12 +88,13 @@ package body EnumTests is
      (Self : Ref;
       To : in EnumTests.Color)
    is
+      --  Prepare in arguments
+
       Arg_Name_Ü_To : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("To");
       Argument_Ü_To : CORBA.Any
         := EnumTests.Helper.To_Any
         (To);
-
       Operation_Name_Ü : constant Standard.String
         := "_set_attr_enum";
       Self_Ref_Ü : CORBA.Object.Ref
@@ -112,16 +118,18 @@ package body EnumTests is
          Arg_Name_Ü_To,
          CORBA.Internals.To_PolyORB_Any (Argument_Ü_To),
          PolyORB.Any.ARG_IN);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (CORBA.TC_Void)),
+        (CORBA.Internals.Get_Empty_Any (CORBA.TC_Void)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -132,13 +140,13 @@ package body EnumTests is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
    end set_attr_enum;
@@ -148,12 +156,13 @@ package body EnumTests is
       C : in out EnumTests.Color;
       Returns : out EnumTests.Color)
    is
+      --  Prepare in arguments
+
       Arg_Name_Ü_C : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("C");
       Argument_Ü_C : CORBA.Any
         := EnumTests.Helper.To_Any
         (C);
-
       Operation_Name_Ü : constant Standard.String
         := "modif_enum";
       Self_Ref_Ü : CORBA.Object.Ref
@@ -177,16 +186,18 @@ package body EnumTests is
          Arg_Name_Ü_C,
          CORBA.Internals.To_PolyORB_Any (Argument_Ü_C),
          PolyORB.Any.ARG_INOUT);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (EnumTests.Helper.TC_Color)),
+        (CORBA.Internals.Get_Empty_Any (EnumTests.Helper.TC_Color)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -197,21 +208,22 @@ package body EnumTests is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
 
-      --  Retrieve return value.
+      --  Retrieve return value
+
       Returns := EnumTests.Helper.From_Any
         (CORBA.Internals.To_CORBA_Any (Result_Ü.Argument));
 
-      --  Retrieve 'out' argument values.
+      --  Retrieve out argument values.
 
       C := EnumTests.Helper.From_Any
         (Argument_Ü_C);

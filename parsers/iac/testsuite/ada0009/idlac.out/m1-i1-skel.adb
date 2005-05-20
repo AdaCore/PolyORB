@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -11,6 +11,9 @@ pragma Style_Checks (Off);
 with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
+with PolyORB.CORBA_P.Domain_Management;
+with PolyORB.CORBA_P.IR_Hooks;
+with CORBA.Object.Helper;
 with CORBA.ORB;
 with CORBA.NVList;
 with CORBA.ServerRequest;
@@ -49,12 +52,12 @@ package body m1.i1.Skel is
       CORBA.ORB.Create_List (0, Arg_List_Ü);
       if Operation = "_is_a" then
          declare
-            Type_Id            : CORBA.String;
+            Type_Id : CORBA.String;
             Arg_Name_Ü_Type_Id : constant CORBA.Identifier
             := CORBA.To_CORBA_String ("Type_Id");
             Argument_Ü_Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);
             
-            Result_Ü           : CORBA.Boolean;
+            Result_Ü : CORBA.Boolean;
          begin
             CORBA.NVList.Add_Item
             (Arg_List_Ü,
@@ -79,10 +82,33 @@ package body m1.i1.Skel is
 
             CORBA.ServerRequest.Set_Result
             (Request,
-            CORBA.To_Any (
-            Result_Ü));
+            CORBA.To_Any (Result_Ü));
             return;
          end;
+
+      elsif Operation = "_interface" then
+
+         CORBA.ServerRequest.Arguments (Request, Arg_List_Ü);
+
+         CORBA.ServerRequest.Set_Result
+           (Request,
+            CORBA.Object.Helper.To_Any
+            (CORBA.Object.Ref
+             (PolyORB.CORBA_P.IR_Hooks.Get_Interface_Definition
+              (CORBA.To_CORBA_String (Repository_Id)))));
+
+         return;
+
+      elsif Operation = "_domain_managers" then
+
+         CORBA.ServerRequest.Arguments (Request, Arg_List_Ü);
+
+         CORBA.ServerRequest.Set_Result
+           (Request,
+            PolyORB.CORBA_P.Domain_Management.Get_Domain_Managers
+            (Self));
+
+         return;
 
       else
          CORBA.Raise_Bad_Operation (CORBA.Default_Sys_Member);
@@ -96,13 +122,15 @@ package body m1.i1.Skel is
             return;
          end;
    end Invoke;
+   
    procedure Deferred_Initialization is
    begin
-      null;
-      PortableServer.Register_Skeleton
+      PortableServer.Internals.Register_Skeleton
         (CORBA.To_CORBA_String (m1.i1.Repository_Id),
          Servant_Is_A'Access,
+         Is_A'Access,
          Invoke'Access);
+   
    end Deferred_Initialization;
 
 begin

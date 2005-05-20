@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -13,8 +13,6 @@ with CORBA;
 with CORBA.Object;
 
 package m1.i2.Helper is
-
-   pragma Elaborate_Body;
 
    function Unchecked_To_Ref
      (The_Ref : in CORBA.Object.Ref'Class)

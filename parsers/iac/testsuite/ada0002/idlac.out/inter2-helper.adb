@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -53,7 +53,7 @@ package body Inter2.Helper is
       A : CORBA.Any := CORBA.Object.Helper.To_Any
         (CORBA.Object.Ref (Item));
    begin
-      CORBA.Set_Type (A, TC_Inter2);
+      CORBA.Internals.Set_Type (A, TC_Inter2);
       return A;
    end To_Any;
 
@@ -69,12 +69,12 @@ package body Inter2.Helper is
      return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Float (Item));
    begin
-      CORBA.Set_Type (Result, TC_New_Float);
+      CORBA.Internals.Set_Type (Result, TC_New_Float);
       return Result;
    end To_Any;
+   
    procedure Deferred_Initialization is
    begin
-      null;
    
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("Inter2");
@@ -92,6 +92,7 @@ package body Inter2.Helper is
          CORBA.TypeCode.Internals.Add_Parameter (TC_New_Float, CORBA.To_Any (Id));
          CORBA.TypeCode.Internals.Add_Parameter (TC_New_Float, CORBA.To_Any (CORBA.TC_Float));
       end;
+   
    end Deferred_Initialization;
 
 begin

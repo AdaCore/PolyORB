@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -26,6 +26,8 @@ package body mod1.Int1 is
      (Self : Ref)
      return mod1.Int1.New_Float
    is
+      --  Prepare in arguments
+
 
       Operation_Name_Ü : constant Standard.String
         := "_get_Real_Number";
@@ -45,16 +47,18 @@ package body mod1.Int1 is
       --  Create argument list
       PolyORB.Any.NVList.Create
         (Arg_List_Ü);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (mod1.Int1.Helper.TC_New_Float)),
+        (CORBA.Internals.Get_Empty_Any (mod1.Int1.Helper.TC_New_Float)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -65,17 +69,18 @@ package body mod1.Int1 is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
 
-      --  Retrieve return value.
+      --  Retrieve return value
+
       return mod1.Int1.Helper.From_Any
         (CORBA.Internals.To_CORBA_Any (Result_Ü.Argument));
    end get_Real_Number;
@@ -84,12 +89,13 @@ package body mod1.Int1 is
      (Self : Ref;
       To : in mod1.Int1.New_Float)
    is
+      --  Prepare in arguments
+
       Arg_Name_Ü_To : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("To");
       Argument_Ü_To : CORBA.Any
         := mod1.Int1.Helper.To_Any
         (To);
-
       Operation_Name_Ü : constant Standard.String
         := "_set_Real_Number";
       Self_Ref_Ü : CORBA.Object.Ref
@@ -113,16 +119,18 @@ package body mod1.Int1 is
          Arg_Name_Ü_To,
          CORBA.Internals.To_PolyORB_Any (Argument_Ü_To),
          PolyORB.Any.ARG_IN);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (CORBA.TC_Void)),
+        (CORBA.Internals.Get_Empty_Any (CORBA.TC_Void)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -133,13 +141,13 @@ package body mod1.Int1 is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
    end set_Real_Number;
@@ -148,6 +156,8 @@ package body mod1.Int1 is
      (Self : Ref)
      return mod1.Int1.Color
    is
+      --  Prepare in arguments
+
 
       Operation_Name_Ü : constant Standard.String
         := "_get_couleur";
@@ -167,16 +177,18 @@ package body mod1.Int1 is
       --  Create argument list
       PolyORB.Any.NVList.Create
         (Arg_List_Ü);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (mod1.Int1.Helper.TC_Color)),
+        (CORBA.Internals.Get_Empty_Any (mod1.Int1.Helper.TC_Color)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -187,17 +199,18 @@ package body mod1.Int1 is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
 
-      --  Retrieve return value.
+      --  Retrieve return value
+
       return mod1.Int1.Helper.From_Any
         (CORBA.Internals.To_CORBA_Any (Result_Ü.Argument));
    end get_couleur;
@@ -206,12 +219,13 @@ package body mod1.Int1 is
      (Self : Ref;
       To : in mod1.Int1.Color)
    is
+      --  Prepare in arguments
+
       Arg_Name_Ü_To : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("To");
       Argument_Ü_To : CORBA.Any
         := mod1.Int1.Helper.To_Any
         (To);
-
       Operation_Name_Ü : constant Standard.String
         := "_set_couleur";
       Self_Ref_Ü : CORBA.Object.Ref
@@ -235,16 +249,18 @@ package body mod1.Int1 is
          Arg_Name_Ü_To,
          CORBA.Internals.To_PolyORB_Any (Argument_Ü_To),
          PolyORB.Any.ARG_IN);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (CORBA.TC_Void)),
+        (CORBA.Internals.Get_Empty_Any (CORBA.TC_Void)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -255,13 +271,13 @@ package body mod1.Int1 is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
    end set_couleur;
@@ -270,6 +286,8 @@ package body mod1.Int1 is
      (Self : Ref)
      return mod1.bool
    is
+      --  Prepare in arguments
+
 
       Operation_Name_Ü : constant Standard.String
         := "_get_b1";
@@ -289,16 +307,18 @@ package body mod1.Int1 is
       --  Create argument list
       PolyORB.Any.NVList.Create
         (Arg_List_Ü);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (mod1.Helper.TC_bool)),
+        (CORBA.Internals.Get_Empty_Any (mod1.Helper.TC_bool)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -309,17 +329,18 @@ package body mod1.Int1 is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
 
-      --  Retrieve return value.
+      --  Retrieve return value
+
       return mod1.Helper.From_Any
         (CORBA.Internals.To_CORBA_Any (Result_Ü.Argument));
    end get_b1;
@@ -328,12 +349,13 @@ package body mod1.Int1 is
      (Self : Ref;
       To : in mod1.bool)
    is
+      --  Prepare in arguments
+
       Arg_Name_Ü_To : PolyORB.Types.Identifier
         := PolyORB.Types.To_PolyORB_String ("To");
       Argument_Ü_To : CORBA.Any
         := mod1.Helper.To_Any
         (To);
-
       Operation_Name_Ü : constant Standard.String
         := "_set_b1";
       Self_Ref_Ü : CORBA.Object.Ref
@@ -357,16 +379,18 @@ package body mod1.Int1 is
          Arg_Name_Ü_To,
          CORBA.Internals.To_PolyORB_Any (Argument_Ü_To),
          PolyORB.Any.ARG_IN);
+
       --  Set result type (maybe void)
+
       Result_Ü
         := (Name => PolyORB.Types.Identifier (Result_Name_Ü),
             Argument => CORBA.Internals.To_PolyORB_Any 
-        (Get_Empty_Any (CORBA.TC_Void)),
+        (CORBA.Internals.Get_Empty_Any (CORBA.TC_Void)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
-         (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+           (CORBA.Object.Ref (Self)),
          Operation => Operation_Name_Ü,
          Arg_List  => Arg_List_Ü,
          Result    => Result_Ü,
@@ -377,13 +401,13 @@ package body mod1.Int1 is
          PolyORB.Requests.Flags (0));
       if not PolyORB.Any.Is_Empty (Request_Ü.Exception_Info) then
          Result_Ü.Argument := Request_Ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_Ü);
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
-           (Result_Ü.Argument);
+         PolyORB.Requests.Destroy_Request (Request_Ü);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any (Result_Ü.Argument);
+
+         --  Not reached
+
       end if;
-      PolyORB.Requests.Destroy_Request
-        (Request_Ü);
+      PolyORB.Requests.Destroy_Request (Request_Ü);
 
       --  Request has been synchronously invoked.
    end set_b1;

@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -53,16 +53,16 @@ package body EnumTests.Helper is
       A : CORBA.Any := CORBA.Object.Helper.To_Any
         (CORBA.Object.Ref (Item));
    begin
-      CORBA.Set_Type (A, TC_EnumTests);
+      CORBA.Internals.Set_Type (A, TC_EnumTests);
       return A;
    end To_Any;
 
    function From_Any (Item : in CORBA.Any)
       return EnumTests.Color is
       Index : CORBA.Any :=
-         CORBA.Get_Aggregate_Element (Item,
-                                      CORBA.TC_Unsigned_Long,
-                                      CORBA.Unsigned_Long (0));
+         CORBA.Internals.Get_Aggregate_Element (Item,
+                                                CORBA.TC_Unsigned_Long,
+                                                CORBA.Unsigned_Long (0));
       Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
    begin
       return Color'Val (Position);
@@ -72,16 +72,16 @@ package body EnumTests.Helper is
      (Item : in EnumTests.Color)
      return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Get_Empty_Any_Aggregate (TC_Color);
+         CORBA.Internals.Get_Empty_Any_Aggregate (TC_Color);
    begin
-      CORBA.Add_Aggregate_Element
+      CORBA.Internals.Add_Aggregate_Element
          (Result,
           CORBA.To_Any (CORBA.Unsigned_Long (Color'Pos (Item))));
       return Result;
    end To_Any;
+   
    procedure Deferred_Initialization is
    begin
-      null;
    
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("EnumTests");
@@ -103,6 +103,7 @@ package body EnumTests.Helper is
          CORBA.TypeCode.Internals.Add_Parameter (TC_Color, CORBA.To_Any (Blue_Name));
          CORBA.TypeCode.Internals.Add_Parameter (TC_Color, CORBA.To_Any (Green_Name));
       end;
+   
    end Deferred_Initialization;
 
 begin

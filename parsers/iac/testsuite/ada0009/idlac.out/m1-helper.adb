@@ -1,6 +1,6 @@
 -------------------------------------------------
 --  This file has been generated automatically
---  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--  by IDLAC (http://libre.adacore.com/polyorb/)
 --
 --  Do NOT hand-modify this file, as your
 --  changes will be lost when you re-run the
@@ -27,12 +27,12 @@ package body m1.Helper is
      return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Boolean (Item));
    begin
-      CORBA.Set_Type (Result, TC_b1);
+      CORBA.Internals.Set_Type (Result, TC_b1);
       return Result;
    end To_Any;
+   
    procedure Deferred_Initialization is
    begin
-      null;
    
       declare
          Name : CORBA.String := CORBA.To_CORBA_String ("b1");
@@ -42,6 +42,7 @@ package body m1.Helper is
          CORBA.TypeCode.Internals.Add_Parameter (TC_b1, CORBA.To_Any (Id));
          CORBA.TypeCode.Internals.Add_Parameter (TC_b1, CORBA.To_Any (CORBA.TC_Boolean));
       end;
+   
    end Deferred_Initialization;
 
 begin
