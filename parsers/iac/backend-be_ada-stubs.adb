@@ -1081,6 +1081,7 @@ package body Backend.BE_Ada.Stubs is
         := BEN.Name (Defining_Identifier (Subp_Spec));
       FE              : constant Node_Id
         := Corresponding_Entity (FE_Node (Subp_Spec));
+      TC_Node         : Node_Id;
 
    begin
       L := New_List (BEN.K_List_Id);
@@ -1100,8 +1101,8 @@ package body Backend.BE_Ada.Stubs is
       I := Next_Node (I);
       while Present (I) loop
 
-         --  Arg_Name_U_X declaration
-         --  Arg_Name_U_X : PolyORB.Types.Identifier
+         --  Operation_Name_Arg_Name_U_X declaration
+         --  Operation_Name_Arg_Name_U_X : PolyORB.Types.Identifier
          --    := PolyORB.Types.To_PolyORB_String ("X")
          --  ** where X is the parameter name.
 
@@ -1120,7 +1121,7 @@ package body Backend.BE_Ada.Stubs is
             Constant_Present => False,
             Object_Definition => RE (RE_Identifier),
             Expression => C);
-         Append_Node_To_List (N, Statements (Current_Package));
+         Append_Node_To_List (N, L);
 
          --  Argument_U_X declaration
          --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
@@ -1131,6 +1132,15 @@ package body Backend.BE_Ada.Stubs is
 
             if BEN.Parameter_Mode (I) = Mode_Out then
                D := RE (RE_Get_Empty_Any);
+
+               --  If we are in this case, we must not give X as a parameter
+               --  to Get_Empty_Any. We must use the TypeCode identifier for
+               --  the type of parameter I.
+               TC_Node := Base_Type_TC
+                 (FEN.Kind
+                  (BEN.FE_Node
+                   (Parameter_Type (I))));
+
             else
                D := RE (RE_To_Any_0);
             end if;
@@ -1140,6 +1150,25 @@ package body Backend.BE_Ada.Stubs is
                D := RE (RE_Get_Empty_Any);
                Set_Parent_Unit_Name
                  (D, Defining_Identifier (Helper_Package (Current_Entity)));
+
+               --  If we are in this case, we must not give X as a parameter
+               --  to Get_Empty_Any. We must generate a TypeCode identifier for
+               --  the type of parameter I.
+               TC_Node := Corresponding_Entity
+                 (Identifier
+                  (BEN.FE_Node
+                   (Parameter_Type (I))));
+               if FEN.Kind (TC_Node) = K_Scoped_Name then
+                  TC_Node := Helper_Node
+                    (BE_Node
+                     (Identifier
+                      (Reference (TC_Node))));
+               else
+                  TC_Node := Helper_Node
+                    (BE_Node
+                     (Identifier (TC_Node)));
+               end if;
+               TC_Node := Expand_Designator (TC_Node);
             else
                D := Identifier (FE_Node (Parameter_Type (I)));
                D := Helper_Node
@@ -1148,10 +1177,17 @@ package body Backend.BE_Ada.Stubs is
             end if;
          end if;
 
-         C :=  Make_Subprogram_Call
-           (Defining_Identifier   => D,
-            Actual_Parameter_Part =>
-              Make_List_Id (Make_Defining_Identifier (X)));
+         if BEN.Parameter_Mode (I) = Mode_Out then
+            C :=  Make_Subprogram_Call
+              (Defining_Identifier   => D,
+               Actual_Parameter_Part =>
+                 Make_List_Id (TC_Node));
+         else
+            C :=  Make_Subprogram_Call
+              (Defining_Identifier   => D,
+               Actual_Parameter_Part =>
+                 Make_List_Id (Make_Defining_Identifier (X)));
+         end if;
 
          Set_Str_To_Name_Buffer ("Argument_U_");
          Get_Name_String_And_Append (X);
