@@ -72,7 +72,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       --  Compatiblity between Non_Retain and Id_Uniqueness done in
       --   PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique.
 
-      --  Non_Retain requires either Use_Default_Servent
+      --  Non_Retain requires either Use_Default_Servant
       --   or Use_Servant_Manager.
 
       for J in Other_Policies'Range loop
