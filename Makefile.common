@@ -11,7 +11,7 @@ IDLAC=		$(IDLAC_dir)/idlac
 GEN_CODESET_dir=$(top_builddir)/src/giop
 GEN_CODESET=	$(GEN_CODESET_dir)/gen_codeset
 
-LINK=		$(LINKER) -o $(lib_LTLIBRARIES)
+LINK=		$(LINKER) -o $@
 
 .c.lo:
 	$(LTCOMPILE) -c $<
