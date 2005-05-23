@@ -174,6 +174,7 @@ package Backend.BE_Ada.Nutils is
       P_Provides,
       P_Repository_Id,
       P_Req,
+      P_Req_Flags,
       P_Request,
       P_Result,
       P_Returns,

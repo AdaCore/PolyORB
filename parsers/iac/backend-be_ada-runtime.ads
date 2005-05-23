@@ -141,6 +141,11 @@ package Backend.BE_Ada.Runtime is
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Create_Request,            --  PolyORB.Requests.Create_Request
       RE_Flags,                     --  PolyORB.Requests.Flags
+      RE_Sync_None,                 --  PolyORB.Requests.Sync_None
+      RE_Sync_With_Transport,       --  PolyORB.Requests.Sync_With_Transport
+      RE_Sync_With_Server,          --  PolyORB.Requests.Sync_With_Server
+      RE_Sync_With_Target,          --  PolyORB.Requests.Sync_With_Target
+      RE_Sync_Call_Back,            --  PolyORB.Requests.Sync_Call_Back
       RE_Destroy_Request,           --  PolyORB.Requests.Destroy_Request
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
@@ -259,6 +264,11 @@ package Backend.BE_Ada.Runtime is
          RE_Create_Request          => RU_PolyORB_Requests,
          RE_Destroy_Request         => RU_PolyORB_Requests,
          RE_Flags                   => RU_PolyORB_Requests,
+         RE_Sync_None               => RU_PolyORB_Requests,
+         RE_Sync_With_Transport     => RU_PolyORB_Requests,
+         RE_Sync_With_Server        => RU_PolyORB_Requests,
+         RE_Sync_With_Target        => RU_PolyORB_Requests,
+         RE_Sync_Call_Back          => RU_PolyORB_Requests,
          RE_Identifier              => RU_PolyORB_Types,
          RE_To_PolyORB_String       => RU_PolyORB_Types,
          RE_Add                     => RU_PolyORB_Utils_Strings,

@@ -756,6 +756,7 @@ package body Backend.BE_Ada.Stubs is
       R                         : Name_Id;
       Operation_Name            : constant Name_Id
         := BEN.Name (Defining_Identifier (Subp_Spec));
+      Declaration               : Node_Id;
 
    begin
       Return_T := Return_Type (Subp_Spec);
@@ -939,6 +940,36 @@ package body Backend.BE_Ada.Stubs is
         (Selector_Name => Make_Defining_Identifier (PN (P_Req)),
          Expression    => Make_Defining_Identifier (VN (V_Request)));
       Append_Node_To_List (N, P);
+
+      --  Handling the case of Onway Operation.
+      --  Extract from The CORBA mapping specification : "IDL oneway operations
+      --  are mapped the same as other operation; that is, there is no
+      --  indication wether an operation is oneway or not in the mapeped Ada
+      --  specification".
+      --
+      --  The extract above means that the call to a onway operation is
+      --  performed in the same way as a call to a classic synchronous
+      --  operation. However, the ORB need to know oneway operations.
+      --  The stub precise that by adding an additional parameter to the
+      --  procedure "PolyORB.Requests.Create_Request". This additional
+      --  parameter indicate the calling way of the operation (see the file
+      --  polyorb-requests.ads for more information about differents ways of
+      --  calls)
+      --
+      --  First of all, verify that we are handling an operation decalaration
+      --  (and not an attribute declaration)
+      Declaration := FEN.Corresponding_Entity
+        (BEN.FE_Node
+         (Subp_Spec));
+
+      if FEN.Kind (Declaration) = K_Operation_Declaration and then
+        FEN.Is_Oneway (Declaration) then
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Req_Flags)),
+            Expression    => RE (RE_Sync_With_Transport));
+         Append_Node_To_List (N, P);
+      end if;
+
       N := Make_Subprogram_Call
         (RE (RE_Create_Request),
          P);
