@@ -24,10 +24,21 @@ package body Backend.BE_Ada.Helpers is
         (E : Node_Id)
         return Node_Id;
 
+      function From_Any_Spec_Ex
+        (E : Node_Id)
+        return Node_Id;
+      --  convert the exception memebers to the "any" type
+
       function To_Any_Spec
         (E : Node_Id)
         return Node_Id;
-      --  return an any conversions functions for a given type (E).
+      --  return "any" conversions functions for a given type (E).
+
+      function To_Any_Spec_Ex
+        (E : Node_Id)
+        return Node_Id;
+      --  return an ""any" conversion function for the particular case of
+      --  exceptions
 
       function Narrowing_Ref_Spec
         (E : Node_Id)
@@ -44,6 +55,12 @@ package body Backend.BE_Ada.Helpers is
         return Node_Id;
       --  return widening object reference helper.
 
+      function Raise_Excp_Spec
+        (E          : Node_Id;
+         Raise_Node : Node_Id)
+        return Node_Id;
+      --  return the spec of the Raise_"Exception_Name" procedure
+
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
@@ -51,6 +68,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Structure_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
+      procedure Visit_Exception_Declaration (E : Node_Id);
 
       -------------------
       -- From_Any_Spec --
@@ -76,6 +94,30 @@ package body Backend.BE_Ada.Helpers is
          Set_FE_Node (N, Identifier (E));
          return N;
       end From_Any_Spec;
+
+      ----------------------
+      -- From_Any_Spec_Ex --
+      ----------------------
+
+      function From_Any_Spec_Ex
+        (E : Node_Id)
+        return Node_Id
+      is
+         Profile   : List_Id;
+         Parameter : Node_Id;
+         N         : Node_Id;
+      begin
+         Profile  := New_List (K_Parameter_Profile);
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Item)),
+            RE (RE_Any));
+         Append_Node_To_List (Parameter, Profile);
+         N := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_From_Any)),
+            Profile,
+            Defining_Identifier (E));
+         return N;
+      end From_Any_Spec_Ex;
 
       ------------------------
       -- Narrowing_Ref_Spec --
@@ -129,6 +171,54 @@ package body Backend.BE_Ada.Helpers is
          return N;
       end To_Any_Spec;
 
+      --------------------
+      -- To_Any_Spec_Ex --
+      --------------------
+
+      function To_Any_Spec_Ex
+        (E : Node_Id)
+        return Node_Id
+      is
+         Profile   : List_Id;
+         Parameter : Node_Id;
+         N         : Node_Id;
+      begin
+         Profile  := New_List (K_Parameter_Profile);
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Item)),
+            Defining_Identifier (E));
+         Append_Node_To_List (Parameter, Profile);
+         N := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_To_Any)),
+            Profile, RE (RE_Any));
+         return N;
+      end To_Any_Spec_Ex;
+
+      ---------------------
+      -- Raise_Excp_Spec --
+      ---------------------
+
+      function Raise_Excp_Spec
+        (E          : Node_Id;
+         Raise_Node : Node_Id)
+        return Node_Id
+      is
+         Profile   : List_Id;
+         Parameter : Node_Id;
+         N         : Node_Id;
+      begin
+         Profile  := New_List (K_Parameter_Profile);
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Members)),
+            Defining_Identifier (E));
+         Append_Node_To_List (Parameter, Profile);
+
+         N := Make_Subprogram_Specification
+           (Raise_Node,
+            Profile, RE (RE_Any));
+         return N;
+      end Raise_Excp_Spec;
+
       -------------------
       -- TypeCode_Spec --
       -------------------
@@ -179,6 +269,9 @@ package body Backend.BE_Ada.Helpers is
             when K_Union_Type =>
                null;
 
+            when K_Exception_Declaration =>
+               P := RE (RE_TC_Except);
+
             when others =>
                raise Program_Error;
          end case;
@@ -224,6 +317,9 @@ package body Backend.BE_Ada.Helpers is
 
             when K_Union_Type =>
                Visit_Union_Type (E);
+
+            when K_Exception_Declaration =>
+               Visit_Exception_Declaration (E);
 
             when others =>
                null;
@@ -352,6 +448,41 @@ package body Backend.BE_Ada.Helpers is
             D := Next_Entity (D);
          end loop;
       end Visit_Type_Declaration;
+
+      ---------------------------------
+      -- Visit_Exception_Declaration --
+      ---------------------------------
+
+      procedure Visit_Exception_Declaration (E : Node_Id) is
+         N            : Node_Id;
+         Excp_Members : Node_Id;
+         Excp_Name    : Name_Id;
+         Raise_Node   : Node_Id;
+      begin
+         Set_Helper_Spec;
+         N := TypeCode_Spec (E);
+         Append_Node_To_List
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_Helper (Identifier (E), N);
+
+         Excp_Members := Stub_Node (BE_Node (Identifier (E)));
+         Excp_Members := Next_Node (Next_Node (Excp_Members));
+         Append_Node_To_List
+           (From_Any_Spec_Ex (Excp_Members),
+            Visible_Part (Current_Package));
+         Append_Node_To_List
+           (To_Any_Spec_Ex (Excp_Members),
+            Visible_Part (Current_Package));
+
+         --  Generation of the Raise_"Exception_Name" spec
+
+         Excp_Name := To_Ada_Name (IDL_Name (FEN.Identifier (E)));
+         Raise_Node := Make_Defining_Identifier
+           (Add_Prefix_To_Name ("Raise_", Excp_Name));
+         Append_Node_To_List
+           (Raise_Excp_Spec (Excp_Members, Raise_Node),
+            Visible_Part (Current_Package));
+      end Visit_Exception_Declaration;
 
       ----------------------
       -- Visit_Union_Type --
