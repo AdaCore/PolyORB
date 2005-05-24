@@ -10,6 +10,7 @@ package Backend.BE_Ada.Runtime is
       RU_Ada_Exceptions,
       RU_CORBA,
       RU_CORBA_AbstractBase,
+      RU_CORBA_ExceptionList,
       RU_CORBA_Internals,
       RU_CORBA_NVList,
       RU_CORBA_Object,
@@ -55,6 +56,9 @@ package Backend.BE_Ada.Runtime is
       RE_Any,                       --  CORBA.Any
       RE_To_Any_0,                  --  CORBA.To_Any
       RE_From_Any_0,                --  CORBA.From_Any
+      RE_Create_List_1,             --  CORBA.ExceptionList.Create_List
+      RE_Add_1,                     --  CORBA.ExceptionList.Add
+      RE_Ref_5,                     --  CORBA.ExceptionList.Ref
       RE_Get_Aggregate_Element,     --  CORBA.Internals.Get_Aggregate_Element
       RE_Get_Empty_Any,             --  CORBA.Internals.Get_Empty_Any
       RE_Identifier_0,              --  CORBA.Identifier
@@ -133,6 +137,7 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Object_1,                 --  PolyORB.Any.TypeCode.TC_Object
       RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
       RE_TC_Enum,                   --  PolyORB.Any.TypeCode.TC_Enum
+      RE_TC_Except,                 --  PolyORB.Any.TypeCode.TC_Except
       RE_TC_Struct,                 --  PolyORB.Any.TypeCode.TC_Struct
       RE_TC_Array,                  --  PolyORB.Any.TypeCode.TC_Array
       RE_User_Get_Members,          --  PolyORB.Exceptions.User_get_Members
@@ -217,6 +222,9 @@ package Backend.BE_Ada.Runtime is
          RE_Raise_Bad_Operation         => RU_CORBA,
          RE_Raise_Inv_Objref        => RU_CORBA,
          RE_Raise_Bad_Param         => RU_CORBA,
+         RE_Create_List_1           => RU_CORBA_ExceptionList,
+         RE_Add_1                   => RU_CORBA_ExceptionList,
+         RE_Ref_5                   => RU_CORBA_ExceptionList,
          RE_Set_Type                => RU_CORBA_Internals,
          RE_Get_Empty_Any_Aggregate => RU_CORBA_Internals,
          RE_Add_Aggregate_Element   => RU_CORBA_Internals,
@@ -253,6 +261,7 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Alias                => RU_PolyORB_Any_TypeCode,
          RE_TC_Array                => RU_PolyORB_Any_TypeCode,
          RE_TC_Enum                 => RU_PolyORB_Any_TypeCode,
+         RE_TC_Except               => RU_PolyORB_Any_TypeCode,
          RE_TC_Object_1             => RU_PolyORB_Any_TypeCode,
          RE_TC_Struct               => RU_PolyORB_Any_TypeCode,
          RE_User_Get_Members        => RU_PolyORB_Exceptions,
