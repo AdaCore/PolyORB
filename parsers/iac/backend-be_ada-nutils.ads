@@ -168,6 +168,7 @@ package Backend.BE_Ada.Nutils is
       P_Init,
       P_Item,
       P_Logical_Type_Id,
+      P_Members,
       P_Name,
       P_Obj,
       P_Operation,
