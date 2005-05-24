@@ -1,5 +1,5 @@
 AC_PREREQ(2.57)
-AC_INIT(polyorb, 1.3w, polyorb-bugs@lists.adacore.com)
+AC_INIT(polyorb, 1.4w, polyorb-bugs@lists.adacore.com)
 AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
 
@@ -11,7 +11,7 @@ AC_CONFIG_AUX_DIR(support)
 
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
-LIBVERSIONINFO=1:3:0
+LIBVERSIONINFO=1:4:0
 AC_SUBST(LIBVERSIONINFO)
 
 ##########################################
