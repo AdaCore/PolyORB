@@ -47,6 +47,8 @@ package Backend.BE_Ada.Runtime is
       RE_Boolean_0,                 --  Boolean
       RE_False,                     --  False
       RE_True,                      --  True
+      RE_On,                        --  On
+      RE_Off,                       --  Off
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
@@ -121,11 +123,14 @@ package Backend.BE_Ada.Runtime is
       RE_Object,                    --  CORBA.TypeCode.Object
       RE_Add_Parameter,             --  CORBA.TypeCode.Internals.Add_Parameter
       RE_To_CORBA_Object,           --  CORBA.TypeCode.
-                                    --     Internals.To_CORBA_Object
+      --                            --    Internals.To_CORBA_Object
+      RE_To_PolyORB_Object,         --  CORBA.TypeCode.
+      --                            --    Internals.To_PolyORB_Object
       RE_Arguments,                 --  CORBA.ServerRequest.Arguments
       RE_Object_Ptr,                --  CORBA.ServerRequest.Object_ptr
       RE_Operation,                 --  CORBA.ServerRequest.Operation
       RE_Set_Result,                --  CORBA.ServerRequest.Set_Result
+      RE_Any_1,                     --  PolyORB.Any.Any
       RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Is_Empty,                  --  PolyORB.Any.Is_Empty
       RE_ARG_IN_1,                  --  PolyORB.Any.ARG_IN
@@ -140,7 +145,9 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Except,                 --  PolyORB.Any.TypeCode.TC_Except
       RE_TC_Struct,                 --  PolyORB.Any.TypeCode.TC_Struct
       RE_TC_Array,                  --  PolyORB.Any.TypeCode.TC_Array
+      RE_Register_Exception,        --  PolyORB.Any.TypeCode.Register_Exception
       RE_User_Get_Members,          --  PolyORB.Exceptions.User_get_Members
+      RE_User_Raise_Exception,      --  PolyORB.Exceptions.User_Raise_Exception
       RE_Module_Info,               --  PolyORB.Initialization.Module_Info
       RE_Register_Module,           --  PolyORB.Initialization.Register_Module
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
@@ -172,6 +179,8 @@ package Backend.BE_Ada.Runtime is
          RE_Boolean_0               => RU_Null,
          RE_False                   => RU_Null,
          RE_True                    => RU_Null,
+         RE_On                      => RU_Null,
+         RE_Off                     => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
          RE_ARG_IN_0                => RU_CORBA,
          RE_ARG_OUT_0               => RU_CORBA,
@@ -250,6 +259,8 @@ package Backend.BE_Ada.Runtime is
          RE_Object                  => RU_CORBA_TypeCode,
          RE_Add_Parameter           => RU_CORBA_TypeCode_Internals,
          RE_To_CORBA_Object         => RU_CORBA_TypeCode_Internals,
+         RE_To_PolyORB_Object       => RU_CORBA_TypeCode_Internals,
+         RE_Any_1                   => RU_PolyORB_Any,
          RE_Is_Empty                => RU_PolyORB_Any,
          RE_NamedValue              => RU_PolyORB_Any,
          RE_ARG_IN_1                => RU_PolyORB_Any,
@@ -264,7 +275,9 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Except               => RU_PolyORB_Any_TypeCode,
          RE_TC_Object_1             => RU_PolyORB_Any_TypeCode,
          RE_TC_Struct               => RU_PolyORB_Any_TypeCode,
+         RE_Register_Exception      => RU_PolyORB_Exceptions,
          RE_User_Get_Members        => RU_PolyORB_Exceptions,
+         RE_User_Raise_Exception    => RU_PolyORB_Exceptions,
          RE_Raise_From_Any          => RU_PolyORB_CORBA_P_Exceptions,
          RE_Client_Invoke           => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_Module_Info             => RU_PolyORB_Initialization,

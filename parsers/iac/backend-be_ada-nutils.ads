@@ -235,7 +235,9 @@ package Backend.BE_Ada.Nutils is
       A_Class,
       A_First,
       A_Pos,
-      A_Val);
+      A_Val,
+      A_Identity,
+      A_Adress);
 
    AN : array (Attribute_Id) of Name_Id;
 
@@ -248,7 +250,10 @@ package Backend.BE_Ada.Nutils is
 
    type Pragma_Id is
      (Pragma_Elaborate_Body,
-      Pragma_Inline);
+      Pragma_Inline,
+      Pragma_Warnings,
+      Pragma_Unreferenced,
+      Pragma_No_Return);
 
    GN : array (Pragma_Id) of Name_Id;
 

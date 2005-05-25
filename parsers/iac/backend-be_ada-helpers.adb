@@ -56,8 +56,8 @@ package body Backend.BE_Ada.Helpers is
       --  return widening object reference helper.
 
       function Raise_Excp_Spec
-        (E          : Node_Id;
-         Raise_Node : Node_Id)
+        (Excp_Members : Node_Id;
+         Raise_Node   : Node_Id)
         return Node_Id;
       --  return the spec of the Raise_"Exception_Name" procedure
 
@@ -91,6 +91,11 @@ package body Backend.BE_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_From_Any)),
             Profile,
             Expand_Designator (Stub_Node (BE_Node (Identifier (E)))));
+         --  Setting the correct parent unit name, for the future calls of the
+         --  subprogram
+         Set_Parent_Unit_Name
+           (Defining_Identifier (N),
+            Defining_Identifier (Helper_Package (Current_Entity)));
          Set_FE_Node (N, Identifier (E));
          return N;
       end From_Any_Spec;
@@ -116,6 +121,11 @@ package body Backend.BE_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_From_Any)),
             Profile,
             Defining_Identifier (E));
+         --  Setting the correct parent unit name, for the future calls of the
+         --  subprogram
+         Set_Parent_Unit_Name
+           (Defining_Identifier (N),
+            Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end From_Any_Spec_Ex;
 
@@ -143,6 +153,11 @@ package body Backend.BE_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
             Profile, Expand_Designator
             (Stub_Node (BE_Node (Identifier (E)))));
+         --  Setting the correct parent unit name, for the future calls of the
+         --  subprogram
+         Set_Parent_Unit_Name
+           (Defining_Identifier (N),
+            Defining_Identifier (Helper_Package (Current_Entity)));
          Set_FE_Node (N, Identifier (E));
          return N;
       end Narrowing_Ref_Spec;
@@ -167,6 +182,11 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Any)),
             Profile, RE (RE_Any));
+         --  Setting the correct parent unit name, for the future calls of the
+         --  subprogram
+         Set_Parent_Unit_Name
+           (Defining_Identifier (N),
+            Defining_Identifier (Helper_Package (Current_Entity)));
          Set_FE_Node (N, Identifier (E));
          return N;
       end To_Any_Spec;
@@ -191,6 +211,11 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Any)),
             Profile, RE (RE_Any));
+         --  Setting the correct parent unit name, for the future calls of the
+         --  subprogram
+         Set_Parent_Unit_Name
+           (Defining_Identifier (N),
+            Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end To_Any_Spec_Ex;
 
@@ -199,8 +224,8 @@ package body Backend.BE_Ada.Helpers is
       ---------------------
 
       function Raise_Excp_Spec
-        (E          : Node_Id;
-         Raise_Node : Node_Id)
+        (Excp_Members : Node_Id;
+         Raise_Node   : Node_Id)
         return Node_Id
       is
          Profile   : List_Id;
@@ -210,12 +235,17 @@ package body Backend.BE_Ada.Helpers is
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Members)),
-            Defining_Identifier (E));
+            Defining_Identifier (Excp_Members));
          Append_Node_To_List (Parameter, Profile);
 
          N := Make_Subprogram_Specification
            (Raise_Node,
-            Profile, RE (RE_Any));
+            Profile);
+         --  Setting the correct parent unit name, for the future calls of the
+         --  subprogram
+         Set_Parent_Unit_Name
+           (Defining_Identifier (N),
+            Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end Raise_Excp_Spec;
 
@@ -285,6 +315,11 @@ package body Backend.BE_Ada.Helpers is
             Constant_Present    => False,
             Object_Definition   => RE (RE_Object),
             Expression          => C);
+         --  Setting the correct parent unit name, for the future calls of the
+         --  subprogram
+         Set_Parent_Unit_Name
+           (Defining_Identifier (N),
+            Defining_Identifier (Helper_Package (Current_Entity)));
          Set_FE_Node (N, Identifier (E));
          return N;
       end TypeCode_Spec;
@@ -465,6 +500,10 @@ package body Backend.BE_Ada.Helpers is
            (N, Visible_Part (Current_Package));
          Bind_FE_To_Helper (Identifier (E), N);
 
+         --  Obtaining the node corresponding to the declaration of the
+         --  "Excp_Name"_Members type.
+         --  This type was declared in the third position in the stub spec.
+
          Excp_Members := Stub_Node (BE_Node (Identifier (E)));
          Excp_Members := Next_Node (Next_Node (Excp_Members));
          Append_Node_To_List
@@ -482,6 +521,16 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List
            (Raise_Excp_Spec (Excp_Members, Raise_Node),
             Visible_Part (Current_Package));
+
+         --  Addition of the pragma No_Return
+         N := Make_Subprogram_Call
+           (Make_Defining_Identifier (GN (Pragma_No_Return)),
+            Make_List_Id
+            (Raise_Node));
+         N := Make_Pragma_Statement (N);
+         Append_Node_To_List
+           (N, Visible_Part (Current_Package));
+
       end Visit_Exception_Declaration;
 
       ----------------------
@@ -568,6 +617,22 @@ package body Backend.BE_Ada.Helpers is
         return Node_Id;
       --  return a designator for a non-base type
 
+      function Raise_Excp_From_Any_Spec
+        (Raise_Node : Node_Id)
+        return Node_Id;
+      --  The spec is situated in the body because this function is not used
+      --  outside the helper package. Hoewever the spec is necessary because
+      --  of the pragma No_Return.
+
+      function Raise_Excp_From_Any_Body
+        (E          : Node_Id;
+         Raise_Node : Node_Id)
+        return Node_Id;
+
+      function Raise_Excp_Body
+        (E : Node_Id)
+        return Node_Id;
+
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
@@ -575,6 +640,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Structure_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
+      procedure Visit_Exception_Declaration (E : Node_Id);
 
       -------------------
       -- TC_Designator --
@@ -856,6 +922,9 @@ package body Backend.BE_Ada.Helpers is
             when K_Structure_Type =>
                null;
 
+            when K_Exception_Declaration =>
+               null;
+
             when others =>
                raise Program_Error;
          end case;
@@ -961,6 +1030,45 @@ package body Backend.BE_Ada.Helpers is
                   end loop;
                end;
 
+            when K_Exception_Declaration =>
+               --  Adding the call to the "Register_Exception" procedure
+               declare
+                  Raise_From_Any_Access_Node : Node_Id;
+                  Raise_From_Any_Name        : Name_Id;
+               begin
+                  Raise_From_Any_Access_Node := Helper_Node
+                    (BE_Node (Identifier (E)));
+                  Raise_From_Any_Access_Node := Next_Node
+                    (Next_Node
+                     (Next_Node
+                      (Raise_From_Any_Access_Node)));
+                  Raise_From_Any_Access_Node := Defining_Identifier
+                    (Raise_From_Any_Access_Node);
+
+                  --  The following workaround is due to the fact that we have
+                  --  no direct acceess to the "Exception_Name"_Raise_From_Any
+                  --  procedure node because its spec is declared in the helper
+                  --  body and not in the helper spec and is not used outside
+                  --  the helper package.
+                  Raise_From_Any_Name := BEN.Name (Raise_From_Any_Access_Node);
+                  Raise_From_Any_Name := Add_Suffix_To_Name
+                    ("_From_Any",  Raise_From_Any_Name);
+                  Raise_From_Any_Access_Node := Make_Designator
+                    (Raise_From_Any_Name);
+                  Raise_From_Any_Access_Node := Make_Attribute_Designator
+                    (Raise_From_Any_Access_Node, A_Access);
+                  N := Make_Subprogram_Call
+                    (RE (RE_To_PolyORB_Object),
+                     Make_List_Id
+                     (Make_Designator
+                      (Entity_TC_Name)));
+                  N := Make_Subprogram_Call
+                    (RE (RE_Register_Exception),
+                     Make_List_Id
+                     (N, Raise_From_Any_Access_Node));
+                  Append_Node_To_List (N, Statements);
+               end;
+
             when others =>
                null;
          end case;
@@ -1004,6 +1112,7 @@ package body Backend.BE_Ada.Helpers is
          function Simple_Declarator_Body (E : Node_Id) return Node_Id;
          function Structure_Type_Body (E : Node_Id) return Node_Id;
          function Union_Type_Body (E : Node_Id) return Node_Id;
+         function Exception_Declaration_Body (E : Node_Id) return Node_Id;
 
          -----------------------------
          -- Complex_Declarator_Body --
@@ -1309,6 +1418,68 @@ package body Backend.BE_Ada.Helpers is
             return No_Node;
          end Union_Type_Body;
 
+         --------------------------------
+         -- Exception_Declaration_Body --
+         --------------------------------
+
+         function Exception_Declaration_Body (E : Node_Id) return Node_Id is
+         begin
+            --  Obtaining the "From_Any" spec node from the helper spec
+            Spec := Helper_Node (BE_Node (Identifier (E)));
+            Spec := Next_Node (Spec);  --  Second in the list of helpers
+
+            --  Begin Declarations
+
+            --  Obtaining the node corresponding to the declaration of the
+            --  "Excp_Name"_Members type.
+            --  This type was declared in the third position in the stub spec.
+
+            N := Stub_Node (BE_Node (Identifier (E)));
+            N := Next_Node (Next_Node (N));
+            N := Defining_Identifier (N);
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Result)),
+               Object_Definition   => N);
+            Append_Node_To_List (N, D);
+
+            --  Adding the necessary pragmas because the parameter of the
+            --  function is unreferenced.
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Warnings)),
+               Make_List_Id
+               (RE (RE_Off)));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Unreferenced)),
+               Make_List_Id
+                (Make_Designator (PN (P_Item))));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Warnings)),
+               Make_List_Id
+               (RE (RE_On)));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
+            --  End Declarations
+            --  Begin Statements
+
+            N := Make_Return_Statement (Make_Designator (VN (V_Result)));
+            Append_Node_To_List (N, S);
+
+            --  End Statements
+
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
+         end Exception_Declaration_Body;
+
       begin
          case FEN.Kind (E) is
             when K_Complex_Declarator =>
@@ -1328,6 +1499,10 @@ package body Backend.BE_Ada.Helpers is
 
             when K_Union_Type =>
                N := Union_Type_Body (E);
+
+            when K_Exception_Declaration =>
+               N := Exception_Declaration_Body (E);
+
             when others =>
                raise Program_Error;
          end case;
@@ -1429,6 +1604,7 @@ package body Backend.BE_Ada.Helpers is
          function Simple_Declarator_Body (E : Node_Id) return Node_Id;
          function Structure_Type_Body (E : Node_Id) return Node_Id;
          function Union_Type_Body (E : Node_Id) return Node_Id;
+         function Exception_Declaration_Body (E : Node_Id) return Node_Id;
 
          -----------------------------
          -- Complex_Declarator_Body --
@@ -1758,6 +1934,73 @@ package body Backend.BE_Ada.Helpers is
             return N;
          end Union_Type_Body;
 
+         --------------------------------
+         -- Exception_Declaration_Body --
+         --------------------------------
+
+         function Exception_Declaration_Body (E : Node_Id) return Node_Id is
+         begin
+            --  Obtaining the "From_Any" spec node from the helper spec
+            Spec := Helper_Node (BE_Node (Identifier (E)));
+            Spec := Next_Node
+              (Next_Node
+               (Spec));  --  Third in the list of helpers
+
+            --  Begin Declarations
+
+            --  Obtaining the node corresponding to the declaration of the
+            --  TC_"Excp_Name" constant.
+
+            N := Helper_Node (BE_Node (Identifier (E)));
+            N := Defining_Identifier (N);
+            N := Make_Subprogram_Call
+              (RE (RE_Get_Empty_Any_Aggregate),
+               Make_List_Id
+               (N));
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Result)),
+               Object_Definition   => RE (RE_Any),
+               Expression => N);
+            Append_Node_To_List (N, D);
+
+            --  Adding the necessary pragmas because the parameter of the
+            --  function is unreferenced.
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Warnings)),
+               Make_List_Id
+               (RE (RE_Off)));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Unreferenced)),
+               Make_List_Id
+                (Make_Designator (PN (P_Item))));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Warnings)),
+               Make_List_Id
+               (RE (RE_On)));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
+            --  End Declarations
+            --  Begin Statements
+
+            N := Make_Return_Statement (Make_Designator (VN (V_Result)));
+            Append_Node_To_List (N, S);
+
+            --  End Statements
+
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
+         end Exception_Declaration_Body;
+
       begin
          case FEN.Kind (E) is
             when K_Complex_Declarator =>
@@ -1777,6 +2020,10 @@ package body Backend.BE_Ada.Helpers is
 
             when K_Union_Type =>
                N := Union_Type_Body (E);
+
+            when K_Exception_Declaration =>
+               N := Exception_Declaration_Body (E);
+
             when others =>
                raise Program_Error;
          end case;
@@ -1833,6 +2080,137 @@ package body Backend.BE_Ada.Helpers is
          return N;
       end Narrowing_Ref_Body;
 
+      ------------------------------
+      -- Raise_Excp_From_Any_Spec --
+      ------------------------------
+
+      function Raise_Excp_From_Any_Spec
+        (Raise_Node : Node_Id)
+        return Node_Id
+      is
+         Profile   : List_Id;
+         Parameter : Node_Id;
+         N         : Node_Id;
+      begin
+         Profile  := New_List (K_Parameter_Profile);
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Item)),
+            RE (RE_Any_1));
+         Append_Node_To_List (Parameter, Profile);
+
+         N := Make_Subprogram_Specification
+           (Raise_Node,
+            Profile);
+         return N;
+      end Raise_Excp_From_Any_Spec;
+
+      ------------------------------
+      -- Raise_Excp_From_Any_Body --
+      ------------------------------
+
+      function Raise_Excp_From_Any_Body
+        (E          : Node_Id;
+         Raise_Node : Node_Id)
+        return Node_Id
+      is
+         Spec            : constant Node_Id :=
+           Raise_Excp_From_Any_Spec (Raise_Node);
+         Declarations    : constant List_Id :=
+           New_List (K_List_Id);
+         Statements      : constant List_Id :=
+           New_List (K_List_Id);
+         N               : Node_Id;
+         From_Any_Helper : Node_Id;
+         Excp_Members    : Node_Id;
+      begin
+
+         --  Begin Declarations
+
+         --  Obtaining the node corresponding to the declaration of the
+         --  "Excp_Name"_Members type.
+         --  This type was declared in the third position in the stub spec.
+
+         Excp_Members := Stub_Node (BE_Node (Identifier (E)));
+         Excp_Members := Next_Node (Next_Node (Excp_Members));
+
+         --  Preparing the call to From_Any
+         N := Make_Subprogram_Call
+           (RE (RE_To_CORBA_Any),
+            Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
+         From_Any_Helper := Helper_Node (BE_Node (Identifier (E)));
+         From_Any_Helper := Next_Node (From_Any_Helper);
+         From_Any_Helper := Defining_Identifier (From_Any_Helper);
+         N := Make_Subprogram_Call
+           (From_Any_Helper,
+            Make_List_Id (N));
+
+         --  Declaration of the Members variable
+         N := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (PN (P_Members)),
+            Constant_Present => True,
+            Object_Definition => Defining_Identifier (Excp_Members),
+            Expression => N);
+         Append_Node_To_List (N, Declarations);
+
+         --  End Declarations
+
+         --  Begin Statements
+
+         N := Make_Defining_Identifier
+           (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
+         N := Make_Attribute_Designator (N, A_Identity);
+         N := Make_Subprogram_Call
+           (RE (RE_User_Raise_Exception),
+            Make_List_Id
+            (N, Make_Defining_Identifier (PN (P_Members))));
+         Append_Node_To_List (N, Statements);
+
+         --  End Statements
+
+         N := Make_Subprogram_Implementation
+           (Spec, Declarations, Statements);
+
+         return N;
+      end Raise_Excp_From_Any_Body;
+
+      ---------------------
+      -- Raise_Excp_Body --
+      ---------------------
+
+      function Raise_Excp_Body
+        (E          : Node_Id)
+        return Node_Id
+      is
+         Spec         : Node_Id;
+         Statements   : constant List_Id :=
+           New_List (K_List_Id);
+         N            : Node_Id;
+      begin
+         --  The spec was declared at the forth position in the helper spec
+
+         Spec := Helper_Node (BE_Node (Identifier (E)));
+         Spec := Next_Node (Next_Node (Next_Node (Spec)));
+
+         --  Begin Statements
+
+         N := Make_Defining_Identifier
+           (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
+         N := Make_Attribute_Designator (N, A_Identity);
+         N := Make_Subprogram_Call
+           (RE (RE_User_Raise_Exception),
+            Make_List_Id
+            (N, Make_Defining_Identifier (PN (P_Members))));
+         Append_Node_To_List (N, Statements);
+
+         --  End Statements
+
+         N := Make_Subprogram_Implementation
+           (Spec, No_List, Statements);
+
+         return N;
+      end Raise_Excp_Body;
+
       -----------
       -- Visit --
       -----------
@@ -1862,6 +2240,9 @@ package body Backend.BE_Ada.Helpers is
             when K_Union_Type =>
                Visit_Union_Type (E);
 
+            when K_Exception_Declaration =>
+               Visit_Exception_Declaration (E);
+
             when others =>
                null;
          end case;
@@ -1890,10 +2271,22 @@ package body Backend.BE_Ada.Helpers is
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
+         Deferred_Initialization_Body_Backup : List_Id;
+         Package_Initializarion_Backup       : List_Id;
       begin
          N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Body;
+
+         --  Handling the case of interfaces nested in modules :
+         --  we save a backup of the Deferred_Initialization_Body and the
+         --  Package_Initializarion lists because the helper package of
+         --  a module is different from the helper package of an interface.
+
+         Deferred_Initialization_Body_Backup :=
+           Deferred_Initialization_Body;
+         Package_Initializarion_Backup :=
+           Package_Initializarion;
          Deferred_Initialization_Body := New_List (K_List_Id);
          Package_Initializarion       := New_List (K_List_Id);
          Append_Node_To_List
@@ -1924,6 +2317,13 @@ package body Backend.BE_Ada.Helpers is
 
          Helper_Initialization (Package_Initializarion);
          Set_Package_Initialization (Current_Package, Package_Initializarion);
+
+         --  Restoring old values
+
+         Deferred_Initialization_Body :=
+           Deferred_Initialization_Body_Backup;
+         Package_Initializarion :=
+           Package_Initializarion_Backup;
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -1933,15 +2333,52 @@ package body Backend.BE_Ada.Helpers is
 
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
-
+         N : Node_Id;
+         Deferred_Initialization_Body_Backup : List_Id;
+         Package_Initializarion_Backup       : List_Id;
       begin
          D := Stub_Node (BE_Node (Identifier (E)));
          Push_Entity (D);
+
+         --  Deferred initialisation
+         Set_Helper_Body;
+
+         --  Handling the case of modules nested in modules :
+         --  we save a backup of the Deferred_Initialization_Body and the
+         --  Package_Initializarion lists because the helper package of
+         --  a module is different from the helper package of an interface.
+
+         Deferred_Initialization_Body_Backup :=
+           Deferred_Initialization_Body;
+         Package_Initializarion_Backup :=
+           Package_Initializarion;
+         Deferred_Initialization_Body := New_List (K_List_Id);
+         Package_Initializarion       := New_List (K_List_Id);
+         --  N := Deferred_Initialization_Block (E);
+         --  Append_Node_To_List (N, Deferred_Initialization_Body);
+
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);
             D := Next_Entity (D);
          end loop;
+
+         N := Make_Subprogram_Implementation
+           (Make_Subprogram_Specification
+            (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
+             No_List),
+            No_List,
+            Deferred_Initialization_Body);
+         Append_Node_To_List (N, Statements (Current_Package));
+         Helper_Initialization (Package_Initializarion);
+         Set_Package_Initialization (Current_Package, Package_Initializarion);
+
+         --  Restoring old values
+
+         Deferred_Initialization_Body :=
+           Deferred_Initialization_Body_Backup;
+         Package_Initializarion :=
+           Package_Initializarion_Backup;
          Pop_Entity;
       end Visit_Module;
 
@@ -2016,6 +2453,63 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List
            (To_Any_Body (E), Statements (Current_Package));
       end Visit_Union_Type;
+
+      ---------------------------------
+      -- Visit_Exception_Declaration --
+      ---------------------------------
+
+      procedure Visit_Exception_Declaration (E : Node_Id) is
+         Subp_Body_Node : Node_Id;
+         Excp_Name      : Name_Id;
+         Raise_Node     : Node_Id;
+         Deferred_Init  : Node_Id;
+      begin
+         Set_Helper_Body;
+         Subp_Body_Node := From_Any_Body (E);
+         Append_Node_To_List
+           (Subp_Body_Node, Statements (Current_Package));
+
+         Subp_Body_Node := To_Any_Body (E);
+         Append_Node_To_List
+           (Subp_Body_Node, Statements (Current_Package));
+
+         --  Generation of the Raise_"Exception_Name"_From_Any spec
+
+         Excp_Name := To_Ada_Name (IDL_Name (FEN.Identifier (E)));
+         Excp_Name := Add_Prefix_To_Name ("Raise_", Excp_Name);
+         Excp_Name := Add_Suffix_To_Name ("_From_Any", Excp_Name);
+         Raise_Node := Make_Defining_Identifier (Excp_Name);
+         Subp_Body_Node := Raise_Excp_From_Any_Spec (Raise_Node);
+         Append_Node_To_List
+           (Subp_Body_Node, Statements (Current_Package));
+
+         --  Addition of the pragma No_Return
+         Subp_Body_Node := Make_Subprogram_Call
+           (Make_Defining_Identifier (GN (Pragma_No_Return)),
+            Make_List_Id
+            (Raise_Node));
+         Subp_Body_Node := Make_Pragma_Statement (Subp_Body_Node);
+         Append_Node_To_List
+           (Subp_Body_Node, Statements (Current_Package));
+
+         --  Generation of the Raise_"Exception_Name"_From_Any body
+
+         Subp_Body_Node := Raise_Excp_From_Any_Body (E, Raise_Node);
+         Append_Node_To_List
+           (Subp_Body_Node, Statements (Current_Package));
+
+         --  Generation of the Raise_"Exception_Name" body
+
+         Subp_Body_Node := Raise_Excp_Body (E);
+         Append_Node_To_List
+           (Subp_Body_Node, Statements (Current_Package));
+
+         --  Generation of the corresponding instructions in the
+         --  Deferred_initialisation procedure.
+         Deferred_Init := Deferred_Initialization_Block (E);
+         Append_Node_To_List (Deferred_Init, Deferred_Initialization_Body);
+
+      end Visit_Exception_Declaration;
 
       -----------------------
       -- Widening_Ref_Body --

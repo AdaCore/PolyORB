@@ -1158,7 +1158,7 @@ package body Backend.BE_Ada.Generator is
       Write_Indentation;
       Write (Tok_End);
       Write_Space;
-      Generate (Defining_Identifier (P));
+      Write_Name (Name (Defining_Identifier (P)));
    end Generate_Subprogram_Implementation;
 
    ---------------------------------------
