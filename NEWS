@@ -40,7 +40,7 @@ New features
 ------------
 
 The modularity of the Neutral Core Layer has been increased, leading
-to better configuratiblity of log output (8968), and parameter sources
+to better configurability of log output (8968), and parameter sources
 (9258).
 
 Base support for the DynamicAny interface. (9282)
@@ -61,7 +61,7 @@ in request parameters.
 Update of the implementation of the CORBA Interface Repository,
 PortableInterceptors API.
 
-Update all CORBA's IDL specification to match lates release by the
+Update all CORBA's IDL specification to match latest release by the
 OMG.
 
 Fixes for several code generation issues in idlac, the IDL-to-Ada
@@ -105,7 +105,7 @@ they have been renamed as follows:
 Fixed bugs
 ----------
 
-Fixes for memory leaks in GIOP code sets negociation (9228)
+Fixes for memory leaks in GIOP code sets negotiation. (9228)
 
 * PolyORB 1.2r (released 2004-12-17)
 ====================================
