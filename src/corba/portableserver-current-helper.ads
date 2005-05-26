@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               P O R T A B L E S E R V E R . C U R R E N T                --
+--        P O R T A B L E S E R V E R . C U R R E N T . H E L P E R         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,54 +36,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+package PortableServer.Current.Helper is
 
-with CORBA.Current;
-with CORBA.Local;
+   --  Current interface
 
-package PortableServer.Current is
+   TC_Current : CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+         (PolyORB.Any.TypeCode.TC_Object);
 
-   type Ref is new CORBA.Current.Ref with private;
+   function Unchecked_To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref;
 
-   function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return Ref;
+   function To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref;
 
-   NoContext : exception;
+   --  NoContext exception
 
-   function Get_POA (Self : Ref) return PortableServer.POA_Forward.Ref;
+   TC_NoContext : CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+         (PolyORB.Any.TypeCode.TC_Except);
 
-   function Get_Object_Id (Self : Ref) return ObjectId;
+   function From_Any (Item : in CORBA.Any) return NoContext_Members;
 
-   function Get_Reference (Self : Ref) return CORBA.Object.Ref;
+   function To_Any (Item : in NoContext_Members) return CORBA.Any;
 
-   function Get_Servant (Self : Ref) return Servant;
+   procedure Raise_NoContext (Members : in NoContext_Members);
+   pragma No_Return (Raise_NoContext);
 
-   --------------------------------------------------
-   -- PortableServer.Current Exceptions Management --
-   --------------------------------------------------
-
-   --  NoContext_Members
-
-   type NoContext_Members is new CORBA.IDL_Exception_Members
-     with null record;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out NoContext_Members);
-
-   Repository_Id : constant Standard.String
-     := "IDL:omg.org/PortableServer/Current:1.0";
-
-private
-
-   type Ref is new CORBA.Current.Ref with null record;
-
-   type Current_Object is new CORBA.Local.Object with null record;
-
-   function Is_A
-     (Obj             : access Current_Object;
-      Logical_Type_Id : in     Standard.String)
-     return Boolean;
-
-end PortableServer.Current;
+end PortableServer.Current.Helper;

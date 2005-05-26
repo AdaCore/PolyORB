@@ -45,6 +45,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-corba_p-servantlocator.ads \
 	polyorb-corba_p-server_tools.ads \
 	portableserver-adapteractivator.ads \
+	portableserver-current-helper.ads \
 	portableserver-current.ads \
 	portableserver-idassignmentpolicy.ads \
 	portableserver-iduniquenesspolicy.ads \

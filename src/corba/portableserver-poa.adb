@@ -44,8 +44,6 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.POA;
@@ -77,11 +75,6 @@ package body PortableServer.POA is
    package L is new PolyORB.Log.Facility_Log ("portableserver.poa");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
-   function Create_Ref
-     (Referenced : PolyORB.Smart_Pointers.Entity_Ptr)
-     return Ref;
-   --  Convert a PolyORB.Smart_Pointers.Entity_Ptr into a CORBA.Object.Ref.
 
    function To_POA
      (Self : Ref)
@@ -127,20 +120,25 @@ package body PortableServer.POA is
       pragma Debug (O ("Servant associated with policy domain manager"));
    end Associate_To_Domain_Managers;
 
-   ----------------
-   -- Create_Ref --
-   ----------------
+   package body Internals is
 
-   function Create_Ref
-     (Referenced : PolyORB.Smart_Pointers.Entity_Ptr)
-     return Ref
-   is
-      Res : Ref;
-   begin
-      Set (Res, Referenced);
+      ------------------
+      -- To_CORBA_POA --
+      ------------------
 
-      return Res;
-   end Create_Ref;
+      function To_CORBA_POA
+        (Referenced : PolyORB.POA.Obj_Adapter_Access)
+         return Ref
+      is
+         Res : Ref;
+
+      begin
+         Set (Res, PolyORB.Smart_Pointers.Entity_Ptr (Referenced));
+
+         return Res;
+      end To_CORBA_POA;
+
+   end Internals;
 
    ------------
    -- To_POA --
@@ -272,8 +270,8 @@ package body PortableServer.POA is
       pragma Debug (O ("POA created"));
 
       declare
-         New_Ref : Ref'Class :=
-           Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (Res));
+         New_Ref : Ref'Class := Internals.To_CORBA_POA (Res);
+
       begin
          return New_Ref;
       end;
@@ -309,7 +307,7 @@ package body PortableServer.POA is
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      Res := Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (POA_Ref));
+      Res := Internals.To_CORBA_POA (POA_Ref);
 
       return Res;
    end Find_POA;
@@ -445,14 +443,11 @@ package body PortableServer.POA is
    -- Get_The_Parent --
    --------------------
 
-   function Get_The_Parent
-     (Self : Ref)
-     return Ref'Class is
+   function Get_The_Parent (Self : Ref) return Ref'Class is
    begin
-      return Ref'
-        (Create_Ref
-         (PolyORB.Smart_Pointers.Entity_Ptr
-          (To_POA (Self).Father)));
+      return
+        Internals.To_CORBA_POA
+        (PolyORB.POA.Obj_Adapter_Access (To_POA (Self).Father));
    end Get_The_Parent;
 
    ----------------------
@@ -486,8 +481,9 @@ package body PortableServer.POA is
             pragma Debug (O ("++"));
             Append (Result,
                     Convert.To_Forward
-                    (Create_Ref
-                     (PolyORB.POA_Types.Entity_Of (Value (It).all))));
+                    (Internals.To_CORBA_POA
+                     (PolyORB.POA.Obj_Adapter_Access
+                      (PolyORB.POA_Types.Entity_Of (Value (It).all)))));
             Next (It);
          end loop;
       end;
@@ -977,7 +973,8 @@ package body PortableServer.POA is
       Oid : PolyORB.Objects.Object_Id_Access;
 
       TID : constant Standard.String :=
-        CORBA.To_Standard_String (Internals.Get_Type_Id (P_Servant));
+        CORBA.To_Standard_String
+        (PortableServer.Internals.Get_Type_Id (P_Servant));
 
       P_Result : PolyORB.References.Ref;
       C_Result : CORBA.Object.Ref;

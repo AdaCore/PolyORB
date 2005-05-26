@@ -36,7 +36,6 @@ with Ada.Tags;
 with PolyORB.CORBA_P.Names;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 
-with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Errors;
 with PolyORB.Exceptions;
@@ -45,6 +44,7 @@ with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
@@ -123,17 +123,53 @@ package body PortableServer is
 
       if Msg in Execute_Request then
          declare
-            use PolyORB.Binding_Data;
-            use PolyORB.Requests;
             use CORBA.ServerRequest;
+            use PolyORB.Annotations;
+            use PolyORB.Binding_Data;
             use PolyORB.Errors;
+            use PolyORB.Requests;
+            use PolyORB.Tasking.Threads.Annotations;
 
-            R : constant Request_Access := Execute_Request (Msg).Req;
-            P : constant Profile_Access := Execute_Request (Msg).Pro;
-            Error : Error_Container;
+            R         : constant Request_Access := Execute_Request (Msg).Req;
+            P         : constant Profile_Access := Execute_Request (Msg).Pro;
+            Error     : Error_Container;
+
          begin
-            PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
-              (DynamicImplementation'Class (Self.all)'Access, R, P);
+            if PortableServer_Current_Registered then
+               declare
+                  Notepad   : constant Notepad_Access
+                    := Get_Current_Thread_Notepad;
+                  Save_Note : PortableServer_Current_Note;
+                  Note      : constant PortableServer_Current_Note
+                    := (PolyORB.Annotations.Note with Request => R,
+                        Profile => P);
+
+               begin
+                  --  Save POA Current note
+
+                  Get_Note (Notepad.all, Save_Note,
+                            Null_PortableServer_Current_Note);
+
+                  --  Set new POA Current note
+
+                  Set_Note (Notepad.all, Note);
+
+                  --  Process invocation
+
+                  PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
+                    (DynamicImplementation'Class (Self.all)'Access, R, P);
+
+                  --  Restore original POA Current note
+
+                  Set_Note (Notepad.all, Save_Note);
+               end;
+
+            else
+               --  Process invocation
+
+               PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
+                 (DynamicImplementation'Class (Self.all)'Access, R, P);
+            end if;
 
             if R.Arguments_Called then
 
