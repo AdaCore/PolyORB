@@ -81,7 +81,7 @@ begin
    --  Output its reference
 
    Ada.Text_IO.Put_Line
-     ("POLYORB_CORBA_NAMING_IOR=" &
+     ("POLYORB_CORBA_NAME_SERVICE=" &
       PolyORB.References.IOR.Object_To_String (NC_Ref));
 
    --  Run node as a stand alone server
