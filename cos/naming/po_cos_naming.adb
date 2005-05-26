@@ -71,10 +71,10 @@ begin
    CORBA.ORB.Register_Initial_Reference
      (CORBA.ORB.To_CORBA_String ("NamingService"), Ref);
    Ada.Text_IO.Put_Line
-     ("POLYORB_CORBA_NAMING_IOR="
+     ("POLYORB_CORBA_NAME_SERVICE="
       & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)));
    Ada.Text_IO.Put_Line
-     ("POLYORB_CORBA_NAMING_URI="
+     ("POLYORB_CORBA_NAME_SERVICE="
       & CORBA.To_Standard_String
           (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref)));
 

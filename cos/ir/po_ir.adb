@@ -68,11 +68,11 @@ begin
      (CORBA.ORB.To_CORBA_String ("InterfaceRepository"), Ref);
 
    Ada.Text_IO.Put_Line
-     ("POLYORB_CORBA_IR_IOR="
+     ("POLYORB_CORBA_IR_SERVICE="
       & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)));
 
    Ada.Text_IO.Put_Line
-     ("POLYORB_CORBA_IR_URI="
+     ("POLYORB_CORBA_IR_SERVICE="
       & CORBA.To_Standard_String
           (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref)));
 

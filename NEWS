@@ -58,11 +58,10 @@ in request parameters.
 Update of the implementation of the CORBA Interface Repository,
 PortableInterceptors API.
 
-Update all CORBA's IDL specification to match latest release by the
-OMG.
+Update of idlac to support IDL as defined by CORBA 3.0 standards.
 
-Fixes for several code generation issues in idlac, the IDL-to-Ada
-compiler.
+Update all CORBA IDL specification to match latest release by the
+OMG.
 
 Implementation of the CORBA COS Notification Service (beta stage)
 (9121), the RTCosScheduling service (RT-CORBA 1.1) (9016),
@@ -101,6 +100,9 @@ they have been renamed as follows:
 
 Fixed bugs
 ----------
+
+Fixes for several code generation issues in idlac, the IDL-to-Ada
+compiler.
 
 Fixes for memory leaks in GIOP code sets negotiation. (9228)
 
