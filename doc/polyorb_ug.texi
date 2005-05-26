@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#58 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#59 $
 
 @include version.texi
 
@@ -750,8 +750,9 @@ PolyORB provides a CORBA-compatible implementation based on mapping of
 the IDL language version 1.2 described in @cite{[OMG01]} and CORBA
 core specifications. PolyORB also proposes an implementation of
 various additional specifications described by the OMG, including
-@code{COS Services : COS Naming, Event, Time}, additional
-specifications; @code{RT-CORBA} or @code{PortableInterceptors}.
+@code{COS Services : COS Naming, Notification, Event, Time}, additional
+specifications; @code{RT-CORBA}, @code{PortableInterceptors},
+@code{DynamicAny}.
 
 @c -------------------------------------------------------------------
 @node DSAoverview
@@ -2809,7 +2810,6 @@ PolyORB supports this chapter with the following limitations:
 calls may not work;
 @item @code{Wait_For_Completion} and @code{Etherealize_Objects} are
 not taken into account in @code{PortableServer.POAManager};
-@item @code{PortableServer.Current} API is not implemented;
 @item @code{PortableServer.POAManagerFactory} API is not implemented.
 @end itemize
 
