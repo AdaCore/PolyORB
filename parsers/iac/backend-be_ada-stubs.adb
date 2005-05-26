@@ -189,6 +189,7 @@ package body Backend.BE_Ada.Stubs is
          Identifier : Node_Id;
          Profile    : List_Id;
          Parameter  : Node_Id;
+         N          : Node_Id;
 
       begin
          Set_Main_Spec;
@@ -197,8 +198,10 @@ package body Backend.BE_Ada.Stubs is
 
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Identifier := Make_Defining_Identifier (Name_Find);
+         N := Make_Exception_Declaration (Identifier);
+         Bind_FE_To_Stub (FEN.Identifier (E), N);
          Append_Node_To_List
-           (Make_Exception_Declaration (Identifier),
+           (N,
             Visible_Part (Current_Package));
 
          --  Insert repository declaration
@@ -212,15 +215,16 @@ package body Backend.BE_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Add_Str_To_Name_Buffer ("_Members");
          Identifier := Make_Defining_Identifier (Name_Find);
-
-         Append_Node_To_List
-           (Make_Full_Type_Declaration
-            (Defining_Identifier => Identifier,
-             Type_Definition     => Make_Derived_Type_Definition
-             (RE (RE_IDL_Exception_Members),
-              Make_Record_Definition
-             (Map_Members_Definition (Members (E))))),
-            Visible_Part (Current_Package));
+         Set_Parent_Unit_Name
+           (Identifier,
+            Defining_Identifier (Main_Package (Current_Entity)));
+         N := Make_Full_Type_Declaration
+           (Defining_Identifier => Identifier,
+            Type_Definition     => Make_Derived_Type_Definition
+            (RE (RE_IDL_Exception_Members),
+             Make_Record_Definition
+             (Map_Members_Definition (Members (E)))));
+         Append_Node_To_List (N, Visible_Part (Current_Package));
 
          --  Insert the Get_Members procedure specification
 
@@ -836,6 +840,46 @@ package body Backend.BE_Ada.Stubs is
          end loop;
       end if;
 
+      --  Create exception List
+      --  We must verify that we handle an operation
+
+      Declaration := FEN.Corresponding_Entity
+        (BEN.FE_Node
+         (Subp_Spec));
+
+      if FEN.Kind (Declaration) = K_Operation_Declaration and then
+        not FEU.Is_Empty (Exceptions (Declaration)) then
+         declare
+            Excep_FE : Node_Id;
+            Excep_TC : Node_Id;
+         begin
+            N := Make_Subprogram_Call
+              (RE (RE_Create_List_1),
+               Make_List_Id
+               (Make_Designator (VN (V_Exception_List))));
+            Append_Node_To_List (N, Marshaller_Statements);
+            Excep_FE := First_Entity (Exceptions (Declaration));
+            while Present (Excep_FE) loop
+               --  Getting the TC_"Exception_Name" identifier. It is declarated
+               --  at the first place in the Helper spec.
+               Excep_TC := Helper_Node
+                 (BE_Node (Identifier (Reference (Excep_FE))));
+               --  Excep_TC := Defining_Identifier (Excep_TC);
+               Excep_TC := Expand_Designator (Excep_TC);
+               N := Make_Subprogram_Call
+                 (RE (RE_Add_1),
+                  Make_List_Id
+                  (Make_Designator
+                   (VN (V_Exception_List)),
+                   Excep_TC));
+               Append_Node_To_List (N, Marshaller_Statements);
+
+               Excep_FE := Next_Entity (Excep_FE);
+            end loop;
+         end;
+
+      end if;
+
       --  Set result type (maybe void)
       --  --  PolyORB.Types.Identifier (Result_Name)
       Get_Name_String (Operation_Name);
@@ -910,6 +954,9 @@ package body Backend.BE_Ada.Stubs is
          Make_List_Id (Make_Pragma_Statement (I)),
          Make_List_Id (N));
       Append_Node_To_List (N, Statements (Current_Package));
+
+      --  Creating the request
+
       N := Make_Subprogram_Call
         (RE (RE_Ref_2),
          Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
@@ -941,7 +988,7 @@ package body Backend.BE_Ada.Stubs is
          Expression    => Make_Defining_Identifier (VN (V_Request)));
       Append_Node_To_List (N, P);
 
-      --  Handling the case of Onway Operation.
+      --  Handling the case of Oneway Operations.
       --  Extract from The CORBA mapping specification : "IDL oneway operations
       --  are mapped the same as other operation; that is, there is no
       --  indication wether an operation is oneway or not in the mapeped Ada
@@ -958,6 +1005,7 @@ package body Backend.BE_Ada.Stubs is
       --
       --  First of all, verify that we are handling an operation decalaration
       --  (and not an attribute declaration)
+
       Declaration := FEN.Corresponding_Entity
         (BEN.FE_Node
          (Subp_Spec));
@@ -974,6 +1022,10 @@ package body Backend.BE_Ada.Stubs is
         (RE (RE_Create_Request),
          P);
       Append_Node_To_List (N, Marshaller_Statements);
+
+      --  Invoking the request (synchronously or asynchronously), it depends on
+      --  the type of the operation (oneway or not).
+
       N := Make_Subprogram_Call
         (RE (RE_Flags),
          Make_List_Id (Make_Literal (Int0_Val)));
@@ -984,7 +1036,7 @@ package body Backend.BE_Ada.Stubs is
           N));
       Append_Node_To_List (N, Marshaller_Statements);
 
-      --  ???
+      --  Raise eventual exceptions
 
       P := New_List (K_List_Id);
       C := Make_Designator
@@ -1113,6 +1165,7 @@ package body Backend.BE_Ada.Stubs is
       FE              : constant Node_Id
         := Corresponding_Entity (FE_Node (Subp_Spec));
       TC_Node         : Node_Id;
+      Declaration     : Node_Id;
 
    begin
       L := New_List (BEN.K_List_Id);
@@ -1284,6 +1337,24 @@ package body Backend.BE_Ada.Stubs is
          Object_Definition   => RE (RE_Request_Access),
          Expression          => No_Node);
       Append_Node_To_List (N, L);
+
+      --  Exception_List_U declaration
+      --  We must verify that we handle an operation
+
+      Declaration := FEN.Corresponding_Entity
+        (BEN.FE_Node
+         (Subp_Spec));
+
+      if FEN.Kind (Declaration) = K_Operation_Declaration and then
+        not FEU.Is_Empty (Exceptions (Declaration)) then
+         N := Make_Object_Declaration
+         (Defining_Identifier =>
+            Make_Defining_Identifier (VN (V_Exception_List)),
+          Constant_Present    => False,
+          Object_Definition   => RE (RE_Ref_5),
+          Expression          => No_Node);
+         Append_Node_To_List (N, L);
+      end if;
 
       --  Result_U declaration
       --  Result_U : PolyORB.Any.NamedValue := [Operation_Name]_Result_V;

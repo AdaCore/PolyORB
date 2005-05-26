@@ -523,10 +523,12 @@ package body Backend.BE_Ada.Helpers is
             Visible_Part (Current_Package));
 
          --  Addition of the pragma No_Return
+         --  The Argument of the pargma No_Return must be a local name
          N := Make_Subprogram_Call
            (Make_Defining_Identifier (GN (Pragma_No_Return)),
             Make_List_Id
-            (Raise_Node));
+            (Make_Designator
+             (BEN.Name (Raise_Node))));
          N := Make_Pragma_Statement (N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -2484,10 +2486,12 @@ package body Backend.BE_Ada.Helpers is
            (Subp_Body_Node, Statements (Current_Package));
 
          --  Addition of the pragma No_Return
+         --  The argument of the pragma No_Return must be a local name
          Subp_Body_Node := Make_Subprogram_Call
            (Make_Defining_Identifier (GN (Pragma_No_Return)),
             Make_List_Id
-            (Raise_Node));
+            (Make_Designator
+             (BEN.Name (Raise_Node))));
          Subp_Body_Node := Make_Pragma_Statement (Subp_Body_Node);
          Append_Node_To_List
            (Subp_Body_Node, Statements (Current_Package));
