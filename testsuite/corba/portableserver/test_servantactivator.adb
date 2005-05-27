@@ -52,8 +52,7 @@ package body Test_ServantActivator is
    -- Run_Test_ServantActivator --
    -------------------------------
 
-   procedure Run_Test_ServantActivator
-   is
+   procedure Run_Test_ServantActivator is
       use CORBA.Policy.IDL_Sequence_Policy;
       use PortableServer.POA;
 
@@ -123,9 +122,13 @@ package body Test_ServantActivator is
          pragma Unreferenced (Result);
          --  To kill "variable "Result" is assigned but never read" warning
       begin
+         pragma Warnings (Off); --  WAG:GCC3.4.3
          Result := Echo.echoString
            (Obj_Ref,
             To_CORBA_String ("Hello Ada World !"));
+         pragma Warnings (On); --  WAG:GCC3.4.3
+         --  XXX This is to kill warning "pragma Unreferenced given
+         --  for "Result""
 
          Output ("Non existant object found !", False);
       exception
@@ -154,9 +157,13 @@ package body Test_ServantActivator is
          pragma Unreferenced (Result);
          --  To kill "variable "Result" is assigned but never read" warning
       begin
+         pragma Warnings (Off); --  WAG:GCC3.4.3
          Result := Echo.echoString
            (Obj_Ref,
             To_CORBA_String ("Hello Ada World !"));
+         pragma Warnings (On); --  WAG:GCC3.4.3
+         --  XXX This is to kill warning "pragma Unreferenced given
+         --  for "Result""
 
       exception
          when CORBA.Object_Not_Exist =>
@@ -188,9 +195,13 @@ package body Test_ServantActivator is
          pragma Unreferenced (Result);
          --  To kill "variable "Result" is assigned but never read" warning
       begin
+         pragma Warnings (Off); --  WAG:GCC3.4.3
          Result := Echo.echoString
            (Obj_Ref,
             To_CORBA_String ("Hello Ada World !"));
+         pragma Warnings (On); --  WAG:GCC3.4.3
+         --  XXX This is to kill warning "pragma Unreferenced given
+         --  for "Result""
 
          Output ("Non existant object found !", False);
       exception
@@ -219,9 +230,13 @@ package body Test_ServantActivator is
          pragma Unreferenced (Result);
          --  To kill "variable "Result" is assigned but never read" warning
       begin
+         pragma Warnings (Off); --  WAG:GCC3.4.3
          Result := Echo.echoString
            (Obj_Ref,
             To_CORBA_String ("Hello Ada World !"));
+         pragma Warnings (On); --  WAG:GCC3.4.3
+         --  XXX This is to kill warning "pragma Unreferenced given
+         --  for "Result""
 
          Output ("Simple Activator called",
                  Simple_Activator_Incarnate_Called);
@@ -233,7 +248,6 @@ package body Test_ServantActivator is
          when CORBA.Object_Not_Exist =>
             Output ("No servant created !", False);
       end;
-
    end Run_Test_ServantActivator;
 
 end Test_ServantActivator;
