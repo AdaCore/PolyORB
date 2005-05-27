@@ -242,9 +242,8 @@ package body Backend.BE_Ada.Skels is
             N := Helper_Node (BE_Node (Identifier (Reference (E))));
             N := Next_Node (Next_Node ((N)));
 
-            N := Defining_Identifier (N);
             N := Make_Subprogram_Call
-              (N,
+              (Expand_Designator (N),
                Make_List_Id
                (Make_Defining_Identifier (PN (P_Members))));
 

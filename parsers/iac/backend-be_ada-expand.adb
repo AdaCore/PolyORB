@@ -46,15 +46,17 @@ package body Backend.BE_Ada.Expand is
          return No_Node;
       end if;
 
-      if No (FE) then
-         raise Program_Error;
-      end if;
+      --  if No (FE) then
+      --  raise Program_Error;
+      --  end if;
 
       D := New_Node (K_Designator);
       Set_Defining_Identifier
         (D, Make_Defining_Identifier
          (Name (Defining_Identifier (X))));
-      Set_FE_Node (D, FE);
+      if Present (FE) then
+         Set_FE_Node (D, FE);
+      end if;
       Set_Parent_Unit_Name
         (D, Expand_Designator (P));
       P := Parent_Unit_Name (D);
