@@ -2,6 +2,7 @@ with Namet;  use Namet;
 with Values; use Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nutils;
 
 
 with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
@@ -18,6 +19,7 @@ pragma Warnings (on);
 package body Backend.BE_Ada.Skels is
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
+   package FEU renames Frontend.Nutils;
 
    package body Package_Spec is
 
@@ -108,7 +110,7 @@ package body Backend.BE_Ada.Skels is
    package body Package_Body is
 
       Invoke_Elsif_Statements : List_Id;
-      Package_Initializarion       : List_Id;
+      Package_Initialization  : List_Id;
 
       function Deferred_Initialization_Body (E : Node_Id) return Node_Id;
       function Gen_Invoke_Part (S : Node_Id) return Node_Id;
@@ -182,12 +184,95 @@ package body Backend.BE_Ada.Skels is
          To_Any_Helper    : Node_Id;
          FE               : Node_Id;
 
+         function Exception_Handler_Alternative
+           (E : Node_Id)
+           return Node_Id;
+         --  Generation of an alternative in the exception handler
+
+         function Exception_Handler_Alternative
+           (E : Node_Id)
+           return Node_Id is
+            Result     : Node_Id;
+            Selector   : Node_Id;
+            Expression : Node_Id;
+            N          : Node_Id;
+            D          : constant List_Id := New_List (K_List_Id);
+            S          : constant List_Id := New_List (K_List_Id);
+         begin
+            --  Getting the Exception name
+            N := Stub_Node (BE_Node (Identifier (Reference (E))));
+            N := Defining_Identifier (N);
+
+            Selector := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_E)),
+               Object_Definition => N);
+
+            --  Declaration of the Members variable
+            --  Getting the node corresponding to the declaration of the
+            --  "Excp_Name"_Members type.
+            --  This type was declared in the third position in the stub spec.
+            N := Stub_Node (BE_Node (Identifier (Reference (E))));
+            N := Next_Node (Next_Node (N));
+
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Members)),
+               Object_Definition => Defining_Identifier (N));
+            Append_Node_To_List (N, D);
+
+            --  Getting the node corresponding to the declaration of the
+            --  Get_Members procedure.
+            --  This procedure is declared at the 4th place in the stub spec.
+            N := Stub_Node (BE_Node (Identifier (Reference (E))));
+            N := Next_Node (Next_Node (Next_Node (N)));
+
+            N := Defining_Identifier (N);
+            N := Make_Subprogram_Call
+              (N,
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_E)),
+                Make_Defining_Identifier (PN (P_Members))));
+            Append_Node_To_List (N, S);
+
+            --  Getting the node corresponding to the declaration of the
+            --  To_Any procedure in the helper package.
+            --  This procedure is declared at the 3rd place in the helper spec.
+            --  Complete HERE
+            N := Helper_Node (BE_Node (Identifier (Reference (E))));
+            N := Next_Node (Next_Node ((N)));
+
+            N := Defining_Identifier (N);
+            N := Make_Subprogram_Call
+              (N,
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Members))));
+
+            N := Make_Subprogram_Call
+              (RE (RE_Set_Exception),
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Request)), N));
+            Append_Node_To_List (N, S);
+
+            N := Make_Return_Statement (No_Node);
+            Append_Node_To_List (N, S);
+
+            Expression := Make_Block_Statement
+              (Declarative_Part => D,
+               Statements       => S);
+
+            Result := Make_Component_Association
+              (Selector,
+               Expression);
+            return Result;
+         end Exception_Handler_Alternative;
+
+
       begin
          --  Implementation.Object'Class (Self.All)'Access
 
          N := Implementation_Package (Current_Entity);
-         N := First_Node
-           (Visible_Part (Package_Specification (N)));
+         N := First_Node (Visible_Part (Package_Specification (N)));
          N := Expand_Designator (N);
          N := Make_Type_Attribute (N, A_Class);
          C := Make_Designator
@@ -285,78 +370,126 @@ package body Backend.BE_Ada.Skels is
              Make_Defining_Identifier (VN (V_Argument_List))));
          Append_Node_To_List (N, Statements);
 
-         --  Convert from their Any
+         --  The bloc above implements the generation of :
+         --  * The argument conversion from the "Any" type
+         --  * The call of the corresponding method implemented by the
+         --    programmer.
+         --  * The handling of eventuals exceptions thrown by the method.
 
-         if Count > 1 then
-            Param := First_Node (Parameter_Profile (S));
-            Param := Next_Node (Param);
-            loop
-               if  BEN.Parameter_Mode (Param) = Mode_In
-                 or else BEN.Parameter_Mode (Param) = Mode_Inout then
-                  Param_Name := BEN.Name (Defining_Identifier (Param));
-                  New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
+         --  If the method could potentially throw an exception, the generated
+         --  code will be put in a statement bloc. Else, No additional
+         --  statement bloc will be used.
 
-                  declare
-                     Par_Type : Node_Id :=
-                       BEN.FE_Node (Parameter_Type (Param));
-                  begin
-                     if Is_Base_Type (Par_Type) then
-                        From_Any_Helper := RE (RE_From_Any_0);
-                     else
-                        if FEN.Kind (Par_Type) = K_Scoped_Name then
-                           Par_Type := Reference (Par_Type);
-                        end if;
-                        C := Identifier (Par_Type);
-                        C := Helper_Node (BE_Node (C));
-                        From_Any_Helper := Expand_Designator
-                          (Next_Node (C));
-                     end if;
-                  end;
+         declare
+            Inner_Statements  : List_Id := No_List;
+            Inner             : Boolean := False;
+            Exception_Handler : List_Id := No_List;
+            Excp_Node         : Node_Id;
+         begin
 
-                  N := Make_Assignment_Statement
-                    (Make_Defining_Identifier (Param_Name),
-                     Make_Subprogram_Call
-                     (From_Any_Helper,
-                      Make_List_Id (Make_Designator (New_Name))));
-                  Append_Node_To_List (N, Statements);
-               end if;
-
-               Param := Next_Node (Param);
-               exit when No (Param);
-            end loop;
-         end if;
-
-         --  Call Implementation
-
-         N :=   Corresponding_Entity (FE_Node (S));
-         C := Impl_Node (BE_Node (FE_Node (S)));
-
-         if Kind (N) /= K_Operation_Declaration then
-            Get_Name_String (BEN.Name (Defining_Identifier (S)));
-            K := K_Attribute_Declaration;
-
-            if Name_Buffer (1) = 'S' then
-               C := Next_Node (C);
+            --  Looking wether the operation throws exceptions and setting
+            --  Inner_statement to the corresponding value
+            N := Corresponding_Entity (FE_Node (S));
+            if FEN.Kind (N) = K_Operation_Declaration and then
+              not FEU.Is_Empty (Exceptions (N)) then
+               Inner_Statements  := New_List (K_List_Id);
+               Exception_Handler := New_List (K_List_Id);
+               Inner             := True;
+               --  Creating the exception handler statements
+               Excp_Node := First_Entity (Exceptions (N));
+               while Present (Excp_Node) loop
+                  N := Exception_Handler_Alternative (Excp_Node);
+                  Append_Node_To_List (N, Exception_Handler);
+                  Excp_Node := Next_Entity (Excp_Node);
+               end loop;
+            else
+               Inner_Statements := Statements;
             end if;
-         end if;
 
-         C := Make_Subprogram_Call
-           (Expand_Designator (C),
-            Inv_Profile);
+            --  Convert from their Any
 
-         if Present (Return_Type (S)) then
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (VN (V_Result)),
-               Object_Definition =>
-                 Copy_Designator (Return_Type (S)));
-            Append_Node_To_List (N, Declarative_Part);
-            C := Make_Assignment_Statement
-              (Make_Defining_Identifier (VN (V_Result)),
-               C);
-         end if;
+            if Count > 1 then
+               Param := First_Node (Parameter_Profile (S));
+               Param := Next_Node (Param);
+               loop
+                  if  BEN.Parameter_Mode (Param) = Mode_In
+                    or else BEN.Parameter_Mode (Param) = Mode_Inout then
+                     Param_Name := BEN.Name (Defining_Identifier (Param));
+                     New_Name := Add_Prefix_To_Name
+                       ("Argument_U_", Param_Name);
 
-         Append_Node_To_List (C, Statements);
+                     declare
+                        Par_Type : Node_Id :=
+                          BEN.FE_Node (Parameter_Type (Param));
+                     begin
+                        if Is_Base_Type (Par_Type) then
+                           From_Any_Helper := RE (RE_From_Any_0);
+                        else
+                           if FEN.Kind (Par_Type) = K_Scoped_Name then
+                              Par_Type := Reference (Par_Type);
+                           end if;
+                           C := Identifier (Par_Type);
+                           C := Helper_Node (BE_Node (C));
+                           From_Any_Helper := Expand_Designator
+                             (Next_Node (C));
+                        end if;
+                     end;
+
+                     N := Make_Assignment_Statement
+                       (Make_Defining_Identifier (Param_Name),
+                        Make_Subprogram_Call
+                        (From_Any_Helper,
+                         Make_List_Id (Make_Designator (New_Name))));
+                     Append_Node_To_List (N, Inner_Statements);
+                  end if;
+
+                  Param := Next_Node (Param);
+                  exit when No (Param);
+               end loop;
+            end if;
+
+            --  Call Implementation
+
+            N := Corresponding_Entity (FE_Node (S));
+            C := Impl_Node (BE_Node (FE_Node (S)));
+
+            if Kind (N) /= K_Operation_Declaration then
+               Get_Name_String (BEN.Name (Defining_Identifier (S)));
+               K := K_Attribute_Declaration;
+
+               if Name_Buffer (1) = 'S' then
+                  C := Next_Node (C);
+               end if;
+            end if;
+
+            C := Make_Subprogram_Call
+              (Expand_Designator (C),
+               Inv_Profile);
+
+            if Present (Return_Type (S)) then
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Result)),
+                  Object_Definition =>
+                    Copy_Designator (Return_Type (S)));
+               Append_Node_To_List (N, Declarative_Part);
+               C := Make_Assignment_Statement
+                 (Make_Defining_Identifier (VN (V_Result)),
+                  C);
+            end if;
+
+            Append_Node_To_List (C, Inner_Statements);
+
+            if Inner then
+               Append_Node_To_List
+                 (Make_Block_Statement
+                  (Declarative_Part => No_List,
+                   Statements => Inner_Statements,
+                   Exception_Handler => Exception_Handler),
+                  Statements);
+            end if;
+
+         end;
 
          --  Set Result
 
@@ -806,7 +939,7 @@ package body Backend.BE_Ada.Skels is
          Set_Skeleton_Body;
 
          Invoke_Elsif_Statements := New_List (K_List_Id);
-         Package_Initializarion  := New_List (K_List_Id);
+         Package_Initialization  := New_List (K_List_Id);
 
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
@@ -854,8 +987,8 @@ package body Backend.BE_Ada.Skels is
          N := Deferred_Initialization_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
 
-         Skeleton_Initialization (Package_Initializarion);
-         Set_Package_Initialization (Current_Package, Package_Initializarion);
+         Skeleton_Initialization (Package_Initialization);
+         Set_Package_Initialization (Current_Package, Package_Initialization);
 
          Pop_Entity;
       end Visit_Interface_Declaration;

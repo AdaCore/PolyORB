@@ -296,6 +296,43 @@ package body Backend.BE_Ada.Generator is
       end loop;
       Decrement_Indentation;
       Write_Indentation;
+      if not Is_Empty (Exception_Handler (N)) then
+         declare
+            Excp_Handler_Alternative : Node_Id;
+         begin
+            Write (Tok_Exception);
+            Write_Eol;
+            Increment_Indentation;
+            --  Replace the following by the generation of exception handler
+            --  BEGIN
+            Write_Indentation;
+            Excp_Handler_Alternative := First_Node (Exception_Handler (N));
+            while Present (Excp_Handler_Alternative) loop
+               Write (Tok_When);
+               Write_Space;
+               --  Generate the different part of the component association
+               --  but add a new line after "=>"
+               Generate
+                 (Defining_Identifier
+                  (Excp_Handler_Alternative));
+               Write_Space;
+               Write (Tok_Arrow);
+               Write_Eol;
+               Increment_Indentation;
+               Write_Indentation;
+               Generate
+                 (Expression
+                  (Excp_Handler_Alternative));
+               Write_Line (Tok_Semicolon);
+               Decrement_Indentation;
+
+               Excp_Handler_Alternative :=
+                 Next_Node (Excp_Handler_Alternative);
+            end loop;
+            Decrement_Indentation;
+            Write_Indentation;
+         end;
+      end if;
       Write (Tok_End);
    end Generate_Block_Statement;
 
@@ -509,7 +546,7 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Exception_Declaration (N : Node_Id) is
    begin
-      Generate (Defining_Identifier (N));
+      Write_Name (Name (Defining_Identifier (N)));
       Write_Space;
       Write (Tok_Colon);
       Write_Space;

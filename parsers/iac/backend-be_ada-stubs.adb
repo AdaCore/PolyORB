@@ -199,6 +199,9 @@ package body Backend.BE_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Identifier := Make_Defining_Identifier (Name_Find);
          N := Make_Exception_Declaration (Identifier);
+         Set_Parent_Unit_Name
+           (Identifier,
+            Defining_Identifier (Main_Package (Current_Entity)));
          Bind_FE_To_Stub (FEN.Identifier (E), N);
          Append_Node_To_List
            (N,
@@ -239,10 +242,16 @@ package body Backend.BE_Ada.Stubs is
             Mode_Out);
          Append_Node_To_List (Parameter, Profile);
 
+         N := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_Get_Members)),
+            Profile,
+            No_Node);
+         Set_Parent_Unit_Name
+           (Defining_Identifier (N),
+            Defining_Identifier (Main_Package (Current_Entity)));
+
          Append_Node_To_List
-           (Make_Subprogram_Specification
-            (Make_Defining_Identifier (SN (S_Get_Members)), Profile, No_Node),
-            Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
       end Visit_Exception_Declaration;
 
       ---------------------------------

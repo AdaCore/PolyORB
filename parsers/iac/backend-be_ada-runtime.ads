@@ -129,6 +129,7 @@ package Backend.BE_Ada.Runtime is
       RE_Arguments,                 --  CORBA.ServerRequest.Arguments
       RE_Object_Ptr,                --  CORBA.ServerRequest.Object_ptr
       RE_Operation,                 --  CORBA.ServerRequest.Operation
+      RE_Set_Exception,             --  CORBA.ServerRequest.Set_Exception
       RE_Set_Result,                --  CORBA.ServerRequest.Set_Result
       RE_Any_1,                     --  PolyORB.Any.Any
       RE_NamedValue,                --  PolyORB.Any.NamedValue
@@ -255,6 +256,7 @@ package Backend.BE_Ada.Runtime is
          RE_Arguments               => RU_CORBA_ServerRequest,
          RE_Object_Ptr              => RU_CORBA_ServerRequest,
          RE_Operation               => RU_CORBA_ServerRequest,
+         RE_Set_Exception           => RU_CORBA_ServerRequest,
          RE_Set_Result              => RU_CORBA_ServerRequest,
          RE_Object                  => RU_CORBA_TypeCode,
          RE_Add_Parameter           => RU_CORBA_TypeCode_Internals,

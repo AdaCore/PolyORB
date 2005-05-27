@@ -162,6 +162,7 @@ package Backend.BE_Ada.Nutils is
       P_Argument,
       P_Conflicts,
       P_Depends,
+      P_E,
       P_Exception_Info,
       P_From,
       P_Implicit,
@@ -336,7 +337,8 @@ package Backend.BE_Ada.Nutils is
    function Make_Block_Statement
      (Statement_Identifier : Node_Id := No_Node;
       Declarative_Part     : List_Id;
-      Statements           : List_Id)
+      Statements           : List_Id;
+      Exception_Handler    : List_Id := No_List)
      return Node_Id;
 
    function Make_Case_Label (Value : Value_Id) return Node_Id;

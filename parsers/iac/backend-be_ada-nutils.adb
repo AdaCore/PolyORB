@@ -598,7 +598,8 @@ package body Backend.BE_Ada.Nutils is
    function Make_Block_Statement
      (Statement_Identifier : Node_Id := No_Node;
       Declarative_Part     : List_Id;
-      Statements           : List_Id)
+      Statements           : List_Id;
+      Exception_Handler    : List_Id := No_List)
      return Node_Id
    is
       N : Node_Id;
@@ -607,6 +608,9 @@ package body Backend.BE_Ada.Nutils is
       Set_Defining_Identifier (N, Statement_Identifier);
       Set_Declarative_Part (N, Declarative_Part);
       Set_Statements (N, Statements);
+      if not Is_Empty (Exception_Handler) then
+         Set_Exception_Handler (N, Exception_Handler);
+      end if;
       return N;
    end Make_Block_Statement;
 

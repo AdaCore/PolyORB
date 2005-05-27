@@ -166,6 +166,7 @@ module Backend::BE_Ada::Nodes {
   interface Block_Statement : Definition {
     List_Id    Declarative_Part; 
     List_Id    Statements;
+    List_Id    Exception_Handler;
   };
 
   interface Elsif_Statement : Node_Id {
