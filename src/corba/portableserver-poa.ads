@@ -54,7 +54,6 @@ with PortableServer.ServantRetentionPolicy;
 with PortableServer.ThreadPolicy;
 
 with PolyORB.Errors;
-with PolyORB.POA;
 
 package PortableServer.POA is
 
@@ -375,15 +374,5 @@ package PortableServer.POA is
 
    Repository_Id : constant Standard.String
      := "IDL:omg.org/PortableServer/POA:1.0";
-
-   package Internals is
-
-      function To_CORBA_POA
-        (Referenced : PolyORB.POA.Obj_Adapter_Access)
-         return Ref;
-      --  Convert a PolyORB.POA.Obj_Adapter_Access into
-      --  a PortableServer.POA.Ref.
-
-   end Internals;
 
 end PortableServer.POA;

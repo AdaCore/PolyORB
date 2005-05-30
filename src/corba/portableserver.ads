@@ -51,17 +51,14 @@ with PolyORB.Any;                   --  WAG:3.15
 pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
 pragma Warnings (On);               --  WAG:3.15
 
-with PolyORB.Annotations;
-with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Objects;
-with PolyORB.Requests;
 
 package PortableServer is
 
    pragma Elaborate_Body;
 
-   --  Forward declaration
+   --  forward declaration
 
    package POA_Forward is new CORBA.Forward;
 
@@ -411,17 +408,5 @@ private
 
    type Servant_Base is
      abstract new DynamicImplementation with null record;
-
-   type PortableServer_Current_Note is new PolyORB.Annotations.Note with record
-      Request : PolyORB.Requests.Request_Access;
-      Profile : PolyORB.Binding_Data.Profile_Access;
-   end record;
-
-   Null_PortableServer_Current_Note : constant PortableServer_Current_Note
-     := (PolyORB.Annotations.Note with
-          Request => null,
-          Profile => null);
-
-   PortableServer_Current_Registered : Boolean := False;
 
 end PortableServer;
