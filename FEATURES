@@ -54,7 +54,7 @@ middleware.
 
 - ORB Controller's policy to control concurrency patterns used to
   synchronize the middleware internal threads:
-  - Basic;
+  - Workers;
   - Half Sync/Half Async;
   - Leader/Followers;
   - No Tasking.
@@ -73,7 +73,7 @@ the OMG's specifications, that supports:
 - Dynamic Skeleton Interface (DSI), 
 
 It also provides an implementation of the CORBA Portable Object
-Adapter (POA); DynamicAny, CORBA PortableInterceptors interfaces; and
+Adapter (POA); CORBA DynamicAny, CORBA PortableInterceptors interfaces; and
 RT-CORBA 1.1 and the RTCosScheduling Service.
 
 CORBA Services
