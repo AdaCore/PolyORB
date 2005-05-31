@@ -579,6 +579,8 @@ src/corba/corba-forward.adb
 src/corba/corba-forward.ads
 src/corba/corba-helper.adb
 src/corba/corba-helper.ads
+src/corba/corba-idl_sequences-helper.adb
+src/corba/corba-idl_sequences-helper.ads
 src/corba/corba-idl_sequences.ads
 src/corba/corba-impl.adb
 src/corba/corba-impl.ads
