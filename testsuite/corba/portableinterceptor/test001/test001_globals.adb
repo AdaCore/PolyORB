@@ -32,10 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling;
-with Ada.Streams;
-with Ada.Unchecked_Conversion;
 
-with CORBA;
 with PolyORB.Utils.Report;
 
 package body Test001_Globals is
@@ -69,54 +66,5 @@ package body Test001_Globals is
            ("[" & Image (Point) & "] SRI::" & Operation & Comment, Status);
       end if;
    end Output;
-
-   -------------------------------------
-   -- To_PortableInterceptor_ObjectId --
-   -------------------------------------
-
-   function To_PortableInterceptor_ObjectId
-     (Value : in PortableServer.ObjectId)
-      return PortableInterceptor.ObjectId
-   is
-      use Ada.Streams;
-      use PortableInterceptor;
-
-      Id : IDL_Sequence_Octet.Element_Array (1 .. Value'Length);
-
-      function To_Octet is new Ada.Unchecked_Conversion
-        (Ada.Streams.Stream_Element, CORBA.Octet);
-
-   begin
-      for J in Value'Range loop
-         Id (Integer (J - Value'First + 1)) := To_Octet (Value (J));
-      end loop;
-
-      return ObjectId (IDL_Sequence_Octet.To_Sequence (Id));
-   end To_PortableInterceptor_ObjectId;
-
-   --------------------------------
-   -- To_PortableServer_ObjectId --
-   --------------------------------
-
-   function To_PortableServer_ObjectId
-     (Value : in PortableInterceptor.ObjectId)
-      return PortableServer.ObjectId
-   is
-      use Ada.Streams;
-      use PortableInterceptor;
-
-      Result : PortableServer.ObjectId
-        (1 .. Stream_Element_Offset (Length (Value)));
-
-      function To_Stream_Element is
-         new Ada.Unchecked_Conversion (CORBA.Octet, Stream_Element);
-
-   begin
-      for J in Result'Range loop
-         Result (J) := To_Stream_Element (Element_Of (Value, Integer (J)));
-      end loop;
-
-      return Result;
-   end To_PortableServer_ObjectId;
 
 end Test001_Globals;

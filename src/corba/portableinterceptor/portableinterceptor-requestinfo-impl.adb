@@ -199,7 +199,10 @@ package body PortableInterceptor.RequestInfo.Impl is
          Iter := First (SCP.Service_Contexts);
          while not Last (Iter) loop
             if Value (Iter).Context_Id = Service_Id (Id) then
-               return (Id, To_Sequence (Value (Iter).Context_Data.all));
+               return
+                 (Id,
+                  CORBA.IDL_Sequences.OctetSeq
+                   (To_Sequence (Value (Iter).Context_Data.all)));
             end if;
             Next (Iter);
          end loop;
@@ -273,7 +276,10 @@ package body PortableInterceptor.RequestInfo.Impl is
          Iter := First (SCP.Service_Contexts);
          while not Last (Iter) loop
             if Value (Iter).Context_Id = Service_Id (Id) then
-               return (Id, To_Sequence (Value (Iter).Context_Data.all));
+               return
+                 (Id,
+                  CORBA.IDL_Sequences.OctetSeq
+                   (To_Sequence (Value (Iter).Context_Data.all)));
             end if;
             Next (Iter);
          end loop;

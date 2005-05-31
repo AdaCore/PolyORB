@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.IDL_Sequences.Helper;
+
 with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 with PolyORB.Sequences.Unbounded.CORBA_Helper;
@@ -64,20 +66,6 @@ package body IOP.Helper is
      (Item : in IDL_Sequence_IOP_TaggedProfile.Sequence)
       return CORBA.Any
       renames IDL_Sequence_IOP_TaggedProfile_Helper.To_Any;
-
-   package IDL_Sequence_Octet_Helper is
-     new IDL_Sequence_Octet.CORBA_Helper
-       (Element_To_Any   => CORBA.To_Any,
-        Element_From_Any => CORBA.From_Any);
-
-   function From_Any (Item : in CORBA.Any)
-      return IDL_Sequence_Octet.Sequence
-      renames IDL_Sequence_Octet_Helper.From_Any;
-
-   function To_Any
-     (Item : in IDL_Sequence_Octet.Sequence)
-      return CORBA.Any
-      renames IDL_Sequence_Octet_Helper.To_Any;
 
    package IDL_Sequence_IOP_ServiceContext_Helper is
      new IDL_Sequence_IOP_ServiceContext.CORBA_Helper
@@ -172,7 +160,7 @@ package body IOP.Helper is
    function From_Any (Item : in CORBA.Any) return ServiceContext is
       Index               : CORBA.Any;
       Result_Context_Id   : ServiceId;
-      Result_Context_Data : IDL_Sequence_Octet.Sequence;
+      Result_Context_Data : CORBA.IDL_Sequences.OctetSeq;
    begin
       Index :=
         CORBA.Internals.Get_Aggregate_Element
@@ -181,8 +169,10 @@ package body IOP.Helper is
 
       Index :=
         CORBA.Internals.Get_Aggregate_Element
-        (Item, TC_IDL_Sequence_Octet, CORBA.Unsigned_Long (1));
-      Result_Context_Data := From_Any (Index);
+        (Item,
+         CORBA.IDL_Sequences.Helper.TC_IDL_SEQUENCE_Octet,
+         CORBA.Unsigned_Long (1));
+      Result_Context_Data := CORBA.IDL_Sequences.Helper.From_Any (Index);
 
       return
         (Context_Id   => Result_Context_Id,
@@ -205,7 +195,7 @@ package body IOP.Helper is
    function From_Any (Item : in CORBA.Any) return TaggedComponent is
       Index                 : CORBA.Any;
       Result_Tag            : ComponentId;
-      Result_Component_Data : IDL_Sequence_Octet.Sequence;
+      Result_Component_Data : CORBA.IDL_Sequences.OctetSeq;
    begin
       Index :=
         CORBA.Internals.Get_Aggregate_Element
@@ -214,8 +204,10 @@ package body IOP.Helper is
 
       Index :=
         CORBA.Internals.Get_Aggregate_Element
-        (Item, TC_IDL_Sequence_Octet, CORBA.Unsigned_Long (1));
-      Result_Component_Data := From_Any (Index);
+        (Item,
+         CORBA.IDL_Sequences.Helper.TC_IDL_SEQUENCE_Octet,
+         CORBA.Unsigned_Long (1));
+      Result_Component_Data := CORBA.IDL_Sequences.Helper.From_Any (Index);
 
       return
         (Tag            => Result_Tag,
@@ -232,7 +224,7 @@ package body IOP.Helper is
    function From_Any (Item : in CORBA.Any) return TaggedProfile is
       Index               : CORBA.Any;
       Result_Tag          : ProfileId;
-      Result_Profile_Data : IDL_Sequence_Octet.Sequence;
+      Result_Profile_Data : CORBA.IDL_Sequences.OctetSeq;
    begin
       Index :=
         CORBA.Internals.Get_Aggregate_Element
@@ -241,8 +233,10 @@ package body IOP.Helper is
 
       Index :=
         CORBA.Internals.Get_Aggregate_Element
-        (Item, TC_IDL_Sequence_Octet, CORBA.Unsigned_Long (1));
-      Result_Profile_Data := From_Any (Index);
+        (Item,
+         CORBA.IDL_Sequences.Helper.TC_IDL_SEQUENCE_Octet,
+         CORBA.Unsigned_Long (1));
+      Result_Profile_Data := CORBA.IDL_Sequences.Helper.From_Any (Index);
 
       return
         (Tag          => Result_Tag,
@@ -316,7 +310,7 @@ package body IOP.Helper is
    begin
       CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Context_Id));
       CORBA.Internals.Add_Aggregate_Element
-        (Result, To_Any (Item.Context_Data));
+        (Result, CORBA.IDL_Sequences.Helper.To_Any (Item.Context_Data));
       return Result;
    end To_Any;
 
@@ -344,7 +338,7 @@ package body IOP.Helper is
    begin
       CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Tag));
       CORBA.Internals.Add_Aggregate_Element
-        (Result, To_Any (Item.Component_Data));
+        (Result, CORBA.IDL_Sequences.Helper.To_Any (Item.Component_Data));
       return Result;
    end To_Any;
 
@@ -364,7 +358,7 @@ package body IOP.Helper is
    begin
       CORBA.Internals.Add_Aggregate_Element (Result, To_Any (Item.Tag));
       CORBA.Internals.Add_Aggregate_Element
-        (Result, To_Any (Item.Profile_Data));
+        (Result, CORBA.IDL_Sequences.Helper.To_Any (Item.Profile_Data));
 
       return Result;
    end To_Any;
@@ -390,12 +384,6 @@ package body IOP.Helper is
            (TC_ProfileId, CORBA.To_Any (CORBA.TC_Unsigned_Long));
       end;
 
-      TC_IDL_Sequence_Octet :=
-        CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Octet, 0);
-      IDL_Sequence_Octet_Helper.Initialize
-       (Element_TC  => CORBA.TC_Octet,
-        Sequence_TC => TC_IDL_Sequence_Octet);
-
       declare
          Name                  : CORBA.String
            := CORBA.To_CORBA_String ("TaggedProfile");
@@ -415,7 +403,8 @@ package body IOP.Helper is
          CORBA.TypeCode.Internals.Add_Parameter
            (TC_TaggedProfile, CORBA.To_Any (Arg_Name_Tag));
          CORBA.TypeCode.Internals.Add_Parameter
-           (TC_TaggedProfile, CORBA.To_Any (TC_IDL_Sequence_Octet));
+           (TC_TaggedProfile,
+            CORBA.To_Any (CORBA.IDL_Sequences.Helper.TC_IDL_SEQUENCE_Octet));
          CORBA.TypeCode.Internals.Add_Parameter
            (TC_TaggedProfile, CORBA.To_Any (Arg_Name_Profile_Data));
       end;
@@ -480,7 +469,8 @@ package body IOP.Helper is
          CORBA.TypeCode.Internals.Add_Parameter
            (TC_TaggedComponent, CORBA.To_Any (Arg_Name_Tag));
          CORBA.TypeCode.Internals.Add_Parameter
-           (TC_TaggedComponent, CORBA.To_Any (TC_IDL_Sequence_Octet));
+           (TC_TaggedComponent,
+            CORBA.To_Any (CORBA.IDL_Sequences.Helper.TC_IDL_SEQUENCE_Octet));
          CORBA.TypeCode.Internals.Add_Parameter
            (TC_TaggedComponent, CORBA.To_Any (Arg_Name_Component_Data));
       end;
@@ -552,7 +542,8 @@ package body IOP.Helper is
          CORBA.TypeCode.Internals.Add_Parameter
            (TC_ServiceContext, CORBA.To_Any (Arg_Name_Context_Id));
          CORBA.TypeCode.Internals.Add_Parameter
-           (TC_ServiceContext, CORBA.To_Any (TC_IDL_Sequence_Octet));
+           (TC_ServiceContext,
+            CORBA.To_Any (CORBA.IDL_Sequences.Helper.TC_IDL_SEQUENCE_Octet));
          CORBA.TypeCode.Internals.Add_Parameter
            (TC_ServiceContext, CORBA.To_Any (Arg_Name_Context_Data));
       end;

@@ -77,21 +77,21 @@ package IOP.Codec is
    function Encode
      (Self : in Local_Ref;
       Data : in CORBA.Any)
-     return IDL_Sequence_Octet.Sequence;
+     return CORBA.IDL_Sequences.OctetSeq;
 
    function Decode
      (Self : in Local_Ref;
-      Data : in IDL_Sequence_Octet.Sequence)
+      Data : in CORBA.IDL_Sequences.OctetSeq)
      return CORBA.Any;
 
    function Encode_Value
      (Self : in Local_Ref;
       Data : in CORBA.Any)
-     return IDL_Sequence_Octet.Sequence;
+     return CORBA.IDL_Sequences.OctetSeq;
 
    function Decode_Value
      (Self : in Local_Ref;
-      Data : in IDL_Sequence_Octet.Sequence;
+      Data : in CORBA.IDL_Sequences.OctetSeq;
       TC   : in CORBA.TypeCode.Object)
      return CORBA.Any;
 

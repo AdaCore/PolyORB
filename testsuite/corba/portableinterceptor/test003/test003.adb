@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.IDL_Sequences;
 with CORBA.ORB;
 with IOP.Codec;
 with IOP.CodecFactory.Helper;
@@ -42,14 +43,15 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 procedure Test003 is
    use CORBA;
+   use CORBA.IDL_Sequences;
    use IOP;
    use PolyORB.Utils.Report;
 
    Argv      : CORBA.ORB.Arg_List := CORBA.ORB.Command_Line_Arguments;
    Factory   : IOP.CodecFactory.Local_Ref;
    Codec     : IOP.Codec.Local_Ref;
-   BE_Stream : IOP.IDL_Sequence_Octet.Sequence;
-   LE_Stream : IOP.IDL_Sequence_Octet.Sequence;
+   BE_Stream : OctetSeq;
+   LE_Stream : OctetSeq;
 
 begin
    CORBA.ORB.Init (CORBA.ORB.To_CORBA_String ("ORB"), Argv);
@@ -100,25 +102,25 @@ begin
 
    --  This is unsigned long (1), big endian
 
-   IOP.IDL_Sequence_Octet.Append (BE_Stream, 16#00#);
-   IOP.IDL_Sequence_Octet.Append (BE_Stream, 16#AA#);
-   IOP.IDL_Sequence_Octet.Append (BE_Stream, 16#AA#);
-   IOP.IDL_Sequence_Octet.Append (BE_Stream, 16#AA#);
-   IOP.IDL_Sequence_Octet.Append (BE_Stream, 16#00#);
-   IOP.IDL_Sequence_Octet.Append (BE_Stream, 16#00#);
-   IOP.IDL_Sequence_Octet.Append (BE_Stream, 16#00#);
-   IOP.IDL_Sequence_Octet.Append (BE_Stream, 16#01#);
+   Append (BE_Stream, 16#00#);
+   Append (BE_Stream, 16#AA#);
+   Append (BE_Stream, 16#AA#);
+   Append (BE_Stream, 16#AA#);
+   Append (BE_Stream, 16#00#);
+   Append (BE_Stream, 16#00#);
+   Append (BE_Stream, 16#00#);
+   Append (BE_Stream, 16#01#);
 
    --  This is unsigned long (1), little endian
 
-   IOP.IDL_Sequence_Octet.Append (LE_Stream, 16#01#);
-   IOP.IDL_Sequence_Octet.Append (LE_Stream, 16#AA#);
-   IOP.IDL_Sequence_Octet.Append (LE_Stream, 16#AA#);
-   IOP.IDL_Sequence_Octet.Append (LE_Stream, 16#AA#);
-   IOP.IDL_Sequence_Octet.Append (LE_Stream, 16#01#);
-   IOP.IDL_Sequence_Octet.Append (LE_Stream, 16#00#);
-   IOP.IDL_Sequence_Octet.Append (LE_Stream, 16#00#);
-   IOP.IDL_Sequence_Octet.Append (LE_Stream, 16#00#);
+   Append (LE_Stream, 16#01#);
+   Append (LE_Stream, 16#AA#);
+   Append (LE_Stream, 16#AA#);
+   Append (LE_Stream, 16#AA#);
+   Append (LE_Stream, 16#01#);
+   Append (LE_Stream, 16#00#);
+   Append (LE_Stream, 16#00#);
+   Append (LE_Stream, 16#00#);
 
    declare
       Data : Any;
@@ -153,10 +155,8 @@ begin
    end;
 
    declare
-      use type IOP.IDL_Sequence_Octet.Sequence;
-
       Data   : Any := To_Any (Unsigned_Long'(1));
-      Stream : IOP.IDL_Sequence_Octet.Sequence;
+      Stream : OctetSeq;
 
    begin
       Stream := IOP.Codec.Encode_Value (Codec, Data);
@@ -174,7 +174,7 @@ begin
 
    declare
       Data   : Any := To_Any (Unsigned_Long'(1));
-      Stream : IOP.IDL_Sequence_Octet.Sequence;
+      Stream : OctetSeq;
 
    begin
       Stream := IOP.Codec.Encode (Codec, Data);

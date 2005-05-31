@@ -33,7 +33,6 @@
 
 with Ada.Unchecked_Deallocation;
 
-with CORBA;
 with PolyORB.Any;
 with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Interceptors;
@@ -99,7 +98,9 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
             Free (Value (Iter).Context_Data);
             Value (Iter).Context_Data :=
               new Encapsulation'
-              (To_Encapsulation (Service_Context.Context_Data));
+              (To_Encapsulation
+               (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence
+                (Service_Context.Context_Data)));
 
             return;
          end if;
@@ -110,7 +111,9 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
         (SCP.Service_Contexts,
          (Service_Id (Service_Context.Context_Id),
           new Encapsulation'
-          (To_Encapsulation (Service_Context.Context_Data))));
+          (To_Encapsulation
+           (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence
+            (Service_Context.Context_Data)))));
    end Add_Request_Service_Context;
 
    -------------------

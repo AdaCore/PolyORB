@@ -31,11 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
-with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
-with CORBA;
+with PortableServer;
 with PortableInterceptor.RequestInfo;
 
 with PolyORB.Annotations;
@@ -43,7 +41,6 @@ with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
-with PolyORB.Objects;
 with PolyORB.POA;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Request_QoS.Service_Contexts;
@@ -101,7 +98,9 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
             Free (Value (Iter).Context_Data);
             Value (Iter).Context_Data :=
               new Encapsulation'
-              (To_Encapsulation (Service_Context.Context_Data));
+              (To_Encapsulation
+               (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence
+                (Service_Context.Context_Data)));
 
             return;
          end if;
@@ -112,7 +111,9 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
         (SCP.Service_Contexts,
          (Service_Id (Service_Context.Context_Id),
           new Encapsulation'
-          (To_Encapsulation (Service_Context.Context_Data))));
+          (To_Encapsulation
+           (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence
+            (Service_Context.Context_Data)))));
    end Add_Reply_Service_Context;
 
    --------------------
@@ -292,23 +293,10 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                        Completed => CORBA.Completed_No));
       end if;
 
-      declare
-         use type Ada.Streams.Stream_Element_Offset;
-
-         Key : constant PolyORB.Objects.Object_Id_Access
-           := PolyORB.Binding_Data.Get_Object_Key (Self.Profile.all);
-         Id  : IDL_Sequence_Octet.Element_Array (1 .. Key'Length);
-
-         function To_Octet is new Ada.Unchecked_Conversion
-           (Ada.Streams.Stream_Element, CORBA.Octet);
-
-      begin
-         for J in Key'Range loop
-            Id (Integer (J - Key'First + 1)) := To_Octet (Key (J));
-         end loop;
-
-         return ObjectId (IDL_Sequence_Octet.To_Sequence (Id));
-      end;
+      return
+        PortableInterceptor.ObjectId
+        (PortableServer.Internals.To_PortableServer_ObjectId
+         (PolyORB.Binding_Data.Get_Object_Key (Self.Profile.all).all));
    end Get_Object_Id;
 
    ---------------------------

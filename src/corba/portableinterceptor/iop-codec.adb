@@ -43,7 +43,7 @@ package body IOP.Codec is
 
    function Decode
      (Self : in Local_Ref;
-      Data : in IDL_Sequence_Octet.Sequence)
+      Data : in CORBA.IDL_Sequences.OctetSeq)
      return CORBA.Any
    is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
@@ -62,7 +62,7 @@ package body IOP.Codec is
 
    function Decode_Value
      (Self : in Local_Ref;
-      Data : in IDL_Sequence_Octet.Sequence;
+      Data : in CORBA.IDL_Sequences.OctetSeq;
       TC   : in CORBA.TypeCode.Object)
      return CORBA.Any
    is
@@ -83,7 +83,7 @@ package body IOP.Codec is
    function Encode
      (Self : in Local_Ref;
       Data : in CORBA.Any)
-      return IDL_Sequence_Octet.Sequence
+      return CORBA.IDL_Sequences.OctetSeq
    is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
 
@@ -102,7 +102,7 @@ package body IOP.Codec is
    function Encode_Value
      (Self : in Local_Ref;
       Data : in CORBA.Any)
-      return IDL_Sequence_Octet.Sequence
+      return CORBA.IDL_Sequences.OctetSeq
    is
       Self_Ref : CORBA.Object.Ref := CORBA.Object.Ref (Self);
 

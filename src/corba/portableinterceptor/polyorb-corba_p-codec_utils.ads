@@ -31,17 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with IOP;
+with CORBA.IDL_Sequences;
 with PolyORB.Representations.CDR.Common;
 
 package PolyORB.CORBA_P.Codec_Utils is
 
    function To_Sequence
      (Item : in PolyORB.Representations.CDR.Common.Encapsulation)
-      return IOP.IDL_Sequence_Octet.Sequence;
+      return CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence;
 
    function To_Encapsulation
-     (Item : in IOP.IDL_Sequence_Octet.Sequence)
+     (Item : in CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence)
       return PolyORB.Representations.CDR.Common.Encapsulation;
 
 end PolyORB.CORBA_P.Codec_Utils;

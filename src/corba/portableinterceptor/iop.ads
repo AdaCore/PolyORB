@@ -31,13 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.IDL_Sequences;
 with CORBA.Sequences.Unbounded;
 
 package IOP is
-
-   --  Implementation Notes: this type temporary replaces CORBA::OctetSeq type.
-
-   package IDL_Sequence_Octet is new CORBA.Sequences.Unbounded (CORBA.Octet);
 
    --  ProfileId type and constants
 
@@ -51,7 +48,7 @@ package IOP is
 
    type TaggedProfile is record
       Tag          : ProfileId;
-      Profile_Data : IDL_Sequence_Octet.Sequence;
+      Profile_Data : CORBA.IDL_Sequences.OctetSeq;
    end record;
 
    --  IOR type
@@ -107,7 +104,7 @@ package IOP is
 
    type TaggedComponent is record
       Tag            : ComponentId;
-      Component_Data : IDL_Sequence_Octet.Sequence;
+      Component_Data : CORBA.IDL_Sequences.OctetSeq;
    end record;
 
    --  TaggedComponentSeq sequence
@@ -148,7 +145,7 @@ package IOP is
 
    type ServiceContext is record
       Context_Id   : ServiceId;
-      Context_Data : IDL_Sequence_Octet.Sequence;
+      Context_Data : CORBA.IDL_Sequences.OctetSeq;
    end record;
 
    --  ServiceContextList sequence

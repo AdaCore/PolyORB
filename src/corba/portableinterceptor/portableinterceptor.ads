@@ -38,17 +38,10 @@
 
 with Ada.Exceptions;
 
-with CORBA;
+with CORBA.IDL_Sequences;
 with CORBA.Object;
-with CORBA.Sequences.Unbounded;
 
 package PortableInterceptor is
-
-   --  Implementation Notes: this type temporary replace CORBA::StringSeq type.
-   package IDL_Sequence_String is new CORBA.Sequences.Unbounded (CORBA.String);
-
-   --  Implementation Notes: this type temporary replace CORBA::OctetSeq type.
-   package IDL_Sequence_Octet is new CORBA.Sequences.Unbounded (CORBA.Octet);
 
    --  ForwardRequest exception
 
@@ -98,15 +91,15 @@ package PortableInterceptor is
 
    --  AdapterName type
 
-   type AdapterName is new IDL_Sequence_String.Sequence;
+   type AdapterName is new CORBA.IDL_Sequences.StringSeq;
 
    --  ObjectId type
 
-   type ObjectId is new IDL_Sequence_Octet.Sequence;
+   type ObjectId is new CORBA.IDL_Sequences.OctetSeq;
 
    --  AdapterId type (PolyORB extension)
 
-   type AdapterId is new IDL_Sequence_Octet.Sequence;
+   type AdapterId is new CORBA.IDL_Sequences.OctetSeq;
 
    --  XXX TODO ObjectReferenceTemplateSeq type
    --  typedef sequence<ObjectReferenceTemplate> ObjectReferenceTemplateSeq;

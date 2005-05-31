@@ -91,16 +91,16 @@ module PortableInterceptor {
 
     typedef string ServerId ;
     typedef string ORBId ;
-//PolyORB:IL:    typedef CORBA::StringSeq AdapterName ;
-//PolyORB:IL:    typedef CORBA::OctetSeq ObjectId ;
+    typedef CORBA::StringSeq AdapterName ;
+    typedef CORBA::OctetSeq ObjectId ;
 
     local interface ServerRequestInfo : RequestInfo {
         readonly attribute any sending_exception;
 	readonly attribute ServerId server_id;
 	readonly attribute ORBId orb_id;
-//PolyORB:IL:	readonly attribute AdapterName adapter_name;
-//PolyORB:IL:        readonly attribute ObjectId object_id;
-//PolyORB:IL:        readonly attribute CORBA::OctetSeq adapter_id;
+	readonly attribute AdapterName adapter_name;
+        readonly attribute ObjectId object_id;
+        readonly attribute CORBA::OctetSeq adapter_id;
         readonly attribute CORBA::RepositoryId target_most_derived_interface;
 
         CORBA::Policy get_server_policy (in CORBA::PolicyType type);
@@ -198,7 +198,7 @@ module PortableInterceptor {
 
         exception InvalidName {};
 
-//PolyORB:IL:        readonly attribute CORBA::StringSeq arguments;
+        readonly attribute CORBA::StringSeq arguments;
         readonly attribute string orb_id;
         readonly attribute IOP::CodecFactory codec_factory;
         void register_initial_reference (in ObjectId id, in Object obj)

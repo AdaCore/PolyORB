@@ -43,21 +43,21 @@ package IOP.Codec.Impl is
    function Encode
      (Self : access Object;
       Data : in     CORBA.Any)
-     return IDL_Sequence_Octet.Sequence;
+     return CORBA.IDL_Sequences.OctetSeq;
 
    function Decode
      (Self : access Object;
-      Data : in     IDL_Sequence_Octet.Sequence)
+      Data : in     CORBA.IDL_Sequences.OctetSeq)
      return CORBA.Any;
 
    function Encode_Value
      (Self : access Object;
       Data : in     CORBA.Any)
-     return IDL_Sequence_Octet.Sequence;
+     return CORBA.IDL_Sequences.OctetSeq;
 
    function Decode_Value
      (Self : access Object;
-      Data : in     IDL_Sequence_Octet.Sequence;
+      Data : in     CORBA.IDL_Sequences.OctetSeq;
       TC   : in     CORBA.TypeCode.Object)
      return CORBA.Any;
 

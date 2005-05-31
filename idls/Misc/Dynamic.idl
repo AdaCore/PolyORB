@@ -22,9 +22,9 @@ module Dynamic {
     };
 
     typedef sequence<Parameter> ParameterList;
-//PolyORB:IL:    typedef CORBA::StringSeq ContextList;
+    typedef CORBA::StringSeq ContextList;
     typedef sequence<CORBA::TypeCode> ExceptionList;
-//PolyORB:IL:    typedef CORBA::StringSeq RequestContext;
+    typedef CORBA::StringSeq RequestContext;
 
 }; // module Dynamic
 #endif // _DYNAMIC_IDL_

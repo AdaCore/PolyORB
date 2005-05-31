@@ -47,16 +47,6 @@ package IOP.Helper is
 
    function To_Any (Item : in ProfileId) return CORBA.Any;
 
-   --  Anonymous octet sequence
-
-   TC_IDL_Sequence_Octet : CORBA.TypeCode.Object
-     := CORBA.TypeCode.Internals.To_CORBA_Object
-     (PolyORB.Any.TypeCode.TC_Sequence);
-
-   function From_Any (Item : in CORBA.Any) return IDL_Sequence_Octet.Sequence;
-
-   function To_Any (Item : in IDL_Sequence_Octet.Sequence) return CORBA.Any;
-
    --  TaggedProfile type
 
    TC_TaggedProfile : CORBA.TypeCode.Object
@@ -67,7 +57,7 @@ package IOP.Helper is
 
    function To_Any (Item : in TaggedProfile) return CORBA.Any;
 
-   --  Anonimous TaggedProfile sequence
+   --  Anonymous TaggedProfile sequence
 
    TC_IDL_Sequence_IOP_TaggedProfile : CORBA.TypeCode.Object
      := CORBA.TypeCode.Internals.To_CORBA_Object

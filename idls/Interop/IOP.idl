@@ -137,16 +137,16 @@ module IOP {
         exception FormatMismatch {};
         exception TypeMismatch {};
 
-//PolyORB:IL:        CORBA::OctetSeq encode (in any data)
-//PolyORB:IL:            raises (InvalidTypeForEncoding);
-//PolyORB:IL:        any decode (in CORBA::OctetSeq data)
-//PolyORB:IL:            raises (FormatMismatch);
-//PolyORB:IL:        CORBA::OctetSeq encode_value (in any data)
-//PolyORB:IL:            raises (InvalidTypeForEncoding);
-//PolyORB:IL:        any decode_value (
-//PolyORB:IL:            in CORBA::OctetSeq data,
-//PolyORB:IL:            in CORBA::TypeCode tc)
-//PolyORB:IL:            raises (FormatMismatch, TypeMismatch);
+        CORBA::OctetSeq encode (in any data)
+            raises (InvalidTypeForEncoding);
+        any decode (in CORBA::OctetSeq data)
+            raises (FormatMismatch);
+        CORBA::OctetSeq encode_value (in any data)
+            raises (InvalidTypeForEncoding);
+        any decode_value (
+            in CORBA::OctetSeq data,
+            in CORBA::TypeCode tc)
+            raises (FormatMismatch, TypeMismatch);
     };
 
     // Codec Factory

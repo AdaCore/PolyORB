@@ -31,14 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.IDL_Sequences;
 with CORBA.Repository_Root;
 with CORBA.Sequences.Unbounded;
 pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
 package Dynamic is
-
-   --  Implementation Notes: this type temporary replace CORBA::StringSeq type.
-   package IDL_Sequence_String is new CORBA.Sequences.Unbounded (CORBA.String);
 
    --  struct Parameter
 
@@ -57,7 +55,7 @@ package Dynamic is
 
    --  typedef ContextList
 
-   type ContextList is new IDL_Sequence_String.Sequence;
+   type ContextList is new CORBA.IDL_Sequences.StringSeq;
 
    --  typedef ExceptionList
 
@@ -69,8 +67,7 @@ package Dynamic is
 
    --  typedef RequestContext
 
-   type RequestContext is
-      new IDL_Sequence_String.Sequence;
+   type RequestContext is new CORBA.IDL_Sequences.StringSeq;
 
    --  Repository_Ids
 

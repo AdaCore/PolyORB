@@ -53,10 +53,10 @@ package body IOP.Codec.Impl is
 
    function To_Sequence
      (Item : in Encapsulation)
-     return IDL_Sequence_Octet.Sequence;
+     return CORBA.IDL_Sequences.OctetSeq;
 
    function To_Encapsulation
-     (Item : in IDL_Sequence_Octet.Sequence)
+     (Item : in CORBA.IDL_Sequences.OctetSeq)
      return Encapsulation;
 
    ------------
@@ -65,7 +65,7 @@ package body IOP.Codec.Impl is
 
    function Decode
      (Self : access Object;
-      Data : in     IDL_Sequence_Octet.Sequence)
+      Data : in     CORBA.IDL_Sequences.OctetSeq)
      return CORBA.Any
    is
       Data_Enc : aliased Encapsulation := To_Encapsulation (Data);
@@ -86,7 +86,7 @@ package body IOP.Codec.Impl is
 
    function Decode_Value
      (Self : access Object;
-      Data : in     IDL_Sequence_Octet.Sequence;
+      Data : in     CORBA.IDL_Sequences.OctetSeq;
       TC   : in     CORBA.TypeCode.Object)
      return CORBA.Any
    is
@@ -118,10 +118,10 @@ package body IOP.Codec.Impl is
    function Encode
      (Self : access Object;
       Data : in     CORBA.Any)
-     return IDL_Sequence_Octet.Sequence
+     return CORBA.IDL_Sequences.OctetSeq
    is
       Buffer : Buffer_Access := new Buffer_Type;
-      Result : IDL_Sequence_Octet.Sequence;
+      Result : CORBA.IDL_Sequences.OctetSeq;
 
    begin
       Start_Encapsulation (Buffer);
@@ -142,11 +142,11 @@ package body IOP.Codec.Impl is
    function Encode_Value
      (Self : access Object;
       Data : in     CORBA.Any)
-     return IDL_Sequence_Octet.Sequence
+     return CORBA.IDL_Sequences.OctetSeq
    is
       Buffer : Buffer_Access := new Buffer_Type;
       Error  : Error_Container;
-      Result : IDL_Sequence_Octet.Sequence;
+      Result : CORBA.IDL_Sequences.OctetSeq;
 
    begin
       Start_Encapsulation (Buffer);
@@ -216,16 +216,16 @@ package body IOP.Codec.Impl is
    ----------------------
 
    function To_Encapsulation
-     (Item : in IDL_Sequence_Octet.Sequence)
+     (Item : in CORBA.IDL_Sequences.OctetSeq)
       return Encapsulation
    is
       Result : Encapsulation
-        (1 .. Stream_Element_Offset (IDL_Sequence_Octet.Length (Item)));
+        (1 .. Stream_Element_Offset (CORBA.IDL_Sequences.Length (Item)));
 
    begin
       for J in Result'Range loop
          Result (J) :=
-           Stream_Element (IDL_Sequence_Octet.Element_Of (Item, Integer (J)));
+           Stream_Element (CORBA.IDL_Sequences.Element_Of (Item, Integer (J)));
       end loop;
 
       return Result;
@@ -237,13 +237,13 @@ package body IOP.Codec.Impl is
 
    function To_Sequence
      (Item : in Encapsulation)
-     return IDL_Sequence_Octet.Sequence
+     return CORBA.IDL_Sequences.OctetSeq
    is
-      Result : IDL_Sequence_Octet.Sequence;
+      Result : CORBA.IDL_Sequences.OctetSeq;
 
    begin
       for J in Item'Range loop
-         IDL_Sequence_Octet.Append (Result, CORBA.Octet (Item (J)));
+         CORBA.IDL_Sequences.Append (Result, CORBA.Octet (Item (J)));
       end loop;
 
       return Result;

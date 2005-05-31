@@ -84,7 +84,7 @@ begin
            := PortableServer.POA.Activate_Object
                (Root_POA, new Test001_Interface.Impl.Object);
       begin
-         Test_ObjectId := To_PortableInterceptor_ObjectId (Id);
+         Test_ObjectId := PortableInterceptor.ObjectId (Id);
          Test_Object :=
            Test001_Interface.Helper.To_Ref
             (PortableServer.POA.Id_To_Reference (Root_POA, Id));

@@ -33,8 +33,6 @@
 
 with Ada.Streams;
 
-with CORBA;
-
 package body PolyORB.CORBA_P.Codec_Utils is
 
    use Ada.Streams;
@@ -44,17 +42,19 @@ package body PolyORB.CORBA_P.Codec_Utils is
    ----------------------
 
    function To_Encapsulation
-     (Item : in IOP.IDL_Sequence_Octet.Sequence)
+     (Item : in CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence)
       return PolyORB.Representations.CDR.Common.Encapsulation
    is
       Result : PolyORB.Representations.CDR.Common.Encapsulation
-        (1 .. Stream_Element_Offset (IOP.IDL_Sequence_Octet.Length (Item)));
+        (1 .. Stream_Element_Offset
+               (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Length (Item)));
 
    begin
       for J in Result'Range loop
          Result (J) :=
            Stream_Element
-            (IOP.IDL_Sequence_Octet.Element_Of (Item, Integer (J)));
+            (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Element_Of
+              (Item, Integer (J)));
       end loop;
 
       return Result;
@@ -66,13 +66,14 @@ package body PolyORB.CORBA_P.Codec_Utils is
 
    function To_Sequence
      (Item : in PolyORB.Representations.CDR.Common.Encapsulation)
-      return IOP.IDL_Sequence_Octet.Sequence
+      return CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence
    is
-      Result : IOP.IDL_Sequence_Octet.Sequence;
+      Result : CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence;
 
    begin
       for J in Item'Range loop
-         IOP.IDL_Sequence_Octet.Append (Result, CORBA.Octet (Item (J)));
+         CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Append
+          (Result, CORBA.Octet (Item (J)));
       end loop;
 
       return Result;
