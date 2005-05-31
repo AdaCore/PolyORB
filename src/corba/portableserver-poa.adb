@@ -767,7 +767,7 @@ package body PortableServer.POA is
          Oid : constant PolyORB.POA_Types.Object_Id :=
            PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
       begin
-         return ObjectId (Oid);
+         return PortableServer.Internals.To_PortableServer_ObjectId (Oid);
       end;
    end Activate_Object;
 
@@ -787,7 +787,8 @@ package body PortableServer.POA is
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
       A_Oid : aliased PolyORB.POA_Types.Object_Id :=
-        PolyORB.POA_Types.Object_Id (Oid);
+        PolyORB.POA_Types.Object_Id
+        (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
 
    begin
       PolyORB.POA.Activate_Object
@@ -817,7 +818,8 @@ package body PortableServer.POA is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
       A_Oid : aliased constant PolyORB.POA_Types.Object_Id :=
-        PolyORB.POA_Types.Object_Id (Oid);
+        PolyORB.POA_Types.Object_Id
+        (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
 
    begin
       PolyORB.POA.Deactivate_Object (POA, A_Oid, Error);
@@ -889,7 +891,8 @@ package body PortableServer.POA is
 
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
-      OOid : Object_Id_Access := new Object_Id'(Object_Id (Oid));
+      OOid : Object_Id_Access
+        := new Object_Id'(PortableServer.Internals.To_PolyORB_Object_Id (Oid));
 
    begin
       PolyORB.POA.Create_Object_Identification (POA, OOid, U_Oid, Error);
@@ -951,7 +954,8 @@ package body PortableServer.POA is
       Associate_To_Domain_Managers (P_Servant);
 
       declare
-         Result : constant ObjectId := ObjectId (Oid.all);
+         Result : constant ObjectId
+           := PortableServer.Internals.To_PortableServer_ObjectId (Oid.all);
 
       begin
          PolyORB.POA_Types.Free (Oid);
@@ -1101,7 +1105,7 @@ package body PortableServer.POA is
    begin
       PolyORB.POA.Id_To_Servant
         (POA,
-         PolyORB.Objects.Object_Id (Oid),
+         PortableServer.Internals.To_PolyORB_Object_Id (Oid),
          S,
          Error);
 

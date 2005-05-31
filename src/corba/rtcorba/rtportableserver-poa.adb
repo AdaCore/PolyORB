@@ -160,7 +160,9 @@ package body RTPortableServer.POA is
 
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
-      OOid : Object_Id_Access := new Object_Id'(Object_Id (Oid));
+      OOid : Object_Id_Access
+        := new Object_Id'
+        (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
 
    begin
       PolyORB.RT_POA.Create_Object_Identification_With_Priority
@@ -236,7 +238,7 @@ package body RTPortableServer.POA is
            := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
 
       begin
-         return PortableServer.ObjectId (Oid);
+         return PortableServer.Internals.To_PortableServer_ObjectId (Oid);
       end;
    end Activate_Object_With_Priority;
 
@@ -261,7 +263,7 @@ package body RTPortableServer.POA is
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
       A_Oid : aliased PolyORB.POA_Types.Object_Id
-        := PolyORB.POA_Types.Object_Id (Oid);
+        := PortableServer.Internals.To_PolyORB_Object_Id (Oid);
 
    begin
       PolyORB.RT_POA.Activate_Object_With_Id_And_Priority

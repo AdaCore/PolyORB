@@ -97,7 +97,7 @@ package body PolyORB.CORBA_P.ServantLocator is
       begin
          PortableServer.ServantLocator.Preinvoke
            (Locator,
-            PortableServer.ObjectId (Oid),
+            PortableServer.Internals.To_PortableServer_ObjectId (Oid),
             CORBA_POA,
             CORBA.Identifier (Operation),
             PortableServer.ServantLocator.Cookie (The_Cookie),
@@ -153,7 +153,7 @@ package body PolyORB.CORBA_P.ServantLocator is
 
       PortableServer.ServantLocator.Postinvoke
         (Locator,
-         PortableServer.ObjectId (Oid),
+         PortableServer.Internals.To_PortableServer_ObjectId (Oid),
          CORBA_POA,
          CORBA.Identifier (Operation),
          PortableServer.ServantLocator.Cookie (The_Cookie),

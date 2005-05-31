@@ -97,7 +97,7 @@ package body PolyORB.CORBA_P.ServantActivator is
       begin
          CORBA_Servant := PortableServer.ServantActivator.Incarnate
            (Activator,
-            PortableServer.ObjectId (Oid),
+            PortableServer.Internals.To_PortableServer_ObjectId (Oid),
             CORBA_POA);
 
       exception
@@ -154,7 +154,7 @@ package body PolyORB.CORBA_P.ServantActivator is
 
       PortableServer.ServantActivator.Etherealize
         (Activator,
-         PortableServer.ObjectId (Oid),
+         PortableServer.Internals.To_PortableServer_ObjectId (Oid),
          CORBA_POA,
          POA_Servant,
          Cleanup_In_Progress,

@@ -31,9 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
 with Ada.Text_IO;
 
+with CORBA.IDL_Sequences;
 with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ORB;
@@ -146,15 +146,16 @@ package body Test_Support is
      (Item : in Wide_String)
       return PortableServer.ObjectId
    is
-      use Ada.Streams;
+      use CORBA.IDL_Sequences.IDL_SEQUENCE_Octet;
 
-      Result : PortableServer.ObjectId (1 .. Item'Length * 2);
+      Result : PortableServer.ObjectId;
+
    begin
       for J in Item'Range loop
-         Result (Result'First + 2 * Stream_Element_Offset (J - Item'First))
-           := Stream_Element (Wide_Character'Pos (Item (J)) / 256);
-         Result (Result'First + 2 * Stream_Element_Offset (J - Item'First) + 1)
-           := Stream_Element (Wide_Character'Pos (Item (J)) mod 256);
+         Append (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence (Result),
+                 CORBA.Octet (Wide_Character'Pos (Item (J)) / 256));
+         Append (CORBA.IDL_Sequences.IDL_SEQUENCE_Octet.Sequence (Result),
+                 CORBA.Octet (Wide_Character'Pos (Item (J)) mod 256));
       end loop;
 
       return Result;

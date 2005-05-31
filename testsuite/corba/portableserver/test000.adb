@@ -1782,10 +1782,11 @@ procedure Test000 is
       end;
 
       declare
-         Srv : constant Echo.Impl.Object_Acc := new Echo.Impl.Object;
+         Srv  : constant Echo.Impl.Object_Acc := new Echo.Impl.Object;
          Srv2 : constant Echo.Impl.Object_Acc := new Echo.Impl.Object;
-         Id  : constant PortableServer.ObjectId := (1, 2, 3);
-         Ref : CORBA.Object.Ref;
+         Id   : constant PortableServer.ObjectId
+            := PortableServer.String_To_ObjectId ("123");
+         Ref  : CORBA.Object.Ref;
       begin
          PortableServer.POA.Activate_Object_With_Id
            (My_POA, Id, PortableServer.Servant (Srv));

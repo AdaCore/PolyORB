@@ -31,7 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;
 with Ada.Tags;
+with Ada.Unchecked_Conversion;
 
 with PolyORB.CORBA_P.Names;
 with PolyORB.CORBA_P.Interceptors_Hooks;
@@ -313,6 +315,51 @@ package body PortableServer is
          return Find_Info (For_Servant).Type_Id;
       end Target_Most_Derived_Interface;
 
+      --------------------------
+      -- To_PolyORB_Object_Id --
+      --------------------------
+
+      function To_PolyORB_Object_Id
+        (Id : ObjectId)
+        return PolyORB.Objects.Object_Id
+      is
+         use Ada.Streams;
+         use CORBA.IDL_Sequences.IDL_SEQUENCE_Octet;
+         use PolyORB.Objects;
+
+         Aux    : constant Element_Array := To_Element_Array (Id);
+         Result : Object_Id (Stream_Element_Offset (Aux'First)
+                               .. Stream_Element_Offset (Aux'Last));
+
+      begin
+         for J in Result'Range loop
+            Result (J) := Stream_Element (Aux (Integer (J)));
+         end loop;
+
+         return Result;
+      end To_PolyORB_Object_Id;
+
+      --------------------------------
+      -- To_PortableServer_ObjectId --
+      --------------------------------
+
+      function To_PortableServer_ObjectId
+        (Id : PolyORB.Objects.Object_Id)
+        return ObjectId
+      is
+         use Ada.Streams;
+         use CORBA.IDL_Sequences.IDL_SEQUENCE_Octet;
+
+         Aux : Element_Array (Integer (Id'First) .. Integer (Id'Last));
+
+      begin
+         for J in Aux'Range loop
+            Aux (J) := CORBA.Octet (Id (Stream_Element_Offset (J)));
+         end loop;
+
+         return To_Sequence (Aux);
+      end To_PortableServer_ObjectId;
+
    end Internals;
 
    ---------------
@@ -351,11 +398,19 @@ package body PortableServer is
    ------------------------
 
    function String_To_ObjectId (Id : String) return ObjectId is
-      Oid : ObjectId (1 .. Id'Length);
-      pragma Import (Ada, Oid);
-      for Oid'Address use Id (Id'First)'Address;
+      use CORBA.IDL_Sequences.IDL_SEQUENCE_Octet;
+
+      function To_Octet is
+        new Ada.Unchecked_Conversion (Character, CORBA.Octet);
+
+      Aux : Element_Array (Id'Range);
+
    begin
-      return Oid;
+      for J in Aux'Range loop
+         Aux (J) := To_Octet (Id (J));
+      end loop;
+
+      return To_Sequence (Aux);
    end String_To_ObjectId;
 
    ------------------------
@@ -363,11 +418,20 @@ package body PortableServer is
    ------------------------
 
    function ObjectId_To_String (Id : ObjectId) return String is
-      Str : String (1 .. Id'Length);
-      pragma Import (Ada, Str);
-      for Str'Address use Id (Id'First)'Address;
+      use CORBA.IDL_Sequences.IDL_SEQUENCE_Octet;
+
+      function To_Character is
+        new Ada.Unchecked_Conversion (CORBA.Octet, Character);
+
+      Aux    : constant Element_Array := To_Element_Array (Id);
+      Result : String (Aux'Range);
+
    begin
-      return Str;
+      for J in Result'Range loop
+         Result (J) := To_Character (Aux (J));
+      end loop;
+
+      return Result;
    end ObjectId_To_String;
 
    -----------------

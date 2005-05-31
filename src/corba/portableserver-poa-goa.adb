@@ -252,7 +252,7 @@ package body PortableServer.POA.GOA is
 
       begin
          Associate (GS, Oid);
-         return ObjectId (Oid);
+         return PortableServer.Internals.To_PortableServer_ObjectId (Oid);
       end;
    end Create_Id_For_Reference;
 
@@ -312,7 +312,9 @@ package body PortableServer.POA.GOA is
                   Oid := Get_Object_Key (Pro (J).all);
                   if Oid /= null then
                      Append (List,
-                             new ObjectId'(ObjectId (Oid.all)));
+                             new ObjectId'
+                             (PortableServer.Internals.
+                              To_PortableServer_ObjectId (Oid.all)));
                      exit;
                   end if;
                end loop;
@@ -352,7 +354,7 @@ package body PortableServer.POA.GOA is
             Raise_NotAGroupObject (Member);
          end;
       end if;
-      Associate (GS, PolyORB.Objects.Object_Id (Oid));
+      Associate (GS, PortableServer.Internals.To_PolyORB_Object_Id (Oid));
    end Associate_Reference_With_Id;
 
    ------------------------------------
@@ -384,7 +386,7 @@ package body PortableServer.POA.GOA is
             Raise_NotAGroupObject (Member);
          end;
       end if;
-      Disassociate (GS, PolyORB.Objects.Object_Id (Oid));
+      Disassociate (GS, PortableServer.Internals.To_PolyORB_Object_Id (Oid));
    end Disassociate_Reference_With_Id;
 
 end PortableServer.POA.GOA;

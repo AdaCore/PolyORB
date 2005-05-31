@@ -39,8 +39,7 @@
 with Ada.Exceptions;
 
 with CORBA.Forward;
-pragma Elaborate_All (CORBA.Forward);
-
+with CORBA.IDL_Sequences;
 with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ServerRequest;
@@ -131,7 +130,7 @@ package PortableServer is
    -- ObjectId --
    --------------
 
-   type ObjectId is new PolyORB.Objects.Object_Id;
+   type ObjectId is new CORBA.IDL_Sequences.OctetSeq;
 
    function String_To_ObjectId (Id : String) return ObjectId;
    --  Convert string Id into an ObjectID.
@@ -368,6 +367,16 @@ package PortableServer is
          Logical_Type_Id : in CORBA.RepositoryId)
         return CORBA.Boolean;
       --  Check is servant support specified interface
+
+      function To_PortableServer_ObjectId
+        (Id : PolyORB.Objects.Object_Id)
+        return ObjectId;
+      --  Convert neutral Object_Id into PortableServer's ObjectId
+
+      function To_PolyORB_Object_Id
+        (Id : ObjectId)
+        return PolyORB.Objects.Object_Id;
+      --  Convert PortableServer's ObjectId into neutral Object_Id
 
    end Internals;
 

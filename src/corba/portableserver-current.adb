@@ -208,7 +208,8 @@ package body PortableServer.Current is
       end if;
 
       declare
-         Result : constant ObjectId := ObjectId (Oid.all);
+         Result : constant ObjectId
+           := Internals.To_PortableServer_ObjectId (Oid.all);
 
       begin
          Free (Oid);
