@@ -308,7 +308,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       N : Node_Id;
       K : FEN.Node_Kind;
       R : Node_Id;
-
+      Ref_Type_Node : Node_Id;
    begin
       K := FEN.Kind (Entity);
 
@@ -319,10 +319,32 @@ package body Backend.BE_Ada.IDL_To_Ada is
             return No_Node;
          end if;
 
+         --  Handling the case where R is not a base type nor a user defined
+         --  type but an Interface type :
+         --  interface myType {...}
+         --  In this case we do not return the identifier of the interface name
+         --  but the identifier to the Ref type defined in the stub package
+         --  relative to the interface.
+
          N := New_Node (K_Designator);
-         Set_Defining_Identifier (N, Map_Defining_Identifier (R));
-         Set_FE_Node (N, R);
-         P := Scope_Entity (Identifier (R));
+         if Kind (R) = FEN.K_Interface_Declaration then
+            --  Getting the node of the Ref type declaration. This type is
+            --  declared at the first place in the stub spec.
+            Ref_Type_Node := Stub_Node (BE_Node (Identifier (R)));
+            Set_Defining_Identifier
+              (N, Defining_Identifier (Ref_Type_Node));
+            Set_FE_Node (N, R);
+            P := R;
+         else
+            Set_Defining_Identifier (N, Map_Defining_Identifier (R));
+            Set_FE_Node (N, R);
+            P := Scope_Entity (Identifier (R));
+         end if;
+
+         --  N := New_Node (K_Designator);
+         --  Set_Defining_Identifier (N, Map_Defining_Identifier (R));
+         --  Set_FE_Node (N, R);
+         --  P := Scope_Entity (Identifier (R));
 
          if Present (P) then
             if Kind (P) = K_Specification then

@@ -389,18 +389,18 @@ package body Backend.BE_Ada.Helpers is
          N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Spec;
-         N := Widening_Ref_Spec (E);
+         N := TypeCode_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Bind_FE_To_Helper (Identifier (E), N);
          Append_Node_To_List
-           (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
-         Append_Node_To_List
-           (TypeCode_Spec (E), Visible_Part (Current_Package));
-         Append_Node_To_List
            (From_Any_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
            (To_Any_Spec (E), Visible_Part (Current_Package));
+         Append_Node_To_List
+           (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
+         Append_Node_To_List
+           (Widening_Ref_Spec (E), Visible_Part (Current_Package));
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
@@ -794,7 +794,6 @@ package body Backend.BE_Ada.Helpers is
             when K_Interface_Declaration =>
                Stub := Package_Declaration
                  (BEN.Parent (Stub));
-               Helper := Next_Node (Next_Node (Helper));
 
             when K_Complex_Declarator =>
                declare
@@ -1294,7 +1293,7 @@ package body Backend.BE_Ada.Helpers is
          begin
             Spec := Helper_Node (BE_Node (Identifier (E)));
             Spec := Next_Node (Spec);  --  Second in the list of helpers
-            Spec := Next_Node (Next_Node (Spec));
+            --  Spec := Next_Node (Next_Node (Spec));
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (SN (S_To_Ref)),
                Make_List_Id
@@ -1737,8 +1736,13 @@ package body Backend.BE_Ada.Helpers is
          function Interface_Declaration_Body (E : Node_Id) return Node_Id is
          begin
             Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Next_Node (Spec));
+
+            --  Getting the identifier of the TC_"Interface_name" variable
+            --  declared at the first place in the Helper spec.
             Helper_Name := BEN.Name (Defining_Identifier (Spec));
+
+            --  Getting the node of the To_Any method spec declared at the 3rd
+            --  place of the helper spec.
             Spec := Next_Node (Next_Node (Spec));
             N := Make_Subprogram_Call
               (RE (RE_Ref_2),
@@ -2047,8 +2051,10 @@ package body Backend.BE_Ada.Helpers is
          N            : Node_Id;
          L            : List_Id;
       begin
+         --  The spec of the Narrowing_Ref is declared at the 4th place in the
+         --  Helper package spec
          Spec := Helper_Node (BE_Node (Identifier (E)));
-         Spec := Next_Node (Spec);  --  Second in the list of helpers
+         Spec := Next_Node (Next_Node (Next_Node (Spec)));
 
          --  Declarative Part
 
@@ -2520,12 +2526,17 @@ package body Backend.BE_Ada.Helpers is
       -----------------------
 
       function Widening_Ref_Body (E : Node_Id) return Node_Id is
-         Spec        : constant Node_Id
-           := Helper_Node (BE_Node (Identifier (E)));
+         Spec        : Node_Id;
          Statements  : List_Id;
          N           : Node_Id;
          M           : Node_Id;
       begin
+         --  The spec of the Widening_Ref is declared at the 5th place in the
+         --  Helper package spec
+         Spec := Helper_Node (BE_Node (Identifier (E)));
+         Spec := Next_Node (Next_Node (Spec));
+         Spec := Next_Node (Next_Node (Spec));
+
          Statements := New_List (K_List_Id);
          N := Make_Expression
            (Left_Expr  =>

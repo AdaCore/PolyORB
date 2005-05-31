@@ -759,6 +759,10 @@ package body Backend.BE_Ada.Skels is
          return N;
       end Is_A_Invoke_Part;
 
+      -----------------------
+      -- Servant_Is_A_Body --
+      -----------------------
+
       function Servant_Is_A_Body return Node_Id is
          Param      : Node_Id;
          Profile    : constant List_Id := New_List (K_List_Id);
@@ -791,6 +795,10 @@ package body Backend.BE_Ada.Skels is
          return  Make_Subprogram_Implementation
            (Spec, No_List, Statements);
       end Servant_Is_A_Body;
+
+      -----------------------------
+      -- Skeleton_Initialization --
+      -----------------------------
 
       procedure Skeleton_Initialization (L : List_Id) is
          N         : Node_Id;

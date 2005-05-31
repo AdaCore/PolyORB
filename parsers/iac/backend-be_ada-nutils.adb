@@ -155,7 +155,7 @@ package body Backend.BE_Ada.Nutils is
          end if;
       end if;
 
-      N := Fully_Qualified_Name (Defining_Identifier (P));
+      N := Fully_Qualified_Name (P);
       I := Defining_Identifier (Package_Declaration (Current_Package));
       Get_Name_String (Fully_Qualified_Name (I));
       Add_Char_To_Name_Buffer ('%');
@@ -327,7 +327,23 @@ package body Backend.BE_Ada.Nutils is
    begin
       case Kind (N) is
          when K_Designator =>
-            return Fully_Qualified_Name (Defining_Identifier (N));
+            Parent_Node := Parent_Unit_Name (N);
+
+            if not Present (Parent_Node) then
+               Parent_Node := Parent_Unit_Name (Defining_Identifier (N));
+            end if;
+
+            if Present (Parent_Node) then
+               Parent_Name := Fully_Qualified_Name (Parent_Node);
+            end if;
+
+            Name_Len := 0;
+            if Present (Parent_Node) then
+               Get_Name_String (Parent_Name);
+               Add_Char_To_Name_Buffer ('.');
+            end if;
+            Get_Name_String_And_Append (Name (Defining_Identifier (N)));
+            return Name_Find;
 
          when K_Defining_Identifier =>
             Parent_Node := Parent_Unit_Name (N);
