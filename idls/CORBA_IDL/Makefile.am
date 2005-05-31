@@ -6,6 +6,7 @@ IDL =	$(srcdir)/orb.idl \
 	$(srcdir)/CORBA_InterfaceRepository.idl \
 	$(srcdir)/CORBA_Policy.idl \
 	$(srcdir)/CORBA_StandardExceptions.idl \
+	$(srcdir)/CORBA_Stream.idl \
 	$(srcdir)/CORBA_TypeCode.idl
 
 install-data-local:

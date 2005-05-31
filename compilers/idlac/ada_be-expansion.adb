@@ -253,13 +253,12 @@ package body Ada_Be.Expansion is
    function Is_CORBA_IR_Entity (Node : in Node_Id) return Boolean;
    --  Return True iff Node denotes one entity from CORBA Interface Repository.
 
-   --------------------------------------------------
-   --  Subprogram bodies from here
-   --------------------------------------------------
+   function Is_CORBA_Sequence (Node : in Node_Id) return Boolean;
+   --  Return True iff Node is a sequence type declared in the CORBA module,
+   --  in which case its mapped type is reparented under the
+   --  CORBA.IDL_Sequences package.
 
-   -----------------------------------------------------------------
-   --  Predefined CORBA entities, which processed by special way  --
-   -----------------------------------------------------------------
+   --  Predefined CORBA entities requiring specific processing
 
    CORBA_TypeCode_Node : Node_Id := No_Node;
    --  Declaration of CORBA::TypeCode
@@ -267,6 +266,10 @@ package body Ada_Be.Expansion is
    --  package, thus we always must use full declaration node, independed
    --  of existence of forward declaration in used orb.idl or TypeCode.idl
    --  file.
+
+   -----------------------
+   -- Subprogram bodies --
+   -----------------------
 
    -----------------
    -- Expand_Node --
@@ -562,17 +565,75 @@ package body Ada_Be.Expansion is
    -------------------
 
    procedure Expand_Module (Node : in Node_Id) is
-      CORBA_IR_Root_Node : Node_Id;
-      Success            : Boolean;
+
+      procedure Relocate (Parent : in Node_Id; Node : in Node_Id);
+      --  Reparent Node and its named subnodes to the new Parent
+
+      procedure Relocate (Parent : in Node_Id; Node : in Node_Id) is
+         Has_Named_Subnodes : Boolean;
+         Named_Subnodes     : Node_Iterator;
+         Success            : Boolean;
+
+      begin
+         Push_Scope (Parent);
+
+         Append_Node_To_Contents (Parent, Node);
+
+         if Is_Named (Node) then
+
+            --  Rattach current node
+
+            if Definition (Node) /= null then
+               Success := Add_Identifier (Node, Name (Node));
+               pragma Assert (Success);
+            end if;
+
+            if Is_Enum (Node) then
+               Has_Named_Subnodes := True;
+               Init (Named_Subnodes, Enumerators (Node));
+               --  Attach all enumerators of the current node
+
+            end if;
+
+         elsif Is_Type_Declarator (Node) then
+            Has_Named_Subnodes := True;
+            Init (Named_Subnodes, Declarators (Node));
+            --  Attach all declarators of the current node
+
+         end if;
+
+         --  If the current node has named subnodes, rattach
+         --  them now.
+
+         if Has_Named_Subnodes then
+            declare
+               Dcl_Node : Node_Id;
+
+            begin
+               while not Is_End (Named_Subnodes) loop
+                  Get_Next_Node (Named_Subnodes, Dcl_Node);
+                  Success := Add_Identifier (Dcl_Node, Name (Dcl_Node));
+                  pragma Assert (Success);
+               end loop;
+            end;
+         end if;
+
+         Pop_Scope;
+      end Relocate;
+
+      CORBA_IR_Root_Node   : Node_Id;
+      CORBA_Sequences_Node : Node_Id;
+      Success              : Boolean;
+
    begin
       pragma Assert (Kind (Node) = K_Module);
 
       Push_Scope (Node);
 
-      --  Allocate CORBA.Repository_Root node and rattach all entities
-      --  of the Interface Repository to it
-
       if Name (Node) = "CORBA" then
+         --  Allocate CORBA.Repository_Root node for rattachment all entities
+         --  of the Interface Repository to it
+
          CORBA_IR_Root_Node := Make_Module (No_Location);
          Set_Default_Repository_Id (CORBA_IR_Root_Node);
          Set_Initial_Current_Prefix (CORBA_IR_Root_Node);
@@ -582,18 +643,26 @@ package body Ada_Be.Expansion is
 
          Append_Node_To_Contents (Node, CORBA_IR_Root_Node);
 
-         Push_Scope (CORBA_IR_Root_Node);
+         --  Allocate CORBA.IDL_Sequences node for rattach all seqeunces to it
+
+         CORBA_Sequences_Node := Make_Module (No_Location);
+         Set_Default_Repository_Id (CORBA_Sequences_Node);
+         Set_Initial_Current_Prefix (CORBA_Sequences_Node);
+
+         Success := Add_Identifier (CORBA_Sequences_Node, "IDL_Sequences");
+         pragma Assert (Success);
+
+         Append_Node_To_Contents (Node, CORBA_Sequences_Node);
 
          declare
             CORBA_Contents     : constant Node_List := Contents (Node);
             New_CORBA_Contents : Node_List;
             Iterator           : Node_Iterator;
             Current            : Node_Id;
-            Success            : Boolean;
-            Has_Named_Subnodes : Boolean;
-            Named_Subnodes     : Node_Iterator;
+
          begin
             Init (Iterator, CORBA_Contents);
+
             while not Is_End (Iterator) loop
                Get_Next_Node (Iterator, Current);
 
@@ -609,46 +678,10 @@ package body Ada_Be.Expansion is
                --  Relocate CORBA Interface Repository entities
 
                if Is_CORBA_IR_Entity (Current) then
-                  Append_Node_To_Contents (CORBA_IR_Root_Node, Current);
+                  Relocate (CORBA_IR_Root_Node, Current);
 
-                  if Is_Named (Current) then
-
-                     --  Rattach current node
-
-                     if Definition (Current) /= null then
-                        Success := Add_Identifier (Current, Name (Current));
-                        pragma Assert (Success);
-                     end if;
-
-                     if Is_Enum (Current) then
-                        Has_Named_Subnodes := True;
-                        Init (Named_Subnodes, Enumerators (Current));
-                        --  Attach all enumerators of the current node
-
-                     end if;
-
-                  elsif Is_Type_Declarator (Current) then
-                     Has_Named_Subnodes := True;
-                     Init (Named_Subnodes, Declarators (Current));
-                     --  Attach all declarators of the current node
-
-                  end if;
-
-                  --  If the current node has named subnodes, rattach
-                  --  them now.
-
-                  if Has_Named_Subnodes then
-                     declare
-                        Dcl_Node : Node_Id;
-                     begin
-                        while not Is_End (Named_Subnodes) loop
-                           Get_Next_Node (Named_Subnodes, Dcl_Node);
-                           Success := Add_Identifier
-                             (Dcl_Node, Name (Dcl_Node));
-                           pragma Assert (Success);
-                        end loop;
-                     end;
-                  end if;
+               elsif Is_CORBA_Sequence (Current) then
+                  Relocate (CORBA_Sequences_Node, Current);
 
                else
                   Append_Node (New_CORBA_Contents, Current);
@@ -657,8 +690,6 @@ package body Ada_Be.Expansion is
 
             Set_Contents (Node, New_CORBA_Contents);
          end;
-
-         Pop_Scope;
       end if;
 
       Expand_Node_List (Contents (Node), True);
@@ -2111,5 +2142,60 @@ package body Ada_Be.Expansion is
 
       return False;
    end Is_CORBA_IR_Entity;
+
+   -----------------------
+   -- Is_CORBA_Sequence --
+   -----------------------
+
+   --  CORBA 3.0 sequences relocated to CORBA.IDL_Sequences package
+
+   CORBA_Sequences_Names : constant array (Positive range <>) of String_Access
+     := (new String'("CORBA.AnySeq"),
+         new String'("CORBA.BooleanSeq"),
+         new String'("CORBA.CharSeq"),
+         new String'("CORBA.WCharSeq"),
+         new String'("CORBA.OctetSeq"),
+         new String'("CORBA.ShortSeq"),
+         new String'("CORBA.UShortSeq"),
+         new String'("CORBA.LongSeq"),
+         new String'("CORBA.ULongSeq"),
+         new String'("CORBA.LongLongSeq"),
+         new String'("CORBA.ULongLongSeq"),
+         new String'("CORBA.FloatSeq"),
+         new String'("CORBA.DoubleSeq"),
+         new String'("CORBA.LongDoubleSeq"),
+         new String'("CORBA.StringSeq"),
+         new String'("CORBA.WStringSeq"));
+
+   function Is_CORBA_Sequence (Node : in Node_Id) return Boolean is
+      N : Node_Id;
+
+   begin
+      if Kind (Node) /= K_Type_Declarator then
+         return False;
+      end if;
+
+      declare
+         List : constant Node_List := Declarators (Node);
+         Iter : Node_Iterator;
+
+      begin
+         Init (Iter, List);
+         Get_Next_Node (Iter, N);
+      end;
+
+      declare
+         Name : constant String := Ada_Full_Name (N);
+
+      begin
+         for J in CORBA_Sequences_Names'Range loop
+            if CORBA_Sequences_Names (J).all = Name then
+               return True;
+            end if;
+         end loop;
+      end;
+
+      return False;
+   end Is_CORBA_Sequence;
 
 end Ada_Be.Expansion;

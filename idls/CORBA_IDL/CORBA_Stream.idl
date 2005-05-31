@@ -1,23 +1,23 @@
 // File: CORBA_Stream.idl
 // CORBA 3.0, Chapter 5
 
-//PolyORB:NI:    typedef sequence<any>                AnySeq;
-//PolyORB:NI:    typedef sequence<boolean>            BooleanSeq;
-//PolyORB:NI:    typedef sequence<char>               CharSeq;
-//PolyORB:NI:    typedef sequence<wchar>              WCharSeq;
-//PolyORB:NI:    typedef sequence<octet>              OctetSeq;
-//PolyORB:NI:    typedef sequence<short>              ShortSeq;
-//PolyORB:NI:    typedef sequence<unsigned short>     UShortSeq;
-//PolyORB:NI:    typedef sequence<long>               LongSeq;
-//PolyORB:NI:    typedef sequence<unsigned long>      ULongSeq;
-//PolyORB:NI:    typedef sequence<long long>          LongLongSeq;
-//PolyORB:NI:    typedef sequence<unsigned long long> ULongLongSeq;
-//PolyORB:NI:    typedef sequence<float>              FloatSeq;
-//PolyORB:NI:    typedef sequence<double>             DoubleSeq;
-//PolyORB:NI:    typedef sequence<long double>        LongDoubleSeq;
-//PolyORB:NI:    typedef sequence<string>             StringSeq;
-//PolyORB:NI:    typedef sequence<wstring>            WStringSeq;
-//PolyORB:NI:
+    typedef sequence<any>                AnySeq;
+    typedef sequence<boolean>            BooleanSeq;
+    typedef sequence<char>               CharSeq;
+    typedef sequence<wchar>              WCharSeq;
+    typedef sequence<octet>              OctetSeq;
+    typedef sequence<short>              ShortSeq;
+    typedef sequence<unsigned short>     UShortSeq;
+    typedef sequence<long>               LongSeq;
+    typedef sequence<unsigned long>      ULongSeq;
+    typedef sequence<long long>          LongLongSeq;
+    typedef sequence<unsigned long long> ULongLongSeq;
+    typedef sequence<float>              FloatSeq;
+    typedef sequence<double>             DoubleSeq;
+    typedef sequence<long double>        LongDoubleSeq;
+    typedef sequence<string>             StringSeq;
+    typedef sequence<wstring>            WStringSeq;
+
 //PolyORB:NI:    exception BadFixedValue {
 //PolyORB:NI:        unsigned long offset;
 //PolyORB:NI:    };
