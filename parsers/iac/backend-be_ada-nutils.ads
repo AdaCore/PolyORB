@@ -163,6 +163,7 @@ package Backend.BE_Ada.Nutils is
       P_Conflicts,
       P_Depends,
       P_E,
+      P_Exc_List,
       P_Exception_Info,
       P_From,
       P_Implicit,

@@ -593,6 +593,10 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Assignment_Statement;
 
+   -------------------------------
+   -- Make_Attribute_Designator --
+   -------------------------------
+
    function Make_Attribute_Designator
      (Prefix    : Node_Id;
       Attribute : Attribute_Id)

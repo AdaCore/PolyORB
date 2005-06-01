@@ -992,6 +992,24 @@ package body Backend.BE_Ada.Stubs is
         (Selector_Name => Make_Defining_Identifier (PN (P_Result)),
          Expression    => Make_Defining_Identifier (VN (V_Result)));
       Append_Node_To_List (N, P);
+
+      --  If the operation thows an exception, we add an additional flag to
+      --  the Create_Request function.
+
+      if FEN.Kind (Declaration) = K_Operation_Declaration and then
+        not FEU.Is_Empty (Exceptions (Declaration)) then
+         N := Make_Subprogram_Call
+           (RE (RE_To_PolyORB_Ref_1),
+            Make_List_Id
+            (Make_Designator
+             (VN (V_Exception_List))));
+
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Exc_List)),
+            Expression    => N);
+         Append_Node_To_List (N, P);
+      end if;
+
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Req)),
          Expression    => Make_Defining_Identifier (VN (V_Request)));

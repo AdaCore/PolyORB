@@ -11,6 +11,7 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA,
       RU_CORBA_AbstractBase,
       RU_CORBA_ExceptionList,
+      RU_CORBA_ExceptionList_Internals,
       RU_CORBA_Internals,
       RU_CORBA_NVList,
       RU_CORBA_Object,
@@ -61,6 +62,7 @@ package Backend.BE_Ada.Runtime is
       RE_Create_List_1,             --  CORBA.ExceptionList.Create_List
       RE_Add_1,                     --  CORBA.ExceptionList.Add
       RE_Ref_5,                     --  CORBA.ExceptionList.Ref
+      RE_To_PolyORB_Ref_1,          --  CORBA.ExceptionList.Internals
       RE_Get_Aggregate_Element,     --  CORBA.Internals.Get_Aggregate_Element
       RE_Get_Empty_Any,             --  CORBA.Internals.Get_Empty_Any
       RE_Identifier_0,              --  CORBA.Identifier
@@ -235,6 +237,7 @@ package Backend.BE_Ada.Runtime is
          RE_Create_List_1           => RU_CORBA_ExceptionList,
          RE_Add_1                   => RU_CORBA_ExceptionList,
          RE_Ref_5                   => RU_CORBA_ExceptionList,
+         RE_To_PolyORB_Ref_1        => RU_CORBA_ExceptionList_Internals,
          RE_Set_Type                => RU_CORBA_Internals,
          RE_Get_Empty_Any_Aggregate => RU_CORBA_Internals,
          RE_Add_Aggregate_Element   => RU_CORBA_Internals,

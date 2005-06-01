@@ -244,6 +244,10 @@ package body Backend.BE_Ada.Generator is
       Decrement_Indentation;
    end Generate_Assignment_Statement;
 
+   -----------------------------------
+   -- Generate_Attribute_Designator --
+   -----------------------------------
+
    procedure Generate_Attribute_Designator (N : Node_Id) is
    begin
       Generate (Prefix (N));

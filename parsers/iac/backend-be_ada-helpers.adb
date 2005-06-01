@@ -1,7 +1,9 @@
 with Namet;      use Namet;
 with Values;     use Values;
+with Types;      use Types;
 
 with Frontend.Nodes;   use Frontend.Nodes;
+with Frontend.Nutils;
 
 with Backend.BE_Ada.Expand;  use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
@@ -16,6 +18,7 @@ pragma Warnings (on);
 package body Backend.BE_Ada.Helpers is
 
    package FEN renames Frontend.Nodes;
+   package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_Ada.Nodes;
 
    package body Package_Spec is
@@ -1032,11 +1035,73 @@ package body Backend.BE_Ada.Helpers is
                end;
 
             when K_Exception_Declaration =>
-               --  Adding the call to the "Register_Exception" procedure
+
                declare
                   Raise_From_Any_Access_Node : Node_Id;
                   Raise_From_Any_Name        : Name_Id;
+                  Member                     : Node_Id;
+                  Members                    : List_Id;
+                  Declarator                 : Node_Id;
+                  Dcl_Name                   : Name_Id;
+                  Arg_Name_Node              : Node_Id;
                begin
+                  --  In case where the exception has members, we add two
+                  --  two parameter for each member.
+
+                  Members := FEN.Members (E);
+                  if not FEU.Is_Empty (Members) then
+                     Member := First_Entity (Members);
+                     while Present (Member) loop
+                        Declarator := First_Entity (Declarators (Member));
+                        while Present (Declarator) loop
+
+                           --  Declaring the Arg_Name_"member" variable
+
+                           Dcl_Name := To_Ada_Name
+                             (IDL_Name (FEN.Identifier (Declarator)));
+                           Set_Str_To_Name_Buffer ("Arg_Name_");
+                           Get_Name_String_And_Append (Dcl_Name);
+                           Arg_Name_Node := Make_Defining_Identifier
+                             (Name_Find);
+
+                           --  Obtaining a string literal of the member name
+
+                           N := Make_Subprogram_Call
+                             (RE (RE_To_CORBA_String),
+                              Make_List_Id
+                              (Make_Literal
+                               (New_Value
+                                (Value_Type'
+                                 (K    => K_String,
+                                  SVal => Dcl_Name)))));
+
+                           N := Make_Object_Declaration
+                             (Defining_Identifier => Arg_Name_Node,
+                              Object_Definition   => RE (RE_String_0),
+                              Expression          => N);
+                           Append_Node_To_List (N, Declarative_Part);
+
+                           --  Adding the two additional parameters
+
+                           if Is_Base_Type (Type_Spec (Member)) then
+                              N := Base_Type_TC
+                                (FEN.Kind (Type_Spec (Member)));
+                           else
+                              raise Program_Error;
+                           end if;
+                           N := Add_Parameter (Entity_TC_Name, N);
+                           Append_Node_To_List (N, Statements);
+                           N := Add_Parameter (Entity_TC_Name, Arg_Name_Node);
+                           Append_Node_To_List (N, Statements);
+
+                           Declarator := Next_Entity (Declarator);
+                        end loop;
+                        Member := Next_Entity (Member);
+                     end loop;
+                  end if;
+
+                  --  Adding the call to the "Register_Exception" procedure
+
                   Raise_From_Any_Access_Node := Helper_Node
                     (BE_Node (Identifier (E)));
                   Raise_From_Any_Access_Node := Next_Node
@@ -1051,6 +1116,7 @@ package body Backend.BE_Ada.Helpers is
                   --  procedure node because its spec is declared in the helper
                   --  body and not in the helper spec and is not used outside
                   --  the helper package.
+
                   Raise_From_Any_Name := BEN.Name (Raise_From_Any_Access_Node);
                   Raise_From_Any_Name := Add_Suffix_To_Name
                     ("_From_Any",  Raise_From_Any_Name);
@@ -1424,57 +1490,202 @@ package body Backend.BE_Ada.Helpers is
          --------------------------------
 
          function Exception_Declaration_Body (E : Node_Id) return Node_Id is
+            Members     : List_Id;
+            Member      : Node_Id;
+            Declarator  : Node_Id;
+            Member_Id   : Node_Id;
+            Member_Type : Node_Id;
+            Dcl_Name    : Name_Id;
+            Index       : Unsigned_Long_Long;
+            Param_List  : List_Id;
+            Return_List : List_Id;
+            TC_Node     : Node_Id;
          begin
             --  Obtaining the "From_Any" spec node from the helper spec
             Spec := Helper_Node (BE_Node (Identifier (E)));
             Spec := Next_Node (Spec);  --  Second in the list of helpers
 
-            --  Begin Declarations
+            Members := FEN.Members (E);
 
-            --  Obtaining the node corresponding to the declaration of the
-            --  "Excp_Name"_Members type.
-            --  This type was declared in the third position in the stub spec.
+            --  The generated code is fondamentally different depending on the
+            --  existence or not of members in the exception.
 
-            N := Stub_Node (BE_Node (Identifier (E)));
-            N := Next_Node (Next_Node (N));
-            N := Defining_Identifier (N);
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (VN (V_Result)),
-               Object_Definition   => N);
-            Append_Node_To_List (N, D);
+            if FEU.Is_Empty (Members) then
 
-            --  Adding the necessary pragmas because the parameter of the
-            --  function is unreferenced.
+               --  Begin Declarations
 
-            N := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Warnings)),
-               Make_List_Id
-               (RE (RE_Off)));
-            N := Make_Pragma_Statement (N);
-            Append_Node_To_List (N, D);
+               --  Obtaining the node corresponding to the declaration of the
+               --  "Excp_Name"_Members type.
+               --  This type was declared in the third position in the Stub
+               --  spec.
 
-            N := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Unreferenced)),
-               Make_List_Id
-                (Make_Designator (PN (P_Item))));
-            N := Make_Pragma_Statement (N);
-            Append_Node_To_List (N, D);
+               N := Stub_Node (BE_Node (Identifier (E)));
+               N := Next_Node (Next_Node (N));
+               N := Defining_Identifier (N);
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Result)),
+                  Object_Definition   => N);
+               Append_Node_To_List (N, D);
 
-            N := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Warnings)),
-               Make_List_Id
-               (RE (RE_On)));
-            N := Make_Pragma_Statement (N);
-            Append_Node_To_List (N, D);
+               --  Adding the necessary pragmas because the parameter of the
+               --  function is unreferenced.
 
-            --  End Declarations
-            --  Begin Statements
+               N := Make_Subprogram_Call
+                 (Make_Defining_Identifier (GN (Pragma_Warnings)),
+                  Make_List_Id
+                  (RE (RE_Off)));
+               N := Make_Pragma_Statement (N);
+               Append_Node_To_List (N, D);
 
-            N := Make_Return_Statement (Make_Designator (VN (V_Result)));
-            Append_Node_To_List (N, S);
+               N := Make_Subprogram_Call
+                 (Make_Defining_Identifier (GN (Pragma_Unreferenced)),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Item))));
+               N := Make_Pragma_Statement (N);
+               Append_Node_To_List (N, D);
 
-            --  End Statements
+               N := Make_Subprogram_Call
+                 (Make_Defining_Identifier (GN (Pragma_Warnings)),
+                  Make_List_Id
+                  (RE (RE_On)));
+               N := Make_Pragma_Statement (N);
+               Append_Node_To_List (N, D);
+
+               --  End Declarations
+               --  Begin Statements
+
+               N := Make_Return_Statement (Make_Designator (VN (V_Result)));
+               Append_Node_To_List (N, S);
+
+               --  End Statements
+
+            else
+
+               --  Begin Declarations
+
+               N := Make_Object_Declaration
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (VN (V_Index)),
+                  Object_Definition   => RE (RE_Any));
+               Append_Node_To_List (N, D);
+
+               --  For each member "member" we declare a variable
+               --  Result_"member" which has the same type.
+               --  In parallel to the declaration, we built a list for the
+               --  returned value.
+               Return_List := New_List (K_List_Id);
+
+               Member := First_Entity (Members);
+               while Present (Member) loop
+                  Declarator := First_Entity (Declarators (Member));
+                  while Present (Declarator) loop
+
+                     --  Get the Result_"member" identifier node
+
+                     Dcl_Name := To_Ada_Name
+                       (IDL_Name (FEN.Identifier (Declarator)));
+                     Set_Str_To_Name_Buffer ("Result_");
+                     Get_Name_String_And_Append (Dcl_Name);
+                     Member_Id := Make_Defining_Identifier (Name_Find);
+
+                     --  Adding the element to the return list
+                     Append_Node_To_List
+                       (Make_Component_Association
+                        (Make_Designator (Dcl_Name),
+                         Member_Id),
+                        Return_List);
+
+                     --  Get the member type designator
+
+                     N := Stub_Node (BE_Node (Identifier (Declarator)));
+                     Member_Type := Subtype_Indication (N);
+
+                     N := Make_Object_Declaration
+                       (Defining_Identifier => Member_Id,
+                        Object_Definition   => Member_Type);
+                     Append_Node_To_List (N, D);
+
+                     Declarator := Next_Entity (Declarator);
+                  end loop;
+                  Member := Next_Entity (Member);
+               end loop;
+
+               --  End Declarations
+               --  Begin Statements
+               Index := 0;
+               Member := First_Entity (Members);
+               while Present (Member) loop
+                  Declarator := First_Entity (Declarators (Member));
+                  Member_Type := Type_Spec (Member);
+                  while Present (Declarator) loop
+
+                     --  Set the value of the "Index_u" variable
+
+                     Param_List := New_List (K_List_Id);
+                     Append_Node_To_List
+                       (Make_Designator (PN (P_Item)),
+                        Param_List);
+
+                     if Is_Base_Type (Member_Type) then
+                        TC_Node := Base_Type_TC
+                          (FEN.Kind (Member_Type));
+                     else
+                        raise Program_Error;
+                     end if;
+                     Append_Node_To_List (TC_Node, Param_List);
+
+                     N := Make_Literal
+                       (New_Value
+                        (Value_Type'
+                         (K => K_Unsigned_Long_Long,
+                          IVal => Index,
+                          Sign => 0,
+                          Base => 10)));
+                     N := Make_Subprogram_Call
+                       (RE (RE_Unsigned_Long),
+                        Make_List_Id (N));
+                     Append_Node_To_List (N, Param_List);
+
+                     N := Make_Subprogram_Call
+                       (RE (RE_Get_Aggregate_Element),
+                        Param_List);
+
+                     N := Make_Assignment_Statement
+                       (Make_Defining_Identifier (VN (V_Index)),
+                        N);
+                     Append_Node_To_List (N, S);
+
+                     --  Set the value of Result_"member"
+
+                     Dcl_Name := To_Ada_Name
+                       (IDL_Name (FEN.Identifier (Declarator)));
+                     Set_Str_To_Name_Buffer ("Result_");
+                     Get_Name_String_And_Append (Dcl_Name);
+                     Member_Id := Make_Defining_Identifier (Name_Find);
+
+                     N := Make_Subprogram_Call
+                       (RE (RE_From_Any_0),
+                        Make_List_Id
+                        (Make_Defining_Identifier (VN (V_Index))));
+                     N := Make_Assignment_Statement
+                       (Member_Id,
+                        N);
+                     Append_Node_To_List (N, S);
+
+                     Declarator := Next_Entity (Declarator);
+                     Index := Index + 1;
+                  end loop;
+                  Member := Next_Entity (Member);
+               end loop;
+
+               N := Make_Return_Statement
+                 (Make_Record_Aggregate (Return_List));
+               Append_Node_To_List (N, S);
+
+               --  End Statements
+
+            end if;
 
             N := Make_Subprogram_Implementation
               (Spec, D, S);
@@ -1945,8 +2156,13 @@ package body Backend.BE_Ada.Helpers is
          --------------------------------
 
          function Exception_Declaration_Body (E : Node_Id) return Node_Id is
+            Members       : List_Id;
+            Member        : Node_Id;
+            Declarator    : Node_Id;
+            Member_Type   : Node_Id;
+            To_Any_Helper : Node_Id;
          begin
-            --  Obtaining the "From_Any" spec node from the helper spec
+            --  Obtaining the "To_Any" spec node from the helper spec
             Spec := Helper_Node (BE_Node (Identifier (E)));
             Spec := Next_Node
               (Next_Node
@@ -1971,31 +2187,71 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List (N, D);
 
             --  Adding the necessary pragmas because the parameter of the
-            --  function is unreferenced.
+            --  function is unreferenced in case of nonexistence of exception
+            --  members.
 
-            N := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Warnings)),
-               Make_List_Id
-               (RE (RE_Off)));
-            N := Make_Pragma_Statement (N);
-            Append_Node_To_List (N, D);
+            Members := FEN.Members (E);
 
-            N := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Unreferenced)),
-               Make_List_Id
-                (Make_Designator (PN (P_Item))));
-            N := Make_Pragma_Statement (N);
-            Append_Node_To_List (N, D);
+            if FEU.Is_Empty (Members) then
 
-            N := Make_Subprogram_Call
-              (Make_Defining_Identifier (GN (Pragma_Warnings)),
-               Make_List_Id
-               (RE (RE_On)));
-            N := Make_Pragma_Statement (N);
-            Append_Node_To_List (N, D);
+               N := Make_Subprogram_Call
+                 (Make_Defining_Identifier (GN (Pragma_Warnings)),
+                  Make_List_Id
+                  (RE (RE_Off)));
+               N := Make_Pragma_Statement (N);
+               Append_Node_To_List (N, D);
 
-            --  End Declarations
-            --  Begin Statements
+               N := Make_Subprogram_Call
+                 (Make_Defining_Identifier (GN (Pragma_Unreferenced)),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Item))));
+               N := Make_Pragma_Statement (N);
+               Append_Node_To_List (N, D);
+
+               N := Make_Subprogram_Call
+                 (Make_Defining_Identifier (GN (Pragma_Warnings)),
+                  Make_List_Id
+                  (RE (RE_On)));
+               N := Make_Pragma_Statement (N);
+               Append_Node_To_List (N, D);
+
+               --  End Declarations
+            else
+               --  Begin Statements
+
+               Member := First_Entity (Members);
+               while Present (Member) loop
+                  Declarator := First_Entity (Declarators (Member));
+                  Member_Type := Type_Spec (Member);
+                  while Present (Declarator) loop
+
+                     if Is_Base_Type (Member_Type) then
+                        To_Any_Helper := RE (RE_To_Any_0);
+                     else
+                        raise Program_Error;
+                     end if;
+
+                     N := Make_Designator
+                       (To_Ada_Name
+                        (IDL_Name (FEN.Identifier (Declarator))),
+                        PN (P_Item));
+
+                     N := Make_Subprogram_Call
+                       (To_Any_Helper,
+                        Make_List_Id (N));
+
+                     N := Make_Subprogram_Call
+                       (RE (RE_Add_Aggregate_Element),
+                        Make_List_Id
+                        (Make_Defining_Identifier (VN (V_Result)),
+                         N));
+                     Append_Node_To_List (N, S);
+
+                     Declarator := Next_Entity (Declarator);
+                  end loop;
+                  Member := Next_Entity (Member);
+               end loop;
+            end if;
 
             N := Make_Return_Statement (Make_Designator (VN (V_Result)));
             Append_Node_To_List (N, S);
