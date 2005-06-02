@@ -1232,41 +1232,37 @@ package body Backend.BE_Ada.Helpers is
                V := Value (Last (Dim));
                V.IVal := V.IVal + 1;
                I := I + 1;
-               Dim := Next_Node (Dim);
+
+               --  Algorithm for building the expression that increments the
+               --  offset at each iteration :
+               --  * If there is one dimension : the offset is equal to the
+               --    counter
+               --  * If there is more than one dimension :
+               --    offset = V * offset + counter
+               --    where V is the size of the range of the current dimension
+               --    and counter is the counter of the current dimension.
 
                if I = 1 then
                   BEN.Set_Left_Expr (Item_Offset, Copy_Node (M));
-
-                  if Present (Dim) then
-                     BEN.Set_Operator
-                       (Item_Offset, Operator_Type'Pos (Op_Asterisk));
-                     BEN.Set_Right_Expr
-                       (Item_Offset,
-                        Make_Literal (New_Value (V)));
-                  else
-                     BEN.Set_Operator
-                       (Item_Offset, Operator_Type'Pos (Op_None));
-                  end if;
+                  BEN.Set_Operator
+                    (Item_Offset, Operator_Type'Pos (Op_None));
                else
+
+                  --  Building the V * offset part
+
                   Tmp_Expr := New_Node (K_Expression);
-                  BEN.Set_Left_Expr (Tmp_Expr, Item_Offset);
-                  BEN.Set_Operator (Tmp_Expr, Operator_Type'Pos (Op_Plus));
+                  BEN.Set_Left_Expr (Tmp_Expr, Make_Literal (New_Value (V)));
+                  BEN.Set_Operator (Tmp_Expr, Operator_Type'Pos (Op_Asterisk));
+                  BEN.Set_Right_Expr (Tmp_Expr, Item_Offset);
 
-                  if Present (Dim) then
-                     Item_Offset := New_Node (K_Expression);
-                     BEN.Set_Left_Expr (Item_Offset, Copy_Node (M));
-                     BEN.Set_Operator
-                       (Item_Offset, Operator_Type'Pos (Op_Asterisk));
-                     BEN.Set_Right_Expr
-                       (Item_Offset,
-                        Make_Literal (New_Value (V)));
-                     BEN.Set_Right_Expr (Tmp_Expr, Item_Offset);
-                  else
-                     BEN.Set_Right_Expr (Tmp_Expr, Copy_Node (M));
-                  end if;
-                  Item_Offset := Tmp_Expr;
+                  --  Adding the counter
+
+                  Item_Offset := New_Node (K_Expression);
+                  BEN.Set_Left_Expr (Item_Offset, Tmp_Expr);
+                  BEN.Set_Operator (Item_Offset, Operator_Type'Pos (Op_Plus));
+                  BEN.Set_Right_Expr (Item_Offset, Copy_Node (M));
                end if;
-
+               Dim := Next_Node (Dim);
                exit when No (Dim);
             end loop;
 

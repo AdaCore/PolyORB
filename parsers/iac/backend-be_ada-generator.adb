@@ -565,14 +565,18 @@ package body Backend.BE_Ada.Generator is
       Op      : constant Operator_Id := Operator (N);
       R_Expr  : constant Node_Id     := Right_Expr (N);
    begin
+      --  Each expression having a right part and a left part is systematically
+      --  put between two parentheses.
       if No (R_Expr) then
          if Op = Operator_Type'Pos (Op_Not) then
             Write (Tok_Not);
+            Write_Space;
          elsif Op /= Operator_Type'Pos (Op_None) then
             Write_Name (Operator_Image (Standard.Integer (Op)));
+            Write_Space;
          end if;
-
-         Write_Space;
+      else
+         Write (Tok_Left_Paren);
       end if;
 
       Generate (L_Expr);
@@ -584,6 +588,7 @@ package body Backend.BE_Ada.Generator is
          Write_Name (Operator_Image (Standard.Integer (Op)));
          Write_Space;
          Generate (R_Expr);
+         Write (Tok_Right_Paren);
          Decrement_Indentation;
       end if;
    end Generate_Expression;
