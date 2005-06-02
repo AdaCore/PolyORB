@@ -74,7 +74,9 @@ all-local:  @APPLI_EXES@ @SERVICE_EXES@
 @APPLI_EXES@ @SERVICE_EXES@: src $(idl)
 	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
 
-$(idl): $(idl).ads
+IDL_ROOT_FILES= $(idl:=.ads)
+
+$(idl): $(IDL_ROOT_FILES)
 
 src:
 	cd $(top_builddir)/src && $(MAKE)
