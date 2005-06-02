@@ -397,6 +397,7 @@ AC_SUBST(SUPPORT_RPC_ABORTION)
 #
 AC_OUTPUT([Makefile
            Dist/Makefile
+           Dist/xe_defs-defaults.ads
            Garlic/Makefile
            Garlic/s-gaplsp.ads
            Examples/check-config
