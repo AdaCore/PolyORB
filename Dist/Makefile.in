@@ -40,15 +40,15 @@ host_triplet = @host@
 target_triplet = @target@
 bin_PROGRAMS = gnatdist$(EXEEXT)
 subdir = Dist
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in ChangeLog \
-	TODO
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/xe_defs-defaults.ads.in ChangeLog TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/support/ada.m4 \
 	$(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = xe_defs-defaults.ads
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -183,12 +183,10 @@ target_vendor = @target_vendor@
 AUTOMAKE_OPTIONS = no-dependencies foreign
 COMPILE = -f -u -a
 GNATDISTFLAGS = $(GNAT_RTS_FLAG) -@GNATDISTOPT@ @PCSFLAGS@
-gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.o
+gnatdist_DEPENDENCIES = xe_sysdep.o
 gnatdist_SOURCES = 
 gnatdist_LDADD = 
-CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT) b_xe_defs$(EXEEXT) \
-             xe_defs.adb xe_sysdep.adb
-
+CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT) xe_sysdep.adb
 all: all-am
 
 .SUFFIXES:
@@ -221,6 +219,8 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+xe_defs-defaults.ads: $(top_builddir)/config.status $(srcdir)/xe_defs-defaults.ads.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
@@ -381,9 +381,17 @@ gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
 	$(GNAT_FOR_HOST) -m $(GNATFLAGS) -I. -I$(srcdir) \
 	   $(srcdir)/xe_main.adb -o gnatdist$(EXEEXT)
 
-b_xe_defs$(EXEEXT): $(srcdir)/b_xe_defs.adb
-	@$(GNAT_FOR_HOST) $(GNATFLAGS) $(srcdir)/b_xe_defs.adb \
-	  -o b_xe_defs$(EXEEXT)
+xe_defs.adb.old: Makefile b_xe_defs$(EXEEXT)
+	@echo Generating xe_defs.adb
+	@./b_xe_defs$(EXEEXT) $(GNATDISTFLAGS) \
+	  RSH_CMD="$(RSH_CMD)" \
+	  RSH_OPT="$(RSH_OPT)" \
+	  PCSNAME="$(PCSNAME)" \
+	  DEFSTORAGEDATA="$(DEFSTORAGEDATA)" \
+	  DEFSTORAGENAME="$(DEFSTORAGENAME)" \
+	  DEFPROTOCOLDATA="$(DEFPROTOCOLDATA)" \
+	  DEFPROTOCOLNAME="$(DEFPROTOCOLNAME)" \
+	  PSNAME="$(PSNAME)" >xe_defs.adb.old
 
 xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 	@echo Selecting xe_sysdep.adb
@@ -393,22 +401,7 @@ xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 	   cp $(srcdir)/xe_sysdep-std.adb xe_sysdep.adb; \
 	fi
 
-xe_defs.adb: Makefile b_xe_defs$(EXEEXT)
-	@echo Generating xe_defs.adb
-	@./b_xe_defs$(EXEEXT) $(GNATDISTFLAGS) \
-	   RSH_CMD="$(RSH_CMD)" \
-	   RSH_OPT="$(RSH_OPT)" \
-	   PCSNAME="$(PCSNAME)" \
-	   DEFSTORAGEDATA="$(DEFSTORAGEDATA)" \
-	   DEFSTORAGENAME="$(DEFSTORAGENAME)" \
-	   DEFPROTOCOLDATA="$(DEFPROTOCOLDATA)" \
-	   DEFPROTOCOLNAME="$(DEFPROTOCOLNAME)" \
-	   PSNAME="$(PSNAME)" >xe_defs.adb
-
 xe_sysdep.o: xe_sysdep.adb xe_sysdep.ads
-	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) $<
-
-xe_defs.o: xe_defs.adb xe_defs.ads
 	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) $<
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

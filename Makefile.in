@@ -348,7 +348,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/Examples $(distdir)/Garlic $(distdir)/support
+	$(mkdir_p) $(distdir)/Dist $(distdir)/Examples $(distdir)/Garlic $(distdir)/support
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

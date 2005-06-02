@@ -479,8 +479,8 @@ s-galiop.ads:
 	 for option in `echo $(EXTRA_LIBS)`; do\
 	  echo "   pragma Linker_Options (\"$$option\");" >>s-galiop.ads;\
 	 done;\
-	 echo "" >>s-galiop.ads;\
 	fi
+	@echo "" >>s-galiop.ads
 	@echo "end System.Garlic.Linker_Options;" >>s-galiop.ads
 
 used:
