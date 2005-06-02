@@ -30,6 +30,13 @@
 * PolyORB 1.4 (not released yet)
 ================================
 
+Incompatible changes
+--------------------
+
+The implementation of the PortableServer::ObjectId has been corrected
+to match the IDL-to-Ada specifications, resulting in changes in the
+API. (9352)
+
 * PolyORB 1.3 (FROZEN, not released yet)
 ========================================
 
