@@ -841,29 +841,27 @@ package body XE_Utils is
            new String'(Normalize_Pathname (Argv));
          Project_File_Name_Present := False;
 
-      elsif Argv (1) = '-' then
+      elsif Argv (Argv'First) = '-' then
 
          if Argv'Length = 1 then
             Fail ("switch character cannot be followed by a blank");
 
          --  Processing for -I-
 
-         elsif Argv (2 .. Argv'Last) = "I-" then
+         elsif Argv = "-I-" then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
 
          --  Forbid -?- or -??- where ? is any character
 
-         elsif (Argv'Length = 3 and then Argv (3) = '-')
-           or else (Argv'Length = 4 and then Argv (4) = '-')
-         then
+         elsif Argv'Length in 3 .. 4 and then Argv (Argv'Last) = '-' then
             Fail ("Trailing ""-"" at the end of ", Argv, " forbidden.");
 
          --  Processing for -Adir, -Idir and -Ldir
 
-         elsif Argv (2) = 'A'
-           or else Argv (2) = 'I'
-           or else Argv (2) = 'L'
+         elsif Argv (Argv'First + 1) = 'A'
+           or else Argv (Argv'First + 1) = 'I'
+           or else Argv (Argv'First + 1) = 'L'
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
@@ -871,10 +869,10 @@ package body XE_Utils is
          --  Processing for -aIdir, -aLdir and -aOdir
 
          elsif Argv'Length >= 3
-           and then Argv (2) = 'a'
-           and then (Argv (3) = 'I'
-                     or else Argv (3) = 'L'
-                     or else Argv (3) = 'O')
+           and then Argv (Argv'First + 1) = 'a'
+           and then (Argv (Argv'First + 2) = 'I'
+             or else Argv (Argv'First + 2) = 'L'
+             or else Argv (Argv'First + 2) = 'O')
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
@@ -889,7 +887,8 @@ package body XE_Utils is
 
             if Argv'Length > 2 then
                Project_File_Name :=
-                 new String'(Normalize_Pathname (Argv (3 .. Argv'Last)));
+                 new String'(Normalize_Pathname
+                              (Argv (Argv'First + 2 .. Argv'Last)));
                Add_List_Switch (Project_File_Flag.all);
                Add_List_Switch (Project_File_Name.all);
                Add_Make_Switch (Project_File_Flag.all);
@@ -901,14 +900,14 @@ package body XE_Utils is
                Add_Make_Switch (Project_File_Flag.all);
             end if;
 
-         elsif Argv (2) = 'X' then
+         elsif Argv (Argv'First + 1) = 'X' then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
 
          --  Processing for one character switches
 
          elsif Argv'Length = 2 then
-            case Argv (2) is
+            case Argv (Argv'First + 1) is
                when 'a' =>
                   Add_List_Switch (Argv);
                   Add_Make_Switch (Argv);
@@ -937,15 +936,15 @@ package body XE_Utils is
          --  Processing for -O0, -O1, -O2 and -O3
 
          elsif Argv'Length = 3
-           and then Argv (2) = 'O'
-           and then Argv (3) in '0' .. '3'
+           and then Argv (Argv'First + 1) = 'O'
+           and then Argv (Argv'First + 2) in '0' .. '3'
          then
             Add_Make_Switch (Argv);
 
          --  Processing for -gnat flags
 
          elsif Argv'Length > 5
-           and then Argv (2 .. 5) = "gnat"
+           and then Argv (Argv'First + 1 .. Argv'First + 4) = "gnat"
          then
             Add_Make_Switch (Argv);
 
