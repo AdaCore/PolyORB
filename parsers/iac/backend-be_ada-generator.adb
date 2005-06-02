@@ -307,8 +307,7 @@ package body Backend.BE_Ada.Generator is
             Write (Tok_Exception);
             Write_Eol;
             Increment_Indentation;
-            --  Replace the following by the generation of exception handler
-            --  BEGIN
+            --  Generation of the exception handler
             Write_Indentation;
             Excp_Handler_Alternative := First_Node (Exception_Handler (N));
             while Present (Excp_Handler_Alternative) loop
@@ -770,7 +769,14 @@ package body Backend.BE_Ada.Generator is
       end if;
 
       Write_Space;
-      Generate (Object_Definition (N));
+      if Present (Object_Definition (N)) then
+         Generate (Object_Definition (N));
+      else
+         --  This workaround doesn't affect the classic object declaration
+         --  because we must give a type. However it makes the generation
+         --  of case statement and exception handlers simpler.
+         Write (Tok_Others);
+      end if;
 
       if Present (Expression (N)) then
          Write_Space;

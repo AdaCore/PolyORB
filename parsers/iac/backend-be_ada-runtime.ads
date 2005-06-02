@@ -166,6 +166,8 @@ package Backend.BE_Ada.Runtime is
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
       RE_Client_Invoke,             --  PolyORB.CORBA_P.
                                     --     Interceptors_Hooks.Client_Invoke
+      RE_System_Exception_To_Any,   --  PolyORB.CORBA_P.
+                                    --     Exceptions.System_Exception_To_Any
       RE_Raise_From_Any,            --  PolyORB.CORBA_P.
                                     --     Exceptions.Raise_From_Any
       RE_Add,                       --  PolyORB.Utils.Strings."+"
@@ -284,6 +286,7 @@ package Backend.BE_Ada.Runtime is
          RE_User_Get_Members        => RU_PolyORB_Exceptions,
          RE_User_Raise_Exception    => RU_PolyORB_Exceptions,
          RE_Raise_From_Any          => RU_PolyORB_CORBA_P_Exceptions,
+         RE_System_Exception_To_Any => RU_PolyORB_CORBA_P_Exceptions,
          RE_Client_Invoke           => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_Module_Info             => RU_PolyORB_Initialization,
          RE_Register_Module         => RU_PolyORB_Initialization,

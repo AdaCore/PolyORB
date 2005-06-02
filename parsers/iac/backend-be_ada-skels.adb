@@ -119,6 +119,7 @@ package body Backend.BE_Ada.Skels is
       function Is_A_Invoke_Part return Node_Id;
       function Servant_Is_A_Body return Node_Id;
       procedure Skeleton_Initialization (L : List_Id);
+      function Non_User_Exception_Handler return Node_Id;
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
@@ -224,6 +225,7 @@ package body Backend.BE_Ada.Skels is
             --  Getting the node corresponding to the declaration of the
             --  Get_Members procedure.
             --  This procedure is declared at the 4th place in the stub spec.
+
             N := Stub_Node (BE_Node (Identifier (Reference (E))));
             N := Next_Node (Next_Node (Next_Node (N)));
 
@@ -238,7 +240,7 @@ package body Backend.BE_Ada.Skels is
             --  Getting the node corresponding to the declaration of the
             --  To_Any procedure in the helper package.
             --  This procedure is declared at the 3rd place in the helper spec.
-            --  Complete HERE
+
             N := Helper_Node (BE_Node (Identifier (Reference (E))));
             N := Next_Node (Next_Node ((N)));
 
@@ -870,6 +872,49 @@ package body Backend.BE_Ada.Skels is
          Append_Node_To_List (N, L);
       end Skeleton_Initialization;
 
+      function Non_User_Exception_Handler return Node_Id is
+         Result     : Node_Id;
+         Selector   : Node_Id;
+         Expression : Node_Id;
+         N          : Node_Id;
+         D          : constant List_Id := New_List (K_List_Id);
+         S          : constant List_Id := New_List (K_List_Id);
+      begin
+         --  Generation of the "E : others" statement
+         Selector := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (PN (P_E)),
+            Object_Definition => No_Node);
+
+         --  Body of the exception handler
+         N := Make_Subprogram_Call
+           (RE (RE_System_Exception_To_Any),
+            Make_List_Id
+            (Make_Defining_Identifier (PN (P_E))));
+
+         N := Make_Subprogram_Call
+           (RE (RE_To_CORBA_Any),
+            Make_List_Id (N));
+
+         N := Make_Subprogram_Call
+           (RE (RE_Set_Exception),
+            Make_List_Id
+            (Make_Defining_Identifier (PN (P_Request)), N));
+         Append_Node_To_List (N, S);
+
+         N := Make_Return_Statement (No_Node);
+         Append_Node_To_List (N, S);
+
+         Expression := Make_Block_Statement
+           (Declarative_Part => D,
+            Statements       => S);
+
+         Result := Make_Component_Association
+           (Selector,
+            Expression);
+         return Result;
+      end Non_User_Exception_Handler;
+
       -----------
       -- Visit --
       -----------
@@ -938,6 +983,7 @@ package body Backend.BE_Ada.Skels is
          Then_Statements   : constant List_Id := New_List (K_List_Id);
          Else_Statements   : constant List_Id := New_List (K_List_Id);
          Invoke_Statements : constant List_Id := New_List (K_List_Id);
+         Exception_Handler : Node_Id;
 
       begin
          N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
@@ -982,6 +1028,15 @@ package body Backend.BE_Ada.Skels is
             Then_Statements,
             Invoke_Elsif_Statements,
             Else_Statements);
+
+         Exception_Handler := Non_User_Exception_Handler;
+
+         N := Make_Block_Statement
+           (Declarative_Part  => No_List,
+            Statements        =>
+              Make_List_Id (N),
+            Exception_Handler =>
+              Make_List_Id (Exception_Handler));
          Append_Node_To_List (N, Invoke_Statements);
 
          N := Servant_Is_A_Body;

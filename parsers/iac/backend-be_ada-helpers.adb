@@ -1278,7 +1278,23 @@ package body Backend.BE_Ada.Helpers is
                  (Type_Spec
                   (Declaration
                    (E)));
-               Helper := RE (RE_From_Any_0);
+               declare
+                  Reference : constant Node_Id := FEN.Reference
+                    (Type_Spec (Declaration (E)));
+               begin
+                  --  As iac evolves, add the corresponding From_Any nodes
+                  case FEN.Kind (Reference) is
+                     when K_Enumeration_Type =>
+                        Helper := Helper_Node
+                          (BE_Node (Identifier (Reference)));
+                        --  The From_Any function is declared at the second
+                        --  place in the Helper spec
+                        Helper := Next_Node (Helper);
+                        Helper := Defining_Identifier (Helper);
+                     when others =>
+                        Helper := RE (RE_From_Any_0);
+                  end case;
+               end;
             else
                raise Program_Error;
             end if;
@@ -1875,7 +1891,23 @@ package body Backend.BE_Ada.Helpers is
             if Is_Base_Type (Type_Spec (Declaration (E))) then
                Helper := RE (RE_To_Any_0);
             elsif FEN.Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
-               Helper := RE (RE_To_Any_0);
+               declare
+                  Reference : constant Node_Id := FEN.Reference
+                    (Type_Spec (Declaration (E)));
+               begin
+                  --  As iac evolves, add the corresponding To_Any nodes
+                  case FEN.Kind (Reference) is
+                     when K_Enumeration_Type =>
+                        Helper := Helper_Node
+                          (BE_Node (Identifier (Reference)));
+                        --  The From_Any function is declared at the third
+                        --  place in the Helper spec
+                        Helper := Next_Node (Next_Node (Helper));
+                        Helper := Defining_Identifier (Helper);
+                     when others =>
+                        Helper := RE (RE_To_Any_0);
+                  end case;
+               end;
             else
                raise Program_Error;
             end if;
