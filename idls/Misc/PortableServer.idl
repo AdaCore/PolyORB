@@ -36,7 +36,7 @@ module PortableServer {
     local interface POA;                          // forward declaration
     typedef sequence<POA> POAList; 
     native Servant;
-//PolyORB:IL:    typedef CORBA::OctetSeq ObjectId;
+    typedef CORBA::OctetSeq ObjectId;
     exception ForwardRequest {
         Object forward_reference;
     };
@@ -268,9 +268,9 @@ module PortableServer {
     local interface Current : CORBA::Current {
         exception   NoContext { };
         POA         get_POA()       raises (NoContext);
-//PolyORB:IL:        ObjectId    get_object_id() raises (NoContext);
-//PolyORB:NI:        Object      get_reference() raises (NoContext);
-//PolyORB:NI:        Servant     get_servant()   raises (NoContext);
+        ObjectId    get_object_id() raises (NoContext);
+        Object      get_reference() raises (NoContext);
+        Servant     get_servant()   raises (NoContext);
     };
 };
 #endif // _PORTABLE_SERVER_IDL_
