@@ -1,7 +1,6 @@
 COPYING
 Dist/Makefile.am
 Dist/Makefile.in
-Dist/b_xe_defs.adb
 Dist/config.sdefault
 Dist/xe.adb
 Dist/xe.ads
@@ -11,6 +10,8 @@ Dist/xe_back-polyorb.adb
 Dist/xe_back-polyorb.ads
 Dist/xe_back.adb
 Dist/xe_back.ads
+Dist/xe_defs-defaults.ads.in
+Dist/xe_defs.adb
 Dist/xe_defs.ads
 Dist/xe_flags.ads
 Dist/xe_front.adb
