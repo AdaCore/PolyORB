@@ -687,6 +687,8 @@ src/corba/dynamicany/dynamicany.adb
 src/corba/dynamicany/dynamicany.ads
 src/corba/dynamicany/polyorb-corba_p-dynamic_any.adb
 src/corba/dynamicany/polyorb-corba_p-dynamic_any.ads
+src/corba/iop/Makefile.am
+src/corba/iop/Makefile.in
 src/corba/iop/iop-codec-impl.adb
 src/corba/iop/iop-codec-impl.ads
 src/corba/iop/iop-codec.adb
