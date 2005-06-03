@@ -67,7 +67,7 @@ procedure Test002 is
    ------------------
 
    procedure Test_Get_POA is
-      pragma Warnings (On); --  WAG:GCC3.4.
+      pragma Warnings (On); --  WAG:GCC3.4.4
       Aux : PortableServer.POA.Ref;
       pragma Unreferenced (Aux);
       pragma Warnings (Off); --  WAG:GCC3.4.4
