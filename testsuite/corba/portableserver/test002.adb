@@ -67,8 +67,10 @@ procedure Test002 is
    ------------------
 
    procedure Test_Get_POA is
+      pragma Warnings (On); --  WAG:GCC3.4.
       Aux : PortableServer.POA.Ref;
       pragma Unreferenced (Aux);
+      pragma Warnings (Off); --  WAG:GCC3.4.4
 
    begin
       Aux := PortableServer.POA.Convert.To_Ref (Get_POA (Test_Current));
@@ -87,8 +89,10 @@ procedure Test002 is
    ------------------------
 
    procedure Test_Get_Reference is
+      pragma Warnings (On); --  WAG:GCC3.4.4
       Aux : CORBA.Object.Ref;
       pragma Unreferenced (Aux);
+      pragma Warnings (Off); --  WAG:GCC3.4.4
 
    begin
       Aux := Get_Reference (Test_Current);
@@ -107,8 +111,10 @@ procedure Test002 is
    ------------------------
 
    procedure Test_Get_Object_Id is
+      pragma Warnings (On); --  WAG:GCC3.4.4
       Aux : PortableServer.ObjectId;
       pragma Unreferenced (Aux);
+      pragma Warnings (Off); --  WAG:GCC3.4.4
 
    begin
       Aux := Get_Object_Id (Test_Current);
