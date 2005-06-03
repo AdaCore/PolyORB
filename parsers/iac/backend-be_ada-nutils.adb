@@ -61,6 +61,31 @@ package body Backend.BE_Ada.Nutils is
       return Name_Find;
    end Add_Suffix_To_Name;
 
+   -----------------------------
+   -- Remove_Suffix_From_Name --
+   -----------------------------
+
+   function Remove_Suffix_From_Name
+     (Suffix : String;
+      Name   : Name_Id)
+     return Name_Id
+   is
+      Length   : Natural;
+      Temp_Str : String (1 .. Suffix'Length);
+   begin
+      Set_Str_To_Name_Buffer (Suffix);
+      Length := Name_Len;
+      Get_Name_String (Name);
+      if Name_Len > Length then
+         Temp_Str := Name_Buffer (Name_Len - Length + 1 .. Name_Len);
+         if Suffix = Temp_Str then
+            Set_Str_To_Name_Buffer (Name_Buffer (1 .. Name_Len - Length));
+            return Name_Find;
+         end if;
+      end if;
+      return Name;
+   end Remove_Suffix_From_Name;
+
    ----------------------
    -- Add_With_Package --
    ----------------------

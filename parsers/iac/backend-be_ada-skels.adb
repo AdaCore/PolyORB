@@ -176,6 +176,7 @@ package body Backend.BE_Ada.Skels is
          Statements       : constant List_Id := New_List (K_List_Id);
          Param            : Node_Id;
          Param_Name       : Name_Id;
+         Type_Name  : Name_Id;
          New_Name         : Name_Id;
          P                : List_Id;
          Inv_Profile      : constant List_Id := New_List (K_List_Id);
@@ -293,11 +294,20 @@ package body Backend.BE_Ada.Skels is
             loop
                P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
                Param_Name := BEN.Name (Defining_Identifier (Param));
+
+               --  If the parameter type is a class-wide type, we remove the
+               --  "'Class" attribute from the type name
+               Type_Name := Fully_Qualified_Name
+                 (Parameter_Type (Param));
+               Type_Name := Remove_Suffix_From_Name
+                 ("'Class", Type_Name);
+
                N :=  Make_Object_Declaration
                  (Defining_Identifier =>
                     Make_Defining_Identifier (Param_Name),
                   Object_Definition   =>
-                    Copy_Designator (Parameter_Type (Param)));
+                    Make_Designator (Type_Name));
+
                Append_Node_To_List (N, Declarative_Part);
                Append_Node_To_List
                  (Make_Defining_Identifier (Param_Name),
@@ -468,11 +478,18 @@ package body Backend.BE_Ada.Skels is
                Inv_Profile);
 
             if Present (Return_Type (S)) then
+               --  If the return type is a class-wide type, we remove the
+               --  "'Class" attribute from the type name
+               Type_Name := Fully_Qualified_Name
+                 (Return_Type (S));
+               Type_Name := Remove_Suffix_From_Name
+                 ("'Class", Type_Name);
                N := Make_Object_Declaration
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Result)),
                   Object_Definition =>
-                    Copy_Designator (Return_Type (S)));
+                    Make_Designator (Type_Name));
+
                Append_Node_To_List (N, Declarative_Part);
                C := Make_Assignment_Statement
                  (Make_Defining_Identifier (VN (V_Result)),

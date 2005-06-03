@@ -269,6 +269,13 @@ package Backend.BE_Ada.Nutils is
       Name   : Name_Id)
      return Name_Id;
 
+   function Remove_Suffix_From_Name
+     (Suffix : String;
+      Name   : Name_Id)
+     return Name_Id;
+   --  This function returns a new name without the suffix. If the suffix does
+   --  not exist, the returned name is equal to the given name.
+
    procedure Add_With_Package (E : Node_Id);
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);

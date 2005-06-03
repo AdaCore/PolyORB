@@ -341,11 +341,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
             P := Scope_Entity (Identifier (R));
          end if;
 
-         --  N := New_Node (K_Designator);
-         --  Set_Defining_Identifier (N, Map_Defining_Identifier (R));
-         --  Set_FE_Node (N, R);
-         --  P := Scope_Entity (Identifier (R));
-
          if Present (P) then
             if Kind (P) = K_Specification then
                R := New_Node (K_Designator);

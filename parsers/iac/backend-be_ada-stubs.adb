@@ -341,6 +341,42 @@ package body Backend.BE_Ada.Stubs is
          Returns   : Node_Id := No_Node;
          Type_Designator : Node_Id;
 
+         function Map_Correct_Designator (Entity : Node_Id) return Node_Id;
+
+         ----------------------------
+         -- Map_Correct_Designator --
+         ----------------------------
+
+         function Map_Correct_Designator (Entity : Node_Id) return Node_Id is
+            Result    : Node_Id;
+            Reference : Node_Id;
+         begin
+            Result := Map_Designator (Entity);
+
+            --  Extract from the Ada mapping specification V. 1.2 concerning
+            --  the mapping of operations :
+            --  "The argument or return type shall be mapped from the IDL
+            --  type except in the case of an argument or return type that is
+            --  of the enclosing IDL unit type. Arguments or result types of
+            --  the enclosing unit types shall be mapped to the class of the
+            --  mapped reference type (for exemple, to Ref'Class for
+            --  un constrained references)."
+
+            if FEN.Kind (Entity) = K_Scoped_Name then
+               Reference := FEN.Reference (Entity);
+               --  Add here the different IDL unit possibilities :
+               if FEN.Kind (Reference) = K_Interface_Declaration and then
+                 Reference = Scope_Entity (Identifier (E)) then
+                  Result := Make_Type_Attribute
+                    (Result, A_Class);
+                  null;
+               end if;
+            end if;
+            return Result;
+         end Map_Correct_Designator;
+
+
+
       begin
          Profile := New_List (K_Parameter_Profile);
 
@@ -356,8 +392,9 @@ package body Backend.BE_Ada.Stubs is
 
          IDL_Param := First_Entity (Parameters (E));
          while Present (IDL_Param) loop
-            Type_Designator := Map_Designator
+            Type_Designator := Map_Correct_Designator
               (Type_Spec (IDL_Param));
+
             Set_FE_Node (Type_Designator, Type_Spec (IDL_Param));
             Ada_Param := Make_Parameter_Specification
               (Map_Defining_Identifier (Declarator (IDL_Param)),
@@ -376,13 +413,14 @@ package body Backend.BE_Ada.Stubs is
 
          if FEN.Kind (Type_Spec (E)) /= K_Void then
             if Mode = Mode_In then
-               Returns := Map_Designator (Type_Spec (E));
+               Returns := Map_Correct_Designator (Type_Spec (E));
+               Set_FE_Node (Returns, Type_Spec (E));
 
                --  If the IDL function is mapped as an Ada procedure, add a
                --  new parameter Returns to pass the returned value.
 
             else
-               Type_Designator := Map_Designator
+               Type_Designator := Map_Correct_Designator
                  (Type_Spec (E));
                Ada_Param := Make_Parameter_Specification
                  (Make_Defining_Identifier (PN (P_Returns)),
@@ -1178,22 +1216,23 @@ package body Backend.BE_Ada.Stubs is
    -----------------------------
 
    function Marshaller_Declarations (Subp_Spec : Node_Id) return List_Id is
-      L               : List_Id;
-      P               : List_Id;
-      N               : Node_Id;
-      V               : Value_Id;
-      C               : Node_Id;
-      I               : Node_Id;
-      X               : Name_Id;
-      D               : Node_Id;
-      R               : Name_Id;
-      Operation_Name  : constant Name_Id
+      L                : List_Id;
+      P                : List_Id;
+      N                : Node_Id;
+      V                : Value_Id;
+      C                : Node_Id;
+      I                : Node_Id;
+      X                : Name_Id;
+      D                : Node_Id;
+      R                : Name_Id;
+      Operation_Name   : constant Name_Id
         := BEN.Name (Defining_Identifier (Subp_Spec));
-      FE              : constant Node_Id
+      FE               : constant Node_Id
         := Corresponding_Entity (FE_Node (Subp_Spec));
-      TC_Node         : Node_Id;
-      Declaration     : Node_Id;
-
+      TC_Node          : Node_Id;
+      Declaration      : Node_Id;
+      To_Any_Type_Name : Name_Id := No_Name;
+      Param_Type_Name  : Name_Id := No_Name;
    begin
       L := New_List (BEN.K_List_Id);
 
@@ -1284,7 +1323,17 @@ package body Backend.BE_Ada.Stubs is
                D := Identifier (FE_Node (Parameter_Type (I)));
                D := Helper_Node
                  (BE_Node (Identifier (Reference (Corresponding_Entity (D)))));
-               D := Expand_Designator (Next_Node (Next_Node (D)));
+               D := Next_Node (Next_Node (D));
+               --  Get the types of the argument of the To_Any function and
+               --  of the actual parameter
+               To_Any_Type_Name := Fully_Qualified_Name
+                 (Parameter_Type
+                  (First_Node
+                   (Parameter_Profile (D))));
+               Param_Type_Name := Fully_Qualified_Name
+                 (BEN.Parameter_Type (I));
+
+               D := Expand_Designator (D);
             end if;
          end if;
 
@@ -1294,10 +1343,27 @@ package body Backend.BE_Ada.Stubs is
                Actual_Parameter_Part =>
                  Make_List_Id (TC_Node));
          else
-            C :=  Make_Subprogram_Call
-              (Defining_Identifier   => D,
-               Actual_Parameter_Part =>
-                 Make_List_Id (Make_Defining_Identifier (X)));
+            --  Here, we are in the case where we call the To_Any method.
+            --  If the parameter type is XXX.Ref'Class, we must cast the
+            --  parameter before giving it to the function.
+            --  We just test wether the two type names are equal.
+            declare
+               Cast_Node   : Node_Id;
+            begin
+               if Param_Type_Name /= To_Any_Type_Name then
+                  Cast_Node := Make_Subprogram_Call
+                    (Defining_Identifier =>
+                       Make_Defining_Identifier (To_Any_Type_Name),
+                     Actual_Parameter_Part =>
+                       Make_List_Id (Make_Defining_Identifier (X)));
+               else
+                  Cast_Node := Make_Defining_Identifier (X);
+               end if;
+               C := Make_Subprogram_Call
+                 (Defining_Identifier   => D,
+                  Actual_Parameter_Part =>
+                    Make_List_Id (Cast_Node));
+            end;
          end if;
 
          Set_Str_To_Name_Buffer ("Argument_U_");
