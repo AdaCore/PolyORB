@@ -29,6 +29,7 @@ notification_inc=-I$(top_srcdir)/cos/notification -I$(top_builddir)/cos/notifica
 
 corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba \
           $(naming_inc) $(time_inc) $(event_inc) $(notification_inc) \
+          -I$(top_srcdir)/src/corba/iop -I$(top_builddir)/src/corba/iop \
           -I$(top_srcdir)/src/corba/messaging -I$(top_builddir)/src/corba/messaging \
           -I$(top_srcdir)/src/corba/portableinterceptor \
           -I$(top_builddir)/src/corba/portableinterceptor \
