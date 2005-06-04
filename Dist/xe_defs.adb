@@ -26,7 +26,8 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-with XE_Utils;    use XE_Utils;
+with XE_Utils;         use XE_Utils;
+with XE_Defs.Defaults;
 
 package body XE_Defs is
 
