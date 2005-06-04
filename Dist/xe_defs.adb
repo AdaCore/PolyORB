@@ -24,24 +24,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE_Defs.Defaults;
-
-package XE_Defs is
-
-   --  This package contains the default values for the GLADE library.
-
-   procedure Initialize;
-   function Get_Rsh_Command return String;
-   function Get_Rsh_Options return String;
-   function Get_Def_Storage_Data return String;
-   function Get_Def_Storage_Name return String;
-   function Get_Def_Protocol_Data return String;
-   function Get_Def_Protocol_Name return String;
-   function Get_PCS_Name return String;
-
-end XE_Defs;
-with XE_Utils; use XE_Utils;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
+
+with XE_Utils;    use XE_Utils;
 
 package body XE_Defs is
 
@@ -108,4 +93,5 @@ package body XE_Defs is
 
    procedure Initialize renames XInitialize;
    pragma Unreferenced (OInitialize);
+
 end XE_Defs;
