@@ -164,8 +164,8 @@ force:
 
 s-galiop.ads:
 	@echo "private package System.Garlic.Linker_Options is" >s-galiop.ads
-	@echo "" >>s-galiop.ads
 	@if [ "x$(EXTRA_LIBS)" != "x" ] ; then\
+	 @echo "" >>s-galiop.ads
 	 for option in `echo $(EXTRA_LIBS)`; do\
 	  echo "   pragma Linker_Options (\"$$option\");" >>s-galiop.ads;\
 	  echo "" >>s-galiop.ads;\
