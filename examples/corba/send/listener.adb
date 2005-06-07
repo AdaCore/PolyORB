@@ -77,7 +77,7 @@ procedure Listener is
          Ada.Text_IO.Put_Line
            (Integer'Image (J)
             & " - "
-            & PortableServer.ObjectId_To_String (Element_Of (List, J).all));
+            & PortableServer.ObjectId_To_String (Element_Of (List, J)));
       end loop;
       Ada.Text_IO.New_Line;
 

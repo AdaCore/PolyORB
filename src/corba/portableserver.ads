@@ -133,23 +133,24 @@ package PortableServer is
    type ObjectId is new CORBA.IDL_Sequences.OctetSeq;
 
    function String_To_ObjectId (Id : String) return ObjectId;
-   --  Convert string Id into an ObjectID.
+   --  Convert string Id into an ObjectId.
 
    function ObjectId_To_String (Id : ObjectId) return String;
    --  Convert ObjectId Id into a string.
 
-   --  XXX these functions are not defined in the CORBA specification,
-   --  but defined in various C++ ORB implementation. Moreover, how
-   --  can we build an ObjectId without such a conversion function ?
+   --  Implementation Notes: these functions are not defined in the
+   --  CORBA specification, but defined in various C++ ORB
+   --  implementation. They are provided as a facility.
 
    type ObjectId_Access is access ObjectId;
 
-   package Sequence_IDs
-   is new CORBA.Sequences.Unbounded (ObjectId_Access);
-   --  Implementation note: ObjectId is an unconstrained
-   --  type. Instead, we instantiate a sequence of ObjectId_Access.
+   package Sequence_IDs is new CORBA.Sequences.Unbounded (ObjectId);
+   --  XXX Part of the MIOP specifications. Should be moved to
+   --  package PortableGroup.
 
    type IDs is new Sequence_IDs.Sequence;
+   --  XXX Part of the MIOP specifications. Should be moved to
+   --  package PortableGroup.
 
    ---------------
    -- Constants --
@@ -211,14 +212,20 @@ package PortableServer is
 
    type NotAGroupObject_Members is new CORBA.IDL_Exception_Members
      with null record;
+   --  XXX Part of the MIOP specifications. Should be moved to
+   --  package PortableGroup.
 
    procedure Get_Members
      (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out NotAGroupObject_Members);
+   --  XXX Part of the MIOP specifications. Should be moved to
+   --  package PortableGroup.
 
    procedure Raise_NotAGroupObject
      (Excp_Memb : in NotAGroupObject_Members);
    pragma No_Return (Raise_NotAGroupObject);
+   --  XXX Part of the MIOP specifications. Should be moved to
+   --  package PortableGroup.
 
    --  XXX What is the status of this comment ??
 

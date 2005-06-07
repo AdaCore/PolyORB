@@ -312,9 +312,8 @@ package body PortableServer.POA.GOA is
                   Oid := Get_Object_Key (Pro (J).all);
                   if Oid /= null then
                      Append (List,
-                             new ObjectId'
-                             (PortableServer.Internals.
-                              To_PortableServer_ObjectId (Oid.all)));
+                             PortableServer.Internals.
+                             To_PortableServer_ObjectId (Oid.all));
                      exit;
                   end if;
                end loop;
