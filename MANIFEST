@@ -474,10 +474,13 @@ idls/Makefile.in
 idls/Misc/Dynamic.idl
 idls/Misc/DynamicAny.idl
 idls/Misc/FT.idl
+idls/Misc/MGM.idl
+idls/Misc/MIOP.idl
 idls/Misc/Makefile.am
 idls/Misc/Makefile.in
 idls/Misc/MessageRouting.idl
 idls/Misc/Messaging.idl
+idls/Misc/PortableGroup.idl
 idls/Misc/PortableInterceptor.idl
 idls/Misc/PortableServer.idl
 idls/RTCORBA/Makefile.am

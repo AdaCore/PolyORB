@@ -5,6 +5,9 @@ IDL =	$(srcdir)/DynamicAny.idl \
 	$(srcdir)/FT.idl \
 	$(srcdir)/MessageRouting.idl \
 	$(srcdir)/Messaging.idl \
+	$(srcdir)/MGM.idl \
+	$(srcdir)/MIOP.idl \
+	$(srcdir)/PortableGroup.idl \
 	$(srcdir)/PortableInterceptor.idl \
 	$(srcdir)/PortableServer.idl
 
