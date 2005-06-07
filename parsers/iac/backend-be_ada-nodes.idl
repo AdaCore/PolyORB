@@ -131,6 +131,7 @@ module Backend::BE_Ada::Nodes {
   interface Full_Type_Declaration : Definition {
     Node_Id    Type_Definition;
     Node_Id    Discriminant_Spec;
+    boolean    Is_Subtype;
   };
 
   interface Enumeration_Literals : List_Id {};
@@ -243,7 +244,8 @@ module Backend::BE_Ada::Nodes {
     boolean    Is_Private_Extention; 
     boolean    Is_Abstract_Type;
     Node_Id    Subtype_Indication;
-    Node_Id    Record_Extension_Part; 
+    Node_Id    Record_Extension_Part;
+    boolean    Is_Subtype;
   };
 
   interface Record_Type_Definition : Node_Id{
@@ -330,6 +332,9 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Helper_Node;
     Node_Id    Skel_Node;
     Node_Id    Impl_Node;
+    Node_Id    TC_Node;
+    Node_Id    From_Any_Node;
+    Node_Id    To_Any_Node;
   };
 
   interface Expression : Node_Id {

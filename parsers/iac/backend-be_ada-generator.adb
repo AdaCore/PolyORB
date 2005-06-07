@@ -454,8 +454,10 @@ package body Backend.BE_Ada.Generator is
          Write_Space;
       end if;
 
-      Write (Tok_New);
-      Write_Space;
+      if not Is_Subtype (N) then
+         Write (Tok_New);
+         Write_Space;
+      end if;
       Generate (Subtype_Indication (N));
 
       if Is_Private_Extention (N) then
@@ -638,7 +640,11 @@ package body Backend.BE_Ada.Generator is
       D : constant Node_Id := Discriminant_Spec (N);
 
    begin
-      Write (Tok_Type);
+      if Is_Subtype (N) then
+         Write (Tok_Subtype);
+      else
+         Write (Tok_Type);
+      end if;
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
       Write_Space;

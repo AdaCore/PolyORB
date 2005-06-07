@@ -127,6 +127,69 @@ package body Backend.BE_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Stub;
 
+   -------------------
+   -- Bind_FE_To_TC --
+   -------------------
+
+   procedure Bind_FE_To_TC
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+
+      if No (N) then
+         N := New_Node (BEN.K_BE_Ada);
+      end if;
+
+      BEN.Set_TC_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_TC;
+
+   -------------------------
+   -- Bind_FE_To_From_Any --
+   -------------------------
+
+   procedure Bind_FE_To_From_Any
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+
+      if No (N) then
+         N := New_Node (BEN.K_BE_Ada);
+      end if;
+
+      BEN.Set_From_Any_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_From_Any;
+
+   -----------------------
+   -- Bind_FE_To_To_Any --
+   -----------------------
+
+   procedure Bind_FE_To_To_Any
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+
+      if No (N) then
+         N := New_Node (BEN.K_BE_Ada);
+      end if;
+
+      BEN.Set_To_Any_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_To_Any;
+
    ------------------
    -- Is_Base_Type --
    ------------------

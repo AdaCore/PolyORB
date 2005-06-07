@@ -284,7 +284,7 @@ package body Backend.BE_Ada.Helpers is
                   P := RE (RE_TC_Alias);
                elsif Kind (T) = K_Scoped_Name then
                   P := Reference (T);
-                  P := Helper_Node (BE_Node (Identifier (P)));
+                  P := TC_Node (BE_Node (Identifier (P)));
                   P := Copy_Designator
                     (First_Node
                      (Actual_Parameter_Part
@@ -372,14 +372,22 @@ package body Backend.BE_Ada.Helpers is
          N : Node_Id;
       begin
          Set_Helper_Spec;
+
          N := TypeCode_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Bind_FE_To_Helper (Identifier (E), N);
+         Bind_FE_To_TC (Identifier (E), N);
+
+         N := From_Any_Spec (E);
          Append_Node_To_List
-           (From_Any_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_From_Any (Identifier (E), N);
+
+         N := To_Any_Spec (E);
          Append_Node_To_List
-           (To_Any_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_To_Any (Identifier (E), N);
       end Visit_Enumeration_Type;
 
       ---------------------------------
@@ -392,18 +400,29 @@ package body Backend.BE_Ada.Helpers is
          N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Spec;
+
          N := TypeCode_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Bind_FE_To_Helper (Identifier (E), N);
+         Bind_FE_To_TC (Identifier (E), N);
+
+         N := From_Any_Spec (E);
          Append_Node_To_List
-           (From_Any_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_From_Any (Identifier (E), N);
+
+         N := To_Any_Spec (E);
          Append_Node_To_List
-           (To_Any_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_To_Any (Identifier (E), N);
+
          Append_Node_To_List
            (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
+
          Append_Node_To_List
            (Widening_Ref_Spec (E), Visible_Part (Current_Package));
+
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
@@ -452,14 +471,22 @@ package body Backend.BE_Ada.Helpers is
          N : Node_Id;
       begin
          Set_Helper_Spec;
+
          N := TypeCode_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Bind_FE_To_Helper (Identifier (E), N);
+         Bind_FE_To_TC (Identifier (E), N);
+
+         N := From_Any_Spec (E);
          Append_Node_To_List
-           (From_Any_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_From_Any (Identifier (E), N);
+
+         N := To_Any_Spec (E);
          Append_Node_To_List
-           (To_Any_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_To_Any (Identifier (E), N);
       end Visit_Structure_Type;
 
       ----------------------------
@@ -470,7 +497,10 @@ package body Backend.BE_Ada.Helpers is
          L : List_Id;
          D : Node_Id;
          N : Node_Id;
+         T : Node_Id;
       begin
+         --  If the defined type is a subtype of an interface type, there is
+         --  no need to define From_Any and To_Any function for this type.
          Set_Helper_Spec;
          L := Declarators (E);
          D := First_Entity (L);
@@ -479,10 +509,31 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List
               (N, Visible_Part (Current_Package));
             Bind_FE_To_Helper (Identifier (D), N);
-            Append_Node_To_List
-              (From_Any_Spec (D), Visible_Part (Current_Package));
-            Append_Node_To_List
-              (To_Any_Spec (D), Visible_Part (Current_Package));
+            Bind_FE_To_TC (Identifier (D), N);
+
+            --  If the new type is defined basing on an interface type, then
+            --  we dont generate From_Any nor To_Any. We use those of the
+            --  original type.
+            T := Type_Spec (E);
+            if FEN.Kind (T) = K_Scoped_Name and then
+              FEN.Kind (Reference (T)) = K_Interface_Declaration then
+               N := From_Any_Node (BE_Node (Identifier (Reference (T))));
+               Bind_FE_To_From_Any (Identifier (D), N);
+
+               N := To_Any_Node (BE_Node (Identifier (Reference (T))));
+               Bind_FE_To_To_Any (Identifier (D), N);
+            else
+               N := From_Any_Spec (D);
+               Append_Node_To_List
+                 (N, Visible_Part (Current_Package));
+               Bind_FE_To_From_Any (Identifier (D), N);
+
+               N := To_Any_Spec (D);
+               Append_Node_To_List
+                 (N, Visible_Part (Current_Package));
+               Bind_FE_To_To_Any (Identifier (D), N);
+            end if;
+
             D := Next_Entity (D);
          end loop;
       end Visit_Type_Declaration;
@@ -502,6 +553,7 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Bind_FE_To_Helper (Identifier (E), N);
+         Bind_FE_To_TC (Identifier (E), N);
 
          --  Obtaining the node corresponding to the declaration of the
          --  "Excp_Name"_Members type.
@@ -509,12 +561,16 @@ package body Backend.BE_Ada.Helpers is
 
          Excp_Members := Stub_Node (BE_Node (Identifier (E)));
          Excp_Members := Next_Node (Next_Node (Excp_Members));
+
+         N := From_Any_Spec_Ex (Excp_Members);
          Append_Node_To_List
-           (From_Any_Spec_Ex (Excp_Members),
-            Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_From_Any (Identifier (E), N);
+
+         N := To_Any_Spec_Ex (Excp_Members);
          Append_Node_To_List
-           (To_Any_Spec_Ex (Excp_Members),
-            Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_To_Any (Identifier (E), N);
 
          --  Generation of the Raise_"Exception_Name" spec
 
@@ -546,14 +602,22 @@ package body Backend.BE_Ada.Helpers is
          N : Node_Id;
       begin
          Set_Helper_Spec;
+
          N := TypeCode_Spec (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Bind_FE_To_Helper (Identifier (E), N);
+         Bind_FE_To_TC (Identifier (E), N);
+
+         N := From_Any_Spec (E);
          Append_Node_To_List
-           (From_Any_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_From_Any (Identifier (E), N);
+
+         N := To_Any_Spec (E);
          Append_Node_To_List
-           (To_Any_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_To_Any (Identifier (E), N);
       end Visit_Union_Type;
 
       -----------------------
@@ -590,6 +654,10 @@ package body Backend.BE_Ada.Helpers is
       Deferred_Initialization_Body : List_Id;
       Package_Initializarion       : List_Id;
 
+      --  This array will be used to buil the dependancy list of this package
+      Dep_Array : array (Dependancy_Id) of Boolean :=
+        (others => False);
+
       function Deferred_Initialization_Block
         (E : Node_Id)
          return Node_Id;
@@ -625,7 +693,7 @@ package body Backend.BE_Ada.Helpers is
       function Raise_Excp_From_Any_Spec
         (Raise_Node : Node_Id)
         return Node_Id;
-      --  The spec is situated in the body because this function is not used
+      --  The spec is located in the body because this function is not used
       --  outside the helper package. Hoewever the spec is necessary because
       --  of the pragma No_Return.
 
@@ -791,7 +859,7 @@ package body Backend.BE_Ada.Helpers is
       begin
          Stub :=  Stub_Node (BE_Node (Identifier (E)));
          Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
-         Helper := Helper_Node (BE_Node (Identifier (E)));
+         Helper := TC_Node (BE_Node (Identifier (E)));
 
          case FEN.Kind (E) is
             when K_Interface_Declaration =>
@@ -864,6 +932,10 @@ package body Backend.BE_Ada.Helpers is
                            if Is_Base_Type (T) then
                               Param2 := Base_Type_TC
                                 (FEN.Kind (T));
+                              --  Adding the dependancy on CORBA.Object
+                              if FEN.Kind (T) = K_Object then
+                                 Dep_Array (Dep_CORBA_Object) := True;
+                              end if;
                            elsif FEN.Kind (T) = K_Scoped_Name then
                               Param2 := TC_Designator (T);
                            else
@@ -912,6 +984,10 @@ package body Backend.BE_Ada.Helpers is
                      T := Type_Spec (Declaration (E));
                      if Is_Base_Type (T) then
                         Param2 := Base_Type_TC (FEN.Kind (T));
+                        --  Adding the dependancy on CORBA.Object
+                        if FEN.Kind (T) = K_Object then
+                           Dep_Array (Dep_CORBA_Object) := True;
+                        end if;
                      elsif FEN.Kind (T) = K_Scoped_Name then
                         Param2 := TC_Designator (T);
                      else
@@ -920,6 +996,9 @@ package body Backend.BE_Ada.Helpers is
                   end if;
                end;
 
+            when K_Simple_Declarator =>
+               null;
+
             when K_Enumeration_Type =>
                null;
 
@@ -927,7 +1006,10 @@ package body Backend.BE_Ada.Helpers is
                null;
 
             when K_Exception_Declaration =>
-               null;
+               --  This package depends of the package PolyORB.Exceptions. Its
+               --  initialisation must happens after the PolyORB.Exceptions
+               --  package initialisation.
+               Dep_Array (Dep_Exceptions) := True;
 
             when others =>
                raise Program_Error;
@@ -1018,6 +1100,13 @@ package body Backend.BE_Ada.Helpers is
                         then
                            Param1 := Base_Type_TC
                              (FEN.Kind (Type_Spec (Declaration (Declarator))));
+                           --  Adding the dependancy on CORBA.Object
+                           if FEN.Kind
+                             (Type_Spec (Declaration (Declarator))) =
+                             K_Object
+                           then
+                              Dep_Array (Dep_CORBA_Object) := True;
+                           end if;
                         else
                            raise Program_Error;
                         end if;
@@ -1086,6 +1175,10 @@ package body Backend.BE_Ada.Helpers is
                            if Is_Base_Type (Type_Spec (Member)) then
                               N := Base_Type_TC
                                 (FEN.Kind (Type_Spec (Member)));
+                              --  Adding the dependancy on CORBA.Object
+                              if FEN.Kind (Type_Spec (Member)) = K_Object then
+                                 Dep_Array (Dep_CORBA_Object) := True;
+                              end if;
                            else
                               raise Program_Error;
                            end if;
@@ -1112,7 +1205,7 @@ package body Backend.BE_Ada.Helpers is
                     (Raise_From_Any_Access_Node);
 
                   --  The following workaround is due to the fact that we have
-                  --  no direct acceess to the "Exception_Name"_Raise_From_Any
+                  --  no direct access to the "Exception_Name"_Raise_From_Any
                   --  procedure node because its spec is declared in the helper
                   --  body and not in the helper spec and is not used outside
                   --  the helper package.
@@ -1133,6 +1226,34 @@ package body Backend.BE_Ada.Helpers is
                     (RE (RE_Register_Exception),
                      Make_List_Id
                      (N, Raise_From_Any_Access_Node));
+                  Append_Node_To_List (N, Statements);
+               end;
+
+            when K_Simple_Declarator =>
+               declare
+                  T : Node_Id;
+               begin
+                  T := Type_Spec (Declaration (E));
+                  if Is_Base_Type (T) then
+                     N := Base_Type_TC (FEN.Kind (T));
+                     --  Adding the dependancy on CORBA.Object
+                     if FEN.Kind (T) = K_Object then
+                        Dep_Array (Dep_CORBA_Object) := True;
+                     end if;
+                  elsif FEN.Kind (T) = K_Scoped_Name then
+                     --  The case under which the type is an interface defined
+                     --  type
+                     if FEN.Kind (Reference (T)) = K_Interface_Declaration then
+                        --  Getting the TypeCode constant relative to the
+                        --  parent type.
+                        N := TC_Node
+                          (BE_Node (Identifier (Reference (T))));
+                        N := Defining_Identifier (N);
+                     end if;
+                  else
+                     raise Program_Error;
+                  end if;
+                  N := Add_Parameter (Entity_TC_Name, N);
                   Append_Node_To_List (N, Statements);
                end;
 
@@ -1201,8 +1322,8 @@ package body Backend.BE_Ada.Helpers is
             Helper               : Node_Id;
             TC                   : Node_Id;
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Spec);
+            Spec := From_Any_Node (BE_Node (Identifier (E)));
+
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Result)),
@@ -1268,7 +1389,13 @@ package body Backend.BE_Ada.Helpers is
 
             if Is_Base_Type (Type_Spec (Declaration (E))) then
                TC := Base_Type_TC (FEN.Kind (Type_Spec (Declaration (E))));
-               Helper := RE (RE_From_Any_0);
+               --  The CORBA.Object type has a special conversion functions
+               --  although it is a base type
+               if FEN.Kind (Type_Spec (Declaration (E))) = K_Object then
+                  Helper := RE (RE_From_Any_1);
+               else
+                  Helper := RE (RE_From_Any_0);
+               end if;
             elsif FEN.Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
                TC := TC_Designator
                  (Type_Spec
@@ -1281,11 +1408,8 @@ package body Backend.BE_Ada.Helpers is
                   --  As iac evolves, add the corresponding From_Any nodes
                   case FEN.Kind (Reference) is
                      when K_Enumeration_Type =>
-                        Helper := Helper_Node
+                        Helper := From_Any_Node
                           (BE_Node (Identifier (Reference)));
-                        --  The From_Any function is declared at the second
-                        --  place in the Helper spec
-                        Helper := Next_Node (Helper);
                         Helper := Defining_Identifier (Helper);
                      when others =>
                         Helper := RE (RE_From_Any_0);
@@ -1326,8 +1450,8 @@ package body Backend.BE_Ada.Helpers is
 
          function Enumeration_Type_Body (E : Node_Id) return Node_Id is
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Spec);  --  Second in the list of helpers
+            Spec := From_Any_Node (BE_Node (Identifier (E)));
+
             N := Make_Subprogram_Call
               (RE (RE_Get_Aggregate_Element),
                Make_List_Id
@@ -1369,9 +1493,8 @@ package body Backend.BE_Ada.Helpers is
 
          function Interface_Declaration_Body (E : Node_Id) return Node_Id is
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Spec);  --  Second in the list of helpers
-            --  Spec := Next_Node (Next_Node (Spec));
+            Spec := From_Any_Node (BE_Node (Identifier (E)));
+
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (SN (S_To_Ref)),
                Make_List_Id
@@ -1390,9 +1513,51 @@ package body Backend.BE_Ada.Helpers is
          ----------------------------
 
          function Simple_Declarator_Body (E : Node_Id) return Node_Id is
-            pragma Unreferenced (E);
+            Ref_Id : Node_Id;
          begin
-            return No_Node;
+            Spec := From_Any_Node (BE_Node (Identifier (E)));
+
+
+            if Is_Base_Type (Type_Spec (Declaration (E))) then
+               N := RE (Convert
+                        (FEN.Kind (FEN.Type_Spec (FEN.Declaration (E)))));
+               --  The CORBA.Object type has special conversion functions
+               --  although it is a base type
+               if FEN.Kind (Type_Spec (Declaration (E))) = K_Object then
+                  M := RE (RE_From_Any_1);
+               else
+                  M := RE (RE_From_Any_0);
+               end if;
+            elsif Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
+               N := Map_Designator (Type_Spec (Declaration (E)));
+               Ref_Id := Identifier (Reference (Type_Spec (Declaration (E))));
+               M := Expand_Designator
+                 (From_Any_Node (BE_Node (Ref_Id)));
+            else
+               raise Program_Error;
+            end if;
+
+            M := Make_Subprogram_Call
+              (M,
+               Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Result)),
+               Constant_Present    => True,
+               Object_Definition   => N,
+               Expression          => M);
+            Append_Node_To_List (N, D);
+
+            N := Make_Subprogram_Call
+              (Return_Type (Spec),
+               Make_List_Id (Make_Defining_Identifier (PN (P_Result))));
+
+            N := Make_Return_Statement (N);
+            Append_Node_To_List (N, S);
+
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
          end Simple_Declarator_Body;
 
          -------------------------
@@ -1411,8 +1576,7 @@ package body Backend.BE_Ada.Helpers is
             TC                       : Node_Id;
             Helper                   : Node_Id;
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Spec);
+            Spec := From_Any_Node (BE_Node (Identifier (E)));
 
             N := Make_Object_Declaration
               (Defining_Identifier =>
@@ -1448,7 +1612,15 @@ package body Backend.BE_Ada.Helpers is
                   if Is_Base_Type (Type_Spec (Declaration (Declarator))) then
                      TC := Base_Type_TC
                        (FEN.Kind (Type_Spec (Declaration (Declarator))));
-                     Helper := RE (RE_From_Any_0);
+                     --  The CORBA.Object type has special conversion
+                     --  functions although it is a base type
+                     if FEN.Kind (Type_Spec (Declaration (Declarator))) =
+                       K_Object
+                     then
+                        Helper := RE (RE_From_Any_1);
+                     else
+                        Helper := RE (RE_From_Any_0);
+                     end if;
                   else
                      raise Program_Error;
                   end if;
@@ -1514,8 +1686,7 @@ package body Backend.BE_Ada.Helpers is
             TC_Node     : Node_Id;
          begin
             --  Obtaining the "From_Any" spec node from the helper spec
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Spec);  --  Second in the list of helpers
+            Spec := From_Any_Node (BE_Node (Identifier (E)));
 
             Members := FEN.Members (E);
 
@@ -1765,11 +1936,23 @@ package body Backend.BE_Ada.Helpers is
               RE (RE_Empty));
          Append_Node_To_List (N, Aggregates);
 
+         --  Building the dependancy list of the package
+         N := RE (RE_Empty);
+         for D in Dependancy_Id loop
+            if Dep_Array (D) then
+               V := New_String_Value (DP (D), False);
+               N := Make_Subprogram_Call
+                 (RE (RE_And),
+                  Make_List_Id
+                  (N,
+                   Make_Literal (V)));
+            end if;
+         end loop;
+
          N := Make_Component_Association
            (Selector_Name  =>
               Make_Defining_Identifier (PN (P_Depends)),
-            Expression          =>
-              RE (RE_Empty));
+            Expression     => N);
          Append_Node_To_List (N, Aggregates);
 
          N := Make_Component_Association
@@ -1845,11 +2028,11 @@ package body Backend.BE_Ada.Helpers is
             Enclosing_Statements : List_Id;
             Helper               : Node_Id;
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Next_Node (Spec));
+            Spec := To_Any_Node (BE_Node (Identifier (E)));
+
             N := RE (RE_Get_Empty_Any_Aggregate);
             Helper_Name := BEN.Name
-              (Defining_Identifier (Helper_Node (BE_Node (Identifier (E)))));
+              (Defining_Identifier (TC_Node (BE_Node (Identifier (E)))));
             N := Make_Subprogram_Call
               (N,
                Make_List_Id (Make_Defining_Identifier (Helper_Name)));
@@ -1885,7 +2068,13 @@ package body Backend.BE_Ada.Helpers is
             end loop;
 
             if Is_Base_Type (Type_Spec (Declaration (E))) then
-               Helper := RE (RE_To_Any_0);
+               --  The CORBA.Object type has special conversion functions
+               --  although it is a base type
+               if FEN.Kind (Type_Spec (Declaration (E))) = K_Object then
+                  Helper := RE (RE_To_Any_3);
+               else
+                  Helper := RE (RE_To_Any_0);
+               end if;
             elsif FEN.Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
                declare
                   Reference : constant Node_Id := FEN.Reference
@@ -1894,11 +2083,8 @@ package body Backend.BE_Ada.Helpers is
                   --  As iac evolves, add the corresponding To_Any nodes
                   case FEN.Kind (Reference) is
                      when K_Enumeration_Type =>
-                        Helper := Helper_Node
+                        Helper := To_Any_Node
                           (BE_Node (Identifier (Reference)));
-                        --  The From_Any function is declared at the third
-                        --  place in the Helper spec
-                        Helper := Next_Node (Next_Node (Helper));
                         Helper := Defining_Identifier (Helper);
                      when others =>
                         Helper := RE (RE_To_Any_0);
@@ -1932,11 +2118,11 @@ package body Backend.BE_Ada.Helpers is
 
          function Enumeration_Type_Body (E : Node_Id) return Node_Id is
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Next_Node (Spec));
+            Spec := To_Any_Node (BE_Node (Identifier (E)));
+
             N := RE (RE_Get_Empty_Any_Aggregate);
             Helper_Name := BEN.Name
-              (Defining_Identifier (Helper_Node (BE_Node (Identifier (E)))));
+              (Defining_Identifier (TC_Node (BE_Node (Identifier (E)))));
             N := Make_Subprogram_Call
               (N,
                Make_List_Id (Make_Defining_Identifier (Helper_Name)));
@@ -1974,7 +2160,7 @@ package body Backend.BE_Ada.Helpers is
 
          function Interface_Declaration_Body (E : Node_Id) return Node_Id is
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
+            Spec := TC_Node (BE_Node (Identifier (E)));
 
             --  Getting the identifier of the TC_"Interface_name" variable
             --  declared at the first place in the Helper spec.
@@ -1982,7 +2168,7 @@ package body Backend.BE_Ada.Helpers is
 
             --  Getting the node of the To_Any method spec declared at the 3rd
             --  place of the helper spec.
-            Spec := Next_Node (Next_Node (Spec));
+            Spec := To_Any_Node (BE_Node (Identifier (E)));
             N := Make_Subprogram_Call
               (RE (RE_Ref_2),
                Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
@@ -2010,25 +2196,31 @@ package body Backend.BE_Ada.Helpers is
          ----------------------------
 
          function Simple_Declarator_Body (E : Node_Id) return Node_Id is
+            Ref_Id : Node_Id;
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Next_Node (Spec));
+            Spec := To_Any_Node (BE_Node (Identifier (E)));
 
             if Is_Base_Type (Type_Spec (Declaration (E))) then
                N := RE (Convert
                         (FEN.Kind (FEN.Type_Spec (FEN.Declaration (E)))));
-               M := RE (RE_To_Any_0);
+               --  The CORBA.Object type has special conversion functions
+               --  although it is a base type
+               if FEN.Kind (Type_Spec (Declaration (E))) = K_Object then
+                  M := RE (RE_To_Any_3);
+               else
+                  M := RE (RE_To_Any_0);
+               end if;
             elsif Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
-               N := Identifier (Reference (Type_Spec (Declaration (E))));
+               N := Map_Designator (Type_Spec (Declaration (E)));
+               Ref_Id := Identifier (Reference (Type_Spec (Declaration (E))));
                M := Expand_Designator
-                 (Next_Node (Next_Node (Helper_Node (BE_Node (N)))));
-               N := Map_Designator (N);
+                 (To_Any_Node (BE_Node (Ref_Id)));
             else
                raise Program_Error;
             end if;
 
             Helper_Name := BEN.Name
-              (Defining_Identifier (Helper_Node (BE_Node (Identifier (E)))));
+              (Defining_Identifier (TC_Node (BE_Node (Identifier (E)))));
             N := Make_Subprogram_Call
               (N,
                Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
@@ -2062,11 +2254,11 @@ package body Backend.BE_Ada.Helpers is
             Item_Designator : Node_Id;
             Designator      : Node_Id;
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Next_Node (Spec));
+            Spec := To_Any_Node (BE_Node (Identifier (E)));
+
             N := RE (RE_Get_Empty_Any_Aggregate);
             Helper_Name := BEN.Name
-              (Defining_Identifier (Helper_Node (BE_Node (Identifier (E)))));
+              (Defining_Identifier (TC_Node (BE_Node (Identifier (E)))));
             N := Make_Subprogram_Call
               (N,
                Make_List_Id (Make_Defining_Identifier (Helper_Name)));
@@ -2117,11 +2309,11 @@ package body Backend.BE_Ada.Helpers is
             Case_Label          : Node_Id;
             V                   : Value_Type;
          begin
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node (Next_Node (Spec));
+            Spec := To_Any_Node (BE_Node (Identifier (E)));
+
             N := RE (RE_Get_Empty_Any_Aggregate);
             Helper_Name := BEN.Name
-              (Defining_Identifier (Helper_Node (BE_Node (Identifier (E)))));
+              (Defining_Identifier (TC_Node (BE_Node (Identifier (E)))));
             N := Make_Subprogram_Call
               (N,
                Make_List_Id (Make_Defining_Identifier (Helper_Name)));
@@ -2190,18 +2382,14 @@ package body Backend.BE_Ada.Helpers is
             Member_Type   : Node_Id;
             To_Any_Helper : Node_Id;
          begin
-            --  Obtaining the "To_Any" spec node from the helper spec
-            Spec := Helper_Node (BE_Node (Identifier (E)));
-            Spec := Next_Node
-              (Next_Node
-               (Spec));  --  Third in the list of helpers
+            Spec := To_Any_Node (BE_Node (Identifier (E)));
 
             --  Begin Declarations
 
             --  Obtaining the node corresponding to the declaration of the
             --  TC_"Excp_Name" constant.
 
-            N := Helper_Node (BE_Node (Identifier (E)));
+            N := TC_Node (BE_Node (Identifier (E)));
             N := Defining_Identifier (N);
             N := Make_Subprogram_Call
               (RE (RE_Get_Empty_Any_Aggregate),
@@ -2254,7 +2442,15 @@ package body Backend.BE_Ada.Helpers is
                   while Present (Declarator) loop
 
                      if Is_Base_Type (Member_Type) then
-                        To_Any_Helper := RE (RE_To_Any_0);
+                        --  The CORBA.Object type has special conversion
+                        --  functions although it is a base type
+                        if FEN.Kind (Member_Type)
+                          = K_Object
+                        then
+                           To_Any_Helper := RE (RE_To_Any_3);
+                        else
+                           To_Any_Helper := RE (RE_To_Any_0);
+                        end if;
                      else
                         raise Program_Error;
                      end if;
@@ -2429,8 +2625,7 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Call
            (RE (RE_To_CORBA_Any),
             Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
-         From_Any_Helper := Helper_Node (BE_Node (Identifier (E)));
-         From_Any_Helper := Next_Node (From_Any_Helper);
+         From_Any_Helper := From_Any_Node (BE_Node (Identifier (E)));
          From_Any_Helper := Defining_Identifier (From_Any_Helper);
          N := Make_Subprogram_Call
            (From_Any_Helper,
@@ -2714,20 +2909,28 @@ package body Backend.BE_Ada.Helpers is
          L : List_Id;
          D : Node_Id;
          N : Node_Id;
+         T : Node_Id;
       begin
          Set_Helper_Body;
          L := Declarators (E);
          D := First_Entity (L);
          while Present (D) loop
-            Append_Node_To_List
-              (From_Any_Body (D), Statements (Current_Package));
-            Append_Node_To_List
-              (To_Any_Body (D), Statements (Current_Package));
-
-            if FEN.Kind (D) = K_Complex_Declarator then
-               N := Deferred_Initialization_Block (D);
-               Append_Node_To_List (N, Deferred_Initialization_Body);
+            --  If the new type is defined basing on an interface type, then
+            --  we dont generate From_Any nor To_Any. We use those of the
+            --  original type.
+            T := Type_Spec (E);
+            if FEN.Kind (T) = K_Scoped_Name and then
+              FEN.Kind (Reference (T)) = K_Interface_Declaration then
+               null; --  We add nothing
+            else
+               Append_Node_To_List
+                 (From_Any_Body (D), Statements (Current_Package));
+               Append_Node_To_List
+                 (To_Any_Body (D), Statements (Current_Package));
             end if;
+
+            N := Deferred_Initialization_Block (D);
+            Append_Node_To_List (N, Deferred_Initialization_Body);
 
             D := Next_Entity (D);
          end loop;

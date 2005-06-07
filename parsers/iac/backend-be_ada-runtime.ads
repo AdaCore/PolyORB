@@ -171,6 +171,7 @@ package Backend.BE_Ada.Runtime is
       RE_Raise_From_Any,            --  PolyORB.CORBA_P.
                                     --     Exceptions.Raise_From_Any
       RE_Add,                       --  PolyORB.Utils.Strings."+"
+      RE_And,                       --  PolyORB.Utils.Strings.Lists."&"
       RE_Empty,                     --  PolyORB.Utils.Strings.Lists.Empty
       RE_Register_Skeleton,         --  PortableServer.Internals.
                                     --    Register_Skeleton
@@ -302,6 +303,7 @@ package Backend.BE_Ada.Runtime is
          RE_Identifier              => RU_PolyORB_Types,
          RE_To_PolyORB_String       => RU_PolyORB_Types,
          RE_Add                     => RU_PolyORB_Utils_Strings,
+         RE_And                     => RU_PolyORB_Utils_Strings_Lists,
          RE_Empty                   => RU_PolyORB_Utils_Strings_Lists,
          RE_Register_Skeleton       => RU_PortableServer_Internals,
          RE_Servant                 => RU_PortableServer,

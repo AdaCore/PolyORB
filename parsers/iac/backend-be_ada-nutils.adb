@@ -531,6 +531,20 @@ package body Backend.BE_Ada.Nutils is
          Capitalize (Name_Buffer (1 .. Name_Len));
          GN (G) := Name_Find;
       end loop;
+
+      for D in Dependancy_Id loop
+         Set_Str_To_Name_Buffer (Dependancy_Id'Image (D));
+         Set_Str_To_Name_Buffer (Name_Buffer (5 .. Name_Len));
+         To_Lower (Name_Buffer (1 .. Name_Len));
+         --  Replacing any '_' with '.'
+         for Index in 1 .. Name_Len loop
+            if Name_Buffer (Index) = '_' then
+               Name_Buffer (Index) := '.';
+            end if;
+         end loop;
+         DP (D) := Name_Find;
+      end loop;
+
    end Initialize;
 
    --------------
@@ -765,7 +779,8 @@ package body Backend.BE_Ada.Nutils is
      (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
-      Is_Private_Extention  : Boolean := False)
+      Is_Private_Extention  : Boolean := False;
+      Is_Subtype            : Boolean := False)
      return Node_Id
    is
       N : Node_Id;
@@ -776,6 +791,7 @@ package body Backend.BE_Ada.Nutils is
       Set_Is_Private_Extention (N, Is_Private_Extention);
       Set_Subtype_Indication (N, Subtype_Indication);
       Set_Record_Extension_Part (N, Record_Extension_Part);
+      Set_Is_Subtype (N, Is_Subtype);
       return N;
    end Make_Derived_Type_Definition;
 
@@ -804,6 +820,10 @@ package body Backend.BE_Ada.Nutils is
 
       return N;
    end Make_Designator;
+
+   --------------------------
+   -- Make_Elsif_Statement --
+   --------------------------
 
    function Make_Elsif_Statement
      (Condition       : Node_Id;
@@ -896,7 +916,8 @@ package body Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
       Discriminant_Spec   : Node_Id := No_Node;
-      Parent              : Node_Id := No_Node)
+      Parent              : Node_Id := No_Node;
+      Is_Subtype          : Boolean := False)
      return Node_Id
    is
       N : Node_Id;
@@ -911,6 +932,7 @@ package body Backend.BE_Ada.Nutils is
       else
          Set_Parent (N, Current_Package);
       end if;
+      Set_Is_Subtype (N, Is_Subtype);
       return N;
    end Make_Full_Type_Declaration;
 

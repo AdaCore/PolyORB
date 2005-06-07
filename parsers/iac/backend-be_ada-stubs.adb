@@ -375,8 +375,6 @@ package body Backend.BE_Ada.Stubs is
             return Result;
          end Map_Correct_Designator;
 
-
-
       begin
          Profile := New_List (K_Parameter_Profile);
 
@@ -487,13 +485,37 @@ package body Backend.BE_Ada.Stubs is
       ----------------------------
 
       procedure Visit_Type_Declaration (E : Node_Id) is
-         D : Node_Id;
-         T : Node_Id;
-         N : Node_Id;
-
+         D          : Node_Id;
+         T          : Node_Id;
+         N          : Node_Id;
+         Is_Subtype : Boolean := False;
       begin
+         --  According to the Ada mapping specification. Most of the type
+         --  definitions in an IDL file should be mapped to :
+         --  "type ... is new ...;"
+         --  However, there are exception to this rule :
+         --  "interface Base {...};
+         --   typedef Base Root;"
+         --  sould be mapped : "subtype Root is Base.Ref;"
+
          Set_Main_Spec;
          T := Map_Designator (Type_Spec (E));
+
+         --  Determining wether we map the type definition to a "type ... is
+         --  new ...;" or a "subtype ... is ...;" statement.
+
+         --  1st case : an interface derived type
+         if FEN.Kind (Type_Spec (E)) = K_Scoped_Name
+           and then FEN.Kind (Reference (Type_Spec (E))) =
+           K_Interface_Declaration then
+            Is_Subtype := True;
+         end if;
+
+         --  2nd case : a CORBA.Object derived type
+         if FEN.Kind (Type_Spec (E)) = K_Object then
+            Is_Subtype := True;
+         end if;
+
          D := First_Entity (Declarators (E));
          while Present (D) loop
             if Kind (D) = K_Complex_Declarator then
@@ -506,7 +528,9 @@ package body Backend.BE_Ada.Stubs is
                  (Defining_Identifier => Map_Defining_Identifier (D),
                   Type_Definition     => Make_Derived_Type_Definition
                   (Subtype_Indication    => T,
-                   Record_Extension_Part => No_Node));
+                   Record_Extension_Part => No_Node,
+                   Is_Subtype => Is_Subtype),
+                  Is_Subtype => Is_Subtype);
             end if;
             Bind_FE_To_Stub (Identifier (D), N);
             Append_Node_To_List
@@ -909,9 +933,8 @@ package body Backend.BE_Ada.Stubs is
             while Present (Excep_FE) loop
                --  Getting the TC_"Exception_Name" identifier. It is declarated
                --  at the first place in the Helper spec.
-               Excep_TC := Helper_Node
+               Excep_TC := TC_Node
                  (BE_Node (Identifier (Reference (Excep_FE))));
-               --  Excep_TC := Defining_Identifier (Excep_TC);
                Excep_TC := Expand_Designator (Excep_TC);
                N := Make_Subprogram_Call
                  (RE (RE_Add_1),
@@ -956,11 +979,11 @@ package body Backend.BE_Ada.Stubs is
            (Identifier (FE_Node (Return_T)));
 
          if FEN.Kind (Param) = K_Scoped_Name then
-            Param := Helper_Node
+            Param := TC_Node
               (BE_Node (Identifier
                         (Reference (Param))));
          else
-            Param := Helper_Node
+            Param := TC_Node
               (BE_Node (Identifier (Param)));
          end if;
 
@@ -1141,18 +1164,24 @@ package body Backend.BE_Ada.Stubs is
       if Present (Return_T) then
 
          if Is_Base_Type (BEN.FE_Node (Return_T)) then
-            N := RE (RE_From_Any_0);
+            --  The CORBA.Object type has a special conversion
+            --  functions although it is a base type
+            if FEN.Kind (BEN.FE_Node (Return_T)) = K_Object then
+               N := RE (RE_From_Any_1);
+            else
+               N := RE (RE_From_Any_0);
+            end if;
          else
             N := Identifier (FE_Node (Return_T));
 
             if Kind (FE_Node (Return_T)) = K_Scoped_Name then
-               N := Helper_Node
+               N := From_Any_Node
                  (BE_Node (Identifier (Reference (Corresponding_Entity (N)))));
             else
-               N := Helper_Node (BE_Node (N));
+               N := From_Any_Node (BE_Node (N));
             end if;
 
-               N := Expand_Designator (Next_Node (N));
+               N := Expand_Designator (N);
          end if;
 
          C := Make_Subprogram_Call
@@ -1184,15 +1213,20 @@ package body Backend.BE_Ada.Stubs is
 
                   Par_Type := BEN.FE_Node (Parameter_Type (I));
                   if Is_Base_Type (Par_Type) then
-                     From_Any_Helper := RE (RE_From_Any_0);
+                     --  The CORBA.Object type has a special conversion
+                     --  functions although it is a base type
+                     if FEN.Kind (Par_Type) = K_Object then
+                        From_Any_Helper := RE (RE_From_Any_1);
+                     else
+                        From_Any_Helper := RE (RE_From_Any_0);
+                     end if;
                   else
                      if FEN.Kind (Par_Type) = K_Scoped_Name then
                         Par_Type := Reference (Par_Type);
                      end if;
                      C := Identifier (Par_Type);
-                     C := Helper_Node (BE_Node (C));
-                     From_Any_Helper := Expand_Designator
-                       (Next_Node (C));
+                     C := From_Any_Node (BE_Node (C));
+                     From_Any_Helper := Expand_Designator (C);
                   end if;
                   N := Make_Subprogram_Call
                     (From_Any_Helper,
@@ -1292,7 +1326,13 @@ package body Backend.BE_Ada.Stubs is
                    (Parameter_Type (I))));
 
             else
-               D := RE (RE_To_Any_0);
+               --  The CORBA.Object type has a special conversion
+               --  functions although it is a base type
+               if FEN.Kind (BEN.FE_Node (Parameter_Type (I))) = K_Object then
+                  D := RE (RE_To_Any_3);
+               else
+                  D := RE (RE_To_Any_0);
+               end if;
             end if;
 
          else
@@ -1309,21 +1349,20 @@ package body Backend.BE_Ada.Stubs is
                   (BEN.FE_Node
                    (Parameter_Type (I))));
                if FEN.Kind (TC_Node) = K_Scoped_Name then
-                  TC_Node := Helper_Node
+                  TC_Node := BEN.TC_Node
                     (BE_Node
                      (Identifier
                       (Reference (TC_Node))));
                else
-                  TC_Node := Helper_Node
+                  TC_Node := BEN.TC_Node
                     (BE_Node
                      (Identifier (TC_Node)));
                end if;
                TC_Node := Expand_Designator (TC_Node);
             else
                D := Identifier (FE_Node (Parameter_Type (I)));
-               D := Helper_Node
+               D := To_Any_Node
                  (BE_Node (Identifier (Reference (Corresponding_Entity (D)))));
-               D := Next_Node (Next_Node (D));
                --  Get the types of the argument of the To_Any function and
                --  of the actual parameter
                To_Any_Type_Name := Fully_Qualified_Name

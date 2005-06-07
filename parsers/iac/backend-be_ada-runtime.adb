@@ -176,6 +176,10 @@ package body Backend.BE_Ada.Runtime is
             Set_Str_To_Name_Buffer (Quoted ("+"));
          end if;
 
+         if E = RE_And then
+            Set_Str_To_Name_Buffer (Quoted ("&"));
+         end if;
+
          Name := Name_Find;
 
          RED (E) := New_Node (K_Designator);

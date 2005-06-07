@@ -240,10 +240,8 @@ package body Backend.BE_Ada.Skels is
 
             --  Getting the node corresponding to the declaration of the
             --  To_Any procedure in the helper package.
-            --  This procedure is declared at the 3rd place in the helper spec.
 
-            N := Helper_Node (BE_Node (Identifier (Reference (E))));
-            N := Next_Node (Next_Node ((N)));
+            N := To_Any_Node (BE_Node (Identifier (Reference (E))));
 
             N := Make_Subprogram_Call
               (Expand_Designator (N),
@@ -337,7 +335,7 @@ package body Backend.BE_Ada.Skels is
                      C := Reference (C);
                   end if;
 
-                  C := Helper_Node
+                  C := TC_Node
                     (BE_Node
                      (Identifier (C)));
                   TC := Expand_Designator (C);
@@ -434,15 +432,20 @@ package body Backend.BE_Ada.Skels is
                           BEN.FE_Node (Parameter_Type (Param));
                      begin
                         if Is_Base_Type (Par_Type) then
-                           From_Any_Helper := RE (RE_From_Any_0);
+                           --  The CORBA.Object type has a special conversion
+                           --  functions although it is a base type
+                           if FEN.Kind (Par_Type) = K_Object then
+                              From_Any_Helper := RE (RE_From_Any_1);
+                           else
+                              From_Any_Helper := RE (RE_From_Any_0);
+                           end if;
                         else
                            if FEN.Kind (Par_Type) = K_Scoped_Name then
                               Par_Type := Reference (Par_Type);
                            end if;
                            C := Identifier (Par_Type);
-                           C := Helper_Node (BE_Node (C));
-                           From_Any_Helper := Expand_Designator
-                             (Next_Node (C));
+                           C := From_Any_Node (BE_Node (C));
+                           From_Any_Helper := Expand_Designator (C);
                         end if;
                      end;
 
@@ -515,16 +518,21 @@ package body Backend.BE_Ada.Skels is
             FE := FE_Node (Return_Type (S));
 
             if Is_Base_Type (FE) then
-               To_Any_Helper := RE (RE_To_Any_0);
+               --  The CORBA.Object type has a special conversion
+               --  functions although it is a base type
+               if FEN.Kind (FE) = K_Object then
+                  To_Any_Helper := RE (RE_To_Any_3);
+               else
+                  To_Any_Helper := RE (RE_To_Any_0);
+               end if;
             else
                if FEN.Kind (FE) = K_Scoped_Name then
                   FE := Reference (FE);
                end if;
 
-               To_Any_Helper := Helper_Node
+               To_Any_Helper := To_Any_Node
                  (BE_Node (Identifier (FE)));
-               To_Any_Helper := Expand_Designator
-                 (Next_Node (Next_Node (To_Any_Helper)));
+               To_Any_Helper := Expand_Designator (To_Any_Helper);
             end if;
 
             C := Make_Subprogram_Call
@@ -554,15 +562,20 @@ package body Backend.BE_Ada.Skels is
                        BEN.FE_Node (Parameter_Type (Param));
                   begin
                      if Is_Base_Type (Par_Type) then
-                        To_Any_Helper := RE (RE_To_Any_0);
+                        --  The CORBA.Object type has a special conversion
+                        --  functions although it is a base type
+                        if FEN.Kind (Par_Type) = K_Object then
+                           To_Any_Helper := RE (RE_To_Any_3);
+                        else
+                           To_Any_Helper := RE (RE_To_Any_0);
+                        end if;
                      else
                         if FEN.Kind (Par_Type) = K_Scoped_Name then
                            Par_Type := Reference (Par_Type);
                         end if;
                         C := Identifier (Par_Type);
-                        C := Helper_Node (BE_Node (C));
-                        To_Any_Helper := Expand_Designator
-                          (Next_Node (Next_Node (C)));
+                        C := To_Any_Node (BE_Node (C));
+                        To_Any_Helper := Expand_Designator (C);
                      end if;
                   end;
 

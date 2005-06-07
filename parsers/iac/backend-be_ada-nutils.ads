@@ -259,6 +259,12 @@ package Backend.BE_Ada.Nutils is
 
    GN : array (Pragma_Id) of Name_Id;
 
+   type Dependancy_Id is
+     (Dep_Exceptions,
+      Dep_CORBA_Object);
+
+   DP : array (Dependancy_Id) of Name_Id;
+
    function Add_Prefix_To_Name
      (Prefix : String;
       Name   : Name_Id)
@@ -380,7 +386,8 @@ package Backend.BE_Ada.Nutils is
      (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
-      Is_Private_Extention  : Boolean := False)
+      Is_Private_Extention  : Boolean := False;
+      Is_Subtype            : Boolean := False)
      return Node_Id;
 
    function Make_Designator
@@ -418,7 +425,8 @@ package Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
       Discriminant_Spec   : Node_Id := No_Node;
-      Parent              : Node_Id := No_Node)
+      Parent              : Node_Id := No_Node;
+      Is_Subtype          : Boolean := False)
      return Node_Id;
 
    function Make_If_Statement
