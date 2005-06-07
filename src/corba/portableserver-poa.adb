@@ -42,6 +42,7 @@ with PortableServer.ServantLocator;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
+with PolyORB.CORBA_P.Initial_References;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -89,24 +90,22 @@ package body PortableServer.POA is
    ----------------------------------
 
    procedure Associate_To_Domain_Managers (P_Servant : in Servant) is
-      Policy_Manager : CORBA.DomainManager.Ref;
+      use PolyORB.CORBA_P.Initial_References;
+
+      Policy_Manager : constant CORBA.DomainManager.Ref
+        := CORBA.DomainManager.Helper.To_Ref
+        (Resolve_Initial_References ("PolyORBPolicyDomainManager"));
+
       Note           : PolyORB.CORBA_P.Domain_Management.Domain_Manager_Note;
 
    begin
+      if CORBA.DomainManager.Is_Nil (Policy_Manager) then
+         pragma Debug (O ("No policy domain manager registered"));
+         return;
+      end if;
+
       --  Associate activated servant with domain managers. For now we just
       --  add policy domain manager into list of object domain managers.
-
-      begin
-         Policy_Manager
-           := CORBA.DomainManager.Helper.To_Ref
-           (CORBA.ORB.Resolve_Initial_References
-            (CORBA.ORB.To_CORBA_String ("PolyORBPolicyDomainManager")));
-
-      exception
-         when CORBA.InvalidName =>
-            pragma Debug (O ("No policy domain manager registered"));
-            return;
-      end;
 
       CORBA.DomainManager.IDL_Sequence_DomainManager.Append
         (Note.Domain_Managers, Policy_Manager);
