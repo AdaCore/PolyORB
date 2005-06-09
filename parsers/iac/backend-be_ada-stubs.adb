@@ -550,15 +550,31 @@ package body Backend.BE_Ada.Stubs is
          S : constant Node_Id := Switch_Type_Spec (E);
          T : Node_Id;
          L : List_Id;
+         Literal_Parent : Node_Id := No_Node;
+
 
       begin
          Set_Main_Spec;
          T := Map_Designator (S);
+
+         --  If the discriminator is an enumeration type, we must put the
+         --  full names of literals
+         if not Is_Base_Type (S) and then
+           FEN.Kind (S) = K_Scoped_Name then
+            Literal_Parent := Map_Designator
+              (Scope_Entity
+               (Identifier
+                (Reference
+                 (S))));
+         end if;
+
          L := New_List (K_Component_List);
          Append_Node_To_List
            (Make_Variant_Part
             (Make_Defining_Identifier (CN (C_Switch)),
-             Map_Variant_List (Switch_Type_Body (E))),
+             Map_Variant_List
+             (Switch_Type_Body (E),
+              Literal_Parent)),
             L);
          N := Make_Full_Type_Declaration
            (Map_Defining_Identifier (E),

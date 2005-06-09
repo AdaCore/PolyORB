@@ -693,7 +693,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
    ----------------------
 
    function Map_Variant_List
-     (Alternatives : List_Id)
+     (Alternatives   : List_Id;
+      Literal_Parent : Node_Id := No_Node)
      return List_Id
    is
 
@@ -717,10 +718,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
          Element := FEN.Element (Alternative);
          while Present (Label) loop
 
-            --  XXX LP this does not work for enumeration type. We
-            --  need a fully qualified notation.
-
-            Choice := Make_Literal (FEN.Value (Label));
+            Choice := Make_Literal
+              (Value             => FEN.Value (Label),
+               Parent_Designator => Literal_Parent);
             Append_Node_To_List (Choice, Choices);
             Label := Next_Entity (Label);
          end loop;

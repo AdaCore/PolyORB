@@ -90,7 +90,8 @@ package Backend.BE_Ada.IDL_To_Ada is
      return Node_Id;
 
    function Map_Variant_List
-     (Alternatives : List_Id)
+     (Alternatives   : List_Id;
+      Literal_Parent : Node_Id := No_Node)
      return List_Id;
 
 end Backend.BE_Ada.IDL_To_Ada;

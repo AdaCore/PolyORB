@@ -7,6 +7,7 @@ with Backend.BE_Ada.Nodes;    use Backend.BE_Ada.Nodes;
 package Backend.BE_Ada.Nutils is
 
    Int0_Val : Value_Id;
+   Int1_Val : Value_Id;
    Var_Suffix : constant String := "_Ü";
 
    type Token_Type is
@@ -198,6 +199,8 @@ package Backend.BE_Ada.Nutils is
       V_Id,
       V_Impl_Object_Ptr,
       V_Index,
+      V_Label,
+      V_Label_Any,
       V_Members,
       V_Name,
       V_Operation_Name,
@@ -443,7 +446,9 @@ package Backend.BE_Ada.Nutils is
      return List_Id;
 
    function Make_Literal
-     (Value : Value_Id)
+     (Value             : Value_Id;
+      Has_Parentheses   : Boolean := False;
+      Parent_Designator : Node_Id := No_Node)
      return Node_Id;
 
    function Make_Object_Declaration

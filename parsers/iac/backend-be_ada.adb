@@ -131,6 +131,7 @@ package body Backend.BE_Ada is
       Runtime.Initialize;
       Set_Space_Increment (3);
       Int0_Val := New_Integer_Value (0, 1, 10);
+      Int1_Val := New_Integer_Value (1, 1, 10);
       Nutils.Initialize;
    end Initialize;
 

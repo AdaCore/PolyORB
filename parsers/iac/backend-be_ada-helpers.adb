@@ -300,7 +300,7 @@ package body Backend.BE_Ada.Helpers is
                P := RE (RE_TC_Struct);
 
             when K_Union_Type =>
-               null;
+               P := RE (RE_TC_Union);
 
             when K_Exception_Declaration =>
                P := RE (RE_TC_Except);
@@ -1005,6 +1005,9 @@ package body Backend.BE_Ada.Helpers is
             when K_Structure_Type =>
                null;
 
+            when K_Union_Type =>
+               null;
+
             when K_Exception_Declaration =>
                --  This package depends of the package PolyORB.Exceptions. Its
                --  initialisation must happens after the PolyORB.Exceptions
@@ -1061,6 +1064,225 @@ package body Backend.BE_Ada.Helpers is
                      Enum_Item := Next_Node (Enum_Item);
                      exit when No (Enum_Item);
                   end loop;
+               end;
+
+            when K_Union_Type =>
+               declare
+                  Switch_Alternative  : Node_Id;
+                  Choice              : Node_Id;
+                  Choices             : List_Id;
+                  Label               : Node_Id;
+                  To_Any_Helper       : Node_Id;
+                  TC_Helper           : Node_Id;
+                  Declarator          : Node_Id;
+                  Designator          : Node_Id;
+                  Arg_Name            : Name_Id;
+                  Switch_Type         : Node_Id;
+                  Literal_Parent      : Node_Id := No_Node;
+                  Statements_List     : constant List_Id :=
+                    New_List (K_List_Id);
+                  Default_Index       : Value_Id :=
+                    New_Integer_Value (0, 1, 10); --  (0)
+                  There_Is_Default    : Boolean           :=
+                    False;
+               begin
+                  --  Getting the dicriminator type and the To_Any node
+                  --  corresponding to it
+                  if Is_Base_Type (Switch_Type_Spec (E)) then
+                     TC_Helper := Base_Type_TC
+                       (FEN.Kind (Switch_Type_Spec (E)));
+                     Switch_Type := RE
+                       (Convert
+                        (FEN.Kind
+                         (Switch_Type_Spec (E))));
+                     --  The CORBA.Object type uses converting functions
+                     --  located in the CORBA.Objject.Helper package.
+                     if FEN.Kind (Switch_Type_Spec (E)) = K_Object then
+                        To_Any_Helper := RE (RE_To_Any_3);
+                     else
+                        To_Any_Helper := RE (RE_To_Any_0);
+                     end if;
+                  elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
+                     To_Any_Helper := To_Any_Node
+                       (BE_Node
+                        (Identifier
+                         (Reference
+                          (Switch_Type_Spec (E)))));
+                     To_Any_Helper := Copy_Node
+                       (Defining_Identifier (To_Any_Helper));
+                     TC_Helper := TC_Node
+                       (BE_Node
+                        (Identifier
+                         (Reference
+                          (Switch_Type_Spec (E)))));
+                     TC_Helper := Copy_Node
+                       (Defining_Identifier (TC_Helper));
+                     Switch_Type := Map_Designator (Switch_Type_Spec (E));
+                     Literal_Parent := Map_Designator
+                       (Scope_Entity
+                        (Identifier
+                         (Reference
+                          (Switch_Type_Spec (E)))));
+                  end if;
+
+                  --  The third parameter is the discriminator type
+                  N := Add_Parameter (Entity_TC_Name, TC_Helper);
+                  Append_Node_To_List (N, Statements);
+
+                  --  The forth parameter is the index of default case as a
+                  --  long. we put the ramining parameter in an intermediary
+                  --  list. When we get the defaul case index, we add the
+                  --  intermediari list to the statements list.
+
+                  --  Switch_Alternatives := New_List (K_Variant_List);
+                  Switch_Alternative := First_Entity (Switch_Type_Body (E));
+                  while Present (Switch_Alternative) loop
+                     --  Variant := New_Node (K_Variant);
+                     Choices := New_List (K_List_Id);
+                     --  Set_Discrete_Choices (Variant, Choices);
+                     Label   := First_Entity (Labels (Switch_Alternative));
+                     while Present (Label) loop
+
+                        Choice := Make_Literal
+                          (Value             => FEN.Value (Label),
+                           Has_Parentheses   => True,
+                           Parent_Designator => Literal_Parent);
+                        --  If this is not a case statement, then we increment
+                        --  the default case index. The value of Default_Index
+                        --  will be correctly set up after the end of the two
+                        --  loops.
+                        if BEN.Value (Choice) /= No_Value then
+                           Set_Value
+                             (Default_Index,
+                              Value (Default_Index) + Value (Int1_Val));
+                        else
+                           There_Is_Default := True;
+                        end if;
+
+                        Append_Node_To_List (Choice, Choices);
+                        Label := Next_Entity (Label);
+                     end loop;
+
+                     --  Getting the TC_XXX constant corresponding to the
+                     --  element type.
+
+                     if Is_Base_Type
+                       (Type_Spec (Element (Switch_Alternative)))
+                     then
+                        TC_Helper := Base_Type_TC
+                          (FEN.Kind
+                           (Type_Spec
+                            (Element
+                             (Switch_Alternative))));
+                     elsif FEN.Kind
+                       (Type_Spec
+                        (Element (Switch_Alternative))) = K_Scoped_Name
+                     then
+                        TC_Helper := TC_Node
+                          (BE_Node
+                           (Identifier
+                            (Reference
+                             (Type_Spec
+                              (Element
+                               (Switch_Alternative))))));
+                        TC_Helper := Copy_Node
+                          (Defining_Identifier (TC_Helper));
+                     end if;
+
+                     --  Declaring the argument name "Element" string
+
+                     Declarator := FEN.Declarator
+                       (Element (Switch_Alternative));
+                     Designator := Map_Designator (Declarator);
+                     Get_Name_String (VN (V_Argument_Name));
+                     Add_Char_To_Name_Buffer ('_');
+                     Get_Name_String_And_Append
+                       (BEN.Name (Defining_Identifier (Designator)));
+                     Arg_Name := Name_Find;
+                     N := Make_Literal
+                       (New_String_Value
+                        (BEN.Name (Defining_Identifier (Designator)),
+                         False));
+                     N := Make_Subprogram_Call
+                       (RE (RE_To_CORBA_String),
+                        Make_List_Id (N));
+                     N := Make_Object_Declaration
+                       (Defining_Identifier =>
+                          Make_Defining_Identifier (Arg_Name),
+                        Object_Definition   => RE (RE_String_0),
+                        Expression          => N);
+                     Append_Node_To_List (N, Declarative_Part);
+
+                     --  For each case statement, 3 parameters are added :
+                     --  * member label
+                     --  * member type
+                     --  * member name
+                     --  This implies that the same element may be declared
+                     --  more than once but with a different label.
+                     Choice := First_Node (Choices);
+                     while Present (Choice) loop
+                        if BEN.Value (Choice) /= No_Value then
+                           N := Choice;
+
+                           N := Make_Qualified_Expression
+                             (Subtype_Mark => Switch_Type, --  RE (RE_Long),
+                              Aggregate    => N);
+                           N := Make_Subprogram_Call
+                             (To_Any_Helper,
+                              Make_List_Id (N));
+                           N := Add_Parameter (Entity_TC_Name, N);
+                           Append_Node_To_List (N, Statements_List);
+
+                           N := Add_Parameter (Entity_TC_Name, TC_Helper);
+                           Append_Node_To_List (N, Statements_List);
+
+                           N := Add_Parameter
+                             (Entity_TC_Name,
+                              Make_Defining_Identifier (Arg_Name));
+                           Append_Node_To_List (N, Statements_List);
+                        else --  The default case
+                           N := Make_Type_Attribute (Switch_Type, A_First);
+
+                           N := Make_Subprogram_Call
+                             (To_Any_Helper,
+                              Make_List_Id (N));
+                           N := Add_Parameter (Entity_TC_Name, N);
+                           Append_Node_To_List (N, Statements_List);
+
+                           N := Add_Parameter (Entity_TC_Name, TC_Helper);
+                           Append_Node_To_List (N, Statements_List);
+
+                           N := Add_Parameter
+                             (Entity_TC_Name,
+                              Make_Defining_Identifier (Arg_Name));
+                           Append_Node_To_List (N, Statements_List);
+
+                        end if;
+                        Choice := Next_Node (Choice);
+                     end loop;
+
+                     Switch_Alternative := Next_Entity (Switch_Alternative);
+                  end loop;
+                  if not There_Is_Default then
+                     Default_Index := New_Integer_Value (1, -1, 10); --  (-1)
+                  end if;
+
+                  --  Forth parameter
+                  N := Make_Literal
+                    (Value           => Default_Index,
+                     Has_Parentheses => True);
+                  N := Make_Qualified_Expression
+                    (Subtype_Mark => RE (RE_Long),
+                     Aggregate    => N);
+                  N := Add_Parameter (Entity_TC_Name, N);
+                  Append_Node_To_List (N, Statements);
+
+                  --  Ajouter la liste Statements_List a la fin de la liste
+                  --  statements (il suffit d'ajouter le premier element)
+                  Append_Node_To_List
+                    (First_Node (Statements_List),
+                     Statements);
+
                end;
 
             when K_Structure_Type =>
@@ -1659,14 +1881,244 @@ package body Backend.BE_Ada.Helpers is
             return N;
          end Structure_Type_Body;
 
-         ----------------
-         -- Union_Body --
-         ----------------
+         ---------------------
+         -- Union_Type_Body --
+         ---------------------
 
          function Union_Type_Body (E : Node_Id) return Node_Id is
-            pragma Unreferenced (E);
+            Alternative_Name    : Name_Id;
+            Switch_Alternative  : Node_Id;
+            Switch_Alternatives : List_Id;
+            Variant             : Node_Id;
+            Choice              : Node_Id;
+            Choices             : List_Id;
+            Label               : Node_Id;
+            From_Any_Helper     : Node_Id;
+            TC_Helper           : Node_Id;
+            Switch_Type         : Node_Id;
+            Block_List          : List_Id;
+            Literal_Parent      : Node_Id := No_Node;
          begin
-            return No_Node;
+            Spec := From_Any_Node (BE_Node (Identifier (E)));
+
+            --  Declarative Part
+
+            --  Getting the From_Any function the TC_XXX constant and the
+            --  Ada type nodes corresponding to the discriminant type.
+            if Is_Base_Type (Switch_Type_Spec (E)) then
+
+               TC_Helper := Base_Type_TC (FEN.Kind (Switch_Type_Spec (E)));
+               Switch_Type := RE (Convert (FEN.Kind (Switch_Type_Spec (E))));
+               --  The CORBA.Object type uses converting functions located in
+               --  the CORBA.Objject.Helper package.
+               if FEN.Kind (Switch_Type_Spec (E)) = K_Object then
+                  From_Any_Helper := RE (RE_From_Any_1);
+               else
+                  From_Any_Helper := RE (RE_From_Any_0);
+               end if;
+            elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
+               From_Any_Helper := From_Any_Node
+                 (BE_Node
+                  (Identifier
+                   (Reference
+                    (Switch_Type_Spec (E)))));
+               From_Any_Helper := Copy_Node
+                 (Defining_Identifier (From_Any_Helper));
+
+               TC_Helper := TC_Node
+                 (BE_Node
+                  (Identifier
+                   (Reference
+                    (Switch_Type_Spec (E)))));
+               TC_Helper := Copy_Node (Defining_Identifier (TC_Helper));
+
+               Switch_Type := Map_Designator (Switch_Type_Spec (E));
+               Literal_Parent := Map_Designator
+                 (Scope_Entity
+                  (Identifier
+                   (Reference
+                    (Switch_Type_Spec (E)))));
+            end if;
+
+            --  Declaration of the "Label_Any" Variable.
+
+            N := Make_Subprogram_Call
+              (RE (RE_Get_Aggregate_Element),
+               Make_List_Id
+               (Make_Designator (PN (P_Item)),
+                TC_Helper,
+                Make_Subprogram_Call
+                (RE (RE_Unsigned_Long),
+                 Make_List_Id (Make_Literal (Int0_Val)))));
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Label_Any)),
+               Object_Definition   => RE (RE_Any),
+               Expression          => N);
+            Append_Node_To_List (N, D);
+
+            --  Converting the "Label_Value" to to the discriminant type.
+
+            N := Make_Subprogram_Call
+              (From_Any_Helper,
+               Make_List_Id
+               (Make_Defining_Identifier (VN (V_Label_Any))));
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Label)),
+               Constant_Present    => True,
+               Object_Definition   => Switch_Type,
+               Expression          => N);
+            Append_Node_To_List (N, D);
+
+            --  Declaring the "Result" variable
+            N := Make_Subprogram_Call
+              (Copy_Designator (Return_Type (Spec)),
+               Make_List_Id
+               (Make_Defining_Identifier (VN (V_Label))));
+
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Result)),
+               Object_Definition => N);
+            Append_Node_To_List (N, D);
+
+            --  Declaring the "Index" variable
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Index)),
+               Object_Definition   => RE (RE_Any));
+            Append_Node_To_List (N, D);
+
+            --  According to the IDL grammar, each "case" alternative contains
+            --  exactly 1 element. So, there is no need to declare the "I"
+            --  variable like it is done by Idlac.
+
+            --  Statements
+
+            Switch_Alternatives := New_List (K_Variant_List);
+            Switch_Alternative := First_Entity (Switch_Type_Body (E));
+            while Present (Switch_Alternative) loop
+               Variant := New_Node (K_Variant);
+               Choices := New_List (K_Discrete_Choice_List);
+               Set_Discrete_Choices (Variant, Choices);
+               Label   := First_Entity (Labels (Switch_Alternative));
+               while Present (Label) loop
+
+                  Choice := Make_Literal
+                    (Value             => FEN.Value (Label),
+                     Parent_Designator => Literal_Parent);
+                  Append_Node_To_List (Choice, Choices);
+                  Label := Next_Entity (Label);
+               end loop;
+               Get_Name_String (PN (P_Result));
+               Add_Char_To_Name_Buffer ('.');
+               Get_Name_String_And_Append
+                 (FEN.Name (Identifier
+                            (Declarator (Element (Switch_Alternative)))));
+               Alternative_Name := Name_Find;
+
+               --  Getting the From_Any function the TC_XXX constant and the
+               --  Ada type nodes corresponding to the element type.
+               if Is_Base_Type (Type_Spec (Element (Switch_Alternative))) then
+
+                  TC_Helper := Base_Type_TC
+                    (FEN.Kind
+                     (Type_Spec
+                      (Element
+                       (Switch_Alternative))));
+                  Switch_Type := RE
+                    (Convert
+                     (FEN.Kind
+                      (Type_Spec
+                       (Element
+                        (Switch_Alternative)))));
+                  --  The CORBA.Object type uses converting functions located
+                  --  in the CORBA.Objject.Helper package.
+                  if FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
+                    K_Object
+                  then
+                     From_Any_Helper := RE (RE_From_Any_1);
+                  else
+                     From_Any_Helper := RE (RE_From_Any_0);
+                  end if;
+               elsif FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
+                 K_Scoped_Name
+               then
+                  From_Any_Helper := From_Any_Node
+                    (BE_Node
+                     (Identifier
+                      (Reference
+                       (Type_Spec
+                        (Element
+                         (Switch_Alternative))))));
+                  From_Any_Helper := Copy_Node
+                    (Defining_Identifier (From_Any_Helper));
+
+                  TC_Helper := TC_Node
+                    (BE_Node
+                     (Identifier
+                      (Reference
+                       (Type_Spec
+                        (Element
+                         (Switch_Alternative))))));
+                  TC_Helper := Copy_Node (Defining_Identifier (TC_Helper));
+
+                  Switch_Type := Map_Designator
+                    (Type_Spec
+                     (Element
+                      (Switch_Alternative)));
+               end if;
+
+               Block_List := New_List (K_List_Id);
+
+               --  Assigning the value to the "Index" variable
+
+               N := Make_Subprogram_Call
+                 (RE (RE_Get_Aggregate_Element),
+                  Make_List_Id
+                  (Make_Designator (PN (P_Item)),
+                   TC_Helper,
+                   Make_Subprogram_Call
+                   (RE (RE_Unsigned_Long),
+                    Make_List_Id (Make_Literal (Int1_Val)))));
+               N := Make_Assignment_Statement
+                 (Make_Defining_Identifier (VN (V_Index)),
+                  N);
+               Append_Node_To_List (N, Block_List);
+
+               --  Converting the Any value
+
+               N := Make_Subprogram_Call
+                 (From_Any_Helper,
+                  Make_List_Id
+                  (Make_Defining_Identifier (VN (V_Index))));
+               N := Make_Assignment_Statement
+                 (Make_Defining_Identifier (Alternative_Name),
+                  N);
+               Append_Node_To_List (N, Block_List);
+
+               N := Make_Block_Statement
+                 (Declarative_Part => No_List,
+                  Statements       => Block_List);
+
+               Set_Component (Variant, N);
+               Append_Node_To_List (Variant, Switch_Alternatives);
+
+               Switch_Alternative := Next_Entity (Switch_Alternative);
+            end loop;
+            N := Make_Variant_Part
+            (Make_Defining_Identifier (VN (V_Label)),
+             Switch_Alternatives);
+            Append_Node_To_List (N, S);
+
+            N := Make_Return_Statement
+              (Make_Defining_Identifier (PN (P_Result)));
+            Append_Node_To_List (N, S);
+
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
          end Union_Type_Body;
 
          --------------------------------
@@ -2296,55 +2748,94 @@ package body Backend.BE_Ada.Helpers is
             return N;
          end Structure_Type_Body;
 
-         ----------------
-         -- Union_Body --
-         ----------------
+         ---------------------
+         -- Union_Type_Body --
+         ---------------------
 
          function Union_Type_Body (E : Node_Id) return Node_Id is
-            SwitchItem          : Name_Id;
+            Switch_Item         : Name_Id;
             Alternative_Name    : Name_Id;
-            Choice_List         : List_Id;
             Switch_Alternative  : Node_Id;
             Switch_Alternatives : List_Id;
-            Case_Label          : Node_Id;
-            V                   : Value_Type;
+            Variant             : Node_Id;
+            Choice              : Node_Id;
+            Choices             : List_Id;
+            Label               : Node_Id;
+            To_Any_Helper       : Node_Id;
+            Literal_Parent      : Node_Id := No_Node;
          begin
             Spec := To_Any_Node (BE_Node (Identifier (E)));
 
+            --  Declarative Part
             N := RE (RE_Get_Empty_Any_Aggregate);
-            Helper_Name := BEN.Name
-              (Defining_Identifier (TC_Node (BE_Node (Identifier (E)))));
             N := Make_Subprogram_Call
               (N,
-               Make_List_Id (Make_Defining_Identifier (Helper_Name)));
+               Make_List_Id
+               (Defining_Identifier (TC_Node (BE_Node (Identifier (E))))));
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Result)),
                Object_Definition => RE (RE_Any),
                Expression => N);
             Append_Node_To_List (N, D);
+
+            --  Statements
+
+            --  Getting the "Item.Switch" name
             Get_Name_String (PN (P_Item));
             Add_Char_To_Name_Buffer ('.');
             Get_Name_String_And_Append (CN (C_Switch));
-            SwitchItem := Name_Find;
+            Switch_Item := Name_Find;
+
+            --  Getting the To_Any function node corresponding to the
+            --  discriminant type.
+            if Is_Base_Type (Switch_Type_Spec (E)) then
+               --  The CORBA.Object type uses converting functions located in
+               --  the CORBA.Objject.Helper package.
+               if FEN.Kind (Switch_Type_Spec (E)) = K_Object then
+                  To_Any_Helper := RE (RE_To_Any_3);
+               else
+                  To_Any_Helper := RE (RE_To_Any_0);
+               end if;
+            elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
+               To_Any_Helper := To_Any_Node
+                 (BE_Node
+                  (Identifier
+                   (Reference
+                    (Switch_Type_Spec (E)))));
+               To_Any_Helper := Copy_Node
+                 (Defining_Identifier (To_Any_Helper));
+               Literal_Parent := Map_Designator
+                 (Scope_Entity
+                  (Identifier
+                   (Reference
+                    (Switch_Type_Spec (E)))));
+            end if;
+
             N := Make_Subprogram_Call
-              (RE (RE_Any),
-               Make_List_Id (Make_Defining_Identifier (SwitchItem)));
+              (To_Any_Helper,
+               Make_List_Id (Make_Defining_Identifier (Switch_Item)));
             N := Make_Subprogram_Call
               (RE (RE_Add_Aggregate_Element),
                Make_List_Id
                (Make_Defining_Identifier (PN (P_Result)),
                 N));
-            Switch_Alternatives := New_List (K_List_Id);
+            Append_Node_To_List (N, S);
+
+            Switch_Alternatives := New_List (K_Variant_List);
             Switch_Alternative := First_Entity (Switch_Type_Body (E));
             while Present (Switch_Alternative) loop
-               Case_Label := First_Entity (Labels (Switch_Alternative));
-               Choice_List := New_List (K_List_Id);
-               while Present (Case_Label) loop
-                  V := Value (FEN.Value (Case_Label));
-                  N := Make_Case_Label (New_Value (V));
-                  Append_Node_To_List (N, Choice_List);
-                  Case_Label := Next_Entity (Case_Label);
+               Variant := New_Node (K_Variant);
+               Choices := New_List (K_Discrete_Choice_List);
+               Set_Discrete_Choices (Variant, Choices);
+               Label   := First_Entity (Labels (Switch_Alternative));
+               while Present (Label) loop
+
+                  Choice := Make_Literal
+                    (Value             => FEN.Value (Label),
+                     Parent_Designator => Literal_Parent);
+                  Append_Node_To_List (Choice, Choices);
+                  Label := Next_Entity (Label);
                end loop;
                Get_Name_String (PN (P_Item));
                Add_Char_To_Name_Buffer ('.');
@@ -2352,20 +2843,58 @@ package body Backend.BE_Ada.Helpers is
                  (FEN.Name (Identifier
                             (Declarator (Element (Switch_Alternative)))));
                Alternative_Name := Name_Find;
+
+               --  Getting the To_Any function node corresponding to the
+               --  element type.
+               if Is_Base_Type (Type_Spec (Element (Switch_Alternative))) then
+                  --  The CORBA.Object type uses converting functions located
+                  --  in the CORBA.Objject.Helper package.
+                  if FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
+                    K_Object
+                  then
+                     To_Any_Helper := RE (RE_To_Any_3);
+                  else
+                     To_Any_Helper := RE (RE_To_Any_0);
+                  end if;
+               elsif FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
+                 K_Scoped_Name
+               then
+                  To_Any_Helper := To_Any_Node
+                    (BE_Node
+                     (Identifier
+                      (Reference
+                       (Type_Spec
+                        (Element
+                         (Switch_Alternative))))));
+                  To_Any_Helper := Copy_Node
+                    (Defining_Identifier (To_Any_Helper));
+               end if;
+
+               N := Make_Subprogram_Call
+                 (To_Any_Helper,
+                  Make_List_Id
+                  (Make_Defining_Identifier
+                   (Alternative_Name)));
+
                N := Make_Subprogram_Call
                  (RE (RE_Add_Aggregate_Element),
                   Make_List_Id
                   (Make_Defining_Identifier (PN (P_Result)),
-                   Make_Defining_Identifier (Alternative_Name)));
-               Append_Node_To_List
-                 (Make_Case_Statement_Alternative
-                  (Choice_List, Make_List_Id (N)), Switch_Alternatives);
+                   N));
+               Set_Component (Variant, N);
+               Append_Node_To_List (Variant, Switch_Alternatives);
+
                Switch_Alternative := Next_Entity (Switch_Alternative);
             end loop;
-            N := Make_Case_Statement
-              (Make_Defining_Identifier (SwitchItem),
-               Switch_Alternatives);
+            N := Make_Variant_Part
+            (Make_Defining_Identifier (Switch_Item),
+             Switch_Alternatives);
             Append_Node_To_List (N, S);
+
+            N := Make_Return_Statement
+              (Make_Defining_Identifier (PN (P_Result)));
+            Append_Node_To_List (N, S);
+
             N := Make_Subprogram_Implementation
               (Spec, D, S);
             return N;
@@ -2941,12 +3470,17 @@ package body Backend.BE_Ada.Helpers is
       ----------------------
 
       procedure Visit_Union_Type (E : Node_Id) is
+         N : Node_Id;
       begin
          Set_Helper_Body;
+
          Append_Node_To_List
            (From_Any_Body (E), Statements (Current_Package));
          Append_Node_To_List
            (To_Any_Body (E), Statements (Current_Package));
+
+         N := Deferred_Initialization_Block (E);
+         Append_Node_To_List (N, Deferred_Initialization_Body);
       end Visit_Union_Type;
 
       ---------------------------------
