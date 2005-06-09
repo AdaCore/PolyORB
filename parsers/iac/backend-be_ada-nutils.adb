@@ -986,13 +986,17 @@ package body Backend.BE_Ada.Nutils is
    ------------------
 
    function Make_Literal
-     (Value : Value_Id)
+     (Value             : Value_Id;
+      Has_Parentheses   : Boolean := False;
+      Parent_Designator : Node_Id := No_Node)
      return Node_Id is
       N : Node_Id;
 
    begin
       N := New_Node (K_Literal);
       Set_Value (N, Value);
+      Set_Has_Parentheses (N, Has_Parentheses);
+      Set_Parent_Designator (N, Parent_Designator);
       return N;
    end Make_Literal;
 
