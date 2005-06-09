@@ -66,21 +66,7 @@ package body XE_Defs is
       return Defaults.Default_RSH_Options;
    end Get_Rsh_Options;
 
-   procedure OInitialize;
-   procedure OInitialize is
-   begin
-      Scan_Dist_Arg
-         ("-O0");
-      Scan_Dist_Arg
-         ("-I/home/quinot/projects/wave/lib/garlic");
-      Scan_Dist_Arg
-         ("-largs");
-      Scan_Dist_Arg
-         ("-lgarlic");
-   end OInitialize;
-
-   procedure XInitialize;
-   procedure XInitialize is
+   procedure Initialize is
       Default_Args : Argument_List_Access := Argument_String_To_List (
                                                Defaults.Default_Dist_Flags);
    begin
@@ -90,9 +76,6 @@ package body XE_Defs is
          end if;
       end loop;
       Free (Default_Args);
-   end XInitialize;
-
-   procedure Initialize renames XInitialize;
-   pragma Unreferenced (OInitialize);
+   end Initialize;
 
 end XE_Defs;
