@@ -322,7 +322,6 @@ module Backend::BE_Ada::Nodes {
 
   interface Literal : Node_Id {
     Value_Id   Value;
-    boolean    Has_Parentheses;
     Node_Id    Parent_Designator;
   };
 

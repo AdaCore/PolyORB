@@ -754,17 +754,17 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Literal (N : Node_Id) is
    begin
-      if Has_Parentheses (N) then
-         Write (Tok_Left_Paren);
-      end if;
+      --  if Has_Parentheses (N) then
+      --  Write (Tok_Left_Paren);
+      --  end if;
       if Present (Parent_Designator (N)) then
          Generate (Parent_Designator (N));
          Write (Tok_Dot);
       end if;
       Write_Str (Values.Image (Value (N)));
-      if Has_Parentheses (N) then
-         Write (Tok_Right_Paren);
-      end if;
+      --  if Has_Parentheses (N) then
+      --  Write (Tok_Right_Paren);
+      --  end if;
    end Generate_Literal;
 
    ---------------------------------

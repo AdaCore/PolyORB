@@ -1145,7 +1145,7 @@ package body Backend.BE_Ada.Helpers is
 
                         Choice := Make_Literal
                           (Value             => FEN.Value (Label),
-                           Has_Parentheses   => True,
+                           --  Has_Parentheses   => True,
                            Parent_Designator => Literal_Parent);
                         --  If this is not a case statement, then we increment
                         --  the default case index. The value of Default_Index
@@ -1222,11 +1222,21 @@ package body Backend.BE_Ada.Helpers is
                      Choice := First_Node (Choices);
                      while Present (Choice) loop
                         if BEN.Value (Choice) /= No_Value then
-                           N := Choice;
+                           --  We make a copy of the Choice value to avoid
+                           --  adding the next nodes of Choice to the
+                           --  argument list
+                           N := Make_Literal
+                             (Value             =>
+                                BEN.Value (Choice),
+                              Parent_Designator =>
+                                BEN.Parent_Designator (Choice));
 
-                           N := Make_Qualified_Expression
-                             (Subtype_Mark => Switch_Type, --  RE (RE_Long),
-                              Aggregate    => N);
+                           --  N := Make_Qualified_Expression
+                           --  (Subtype_Mark => Switch_Type,
+                           --  Aggregate    => N);
+                           N := Make_Subprogram_Call
+                             (Switch_Type,
+                              Make_List_Id (N));
                            N := Make_Subprogram_Call
                              (To_Any_Helper,
                               Make_List_Id (N));
@@ -1269,11 +1279,14 @@ package body Backend.BE_Ada.Helpers is
 
                   --  Forth parameter
                   N := Make_Literal
-                    (Value           => Default_Index,
-                     Has_Parentheses => True);
-                  N := Make_Qualified_Expression
-                    (Subtype_Mark => RE (RE_Long),
-                     Aggregate    => N);
+                    (Value           => Default_Index); --  ,
+                  --  Has_Parentheses => True);
+                  --  N := Make_Qualified_Expression
+                  --  (Subtype_Mark => RE (RE_Long),
+                  --  Aggregate    => N);
+                  N := Make_Subprogram_Call
+                    (RE (RE_Long),
+                     Make_List_Id (N));
                   N := Add_Parameter (Entity_TC_Name, N);
                   Append_Node_To_List (N, Statements);
 
