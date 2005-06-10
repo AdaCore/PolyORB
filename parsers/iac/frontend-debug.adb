@@ -192,6 +192,7 @@ package body Frontend.Debug is
         and then A /= "Reference"
         and then A /= "Base_Interface"
         and then A /= "Declaration"
+        and then A /= "BE_Node"
       then
          if K = "Node_Id" then
             W_Node_Id (Node_Id (N));
