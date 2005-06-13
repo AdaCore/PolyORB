@@ -93,7 +93,7 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_From_Any)),
             Profile,
-            Expand_Designator (Stub_Node (BE_Node (Identifier (E)))));
+            Expand_Designator (Type_Def_Node (BE_Node (Identifier (E)))));
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
          Set_Parent_Unit_Name
@@ -145,7 +145,7 @@ package body Backend.BE_Ada.Helpers is
          N         : Node_Id;
       begin
          N := Subtype_Indication
-           (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
+           (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
@@ -155,7 +155,7 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
             Profile, Expand_Designator
-            (Stub_Node (BE_Node (Identifier (E)))));
+            (Type_Def_Node (BE_Node (Identifier (E)))));
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
          Set_Parent_Unit_Name
@@ -180,7 +180,7 @@ package body Backend.BE_Ada.Helpers is
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Item)),
-            Expand_Designator (Stub_Node (BE_Node (Identifier (E)))));
+            Expand_Designator (Type_Def_Node (BE_Node (Identifier (E)))));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Any)),
@@ -266,14 +266,14 @@ package body Backend.BE_Ada.Helpers is
          P  : Node_Id;
          T  : Node_Id;
       begin
-         N := Stub_Node (BE_Node (Identifier (E)));
+         N := Type_Def_Node (BE_Node (Identifier (E)));
          case FEN.Kind (E) is
             when K_Enumeration_Type =>
                P := RE (RE_TC_Enum);
 
             when K_Interface_Declaration =>
                N := Package_Declaration
-                 (BEN.Parent (Stub_Node (BE_Node (Identifier (E)))));
+                 (BEN.Parent (Type_Def_Node (BE_Node (Identifier (E)))));
                P := RE (RE_TC_Object_1);
 
             when  K_Simple_Declarator =>
@@ -283,12 +283,18 @@ package body Backend.BE_Ada.Helpers is
                if Is_Base_Type (T) then
                   P := RE (RE_TC_Alias);
                elsif Kind (T) = K_Scoped_Name then
-                  P := Reference (T);
-                  P := TC_Node (BE_Node (Identifier (P)));
-                  P := Copy_Designator
-                    (First_Node
-                     (Actual_Parameter_Part
-                      (BEN.Expression (P))));
+                  --  If the type is defined basing on an interface type then
+                  --  we use TC_Alias.
+                  if FEN.Kind (Reference (T)) = K_Interface_Declaration then
+                     P := RE (RE_TC_Alias);
+                  else
+                     P := Reference (T);
+                     P := TC_Node (BE_Node (Identifier (P)));
+                     P := Copy_Designator
+                       (First_Node
+                        (Actual_Parameter_Part
+                         (BEN.Expression (P))));
+                  end if;
                else
                   raise Program_Error;
                end if;
@@ -397,7 +403,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Spec;
 
@@ -468,9 +474,40 @@ package body Backend.BE_Ada.Helpers is
       --------------------------
 
       procedure Visit_Structure_Type (E : Node_Id) is
-         N : Node_Id;
+         N          : Node_Id;
+         Member     : Node_Id;
+         Declarator : Node_Id;
       begin
          Set_Helper_Spec;
+
+         --  For each complex declarator, a new type is defined (see the stub
+         --  generation for more details). For each defined type, a TC_XXXX
+         --  Constant, a From_Any and a To_Any functions must be generated.
+         Member := First_Entity (Members (E));
+         while Present (Member) loop
+            Declarator := First_Entity (Declarators (Member));
+            while Present (Declarator) loop
+               if FEN.Kind (Declarator) = K_Complex_Declarator then
+                  N := TypeCode_Spec (Declarator);
+                  Append_Node_To_List
+                    (N, Visible_Part (Current_Package));
+                  Bind_FE_To_Helper (Identifier (Declarator), N);
+                  Bind_FE_To_TC (Identifier (Declarator), N);
+
+                  N := From_Any_Spec (Declarator);
+                  Append_Node_To_List
+                    (N, Visible_Part (Current_Package));
+                  Bind_FE_To_From_Any (Identifier (Declarator), N);
+
+                  N := To_Any_Spec (Declarator);
+                  Append_Node_To_List
+                    (N, Visible_Part (Current_Package));
+                  Bind_FE_To_To_Any (Identifier (Declarator), N);
+               end if;
+               Declarator := Next_Entity (Declarator);
+            end loop;
+            Member := Next_Entity (Member);
+         end loop;
 
          N := TypeCode_Spec (E);
          Append_Node_To_List
@@ -557,10 +594,8 @@ package body Backend.BE_Ada.Helpers is
 
          --  Obtaining the node corresponding to the declaration of the
          --  "Excp_Name"_Members type.
-         --  This type was declared in the third position in the stub spec.
 
-         Excp_Members := Stub_Node (BE_Node (Identifier (E)));
-         Excp_Members := Next_Node (Next_Node (Excp_Members));
+         Excp_Members := Type_Def_Node (BE_Node (Identifier (E)));
 
          N := From_Any_Spec_Ex (Excp_Members);
          Append_Node_To_List
@@ -633,7 +668,7 @@ package body Backend.BE_Ada.Helpers is
          N         : Node_Id;
       begin
          N := Subtype_Indication
-           (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
+           (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
@@ -643,7 +678,7 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Ref)), Profile,
             Expand_Designator
-            (Stub_Node (BE_Node (Identifier (E)))));
+            (Type_Def_Node (BE_Node (Identifier (E)))));
          return N;
       end Widening_Ref_Spec;
 
@@ -728,7 +763,7 @@ package body Backend.BE_Ada.Helpers is
       begin
          T := E;
          T := Reference (T);
-         T := Stub_Node (BE_Node (Identifier (T)));
+         T := Type_Def_Node (BE_Node (Identifier (T)));
          TC := Add_Prefix_To_Name
            ("TC_", BEN.Name (Defining_Identifier (T)));
          Result := Make_Designator (TC);
@@ -857,8 +892,18 @@ package body Backend.BE_Ada.Helpers is
          Param1           : Node_Id;
          Param2           : Node_Id;
       begin
-         Stub :=  Stub_Node (BE_Node (Identifier (E)));
-         Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
+         --  Extract from polyorb-any.ads concerning the Encoding of TypeCodes:
+         --  10. For sequence and array, the first parameter will
+         --      be the length of the sequence or the array and the second
+         --      the content type. As for strings, an unbounded sequence will
+         --      have a length of 0.
+         --
+         --  So, we dont need the definitions below :
+         if FEN.Kind (E) /= K_Complex_Declarator then
+            Stub :=  Stub_Node (BE_Node (Identifier (E)));
+            Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
+         end if;
+
          Helper := TC_Node (BE_Node (Identifier (E)));
 
          case FEN.Kind (E) is
@@ -874,7 +919,8 @@ package body Backend.BE_Ada.Helpers is
                   TC_Name          : Name_Id          := No_Name;
                   Sizes            : constant List_Id :=
                     Range_Constraints
-                    (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
+                    (Type_Definition
+                     (Type_Def_Node (BE_Node (Identifier (E)))));
                   Sizes_Reverse    : constant List_Id := New_List (K_List_Id);
                   Constraint       : Node_Id;
                   Dimension        : constant Natural := Length (Sizes);
@@ -1123,6 +1169,8 @@ package body Backend.BE_Ada.Helpers is
                         (Identifier
                          (Reference
                           (Switch_Type_Spec (E)))));
+                  else
+                     raise Program_Error;
                   end if;
 
                   --  The third parameter is the discriminator type
@@ -1187,6 +1235,8 @@ package body Backend.BE_Ada.Helpers is
                                (Switch_Alternative))))));
                         TC_Helper := Copy_Node
                           (Defining_Identifier (TC_Helper));
+                     else
+                        raise Program_Error;
                      end if;
 
                      --  Declaring the argument name "Element" string
@@ -1330,20 +1380,46 @@ package body Backend.BE_Ada.Helpers is
                            Expression          => N);
                         Append_Node_To_List (N, Declarative_Part);
 
-                        if Is_Base_Type
-                          (Type_Spec (Declaration (Declarator)))
-                        then
-                           Param1 := Base_Type_TC
-                             (FEN.Kind (Type_Spec (Declaration (Declarator))));
-                           --  Adding the dependancy on CORBA.Object
-                           if FEN.Kind
-                             (Type_Spec (Declaration (Declarator))) =
-                             K_Object
+                        --  For simple declarators :
+                        if FEN.Kind (Declarator) = K_Simple_Declarator then
+                           if Is_Base_Type
+                             (Type_Spec (Declaration (Declarator)))
                            then
-                              Dep_Array (Dep_CORBA_Object) := True;
+                              Param1 := Base_Type_TC
+                                (FEN.Kind
+                                 (Type_Spec
+                                  (Declaration
+                                   (Declarator))));
+                              --  Adding the dependancy on CORBA.Object
+                              if FEN.Kind
+                                (Type_Spec (Declaration (Declarator))) =
+                                K_Object
+                              then
+                                 Dep_Array (Dep_CORBA_Object) := True;
+                              end if;
+                           elsif FEN.Kind
+                             (Type_Spec (Declaration (Declarator))) =
+                             K_Scoped_Name
+                           then
+                              Param1 := TC_Node
+                                (BE_Node
+                                 (Identifier
+                                  (Reference
+                                   (Type_Spec
+                                    (Declaration
+                                     (Declarator))))));
+                              Param1 := Copy_Node
+                                (Defining_Identifier (Param1));
+                           else
+                              raise Program_Error;
                            end if;
-                        else
-                           raise Program_Error;
+                        else --  Complex Declatator
+                           Param1 := TC_Node
+                             (BE_Node
+                              (Identifier
+                               (Declarator)));
+                           Param1 := Copy_Node
+                             (Defining_Identifier (Param1));
                         end if;
 
                         Param2 := Make_Designator (Arg_Name);
@@ -1545,7 +1621,7 @@ package body Backend.BE_Ada.Helpers is
             I                    : Integer := 0;
             Sizes                : constant List_Id :=
               Range_Constraints
-              (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
+              (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
             Dim                  : Node_Id;
             Loop_Statements      : List_Id := No_List;
             Enclosing_Statements : List_Id;
@@ -1835,29 +1911,75 @@ package body Backend.BE_Ada.Helpers is
                     (Defining_Identifier (Designator),
                      Make_Defining_Identifier (Result_Name));
                   Append_Node_To_List (N, L);
-                  N := Make_Object_Declaration
-                    (Defining_Identifier =>
-                       Make_Defining_Identifier (Result_Name),
-                     Object_Definition =>
-                       Copy_Designator
-                     (Subtype_Indication
-                      (Stub_Node (BE_Node (Identifier (Declarator))))));
-                  Append_Node_To_List (N, D);
 
-                  if Is_Base_Type (Type_Spec (Declaration (Declarator))) then
-                     TC := Base_Type_TC
-                       (FEN.Kind (Type_Spec (Declaration (Declarator))));
-                     --  The CORBA.Object type has special conversion
-                     --  functions although it is a base type
-                     if FEN.Kind (Type_Spec (Declaration (Declarator))) =
-                       K_Object
+                  if FEN.Kind (Declarator) = K_Simple_Declarator then
+                     N := Make_Object_Declaration
+                       (Defining_Identifier =>
+                          Make_Defining_Identifier (Result_Name),
+                        Object_Definition =>
+                          Copy_Designator
+                        (Subtype_Indication
+                         (Stub_Node (BE_Node (Identifier (Declarator))))));
+                     Append_Node_To_List (N, D);
+                     if Is_Base_Type
+                       (Type_Spec (Declaration (Declarator)))
                      then
-                        Helper := RE (RE_From_Any_1);
+                        TC := Base_Type_TC
+                          (FEN.Kind (Type_Spec (Declaration (Declarator))));
+                        --  The CORBA.Object type has special conversion
+                        --  functions although it is a base type
+                        if FEN.Kind (Type_Spec (Declaration (Declarator))) =
+                          K_Object
+                        then
+                           Helper := RE (RE_From_Any_1);
+                        else
+                           Helper := RE (RE_From_Any_0);
+                        end if;
+                     elsif FEN.Kind
+                       (Type_Spec (Declaration (Declarator))) =
+                       K_Scoped_Name
+                     then
+                        TC := TC_Node
+                          (BE_Node
+                           (Identifier
+                            (Reference
+                             (Type_Spec
+                              (Declaration
+                               (Declarator))))));
+                        TC := Copy_Node (Defining_Identifier (TC));
+
+                        Helper := From_Any_Node
+                          (BE_Node
+                           (Identifier
+                            (Reference
+                             (Type_Spec
+                              (Declaration
+                               (Declarator))))));
+                        Helper := Copy_Node (Defining_Identifier (Helper));
                      else
-                        Helper := RE (RE_From_Any_0);
+                        raise Program_Error;
                      end if;
-                  else
-                     raise Program_Error;
+                  else --  Complex declarator
+                     N := Copy_Node
+                       (Defining_Identifier
+                        (Type_Def_Node
+                         (BE_Node (Identifier (Declarator)))));
+                     N := Make_Object_Declaration
+                       (Defining_Identifier =>
+                          Make_Defining_Identifier (Result_Name),
+                        Object_Definition => N);
+                     Append_Node_To_List (N, D);
+                     TC := TC_Node
+                       (BE_Node
+                        (Identifier
+                         (Declarator)));
+                     TC := Copy_Node (Defining_Identifier (TC));
+
+                     Helper := From_Any_Node
+                       (BE_Node
+                        (Identifier
+                         (Declarator)));
+                     Helper := Copy_Node (Defining_Identifier (Helper));
                   end if;
 
                   N := Make_Subprogram_Call
@@ -1951,6 +2073,8 @@ package body Backend.BE_Ada.Helpers is
                   (Identifier
                    (Reference
                     (Switch_Type_Spec (E)))));
+            else
+               raise Program_Error;
             end if;
 
             --  Declaration of the "Label_Any" Variable.
@@ -2081,6 +2205,8 @@ package body Backend.BE_Ada.Helpers is
                     (Type_Spec
                      (Element
                       (Switch_Alternative)));
+               else
+                  raise Program_Error;
                end if;
 
                Block_List := New_List (K_List_Id);
@@ -2164,11 +2290,8 @@ package body Backend.BE_Ada.Helpers is
 
                --  Obtaining the node corresponding to the declaration of the
                --  "Excp_Name"_Members type.
-               --  This type was declared in the third position in the Stub
-               --  spec.
 
-               N := Stub_Node (BE_Node (Identifier (E)));
-               N := Next_Node (Next_Node (N));
+               N := Type_Def_Node (BE_Node (Identifier (E)));
                N := Defining_Identifier (N);
                N := Make_Object_Declaration
                  (Defining_Identifier =>
@@ -2487,7 +2610,7 @@ package body Backend.BE_Ada.Helpers is
             L                    : List_Id;
             Sizes                : constant List_Id :=
               Range_Constraints
-              (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
+              (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
             Dim                  : Node_Id;
             Loop_Statements      : List_Id := No_List;
             Enclosing_Statements : List_Id;
@@ -2718,6 +2841,7 @@ package body Backend.BE_Ada.Helpers is
             Declarator      : Node_Id;
             Item_Designator : Node_Id;
             Designator      : Node_Id;
+            To_Any_Helper   : Node_Id;
          begin
             Spec := To_Any_Node (BE_Node (Identifier (E)));
 
@@ -2740,8 +2864,47 @@ package body Backend.BE_Ada.Helpers is
                while Present (Declarator) loop
                   Designator := Map_Designator (Declarator);
                   Set_Parent_Unit_Name (Designator, Item_Designator);
+                  --  Getting the declarator type in order to call the right
+                  --  To_Any function
+                  if FEN.Kind (Declarator) = K_Simple_Declarator then
+                     if Is_Base_Type
+                       (Type_Spec (Declaration (Declarator)))
+                     then
+                        --  The CORBA.Object type has special conversion
+                        --  functions although it is a base type
+                        if FEN.Kind (Type_Spec (Declaration (Declarator))) =
+                          K_Object
+                        then
+                           To_Any_Helper := RE (RE_To_Any_3);
+                        else
+                           To_Any_Helper := RE (RE_To_Any_0);
+                        end if;
+                     elsif FEN.Kind
+                       (Type_Spec (Declaration (Declarator))) =
+                       K_Scoped_Name
+                     then
+                        To_Any_Helper := To_Any_Node
+                          (BE_Node
+                           (Identifier
+                            (Reference
+                             (Type_Spec
+                              (Declaration
+                               (Declarator))))));
+                        To_Any_Helper := Copy_Node
+                          (Defining_Identifier (To_Any_Helper));
+                     else
+                        raise Program_Error;
+                     end if;
+                  else --  Complex declarator
+                     To_Any_Helper := To_Any_Node
+                       (BE_Node
+                        (Identifier
+                         (Declarator)));
+                     To_Any_Helper := Copy_Node
+                       (Defining_Identifier (To_Any_Helper));
+                  end if;
                   N := Make_Subprogram_Call
-                    (RE (RE_To_Any_0),
+                    (To_Any_Helper,
                      Make_List_Id (Designator));
                   N := Make_Subprogram_Call
                     (RE (RE_Add_Aggregate_Element),
@@ -2823,6 +2986,8 @@ package body Backend.BE_Ada.Helpers is
                   (Identifier
                    (Reference
                     (Switch_Type_Spec (E)))));
+            else
+               raise Program_Error;
             end if;
 
             N := Make_Subprogram_Call
@@ -2881,6 +3046,8 @@ package body Backend.BE_Ada.Helpers is
                          (Switch_Alternative))))));
                   To_Any_Helper := Copy_Node
                     (Defining_Identifier (To_Any_Helper));
+               else
+                  raise Program_Error;
                end if;
 
                N := Make_Subprogram_Call
@@ -3085,7 +3252,7 @@ package body Backend.BE_Ada.Helpers is
            (Defining_Identifier =>
               Make_Defining_Identifier (PN (P_Result)),
             Object_Definition =>
-              Expand_Designator (Stub_Node (BE_Node (Identifier (E)))));
+              Expand_Designator (Type_Def_Node (BE_Node (Identifier (E)))));
          Append_Node_To_List (Param, Declarations);
 
          --  Statements Part
@@ -3158,10 +3325,8 @@ package body Backend.BE_Ada.Helpers is
 
          --  Obtaining the node corresponding to the declaration of the
          --  "Excp_Name"_Members type.
-         --  This type was declared in the third position in the stub spec.
 
-         Excp_Members := Stub_Node (BE_Node (Identifier (E)));
-         Excp_Members := Next_Node (Next_Node (Excp_Members));
+         Excp_Members := Type_Def_Node (BE_Node (Identifier (E)));
 
          --  Preparing the call to From_Any
          N := Make_Subprogram_Call
@@ -3303,7 +3468,7 @@ package body Backend.BE_Ada.Helpers is
          Deferred_Initialization_Body_Backup : List_Id;
          Package_Initializarion_Backup       : List_Id;
       begin
-         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Body;
 
@@ -3432,9 +3597,32 @@ package body Backend.BE_Ada.Helpers is
       --------------------------
 
       procedure Visit_Structure_Type (E : Node_Id) is
-         N : Node_Id;
+         N          : Node_Id;
+         Member     : Node_Id;
+         Declarator : Node_Id;
       begin
          Set_Helper_Body;
+
+         --  For each complex declarator, a new type is defined (see the stub
+         --  generation for more details). For each defined type, a TC_XXXX
+         --  Constant, a From_Any and a To_Any functions must be generated.
+         Member := First_Entity (Members (E));
+         while Present (Member) loop
+            Declarator := First_Entity (Declarators (Member));
+            while Present (Declarator) loop
+               if FEN.Kind (Declarator) = K_Complex_Declarator then
+                  Append_Node_To_List
+                    (From_Any_Body (Declarator), Statements (Current_Package));
+                  Append_Node_To_List
+                    (To_Any_Body (Declarator), Statements (Current_Package));
+                  N := Deferred_Initialization_Block (Declarator);
+                  Append_Node_To_List (N, Deferred_Initialization_Body);
+               end if;
+               Declarator := Next_Entity (Declarator);
+            end loop;
+            Member := Next_Entity (Member);
+         end loop;
+
          Append_Node_To_List
            (From_Any_Body (E), Statements (Current_Package));
          Append_Node_To_List

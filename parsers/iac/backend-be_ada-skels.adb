@@ -213,9 +213,7 @@ package body Backend.BE_Ada.Skels is
             --  Declaration of the Members variable
             --  Getting the node corresponding to the declaration of the
             --  "Excp_Name"_Members type.
-            --  This type was declared in the third position in the stub spec.
-            N := Stub_Node (BE_Node (Identifier (Reference (E))));
-            N := Next_Node (Next_Node (N));
+            N := Type_Def_Node (BE_Node (Identifier (Reference (E))));
 
             N := Make_Object_Declaration
               (Defining_Identifier =>
@@ -227,8 +225,8 @@ package body Backend.BE_Ada.Skels is
             --  Get_Members procedure.
             --  This procedure is declared at the 4th place in the stub spec.
 
-            N := Stub_Node (BE_Node (Identifier (Reference (E))));
-            N := Next_Node (Next_Node (Next_Node (N)));
+            N := Type_Def_Node (BE_Node (Identifier (Reference (E))));
+            N := Next_Node (N);
 
             N := Defining_Identifier (N);
             N := Make_Subprogram_Call

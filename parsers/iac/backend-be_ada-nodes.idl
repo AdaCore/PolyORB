@@ -336,6 +336,7 @@ module Backend::BE_Ada::Nodes {
     Node_Id    TC_Node;
     Node_Id    From_Any_Node;
     Node_Id    To_Any_Node;
+    Node_Id    Type_Def_Node;
   };
 
   interface Expression : Node_Id {

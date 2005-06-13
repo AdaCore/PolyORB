@@ -173,6 +173,7 @@ package body Backend.BE_Ada.Stubs is
             Make_Enumeration_Type_Definition (Enum_Literals));
 
          Bind_FE_To_Stub  (Identifier (E), Enum_Type_Decl);
+         Bind_FE_To_Type_Def (Identifier (E), Enum_Type_Decl);
          Append_Node_To_List
            (Enum_Type_Decl,
             Visible_Part (Current_Package));
@@ -227,6 +228,7 @@ package body Backend.BE_Ada.Stubs is
             (RE (RE_IDL_Exception_Members),
              Make_Record_Definition
              (Map_Members_Definition (Members (E)))));
+         Bind_FE_To_Type_Def (FEN.Identifier (E), N);
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
          --  Insert the Get_Members procedure specification
@@ -287,6 +289,8 @@ package body Backend.BE_Ada.Stubs is
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Bind_FE_To_Stub (Identifier (E), N);
+         --  An Interface Declaration is also a type definition
+         Bind_FE_To_Type_Def (Identifier (E), N);
          N := Map_Repository_Declaration (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -474,6 +478,7 @@ package body Backend.BE_Ada.Stubs is
             (Make_Record_Definition
              (Map_Members_Definition (Members (E)))));
          Bind_FE_To_Stub (Identifier (E), N);
+         Bind_FE_To_Type_Def (Identifier (E), N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
@@ -533,6 +538,7 @@ package body Backend.BE_Ada.Stubs is
                   Is_Subtype => Is_Subtype);
             end if;
             Bind_FE_To_Stub (Identifier (D), N);
+            Bind_FE_To_Type_Def (Identifier (D), N);
             Append_Node_To_List
               (N, Visible_Part (Current_Package));
             Append_Node_To_List
@@ -584,6 +590,7 @@ package body Backend.BE_Ada.Stubs is
             (Make_Defining_Identifier (CN (C_Switch)), T,
              Make_Type_Attribute (T, A_First)));
          Bind_FE_To_Stub (Identifier (E), N);
+         Bind_FE_To_Type_Def (Identifier (E), N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List

@@ -447,7 +447,6 @@ package Backend.BE_Ada.Nutils is
 
    function Make_Literal
      (Value             : Value_Id;
-      --  Has_Parentheses   : Boolean := False;
       Parent_Designator : Node_Id := No_Node)
      return Node_Id;
 

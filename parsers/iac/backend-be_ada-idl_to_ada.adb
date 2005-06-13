@@ -190,6 +190,23 @@ package body Backend.BE_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_To_Any;
 
+   procedure Bind_FE_To_Type_Def
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+
+      if No (N) then
+         N := New_Node (BEN.K_BE_Ada);
+      end if;
+
+      BEN.Set_Type_Def_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_Type_Def;
+
    ------------------
    -- Is_Base_Type --
    ------------------
@@ -314,7 +331,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
    is
       Designator : Node_Id;
       Decl_Name  : Name_Id;
-
+      Type_Node  : Node_Id;
    begin
       Designator := Map_Designator (Type_Decl);
 
@@ -326,16 +343,28 @@ package body Backend.BE_Ada.IDL_To_Ada is
          Get_Name_String (Decl_Name);
          Add_Str_To_Name_Buffer ("_Array");
          Decl_Name := Name_Find;
+         Type_Node := Make_Full_Type_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (Decl_Name),
+            Type_Definition     => Make_Array_Type_Definition
+            (Map_Range_Constraints
+             (FEN.Array_Sizes (Declarator)), Designator));
+         Set_Parent_Unit_Name
+           (Defining_Identifier (Type_Node),
+            Defining_Identifier (Main_Package (Current_Entity)));
+         --  We make a link between the identifier and the type declaration.
+         --  This link is useful for the generation of the From_Any and To_Any
+         --  functions and the TC_XXX constant necessary for user defined
+         --  types.
+         Bind_FE_To_Type_Def (FEN.Identifier (Declarator), Type_Node);
          Append_Node_To_List
-           (Make_Full_Type_Declaration
-              (Defining_Identifier => Make_Defining_Identifier (Decl_Name),
-               Type_Definition     => Make_Array_Type_Definition
-                 (Map_Range_Constraints
-                    (FEN.Array_Sizes (Declarator)), Designator)),
+           (Type_Node,
             Visible_Part (Current_Package));
          Designator := New_Node (K_Designator);
          Set_Defining_Identifier
-           (Designator, Make_Defining_Identifier (Decl_Name));
+           (Designator, Defining_Identifier (Type_Node));
+         Set_Parent_Unit_Name
+           (Designator,
+            Defining_Identifier (Main_Package (Current_Entity)));
       end if;
 
       return Designator;
@@ -391,9 +420,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
          N := New_Node (K_Designator);
          if Kind (R) = FEN.K_Interface_Declaration then
-            --  Getting the node of the Ref type declaration. This type is
-            --  declared at the first place in the stub spec.
-            Ref_Type_Node := Stub_Node (BE_Node (Identifier (R)));
+            --  Getting the node of the Ref type declaration.
+            Ref_Type_Node := Type_Def_Node (BE_Node (Identifier (R)));
             Set_Defining_Identifier
               (N, Defining_Identifier (Ref_Type_Node));
             Set_FE_Node (N, R);
@@ -412,7 +440,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
                   Copy_Node
                   (Defining_Identifier
                    (Main_Package
-                     (Stub_Node (BE_Node (Identifier (P)))))));
+                    (Type_Def_Node (BE_Node (Identifier (P)))))));
                Set_FE_Node (R, P);
                Set_Parent_Unit_Name (N, R);
             else
@@ -581,7 +609,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
             Component_Declaration := Make_Component_Declaration
               (Map_Defining_Identifier (FEN.Identifier (Declarator)),
                Map_Declarator_Type_Designator (Member_Type, Declarator));
-            Bind_FE_To_Stub (Identifier (Declarator), Component_Declaration);
+            Bind_FE_To_Stub
+              (Identifier (Declarator), Component_Declaration);
             Append_Node_To_List
               (Component_Declaration, Components);
             Declarator := Next_Entity (Declarator);
