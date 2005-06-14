@@ -1,5 +1,4 @@
 with Output; use Output;
---  with Ada.Text_IO; use Ada.Text_IO;
 
 package body Backend.BE_Types.Utils is
 
@@ -68,9 +67,6 @@ package body Backend.BE_Types.Utils is
          C := new Cell'(Typ => T, Next => L.First);
          L.First := C;
       end if;
-      --  Put_Line ("###### DEB #########");
-      --  Print_List (L);
-      --  Put_Line ("###### FIN #########");
    end Insert;
 
    ----------------
