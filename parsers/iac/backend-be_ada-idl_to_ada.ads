@@ -42,6 +42,10 @@ package Backend.BE_Ada.IDL_To_Ada is
      (F : Node_Id;
       B : Node_Id);
 
+   procedure Bind_FE_To_Fixed_Type
+     (F : Node_Id;
+      B : Node_Id);
+
    function Is_Base_Type
      (N : Node_Id)
      return Boolean;

@@ -32,6 +32,11 @@ package body Backend.BE_Ada.Helpers is
         return Node_Id;
       --  convert the exception memebers to the "any" type
 
+      function From_Any_Spec_Fixed
+        (E : Node_Id)
+        return Node_Id
+        renames From_Any_Spec_Ex;
+
       function To_Any_Spec
         (E : Node_Id)
         return Node_Id;
@@ -43,15 +48,23 @@ package body Backend.BE_Ada.Helpers is
       --  return an ""any" conversion function for the particular case of
       --  exceptions
 
+      function To_Any_Spec_Fixed
+        (E : Node_Id)
+        return Node_Id
+        renames To_Any_Spec_Ex;
+
       function Narrowing_Ref_Spec
         (E : Node_Id)
         return Node_Id;
       --  return windening object reference helper.
 
       function TypeCode_Spec
-        (E : Node_Id)
+        (E       : Node_Id;
+         Backend : Boolean := False)
         return Node_Id;
       --  return a TypeCode constant for a given type (E).
+      --  When Backend is true, E is assumed to be a backend node of a full
+      --  type definition.
 
       function Widening_Ref_Spec
         (E : Node_Id)
@@ -257,7 +270,8 @@ package body Backend.BE_Ada.Helpers is
       -------------------
 
       function TypeCode_Spec
-        (E : Node_Id)
+        (E       : Node_Id;
+         Backend : Boolean := False)
         return Node_Id
       is
          N  : Node_Id;
@@ -266,54 +280,68 @@ package body Backend.BE_Ada.Helpers is
          P  : Node_Id;
          T  : Node_Id;
       begin
-         N := Type_Def_Node (BE_Node (Identifier (E)));
-         case FEN.Kind (E) is
-            when K_Enumeration_Type =>
-               P := RE (RE_TC_Enum);
+         if Backend then
+            N := E;
+            case BEN.Kind (Type_Definition (N)) is
+               when K_Decimal_Type_Definition =>
+                  P := RE (RE_TC_Fixed);
 
-            when K_Interface_Declaration =>
-               N := Package_Declaration
-                 (BEN.Parent (Type_Def_Node (BE_Node (Identifier (E)))));
-               P := RE (RE_TC_Object_1);
+               when others =>
+                  raise Program_Error;
+            end case;
+         else
+            N := Type_Def_Node (BE_Node (Identifier (E)));
+            case FEN.Kind (E) is
+               when K_Enumeration_Type =>
+                  P := RE (RE_TC_Enum);
 
-            when  K_Simple_Declarator =>
-               T := Type_Spec
-                 (Declaration (E));
+               when K_Interface_Declaration =>
+                  N := Package_Declaration
+                    (BEN.Parent (Type_Def_Node (BE_Node (Identifier (E)))));
+                  P := RE (RE_TC_Object_1);
 
-               if Is_Base_Type (T) then
-                  P := RE (RE_TC_Alias);
-               elsif Kind (T) = K_Scoped_Name then
-                  --  If the type is defined basing on an interface type then
-                  --  we use TC_Alias.
-                  if FEN.Kind (Reference (T)) = K_Interface_Declaration then
+               when  K_Simple_Declarator =>
+                  T := Type_Spec
+                    (Declaration (E));
+
+                  if Is_Base_Type (T) then
+                     P := RE (RE_TC_Alias);
+                  elsif Kind (T) = K_Scoped_Name then
+                     --  If the type is defined basing on an interface type
+                     --  then we use TC_Alias.
+                     if FEN.Kind (Reference (T)) = K_Interface_Declaration then
+                        P := RE (RE_TC_Alias);
+                     else
+                        P := Reference (T);
+                        P := TC_Node (BE_Node (Identifier (P)));
+                        P := Copy_Designator
+                          (First_Node
+                           (Actual_Parameter_Part
+                            (BEN.Expression (P))));
+                     end if;
+                  elsif Kind (T) = K_Fixed_Point_Type then
                      P := RE (RE_TC_Alias);
                   else
-                     P := Reference (T);
-                     P := TC_Node (BE_Node (Identifier (P)));
-                     P := Copy_Designator
-                       (First_Node
-                        (Actual_Parameter_Part
-                         (BEN.Expression (P))));
+                     raise Program_Error;
                   end if;
-               else
+
+               when K_Complex_Declarator =>
+                  P := RE (RE_TC_Array);
+
+               when K_Structure_Type =>
+                  P := RE (RE_TC_Struct);
+
+               when K_Union_Type =>
+                  P := RE (RE_TC_Union);
+
+               when K_Exception_Declaration =>
+                  P := RE (RE_TC_Except);
+
+               when others =>
                   raise Program_Error;
-               end if;
+            end case;
+         end if;
 
-            when K_Complex_Declarator =>
-               P := RE (RE_TC_Array);
-
-            when K_Structure_Type =>
-               P := RE (RE_TC_Struct);
-
-            when K_Union_Type =>
-               P := RE (RE_TC_Union);
-
-            when K_Exception_Declaration =>
-               P := RE (RE_TC_Except);
-
-            when others =>
-               raise Program_Error;
-         end case;
          TC := Add_Prefix_To_Name ("TC_", BEN.Name (Defining_Identifier (N)));
          C := Make_Subprogram_Call
            (Defining_Identifier   => RE (RE_To_CORBA_Object),
@@ -329,7 +357,9 @@ package body Backend.BE_Ada.Helpers is
          Set_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
-         Set_FE_Node (N, Identifier (E));
+         if not Backend then
+            Set_FE_Node (N, Identifier (E));
+         end if;
          return N;
       end TypeCode_Spec;
 
@@ -536,11 +566,35 @@ package body Backend.BE_Ada.Helpers is
          N : Node_Id;
          T : Node_Id;
       begin
-         --  If the defined type is a subtype of an interface type, there is
-         --  no need to define From_Any and To_Any function for this type.
          Set_Helper_Spec;
          L := Declarators (E);
+         T := Type_Spec (E);
          D := First_Entity (L);
+
+         --  Handling the case of a fixed point type definition
+         --  We must define a new fixed type. All the declarators will be
+         --  derived from this new type.
+         if FEN.Kind (T) = K_Fixed_Point_Type then
+            declare
+               F : Node_Id;
+            begin
+               F := Fixed_Type_Node (BE_Node (Identifier (D)));
+               N := TypeCode_Spec
+                 (F,
+                  Backend => True);
+               Append_Node_To_List
+                 (N, Visible_Part (Current_Package));
+
+               N := From_Any_Spec_Fixed (F);
+               Append_Node_To_List
+                 (N, Visible_Part (Current_Package));
+
+               N := To_Any_Spec_Fixed (F);
+               Append_Node_To_List
+                 (N, Visible_Part (Current_Package));
+            end;
+         end if;
+
          while Present (D) loop
             N := TypeCode_Spec (D);
             Append_Node_To_List
@@ -551,7 +605,6 @@ package body Backend.BE_Ada.Helpers is
             --  If the new type is defined basing on an interface type, then
             --  we dont generate From_Any nor To_Any. We use those of the
             --  original type.
-            T := Type_Spec (E);
             if FEN.Kind (T) = K_Scoped_Name and then
               FEN.Kind (Reference (T)) = K_Interface_Declaration then
                N := From_Any_Node (BE_Node (Identifier (Reference (T))));
@@ -800,6 +853,13 @@ package body Backend.BE_Ada.Helpers is
            (Dimension : Natural)
            return Name_Id;
 
+         --  Generate a TC constant for a fixed point type. We regenerate it
+         --  here because there is no simple way to link a K_Fixed_Point_Type
+         --  node to the backend tree.
+         function Get_TC_Fixed_Point
+           (E : Node_Id)
+           return Node_Id;
+
          -------------------
          -- Add_Parameter --
          -------------------
@@ -881,8 +941,35 @@ package body Backend.BE_Ada.Helpers is
             return Result;
          end Get_Dimension_Variable_Name;
 
+         ------------------------
+         -- Get_TC_Fixed_Point --
+         ------------------------
+
+         function Get_TC_Fixed_Point
+           (E : Node_Id)
+           return Node_Id
+         is
+            Fixed_Name : Name_Id;
+            Result     : Node_Id;
+         begin
+            pragma Assert (FEN.Kind (E) = K_Fixed_Point_Type);
+
+            Set_Str_To_Name_Buffer ("TC_Fixed_");
+            Add_Nat_To_Name_Buffer (Nat (N_Total (E)));
+            Add_Char_To_Name_Buffer ('_');
+            Add_Nat_To_Name_Buffer (Nat (N_Scale (E)));
+            Fixed_Name := Name_Find;
+
+            Result := Make_Defining_Identifier (Fixed_Name);
+            Set_Parent_Unit_Name
+              (Result,
+               Defining_Identifier
+               (Helper_Package (Current_Entity)));
+            return Result;
+         end Get_TC_Fixed_Point;
+
          Stub             : Node_Id;
-         Helper           : Node_Id;
+         --  Helper           : Node_Id;
          N                : Node_Id;
          Entity_TC_Name   : Name_Id;
          Entity_Name_V    : Value_Id;
@@ -898,13 +985,27 @@ package body Backend.BE_Ada.Helpers is
          --      the content type. As for strings, an unbounded sequence will
          --      have a length of 0.
          --
+         --  11. For fixed, the first parameter will be the digits
+         --      number and the second the scale.
+         --
          --  So, we dont need the definitions below :
-         if FEN.Kind (E) /= K_Complex_Declarator then
+         if FEN.Kind (E) /= K_Complex_Declarator
+           and then FEN.Kind (E) /= K_Fixed_Point_Type then
             Stub :=  Stub_Node (BE_Node (Identifier (E)));
             Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
          end if;
 
-         Helper := TC_Node (BE_Node (Identifier (E)));
+         --  The fixed point types constitute a particular case since they
+         --  don't have a corresponding node in the frontend tree
+         if FEN.Kind (E) /= K_Fixed_Point_Type then
+            Entity_TC_Name := BEN.Name
+              (Defining_Identifier
+               (TC_Node
+                (BE_Node
+                 (Identifier (E)))));
+         else
+            Entity_TC_Name := BEN.Name (Get_TC_Fixed_Point (E));
+         end if;
 
          case FEN.Kind (E) is
             when K_Interface_Declaration =>
@@ -1042,6 +1143,28 @@ package body Backend.BE_Ada.Helpers is
                   end if;
                end;
 
+            when K_Fixed_Point_Type =>
+               declare
+                  V : Value_Id;
+               begin
+                  V := New_Integer_Value
+                    (Unsigned_Long_Long (N_Total (E)),
+                     1,
+                     10);
+                  Param1 := Make_Literal (V);
+                  Param1 := Make_Subprogram_Call
+                    (RE (RE_Unsigned_Short),
+                     Make_List_Id (Param1));
+
+                  V := New_Integer_Value
+                    (Unsigned_Long_Long (N_Scale (E)),
+                     1,
+                     10);
+                  Param2 := Make_Literal (V);
+                  Param2 := Make_Subprogram_Call
+                    (RE (RE_Short),
+                     Make_List_Id (Param2));
+               end;
             when K_Simple_Declarator =>
                null;
 
@@ -1064,7 +1187,8 @@ package body Backend.BE_Ada.Helpers is
                raise Program_Error;
          end case;
 
-         if FEN.Kind (E) /= K_Complex_Declarator then
+         if FEN.Kind (E) /= K_Complex_Declarator
+           and then FEN.Kind (E) /= K_Fixed_Point_Type then
             Param1 := Make_Designator (VN (V_Name));
             Param2 := Make_Designator (VN (V_Id));
 
@@ -1081,7 +1205,6 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List (N, Declarative_Part);
          end if;
 
-         Entity_TC_Name := BEN.Name (Defining_Identifier (Helper));
          N := Add_Parameter (Entity_TC_Name, Param1);
          Append_Node_To_List (N, Statements);
          N := Add_Parameter (Entity_TC_Name, Param2);
@@ -1561,6 +1684,10 @@ package body Backend.BE_Ada.Helpers is
                           (BE_Node (Identifier (Reference (T))));
                         N := Defining_Identifier (N);
                      end if;
+                  elsif FEN.Kind (T) = K_Fixed_Point_Type then
+                     --  For types defined basing on a fixed point type, we
+                     --  use the TypeCode constant of the fixed point type.
+                     N := Get_TC_Fixed_Point (T);
                   else
                      raise Program_Error;
                   end if;
@@ -1844,6 +1971,16 @@ package body Backend.BE_Ada.Helpers is
                Ref_Id := Identifier (Reference (Type_Spec (Declaration (E))));
                M := Expand_Designator
                  (From_Any_Node (BE_Node (Ref_Id)));
+            elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
+               N := Defining_Identifier
+                 (Fixed_Type_Node
+                  (BE_Node
+                   (Identifier (E))));
+               --  We use the From_Any function of the defined fixed type
+               --  "Fixed_X_Y". This function is located in the same packege
+               --  and has the same name as the function we are generating.
+               --  so :
+               M := Defining_Identifier (Spec);
             else
                raise Program_Error;
             end if;
@@ -2803,6 +2940,16 @@ package body Backend.BE_Ada.Helpers is
                Ref_Id := Identifier (Reference (Type_Spec (Declaration (E))));
                M := Expand_Designator
                  (To_Any_Node (BE_Node (Ref_Id)));
+            elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
+               N := Defining_Identifier
+                 (Fixed_Type_Node
+                  (BE_Node
+                   (Identifier (E))));
+               --  We use the To_Any function of the defined fixed type
+               --  "Fixed_X_Y". This function is located in the same packege
+               --  and has the same name as the function we are generating.
+               --  so :
+               M := Defining_Identifier (Spec);
             else
                raise Program_Error;
             end if;
@@ -3643,12 +3790,90 @@ package body Backend.BE_Ada.Helpers is
       begin
          Set_Helper_Body;
          L := Declarators (E);
+         T := Type_Spec (E);
          D := First_Entity (L);
+
+         --  Handling the case of a fixed point type definition
+         --  We must define a new fixed type. All the declarators will be
+         --  derived from this new type.
+         if FEN.Kind (T) = K_Fixed_Point_Type then
+            --  For the fixed point type, we create an instanciation of the
+            --  CORBA.Fixed_Point package and we use the From_Any and
+            --  To_Any functions of the instanciation.
+            declare
+               F            : Node_Id;
+               Package_Name : Name_Id;
+               Package_Id   : Node_Id;
+               Profile      : List_Id;
+               Parameter    : Node_Id;
+               Renamed_Subp : Node_Id;
+            begin
+               --  Instanciation of the package :
+
+               F := Fixed_Type_Node (BE_Node (Identifier (D)));
+               F := Defining_Identifier (F);
+               Set_Str_To_Name_Buffer ("CDR_");
+               Get_Name_String_And_Append (BEN.Name (F));
+               Package_Name := Name_Find;
+               Package_Id := Make_Defining_Identifier (Package_Name);
+               N := Make_Subprogram_Call
+                 (RU (RU_CORBA_Fixed_Point),
+                  Make_List_Id (F));
+               N := Make_Package_Instanciation
+                 (Defining_Identifier => Package_Id,
+                  Original_Package    => N);
+               Append_Node_To_List (N, Statements (Current_Package));
+
+               --  The From_Any and To_Any functions for the fixed point type
+               --  are homonymes of those of the instanciated package.
+
+               --  From_Any
+               Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
+               Set_Parent_Unit_Name (Renamed_Subp, Package_Id);
+               Profile  := New_List (K_Parameter_Profile);
+               Parameter := Make_Parameter_Specification
+                 (Make_Defining_Identifier (PN (P_Item)),
+                  RE (RE_Any));
+               Append_Node_To_List (Parameter, Profile);
+               N := Make_Subprogram_Specification
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (SN (S_From_Any)),
+                  Parameter_Profile   =>
+                    Profile,
+                  Return_Type         =>
+                    F,
+                  Renamed_Subprogram  =>
+                    Renamed_Subp);
+               Append_Node_To_List (N, Statements (Current_Package));
+
+               --  To_Any
+               Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
+               Set_Parent_Unit_Name (Renamed_Subp, Package_Id);
+               Profile  := New_List (K_Parameter_Profile);
+               Parameter := Make_Parameter_Specification
+                 (Make_Defining_Identifier (PN (P_Item)),
+                  F);
+               Append_Node_To_List (Parameter, Profile);
+               N := Make_Subprogram_Specification
+                 (Defining_Identifier =>
+                    Make_Defining_Identifier (SN (S_To_Any)),
+                  Parameter_Profile   =>
+                    Profile,
+                  Return_Type         =>
+                    RE (RE_Any),
+                  Renamed_Subprogram  =>
+                    Renamed_Subp);
+               Append_Node_To_List (N, Statements (Current_Package));
+
+               N := Deferred_Initialization_Block (T);
+               Append_Node_To_List (N, Deferred_Initialization_Body);
+            end;
+         end if;
+
          while Present (D) loop
             --  If the new type is defined basing on an interface type, then
             --  we dont generate From_Any nor To_Any. We use those of the
             --  original type.
-            T := Type_Spec (E);
             if FEN.Kind (T) = K_Scoped_Name and then
               FEN.Kind (Reference (T)) = K_Interface_Declaration then
                null; --  We add nothing

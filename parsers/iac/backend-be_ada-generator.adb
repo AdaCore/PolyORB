@@ -17,6 +17,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Case_Statement (N : Node_Id);
    procedure Generate_Component_Association (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
+   procedure Generate_Decimal_Type_Definition (N : Node_Id);
    procedure Generate_Defining_Identifier (N : Node_Id);
    procedure Generate_Derived_Type_Definition (N : Node_Id);
    procedure Generate_Designator (N : Node_Id);
@@ -33,6 +34,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Object_Declaration (N : Node_Id);
    procedure Generate_Package_Declaration (N : Node_Id);
    procedure Generate_Package_Implementation (N : Node_Id);
+   procedure Generate_Package_Instanciation (N : Node_Id);
    procedure Generate_Package_Specification (N : Node_Id);
    procedure Generate_Parameter (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
@@ -83,6 +85,9 @@ package body Backend.BE_Ada.Generator is
          when K_Component_Declaration =>
             Generate_Component_Declaration (N);
 
+         when K_Decimal_Type_Definition =>
+            Generate_Decimal_Type_Definition (N);
+
          when K_Defining_Identifier =>
             Generate_Defining_Identifier (N);
 
@@ -130,6 +135,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Package_Implementation =>
             Generate_Package_Implementation (N);
+
+         when K_Package_Instanciation =>
+            Generate_Package_Instanciation (N);
 
          when K_Package_Specification =>
             Generate_Package_Specification (N);
@@ -422,6 +430,25 @@ package body Backend.BE_Ada.Generator is
          Generate (E);
       end if;
    end Generate_Component_Declaration;
+
+   --------------------------------------
+   -- Generate_Decimal_Type_Definition --
+   --------------------------------------
+
+   procedure Generate_Decimal_Type_Definition (N : Node_Id) is
+   begin
+      Write (Tok_Delta);
+      Write_Space;
+
+      Generate (Scale (N));
+      Write_Space;
+
+      Write (Tok_Digits);
+      Write_Space;
+
+      Write_Str (Values.Image (Total (N)));
+
+   end Generate_Decimal_Type_Definition;
 
    ----------------------------------
    -- Generate_Defining_Identifier --
@@ -887,6 +914,26 @@ package body Backend.BE_Ada.Generator is
       Write_Eol;
    end Generate_Package_Implementation;
 
+   ------------------------------------
+   -- Generate_Package_Instanciation --
+   ------------------------------------
+
+   procedure Generate_Package_Instanciation (N : Node_Id) is
+   begin
+      Write (Tok_Package);
+      Write_Space;
+      Generate (Defining_Identifier (N));
+      Write_Space;
+      Write (Tok_Is);
+      Write_Eol;
+      Increment_Indentation;
+      Write_Indentation (-1);
+      Write (Tok_New);
+      Write_Space;
+      Generate (Original_Package (N));
+      Decrement_Indentation;
+   end Generate_Package_Instanciation;
+
    -----------------------------
    -- Generate_Null_Statement --
    -----------------------------
@@ -1236,6 +1283,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Subprogram_Specification (N : Node_Id) is
       P : constant List_Id := Parameter_Profile (N);
       T : constant Node_Id := Return_Type (N);
+      R : constant Node_Id := Renamed_Subprogram (N);
 
    begin
       if Present (T) then
@@ -1259,6 +1307,16 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Return);
          Write_Space;
          Generate (T);
+         Decrement_Indentation;
+      end if;
+
+      if Present (R) then
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation (-1);
+         Write (Tok_Renames);
+         Write_Space;
+         Generate (R);
          Decrement_Indentation;
       end if;
    end Generate_Subprogram_Specification;

@@ -95,6 +95,9 @@ module Backend::BE_Ada::Nodes {
     List_Id    Packages;
   };
 
+  interface Package_Instanciation : Definition {
+    Node_Id    Original_Package;
+  };
 
   /********************/
   /* Subprogram nodes */
@@ -109,6 +112,7 @@ module Backend::BE_Ada::Nodes {
   interface Subprogram_Specification : Definition {
     List_Id    Parameter_Profile;
     Node_Id    Return_Type;
+    Node_Id    Renamed_Subprogram;
   };
 
   /* Subprogram Body */
@@ -140,6 +144,11 @@ module Backend::BE_Ada::Nodes {
     List_Id    Enumeration_Literals;
   };
 
+  interface Decimal_Type_Definition : Node_Id {
+    Node_Id    Scale;
+    Value_Id   Total;
+  };
+  
   /**************/
   /* Aggregates */
   /**************/
@@ -296,8 +305,7 @@ module Backend::BE_Ada::Nodes {
   interface Enumeration_Type : Definition {
     List_Id    Enumeration_Literals;
   };
-
-
+  
   /***************/
   /* Array nodes */
   /***************/
@@ -337,6 +345,7 @@ module Backend::BE_Ada::Nodes {
     Node_Id    From_Any_Node;
     Node_Id    To_Any_Node;
     Node_Id    Type_Def_Node;
+    Node_Id    Fixed_Type_Node;
   };
 
   interface Expression : Node_Id {

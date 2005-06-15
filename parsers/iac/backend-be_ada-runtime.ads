@@ -12,6 +12,7 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_AbstractBase,
       RU_CORBA_ExceptionList,
       RU_CORBA_ExceptionList_Internals,
+      RU_CORBA_Fixed_Point,
       RU_CORBA_Internals,
       RU_CORBA_NVList,
       RU_CORBA_Object,
@@ -149,6 +150,7 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Struct,                 --  PolyORB.Any.TypeCode.TC_Struct
       RE_TC_Array,                  --  PolyORB.Any.TypeCode.TC_Array
       RE_TC_Union,                  --  PolyORB.Any.TypeCode.TC_Union
+      RE_TC_Fixed,                  --  PolyORB.Any.TypeCode.TC_Fixed
       RE_Register_Exception,        --  PolyORB.Any.TypeCode.Register_Exception
       RE_User_Get_Members,          --  PolyORB.Exceptions.User_get_Members
       RE_User_Raise_Exception,      --  PolyORB.Exceptions.User_Raise_Exception
@@ -285,6 +287,7 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Object_1             => RU_PolyORB_Any_TypeCode,
          RE_TC_Struct               => RU_PolyORB_Any_TypeCode,
          RE_TC_Union                => RU_PolyORB_Any_TypeCode,
+         RE_TC_Fixed                => RU_PolyORB_Any_TypeCode,
          RE_Register_Exception      => RU_PolyORB_Exceptions,
          RE_User_Get_Members        => RU_PolyORB_Exceptions,
          RE_User_Raise_Exception    => RU_PolyORB_Exceptions,

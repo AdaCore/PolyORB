@@ -490,11 +490,47 @@ package body Backend.BE_Ada.Stubs is
       ----------------------------
 
       procedure Visit_Type_Declaration (E : Node_Id) is
-         D          : Node_Id;
-         T          : Node_Id;
-         N          : Node_Id;
-         Is_Subtype : Boolean := False;
+         D               : Node_Id;
+         T               : Node_Id;
+         N               : Node_Id;
+         Is_Subtype      : Boolean := False;
+         Type_Spec_Node  : Node_Id;
+         Fixed_Type_Node : Node_Id;
       begin
+         Set_Main_Spec;
+         Type_Spec_Node := Type_Spec (E);
+
+         --  The case of fixed point numbers is a special case :
+         --  * The fixed type shall be mapped to an equivament Ada decimal type
+         --  * For each declarator, a type definition shall be generated.
+         if FEN.Kind (Type_Spec_Node) = K_Fixed_Point_Type then
+            declare
+               Fixed_Name : Name_Id;
+            begin
+               --  Defining a new Ada decimal type.
+               Set_Str_To_Name_Buffer ("Fixed_");
+               Add_Nat_To_Name_Buffer (Nat (N_Total (Type_Spec_Node)));
+               Add_Char_To_Name_Buffer ('_');
+               Add_Nat_To_Name_Buffer (Nat (N_Scale (Type_Spec_Node)));
+               Fixed_Name := Name_Find;
+
+               T := Make_Defining_Identifier (Fixed_Name);
+               Set_Parent_Unit_Name
+                 (T, Defining_Identifier (Main_Package (Current_Entity)));
+
+               Fixed_Type_Node := Make_Full_Type_Declaration
+                 (Defining_Identifier => T,
+                  Type_Definition     => Make_Decimal_Type_Definition
+                  (Type_Spec_Node));
+               Append_Node_To_List
+                 (Fixed_Type_Node,
+                  Visible_Part (Current_Package));
+
+            end;
+         else
+            T := Map_Designator (Type_Spec_Node);
+         end if;
+
          --  According to the Ada mapping specification. Most of the type
          --  definitions in an IDL file should be mapped to :
          --  "type ... is new ...;"
@@ -502,9 +538,6 @@ package body Backend.BE_Ada.Stubs is
          --  "interface Base {...};
          --   typedef Base Root;"
          --  sould be mapped : "subtype Root is Base.Ref;"
-
-         Set_Main_Spec;
-         T := Map_Designator (Type_Spec (E));
 
          --  Determining wether we map the type definition to a "type ... is
          --  new ...;" or a "subtype ... is ...;" statement.
@@ -539,6 +572,9 @@ package body Backend.BE_Ada.Stubs is
             end if;
             Bind_FE_To_Stub (Identifier (D), N);
             Bind_FE_To_Type_Def (Identifier (D), N);
+            if FEN.Kind (Type_Spec_Node) = K_Fixed_Point_Type then
+               Bind_FE_To_Fixed_Type (Identifier (D), Fixed_Type_Node);
+            end if;
             Append_Node_To_List
               (N, Visible_Part (Current_Package));
             Append_Node_To_List

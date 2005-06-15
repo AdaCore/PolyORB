@@ -5,6 +5,7 @@ with Locations; use Locations;
 with Namet;     use Namet;
 with Output;    use Output;
 with Utils;     use Utils;
+with Values;    use Values;
 
 with Frontend.Nodes;
 
@@ -755,6 +756,34 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Component_Declaration;
 
+   ----------------------------------
+   -- Make_Decimal_Type_Definition --
+   ----------------------------------
+
+   function Make_Decimal_Type_Definition
+     (Definition : Node_Id)
+     return Node_Id is
+      N   : Node_Id;
+      V   : Value_Id;
+      Exp : Node_Id;
+   begin
+      N := New_Node (K_Decimal_Type_Definition);
+
+      V := New_Floating_Point_Value
+        (Long_Double (1.0 / (10 ** (Integer (FEN.N_Scale (Definition))))));
+
+      Exp := Make_Literal (V);
+      Set_Scale (N, Exp);
+
+      V := New_Integer_Value
+        (Unsigned_Long_Long (FEN.N_Total (Definition)),
+         1,
+         10);
+      Set_Total (N, V);
+
+      return N;
+   end Make_Decimal_Type_Definition;
+
    ------------------------------
    -- Make_Defining_Identifier --
    ------------------------------
@@ -1057,6 +1086,23 @@ package body Backend.BE_Ada.Nutils is
       return Unit;
    end Make_Package_Declaration;
 
+   --------------------------------
+   -- Make_Package_Instanciation --
+   --------------------------------
+
+   function Make_Package_Instanciation
+     (Defining_Identifier : Node_Id;
+      Original_Package    : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Package_Instanciation);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Original_Package (N, Original_Package);
+      return N;
+   end Make_Package_Instanciation;
+
    ----------------------------------
    -- Make_Parameter_Specification --
    ----------------------------------
@@ -1223,7 +1269,8 @@ package body Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Parameter_Profile   : List_Id;
       Return_Type         : Node_Id := No_Node;
-      Parent              : Node_Id := Current_Package)
+      Parent              : Node_Id := Current_Package;
+      Renamed_Subprogram  : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -1234,6 +1281,7 @@ package body Backend.BE_Ada.Nutils is
       Set_Parameter_Profile    (N, Parameter_Profile);
       Set_Return_Type          (N, Return_Type);
       Set_Parent               (N, Parent);
+      Set_Renamed_Subprogram   (N, Renamed_Subprogram);
       return N;
    end Make_Subprogram_Specification;
 

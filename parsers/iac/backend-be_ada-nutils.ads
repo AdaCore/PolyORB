@@ -381,6 +381,10 @@ package Backend.BE_Ada.Nutils is
       Expression          : Node_Id := No_Node)
      return Node_Id;
 
+   function Make_Decimal_Type_Definition
+     (Definition : Node_Id)
+     return Node_Id;
+
    function Make_Defining_Identifier
      (Name  : Name_Id)
      return  Node_Id;
@@ -462,6 +466,11 @@ package Backend.BE_Ada.Nutils is
      (Identifier : Node_Id)
      return Node_Id;
 
+   function Make_Package_Instanciation
+     (Defining_Identifier : Node_Id;
+      Original_Package    : Node_Id)
+     return Node_Id;
+
    function Make_Parameter_Specification
      (Defining_Identifier : Node_Id;
       Subtype_Mark        : Node_Id;
@@ -512,7 +521,8 @@ package Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Parameter_Profile   : List_Id;
       Return_Type         : Node_Id := No_Node;
-      Parent              : Node_Id := Current_Package)
+      Parent              : Node_Id := Current_Package;
+      Renamed_Subprogram  : Node_Id := No_Node)
       return                Node_Id;
 
    function Make_Type_Attribute
