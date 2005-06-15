@@ -241,8 +241,8 @@ package body Backend.BE_Types is
    ---------------------------------
 
    procedure Generate_Complex_Declarator (E : Node_Id; L : in out List) is
-   begin
       pragma Unreferenced (E);
+   begin
       Insert (L, Tk_Array);
    end Generate_Complex_Declarator;
 
@@ -269,8 +269,8 @@ package body Backend.BE_Types is
    -------------------------------
 
    procedure Generate_Enumeration_Type (E : Node_Id; L : in out List) is
-   begin
       pragma Unreferenced (E);
+   begin
       Insert (L, Tk_Enum);
    end Generate_Enumeration_Type;
 
@@ -296,8 +296,8 @@ package body Backend.BE_Types is
    -------------------------------
 
    procedure Generate_Fixed_Point_Type (E : Node_Id; L : in out List) is
-   begin
       pragma Unreferenced (E);
+   begin
       Insert (L, Tk_Fixed);
    end Generate_Fixed_Point_Type;
 
@@ -402,8 +402,8 @@ package body Backend.BE_Types is
    --------------------------------
 
    procedure Generate_Simple_Declarator (E : Node_Id; L : in out List) is
-   begin
       pragma Unreferenced (E);
+   begin
       Insert (L, Tk_Alias);
    end Generate_Simple_Declarator;
 
@@ -421,8 +421,8 @@ package body Backend.BE_Types is
    --------------------------
 
    procedure Generate_String_Type (E : Node_Id; L : in out List) is
-   begin
       pragma Unreferenced (E);
+   begin
       Insert (L, Tk_String);
    end Generate_String_Type;
 
@@ -431,8 +431,8 @@ package body Backend.BE_Types is
    ---------------------------
 
    procedure Generate_WString_Type (E : Node_Id; L : in out List) is
-   begin
       pragma Unreferenced (E);
+   begin
       Insert (L, Tk_Wstring);
    end Generate_WString_Type;
 
@@ -508,8 +508,8 @@ package body Backend.BE_Types is
    ------------------------------------
 
    procedure Generate_Value_Box_Declaration (E : Node_Id; L : in out List) is
-   begin
       pragma Unreferenced (E);
+   begin
       Insert (L, Tk_Valuebox);
    end Generate_Value_Box_Declaration;
 
