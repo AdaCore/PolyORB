@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#60 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#61 $
 
 @include version.texi
 
@@ -466,7 +466,7 @@ environments.
 You may find more information on PolyORB, including technical and
 scientific papers on PolyORB, on the project websites:
 @url{http://libre.adacore.com/polyorb/} and
-@url{http://polyorb.objectweb.org}.
+@url{http://polyorb.objectweb.org/}.
 
 @i{Note: PolyORB is the project formerly known as DROOPI, a Distributed
 Reusable Object-Oriented Polymorphic Infrastructure}
