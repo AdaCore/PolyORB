@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#59 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#60 $
 
 @include version.texi
 
@@ -300,11 +300,14 @@ protocol defined as part of CORBA.
 
 @item @ref{Tools} describes PolyORB's tools.
 
+@item @ref{Conformance to standards} discusses the conformance of the
+PolyORB's personalities to the CORBA and SOAP standards.
+
 @item @ref{References} provides a list of useful references to
 complete this documentation.
 
 @item
-@ref{GNU Free Documentation License}, contains the text of the license
+@ref{GNU Free Documentation License} contains the text of the license
 under which this document is being distributed.
 @end itemize
 
@@ -461,8 +464,9 @@ the automatic, just-in-time creation of proxies between incompatible
 environments.
 
 You may find more information on PolyORB, including technical and
-scientific papers on PolyORB, on the project website:
-@url{http://libre.adacore.com/polyorb/}
+scientific papers on PolyORB, on the project websites:
+@url{http://libre.adacore.com/polyorb/} and
+@url{http://polyorb.objectweb.org}.
 
 @i{Note: PolyORB is the project formerly known as DROOPI, a Distributed
 Reusable Object-Oriented Polymorphic Infrastructure}
@@ -494,6 +498,7 @@ platforms:
 @item FreeBSD
 @item HP-UX
 @item Linux
+@item MacOS X
 @item Solaris
 @item Windows
 @end itemize
@@ -1360,7 +1365,7 @@ finalized when the session is closed.
 @subsection Thread Per Request
 @c -------------------------------------------------------------------
 
-Under the Thread Per Session ORB policy, the middleware creates one
+Under the Thread Per Request ORB policy, the middleware creates one
 task per incoming request. The task is finalized when the request is
 completed.
 
@@ -1622,6 +1627,11 @@ section in your configuration file, @code{name_service} is the
 @item Registering an initial reference using the @code{-ORB InitRef
 NamingService=<IOR>} or @code{-ORB InitRef NamingService=<corbaloc>}
 command-line argument. See the CORBA specifications for more details.
+
+@item Registering an initial reference for
+@code{NamingService} using the
+@code{CORBA.ORB.Register_Initial_Reference} function. See the CORBA
+specifications for more details.
 
 @end itemize
 
@@ -1954,6 +1964,11 @@ the @code{IOR} or @code{corbaloc} of the COS Naming server to use. See
 PolyORBPolicyDomainManager=<IOR>} or @code{-ORB InitRef
 PolyORBPolicyDomainManager=<corbaloc>} command-line argument. See the
 CORBA specifications for more details.
+
+@item Registering an initial reference for
+@code{PolyORBPolicyDomainManager} using the
+@code{CORBA.ORB.Register_Initial_Reference} function. See the CORBA
+specifications for more details.
 
 @end itemize
 
@@ -2391,8 +2406,10 @@ supports the full semantics of CORBA requests.
 @noindent
 Datagram Inter-ORB Protocol (DIOP) is a specialization of GIOP for the
 UDP/IP protocol stack. It supports only asynchronous (@code{oneway})
-requests.
+requests. 
 
+This protocol is specific to PolyORB. DIOP 1.0 is mapping of GIOP on
+top of UDP/IP. DIOP 1.0 uses GIOP 1.2 message format.
 
 @c -------------------------------------------------------------------
 @node MIOP
