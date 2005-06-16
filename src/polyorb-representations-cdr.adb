@@ -163,7 +163,6 @@ package body PolyORB.Representations.CDR is
       Data           : in     PolyORB.Any.TypeCode.Object)
    is
       Complex_Buffer : Buffer_Access;
-      E              : Errors.Error_Container;
    begin
       pragma Debug (O ("Marshall (Typecode) : enter"));
       pragma Debug (O ("Marshall (Typecode) : kind is " &
@@ -287,6 +286,7 @@ package body PolyORB.Representations.CDR is
             declare
                Nb : constant PolyORB.Types.Unsigned_Long :=
                  PolyORB.Any.TypeCode.Member_Count (Data);
+               E : Errors.Error_Container;
             begin
                Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
@@ -1036,7 +1036,6 @@ package body PolyORB.Representations.CDR is
       TypeCode_Id : constant PolyORB.Types.Unsigned_Long
         := Unmarshall (Buffer);
       Result      : PolyORB.Any.TypeCode.Object;
-      E           : Errors.Error_Container;
    begin
       pragma Debug (O ("Unmarshall (TypeCode) : enter"));
 
@@ -1147,6 +1146,7 @@ package body PolyORB.Representations.CDR is
                Nb, Default_Index : PolyORB.Types.Unsigned_Long;
                Discriminator_Type, Member_Type : PolyORB.Any.TypeCode.Object;
                Member_Label : PolyORB.Any.Any;
+               E : Error_Container;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
                Id :=
