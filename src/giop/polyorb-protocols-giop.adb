@@ -419,9 +419,7 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       if Found (Error) then
-         Enter (Sess.Mutex);
          Remove_Pending_Request (Sess, New_Pending_Req.Request_Id, Success);
-         Leave (Sess.Mutex);
 
          if not Success then
             raise GIOP_Error;
