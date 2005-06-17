@@ -948,6 +948,13 @@ package body XE_Utils is
          then
             Add_Make_Switch (Argv);
 
+         --  Processing for --PCS=
+
+         elsif Argv'Length > 6
+           and then Argv (Argv'First + 1 .. Argv'First + 5) = "-PCS="
+         then
+            Set_PCS_Name (Argv (Argv'First + 6 .. Argv'Last));
+
          else
             Usage_Needed := True;
          end if;
@@ -956,6 +963,26 @@ package body XE_Utils is
          Add_Main_Source (Argv);
       end if;
    end Scan_Dist_Arg;
+
+   --------------------
+   -- Scan_Dist_Args --
+   --------------------
+
+   procedure Scan_Dist_Args (Args : String) is
+      Argv : Argument_List_Access := Argument_String_To_List (Args);
+   begin
+      --  We have already processed the user command line: we might be
+      --  in the -cargs or -largs section.
+
+      Scan_Dist_Arg ("-margs");
+
+      for J in Argv'Range loop
+         if Argv (J)'Length > 0 then
+            Scan_Dist_Arg (Argv (J).all);
+         end if;
+      end loop;
+      Free (Argv);
+   end Scan_Dist_Args;
 
    ------------------------
    -- Sigint_Intercepted --

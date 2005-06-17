@@ -104,6 +104,11 @@ package XE_Utils is
    ------------------------------------
 
    procedure Scan_Dist_Arg (Argv : String);
+   --  Process one command line argument
+
+   procedure Scan_Dist_Args (Args : String);
+   --  Split Args into a list of arguments according to usual shell
+   --  splitting semantics, and process each argument using Scan_Dist_Arg.
 
    function More_Source_Files return Boolean;
    function Next_Main_Source return Name_Id;
