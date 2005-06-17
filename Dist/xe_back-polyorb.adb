@@ -24,6 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.Expect; use GNAT.Expect;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with XE;          use XE;
 with XE_Flags;    use XE_Flags;
@@ -38,6 +39,7 @@ package body XE_Back.PolyORB is
 
    type PolyORB_Backend is new Backend with null record;
 
+   procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend);
    procedure Initialize (Self : access PolyORB_Backend);
    procedure Run_Backend (Self : access PolyORB_Backend);
 
@@ -1073,6 +1075,27 @@ package body XE_Back.PolyORB is
 
       Generate_Starter_File;
    end Run_Backend;
+
+   ------------------------
+   -- Set_PCS_Dist_Flags --
+   ------------------------
+
+   procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend) is
+      pragma Unreferenced (Self);
+      Status         : aliased Integer;
+   begin
+      declare
+         PolyORB_Config : constant String :=
+           Get_Command_Output ("polyorb-config", (1 .. 0 => null), "",
+                               Status'Access);
+      begin
+         Scan_Dist_Args (PolyORB_Config);
+      end;
+   exception
+      when others =>
+         Message ("PolyORB installation not found");
+         raise Fatal_Error;
+   end Set_PCS_Dist_Flags;
 
    ----------------
    -- Write_Call --
