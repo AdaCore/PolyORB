@@ -1,3 +1,34 @@
+2005-06-17  Thomas Quinot  <quinot@adacore.com>
+
+	* xe_defs.ads, xe_defs.adb: New subprogram Get_Dist_Prefix returning
+	the prefix of the bin directory where gnatdist is installed. Used
+	to allow dynamic computation of the location of the GARLIC runtime
+	library.
+	New subprogram Set_PCS_Name allowing the value returned by
+	Get_PCS_Name to be changed.
+
+	* xe_back.ads: Isolate PCS-specific implicit command line flags
+	setting in a new primitive operation Set_PCS_Dist_Flags.
+
+	* xe_back-garlic.adb: Implement Set_PCS_Dist_Flags for the GARLIC
+	case using a dynamic prefix computation based on gnatdist location,
+	then falling back to the builtin (compile-time) prefix.
+
+	* xe_back-polyorb.adb: Implement Set_PCS_Dist_Flags for the PolyORB
+	case using a call to polyorb-config.
+
+	* xe_defs-defaults.ads.in: New constant Default_Prefix.
+	Remove PCS-specific flags from Default_Dist_Flags.
+
+	* xe_utils.ads, xe_utils.adb: New subprogram Scan_Dist_Args to scan
+	a string of multiple command line switches.
+
+	* xe_main.adb, xe_utils.adb: Provision for setting some implicit
+	command line flags dependant on PCS selection using
+	--PCS=(garlic|polyorb).
+
+	* xe_usage.adb: Document --PCS=... switch.
+
 2005-05-09  Pascal Obry  <obry@adacore.com>
 
 	* INSTALL:
