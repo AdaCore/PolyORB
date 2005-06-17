@@ -33,6 +33,9 @@ package XE_Back is
    type Backend is abstract tagged limited private;
    type Backend_Access is access all Backend'Class;
 
+   procedure Set_PCS_Dist_Flags (Self : access Backend) is abstract;
+   --  Set PCS-specific default command line flags
+
    procedure Initialize (Self : access Backend) is abstract;
    --  Initialize the backend
 
