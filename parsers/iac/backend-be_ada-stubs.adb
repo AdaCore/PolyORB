@@ -490,12 +490,13 @@ package body Backend.BE_Ada.Stubs is
       ----------------------------
 
       procedure Visit_Type_Declaration (E : Node_Id) is
-         D               : Node_Id;
-         T               : Node_Id;
-         N               : Node_Id;
-         Is_Subtype      : Boolean := False;
-         Type_Spec_Node  : Node_Id;
-         Fixed_Type_Node : Node_Id;
+         D                : Node_Id;
+         T                : Node_Id;
+         N                : Node_Id;
+         Is_Subtype       : Boolean := False;
+         Type_Spec_Node   : Node_Id;
+         Seq_Package_Inst : Node_Id;
+         Fixed_Type_Node  : Node_Id;
       begin
          Set_Main_Spec;
          Type_Spec_Node := Type_Spec (E);
@@ -526,6 +527,82 @@ package body Backend.BE_Ada.Stubs is
                  (Fixed_Type_Node,
                   Visible_Part (Current_Package));
 
+            end;
+         elsif FEN.Kind (Type_Spec_Node) = K_Sequence_Type then
+            declare
+               Bounded          : constant Boolean :=
+                 Present (Max_Size (Type_Spec_Node));
+               CORBA_Seq        : Node_Id;
+               Seq_Package_Name : Name_Id;
+               Seq_Package_Node : Node_Id;
+               Type_Node        : Node_Id;
+               Max_S            : Value_Type;
+            begin
+               --  We create an instanciation of the generic package
+               --  CORBA.Sequences.Bounded or CORBA.Sequences.Unbounded.
+               --  Then, the sequence type is derived from the "Sequence"
+               --  Type of the instanciated package.
+
+               --  Creating the package name conforming to the Ada mapping
+               --  specification.
+               Set_Str_To_Name_Buffer ("IDL_SEQUENCE_");
+               Seq_Package_Name := Name_Find;
+               if Bounded then
+                  CORBA_Seq := RU (RU_CORBA_Sequences_Bounded);
+                  Max_S := Values.Value
+                    (FEN.Value
+                     (Max_Size
+                      (Type_Spec_Node)));
+                  Set_Dnat_To_Name_Buffer (Dnat (Max_S.IVal));
+                  Seq_Package_Name := Add_Suffix_To_Name
+                    (Name_Buffer (1 .. Name_Len) & "_",
+                     Seq_Package_Name);
+
+               else
+                  CORBA_Seq := RU (RU_CORBA_Sequences_Unbounded);
+               end if;
+               if Is_Base_Type (Type_Spec (Type_Spec_Node)) then
+                  Get_Name_String (Seq_Package_Name);
+                  Get_Name_String_And_Append
+                    (FEN.Image
+                     (Base_Type
+                      (Type_Spec
+                       (Type_Spec_Node))));
+                  Seq_Package_Name := Name_Find;
+                  Type_Node := Map_Designator (Type_Spec (Type_Spec_Node));
+               else
+                  raise Program_Error;
+               end if;
+
+               Seq_Package_Node := Make_Defining_Identifier
+                 (Seq_Package_Name);
+               Set_Parent_Unit_Name
+                 (Seq_Package_Node,
+                  Defining_Identifier
+                  (Main_Package (Current_Entity)));
+
+               if Bounded then
+                  Seq_Package_Inst := Make_Package_Instanciation
+                    (Defining_Identifier => Seq_Package_Node,
+                     Original_Package => Make_Subprogram_Call
+                     (CORBA_Seq,
+                      Make_List_Id
+                      (Type_Node,
+                       Make_Literal (FEN.Value (Max_Size (Type_Spec_Node))))));
+               else
+                  Seq_Package_Inst := Make_Package_Instanciation
+                    (Defining_Identifier => Seq_Package_Node,
+                     Original_Package => Make_Subprogram_Call
+                     (CORBA_Seq,
+                      Make_List_Id
+                      (Type_Node)));
+               end if;
+               Append_Node_To_List
+                 (Seq_Package_Inst,
+                  Visible_Part (Current_Package));
+
+               T := Make_Defining_Identifier (TN (T_Sequence));
+               Set_Parent_Unit_Name (T, Seq_Package_Node);
             end;
          else
             T := Map_Designator (Type_Spec_Node);
@@ -573,7 +650,13 @@ package body Backend.BE_Ada.Stubs is
             Bind_FE_To_Stub (Identifier (D), N);
             Bind_FE_To_Type_Def (Identifier (D), N);
             if FEN.Kind (Type_Spec_Node) = K_Fixed_Point_Type then
-               Bind_FE_To_Fixed_Type (Identifier (D), Fixed_Type_Node);
+               Bind_FE_To_Instanciations
+                 (F              => Identifier (D),
+                  Stub_Type_Node => Fixed_Type_Node);
+            elsif FEN.Kind (Type_Spec_Node) = K_Sequence_Type then
+               Bind_FE_To_Instanciations
+                 (F                 => Identifier (D),
+                  Stub_Package_Node => Seq_Package_Inst);
             end if;
             Append_Node_To_List
               (N, Visible_Part (Current_Package));

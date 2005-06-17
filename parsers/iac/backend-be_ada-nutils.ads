@@ -164,6 +164,8 @@ package Backend.BE_Ada.Nutils is
       P_Conflicts,
       P_Depends,
       P_E,
+      P_Element_From_Any,
+      P_Element_To_Any,
       P_Exc_List,
       P_Exception_Info,
       P_From,
@@ -220,6 +222,7 @@ package Backend.BE_Ada.Nutils is
      (S_Deferred_Initialization,
       S_Get_Members,
       S_From_Any,
+      S_Initialize,
       S_Invoke,
       S_Is_A,
       S_Servant_Is_A,
@@ -249,7 +252,8 @@ package Backend.BE_Ada.Nutils is
    type Type_Id is
      (T_Ref,
       T_Object,
-      T_Object_Ptr);
+      T_Object_Ptr,
+      T_Sequence);
 
    TN : array (Type_Id) of Name_Id;
 

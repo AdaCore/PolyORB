@@ -14,6 +14,9 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_ExceptionList_Internals,
       RU_CORBA_Fixed_Point,
       RU_CORBA_Internals,
+      RU_CORBA_Sequences,
+      RU_CORBA_Sequences_Bounded,
+      RU_CORBA_Sequences_Unbounded,
       RU_CORBA_NVList,
       RU_CORBA_Object,
       RU_CORBA_Object_Internals,
@@ -33,6 +36,11 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB_CORBA_P_Interceptors_Hooks,
       RU_PolyORB_CORBA_P_Exceptions,
       RU_PolyORB_Requests,
+      RU_PolyORB_Sequences,
+      RU_PolyORB_Sequences_Bounded,
+      RU_PolyORB_Sequences_Bounded_CORBA_Helper,
+      RU_PolyORB_Sequences_Unbounded,
+      RU_PolyORB_Sequences_Unbounded_CORBA_Helper,
       RU_PolyORB_Types,
       RU_PolyORB_Utils,
       RU_PolyORB_Utils_Strings,
@@ -51,6 +59,9 @@ package Backend.BE_Ada.Runtime is
       RE_True,                      --  True
       RE_On,                        --  On
       RE_Off,                       --  Off
+      RE_CORBA_Helper,              --  CORBA_Helper
+      RE_Element_TC,                --  Element_TC
+      RE_Sequence_TC,               --  Sequence_TC
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
@@ -125,6 +136,8 @@ package Backend.BE_Ada.Runtime is
       RE_Create_List,               --  CORBA.ORB.Create_List,
       RE_Object,                    --  CORBA.TypeCode.Object
       RE_Add_Parameter,             --  CORBA.TypeCode.Internals.Add_Parameter
+      RE_Build_Sequence_TC,         --  CORBA.TypeCode.
+      --                            --    Internals.Build_Sequence_TC
       RE_To_CORBA_Object,           --  CORBA.TypeCode.
       --                            --    Internals.To_CORBA_Object
       RE_To_PolyORB_Object,         --  CORBA.TypeCode.
@@ -190,6 +203,9 @@ package Backend.BE_Ada.Runtime is
          RE_True                    => RU_Null,
          RE_On                      => RU_Null,
          RE_Off                     => RU_Null,
+         RE_CORBA_Helper            => RU_Null,
+         RE_Element_TC              => RU_Null,
+         RE_Sequence_TC             => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
          RE_ARG_IN_0                => RU_CORBA,
          RE_ARG_OUT_0               => RU_CORBA,
@@ -269,6 +285,7 @@ package Backend.BE_Ada.Runtime is
          RE_Set_Result              => RU_CORBA_ServerRequest,
          RE_Object                  => RU_CORBA_TypeCode,
          RE_Add_Parameter           => RU_CORBA_TypeCode_Internals,
+         RE_Build_Sequence_TC       => RU_CORBA_TypeCode_Internals,
          RE_To_CORBA_Object         => RU_CORBA_TypeCode_Internals,
          RE_To_PolyORB_Object       => RU_CORBA_TypeCode_Internals,
          RE_Any_1                   => RU_PolyORB_Any,

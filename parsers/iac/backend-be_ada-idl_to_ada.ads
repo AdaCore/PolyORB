@@ -42,9 +42,14 @@ package Backend.BE_Ada.IDL_To_Ada is
      (F : Node_Id;
       B : Node_Id);
 
-   procedure Bind_FE_To_Fixed_Type
+   procedure Bind_FE_To_Instanciations
      (F : Node_Id;
-      B : Node_Id);
+      Stub_Package_Node : Node_Id := No_Node;
+      Stub_Type_Node : Node_Id := No_Node;
+      Helper_Package_Node : Node_Id := No_Node;
+      TC_Node : Node_Id := No_Node;
+      From_Any_Node : Node_Id := No_Node;
+      To_Any_Node : Node_Id := No_Node);
 
    function Is_Base_Type
      (N : Node_Id)

@@ -49,6 +49,13 @@ package body Backend.BE_Ada.Runtime is
          end if;
          if S (I) = '_' then
             New_Word := True;
+            for J in 1 .. Rules_Last loop
+               if Rules (J).Size <= Length
+                 and then S (I .. I + Rules (J).Size - 1) = Rules (J).From.all
+               then
+                  S (I .. I + Rules (J).Size - 1) := Rules (J).Into.all;
+               end if;
+            end loop;
          end if;
          Length := Length - 1;
       end loop;
@@ -93,6 +100,7 @@ package body Backend.BE_Ada.Runtime is
       Register_Casing_Rule ("PortableServer");
       Register_Casing_Rule ("ServerRequest");
       Register_Casing_Rule ("TC_");
+      Register_Casing_Rule ("_TC");
       Register_Casing_Rule ("TypeCode");
       Register_Casing_Rule ("ExceptionList");
 

@@ -922,7 +922,7 @@ package body Backend.BE_Ada.Generator is
    begin
       Write (Tok_Package);
       Write_Space;
-      Generate (Defining_Identifier (N));
+      Write_Name (Name (Defining_Identifier (N)));
       Write_Space;
       Write (Tok_Is);
       Write_Eol;

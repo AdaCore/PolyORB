@@ -190,6 +190,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_To_Any;
 
+   -------------------------
+   -- Bind_FE_To_Type_Def --
+   -------------------------
+
    procedure Bind_FE_To_Type_Def
      (F : Node_Id;
       B : Node_Id)
@@ -207,15 +211,21 @@ package body Backend.BE_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Type_Def;
 
-   ---------------------------
-   -- Bind_FE_To_Fixed_Type --
-   ---------------------------
+   -------------------------------
+   -- Bind_FE_To_Instanciations --
+   -------------------------------
 
-   procedure Bind_FE_To_Fixed_Type
+   procedure Bind_FE_To_Instanciations
      (F : Node_Id;
-      B : Node_Id)
+      Stub_Package_Node : Node_Id := No_Node;
+      Stub_Type_Node : Node_Id := No_Node;
+      Helper_Package_Node : Node_Id := No_Node;
+      TC_Node : Node_Id := No_Node;
+      From_Any_Node : Node_Id := No_Node;
+      To_Any_Node : Node_Id := No_Node)
    is
       N : Node_Id;
+      I : Node_Id;
    begin
       N := BE_Node (F);
 
@@ -223,10 +233,40 @@ package body Backend.BE_Ada.IDL_To_Ada is
          N := New_Node (BEN.K_BE_Ada);
       end if;
 
-      BEN.Set_Fixed_Type_Node (N, B);
+      I := BE_Ada_Instanciations (N);
+
+      if No (I) then
+         I := New_Node (BEN.K_BE_Ada_Instanciations);
+      end if;
+
+      if Present (Stub_Package_Node) then
+         Set_Stub_Package_Node (I, Stub_Package_Node);
+      end if;
+
+      if Present (Stub_Type_Node) then
+         Set_Stub_Type_Node (I, Stub_Type_Node);
+      end if;
+
+      if Present (Helper_Package_Node) then
+         Set_Helper_Package_Node (I, Helper_Package_Node);
+      end if;
+
+      if Present (TC_Node) then
+         Set_TC_Node (I, TC_Node);
+      end if;
+
+      if Present (From_Any_Node) then
+         Set_From_Any_Node (I, From_Any_Node);
+      end if;
+
+      if Present (To_Any_Node) then
+         Set_To_Any_Node (I, To_Any_Node);
+      end if;
+
+      BEN.Set_BE_Ada_Instanciations (N, I);
       FEN.Set_BE_Node (F, N);
-      BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_Fixed_Type;
+      BEN.Set_FE_Node (I, F);
+   end Bind_FE_To_Instanciations;
 
    ------------------
    -- Is_Base_Type --
