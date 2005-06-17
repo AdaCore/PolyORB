@@ -24,12 +24,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Command_Line;
+
+with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with XE_Utils;         use XE_Utils;
 with XE_Defs.Defaults;
 
 package body XE_Defs is
+
+   PCS_Name : String_Access := new String'(Defaults.Default_PCS_Name);
 
    function Get_Def_Protocol_Data return String is
    begin
@@ -51,9 +56,28 @@ package body XE_Defs is
       return Defaults.Default_Storage_Name;
    end Get_Def_Storage_Name;
 
+   function Get_Dist_Prefix return String is
+      Dist_Name  : String_Access :=
+                     Locate_Exec_On_Path (Ada.Command_Line.Command_Name);
+      Dist_Dir   : constant String := Dir_Name (Dist_Name.all);
+      Bin_Suffix : constant String := Directory_Separator & "bin"
+                                    & Directory_Separator;
+   begin
+      Free (Dist_Name);
+      if Dist_Dir'Length >= Bin_Suffix'Length
+        and then Dist_Dir (
+                   Dist_Dir'Last - Bin_Suffix'Length + 1 .. Dist_Dir'Last)
+                 = Bin_Suffix
+      then
+         return Dist_Dir (Dist_Dir'First .. Dist_Dir'Last - Bin_Suffix'Length);
+      else
+         return "";
+      end if;
+   end Get_Dist_Prefix;
+
    function Get_PCS_Name return String is
    begin
-      return Defaults.Default_PCS_Name;
+      return PCS_Name.all;
    end Get_PCS_Name;
 
    function Get_Rsh_Command return String is
@@ -67,15 +91,14 @@ package body XE_Defs is
    end Get_Rsh_Options;
 
    procedure Initialize is
-      Default_Args : Argument_List_Access := Argument_String_To_List (
-                                               Defaults.Default_Dist_Flags);
    begin
-      for J in Default_Args'Range loop
-         if Default_Args (J)'Length > 0 then
-            Scan_Dist_Arg (Default_Args (J).all);
-         end if;
-      end loop;
-      Free (Default_Args);
+      Scan_Dist_Args (Defaults.Default_Dist_Flags);
    end Initialize;
+
+   procedure Set_PCS_Name (S : String) is
+   begin
+      Free (PCS_Name);
+      PCS_Name := new String'(S);
+   end Set_PCS_Name;
 
 end XE_Defs;
