@@ -54,6 +54,9 @@ begin
       Exit_Program (E_Success);
    end if;
 
+   Backend := XE_Back.Find_Backend (Get_PCS_Name);
+   Set_PCS_Dist_Flags (Backend);
+
    XE.Initialize;
    XE_Scan.Initialize;
    XE_Parse.Initialize;
@@ -139,7 +142,6 @@ begin
    --  build the distributed system.
 
    Analyze;
-   Backend := XE_Back.Find_Backend (Get_PCS_Name);
    XE_Back.Initialize (Backend);
    XE_Back.Run_Backend (Backend);
 
