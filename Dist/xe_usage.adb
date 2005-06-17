@@ -25,6 +25,7 @@
 ------------------------------------------------------------------------------
 
 with XE_IO;    use XE_IO;
+with XE_Defs.Defaults;
 with XE_Flags; use XE_Flags;
 
 procedure XE_Usage is
@@ -62,13 +63,16 @@ begin
    Write_Str ("gnatdist switches:");
    Write_Eol;
 
-   Write_Str ("  -a   Consider all files, even readonly ali files");
+   Write_Str ("  -a        Consider all files, even readonly ali files");
    Write_Eol;
-   Write_Str ("  -f   Force recompilations");
+   Write_Str ("  -f        Force recompilations");
    Write_Eol;
-   Write_Str ("  -q   Be quiet, do not display partitioning operations");
+   Write_Str ("  -q        Be quiet, do not display partitioning operations");
    Write_Eol;
-   Write_Str ("  -v   Motivate all executed commands");
+   Write_Str ("  -v        Motivate all executed commands");
+   Write_Eol;
+   Write_Str ("  --PCS=... Select PCS variant (default: "
+     & XE_Defs.Defaults.Default_PCS_Name & ")");
    Write_Eol;
    Write_Eol;
 
