@@ -43,19 +43,36 @@ with XE_Units;        use XE_Units;
 with XE_Usage;
 
 procedure XE_Main is
-   Partition : Partition_Id;
-   Backend   : XE_Back.Backend_Access;
+   Partition          : Partition_Id;
+   Backend            : XE_Back.Backend_Access;
+
+   Raised_Usage_Error : Boolean := False;
+   --  If command line processing raises Usage_Error, we want to defer
+   --  propagation until after calling Show_Dist_Args if in debug mode.
+
 begin
    XE_Names.Initialize;
-   XE_Utils.Initialize;
+   begin
+      XE_Utils.Initialize;
+      Backend := XE_Back.Find_Backend (Get_PCS_Name);
+      Set_PCS_Dist_Flags (Backend);
+   exception
+      when Usage_Error =>
+         Raised_Usage_Error := True;
+   end;
+
+   if Debug_Mode then
+      XE_Utils.Show_Dist_Args;
+   end if;
+
+   if Raised_Usage_Error then
+      raise Usage_Error;
+   end if;
 
    if XE_Utils.Number_Of_Files = 0 then
       XE_Usage;
       Exit_Program (E_Success);
    end if;
-
-   Backend := XE_Back.Find_Backend (Get_PCS_Name);
-   Set_PCS_Dist_Flags (Backend);
 
    XE.Initialize;
    XE_Scan.Initialize;
