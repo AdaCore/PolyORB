@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
---                                                                          --
---         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -113,6 +111,9 @@ package XE_Utils is
    function More_Source_Files return Boolean;
    function Next_Main_Source return Name_Id;
    function Number_Of_Files return Natural;
+
+   procedure Show_Dist_Args;
+   --  Output processed command line switches (for debugging purposes)
 
    --------------------
    -- Error Handling --

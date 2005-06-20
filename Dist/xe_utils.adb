@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
---                                                                          --
---         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -554,15 +552,6 @@ package body XE_Utils is
 
       Create_Dir (Stub_Dir_Name);
 
-      if Debug_Mode then
-         for J in Make_Switches.First .. Make_Switches.Last loop
-            Message ("make = " & Make_Switches.Table (J).all);
-         end loop;
-         for J in List_Switches.First .. List_Switches.Last loop
-            Message ("list = " & List_Switches.Table (J).all);
-         end loop;
-      end if;
-
       GNAT_Driver := Locate ("gnat");
    end Initialize;
 
@@ -983,6 +972,20 @@ package body XE_Utils is
       end loop;
       Free (Argv);
    end Scan_Dist_Args;
+
+   --------------------
+   -- Show_Dist_Args --
+   --------------------
+
+   procedure Show_Dist_Args is
+   begin
+      for J in Make_Switches.First .. Make_Switches.Last loop
+         Message ("make = " & Make_Switches.Table (J).all);
+      end loop;
+      for J in List_Switches.First .. List_Switches.Last loop
+         Message ("list = " & List_Switches.Table (J).all);
+      end loop;
+   end Show_Dist_Args;
 
    ------------------------
    -- Sigint_Intercepted --
