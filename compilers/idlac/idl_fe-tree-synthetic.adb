@@ -382,11 +382,13 @@ package body Idl_Fe.Tree.Synthetic is
       end case;
    end Has_Local_Component;
 
-   function Integer_Value
-     (Node : Node_Id)
-     return Integer is
+   -------------------
+   -- Integer_Value --
+   -------------------
+
+   function Integer_Value (Node : Node_Id) return Idl_Integer is
    begin
-      return Integer (Expr_Value (Node).Integer_Value);
+      return Expr_Value (Node).Integer_Value;
    end Integer_Value;
 
    function Character_Value

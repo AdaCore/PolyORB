@@ -142,7 +142,7 @@ package Idl_Fe.Tree.Synthetic is
 
    function Integer_Value
      (Node : Node_Id)
-     return Integer;
+     return Idl_Integer;
    function Character_Value
      (Node : Node_Id)
      return Character;

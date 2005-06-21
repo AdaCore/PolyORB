@@ -2664,7 +2664,7 @@ package body Ada_Be.Idl2Ada.Helper is
       Elt_TC_Name     : constant String  := Ada_Full_TC_Name (Elt_Type);
 
       B_Node  : constant Node_Id := Bound (Sequence (Node));
-      B_Value : Integer := 0;
+      B_Value : Idl_Integer      := 0;
    begin
       if B_Node = No_Node then
          Add_With (CU, "PolyORB.Sequences.Unbounded.CORBA_Helper");
@@ -2703,8 +2703,7 @@ package body Ada_Be.Idl2Ada.Helper is
       NL (CU);
       PL (CU, Ada_TC_Name (Node) & " := ");
       PL (CU, "  CORBA.TypeCode.Internals.Build_Sequence_TC");
-      PL (CU, "    (" & Elt_TC_Name
-          & "," & Integer'Image (B_Value) & ");");
+      PL (CU, "    (" & Elt_TC_Name & "," & Img (B_Value) & ");");
 
       Put (CU, Seq_Helper_Name & ".Initialize" & ASCII.LF & "  (");
       II (CU);
