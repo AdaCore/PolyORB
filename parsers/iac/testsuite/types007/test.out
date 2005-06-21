@@ -1,0 +1,10 @@
+STRUCT := True
+STRING := True
+FIXED := True
+USHORT := True
+SHORT := True
+SEQUENCE := True
+ULONG := True
+WSTRING := True
+CHAR := True
+ALIAS := True

@@ -1,0 +1,3 @@
+valuetype tin {
+  boolean echoBoolean (in boolean arg);
+};

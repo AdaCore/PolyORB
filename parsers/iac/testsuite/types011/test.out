@@ -1,0 +1,3 @@
+LONG := True
+ALIAS := True
+STRING := True
