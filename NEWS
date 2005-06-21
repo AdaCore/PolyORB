@@ -30,6 +30,14 @@
 * PolyORB 1.4 (not released yet)
 ================================
 
+New features
+------------
+
+New contrib/ directory to store contributed code. (9376)
+
+Added idlac_wrapper, a script contributed by Vadim Godunko to
+avoid unnecessary recompilation of idlac generated files. (9376)
+
 Incompatible changes
 --------------------
 
