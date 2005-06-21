@@ -115,6 +115,9 @@ compilers/idlac/utils.adb
 compilers/idlac/utils.ads
 configure
 configure.ac
+contrib/README
+contrib/idlac_wrapper/README
+contrib/idlac_wrapper/idlac_wrapper
 cos/Makefile.am
 cos/Makefile.common
 cos/Makefile.in

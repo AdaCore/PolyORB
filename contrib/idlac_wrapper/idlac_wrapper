@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# idlac_wrapper
+# $Id$
+#
+# Contributed to PolyORB by Vadim Godunko <vgodunko@rost.ru>   
+# See README for more details
+
+##  Correct relative file seach paths
+
+while [ $# -ne 0 ]; do
+    case "$1" in
+        -I..*)
+            args="${args} -I../${1#-I}"
+            shift
+            ;;
+        *)
+            args="${args} $1"
+            shift
+            ;;
+    esac
+done
+
+tmp="tmp$$"
+trap "rm -rf ${tmp}" 0 1 2 3 15
+(
+    ##  Create temporary directory and change current working directory to it
+
+    mkdir ${tmp} || exit $?
+    cd ${tmp} || exit $?
+
+    ##  Execute idlac
+
+    idlac ${args} || exit $?
+
+    ##  Replace exists files only if it actually changed, rename new
+    ##  created files and remove files in other case
+
+    for file in *.ad[sb]; do
+        if [ -r ../${file} ]; then
+            if cmp ${file} ../${file} > /dev/null; then
+                rm -f ${file}
+            else
+                mv -f ${file} ../${file}
+            fi
+        else
+            mv -f ${file} ../${file}
+        fi
+    done
+)
