@@ -31,87 +31,30 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: server.adb 2006 2003-04-24 19:37:10Z hugues $
-
-with Ada.Text_IO;
-with GNAT.Command_Line;  use GNAT.Command_Line;
-
-with PolyORB.CORBA_P.Server_Tools;
-
-with PolyORB.Setup.No_Tasking_Server;
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
---  with PolyORB.Setup.Ravenscar_TP_Server;
---  pragma Warnings (Off, PolyORB.Setup.Ravenscar_TP_Server);
---  with PolyORB.Setup.Thread_Pool_Server;
---  pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
-
-with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
+with all_functions.Impl;
 
 with CORBA;
-with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ORB;
-with PortableServer;
 
-with all_types.Impl;
+with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
+
+with PolyORB.Setup.Thread_Pool_Server;
+pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
+
+--  Note : the server must execute two tasks concurrently
+--         to pass oneway tests
+
+with Ada.Text_IO;
 
 procedure Server is
-   use PolyORB.CORBA_P.Server_Tools;
-
-   Ref             : CORBA.Object.Ref;
-   Register_Server : Boolean := False;
-   --  Use_Delegate    : Boolean := False;
+   Ref : CORBA.Object.Ref;
 
 begin
-
-   Ada.Text_IO.Put_Line ("Server starting.");
    CORBA.ORB.Initialize ("ORB");
-
-   --  Parse command line
-
-   loop
-      case Getopt ("d s") is
-         when ASCII.NUL => exit;
-            --  when 'd'       => Use_Delegate := True;
-         when 's'       => Register_Server := True;
-         when others    => raise Program_Error;
-      end case;
-   end loop;
-
-   --  Should we use the Delegate or the regular version?
-
-   declare
---       use CORBA.Impl;
-
-      Obj : constant CORBA.Impl.Object_Ptr
-        := new all_types.Impl.Object;
-   begin
-      Initiate_Servant (PortableServer.Servant (Obj), Ref);
-      --  Note that Ref is a smart pointer to a Reference_Info, *not*
-      --  to a CORBA.Impl.Object.
-   end;
-
-   --  If the server is to be registered, check whether there is a name
-   --  given on the command line, use "echo" otherwise.
-
-   if Register_Server then
-      declare
-         Name : constant String := Get_Argument;
-      begin
-         if Name = "" then
-            Register ("all_types", Ref);
-         else
-            Register (Name, Ref);
-         end if;
-      end;
-   end if;
-
-   --  Print IOR so that we can give it to a client
-
+   Initiate_Servant (new all_functions.Impl.Object, Ref);
    Ada.Text_IO.Put_Line
      ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
       "'");
-
-   --  Launch the server
    Initiate_Server;
 end Server;

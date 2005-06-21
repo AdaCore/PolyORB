@@ -1,0 +1,28 @@
+SHELL = /bin/sh
+
+GNATFLAGS=-O2 -gnatf -gnatoa -fstack-check 
+GNATMAKE=gnatmake
+IAC=iac -ada
+
+all : client server
+
+client : client.adb all_functions.ads
+	$(GNATMAKE) $(GNATFLAGS) client.adb `polyorb-config`
+
+server : server.adb all_functions-impl.adb all_functions.ads
+	$(GNATMAKE) $(GNATFLAGS) server.adb `polyorb-config`
+
+all_functions.ads all_functions-impl.adb : all_functions.idl
+	$(IAC) all_functions.idl > all_functions.ada
+	gnatchop -w all_functions.ada
+	rm -f all_functions.ada
+
+clean :
+	rm -f *.ref
+	rm -f *skel* *ir_info* *helper*
+	rm -f all_functions.ad? all_functions_idl_file.ads
+	rm -f *.ali *.o
+	rm -f GNAT* *~
+	rm -f core*
+	rm -f client server
+

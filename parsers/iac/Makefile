@@ -77,6 +77,7 @@ APPLI_LIST =  dsa  corba
 AS = @AS@
 AWK = awk
 BARGS = -E
+LARGS = -g
 CC = gcc
 CC_FOR_TARGET = gcc
 CXXCPP = g++ -E
@@ -131,7 +132,7 @@ XMLADA_LIBS =
 
 SUBDIRS = 
 
-GNATFLAGS = -g -O2 -gnatfy -gnatwae -gnatoa -fstack-check -gnatg
+GNATFLAGS = -g  -gnatfy -gnatwae -gnatoa -fstack-check -gnatg
 
 PROG = iac
 
@@ -352,16 +353,16 @@ all-local: $(PROG)
 	@-./mknodes $< >$@
 	gnatchop -w $@
 	$(GNATMAKE) -m -gnata $(includes) $*.adb\
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 
 mknodes : force 
 	$(GNATMAKE) -m -gnata -gnatyo $(includes) $@\
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 
 $(PROG): force mknodes $(PROG_FILES)
 
 	$(GNATMAKE) -m -gnata -gnatyo $(includes) $@\
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+		-cargs $(GNATFLAGS) -bargs $(BARGS) -largs $(LARGS)
 
 tests: $(PROG)
 	@for i in `cat testsuite/MANIFEST | grep -v '^#'`; do \

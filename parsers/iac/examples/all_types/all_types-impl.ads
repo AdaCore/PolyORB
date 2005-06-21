@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,11 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_types/all_types-impl.ads#4 $
---  Modified by saber for incremental test.
 with CORBA;
 with CORBA.Object;
 with PortableServer;
@@ -48,145 +46,139 @@ package all_types.Impl is
 
    function echoBoolean
      (Self : access Object;
-      arg : in CORBA.Boolean)
-      return CORBA.Boolean;
+      arg : in CORBA.Boolean) return CORBA.Boolean;
 
    function echoShort
      (Self : access Object;
-      arg : in CORBA.Short)
-      return CORBA.Short;
+      arg : in CORBA.Short) return CORBA.Short;
 
    function echoLong
      (Self : access Object;
-      arg : in CORBA.Long)
-      return CORBA.Long;
+      arg : in CORBA.Long) return CORBA.Long;
 
    function echoUShort
      (Self : access Object;
-      arg : in CORBA.Unsigned_Short)
-      return CORBA.Unsigned_Short;
+      arg : in CORBA.Unsigned_Short) return CORBA.Unsigned_Short;
 
    function echoULong
      (Self : access Object;
-      arg : in CORBA.Unsigned_Long)
-      return CORBA.Unsigned_Long;
+      arg : in CORBA.Unsigned_Long) return CORBA.Unsigned_Long;
+
+   function echoULLong
+     (Self : access Object;
+      arg : in CORBA.Unsigned_Long_Long) return CORBA.Unsigned_Long_Long;
 
    function echoFloat
      (Self : access Object;
-      arg : in CORBA.Float)
-      return CORBA.Float;
+      arg : in CORBA.Float) return CORBA.Float;
 
    function echoDouble
      (Self : access Object;
-      arg : in CORBA.Double)
-      return CORBA.Double;
+      arg : in CORBA.Double) return CORBA.Double;
 
    function echoChar
      (Self : access Object;
-      arg : in CORBA.Char)
-      return CORBA.Char;
+      arg : in CORBA.Char) return CORBA.Char;
+
+   function echoWChar
+     (Self : access Object;
+      arg : in CORBA.Wchar) return CORBA.Wchar;
 
    function echoOctet
      (Self : access Object;
-      arg : in CORBA.Octet)
-      return CORBA.Octet;
+      arg : in CORBA.Octet) return CORBA.Octet;
 
    function echoString
      (Self : access Object;
-      arg : in CORBA.String)
-      return CORBA.String;
+      arg : in CORBA.String) return CORBA.String;
 
-   --  function echoRef
-   --  (Self : access Object;
-   --  arg : in all_types.Ref)
-   --  return all_types.Ref;
+   function echoWString
+     (Self : access Object;
+      arg : in CORBA.Wide_String) return CORBA.Wide_String;
 
-   --  function echoObject
-   --  (Self : access Object;
-   --   arg  : in CORBA.Object.Ref)
-   --  return CORBA.Object.Ref;
+   function echoRef
+     (Self : access Object;
+      arg : in all_types.Ref) return all_types.Ref;
 
-   --  function echoOtherAllTypes
-   --  (Self : access Object;
-   --   arg  : in all_types.otherAllTypes)
-   --  return all_types.otherAllTypes;
+   function echoObject
+     (Self : access Object;
+      arg  : in CORBA.Object.Ref) return CORBA.Object.Ref;
 
-   --  function echoOtherObject
-   --  (Self : access Object;
-   --   arg  : in all_types.otherObject)
-   --  return all_types.otherObject;
+   function echoOtherAllTypes
+     (Self : access Object;
+      arg  : in all_types.otherAllTypes) return all_types.otherAllTypes;
+
+   function echoOtherObject
+     (Self : access Object;
+      arg  : in all_types.otherObject) return all_types.otherObject;
 
    function echoColor
      (Self : access Object;
-      arg  : in Color)
-      return Color;
+      arg  : in Color) return Color;
+
+   function echoRainbow
+     (Self : access Object;
+      arg  : in Rainbow) return Rainbow;
 
    function echoArray
      (Self : access Object;
-      Arg : in simple_array)
-      return simple_array;
+      Arg : in simple_array) return simple_array;
 
-   --  function echoMatrix
-   --  (Self : access Object;
-   --   arg : in matrix)
-   --   return matrix;
+   function echoMatrix
+     (Self : access Object;
+      arg : in matrix) return matrix;
 
-   --  function echoBigMatrix
-   --  (Self : access Object;
-   --   arg : in bigmatrix)
-   --   return bigmatrix;
+   function echoBigMatrix
+     (Self : access Object;
+      arg : in bigmatrix) return bigmatrix;
 
-   --  procedure testException
-   --  (Self : access Object;
-   --   arg : in CORBA.Long);
+   function echoSixteenKb
+     (Self : access Object;
+      arg : in sixteenKb) return sixteenKb;
 
-   --procedure testUnknownException
-   --  (Self : access Object;
-   --   arg : in CORBA.Long);
+   procedure testException
+     (Self : access Object;
+      arg : in CORBA.Long);
 
-   --procedure testSystemException
-   --  (Self : access Object;
-   --   arg : in CORBA.Long);
+   procedure testUnknownException
+     (Self : access Object;
+      arg : in CORBA.Long);
+
+   procedure testSystemException
+     (Self : access Object;
+      arg : in CORBA.Long);
 
    function echoStruct
      (Self : access Object;
-      arg  : in simple_struct)
-     return simple_struct;
+      arg  : in simple_struct) return simple_struct;
 
-   --  function echoArrayStruct
-   --  (Self : access Object;
-   --   arg  : in array_struct)
-   --   return array_struct;
+   function echoArrayStruct
+     (Self : access Object;
+      arg  : in array_struct) return array_struct;
 
-   --  function echoNestedStruct
-   --  (Self : access Object;
-   --   arg  : in nested_struct)
-   --   return nested_struct;
+   function echoNestedStruct
+     (Self : access Object;
+      arg  : in nested_struct) return nested_struct;
 
-   --  function echoUnion
-   --  (Self : access Object;
-   --   arg : in myUnion)
-   --  return myUnion;
+   function echoUnion
+     (Self : access Object;
+      arg : in myUnion) return myUnion;
 
-   --  function echoUnionEnumSwitch
-   --  (Self : access Object;
-   --   arg : in myUnionEnumSwitch)
-   --  return myUnionEnumSwitch;
+   function echoUnionEnumSwitch
+     (Self : access Object;
+      arg : in myUnionEnumSwitch) return myUnionEnumSwitch;
 
-   --  function echoUsequence
-   --  (Self : access Object;
-   --   arg : in U_sequence)
-   --  return U_sequence;
+   function echoUsequence
+     (Self : access Object;
+      arg : in U_sequence) return U_sequence;
 
-   --  function echoBsequence
-   --   (Self : access Object;
-   --   arg : in B_sequence)
-   --  return B_sequence;
+   function echoBsequence
+     (Self : access Object;
+      arg : in B_sequence) return B_sequence;
 
-   --  function echoMoney
-   --  (Self : access Object;
-   --   Arg  : in Money)
-   --  return Money;
+   function echoMoney
+     (Self : access Object;
+      Arg  : in Money) return Money;
 
    procedure set_MyColor
      (Self : access Object;
@@ -197,7 +189,8 @@ package all_types.Impl is
      return Color;
 
    function get_Counter
-     (Self : access Object)
-     return CORBA.Long;
+     (Self : access Object) return CORBA.Long;
+
+   procedure StopServer (Self : access Object);
 
 end all_types.Impl;
