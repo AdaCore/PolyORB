@@ -51,10 +51,10 @@ test013/tin.idl
 test014/tin.idl
 test015/tin.idl
 test016/tin.idl
-test017/tin.idl
+#test017/tin.idl
 test018/tin.idl
 test019/tin.idl
-test020/tin.idl
+#test020/tin.idl
 test021/tin.idl
 test022/tin.idl
 test023/tin.idl
