@@ -24,9 +24,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package contains all the routines to generate stubs (object
---  files), skeleton files (object files), PCS units (source and
+--  This package and its children define all the routines to generate stubs
+--  (object files), skeleton files (object files), PCS units (source and
 --  object files) and eventually executable files.
+
+with XE_Units; use XE_Units;
 
 package XE_Back is
 
@@ -51,5 +53,11 @@ private
 
    procedure Register_Backend
      (PCS_Name : String; The_Backend : Backend_Access);
+
+   procedure Generate_Partition_Project_File
+     (D : Directory_Name_Type;
+      P : Partition_Id := No_Partition_Id);
+   --  Generate a project file extending the user's project to build
+   --  one partition.
 
 end XE_Back;
