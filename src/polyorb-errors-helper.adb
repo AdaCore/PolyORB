@@ -177,6 +177,70 @@ package body PolyORB.Errors.Helper is
       return Get_Empty_Any_Aggregate (TC);
    end To_Any;
 
+   ---------------------
+   -- TC_Comm_Failure --
+   ---------------------
+
+   TC_Comm_Failure_Cache : TypeCode.Object;
+
+   function TC_Comm_Failure return PolyORB.Any.TypeCode.Object is
+   begin
+      if TypeCode.Parameter_Count (TC_Comm_Failure_Cache) /= 0 then
+         return TC_Comm_Failure_Cache;
+      end if;
+
+      TC_Comm_Failure_Cache := System_Exception_TypeCode ("COMM_FAILURE");
+      return TC_Comm_Failure_Cache;
+   end TC_Comm_Failure;
+
+   ------------------
+   -- TC_Transient --
+   ------------------
+
+   TC_Transient_Cache : TypeCode.Object;
+
+   function TC_Transient return PolyORB.Any.TypeCode.Object is
+   begin
+      if TypeCode.Parameter_Count (TC_Transient_Cache) /= 0 then
+         return TC_Transient_Cache;
+      end if;
+
+      TC_Transient_Cache := System_Exception_TypeCode ("TRANSIENT");
+      return TC_Transient_Cache;
+   end TC_Transient;
+
+   --------------------
+   -- TC_No_Response --
+   --------------------
+
+   TC_No_Response_Cache : TypeCode.Object;
+
+   function TC_No_Response return PolyORB.Any.TypeCode.Object is
+   begin
+      if TypeCode.Parameter_Count (TC_No_Response_Cache) /= 0 then
+         return TC_No_Response_Cache;
+      end if;
+
+      TC_No_Response_Cache := System_Exception_TypeCode ("NO_RESPONSE");
+      return TC_No_Response_Cache;
+   end TC_No_Response;
+
+   --------------------
+   -- TC_Obj_Adapter --
+   --------------------
+
+   TC_Obj_Adapter_Cache : TypeCode.Object;
+
+   function TC_Obj_Adapter return PolyORB.Any.TypeCode.Object is
+   begin
+      if TypeCode.Parameter_Count (TC_Obj_Adapter_Cache) /= 0 then
+         return TC_Obj_Adapter_Cache;
+      end if;
+
+      TC_Obj_Adapter_Cache := System_Exception_TypeCode ("OBJ_ADAPTER");
+      return TC_Obj_Adapter_Cache;
+   end TC_Obj_Adapter;
+
    -----------------------
    -- TC_ForwardRequest --
    -----------------------
@@ -263,6 +327,27 @@ package body PolyORB.Errors.Helper is
 
       return Result;
    end To_Any;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Item : Any.Any) return System_Exception_Members is
+      Minor     : PolyORB.Types.Unsigned_Long;
+      Completed : Completion_Status;
+
+   begin
+      Minor :=
+        From_Any
+        (Get_Aggregate_Element
+         (Item, TC_Unsigned_Long, PolyORB.Types.Unsigned_Long (0)));
+      Completed :=
+        From_Any
+        (Get_Aggregate_Element
+         (Item, TC_Completion_Status, PolyORB.Types.Unsigned_Long (1)));
+
+      return (Minor => Minor, Completed => Completed);
+   end From_Any;
 
    -------------------------------
    -- System_Exception_TypeCode --

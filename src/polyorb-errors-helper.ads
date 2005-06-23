@@ -70,10 +70,22 @@ package PolyORB.Errors.Helper is
    --  Return the TypeCode corresponding to the indicated
    --  system exception name.
 
+   function From_Any (Item : Any.Any) return System_Exception_Members;
+
    function To_Any
      (Name   : Standard.String;
       Member : System_Exception_Members)
      return PolyORB.Any.Any;
+
+   --  Standard exceptions
+
+   function TC_Comm_Failure return PolyORB.Any.TypeCode.Object;
+
+   function TC_Transient return PolyORB.Any.TypeCode.Object;
+
+   function TC_No_Response return PolyORB.Any.TypeCode.Object;
+
+   function TC_Obj_Adapter return PolyORB.Any.TypeCode.Object;
 
    --  ForwardRequest_Members
 

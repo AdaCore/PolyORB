@@ -161,17 +161,8 @@ package body PolyORB.CORBA_P.Exceptions is
 
          case Error.Kind is
             when ORB_System_Error =>
-               Error.Member := new System_Exception_Members'
-                 (Minor =>
-                    From_Any
-                  (Get_Aggregate_Element
-                   (Occurrence, TC_Unsigned_Long,
-                    PolyORB.Types.Unsigned_Long (0))),
-                  Completed =>
-                    From_Any
-                  (Get_Aggregate_Element
-                   (Occurrence, TC_Completion_Status,
-                    PolyORB.Types.Unsigned_Long (1))));
+               Error.Member :=
+                 new System_Exception_Members'(From_Any (Occurrence));
 
             when others =>
                Error.Member := new Null_Members'(Null_Member);
