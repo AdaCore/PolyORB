@@ -25,6 +25,13 @@
 ------------------------------------------------------------------------------
 
 with GNAT.HTable;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+
+with XE_Flags; use XE_Flags;
+with XE_IO; use XE_IO;
+with XE_Names; use XE_Names;
+with XE_Types; use XE_Types;
+with XE_Utils; use XE_Utils;
 
 package body XE_Back is
 
@@ -43,6 +50,10 @@ package body XE_Back is
       Hash       => Hash,
       Equal      => Eq);
 
+   --------
+   -- Eq --
+   --------
+
    function Eq (S1, S2 : String_Ptr) return Boolean is
    begin
       if S1 = null or else S2 = null then
@@ -51,11 +62,54 @@ package body XE_Back is
       return S1.all = S2.all;
    end Eq;
 
+   ------------------
+   -- Find_Backend --
+   ------------------
+
    function Find_Backend (PCS_Name : String) return Backend_Access is
       S : aliased String := PCS_Name;
    begin
       return All_Backends.Get (S'Unchecked_Access);
    end Find_Backend;
+
+   -------------------------------------
+   -- Generate_Partition_Project_File --
+   -------------------------------------
+
+   procedure Generate_Partition_Project_File
+     (D : Directory_Name_Type;
+      P : Partition_Id := No_Partition_Id)
+   is
+      Prj_Fname  : File_Name_Type;
+      Prj_File   : File_Descriptor;
+
+   begin
+      Prj_Fname := Dir (D, Part_Prj_File_Name);
+      Create_File (Prj_File, Prj_Fname);
+      Set_Output (Prj_File);
+      Write_Str  ("project Partition extends """);
+      Write_Str  (Project_File_Name.all);
+      Write_Line (""" is");
+      Write_Line ("   for Object_Dir use ""."";");
+      if P /= No_Partition_Id then
+         Write_Str  ("   for Exec_Dir use """);
+         Write_Name (Partitions.Table (P).Executable_Dir);
+         Write_Line (""";");
+         Write_Line ("   package Builder is");
+         Write_Str  ("      for Executable (""partition.adb"") use ");
+         Write_Str  ("""../../../");
+         Write_Name (Partitions.Table (P).Name);
+         Write_Line (""";");
+         Write_Line ("   end Builder;");
+      end if;
+      Write_Line ("end Partition;");
+      Close (Prj_File);
+      Set_Standard_Output;
+   end Generate_Partition_Project_File;
+
+   ----------
+   -- Hash --
+   ----------
 
    function Hash (S : String_Ptr) return Header_Num is
       function Hash is new GNAT.HTable.Hash (Header_Num);
@@ -65,6 +119,10 @@ package body XE_Back is
       end if;
       return Hash (S.all);
    end Hash;
+
+   ----------------------
+   -- Register_Backend --
+   ----------------------
 
    procedure Register_Backend (PCS_Name : String; The_Backend : Backend_Access)
    is
