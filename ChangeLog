@@ -1,3 +1,13 @@
+2005-06-22  Thomas Quinot  <quinot@adacore.com>
+
+	* xe_back-garlic.adb, xe_back-polyorb.adb: Remove common subprogram
+	Generate_Partition_Project_File.
+
+	* xe_back.ads, xe_back.adb: Add Generate_Partition_Project_File,
+	factored from PCS-specific backends. Prepend ../../../ to partition
+	executable name, in order for it to be generated in the base object
+	directory rather than the dsa/<config>/<partition> subdirectory.
+
 2005-06-17  Thomas Quinot  <quinot@adacore.com>
 
 	* xe_defs.ads, xe_defs.adb: New subprogram Get_Dist_Prefix returning
