@@ -105,10 +105,6 @@ package body XE_Back.PolyORB is
    --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
 
-   procedure Generate_Partition_Project_File
-     (D : Directory_Name_Type;
-      P : Partition_Id := No_Partition_Id);
-
    procedure Generate_Starter_File;
    --  Create the starter file to launch the other partitions from
    --  main partition subprogram. This can be a shell script or an Ada
@@ -380,40 +376,6 @@ package body XE_Back.PolyORB is
       Close (File);
       Set_Standard_Output;
    end Generate_Partition_Main_File;
-
-   -------------------------------------
-   -- Generate_Partition_Project_File --
-   -------------------------------------
-
-   procedure Generate_Partition_Project_File
-     (D : Directory_Name_Type;
-      P : Partition_Id := No_Partition_Id)
-   is
-      Prj_Fname  : File_Name_Type;
-      Prj_File   : File_Descriptor;
-
-   begin
-      Prj_Fname := Dir (D, Part_Prj_File_Name);
-      Create_File (Prj_File, Prj_Fname);
-      Set_Output (Prj_File);
-      Write_Str  ("project Partition extends """);
-      Write_Str  (Project_File_Name.all);
-      Write_Line (""" is");
-      Write_Line ("   for Object_Dir use ""."";");
-      if P /= No_Partition_Id then
-         Write_Str  ("   for Exec_Dir use """);
-         Write_Name (Partitions.Table (P).Executable_Dir);
-         Write_Line (""";");
-         Write_Line ("   package Builder is");
-         Write_Str  ("      for Executable (""partition.adb"") use """);
-         Write_Name (Partitions.Table (P).Name);
-         Write_Line (""";");
-         Write_Line ("   end Builder;");
-      end if;
-      Write_Line ("end Partition;");
-      Close (Prj_File);
-      Set_Standard_Output;
-   end Generate_Partition_Project_File;
 
    -------------------
    -- Generate_Skel --
