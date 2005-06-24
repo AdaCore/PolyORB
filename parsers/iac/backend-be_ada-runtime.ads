@@ -12,6 +12,7 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_AbstractBase,
       RU_CORBA_ExceptionList,
       RU_CORBA_ExceptionList_Internals,
+      RU_CORBA_Forward,
       RU_CORBA_Fixed_Point,
       RU_CORBA_Internals,
       RU_CORBA_Sequences,

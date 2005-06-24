@@ -55,7 +55,7 @@ package body Backend.BE_Ada.Skels is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Skeleton_Spec;
          N := Make_Subprogram_Call
@@ -136,7 +136,7 @@ package body Backend.BE_Ada.Skels is
          Spec := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
             No_List);
-         N := Stub_Node (BE_Node (Identifier (E)));
+         N := Type_Def_Node (BE_Node (Identifier (E)));
          N := Next_Node (N);
          N := Make_Subprogram_Call
            (RE (RE_To_CORBA_String),
@@ -223,10 +223,11 @@ package body Backend.BE_Ada.Skels is
 
             --  Getting the node corresponding to the declaration of the
             --  Get_Members procedure.
-            --  This procedure is declared at the 4th place in the stub spec.
+            --  This procedure is declared 2 nodes after the member type
+            --  definition.
 
             N := Type_Def_Node (BE_Node (Identifier (Reference (E))));
-            N := Next_Node (N);
+            N := Next_Node (Next_Node (N));
 
             N := Defining_Identifier (N);
             N := Make_Subprogram_Call
@@ -761,7 +762,7 @@ package body Backend.BE_Ada.Skels is
 
          C := Expand_Designator (Main_Package (Current_Entity));
          N := Make_Designator (SN (S_Is_A));
-         Set_Parent_Unit_Name (N, C);
+         Set_Correct_Parent_Unit_Name (N, C);
          C := Make_Subprogram_Call
            (RE (RE_To_Standard_String),
             Make_List_Id (Make_Designator (Param_Name)));
@@ -1014,7 +1015,7 @@ package body Backend.BE_Ada.Skels is
          Exception_Handler : Node_Id;
 
       begin
-         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
 
          Set_Skeleton_Body;

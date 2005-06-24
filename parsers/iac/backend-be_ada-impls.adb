@@ -112,7 +112,7 @@ package body Backend.BE_Ada.Impls is
          I : Node_Id;
          D : Node_Id;
       begin
-         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Impl_Spec;
          I := Make_Defining_Identifier (TN (T_Object));
@@ -318,7 +318,7 @@ package body Backend.BE_Ada.Impls is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Impl_Body;
          N := First_Entity (Interface_Body (E));

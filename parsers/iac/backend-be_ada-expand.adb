@@ -5,15 +5,18 @@ with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
 
 package body Backend.BE_Ada.Expand is
 
+   package BEN renames Backend.BE_Ada.Nodes;
+
    -----------------------
    -- Expand_Designator --
    -----------------------
 
    function Expand_Designator
-     (N   : Node_Id)
-      return Node_Id
+     (N : Node_Id)
+     return Node_Id
    is
       P  : Node_Id;
+      U  : Node_Id;
       D  : Node_Id := No_Node;
       X  : Node_Id := N;
       FE : Node_Id;
@@ -46,20 +49,49 @@ package body Backend.BE_Ada.Expand is
          return No_Node;
       end if;
 
-      --  if No (FE) then
-      --  raise Program_Error;
-      --  end if;
-
       D := New_Node (K_Designator);
       Set_Defining_Identifier
         (D, Make_Defining_Identifier
          (Name (Defining_Identifier (X))));
+      Set_Corresponding_Node
+        (Defining_Identifier (D),
+         Corresponding_Node
+         (Defining_Identifier (X)));
+
+
       if Present (FE) then
          Set_FE_Node (D, FE);
       end if;
-      Set_Parent_Unit_Name
-        (D, Expand_Designator (P));
-      P := Parent_Unit_Name (D);
+
+      --  This handles the particular case of the forward declaration of
+      --  interfaces.
+      if Kind (N) = K_Full_Type_Declaration
+        and then Present (Parent_Unit_Name (Defining_Identifier (N)))
+        and then BEN.Kind
+        (Corresponding_Node
+         (Parent_Unit_Name
+          (Defining_Identifier
+           (N)))) = K_Package_Instanciation
+      then
+         U := New_Node (K_Designator);
+         Set_Defining_Identifier
+           (U, Parent_Unit_Name (Defining_Identifier (N)));
+         Set_Correct_Parent_Unit_Name
+           (U,
+            Parent_Unit_Name
+            (Parent_Unit_Name
+             (Defining_Identifier (N))));
+         Set_Correct_Parent_Unit_Name
+           (D, U);
+         P := Expand_Designator (P);
+      else
+         Set_Correct_Parent_Unit_Name
+           (D, Expand_Designator (P));
+         P := BEN.Parent_Unit_Name (D);
+      end if;
+
+      --  Adding the with clause
+
       if Present (P) then
          Add_With_Package (P);
       end if;

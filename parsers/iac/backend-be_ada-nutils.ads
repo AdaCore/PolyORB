@@ -114,7 +114,8 @@ package Backend.BE_Ada.Nutils is
       Tok_Semicolon,       -- ;
       Tok_Arrow,           -- =>
       Tok_Vertical_Bar,    -- |
-      Tok_Dot_Dot);        -- ..
+      Tok_Dot_Dot,         -- ..
+      Tok_Minus_Minus);    -- --
 
    Token_Image : array (Token_Type) of Name_Id;
 
@@ -334,6 +335,10 @@ package Backend.BE_Ada.Nutils is
       Witheded   : Boolean := True)
      return Node_Id;
 
+   function Create_Parent_Designator
+     (N : Node_Id)
+     return Node_Id;
+
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
       Is_All             : Boolean := False;
@@ -472,7 +477,8 @@ package Backend.BE_Ada.Nutils is
 
    function Make_Package_Instanciation
      (Defining_Identifier : Node_Id;
-      Original_Package    : Node_Id)
+      Original_Package    : Node_Id;
+      Is_Subunit_Package  : Boolean := True)
      return Node_Id;
 
    function Make_Parameter_Specification
@@ -542,6 +548,16 @@ package Backend.BE_Ada.Nutils is
    function Qualified_Designator
      (P : Node_Id)
      return Node_Id;
+
+   --  This procedure sets correctly the parent unit name of a node depending
+   --  on its kind :
+   --  * K_Defining_Identifier : the parent unit name is also a
+   --    K_Defining_Identifier
+   --  * K_Designator : The parent unit name is a K_Designator and the
+   --    parent unit name of its defining identifier is also set up.
+   procedure Set_Correct_Parent_Unit_Name
+     (Child  : Node_Id;
+      Parent : Node_Id);
 
    procedure Set_Helper_Body (N : Node_Id := No_Node);
    procedure Set_Helper_Spec (N : Node_Id := No_Node);

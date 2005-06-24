@@ -6,7 +6,7 @@ with Frontend.Nutils;
 with Frontend.Nodes;            use Frontend.Nodes;
 --  with Frontend.Debug;            use Frontend.Debug;
 
-with Backend.BE_Ada.Expand; use Backend.BE_Ada.Expand;
+with Backend.BE_Ada.Expand;     use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
@@ -36,6 +36,7 @@ package body Backend.BE_Ada.Stubs is
       procedure Visit_Constant_Declaration (E : Node_Id);
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Exception_Declaration (E : Node_Id);
+      procedure Visit_Forward_Interface_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
@@ -63,6 +64,9 @@ package body Backend.BE_Ada.Stubs is
 
             when K_Exception_Declaration =>
                Visit_Exception_Declaration (E);
+
+            when K_Forward_Interface_Declaration =>
+               Visit_Forward_Interface_Declaration (E);
 
             when K_Interface_Declaration =>
                Visit_Interface_Declaration (E);
@@ -200,7 +204,7 @@ package body Backend.BE_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Identifier := Make_Defining_Identifier (Name_Find);
          N := Make_Exception_Declaration (Identifier);
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Identifier,
             Defining_Identifier (Main_Package (Current_Entity)));
          Bind_FE_To_Stub (FEN.Identifier (E), N);
@@ -208,18 +212,12 @@ package body Backend.BE_Ada.Stubs is
            (N,
             Visible_Part (Current_Package));
 
-         --  Insert repository declaration
-
-         Append_Node_To_List
-           (Map_Repository_Declaration (E),
-            Visible_Part (Current_Package));
-
          --  Definition of the "Exception_Name"_Members type
 
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Add_Str_To_Name_Buffer ("_Members");
          Identifier := Make_Defining_Identifier (Name_Find);
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Identifier,
             Defining_Identifier (Main_Package (Current_Entity)));
          N := Make_Full_Type_Declaration
@@ -230,6 +228,12 @@ package body Backend.BE_Ada.Stubs is
              (Map_Members_Definition (Members (E)))));
          Bind_FE_To_Type_Def (FEN.Identifier (E), N);
          Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  Insert repository declaration
+
+         Append_Node_To_List
+           (Map_Repository_Declaration (E),
+            Visible_Part (Current_Package));
 
          --  Insert the Get_Members procedure specification
 
@@ -248,13 +252,65 @@ package body Backend.BE_Ada.Stubs is
            (Make_Defining_Identifier (SN (S_Get_Members)),
             Profile,
             No_Node);
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Main_Package (Current_Entity)));
 
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
       end Visit_Exception_Declaration;
+
+      -----------------------------------------
+      -- Visit_Forward_Interface_Declaration --
+      -----------------------------------------
+
+      procedure Visit_Forward_Interface_Declaration (E : Node_Id) is
+         Identifier    : Node_Id;
+         N             : Node_Id;
+         Ref_Type_Node : Node_Id;
+      begin
+         --  The "Interface_Name"_Forward package is instanciated :
+         --   * In the module main package if the interface is declared in a
+         --     module.
+         --   * In the XXXX_IDL_FILE main package if the interface is declared
+         --     outside any module.
+         Set_Main_Spec;
+
+         Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
+         Add_Str_To_Name_Buffer ("_Forward");
+         Identifier := Make_Defining_Identifier (Name_Find);
+         Set_Correct_Parent_Unit_Name
+           (Identifier, Defining_Identifier (Main_Package (Current_Entity)));
+
+         --  Package instanciation
+         N := Make_Package_Instanciation
+           (Defining_Identifier => Identifier,
+            Original_Package    => RU (RU_CORBA_Forward));
+         Set_Corresponding_Node (Identifier, N);
+         Bind_FE_To_Instanciations
+           (F                 => FEN.Identifier (E),
+            Stub_Package_Node => N);
+
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  This workaround is used to permit the use of the Ref type declared
+         --  in the instanciated package.
+
+         Identifier := Make_Defining_Identifier (TN (T_Ref));
+         Set_Correct_Parent_Unit_Name
+           (Identifier, Defining_Identifier (N));
+         Ref_Type_Node := Make_Full_Type_Declaration
+           (Identifier,
+            Make_Derived_Type_Definition
+            (Subtype_Indication    => RE (RE_Ref_2),
+             Record_Extension_Part =>
+               Make_Record_Type_Definition
+             (Record_Definition => Make_Record_Definition (No_List))));
+         Set_Corresponding_Node (Identifier, Ref_Type_Node);
+         --  We don't add this node!
+         Bind_FE_To_Type_Def (FEN.Identifier (E), Ref_Type_Node);
+
+      end Visit_Forward_Interface_Declaration;
 
       ---------------------------------
       -- Visit_Interface_Declaration --
@@ -288,7 +344,7 @@ package body Backend.BE_Ada.Stubs is
          Set_Corresponding_Node (I, N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
-         Bind_FE_To_Stub (Identifier (E), N);
+         --  Bind_FE_To_Stub (Identifier (E), N);
          --  An Interface Declaration is also a type definition
          Bind_FE_To_Type_Def (Identifier (E), N);
          N := Map_Repository_Declaration (E);
@@ -516,7 +572,7 @@ package body Backend.BE_Ada.Stubs is
                Fixed_Name := Name_Find;
 
                T := Make_Defining_Identifier (Fixed_Name);
-               Set_Parent_Unit_Name
+               Set_Correct_Parent_Unit_Name
                  (T, Defining_Identifier (Main_Package (Current_Entity)));
 
                Fixed_Type_Node := Make_Full_Type_Declaration
@@ -576,7 +632,7 @@ package body Backend.BE_Ada.Stubs is
 
                Seq_Package_Node := Make_Defining_Identifier
                  (Seq_Package_Name);
-               Set_Parent_Unit_Name
+               Set_Correct_Parent_Unit_Name
                  (Seq_Package_Node,
                   Defining_Identifier
                   (Main_Package (Current_Entity)));
@@ -589,6 +645,7 @@ package body Backend.BE_Ada.Stubs is
                       Make_List_Id
                       (Type_Node,
                        Make_Literal (FEN.Value (Max_Size (Type_Spec_Node))))));
+                  Set_Corresponding_Node (Seq_Package_Node, Seq_Package_Inst);
                else
                   Seq_Package_Inst := Make_Package_Instanciation
                     (Defining_Identifier => Seq_Package_Node,
@@ -596,13 +653,14 @@ package body Backend.BE_Ada.Stubs is
                      (CORBA_Seq,
                       Make_List_Id
                       (Type_Node)));
+                  Set_Corresponding_Node (Seq_Package_Node, Seq_Package_Inst);
                end if;
                Append_Node_To_List
                  (Seq_Package_Inst,
                   Visible_Part (Current_Package));
 
                T := Make_Defining_Identifier (TN (T_Sequence));
-               Set_Parent_Unit_Name (T, Seq_Package_Node);
+               Set_Correct_Parent_Unit_Name (T, Seq_Package_Node);
             end;
          else
             T := Map_Designator (Type_Spec_Node);
@@ -896,7 +954,7 @@ package body Backend.BE_Ada.Stubs is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Main_Body;
          N := First_Entity (Interface_Body (E));
@@ -1480,7 +1538,7 @@ package body Backend.BE_Ada.Stubs is
          else
             if BEN.Parameter_Mode (I) = Mode_Out then
                D := RE (RE_Get_Empty_Any);
-               Set_Parent_Unit_Name
+               Set_Correct_Parent_Unit_Name
                  (D, Defining_Identifier (Helper_Package (Current_Entity)));
 
                --  If we are in this case, we must not give X as a parameter
@@ -1682,7 +1740,7 @@ package body Backend.BE_Ada.Stubs is
       Rep_Value    : Value_Id;
 
    begin
-      N := Stub_Node (BE_Node (Identifier (E)));
+      N := Type_Def_Node (BE_Node (Identifier (E)));
       N := Next_Node (N);
       Repository_Id := Expand_Designator (N);
       N := Make_Subprogram_Call

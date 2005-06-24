@@ -409,9 +409,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
             Type_Definition     => Make_Array_Type_Definition
             (Map_Range_Constraints
              (FEN.Array_Sizes (Declarator)), Designator));
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (Type_Node),
-            Defining_Identifier (Main_Package (Current_Entity)));
+            (Defining_Identifier
+             (Main_Package
+              (Current_Entity))));
          --  We make a link between the identifier and the type declaration.
          --  This link is useful for the generation of the From_Any and To_Any
          --  functions and the TC_XXX constant necessary for user defined
@@ -423,9 +425,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
          Designator := New_Node (K_Designator);
          Set_Defining_Identifier
            (Designator, Defining_Identifier (Type_Node));
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Designator,
-            Defining_Identifier (Main_Package (Current_Entity)));
+            (Defining_Identifier
+             (Main_Package
+              (Current_Entity))));
       end if;
 
       return Designator;
@@ -438,14 +442,24 @@ package body Backend.BE_Ada.IDL_To_Ada is
    function Map_Defining_Identifier (Entity : Node_Id) return Node_Id is
       use FEN;
 
-      I : Node_Id := Entity;
+      I      : Node_Id := Entity;
+      Result : Node_Id;
 
    begin
       if FEN.Kind (Entity) /= FEN.K_Identifier then
          I := FEN.Identifier (Entity);
       end if;
 
-      return Make_Defining_Identifier (IDL_Name (I));
+      Result := Make_Defining_Identifier (IDL_Name (I));
+      if Present (BE_Node (I))
+        and then Present (Stub_Node (BE_Node (I)))
+        and then BEN.Kind (Stub_Node (BE_Node (I))) = K_IDL_Unit
+      then
+         Set_Corresponding_Node
+           (Result, Main_Package (Stub_Node (BE_Node (I))));
+      end if;
+
+      return Result;
    end Map_Defining_Identifier;
 
    --------------------
@@ -461,6 +475,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       N : Node_Id;
       K : FEN.Node_Kind;
       R : Node_Id;
+      B : Node_Id;
       Ref_Type_Node : Node_Id;
    begin
       K := FEN.Kind (Entity);
@@ -484,9 +499,27 @@ package body Backend.BE_Ada.IDL_To_Ada is
             --  Getting the node of the Ref type declaration.
             Ref_Type_Node := Type_Def_Node (BE_Node (Identifier (R)));
             Set_Defining_Identifier
-              (N, Defining_Identifier (Ref_Type_Node));
+              (N, --  Defining_Identifier (Ref_Type_Node));
+               Copy_Node (Defining_Identifier (Ref_Type_Node)));
             Set_FE_Node (N, R);
             P := R;
+         elsif Kind (R) = FEN.K_Forward_Interface_Declaration then
+            --  Getting the node of the Ref type declaration.
+            Ref_Type_Node := Type_Def_Node (BE_Node (Identifier (R)));
+            Set_Defining_Identifier
+              (N,
+               Copy_Node (Defining_Identifier (Ref_Type_Node)));
+            Set_FE_Node (N, R);
+
+            Set_Correct_Parent_Unit_Name
+              (N,
+               Defining_Identifier
+               (Stub_Package_Node
+                (BE_Ada_Instanciations
+                 (BE_Node
+                  (Identifier
+                   (R))))));
+            P := No_Node;
          else
             Set_Defining_Identifier (N, Map_Defining_Identifier (R));
             Set_FE_Node (N, R);
@@ -495,23 +528,25 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
          if Present (P) then
             if Kind (P) = K_Specification then
-               R := New_Node (K_Designator);
-               Set_Defining_Identifier
-                 (R,
-                  Copy_Node
-                  (Defining_Identifier
-                   (Main_Package
-                    (Type_Def_Node (BE_Node (Identifier (P)))))));
-               Set_FE_Node (R, P);
-               Set_Parent_Unit_Name (N, R);
+               B := Create_Parent_Designator
+                 (Defining_Identifier
+                  (Main_Package
+                   (Stub_Node
+                    (BE_Node
+                     (Identifier
+                      (P))))));
+               Set_FE_Node (B, P);
+               Set_Correct_Parent_Unit_Name
+                 (N, B);
             else
-               Set_Parent_Unit_Name (N, Map_Designator (P));
+               Set_Correct_Parent_Unit_Name (N, Map_Designator (P));
             end if;
          end if;
 
       elsif K in FEN.K_Float .. FEN.K_Value_Base then
          N := RE (Convert (K));
          Set_FE_Node (N, Entity);
+
       else
          N := New_Node (K_Designator);
          Set_Defining_Identifier (N, Map_Defining_Identifier (Entity));
@@ -521,7 +556,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          then
             P := Scope_Entity (Identifier (Entity));
             Set_FE_Node (N, Entity);
-            Set_Parent_Unit_Name (N, Map_Designator (P));
+            Set_Correct_Parent_Unit_Name (N, Map_Designator (P));
 
          elsif K = FEN.K_Specification then
             return No_Node;
@@ -568,7 +603,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
             P := FEN.Scope_Entity (I);
          end if;
 
-         Set_Parent_Unit_Name (N, Map_Fully_Qualified_Identifier (P));
+         Set_Correct_Parent_Unit_Name (N, Map_Fully_Qualified_Identifier (P));
       end if;
 
       return N;
@@ -604,7 +639,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       Set_Str_To_Name_Buffer ("Helper");
       N := Make_Defining_Identifier (Name_Find);
-      Set_Parent_Unit_Name (N, I);
+      Set_Correct_Parent_Unit_Name (N, I);
       D := Make_Package_Declaration (N);
       Set_IDL_Unit (D, P);
       Set_Corresponding_Node (N, D);
@@ -622,7 +657,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
             Set_Str_To_Name_Buffer ("Skel");
             N := Make_Defining_Identifier (Name_Find);
-            Set_Parent_Unit_Name (N, I);
+            Set_Correct_Parent_Unit_Name (N, I);
             D := Make_Package_Declaration (N);
             Set_IDL_Unit (D, P);
             Set_Corresponding_Node (N, D);
@@ -634,7 +669,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
             Set_Str_To_Name_Buffer ("Impl");
             N := Make_Defining_Identifier (Name_Find);
-            Set_Parent_Unit_Name (N, I);
+            Set_Correct_Parent_Unit_Name (N, I);
             D := Make_Package_Declaration (N);
             Set_IDL_Unit (D, P);
             Set_Corresponding_Node (N, D);

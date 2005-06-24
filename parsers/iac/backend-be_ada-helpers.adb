@@ -87,6 +87,7 @@ package body Backend.BE_Ada.Helpers is
       --  return the spec of the Raise_"Exception_Name" procedure
 
       procedure Visit_Enumeration_Type (E : Node_Id);
+      procedure Visit_Forward_Interface_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
@@ -118,9 +119,11 @@ package body Backend.BE_Ada.Helpers is
             Expand_Designator (Type_Def_Node (BE_Node (Identifier (E)))));
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
-            Defining_Identifier (Helper_Package (Current_Entity)));
+            (Defining_Identifier
+             (Helper_Package
+              (Current_Entity))));
          Set_FE_Node (N, Identifier (E));
          return N;
       end From_Any_Spec;
@@ -148,7 +151,7 @@ package body Backend.BE_Ada.Helpers is
             Defining_Identifier (E));
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -174,7 +177,7 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List (Parameter, Profile);
 
          Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-         Set_Parent_Unit_Name (Seq_Type, Defining_Identifier (E));
+         Set_Correct_Parent_Unit_Name (Seq_Type, Defining_Identifier (E));
 
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_From_Any)),
@@ -182,7 +185,7 @@ package body Backend.BE_Ada.Helpers is
             Seq_Type);
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -214,7 +217,7 @@ package body Backend.BE_Ada.Helpers is
             (Type_Def_Node (BE_Node (Identifier (E)))));
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          Set_FE_Node (N, Identifier (E));
@@ -243,7 +246,7 @@ package body Backend.BE_Ada.Helpers is
             Profile, RE (RE_Any));
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          Set_FE_Node (N, Identifier (E));
@@ -272,7 +275,7 @@ package body Backend.BE_Ada.Helpers is
             Profile, RE (RE_Any));
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -292,7 +295,7 @@ package body Backend.BE_Ada.Helpers is
          Seq_Type  : Node_Id;
       begin
          Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-         Set_Parent_Unit_Name (Seq_Type,  Defining_Identifier (E));
+         Set_Correct_Parent_Unit_Name (Seq_Type,  Defining_Identifier (E));
 
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
@@ -304,7 +307,7 @@ package body Backend.BE_Ada.Helpers is
             Profile, RE (RE_Any));
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -334,7 +337,7 @@ package body Backend.BE_Ada.Helpers is
             Profile);
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
@@ -370,6 +373,13 @@ package body Backend.BE_Ada.Helpers is
                case FEN.Kind (E) is
                   when K_Enumeration_Type =>
                      P := RE (RE_TC_Enum);
+
+                  when K_Forward_Interface_Declaration =>
+                     N := Stub_Package_Node
+                       (BE_Ada_Instanciations
+                        (BE_Node
+                         (Identifier (E))));
+                     P := RE (RE_TC_Object_1);
 
                   when K_Interface_Declaration =>
                      N := Package_Declaration
@@ -436,7 +446,7 @@ package body Backend.BE_Ada.Helpers is
             Expression          => C);
          --  Setting the correct parent unit name, for the future calls of the
          --  subprogram
-         Set_Parent_Unit_Name
+         Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
          if not Backend then
@@ -455,6 +465,9 @@ package body Backend.BE_Ada.Helpers is
 
             when K_Enumeration_Type =>
                Visit_Enumeration_Type (E);
+
+            when K_Forward_Interface_Declaration =>
+               Visit_Forward_Interface_Declaration (E);
 
             when K_Interface_Declaration =>
                Visit_Interface_Declaration (E);
@@ -507,6 +520,39 @@ package body Backend.BE_Ada.Helpers is
            (N, Visible_Part (Current_Package));
          Bind_FE_To_To_Any (Identifier (E), N);
       end Visit_Enumeration_Type;
+
+      -----------------------------------------
+      -- Visit_Forward_Interface_Declaration --
+      -----------------------------------------
+
+      procedure Visit_Forward_Interface_Declaration (E : Node_Id) is
+         N : Node_Id;
+      begin
+         Set_Helper_Spec;
+
+         N := TypeCode_Spec (E);
+         Append_Node_To_List
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_Helper (Identifier (E), N);
+         Bind_FE_To_TC (Identifier (E), N);
+
+         N := From_Any_Spec (E);
+         Append_Node_To_List
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_From_Any (Identifier (E), N);
+
+         N := To_Any_Spec (E);
+         Append_Node_To_List
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_To_Any (Identifier (E), N);
+
+         Append_Node_To_List
+           (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
+
+         Append_Node_To_List
+           (Widening_Ref_Spec (E), Visible_Part (Current_Package));
+
+      end Visit_Forward_Interface_Declaration;
 
       ---------------------------------
       -- Visit_Interface_Declaration --
@@ -1094,7 +1140,7 @@ package body Backend.BE_Ada.Helpers is
             Fixed_Name := Name_Find;
 
             Result := Make_Defining_Identifier (Fixed_Name);
-            Set_Parent_Unit_Name
+            Set_Correct_Parent_Unit_Name
               (Result,
                Defining_Identifier
                (Helper_Package (Current_Entity)));
@@ -1123,7 +1169,7 @@ package body Backend.BE_Ada.Helpers is
          --  So, we dont need the definitions below :
          if FEN.Kind (E) /= K_Complex_Declarator
            and then FEN.Kind (E) /= K_Fixed_Point_Type then
-            Stub :=  Stub_Node (BE_Node (Identifier (E)));
+            Stub :=  Type_Def_Node (BE_Node (Identifier (E)));
             Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
          end if;
 
@@ -2134,7 +2180,7 @@ package body Backend.BE_Ada.Helpers is
                --  Getting the identifier of the Sequence type located in the
                --  instanciated package IDL_SEQUENCE_... in the stub spec.
                N := Make_Defining_Identifier (TN (T_Sequence));
-               Set_Parent_Unit_Name
+               Set_Correct_Parent_Unit_Name
                  (N,
                   Defining_Identifier
                   (Stub_Package_Node
@@ -3130,7 +3176,7 @@ package body Backend.BE_Ada.Helpers is
                --  Getting the identifier of the Sequence type located in the
                --  instanciated package IDL_SEQUENCE_... in the stub spec.
                N := Make_Defining_Identifier (TN (T_Sequence));
-               Set_Parent_Unit_Name
+               Set_Correct_Parent_Unit_Name
                  (N,
                   Defining_Identifier
                   (Stub_Package_Node
@@ -3207,7 +3253,7 @@ package body Backend.BE_Ada.Helpers is
                Item_Designator := Make_Designator (PN (P_Item));
                while Present (Declarator) loop
                   Designator := Map_Designator (Declarator);
-                  Set_Parent_Unit_Name (Designator, Item_Designator);
+                  Set_Correct_Parent_Unit_Name (Designator, Item_Designator);
                   --  Getting the declarator type in order to call the right
                   --  To_Any function
                   if FEN.Kind (Declarator) = K_Simple_Declarator then
@@ -4024,6 +4070,7 @@ package body Backend.BE_Ada.Helpers is
             N := Make_Package_Instanciation
               (Defining_Identifier => Package_Id,
                Original_Package    => N);
+            Set_Corresponding_Node (Package_Id, N);
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  The From_Any and To_Any functions for the fixed point type
@@ -4031,7 +4078,7 @@ package body Backend.BE_Ada.Helpers is
 
             --  From_Any
             Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-            Set_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
               (Make_Defining_Identifier (PN (P_Item)),
@@ -4050,7 +4097,7 @@ package body Backend.BE_Ada.Helpers is
 
             --  To_Any
             Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-            Set_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
               (Make_Defining_Identifier (PN (P_Item)),
@@ -4132,8 +4179,8 @@ package body Backend.BE_Ada.Helpers is
                 To_Any_Helper),
                Profile);
             --  Here, we must add manually "with" clauses to :
-            --   PolyORB.Sequences.Bounded.CORBA_Helper
-            --  or
+            --  PolyORB.Sequences.Bounded.CORBA_Helper
+            --   or
             --  PolyORB.Sequences.Unbounded.CORBA_Helper
             if Present (Max_Size (T)) then
                Add_With_Package
@@ -4144,21 +4191,23 @@ package body Backend.BE_Ada.Helpers is
             end if;
 
             N := RE (RE_CORBA_Helper);
-            Set_Parent_Unit_Name (N, S);
+            Set_Correct_Parent_Unit_Name (N, S);
             N := Make_Subprogram_Call
               (N,
                Profile);
             N := Make_Package_Instanciation
               (Defining_Identifier => Package_Id,
                Original_Package    => N);
+            Set_Corresponding_Node (Package_Id, N);
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  The From_Any and To_Any functions for the sequence type
-            --  are homonymes of those of the instanciated package.
+            --  rename those of the instanciated package.
 
             --  From_Any
+
             Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
-            Set_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
 
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
@@ -4167,7 +4216,7 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List (Parameter, Profile);
 
             Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-            Set_Parent_Unit_Name (Seq_Type, S);
+            Set_Correct_Parent_Unit_Name (Seq_Type, S);
 
             N := Make_Subprogram_Specification
               (Defining_Identifier =>
@@ -4181,11 +4230,12 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  To_Any
+
             Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
-            Set_Parent_Unit_Name (Renamed_Subp, Package_Id);
+            Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
 
             Seq_Type := Make_Defining_Identifier (TN (T_Sequence));
-            Set_Parent_Unit_Name (Seq_Type, S);
+            Set_Correct_Parent_Unit_Name (Seq_Type, S);
 
             Profile  := New_List (K_Parameter_Profile);
             Parameter := Make_Parameter_Specification
@@ -4205,8 +4255,8 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  The deferred initialisation part
-            Init_Block_List := New_List (K_List_Id);
 
+            Init_Block_List := New_List (K_List_Id);
             --  Unbounded, sequences have "0" as limit
             if Present (Max_Size (T)) then
                Max_Size_Literal := Make_Literal
@@ -4233,7 +4283,7 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List (N, Init_Block_List);
 
             N := Make_Defining_Identifier (SN (S_Initialize));
-            Set_Parent_Unit_Name (N, Package_Id);
+            Set_Correct_Parent_Unit_Name (N, Package_Id);
 
             N := Make_Subprogram_Call
               (N,
@@ -4260,9 +4310,7 @@ package body Backend.BE_Ada.Helpers is
          --  Handling the particular cases such as fixed point types definition
          --  and sequence types definitions
          case (FEN.Kind (T)) is
-            --  For the fixed point type, we create an instanciation of the
-            --  CORBA.Fixed_Point package and we use the From_Any and
-            --  To_Any functions of the instanciation.
+
             when  K_Fixed_Point_Type =>
                Visit_Fixed_Type_Declaration (T, D);
 

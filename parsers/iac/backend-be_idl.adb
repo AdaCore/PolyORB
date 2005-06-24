@@ -8,6 +8,7 @@ with Values;    use Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils; use Frontend.Nutils;
+with Frontend.Debug;
 
 package body Backend.BE_IDL is
 
@@ -60,12 +61,28 @@ package body Backend.BE_IDL is
    procedure Configure is
    begin
       loop
-         case Getopt ("b:") is
+         case Getopt ("t! b:") is
             when 'b' =>
                Default_Base := Natural'Value (Parameter);
 
             when ASCII.NUL =>
                exit;
+
+            when 't' =>
+               declare
+                  S : constant String := Parameter;
+               begin
+                  for I in S'First .. S'Last loop
+                     case S (I) is
+
+                        when 'i' =>
+                           Print_IDL_Tree := True;
+
+                        when others =>
+                           raise Program_Error;
+                     end case;
+                  end loop;
+               end;
 
             when others =>
                raise Program_Error;
@@ -104,121 +121,125 @@ package body Backend.BE_IDL is
 
    procedure Generate (E : Node_Id) is
    begin
-      case Kind (E) is
-         when K_Abstract_Value_Declaration =>
-            Generate_Abstract_Value_Declaration (E);
+      if Print_IDL_Tree then
+         Frontend.Debug.W_Node_Id (E);
+      else
+         case Kind (E) is
+            when K_Abstract_Value_Declaration =>
+               Generate_Abstract_Value_Declaration (E);
 
-         when K_Attribute_Declaration =>
-            Generate_Attribute_Declaration (E);
+            when K_Attribute_Declaration =>
+               Generate_Attribute_Declaration (E);
 
-         when K_Case_Label =>
-            Generate_Case_Label (E);
+            when K_Case_Label =>
+               Generate_Case_Label (E);
 
-         when K_Complex_Declarator =>
-            Generate_Complex_Declarator (E);
+            when K_Complex_Declarator =>
+               Generate_Complex_Declarator (E);
 
-         when K_Constant_Declaration =>
-            Generate_Constant_Declaration (E);
+            when K_Constant_Declaration =>
+               Generate_Constant_Declaration (E);
 
-         when K_Element =>
-            Generate_Element (E);
+            when K_Element =>
+               Generate_Element (E);
 
-         when K_Enumerator =>
-            Generate_Enumerator (E);
+            when K_Enumerator =>
+               Generate_Enumerator (E);
 
-         when K_Enumeration_Type =>
-            Generate_Enumeration_Type (E);
+            when K_Enumeration_Type =>
+               Generate_Enumeration_Type (E);
 
-         when K_Exception_Declaration =>
-            Generate_Exception_Declaration (E);
+            when K_Exception_Declaration =>
+               Generate_Exception_Declaration (E);
 
-         when K_Expression =>
-            Generate_Expression (E);
+            when K_Expression =>
+               Generate_Expression (E);
 
-         when K_Fixed_Point_Type =>
-            Generate_Fixed_Point_Type (E);
+            when K_Fixed_Point_Type =>
+               Generate_Fixed_Point_Type (E);
 
-         when K_Forward_Interface_Declaration =>
-            Generate_Forward_Interface_Declaration (E);
+            when K_Forward_Interface_Declaration =>
+               Generate_Forward_Interface_Declaration (E);
 
-         when K_Forward_Structure_Type =>
-            Generate_Forward_Structure_Type (E);
+            when K_Forward_Structure_Type =>
+               Generate_Forward_Structure_Type (E);
 
-         when K_Forward_Union_Type =>
-            Generate_Forward_Union_Type (E);
+            when K_Forward_Union_Type =>
+               Generate_Forward_Union_Type (E);
 
-         when K_Initializer_Declaration =>
-            Generate_Initializer_Declaration (E);
+            when K_Initializer_Declaration =>
+               Generate_Initializer_Declaration (E);
 
-         when K_Interface_Declaration =>
-            Generate_Interface_Declaration (E);
+            when K_Interface_Declaration =>
+               Generate_Interface_Declaration (E);
 
-         when K_Integer_Literal .. K_Boolean_Literal =>
-            Generate_Literal (E);
+            when K_Integer_Literal .. K_Boolean_Literal =>
+               Generate_Literal (E);
 
-         when K_Member =>
-            Generate_Member (E);
+            when K_Member =>
+               Generate_Member (E);
 
-         when K_Module =>
-            Generate_Module (E);
+            when K_Module =>
+               Generate_Module (E);
 
-         when K_Operation_Declaration =>
-            Generate_Operation_Declaration (E);
+            when K_Operation_Declaration =>
+               Generate_Operation_Declaration (E);
 
-         when K_Native_Type =>
-            Generate_Native_Type (E);
+            when K_Native_Type =>
+               Generate_Native_Type (E);
 
-         when K_Parameter_Declaration =>
-            Generate_Parameter_Declaration (E);
+            when K_Parameter_Declaration =>
+               Generate_Parameter_Declaration (E);
 
-         when K_Scoped_Name =>
-            Generate_Scoped_Name (E);
+            when K_Scoped_Name =>
+               Generate_Scoped_Name (E);
 
-         when K_Simple_Declarator =>
-            Generate_Simple_Declarator (E);
+            when K_Simple_Declarator =>
+               Generate_Simple_Declarator (E);
 
-         when K_Sequence_Type =>
-            Generate_Sequence_Type (E);
+            when K_Sequence_Type =>
+               Generate_Sequence_Type (E);
 
-         when K_Specification =>
-            Generate_Module (E);
+            when K_Specification =>
+               Generate_Module (E);
 
-         when K_State_Member =>
-            Generate_State_Member (E);
+            when K_State_Member =>
+               Generate_State_Member (E);
 
-         when K_String_Type | K_Wide_String_Type =>
-            Generate_String_Type (E);
+            when K_String_Type | K_Wide_String_Type =>
+               Generate_String_Type (E);
 
-         when K_Structure_Type =>
-            Generate_Structure_Type (E);
+            when K_Structure_Type =>
+               Generate_Structure_Type (E);
 
-         when K_Switch_Alternative =>
-            Generate_Switch_Alternative (E);
+            when K_Switch_Alternative =>
+               Generate_Switch_Alternative (E);
 
-         when K_Type_Declaration =>
-            Generate_Type_Declaration (E);
+            when K_Type_Declaration =>
+               Generate_Type_Declaration (E);
 
-         when K_Union_Type =>
-            Generate_Union_Type (E);
+            when K_Union_Type =>
+               Generate_Union_Type (E);
 
-         when K_Value_Declaration =>
-            Generate_Value_Declaration (E);
+            when K_Value_Declaration =>
+               Generate_Value_Declaration (E);
 
-         when K_Value_Box_Declaration =>
-            Generate_Value_Box_Declaration (E);
+            when K_Value_Box_Declaration =>
+               Generate_Value_Box_Declaration (E);
 
-         when K_Value_Forward_Declaration =>
-            Generate_Value_Forward_Declaration (E);
+            when K_Value_Forward_Declaration =>
+               Generate_Value_Forward_Declaration (E);
 
-         when K_Float .. K_Value_Base =>
-            Generate_Base_Type (E);
+            when K_Float .. K_Value_Base =>
+               Generate_Base_Type (E);
 
-         when K_Identifier =>
-            Generate_Identifier (E);
+            when K_Identifier =>
+               Generate_Identifier (E);
 
-         when others =>
-            Dummy (E);
-      end case;
+            when others =>
+               Dummy (E);
+         end case;
+      end if;
    end Generate;
 
    ----------------------------------------
@@ -1019,6 +1040,9 @@ package body Backend.BE_IDL is
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("         As a default (zero) use base from input");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-ti      Dump IDL tree");
       Write_Eol;
    end Usage;
 

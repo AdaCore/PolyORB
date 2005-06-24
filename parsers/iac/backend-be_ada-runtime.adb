@@ -134,7 +134,7 @@ package body Backend.BE_Ada.Runtime is
             Set_Str_To_Name_Buffer
               (Name_Buffer (Name_Len + 2 .. Length));
             Name := Name_Find;
-            Set_Parent_Unit_Name (RUD (U), RUD (RU_Id'Val (Position)));
+            Set_Correct_Parent_Unit_Name (RUD (U), RUD (RU_Id'Val (Position)));
          end if;
 
          Get_Name_String (Name);
@@ -146,7 +146,7 @@ package body Backend.BE_Ada.Runtime is
          Set_Corresponding_Node (Identifier, Pkg_Spec);
 
          if Position > 0 then
-            Set_Parent_Unit_Name
+            Set_Correct_Parent_Unit_Name
               (Identifier,
                Defining_Identifier (Parent_Unit_Name (RUD (U))));
          end if;
@@ -193,7 +193,7 @@ package body Backend.BE_Ada.Runtime is
          RED (E) := New_Node (K_Designator);
          Set_Defining_Identifier
            (RED (E), Make_Defining_Identifier (Name));
-         Set_Parent_Unit_Name (RED (E), RUD (RE_Unit_Table (E)));
+         Set_Correct_Parent_Unit_Name (RED (E), RUD (RE_Unit_Table (E)));
       end loop;
    end Initialize;
 
