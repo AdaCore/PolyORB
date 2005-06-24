@@ -83,6 +83,9 @@ package body Backend.BE_Types is
    --  Print the list on a file descriptor. By default that is
    --  the standard output.
 
+   procedure Insert_Required_Types (L : in out List_Id);
+   --  Insert the types always required by PolyORB for a CORBA application.
+
    ------------
    -- Insert --
    ------------
@@ -123,6 +126,25 @@ package body Backend.BE_Types is
       Set_Standard_Output;
    end Print_List;
 
+   ---------------------------
+   -- Insert_Required_types --
+   ---------------------------
+
+   procedure Insert_Required_Types (L : in out List_Id) is
+   begin
+
+      --  The string type and thus unsigned long are always used
+      --  but they can not appear in the idl file. So we add them into
+      --  the list. Note that if the type string is present in the list,
+      --  this operation has no effect on the type list.
+      Insert (Idl_String, L);
+      Insert (Idl_Ulong, L);
+
+      --  The any type is always needed when building typecode variables.
+      Insert (Idl_Any, L);
+
+   end Insert_Required_types;
+
    ---------------
    -- Configure --
    ---------------
@@ -155,16 +177,8 @@ package body Backend.BE_Types is
    begin
       Generate (E, List_Of_Types);
 
-      --  The string type and thus unsigned long are always used
-      --  but they can not appear in the idl file. So we add them into
-      --  the list. Note that if the type string is present in the list,
-      --  this operation has no effect on the type list.
-      Insert (Idl_String, List_Of_Types);
-      Insert (Idl_Ulong, List_Of_Types);
-
-      --  The any type is always needed when building typecode variables.
-      Insert (Idl_Any, List_Of_Types);
-
+      --  Insert the types always required
+      Insert_Required_Types (List_Of_Types);
 
       if Print then
          Print_List (List_Of_Types);
