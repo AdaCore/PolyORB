@@ -2,6 +2,8 @@ with Output; use Output;
 
 package body Namet is
 
+   Already_Initialized : Boolean := False;
+
    Hash_Num : constant Int := 2**12;
    --  Number of headers in the hash table. Current hash algorithm is closely
    --  tailored to this choice, so it can only be changed if a corresponding
@@ -320,30 +322,34 @@ package body Namet is
    procedure Initialize is
 
    begin
-      Name_Chars.Init;
-      Name_Entries.Init;
+      if not Already_Initialized then
+         Name_Chars.Init;
+         Name_Entries.Init;
 
-      --  Initialize entries for one character names
+         --  Initialize entries for one character names
 
-      for C in Character loop
-         Name_Entries.Increment_Last;
-         Name_Entries.Table (Name_Entries.Last).Name_Chars_Index :=
-           Name_Chars.Last;
-         Name_Entries.Table (Name_Entries.Last).Name_Len  := 1;
-         Name_Entries.Table (Name_Entries.Last).Hash_Link := No_Name;
-         Name_Entries.Table (Name_Entries.Last).Int_Info  := 0;
-         Name_Entries.Table (Name_Entries.Last).Byte_Info := 0;
-         Name_Chars.Increment_Last;
-         Name_Chars.Table (Name_Chars.Last) := C;
-         Name_Chars.Increment_Last;
-         Name_Chars.Table (Name_Chars.Last) := ASCII.NUL;
-      end loop;
+         for C in Character loop
+            Name_Entries.Increment_Last;
+            Name_Entries.Table (Name_Entries.Last).Name_Chars_Index :=
+              Name_Chars.Last;
+            Name_Entries.Table (Name_Entries.Last).Name_Len  := 1;
+            Name_Entries.Table (Name_Entries.Last).Hash_Link := No_Name;
+            Name_Entries.Table (Name_Entries.Last).Int_Info  := 0;
+            Name_Entries.Table (Name_Entries.Last).Byte_Info := 0;
+            Name_Chars.Increment_Last;
+            Name_Chars.Table (Name_Chars.Last) := C;
+            Name_Chars.Increment_Last;
+            Name_Chars.Table (Name_Chars.Last) := ASCII.NUL;
+         end loop;
 
-      --  Clear hash table
+         --  Clear hash table
 
-      for J in Hash_Index_Type loop
-         Hash_Table (J) := No_Name;
-      end loop;
+         for J in Hash_Index_Type loop
+            Hash_Table (J) := No_Name;
+         end loop;
+
+         Already_Initialized := True;
+      end if;
    end Initialize;
 
    ----------------
