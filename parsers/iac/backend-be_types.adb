@@ -45,6 +45,7 @@ package body Backend.BE_Types is
    Idl_Value              : constant String := "VALUE";
    Idl_Valuebox           : constant String := "VALUEBOX";
    Idl_Native             : constant String := "NATIVE";
+   Idl_Typecode           : constant String := "TYPECODE";
 
    --  Not yet implemented
    --  idl_Principal          : constant String := "PRINCIPAL";
@@ -317,6 +318,7 @@ package body Backend.BE_Types is
          when K_Object =>
             Insert (Idl_Object, L);
             Insert (Idl_String, L);
+            Insert (Idl_Typecode, L);
          when K_Any =>
             Insert (Idl_Any, L);
          when K_Void =>

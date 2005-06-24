@@ -12,6 +12,7 @@ OCTET := True
 STRING := True
 WSTRING := True
 OBJECT := True
+TYPECODE := True
 ALIAS := True
 ENUM := True
 ARRAY_T := True

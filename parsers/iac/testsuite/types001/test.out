@@ -13,6 +13,7 @@ STRING := True
 WSTRING := True
 LONGDOUBLE := True
 OBJECT := True
+TYPECODE := True
 ANY := True
 VOID := True
 LONGLONG := True
