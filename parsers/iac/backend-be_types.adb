@@ -154,6 +154,14 @@ package body Backend.BE_Types is
          := Get_Name_String (IDL_Spec_Name) & ".typ";
    begin
       Generate (E, List_Of_Types);
+
+      --  The string type and thus unsigned long are always used
+      --  but they can not appear in the idl file. So we add them into
+      --  the list. Note that if the type string is present in the list,
+      --  this operation has no effect on the type list.
+      Insert (Idl_String, List_Of_Types);
+      Insert (Idl_Ulong, List_Of_Types);
+
       if Print then
          Print_List (List_Of_Types);
       end if;
@@ -199,6 +207,7 @@ package body Backend.BE_Types is
          when K_Enumeration_Type =>
             Insert (Idl_Enum, L);
             Insert (Idl_String, L);
+            Insert (Idl_Ulong, L);
 
          when K_Exception_Declaration =>
             Generate_Exception_Declaration (E, L);
@@ -224,6 +233,7 @@ package body Backend.BE_Types is
          when K_Native_Type =>
             Insert (Idl_Native, L);
             Insert (Idl_String, L);
+            Insert (Idl_Ulong, L);
 
          when K_Parameter_Declaration =>
             Generate (Type_Spec (E), L);
@@ -231,6 +241,7 @@ package body Backend.BE_Types is
          when K_Simple_Declarator =>
             Insert (Idl_Alias, L);
             Insert (Idl_String, L);
+            Insert (Idl_Ulong, L);
 
          when K_Sequence_Type =>
             Insert (Idl_Sequence, L);
@@ -267,6 +278,7 @@ package body Backend.BE_Types is
          when K_Value_Box_Declaration =>
             Insert (Idl_Valuebox, L);
             Insert (Idl_String, L);
+            Insert (Idl_Ulong, L);
 
          when K_Float .. K_Value_Base =>
             Generate_Base_Type (E, L);
@@ -318,6 +330,7 @@ package body Backend.BE_Types is
          when K_Object =>
             Insert (Idl_Object, L);
             Insert (Idl_String, L);
+            Insert (Idl_Ulong, L);
             Insert (Idl_Typecode, L);
          when K_Any =>
             Insert (Idl_Any, L);
@@ -340,6 +353,7 @@ package body Backend.BE_Types is
    begin
       Insert (Idl_Except, L);
       Insert (Idl_String, L);
+      Insert (Idl_Ulong, L);
       LL := Members (E);
       C := First_Entity (LL);
       while Present (C) loop
@@ -422,6 +436,7 @@ package body Backend.BE_Types is
    begin
       Insert (Idl_Struct, L);
       Insert (Idl_String, L);
+      Insert (Idl_Ulong, L);
       LL := Members (E);
       if not Is_Empty (LL) then
          C := First_Entity (LL);
@@ -474,6 +489,7 @@ package body Backend.BE_Types is
       Insert (Idl_Union, L);
       Insert (Idl_Long, L);
       Insert (Idl_String, L);
+      Insert (Idl_Ulong, L);
       Generate (Switch_Type_Spec (E), L);
       while Present (N) loop
          Generate (N, L);
@@ -492,6 +508,7 @@ package body Backend.BE_Types is
    begin
       Insert (Idl_Value, L);
       Insert (Idl_String, L);
+      Insert (Idl_Ulong, L);
       Insert (Idl_Short, L);
       LL := Value_Body (E);
       if not Is_Empty (LL) then

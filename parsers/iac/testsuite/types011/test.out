@@ -1,3 +1,4 @@
 LONG := True
 ALIAS := True
 STRING := True
+ULONG := True

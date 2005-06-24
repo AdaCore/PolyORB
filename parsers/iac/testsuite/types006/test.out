@@ -1,4 +1,5 @@
 EXCEPT := True
 STRING := True
+ULONG := True
 LONG := True
 DOUBLE := True
