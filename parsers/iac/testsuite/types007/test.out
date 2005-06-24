@@ -8,3 +8,4 @@ SEQUENCE := True
 WSTRING := True
 CHAR := True
 ALIAS := True
+ANY := True

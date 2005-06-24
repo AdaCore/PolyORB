@@ -3,3 +3,4 @@ STRING := True
 ULONG := True
 SHORT := True
 BOOLEAN := True
+ANY := True

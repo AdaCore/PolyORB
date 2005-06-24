@@ -1,3 +1,4 @@
 NATIVE := True
 STRING := True
 ULONG := True
+ANY := True

@@ -7,3 +7,4 @@ SHORT := True
 OCTET := True
 DOUBLE := True
 USHORT := True
+ANY := True

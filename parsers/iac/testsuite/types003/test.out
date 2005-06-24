@@ -2,3 +2,4 @@ OBJECT := True
 STRING := True
 ULONG := True
 TYPECODE := True
+ANY := True

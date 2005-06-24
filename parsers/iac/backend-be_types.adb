@@ -162,6 +162,10 @@ package body Backend.BE_Types is
       Insert (Idl_String, List_Of_Types);
       Insert (Idl_Ulong, List_Of_Types);
 
+      --  The any type is always needed when building typecode variables.
+      Insert (Idl_Any, List_Of_Types);
+
+
       if Print then
          Print_List (List_Of_Types);
       end if;
