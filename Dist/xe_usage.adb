@@ -28,7 +28,7 @@ with XE_IO;    use XE_IO;
 with XE_Flags; use XE_Flags;
 
 procedure XE_Usage is
-   Version : constant String := "5.03a";
+   Version : constant String := "5.03a1";
    Length  : Positive := Version'First;
 
 begin
