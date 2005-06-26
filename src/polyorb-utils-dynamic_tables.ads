@@ -115,6 +115,10 @@ package PolyORB.Utils.Dynamic_Tables is
    --  previously allocated larger table). Init must be called before using
    --  the table. Init is convenient in reestablishing a table for new use.
 
+   function Initialized (T : Instance) return Boolean;
+   pragma Inline (Initialized);
+   --  Return True iff T has been initialized
+
    First_Index : constant Table_Index_Type := Table_Low_Bound;
    --  Export First as synonym for Low_Bound (parallel with use of Last)
 
@@ -159,12 +163,17 @@ package PolyORB.Utils.Dynamic_Tables is
    --  Allocate room for Num Table_Component_Type in table T,
    --  eventually reallocate T.
 
+   function Duplicate (T : in Instance) return Instance;
+   --  Return a copy of T
+
    procedure Deallocate (T : in out Instance);
    --  Deallocate T instance
 
 private
 
    type Table_Private is record
+      Initialized : Boolean := False;
+
       Max : Integer;
       --  Subscript of the maximum entry in the currently allocated table
 

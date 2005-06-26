@@ -137,7 +137,18 @@ package body PolyORB.Utils.Dynamic_Tables is
 
          Reallocate (T);
       end if;
+
+      T.P.Initialized := True;
    end Initialize;
+
+   -----------------
+   -- Initialized --
+   -----------------
+
+   function Initialized (T : Instance) return Boolean is
+   begin
+      return T.P.Initialized;
+   end Initialized;
 
    ----------
    -- Last --
@@ -147,6 +158,21 @@ package body PolyORB.Utils.Dynamic_Tables is
    begin
       return Table_Index_Type (T.P.Last_Val);
    end Last;
+
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate (T : in Instance) return Instance is
+      Result : Instance;
+
+   begin
+      Initialize (Result);
+      Set_Last (Result, Last (T));
+      Result.Table.all := T.Table.all;
+
+      return Result;
+   end Duplicate;
 
    ----------------
    -- Reallocate --
