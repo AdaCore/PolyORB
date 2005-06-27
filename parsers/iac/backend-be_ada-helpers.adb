@@ -61,10 +61,9 @@ package body Backend.BE_Ada.Helpers is
         (E : Node_Id)
         return Node_Id;
 
-      function Narrowing_Ref_Spec
+      function U_To_Ref_Spec
         (E : Node_Id)
         return Node_Id;
-      --  return windening object reference helper.
 
       function TypeCode_Spec
         (E        : Node_Id;
@@ -75,10 +74,9 @@ package body Backend.BE_Ada.Helpers is
       --  When Backend is true, E is assumed to be a backend node of a full
       --  type definition.
 
-      function Widening_Ref_Spec
+      function To_Ref_Spec
         (E : Node_Id)
         return Node_Id;
-      --  return widening object reference helper.
 
       function Raise_Excp_Spec
         (Excp_Members : Node_Id;
@@ -191,11 +189,11 @@ package body Backend.BE_Ada.Helpers is
          return N;
       end From_Any_Spec_Seq;
 
-      ------------------------
-      -- Narrowing_Ref_Spec --
-      ------------------------
+      -------------------
+      -- U_To_Ref_Spec --
+      -------------------
 
-      function Narrowing_Ref_Spec
+      function U_To_Ref_Spec
         (E : Node_Id)
         return Node_Id
       is
@@ -222,7 +220,7 @@ package body Backend.BE_Ada.Helpers is
             Defining_Identifier (Helper_Package (Current_Entity)));
          Set_FE_Node (N, Identifier (E));
          return N;
-      end Narrowing_Ref_Spec;
+      end U_To_Ref_Spec;
 
       -----------------
       -- To_Any_Spec --
@@ -312,6 +310,33 @@ package body Backend.BE_Ada.Helpers is
             Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end To_Any_Spec_Seq;
+
+      -----------------
+      -- To_Ref_Spec --
+      -----------------
+
+      function To_Ref_Spec
+        (E : Node_Id)
+        return Node_Id
+      is
+         Profile   : List_Id;
+         Parameter : Node_Id;
+         N         : Node_Id;
+      begin
+         N := Subtype_Indication
+           (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
+         Profile  := New_List (K_Parameter_Profile);
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_The_Ref)),
+            Make_Type_Attribute
+            (Copy_Designator (N), A_Class));
+         Append_Node_To_List (Parameter, Profile);
+         N := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_To_Ref)), Profile,
+            Expand_Designator
+            (Type_Def_Node (BE_Node (Identifier (E)))));
+         return N;
+      end To_Ref_Spec;
 
       ---------------------
       -- Raise_Excp_Spec --
@@ -546,11 +571,15 @@ package body Backend.BE_Ada.Helpers is
            (N, Visible_Part (Current_Package));
          Bind_FE_To_To_Any (Identifier (E), N);
 
+         N := U_To_Ref_Spec (E);
          Append_Node_To_List
-           (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_U_To_Ref (Identifier (E), N);
 
+         N := To_Ref_Spec (E);
          Append_Node_To_List
-           (Widening_Ref_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_To_Ref (Identifier (E), N);
 
       end Visit_Forward_Interface_Declaration;
 
@@ -581,11 +610,17 @@ package body Backend.BE_Ada.Helpers is
            (N, Visible_Part (Current_Package));
          Bind_FE_To_To_Any (Identifier (E), N);
 
+         N := U_To_Ref_Spec (E);
          Append_Node_To_List
-           (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_U_To_Ref (Identifier (E), N);
 
+         N := To_Ref_Spec (E);
          Append_Node_To_List
-           (Widening_Ref_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_To_Ref (Identifier (E), N);
+
+         --  Visit the entities declared inside the interface.
 
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
@@ -887,33 +922,6 @@ package body Backend.BE_Ada.Helpers is
          Bind_FE_To_To_Any (Identifier (E), N);
       end Visit_Union_Type;
 
-      -----------------------
-      -- Widening_Ref_Spec --
-      -----------------------
-
-      function Widening_Ref_Spec
-        (E : Node_Id)
-        return Node_Id
-      is
-         Profile   : List_Id;
-         Parameter : Node_Id;
-         N         : Node_Id;
-      begin
-         N := Subtype_Indication
-           (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
-         Profile  := New_List (K_Parameter_Profile);
-         Parameter := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_The_Ref)),
-            Make_Type_Attribute
-            (Copy_Designator (N), A_Class));
-         Append_Node_To_List (Parameter, Profile);
-         N := Make_Subprogram_Specification
-           (Make_Defining_Identifier (SN (S_To_Ref)), Profile,
-            Expand_Designator
-            (Type_Def_Node (BE_Node (Identifier (E)))));
-         return N;
-      end Widening_Ref_Spec;
-
    end Package_Spec;
 
    package body Package_Body is
@@ -939,18 +947,15 @@ package body Backend.BE_Ada.Helpers is
       function To_Any_Body
         (E : Node_Id)
         return Node_Id;
-      --  returns an any conversions functions for a given type
-      --  (E) node.
+      --  returns an any conversion functions for a given type (E) node.
 
-      function Narrowing_Ref_Body
+      function U_To_Ref_Body
         (E : Node_Id)
         return Node_Id;
-      --  return windening object reference helper.
 
-      function Widening_Ref_Body
+      function To_Ref_Body
         (E : Node_Id)
         return Node_Id;
-      --  return widening object reference helper.
 
       function TC_Designator
         (E : Node_Id)
@@ -974,6 +979,7 @@ package body Backend.BE_Ada.Helpers is
         return Node_Id;
 
       procedure Visit_Enumeration_Type (E : Node_Id);
+      procedure Visit_Forward_Interface_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
@@ -1169,8 +1175,18 @@ package body Backend.BE_Ada.Helpers is
          --  So, we dont need the definitions below :
          if FEN.Kind (E) /= K_Complex_Declarator
            and then FEN.Kind (E) /= K_Fixed_Point_Type then
-            Stub :=  Type_Def_Node (BE_Node (Identifier (E)));
-            Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
+
+            --  For the forward interfaces, we use the name and the Rep_Id
+            --  of the forwarded interface.
+            if FEN.Kind (E) = K_Forward_Interface_Declaration then
+               Stub :=  Type_Def_Node (BE_Node (Identifier (Forward (E))));
+               Entity_Rep_Id_V := BEN.Value
+                 (BEN.Expression (Next_Node (Stub)));
+            else
+               Stub :=  Type_Def_Node (BE_Node (Identifier (E)));
+               Entity_Rep_Id_V := BEN.Value
+                 (BEN.Expression (Next_Node (Stub)));
+            end if;
          end if;
 
          --  The fixed point types constitute a particular case since
@@ -1186,7 +1202,8 @@ package body Backend.BE_Ada.Helpers is
          end if;
 
          case FEN.Kind (E) is
-            when K_Interface_Declaration =>
+            when K_Interface_Declaration
+              | K_Forward_Interface_Declaration =>
                Stub := Package_Declaration
                  (BEN.Parent (Stub));
 
@@ -2824,7 +2841,8 @@ package body Backend.BE_Ada.Helpers is
             when K_Enumeration_Type =>
                N := Enumeration_Type_Body (E);
 
-            when K_Interface_Declaration =>
+            when K_Interface_Declaration
+              | K_Forward_Interface_Declaration =>
                N := Interface_Declaration_Body (E);
 
             when K_Simple_Declarator =>
@@ -2948,6 +2966,9 @@ package body Backend.BE_Ada.Helpers is
          Helper_Name : Name_Id;
          function Complex_Declarator_Body (E : Node_Id) return Node_Id;
          function Enumeration_Type_Body (E : Node_Id) return Node_Id;
+         function Forward_Interface_Declaration_Body
+           (E : Node_Id)
+           return Node_Id;
          function Interface_Declaration_Body (E : Node_Id) return Node_Id;
          function Simple_Declarator_Body (E : Node_Id) return Node_Id;
          function Structure_Type_Body (E : Node_Id) return Node_Id;
@@ -3094,6 +3115,30 @@ package body Backend.BE_Ada.Helpers is
               (Spec, D, S);
             return N;
          end  Enumeration_Type_Body;
+
+         ----------------------------------------
+         -- Forward_Interface_Declaration_Body --
+         ----------------------------------------
+
+         function Forward_Interface_Declaration_Body
+           (E : Node_Id)
+           return Node_Id
+         is
+         begin
+            Spec := To_Any_Node (BE_Node (Identifier (E)));
+            N := Make_Subprogram_Call
+              (RE (RE_Ref_2),
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Item))));
+            N := Make_Subprogram_Call
+              (RE (RE_To_Any_3),
+               Make_List_Id (N));
+            N := Make_Return_Statement (N);
+            Append_Node_To_List (N, S);
+            N := Make_Subprogram_Implementation
+              (Spec, No_List, S);
+            return N;
+         end Forward_Interface_Declaration_Body;
 
          --------------------------------
          -- Interface_Declaration_Body --
@@ -3594,6 +3639,9 @@ package body Backend.BE_Ada.Helpers is
             when K_Enumeration_Type =>
                N := Enumeration_Type_Body (E);
 
+            when K_Forward_Interface_Declaration =>
+               N := Forward_Interface_Declaration_Body (E);
+
             when K_Interface_Declaration =>
                N := Interface_Declaration_Body (E);
 
@@ -3615,11 +3663,11 @@ package body Backend.BE_Ada.Helpers is
          return N;
       end To_Any_Body;
 
-      ------------------------
-      -- Narrowing_Ref_Body --
-      ------------------------
+      -------------------
+      -- U_To_Ref_Body --
+      -------------------
 
-      function Narrowing_Ref_Body
+      function U_To_Ref_Body
         (E : Node_Id)
         return Node_Id
       is
@@ -3629,11 +3677,10 @@ package body Backend.BE_Ada.Helpers is
          Param        : Node_Id;
          N            : Node_Id;
          L            : List_Id;
+         S_Set_Node   : Node_Id;
       begin
-         --  The spec of the Narrowing_Ref is declared at the 4th place in the
-         --  Helper package spec
-         Spec := Helper_Node (BE_Node (Identifier (E)));
-         Spec := Next_Node (Next_Node (Next_Node (Spec)));
+         --  The spec of the Unhecked_To_Ref function
+         Spec := U_To_Ref_Node (BE_Node (Identifier (E)));
 
          --  Declarative Part
 
@@ -3647,6 +3694,22 @@ package body Backend.BE_Ada.Helpers is
 
          --  Statements Part
 
+         S_Set_Node := Make_Defining_Identifier (SN (S_Set));
+         --  Depending on the nature of node E :
+         --  * If E is an Interface declaration, we use the Set function
+         --    inherited from CORBA.Object.Ref
+         --  * If E is a forward Interface declaration, we use the Set function
+         --    defined in the instanciated package.
+         if FEN.Kind (E) = K_Forward_Interface_Declaration then
+            Set_Correct_Parent_Unit_Name
+              (S_Set_Node,
+               Defining_Identifier
+               (Stub_Package_Node
+                (BE_Ada_Instanciations
+                 (BE_Node
+                  (Identifier
+                   (E))))));
+         end if;
          Statements := New_List (K_List_Id);
          L := New_List (K_List_Id);
          Append_Node_To_List
@@ -3656,7 +3719,7 @@ package body Backend.BE_Ada.Helpers is
             (RE (RE_Object_Of),
              Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref)))), L);
          N := Make_Subprogram_Call
-           (Defining_Identifier   => Make_Defining_Identifier (SN (S_Set)),
+           (Defining_Identifier   => S_Set_Node,
             Actual_Parameter_Part => L);
          Append_Node_To_List (N, Statements);
          N := Make_Return_Statement
@@ -3665,7 +3728,73 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Implementation
            (Spec, Declarations, Statements);
          return N;
-      end Narrowing_Ref_Body;
+      end U_To_Ref_Body;
+
+      -----------------
+      -- To_Ref_Body --
+      -----------------
+
+      function To_Ref_Body (E : Node_Id) return Node_Id is
+         Spec        : Node_Id;
+         Statements  : List_Id;
+         N           : Node_Id;
+         M           : Node_Id;
+         Rep_Id      : Node_Id;
+      begin
+         --  The spec of the To_Ref function
+         Spec := To_Ref_Node (BE_Node (Identifier (E)));
+
+         --  The value of the Rep_Id depends on the nature of E node :
+         --  * K_Interface_Declaration : we use the variable Repository_Id
+         --    declared in the stub.
+         --  * K_Forward_Interface_Declaration : we cannot use the
+         --    Repository_Id variable because it designates another entity.
+         --    So, we build a literal string value.
+         if FEN.Kind (E) = K_Interface_Declaration then
+            Rep_Id := Make_Defining_Identifier (PN (P_Repository_Id));
+         elsif FEN.Kind (E) = K_Forward_Interface_Declaration then
+            Rep_Id := Make_Literal
+              (BEN.Value
+               (BEN.Expression
+                (Next_Node
+                 (Type_Def_Node
+                  (BE_Node
+                   (Identifier
+                    (Forward
+                     (E))))))));
+
+         else
+            raise Program_Error;
+         end if;
+
+         Statements := New_List (K_List_Id);
+         N := Make_Expression
+           (Left_Expr => Make_Subprogram_Call
+            (RE (RE_Is_Nil),
+             Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref)))),
+            Operator   => Op_Or_Else,
+            Right_Expr => Make_Subprogram_Call
+            (RE (RE_Is_A),
+             Make_List_Id
+             (Make_Defining_Identifier (PN (P_The_Ref)),
+              Rep_Id)));
+         M := Make_Subprogram_Call
+           (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
+            Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref))));
+         M := Make_Return_Statement (M);
+         N := Make_If_Statement
+           (Condition => N,
+            Then_Statements => Make_List_Id (M),
+            Else_Statements => No_List);
+         Append_Node_To_List (N, Statements);
+         N := Make_Subprogram_Call
+           (RE (RE_Raise_Bad_Param),
+            Make_List_Id (RE (RE_Default_Sys_Member)));
+         Append_Node_To_List (N, Statements);
+         N := Make_Subprogram_Implementation
+           (Spec, No_List, Statements);
+         return N;
+      end To_Ref_Body;
 
       ------------------------------
       -- Raise_Excp_From_Any_Spec --
@@ -3806,6 +3935,9 @@ package body Backend.BE_Ada.Helpers is
             when K_Enumeration_Type =>
                Visit_Enumeration_Type (E);
 
+            when K_Forward_Interface_Declaration =>
+               Visit_Forward_Interface_Declaration (E);
+
             when K_Interface_Declaration =>
                Visit_Interface_Declaration (E);
 
@@ -3849,6 +3981,28 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List (N, Deferred_Initialization_Body);
       end Visit_Enumeration_Type;
 
+      -----------------------------------------
+      -- Visit_Forward_Interface_Declaration --
+      -----------------------------------------
+
+      procedure Visit_Forward_Interface_Declaration (E : Node_Id) is
+         N : Node_Id;
+      begin
+         Set_Helper_Body;
+
+         Append_Node_To_List
+           (From_Any_Body (E), Statements (Current_Package));
+         Append_Node_To_List
+           (To_Any_Body (E), Statements (Current_Package));
+         Append_Node_To_List
+           (U_To_Ref_Body (E), Statements (Current_Package));
+         Append_Node_To_List
+           (To_Ref_Body (E), Statements (Current_Package));
+
+         N := Deferred_Initialization_Block (E);
+         Append_Node_To_List (N, Deferred_Initialization_Body);
+      end Visit_Forward_Interface_Declaration;
+
       ---------------------------------
       -- Visit_Interface_Declaration --
       ---------------------------------
@@ -3873,14 +4027,15 @@ package body Backend.BE_Ada.Helpers is
            Package_Initializarion;
          Deferred_Initialization_Body := New_List (K_List_Id);
          Package_Initializarion       := New_List (K_List_Id);
-         Append_Node_To_List
-           (Widening_Ref_Body (E), Statements (Current_Package));
-         Append_Node_To_List
-           (Narrowing_Ref_Body (E), Statements (Current_Package));
+
          Append_Node_To_List
            (From_Any_Body (E), Statements (Current_Package));
          Append_Node_To_List
            (To_Any_Body (E), Statements (Current_Package));
+         Append_Node_To_List
+           (U_To_Ref_Body (E), Statements (Current_Package));
+         Append_Node_To_List
+           (To_Ref_Body (E), Statements (Current_Package));
 
          N := Deferred_Initialization_Block (E);
          Append_Node_To_List (N, Deferred_Initialization_Body);
@@ -4416,51 +4571,5 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List (Deferred_Init, Deferred_Initialization_Body);
 
       end Visit_Exception_Declaration;
-
-      -----------------------
-      -- Widening_Ref_Body --
-      -----------------------
-
-      function Widening_Ref_Body (E : Node_Id) return Node_Id is
-         Spec        : Node_Id;
-         Statements  : List_Id;
-         N           : Node_Id;
-         M           : Node_Id;
-      begin
-         --  The spec of the Widening_Ref is declared at the 5th place in the
-         --  Helper package spec
-         Spec := Helper_Node (BE_Node (Identifier (E)));
-         Spec := Next_Node (Next_Node (Spec));
-         Spec := Next_Node (Next_Node (Spec));
-
-         Statements := New_List (K_List_Id);
-         N := Make_Expression
-           (Left_Expr  =>
-              Make_Subprogram_Call
-            (RE (RE_Is_Nil),
-             Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref)))),
-            Operator   => Op_Or_Else,
-            Right_Expr =>
-              Make_Subprogram_Call
-            (RE (RE_Is_A),
-             Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref)),
-                           Make_Defining_Identifier (PN (P_Repository_Id)))));
-         M := Make_Subprogram_Call
-           (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
-            Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref))));
-         M := Make_Return_Statement (M);
-         N := Make_If_Statement
-           (Condition => N,
-            Then_Statements => Make_List_Id (M),
-            Else_Statements => No_List);
-         Append_Node_To_List (N, Statements);
-         N := Make_Subprogram_Call
-           (RE (RE_Raise_Bad_Param),
-            Make_List_Id (RE (RE_Default_Sys_Member)));
-         Append_Node_To_List (N, Statements);
-         N := Make_Subprogram_Implementation
-           (Spec, No_List, Statements);
-         return N;
-      end Widening_Ref_Body;
    end Package_Body;
 end Backend.BE_Ada.Helpers;

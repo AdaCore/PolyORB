@@ -190,6 +190,48 @@ package body Backend.BE_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_To_Any;
 
+   -----------------------
+   -- Bind_FE_To_To_Ref --
+   -----------------------
+
+   procedure Bind_FE_To_To_Ref
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+
+      if No (N) then
+         N := New_Node (BEN.K_BE_Ada);
+      end if;
+
+      BEN.Set_To_Ref_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_To_Ref;
+
+   -------------------------
+   -- Bind_FE_To_U_To_Ref --
+   -------------------------
+
+   procedure Bind_FE_To_U_To_Ref
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+
+      if No (N) then
+         N := New_Node (BEN.K_BE_Ada);
+      end if;
+
+      BEN.Set_U_To_Ref_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_U_To_Ref;
+
    -------------------------
    -- Bind_FE_To_Type_Def --
    -------------------------
