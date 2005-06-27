@@ -182,16 +182,11 @@ package body Backend.BE_Ada is
    -------------------------
 
    procedure Visit_Specification (E : Node_Id) is
-      Definition : Node_Id;
       N          : Node_Id;
    begin
       N := Map_IDL_Unit (E);
       Push_Entity (N);
-      Definition := First_Entity (Definitions (E));
-      while Present (Definition) loop
-         Visit (Definition);
-         Definition := Next_Entity (Definition);
-      end loop;
+      Visit (E);
       Pop_Entity;
    end Visit_Specification;
 

@@ -4093,8 +4093,6 @@ package body Backend.BE_Ada.Helpers is
            Package_Initializarion;
          Deferred_Initialization_Body := New_List (K_List_Id);
          Package_Initializarion       := New_List (K_List_Id);
-         --  N := Deferred_Initialization_Block (E);
-         --  Append_Node_To_List (N, Deferred_Initialization_Body);
 
          D := First_Entity (Definitions (E));
          while Present (D) loop
@@ -4129,11 +4127,17 @@ package body Backend.BE_Ada.Helpers is
          Definition : Node_Id;
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+         Set_Helper_Spec;
+
+         Deferred_Initialization_Body := New_List (K_List_Id);
+         Package_Initializarion       := New_List (K_List_Id);
+
          Definition := First_Entity (Definitions (E));
          while Present (Definition) loop
             Visit (Definition);
             Definition := Next_Entity (Definition);
          end loop;
+
          Pop_Entity;
       end Visit_Specification;
 

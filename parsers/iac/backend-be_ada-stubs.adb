@@ -506,7 +506,7 @@ package body Backend.BE_Ada.Stubs is
          Definition : Node_Id;
 
       begin
-         Push_Entity (Map_IDL_Unit (E));
+         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          Definition := First_Entity (Definitions (E));
          while Present (Definition) loop
             Visit (Definition);
