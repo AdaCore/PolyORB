@@ -16,7 +16,6 @@ package body Backend.BE_Ada.Expand is
      return Node_Id
    is
       P  : Node_Id;
-      U  : Node_Id;
       D  : Node_Id := No_Node;
       X  : Node_Id := N;
       FE : Node_Id;
@@ -49,15 +48,9 @@ package body Backend.BE_Ada.Expand is
          return No_Node;
       end if;
 
-      D := New_Node (K_Designator);
-      Set_Defining_Identifier
-        (D, Make_Defining_Identifier
-         (Name (Defining_Identifier (X))));
-      Set_Corresponding_Node
-        (Defining_Identifier (D),
-         Corresponding_Node
-         (Defining_Identifier (X)));
-
+      D := Defining_Identifier_To_Designator
+        (N           => Defining_Identifier (X),
+         Keep_Parent => False);
 
       if Present (FE) then
          Set_FE_Node (D, FE);
@@ -65,24 +58,18 @@ package body Backend.BE_Ada.Expand is
 
       --  This handles the particular case of the forward declaration of
       --  interfaces.
+
       if Kind (N) = K_Full_Type_Declaration
         and then Present (Parent_Unit_Name (Defining_Identifier (N)))
         and then BEN.Kind
         (Corresponding_Node
          (Parent_Unit_Name
           (Defining_Identifier
-           (N)))) = K_Package_Instanciation
+           (N)))) = K_Package_Instantiation
       then
-         U := New_Node (K_Designator);
-         Set_Defining_Identifier
-           (U, Parent_Unit_Name (Defining_Identifier (N)));
          Set_Correct_Parent_Unit_Name
-           (U,
-            Parent_Unit_Name
-            (Parent_Unit_Name
-             (Defining_Identifier (N))));
-         Set_Correct_Parent_Unit_Name
-           (D, U);
+           (D,
+            Parent_Unit_Name (Defining_Identifier (N)));
          P := Expand_Designator (P);
       else
          Set_Correct_Parent_Unit_Name

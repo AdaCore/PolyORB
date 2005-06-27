@@ -95,11 +95,6 @@ module Backend::BE_Ada::Nodes {
     List_Id    Packages;
   };
 
-  interface Package_Instanciation : Definition {
-    Node_Id    Original_Package;
-    boolean    Is_Subunit_Package;
-  };
-
   /********************/
   /* Subprogram nodes */
   /********************/

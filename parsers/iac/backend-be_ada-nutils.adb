@@ -125,12 +125,15 @@ package body Backend.BE_Ada.Nutils is
          end if;
 
          pragma Assert (Kind (U) = K_Package_Specification
-                        or else Kind (U) = K_Package_Instanciation);
+                        or else Kind (U) = K_Package_Instantiation);
 
          --  This is a subunit and we do not need to add a with for
          --  this unit but for one of its parents.
+         --  If the kind of the parent unit name is a K_Package_Instanciation,
+         --  we consider it as a subunit.
 
-         if Is_Subunit_Package (U) then
+         if Kind (U) = K_Package_Instantiation
+           or else Is_Subunit_Package (U) then
             U := Parent_Unit_Name (E);
 
             --  This is a special case to handle package Standard
@@ -294,23 +297,6 @@ package body Backend.BE_Ada.Nutils is
       return D;
    end Copy_Designator;
 
-   ------------------------------
-   -- Create_Parent_Designator --
-   ------------------------------
-
-   function Create_Parent_Designator
-     (N : Node_Id)
-     return Node_Id
-   is
-      P : Node_Id;
-   begin
-      pragma Assert (BEN.Kind (N) = K_Defining_Identifier);
-      P := New_Node (K_Designator);
-      Set_Defining_Identifier (P, N);
-      Set_Correct_Parent_Unit_Name (P, Parent_Unit_Name (N));
-      return P;
-   end Create_Parent_Designator;
-
    ---------------
    -- Copy_Node --
    ---------------
@@ -363,6 +349,46 @@ package body Backend.BE_Ada.Nutils is
          return Table (Last).Current_Package;
       end if;
    end Current_Package;
+
+   ---------------------------------------
+   -- Defining_Identifier_To_Designator --
+   ---------------------------------------
+
+   function Defining_Identifier_To_Designator
+     (N                       : Node_Id;
+      Copy                    : Boolean := False;
+      Keep_Parent             : Boolean := True;
+      Keep_Corresponding_Node : Boolean := True)
+     return Node_Id
+   is
+      P      : Node_Id;
+      Def_Id : Node_Id := N;
+   begin
+      pragma Assert (BEN.Kind (N) = K_Defining_Identifier);
+
+      if Copy then
+         Def_Id := Copy_Node (N);
+      end if;
+
+      if not Keep_Parent then
+         Def_Id := Make_Defining_Identifier (BEN.Name (N));
+      end if;
+
+      if Keep_Corresponding_Node then
+         Set_Corresponding_Node
+           (Def_Id,
+            Corresponding_Node (N));
+      end if;
+
+      P := New_Node (K_Designator);
+      Set_Defining_Identifier (P, Def_Id);
+
+      if Keep_Parent then
+         Set_Correct_Parent_Unit_Name (P, Parent_Unit_Name (N));
+      end if;
+
+      return P;
+   end Defining_Identifier_To_Designator;
 
    --------------------------
    -- Fully_Qualified_Name --
@@ -689,6 +715,9 @@ package body Backend.BE_Ada.Nutils is
    begin
       N := New_Node (K_Block_Statement);
       Set_Defining_Identifier (N, Statement_Identifier);
+      if Present (Statement_Identifier) then
+         Set_Corresponding_Node (Statement_Identifier, N);
+      end if;
       Set_Declarative_Part (N, Declarative_Part);
       Set_Statements (N, Statements);
       if not Is_Empty (Exception_Handler) then
@@ -919,6 +948,7 @@ package body Backend.BE_Ada.Nutils is
    begin
       N := New_Node (K_Exception_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Corresponding_Node (Defining_Identifier, N);
       return N;
    end Make_Exception_Declaration;
 
@@ -977,6 +1007,7 @@ package body Backend.BE_Ada.Nutils is
    begin
       N := New_Node (K_Full_Type_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Corresponding_Node (Defining_Identifier, N);
       Set_Type_Definition (N, Type_Definition);
       Set_Discriminant_Spec (N, Discriminant_Spec);
       if Present (Parent) then
@@ -1067,6 +1098,7 @@ package body Backend.BE_Ada.Nutils is
    begin
       N := New_Node (K_Object_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Corresponding_Node (Defining_Identifier, N);
       Set_Constant_Present (N, Constant_Present);
       Set_Object_Definition (N, Object_Definition);
       Set_Expression (N, Expression);
@@ -1091,6 +1123,7 @@ package body Backend.BE_Ada.Nutils is
    begin
       Unit := New_Node (K_Package_Declaration);
       Set_Defining_Identifier (Unit, Identifier);
+      Set_Corresponding_Node (Identifier, Unit);
       if Present (Current_Entity) then
          Set_Parent (Unit, Main_Package (Current_Entity));
       end if;
@@ -1113,20 +1146,21 @@ package body Backend.BE_Ada.Nutils is
    -- Make_Package_Instanciation --
    --------------------------------
 
-   function Make_Package_Instanciation
+   function Make_Package_Instantiation
      (Defining_Identifier : Node_Id;
-      Original_Package    : Node_Id;
-      Is_Subunit_Package  : Boolean := True)
+      Generic_Package     : Node_Id;
+      Parameter_List      : List_Id := No_List)
      return Node_Id
    is
       N : Node_Id;
    begin
-      N := New_Node (K_Package_Instanciation);
+      N := New_Node (K_Package_Instantiation);
       Set_Defining_Identifier (N, Defining_Identifier);
-      Set_Original_Package (N, Original_Package);
-      Set_Is_Subunit_Package (N, Is_Subunit_Package);
+      Set_Corresponding_Node (Defining_Identifier, N);
+      Set_Generic_Package (N, Generic_Package);
+      Set_Parameter_List (N, Parameter_List);
       return N;
-   end Make_Package_Instanciation;
+   end Make_Package_Instantiation;
 
    ----------------------------------
    -- Make_Parameter_Specification --
@@ -1555,7 +1589,7 @@ package body Backend.BE_Ada.Nutils is
                end if;
             elsif BEN.Kind (Parent) = K_Defining_Identifier then
                Set_Parent_Unit_Name
-                 (Child, Create_Parent_Designator (Parent));
+                 (Child, Defining_Identifier_To_Designator (Parent));
                if Present (Defining_Identifier (Child)) then
                   Set_Parent_Unit_Name
                     (Defining_Identifier (Child), Parent);

@@ -4067,10 +4067,9 @@ package body Backend.BE_Ada.Helpers is
             N := Make_Subprogram_Call
               (RU (RU_CORBA_Fixed_Point),
                Make_List_Id (F));
-            N := Make_Package_Instanciation
+            N := Make_Package_Instantiation
               (Defining_Identifier => Package_Id,
-               Original_Package    => N);
-            Set_Corresponding_Node (Package_Id, N);
+               Generic_Package     => N);
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  The From_Any and To_Any functions for the fixed point type
@@ -4192,13 +4191,11 @@ package body Backend.BE_Ada.Helpers is
 
             N := RE (RE_CORBA_Helper);
             Set_Correct_Parent_Unit_Name (N, S);
-            N := Make_Subprogram_Call
-              (N,
-               Profile);
-            N := Make_Package_Instanciation
+
+            N := Make_Package_Instantiation
               (Defining_Identifier => Package_Id,
-               Original_Package    => N);
-            Set_Corresponding_Node (Package_Id, N);
+               Generic_Package     => N,
+               Parameter_List      => Profile);
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  The From_Any and To_Any functions for the sequence type

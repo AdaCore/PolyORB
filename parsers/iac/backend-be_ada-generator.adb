@@ -34,7 +34,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Object_Declaration (N : Node_Id);
    procedure Generate_Package_Declaration (N : Node_Id);
    procedure Generate_Package_Implementation (N : Node_Id);
-   procedure Generate_Package_Instanciation (N : Node_Id);
+   procedure Generate_Package_Instantiation (N : Node_Id);
    procedure Generate_Package_Specification (N : Node_Id);
    procedure Generate_Parameter (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
@@ -136,8 +136,8 @@ package body Backend.BE_Ada.Generator is
          when K_Package_Implementation =>
             Generate_Package_Implementation (N);
 
-         when K_Package_Instanciation =>
-            Generate_Package_Instanciation (N);
+         when K_Package_Instantiation =>
+            Generate_Package_Instantiation (N);
 
          when K_Package_Specification =>
             Generate_Package_Specification (N);
@@ -918,7 +918,8 @@ package body Backend.BE_Ada.Generator is
    -- Generate_Package_Instanciation --
    ------------------------------------
 
-   procedure Generate_Package_Instanciation (N : Node_Id) is
+   procedure Generate_Package_Instantiation (N : Node_Id) is
+      Param : Node_Id;
    begin
       Write (Tok_Package);
       Write_Space;
@@ -930,9 +931,25 @@ package body Backend.BE_Ada.Generator is
       Write_Indentation (-1);
       Write (Tok_New);
       Write_Space;
-      Generate (Original_Package (N));
+      Generate (Generic_Package (N));
+      if not Is_Empty (Parameter_List (N)) then
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation (-1);
+         Write (Tok_Left_Paren);
+         Param := First_Node (Parameter_List (N));
+         loop
+            Generate (Param);
+            Param := Next_Node (Param);
+            exit when No (Param);
+            Write_Line (Tok_Comma);
+            Write_Indentation;
+         end loop;
+         Write (Tok_Right_Paren);
+         Decrement_Indentation;
+      end if;
       Decrement_Indentation;
-   end Generate_Package_Instanciation;
+   end Generate_Package_Instantiation;
 
    -----------------------------
    -- Generate_Null_Statement --

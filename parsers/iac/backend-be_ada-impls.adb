@@ -120,7 +120,6 @@ package body Backend.BE_Ada.Impls is
            (I, Make_Derived_Type_Definition
             (Subtype_Indication    => RE (RE_Servant_Base),
              Is_Private_Extention => True));
-         Set_Corresponding_Node (I, N);
          Bind_FE_To_Impl (Identifier (E), N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
@@ -133,7 +132,6 @@ package body Backend.BE_Ada.Impls is
              Is_All => True));
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
-         Set_Corresponding_Node (Defining_Identifier (N), N);
          I := Copy_Node (I);
          N := Make_Full_Type_Declaration
            (I, Make_Derived_Type_Definition
@@ -141,7 +139,6 @@ package body Backend.BE_Ada.Impls is
              Record_Extension_Part =>
                Make_Record_Definition
              (Make_List_Id (New_Node (K_Null_Statement)))));
-         Set_Corresponding_Node (I, N);
          Append_Node_To_List
            (N, Private_Part (Current_Package));
          N := First_Entity (Interface_Body (E));

@@ -335,8 +335,11 @@ package Backend.BE_Ada.Nutils is
       Witheded   : Boolean := True)
      return Node_Id;
 
-   function Create_Parent_Designator
-     (N : Node_Id)
+   function Defining_Identifier_To_Designator
+     (N                       : Node_Id;
+      Copy                    : Boolean := False;
+      Keep_Parent             : Boolean := True;
+      Keep_Corresponding_Node : Boolean := True)
      return Node_Id;
 
    function Make_Access_Type_Definition
@@ -475,10 +478,10 @@ package Backend.BE_Ada.Nutils is
      (Identifier : Node_Id)
      return Node_Id;
 
-   function Make_Package_Instanciation
+   function Make_Package_Instantiation
      (Defining_Identifier : Node_Id;
-      Original_Package    : Node_Id;
-      Is_Subunit_Package  : Boolean := True)
+      Generic_Package     : Node_Id;
+      Parameter_List      : List_Id := No_List)
      return Node_Id;
 
    function Make_Parameter_Specification

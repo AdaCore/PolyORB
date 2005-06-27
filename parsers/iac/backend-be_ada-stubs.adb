@@ -283,10 +283,9 @@ package body Backend.BE_Ada.Stubs is
            (Identifier, Defining_Identifier (Main_Package (Current_Entity)));
 
          --  Package instanciation
-         N := Make_Package_Instanciation
+         N := Make_Package_Instantiation
            (Defining_Identifier => Identifier,
-            Original_Package    => RU (RU_CORBA_Forward));
-         Set_Corresponding_Node (Identifier, N);
+            Generic_Package    => RU (RU_CORBA_Forward));
          Bind_FE_To_Instanciations
            (F                 => FEN.Identifier (E),
             Stub_Package_Node => N);
@@ -306,7 +305,6 @@ package body Backend.BE_Ada.Stubs is
              Record_Extension_Part =>
                Make_Record_Type_Definition
              (Record_Definition => Make_Record_Definition (No_List))));
-         Set_Corresponding_Node (Identifier, Ref_Type_Node);
          --  We don't add this node!
          Bind_FE_To_Type_Def (FEN.Identifier (E), Ref_Type_Node);
 
@@ -334,14 +332,12 @@ package body Backend.BE_Ada.Stubs is
               (Stub_Node (BE_Node (Identifier (First_Entity (L)))));
          end if;
          I := Make_Defining_Identifier (TN (T_Ref));
-         N :=
-           Make_Full_Type_Declaration
+         N := Make_Full_Type_Declaration
            (I, Make_Derived_Type_Definition
             (Subtype_Indication    => N,
              Record_Extension_Part =>
                Make_Record_Type_Definition
              (Record_Definition => Make_Record_Definition (No_List))));
-         Set_Corresponding_Node (I, N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          --  Bind_FE_To_Stub (Identifier (E), N);
@@ -638,22 +634,17 @@ package body Backend.BE_Ada.Stubs is
                   (Main_Package (Current_Entity)));
 
                if Bounded then
-                  Seq_Package_Inst := Make_Package_Instanciation
+                  Seq_Package_Inst := Make_Package_Instantiation
                     (Defining_Identifier => Seq_Package_Node,
-                     Original_Package => Make_Subprogram_Call
-                     (CORBA_Seq,
-                      Make_List_Id
-                      (Type_Node,
-                       Make_Literal (FEN.Value (Max_Size (Type_Spec_Node))))));
-                  Set_Corresponding_Node (Seq_Package_Node, Seq_Package_Inst);
+                     Generic_Package     => CORBA_Seq,
+                     Parameter_List      => Make_List_Id
+                     (Type_Node,
+                      Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)))));
                else
-                  Seq_Package_Inst := Make_Package_Instanciation
+                  Seq_Package_Inst := Make_Package_Instantiation
                     (Defining_Identifier => Seq_Package_Node,
-                     Original_Package => Make_Subprogram_Call
-                     (CORBA_Seq,
-                      Make_List_Id
-                      (Type_Node)));
-                  Set_Corresponding_Node (Seq_Package_Node, Seq_Package_Inst);
+                     Generic_Package     => CORBA_Seq,
+                     Parameter_List      => Make_List_Id (Type_Node));
                end if;
                Append_Node_To_List
                  (Seq_Package_Inst,
