@@ -127,7 +127,7 @@ package body Backend.BE_Types is
    end Print_List;
 
    ---------------------------
-   -- Insert_Required_types --
+   -- Insert_Required_Types --
    ---------------------------
 
    procedure Insert_Required_Types (L : in out List_Id) is
@@ -143,7 +143,7 @@ package body Backend.BE_Types is
       --  The any type is always needed when building typecode variables.
       Insert (Idl_Any, L);
 
-   end Insert_Required_types;
+   end Insert_Required_Types;
 
    ---------------
    -- Configure --
