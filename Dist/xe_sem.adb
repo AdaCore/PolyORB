@@ -347,6 +347,7 @@ package body XE_Sem is
       Default : Partition_Type renames Partitions.Table (Default_Partition_Id);
 
    begin
+      Current.Partition_Dir := Dir (Configuration, Current.Name);
       Current.Partition_Dir := Dir (Id (Root), Current.Partition_Dir);
 
       if No (Current.Command_Line) then
