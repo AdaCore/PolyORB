@@ -1,3 +1,11 @@
+2005-06-28  Thomas Quinot  <quinot@adacore.com>
+
+	* xe_back.adb: Refine algorithm for setting the partition Exec_Dir:
+	if it has been explicitly specified as an absolute path, use the
+	given path; if it has been specified as a relative path, or left
+	unspecified, prepend it with ../../.. so it is processed relative
+	to the mail build directory.
+
 2005-06-22  Thomas Quinot  <quinot@adacore.com>
 
 	* xe_back-garlic.adb, xe_back-polyorb.adb: Remove common subprogram
