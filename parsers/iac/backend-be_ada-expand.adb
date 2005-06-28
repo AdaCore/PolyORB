@@ -44,16 +44,16 @@ package body Backend.BE_Ada.Expand is
             raise Program_Error;
       end case;
 
-      if No (P) then
-         return No_Node;
-      end if;
-
       D := Defining_Identifier_To_Designator
         (N           => Defining_Identifier (X),
          Keep_Parent => False);
 
       if Present (FE) then
          Set_FE_Node (D, FE);
+      end if;
+
+      if No (P) then
+         return D;
       end if;
 
       --  This handles the particular case of the forward declaration of

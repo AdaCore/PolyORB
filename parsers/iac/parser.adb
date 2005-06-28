@@ -2069,7 +2069,7 @@ package body Parser is
       Identifier :=
         Make_Identifier (Token_Location, IDL_Spec_Name, No_Node, No_Node);
       Specification := New_Node (K_Specification, Token_Location);
-      Set_Identifier (Specification, Identifier);
+      Bind_Identifier_To_Entity (Identifier, Specification);
       Definitions   := New_List (K_Definition_List, Token_Location);
       Set_Definitions (Specification, Definitions);
 

@@ -562,6 +562,11 @@ package Backend.BE_Ada.Nutils is
      (Child  : Node_Id;
       Parent : Node_Id);
 
+   --  The two subprograms below are used to permit the generation of
+   --  additional code necessary for forwarded entities.
+   procedure Set_Forwarded (E : Node_Id);
+   function  Is_Forwarded  (E : Node_Id) return Boolean;
+
    procedure Set_Helper_Body (N : Node_Id := No_Node);
    procedure Set_Helper_Spec (N : Node_Id := No_Node);
 

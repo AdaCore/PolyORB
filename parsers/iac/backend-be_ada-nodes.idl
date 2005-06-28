@@ -352,7 +352,8 @@ module Backend::BE_Ada::Nodes {
     Node_Id    To_Ref_Node;
     Node_Id    U_To_Ref_Node;
     Node_Id    Type_Def_Node;
-    Node_Id    BE_Ada_Instanciations;    
+    Node_Id    Forward_Node;
+    Node_Id    BE_Ada_Instanciations;
   };
 
   interface Expression : Node_Id {

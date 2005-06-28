@@ -22,6 +22,9 @@ package body Backend.BE_Ada.Nutils is
       Current_Entity  : Node_Id;
    end record;
 
+   --  This list contains the forwarded entities.
+   Forwarded_Entities : List_Id;
+
    No_Depth : constant Int := -1;
    package Entity_Stack is
       new GNAT.Table (Entity_Stack_Entry, Int, No_Depth + 1, 10, 10);
@@ -595,6 +598,8 @@ package body Backend.BE_Ada.Nutils is
          DP (D) := Name_Find;
       end loop;
 
+      --  Initialization of the forwarded entities list
+      Forwarded_Entities := New_List (K_List_Id);
    end Initialize;
 
    --------------
@@ -1124,7 +1129,14 @@ package body Backend.BE_Ada.Nutils is
       Unit := New_Node (K_Package_Declaration);
       Set_Defining_Identifier (Unit, Identifier);
       Set_Corresponding_Node (Identifier, Unit);
-      if Present (Current_Entity) then
+      if Present (Current_Entity)
+        and then FEN."/="
+        (FEN.Kind
+         (FEN.Corresponding_Entity
+          (FE_Node
+           (Current_Entity))),
+         FEN.K_Specification)
+      then
          Set_Parent (Unit, Main_Package (Current_Entity));
       end if;
       Pkg := New_Node (K_Package_Specification);
@@ -1611,6 +1623,38 @@ package body Backend.BE_Ada.Nutils is
 
       end case;
    end Set_Correct_Parent_Unit_Name;
+
+   -------------------
+   -- Set_Forwarded --
+   -------------------
+
+   procedure Set_Forwarded (E : Node_Id) is
+      N : Node_Id;
+   begin
+      --  We cannot directly append the node E to the List of forwarded
+      --  entities because this node may have to be appended to other lists
+      N := New_Node (K_Node_Id);
+      Set_FE_Node (N, E);
+      Append_Node_To_List (N, Forwarded_Entities);
+   end Set_Forwarded;
+
+   ------------------
+   -- Is_Forwarded --
+   ------------------
+
+   function Is_Forwarded (E : Node_Id) return Boolean is
+      Result : Boolean := False;
+      N      : Node_Id;
+   begin
+      N := First_Node (Forwarded_Entities);
+      while Present (N) loop
+         if FE_Node (N) = E then
+            Result := True;
+         end if;
+         N := Next_Node (N);
+      end loop;
+      return Result;
+   end Is_Forwarded;
 
    ---------------------
    -- Set_Helper_Body --

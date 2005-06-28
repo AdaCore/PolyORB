@@ -50,6 +50,10 @@ package Backend.BE_Ada.IDL_To_Ada is
      (F : Node_Id;
       B : Node_Id);
 
+   procedure Bind_FE_To_Forward
+     (F : Node_Id;
+      B : Node_Id);
+
    procedure Bind_FE_To_Instanciations
      (F : Node_Id;
       Stub_Package_Node : Node_Id := No_Node;

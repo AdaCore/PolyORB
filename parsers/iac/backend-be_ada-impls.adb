@@ -272,13 +272,15 @@ package body Backend.BE_Ada.Impls is
          N          : Node_Id;
          A          : Node_Id;
          Subp_Spec  : Node_Id;
-         D          : constant List_Id := New_List (K_List_Id);
-         S          : constant List_Id := New_List (K_List_Id);
+         D          : List_Id;
+         S          : List_Id;
       begin
          Set_Impl_Body;
          A := First_Entity (Declarators (E));
          while Present (A) loop
             Subp_Spec := Impl_Node (BE_Node (Identifier (A)));
+            D := New_List (K_List_Id);
+            S := New_List (K_List_Id);
 
             if No (Subp_Spec) then
                raise Program_Error;

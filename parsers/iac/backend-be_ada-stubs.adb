@@ -276,6 +276,10 @@ package body Backend.BE_Ada.Stubs is
          --     outside any module.
          Set_Main_Spec;
 
+         --  Setting the interface as faorwarded to be able to add the
+         --  additional code related to forwarding
+         Set_Forwarded (Forward (E));
+
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Add_Str_To_Name_Buffer ("_Forward");
          Identifier := Make_Defining_Identifier (Name_Find);
@@ -289,6 +293,9 @@ package body Backend.BE_Ada.Stubs is
          Bind_FE_To_Instanciations
            (F                 => FEN.Identifier (E),
             Stub_Package_Node => N);
+         --  Adding the binding between the interface declaration and the
+         --  instanciated package.
+         Bind_FE_To_Forward  (FEN.Identifier (Forward (E)), N);
 
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
@@ -340,7 +347,7 @@ package body Backend.BE_Ada.Stubs is
              (Record_Definition => Make_Record_Definition (No_List))));
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
-         --  Bind_FE_To_Stub (Identifier (E), N);
+
          --  An Interface Declaration is also a type definition
          Bind_FE_To_Type_Def (Identifier (E), N);
          N := Map_Repository_Declaration (E);
@@ -355,6 +362,41 @@ package body Backend.BE_Ada.Stubs is
          end loop;
          N := Visible_Is_A_Spec;
          Append_Node_To_List (N, Visible_Part (Current_Package));
+
+         --  If we handle a forwarded interfce we must instanciate the
+         --  "Interface_Name"_Forward.Convert package
+         if Is_Forwarded (E) then
+            declare
+               Pack_Inst : Node_Id;
+               Gen_Pack  : Node_Id;
+            begin
+               Pack_Inst := RE (RE_Convert_Forward);
+               Set_Correct_Parent_Unit_Name
+                 (Pack_Inst,
+                  Defining_Identifier (Main_Package (Current_Entity)));
+               Gen_Pack := RE (RE_Convert);
+               Set_Correct_Parent_Unit_Name
+                 (Gen_Pack,
+                  Defining_Identifier
+                  (Forward_Node
+                   (BE_Node
+                    (Identifier
+                     (E)))));
+
+               --  To guarantee that the "with" caluse of the generic package
+               --  would be added, we use the Copy_Designator function.
+               N := Make_Package_Instantiation
+                 (Defining_Identifier => Defining_Identifier
+                  (Pack_Inst),
+                  Generic_Package     => Copy_Designator
+                  (Gen_Pack),
+                  Parameter_List      => Make_List_Id
+                  (Make_Defining_Identifier
+                   (TN (T_Ref))));
+               Append_Node_To_List (N, Visible_Part (Current_Package));
+            end;
+         end if;
+
          N := Local_Is_A_Spec;
          Append_Node_To_List (N, Private_Part (Current_Package));
          Pop_Entity;
@@ -1529,8 +1571,8 @@ package body Backend.BE_Ada.Stubs is
          else
             if BEN.Parameter_Mode (I) = Mode_Out then
                D := RE (RE_Get_Empty_Any);
-               Set_Correct_Parent_Unit_Name
-                 (D, Defining_Identifier (Helper_Package (Current_Entity)));
+               --  Set_Correct_Parent_Unit_Name
+               --  (D, Defining_Identifier (Helper_Package (Current_Entity)));
 
                --  If we are in this case, we must not give X as a parameter
                --  to Get_Empty_Any. We must generate a TypeCode identifier for

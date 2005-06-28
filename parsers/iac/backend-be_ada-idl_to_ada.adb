@@ -253,6 +253,27 @@ package body Backend.BE_Ada.IDL_To_Ada is
       BEN.Set_FE_Node (B, F);
    end Bind_FE_To_Type_Def;
 
+   ------------------------
+   -- Bind_FE_To_Forward --
+   ------------------------
+
+   procedure Bind_FE_To_Forward
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+
+      if No (N) then
+         N := New_Node (BEN.K_BE_Ada);
+      end if;
+
+      BEN.Set_Forward_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_Forward;
+
    -------------------------------
    -- Bind_FE_To_Instanciations --
    -------------------------------

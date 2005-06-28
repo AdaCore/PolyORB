@@ -119,9 +119,7 @@ package body Backend.BE_Ada.Helpers is
          --  subprogram
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
-            (Defining_Identifier
-             (Helper_Package
-              (Current_Entity))));
+            (Defining_Identifier (Helper_Package (Current_Entity))));
          Set_FE_Node (N, Identifier (E));
          return N;
       end From_Any_Spec;
@@ -1879,7 +1877,15 @@ package body Backend.BE_Ada.Helpers is
                         N := TC_Node
                           (BE_Node (Identifier (Reference (T))));
                         N := Defining_Identifier (N);
+                     elsif FEN.Kind (Reference (T)) = K_Simple_Declarator then
+                        N := TC_Node
+                          (BE_Node (Identifier (Reference (T))));
+                        N := Defining_Identifier (N);
+                     else
+                        raise Program_Error;
                      end if;
+
+
                   elsif FEN.Kind (T) = K_Fixed_Point_Type then
                      --  For types defined basing on a fixed point type, we
                      --  use the TypeCode constant of the fixed point type.
@@ -2048,7 +2054,8 @@ package body Backend.BE_Ada.Helpers is
                begin
                   --  As iac evolves, add the corresponding From_Any nodes
                   case FEN.Kind (Reference) is
-                     when K_Enumeration_Type =>
+                     when K_Enumeration_Type
+                        | K_Simple_Declarator =>
                         Helper := From_Any_Node
                           (BE_Node (Identifier (Reference)));
                         Helper := Defining_Identifier (Helper);
@@ -3044,10 +3051,12 @@ package body Backend.BE_Ada.Helpers is
                begin
                   --  As iac evolves, add the corresponding To_Any nodes
                   case FEN.Kind (Reference) is
-                     when K_Enumeration_Type =>
+                     when K_Enumeration_Type
+                       | K_Simple_Declarator =>
                         Helper := To_Any_Node
                           (BE_Node (Identifier (Reference)));
                         Helper := Defining_Identifier (Helper);
+
                      when others =>
                         Helper := RE (RE_To_Any_0);
                   end case;

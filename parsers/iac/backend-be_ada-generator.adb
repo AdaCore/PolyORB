@@ -859,7 +859,11 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Implementation (N : Node_Id) is
       P : Node_Id;
    begin
-      if Disable_Pkg_Impl_Gen then
+
+      --  If the user wants to generates only the spec, or if the package body
+      --  is empty, we don't generate it.
+      if Disable_Pkg_Impl_Gen
+        or else Is_Empty (Statements (N)) then
          return;
       end if;
 
@@ -967,7 +971,12 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Specification (N : Node_Id) is
       P : Node_Id;
    begin
-      if Disable_Pkg_Spec_Gen then
+      --  If the user wants to generates only the body, or if the package spec
+      --  is empty, we don't generate it.
+      if Disable_Pkg_Spec_Gen
+        or else (Is_Empty (Visible_Part (N))
+                 and then Is_Empty (Private_Part (N)))
+      then
          return;
       end if;
 

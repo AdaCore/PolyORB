@@ -61,6 +61,8 @@ package Backend.BE_Ada.Runtime is
       RE_On,                        --  On
       RE_Off,                       --  Off
       RE_CORBA_Helper,              --  CORBA_Helper
+      RE_Convert,                   --  Convert
+      RE_Convert_Forward,           --  Convert_Forward
       RE_Element_TC,                --  Element_TC
       RE_Sequence_TC,               --  Sequence_TC
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
@@ -205,6 +207,8 @@ package Backend.BE_Ada.Runtime is
          RE_On                      => RU_Null,
          RE_Off                     => RU_Null,
          RE_CORBA_Helper            => RU_Null,
+         RE_Convert                 => RU_Null,
+         RE_Convert_Forward         => RU_Null,
          RE_Element_TC              => RU_Null,
          RE_Sequence_TC             => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
