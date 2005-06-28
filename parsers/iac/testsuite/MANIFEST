@@ -4,10 +4,19 @@ ada0002/tin.idl
 ada0003/tin.idl
 ada0004/tin.idl
 ada0005/tin.idl
-#ada0006/tin.idl
+ada0006/tin.idl
 ada0007/tin.idl
 ada0008/tin.idl
 ada0009/tin.idl
+ada0010/tin.idl
+ada0011/tin.idl
+ada0012/tin.idl
+ada0013/tin.idl
+ada0014/tin.idl
+ada0015/tin.idl
+ada0016/tin.idl
+ada0017/tin.idl
+ada0018/tin.idl
 #echo/echo.idl
 #harness/harness.idl
 # Tests from CORBA 2.6 Chapter 3
