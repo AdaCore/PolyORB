@@ -93,11 +93,20 @@ package body XE_Back is
       Write_Line ("   for Object_Dir use ""."";");
       if P /= No_Partition_Id then
          Write_Str  ("   for Exec_Dir use """);
-         Write_Name (Partitions.Table (P).Executable_Dir);
+         declare
+            Exec_Dir : constant String :=
+                         Get_Name_String (Partitions.Table (P).Executable_Dir);
+         begin
+            if Exec_Dir'Length = 0
+              or else not Is_Absolute_Path (Exec_Dir)
+            then
+               Write_Str ("../../..");
+            end if;
+            Write_Str (Exec_Dir);
+         end;
          Write_Line (""";");
          Write_Line ("   package Builder is");
-         Write_Str  ("      for Executable (""partition.adb"") use ");
-         Write_Str  ("""../../../");
+         Write_Str  ("      for Executable (""partition.adb"") use """);
          Write_Name (Partitions.Table (P).Name);
          Write_Line (""";");
          Write_Line ("   end Builder;");
