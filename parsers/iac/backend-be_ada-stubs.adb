@@ -1571,8 +1571,6 @@ package body Backend.BE_Ada.Stubs is
          else
             if BEN.Parameter_Mode (I) = Mode_Out then
                D := RE (RE_Get_Empty_Any);
-               --  Set_Correct_Parent_Unit_Name
-               --  (D, Defining_Identifier (Helper_Package (Current_Entity)));
 
                --  If we are in this case, we must not give X as a parameter
                --  to Get_Empty_Any. We must generate a TypeCode identifier for
