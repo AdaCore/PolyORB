@@ -117,7 +117,7 @@ package body Backend.BE_Ada.Skels is
       procedure Invoke_Declaration (L : List_Id);
       function Invoke_Spec return Node_Id;
       function Is_A_Invoke_Part return Node_Id;
-      function Servant_Is_A_Body return Node_Id;
+      function Servant_Is_A_Body (Spec : Node_Id) return Node_Id;
       procedure Skeleton_Initialization (L : List_Id);
       function Non_User_Exception_Handler return Node_Id;
 
@@ -185,11 +185,16 @@ package body Backend.BE_Ada.Skels is
          From_Any_Helper  : Node_Id;
          To_Any_Helper    : Node_Id;
          FE               : Node_Id;
+         Impl_Id          : Node_Id;
 
          function Exception_Handler_Alternative
            (E : Node_Id)
            return Node_Id;
          --  Generation of an alternative in the exception handler
+
+         -----------------------------------
+         -- Exception_Handler_Alternative --
+         -----------------------------------
 
          function Exception_Handler_Alternative
            (E : Node_Id)
@@ -475,8 +480,22 @@ package body Backend.BE_Ada.Skels is
                end if;
             end if;
 
+            --  Re-adjusting the parent unit name of the operation. This is
+            --  necessary in the case of operations or attributes inherited
+            --  from the second until the last parent (multiple inheritence)
+            Impl_Id := New_Node (K_Designator);
+            Set_Defining_Identifier
+              (Impl_Id,
+               Copy_Node
+               (Defining_Identifier (C)));
+            Set_Correct_Parent_Unit_Name
+              (Impl_Id,
+               Defining_Identifier
+               (Implementation_Package
+                (Current_Entity)));
+
             C := Make_Subprogram_Call
-              (Expand_Designator (C),
+              (Copy_Designator (Impl_Id),
                Inv_Profile);
 
             if Present (Return_Type (S)) then
@@ -794,21 +813,10 @@ package body Backend.BE_Ada.Skels is
       -- Servant_Is_A_Body --
       -----------------------
 
-      function Servant_Is_A_Body return Node_Id is
-         Param      : Node_Id;
-         Profile    : constant List_Id := New_List (K_List_Id);
-         Spec       : Node_Id;
+      function Servant_Is_A_Body (Spec : Node_Id) return Node_Id is
          Statements : constant List_Id := New_List (K_List_Id);
          N          : Node_Id;
       begin
-         Param := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_Obj)),
-            RE (RE_Servant));
-         Append_Node_To_List (Param, Profile);
-         Spec := Make_Subprogram_Specification
-           (Make_Defining_Identifier (SN (S_Servant_Is_A)),
-            Profile,
-            RE (RE_Boolean_0));
          N := Implementation_Package (Current_Entity);
          N := First_Node
            (Visible_Part (Package_Specification (N)));
@@ -900,6 +908,10 @@ package body Backend.BE_Ada.Skels is
             Make_List_Id (N));
          Append_Node_To_List (N, L);
       end Skeleton_Initialization;
+
+      --------------------------------
+      -- Non_User_Exception_Handler --
+      --------------------------------
 
       function Non_User_Exception_Handler return Node_Id is
          Result     : Node_Id;
@@ -1013,6 +1025,10 @@ package body Backend.BE_Ada.Skels is
          Else_Statements   : constant List_Id := New_List (K_List_Id);
          Invoke_Statements : constant List_Id := New_List (K_List_Id);
          Exception_Handler : Node_Id;
+         Param             : Node_Id;
+         Profile           : constant List_Id := New_List (K_List_Id);
+         L                 : List_Id;
+         Par_Int           : Node_Id;
 
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
@@ -1028,6 +1044,24 @@ package body Backend.BE_Ada.Skels is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+         --  In case of multiple inheritence, generate the mappings for
+         --  the operations and attributes of the parents except the first one.
+         L := Interface_Spec (E);
+         if not FEU.Is_Empty (L) then
+            Par_Int := Next_Entity (First_Entity (L));
+            while Present (Par_Int) loop
+               N := First_Entity (Interface_Body (Reference (Par_Int)));
+               while Present (N) loop
+                  if FEN.Kind (N) = K_Operation_Declaration
+                    or else FEN.Kind (N) = K_Attribute_Declaration
+                  then
+                     Visit (N);
+                  end if;
+                  N := Next_Entity (N);
+               end loop;
+               Par_Int := Next_Entity (Par_Int);
+            end loop;
+         end if;
 
          Spec := Invoke_Spec;
          Invoke_Declaration (D);
@@ -1068,7 +1102,19 @@ package body Backend.BE_Ada.Skels is
               Make_List_Id (Exception_Handler));
          Append_Node_To_List (N, Invoke_Statements);
 
-         N := Servant_Is_A_Body;
+         --  Generation of the Servant_Is_A function
+
+         Param := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Obj)),
+            RE (RE_Servant));
+         Append_Node_To_List (Param, Profile);
+         N := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_Servant_Is_A)),
+            Profile,
+            RE (RE_Boolean_0));
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         N := Servant_Is_A_Body (N);
          Append_Node_To_List (N, Statements (Current_Package));
 
          N := Make_Subprogram_Implementation

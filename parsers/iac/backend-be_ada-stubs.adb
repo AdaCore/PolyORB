@@ -32,14 +32,18 @@ package body Backend.BE_Ada.Stubs is
 
    package body Package_Spec is
 
-      procedure Visit_Attribute_Declaration (E : Node_Id);
+      procedure Visit_Attribute_Declaration
+        (E       : Node_Id;
+         Binding : Boolean := True);
       procedure Visit_Constant_Declaration (E : Node_Id);
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Exception_Declaration (E : Node_Id);
       procedure Visit_Forward_Interface_Declaration (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
-      procedure Visit_Operation_Declaration (E : Node_Id);
+      procedure Visit_Operation_Declaration
+        (E       : Node_Id;
+         Binding : Boolean := True);
       procedure Visit_Specification (E : Node_Id);
       procedure Visit_Structure_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
@@ -98,7 +102,10 @@ package body Backend.BE_Ada.Stubs is
       -- Visit_Attribute_Declaration --
       ---------------------------------
 
-      procedure Visit_Attribute_Declaration (E : Node_Id) is
+      procedure Visit_Attribute_Declaration
+        (E       : Node_Id;
+         Binding : Boolean := True)
+      is
          N : Node_Id;
          A : Node_Id;
 
@@ -108,17 +115,24 @@ package body Backend.BE_Ada.Stubs is
             Set_Main_Spec;
 
             --  Insert repository declaration
-
-            Append_Node_To_List
-              (Map_Repository_Declaration (A),
-               Visible_Part (Current_Package));
-
+            --  We don't add the Repository_Id declaration in the case of an
+            --  attribute inherited from the second until the last parent.
+            if Scope_Entity (Identifier (A)) =
+              Corresponding_Entity
+              (FE_Node (Current_Entity))
+            then
+               Append_Node_To_List
+                 (Map_Repository_Declaration (A),
+                  Visible_Part (Current_Package));
+            end if;
             --  Insert getter specification
 
             N := Map_Accessor_Declaration
               (Accessor => Getter, Attribute => A);
             Append_Node_To_List (N, Visible_Part (Current_Package));
-            Bind_FE_To_Stub (Identifier (A), N);
+            if Binding then
+               Bind_FE_To_Stub (Identifier (A), N);
+            end if;
 
             if not Is_Readonly (E) then
                Set_Main_Spec;
@@ -326,17 +340,42 @@ package body Backend.BE_Ada.Stubs is
          N       : Node_Id;
          L       : List_Id;
          I       : Node_Id;
+         Par_Int : Node_Id;
       begin
          P := Map_IDL_Unit (E);
          Append_Node_To_List (P, Packages (Current_Entity));
          Push_Entity (P);
          Set_Main_Spec;
          L := Interface_Spec (E);
+
+         --  Checking wether the interface inherits from another interface or
+         --  not.
+         --  Extract from the Ada mapping specifications :
+         --
+         --  "Single inheritance of IDL interface is direcly mapped to
+         --   inheritance in the Ada mapping; that is, an interface with a
+         --   parent is mapped to a tagged type that is derived from the tagged
+         --   type mapped from the parent. The definitions of types, constants,
+         --   and exceptions in the parent package are renamed or subtyped so
+         --   that they are also inherited in accordance with the IDL
+         --   semantics"
+         --
+         --  "The client side of multiple inheritence in IDL maps to single Ref
+         --   tagged type, as with single inheritence, where the parent type is
+         --   the first interface listed in the IDL parent interface list. The
+         --   IDL compiler must generate additional primitive subprograms that
+         --   correspond to the operations inherited from the second and
+         --   subsequent parent interfaces listed in the IDL."
          if FEU.Is_Empty (L) then
             N := RE (RE_Ref_2);
          else
             N := Expand_Designator
-              (Stub_Node (BE_Node (Identifier (First_Entity (L)))));
+              (Type_Def_Node
+               (BE_Node
+                (Identifier
+                 (Reference
+                  (First_Entity
+                   (L))))));
          end if;
          I := Make_Defining_Identifier (TN (T_Ref));
          N := Make_Full_Type_Declaration
@@ -360,6 +399,27 @@ package body Backend.BE_Ada.Stubs is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+
+         --  In case of multiple inheritence, generate the mappings for
+         --  the operations and attributes of the parents except the first one.
+         if not FEU.Is_Empty (L) then
+            Par_Int := Next_Entity (First_Entity (L));
+            while Present (Par_Int) loop
+               N := First_Entity (Interface_Body (Reference (Par_Int)));
+               while Present (N) loop
+                  case  FEN.Kind (N) is
+                     when K_Operation_Declaration =>
+                        Visit_Operation_Declaration (N, False);
+                     when K_Attribute_Declaration =>
+                        Visit_Attribute_Declaration (N, False);
+                     when others =>
+                        null;
+                  end case;
+                  N := Next_Entity (N);
+               end loop;
+               Par_Int := Next_Entity (Par_Int);
+            end loop;
+         end if;
          N := Visible_Is_A_Spec;
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
@@ -429,7 +489,10 @@ package body Backend.BE_Ada.Stubs is
       -- Visit_Operation_Declaration --
       ---------------------------------
 
-      procedure Visit_Operation_Declaration (E : Node_Id) is
+      procedure Visit_Operation_Declaration
+        (E       : Node_Id;
+         Binding : Boolean := True)
+      is
 
          Subp_Spec : Node_Id;
          Profile   : List_Id;
@@ -463,8 +526,10 @@ package body Backend.BE_Ada.Stubs is
             if FEN.Kind (Entity) = K_Scoped_Name then
                Reference := FEN.Reference (Entity);
                --  Add here the different IDL unit possibilities :
-               if FEN.Kind (Reference) = K_Interface_Declaration and then
-                 Reference = Scope_Entity (Identifier (E)) then
+               if FEN.Kind (Reference) = K_Interface_Declaration
+                 and then Reference = Corresponding_Entity
+                 (FE_Node (Current_Entity))
+               then
                   Result := Make_Type_Attribute
                     (Result, A_Class);
                   null;
@@ -533,11 +598,20 @@ package body Backend.BE_Ada.Stubs is
            (Map_Defining_Identifier (E), Profile, Returns);
          Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
 
-         Append_Node_To_List
-           (Map_Repository_Declaration (E),
-            Visible_Part (Current_Package));
+         --  We don't add the Repository_Id declaration in the case of an
+         --  Operation inherited from the second until the last parent.
+         if Scope_Entity (Identifier (E)) =
+           Corresponding_Entity
+           (FE_Node (Current_Entity))
+         then
+            Append_Node_To_List
+              (Map_Repository_Declaration (E),
+               Visible_Part (Current_Package));
+         end if;
 
-         Bind_FE_To_Stub (Identifier (E), Subp_Spec);
+         if Binding then
+            Bind_FE_To_Stub (Identifier (E), Subp_Spec);
+         end if;
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -985,7 +1059,9 @@ package body Backend.BE_Ada.Stubs is
       ---------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
-         N : Node_Id;
+         N       : Node_Id;
+         L       : List_Id;
+         Par_Int : Node_Id;
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
@@ -995,6 +1071,26 @@ package body Backend.BE_Ada.Stubs is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+
+         --  In case of multiple inheritence, generate the mappings for
+         --  the operations and attributes of the parents except the first one.
+         L := Interface_Spec (E);
+         if not FEU.Is_Empty (L) then
+            Par_Int := Next_Entity (First_Entity (L));
+            while Present (Par_Int) loop
+               N := First_Entity (Interface_Body (Reference (Par_Int)));
+               while Present (N) loop
+                  if FEN.Kind (N) = K_Operation_Declaration
+                    or else FEN.Kind (N) = K_Attribute_Declaration
+                  then
+                     Visit (N);
+                  end if;
+                  N := Next_Entity (N);
+               end loop;
+               Par_Int := Next_Entity (Par_Int);
+            end loop;
+         end if;
+
          N := Visible_Is_A_Body;
          Append_Node_To_List (N, Statements (Current_Package));
          N := Local_Is_A_Body (E);
@@ -1764,11 +1860,74 @@ package body Backend.BE_Ada.Stubs is
    ---------------------
 
    function Local_Is_A_Body (E : Node_Id) return Node_Id is
-      N             : Node_Id;
-      S             : constant List_Id := New_List (K_List_Id);
-      M             : Node_Id;
-      Repository_Id : Node_Id;
-      Rep_Value    : Value_Id;
+      N                : Node_Id;
+      S                : constant List_Id := New_List (K_List_Id);
+      M                : Node_Id;
+      Repository_Id    : Node_Id;
+      Rep_Value        : Value_Id;
+      Parent_Statement : Node_Id;
+
+      --  This function returns a logical "or else" expression. The operands
+      --  of the expression are calls to CORBA.Is_Equivalent function on
+      --  all the parents (direct parents as well as in direct parents) of the
+      --  interface. It returns a null node in the case where the interface
+      --  does not herit from another interface.
+      function Is_Equivalent_Statement (E : Node_Id) return Node_Id;
+
+      -----------------------------
+      -- Is_Equivalent_Statement --
+      -----------------------------
+
+      function Is_Equivalent_Statement (E : Node_Id) return Node_Id is
+         Result           : Node_Id := No_Node;
+         Parent_Statement : Node_Id;
+         Par_Int          : Node_Id;
+         L                : List_Id;
+         Rep_Id           : Node_Id;
+      begin
+         pragma Assert (FEN.Kind (E) = K_Interface_Declaration);
+         L := Interface_Spec (E);
+         if not FEU.Is_Empty (L) then
+            Par_Int := First_Entity (L);
+            while Present (Par_Int) loop
+               Rep_Id := Expand_Designator
+                 (Next_Node
+                  (Type_Def_Node
+                   (BE_Node
+                    (Identifier
+                     (Reference
+                      (Par_Int))))));
+               if Present (Result) then
+                  Result := Make_Expression
+                    (Result,
+                     Op_Or_Else,
+                     Make_Subprogram_Call
+                     (RE (RE_Is_Equivalent),
+                      Make_List_Id
+                      (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
+                       Rep_Id)));
+               else
+                  Result := Make_Subprogram_Call
+                  (RE (RE_Is_Equivalent),
+                   Make_List_Id
+                   (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
+                    Rep_Id));
+               end if;
+               --  Adding recursivly the parents of parents.
+               Parent_Statement := Is_Equivalent_Statement
+                 (Reference
+                  (Par_Int));
+               if Present (Parent_Statement) then
+                  Result := Make_Expression
+                    (Result,
+                     Op_Or_Else,
+                     Parent_Statement);
+               end if;
+               Par_Int := Next_Entity (Par_Int);
+            end loop;
+         end if;
+         return Result;
+      end Is_Equivalent_Statement;
 
    begin
       N := Type_Def_Node (BE_Node (Identifier (E)));
@@ -1793,10 +1952,16 @@ package body Backend.BE_Ada.Stubs is
          (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
           Make_Literal (Rep_Value)));
       N := Make_Expression
-        (N, Op_Or_Else,
-         Make_Expression
-         (M, Op_Or_Else,
-          RE (RE_False)));
+        (N, Op_Or_Else, M);
+
+      --  Adding the parents.
+      Parent_Statement := Is_Equivalent_Statement (E);
+      if Present (Parent_Statement) then
+         N := Make_Expression
+           (N, Op_Or_Else, Parent_Statement);
+      end if;
+      N := Make_Expression
+        (N, Op_Or_Else, RE (RE_False));
       N := Make_Return_Statement (N);
       Append_Node_To_List (N, S);
       N := Make_Subprogram_Implementation

@@ -1,21 +1,28 @@
 with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nutils;
 
 with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
 
 package body Backend.BE_Ada.Impls is
 
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
+   package FEU renames Frontend.Nutils;
 
    package body Package_Spec is
 
-      procedure Visit_Attribute_Declaration (E : Node_Id);
+      procedure Visit_Attribute_Declaration
+        (E       : Node_Id;
+         Binding : Boolean := True);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
-      procedure Visit_Operation_Declaration (E : Node_Id);
+      procedure Visit_Operation_Declaration
+        (E       : Node_Id;
+         Binding : Boolean := True);
       procedure Visit_Specification (E : Node_Id);
 
       -----------
@@ -49,7 +56,10 @@ package body Backend.BE_Ada.Impls is
       -- Visit_Attribute_Declaration --
       ---------------------------------
 
-      procedure Visit_Attribute_Declaration (E : Node_Id) is
+      procedure Visit_Attribute_Declaration
+        (E       : Node_Id;
+         Binding : Boolean := True)
+      is
          N          : Node_Id;
          R          : Node_Id;
          A          : Node_Id;
@@ -76,7 +86,9 @@ package body Backend.BE_Ada.Impls is
             R := Make_Subprogram_Specification
               (R, Parameters, Copy_Designator (Return_Type (N)));
             Append_Node_To_List (R, Visible_Part (Current_Package));
-            Bind_FE_To_Impl (Identifier (A), R);
+            if Binding then
+               Bind_FE_To_Impl (Identifier (A), R);
+            end if;
 
             if not Is_Readonly (E) then
                N := Next_Node (Stub_Node (BE_Node (Identifier (A))));
@@ -108,17 +120,35 @@ package body Backend.BE_Ada.Impls is
       ---------------------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
-         N : Node_Id;
-         I : Node_Id;
-         D : Node_Id;
+         N       : Node_Id;
+         I       : Node_Id;
+         D       : Node_Id;
+         L       : List_Id;
+         P       : Node_Id;
+         Par_Int : Node_Id;
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Impl_Spec;
+
+         --  Handling the case of inherited interfaces.
+         L := Interface_Spec (E);
+         if FEU.Is_Empty (L) then
+            P := RE (RE_Servant_Base);
+         else
+            P := Expand_Designator
+              (Impl_Node
+               (BE_Node
+                (Identifier
+                 (Reference
+                  (First_Entity
+                   (L))))));
+         end if;
+
          I := Make_Defining_Identifier (TN (T_Object));
          N := Make_Full_Type_Declaration
            (I, Make_Derived_Type_Definition
-            (Subtype_Indication    => RE (RE_Servant_Base),
+            (Subtype_Indication    => P,
              Is_Private_Extention => True));
          Bind_FE_To_Impl (Identifier (E), N);
          Append_Node_To_List
@@ -135,7 +165,7 @@ package body Backend.BE_Ada.Impls is
          I := Copy_Node (I);
          N := Make_Full_Type_Declaration
            (I, Make_Derived_Type_Definition
-            (Subtype_Indication    => RE (RE_Servant_Base),
+            (Subtype_Indication    => P,
              Record_Extension_Part =>
                Make_Record_Definition
              (Make_List_Id (New_Node (K_Null_Statement)))));
@@ -146,6 +176,26 @@ package body Backend.BE_Ada.Impls is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+         --  In case of multiple inheritence, generate the mappings for
+         --  the operations and attributes of the parents except the first one.
+         if not FEU.Is_Empty (L) then
+            Par_Int := Next_Entity (First_Entity (L));
+            while Present (Par_Int) loop
+               N := First_Entity (Interface_Body (Reference (Par_Int)));
+               while Present (N) loop
+                  case  FEN.Kind (N) is
+                     when K_Operation_Declaration =>
+                        Visit_Operation_Declaration (N, False);
+                     when K_Attribute_Declaration =>
+                        Visit_Attribute_Declaration (N, False);
+                     when others =>
+                        null;
+                  end case;
+                  N := Next_Entity (N);
+               end loop;
+               Par_Int := Next_Entity (Par_Int);
+            end loop;
+         end if;
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -169,7 +219,10 @@ package body Backend.BE_Ada.Impls is
       -- Visit_Operation_Declaration --
       ---------------------------------
 
-      procedure Visit_Operation_Declaration (E : Node_Id) is
+      procedure Visit_Operation_Declaration
+        (E       : Node_Id;
+         Binding : Boolean := True)
+      is
          Stub       : Node_Id;
          Subp_Spec  : Node_Id;
          Profile    : List_Id;
@@ -208,7 +261,10 @@ package body Backend.BE_Ada.Impls is
          Subp_Spec := Make_Subprogram_Specification
            (Copy_Node (Defining_Identifier (Stub)), Profile, Returns);
          Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
-         Bind_FE_To_Impl (Identifier (E), Subp_Spec);
+
+         if Binding then
+            Bind_FE_To_Impl (Identifier (E), Subp_Spec);
+         end if;
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -315,7 +371,9 @@ package body Backend.BE_Ada.Impls is
       ---------------------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
-         N : Node_Id;
+         N       : Node_Id;
+         L       : List_Id;
+         Par_Int : Node_Id;
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
@@ -325,6 +383,24 @@ package body Backend.BE_Ada.Impls is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+         --  In case of multiple inheritence, generate the mappings for
+         --  the operations and attributes of the parents except the first one.
+         L := Interface_Spec (E);
+         if not FEU.Is_Empty (L) then
+            Par_Int := Next_Entity (First_Entity (L));
+            while Present (Par_Int) loop
+               N := First_Entity (Interface_Body (Reference (Par_Int)));
+               while Present (N) loop
+                  if FEN.Kind (N) = K_Operation_Declaration
+                    or else FEN.Kind (N) = K_Attribute_Declaration
+                  then
+                     Visit (N);
+                  end if;
+                  N := Next_Entity (N);
+               end loop;
+               Par_Int := Next_Entity (Par_Int);
+            end loop;
+         end if;
          Pop_Entity;
       end Visit_Interface_Declaration;
 
