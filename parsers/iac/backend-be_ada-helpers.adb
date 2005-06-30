@@ -1807,6 +1807,16 @@ package body Backend.BE_Ada.Helpers is
                               if FEN.Kind (Type_Spec (Member)) = K_Object then
                                  Dep_Array (Dep_CORBA_Object) := True;
                               end if;
+                           elsif FEN.Kind (Type_Spec (Member)) =
+                             K_Scoped_Name then
+                              N := Copy_Node
+                                (Defining_Identifier
+                                 (TC_Node
+                                  (BE_Node
+                                   (Identifier
+                                    (Reference
+                                     (Type_Spec
+                                      (Member)))))));
                            else
                               raise Program_Error;
                            end if;
@@ -1877,7 +1887,9 @@ package body Backend.BE_Ada.Helpers is
                         N := TC_Node
                           (BE_Node (Identifier (Reference (T))));
                         N := Defining_Identifier (N);
-                     elsif FEN.Kind (Reference (T)) = K_Simple_Declarator then
+                     elsif FEN.Kind (Reference (T)) = K_Simple_Declarator
+                       or else FEN.Kind (Reference (T)) = K_Complex_Declarator
+                     then
                         N := TC_Node
                           (BE_Node (Identifier (Reference (T))));
                         N := Defining_Identifier (N);
@@ -2055,7 +2067,8 @@ package body Backend.BE_Ada.Helpers is
                   --  As iac evolves, add the corresponding From_Any nodes
                   case FEN.Kind (Reference) is
                      when K_Enumeration_Type
-                        | K_Simple_Declarator =>
+                       | K_Simple_Declarator
+                       | K_Complex_Declarator =>
                         Helper := From_Any_Node
                           (BE_Node (Identifier (Reference)));
                         Helper := Defining_Identifier (Helper);
@@ -2778,6 +2791,14 @@ package body Backend.BE_Ada.Helpers is
                      if Is_Base_Type (Member_Type) then
                         TC_Node := Base_Type_TC
                           (FEN.Kind (Member_Type));
+                     elsif FEN.Kind (Member_Type) = K_Scoped_Name then
+                        TC_Node := Copy_Node
+                          (Defining_Identifier
+                           (BEN.TC_Node
+                            (BE_Node
+                             (Identifier
+                              (Reference
+                               (Member_Type))))));
                      else
                         raise Program_Error;
                      end if;
@@ -3052,7 +3073,8 @@ package body Backend.BE_Ada.Helpers is
                   --  As iac evolves, add the corresponding To_Any nodes
                   case FEN.Kind (Reference) is
                      when K_Enumeration_Type
-                       | K_Simple_Declarator =>
+                       | K_Simple_Declarator
+                       | K_Complex_Declarator =>
                         Helper := To_Any_Node
                           (BE_Node (Identifier (Reference)));
                         Helper := Defining_Identifier (Helper);
@@ -3604,6 +3626,14 @@ package body Backend.BE_Ada.Helpers is
                         else
                            To_Any_Helper := RE (RE_To_Any_0);
                         end if;
+                     elsif FEN.Kind (Member_Type) = K_Scoped_Name then
+                        To_Any_Helper := Copy_Node
+                          (Defining_Identifier
+                           (To_Any_Node
+                            (BE_Node
+                             (Identifier
+                              (Reference
+                               (Member_Type))))));
                      else
                         raise Program_Error;
                      end if;
@@ -4331,6 +4361,43 @@ package body Backend.BE_Ada.Helpers is
                   To_Any_Helper := RE (RE_To_Any_0);
                   From_Any_Helper := RE (RE_From_Any_0);
                end if;
+            elsif FEN.Kind (Type_Spec (Type_Node)) = K_Scoped_Name
+              and then (FEN.Kind
+                        (Reference (Type_Spec (Type_Node))) =
+                        K_Interface_Declaration
+                        or else
+                        FEN.Kind
+                        (Reference (Type_Spec (Type_Node))) =
+                        K_Simple_Declarator
+                        or else
+                        FEN.Kind
+                        (Reference (Type_Spec (Type_Node))) =
+                        K_Complex_Declarator)
+            then
+               TC_Helper := Copy_Node
+                 (Defining_Identifier
+                  (TC_Node
+                   (BE_Node
+                    (Identifier
+                     (Reference
+                      (Type_Spec
+                       (Type_Node)))))));
+               To_Any_Helper := Copy_Node
+                 (Defining_Identifier
+                  (To_Any_Node
+                   (BE_Node
+                    (Identifier
+                     (Reference
+                      (Type_Spec
+                       (Type_Node)))))));
+               From_Any_Helper := Copy_Node
+                 (Defining_Identifier
+                  (From_Any_Node
+                   (BE_Node
+                    (Identifier
+                     (Reference
+                      (Type_Spec
+                       (Type_Node)))))));
             else
                raise Program_Error;
             end if;

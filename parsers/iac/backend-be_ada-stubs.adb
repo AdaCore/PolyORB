@@ -729,18 +729,37 @@ package body Backend.BE_Ada.Stubs is
                else
                   CORBA_Seq := RU (RU_CORBA_Sequences_Unbounded);
                end if;
+               Get_Name_String (Seq_Package_Name);
                if Is_Base_Type (Type_Spec (Type_Spec_Node)) then
-                  Get_Name_String (Seq_Package_Name);
                   Get_Name_String_And_Append
                     (FEN.Image
                      (Base_Type
                       (Type_Spec
                        (Type_Spec_Node))));
-                  Seq_Package_Name := Name_Find;
-                  Type_Node := Map_Designator (Type_Spec (Type_Spec_Node));
+               elsif FEN.Kind (Type_Spec (Type_Spec_Node)) = K_Scoped_Name
+                 and then (FEN.Kind
+                           (Reference (Type_Spec (Type_Spec_Node))) =
+                           K_Interface_Declaration
+                           or else
+                           FEN.Kind
+                           (Reference (Type_Spec (Type_Spec_Node))) =
+                           K_Simple_Declarator
+                           or else
+                           FEN.Kind
+                           (Reference (Type_Spec (Type_Spec_Node))) =
+                           K_Complex_Declarator)
+               then
+                  Get_Name_String_And_Append
+                    (FEN.Name
+                     (FEN.Identifier
+                      (FEN.Reference
+                       (Type_Spec
+                        (Type_Spec_Node)))));
                else
                   raise Program_Error;
                end if;
+               Seq_Package_Name := Name_Find;
+               Type_Node := Map_Designator (Type_Spec (Type_Spec_Node));
 
                Seq_Package_Node := Make_Defining_Identifier
                  (Seq_Package_Name);
@@ -802,7 +821,9 @@ package body Backend.BE_Ada.Stubs is
                N := Make_Full_Type_Declaration
                  (Defining_Identifier => Map_Defining_Identifier (D),
                   Type_Definition     => Make_Array_Type_Definition
-                  (Map_Range_Constraints (FEN.Array_Sizes (D)), T));
+                  (Map_Range_Constraints
+                   (FEN.Array_Sizes (D))
+                   , T));
             else
                N := Make_Full_Type_Declaration
                  (Defining_Identifier => Map_Defining_Identifier (D),
