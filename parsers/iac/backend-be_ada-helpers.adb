@@ -205,7 +205,7 @@ package body Backend.BE_Ada.Helpers is
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
             Make_Type_Attribute
-            (Copy_Designator (N), A_Class));
+            (RE (RE_Ref_2), A_Class));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
@@ -327,7 +327,7 @@ package body Backend.BE_Ada.Helpers is
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
             Make_Type_Attribute
-            (Copy_Designator (N), A_Class));
+            (RE (RE_Ref_2), A_Class));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Ref)), Profile,
