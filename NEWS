@@ -51,9 +51,8 @@ Fixed bugs
 In some cases, integer constants greater than 2**31 would not be processed
 correctly and cause idlac to crash or generate incorrect code. (9377)
 
-* PolyORB 1.3r (released 2005-06-20)
-* PolyORB 1.3a (FROZEN, not released yet)
-=========================================
+* PolyORB 1.3 (released 2005-06-20)
+===================================
 
 This release contains a CORBA-compatible instantiation of the PolyORB
 generic middleware. In addition to the 1.2r release, it includes:
