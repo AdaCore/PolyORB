@@ -22,6 +22,5 @@ Backend Ada :
 TestSuite :
 ===========
 * Fix test017 and test020
-* Pass and Integrate the test "circular" + the test of JH
 * For each new feature implemented, add the corresponding tests
 
