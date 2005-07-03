@@ -814,11 +814,16 @@ package body Backend.BE_Ada.Helpers is
             Bind_FE_To_Helper (Identifier (D), N);
             Bind_FE_To_TC (Identifier (D), N);
 
-            --  If the new type is defined basing on an interface type, then
-            --  we dont generate From_Any nor To_Any. We use those of the
-            --  original type.
-            if FEN.Kind (T) = K_Scoped_Name and then
-              FEN.Kind (Reference (T)) = K_Interface_Declaration then
+            --  If the new type is defined basing on an interface type,
+            --  and then if this is not an array type, then we dont generate
+            --  From_Any nor To_Any. We use those of the original type.
+            if FEN.Kind (T) = K_Scoped_Name
+              and then
+              (FEN.Kind (Reference (T)) = K_Interface_Declaration
+               or else
+               FEN.Kind (Reference (T)) = K_Forward_Interface_Declaration)
+              and then
+              FEN.Kind (D) = K_Simple_Declarator then
                N := From_Any_Node (BE_Node (Identifier (Reference (T))));
                Bind_FE_To_From_Any (Identifier (D), N);
 
@@ -927,10 +932,6 @@ package body Backend.BE_Ada.Helpers is
       Deferred_Initialization_Body : List_Id;
       Package_Initializarion       : List_Id;
 
-      --  This array will be used to buil the dependancy list of this package
-      Dep_Array : array (Dependancy_Id) of Boolean :=
-        (others => False);
-
       function Deferred_Initialization_Block
         (E : Node_Id)
          return Node_Id;
@@ -955,10 +956,10 @@ package body Backend.BE_Ada.Helpers is
         (E : Node_Id)
         return Node_Id;
 
-      function TC_Designator
-        (E : Node_Id)
-        return Node_Id;
-      --  return a designator for a non-base type
+--        function TC_Designator
+--          (E : Node_Id)
+--          return Node_Id;
+--        --  return a designator for a non-base type
 
       function Raise_Excp_From_Any_Spec
         (Raise_Node : Node_Id)
@@ -986,25 +987,25 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Union_Type (E : Node_Id);
       procedure Visit_Exception_Declaration (E : Node_Id);
 
-      -------------------
-      -- TC_Designator --
-      -------------------
-      function TC_Designator
-        (E : Node_Id)
-        return Node_Id
-      is
-         T      : Node_Id;
-         Result : Node_Id;
-         TC     : Name_Id;
-      begin
-         T := E;
-         T := Reference (T);
-         T := Type_Def_Node (BE_Node (Identifier (T)));
-         TC := Add_Prefix_To_Name
-           ("TC_", BEN.Name (Defining_Identifier (T)));
-         Result := Make_Designator (TC);
-         return Result;
-      end TC_Designator;
+--        -------------------
+--        -- TC_Designator --
+--        -------------------
+--        function TC_Designator
+--          (E : Node_Id)
+--          return Node_Id
+--        is
+--           T      : Node_Id;
+--           Result : Node_Id;
+--           TC     : Name_Id;
+--        begin
+--           T := E;
+--           T := Reference (T);
+--           T := Type_Def_Node (BE_Node (Identifier (T)));
+--           TC := Add_Prefix_To_Name
+--             ("TC_", BEN.Name (Defining_Identifier (T)));
+--           Result := Make_Designator (TC);
+--           return Result;
+--        end TC_Designator;
 
       -----------------------------------
       -- Deferred_Initialization_Block --
@@ -1264,23 +1265,8 @@ package body Backend.BE_Ada.Helpers is
                         if TC_Previous_Name = No_Name then
                            --  The deepest dimension
 
-                           --  If the type of the array is a base type, then
-                           --  we have immediate access to this type name. The
-                           --  personal types need more work to get the type
-                           --  name.
                            T := Type_Spec (Declaration (E));
-                           if Is_Base_Type (T) then
-                              Param2 := Base_Type_TC
-                                (FEN.Kind (T));
-                              --  Adding the dependancy on CORBA.Object
-                              if FEN.Kind (T) = K_Object then
-                                 Dep_Array (Dep_CORBA_Object) := True;
-                              end if;
-                           elsif FEN.Kind (T) = K_Scoped_Name then
-                              Param2 := TC_Designator (T);
-                           else
-                              raise Program_Error;
-                           end if;
+                           Param2 := Get_TC_Node (T);
                         else --  Not the deepest dimension
                            Param2 := Make_Designator (TC_Previous_Name);
                         end if;
@@ -1317,22 +1303,8 @@ package body Backend.BE_Ada.Helpers is
                         Make_List_Id
                         (Make_Literal (New_Value (V))));
 
-                     --  If the type of the array is a base type, then
-                     --  we have immediate access to this type name. The
-                     --  personal types need more work to get the type
-                     --  name.
                      T := Type_Spec (Declaration (E));
-                     if Is_Base_Type (T) then
-                        Param2 := Base_Type_TC (FEN.Kind (T));
-                        --  Adding the dependancy on CORBA.Object
-                        if FEN.Kind (T) = K_Object then
-                           Dep_Array (Dep_CORBA_Object) := True;
-                        end if;
-                     elsif FEN.Kind (T) = K_Scoped_Name then
-                        Param2 := TC_Designator (T);
-                     else
-                        raise Program_Error;
-                     end if;
+                     Param2 := Get_TC_Node (T);
                   end if;
                end;
 
@@ -1451,35 +1423,14 @@ package body Backend.BE_Ada.Helpers is
                begin
                   --  Getting the dicriminator type and the To_Any node
                   --  corresponding to it
+                  TC_Helper := Get_TC_Node (Switch_Type_Spec (E));
+                  To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
                   if Is_Base_Type (Switch_Type_Spec (E)) then
-                     TC_Helper := Base_Type_TC
-                       (FEN.Kind (Switch_Type_Spec (E)));
                      Switch_Type := RE
                        (Convert
                         (FEN.Kind
                          (Switch_Type_Spec (E))));
-                     --  The CORBA.Object type uses converting functions
-                     --  located in the CORBA.Objject.Helper package.
-                     if FEN.Kind (Switch_Type_Spec (E)) = K_Object then
-                        To_Any_Helper := RE (RE_To_Any_3);
-                     else
-                        To_Any_Helper := RE (RE_To_Any_0);
-                     end if;
                   elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
-                     To_Any_Helper := To_Any_Node
-                       (BE_Node
-                        (Identifier
-                         (Reference
-                          (Switch_Type_Spec (E)))));
-                     To_Any_Helper := Copy_Node
-                       (Defining_Identifier (To_Any_Helper));
-                     TC_Helper := TC_Node
-                       (BE_Node
-                        (Identifier
-                         (Reference
-                          (Switch_Type_Spec (E)))));
-                     TC_Helper := Copy_Node
-                       (Defining_Identifier (TC_Helper));
                      Switch_Type := Map_Designator (Switch_Type_Spec (E));
                      Literal_Parent := Map_Designator
                        (Scope_Entity
@@ -1530,31 +1481,10 @@ package body Backend.BE_Ada.Helpers is
 
                      --  Getting the TC_XXX constant corresponding to the
                      --  element type.
-
-                     if Is_Base_Type
-                       (Type_Spec (Element (Switch_Alternative)))
-                     then
-                        TC_Helper := Base_Type_TC
-                          (FEN.Kind
-                           (Type_Spec
-                            (Element
-                             (Switch_Alternative))));
-                     elsif FEN.Kind
+                     TC_Helper := Get_TC_Node
                        (Type_Spec
-                        (Element (Switch_Alternative))) = K_Scoped_Name
-                     then
-                        TC_Helper := TC_Node
-                          (BE_Node
-                           (Identifier
-                            (Reference
-                             (Type_Spec
-                              (Element
-                               (Switch_Alternative))))));
-                        TC_Helper := Copy_Node
-                          (Defining_Identifier (TC_Helper));
-                     else
-                        raise Program_Error;
-                     end if;
+                        (Element
+                         (Switch_Alternative)));
 
                      --  Declaring the argument name "Element" string
 
@@ -1699,44 +1629,16 @@ package body Backend.BE_Ada.Helpers is
 
                         --  For simple declarators :
                         if FEN.Kind (Declarator) = K_Simple_Declarator then
-                           if Is_Base_Type
-                             (Type_Spec (Declaration (Declarator)))
-                           then
-                              Param1 := Base_Type_TC
-                                (FEN.Kind
-                                 (Type_Spec
-                                  (Declaration
-                                   (Declarator))));
-                              --  Adding the dependancy on CORBA.Object
-                              if FEN.Kind
-                                (Type_Spec (Declaration (Declarator))) =
-                                K_Object
-                              then
-                                 Dep_Array (Dep_CORBA_Object) := True;
-                              end if;
-                           elsif FEN.Kind
-                             (Type_Spec (Declaration (Declarator))) =
-                             K_Scoped_Name
-                           then
-                              Param1 := TC_Node
-                                (BE_Node
-                                 (Identifier
-                                  (Reference
-                                   (Type_Spec
-                                    (Declaration
-                                     (Declarator))))));
-                              Param1 := Copy_Node
-                                (Defining_Identifier (Param1));
-                           else
-                              raise Program_Error;
-                           end if;
-                        else --  Complex Declatator
-                           Param1 := TC_Node
-                             (BE_Node
-                              (Identifier
+                           Param1 := Get_TC_Node
+                             (Type_Spec
+                              (Declaration
                                (Declarator)));
-                           Param1 := Copy_Node
-                             (Defining_Identifier (Param1));
+                        else --  Complex Declatator
+                           Param1 := Expand_Designator
+                             (TC_Node
+                              (BE_Node
+                               (Identifier
+                                (Declarator))));
                         end if;
 
                         Param2 := Make_Designator (Arg_Name);
@@ -1799,27 +1701,7 @@ package body Backend.BE_Ada.Helpers is
                            Append_Node_To_List (N, Declarative_Part);
 
                            --  Adding the two additional parameters
-
-                           if Is_Base_Type (Type_Spec (Member)) then
-                              N := Base_Type_TC
-                                (FEN.Kind (Type_Spec (Member)));
-                              --  Adding the dependancy on CORBA.Object
-                              if FEN.Kind (Type_Spec (Member)) = K_Object then
-                                 Dep_Array (Dep_CORBA_Object) := True;
-                              end if;
-                           elsif FEN.Kind (Type_Spec (Member)) =
-                             K_Scoped_Name then
-                              N := Copy_Node
-                                (Defining_Identifier
-                                 (TC_Node
-                                  (BE_Node
-                                   (Identifier
-                                    (Reference
-                                     (Type_Spec
-                                      (Member)))))));
-                           else
-                              raise Program_Error;
-                           end if;
+                           N := Get_TC_Node (Type_Spec (Member));
                            N := Add_Parameter (Entity_TC_Name, N);
                            Append_Node_To_List (N, Statements);
                            N := Add_Parameter (Entity_TC_Name, Arg_Name_Node);
@@ -1872,43 +1754,19 @@ package body Backend.BE_Ada.Helpers is
                   T : Node_Id;
                begin
                   T := Type_Spec (Declaration (E));
-                  if Is_Base_Type (T) then
-                     N := Base_Type_TC (FEN.Kind (T));
-                     --  Adding the dependancy on CORBA.Object
-                     if FEN.Kind (T) = K_Object then
-                        Dep_Array (Dep_CORBA_Object) := True;
-                     end if;
-                  elsif FEN.Kind (T) = K_Scoped_Name then
-                     --  The case under which the type is an interface defined
-                     --  type
-                     if FEN.Kind (Reference (T)) = K_Interface_Declaration then
-                        --  Getting the TypeCode constant relative to the
-                        --  parent type.
-                        N := TC_Node
-                          (BE_Node (Identifier (Reference (T))));
-                        N := Defining_Identifier (N);
-                     elsif FEN.Kind (Reference (T)) = K_Simple_Declarator
-                       or else FEN.Kind (Reference (T)) = K_Complex_Declarator
-                     then
-                        N := TC_Node
-                          (BE_Node (Identifier (Reference (T))));
-                        N := Defining_Identifier (N);
-                     else
-                        raise Program_Error;
-                     end if;
-
-
+                  if Is_Base_Type (T)
+                    or else FEN.Kind (T) = K_Scoped_Name then
+                     N := Get_TC_Node (T);
                   elsif FEN.Kind (T) = K_Fixed_Point_Type then
                      --  For types defined basing on a fixed point type, we
                      --  use the TypeCode constant of the fixed point type.
                      N := Get_TC_Fixed_Point (T);
                   elsif FEN.Kind (T) = K_Sequence_Type then
-                     N := Copy_Node
-                       (Defining_Identifier
-                        (TC_Node
-                         (BE_Ada_Instanciations
-                          (BE_Node
-                           (Identifier (E))))));
+                     N := Expand_Designator
+                       (TC_Node
+                        (BE_Ada_Instanciations
+                         (BE_Node
+                          (Identifier (E)))));
                   else
                      raise Program_Error;
                   end if;
@@ -2046,39 +1904,8 @@ package body Backend.BE_Ada.Helpers is
                exit when No (Dim);
             end loop;
 
-            if Is_Base_Type (Type_Spec (Declaration (E))) then
-               TC := Base_Type_TC (FEN.Kind (Type_Spec (Declaration (E))));
-               --  The CORBA.Object type has a special conversion functions
-               --  although it is a base type
-               if FEN.Kind (Type_Spec (Declaration (E))) = K_Object then
-                  Helper := RE (RE_From_Any_1);
-               else
-                  Helper := RE (RE_From_Any_0);
-               end if;
-            elsif FEN.Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
-               TC := TC_Designator
-                 (Type_Spec
-                  (Declaration
-                   (E)));
-               declare
-                  Reference : constant Node_Id := FEN.Reference
-                    (Type_Spec (Declaration (E)));
-               begin
-                  --  As iac evolves, add the corresponding From_Any nodes
-                  case FEN.Kind (Reference) is
-                     when K_Enumeration_Type
-                       | K_Simple_Declarator
-                       | K_Complex_Declarator =>
-                        Helper := From_Any_Node
-                          (BE_Node (Identifier (Reference)));
-                        Helper := Defining_Identifier (Helper);
-                     when others =>
-                        Helper := RE (RE_From_Any_0);
-                  end case;
-               end;
-            else
-               raise Program_Error;
-            end if;
+            TC := Get_TC_Node (Type_Spec (Declaration (E)));
+            Helper := Get_From_Any_Node (Type_Spec (Declaration (E)));
 
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (PN (P_Result)),
@@ -2174,45 +2001,35 @@ package body Backend.BE_Ada.Helpers is
          ----------------------------
 
          function Simple_Declarator_Body (E : Node_Id) return Node_Id is
-            Ref_Id : Node_Id;
          begin
             Spec := From_Any_Node (BE_Node (Identifier (E)));
-
 
             if Is_Base_Type (Type_Spec (Declaration (E))) then
                N := RE (Convert
                         (FEN.Kind
                          (FEN.Type_Spec
                           (FEN.Declaration (E)))));
-               --  The CORBA.Object type has special conversion functions
-               --  although it is a base type
-               if FEN.Kind (Type_Spec (Declaration (E))) = K_Object then
-                  M := RE (RE_From_Any_1);
-               else
-                  M := RE (RE_From_Any_0);
-               end if;
+               M := Get_From_Any_Node (Type_Spec (Declaration (E)));
             elsif Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
                N := Map_Designator (Type_Spec (Declaration (E)));
-               Ref_Id := Identifier (Reference (Type_Spec (Declaration (E))));
-               M := Expand_Designator
-                 (From_Any_Node (BE_Node (Ref_Id)));
+               M := Get_From_Any_Node (Type_Spec (Declaration (E)));
             elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
                --  Getting the identifier of the type defined in the stub spec
-               N := Copy_Node
-                 (Defining_Identifier
-                  (Stub_Type_Node
-                   (BE_Ada_Instanciations
-                    (BE_Node
-                     (Identifier (E))))));
+               N := Expand_Designator
+                 (Stub_Type_Node
+                  (BE_Ada_Instanciations
+                   (BE_Node
+                    (Identifier
+                     (E)))));
 
                --  Getting the node of the From_Any function of the Fixed_X_Y
                --  type
-               M := Copy_Node
-                 (Defining_Identifier
-                  (From_Any_Node
-                   (BE_Ada_Instanciations
-                    (BE_Node
-                     (Identifier (E))))));
+               M := Expand_Designator
+                 (From_Any_Node
+                  (BE_Ada_Instanciations
+                   (BE_Node
+                    (Identifier
+                     (E)))));
             elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
                --  Getting the identifier of the Sequence type located in the
                --  instanciated package IDL_SEQUENCE_... in the stub spec.
@@ -2228,12 +2045,12 @@ package body Backend.BE_Ada.Helpers is
                --  Getting the node of the From_Any function of the Sequence
                --  type located in the instanciated package IDL_SEQUENCE_...
                --  in the stub spec
-               M := Copy_Node
-                 (Defining_Identifier
-                  (From_Any_Node
-                   (BE_Ada_Instanciations
-                    (BE_Node
-                     (Identifier (E))))));
+               M := Expand_Designator
+                 (From_Any_Node
+                  (BE_Ada_Instanciations
+                   (BE_Node
+                    (Identifier
+                     (E)))));
             else
                raise Program_Error;
             end if;
@@ -2311,65 +2128,33 @@ package body Backend.BE_Ada.Helpers is
                         (Subtype_Indication
                          (Stub_Node (BE_Node (Identifier (Declarator))))));
                      Append_Node_To_List (N, D);
-                     if Is_Base_Type
-                       (Type_Spec (Declaration (Declarator)))
-                     then
-                        TC := Base_Type_TC
-                          (FEN.Kind (Type_Spec (Declaration (Declarator))));
-                        --  The CORBA.Object type has special conversion
-                        --  functions although it is a base type
-                        if FEN.Kind (Type_Spec (Declaration (Declarator))) =
-                          K_Object
-                        then
-                           Helper := RE (RE_From_Any_1);
-                        else
-                           Helper := RE (RE_From_Any_0);
-                        end if;
-                     elsif FEN.Kind
-                       (Type_Spec (Declaration (Declarator))) =
-                       K_Scoped_Name
-                     then
-                        TC := TC_Node
-                          (BE_Node
-                           (Identifier
-                            (Reference
-                             (Type_Spec
-                              (Declaration
-                               (Declarator))))));
-                        TC := Copy_Node (Defining_Identifier (TC));
-
-                        Helper := From_Any_Node
-                          (BE_Node
-                           (Identifier
-                            (Reference
-                             (Type_Spec
-                              (Declaration
-                               (Declarator))))));
-                        Helper := Copy_Node (Defining_Identifier (Helper));
-                     else
-                        raise Program_Error;
-                     end if;
+                     TC := Get_TC_Node (Type_Spec (Declaration (Declarator)));
+                     Helper := Get_From_Any_Node
+                       (Type_Spec
+                        (Declaration
+                         (Declarator)));
                   else --  Complex declarator
-                     N := Copy_Node
-                       (Defining_Identifier
-                        (Type_Def_Node
-                         (BE_Node (Identifier (Declarator)))));
+                     N := Expand_Designator
+                       (Type_Def_Node
+                        (BE_Node
+                         (Identifier
+                          (Declarator))));
                      N := Make_Object_Declaration
                        (Defining_Identifier =>
                           Make_Defining_Identifier (Result_Name),
                         Object_Definition => N);
                      Append_Node_To_List (N, D);
-                     TC := TC_Node
-                       (BE_Node
-                        (Identifier
-                         (Declarator)));
-                     TC := Copy_Node (Defining_Identifier (TC));
+                     TC := Expand_Designator
+                       (TC_Node
+                        (BE_Node
+                         (Identifier
+                          (Declarator))));
+                     Helper := Expand_Designator
+                       (From_Any_Node
+                        (BE_Node
+                         (Identifier
+                          (Declarator))));
 
-                     Helper := From_Any_Node
-                       (BE_Node
-                        (Identifier
-                         (Declarator)));
-                     Helper := Copy_Node (Defining_Identifier (Helper));
                   end if;
 
                   N := Make_Subprogram_Call
@@ -2430,33 +2215,12 @@ package body Backend.BE_Ada.Helpers is
 
             --  Getting the From_Any function the TC_XXX constant and the
             --  Ada type nodes corresponding to the discriminant type.
+            TC_Helper := Get_TC_Node (Switch_Type_Spec (E));
+            From_Any_Helper := Get_From_Any_Node (Switch_Type_Spec (E));
+
             if Is_Base_Type (Switch_Type_Spec (E)) then
-
-               TC_Helper := Base_Type_TC (FEN.Kind (Switch_Type_Spec (E)));
                Switch_Type := RE (Convert (FEN.Kind (Switch_Type_Spec (E))));
-               --  The CORBA.Object type uses converting functions located in
-               --  the CORBA.Objject.Helper package.
-               if FEN.Kind (Switch_Type_Spec (E)) = K_Object then
-                  From_Any_Helper := RE (RE_From_Any_1);
-               else
-                  From_Any_Helper := RE (RE_From_Any_0);
-               end if;
             elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
-               From_Any_Helper := From_Any_Node
-                 (BE_Node
-                  (Identifier
-                   (Reference
-                    (Switch_Type_Spec (E)))));
-               From_Any_Helper := Copy_Node
-                 (Defining_Identifier (From_Any_Helper));
-
-               TC_Helper := TC_Node
-                 (BE_Node
-                  (Identifier
-                   (Reference
-                    (Switch_Type_Spec (E)))));
-               TC_Helper := Copy_Node (Defining_Identifier (TC_Helper));
-
                Switch_Type := Map_Designator (Switch_Type_Spec (E));
                Literal_Parent := Map_Designator
                  (Scope_Entity
@@ -2547,50 +2311,24 @@ package body Backend.BE_Ada.Helpers is
 
                --  Getting the From_Any function the TC_XXX constant and the
                --  Ada type nodes corresponding to the element type.
+               TC_Helper := Get_TC_Node
+                 (Type_Spec
+                  (Element
+                   (Switch_Alternative)));
+               From_Any_Helper := Get_From_Any_Node
+                 (Type_Spec
+                  (Element
+                   (Switch_Alternative)));
                if Is_Base_Type (Type_Spec (Element (Switch_Alternative))) then
-
-                  TC_Helper := Base_Type_TC
-                    (FEN.Kind
-                     (Type_Spec
-                      (Element
-                       (Switch_Alternative))));
                   Switch_Type := RE
                     (Convert
                      (FEN.Kind
                       (Type_Spec
                        (Element
                         (Switch_Alternative)))));
-                  --  The CORBA.Object type uses converting functions located
-                  --  in the CORBA.Objject.Helper package.
-                  if FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
-                    K_Object
-                  then
-                     From_Any_Helper := RE (RE_From_Any_1);
-                  else
-                     From_Any_Helper := RE (RE_From_Any_0);
-                  end if;
                elsif FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
                  K_Scoped_Name
                then
-                  From_Any_Helper := From_Any_Node
-                    (BE_Node
-                     (Identifier
-                      (Reference
-                       (Type_Spec
-                        (Element
-                         (Switch_Alternative))))));
-                  From_Any_Helper := Copy_Node
-                    (Defining_Identifier (From_Any_Helper));
-
-                  TC_Helper := TC_Node
-                    (BE_Node
-                     (Identifier
-                      (Reference
-                       (Type_Spec
-                        (Element
-                         (Switch_Alternative))))));
-                  TC_Helper := Copy_Node (Defining_Identifier (TC_Helper));
-
                   Switch_Type := Map_Designator
                     (Type_Spec
                      (Element
@@ -2655,16 +2393,17 @@ package body Backend.BE_Ada.Helpers is
          --------------------------------
 
          function Exception_Declaration_Body (E : Node_Id) return Node_Id is
-            Members     : List_Id;
-            Member      : Node_Id;
-            Declarator  : Node_Id;
-            Member_Id   : Node_Id;
-            Member_Type : Node_Id;
-            Dcl_Name    : Name_Id;
-            Index       : Unsigned_Long_Long;
-            Param_List  : List_Id;
-            Return_List : List_Id;
-            TC_Node     : Node_Id;
+            Members         : List_Id;
+            Member          : Node_Id;
+            Declarator      : Node_Id;
+            Member_Id       : Node_Id;
+            Member_Type     : Node_Id;
+            Dcl_Name        : Name_Id;
+            Index           : Unsigned_Long_Long;
+            Param_List      : List_Id;
+            Return_List     : List_Id;
+            TC_Node         : Node_Id;
+            From_Any_Helper : Node_Id;
          begin
             --  Obtaining the "From_Any" spec node from the helper spec
             Spec := From_Any_Node (BE_Node (Identifier (E)));
@@ -2788,20 +2527,9 @@ package body Backend.BE_Ada.Helpers is
                        (Make_Designator (PN (P_Item)),
                         Param_List);
 
-                     if Is_Base_Type (Member_Type) then
-                        TC_Node := Base_Type_TC
-                          (FEN.Kind (Member_Type));
-                     elsif FEN.Kind (Member_Type) = K_Scoped_Name then
-                        TC_Node := Copy_Node
-                          (Defining_Identifier
-                           (BEN.TC_Node
-                            (BE_Node
-                             (Identifier
-                              (Reference
-                               (Member_Type))))));
-                     else
-                        raise Program_Error;
-                     end if;
+                     TC_Node := Get_TC_Node (Member_Type);
+                     From_Any_Helper := Get_From_Any_Node (Member_Type);
+
                      Append_Node_To_List (TC_Node, Param_List);
 
                      N := Make_Literal
@@ -2834,7 +2562,7 @@ package body Backend.BE_Ada.Helpers is
                      Member_Id := Make_Defining_Identifier (Name_Find);
 
                      N := Make_Subprogram_Call
-                       (RE (RE_From_Any_0),
+                       (From_Any_Helper,
                         Make_List_Id
                         (Make_Defining_Identifier (VN (V_Index))));
                      N := Make_Assignment_Statement
@@ -3057,35 +2785,7 @@ package body Backend.BE_Ada.Helpers is
                exit when No (Dim);
             end loop;
 
-            if Is_Base_Type (Type_Spec (Declaration (E))) then
-               --  The CORBA.Object type has special conversion functions
-               --  although it is a base type
-               if FEN.Kind (Type_Spec (Declaration (E))) = K_Object then
-                  Helper := RE (RE_To_Any_3);
-               else
-                  Helper := RE (RE_To_Any_0);
-               end if;
-            elsif FEN.Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
-               declare
-                  Reference : constant Node_Id := FEN.Reference
-                    (Type_Spec (Declaration (E)));
-               begin
-                  --  As iac evolves, add the corresponding To_Any nodes
-                  case FEN.Kind (Reference) is
-                     when K_Enumeration_Type
-                       | K_Simple_Declarator
-                       | K_Complex_Declarator =>
-                        Helper := To_Any_Node
-                          (BE_Node (Identifier (Reference)));
-                        Helper := Defining_Identifier (Helper);
-
-                     when others =>
-                        Helper := RE (RE_To_Any_0);
-                  end case;
-               end;
-            else
-               raise Program_Error;
-            end if;
+            Helper := Get_To_Any_Node (Type_Spec (Declaration (E)));
 
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (PN (P_Item)), L);
@@ -3213,41 +2913,32 @@ package body Backend.BE_Ada.Helpers is
          ----------------------------
 
          function Simple_Declarator_Body (E : Node_Id) return Node_Id is
-            Ref_Id : Node_Id;
          begin
             Spec := To_Any_Node (BE_Node (Identifier (E)));
 
             if Is_Base_Type (Type_Spec (Declaration (E))) then
                N := RE (Convert
                         (FEN.Kind (FEN.Type_Spec (FEN.Declaration (E)))));
-               --  The CORBA.Object type has special conversion functions
-               --  although it is a base type
-               if FEN.Kind (Type_Spec (Declaration (E))) = K_Object then
-                  M := RE (RE_To_Any_3);
-               else
-                  M := RE (RE_To_Any_0);
-               end if;
+               M := Get_To_Any_Node (Type_Spec (Declaration (E)));
             elsif Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
                N := Map_Designator (Type_Spec (Declaration (E)));
-               Ref_Id := Identifier (Reference (Type_Spec (Declaration (E))));
-               M := Expand_Designator
-                 (To_Any_Node (BE_Node (Ref_Id)));
+               M := Get_To_Any_Node (Type_Spec (Declaration (E)));
             elsif Kind (Type_Spec (Declaration (E))) = K_Fixed_Point_Type then
                --  Getting the identifier of the type defined in the stub spec
-               N := Copy_Node
-                 (Defining_Identifier
-                  (Stub_Type_Node
-                   (BE_Ada_Instanciations
-                    (BE_Node
-                     (Identifier (E))))));
+               N := Expand_Designator
+                 (Stub_Type_Node
+                  (BE_Ada_Instanciations
+                   (BE_Node
+                    (Identifier
+                     (E)))));
                --  Getting the node of the From_Any function of the Fixed_X_Y
                --  type
-               M := Copy_Node
-                 (Defining_Identifier
-                  (To_Any_Node
-                   (BE_Ada_Instanciations
-                    (BE_Node
-                     (Identifier (E))))));
+               M := Expand_Designator
+                 (To_Any_Node
+                  (BE_Ada_Instanciations
+                   (BE_Node
+                    (Identifier
+                     (E)))));
             elsif Kind (Type_Spec (Declaration (E))) = K_Sequence_Type then
                --  Getting the identifier of the Sequence type located in the
                --  instanciated package IDL_SEQUENCE_... in the stub spec.
@@ -3263,12 +2954,12 @@ package body Backend.BE_Ada.Helpers is
                --  Getting the node of the To_Any function of the Sequence
                --  type located in the instanciated package IDL_SEQUENCE_...
                --  in the stub spec
-               M := Copy_Node
-                 (Defining_Identifier
-                  (To_Any_Node
-                   (BE_Ada_Instanciations
-                    (BE_Node
-                     (Identifier (E))))));
+               M := Expand_Designator
+                 (To_Any_Node
+                  (BE_Ada_Instanciations
+                   (BE_Node
+                    (Identifier
+                     (E)))));
             else
                raise Program_Error;
             end if;
@@ -3333,41 +3024,16 @@ package body Backend.BE_Ada.Helpers is
                   --  Getting the declarator type in order to call the right
                   --  To_Any function
                   if FEN.Kind (Declarator) = K_Simple_Declarator then
-                     if Is_Base_Type
-                       (Type_Spec (Declaration (Declarator)))
-                     then
-                        --  The CORBA.Object type has special conversion
-                        --  functions although it is a base type
-                        if FEN.Kind (Type_Spec (Declaration (Declarator))) =
-                          K_Object
-                        then
-                           To_Any_Helper := RE (RE_To_Any_3);
-                        else
-                           To_Any_Helper := RE (RE_To_Any_0);
-                        end if;
-                     elsif FEN.Kind
-                       (Type_Spec (Declaration (Declarator))) =
-                       K_Scoped_Name
-                     then
-                        To_Any_Helper := To_Any_Node
-                          (BE_Node
-                           (Identifier
-                            (Reference
-                             (Type_Spec
-                              (Declaration
-                               (Declarator))))));
-                        To_Any_Helper := Copy_Node
-                          (Defining_Identifier (To_Any_Helper));
-                     else
-                        raise Program_Error;
-                     end if;
-                  else --  Complex declarator
-                     To_Any_Helper := To_Any_Node
-                       (BE_Node
-                        (Identifier
+                     To_Any_Helper := Get_To_Any_Node
+                       (Type_Spec
+                        (Declaration
                          (Declarator)));
-                     To_Any_Helper := Copy_Node
-                       (Defining_Identifier (To_Any_Helper));
+                  else --  Complex declarator
+                     To_Any_Helper := Expand_Designator
+                       (To_Any_Node
+                        (BE_Node
+                         (Identifier
+                          (Declarator))));
                   end if;
                   N := Make_Subprogram_Call
                     (To_Any_Helper,
@@ -3413,7 +3079,7 @@ package body Backend.BE_Ada.Helpers is
             N := Make_Subprogram_Call
               (N,
                Make_List_Id
-               (Defining_Identifier (TC_Node (BE_Node (Identifier (E))))));
+               (Expand_Designator (TC_Node (BE_Node (Identifier (E))))));
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Result)),
@@ -3431,28 +3097,14 @@ package body Backend.BE_Ada.Helpers is
 
             --  Getting the To_Any function node corresponding to the
             --  discriminant type.
-            if Is_Base_Type (Switch_Type_Spec (E)) then
-               --  The CORBA.Object type uses converting functions located in
-               --  the CORBA.Objject.Helper package.
-               if FEN.Kind (Switch_Type_Spec (E)) = K_Object then
-                  To_Any_Helper := RE (RE_To_Any_3);
-               else
-                  To_Any_Helper := RE (RE_To_Any_0);
-               end if;
-            elsif FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
-               To_Any_Helper := To_Any_Node
-                 (BE_Node
-                  (Identifier
-                   (Reference
-                    (Switch_Type_Spec (E)))));
-               To_Any_Helper := Copy_Node
-                 (Defining_Identifier (To_Any_Helper));
+            To_Any_Helper := Get_To_Any_Node (Switch_Type_Spec (E));
+            if FEN.Kind (Switch_Type_Spec (E)) = K_Scoped_Name then
                Literal_Parent := Map_Designator
                  (Scope_Entity
                   (Identifier
                    (Reference
                     (Switch_Type_Spec (E)))));
-            else
+            elsif not Is_Base_Type (Switch_Type_Spec (E)) then
                raise Program_Error;
             end if;
 
@@ -3490,31 +3142,11 @@ package body Backend.BE_Ada.Helpers is
 
                --  Getting the To_Any function node corresponding to the
                --  element type.
-               if Is_Base_Type (Type_Spec (Element (Switch_Alternative))) then
-                  --  The CORBA.Object type uses converting functions located
-                  --  in the CORBA.Objject.Helper package.
-                  if FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
-                    K_Object
-                  then
-                     To_Any_Helper := RE (RE_To_Any_3);
-                  else
-                     To_Any_Helper := RE (RE_To_Any_0);
-                  end if;
-               elsif FEN.Kind (Type_Spec (Element (Switch_Alternative))) =
-                 K_Scoped_Name
-               then
-                  To_Any_Helper := To_Any_Node
-                    (BE_Node
-                     (Identifier
-                      (Reference
-                       (Type_Spec
-                        (Element
-                         (Switch_Alternative))))));
-                  To_Any_Helper := Copy_Node
-                    (Defining_Identifier (To_Any_Helper));
-               else
-                  raise Program_Error;
-               end if;
+
+               To_Any_Helper := Get_To_Any_Node
+                 (Type_Spec
+                  (Element
+                   (Switch_Alternative)));
 
                N := Make_Subprogram_Call
                  (To_Any_Helper,
@@ -3565,7 +3197,7 @@ package body Backend.BE_Ada.Helpers is
             --  TC_"Excp_Name" constant.
 
             N := TC_Node (BE_Node (Identifier (E)));
-            N := Defining_Identifier (N);
+            N := Expand_Designator (N);
             N := Make_Subprogram_Call
               (RE (RE_Get_Empty_Any_Aggregate),
                Make_List_Id
@@ -3616,27 +3248,7 @@ package body Backend.BE_Ada.Helpers is
                   Member_Type := Type_Spec (Member);
                   while Present (Declarator) loop
 
-                     if Is_Base_Type (Member_Type) then
-                        --  The CORBA.Object type has special conversion
-                        --  functions although it is a base type
-                        if FEN.Kind (Member_Type)
-                          = K_Object
-                        then
-                           To_Any_Helper := RE (RE_To_Any_3);
-                        else
-                           To_Any_Helper := RE (RE_To_Any_0);
-                        end if;
-                     elsif FEN.Kind (Member_Type) = K_Scoped_Name then
-                        To_Any_Helper := Copy_Node
-                          (Defining_Identifier
-                           (To_Any_Node
-                            (BE_Node
-                             (Identifier
-                              (Reference
-                               (Member_Type))))));
-                     else
-                        raise Program_Error;
-                     end if;
+                     To_Any_Helper := Get_To_Any_Node (Member_Type);
 
                      N := Make_Designator
                        (To_Ada_Name
@@ -3890,8 +3502,12 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Call
            (RE (RE_To_CORBA_Any),
             Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
-         From_Any_Helper := From_Any_Node (BE_Node (Identifier (E)));
-         From_Any_Helper := Defining_Identifier (From_Any_Helper);
+         From_Any_Helper := Expand_Designator
+           (From_Any_Node
+            (BE_Node
+             (Identifier
+              (E))));
+
          N := Make_Subprogram_Call
            (From_Any_Helper,
             Make_List_Id (N));
@@ -4348,59 +3964,12 @@ package body Backend.BE_Ada.Helpers is
               ("_Helper",
                BEN.Name (S));
             Package_Id := Make_Defining_Identifier (Package_Name);
-            --  getting the From_any and To_Any function nodes corresponding to
-            --  the spec type of the sequence.
-            if Is_Base_Type (Type_Spec (Type_Node)) then
-               TC_Helper := Base_Type_TC (FEN.Kind (Type_Spec (Type_Node)));
-               if FEN.Kind (Type_Spec (Type_Node))
-                 = K_Object
-               then
-                  To_Any_Helper := RE (RE_To_Any_3);
-                  From_Any_Helper := RE (RE_From_Any_1);
-               else
-                  To_Any_Helper := RE (RE_To_Any_0);
-                  From_Any_Helper := RE (RE_From_Any_0);
-               end if;
-            elsif FEN.Kind (Type_Spec (Type_Node)) = K_Scoped_Name
-              and then (FEN.Kind
-                        (Reference (Type_Spec (Type_Node))) =
-                        K_Interface_Declaration
-                        or else
-                        FEN.Kind
-                        (Reference (Type_Spec (Type_Node))) =
-                        K_Simple_Declarator
-                        or else
-                        FEN.Kind
-                        (Reference (Type_Spec (Type_Node))) =
-                        K_Complex_Declarator)
-            then
-               TC_Helper := Copy_Node
-                 (Defining_Identifier
-                  (TC_Node
-                   (BE_Node
-                    (Identifier
-                     (Reference
-                      (Type_Spec
-                       (Type_Node)))))));
-               To_Any_Helper := Copy_Node
-                 (Defining_Identifier
-                  (To_Any_Node
-                   (BE_Node
-                    (Identifier
-                     (Reference
-                      (Type_Spec
-                       (Type_Node)))))));
-               From_Any_Helper := Copy_Node
-                 (Defining_Identifier
-                  (From_Any_Node
-                   (BE_Node
-                    (Identifier
-                     (Reference
-                      (Type_Spec
-                       (Type_Node)))))));
-            else
-               raise Program_Error;
-            end if;
+            --  getting the TypeCode, the From_any and the To_Any functions
+            --  nodes corresponding to the spec type of the sequence.
+            TC_Helper := Get_TC_Node (Type_Spec (Type_Node));
+            From_Any_Helper := Get_From_Any_Node (Type_Spec (Type_Node));
+            To_Any_Helper := Get_To_Any_Node (Type_Spec (Type_Node));
+
             Profile  := New_List (K_List_Id);
             Append_Node_To_List
               (Make_Component_Association
@@ -4498,13 +4067,12 @@ package body Backend.BE_Ada.Helpers is
                  (New_Integer_Value (0, 1, 10));
             end if;
 
-            TC_Package_Helper := Copy_Node
-              (Defining_Identifier
-               (TC_Node
-                (BE_Ada_Instanciations
-                 (BE_Node
-                  (Identifier
-                   (Declarator))))));
+            TC_Package_Helper := Expand_Designator
+              (TC_Node
+               (BE_Ada_Instanciations
+                (BE_Node
+                 (Identifier
+                  (Declarator)))));
             N := Make_Assignment_Statement
               (TC_Package_Helper,
                Make_Subprogram_Call
@@ -4558,8 +4126,13 @@ package body Backend.BE_Ada.Helpers is
             --  If the new type is defined basing on an interface type, then
             --  we dont generate From_Any nor To_Any. We use those of the
             --  original type.
-            if FEN.Kind (T) = K_Scoped_Name and then
-              FEN.Kind (Reference (T)) = K_Interface_Declaration then
+            if FEN.Kind (T) = K_Scoped_Name
+              and then
+              (FEN.Kind (Reference (T)) = K_Interface_Declaration
+               or else
+               FEN.Kind (Reference (T)) = K_Forward_Interface_Declaration)
+              and then
+              FEN.Kind (D) = K_Simple_Declarator then
                null; --  We add nothing
             else
                Append_Node_To_List

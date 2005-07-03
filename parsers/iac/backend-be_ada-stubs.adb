@@ -743,6 +743,10 @@ package body Backend.BE_Ada.Stubs is
                            or else
                            FEN.Kind
                            (Reference (Type_Spec (Type_Spec_Node))) =
+                           K_Forward_Interface_Declaration
+                           or else
+                           FEN.Kind
+                           (Reference (Type_Spec (Type_Spec_Node))) =
                            K_Simple_Declarator
                            or else
                            FEN.Kind
@@ -805,8 +809,13 @@ package body Backend.BE_Ada.Stubs is
 
          --  1st case : an interface derived type
          if FEN.Kind (Type_Spec (E)) = K_Scoped_Name
-           and then FEN.Kind (Reference (Type_Spec (E))) =
-           K_Interface_Declaration then
+           and then
+           (FEN.Kind (Reference (Type_Spec (E))) =
+            K_Interface_Declaration
+            or else
+            FEN.Kind (Reference (Type_Spec (E))) =
+            K_Forward_Interface_Declaration)
+         then
             Is_Subtype := True;
          end if;
 
@@ -1320,24 +1329,8 @@ package body Backend.BE_Ada.Stubs is
 
       if No (Return_T) then
          Param := RE (RE_TC_Void);
-      elsif Is_Base_Type
-        (FE_Node (Return_T))
-      then
-         Param := Base_Type_TC (FEN.Kind (FE_Node (Return_T)));
       else
-         Param := Corresponding_Entity
-           (Identifier (FE_Node (Return_T)));
-
-         if FEN.Kind (Param) = K_Scoped_Name then
-            Param := TC_Node
-              (BE_Node (Identifier
-                        (Reference (Param))));
-         else
-            Param := TC_Node
-              (BE_Node (Identifier (Param)));
-         end if;
-
-         Param := Expand_Designator (Param);
+         Param := Get_TC_Node (FE_Node (Return_T));
       end if;
 
       C := Make_Subprogram_Call
@@ -1513,26 +1506,7 @@ package body Backend.BE_Ada.Stubs is
 
       if Present (Return_T) then
 
-         if Is_Base_Type (BEN.FE_Node (Return_T)) then
-            --  The CORBA.Object type has a special conversion
-            --  functions although it is a base type
-            if FEN.Kind (BEN.FE_Node (Return_T)) = K_Object then
-               N := RE (RE_From_Any_1);
-            else
-               N := RE (RE_From_Any_0);
-            end if;
-         else
-            N := Identifier (FE_Node (Return_T));
-
-            if Kind (FE_Node (Return_T)) = K_Scoped_Name then
-               N := From_Any_Node
-                 (BE_Node (Identifier (Reference (Corresponding_Entity (N)))));
-            else
-               N := From_Any_Node (BE_Node (N));
-            end if;
-
-               N := Expand_Designator (N);
-         end if;
+         N := Get_From_Any_Node (FE_Node (Return_T));
 
          C := Make_Subprogram_Call
            (RE (RE_To_CORBA_Any),
@@ -1554,7 +1528,6 @@ package body Backend.BE_Ada.Stubs is
                declare
                   Param_Name      : Name_Id;
                   New_Name        : Name_Id;
-                  C               : Node_Id;
                   From_Any_Helper : Node_Id;
                   Par_Type        : Node_Id;
                begin
@@ -1562,22 +1535,8 @@ package body Backend.BE_Ada.Stubs is
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
                   Par_Type := BEN.FE_Node (Parameter_Type (I));
-                  if Is_Base_Type (Par_Type) then
-                     --  The CORBA.Object type has a special conversion
-                     --  functions although it is a base type
-                     if FEN.Kind (Par_Type) = K_Object then
-                        From_Any_Helper := RE (RE_From_Any_1);
-                     else
-                        From_Any_Helper := RE (RE_From_Any_0);
-                     end if;
-                  else
-                     if FEN.Kind (Par_Type) = K_Scoped_Name then
-                        Par_Type := Reference (Par_Type);
-                     end if;
-                     C := Identifier (Par_Type);
-                     C := From_Any_Node (BE_Node (C));
-                     From_Any_Helper := Expand_Designator (C);
-                  end if;
+                  From_Any_Helper := Get_From_Any_Node (Par_Type);
+
                   N := Make_Subprogram_Call
                     (From_Any_Helper,
                      Make_List_Id (Make_Designator (New_Name)));

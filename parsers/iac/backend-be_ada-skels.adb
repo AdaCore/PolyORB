@@ -6,7 +6,7 @@ with Frontend.Nutils;
 
 
 with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
-with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
+--  with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
@@ -328,22 +328,7 @@ package body Backend.BE_Ada.Skels is
                   Expression => C);
                Append_Node_To_List (N, Declarative_Part);
 
-               if Is_Base_Type (BEN.FE_Node (Parameter_Type (Param))) then
-                  TC := Base_Type_TC
-                    (FEN.Kind (BEN.FE_Node (Parameter_Type (Param))));
-               else
-                  C := Corresponding_Entity
-                    (Identifier (FE_Node (Parameter_Type (Param))));
-
-                  if Kind (C) = FEN.K_Scoped_Name then
-                     C := Reference (C);
-                  end if;
-
-                  C := TC_Node
-                    (BE_Node
-                     (Identifier (C)));
-                  TC := Expand_Designator (C);
-               end if;
+               TC := Get_TC_Node (BEN.FE_Node (Parameter_Type (Param)));
 
                C :=  Make_Subprogram_Call
                  (Defining_Identifier   => RE (RE_Get_Empty_Any),
@@ -431,27 +416,10 @@ package body Backend.BE_Ada.Skels is
                      New_Name := Add_Prefix_To_Name
                        ("Argument_U_", Param_Name);
 
-                     declare
-                        Par_Type : Node_Id :=
-                          BEN.FE_Node (Parameter_Type (Param));
-                     begin
-                        if Is_Base_Type (Par_Type) then
-                           --  The CORBA.Object type has a special conversion
-                           --  functions although it is a base type
-                           if FEN.Kind (Par_Type) = K_Object then
-                              From_Any_Helper := RE (RE_From_Any_1);
-                           else
-                              From_Any_Helper := RE (RE_From_Any_0);
-                           end if;
-                        else
-                           if FEN.Kind (Par_Type) = K_Scoped_Name then
-                              Par_Type := Reference (Par_Type);
-                           end if;
-                           C := Identifier (Par_Type);
-                           C := From_Any_Node (BE_Node (C));
-                           From_Any_Helper := Expand_Designator (C);
-                        end if;
-                     end;
+                     From_Any_Helper := Get_From_Any_Node
+                       (BEN.FE_Node
+                        (Parameter_Type
+                         (Param)));
 
                      N := Make_Assignment_Statement
                        (Make_Defining_Identifier (Param_Name),
@@ -535,23 +503,7 @@ package body Backend.BE_Ada.Skels is
          if Present (Return_Type (S)) then
             FE := FE_Node (Return_Type (S));
 
-            if Is_Base_Type (FE) then
-               --  The CORBA.Object type has a special conversion
-               --  functions although it is a base type
-               if FEN.Kind (FE) = K_Object then
-                  To_Any_Helper := RE (RE_To_Any_3);
-               else
-                  To_Any_Helper := RE (RE_To_Any_0);
-               end if;
-            else
-               if FEN.Kind (FE) = K_Scoped_Name then
-                  FE := Reference (FE);
-               end if;
-
-               To_Any_Helper := To_Any_Node
-                 (BE_Node (Identifier (FE)));
-               To_Any_Helper := Expand_Designator (To_Any_Helper);
-            end if;
+            To_Any_Helper := Get_To_Any_Node (FE);
 
             C := Make_Subprogram_Call
               (To_Any_Helper,
@@ -575,27 +527,10 @@ package body Backend.BE_Ada.Skels is
                   Param_Name := BEN.Name (Defining_Identifier (Param));
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
-                  declare
-                     Par_Type : Node_Id :=
-                       BEN.FE_Node (Parameter_Type (Param));
-                  begin
-                     if Is_Base_Type (Par_Type) then
-                        --  The CORBA.Object type has a special conversion
-                        --  functions although it is a base type
-                        if FEN.Kind (Par_Type) = K_Object then
-                           To_Any_Helper := RE (RE_To_Any_3);
-                        else
-                           To_Any_Helper := RE (RE_To_Any_0);
-                        end if;
-                     else
-                        if FEN.Kind (Par_Type) = K_Scoped_Name then
-                           Par_Type := Reference (Par_Type);
-                        end if;
-                        C := Identifier (Par_Type);
-                        C := To_Any_Node (BE_Node (C));
-                        To_Any_Helper := Expand_Designator (C);
-                     end if;
-                  end;
+                  To_Any_Helper := Get_To_Any_Node
+                    (BEN.FE_Node
+                     (Parameter_Type
+                      (Param)));
 
                   declare
                      Arg_List : constant List_Id := New_List (K_List_Id);
