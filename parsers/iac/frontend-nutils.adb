@@ -314,7 +314,7 @@ package body Frontend.Nutils is
       Set_Name                 (N, To_Lower (IDL_Name));
       Set_IDL_Name             (N, IDL_Name);
       Set_Corresponding_Entity (N, Node);
-      Set_Scope_Entity                (N, Scope_Entity);
+      Set_Scope_Entity         (N, Scope_Entity);
       Set_Potential_Scope      (N, Scope_Entity);
       return N;
    end Make_Identifier;
