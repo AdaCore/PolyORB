@@ -1,13 +1,27 @@
-Frontend
-
+Frontend :
+==========
 * Fix empty module
+* Review the generation of forward structs, types and unions
+* Raising exceptions from attributes (getraise and setraises)
 
+Backend Ada :
+=============
+* Complete the implementation of inherited interfaces (constants, types, excp)
+* Add the possibility to use a constant as an array size
+* Check wether we use TC_IDL_SEQUENCE... or TC_SeqXXX
+* Check the capitalisation when generating IDL_SEQUENCE_aaaaa
+* Generate comments
+* Calculate the size of buffers and add it as a comment to the Ada code
+* Parse the CORBA module
+* Generate additional functions in skeletons
+* Optimizing the forwards
+* Using the hash tables in the skels
+* Implementing the AMI
+* Implementing the AMH
 
-Backend Ada
+TestSuite :
+===========
+* Fix test017 and test020
+* Pass and Integrate the test "circular" + the test of JH
+* For each new feature implemented, add the corresponding tests
 
-* Implement interfaces (inherited interfaces)
-
-* Implement sequences
-
-
-IDL backend
