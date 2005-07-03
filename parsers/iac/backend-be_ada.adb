@@ -8,6 +8,7 @@ with Frontend.Nodes;            use Frontend.Nodes;
 with Frontend.Debug;
 
 with Backend.BE_Ada.Debug;      use Backend.BE_Ada.Debug;
+with Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Generator;  use Backend.BE_Ada.Generator;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
@@ -184,6 +185,7 @@ package body Backend.BE_Ada is
    procedure Visit_Specification (E : Node_Id) is
       N          : Node_Id;
    begin
+      Backend.BE_Ada.Expand.Expand (E);
       N := Map_IDL_Unit (E);
       Push_Entity (N);
       Visit (E);
