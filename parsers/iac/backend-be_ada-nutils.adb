@@ -11,6 +11,7 @@ with Frontend.Nodes;
 
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
+with Backend.BE_Ada.Expand;     use Backend.BE_Ada.Expand;
 
 package body Backend.BE_Ada.Nutils is
 
@@ -190,6 +191,13 @@ package body Backend.BE_Ada.Nutils is
                return;
             end if;
          end if;
+      end if;
+
+      --  To avoid that a package "with"es itself
+      if Defining_Identifier (P) = Defining_Identifier
+        (Package_Declaration (Current_Package))
+      then
+         return;
       end if;
 
       N := Fully_Qualified_Name (P);
@@ -441,6 +449,108 @@ package body Backend.BE_Ada.Nutils is
       end case;
    end Fully_Qualified_Name;
 
+   -----------------------
+   -- Get_From_Any_Node --
+   -----------------------
+
+   function Get_From_Any_Node (T : Node_Id) return Node_Id is
+      use Frontend.Nodes;
+      Result : Node_Id;
+   begin
+      if Is_Base_Type (T) then
+         if FEN.Kind (T) = FEN.K_Object then
+            Result := RE (RE_From_Any_1);
+         else
+            Result := RE (RE_From_Any_0);
+         end if;
+      elsif FEN.Kind (T) = K_Scoped_Name then
+         declare
+            Reference           : constant Node_Id := FEN.Reference (T);
+         begin
+            Result := Expand_Designator
+              (From_Any_Node
+               (BE_Node
+                (Identifier
+                 (Reference))));
+         end;
+      else
+         Result := Expand_Designator
+           (From_Any_Node
+            (BE_Node
+             (Identifier
+              (T))));
+      end if;
+      return Result;
+   end Get_From_Any_Node;
+
+   -----------------
+   -- Get_TC_Node --
+   -----------------
+
+   function Get_TC_Node (T : Node_Id) return Node_Id is
+      use Frontend.Nodes;
+      Result : Node_Id;
+   begin
+      if Is_Base_Type (T) then
+         Result := Base_Type_TC (FEN.Kind (T));
+         --  Adding the dependancy on CORBA.Object
+         if FEN.Kind (T) = K_Object then
+            Dep_Array (Dep_CORBA_Object) := True;
+         end if;
+      elsif FEN.Kind (T) = K_Scoped_Name then
+         declare
+            Reference           : constant Node_Id := FEN.Reference (T);
+         begin
+            Result := Expand_Designator
+              (TC_Node
+               (BE_Node
+                (Identifier
+                 (Reference))));
+         end;
+      else
+         Result := Expand_Designator
+           (TC_Node
+            (BE_Node
+             (Identifier
+              (T))));
+      end if;
+      return Result;
+   end Get_TC_Node;
+
+   ---------------------
+   -- Get_To_Any_Node --
+   ---------------------
+
+   function Get_To_Any_Node (T : Node_Id) return Node_Id is
+      use Frontend.Nodes;
+      Result : Node_Id;
+   begin
+      if Is_Base_Type (T) then
+         if FEN.Kind (T) = FEN.K_Object then
+            Result := RE (RE_To_Any_3);
+         else
+            Result := RE (RE_To_Any_0);
+         end if;
+      elsif FEN.Kind (T) = K_Scoped_Name then
+         declare
+            Reference           : constant Node_Id := FEN.Reference (T);
+         begin
+            Result := Expand_Designator
+              (To_Any_Node
+               (BE_Node
+                (Identifier
+                 (Reference))));
+         end;
+      else
+         Result := Expand_Designator
+           (To_Any_Node
+            (BE_Node
+             (Identifier
+              (T))));
+      end if;
+      return Result;
+   end Get_To_Any_Node;
+
    -----------
    -- Image --
    -----------
@@ -598,8 +708,6 @@ package body Backend.BE_Ada.Nutils is
          DP (D) := Name_Find;
       end loop;
 
-      --  Initialization of the forwarded entities list
-      Forwarded_Entities := New_List (K_List_Id);
    end Initialize;
 
    --------------
@@ -1635,6 +1743,9 @@ package body Backend.BE_Ada.Nutils is
       --  entities because this node may have to be appended to other lists
       N := New_Node (K_Node_Id);
       Set_FE_Node (N, E);
+      if Is_Empty (Forwarded_Entities) then
+         Forwarded_Entities := New_List (K_List_Id);
+      end if;
       Append_Node_To_List (N, Forwarded_Entities);
    end Set_Forwarded;
 
@@ -1646,6 +1757,9 @@ package body Backend.BE_Ada.Nutils is
       Result : Boolean := False;
       N      : Node_Id;
    begin
+      if Is_Empty (Forwarded_Entities) then
+         Forwarded_Entities := New_List (K_List_Id);
+      end if;
       N := First_Node (Forwarded_Entities);
       while Present (N) loop
          if FE_Node (N) = E then

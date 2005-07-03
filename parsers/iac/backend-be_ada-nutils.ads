@@ -273,6 +273,10 @@ package Backend.BE_Ada.Nutils is
 
    DP : array (Dependancy_Id) of Name_Id;
 
+   --  This array will be used to buil the dependancy list of this package
+   Dep_Array : array (Dependancy_Id) of Boolean :=
+     (others => False);
+
    function Add_Prefix_To_Name
      (Prefix : String;
       Name   : Name_Id)
@@ -341,6 +345,18 @@ package Backend.BE_Ada.Nutils is
       Keep_Parent             : Boolean := True;
       Keep_Corresponding_Node : Boolean := True)
      return Node_Id;
+
+   --  This function return the TypeCode Variable. It handles base types and
+   --  user defined types
+   function Get_TC_Node (T : Node_Id) return Node_Id;
+
+   --  This function return the From_Any function. It handles base types and
+   --  user defined types
+   function Get_From_Any_Node (T : Node_Id) return Node_Id;
+
+   --  This function return the To_Any function. It handles base types and
+   --  user defined types
+   function Get_To_Any_Node (T : Node_Id) return Node_Id;
 
    function Make_Access_Type_Definition
      (Subtype_Indication : Node_Id;
