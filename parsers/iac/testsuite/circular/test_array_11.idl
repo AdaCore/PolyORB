@@ -1,0 +1,11 @@
+
+module Test_Array_1 {
+
+    interface X;
+
+    typedef X y[4];
+    interface X {
+      typedef X X2[12];
+    };
+
+};
