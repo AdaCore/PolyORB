@@ -792,10 +792,18 @@ package body Backend.BE_Ada.IDL_To_Ada is
       L := New_List (K_Range_Constraints);
       S := FEN.First_Entity (Array_Sizes);
       while Present (S) loop
+         --  The range constraints may be :
+         --  * Literal values
+         --  * Previously declared constants (concretly, scoped names)
          R := New_Node (K_Range_Constraint);
          Set_First (R, Int0_Val);
-         V := Value (FEN.Value (S));
-         V.IVal := V.IVal - 1;
+         if FEN.Kind (S) = K_Scoped_Name then
+            V := Value (FEN.Value (Reference (S)));
+            V.IVal := V.IVal - 1;
+         else
+            V := Value (FEN.Value (S));
+            V.IVal := V.IVal - 1;
+         end if;
          Set_Last (R, New_Value (V));
          Append_Node_To_List (R, L);
          S := FEN.Next_Entity (S);

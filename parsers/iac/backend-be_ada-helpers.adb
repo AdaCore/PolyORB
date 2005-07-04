@@ -3755,15 +3755,21 @@ package body Backend.BE_Ada.Helpers is
             D := Next_Entity (D);
          end loop;
 
-         N := Make_Subprogram_Implementation
-           (Make_Subprogram_Specification
-            (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
-             No_List),
-            No_List,
-            Deferred_Initialization_Body);
-         Append_Node_To_List (N, Statements (Current_Package));
-         Helper_Initialization (Package_Initializarion);
-         Set_Package_Initialization (Current_Package, Package_Initializarion);
+         --  If no statement have been added to the package before the
+         --  deferred initialiazation subprogram, the body is kept empty
+         --  and is not generated.
+         if not Is_Empty (Statements (Current_Package)) then
+            N := Make_Subprogram_Implementation
+              (Make_Subprogram_Specification
+               (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
+                No_List),
+               No_List,
+               Deferred_Initialization_Body);
+            Append_Node_To_List (N, Statements (Current_Package));
+            Helper_Initialization (Package_Initializarion);
+            Set_Package_Initialization
+              (Current_Package, Package_Initializarion);
+         end if;
 
          --  Restoring old values
 

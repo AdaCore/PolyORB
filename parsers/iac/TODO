@@ -7,7 +7,6 @@ Frontend :
 Backend Ada :
 =============
 * Complete the implementation of inherited interfaces (constants, types, excp)
-* Add the possibility to use a constant as an array size
 * Check wether we use TC_IDL_SEQUENCE... or TC_SeqXXX
 * Check the capitalisation when generating IDL_SEQUENCE_aaaaa
 * Generate comments
