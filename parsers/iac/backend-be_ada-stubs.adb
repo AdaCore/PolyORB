@@ -702,6 +702,7 @@ package body Backend.BE_Ada.Stubs is
                  Present (Max_Size (Type_Spec_Node));
                CORBA_Seq        : Node_Id;
                Seq_Package_Name : Name_Id;
+               Prefix_Name      : Name_Id;
                Seq_Package_Node : Node_Id;
                Type_Node        : Node_Id;
                Max_S            : Value_Type;
@@ -714,7 +715,7 @@ package body Backend.BE_Ada.Stubs is
                --  Creating the package name conforming to the Ada mapping
                --  specification.
                Set_Str_To_Name_Buffer ("IDL_SEQUENCE_");
-               Seq_Package_Name := Name_Find;
+               Prefix_Name := Name_Find;
                if Bounded then
                   CORBA_Seq := RU (RU_CORBA_Sequences_Bounded);
                   Max_S := Values.Value
@@ -722,16 +723,16 @@ package body Backend.BE_Ada.Stubs is
                      (Max_Size
                       (Type_Spec_Node)));
                   Set_Dnat_To_Name_Buffer (Dnat (Max_S.IVal));
-                  Seq_Package_Name := Add_Suffix_To_Name
+                  Prefix_Name := Add_Suffix_To_Name
                     (Name_Buffer (1 .. Name_Len) & "_",
-                     Seq_Package_Name);
+                     Prefix_Name);
 
                else
                   CORBA_Seq := RU (RU_CORBA_Sequences_Unbounded);
                end if;
-               Get_Name_String (Seq_Package_Name);
+
                if Is_Base_Type (Type_Spec (Type_Spec_Node)) then
-                  Get_Name_String_And_Append
+                  Seq_Package_Name :=
                     (FEN.Image
                      (Base_Type
                       (Type_Spec
@@ -753,16 +754,20 @@ package body Backend.BE_Ada.Stubs is
                            (Reference (Type_Spec (Type_Spec_Node))) =
                            K_Complex_Declarator)
                then
-                  Get_Name_String_And_Append
-                    (FEN.Name
-                     (FEN.Identifier
-                      (FEN.Reference
-                       (Type_Spec
-                        (Type_Spec_Node)))));
+                  Seq_Package_Name := FEU.Fully_Qualified_Name
+                    (FEN.Identifier
+                     (FEN.Reference
+                      (Type_Spec
+                       (Type_Spec_Node))),
+                     Separator => "_");
                else
                   raise Program_Error;
                end if;
-               Seq_Package_Name := Name_Find;
+               Get_Name_String (Prefix_Name);
+               Seq_Package_Name := Add_Prefix_To_Name
+                 (Name_Buffer (1 .. Name_Len),
+                  Seq_Package_Name);
+
                Type_Node := Map_Designator (Type_Spec (Type_Spec_Node));
 
                Seq_Package_Node := Make_Defining_Identifier

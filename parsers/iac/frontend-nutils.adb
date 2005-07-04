@@ -101,6 +101,27 @@ package body Frontend.Nutils is
       Set_Next_Entity (E, Next);
    end Insert_After_Node;
 
+   --------------------------
+   -- Fully_Qualified_Name --
+   --------------------------
+
+   function Fully_Qualified_Name
+     (E : Node_Id;
+      Separator : String := "::")
+     return Name_Id is
+      P : Node_Id;
+   begin
+      pragma Assert (Kind (E) = K_Identifier);
+      P := Scope_Entity (E);
+      Name_Len := 0;
+      if Present (P) and then Kind (P) /= K_Specification then
+         Get_Name_String (Fully_Qualified_Name (Identifier (P), Separator));
+         Add_Str_To_Name_Buffer (Separator);
+      end if;
+      Get_Name_String_And_Append (IDL_Name (E));
+      return Name_Find;
+   end Fully_Qualified_Name;
+
    ---------------------
    -- Is_A_Forward_Of --
    ---------------------

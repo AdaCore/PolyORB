@@ -562,6 +562,10 @@ package body Backend.BE_Ada.Nutils is
       return S (5 .. S'Last);
    end Image;
 
+   -----------
+   -- Image --
+   -----------
+
    function Image (O : Operator_Type) return String is
       S : String := Operator_Type'Image (O);
    begin

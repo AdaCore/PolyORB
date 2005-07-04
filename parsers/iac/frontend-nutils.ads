@@ -21,6 +21,12 @@ package Frontend.Nutils is
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
 
+   --  This function returns a fully qualified name of an Identifier.
+   function Fully_Qualified_Name
+     (E : Node_Id;
+      Separator : String := "::")
+     return Name_Id;
+
    function Length (L : List_Id) return Natural;
 
    function Is_Empty (L : List_Id) return Boolean;
