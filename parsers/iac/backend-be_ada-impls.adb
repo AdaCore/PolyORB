@@ -1,3 +1,5 @@
+with Namet; use Namet;
+
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
 
@@ -163,12 +165,16 @@ package body Backend.BE_Ada.Impls is
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          I := Copy_Node (I);
+         Set_Str_To_Name_Buffer
+           ("Insert components to hold the state"
+            & " of the implementation object.");
+         N := Make_Ada_Comment (Name_Find);
          N := Make_Full_Type_Declaration
            (I, Make_Derived_Type_Definition
             (Subtype_Indication    => P,
              Record_Extension_Part =>
                Make_Record_Definition
-             (Make_List_Id (New_Node (K_Null_Statement)))));
+             (Make_List_Id (N, New_Node (K_Null_Statement)))));
          Append_Node_To_List
            (N, Private_Part (Current_Package));
          N := First_Entity (Interface_Body (E));

@@ -9,7 +9,15 @@ with Values;  use Values;
 
 package body Backend.BE_Ada.Generator is
 
+   --  This Package generates the Ada code for many Ada structures.
+   --  The generation of semi-colon is in the charge of the enclosing
+   --  structure.
+   --  After Ada comments, we don't generate semi-colon.
+
+   Generate_Semicolon : Boolean := True;
+
    procedure Generate_Access_Type_Definition (N : Node_Id);
+   procedure Generate_Ada_Comment (N : Node_Id);
    procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_Assignment_Statement (N : Node_Id);
    procedure Generate_Attribute_Designator (N : Node_Id);
@@ -63,6 +71,9 @@ package body Backend.BE_Ada.Generator is
       case Kind (N) is
          when K_Access_Type_Definition =>
             Generate_Access_Type_Definition (N);
+
+         when K_Ada_Comment =>
+            Generate_Ada_Comment (N);
 
          when K_Array_Type_Definition =>
             Generate_Array_Type_Definition (N);
@@ -204,6 +215,118 @@ package body Backend.BE_Ada.Generator is
 
       Generate (Subtype_Indication (N));
    end Generate_Access_Type_Definition;
+
+   --------------------------
+   -- Generate_Ada_Comment --
+   --------------------------
+
+   procedure Generate_Ada_Comment (N : Node_Id) is
+      --  This procedure does the following :
+      --  * It generates an ada comment basing on the name of node N
+      --  * If the name it too long, and depending on the location of the
+      --    comment in the source code, the procedure splits the comment into
+      --    more than a line.
+
+      --  The comment is assumed to be a sequence of caracters, beginning and
+      --  ending with a NON-SPACE caracter.
+
+      --  A word is :
+      --  a space character, or else
+      --  a sequence of non space characters located between two spaces.
+
+      --  The maximum length of a line, in colums
+      Max_Line_Length : constant Natural := 78;
+
+      --  This function returns True if there are words in the buffer
+      function Are_There_More_Words return Boolean;
+
+      --  This function returns the size of the next word to be got. It returns
+      --  zero when the buffer is empty.
+      function Next_Word_Length return Natural;
+
+      --  This function extracts the next word from the buffer.
+      function Get_Next_Word return String;
+
+      --------------------------
+      -- Are_There_More_Words --
+      --------------------------
+
+      function Are_There_More_Words return Boolean is
+      begin
+         return (Name_Len /= 0);
+      end Are_There_More_Words;
+
+      ----------------------
+      -- Next_Word_Length --
+      ----------------------
+
+      function Next_Word_Length return Natural is
+         L : Natural;
+      begin
+         if not Are_There_More_Words then
+            L := 0;
+         elsif Name_Buffer (1) = ' ' then
+            L := 1;
+         else
+            L := 0;
+            while L + 1 <= Name_Len and then  Name_Buffer (L + 1) /= ' ' loop
+               L := L + 1;
+            end loop;
+         end if;
+         return L;
+      end Next_Word_Length;
+
+      -------------------
+      -- Get_Next_Word --
+      -------------------
+
+      function Get_Next_Word return String is
+         L : constant Natural := Next_Word_Length;
+      begin
+         if L = 0 then
+            return "";
+         else
+            declare
+               Next_Word : constant String := Name_Buffer (1 .. L);
+            begin
+               if Name_Len = L then
+                  Name_Len := 0;
+               else
+                  Set_Str_To_Name_Buffer (Name_Buffer (L + 1 .. Name_Len));
+               end if;
+               return Next_Word;
+            end;
+         end if;
+      end Get_Next_Word;
+      First_Line : Boolean := True;
+      Used_Columns : Natural;
+   begin
+      Get_Name_String (Name (Defining_Identifier (N)));
+      while Are_There_More_Words loop
+         Used_Columns := N_Space;
+         if First_Line then
+            First_Line := False;
+         else
+            Write_Indentation;
+         end if;
+
+         --  We consume 4 colums
+         Used_Columns := Used_Columns + 4;
+         Write_Str ("--  ");
+
+         Used_Columns := Used_Columns + Next_Word_Length;
+         Write_Str (Get_Next_Word);
+
+         while Are_There_More_Words
+           and then (Used_Columns + Next_Word_Length < Max_Line_Length)
+         loop
+            Used_Columns := Used_Columns + Next_Word_Length;
+            Write_Str (Get_Next_Word);
+         end loop;
+         Write_Eol;
+      end loop;
+      Generate_Semicolon := False;
+   end Generate_Ada_Comment;
 
    ------------------------------------
    -- Generate_Array_Type_Definition --
@@ -781,17 +904,11 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Literal (N : Node_Id) is
    begin
-      --  if Has_Parentheses (N) then
-      --  Write (Tok_Left_Paren);
-      --  end if;
       if Present (Parent_Designator (N)) then
          Generate (Parent_Designator (N));
          Write (Tok_Dot);
       end if;
       Write_Str (Values.Image (Value (N)));
-      --  if Has_Parentheses (N) then
-      --  Write (Tok_Right_Paren);
-      --  end if;
    end Generate_Literal;
 
    ---------------------------------
@@ -1456,8 +1573,12 @@ package body Backend.BE_Ada.Generator is
 
    procedure Write_Line (T : Token_Type) is
    begin
-      Write_Name (Token_Image (T));
-      Write_Eol;
+      if T = Tok_Semicolon and then not Generate_Semicolon then
+         Generate_Semicolon := True;
+      else
+         Write_Name (Token_Image (T));
+         Write_Eol;
+      end if;
    end Write_Line;
 
 end Backend.BE_Ada.Generator;

@@ -764,6 +764,19 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Access_Type_Definition;
 
+   ----------------------
+   -- Make_Ada_Comment --
+   ----------------------
+
+   function Make_Ada_Comment (N : Name_Id) return Node_Id is
+      C : Node_Id;
+   begin
+      C := New_Node (K_Ada_Comment);
+      Set_Defining_Identifier (C, New_Node (K_Defining_Identifier));
+      Set_Name (Defining_Identifier (C), N);
+      return C;
+   end Make_Ada_Comment;
+
    --------------------------------
    -- Make_Array_Type_Definition --
    --------------------------------

@@ -8,9 +8,9 @@ Backend Ada :
 =============
 * Complete the implementation of inherited interfaces (constants, types, excp)
 * Check wether we use TC_IDL_SEQUENCE... or TC_SeqXXX
-* Generate comments
 * Calculate the size of buffers and add it as a comment to the Ada code
 * Parse the CORBA module
+* Generate Code for "ValueType"s
 * Generate additional functions in skeletons
 * Optimizing the forwards
 * Using the hash tables in the skels
