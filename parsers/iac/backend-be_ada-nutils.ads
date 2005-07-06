@@ -491,7 +491,8 @@ package Backend.BE_Ada.Nutils is
       Constant_Present    : Boolean := False;
       Object_Definition   : Node_Id;
       Expression          : Node_Id := No_Node;
-      Parent              : Node_Id := No_Node)
+      Parent              : Node_Id := No_Node;
+      Renamed_Object      : Node_Id := No_Node)
       return                Node_Id;
 
    function Make_Package_Declaration

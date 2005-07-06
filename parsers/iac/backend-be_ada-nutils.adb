@@ -1220,7 +1220,8 @@ package body Backend.BE_Ada.Nutils is
       Constant_Present    : Boolean := False;
       Object_Definition   : Node_Id;
       Expression          : Node_Id := No_Node;
-      Parent              : Node_Id := No_Node)
+      Parent              : Node_Id := No_Node;
+      Renamed_Object      : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -1232,6 +1233,7 @@ package body Backend.BE_Ada.Nutils is
       Set_Constant_Present (N, Constant_Present);
       Set_Object_Definition (N, Object_Definition);
       Set_Expression (N, Expression);
+      Set_Renamed_Object (N, Renamed_Object);
 
       if No (Parent) then
          Set_Parent (N, Current_Package);

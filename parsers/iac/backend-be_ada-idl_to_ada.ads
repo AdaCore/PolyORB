@@ -119,4 +119,54 @@ package Backend.BE_Ada.IDL_To_Ada is
       Literal_Parent : Node_Id := No_Node)
      return List_Id;
 
+   --  This section concerns interface inheritance.
+   --  According to the Ada mapping specification, some entities from the
+   --  parent interfaces must be generated "manually" (details are given below)
+   --  The "manual" code generation occurs in the stubs, the helpers, the
+   --  skeletons and the implementations. The subprograms that do this
+   --  generation are not exactli the same, but are very similar. So the fact
+   --  of generate as many subprograms as packages is a kind of code
+   --  replication.
+
+   --  The two types below designate the Visit_XXX and the Visit fuctions
+   --  which are different depending on which package are we generating (stub,
+   --  skel, helper or impl)
+   type Visit_Procedure_One_Param_Ptr is access procedure
+     (E       : Node_Id);
+   type Visit_Procedure_Two_Params_Ptr is access procedure
+     (E       : Node_Id;
+      Binding : Boolean := True);
+
+   --  The two procedures below generate mapping for several entities declared
+   --  in the parent interfaces. The generation is done recursivly.
+   --  During the first recursion level, the operations and attributes
+   --  are generated  only for the second until the last parent.
+   --  During the other recursion level, we generate the operations and
+   --  attributes for all parents.
+   procedure Map_Inherited_Entities_Specs
+     (L                     : List_Id;
+      First_Recusrion_Level : Boolean := True;
+      Visit_Operation_Subp  : Visit_Procedure_Two_Params_Ptr;
+      Visit_Attribute_Subp  : Visit_Procedure_Two_Params_Ptr;
+      Stub                  : Boolean := False;
+      Helper                : Boolean := False;
+      Skel                  : Boolean := False;
+      Impl                  : Boolean := False);
+
+   procedure Map_Inherited_Entities_Bodies
+     (L                     : List_Id;
+      First_Recusrion_Level : Boolean := True;
+      Visit_Operation_Subp  : Visit_Procedure_One_Param_Ptr;
+      Visit_Attribute_Subp  : Visit_Procedure_One_Param_Ptr;
+      Stub                  : Boolean := False;
+      Helper                : Boolean := False;
+      Skel                  : Boolean := False;
+      Impl                  : Boolean := False);
+
+   --  Extract from the Ada mapping specifications :
+   --  "The definitions of types, constants, and exceptions in the
+   --   parent package are renamed or subtyped so that they are also
+   --   'inherited' in accordance with the IDL semantic."
+   procedure Map_Additional_Entities (E : Node_Id);
+
 end Backend.BE_Ada.IDL_To_Ada;

@@ -322,6 +322,7 @@ module Backend::BE_Ada::Nodes {
     boolean    Constant_Present;
     Node_Id    Object_Definition;
     Node_Id    Expression;
+    Node_Id    Renamed_Object;
   };
 
   interface Literal : Node_Id {

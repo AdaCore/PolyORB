@@ -127,7 +127,6 @@ package body Backend.BE_Ada.Impls is
          D       : Node_Id;
          L       : List_Id;
          P       : Node_Id;
-         Par_Int : Node_Id;
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
@@ -182,26 +181,15 @@ package body Backend.BE_Ada.Impls is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
-         if not FEU.Is_Empty (L) then
-            Par_Int := Next_Entity (First_Entity (L));
-            while Present (Par_Int) loop
-               N := First_Entity (Interface_Body (Reference (Par_Int)));
-               while Present (N) loop
-                  case  FEN.Kind (N) is
-                     when K_Operation_Declaration =>
-                        Visit_Operation_Declaration (N, False);
-                     when K_Attribute_Declaration =>
-                        Visit_Attribute_Declaration (N, False);
-                     when others =>
-                        null;
-                  end case;
-                  N := Next_Entity (N);
-               end loop;
-               Par_Int := Next_Entity (Par_Int);
-            end loop;
-         end if;
+         Map_Inherited_Entities_Specs
+           (L                    => L,
+            Visit_Operation_Subp => Visit_Operation_Declaration'Access,
+            Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
+            Impl                 => True);
+
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -348,12 +336,27 @@ package body Backend.BE_Ada.Impls is
                raise Program_Error;
             end if;
 
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Warnings)),
+               Make_List_Id
+               (RE (RE_Off)));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Result)),
                Object_Definition =>
                  Copy_Designator (Return_Type (Subp_Spec)));
             Append_Node_To_List (N, D);
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Warnings)),
+               Make_List_Id
+               (RE (RE_On)));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);
@@ -378,8 +381,6 @@ package body Backend.BE_Ada.Impls is
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N       : Node_Id;
-         L       : List_Id;
-         Par_Int : Node_Id;
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
@@ -391,22 +392,12 @@ package body Backend.BE_Ada.Impls is
          end loop;
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
-         L := Interface_Spec (E);
-         if not FEU.Is_Empty (L) then
-            Par_Int := Next_Entity (First_Entity (L));
-            while Present (Par_Int) loop
-               N := First_Entity (Interface_Body (Reference (Par_Int)));
-               while Present (N) loop
-                  if FEN.Kind (N) = K_Operation_Declaration
-                    or else FEN.Kind (N) = K_Attribute_Declaration
-                  then
-                     Visit (N);
-                  end if;
-                  N := Next_Entity (N);
-               end loop;
-               Par_Int := Next_Entity (Par_Int);
-            end loop;
-         end if;
+         Map_Inherited_Entities_Bodies
+           (L                    => Interface_Spec (E),
+            Visit_Operation_Subp => Visit_Operation_Declaration'Access,
+            Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
+            Impl                 => True);
+
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -444,12 +435,28 @@ package body Backend.BE_Ada.Impls is
 
          if Present (Return_Type (Stub)) then
             Returns := Copy_Designator (Return_Type (Stub));
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Warnings)),
+               Make_List_Id
+               (RE (RE_Off)));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
             N := Make_Object_Declaration
               (Defining_Identifier =>
                  Make_Defining_Identifier (PN (P_Result)),
                Object_Definition =>
                  Returns);
             Append_Node_To_List (N, D);
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (GN (Pragma_Warnings)),
+               Make_List_Id
+               (RE (RE_On)));
+            N := Make_Pragma_Statement (N);
+            Append_Node_To_List (N, D);
+
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
             Append_Node_To_List (N, S);

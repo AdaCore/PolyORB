@@ -6,7 +6,7 @@ with Frontend.Nutils;
 
 
 with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
---  with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
+with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
@@ -962,8 +962,6 @@ package body Backend.BE_Ada.Skels is
          Exception_Handler : Node_Id;
          Param             : Node_Id;
          Profile           : constant List_Id := New_List (K_List_Id);
-         L                 : List_Id;
-         Par_Int           : Node_Id;
 
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
@@ -979,24 +977,15 @@ package body Backend.BE_Ada.Skels is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+
          --  In case of multiple inheritence, generate the mappings for
-         --  the operations and attributes of the parents except the first one.
-         L := Interface_Spec (E);
-         if not FEU.Is_Empty (L) then
-            Par_Int := Next_Entity (First_Entity (L));
-            while Present (Par_Int) loop
-               N := First_Entity (Interface_Body (Reference (Par_Int)));
-               while Present (N) loop
-                  if FEN.Kind (N) = K_Operation_Declaration
-                    or else FEN.Kind (N) = K_Attribute_Declaration
-                  then
-                     Visit (N);
-                  end if;
-                  N := Next_Entity (N);
-               end loop;
-               Par_Int := Next_Entity (Par_Int);
-            end loop;
-         end if;
+         --  the operations and attributes of the parent interface including
+         --  the first one.
+         Map_Inherited_Entities_Bodies
+           (L                    => Interface_Spec (E),
+            Visit_Operation_Subp => Visit_Operation_Declaration'Access,
+            Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
+            Skel                 => True);
 
          Spec := Invoke_Spec;
          Invoke_Declaration (D);
