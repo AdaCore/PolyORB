@@ -706,6 +706,15 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Colon);
       Write_Space;
       Write (Tok_Exception);
+      if Present (Renamed_Exception (N)) then
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation (-1);
+         Write (Tok_Renames);
+         Write_Space;
+         Generate (Renamed_Exception (N));
+         Decrement_Indentation;
+      end if;
    end Generate_Exception_Declaration;
 
    -------------------------
@@ -943,14 +952,26 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Others);
       end if;
 
-      if Present (Expression (N)) then
-         Write_Space;
-         Write (Tok_Colon_Equal);
+      if Present (Renamed_Object (N)) then
          Write_Eol;
          Increment_Indentation;
          Write_Indentation (-1);
-         Generate (Expression (N));
+         Write (Tok_Renames);
+         Write_Space;
+         Generate (Renamed_Object (N));
          Decrement_Indentation;
+
+         --  If an object renames another object, it cannot be initialized,
+      else
+         if Present (Expression (N)) then
+            Write_Space;
+            Write (Tok_Colon_Equal);
+            Write_Eol;
+            Increment_Indentation;
+            Write_Indentation (-1);
+            Generate (Expression (N));
+            Decrement_Indentation;
+         end if;
       end if;
    end Generate_Object_Declaration;
 
@@ -1564,7 +1585,11 @@ package body Backend.BE_Ada.Generator is
 
    procedure Write (T : Token_Type) is
    begin
-      Write_Name (Token_Image (T));
+      if T = Tok_Semicolon and then not Generate_Semicolon then
+         Generate_Semicolon := True;
+      else
+         Write_Name (Token_Image (T));
+      end if;
    end Write;
 
    ----------------
@@ -1573,12 +1598,8 @@ package body Backend.BE_Ada.Generator is
 
    procedure Write_Line (T : Token_Type) is
    begin
-      if T = Tok_Semicolon and then not Generate_Semicolon then
-         Generate_Semicolon := True;
-      else
-         Write_Name (Token_Image (T));
-         Write_Eol;
-      end if;
+      Write (T);
+      Write_Eol;
    end Write_Line;
 
 end Backend.BE_Ada.Generator;
