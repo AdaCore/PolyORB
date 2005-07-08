@@ -305,7 +305,7 @@ package body PolyORB.Any is
    --  A list of Any contents (for construction of aggregates)
 
    package Content_Tables is new PolyORB.Utils.Dynamic_Tables
-   (Any_Container_Ptr, Natural, 1, 8, 100);
+     (Any_Container_Ptr, Natural, 1, 8, 100);
    subtype Content_Table is Content_Tables.Instance;
 
    --  For complex types that could be defined in Idl a content_aggregate
