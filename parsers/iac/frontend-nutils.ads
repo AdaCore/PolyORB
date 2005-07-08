@@ -41,6 +41,13 @@ package Frontend.Nutils is
    function Is_A_Non_Module (E : Node_Id) return Boolean;
    function Is_A_Local_Type (E : Node_Id) return Boolean;
 
+   --  This function returns True if there is already an entity having the same
+   --  name as "Entity" in "In_Interface". It returns False otherwise.
+   function Is_Redefined
+     (Entity : Node_Id;
+      In_Interface : Node_Id)
+     return Boolean;
+
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
    function New_List (Kind : Node_Kind; Loc : Location) return List_Id;
 

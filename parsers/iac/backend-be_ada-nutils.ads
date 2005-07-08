@@ -445,7 +445,8 @@ package Backend.BE_Ada.Nutils is
      return Node_Id;
 
    function Make_Exception_Declaration
-     (Defining_Identifier : Node_Id)
+     (Defining_Identifier : Node_Id;
+      Renamed_Exception   : Node_Id := No_Node)
      return Node_Id;
 
    function Make_Expression

@@ -10,10 +10,6 @@ with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
-pragma Warnings (off);
-with Frontend.Debug;
-with Backend.BE_Ada.Debug;
-pragma Warnings (on);
 
 package body Backend.BE_Ada.Helpers is
 
@@ -30,7 +26,6 @@ package body Backend.BE_Ada.Helpers is
       function From_Any_Spec_Ex
         (E : Node_Id)
         return Node_Id;
-      --  convert the exception memebers to the "any" type
 
       function From_Any_Spec_Fixed
         (E : Node_Id)
@@ -44,13 +39,10 @@ package body Backend.BE_Ada.Helpers is
       function To_Any_Spec
         (E : Node_Id)
         return Node_Id;
-      --  return "any" conversions functions for a given type (E).
 
       function To_Any_Spec_Ex
         (E : Node_Id)
         return Node_Id;
-      --  return an ""any" conversion function for the particular case of
-      --  exceptions
 
       function To_Any_Spec_Fixed
         (E : Node_Id)
@@ -120,7 +112,6 @@ package body Backend.BE_Ada.Helpers is
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             (Defining_Identifier (Helper_Package (Current_Entity))));
-         Set_FE_Node (N, Identifier (E));
          return N;
       end From_Any_Spec;
 
@@ -216,7 +207,6 @@ package body Backend.BE_Ada.Helpers is
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
-         Set_FE_Node (N, Identifier (E));
          return N;
       end U_To_Ref_Spec;
 
@@ -245,7 +235,6 @@ package body Backend.BE_Ada.Helpers is
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
-         Set_FE_Node (N, Identifier (E));
          return N;
       end To_Any_Spec;
 
@@ -333,6 +322,11 @@ package body Backend.BE_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_To_Ref)), Profile,
             Expand_Designator
             (Type_Def_Node (BE_Node (Identifier (E)))));
+         --  Setting the correct parent unit name, for the future calls of the
+         --  subprogram
+         Set_Correct_Parent_Unit_Name
+           (Defining_Identifier (N),
+            Defining_Identifier (Helper_Package (Current_Entity)));
          return N;
       end To_Ref_Spec;
 
@@ -472,9 +466,6 @@ package body Backend.BE_Ada.Helpers is
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Helper_Package (Current_Entity)));
-         if not Backend then
-            Set_FE_Node (N, Identifier (E));
-         end if;
          return N;
       end TypeCode_Spec;
 
@@ -625,6 +616,14 @@ package body Backend.BE_Ada.Helpers is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+
+         --  In case of multiple inheritence, generate the mappings for
+         --  the operations and attributes of the parents except the first one.
+         Map_Inherited_Entities_Specs
+           (Current_interface    => E,
+            Visit_Operation_Subp => null,
+            Visit_Attribute_Subp => null,
+            Helper               => True);
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -3700,6 +3699,13 @@ package body Backend.BE_Ada.Helpers is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+         --  In case of multiple inheritence, generate the mappings for
+         --  the operations and attributes of the parents except the first one.
+         Map_Inherited_Entities_Bodies
+           (Current_interface    => E,
+            Visit_Operation_Subp => null,
+            Visit_Attribute_Subp => null,
+            Helper               => True);
 
          N := Make_Subprogram_Implementation
            (Make_Subprogram_Specification

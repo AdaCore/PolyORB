@@ -98,6 +98,10 @@ package Backend.BE_Ada.IDL_To_Ada is
      (Entity : Node_Id)
      return Node_Id;
 
+   function Map_Get_Members_Spec
+     (Member_Type : Node_Id)
+     return Node_Id;
+
    function Map_IDL_Unit
      (Entity : Node_Id)
      return Node_Id;
@@ -144,7 +148,7 @@ package Backend.BE_Ada.IDL_To_Ada is
    --  During the other recursion level, we generate the operations and
    --  attributes for all parents.
    procedure Map_Inherited_Entities_Specs
-     (L                     : List_Id;
+     (Current_Interface     : Node_Id;
       First_Recusrion_Level : Boolean := True;
       Visit_Operation_Subp  : Visit_Procedure_Two_Params_Ptr;
       Visit_Attribute_Subp  : Visit_Procedure_Two_Params_Ptr;
@@ -154,7 +158,7 @@ package Backend.BE_Ada.IDL_To_Ada is
       Impl                  : Boolean := False);
 
    procedure Map_Inherited_Entities_Bodies
-     (L                     : List_Id;
+     (Current_Interface     : Node_Id;
       First_Recusrion_Level : Boolean := True;
       Visit_Operation_Subp  : Visit_Procedure_One_Param_Ptr;
       Visit_Attribute_Subp  : Visit_Procedure_One_Param_Ptr;
@@ -167,6 +171,16 @@ package Backend.BE_Ada.IDL_To_Ada is
    --  "The definitions of types, constants, and exceptions in the
    --   parent package are renamed or subtyped so that they are also
    --   'inherited' in accordance with the IDL semantic."
-   procedure Map_Additional_Entities (E : Node_Id);
+   procedure Map_Additional_Entities_Specs
+     (Parent_Interface : Node_Id;
+      Child_Interface  : Node_Id;
+      Stub             : Boolean := False;
+      Helper           : Boolean := False);
+
+   procedure Map_Additional_Entities_Bodies
+     (Parent_Interface : Node_Id;
+      Child_Interface  : Node_Id;
+      Stub             : Boolean := False;
+      Helper           : Boolean := False);
 
 end Backend.BE_Ada.IDL_To_Ada;

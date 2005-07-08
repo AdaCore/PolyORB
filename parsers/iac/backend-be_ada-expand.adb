@@ -50,7 +50,8 @@ package body Backend.BE_Ada.Expand is
    -----------------------
 
    function Expand_Designator
-     (N : Node_Id)
+     (N               : Node_Id;
+      Add_With_Clause : Boolean := True)
      return Node_Id
    is
       P  : Node_Id;
@@ -65,7 +66,8 @@ package body Backend.BE_Ada.Expand is
             P  := Parent (X);
             FE := FE_Node (X);
 
-         when K_Object_Declaration =>
+         when K_Object_Declaration
+           | K_Exception_Declaration =>
             P  := Parent (X);
             FE := FE_Node (X);
 
@@ -111,13 +113,13 @@ package body Backend.BE_Ada.Expand is
          P := Expand_Designator (P);
       else
          Set_Correct_Parent_Unit_Name
-           (D, Expand_Designator (P));
+           (D, Expand_Designator (P, False));
          P := BEN.Parent_Unit_Name (D);
       end if;
 
       --  Adding the with clause
 
-      if Present (P) then
+      if Add_With_Clause and then Present (P) then
          Add_With_Package (P);
       end if;
 

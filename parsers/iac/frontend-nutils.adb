@@ -290,6 +290,66 @@ package body Frontend.Nutils is
       end case;
    end Is_Interface_Redefinable_Node;
 
+   ------------------
+   -- Is_Redefined --
+   ------------------
+
+   function Is_Redefined
+     (Entity : Node_Id;
+      In_Interface : Node_Id)
+     return Boolean
+   is
+      E      : Node_Id;
+      Name   : Name_Id;
+   begin
+      pragma Assert (Kind (In_Interface) = K_Interface_Declaration);
+
+      --  This function handles only redefinition of Types (enum, struct...),
+      --  constants and exception. The operation redefinition is not allowed
+      --  in IDL.
+      pragma Assert (Kind (Entity) = K_Simple_Declarator
+                     or else Kind (Entity) = K_Complex_Declarator
+                     or else Kind (Entity) = K_Enumeration_Type
+                     or else Kind (Entity) = K_Structure_Type
+                     or else Kind (Entity) = K_Union_Type
+                     or else Kind (Entity) = K_Constant_Declaration
+                     or else Kind (Entity) = K_Exception_Declaration);
+
+      Name := IDL_Name (Identifier (Entity));
+      E := First_Entity (Interface_Body (In_Interface));
+      while Present (E) loop
+         case (Kind (E)) is
+            when K_Type_Declaration =>
+               declare
+                  D : Node_Id;
+               begin
+                  D := First_Entity (Declarators (E));
+                  while Present (D) loop
+                     if Name = IDL_Name (Identifier (D)) then
+                        return True;
+                     end if;
+                     D := Next_Entity (D);
+                  end loop;
+               end;
+
+            when K_Enumeration_Type
+              | K_Structure_Type
+              | K_Union_Type
+              | K_Constant_Declaration
+              | K_Exception_Declaration =>
+               if Name = IDL_Name (Identifier (E)) then
+                  return True;
+               end if;
+
+            when others =>
+               null;
+         end case;
+         E := Next_Entity (E);
+      end loop;
+
+      return False;
+   end Is_Redefined;
+
    ------------
    -- Length --
    ------------

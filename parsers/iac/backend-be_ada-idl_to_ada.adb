@@ -9,7 +9,6 @@ with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
---  with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.IDL_To_Ada is
 
@@ -676,6 +675,37 @@ package body Backend.BE_Ada.IDL_To_Ada is
       return N;
    end Map_Fully_Qualified_Identifier;
 
+   --------------------------
+   -- Map_Get_Members_Spec --
+   --------------------------
+
+   function Map_Get_Members_Spec
+     (Member_Type : Node_Id)
+     return Node_Id
+   is
+      Profile   : List_Id;
+      Parameter : Node_Id;
+      N         : Node_Id;
+   begin
+      Profile  := New_List (K_Parameter_Profile);
+      Parameter := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_From)),
+         RE (RE_Exception_Occurrence));
+      Append_Node_To_List (Parameter, Profile);
+      Parameter := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_To)),
+         Member_Type,
+         Mode_Out);
+      Append_Node_To_List (Parameter, Profile);
+
+      N := Make_Subprogram_Specification
+        (Make_Defining_Identifier (SN (S_Get_Members)),
+         Profile,
+         No_Node);
+
+      return N;
+   end Map_Get_Members_Spec;
+
    ------------------
    -- Map_IDL_Unit --
    ------------------
@@ -935,12 +965,97 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
    --  Inheritance related subprograms
 
+   --  This procedure generates an comment that indicates from which
+   --  interface the entity we deal with is inherited.
+   procedure Explaining_Comment
+     (First_Name  : Name_Id;
+      Second_Name : Name_Id;
+      Message     : String);
+
+   procedure Map_Any_Converters
+     (Type_Name : in  Name_Id;
+      From_Any  : out Node_Id;
+      To_Any    : out Node_Id);
+
+   ------------------------
+   -- Explaining_Comment --
+   ------------------------
+
+   procedure Explaining_Comment
+     (First_Name  : Name_Id;
+      Second_Name : Name_Id;
+      Message     : String)
+   is
+      Comment : Node_Id;
+   begin
+      Get_Name_String (First_Name);
+      Add_Str_To_Name_Buffer (Message);
+      Get_Name_String_And_Append (Second_Name);
+      Comment := Make_Ada_Comment (Name_Find);
+      Append_Node_To_List
+        (Comment,
+         Visible_Part (Current_Package));
+   end Explaining_Comment;
+
+   ------------------------
+   -- Map_Any_Converters --
+   ------------------------
+
+   procedure Map_Any_Converters
+     (Type_Name : in  Name_Id;
+      From_Any  : out Node_Id;
+      To_Any    : out Node_Id)
+   is
+      New_Type  : Node_Id;
+      Profile   : List_Id;
+      Parameter : Node_Id;
+   begin
+      New_Type := Make_Designator (Type_Name);
+      Set_Correct_Parent_Unit_Name
+        (New_Type,
+         Expand_Designator
+         (Main_Package
+          (Current_Entity)));
+
+      --  From_Any
+      Profile  := New_List (K_Parameter_Profile);
+      Parameter := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_Item)),
+         RE (RE_Any));
+      Append_Node_To_List (Parameter, Profile);
+      From_Any := Make_Subprogram_Specification
+        (Make_Defining_Identifier (SN (S_From_Any)),
+         Profile,
+         Defining_Identifier (New_Type));
+         --  Setting the correct parent unit name, for the future calls of the
+         --  subprogram
+      Set_Correct_Parent_Unit_Name
+        (Defining_Identifier (From_Any),
+         Defining_Identifier (Helper_Package (Current_Entity)));
+
+      --  To_Any
+      Profile  := New_List (K_Parameter_Profile);
+      Parameter := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_Item)),
+         Defining_Identifier (New_Type));
+      Append_Node_To_List (Parameter, Profile);
+      To_Any := Make_Subprogram_Specification
+        (Make_Defining_Identifier (SN (S_To_Any)),
+         Profile, RE (RE_Any));
+      --  Setting the correct parent unit name, for the future calls of the
+      --  subprogram
+      Set_Correct_Parent_Unit_Name
+        (Defining_Identifier (To_Any),
+         Defining_Identifier (Helper_Package (Current_Entity)));
+
+   end Map_Any_Converters;
+
    ----------------------------------
    -- Map_Inherited_Entities_Specs --
    ----------------------------------
 
    procedure Map_Inherited_Entities_Specs
-     (L                     : List_Id;
+     (Current_Interface     : Node_Id;
       First_Recusrion_Level : Boolean := True;
       Visit_Operation_Subp  : Visit_Procedure_Two_Params_Ptr;
       Visit_Attribute_Subp  : Visit_Procedure_Two_Params_Ptr;
@@ -951,18 +1066,26 @@ package body Backend.BE_Ada.IDL_To_Ada is
    is
       Par_Int     : Node_Id;
       N           : Node_Id;
-      Entity_Name : Name_Id;
-      Comment     : Node_Id;
       D           : Node_Id;
+      L           : constant List_Id := Interface_Spec (Current_Interface);
    begin
       if FEU.Is_Empty (L) then
          return;
       end if;
       if First_Recusrion_Level then
-         if Stub then
+         if Stub or else Helper then
             --  Mapping of type definitions, constant declarations and
             --  exception declarations defined in the parents
-            Map_Additional_Entities (Reference (First_Entity (L)));
+
+            --  During the different recursion level, we must have access to
+            --  the current interface we are visiting. So we don't use the
+            --  parameter Current_Interface because its value changes depending
+            --  on the recursion level.
+            Map_Additional_Entities_Specs
+              (Reference (First_Entity (L)),
+               FEN.Corresponding_Entity (FE_Node (Current_Entity)),
+               Stub   => Stub,
+               Helper => Helper);
          end if;
 
          Par_Int := Next_Entity (First_Entity (L));
@@ -971,71 +1094,64 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end if;
 
       while Present (Par_Int) loop
-         if Stub then
+         if Stub or else Helper then
             --  Mapping of type definitions, constant declarations and
             --  exception declarations defined in the parents
-            Map_Additional_Entities (Reference (Par_Int));
+
+            --  During the different recursion level, we must have access to
+            --  the current interface we are visiting. So we don't use the
+            --  parameter Current_Interface because its value changes depending
+            --  on the recursion level.
+            Map_Additional_Entities_Specs
+              (Reference (Par_Int),
+               FEN.Corresponding_Entity (FE_Node (Current_Entity)),
+               Stub   => Stub,
+               Helper => Helper);
          end if;
+         if Stub
+           or else Skel
+           or else Impl
+         then
+            N := First_Entity (Interface_Body (Reference (Par_Int)));
+            while Present (N) loop
+               case  FEN.Kind (N) is
+                  when K_Operation_Declaration =>
+                     if not Skel then
+                        --  Adding an explaining comment
+                        Explaining_Comment
+                          (FEN.IDL_Name (Identifier (N)),
+                           FEU.Fully_Qualified_Name
+                           (Identifier (Reference (Par_Int)),
+                            Separator => "."),
+                           " : inherited from ");
+                     end if;
 
-         N := First_Entity (Interface_Body (Reference (Par_Int)));
-         while Present (N) loop
-            case  FEN.Kind (N) is
-               when K_Operation_Declaration =>
-                  if not Skel then
-                     --  Adding an explaining comment
-                     Get_Name_String
-                       (FEU.Fully_Qualified_Name
-                        (Identifier (Reference (Par_Int)),
-                         Separator => "."));
-                     Entity_Name := Name_Find;
-                     Get_Name_String (FEN.IDL_Name (Identifier (N)));
-                     Add_Str_To_Name_Buffer
-                       (" : inherited from ");
-                     Get_Name_String_And_Append (Entity_Name);
-                     Entity_Name := Name_Find;
-                     Comment := Make_Ada_Comment (Entity_Name);
-                     Append_Node_To_List
-                       (Comment,
-                        Visible_Part (Current_Package));
-                  end if;
+                     Visit_Operation_Subp (N, False);
+                  when K_Attribute_Declaration =>
+                     if not Skel then
+                        --  Adding an explaining comment
+                        D := First_Entity (Declarators (N));
+                        while Present (D) loop
+                           Explaining_Comment
+                             (FEN.IDL_Name (Identifier (D)),
+                              FEU.Fully_Qualified_Name
+                              (Identifier (Reference (Par_Int)),
+                               Separator => "."),
+                              " : inherited from ");
+                           D := Next_Entity (D);
+                        end loop;
+                     end if;
 
-                  Visit_Operation_Subp (N, False);
-               when K_Attribute_Declaration =>
-                  if not Skel then
-                     --  Adding an explaining comment
-                     Get_Name_String
-                       (FEU.Fully_Qualified_Name
-                        (Identifier (Reference (Par_Int)),
-                         Separator => "."));
-                     Entity_Name := Name_Find;
-                     Name_Len := 0;
-                     D := First_Entity (Declarators (N));
-                     loop
-                        Get_Name_String_And_Append
-                          (FEN.IDL_Name (Identifier (D)));
-                        exit when No (Next_Entity (D));
-                        Add_Str_To_Name_Buffer (", ");
-                        D := Next_Entity (D);
-                     end loop;
-                     Add_Str_To_Name_Buffer
-                       (" : inherited from ");
-                     Get_Name_String_And_Append (Entity_Name);
-                     Entity_Name := Name_Find;
-                     Comment := Make_Ada_Comment (Entity_Name);
-                     Append_Node_To_List
-                       (Comment,
-                        Visible_Part (Current_Package));
-                  end if;
-
-                  Visit_Attribute_Subp (N, False);
-               when others =>
-                  null;
-            end case;
-            N := Next_Entity (N);
-         end loop;
+                     Visit_Attribute_Subp (N, False);
+                  when others =>
+                     null;
+               end case;
+               N := Next_Entity (N);
+            end loop;
+         end if;
          --  Get indirectly inherited entities
          Map_Inherited_Entities_Specs
-           (L                     => Interface_Spec (Reference (Par_Int)),
+           (Current_Interface     => Reference (Par_Int),
             First_Recusrion_Level => False,
             Visit_Operation_Subp  => Visit_Operation_Subp,
             Visit_Attribute_Subp  => Visit_Attribute_Subp,
@@ -1053,7 +1169,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
    -----------------------------------
 
    procedure Map_Inherited_Entities_Bodies
-     (L                     : List_Id;
+     (Current_Interface     : Node_Id;
       First_Recusrion_Level : Boolean := True;
       Visit_Operation_Subp  : Visit_Procedure_One_Param_Ptr;
       Visit_Attribute_Subp  : Visit_Procedure_One_Param_Ptr;
@@ -1064,6 +1180,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
    is
       Par_Int : Node_Id;
       N       : Node_Id;
+      L       : constant List_Id := Interface_Spec (Current_Interface);
    begin
       if FEU.Is_Empty (L) then
          return;
@@ -1071,27 +1188,61 @@ package body Backend.BE_Ada.IDL_To_Ada is
       if First_Recusrion_Level
         and then not Skel
       then
+         if Stub or else Helper then
+            --  Mapping of type definitions, constant declarations and
+            --  exception declarations defined in the parents
+
+            --  During the different recursion level, we must have access to
+            --  the current interface we are visiting. So we don't use the
+            --  parameter Current_Interface because its value changes depending
+            --  on the recursion level.
+            Map_Additional_Entities_Bodies
+              (Reference (First_Entity (L)),
+               FEN.Corresponding_Entity (FE_Node (Current_Entity)),
+               Stub   => Stub,
+               Helper => Helper);
+         end if;
          Par_Int := Next_Entity (First_Entity (L));
       else
          Par_Int := First_Entity (L);
       end if;
 
       while Present (Par_Int) loop
-         N := First_Entity (Interface_Body (Reference (Par_Int)));
-         while Present (N) loop
-            case  FEN.Kind (N) is
-               when K_Operation_Declaration =>
-                  Visit_Operation_Subp (N);
-               when K_Attribute_Declaration =>
-                  Visit_Attribute_Subp (N);
-               when others =>
-                  null;
-            end case;
-            N := Next_Entity (N);
-         end loop;
+         if Stub or else Helper then
+            --  Mapping of type definitions, constant declarations and
+            --  exception declarations defined in the parents
+
+            --  During the different recursion level, we must have access to
+            --  the current interface we are visiting. So we don't use the
+            --  parameter Current_Interface because its value changes depending
+            --  on the recursion level.
+            Map_Additional_Entities_Bodies
+              (Reference (Par_Int),
+               FEN.Corresponding_Entity (FE_Node (Current_Entity)),
+               Stub   => Stub,
+               Helper => Helper);
+         end if;
+
+         if Stub
+           or else Skel
+           or else Impl
+         then
+            N := First_Entity (Interface_Body (Reference (Par_Int)));
+            while Present (N) loop
+               case  FEN.Kind (N) is
+                  when K_Operation_Declaration =>
+                     Visit_Operation_Subp (N);
+                  when K_Attribute_Declaration =>
+                     Visit_Attribute_Subp (N);
+                  when others =>
+                     null;
+               end case;
+               N := Next_Entity (N);
+            end loop;
+         end if;
          --  Get indirectly inherited entities
          Map_Inherited_Entities_Bodies
-           (L                     => Interface_Spec (Reference (Par_Int)),
+           (Current_Interface     => Reference (Par_Int),
             First_Recusrion_Level => False,
             Visit_Operation_Subp  => Visit_Operation_Subp,
             Visit_Attribute_Subp  => Visit_Attribute_Subp,
@@ -1104,16 +1255,21 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end loop;
    end Map_Inherited_Entities_Bodies;
 
-   -----------------------------
-   -- Map_Additional_Entities --
-   -----------------------------
+   -----------------------------------
+   -- Map_Additional_Entities_Specs --
+   -----------------------------------
 
-   procedure Map_Additional_Entities (E : Node_Id) is
+   procedure Map_Additional_Entities_Specs
+     (Parent_Interface : Node_Id;
+      Child_Interface  : Node_Id;
+      Stub             : Boolean := False;
+      Helper           : Boolean := False)
+   is
       Entity      : Node_Id;
-      Entity_Name : Name_Id;
-      Comment     : Node_Id;
+      From_Any    : Node_Id;
+      To_Any      : Node_Id;
    begin
-      Entity := First_Entity (Interface_Body (E));
+      Entity := First_Entity (Interface_Body (Parent_Interface));
       while Present (Entity) loop
          case  FEN.Kind (Entity) is
             when K_Type_Declaration =>
@@ -1125,117 +1281,445 @@ package body Backend.BE_Ada.IDL_To_Ada is
                begin
                   D := First_Entity (Declarators (Entity));
                   while Present (D) loop
-                     --  Adding an explaining comment
-                     Get_Name_String
-                       (FEU.Fully_Qualified_Name
-                        (Identifier (E),
-                         Separator => "."));
-                     Entity_Name := Name_Find;
-                     Get_Name_String (FEN.IDL_Name (Identifier (D)));
-                     Add_Str_To_Name_Buffer
-                       (" : inherited from ");
-                     Get_Name_String_And_Append (Entity_Name);
-                     Entity_Name := Name_Find;
-                     Comment := Make_Ada_Comment (Entity_Name);
-                     Append_Node_To_List
-                       (Comment,
-                        Visible_Part (Current_Package));
+                     if not FEU.Is_Redefined (D, Child_Interface) then
+                        --  Adding an explaining comment
+                        Explaining_Comment
+                          (FEN.IDL_Name (Identifier (D)),
+                           FEU.Fully_Qualified_Name
+                           (Identifier (Parent_Interface),
+                            Separator => "."),
+                           " : inherited from ");
 
-                     --  Subtype declaration
-
-                     Original_Type := Expand_Designator
-                       (Type_Def_Node
-                        (BE_Node
-                         (Identifier
-                          (D))));
-                     New_Type := Make_Defining_Identifier
-                       (IDL_Name
-                        (Identifier
-                         (D)));
-                     T := Make_Full_Type_Declaration
-                       (Defining_Identifier    =>
-                          New_Type,
-                        Type_Definition        =>
-                          Make_Derived_Type_Definition
-                        (Subtype_Indication    =>
-                           Original_Type,
-                         Record_Extension_Part =>
-                           No_Node,
-                         Is_Subtype => True),
-                        Is_Subtype => True);
-                     Set_Corresponding_Node (New_Type, T);
-                     Append_Node_To_List
-                       (T,
-                        Visible_Part (Current_Package));
+                        if Stub then
+                           --  Subtype declaration
+                           Original_Type := Expand_Designator
+                             (Type_Def_Node
+                              (BE_Node
+                               (Identifier
+                                (D))));
+                           New_Type := Make_Defining_Identifier
+                             (To_Ada_Name
+                              (IDL_Name
+                               (Identifier
+                                (D))));
+                           T := Make_Full_Type_Declaration
+                             (Defining_Identifier    =>
+                                New_Type,
+                              Type_Definition        =>
+                                Make_Derived_Type_Definition
+                              (Subtype_Indication    =>
+                                 Original_Type,
+                               Record_Extension_Part =>
+                                 No_Node,
+                               Is_Subtype => True),
+                              Is_Subtype => True);
+                           Set_Corresponding_Node (New_Type, T);
+                           Append_Node_To_List
+                             (T,
+                              Visible_Part (Current_Package));
+                        end if;
+                        if Helper then
+                           Map_Any_Converters
+                             (To_Ada_Name
+                              (IDL_Name
+                               (Identifier
+                                (D))),
+                              From_Any,
+                              To_Any);
+                           Append_Node_To_List
+                             (From_Any,
+                              Visible_Part (Current_Package));
+                           Append_Node_To_List
+                             (To_Any,
+                              Visible_Part (Current_Package));
+                        end if;
+                     end if;
                      D := Next_Entity (D);
                   end loop;
                end;
 
-            when K_Constant_Declaration =>
-               declare
-                  Original_Constant : Node_Id;
-                  New_Constant      : Node_Id;
-                  C                 : Node_Id;
-               begin
-                  --  Adding an explaining comment
-                  Get_Name_String
-                    (FEU.Fully_Qualified_Name
-                     (Identifier (E),
-                      Separator => "."));
-                  Entity_Name := Name_Find;
-                  Get_Name_String (FEN.IDL_Name (Identifier (Entity)));
-                  Add_Str_To_Name_Buffer
-                    (" : inherited from ");
-                  Get_Name_String_And_Append (Entity_Name);
-                  Entity_Name := Name_Find;
-                  Comment := Make_Ada_Comment (Entity_Name);
-                  Append_Node_To_List
-                    (Comment,
-                     Visible_Part (Current_Package));
+            when K_Structure_Type
+              | K_Union_Type
+              | K_Enumeration_Type =>
+               if not FEU.Is_Redefined (Entity, Child_Interface) then
+                  declare
+                     Original_Type : Node_Id;
+                     New_Type      : Node_Id;
+                     T             : Node_Id;
+                  begin
+                     --  Adding an explaining comment
+                     Explaining_Comment
+                       (FEN.IDL_Name (Identifier (Entity)),
+                        FEU.Fully_Qualified_Name
+                        (Identifier (Parent_Interface),
+                         Separator => "."),
+                        " : inherited from ");
 
-                  --  Generate a "renamed" variable.
-                  Original_Constant := Expand_Designator
-                    (Stub_Node
-                     (BE_Node
-                      (Identifier
-                       (Entity))));
-                  New_Constant := Make_Defining_Identifier
-                    (FEN.IDL_Name (Identifier (Entity)));
-                  C := Make_Object_Declaration
-                    (Defining_Identifier =>
-                       New_Constant,
-                     Constant_Present    =>
-                       False, --  Yes, False
-                     Object_Definition   =>
-                       Map_Designator (Type_Spec (Entity)),
-                     Renamed_Object      =>
-                       Original_Constant);
-                  Append_Node_To_List
-                    (C,
-                     Visible_Part (Current_Package));
-               end;
+                     if Stub then
+                        --  Subtype declaration
+                        Original_Type := Expand_Designator
+                          (Type_Def_Node
+                           (BE_Node
+                            (Identifier
+                             (Entity))));
+                        New_Type := Make_Defining_Identifier
+                          (To_Ada_Name
+                           (IDL_Name
+                            (Identifier
+                             (Entity))));
+                        T := Make_Full_Type_Declaration
+                          (Defining_Identifier    =>
+                             New_Type,
+                           Type_Definition        =>
+                             Make_Derived_Type_Definition
+                           (Subtype_Indication    =>
+                              Original_Type,
+                            Record_Extension_Part =>
+                              No_Node,
+                            Is_Subtype => True),
+                           Is_Subtype => True);
+                        Set_Corresponding_Node (New_Type, T);
+                        Append_Node_To_List
+                          (T,
+                           Visible_Part (Current_Package));
+                     end if;
+                     if Helper then
+                        Map_Any_Converters
+                          (To_Ada_Name
+                           (IDL_Name
+                            (Identifier
+                             (Entity))),
+                           From_Any,
+                           To_Any);
+                        Append_Node_To_List
+                          (From_Any,
+                           Visible_Part (Current_Package));
+                        Append_Node_To_List
+                          (To_Any,
+                           Visible_Part (Current_Package));
+                     end if;
+                  end;
+               end if;
+            when K_Constant_Declaration =>
+               if not FEU.Is_Redefined (Entity, Child_Interface) then
+                  declare
+                     Original_Constant : Node_Id;
+                     New_Constant      : Node_Id;
+                     C                 : Node_Id;
+                  begin
+                     if Stub then
+                        --  Adding an explaining comment
+                        Explaining_Comment
+                          (FEN.IDL_Name (Identifier (Entity)),
+                           FEU.Fully_Qualified_Name
+                           (Identifier (Parent_Interface),
+                            Separator => "."),
+                           " : inherited from ");
+
+                        --  Generate a "renamed" variable.
+                        Original_Constant := Expand_Designator
+                          (Stub_Node
+                           (BE_Node
+                            (Identifier
+                             (Entity))));
+                        New_Constant := Make_Defining_Identifier
+                          (To_Ada_Name
+                           (FEN.IDL_Name
+                            (Identifier
+                             (Entity))));
+                        C := Make_Object_Declaration
+                          (Defining_Identifier =>
+                             New_Constant,
+                           Constant_Present    =>
+                             False, --  Yes, False
+                           Object_Definition   =>
+                             Map_Designator (Type_Spec (Entity)),
+                           Renamed_Object      =>
+                             Original_Constant);
+                        Append_Node_To_List
+                          (C,
+                           Visible_Part (Current_Package));
+                     end if;
+                  end;
+               end if;
 
             when K_Exception_Declaration =>
-               --  Adding an explaining comment
-               Get_Name_String
-                 (FEU.Fully_Qualified_Name
-                  (Identifier (E),
-                   Separator => "."));
-               Entity_Name := Name_Find;
-               Get_Name_String (FEN.IDL_Name (Identifier (Entity)));
-               Add_Str_To_Name_Buffer
-                 (" : inherited from ");
-               Get_Name_String_And_Append (Entity_Name);
-               Entity_Name := Name_Find;
-               Comment := Make_Ada_Comment (Entity_Name);
-               Append_Node_To_List
-                 (Comment,
-                  Visible_Part (Current_Package));
+               if not FEU.Is_Redefined (Entity, Child_Interface) then
+                  declare
+                     Original_Exception : Node_Id;
+                     New_Exception      : Node_Id;
+                     C                  : Node_Id;
+                     Original_Type      : Node_Id;
+                     New_Type           : Node_Id;
+                     T                  : Node_Id;
+                     N                  : Node_Id;
+                  begin
+                     --  First of all, we add the dependancy to the package
+                     --  PolyORB.Exceptions :
+                     Dep_Array (Dep_Exceptions) := True;
+
+                     --  Adding an explaining comment
+                     Explaining_Comment
+                       (FEN.IDL_Name (Identifier (Entity)),
+                        FEU.Fully_Qualified_Name
+                        (Identifier (Parent_Interface),
+                         Separator => "."),
+                        " : inherited from ");
+
+                     if Stub then
+                        --  Generate a "renamed" exception
+                        Original_Exception := Expand_Designator
+                          (Stub_Node
+                           (BE_Node
+                            (Identifier
+                             (Entity))));
+                        New_Exception := Make_Defining_Identifier
+                          (To_Ada_Name
+                           (FEN.IDL_Name
+                            (Identifier
+                             (Entity))));
+                        C := Make_Exception_Declaration
+                          (Defining_Identifier =>
+                             New_Exception,
+                           Renamed_Exception   =>
+                             Original_Exception);
+                        Append_Node_To_List
+                          (C,
+                           Visible_Part (Current_Package));
+
+                        --  Generate the "_Members" subtype
+                        Original_Type := Expand_Designator
+                          (Type_Def_Node
+                           (BE_Node
+                            (Identifier
+                             (Entity))));
+                        New_Type := Make_Defining_Identifier
+                          (BEN.Name
+                           (Defining_Identifier
+                            (Original_Type)));
+                        T := Make_Full_Type_Declaration
+                          (Defining_Identifier    =>
+                             New_Type,
+                           Type_Definition        =>
+                             Make_Derived_Type_Definition
+                           (Subtype_Indication    =>
+                              Original_Type,
+                            Record_Extension_Part =>
+                              No_Node,
+                            Is_Subtype => True),
+                           Is_Subtype => True);
+                        Set_Corresponding_Node (New_Type, T);
+                        Append_Node_To_List
+                          (T,
+                           Visible_Part (Current_Package));
+
+                        --  Generate the Get_Members procedure spec
+                        N := Map_Get_Members_Spec (Expand_Designator (T));
+
+                        Append_Node_To_List
+                          (N, Visible_Part (Current_Package));
+                     end if;
+                     if Helper then
+                        Map_Any_Converters
+                          (BEN.Name
+                           (Defining_Identifier
+                            (Type_Def_Node
+                             (BE_Node
+                              (Identifier
+                               (Entity))))),
+                           From_Any,
+                           To_Any);
+                        Append_Node_To_List
+                          (From_Any,
+                           Visible_Part (Current_Package));
+                        Append_Node_To_List
+                          (To_Any,
+                           Visible_Part (Current_Package));
+                     end if;
+                  end;
+               end if;
             when others =>
                null;
          end case;
          Entity := Next_Entity (Entity);
       end loop;
-   end Map_Additional_Entities;
+   end Map_Additional_Entities_Specs;
+
+   ------------------------------------
+   -- Map_Additional_Entities_Bodies --
+   ------------------------------------
+
+   procedure Map_Additional_Entities_Bodies
+     (Parent_Interface : Node_Id;
+      Child_Interface  : Node_Id;
+      Stub             : Boolean := False;
+      Helper           : Boolean := False)
+   is
+      Entity      : Node_Id;
+      From_Any    : Node_Id;
+      To_Any      : Node_Id;
+   begin
+      Entity := First_Entity (Interface_Body (Parent_Interface));
+      while Present (Entity) loop
+         case  FEN.Kind (Entity) is
+            when K_Type_Declaration =>
+               declare
+                  D             : Node_Id;
+               begin
+                  if Helper then
+                     D := First_Entity (Declarators (Entity));
+                     while Present (D) loop
+                        if not FEU.Is_Redefined (D, Child_Interface) then
+                           Map_Any_Converters
+                             (To_Ada_Name
+                              (IDL_Name
+                               (Identifier
+                                (D))),
+                              From_Any,
+                              To_Any);
+                           Set_Renamed_Subprogram
+                             (From_Any,
+                              Expand_Designator
+                              (From_Any_Node
+                               (BE_Node
+                                (Identifier
+                                 (D)))));
+                           Set_Renamed_Subprogram
+                             (To_Any,
+                              Expand_Designator
+                              (To_Any_Node
+                               (BE_Node
+                                (Identifier
+                                 (D)))));
+                           Append_Node_To_List
+                             (From_Any,
+                              Statements (Current_Package));
+                           Append_Node_To_List
+                             (To_Any,
+                              Statements (Current_Package));
+                        end if;
+                        D := Next_Entity (D);
+                     end loop;
+                  end if;
+               end;
+
+            when K_Structure_Type
+              | K_Union_Type
+              | K_Enumeration_Type =>
+               if not FEU.Is_Redefined (Entity, Child_Interface) then
+                  begin
+                     if Helper then
+                        Map_Any_Converters
+                          (To_Ada_Name
+                           (IDL_Name
+                            (Identifier
+                             (Entity))),
+                           From_Any,
+                           To_Any);
+                        Set_Renamed_Subprogram
+                          (From_Any,
+                           Expand_Designator
+                           (From_Any_Node
+                            (BE_Node
+                             (Identifier
+                              (Entity)))));
+                        Set_Renamed_Subprogram
+                          (To_Any,
+                           Expand_Designator
+                           (To_Any_Node
+                            (BE_Node
+                             (Identifier
+                              (Entity)))));
+                        Append_Node_To_List
+                          (From_Any,
+                           Statements (Current_Package));
+                        Append_Node_To_List
+                          (To_Any,
+                           Statements (Current_Package));
+                     end if;
+                  end;
+               end if;
+
+            when K_Exception_Declaration =>
+               if not FEU.Is_Redefined (Entity, Child_Interface) then
+                  declare
+                     Original_Get_Members : Node_Id;
+                     New_Member_Type      : Node_Id;
+                     N                    : Node_Id;
+                  begin
+                     if Stub then
+                        --  generate the renamed Get_Members
+                        New_Member_Type :=
+                          Expand_Designator
+                          (Type_Def_Node
+                           (BE_Node
+                            (Identifier
+                             (Entity))));
+                        Set_Correct_Parent_Unit_Name
+                          (New_Member_Type,
+                           Expand_Designator
+                           (Main_Package
+                            (Current_Entity)));
+                        N := Map_Get_Members_Spec (New_Member_Type);
+
+                        Original_Get_Members := Defining_Identifier
+                          (Map_Get_Members_Spec
+                           (Expand_Designator
+                            (Type_Def_Node
+                             (BE_Node
+                              (Identifier
+                               (Entity))))));
+                        --  Setting the right parent unit name
+                        Set_Correct_Parent_Unit_Name
+                          (Original_Get_Members,
+                           Expand_Designator
+                           (BEN.Parent
+                            (Type_Def_Node
+                             (BE_Node
+                              (Identifier
+                               (Parent_Interface))))));
+                        Set_Renamed_Subprogram (N, Original_Get_Members);
+                        Append_Node_To_List
+                          (N, Statements (Current_Package));
+                     end if;
+                     if Helper then
+                        Map_Any_Converters
+                          (BEN.Name
+                           (Defining_Identifier
+                            (Type_Def_Node
+                             (BE_Node
+                              (Identifier
+                               (Entity))))),
+                           From_Any,
+                           To_Any);
+                        Set_Renamed_Subprogram
+                          (From_Any,
+                           Expand_Designator
+                           (From_Any_Node
+                            (BE_Node
+                             (Identifier
+                              (Entity)))));
+                        Set_Renamed_Subprogram
+                          (To_Any,
+                           Expand_Designator
+                           (To_Any_Node
+                            (BE_Node
+                             (Identifier
+                              (Entity)))));
+                        Append_Node_To_List
+                          (From_Any,
+                           Statements (Current_Package));
+                        Append_Node_To_List
+                          (To_Any,
+                           Statements (Current_Package));
+                     end if;
+                  end;
+               end if;
+            when others =>
+               null;
+         end case;
+         Entity := Next_Entity (Entity);
+      end loop;
+   end Map_Additional_Entities_Bodies;
 
 end Backend.BE_Ada.IDL_To_Ada;

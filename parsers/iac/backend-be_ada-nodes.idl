@@ -331,6 +331,7 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Exception_Declaration : Definition {
+    Node_Id    Renamed_Exception;
   };
 
   interface BE_Ada_Instanciations : Node_Id {

@@ -1070,7 +1070,8 @@ package body Backend.BE_Ada.Nutils is
    --------------------------------
 
    function Make_Exception_Declaration
-     (Defining_Identifier : Node_Id)
+     (Defining_Identifier : Node_Id;
+      Renamed_Exception   : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -1078,7 +1079,9 @@ package body Backend.BE_Ada.Nutils is
    begin
       N := New_Node (K_Exception_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Renamed_Exception (N, Renamed_Exception);
       Set_Corresponding_Node (Defining_Identifier, N);
+      Set_Parent (N, Current_Package);
       return N;
    end Make_Exception_Declaration;
 

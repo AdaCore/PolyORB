@@ -185,7 +185,7 @@ package body Backend.BE_Ada.Impls is
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
          Map_Inherited_Entities_Specs
-           (L                    => L,
+           (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Impl                 => True);
@@ -393,7 +393,7 @@ package body Backend.BE_Ada.Impls is
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
          Map_Inherited_Entities_Bodies
-           (L                    => Interface_Spec (E),
+           (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Impl                 => True);

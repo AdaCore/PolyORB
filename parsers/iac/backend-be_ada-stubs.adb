@@ -207,8 +207,6 @@ package body Backend.BE_Ada.Stubs is
 
       procedure Visit_Exception_Declaration (E : Node_Id) is
          Identifier : Node_Id;
-         Profile    : List_Id;
-         Parameter  : Node_Id;
          N          : Node_Id;
 
       begin
@@ -251,22 +249,7 @@ package body Backend.BE_Ada.Stubs is
             Visible_Part (Current_Package));
 
          --  Insert the Get_Members procedure specification
-
-         Profile  := New_List (K_Parameter_Profile);
-         Parameter := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_From)),
-            RE (RE_Exception_Occurrence));
-         Append_Node_To_List (Parameter, Profile);
-         Parameter := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_To)),
-            Identifier,
-            Mode_Out);
-         Append_Node_To_List (Parameter, Profile);
-
-         N := Make_Subprogram_Specification
-           (Make_Defining_Identifier (SN (S_Get_Members)),
-            Profile,
-            No_Node);
+         N := Map_Get_Members_Spec (Identifier);
          Set_Correct_Parent_Unit_Name
            (Defining_Identifier (N),
             Defining_Identifier (Main_Package (Current_Entity)));
@@ -403,7 +386,7 @@ package body Backend.BE_Ada.Stubs is
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
          Map_Inherited_Entities_Specs
-           (L                    => L,
+           (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Stub                 => True);
@@ -1007,45 +990,22 @@ package body Backend.BE_Ada.Stubs is
          D    : constant List_Id := No_List;
          S    : constant List_Id := New_List (K_List_Id);
          N    : Node_Id;
-         Profile : List_Id;
          Parameters : List_Id;
-         Parameter : Node_Id;
-         Identifier : Node_Id;
       begin
          Set_Main_Body;
 
-         --  Getting the _Member type identifier
+         Spec := Map_Get_Members_Spec
+           (Expand_Designator
+            (Type_Def_Node
+             (BE_Node
+              (FEN.Identifier
+               (E)))));
 
-         Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
-         Add_Str_To_Name_Buffer ("_Members");
-         Identifier := Make_Defining_Identifier (Name_Find);
-
-         --  Building the parameter lists for the "Get_Members" procedure and
-         --  for the "PolyORB.Exceptions.User_Get_Members" procedure.
-
-         Profile  := New_List (K_Parameter_Profile);
          Parameters := New_List (K_List_Id);
-
-         Parameter := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_From)),
-            RE (RE_Exception_Occurrence));
-         Append_Node_To_List (Parameter, Profile);
-
-         Parameter := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_To)),
-            Identifier,
-            Mode_Out);
-         Append_Node_To_List (Parameter, Profile);
-
          Append_Node_To_List
            (Make_Defining_Identifier (PN (P_From)), Parameters);
          Append_Node_To_List
            (Make_Defining_Identifier (PN (P_To)), Parameters);
-
-         --  Re-generating un spec for the "Get_Members" procedure
-
-         Spec := Make_Subprogram_Specification
-           (Make_Defining_Identifier (SN (S_Get_Members)), Profile, No_Node);
 
          N := Make_Subprogram_Call
            (RE (RE_User_Get_Members),
@@ -1096,7 +1056,7 @@ package body Backend.BE_Ada.Stubs is
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
          Map_Inherited_Entities_Bodies
-           (L                    => Interface_Spec (E),
+           (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Stub                 => True);

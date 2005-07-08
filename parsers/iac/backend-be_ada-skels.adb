@@ -207,8 +207,11 @@ package body Backend.BE_Ada.Skels is
             S          : constant List_Id := New_List (K_List_Id);
          begin
             --  Getting the Exception name
-            N := Stub_Node (BE_Node (Identifier (Reference (E))));
-            N := Defining_Identifier (N);
+            N := Expand_Designator
+              (Stub_Node
+               (BE_Node
+                (Identifier
+                 (Reference (E)))));
 
             Selector := Make_Object_Declaration
               (Defining_Identifier =>
@@ -982,7 +985,7 @@ package body Backend.BE_Ada.Skels is
          --  the operations and attributes of the parent interface including
          --  the first one.
          Map_Inherited_Entities_Bodies
-           (L                    => Interface_Spec (E),
+           (Current_interface    => E,
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Skel                 => True);

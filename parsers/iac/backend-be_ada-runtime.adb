@@ -226,7 +226,9 @@ package body Backend.BE_Ada.Runtime is
    function RU (Id : RU_Id) return Node_Id is
       Result : Node_Id;
    begin
-      Result := Copy_Designator (RUD (Id));
+      --  This is a runtime unit and not a runtime entity, so it's parent unit
+      --  does not have to be "withed"
+      Result := Copy_Designator (RUD (Id), False);
       Add_With_Package (Result);
       return Result;
    end RU;

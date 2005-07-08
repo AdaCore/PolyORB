@@ -6,17 +6,16 @@ Frontend :
 
 Backend Ada :
 =============
-* Complete the implementation of inherited interfaces (constants, types, excp)
-* Check wether we use TC_IDL_SEQUENCE... or TC_SeqXXX
-* Calculate the size of buffers and add it as a comment to the Ada code
-* Add comments to the generated code
-* Parse the CORBA module
-* Generate Code for "ValueType"s
-* Generate additional functions in skeletons
-* Optimizing the forwards
 * Using the hash tables in the skels
+* Parse the CORBA module
+* Optimizing the forwards
+* Calculate the size of buffers and add it as a comment to the Ada code
+* Generate Code for "ValueType"s
 * Implementing the AMI
 * Implementing the AMH
+* Generate additional functions in skeletons
+* Add comments to the generated code
+* Check wether we use TC_IDL_SEQUENCE... or TC_SeqXXX
 
 TestSuite :
 ===========

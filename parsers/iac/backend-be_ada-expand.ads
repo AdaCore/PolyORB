@@ -28,7 +28,8 @@ package Backend.BE_Ada.Expand is
    --    an forward interface declaration.
    --  * the "Parent" field of N in the other cases.
    function Expand_Designator
-     (N                : Node_Id)
+     (N               : Node_Id;
+      Add_With_Clause : Boolean := True)
      return Node_Id;
 
    procedure Expand (Entity : Node_Id);
