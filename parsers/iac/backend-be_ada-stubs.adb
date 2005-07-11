@@ -1160,6 +1160,7 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, Marshaller_Statements);
 
       --  Create argument list.
+
       Set_Str_To_Name_Buffer
         ("Create the Argument list");
       Append_Node_To_List

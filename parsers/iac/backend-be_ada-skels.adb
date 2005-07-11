@@ -221,6 +221,7 @@ package body Backend.BE_Ada.Skels is
             --  Declaration of the Members variable
             --  Getting the node corresponding to the declaration of the
             --  "Excp_Name"_Members type.
+
             N := Type_Def_Node (BE_Node (Identifier (Reference (E))));
 
             N := Make_Object_Declaration
@@ -408,6 +409,7 @@ package body Backend.BE_Ada.Skels is
             end if;
 
             --  Convert from their Any
+
             Set_Str_To_Name_Buffer
               ("Convert from Any");
             Append_Node_To_List
@@ -443,6 +445,7 @@ package body Backend.BE_Ada.Skels is
             end if;
 
             --  Call Implementation
+
             Set_Str_To_Name_Buffer
               ("Call Implementation");
             Append_Node_To_List
@@ -536,7 +539,6 @@ package body Backend.BE_Ada.Skels is
          end if;
 
          --  Set out arguments
-
 
          if Count > 1 then
             Param := First_Node (Parameter_Profile (S));
@@ -732,6 +734,7 @@ package body Backend.BE_Ada.Skels is
          Append_Node_To_List (N, Statements);
 
          --  Call Implementation
+
          Set_Str_To_Name_Buffer
            ("Setting the result");
          Append_Node_To_List
