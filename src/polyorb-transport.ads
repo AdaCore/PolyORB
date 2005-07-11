@@ -155,6 +155,10 @@ package PolyORB.Transport is
    procedure Destroy (TE : in out Transport_Endpoint);
    --  Destroy any resources allocated to TE.
 
+   procedure Destroy (TE : in out Transport_Endpoint_Access);
+   --  Destroy TE and the protocol stack built upon it, recursively.
+   --  Deallocate TE. On return, TE is null.
+
 private
 
    type Transport_Access_Point

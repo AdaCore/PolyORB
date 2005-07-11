@@ -65,23 +65,29 @@ package body PolyORB.Transport.Connected is
    begin
       pragma Debug (O ("Handle_Event: Connected TAP AES"));
 
+      --  Create transport endpoint
+
       Accept_Connection
         (Connected_Transport_Access_Point'Class (H.TAP.all), New_TE);
-      Set_Allocation_Class (New_TE.all, Dynamic);
-      --  Create transport endpoint.
 
-      Binding_Objects.Setup_Binding_Object
-        (The_ORB => H.ORB,
-         TE      => New_TE,
-         FFC     => H.Filter_Factory_Chain.all,
-         Role    => ORB.Server,
-         BO_Ref  => New_TE.Dependent_Binding_Object);
-      --  Setup binding object.
+      if New_TE /= null then
+         Set_Allocation_Class (New_TE.all, Dynamic);
+
+         --  Build a binding object based on the newly-created endpoint
+
+         Binding_Objects.Setup_Binding_Object
+           (The_ORB => H.ORB,
+            TE      => New_TE,
+            FFC     => H.Filter_Factory_Chain.all,
+            Role    => ORB.Server,
+            BO_Ref  => New_TE.Dependent_Binding_Object);
+      end if;
+
+      --  Continue monitoring the TAP's AES
 
       Emit_No_Reply
         (Component_Access (H.ORB),
          Monitor_Access_Point'(TAP => H.TAP));
-      --  Continue monitoring the TAP's AES.
    end Handle_Event;
 
    --------------------
@@ -130,10 +136,11 @@ package body PolyORB.Transport.Connected is
             if TE.In_Buf = null then
                O ("Unexpected data (no buffer)");
 
+               --  Notify the ORB that the socket was disconnected
+
                Throw (Error, Comm_Failure_E,
                       System_Exception_Members'
                       (Minor => 0, Completed => Completed_Maybe));
-               --  Notify the ORB that the socket was disconnected.
 
             else
                Read
@@ -175,9 +182,12 @@ package body PolyORB.Transport.Connected is
          Close (Transport_Endpoint'Class (TE.all)'Access);
 
       else
+
          --  Must not happen
+
          raise Program_Error;
       end if;
+
       return Nothing;
    end Handle_Message;
 

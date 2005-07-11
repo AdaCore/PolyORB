@@ -60,8 +60,12 @@ package body PolyORB.Binding_Objects is
       Emit_No_Reply (Component_Access (X.Transport_Endpoint),
                      Filters.Iface.Disconnect_Indication'(null record));
       pragma Debug (O ("Destroying protocol stack"));
-      Destroy (Component_Access (X.Transport_Endpoint));
-      --  This will recursively destroy all the protocol stack.
+
+      --  Destroy the transport endpoint at the bottom of the protocol
+      --  stack (and all other components connected up).
+
+      Transport.Destroy (X.Transport_Endpoint);
+
       pragma Debug (O ("RIP."));
    end Finalize;
 

@@ -62,6 +62,10 @@ package body PolyORB.Transport.Connected.Sockets.SSL is
       TE := new SSL_Endpoint;
       Accept_Socket (TAP.Socket, TAP.Context, New_Socket, New_Address);
       Create (SSL_Endpoint (TE.all), New_Socket);
+
+   exception
+      when SSL_Error =>
+         Destroy (TE);
    end Accept_Connection;
 
    -----------
