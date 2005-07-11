@@ -408,6 +408,11 @@ package body Backend.BE_Ada.Skels is
             end if;
 
             --  Convert from their Any
+            Set_Str_To_Name_Buffer
+              ("Convert from Any");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Inner_Statements);
 
             if Count > 1 then
                Param := First_Node (Parameter_Profile (S));
@@ -438,6 +443,11 @@ package body Backend.BE_Ada.Skels is
             end if;
 
             --  Call Implementation
+            Set_Str_To_Name_Buffer
+              ("Call Implementation");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Inner_Statements);
 
             N := Corresponding_Entity (FE_Node (S));
             C := Impl_Node (BE_Node (FE_Node (S)));
@@ -504,6 +514,12 @@ package body Backend.BE_Ada.Skels is
          --  Set Result
 
          if Present (Return_Type (S)) then
+            Set_Str_To_Name_Buffer
+              ("Setting the result");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Statements);
+
             FE := FE_Node (Return_Type (S));
 
             To_Any_Helper := Get_To_Any_Node (FE);
@@ -521,12 +537,19 @@ package body Backend.BE_Ada.Skels is
 
          --  Set out arguments
 
+
          if Count > 1 then
             Param := First_Node (Parameter_Profile (S));
             Param := Next_Node (Param);
             loop
                if  BEN.Parameter_Mode (Param) = Mode_Out
                  or else BEN.Parameter_Mode (Param) = Mode_Inout then
+                  Set_Str_To_Name_Buffer
+                    ("Setting out argument");
+                  Append_Node_To_List
+                    (Make_Ada_Comment (Name_Find),
+                     Statements);
+
                   Param_Name := BEN.Name (Defining_Identifier (Param));
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
@@ -709,6 +732,11 @@ package body Backend.BE_Ada.Skels is
          Append_Node_To_List (N, Statements);
 
          --  Call Implementation
+         Set_Str_To_Name_Buffer
+           ("Setting the result");
+         Append_Node_To_List
+           (Make_Ada_Comment (Name_Find),
+            Statements);
 
          N := Make_Object_Declaration
            (Defining_Identifier =>

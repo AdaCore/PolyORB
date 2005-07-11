@@ -1160,6 +1160,11 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, Marshaller_Statements);
 
       --  Create argument list.
+      Set_Str_To_Name_Buffer
+        ("Create the Argument list");
+      Append_Node_To_List
+        (Make_Ada_Comment (Name_Find),
+         Marshaller_Statements);
 
       C := New_Node (K_Subprogram_Call);
       Set_Defining_Identifier
@@ -1223,6 +1228,11 @@ package body Backend.BE_Ada.Stubs is
             Excep_FE : Node_Id;
             Excep_TC : Node_Id;
          begin
+            Set_Str_To_Name_Buffer
+              ("Create the Exception list");
+            Append_Node_To_List
+              (Make_Ada_Comment (Name_Find),
+               Marshaller_Statements);
             N := Make_Subprogram_Call
               (RE (RE_Create_List_1),
                Make_List_Id
@@ -1250,7 +1260,7 @@ package body Backend.BE_Ada.Stubs is
       end if;
 
       --  Set result type (maybe void)
-      --  --  PolyORB.Types.Identifier (Result_Name)
+
       Get_Name_String (Operation_Name);
       Add_Char_To_Name_Buffer ('_');
       Get_Name_String_And_Append (VN (V_Result_Name));
@@ -1259,8 +1269,6 @@ package body Backend.BE_Ada.Stubs is
         (Defining_Identifier   => RE (RE_Identifier),
          Actual_Parameter_Part =>
            Make_List_Id (Make_Defining_Identifier (R)));
-
-      --  -- Name => PolyORB.Types.Identifier (Result_Name)
 
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
@@ -1309,6 +1317,11 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, Statements (Current_Package));
 
       --  Creating the request
+      Set_Str_To_Name_Buffer
+        ("Creating the request");
+      Append_Node_To_List
+        (Make_Ada_Comment (Name_Find),
+         Marshaller_Statements);
 
       N := Make_Subprogram_Call
         (RE (RE_Ref_2),
@@ -1397,6 +1410,12 @@ package body Backend.BE_Ada.Stubs is
       --  Invoking the request (synchronously or asynchronously), it depends on
       --  the type of the operation (oneway or not).
 
+      Set_Str_To_Name_Buffer
+        ("Invoking the request (synchronously or asynchronously)");
+      Append_Node_To_List
+        (Make_Ada_Comment (Name_Find),
+         Marshaller_Statements);
+
       N := Make_Subprogram_Call
         (RE (RE_Flags),
          Make_List_Id (Make_Literal (Int0_Val)));
@@ -1408,6 +1427,11 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, Marshaller_Statements);
 
       --  Raise eventual exceptions
+      Set_Str_To_Name_Buffer
+        ("Raise eventual exceptions");
+      Append_Node_To_List
+        (Make_Ada_Comment (Name_Find),
+         Marshaller_Statements);
 
       P := New_List (K_List_Id);
       C := Make_Designator
@@ -1445,6 +1469,11 @@ package body Backend.BE_Ada.Stubs is
       --  Retrieve return value
 
       if Present (Return_T) then
+         Set_Str_To_Name_Buffer
+           ("Retrieve the return value");
+         Append_Node_To_List
+           (Make_Ada_Comment (Name_Find),
+         Marshaller_Statements);
 
          N := Get_From_Any_Node (FE_Node (Return_T));
 
@@ -1471,6 +1500,11 @@ package body Backend.BE_Ada.Stubs is
                   From_Any_Helper : Node_Id;
                   Par_Type        : Node_Id;
                begin
+                  Set_Str_To_Name_Buffer
+                    ("Retrieve out argument");
+                  Append_Node_To_List
+                    (Make_Ada_Comment (Name_Find),
+                     Marshaller_Statements);
                   Param_Name := BEN.Name (Defining_Identifier (I));
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
