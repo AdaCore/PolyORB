@@ -120,8 +120,19 @@ package body PolyORB.Transport.Connected.Sockets.SSL is
    begin
       Create (Socket_Endpoint (TE), Socket_Of (S));
       TE.SSL_Socket := S;
-      TE.Socket := Socket_Of (S);
    end Create;
+
+   ---------------------
+   -- Get_SSL_Context --
+   ---------------------
+
+   function Get_SSL_Context
+     (SAP : SSL_Access_Point)
+      return PolyORB.SSL.SSL_Context_Type
+   is
+   begin
+      return SAP.Context;
+   end Get_SSL_Context;
 
    -----------------------
    -- Is_Data_Available --

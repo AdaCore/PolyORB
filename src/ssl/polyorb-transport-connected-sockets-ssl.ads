@@ -51,6 +51,10 @@ package PolyORB.Transport.Connected.Sockets.SSL is
      (TAP : SSL_Access_Point;
       TE  : out Transport_Endpoint_Access);
 
+   function Get_SSL_Context
+     (SAP : SSL_Access_Point)
+      return PolyORB.SSL.SSL_Context_Type;
+
    type SSL_Endpoint is new Socket_Endpoint with private;
 
    procedure Create
