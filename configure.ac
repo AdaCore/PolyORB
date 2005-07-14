@@ -459,8 +459,10 @@ do
    if test "${F}" = "${PO_CATREF_WITHS}"; then
      SEDCMD="${SEDCMD} -e '/PolyORB\.Binding_Data\.GIOP\.Print/,/^$/d'"
    fi
-   eval "${SEDCMD}" < ${F} > ${F}.new
-   mv ${F}.new ${F}
+   if test -e ${F}; then 
+     eval "${SEDCMD}" < ${F} > ${F}.new
+     mv ${F}.new ${F}
+   fi
 done
 
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
