@@ -196,7 +196,8 @@ package Backend.BE_Ada.Runtime is
                                     --    Register_Skeleton
       RE_Servant,                   --  PortableServer.Servant
       RE_Servant_Base,              --  PortableServer.Servant_Base
-      RE_String_2);                  --  Standard.String
+      RE_Natural,                   --  Standard.Natural
+      RE_String_2);                 --  Standard.String
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id
      := (RE_Ref_0                   => RU_Null,
@@ -335,6 +336,7 @@ package Backend.BE_Ada.Runtime is
          RE_Register_Skeleton       => RU_PortableServer_Internals,
          RE_Servant                 => RU_PortableServer,
          RE_Servant_Base            => RU_PortableServer,
+         RE_Natural                 => RU_Standard,
          RE_String_2                => RU_Standard);
 
    procedure Initialize;

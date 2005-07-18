@@ -4,14 +4,12 @@ with Values;    use Values;
 
 with Frontend.Nutils;
 with Frontend.Nodes;            use Frontend.Nodes;
---  with Frontend.Debug;            use Frontend.Debug;
 
 with Backend.BE_Ada.Expand;     use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
---  with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Stubs is
 
@@ -1159,7 +1157,7 @@ package body Backend.BE_Ada.Stubs is
          Then_Statements => S);
       Append_Node_To_List (N, Marshaller_Statements);
 
-      --  Create argument list.
+      --  Create argument list
 
       Set_Str_To_Name_Buffer
         ("Create the Argument list");
@@ -1428,6 +1426,7 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, Marshaller_Statements);
 
       --  Raise eventual exceptions
+
       Set_Str_To_Name_Buffer
         ("Raise eventual exceptions");
       Append_Node_To_List

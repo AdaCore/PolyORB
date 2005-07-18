@@ -1253,7 +1253,7 @@ package body Backend.BE_Ada.Helpers is
                         TC_Previous_Name := TC_Name;
                         TC_Name := Get_Dimension_Variable_Name (Index);
                         TC_Dim  := Declare_Dimension (TC_Name);
-                        V := Value (Last (Constraint));
+                        V := Values.Value (BEN.Value (Last (Constraint)));
                         V.IVal := V.IVal + 1;
                         Append_Node_To_List (TC_Dim, Declarative_Part);
                         Param1 := Make_Subprogram_Call
@@ -1285,7 +1285,7 @@ package body Backend.BE_Ada.Helpers is
                      --  The case of the last TC_ variable which represents the
                      --  whole array is handled apart.
 
-                     V := Value (Last (Constraint));
+                     V := Values.Value (BEN.Value (Last (Constraint)));
                      V.IVal := V.IVal + 1;
                      Param1 := Make_Subprogram_Call
                        (RE (RE_Unsigned_Long),
@@ -1295,7 +1295,7 @@ package body Backend.BE_Ada.Helpers is
 
                   else --  1 dimension array
 
-                     V := Value (Last (First_Node (Sizes)));
+                     V := Values.Value (BEN.Value (Last (First_Node (Sizes))));
                      V.IVal := V.IVal + 1;
                      Param1 := Make_Subprogram_Call
                        (RE (RE_Unsigned_Long),
@@ -1527,9 +1527,6 @@ package body Backend.BE_Ada.Helpers is
                               Parent_Designator =>
                                 BEN.Parent_Designator (Choice));
 
-                           --  N := Make_Qualified_Expression
-                           --  (Subtype_Mark => Switch_Type,
-                           --  Aggregate    => N);
                            N := Make_Subprogram_Call
                              (Switch_Type,
                               Make_List_Id (N));
@@ -1575,11 +1572,7 @@ package body Backend.BE_Ada.Helpers is
 
                   --  Forth parameter
                   N := Make_Literal
-                    (Value           => Default_Index); --  ,
-                  --  Has_Parentheses => True);
-                  --  N := Make_Qualified_Expression
-                  --  (Subtype_Mark => RE (RE_Long),
-                  --  Aggregate    => N);
+                    (Value           => Default_Index);
                   N := Make_Subprogram_Call
                     (RE (RE_Long),
                      Make_List_Id (N));
@@ -1866,7 +1859,7 @@ package body Backend.BE_Ada.Helpers is
                   Append_Node_To_List (N, S);
                end if;
 
-               V := Value (Last (Dim));
+               V := Values.Value (BEN.Value (Last (Dim)));
                V.IVal := V.IVal + 1;
                I := I + 1;
 

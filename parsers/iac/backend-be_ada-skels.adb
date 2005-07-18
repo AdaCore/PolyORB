@@ -1,5 +1,6 @@
 with Namet;  use Namet;
 with Values; use Values;
+with Types;  use Types;
 
 with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils;
@@ -11,10 +12,7 @@ with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 
-pragma Warnings (off);
-with Backend.BE_Ada.Debug;     use Backend.BE_Ada.Debug;
-with Frontend.Debug;           use Frontend.Debug;
-pragma Warnings (on);
+with GNAT.Perfect_Hash.Generators; use GNAT.Perfect_Hash.Generators;
 
 package body Backend.BE_Ada.Skels is
    package FEN renames Frontend.Nodes;
@@ -106,14 +104,15 @@ package body Backend.BE_Ada.Skels is
 
    end Package_Spec;
 
-
    package body Package_Body is
 
-      Invoke_Elsif_Statements : List_Id;
-      Package_Initialization  : List_Id;
+      Invoke_Elsif_Statements : List_Id := No_List;
+      Package_Initialization  : List_Id := No_List;
+      Choice_List             : List_Id := No_List;
 
       function Deferred_Initialization_Body (E : Node_Id) return Node_Id;
       function Gen_Invoke_Part (S : Node_Id) return Node_Id;
+      function Invoke_Body (E : Node_Id) return Node_Id;
       procedure Invoke_Declaration (L : List_Id);
       function Invoke_Spec return Node_Id;
       function Is_A_Invoke_Part return Node_Id;
@@ -126,6 +125,45 @@ package body Backend.BE_Ada.Skels is
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Operation_Declaration (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
+
+      --  The entities below are used in case of optimization using minimal
+      --  perfect hash functions
+      N_Subprograms           : Unsigned_Long_Long;
+      Register_Procedure_List : List_Id;
+      Invoke_Subp_Specs       : List_Id;
+      Invoke_Subp_Bodies      : List_Id;
+
+      --  This function generates the name of the package that will contain
+      --  the Hash function.
+      function  Hash_Package_Name (E : Node_Id) return Name_Id;
+
+      --  This procedure initialise the lists above. It initialises the GNAT
+      --  Perfect_Hash generator.
+      procedure Initialize_Hash_Function_Optimisation;
+
+      --  This procedure computes the Perfect Hash function generator, produces
+      --  it in an additional package and finally finalizes the generator.
+      procedure Achieve_Hash_Function_Optimisation (E : Node_Id);
+
+      --  This function inserts the name of the subprogram to the Perfect hash
+      --  function generator. It produces also a "Register procedure" call
+      --  statement which will be added to the Deferred_Initialization
+      --  procedure statements.
+      procedure Insert_And_Register_Statements
+        (Subp_Name   : Name_Id;
+         Invoke_Node : Node_Id);
+
+      --  Generation of the Register_Procedure subprogram which is called to
+      --  register a procedure in the hash table.
+      function Register_Procedure_Spec return Node_Id;
+      function Register_Procedure_Body (E : Node_Id) return Node_Id;
+
+      --  This function generates a spec for the Invoke_XXXX procedure
+      function Little_Invoke_Spec (Entity_Name : Name_Id) return Node_Id;
+
+      ----------------------------------
+      -- Deferred_Initialization_Body --
+      ----------------------------------
 
       function Deferred_Initialization_Body (E : Node_Id) return Node_Id is
          N          : Node_Id;
@@ -158,6 +196,14 @@ package body Backend.BE_Ada.Skels is
            (RE (RE_Register_Skeleton), Profile);
          Append_Node_To_List (N, Statements);
 
+         --  In case of perfect hash function optimization, we register the
+         --  Invoke_XXXX procedures at the package initialilzation
+         if Use_Minimal_Hash_Function then
+            Append_Node_To_List
+              (First_Node (Register_Procedure_List),
+               Statements);
+         end if;
+
          N := Make_Subprogram_Implementation
            (Spec, No_List, Statements);
 
@@ -186,6 +232,7 @@ package body Backend.BE_Ada.Skels is
          To_Any_Helper    : Node_Id;
          FE               : Node_Id;
          Impl_Id          : Node_Id;
+         Operation_Name   : Name_Id := BEN.Name (Defining_Identifier (S));
 
          function Exception_Handler_Alternative
            (E : Node_Id)
@@ -275,8 +322,18 @@ package body Backend.BE_Ada.Skels is
             return Result;
          end Exception_Handler_Alternative;
 
-
       begin
+         --  In case of optimization using the perfect hash functions,
+         --  the argument list is created in each Invoke_XXX procedure
+         if Use_Minimal_Hash_Function then
+            N := Make_Subprogram_Call
+              (RE (RE_Create_List),
+               Make_List_Id
+               (Make_Literal (Int0_Val),
+                Make_Defining_Identifier (VN (V_Argument_List))));
+            Append_Node_To_List (N, Statements);
+         end if;
+
          --  Implementation.Object'Class (Self.All)'Access
 
          N := Implementation_Package (Current_Entity);
@@ -586,28 +643,193 @@ package body Backend.BE_Ada.Skels is
 
          N := Make_Return_Statement (No_Node);
          Append_Node_To_List (N, Statements);
-         declare
-            Operation_Name   : Name_Id := BEN.Name (Defining_Identifier (S));
-         begin
-            if K = K_Attribute_Declaration then
-               Operation_Name := Add_Prefix_To_Name ("_", Operation_Name);
-            end if;
 
+         if K = K_Attribute_Declaration then
+            Operation_Name := Add_Prefix_To_Name ("_", Operation_Name);
+         end if;
+
+         --  If no optimization is requested by the user, we generate an elsif
+         --  statement. Else, we generate an independant procedure
+         if not Use_Minimal_Hash_Function then
             C := Make_Expression
               (Make_Defining_Identifier (VN (V_Operation)),
                Op_Equal,
                Make_Literal
                (New_String_Value
                 (Operation_Name, False)));
-         end;
 
-         N := Make_Block_Statement
-           (Declarative_Part => Declarative_Part,
-            Statements       => Statements);
-         N := Make_Elsif_Statement
-           (C, Make_List_Id (N));
+            N := Make_Block_Statement
+              (Declarative_Part => Declarative_Part,
+               Statements       => Statements);
+            N := Make_Elsif_Statement
+              (C, Make_List_Id (N));
+         else
+            --  The declaration of the argument list is put in each Invoke_XXXX
+            --  subprogram in case of optimisation
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Argument_List)),
+               Object_Definition   => RE (RE_Ref_4));
+            Append_Node_To_List (N, Declarative_Part);
+
+            --  Create the spec of the independant Invoke_XXXX procedure
+            N := Little_Invoke_Spec (BEN.Name (Defining_Identifier (S)));
+            Append_Node_To_List (N, Invoke_Subp_Specs);
+
+            --  Insert the subprogram name into the hash function generator
+            --  and add a call to Register_Procedure
+            Insert_And_Register_Statements
+              (Operation_Name,
+               Copy_Node (Defining_Identifier (N)));
+
+            --  Generate the body of the Invoke_XXXX procedure
+            N := Make_Subprogram_Implementation
+              (N,
+               Declarative_Part,
+               Statements);
+         end if;
          return N;
       end Gen_Invoke_Part;
+
+      -----------------
+      -- Invoke_Body --
+      -----------------
+
+      function Invoke_Body (E : Node_Id) return Node_Id is
+         N                 : Node_Id;
+         Spec              : Node_Id;
+         D                 : constant List_Id := New_List (K_List_Id);
+         C_1               : Node_Id;
+         C_2               : Node_Id;
+         Then_Statements   : constant List_Id := New_List (K_List_Id);
+         Else_Statements   : constant List_Id := New_List (K_List_Id);
+         Invoke_Statements : constant List_Id := New_List (K_List_Id);
+         Exception_Handler : Node_Id;
+      begin
+         Spec := Invoke_Spec;
+
+         --  The declarative part
+
+         Invoke_Declaration (D);
+
+         --  The particular case of the Is_A function :
+
+         N := Is_A_Invoke_Part;
+         if not Use_Minimal_Hash_Function then
+            Append_Node_To_List (N, Then_Statements);
+            N := Make_Subprogram_Call
+              (RE (RE_Create_List),
+               Make_List_Id
+               (Make_Literal (Int0_Val),
+                Make_Defining_Identifier (VN (V_Argument_List))));
+            Append_Node_To_List (N, Invoke_Statements);
+            C_1 := Make_Expression
+              (Make_Defining_Identifier (VN (V_Operation)),
+               Op_Equal,
+               Make_Literal
+               (New_String_Value
+                (Add_Prefix_To_Name ("_", SN (S_Is_A)), False)));
+         else
+            Append_Node_To_List (N, Invoke_Subp_Bodies);
+
+            N := Make_Defining_Identifier (SN (S_Hash));
+            Set_Correct_Parent_Unit_Name
+              (N, Make_Defining_Identifier (Hash_Package_Name (E)));
+
+            N := Make_Subprogram_Call
+              (N,
+               Make_List_Id
+               (Make_Defining_Identifier
+                (VN (V_Operation))));
+            N := Make_Assignment_Statement
+              (Make_Defining_Identifier (VN (V_Index)),
+               N);
+            Append_Node_To_List (N, Invoke_Statements);
+
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (PN (P_Invoke_Db)),
+               Make_List_Id (Make_Defining_Identifier (VN (V_Index))));
+
+            --  Obtaining the record corresponding to the hash code
+            N := Make_Assignment_Statement
+              (Make_Defining_Identifier (PN (P_Invoke_Record)),
+               N);
+            Append_Node_To_List (N, Invoke_Statements);
+
+            --  Obtaining the procedure actual name
+            N := Make_Defining_Identifier (PN (P_Name_Access));
+            Set_Correct_Parent_Unit_Name
+              (N,
+               Make_Defining_Identifier (PN (P_Invoke_Record)));
+            N := Make_Assignment_Statement
+              (Make_Defining_Identifier (PN (P_Invoke_Name_Access)),
+               N);
+            Append_Node_To_List (N, Invoke_Statements);
+
+            --  Obtaining the procedure access
+            N := Make_Defining_Identifier (PN (P_Invoke_Access));
+            Set_Correct_Parent_Unit_Name
+              (N,
+               Make_Defining_Identifier (PN (P_Invoke_Record)));
+            N := Make_Assignment_Statement
+              (Make_Defining_Identifier (PN (P_Invoke_Access)),
+               N);
+            Append_Node_To_List (N, Invoke_Statements);
+
+            --  The condition
+            C_1 := Make_Expression
+              (Make_Defining_Identifier (PN (P_Invoke_Access)),
+               Op_Not_Equal,
+               Make_Null_Statement);
+
+            C_2 := Make_Expression
+              (Make_Defining_Identifier (VN (V_Operation)),
+               Op_Equal,
+               Make_Designator (PN (P_Invoke_Name_Access), Is_All => True));
+
+            C_1 := Make_Expression
+              (C_2,
+               Op_And_Then,
+               C_1);
+
+            --  Prepare the call using the procedure pointer
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier
+               (PN (P_Invoke_Access)),
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Self)),
+                Make_Defining_Identifier (PN (P_Request))));
+            Append_Node_To_List (N, Then_Statements);
+         end if;
+
+         N := Make_Subprogram_Call
+           (RE (RE_Raise_Bad_Operation),
+            Make_List_Id (RE (RE_Default_Sys_Member)));
+         Append_Node_To_List (N, Else_Statements);
+
+         N := Make_If_Statement
+           (C_1,
+            Then_Statements,
+            Invoke_Elsif_Statements,
+            Else_Statements);
+
+         Exception_Handler := Non_User_Exception_Handler;
+
+         N := Make_Block_Statement
+           (Declarative_Part  => No_List,
+            Statements        =>
+              Make_List_Id (N),
+            Exception_Handler =>
+              Make_List_Id (Exception_Handler));
+         Append_Node_To_List (N, Invoke_Statements);
+
+         --  Generation of the Invoke Procedure
+
+         N := Make_Subprogram_Implementation
+           (Spec, D, Invoke_Statements);
+
+         return N;
+      end Invoke_Body;
 
       ------------------------
       -- Invoke_Declaration --
@@ -632,11 +854,42 @@ package body Backend.BE_Ada.Skels is
             Object_Definition   => RE (RE_String_2),
             Expression          => N);
          Append_Node_To_List (N, L);
-         N := Make_Object_Declaration
-           (Defining_Identifier =>
-              Make_Defining_Identifier (VN (V_Argument_List)),
-            Object_Definition   => RE (RE_Ref_4));
-         Append_Node_To_List (N, L);
+         --  If the user requested to use the perfect hash functions, the
+         --  argument list is declared in each Invoke_XXXX procedure
+         if not Use_Minimal_Hash_Function then
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Argument_List)),
+               Object_Definition   => RE (RE_Ref_4));
+            Append_Node_To_List (N, L);
+         else
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier
+               (VN (V_Index)),
+               Object_Definition   => RE (RE_Natural));
+            Append_Node_To_List (N, L);
+
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier
+               (PN (P_Invoke_Record)),
+               Object_Definition   => Make_Defining_Identifier
+               (TN (T_Invoke_Record_Type)));
+            Append_Node_To_List (N, L);
+
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier
+               (PN (P_Invoke_Name_Access)),
+               Object_Definition   => Make_Defining_Identifier
+               (TN (T_String_Ptr)));
+            Append_Node_To_List (N, L);
+
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier
+               (PN (P_Invoke_Access)),
+               Object_Definition   => Make_Defining_Identifier
+               (TN (T_Procedure_Access)));
+            Append_Node_To_List (N, L);
+         end if;
       end Invoke_Declaration;
 
       -----------------
@@ -679,6 +932,17 @@ package body Backend.BE_Ada.Skels is
          New_Name         : Name_Id;
          P                : List_Id;
       begin
+         --  In case of optimization using the perfect hash functions,
+         --  the argument list is created in each Invoke_XXX procedure
+         if Use_Minimal_Hash_Function then
+            N := Make_Subprogram_Call
+              (RE (RE_Create_List),
+               Make_List_Id
+               (Make_Literal (Int0_Val),
+                Make_Defining_Identifier (VN (V_Argument_List))));
+            Append_Node_To_List (N, Statements);
+         end if;
+
          P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
          Set_Str_To_Name_Buffer (Param);
          Param_Name := Name_Find;
@@ -772,9 +1036,39 @@ package body Backend.BE_Ada.Skels is
          Append_Node_To_List (N, Statements);
          N := Make_Return_Statement (No_Node);
          Append_Node_To_List (N, Statements);
-         N := Make_Block_Statement
-           (Declarative_Part => Declarative_Part,
-            Statements       => Statements);
+         --  If no optimization is requested by the user, we generate an elsif
+         --  statement. Else, we generate an independant procedure
+         if not Use_Minimal_Hash_Function then
+            N := Make_Block_Statement
+              (Declarative_Part => Declarative_Part,
+               Statements       => Statements);
+         else
+            --  The declaration of the argument list is put in each Invoke_XXXX
+            --  subprogram in case of optimisation
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Argument_List)),
+               Object_Definition   => RE (RE_Ref_4));
+            Append_Node_To_List (N, Declarative_Part);
+
+            --  Create the spec of the independant Invoke_XXXX procedure
+            N := Little_Invoke_Spec (SN (S_Is_A));
+            Append_Node_To_List (N, Invoke_Subp_Specs);
+
+            --  Insert the subprogram name into the hash function generator
+            --  and add a call to Register_Procedure
+            Set_Char_To_Name_Buffer ('_');
+            Get_Name_String_And_Append (SN (S_Is_A));
+            Insert_And_Register_Statements
+              (Name_Find,
+               Copy_Node (Defining_Identifier (N)));
+
+            --  Generate the body of the Invoke_XXXX procedure
+            N := Make_Subprogram_Implementation
+              (N,
+               Declarative_Part,
+               Statements);
+         end if;
          return N;
       end Is_A_Invoke_Part;
 
@@ -925,6 +1219,386 @@ package body Backend.BE_Ada.Skels is
          return Result;
       end Non_User_Exception_Handler;
 
+      -----------------------
+      -- Hash_Package_Name --
+      -----------------------
+
+      function  Hash_Package_Name (E : Node_Id) return Name_Id is
+         pragma Assert (FEN.Kind (E) = K_Interface_Declaration);
+      begin
+         Get_Name_String
+           (FEU.Fully_Qualified_Name
+            (FEN.Identifier (E),
+             Separator => "_"));
+         Add_Str_To_Name_Buffer ("_Hash");
+         return Name_Find;
+      end Hash_Package_Name;
+
+      -------------------------------------------
+      -- Initialize_Hash_Function_Optimisation --
+      -------------------------------------------
+
+      procedure Initialize_Hash_Function_Optimisation is
+         Optim : Optimization;
+
+         --  This is the random seed used in the generation algorithm. Since
+         --  we don't need the random aspect in IAC, we fix the seed
+         S     : constant Natural := 1123;
+
+         --  The ratio of the algorith, we don't use the defaut ration
+         --  because it doesn't succeed when the number of functions is small
+         K_2_V   : constant Float   := 2.1;
+      begin
+         --  Checking wether the user chose to optimize memory space or CPU
+         --  Time
+
+         if Optimize_CPU and then not Optimize_Memory then
+            Optim := CPU_Time;
+         elsif Optimize_Memory and then not Optimize_CPU then
+            Optim := Memory_Space;
+         else
+            raise Program_Error;
+         end if;
+
+         --  Initialize the perfect hash function generator
+
+         Initialize
+           (Seed  => S,
+            K_To_V => K_2_V,
+            Optim => Optim);
+
+         --  Initialize the lists
+         N_Subprograms           := 0;
+         Register_Procedure_List := New_List (K_List_Id);
+         Invoke_Subp_Specs       := New_List (K_List_Id);
+         Invoke_Subp_Bodies      := New_List (K_List_Id);
+
+      end Initialize_Hash_Function_Optimisation;
+
+      ----------------------------------------
+      -- Achieve_Hash_Function_Optimisation --
+      ----------------------------------------
+
+      procedure Achieve_Hash_Function_Optimisation (E : Node_Id) is
+         N          : Node_Id;
+         L          : List_Id;
+         Component  : Node_Id;
+         Components : List_Id;
+      begin
+         --  We add a "with" clause to be able to use the "Hash" function
+         Add_With_Package (Make_Designator (Hash_Package_Name (E)));
+
+         --  Declaration of the total number of subprograms
+         N := Make_Literal (New_Integer_Value (N_Subprograms, 1, 10));
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_N_Operations)),
+            Constant_Present    => True,
+            Object_Definition   => RE (RE_Natural),
+            Expression          => N);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Definition of the Procedure_Access type which is the access type
+         --  for all the Invoke_XXXX procedures.
+         N := Invoke_Spec;
+         Set_Defining_Identifier (N, No_Node);
+         N := Make_Full_Type_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (TN (T_Procedure_Access)),
+            Type_Definition     => Make_Access_Type_Definition (N));
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Definition of a string access type
+         N := Make_Full_Type_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (TN (T_String_Ptr)),
+            Type_Definition     => Make_Access_Type_Definition
+            (RE (RE_String_2)));
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Definition of the record type containing a Procedure_Access and
+         --  a string
+         Components := New_List (K_Component_List);
+         Component := Make_Component_Declaration
+           (Make_Defining_Identifier (PN (P_Name_Access)),
+            Make_Defining_Identifier (TN (T_String_Ptr)));
+         Append_Node_To_List (Component, Components);
+
+         Component := Make_Component_Declaration
+           (Make_Defining_Identifier (PN (P_Invoke_Access)),
+            Make_Defining_Identifier (TN (T_Procedure_Access)));
+         Append_Node_To_List (Component, Components);
+
+         N := Make_Full_Type_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (TN (T_Invoke_Record_Type)),
+            Type_Definition     => Make_Record_Type_Definition
+            (Make_Record_Definition
+             (Components)));
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Declaration of the hash table. The hash table size is equal to
+         --  the number of subprograms
+         N := New_Node (K_Range_Constraint);
+         Set_First (N, Make_Literal (Int0_Val));
+         Set_Last
+           (N,
+            Make_Expression
+            (Make_Defining_Identifier (PN (P_N_Operations)),
+             Op_Minus,
+             Make_Literal (Int1_Val)));
+         --  Prepare the initialisation part of the array
+         L := Make_List_Id
+           (Make_Component_Association
+            (Selector_Name => Make_Defining_Identifier
+             (PN (P_Name_Access)),
+             Expression    => Make_Null_Statement),
+            Make_Component_Association
+            (Selector_Name => Make_Defining_Identifier
+             (PN (P_Invoke_Access)),
+             Expression    => Make_Null_Statement));
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Invoke_Db)),
+            Object_Definition   => Make_Array_Type_Definition
+            (Make_List_Id (N),
+             Make_Defining_Identifier (TN (T_Invoke_Record_Type))),
+            Expression          => Make_Record_Aggregate
+            (Make_List_Id
+             (Make_Component_Association
+              (Selector_Name => No_Node, --  others
+               Expression    => Make_Record_Aggregate (L)))));
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Insert the spec and the body of the Register_Procedure procedure
+         N := Register_Procedure_Spec;
+         Append_Node_To_List (N, Statements (Current_Package));
+         N := Register_Procedure_Body (E);
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Compute the hash function generator, we use all positions
+         Compute (Position => "1-$");
+
+         --  Produce the package containing the Hash function
+         Get_Name_String (Hash_Package_Name (E));
+         Produce (Name_Buffer (1 .. Name_Len));
+
+         --  Finalize the generator
+         Finalize;
+      end Achieve_Hash_Function_Optimisation;
+
+      ------------------------------------
+      -- Insert_And_Register_Statements --
+      ------------------------------------
+
+      procedure Insert_And_Register_Statements
+        (Subp_Name   : Name_Id;
+         Invoke_Node : Node_Id)
+      is
+         pragma Assert (BEN.Kind (Invoke_Node) = K_Defining_Identifier);
+         Profile : constant List_Id := New_List (K_List_Id);
+         N       : Node_Id;
+      begin
+         --  First of all, we increment the number of subprograms
+
+         N_Subprograms := N_Subprograms + 1;
+
+         --  Insert the subprogram name into the perfect hash table generator
+         Get_Name_String (Subp_Name);
+         Insert (Name_Buffer (1 .. Name_Len));
+
+         --  Generate the call to Register_Procedure, which put an access to
+         --  the Invoke_XXXX in the right place into the hash table.
+         N := Make_Literal
+           (New_String_Value
+            (Subp_Name, False));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Attribute_Designator
+           (Prefix    => Invoke_Node,
+            Attribute => A_Access);
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Subprogram_Call
+           (Make_Defining_Identifier (SN (S_Register_Procedure)),
+            Profile);
+         Append_Node_To_List (N, Register_Procedure_List);
+
+      end Insert_And_Register_Statements;
+
+      -----------------------------
+      -- Register_Procedure_Spec --
+      -----------------------------
+
+      function Register_Procedure_Spec return Node_Id is
+         N       : Node_Id;
+         Profile : constant List_Id := New_List (K_List_Id);
+      begin
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Operation_Name)),
+            Subtype_Mark        => RE (RE_String_2));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Parameter_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Invoke_Access)),
+            Subtype_Mark        => Make_Defining_Identifier
+            (TN (T_Procedure_Access)));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Subprogram_Specification
+           (Defining_Identifier => Make_Defining_Identifier
+            (SN (S_Register_Procedure)),
+            Parameter_Profile   => Profile,
+            Return_Type         => No_Node);
+         return N;
+      end Register_Procedure_Spec;
+
+      -----------------------------
+      -- Register_Procedure_Body --
+      -----------------------------
+
+      function Register_Procedure_Body (E : Node_Id) return Node_Id is
+         Spec             : Node_Id;
+         Declarative_Part : constant List_Id := New_List (K_List_Id);
+         Statements       : constant List_Id := New_List (K_List_Id);
+         N                : Node_Id;
+         L                : List_Id;
+      begin
+         Spec := Register_Procedure_Spec;
+
+         --  Declarative part
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (VN (V_Index)),
+            Object_Definition   => RE (RE_Natural));
+         Append_Node_To_List (N, Declarative_Part);
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier
+            (PN (P_Invoke_Record)),
+            Object_Definition   => Make_Defining_Identifier
+            (TN (T_Invoke_Record_Type)));
+         Append_Node_To_List (N, Declarative_Part);
+
+         --  Statements part
+
+         N := Make_Defining_Identifier (SN (S_Hash));
+         Set_Correct_Parent_Unit_Name
+           (N, Make_Defining_Identifier (Hash_Package_Name (E)));
+
+         N := Make_Subprogram_Call
+           (N,
+            Make_List_Id
+            (Make_Defining_Identifier
+             (PN (P_Operation_Name))));
+         N := Make_Assignment_Statement
+           (Make_Defining_Identifier (VN (V_Index)),
+            N);
+         Append_Node_To_List (N, Statements);
+
+         --  Test if the hash code was already found in which case raise a
+         --  program error
+         L := Make_List_Id
+           (Make_Component_Association
+            (Selector_Name => Make_Defining_Identifier
+             (PN (P_Name_Access)),
+             Expression    => Make_Null_Statement),
+            Make_Component_Association
+            (Selector_Name => Make_Defining_Identifier
+             (PN (P_Invoke_Access)),
+             Expression    => Make_Null_Statement));
+
+         N := Make_Subprogram_Call
+           (Make_Defining_Identifier (PN (P_Invoke_Db)),
+            Make_List_Id (Make_Defining_Identifier (VN (V_Index))));
+         N := Make_Expression
+           (N,
+            Op_Not_Equal,
+            Make_Record_Aggregate (L));
+
+         N := Make_If_Statement
+           (Condition       => N,
+            Then_Statements => Make_List_Id
+            (Make_Raise_Statement
+             (Make_Defining_Identifier
+              (EN (E_Program_Error)))));
+         Append_Node_To_List (N, Statements);
+
+         --  Assigning the procedure actual name
+         N := Make_Defining_Identifier (PN (P_Name_Access));
+         Set_Correct_Parent_Unit_Name
+           (N,
+            Make_Defining_Identifier (PN (P_Invoke_Record)));
+         N := Make_Assignment_Statement
+           (N,
+            Make_Object_Instanciation
+            (Make_Qualified_Expression
+             (Subtype_Mark => RE (RE_String_2),
+              Aggregate    => Make_Record_Aggregate
+              (Make_List_Id
+               (Make_Defining_Identifier
+                (PN (P_Operation_Name)))))));
+         Append_Node_To_List (N, Statements);
+
+         --  Assigning the procedure access
+         N := Make_Defining_Identifier (PN (P_Invoke_Access));
+         Set_Correct_Parent_Unit_Name
+           (N,
+            Make_Defining_Identifier (PN (P_Invoke_Record)));
+         N := Make_Assignment_Statement
+           (N,
+            Make_Defining_Identifier (PN (P_Invoke_Access)));
+         Append_Node_To_List (N, Statements);
+
+         --  Update the hash table
+
+         N := Make_Subprogram_Call
+           (Make_Defining_Identifier (PN (P_Invoke_Db)),
+            Make_List_Id (Make_Defining_Identifier (VN (V_Index))));
+         N := Make_Assignment_Statement
+           (N,
+            Make_Defining_Identifier (PN (P_Invoke_Record)));
+         Append_Node_To_List (N, Statements);
+
+         N := Make_Subprogram_Implementation
+           (Specification => Spec,
+            Declarations  => Declarative_Part,
+            Statements    => Statements);
+
+         return N;
+      end Register_Procedure_Body;
+
+      ------------------------
+      -- Little_Invoke_Spec --
+      ------------------------
+
+      function Little_Invoke_Spec (Entity_Name : Name_Id) return Node_Id is
+         N       : Node_Id;
+         Param   : Node_Id;
+         Profile : List_Id;
+
+      begin
+         Profile := New_List (K_List_Id);
+         Param   := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Self)),
+            RE (RE_Servant));
+         Append_Node_To_List (Param, Profile);
+         Param := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Request)),
+            RE (RE_Object_Ptr));
+         Append_Node_To_List (Param, Profile);
+         Set_Str_To_Name_Buffer ("Invoke_");
+         Get_Name_String_And_Append (Entity_Name);
+         N := Make_Subprogram_Specification
+           (Make_Defining_Identifier (Name_Find),
+            Profile,
+            No_Node);
+         return N;
+      end Little_Invoke_Spec;
+
       -----------
       -- Visit --
       -----------
@@ -969,12 +1643,13 @@ package body Backend.BE_Ada.Skels is
                raise Program_Error;
             end if;
             N := Gen_Invoke_Part (N);
-            Append_Node_To_List (N, Invoke_Elsif_Statements);
+            Append_Node_To_List (N, Choice_List);
 
             if not Is_Readonly (E) then
+               --  Getting the Set_XXXX subprogram node.
                N := Next_Node (Stub_Node (BE_Node (Identifier (A))));
                N := Gen_Invoke_Part (N);
-               Append_Node_To_List (N, Invoke_Elsif_Statements);
+               Append_Node_To_List (N, Choice_List);
             end if;
 
             A := Next_Entity (A);
@@ -986,16 +1661,11 @@ package body Backend.BE_Ada.Skels is
       ---------------------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
-         N                 : Node_Id;
-         Spec              : Node_Id;
-         D                 : constant List_Id := New_List (K_List_Id);
-         C                 : Node_Id;
-         Then_Statements   : constant List_Id := New_List (K_List_Id);
-         Else_Statements   : constant List_Id := New_List (K_List_Id);
-         Invoke_Statements : constant List_Id := New_List (K_List_Id);
-         Exception_Handler : Node_Id;
-         Param             : Node_Id;
-         Profile           : constant List_Id := New_List (K_List_Id);
+         N         : Node_Id;
+         Param     : Node_Id;
+         Profile   : constant List_Id := New_List (K_List_Id);
+         Invk_Spec : Node_Id;
+         Invk_Body : Node_Id;
 
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
@@ -1003,8 +1673,17 @@ package body Backend.BE_Ada.Skels is
 
          Set_Skeleton_Body;
 
-         Invoke_Elsif_Statements := New_List (K_List_Id);
          Package_Initialization  := New_List (K_List_Id);
+
+         --  If the user chose to generate optimised skeletons, we initialise
+         --  the optimization related lists
+         if Use_Minimal_Hash_Function then
+            Initialize_Hash_Function_Optimisation;
+            Choice_List := Invoke_Subp_Bodies;
+         else
+            Invoke_Elsif_Statements := New_List (K_List_Id);
+            Choice_List := Invoke_Elsif_Statements;
+         end if;
 
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
@@ -1021,44 +1700,32 @@ package body Backend.BE_Ada.Skels is
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Skel                 => True);
 
-         Spec := Invoke_Spec;
-         Invoke_Declaration (D);
-         N := Make_Subprogram_Call
-           (RE (RE_Create_List),
-            Make_List_Id
-            (Make_Literal (Int0_Val),
-             Make_Defining_Identifier (VN (V_Argument_List))));
-         Append_Node_To_List (N, Invoke_Statements);
+         --  Build the Invoke procedure
+         Invk_Spec := Invoke_Spec;
+         Invk_Body := Invoke_Body (E);
 
-         C := Make_Expression
-           (Make_Defining_Identifier (VN (V_Operation)),
-            Op_Equal,
-            Make_Literal
-            (New_String_Value
-             (Add_Prefix_To_Name ("_", SN (S_Is_A)), False)));
-         N := Is_A_Invoke_Part;
-         Append_Node_To_List (N, Then_Statements);
+         --  At this point, all operations and attributes are visited. We
+         --  achive the perfect hash function generation and we add the
+         --  eventual spec of the Invoke_XXXX procedures
+         if Use_Minimal_Hash_Function then
+            Achieve_Hash_Function_Optimisation (E);
+            Append_Node_To_List
+              (First_Node (Invoke_Subp_Specs),
+               Statements (Current_Package));
+         end if;
 
-         N := Make_Subprogram_Call
-           (RE (RE_Raise_Bad_Operation),
-            Make_List_Id (RE (RE_Default_Sys_Member)));
-         Append_Node_To_List (N, Else_Statements);
+         --  Add the Invoke procedure Spec
+         Append_Node_To_List (Invk_Spec, Statements (Current_Package));
 
-         N := Make_If_Statement
-           (C,
-            Then_Statements,
-            Invoke_Elsif_Statements,
-            Else_Statements);
+         --  The eventual bdies of the Invoke_XXXX procedures
+         if Use_Minimal_Hash_Function then
+            Append_Node_To_List
+              (First_Node (Invoke_Subp_Bodies),
+               Statements (Current_Package));
+         end if;
 
-         Exception_Handler := Non_User_Exception_Handler;
-
-         N := Make_Block_Statement
-           (Declarative_Part  => No_List,
-            Statements        =>
-              Make_List_Id (N),
-            Exception_Handler =>
-              Make_List_Id (Exception_Handler));
-         Append_Node_To_List (N, Invoke_Statements);
+         --  Add the Invoke procedure Body
+         Append_Node_To_List (Invk_Body, Statements (Current_Package));
 
          --  Generation of the Servant_Is_A function
 
@@ -1075,9 +1742,7 @@ package body Backend.BE_Ada.Skels is
          N := Servant_Is_A_Body (N);
          Append_Node_To_List (N, Statements (Current_Package));
 
-         N := Make_Subprogram_Implementation
-           (Spec, D, Invoke_Statements);
-         Append_Node_To_List (N, Statements (Current_Package));
+         --  Generation of the Deferred_Initialization procedure
 
          N := Deferred_Initialization_Body (E);
          Append_Node_To_List (N, Statements (Current_Package));
@@ -1114,7 +1779,7 @@ package body Backend.BE_Ada.Skels is
       begin
          Spec := Stub_Node (BE_Node (Identifier (E)));
          N := Gen_Invoke_Part (Spec);
-         Append_Node_To_List (N, Invoke_Elsif_Statements);
+         Append_Node_To_List (N, Choice_List);
       end Visit_Operation_Declaration;
 
       -------------------------
