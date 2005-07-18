@@ -56,6 +56,13 @@ package body Ada_Be.Expansion is
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.expansion");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
+   ------------------
+   -- Shared state --
+   ------------------
+
+   In_Sequence_Type : Boolean := False;
+   --  Set in Expand_Sequence during expansion of the sequence type
+
    ------------------------------------
    -- Internal expansion subprograms --
    ------------------------------------
@@ -1347,8 +1354,11 @@ package body Ada_Be.Expansion is
         := Make_Scoped_Name (Loc);
       Seq_Inst_Node : constant Node_Id
         := Make_Sequence_Instance (Loc);
+      Prev_In_Sequence_Type : constant Boolean := In_Sequence_Type;
    begin
+      In_Sequence_Type := True;
       Expand_Node (Sequence_Type (Node));
+      In_Sequence_Type := Prev_In_Sequence_Type;
 
       Add_Identifier_With_Renaming
         (Seq_Inst_Node,
@@ -1665,9 +1675,9 @@ package body Ada_Be.Expansion is
    -----------------------
 
    procedure Expand_Scoped_Name (Node : Node_Id) is
-      V          : constant Node_Id := Value (Node);
-      V_Scope    : Node_Id;
-      This_Scope : constant Node_Id := Get_Current_Gen_Scope;
+      V              : constant Node_Id := Value (Node);
+      V_Scope        : Node_Id;
+      This_Gen_Scope : constant Node_Id := Get_Current_Gen_Scope;
 
       Forward_Declaration : Node_Id;
 
@@ -1688,6 +1698,7 @@ package body Ada_Be.Expansion is
          Set_Local (Result, Local (Node));
          Set_Forward (Result, Node);
          Set_Repository_Id (Result, Repository_Id (Node));
+         Set_Parent_Scope (Result, This_Gen_Scope);
 
          Set_Forward (Node, Result);
 
@@ -1711,15 +1722,40 @@ package body Ada_Be.Expansion is
          return;
       end if;
 
+      --  Check whether the value of this scoped name is within a child
+      --  scope of the current scope.
+
       V_Scope := Parent_Scope (V);
       loop
-         exit when V_Scope = No_Node or else V_Scope = This_Scope;
+         exit when V_Scope = No_Node or else V_Scope = This_Gen_Scope;
          V_Scope := Parent_Scope (V_Scope);
       end loop;
 
-      Forward_Declaration := Forward (V);
-      if V_Scope = This_Scope then
+      if (Kind (This_Gen_Scope) = K_Interface
+          and then Has_Interface_Component (V, This_Gen_Scope)
+          and then In_Sequence_Type)
+         or else V_Scope = This_Gen_Scope
+      then
 
+         --  If the value of this scoped name is within a child scope of
+         --  the current scope, a forward declaration is necessary. Also,
+         --  if the value of this scoped name denotes the current interface,
+         --  or has a component whose type is the current interface, a
+         --  forward declaration is necessary if it is used as the item type
+         --  for a sequence, because the instantiation of the sequences
+         --  generic would otherwise cause freezing.
+         --
+         --  Note that in the latter case, we are really cheating around
+         --  a bit with the mapping, since we are generating a foward for
+         --  an interface within the scope of the interface (whereas
+         --  normally in IDL a foward declaration should occur in the same
+         --  scope as the complete declaration, i.e. the forward should be
+         --  in the enclosing scope of the interface, which is inconvenient
+         --  to us).
+         --
+         --  XXX we might want to try harder
+
+         Forward_Declaration := Forward (V);
          if Forward_Declaration = No_Node then
 
             --  If there is no explicit forward declaration, create one to
@@ -1727,21 +1763,29 @@ package body Ada_Be.Expansion is
 
             Forward_Declaration := Create_Forward_Declaration (V);
 
-            if This_Scope = Get_Current_Scope then
+            --  We want to insert the newly-created forward directly
+            --  in the current gen scope, just before the node that
+            --  contains the scoped name.
+
+            if This_Gen_Scope = Get_Current_Scope then
                Insert_Before_Current (Forward_Declaration);
             else
+
+               --  Case of a scoped name that occurs within a nested
+               --  scope (that is not a gen scope).
+
                declare
-                  Enclosing_Scope : Node_Id := Get_Current_Scope;
-                  Enclosing_List  : Node_List := Contents (This_Scope);
+                  Enclosing_Scope : Node_Id   := Get_Current_Scope;
+                  Enclosing_List  : Node_List := Contents (This_Gen_Scope);
                begin
-                  while Parent_Scope (Enclosing_Scope) /= This_Scope loop
+                  while Parent_Scope (Enclosing_Scope) /= This_Gen_Scope loop
                      Enclosing_Scope := Parent_Scope (Enclosing_Scope);
                   end loop;
                   Insert_Before
                     (List   => Enclosing_List,
                      Node   => Forward_Declaration,
                      Before => Enclosing_Scope);
-                  Set_Contents (This_Scope, Enclosing_List);
+                  Set_Contents (This_Gen_Scope, Enclosing_List);
                end;
             end if;
          end if;

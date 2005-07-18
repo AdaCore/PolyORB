@@ -1395,13 +1395,12 @@ package body Ada_Be.Idl2Ada is
 
          NL (CU);
          PL (CU, "package Convert_Forward is");
+         Add_With (CU, Ada_Full_Name (Parent_Scope (Forward_Node)));
          Put (CU, "  new "
               & Ada_Full_Name (Forward_Node)
               & ".Convert ("
               & Ada_Type_Defining_Name (Mapping, Node)
               & ");");
-         Add_With (CU, Ada_Full_Name
-                   (Definition (Node).Parent_Scope));
       end if;
    end Gen_Convert_Forward_Declaration;
 
