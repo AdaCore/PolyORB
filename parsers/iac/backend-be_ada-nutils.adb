@@ -712,6 +712,14 @@ package body Backend.BE_Ada.Nutils is
          DP (D) := Name_Find;
       end loop;
 
+      for E in Error_Id loop
+         Set_Str_To_Name_Buffer (Error_Id'Image (E));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         To_Lower (Name_Buffer (1 .. Name_Len));
+         Capitalize (Name_Buffer (1 .. Name_Len));
+         EN (E) := Name_Find;
+      end loop;
+
    end Initialize;
 
    --------------
@@ -1077,11 +1085,11 @@ package body Backend.BE_Ada.Nutils is
       N : Node_Id;
 
    begin
-      N := New_Node (K_Exception_Declaration);
+      N := New_Node           (K_Exception_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
-      Set_Renamed_Exception (N, Renamed_Exception);
-      Set_Corresponding_Node (Defining_Identifier, N);
-      Set_Parent (N, Current_Package);
+      Set_Renamed_Entity      (N, Renamed_Exception);
+      Set_Corresponding_Node  (Defining_Identifier, N);
+      Set_Parent              (N, Current_Package);
       return N;
    end Make_Exception_Declaration;
 
@@ -1214,6 +1222,18 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Literal;
 
+   -------------------------
+   -- Make_Null_Statement --
+   -------------------------
+
+   function Make_Null_Statement
+     return Node_Id is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Null_Statement);
+      return N;
+   end Make_Null_Statement;
+
    -----------------------------
    -- Make_Object_Declaration --
    -----------------------------
@@ -1230,13 +1250,13 @@ package body Backend.BE_Ada.Nutils is
       N : Node_Id;
 
    begin
-      N := New_Node (K_Object_Declaration);
+      N := New_Node           (K_Object_Declaration);
       Set_Defining_Identifier (N, Defining_Identifier);
-      Set_Corresponding_Node (Defining_Identifier, N);
-      Set_Constant_Present (N, Constant_Present);
-      Set_Object_Definition (N, Object_Definition);
-      Set_Expression (N, Expression);
-      Set_Renamed_Object (N, Renamed_Object);
+      Set_Corresponding_Node  (Defining_Identifier, N);
+      Set_Constant_Present    (N, Constant_Present);
+      Set_Object_Definition   (N, Object_Definition);
+      Set_Expression          (N, Expression);
+      Set_Renamed_Entity      (N, Renamed_Object);
 
       if No (Parent) then
          Set_Parent (N, Current_Package);
@@ -1246,6 +1266,21 @@ package body Backend.BE_Ada.Nutils is
 
       return N;
    end Make_Object_Declaration;
+
+   -------------------------------
+   -- Make_Object_Instanciation --
+   -------------------------------
+
+   function Make_Object_Instanciation
+     (Qualified_Expression : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Object_Instanciation);
+      Set_Qualified_Expression (N, Qualified_Expression);
+      return N;
+   end Make_Object_Instanciation;
 
    ------------------------------
    -- Make_Package_Declaration --
@@ -1357,6 +1392,20 @@ package body Backend.BE_Ada.Nutils is
       Set_Aggregate (N, Aggregate);
       return N;
    end Make_Qualified_Expression;
+
+   --------------------------
+   -- Make_Raise_Statement --
+   --------------------------
+
+   function Make_Raise_Statement
+     (Raised_Error  : Node_Id := No_Node)
+     return Node_Id is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Raise_Statement);
+      Set_Raised_Error (N, Raised_Error);
+      return N;
+   end Make_Raise_Statement;
 
    ---------------------------
    -- Make_Record_Aggregate --
@@ -1477,12 +1526,12 @@ package body Backend.BE_Ada.Nutils is
       N : Node_Id;
 
    begin
-      N := New_Node (K_Subprogram_Specification);
+      N := New_Node            (K_Subprogram_Specification);
       Set_Defining_Identifier  (N, Defining_Identifier);
       Set_Parameter_Profile    (N, Parameter_Profile);
       Set_Return_Type          (N, Return_Type);
       Set_Parent               (N, Parent);
-      Set_Renamed_Subprogram   (N, Renamed_Subprogram);
+      Set_Renamed_Entity       (N, Renamed_Subprogram);
       return N;
    end Make_Subprogram_Specification;
 

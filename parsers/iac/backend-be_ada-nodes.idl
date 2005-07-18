@@ -87,6 +87,7 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Packages : List_Id {};
+
   interface IDL_Unit : Node_Id {
     Node_Id    Main_Package;
     Node_Id    Skeleton_Package;
@@ -105,10 +106,11 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Parameter_Profile : List_Id {};
+
   interface Subprogram_Specification : Definition {
     List_Id    Parameter_Profile;
     Node_Id    Return_Type;
-    Node_Id    Renamed_Subprogram;
+    Node_Id    Renamed_Entity;
   };
 
   /* Subprogram Body */
@@ -230,6 +232,9 @@ module Backend::BE_Ada::Nodes {
     List_Id      Parameter_List;  
   };
 
+  interface Raise_Statement : Node_Id {
+    Node_Id      Raised_Error;
+  };
 
   interface Ada_Comment : Definition {
   };
@@ -266,6 +271,7 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Component_List : List_Id {};
+
   interface Record_Definition : Node_Id {
     List_Id    Component_List;
   };
@@ -277,17 +283,19 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Range_Constraint : Node_Id {
-    Value_Id   First;
-    Value_Id   Last;
+    Node_Id    First;
+    Node_Id    Last;
   };
 
   interface Variant_List : List_Id {};
+
   interface Variant_Part : Node_Id {
     List_Id    Variants;
     Node_Id    Discriminant;
   };
 
   interface Discrete_Choice_List : List_Id {};
+
   interface Variant : Node_Id {
     List_Id    Discrete_Choices;
     Node_Id    Component;
@@ -322,7 +330,7 @@ module Backend::BE_Ada::Nodes {
     boolean    Constant_Present;
     Node_Id    Object_Definition;
     Node_Id    Expression;
-    Node_Id    Renamed_Object;
+    Node_Id    Renamed_Entity;
   };
 
   interface Literal : Node_Id {
@@ -331,7 +339,7 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Exception_Declaration : Definition {
-    Node_Id    Renamed_Exception;
+    Node_Id    Renamed_Entity;
   };
 
   interface BE_Ada_Instanciations : Node_Id {
@@ -360,14 +368,18 @@ module Backend::BE_Ada::Nodes {
 
   interface Expression : Node_Id {
     Operator_Id Operator;
-    Node_Id    Left_Expr;
-    Node_Id    Right_Expr;
+    Node_Id     Left_Expr;
+    Node_Id     Right_Expr;
   };
 
   interface Qualified_Expression : Node_Id {
     Node_Id    Subtype_Mark;
     Node_Id    Expression; 
     Node_Id    Aggregate; 
+  };
+
+  interface Object_Instanciation : Node_Id {
+    Node_Id    Qualified_Expression;
   };
 
   /**************/

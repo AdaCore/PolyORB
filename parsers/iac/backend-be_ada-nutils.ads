@@ -172,12 +172,20 @@ package Backend.BE_Ada.Nutils is
       P_From,
       P_Implicit,
       P_Init,
+      P_Invoke_Access,
+      P_Invoke_Db,
+      P_Invoke_Name_Access,
+      P_Invoke_Record,
       P_Item,
       P_Logical_Type_Id,
       P_Members,
+      P_N_Operations,
       P_Name,
+      P_Name_Access,
+      P_Names_Db,
       P_Obj,
       P_Operation,
+      P_Operation_Name,
       P_Provides,
       P_Repository_Id,
       P_Req,
@@ -223,9 +231,11 @@ package Backend.BE_Ada.Nutils is
      (S_Deferred_Initialization,
       S_Get_Members,
       S_From_Any,
+      S_Hash,
       S_Initialize,
       S_Invoke,
       S_Is_A,
+      S_Register_Procedure,
       S_Servant_Is_A,
       S_Set,
       S_To_Any,
@@ -251,10 +261,13 @@ package Backend.BE_Ada.Nutils is
    AN : array (Attribute_Id) of Name_Id;
 
    type Type_Id is
-     (T_Ref,
+     (T_Invoke_Record_Type,
+      T_Ref,
       T_Object,
       T_Object_Ptr,
-      T_Sequence);
+      T_Procedure_Access,
+      T_Sequence,
+      T_String_Ptr);
 
    TN : array (Type_Id) of Name_Id;
 
@@ -272,6 +285,12 @@ package Backend.BE_Ada.Nutils is
       Dep_CORBA_Object);
 
    DP : array (Dependancy_Id) of Name_Id;
+
+   type Error_Id is
+     (E_Program_Error,
+      E_Constraint_Error);
+
+   EN : array (Error_Id) of Name_Id;
 
    --  This array will be used to buil the dependancy list of this package
    Dep_Array : array (Dependancy_Id) of Boolean :=
@@ -487,6 +506,9 @@ package Backend.BE_Ada.Nutils is
       Parent_Designator : Node_Id := No_Node)
      return Node_Id;
 
+   function Make_Null_Statement
+     return Node_Id;
+
    function Make_Object_Declaration
      (Defining_Identifier : Node_Id;
       Constant_Present    : Boolean := False;
@@ -494,7 +516,11 @@ package Backend.BE_Ada.Nutils is
       Expression          : Node_Id := No_Node;
       Parent              : Node_Id := No_Node;
       Renamed_Object      : Node_Id := No_Node)
-      return                Node_Id;
+     return                Node_Id;
+
+   function Make_Object_Instanciation
+     (Qualified_Expression : Node_Id)
+     return Node_Id;
 
    function Make_Package_Declaration
      (Identifier : Node_Id)
@@ -520,6 +546,10 @@ package Backend.BE_Ada.Nutils is
      (Subtype_Mark  : Node_Id;
       Expression    : Node_Id := No_Node;
       Aggregate     : Node_Id)
+     return Node_Id;
+
+   function Make_Raise_Statement
+     (Raised_Error  : Node_Id := No_Node)
      return Node_Id;
 
    function Make_Record_Aggregate
