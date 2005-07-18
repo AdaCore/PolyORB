@@ -37,7 +37,7 @@ package body Backend.BE_Ada is
    procedure Configure is
    begin
       loop
-         case Getopt ("t! i d! l:") is
+         case Getopt ("t! i d! l: o!") is
             when ASCII.NUL =>
                exit;
 
@@ -84,6 +84,25 @@ package body Backend.BE_Ada is
 
                         when 'i' =>
                            Print_IDL_Tree := True;
+
+                        when others =>
+                           raise Program_Error;
+                     end case;
+                  end loop;
+               end;
+
+            when 'o' =>
+               declare
+                  S : constant String := Parameter;
+               begin
+                  Use_Minimal_Hash_Function := True;
+                  for I in S'First .. S'Last loop
+                     case S (I) is
+                        when 'c' =>
+                           Optimize_CPU    := True;
+
+                        when 'm' =>
+                           Optimize_Memory := True;
 
                         when others =>
                            raise Program_Error;
@@ -151,6 +170,18 @@ package body Backend.BE_Ada is
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("-ti      Dump IDL tree");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-oc      Using perfect minimal hash tables in skeleton");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("         and minimize CPU time");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-om      Using perfect minimal hash tables in skeleton");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("         and minimize memory space");
       Write_Eol;
    end Usage;
 

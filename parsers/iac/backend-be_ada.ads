@@ -14,4 +14,13 @@ package Backend.BE_Ada is
    Output_Unit_Withing  : Boolean := False;
    Output_Tree_Warnings : Boolean := False;
 
+   --  The flags below are related to the code optimization performed by Iac :
+
+   --  Skeleton optimization using minimale perfect hash functions instead of
+   --  the big "if .. elsif .. elsif ..."
+
+   Use_Minimal_Hash_Function : Boolean := False;
+   Optimize_CPU              : Boolean := False;
+   Optimize_Memory           : Boolean := False;
+
 end Backend.BE_Ada;

@@ -830,7 +830,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          --  * Literal values
          --  * Previously declared constants (concretly, scoped names)
          R := New_Node (K_Range_Constraint);
-         Set_First (R, Int0_Val);
+         Set_First (R, Make_Literal (Int0_Val));
          if FEN.Kind (S) = K_Scoped_Name then
             V := Value (FEN.Value (Reference (S)));
             V.IVal := V.IVal - 1;
@@ -838,7 +838,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
             V := Value (FEN.Value (S));
             V.IVal := V.IVal - 1;
          end if;
-         Set_Last (R, New_Value (V));
+         Set_Last (R, Make_Literal (New_Value (V)));
          Append_Node_To_List (R, L);
          S := FEN.Next_Entity (S);
       end loop;
@@ -1577,14 +1577,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
                                 (D))),
                               From_Any,
                               To_Any);
-                           Set_Renamed_Subprogram
+                           Set_Renamed_Entity
                              (From_Any,
                               Expand_Designator
                               (From_Any_Node
                                (BE_Node
                                 (Identifier
                                  (D)))));
-                           Set_Renamed_Subprogram
+                           Set_Renamed_Entity
                              (To_Any,
                               Expand_Designator
                               (To_Any_Node
@@ -1616,14 +1616,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
                              (Entity))),
                            From_Any,
                            To_Any);
-                        Set_Renamed_Subprogram
+                        Set_Renamed_Entity
                           (From_Any,
                            Expand_Designator
                            (From_Any_Node
                             (BE_Node
                              (Identifier
                               (Entity)))));
-                        Set_Renamed_Subprogram
+                        Set_Renamed_Entity
                           (To_Any,
                            Expand_Designator
                            (To_Any_Node
@@ -1678,7 +1678,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
                              (BE_Node
                               (Identifier
                                (Parent_Interface))))));
-                        Set_Renamed_Subprogram (N, Original_Get_Members);
+                        Set_Renamed_Entity (N, Original_Get_Members);
                         Append_Node_To_List
                           (N, Statements (Current_Package));
                      end if;
@@ -1692,14 +1692,14 @@ package body Backend.BE_Ada.IDL_To_Ada is
                                (Entity))))),
                            From_Any,
                            To_Any);
-                        Set_Renamed_Subprogram
+                        Set_Renamed_Entity
                           (From_Any,
                            Expand_Designator
                            (From_Any_Node
                             (BE_Node
                              (Identifier
                               (Entity)))));
-                        Set_Renamed_Subprogram
+                        Set_Renamed_Entity
                           (To_Any,
                            Expand_Designator
                            (To_Any_Node

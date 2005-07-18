@@ -40,6 +40,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Literal (N : Node_Id);
    procedure Generate_Null_Statement;
    procedure Generate_Object_Declaration (N : Node_Id);
+   procedure Generate_Object_Instanciation (N : Node_Id);
    procedure Generate_Package_Declaration (N : Node_Id);
    procedure Generate_Package_Implementation (N : Node_Id);
    procedure Generate_Package_Instantiation (N : Node_Id);
@@ -48,6 +49,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Parameter_List (L : List_Id);
    procedure Generate_Pragma_Statement (N : Node_Id);
    procedure Generate_Qualified_Expression (N : Node_Id);
+   procedure Generate_Raise_Statement (N : Node_Id);
    procedure Generate_Record_Aggregate (N : Node_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
@@ -141,6 +143,9 @@ package body Backend.BE_Ada.Generator is
          when K_Object_Declaration =>
             Generate_Object_Declaration (N);
 
+         when K_Object_Instanciation =>
+            Generate_Object_Instanciation (N);
+
          when K_Package_Declaration =>
             Generate_Package_Declaration (N);
 
@@ -158,6 +163,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Qualified_Expression =>
             Generate_Qualified_Expression (N);
+
+         when K_Raise_Statement =>
+            Generate_Raise_Statement (N);
 
          when K_Record_Aggregate =>
             Generate_Record_Aggregate (N);
@@ -341,12 +349,12 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Left_Paren);
       R := First_Node (Range_Constraints (N));
       loop
-         Write_Str (Values.Image (First (R)));
+         Generate (First (R));
          Write_Space;
          Write (Tok_Dot);
          Write (Tok_Dot);
          Write_Space;
-         Write_Str (Values.Image (Last (R)));
+         Generate (Last (R));
          R := Next_Node (R);
          exit when No (R);
          Write (Tok_Comma);
@@ -525,7 +533,14 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Component_Association (N : Node_Id) is
    begin
-      Generate (Defining_Identifier (N));
+      --  If the developer gives a defining identifier, we generate it, else
+      --  we assume that the developer wants to generate a "others => XXXX"
+      --  statement.
+      if Present (Defining_Identifier (N)) then
+         Generate (Defining_Identifier (N));
+      else
+         Write (Tok_Others);
+      end if;
       Write_Space;
       Write (Tok_Arrow);
       Write_Space;
@@ -706,13 +721,13 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Colon);
       Write_Space;
       Write (Tok_Exception);
-      if Present (Renamed_Exception (N)) then
+      if Present (Renamed_Entity (N)) then
          Write_Eol;
          Increment_Indentation;
          Write_Indentation (-1);
          Write (Tok_Renames);
          Write_Space;
-         Generate (Renamed_Exception (N));
+         Generate (Renamed_Entity (N));
          Decrement_Indentation;
       end if;
    end Generate_Exception_Declaration;
@@ -767,12 +782,12 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write (Tok_In);
       Write_Space;
-      Write_Str (Values.Image (First (Range_Constraint (N))));
+      Generate (First (Range_Constraint (N)));
       Write_Space;
       Write (Tok_Dot);
       Write (Tok_Dot);
       Write_Space;
-      Write_Str (Values.Image (Last (Range_Constraint (N))));
+      Generate (Last (Range_Constraint (N)));
       Write_Space;
       Write (Tok_Loop);
       Write_Eol;
@@ -920,6 +935,15 @@ package body Backend.BE_Ada.Generator is
       Write_Str (Values.Image (Value (N)));
    end Generate_Literal;
 
+   -----------------------------
+   -- Generate_Null_Statement --
+   -----------------------------
+
+   procedure Generate_Null_Statement is
+   begin
+      Write (Tok_Null);
+   end Generate_Null_Statement;
+
    ---------------------------------
    -- Generate_Object_Declaration --
    ---------------------------------
@@ -952,13 +976,13 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Others);
       end if;
 
-      if Present (Renamed_Object (N)) then
+      if Present (Renamed_Entity (N)) then
          Write_Eol;
          Increment_Indentation;
          Write_Indentation (-1);
          Write (Tok_Renames);
          Write_Space;
-         Generate (Renamed_Object (N));
+         Generate (Renamed_Entity (N));
          Decrement_Indentation;
 
          --  If an object renames another object, it cannot be initialized,
@@ -974,6 +998,17 @@ package body Backend.BE_Ada.Generator is
          end if;
       end if;
    end Generate_Object_Declaration;
+
+   -----------------------------------
+   -- Generate_Object_Instanciation --
+   -----------------------------------
+
+   procedure Generate_Object_Instanciation (N : Node_Id) is
+   begin
+      Write (Tok_New);
+      Write_Space;
+      Generate (Qualified_Expression (N));
+   end Generate_Object_Instanciation;
 
    ----------------------------------
    -- Generate_Package_Declaration --
@@ -1092,15 +1127,6 @@ package body Backend.BE_Ada.Generator is
       end if;
       Decrement_Indentation;
    end Generate_Package_Instantiation;
-
-   -----------------------------
-   -- Generate_Null_Statement --
-   -----------------------------
-
-   procedure Generate_Null_Statement is
-   begin
-      Write (Tok_Null);
-   end Generate_Null_Statement;
 
    ------------------------------------
    -- Generate_Package_Specification --
@@ -1253,6 +1279,21 @@ package body Backend.BE_Ada.Generator is
       Generate (Aggregate (N));
       Decrement_Indentation;
    end Generate_Qualified_Expression;
+
+   ------------------------------
+   -- Generate_Raise_Statement --
+   ------------------------------
+
+   procedure Generate_Raise_Statement (N : Node_Id) is
+      E : constant Node_Id := Raised_Error (N);
+   begin
+      Write (Tok_Raise);
+
+      if Present (E) then
+         Write_Space;
+         Generate (E);
+      end if;
+   end Generate_Raise_Statement;
 
    -------------------------------
    -- Generate_Record_Aggregate --
@@ -1447,7 +1488,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Subprogram_Specification (N : Node_Id) is
       P : constant List_Id := Parameter_Profile (N);
       T : constant Node_Id := Return_Type (N);
-      R : constant Node_Id := Renamed_Subprogram (N);
+      R : constant Node_Id := Renamed_Entity (N);
 
    begin
       if Present (T) then
@@ -1456,8 +1497,11 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Procedure);
       end if;
 
-      Write_Space;
-      Write_Name (Name (Defining_Identifier (N)));
+      --  This work around is used to define access subprogram types
+      if Present (Defining_Identifier (N)) then
+         Write_Space;
+         Write_Name (Name (Defining_Identifier (N)));
+      end if;
       Write_Eol;
 
       if not Is_Empty (P) then
