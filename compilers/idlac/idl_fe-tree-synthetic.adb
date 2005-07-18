@@ -160,12 +160,13 @@ package body Idl_Fe.Tree.Synthetic is
    begin
       if Definition (Node) /= null then
          return Definition (Node).Parent_Scope;
-      elsif True
-        and then (Kind (Node) = K_Forward_Interface
-                  or else Kind (Node) = K_Forward_ValueType)
+
+      elsif (Kind (Node) = K_Forward_Interface
+             or else Kind (Node) = K_Forward_ValueType)
         and then Forward (Node) /= No_Node
       then
          return Original_Parent_Scope (Forward (Node));
+
       else
          return No_Node;
       end if;
@@ -283,6 +284,106 @@ package body Idl_Fe.Tree.Synthetic is
       end loop;
       return False;
    end Supports_Non_Abstract_Interface;
+
+   -----------------------------
+   -- Has_Interface_Component --
+   -----------------------------
+
+   function Has_Interface_Component
+     (Node   : Node_Id;
+      I_Node : Node_Id) return Boolean is
+   begin
+      pragma Assert (Kind (I_Node) = K_Interface);
+      case Kind (Node) is
+         when K_Void
+            | K_Float
+            | K_Double
+            | K_Long_Double
+            | K_Short
+            | K_Long
+            | K_Long_Long
+            | K_Unsigned_Short
+            | K_Unsigned_Long
+            | K_Unsigned_Long_Long
+            | K_Char
+            | K_Wide_Char
+            | K_Boolean
+            | K_Octet
+            | K_Any
+            | K_Object
+            | K_Enum
+            | K_ValueType
+            | K_Forward_ValueType
+            | K_Boxed_ValueType
+            | K_String
+            | K_Wide_String
+            | K_Fixed
+            | K_Forward_Interface
+            | K_Sequence_Instance
+            | K_Sequence =>
+
+            return False;
+
+         when K_Interface =>
+            return Node = I_Node;
+
+         when K_Struct
+            | K_Exception =>
+            declare
+               Iter   : Node_Iterator;
+               Member : Node_Id;
+
+            begin
+               Init (Iter, Members (Node));
+
+               while not Is_End (Iter) loop
+                  Get_Next_Node (Iter, Member);
+
+                  if Has_Interface_Component (M_Type (Member), I_Node) then
+                     return True;
+                  end if;
+               end loop;
+
+               return False;
+            end;
+
+         when K_Union =>
+            declare
+               Iter      : Node_Iterator;
+               Case_Node : Node_Id;
+
+            begin
+               Init (Iter, Cases (Node));
+
+               while not Is_End (Iter) loop
+                  Get_Next_Node (Iter, Case_Node);
+
+                  if Has_Interface_Component
+                       (Case_Type (Case_Node), I_Node)
+                  then
+                     return True;
+                  end if;
+               end loop;
+
+               return False;
+            end;
+
+         when K_Scoped_Name =>
+            return Has_Interface_Component (Value (Node), I_Node);
+
+         when K_Declarator =>
+            return Has_Interface_Component (Parent (Node), I_Node);
+
+         when K_Type_Declarator =>
+            return Has_Interface_Component (T_Type (Node), I_Node);
+
+         when others =>
+            Ada.Text_IO.Put_Line (Node_Kind'Image (Kind (Node)));
+            Display_Tree.Disp_Tree (Node);
+            raise Program_Error;
+            return False;
+      end case;
+   end Has_Interface_Component;
 
    -------------------------
    -- Has_Local_Component --

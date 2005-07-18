@@ -108,6 +108,12 @@ package Idl_Fe.Tree.Synthetic is
    --  For a valuetype, returns true if it supports at least one
    --  non-abstract interface
 
+   function Has_Interface_Component
+     (Node   : Node_Id;
+      I_Node : Node_Id) return Boolean;
+   --  For a node that is a type, True if the type is I_Node, a typedef
+   --  thereof, or a composite type that has one such component.
+
    function Has_Local_Component (Node : in Node_Id) return Boolean;
    --  For a node that is a type, True if the type is a local interface, a
    --  forward declaration of a local interface, or a composite or constructed
