@@ -70,17 +70,17 @@ package body Ada_Be.Identifiers is
 
          when others =>
             declare
-               P_Node : constant Node_Id
-                 := Parent_Scope (Node);
+               P_Node    : constant Node_Id := Parent_Scope (Node);
+               Node_Name : constant String  := Ada_Name (Node);
             begin
                pragma Assert (Kind (P_Node) /= K_Repository);
 
                if Kind (P_Node) = K_Ben_Idl_File
-                 and then Is_Gen_Scope (Node) then
-                  return Ada_Name (Node);
+                 and then Is_Gen_Scope (Node)
+               then
+                  return Node_Name;
                else
-                  return Ada_Full_Name (P_Node)
-                    & "." & Ada_Name (Node);
+                  return Ada_Full_Name (P_Node) & "." & Node_Name;
                end if;
             end;
       end case;
