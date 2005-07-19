@@ -2681,13 +2681,11 @@ package body Ada_Be.Idl2Ada is
                   if Kind (O_Type) = K_Scoped_Name
                     and then S_Type (O_Type) = Parent_Scope (Node)
                   then
-                     --  An operation of an interface is a
-                     --  primitive operation of the tagged type
-                     --  that maps this interface. If it has
-                     --  other formal parameters that are object
-                     --  references of the same interface type, then
-                     --  these formals must not be controlling.
-                     --  (Ada RTF issue #2459).
+                     --  An operation of an interface is a primitive operation
+                     --  of the tagged type that maps this interface. If it has
+                     --  other formal parameters that are object references of
+                     --  the same interface type, then these formals must not
+                     --  be controlling (Ada RTF issue #2459).
 
                      Put (CU, "'Class");
                   end if;
