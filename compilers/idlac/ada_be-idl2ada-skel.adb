@@ -203,6 +203,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "  CORBA.From_Any (" & T_Argument & "Type_Id);");
       NL (CU);
       PL (CU, "--  Call implementation");
+      NL (CU);
       Put (CU, T_Result & " := ");
 
       if NK = K_Interface then
@@ -489,6 +490,16 @@ package body Ada_Be.Idl2Ada.Skel is
                  := not Is_Oneway (Node);
                Is_Function : constant Boolean
                  := Kind (O_Type) /= K_Void;
+
+               Is_Class_Wide : constant Boolean
+                 := Is_Function
+                    and then Kind (O_Type) = K_Scoped_Name
+                    and then S_Type (O_Type) = Parent_Scope (Node);
+               --  For an operation that returns a reference to its own
+               --  interface type, the return type is classwide, so we
+               --  need to convert it to the corresponding root type in
+               --  the assignment to Result.
+
                Raise_Something : constant Boolean
                  := not (Raises (Node) = Nil_List);
 
@@ -654,9 +665,13 @@ package body Ada_Be.Idl2Ada.Skel is
 
                NL (CU);
                PL (CU, "--  Call implementation");
+               NL (CU);
 
                if Is_Function then
                   Put (CU, T_Result & " := ");
+                  if Is_Class_Wide then
+                     Put (CU, Ada_Type_Name (O_Type) & " (");
+                  end if;
                end if;
 
                declare
@@ -681,7 +696,11 @@ package body Ada_Be.Idl2Ada.Skel is
                      Put (CU, "," & ASCII.LF & Ada_Name (Declarator (P_Node)));
                   end loop;
                end;
-               PL (CU, ");");
+               Put (CU, ")");
+               if Is_Class_Wide then
+                  Put (CU, ")");
+               end if;
+               PL (CU, ";");
                DI (CU);
 
                if Raise_Something then
