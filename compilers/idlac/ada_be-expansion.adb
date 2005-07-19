@@ -1698,7 +1698,6 @@ package body Ada_Be.Expansion is
          Set_Local (Result, Local (Node));
          Set_Forward (Result, Node);
          Set_Repository_Id (Result, Repository_Id (Node));
-         Set_Parent_Scope (Result, This_Gen_Scope);
 
          Set_Forward (Node, Result);
 
@@ -1706,6 +1705,7 @@ package body Ada_Be.Expansion is
       end Create_Forward_Declaration;
 
    begin
+
       --  Special processing of CORBA::TypeCode: we always refer to
       --  the full interface declaration
 
@@ -1744,52 +1744,34 @@ package body Ada_Be.Expansion is
          --  forward declaration is necessary if it is used as the item type
          --  for a sequence, because the instantiation of the sequences
          --  generic would otherwise cause freezing.
-         --
-         --  Note that in the latter case, we are really cheating around
-         --  a bit with the mapping, since we are generating a foward for
-         --  an interface within the scope of the interface (whereas
-         --  normally in IDL a foward declaration should occur in the same
-         --  scope as the complete declaration, i.e. the forward should be
-         --  in the enclosing scope of the interface, which is inconvenient
-         --  to us).
-         --
-         --  XXX we might want to try harder
 
          Forward_Declaration := Forward (V);
          if Forward_Declaration = No_Node then
 
             --  If there is no explicit forward declaration, create one to
-            --  avoid a circular dependency between Ada units.
+            --  avoid a circular dependency between Ada units, and insert
+            --  it immediately before the complete interface declaration.
 
             Forward_Declaration := Create_Forward_Declaration (V);
 
-            --  We want to insert the newly-created forward directly
-            --  in the current gen scope, just before the node that
-            --  contains the scoped name.
-
-            if This_Gen_Scope = Get_Current_Scope then
-               Insert_Before_Current (Forward_Declaration);
-            else
-
-               --  Case of a scoped name that occurs within a nested
-               --  scope (that is not a gen scope).
-
-               declare
-                  Enclosing_Scope : Node_Id   := Get_Current_Scope;
-                  Enclosing_List  : Node_List := Contents (This_Gen_Scope);
-               begin
-                  while Parent_Scope (Enclosing_Scope) /= This_Gen_Scope loop
-                     Enclosing_Scope := Parent_Scope (Enclosing_Scope);
-                  end loop;
-                  Insert_Before
-                    (List   => Enclosing_List,
-                     Node   => Forward_Declaration,
-                     Before => Enclosing_Scope);
-                  Set_Contents (This_Gen_Scope, Enclosing_List);
-               end;
-            end if;
+            declare
+               Enclosing_Scope : constant Node_Id := Parent_Scope (V);
+               Enclosing_List  : Node_List := Contents (Enclosing_Scope);
+            begin
+               Insert_Before
+                 (List   => Enclosing_List,
+                  Node   => Forward_Declaration,
+                  Before => V);
+               Set_Contents (Enclosing_Scope, Enclosing_List);
+            end;
          end if;
+
+         --  Now we are assured that a forward declaration exists: fix up
+         --  the scoped name to denote the forward instead of the complete
+         --  declaration.
+
          Set_Value (Node, Forward_Declaration);
+
       end if;
    end Expand_Scoped_Name;
 
