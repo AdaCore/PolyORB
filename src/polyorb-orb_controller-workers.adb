@@ -47,7 +47,8 @@ package body PolyORB.ORB_Controller.Workers is
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Mutexes;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.orb_controller.basic");
+   package L is
+      new PolyORB.Log.Facility_Log ("polyorb.orb_controller.workers");
    procedure O1 (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
