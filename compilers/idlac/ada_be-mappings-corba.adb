@@ -59,7 +59,7 @@ package body Ada_Be.Mappings.CORBA is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
-         when K_Module | K_Interface | K_ValueType =>
+         when K_Module | K_Interface | K_ValueType | K_Ben_Idl_File =>
             if Is_Well_Known_Node (Node) then
                return Fetch_Helper_Unit_Name (Node);
             else
