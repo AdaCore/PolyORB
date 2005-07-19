@@ -132,6 +132,10 @@ package all_types.Impl is
      (Self : access Object;
       arg : in bigmatrix) return bigmatrix;
 
+   function echoNestedArray
+     (Self : access Object;
+      Arg : in nested_array) return nested_array;
+
    function echoSixteenKb
      (Self : access Object;
       arg : in sixteenKb) return sixteenKb;

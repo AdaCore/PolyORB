@@ -802,41 +802,36 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Array =>
             declare
-               Nb : constant PolyORB.Types.Unsigned_Long :=
-                 PolyORB.Any.Get_Aggregate_Count (Data);
-               Value : PolyORB.Any.Any;
-               Content_True_Type : PolyORB.Any.TypeCode.Object :=
-                 PolyORB.Any.TypeCode.Content_Type (Data_Type);
+               Nb           : constant PolyORB.Types.Unsigned_Long
+                 := PolyORB.Any.TypeCode.Length (Data_Type);
+               Value        : PolyORB.Any.Any;
+               Content_Type : constant PolyORB.Any.TypeCode.Object
+                 := PolyORB.Any.Unwind_Typedefs
+                    (PolyORB.Any.TypeCode.Content_Type (Data_Type));
+
             begin
                pragma Debug (O ("Marshall_From_Any : dealing with an array"));
 
-               while PolyORB.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
-               loop
-                  Content_True_Type :=
-                    PolyORB.Any.TypeCode.Content_Type (Content_True_Type);
+               for J in 1 .. Nb loop
+                  Value :=
+                    PolyORB.Any.Get_Aggregate_Element
+                    (Data,
+                     Content_Type,
+                     J - 1);
+                  pragma Debug (O ("Marshall_From_Any : value kind is "
+                                   & PolyORB.Any.TCKind'Image
+                                   (PolyORB.Any.TypeCode.Kind
+                                    (PolyORB.Any.Get_Unwound_Type (Value)))));
+                  Marshall_From_Any
+                    (CDR_Representation'Class (R),
+                     Buffer,
+                     Value,
+                     Error);
+
+                  if Found (Error) then
+                     return;
+                  end if;
                end loop;
-
-               if Nb /= 0 then
-                  for J in 0 .. Nb - 1 loop
-                     Value := PolyORB.Any.Get_Aggregate_Element
-                       (Data,
-                        Content_True_Type,
-                        J);
-                     pragma Debug (O ("Marshall_From_Any : value kind is "
-                                      & PolyORB.Any.TCKind'Image
-                                      (PolyORB.Any.TypeCode.Kind
-                                       (Data_Type))));
-                     Marshall_From_Any
-                       (CDR_Representation'Class (R),
-                        Buffer,
-                        Value,
-                        Error);
-
-                     if Found (Error) then
-                        return;
-                     end if;
-                  end loop;
-               end if;
             end;
 
          when Tk_Alias =>
@@ -1921,41 +1916,36 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Array =>
             declare
-               Nb : Unsigned_Long := TypeCode.Length (Tc);
-               Element_Type : PolyORB.Any.TypeCode.Object
-                 := TypeCode.Content_Type (Tc);
+               Nb           : constant PolyORB.Types.Unsigned_Long
+                 := PolyORB.Any.TypeCode.Length (Tc);
+               Element_Type : constant PolyORB.Any.TypeCode.Object
+                 := PolyORB.Any.TypeCode.Content_Type (Tc);
                Add_Elements : Boolean := True;
                Val : PolyORB.Any.Any;
+
             begin
                pragma Debug
                  (O ("Unmarshall_To_Any : dealing with an array"));
-               while TypeCode.Kind (Element_Type) = Tk_Array loop
-                  Nb := Nb * TypeCode.Length (Element_Type);
-                  Element_Type := TypeCode.Content_Type (Element_Type);
-               end loop;
 
-               pragma Debug
-                 (O ("Unmarshall_To_Any: unmarshalling"
-                     & Unsigned_Long'Image (Nb) & " elements"));
                if Is_Empty (Data) then
-                  Move_Any_Value (Data,
-                    Get_Empty_Any_Aggregate (Get_Type (Data)));
-               else
-                  if Get_Aggregate_Count (Data) = 0 then
-                     null;
-                  else
-                     pragma Assert (Get_Aggregate_Count (Data) = Nb);
-                     Add_Elements := False;
-                  end if;
+                  Move_Any_Value
+                    (Data,
+                     Get_Empty_Any_Aggregate (Get_Type (Data)));
+
+               elsif Get_Aggregate_Count (Data) /= 0 then
+                  pragma Assert (Get_Aggregate_Count (Data) = Nb);
+                  Add_Elements := False;
                end if;
 
                for J in 1 .. Nb loop
                   if Add_Elements then
                      Val := Get_Empty_Any (Element_Type);
                      Add_Aggregate_Element (Data, Val);
+
                   else
                      Val := Get_Aggregate_Element (Data, Element_Type, J - 1);
                   end if;
+
                   Unmarshall_To_Any
                     (CDR_Representation'Class (R),
                      Buffer,
@@ -1966,6 +1956,7 @@ package body PolyORB.Representations.CDR is
                      return;
                   end if;
                end loop;
+
                pragma Debug (O ("Unmarshall_To_Any: array done."));
             end;
 

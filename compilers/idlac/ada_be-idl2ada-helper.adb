@@ -2375,6 +2375,15 @@ package body Ada_Be.Idl2Ada.Helper is
 
       if Is_Array then
          PL (CU, "PolyORB.Any.TypeCode.TC_Array);");
+
+         for J in 1 .. Length (Array_Bounds (Node)) - 1 loop
+            PL (CU, Ada_TC_Name (Node) & "_TC_Dimension_"
+                & Img (J)
+                & " : CORBA.TypeCode.Object := "
+                & "CORBA.TypeCode.Internals.To_CORBA_Object "
+                & "(PolyORB.Any.TypeCode.TC_Array);");
+            null;
+         end loop;
       else
          PL (CU, "PolyORB.Any.TypeCode.TC_Alias);");
       end if;
@@ -2416,15 +2425,7 @@ package body Ada_Be.Idl2Ada.Helper is
       II (CU);
       Add_With (CU, "CORBA");
 
-      if Is_Array then
-         for J in 1 .. Length (Array_Bounds (Node)) - 1 loop
-            PL (CU, "TC_"
-                & Img (J)
-                & " : CORBA.TypeCode.Object := "
-                & "CORBA.TypeCode.Internals.To_CORBA_Object "
-                & "(PolyORB.Any.TypeCode.TC_Array);");
-         end loop;
-      else
+      if not Is_Array then
          PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
              & Ada_Name (Node)
              & """);");
@@ -2466,18 +2467,20 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Gen_From_Any_Profile (CU, Node);
-      PL (CU, " is");
+      NL (CU);
+      PL (CU, "is");
       II (CU);
 
       Add_Helper_Dependency (CU, Helper_Name);
 
       if Is_Array then
-         PL (CU, "Result : "
-             & Ada_Type_Name (Node)
-             & ";");
-         PL (CU, "use type CORBA.Unsigned_Long;");
-         PL (CU, T_J & " : CORBA.Unsigned_Long := 0;");
+         PL (CU, "Result : " & Ada_Type_Name (Node) & ";");
+         PL (CU, "Aux    : array (Natural range 0 .. "
+             & Img (Length (Array_Bounds (Node)) - 1)
+             & ") of CORBA.Any;");
+
          DI (CU);
+         NL (CU);
          PL (CU, "begin");
          II (CU);
 
@@ -2492,14 +2495,30 @@ package body Ada_Be.Idl2Ada.Helper is
             while not Is_End (Bounds_It) loop
                Get_Next_Node (Bounds_It, Bound_Node);
 
+               if Dim = 0 then
+                  PL (CU, "Aux (0) := Item;");
+
+               else
+                  PL (CU, "Aux (" & Img (Dim) & ") :=");
+                  PL (CU, "  CORBA.Internals.Get_Aggregate_Element");
+                  PL (CU, "  (Aux (" & Img (Dim - 1) & "),");
+                  PL (CU, "   " & Ada_TC_Name (Node) & "_TC_Dimension_"
+                      & Img (Dim) & ",");
+                  PL (CU, "   CORBA.Unsigned_Long ("
+                      & Loop_Parameter (Dim - 1) & "));");
+               end if;
+
+               NL (CU);
                Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
                Gen_Node_Stubs_Spec (CU, Bound_Node);
                PL (CU, " - 1 loop");
-               Dim := Dim + 1;
                II (CU);
+
+               Dim := Dim + 1;
             end loop;
 
             Put (CU, "Result ");
+
             for J in 0 .. Dim - 1 loop
                if J = 0 then
                   Put (CU, "(");
@@ -2512,22 +2531,22 @@ package body Ada_Be.Idl2Ada.Helper is
                end if;
             end loop;
 
-            PL (CU, " := "
-                & Helper_Name
-                & ".From_Any");
-            II (CU);
+            PL (CU, " :=");
+            PL (CU, "  " & Helper_Name & ".From_Any");
             Add_With (CU, "CORBA");
-            PL (CU, "(CORBA.Internals.Get_Aggregate_Element");
-            PL (CU, " (Item, "
-                & Ada_Full_TC_Name (Type_Node)
-                & ", " & T_J & "));");
-            DI (CU);
-            PL (CU, T_J & " := " & T_J & " + 1;");
+            PL (CU, "  (CORBA.Internals.Get_Aggregate_Element");
+            PL (CU, "   (Aux (" & Img (Dim - 1) & "),");
+            PL (CU, "    " & Ada_Full_TC_Name (Type_Node) & ",");
+            PL (CU, "    CORBA.Unsigned_Long ("
+                & Loop_Parameter (Dim - 1) & ")));");
+
             for J in 1 .. Dim loop
                DI (CU);
                PL (CU, "end loop;");
             end loop;
          end;
+
+         NL (CU);
          PL (CU, "return Result;");
 
       else
@@ -2551,16 +2570,19 @@ package body Ada_Be.Idl2Ada.Helper is
 
       NL (CU);
       Gen_To_Any_Profile (CU, Node);
-      PL (CU, " is");
+      NL (CU);
+      PL (CU, "is");
       II (CU);
 
       if Is_Array then
 
          Add_With (CU, "CORBA");
          PL (CU,
-             "Result : CORBA.Any := CORBA.Internals.Get_Empty_Any_Aggregate");
-         PL (CU, "  (" & Ada_TC_Name (Node) & ");");
+             "Result : array (Natural range 0 .. "
+             & Img (Length (Array_Bounds (Node)) - 1)
+             & ") of CORBA.Any;");
          DI (CU);
+         NL (CU);
          PL (CU, "begin");
          II (CU);
 
@@ -2568,34 +2590,57 @@ package body Ada_Be.Idl2Ada.Helper is
             Bounds_It  : Node_Iterator;
             Bound_Node : Node_Id;
             Dim        : Natural := 0;
+
          begin
             Init (Bounds_It, Array_Bounds (Node));
 
             while not Is_End (Bounds_It) loop
                Get_Next_Node (Bounds_It, Bound_Node);
 
+               PL (CU, "Result (" & Img (Dim) & ") :=");
+               PL (CU, "  CORBA.Internals.Get_Empty_Any_Aggregate");
+
+               if Dim = 0 then
+                  PL (CU, "  (" & Ada_TC_Name (Node) & ");");
+
+               else
+                  PL (CU, "  (" & Ada_TC_Name (Node) & "_TC_Dimension_"
+                      & Img (Dim) & ");");
+               end if;
+
+               NL (CU);
                Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
                Gen_Node_Stubs_Spec (CU, Bound_Node);
                PL (CU, " - 1 loop");
-               Dim := Dim + 1;
                II (CU);
+
+               Dim := Dim + 1;
             end loop;
 
-            PL (CU, "CORBA.Internals.Add_Aggregate_Element (Result,");
-            Put (CU, "                             "
-                 & Helper_Name
-                 & ".To_Any (Item (" & Loop_Parameter (0));
-            for I in 1 .. Dim - 1 loop
-               Put (CU, ", " & Loop_Parameter (I));
+            PL (CU, "CORBA.Internals.Add_Aggregate_Element");
+            PL (CU, "  (Result (" & Img (Dim - 1) & "),");
+            II (CU);
+            Put (CU, Helper_Name & ".To_Any (Item (" & Loop_Parameter (0));
+            for J in 1 .. Dim - 1 loop
+               Put (CU, ", " & Loop_Parameter (J));
             end loop;
             PL (CU, ")));");
-            for J in 1 .. Dim loop
+            DI (CU);
+
+            for J in reverse 1 .. Dim loop
+               if J /= Dim then
+                  PL (CU, "CORBA.Internals.Add_Aggregate_Element (Result ("
+                      & Img (J - 1) & "), Result ("
+                      & Img (J) & "));");
+               end if;
+
                DI (CU);
                PL (CU, "end loop;");
+               NL (CU);
             end loop;
-
          end;
-         PL (CU, "return Result;");
+
+         PL (CU, "return Result (0);");
 
       else
          Add_With (CU, "CORBA");
@@ -2842,7 +2887,7 @@ package body Ada_Be.Idl2Ada.Helper is
          if First_Bound then
             Put (CU, Ada_TC_Name (Decl_Node));
          else
-            Put (CU, "TC_" & Img (Index));
+            Put (CU, Ada_TC_Name (Decl_Node) & "_TC_Dimension_" & Img (Index));
          end if;
          Put (CU, ", CORBA.To_Any (CORBA.Unsigned_Long (");
          Gen_Node_Stubs_Spec (CU, Bound_Node);
@@ -2851,14 +2896,15 @@ package body Ada_Be.Idl2Ada.Helper is
          if First_Bound then
             Put (CU, Ada_TC_Name (Decl_Node));
          else
-            Put (CU, "TC_" & Img (Index));
+            Put (CU, Ada_TC_Name (Decl_Node) & "_TC_Dimension_" & Img (Index));
          end if;
          if Last_Bound then
             Put (CU, ", "
                  & "CORBA.To_Any ("
                  & Ada_Full_TC_Name (Element_Type_Node));
          else
-            Put (CU, ", CORBA.To_Any (TC_"
+            Put (CU, ", CORBA.To_Any ("
+                 & Ada_TC_Name (Decl_Node) & "_TC_Dimension_"
                  & Img (Index + 1));
          end if;
          PL (CU, "));");

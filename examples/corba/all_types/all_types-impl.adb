@@ -250,6 +250,15 @@ package body all_types.Impl is
       return arg;
    end echoBigMatrix;
 
+   function echoNestedArray
+     (Self : access Object;
+      Arg : in nested_array)
+      return nested_array
+   is
+   begin
+      return Arg;
+   end echoNestedArray;
+
    function echoSixteenKb
      (Self : access Object;
       arg : in sixteenKb)

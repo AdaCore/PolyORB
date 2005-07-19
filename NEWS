@@ -51,6 +51,8 @@ Fixed bugs
 In some cases, integer constants greater than 2**31 would not be processed
 correctly and cause idlac to crash or generate incorrect code. (9377)
 
+Correct handling of nested (anonymous) arrays. (9412)
+
 * PolyORB 1.3 (released 2005-06-20)
 ===================================
 
