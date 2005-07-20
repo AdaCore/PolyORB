@@ -410,10 +410,10 @@ package body Backend.BE_Ada.Helpers is
                      if Is_Base_Type (T) then
                         P := RE (RE_TC_Alias);
                      elsif Kind (T) = K_Scoped_Name then
-                        --  If the type is defined basing on an interface type
-                        --  then we use TC_Alias.
                         if FEN.Kind (Reference (T)) =
                           K_Interface_Declaration
+                          or else FEN.Kind (Reference (T)) =
+                          K_Structure_Type
                         then
                            P := RE (RE_TC_Alias);
                         else

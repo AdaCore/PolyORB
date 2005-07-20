@@ -7,5 +7,6 @@ package Backend.BE_IDL is
    procedure Usage (Indent : Natural);
 
    Print_IDL_Tree       : Boolean := False;
+   Expand_Tree          : Boolean := False;
 
 end Backend.BE_IDL;

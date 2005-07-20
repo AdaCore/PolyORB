@@ -21,6 +21,15 @@ package body Backend.BE_Ada.Expand is
    procedure Expand_Type_Declaration (Entity : Node_Id);
    procedure Expand_Union_Type (Entity : Node_Id);
 
+   --  For Sequence types, the item parameter cannot :
+   --  * denote the current interface
+   --  * have a component whose type is the current interface
+   --  The instantiation of the sequences generic package would
+   --  otherwise cause freezing.
+   procedure Forward_Current_Interface_Designing_Components
+     (Interface_Node : Node_Id;
+      Type_Spec_Node : Node_Id);
+
    --  This function tests if the type spec is an interface based type
    --  and then tests if the scopr entity of this interface is the same as the
    --  declarator.
@@ -36,7 +45,8 @@ package body Backend.BE_Ada.Expand is
    --    the new defined type.
    procedure Define_Type_Outside
      (Member : Node_Id;
-      Entity : Node_Id);
+      Entity : Node_Id;
+      Before : Node_Id);
 
    --  This function :
    --  * Adds a forward declaration fro the interfac to the IDL tree if it is
@@ -126,6 +136,70 @@ package body Backend.BE_Ada.Expand is
       return D;
    end Expand_Designator;
 
+   ----------------------------------------------------
+   -- Forward_Current_Interface_Designing_Components --
+   ----------------------------------------------------
+
+   procedure Forward_Current_Interface_Designing_Components
+     (Interface_Node : Node_Id;
+      Type_Spec_Node : Node_Id)
+   is
+      Members      : List_Id;
+      Member       : Node_Id;
+      Alternatives : List_Id;
+      Alternative  : Node_Id;
+      Type_Spec    : Node_Id;
+   begin
+      --  The anonymous nested types are deprecated in CORBA 3.0.3, so the
+      --  only case in wich we can find a interface type componant is
+      --  the case of a Scoped_Name type spec
+      if FEN.Kind (Type_Spec_Node) = K_Scoped_Name then
+         if FEN.Reference (Type_Spec_Node) = Interface_Node then
+            Set_Reference
+              (Type_Spec_Node,
+               Add_Forward_Declaration
+               (FEN.Reference
+                (Type_Spec_Node)));
+         elsif  FEN.Kind (FEN.Reference (Type_Spec_Node)) =
+           K_Simple_Declarator
+           or else
+           FEN.Kind (FEN.Reference (Type_Spec_Node)) =
+           K_Complex_Declarator
+         then
+            Type_Spec := FEN.Type_Spec
+              (Declaration
+               (Reference
+                (Type_Spec_Node)));
+            Forward_Current_Interface_Designing_Components
+              (Interface_Node, Type_Spec);
+         elsif FEN.Kind (FEN.Reference (Type_Spec_Node)) =
+           K_Structure_Type
+           or else FEN.Kind (FEN.Reference (Type_Spec_Node)) =
+           K_Exception_Declaration
+         then
+            Members := FEN.Members (FEN.Reference (Type_Spec_Node));
+            Member := First_Entity (Members);
+            while Present (Member) loop
+               Type_Spec := FEN.Type_Spec (Member);
+               Forward_Current_Interface_Designing_Components
+                 (Interface_Node, Type_Spec);
+               Member := Next_Entity (Member);
+            end loop;
+         elsif  FEN.Kind (FEN.Reference (Type_Spec_Node)) =
+           K_Union_Type
+         then
+            Alternatives := Switch_Type_Body (FEN.Reference (Type_Spec_Node));
+            Alternative := First_Entity (Alternatives);
+            while Present (Alternative) loop
+               Type_Spec := FEN.Type_Spec (FEN.Element (Alternative));
+               Forward_Current_Interface_Designing_Components
+                 (Interface_Node, Type_Spec);
+               Alternative := Next_Entity (Alternative);
+            end loop;
+         end if;
+      end if;
+   end Forward_Current_Interface_Designing_Components;
+
    --------------------------
    -- Is_Forward_Necessary --
    --------------------------
@@ -136,7 +210,7 @@ package body Backend.BE_Ada.Expand is
      return Boolean
    is
       Result       : Boolean := False;
-      S_Entity : Node_Id;
+      S_Entity     : Node_Id;
       S_Type_Spec  : Node_Id;
    begin
       pragma Assert (FEN.Kind (Entity) = K_Simple_Declarator
@@ -231,13 +305,15 @@ package body Backend.BE_Ada.Expand is
 
    procedure Define_Type_Outside
      (Member : Node_Id;
-      Entity : Node_Id)
+      Entity : Node_Id;
+      Before : Node_Id)
    is
       Type_Spec       : Node_Id;
       New_Identifier  : Node_Id;
       New_Scoped_Name : Node_Id;
       Definitions     : List_Id;
       Definition      : Node_Id;
+      Container       : Node_Id;
    begin
       Type_Spec := FEN.Type_Spec (Member);
       pragma Assert (FEN.Kind (Type_Spec) = K_Structure_Type);
@@ -259,20 +335,26 @@ package body Backend.BE_Ada.Expand is
 
       --  Move the Type_Spec declaration immediatly before the declaration
       --  of entity
-      Definitions := FEN.Definitions
-        (FEN.Scope_Entity
-         (FEN.Identifier
-          (Entity)));
+      Container := FEN.Scope_Entity (FEN.Identifier (Entity));
+      if FEN.Kind (Container) = K_Module or else
+        FEN.Kind (Container) = K_Specification then
+         Definitions := FEN.Definitions (Container);
+      elsif FEN.Kind (Container) = K_Interface_Declaration then
+         Definitions := FEN.Interface_Body (Container);
+      else
+         raise Program_Error;
+      end if;
       Definition := First_Entity (Definitions);
-      if Definition = Entity then
+      if Definition = Before then
          Set_Next_Entity (Type_Spec, Definition);
          Set_First_Entity (Definitions, Type_Spec);
+      else
+         while Present (Definition) loop
+            exit when Next_Entity (Definition) = Before;
+            Definition := Next_Entity (Definition);
+         end loop;
+         FEU.Insert_After_Node (Type_Spec, Definition);
       end if;
-      while Present (Definition) loop
-         exit when Next_Entity (Definition) = Entity;
-         Definition := Next_Entity (Definition);
-      end loop;
-      FEU.Insert_After_Node (Type_Spec, Definition);
       --  Modify the Scope_Entity and the Potential_Scope of the Type_Spec
       FEN.Set_Scope_Entity
         (FEN.Identifier (Type_Spec),
@@ -357,7 +439,8 @@ package body Backend.BE_Ada.Expand is
          if FEN.Kind (Member_Type) = FEN.K_Structure_Type then
             Define_Type_Outside
               (Member => Member,
-               Entity => Entity);
+               Entity => Entity,
+               Before => Entity);
          end if;
          Member := Next_Entity (Member);
       end loop Main_Loop;
@@ -446,7 +529,8 @@ package body Backend.BE_Ada.Expand is
          if FEN.Kind (Member_Type) = FEN.K_Structure_Type then
             Define_Type_Outside
               (Member => Member,
-               Entity => Entity);
+               Entity => Entity,
+               Before => Entity);
          end if;
          Member := Next_Entity (Member);
       end loop Main_Loop;
@@ -459,13 +543,26 @@ package body Backend.BE_Ada.Expand is
    procedure Expand_Type_Declaration (Entity : Node_Id) is
       D                : Node_Id;
       Type_Spec_Node   : Node_Id;
+      Is_Seq_Type      : Boolean := False;
    begin
       Type_Spec_Node := Type_Spec (Entity);
 
       --  For the particular case of sequences, we change the type spec
       --  of the sequence.
+
       if FEN.Kind (Type_Spec_Node) = K_Sequence_Type then
          Type_Spec_Node := Type_Spec (Type_Spec_Node);
+         Is_Seq_Type    := True;
+
+      elsif FEN.Kind (Type_Spec_Node) = FEN.K_Structure_Type then
+
+         --  If the type spec is a structure type, extract the nested
+         --  structure definition outside.
+
+         Define_Type_Outside
+           (Member => Entity,
+            Entity => Type_Spec_Node,
+            Before => Entity);
       end if;
 
       D := First_Entity (Declarators (Entity));
@@ -476,6 +573,11 @@ package body Backend.BE_Ada.Expand is
                Add_Forward_Declaration
                (FEN.Reference
                 (Type_Spec_Node)));
+            exit;
+         elsif Is_Seq_Type then
+            Forward_Current_Interface_Designing_Components
+              (FEN.Scope_Entity (FEN.Identifier (D)),
+               Type_Spec_Node);
             exit;
          end if;
          D := Next_Entity (D);
@@ -507,8 +609,9 @@ package body Backend.BE_Ada.Expand is
 
          if FEN.Kind (Type_Spec) = FEN.K_Structure_Type then
             Define_Type_Outside
-              (Member  => Element,
-               Entity  => Entity);
+              (Member => Element,
+               Entity => Entity,
+               Before => Entity);
          end if;
          Alternative := Next_Entity (Alternative);
       end loop;

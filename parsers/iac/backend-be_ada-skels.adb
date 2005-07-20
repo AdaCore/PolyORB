@@ -222,7 +222,8 @@ package body Backend.BE_Ada.Skels is
          Statements       : constant List_Id := New_List (K_List_Id);
          Param            : Node_Id;
          Param_Name       : Name_Id;
-         Type_Name  : Name_Id;
+         Type_Name        : Name_Id;
+         Type_Node        : Node_Id;
          New_Name         : Name_Id;
          P                : List_Id;
          Inv_Profile      : constant List_Id := New_List (K_List_Id);
@@ -540,17 +541,22 @@ package body Backend.BE_Ada.Skels is
                Inv_Profile);
 
             if Present (Return_Type (S)) then
-               --  If the return type is a class-wide type, we remove the
-               --  "'Class" attribute from the type name
-               Type_Name := Fully_Qualified_Name
-                 (Return_Type (S));
-               Type_Name := Remove_Suffix_From_Name
-                 ("'Class", Type_Name);
+               --  If the return type is a class-wide type, then the node kind
+               --  is K_Attribute_Designator, we take only the prefix
+               if BEN.Kind (Return_Type (S)) = K_Attribute_Designator then
+                  Type_Node := Prefix (Return_Type (S));
+                  --  We cast the result value
+                  C := Make_Subprogram_Call
+                    (Copy_Designator (Type_Node),
+                     Make_List_Id (C));
+               else
+                  Type_Node := Return_Type (S);
+               end if;
                N := Make_Object_Declaration
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Result)),
                   Object_Definition =>
-                    Make_Designator (Type_Name));
+                    Type_Node);
 
                Append_Node_To_List (N, Declarative_Part);
                C := Make_Assignment_Statement

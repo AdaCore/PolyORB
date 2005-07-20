@@ -10,6 +10,8 @@ with Frontend.Nodes;  use Frontend.Nodes;
 with Frontend.Nutils; use Frontend.Nutils;
 with Frontend.Debug;
 
+with Backend.BE_Ada.Expand;
+
 package body Backend.BE_IDL is
 
    Default_Base : Natural := 0;
@@ -61,7 +63,7 @@ package body Backend.BE_IDL is
    procedure Configure is
    begin
       loop
-         case Getopt ("t! b:") is
+         case Getopt ("t! b: e") is
             when 'b' =>
                Default_Base := Natural'Value (Parameter);
 
@@ -83,6 +85,9 @@ package body Backend.BE_IDL is
                      end case;
                   end loop;
                end;
+
+            when 'e' =>
+               Expand_Tree := True;
 
             when others =>
                raise Program_Error;
@@ -121,6 +126,9 @@ package body Backend.BE_IDL is
 
    procedure Generate (E : Node_Id) is
    begin
+      if Expand_Tree then
+         Backend.BE_Ada.Expand.Expand (E);
+      end if;
       if Print_IDL_Tree then
          Frontend.Debug.W_Node_Id (E);
       else
@@ -1043,6 +1051,9 @@ package body Backend.BE_IDL is
       Write_Eol;
       Write_Str (Hdr);
       Write_Str ("-ti      Dump IDL tree");
+      Write_Eol;
+      Write_Str (Hdr);
+      Write_Str ("-e       Expand IDL Tree");
       Write_Eol;
    end Usage;
 

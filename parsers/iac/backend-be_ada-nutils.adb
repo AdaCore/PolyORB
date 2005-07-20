@@ -298,9 +298,16 @@ package body Backend.BE_Ada.Nutils is
 
    begin
       D := Copy_Node (Designator);
+      if Kind (Designator) = K_Designator
+        or else Kind (Designator) = K_Defining_Identifier
+      then
+         P := Parent_Unit_Name (Designator);
+      elsif Kind (Designator) = K_Attribute_Designator then
+         P := Parent_Unit_Name (Prefix (Designator));
+      end if;
+
       if Present (P) then
          P := Copy_Designator (P, False);
-         Set_Correct_Parent_Unit_Name (D, P);
          if Witheded then
             Add_With_Package (P);
          end if;
@@ -328,6 +335,11 @@ package body Backend.BE_Ada.Nutils is
             Set_Name (C, Name (N));
             Set_Correct_Parent_Unit_Name (C, Parent_Unit_Name (N));
             Set_Corresponding_Node (C, Corresponding_Node (N));
+
+         when K_Attribute_Designator =>
+            C := New_Node (K_Attribute_Designator);
+            Set_Name (C, Name (N));
+            Set_Prefix (C, Copy_Node (Prefix (N)));
 
          when others =>
             raise Program_Error;
@@ -441,6 +453,12 @@ package body Backend.BE_Ada.Nutils is
                Get_Name_String (Parent_Name);
                Add_Char_To_Name_Buffer ('.');
             end if;
+            Get_Name_String_And_Append (Name (N));
+            return Name_Find;
+
+         when K_Attribute_Designator =>
+            Get_Name_String (Fully_Qualified_Name (Prefix (N)));
+            Add_Char_To_Name_Buffer (''');
             Get_Name_String_And_Append (Name (N));
             return Name_Find;
 

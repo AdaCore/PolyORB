@@ -237,6 +237,7 @@ package body Backend.BE_Ada.Impls is
             Make_Access_Type_Definition
             (Make_Defining_Identifier (TN (T_Object))));
          Append_Node_To_List (Impl_Param, Profile);
+
          Stub_Param := Next_Node (First_Node (Parameter_Profile (Stub)));
          while Present (Stub_Param) loop
             Type_Designator := Copy_Designator (Parameter_Type (Stub_Param));
@@ -247,6 +248,7 @@ package body Backend.BE_Ada.Impls is
             Append_Node_To_List (Impl_Param, Profile);
             Stub_Param := Next_Node (Stub_Param);
          end loop;
+
          if Present (Return_Type (Stub)) then
             Returns := Copy_Designator (Return_Type (Stub));
          end if;
@@ -428,13 +430,15 @@ package body Backend.BE_Ada.Impls is
          D          : constant List_Id := New_List (K_List_Id);
          S          : constant List_Id := New_List (K_List_Id);
          N          : Node_Id;
-
       begin
          Stub := Stub_Node (BE_Node (Identifier (E)));
          Subp_Spec := Impl_Node (BE_Node (Identifier (E)));
 
          if Present (Return_Type (Stub)) then
             Returns := Copy_Designator (Return_Type (Stub));
+            if Kind (Returns) = K_Attribute_Designator then
+               Returns := Prefix (Returns);
+            end if;
 
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (GN (Pragma_Warnings)),

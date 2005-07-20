@@ -17,9 +17,12 @@ ada0015/tin.idl
 ada0016/tin.idl
 ada0017/tin.idl
 ada0018/tin.idl
+ada0019/tin.idl
 chicken-egg/chicken.idl
 circular
-forward/forward.idl
+forward01/forward.idl
+forward02/forward.idl
+forward03/forward.idl
 inherit001/tin.idl
 inherit002/tin.idl
 inherit003/tin.idl

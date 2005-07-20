@@ -499,7 +499,7 @@ package body Backend.BE_Ada.Stubs is
                  and then Reference = Corresponding_Entity
                  (FE_Node (Current_Entity))
                then
-                  Result := Make_Type_Attribute
+                  Result := Make_Attribute_Designator
                     (Result, A_Class);
                   null;
                end if;
