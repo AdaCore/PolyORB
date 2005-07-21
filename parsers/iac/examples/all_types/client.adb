@@ -324,6 +324,14 @@ begin
       end;
 
       declare
+         X : constant nested_array := ((2, 3, 5, 7, 11),
+                                       (13, 17, 19, 23, 31),
+                                       (43, 59, 67, 83, 94));
+      begin
+         Output ("test nested array", echoNestedArray (Myall_types, X) = X);
+      end;
+
+      declare
          B : sixteenKb;
       begin
          for I in B'Range (1) loop

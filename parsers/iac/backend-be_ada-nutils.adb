@@ -1606,6 +1606,19 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Variant_Part;
 
+   -----------------
+   -- Next_N_Node --
+   -----------------
+
+   function Next_N_Node (N : Node_Id; Num : Natural) return Node_Id is
+      Result : Node_Id := N;
+   begin
+      for I in 1 .. Num loop
+         Result := Next_Node (Result);
+      end loop;
+      return Result;
+   end Next_N_Node;
+
    --------------
    -- New_List --
    --------------

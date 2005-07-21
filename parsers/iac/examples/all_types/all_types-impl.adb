@@ -160,7 +160,7 @@ package body all_types.Impl is
    function echoWString
      (Self : access Object;
       arg : in CORBA.Wide_String)
-     return CORBA.Wide_String
+      return CORBA.Wide_String
    is
    begin
       return arg;
@@ -169,7 +169,7 @@ package body all_types.Impl is
    function echoRef
      (Self : access Object;
       arg : in all_types.Ref)
-     return all_types.Ref
+      return all_types.Ref
    is
    begin
       return arg;
@@ -210,7 +210,7 @@ package body all_types.Impl is
    function echoRainbow
      (Self : access Object;
       arg  : in Rainbow)
-     return Rainbow is
+      return Rainbow is
    begin
       return arg;
    end echoRainbow;
@@ -218,7 +218,7 @@ package body all_types.Impl is
    function echoMoney
      (Self : access Object;
       Arg  : in Money)
-     return Money is
+      return Money is
    begin
       return Arg;
    end echoMoney;
@@ -249,6 +249,15 @@ package body all_types.Impl is
    begin
       return arg;
    end echoBigMatrix;
+
+   function echoNestedArray
+     (Self : access Object;
+      Arg : in nested_array)
+      return nested_array
+   is
+   begin
+      return Arg;
+   end echoNestedArray;
 
    function echoSixteenKb
      (Self : access Object;
@@ -285,7 +294,7 @@ package body all_types.Impl is
    function echoStruct
      (Self : access Object;
       arg  : in simple_struct)
-     return simple_struct is
+      return simple_struct is
    begin
       return arg;
    end echoStruct;
@@ -293,7 +302,7 @@ package body all_types.Impl is
    function echoArrayStruct
      (Self : access Object;
       arg  : in array_struct)
-     return array_struct is
+      return array_struct is
    begin
       return arg;
    end echoArrayStruct;
@@ -301,7 +310,7 @@ package body all_types.Impl is
    function echoNestedStruct
      (Self : access Object;
       arg  : in nested_struct)
-     return nested_struct is
+      return nested_struct is
    begin
       return arg;
    end echoNestedStruct;

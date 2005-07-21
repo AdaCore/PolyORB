@@ -58,7 +58,8 @@ package body i1.Helper is
    end To_Any;
 
    function From_Any (Item : in CORBA.Any)
-      return i1.new_string is
+      return i1.new_string
+   is
       Result : constant CORBA.String := CORBA.From_Any (Item);
    begin
       return i1.new_string (Result);
@@ -66,7 +67,8 @@ package body i1.Helper is
 
    function To_Any
      (Item : in i1.new_string)
-     return CORBA.Any is
+     return CORBA.Any
+   is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_new_string);
@@ -74,7 +76,8 @@ package body i1.Helper is
    end To_Any;
 
    function From_Any (Item : in CORBA.Any)
-      return i1.New_Float is
+      return i1.New_Float
+   is
       Result : constant CORBA.Float := CORBA.From_Any (Item);
    begin
       return i1.New_Float (Result);
@@ -82,7 +85,8 @@ package body i1.Helper is
 
    function To_Any
      (Item : in i1.New_Float)
-     return CORBA.Any is
+     return CORBA.Any
+   is
       Result : CORBA.Any := CORBA.To_Any (CORBA.Float (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_New_Float);
@@ -90,7 +94,8 @@ package body i1.Helper is
    end To_Any;
 
    function From_Any (Item : in CORBA.Any)
-      return i1.n2 is
+      return i1.n2
+   is
       Result : constant i1.new_string := i1.Helper.From_Any (Item);
    begin
       return i1.n2 (Result);
@@ -98,7 +103,8 @@ package body i1.Helper is
 
    function To_Any
      (Item : in i1.n2)
-     return CORBA.Any is
+     return CORBA.Any
+   is
       Result : CORBA.Any := i1.Helper.To_Any (i1.new_string (Item));
    begin
       CORBA.Internals.Set_Type (Result, TC_n2);
@@ -106,99 +112,174 @@ package body i1.Helper is
    end To_Any;
 
    function From_Any (Item : in CORBA.Any)
-      return i1.tab is
+      return i1.tab
+   is
       Result : i1.tab;
-      use type CORBA.Unsigned_Long;
-      J_Ü : CORBA.Unsigned_Long := 0;
+      Aux    : array (Natural range 0 .. 1) of CORBA.Any;
+
    begin
+      Aux (0) := Item;
+
       for J_Ü0 in 0 .. 4 - 1 loop
+         Aux (1) :=
+           CORBA.Internals.Get_Aggregate_Element
+           (Aux (0),
+            TC_tab_TC_Dimension_1,
+            CORBA.Unsigned_Long (J_Ü0));
+
          for J_Ü1 in 0 .. 2 - 1 loop
-            Result (J_Ü0, J_Ü1) := i1.Helper.From_Any
-               (CORBA.Internals.Get_Aggregate_Element
-                (Item, i1.Helper.TC_new_string, J_Ü));
-            J_Ü := J_Ü + 1;
+            Result (J_Ü0, J_Ü1) :=
+              i1.Helper.From_Any
+              (CORBA.Internals.Get_Aggregate_Element
+               (Aux (1),
+                i1.Helper.TC_new_string,
+                CORBA.Unsigned_Long (J_Ü1)));
          end loop;
       end loop;
+
       return Result;
    end From_Any;
 
    function To_Any
      (Item : in i1.tab)
-     return CORBA.Any is
-      Result : CORBA.Any := CORBA.Internals.Get_Empty_Any_Aggregate
-        (TC_tab);
+     return CORBA.Any
+   is
+      Result : array (Natural range 0 .. 1) of CORBA.Any;
+
    begin
+      Result (0) :=
+        CORBA.Internals.Get_Empty_Any_Aggregate
+        (TC_tab);
+
       for J_Ü0 in 0 .. 4 - 1 loop
+         Result (1) :=
+           CORBA.Internals.Get_Empty_Any_Aggregate
+           (TC_tab_TC_Dimension_1);
+
          for J_Ü1 in 0 .. 2 - 1 loop
-            CORBA.Internals.Add_Aggregate_Element (Result,
-                                         i1.Helper.To_Any (Item (J_Ü0, J_Ü1)));
+            CORBA.Internals.Add_Aggregate_Element
+              (Result (1),
+               i1.Helper.To_Any (Item (J_Ü0, J_Ü1)));
          end loop;
+
+         CORBA.Internals.Add_Aggregate_Element (Result (0), Result (1));
       end loop;
-      return Result;
+
+      return Result (0);
    end To_Any;
 
    function From_Any (Item : in CORBA.Any)
-      return i1.f33 is
+      return i1.f33
+   is
       Result : i1.f33;
-      use type CORBA.Unsigned_Long;
-      J_Ü : CORBA.Unsigned_Long := 0;
+      Aux    : array (Natural range 0 .. 0) of CORBA.Any;
+
    begin
+      Aux (0) := Item;
+
       for J_Ü0 in 0 .. 120 - 1 loop
-         Result (J_Ü0) := CORBA.From_Any
-            (CORBA.Internals.Get_Aggregate_Element
-             (Item, CORBA.TC_Float, J_Ü));
-         J_Ü := J_Ü + 1;
+         Result (J_Ü0) :=
+           CORBA.From_Any
+           (CORBA.Internals.Get_Aggregate_Element
+            (Aux (0),
+             CORBA.TC_Float,
+             CORBA.Unsigned_Long (J_Ü0)));
       end loop;
+
       return Result;
    end From_Any;
 
    function To_Any
      (Item : in i1.f33)
-     return CORBA.Any is
-      Result : CORBA.Any := CORBA.Internals.Get_Empty_Any_Aggregate
-        (TC_f33);
+     return CORBA.Any
+   is
+      Result : array (Natural range 0 .. 0) of CORBA.Any;
+
    begin
+      Result (0) :=
+        CORBA.Internals.Get_Empty_Any_Aggregate
+        (TC_f33);
+
       for J_Ü0 in 0 .. 120 - 1 loop
-         CORBA.Internals.Add_Aggregate_Element (Result,
-                                      CORBA.To_Any (Item (J_Ü0)));
+         CORBA.Internals.Add_Aggregate_Element
+           (Result (0),
+            CORBA.To_Any (Item (J_Ü0)));
       end loop;
-      return Result;
+
+      return Result (0);
    end To_Any;
 
    function From_Any (Item : in CORBA.Any)
-      return i1.f45 is
+      return i1.f45
+   is
       Result : i1.f45;
-      use type CORBA.Unsigned_Long;
-      J_Ü : CORBA.Unsigned_Long := 0;
+      Aux    : array (Natural range 0 .. 2) of CORBA.Any;
+
    begin
+      Aux (0) := Item;
+
       for J_Ü0 in 0 .. 4 - 1 loop
+         Aux (1) :=
+           CORBA.Internals.Get_Aggregate_Element
+           (Aux (0),
+            TC_f45_TC_Dimension_1,
+            CORBA.Unsigned_Long (J_Ü0));
+
          for J_Ü1 in 0 .. 5 - 1 loop
+            Aux (2) :=
+              CORBA.Internals.Get_Aggregate_Element
+              (Aux (1),
+               TC_f45_TC_Dimension_2,
+               CORBA.Unsigned_Long (J_Ü1));
+
             for J_Ü2 in 0 .. 6 - 1 loop
-               Result (J_Ü0, J_Ü1, J_Ü2) := CORBA.From_Any
-                  (CORBA.Internals.Get_Aggregate_Element
-                   (Item, CORBA.TC_Float, J_Ü));
-               J_Ü := J_Ü + 1;
+               Result (J_Ü0, J_Ü1, J_Ü2) :=
+                 CORBA.From_Any
+                 (CORBA.Internals.Get_Aggregate_Element
+                  (Aux (2),
+                   CORBA.TC_Float,
+                   CORBA.Unsigned_Long (J_Ü2)));
             end loop;
          end loop;
       end loop;
+
       return Result;
    end From_Any;
 
    function To_Any
      (Item : in i1.f45)
-     return CORBA.Any is
-      Result : CORBA.Any := CORBA.Internals.Get_Empty_Any_Aggregate
-        (TC_f45);
+     return CORBA.Any
+   is
+      Result : array (Natural range 0 .. 2) of CORBA.Any;
+
    begin
+      Result (0) :=
+        CORBA.Internals.Get_Empty_Any_Aggregate
+        (TC_f45);
+
       for J_Ü0 in 0 .. 4 - 1 loop
+         Result (1) :=
+           CORBA.Internals.Get_Empty_Any_Aggregate
+           (TC_f45_TC_Dimension_1);
+
          for J_Ü1 in 0 .. 5 - 1 loop
+            Result (2) :=
+              CORBA.Internals.Get_Empty_Any_Aggregate
+              (TC_f45_TC_Dimension_2);
+
             for J_Ü2 in 0 .. 6 - 1 loop
-               CORBA.Internals.Add_Aggregate_Element (Result,
-                                            CORBA.To_Any (Item (J_Ü0, J_Ü1, J_Ü2)));
+               CORBA.Internals.Add_Aggregate_Element
+                 (Result (2),
+                  CORBA.To_Any (Item (J_Ü0, J_Ü1, J_Ü2)));
             end loop;
+
+            CORBA.Internals.Add_Aggregate_Element (Result (1), Result (2));
          end loop;
+
+         CORBA.Internals.Add_Aggregate_Element (Result (0), Result (1));
       end loop;
-      return Result;
+
+      return Result (0);
    end To_Any;
    
    procedure Deferred_Initialization is
@@ -240,12 +321,11 @@ package body i1.Helper is
       end;
    
       declare
-         TC_1 : CORBA.TypeCode.Object := CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Array);
       begin
-         CORBA.TypeCode.Internals.Add_Parameter (TC_1, CORBA.To_Any (CORBA.Unsigned_Long (2)));
-         CORBA.TypeCode.Internals.Add_Parameter (TC_1, CORBA.To_Any (i1.Helper.TC_new_string));
+         CORBA.TypeCode.Internals.Add_Parameter (TC_tab_TC_Dimension_1, CORBA.To_Any (CORBA.Unsigned_Long (2)));
+         CORBA.TypeCode.Internals.Add_Parameter (TC_tab_TC_Dimension_1, CORBA.To_Any (i1.Helper.TC_new_string));
          CORBA.TypeCode.Internals.Add_Parameter (TC_tab, CORBA.To_Any (CORBA.Unsigned_Long (4)));
-         CORBA.TypeCode.Internals.Add_Parameter (TC_tab, CORBA.To_Any (TC_1));
+         CORBA.TypeCode.Internals.Add_Parameter (TC_tab, CORBA.To_Any (TC_tab_TC_Dimension_1));
       end;
    
       declare
@@ -255,15 +335,13 @@ package body i1.Helper is
       end;
    
       declare
-         TC_1 : CORBA.TypeCode.Object := CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Array);
-         TC_2 : CORBA.TypeCode.Object := CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Array);
       begin
-         CORBA.TypeCode.Internals.Add_Parameter (TC_2, CORBA.To_Any (CORBA.Unsigned_Long (6)));
-         CORBA.TypeCode.Internals.Add_Parameter (TC_2, CORBA.To_Any (CORBA.TC_Float));
-         CORBA.TypeCode.Internals.Add_Parameter (TC_1, CORBA.To_Any (CORBA.Unsigned_Long (5)));
-         CORBA.TypeCode.Internals.Add_Parameter (TC_1, CORBA.To_Any (TC_2));
+         CORBA.TypeCode.Internals.Add_Parameter (TC_f45_TC_Dimension_2, CORBA.To_Any (CORBA.Unsigned_Long (6)));
+         CORBA.TypeCode.Internals.Add_Parameter (TC_f45_TC_Dimension_2, CORBA.To_Any (CORBA.TC_Float));
+         CORBA.TypeCode.Internals.Add_Parameter (TC_f45_TC_Dimension_1, CORBA.To_Any (CORBA.Unsigned_Long (5)));
+         CORBA.TypeCode.Internals.Add_Parameter (TC_f45_TC_Dimension_1, CORBA.To_Any (TC_f45_TC_Dimension_2));
          CORBA.TypeCode.Internals.Add_Parameter (TC_f45, CORBA.To_Any (CORBA.Unsigned_Long (4)));
-         CORBA.TypeCode.Internals.Add_Parameter (TC_f45, CORBA.To_Any (TC_1));
+         CORBA.TypeCode.Internals.Add_Parameter (TC_f45, CORBA.To_Any (TC_f45_TC_Dimension_1));
       end;
    
    end Deferred_Initialization;

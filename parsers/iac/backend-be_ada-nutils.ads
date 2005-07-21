@@ -162,6 +162,7 @@ package Backend.BE_Ada.Nutils is
       P_Arg_List,
       P_Arg_Modes,
       P_Argument,
+      P_Aux,
       P_Conflicts,
       P_Depends,
       P_E,
@@ -598,7 +599,10 @@ package Backend.BE_Ada.Nutils is
    function Make_Variant_Part
      (Discriminant        : Node_Id;
       Variant_List        : List_Id)
-      return                Node_Id;
+     return                Node_Id;
+
+   --  This function executes Next_Node Num times
+   function Next_N_Node (N : Node_Id; Num : Natural) return Node_Id;
 
    function Qualified_Designator
      (P : Node_Id)

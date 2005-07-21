@@ -68,6 +68,7 @@ package i1.Helper is
    TC_tab : CORBA.TypeCode.Object := 
    CORBA.TypeCode.Internals.To_CORBA_Object (
    PolyORB.Any.TypeCode.TC_Array);
+   TC_tab_TC_Dimension_1 : CORBA.TypeCode.Object := CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Array);
 
    function From_Any (Item : in CORBA.Any)
       return i1.tab;
@@ -90,6 +91,8 @@ package i1.Helper is
    TC_f45 : CORBA.TypeCode.Object := 
    CORBA.TypeCode.Internals.To_CORBA_Object (
    PolyORB.Any.TypeCode.TC_Array);
+   TC_f45_TC_Dimension_1 : CORBA.TypeCode.Object := CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Array);
+   TC_f45_TC_Dimension_2 : CORBA.TypeCode.Object := CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Array);
 
    function From_Any (Item : in CORBA.Any)
       return i1.f45;

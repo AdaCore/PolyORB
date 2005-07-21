@@ -75,6 +75,7 @@ package body i1.Skel is
                  CORBA.From_Any (Argument_Ü_Type_Id);
 
                --  Call implementation
+
                Result_Ü := i1.Is_A
                  (CORBA.To_Standard_String (Type_Id));
             end;
@@ -124,6 +125,7 @@ package body i1.Skel is
 
 
                --  Call implementation
+
                Result_Ü := i1.Impl.get_str
                  (i1.Impl.Object'Class (Self.all)'Access);
             end;
@@ -161,6 +163,7 @@ package body i1.Skel is
                  CORBA.From_Any (Argument_Ü_To);
 
                --  Call implementation
+
                i1.Impl.set_str
                  (i1.Impl.Object'Class (Self.all)'Access,
                   To);
@@ -181,6 +184,7 @@ package body i1.Skel is
 
 
                --  Call implementation
+
                Result_Ü := i1.Impl.get_S
                  (i1.Impl.Object'Class (Self.all)'Access);
             end;
@@ -218,6 +222,7 @@ package body i1.Skel is
                  i1.Helper.From_Any (Argument_Ü_To);
 
                --  Call implementation
+
                i1.Impl.set_S
                  (i1.Impl.Object'Class (Self.all)'Access,
                   To);
@@ -250,6 +255,7 @@ package body i1.Skel is
                  i1.Helper.From_Any (Argument_Ü_f1);
 
                --  Call implementation
+
                i1.Impl.min
                  (i1.Impl.Object'Class (Self.all)'Access,
                   f1);
@@ -296,6 +302,7 @@ package body i1.Skel is
                  CORBA.From_Any (Argument_Ü_f2);
 
                --  Call implementation
+
                i1.Impl.Add
                  (i1.Impl.Object'Class (Self.all)'Access,
                   f1,
@@ -368,6 +375,7 @@ package body i1.Skel is
                  CORBA.From_Any (Argument_Ü_f2);
 
                --  Call implementation
+
                i1.Impl.minus
                  (i1.Impl.Object'Class (Self.all)'Access,
                   f1,

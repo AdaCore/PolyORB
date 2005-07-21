@@ -66,6 +66,13 @@ package body Backend.BE_Ada.Helpers is
       --  When Backend is true, E is assumed to be a backend node of a full
       --  type definition.
 
+      function TypeCode_Dimension_Spec
+        (Declarator : Node_Id;
+         Dim        : Natural)
+        return Node_Id;
+      --  return a TypeCode constant for a dimension of an array other than
+      --  the last dimension
+
       function To_Ref_Spec
         (E : Node_Id)
         return Node_Id;
@@ -469,6 +476,50 @@ package body Backend.BE_Ada.Helpers is
          return N;
       end TypeCode_Spec;
 
+      -----------------------------
+      -- TypeCode_Dimension_Spec --
+      -----------------------------
+
+      function TypeCode_Dimension_Spec
+        (Declarator : Node_Id;
+         Dim        : Natural)
+        return Node_Id
+      is
+         N       : Node_Id;
+         TC_Name : Name_Id;
+      begin
+
+         --  Building the TypeCode variable name
+
+         N := Defining_Identifier
+           (Type_Def_Node
+            (BE_Node
+             (Identifier
+              (Declarator))));
+         TC_Name := Add_Prefix_To_Name ("TC_", BEN.Name (N));
+         Get_Name_String (TC_Name);
+         Add_Str_To_Name_Buffer ("_TC_Dimension_");
+         Add_Nat_To_Name_Buffer (Int (Dim));
+         TC_Name := Name_Find;
+
+         --  Expression of the constant
+
+         N :=  Make_Subprogram_Call
+           (Defining_Identifier   => RE (RE_To_CORBA_Object),
+            Actual_Parameter_Part => Make_List_Id (RE (RE_TC_Array)));
+
+         --  Declaration of the variable
+
+         N := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (TC_Name),
+            Constant_Present    => False,
+            Object_Definition   => RE (RE_Object),
+            Expression          => N);
+
+         return N;
+      end TypeCode_Dimension_Spec;
+
       -----------
       -- Visit --
       -----------
@@ -808,10 +859,27 @@ package body Backend.BE_Ada.Helpers is
 
          while Present (D) loop
             N := TypeCode_Spec (D);
-            Append_Node_To_List
-              (N, Visible_Part (Current_Package));
+            Append_Node_To_List (N, Visible_Part (Current_Package));
             Bind_FE_To_Helper (Identifier (D), N);
             Bind_FE_To_TC (Identifier (D), N);
+
+            --  Multidimensional arrays : when they are converted to the Any
+            --  type, the multidimensional arrays are seen as nested arrays.
+            --  So, for each dimension from the first until the before last
+            --  dimension we declare a type code constant.
+            if FEN.Kind (D) = K_Complex_Declarator then
+               declare
+                  Dim  : constant Natural := FEU.Length (FEN.Array_Sizes (D));
+               begin
+                  if Dim > 1 then
+                     for I in 1 .. Dim - 1 loop
+                        N := TypeCode_Dimension_Spec (D, I);
+                        Append_Node_To_List
+                          (N, Visible_Part (Current_Package));
+                     end loop;
+                  end if;
+               end;
+            end if;
 
             --  If the new type is defined basing on an interface type,
             --  and then if this is not an array type, then we dont generate
@@ -928,13 +996,24 @@ package body Backend.BE_Ada.Helpers is
 
    package body Package_Body is
 
+      package BEU renames Backend.BE_Ada.Nutils;
+
       Deferred_Initialization_Body : List_Id;
       Package_Initializarion       : List_Id;
 
       function Deferred_Initialization_Block
         (E : Node_Id)
          return Node_Id;
+
       function Img (N : Integer) return String;
+
+      function Declare_Any_Array
+        (A_Name         : Name_Id;
+         A_First        : Natural;
+         A_Last         : Natural)
+        return Node_Id;
+
+      function Nth_Element (A_Name : Name_Id; Nth : Natural) return Node_Id;
 
       function From_Any_Body
         (E : Node_Id)
@@ -945,7 +1024,6 @@ package body Backend.BE_Ada.Helpers is
       function To_Any_Body
         (E : Node_Id)
         return Node_Id;
-      --  returns an any conversion functions for a given type (E) node.
 
       function U_To_Ref_Body
         (E : Node_Id)
@@ -1024,17 +1102,17 @@ package body Backend.BE_Ada.Helpers is
             Value : Value_Id)
             return Node_Id;
 
-         --  To handle the case of multi-dimension arrays. A TypeCode variable
-         --  is declared for each dimension of an array.
-         function Declare_Dimension
-           (Var_Name  : Name_Id)
-           return Node_Id;
+--        --  To handle the case of multi-dimension arrays. A TypeCode variable
+--           --  is declared for each dimension of an array.
+--           function Declare_Dimension
+--             (Var_Name  : Name_Id)
+--             return Node_Id;
 
-         --  Generation of a new variable name to designate a given dimension
-         --  of the array.
-         function Get_Dimension_Variable_Name
-           (Dimension : Natural)
-           return Name_Id;
+--        --  Generation of a new variable name to designate a given dimension
+--           --  of the array.
+--           function Get_Dimension_Variable_Name
+--             (Dimension : Natural)
+--             return Name_Id;
 
          --  Generate a TC constant for a fixed point type. We regenerate it
          --  here because there is no simple way to link a K_Fixed_Point_Type
@@ -1087,42 +1165,42 @@ package body Backend.BE_Ada.Helpers is
             return N;
          end Declare_Name;
 
-         -----------------------
-         -- Declare_Dimension --
-         -----------------------
+--           -----------------------
+--           -- Declare_Dimension --
+--           -----------------------
 
-         function Declare_Dimension
-           (Var_Name  : Name_Id)
-            return Node_Id
-         is
-            N : Node_Id;
-         begin
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (Var_Name),
-               Object_Definition   => RE (RE_Object),
-               Expression          =>
-                 Make_Subprogram_Call
-               (RE (RE_To_CORBA_Object),
-                Make_List_Id (RE (RE_TC_Array))));
-            return N;
-         end Declare_Dimension;
+--           function Declare_Dimension
+--             (Var_Name  : Name_Id)
+--              return Node_Id
+--           is
+--              N : Node_Id;
+--           begin
+--              N := Make_Object_Declaration
+--                (Defining_Identifier =>
+--                   Make_Defining_Identifier (Var_Name),
+--                 Object_Definition   => RE (RE_Object),
+--                 Expression          =>
+--                   Make_Subprogram_Call
+--                 (RE (RE_To_CORBA_Object),
+--                  Make_List_Id (RE (RE_TC_Array))));
+--              return N;
+--           end Declare_Dimension;
 
-         ---------------------------------
-         -- Get_Dimension_Variable_Name --
-         ---------------------------------
+--           ---------------------------------
+--           -- Get_Dimension_Variable_Name --
+--           ---------------------------------
 
-         function Get_Dimension_Variable_Name
-           (Dimension : Natural)
-           return Name_Id
-         is
-            Result : Name_Id;
-         begin
-            Set_Nat_To_Name_Buffer (Nat (Dimension));
-            Result := Name_Find;
-            Result := Add_Prefix_To_Name ("TC_", Result);
-            return Result;
-         end Get_Dimension_Variable_Name;
+--           function Get_Dimension_Variable_Name
+--             (Dimension : Natural)
+--             return Name_Id
+--           is
+--              Result : Name_Id;
+--           begin
+--              Set_Nat_To_Name_Buffer (Nat (Dimension));
+--              Result := Name_Find;
+--              Result := Add_Prefix_To_Name ("TC_", Result);
+--              return Result;
+--           end Get_Dimension_Variable_Name;
 
          ------------------------
          -- Get_TC_Fixed_Point --
@@ -1208,6 +1286,7 @@ package body Backend.BE_Ada.Helpers is
             when K_Complex_Declarator =>
                declare
                   V                : Value_Type;
+                  TC               : Node_Id;
                   TC_Dim           : Node_Id          := No_Node;
                   TC_Previous_Name : Name_Id          := No_Name;
                   TC_Name          : Name_Id          := No_Name;
@@ -1222,10 +1301,6 @@ package body Backend.BE_Ada.Helpers is
                   To_N             : Node_Id          := No_Node;
                   T                : Node_Id;
                begin
-                  --  If the dimension of the array is greater than 1, we must
-                  --  generate a TypeCode variable (TC_1, TC_2...) for each
-                  --  dimension. The last variable name is TC_"Array_Name".
-
                   if Dimension > 1 then
 
                      --  First of all, we create a new list which contains the
@@ -1243,19 +1318,18 @@ package body Backend.BE_Ada.Helpers is
                         From_N := Next_Node (From_N);
                      end loop;
 
-                     --  Then, starting from the last node of the new list, we
-                     --  take the corresponding size and we generate the TC_
-                     --  variable. The first variable (the deepest dimension)
-                     --  is the one containing the real type of the array.
+                     --  The TC_XXXX constants used here are the ones declared
+                     --  in the Helper spec
 
+                     TC := TC_Node (BE_Node (Identifier (E)));
                      Constraint := Last_Node (Sizes_Reverse);
                      for Index in 1 .. Dimension - 1 loop
+                        TC_Dim := Next_N_Node (TC, Dimension - Index);
+
                         TC_Previous_Name := TC_Name;
-                        TC_Name := Get_Dimension_Variable_Name (Index);
-                        TC_Dim  := Declare_Dimension (TC_Name);
+                        TC_Name := BEN.Name (BEN.Defining_Identifier (TC_Dim));
                         V := Values.Value (BEN.Value (Last (Constraint)));
                         V.IVal := V.IVal + 1;
-                        Append_Node_To_List (TC_Dim, Declarative_Part);
                         Param1 := Make_Subprogram_Call
                           (RE (RE_Unsigned_Long),
                            Make_List_Id
@@ -1263,21 +1337,20 @@ package body Backend.BE_Ada.Helpers is
 
                         if TC_Previous_Name = No_Name then
                            --  The deepest dimension
-
                            T := Type_Spec (Declaration (E));
                            Param2 := Get_TC_Node (T);
                         else --  Not the deepest dimension
                            Param2 := Make_Designator (TC_Previous_Name);
                         end if;
 
-                        TC_Dim := Add_Parameter
+                        N := Add_Parameter
                           (TC_Name,
                            Param1);
-                        Append_Node_To_List (TC_Dim, Statements);
-                        TC_Dim := Add_Parameter
+                        Append_Node_To_List (N, Statements);
+                        N := Add_Parameter
                           (TC_Name,
                            Param2);
-                        Append_Node_To_List (TC_Dim, Statements);
+                        Append_Node_To_List (N, Statements);
                         Remove_Node_From_List (Constraint, Sizes_Reverse);
                         Constraint := Last_Node (Sizes_Reverse);
                      end loop;
@@ -1441,6 +1514,7 @@ package body Backend.BE_Ada.Helpers is
                   end if;
 
                   --  The third parameter is the discriminator type
+
                   N := Add_Parameter (Entity_TC_Name, TC_Helper);
                   Append_Node_To_List (N, Statements);
 
@@ -1449,23 +1523,21 @@ package body Backend.BE_Ada.Helpers is
                   --  list. When we get the defaul case index, we add the
                   --  intermediari list to the statements list.
 
-                  --  Switch_Alternatives := New_List (K_Variant_List);
                   Switch_Alternative := First_Entity (Switch_Type_Body (E));
                   while Present (Switch_Alternative) loop
-                     --  Variant := New_Node (K_Variant);
                      Choices := New_List (K_List_Id);
-                     --  Set_Discrete_Choices (Variant, Choices);
                      Label   := First_Entity (Labels (Switch_Alternative));
                      while Present (Label) loop
 
                         Choice := Make_Literal
                           (Value             => FEN.Value (Label),
-                           --  Has_Parentheses   => True,
                            Parent_Designator => Literal_Parent);
+
                         --  If this is not a case statement, then we increment
                         --  the default case index. The value of Default_Index
                         --  will be correctly set up after the end of the two
-                        --  loops.
+                        --  loops
+
                         if BEN.Value (Choice) /= No_Value then
                            Set_Value
                              (Default_Index,
@@ -1480,6 +1552,7 @@ package body Backend.BE_Ada.Helpers is
 
                      --  Getting the TC_XXX constant corresponding to the
                      --  element type.
+
                      TC_Helper := Get_TC_Node
                        (Type_Spec
                         (Element
@@ -1515,12 +1588,14 @@ package body Backend.BE_Ada.Helpers is
                      --  * member name
                      --  This implies that the same element may be declared
                      --  more than once but with a different label.
+
                      Choice := First_Node (Choices);
                      while Present (Choice) loop
                         if BEN.Value (Choice) /= No_Value then
                            --  We make a copy of the Choice value to avoid
                            --  adding the next nodes of Choice to the
                            --  argument list
+
                            N := Make_Literal
                              (Value             =>
                                 BEN.Value (Choice),
@@ -1571,6 +1646,7 @@ package body Backend.BE_Ada.Helpers is
                   end if;
 
                   --  Forth parameter
+
                   N := Make_Literal
                     (Value           => Default_Index);
                   N := Make_Subprogram_Call
@@ -1579,8 +1655,10 @@ package body Backend.BE_Ada.Helpers is
                   N := Add_Parameter (Entity_TC_Name, N);
                   Append_Node_To_List (N, Statements);
 
-                  --  Ajouter la liste Statements_List a la fin de la liste
-                  --  statements (il suffit d'ajouter le premier element)
+                  --  Append the Statements_List list to the end of the
+                  --  Statements list (we only append the first node, the
+                  --  others are appended automatically)
+
                   Append_Node_To_List
                     (First_Node (Statements_List),
                      Statements);
@@ -1620,6 +1698,7 @@ package body Backend.BE_Ada.Helpers is
                         Append_Node_To_List (N, Declarative_Part);
 
                         --  For simple declarators :
+
                         if FEN.Kind (Declarator) = K_Simple_Declarator then
                            Param1 := Get_TC_Node
                              (Type_Spec
@@ -1693,6 +1772,7 @@ package body Backend.BE_Ada.Helpers is
                            Append_Node_To_List (N, Declarative_Part);
 
                            --  Adding the two additional parameters
+
                            N := Get_TC_Node (Type_Spec (Member));
                            N := Add_Parameter (Entity_TC_Name, N);
                            Append_Node_To_List (N, Statements);
@@ -1790,6 +1870,57 @@ package body Backend.BE_Ada.Helpers is
          end if;
       end Img;
 
+      -----------------------
+      -- Declare_Any_Array --
+      -----------------------
+
+      function Declare_Any_Array
+        (A_Name         : Name_Id;
+         A_First        : Natural;
+         A_Last         : Natural)
+        return Node_Id
+      is
+         N : Node_Id;
+         R : Node_Id;
+         L : List_Id;
+         First : Value_Id;
+         Last  : Value_Id;
+      begin
+         First := New_Integer_Value
+           (Unsigned_Long_Long (A_First), 1, 10);
+         Last  := New_Integer_Value
+           (Unsigned_Long_Long (A_Last), 1, 10);
+
+         R := New_Node (K_Range_Constraint);
+         Set_First (R, Make_Literal (First));
+         Set_Last  (R, Make_Literal (Last));
+
+         L := New_List (K_Range_Constraints);
+         Append_Node_To_List (R, L);
+
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (A_Name),
+            Object_Definition     => Make_Array_Type_Definition
+            (L, RE (RE_Any)));
+
+         return N;
+      end Declare_Any_Array;
+
+      -----------------
+      -- Nth_Element --
+      -----------------
+
+      function Nth_Element (A_Name : Name_Id; Nth : Natural) return Node_Id is
+         Nth_Value : Value_Id;
+         N         : Node_Id;
+      begin
+         Nth_Value := New_Integer_Value (Unsigned_Long_Long (Nth), 1, 10);
+         N := Make_Subprogram_Call
+           (Make_Defining_Identifier (A_Name),
+            Make_List_Id (Make_Literal (Nth_Value)));
+         return N;
+      end Nth_Element;
+
       -------------------
       -- From_Any_Body --
       -------------------
@@ -1820,16 +1951,17 @@ package body Backend.BE_Ada.Helpers is
             Sizes                : constant List_Id :=
               Range_Constraints
               (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
+            Dimension            : constant Natural := BEU.Length (Sizes);
             Dim                  : Node_Id;
             Loop_Statements      : List_Id := No_List;
             Enclosing_Statements : List_Id;
             Index_List           : constant List_Id
               := New_List (K_List_Id);
-            Item_Offset          : Node_Id;
-            Tmp_Expr             : Node_Id;
-            V                    : Value_Type;
             Helper               : Node_Id;
             TC                   : Node_Id;
+            Index_Node           : Node_Id := No_Node;
+            Prev_Index_Node      : Node_Id;
+            Aux_Node             : Node_Id;
          begin
             Spec := From_Any_Node (BE_Node (Identifier (E)));
 
@@ -1840,58 +1972,54 @@ package body Backend.BE_Ada.Helpers is
                  Copy_Designator (Return_Type (Spec)));
             Append_Node_To_List (N, D);
 
-            Item_Offset := New_Node (K_Expression);
+            N := Declare_Any_Array (PN (P_Aux), 0, Dimension - 1);
+            Append_Node_To_List (N, D);
+
             Dim := First_Node (Sizes);
+            TC := TC_Node (BE_Node (Identifier (E)));
             loop
                Set_Str_To_Name_Buffer ("I");
                Add_Str_To_Name_Buffer (Img (I));
-               M := Make_Defining_Identifier
+               Prev_Index_Node := Index_Node;
+               Index_Node := Make_Defining_Identifier
                  (Add_Suffix_To_Name (Var_Suffix, Name_Find));
-               Append_Node_To_List (M, Index_List);
+               Append_Node_To_List (Index_Node, Index_List);
                Enclosing_Statements := Loop_Statements;
                Loop_Statements := New_List (K_List_Id);
                N := Make_For_Statement
-                 (M, Dim, Loop_Statements);
+                 (Index_Node, Dim, Loop_Statements);
 
                if I > 0 then
+                  Aux_Node := Nth_Element (PN (P_Aux), I);
+                  Aux_Node := Make_Assignment_Statement
+                    (Aux_Node,
+                     Make_Subprogram_Call
+                     (RE (RE_Get_Aggregate_Element),
+                      Make_List_Id
+                      (Nth_Element (PN (P_Aux), I - 1),
+                       Expand_Designator (TC),
+                       Make_Subprogram_Call
+                       (RE (RE_Unsigned_Long),
+                        Make_List_Id (Copy_Node (Prev_Index_Node))))));
+                  Append_Node_To_List (Aux_Node, Enclosing_Statements);
                   Append_Node_To_List (N, Enclosing_Statements);
                else
+                  Aux_Node := Nth_Element (PN (P_Aux), I);
+                  Aux_Node := Make_Assignment_Statement
+                    (Aux_Node,
+                     Make_Defining_Identifier (PN (P_Item)));
+                  Append_Node_To_List (Aux_Node, S);
                   Append_Node_To_List (N, S);
                end if;
 
-               V := Values.Value (BEN.Value (Last (Dim)));
-               V.IVal := V.IVal + 1;
                I := I + 1;
 
-               --  Algorithm for building the expression that increments the
-               --  offset at each iteration :
-               --  * If there is one dimension : the offset is equal to the
-               --    counter
-               --  * If there is more than one dimension :
-               --    offset = V * offset + counter
-               --    where V is the size of the range of the current dimension
-               --    and counter is the counter of the current dimension.
-
-               if I = 1 then
-                  BEN.Set_Left_Expr (Item_Offset, Copy_Node (M));
-                  BEN.Set_Operator
-                    (Item_Offset, Operator_Type'Pos (Op_None));
-               else
-
-                  --  Building the V * offset part
-
-                  Tmp_Expr := New_Node (K_Expression);
-                  BEN.Set_Left_Expr (Tmp_Expr, Make_Literal (New_Value (V)));
-                  BEN.Set_Operator (Tmp_Expr, Operator_Type'Pos (Op_Asterisk));
-                  BEN.Set_Right_Expr (Tmp_Expr, Item_Offset);
-
-                  --  Adding the counter
-
-                  Item_Offset := New_Node (K_Expression);
-                  BEN.Set_Left_Expr (Item_Offset, Tmp_Expr);
-                  BEN.Set_Operator (Item_Offset, Operator_Type'Pos (Op_Plus));
-                  BEN.Set_Right_Expr (Item_Offset, Copy_Node (M));
-               end if;
+               --  Although we use only TC_XXX_TC_Dimension_N in the enclosing
+               --  loops, the assignment above must be done at the end and not
+               --  at the beginning of the loop. This is due to the fact that
+               --  the statemets of a For loop are computed in the iteration
+               --  which comes after the one in which the for loop is created.
+               TC := Next_Node (TC);
                Dim := Next_Node (Dim);
                exit when No (Dim);
             end loop;
@@ -1905,11 +2033,11 @@ package body Backend.BE_Ada.Helpers is
             M := Make_Subprogram_Call
               (RE (RE_Get_Aggregate_Element),
                Make_List_Id
-               (Make_Defining_Identifier (PN (P_Item)),
+               (Nth_Element (PN (P_Aux), I - 1),
                 TC,
                 Make_Subprogram_Call
                 (RE (RE_Unsigned_Long),
-                 Make_List_Id (Item_Offset))));
+                 Make_List_Id (Copy_Node (Index_Node)))));
             M := Make_Subprogram_Call
               (Helper,
                Make_List_Id (M));
@@ -2733,27 +2861,21 @@ package body Backend.BE_Ada.Helpers is
             Sizes                : constant List_Id :=
               Range_Constraints
               (Type_Definition (Type_Def_Node (BE_Node (Identifier (E)))));
+            Dimension            : constant Natural := BEU.Length (Sizes);
             Dim                  : Node_Id;
             Loop_Statements      : List_Id := No_List;
             Enclosing_Statements : List_Id;
             Helper               : Node_Id;
+            TC                   : Node_Id;
+            Result_Node          : Node_Id;
          begin
             Spec := To_Any_Node (BE_Node (Identifier (E)));
 
-            N := RE (RE_Get_Empty_Any_Aggregate);
-            Helper_Name := BEN.Name
-              (Defining_Identifier (TC_Node (BE_Node (Identifier (E)))));
-            N := Make_Subprogram_Call
-              (N,
-               Make_List_Id (Make_Defining_Identifier (Helper_Name)));
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (PN (P_Result)),
-               Object_Definition => RE (RE_Any),
-               Expression => N);
+            N := Declare_Any_Array (PN (P_Result), 0, Dimension - 1);
             Append_Node_To_List (N, D);
-            L := New_List (K_List_Id);
 
+            L := New_List (K_List_Id);
+            TC := TC_Node (BE_Node (Identifier (E)));
             Dim := First_Node (Sizes);
             loop
                Set_Str_To_Name_Buffer ("I");
@@ -2767,12 +2889,38 @@ package body Backend.BE_Ada.Helpers is
                  (M, Dim, Loop_Statements);
 
                if I > 0 then
+                  Result_Node := Nth_Element (PN (P_Result), I);
+                  Result_Node := Make_Assignment_Statement
+                    (Result_Node,
+                     Make_Subprogram_Call
+                     (RE (RE_Get_Empty_Any_Aggregate),
+                      Make_List_Id
+                      (Expand_Designator (TC))));
+                  Append_Node_To_List (Result_Node, Enclosing_Statements);
+
                   Append_Node_To_List (N, Enclosing_Statements);
+
+                  Result_Node := Make_Subprogram_Call
+                    (RE (RE_Add_Aggregate_Element),
+                     Make_List_Id
+                     (Nth_Element (PN (P_Result), I - 1),
+                      Nth_Element (PN (P_Result), I)));
+                  Append_Node_To_List (Result_Node, Enclosing_Statements);
                else
+                  Result_Node := Nth_Element (PN (P_Result), I);
+                  Result_Node := Make_Assignment_Statement
+                    (Result_Node,
+                     Make_Subprogram_Call
+                     (RE (RE_Get_Empty_Any_Aggregate),
+                      Make_List_Id
+                      (Expand_Designator (TC))));
+                  Append_Node_To_List (Result_Node, S);
+
                   Append_Node_To_List (N, S);
                end if;
 
                I := I + 1;
+               TC := Next_Node (TC);
                Dim := Next_Node (Dim);
                exit when No (Dim);
             end loop;
@@ -2787,10 +2935,10 @@ package body Backend.BE_Ada.Helpers is
             N := Make_Subprogram_Call
               (RE (RE_Add_Aggregate_Element),
                Make_List_Id
-               (Make_Defining_Identifier (PN (P_Result)), N));
+               (Nth_Element (PN (P_Result), I - 1), N));
             Append_Node_To_List (N, Loop_Statements);
             N := Make_Return_Statement
-              (Make_Defining_Identifier (PN (P_Result)));
+              (Nth_Element (PN (P_Result), 0));
             Append_Node_To_List (N, S);
             N := Make_Subprogram_Implementation
               (Spec, D, S);

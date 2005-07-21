@@ -792,14 +792,17 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Loop);
       Write_Eol;
       Increment_Indentation;
-      Write_Indentation;
+      --  Write_Indentation;
       while Present (D) loop
+         Write_Indentation; --  Added
          Generate (D);
+         Write (Tok_Semicolon);
+         Write_Eol; --  Added
          D := Next_Node (D);
       end loop;
       Decrement_Indentation;
-      Write (Tok_Semicolon);
-      Write_Eol;
+      --  Write (Tok_Semicolon);
+      --  Write_Eol;
       Write_Indentation;
       Write (Tok_End);
       Write_Space;
