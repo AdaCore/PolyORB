@@ -100,6 +100,18 @@ package body CORBA is
       return TC;
    end TC_Completion_Status;
 
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Errors.Error_Container);
+   --  Raise the exception associated with the current state of Error.
+   --  If Error is an empty Error Container, no exception is raised.
+
+   procedure Raise_System_Exception
+     (Excp       : Ada.Exceptions.Exception_Id;
+      Excp_Memb  : System_Exception_Members;
+      Or_OMGVMCD : Boolean := False);
+   pragma No_Return (Raise_System_Exception);
+   --  Raise any system exception
+
    ---------------------------------
    -- String conversion functions --
    ---------------------------------
@@ -235,8 +247,9 @@ package body CORBA is
    ----------------------------
 
    procedure Raise_System_Exception
-     (Excp      : in Ada.Exceptions.Exception_Id;
-      Excp_Memb : in System_Exception_Members)
+     (Excp       : in Ada.Exceptions.Exception_Id;
+      Excp_Memb  : in System_Exception_Members;
+      Or_OMGVMCD : in Boolean := False)
    is
       Str : Standard.String (1 .. 5);
       Val : CORBA.Unsigned_Long;
@@ -248,6 +261,10 @@ package body CORBA is
 
       Str (5) := Character'Val (Completion_Status'Pos (Excp_Memb.Completed));
       Val := Excp_Memb.Minor;
+
+      if Or_OMGVMCD then
+         Val := Val or OMGVMCID;
+      end if;
 
       for J in 1 .. 4 loop
          Str (J) := Character'Val (Val / 2 ** 24);
@@ -268,8 +285,10 @@ package body CORBA is
    -------------------
 
    procedure Raise_Unknown (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 3;
+
    begin
-      Raise_System_Exception (Unknown'Identity, Excp_Memb);
+      Raise_System_Exception (Unknown'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Unknown;
 
    ---------------------
@@ -277,8 +296,10 @@ package body CORBA is
    ---------------------
 
    procedure Raise_Bad_Param (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 41;
+
    begin
-      Raise_System_Exception (Bad_Param'Identity, Excp_Memb);
+      Raise_System_Exception (Bad_Param'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Bad_Param;
 
    ---------------------
@@ -295,8 +316,10 @@ package body CORBA is
    ---------------------
 
    procedure Raise_Imp_Limit (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor = 1;
+
    begin
-      Raise_System_Exception (Imp_Limit'Identity, Excp_Memb);
+      Raise_System_Exception (Imp_Limit'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Imp_Limit;
 
    ------------------------
@@ -331,8 +354,10 @@ package body CORBA is
    --------------------
 
    procedure Raise_Internal (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
+
    begin
-      Raise_System_Exception (Internal'Identity, Excp_Memb);
+      Raise_System_Exception (Internal'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Internal;
 
    -------------------
@@ -340,8 +365,10 @@ package body CORBA is
    -------------------
 
    procedure Raise_Marshal (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 7;
+
    begin
-      Raise_System_Exception (Marshal'Identity, Excp_Memb);
+      Raise_System_Exception (Marshal'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Marshal;
 
    ----------------------
@@ -349,8 +376,10 @@ package body CORBA is
    ----------------------
 
    procedure Raise_Initialize (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor = 1;
+
    begin
-      Raise_System_Exception (Initialize'Identity, Excp_Memb);
+      Raise_System_Exception (Initialize'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Initialize;
 
    ------------------------
@@ -358,8 +387,10 @@ package body CORBA is
    ------------------------
 
    procedure Raise_No_Implement (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 7;
+
    begin
-      Raise_System_Exception (No_Implement'Identity, Excp_Memb);
+      Raise_System_Exception (No_Implement'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_No_Implement;
 
    ------------------------
@@ -367,8 +398,10 @@ package body CORBA is
    ------------------------
 
    procedure Raise_Bad_TypeCode (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 3;
+
    begin
-      Raise_System_Exception (Bad_TypeCode'Identity, Excp_Memb);
+      Raise_System_Exception (Bad_TypeCode'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Bad_TypeCode;
 
    -------------------------
@@ -376,8 +409,10 @@ package body CORBA is
    -------------------------
 
    procedure Raise_Bad_Operation (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
+
    begin
-      Raise_System_Exception (Bad_Operation'Identity, Excp_Memb);
+      Raise_System_Exception (Bad_Operation'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Bad_Operation;
 
    ------------------------
@@ -385,8 +420,10 @@ package body CORBA is
    ------------------------
 
    procedure Raise_No_Resources (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
+
    begin
-      Raise_System_Exception (No_Resources'Identity, Excp_Memb);
+      Raise_System_Exception (No_Resources'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_No_Resources;
 
    -----------------------
@@ -412,8 +449,10 @@ package body CORBA is
    -------------------------
 
    procedure Raise_Bad_Inv_Order (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 20;
+
    begin
-      Raise_System_Exception (Bad_Inv_Order'Identity, Excp_Memb);
+      Raise_System_Exception (Bad_Inv_Order'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Bad_Inv_Order;
 
    ---------------------
@@ -421,8 +460,10 @@ package body CORBA is
    ---------------------
 
    procedure Raise_Transient (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 4;
+
    begin
-      Raise_System_Exception (Transient'Identity, Excp_Memb);
+      Raise_System_Exception (Transient'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Transient;
 
    --------------------
@@ -457,8 +498,10 @@ package body CORBA is
    ---------------------
 
    procedure Raise_Intf_Repos (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
+
    begin
-      Raise_System_Exception (Intf_Repos'Identity, Excp_Memb);
+      Raise_System_Exception (Intf_Repos'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Intf_Repos;
 
    -----------------------
@@ -466,8 +509,10 @@ package body CORBA is
    -----------------------
 
    procedure Raise_Bad_Context (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
+
    begin
-      Raise_System_Exception (Bad_Context'Identity, Excp_Memb);
+      Raise_System_Exception (Bad_Context'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Bad_Context;
 
    -----------------------
@@ -475,8 +520,10 @@ package body CORBA is
    -----------------------
 
    procedure Raise_Obj_Adapter (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 7;
+
    begin
-      Raise_System_Exception (Obj_Adapter'Identity, Excp_Memb);
+      Raise_System_Exception (Obj_Adapter'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Obj_Adapter;
 
    ---------------------------
@@ -484,8 +531,10 @@ package body CORBA is
    ---------------------------
 
    procedure Raise_Data_Conversion (Excp_Memb : in System_Exception_Members) is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 2;
+
    begin
-      Raise_System_Exception (Data_Conversion'Identity, Excp_Memb);
+      Raise_System_Exception (Data_Conversion'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Data_Conversion;
 
    ----------------------------
@@ -494,8 +543,11 @@ package body CORBA is
 
    procedure Raise_Object_Not_Exist (Excp_Memb : in System_Exception_Members)
    is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 4;
+
    begin
-      Raise_System_Exception (Object_Not_Exist'Identity, Excp_Memb);
+      Raise_System_Exception
+        (Object_Not_Exist'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Object_Not_Exist;
 
    --------------------------------
@@ -516,8 +568,11 @@ package body CORBA is
    procedure Raise_Transaction_Rolledback
      (Excp_Memb : in System_Exception_Members)
    is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 3;
+
    begin
-      Raise_System_Exception (Transaction_Rolledback'Identity, Excp_Memb);
+      Raise_System_Exception
+        (Transaction_Rolledback'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Transaction_Rolledback;
 
    -------------------------------
@@ -538,8 +593,10 @@ package body CORBA is
    procedure Raise_Inv_Policy
      (Excp_Memb : in System_Exception_Members)
    is
+      Or_OMGVMCD : constant Boolean := Excp_Memb.Minor in 1 .. 3;
+
    begin
-      Raise_System_Exception (Inv_Policy'Identity, Excp_Memb);
+      Raise_System_Exception (Inv_Policy'Identity, Excp_Memb, Or_OMGVMCD);
    end Raise_Inv_Policy;
 
    --------------------------------

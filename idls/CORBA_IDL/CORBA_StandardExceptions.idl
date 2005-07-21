@@ -1,7 +1,7 @@
 // File: CORBA_StandardExceptions.idl
 // CORBA 3.0, Chapter 4
     
-//PolyORB:NI:    const unsigned long OMGVMCID = 0x4f4d0000;
+    const unsigned long OMGVMCID = 0x4f4d0000;
 
 #define ex_body {unsigned long minor; completion_status completed;}
 

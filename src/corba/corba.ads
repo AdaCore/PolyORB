@@ -190,6 +190,11 @@ package CORBA is
    -- System Exceptions --
    -----------------------
 
+   OMGVMCID : constant CORBA.Unsigned_Long := 16#4f4d0000#;
+   --  The CORBA speficiations mandate that the actual value for the
+   --  minor field of system exceptions is obtained by or-ing the
+   --  value with this constant, for all values defined in CORBA A.5.
+
    Unknown                 : exception; --  unknown exception
    Bad_Param               : exception; --  an invalid parameter was passed
    No_Memory               : exception; --  dynamic memory allocation failure
@@ -241,17 +246,6 @@ package CORBA is
      (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members);
    --  Return the member corresponding to a system exception occurence.
-
-   procedure Raise_From_Error
-     (Error : in out PolyORB.Errors.Error_Container);
-   --  Raise the exception associated with the current state of Error.
-   --  If Error is an empty Error Container, no exception is raised.
-
-   procedure Raise_System_Exception
-     (Excp      : Ada.Exceptions.Exception_Id;
-      Excp_Memb : System_Exception_Members);
-   pragma No_Return (Raise_System_Exception);
-   --  Raise any system exception
 
    --  The following procedures are used to raise specific system exceptions
 
