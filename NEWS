@@ -41,6 +41,10 @@ avoid unnecessary recompilation of idlac generated files. (9376)
 Incompatible changes
 --------------------
 
+CORBA specifications mandate that all standard minor exception codes
+should be or'ed with the OMGVMCID constant (CORBA3 A.5). The CORBA and
+GIOP personalities now handle this correctly. (9415)
+
 The implementation of the PortableServer::ObjectId has been corrected
 to match the IDL-to-Ada specifications, resulting in changes in the
 API. (9352)
