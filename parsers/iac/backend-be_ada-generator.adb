@@ -494,20 +494,26 @@ package body Backend.BE_Ada.Generator is
       D := First_Node (Case_Statement_Alternatives (N));
       Increment_Indentation;
       while Present (D) loop
-         M := First_Node (Discret_Choice_List (D));
          Write_Indentation;
          Write (Tok_When);
          Write_Space;
-         loop
-            Write_Str (Values.Image (Value (M)));
-            M := Next_Node (M);
-            exit when No (M);
+         if not Is_Empty (Discret_Choice_List (D)) then
+            M := First_Node (Discret_Choice_List (D));
+            loop
+               Write_Str (Values.Image (Value (M)));
+               M := Next_Node (M);
+               exit when No (M);
+               Write_Space;
+               Write (Tok_Vertical_Bar);
+               Write_Space;
+            end loop;
             Write_Space;
-            Write (Tok_Vertical_Bar);
+            Write_Line (Tok_Arrow);
+         else
+            Write (Tok_Others);
             Write_Space;
-         end loop;
-         Write_Space;
-         Write_Line (Tok_Arrow);
+            Write_Line (Tok_Arrow);
+         end if;
          Increment_Indentation;
          Write_Indentation;
          M := First_Node (Statements (D));
