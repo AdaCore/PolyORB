@@ -369,7 +369,9 @@ package body Backend.BE_Ada.Stubs is
            (N, Visible_Part (Current_Package));
 
          --  An Interface Declaration is also a type definition
+
          Bind_FE_To_Type_Def (Identifier (E), N);
+
          N := Map_Repository_Declaration (E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));

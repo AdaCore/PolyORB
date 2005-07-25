@@ -9,15 +9,12 @@ Backend Ada :
 * Parse the CORBA module
 * Optimizing the forwards
 * Calculate the size of buffers and add it as a comment to the Ada code
-* Add pragma elaborate to impls
 * Generate Code for "ValueType"s
 * Implementing the AMI
 * Implementing the AMH
-* Generate additional functions in skeletons
-* Check wether we use TC_IDL_SEQUENCE... or TC_SeqXXX
 
 TestSuite :
 ===========
-* Fix test017 and test020
+* Fix test017 and test020 (orb.idl)
 * For each new feature implemented, add the corresponding tests
 

@@ -34,6 +34,7 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB_Exceptions,
       RU_PolyORB_Initialization,
       RU_PolyORB_CORBA_P,
+      RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
       RU_PolyORB_CORBA_P_Interceptors_Hooks,
       RU_PolyORB_CORBA_P_Exceptions,
       RU_PolyORB_Requests,
@@ -183,6 +184,14 @@ package Backend.BE_Ada.Runtime is
       RE_Destroy_Request,           --  PolyORB.Requests.Destroy_Request
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
+      RE_Handle_Is_A,               --  PolyORB.CORBA_P.
+                                    --     Implicit_CORBA_Methods.Invoke_Is_A
+      RE_Handle_Interface,          --  PolyORB.CORBA_P.
+                                    --     Implicit_CORBA_Methods.
+                                    --     Invoke_Interface
+      RE_Handle_Domain_Managers,    --  PolyORB.CORBA_P.
+                                    --     Implicit_CORBA_Methods.
+                                    --     Invoke_Domain_Managers
       RE_Client_Invoke,             --  PolyORB.CORBA_P.
                                     --     Interceptors_Hooks.Client_Invoke
       RE_System_Exception_To_Any,   --  PolyORB.CORBA_P.
@@ -316,6 +325,12 @@ package Backend.BE_Ada.Runtime is
          RE_User_Raise_Exception    => RU_PolyORB_Exceptions,
          RE_Raise_From_Any          => RU_PolyORB_CORBA_P_Exceptions,
          RE_System_Exception_To_Any => RU_PolyORB_CORBA_P_Exceptions,
+         RE_Handle_Is_A             =>
+           RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
+         RE_Handle_Interface        =>
+           RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
+         RE_Handle_Domain_Managers  =>
+           RU_PolyORB_CORBA_P_Implicit_CORBA_Methods,
          RE_Client_Invoke           => RU_PolyORB_CORBA_P_Interceptors_Hooks,
          RE_Module_Info             => RU_PolyORB_Initialization,
          RE_Register_Module         => RU_PolyORB_Initialization,

@@ -13,6 +13,7 @@ with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 
 with GNAT.Perfect_Hash.Generators; use GNAT.Perfect_Hash.Generators;
+--  with Perfect_Hash_Generator; use Perfect_Hash_Generator;
 
 package body Backend.BE_Ada.Skels is
    package FEN renames Frontend.Nodes;
@@ -120,6 +121,7 @@ package body Backend.BE_Ada.Skels is
       procedure Invoke_Declaration (L : List_Id);
       function Invoke_Spec return Node_Id;
       function Is_A_Invoke_Part return Node_Id;
+      function Implicit_CORBA_Methods return List_Id;
       function Servant_Is_A_Body (Spec : Node_Id) return Node_Id;
       procedure Skeleton_Initialization (L : List_Id);
       function Non_User_Exception_Handler return Node_Id;
@@ -142,11 +144,11 @@ package body Backend.BE_Ada.Skels is
 
       --  This procedure initialise the lists above. It initialises the GNAT
       --  Perfect_Hash generator.
-      procedure Initialize_Hash_Function_Optimisation;
+      procedure Initialize_Hash_Function_Optimization;
 
       --  This procedure computes the Perfect Hash function generator, produces
       --  it in an additional package and finally finalizes the generator.
-      procedure Achieve_Hash_Function_Optimisation (E : Node_Id);
+      procedure Achieve_Hash_Function_Optimization (E : Node_Id);
 
       --  This function inserts the name of the subprogram to the Perfect hash
       --  function generator. It produces also a "Register procedure" call
@@ -641,7 +643,7 @@ package body Backend.BE_Ada.Skels is
          end if;
 
          --  If no optimization is requested by the user, we generate an elsif
-         --  statement. Else, we generate an independant procedure
+         --  statement. Else, we generate an case statement alternative
          if not Use_Minimal_Hash_Function then
             C := Make_Expression
               (Make_Defining_Identifier (VN (V_Operation)),
@@ -694,6 +696,7 @@ package body Backend.BE_Ada.Skels is
          Else_Statements   : constant List_Id := New_List (K_List_Id);
          Invoke_Statements : constant List_Id := New_List (K_List_Id);
          Exception_Handler : Node_Id;
+         Is_A_Lowered_Name : Name_Id;
       begin
          Spec := Invoke_Spec;
 
@@ -714,12 +717,15 @@ package body Backend.BE_Ada.Skels is
          if not Use_Minimal_Hash_Function then
             Append_Node_To_List (Is_A_Invk_Part, Invoke_Then_Statements);
 
+            Set_Str_To_Name_Buffer ("_is_a");
+            Is_A_Lowered_Name := Name_Find;
+
             C_1 := Make_Expression
               (Make_Defining_Identifier (VN (V_Operation)),
                Op_Equal,
                Make_Literal
                (New_String_Value
-                (Add_Prefix_To_Name ("_", SN (S_Is_A)), False)));
+                (Is_A_Lowered_Name, False)));
          else
             Append_Node_To_List (Is_A_Invk_Part, Invoke_Subp_Bodies);
 
@@ -883,131 +889,44 @@ package body Backend.BE_Ada.Skels is
       ----------------------
 
       function Is_A_Invoke_Part return Node_Id is
-         C                    : Node_Id;
          N                    : Node_Id;
-         Declarative_Part     : constant List_Id := New_List (K_List_Id);
          Statements           : constant List_Id := New_List (K_List_Id);
-         Param                : constant String := "Type_Id";
-         Param_Name           : Name_Id;
-         New_Name             : Name_Id;
-         P                    : List_Id;
          Discret_Choice_Value : Value_Id;
+         Profile : constant List_Id := New_List (K_List_Id);
       begin
 
-         P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
-         Set_Str_To_Name_Buffer (Param);
-         Param_Name := Name_Find;
-         N :=  Make_Object_Declaration
-           (Defining_Identifier =>
-              Make_Defining_Identifier (Param_Name),
-            Object_Definition   =>
-              RE (RE_String_0));
-         Append_Node_To_List (N, Declarative_Part);
-         C := Make_Subprogram_Call
-           (Defining_Identifier   => RE (RE_To_CORBA_String),
-            Actual_Parameter_Part =>
-              Make_List_Id (Make_Literal
-                            (New_String_Value (Param_Name, False))));
-         New_Name := Add_Prefix_To_Name ("Arg_Name_U_", Param_Name);
-         Append_Node_To_List (Make_Designator (New_Name), P);
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (New_Name),
-            Constant_Present => True,
-            Object_Definition => RE (RE_Identifier_0),
-            Expression => C);
-         Append_Node_To_List (N, Declarative_Part);
+         N := Make_Designator (PN (P_Request));
+         Append_Node_To_List (N, Profile);
 
-         C := Make_Subprogram_Call
-           (RE (RE_To_Any_0), Make_List_Id (Make_Designator (Param_Name)));
-         New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
-         Append_Node_To_List (Make_Designator (New_Name), P);
-         N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (New_Name),
-            Constant_Present => False,
-            Object_Definition => RE (RE_Any),
-            Expression => C);
-         Append_Node_To_List (N, Declarative_Part);
-         Append_Node_To_List (RE (RE_ARG_IN_0), P);
+         N := Make_Designator (VN (V_Argument_List));
+         Append_Node_To_List (N, Profile);
 
-         N := Make_Subprogram_Call
-           (RE (RE_Add_Item_0),
-            P);
-         Append_Node_To_List (N, Statements);
-         N := Make_Subprogram_Call
-           (RE (RE_Arguments),
-            Make_List_Id
-            (Make_Designator (PN (P_Request)),
-             Make_Designator (VN (V_Argument_List))));
-         Append_Node_To_List (N, Statements);
-
-         New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
-         C := RE (RE_From_Any_0);
-         N := Make_Assignment_Statement
-           (Make_Defining_Identifier (Param_Name),
-            Make_Subprogram_Call
-            (C, Make_List_Id (Make_Designator (New_Name))));
-         Append_Node_To_List (N, Statements);
-
-         --  Call Implementation
-
-         Set_Str_To_Name_Buffer
-           ("Setting the result");
-         Append_Node_To_List
-           (Make_Ada_Comment (Name_Find),
-            Statements);
-
-         N := Make_Object_Declaration
-           (Defining_Identifier =>
-              Make_Defining_Identifier (VN (V_Result)),
-            Object_Definition =>
-              RE (RE_Boolean));
-         Append_Node_To_List (N, Declarative_Part);
-
-         C := Expand_Designator (Main_Package (Current_Entity));
-         N := Make_Designator (SN (S_Is_A));
-         Set_Correct_Parent_Unit_Name (N, C);
-         C := Make_Subprogram_Call
-           (RE (RE_To_Standard_String),
-            Make_List_Id (Make_Designator (Param_Name)));
-         N := Make_Subprogram_Call
+         N := Make_Type_Attribute
+           (Make_Designator (SN (S_Is_A)), A_Access);
+         Set_Correct_Parent_Unit_Name
            (N,
-            Make_List_Id (C));
-         N := Make_Assignment_Statement
-           (Make_Defining_Identifier (VN (V_Result)),
-            N);
-         Append_Node_To_List (N, Statements);
-         C := Make_Subprogram_Call
-           (RE (RE_To_Any_0),
-            Make_List_Id (Make_Designator (VN (V_Result))));
+            Expand_Designator
+            (Main_Package
+             (Current_Entity)));
+         Append_Node_To_List (N, Profile);
+
          N := Make_Subprogram_Call
-           (RE (RE_Set_Result),
-            Make_List_Id
-            (Make_Designator (PN (P_Request)),
-             C));
-         Append_Node_To_List (N, Statements);
-         N := Make_Return_Statement (No_Node);
+           (RE (RE_Handle_Is_A),
+            Profile);
+
          Append_Node_To_List (N, Statements);
 
          --  If no optimization is requested by the user, we generate an elsif
-         --  statement. Else, we generate an independant procedure
+         --  statement. Else, we generate a case alternative statement
 
          if not Use_Minimal_Hash_Function then
             N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
+              (Declarative_Part => No_List,
                Statements       => Statements);
          else
-            --  The declaration of the argument list is put in each Invoke_XXXX
-            --  subprogram in case of optimisation
-            N := Make_Object_Declaration
-              (Defining_Identifier =>
-                 Make_Defining_Identifier (VN (V_Argument_List)),
-               Object_Definition   => RE (RE_Ref_4));
-            Append_Node_To_List (N, Declarative_Part);
-
             --  Insert the subprogram name into the hash function generator
             --  and add a call to Register_Procedure
-            Set_Char_To_Name_Buffer ('_');
-            Get_Name_String_And_Append (SN (S_Is_A));
+            Set_Str_To_Name_Buffer ("_is_a");
             Insert_And_Register_Statements
               (Name_Find);
 
@@ -1018,7 +937,7 @@ package body Backend.BE_Ada.Skels is
               (N_Subprograms - 1, 1, 10);
 
             N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
+              (Declarative_Part => No_List,
                Statements       => Statements);
 
             N := Make_Case_Statement_Alternative
@@ -1028,6 +947,136 @@ package body Backend.BE_Ada.Skels is
          end if;
          return N;
       end Is_A_Invoke_Part;
+
+      ----------------------------
+      -- Implicit_CORBA_Methods --
+      ----------------------------
+
+      function Implicit_CORBA_Methods return List_Id
+      is
+
+         Result_List : constant List_Id := New_List (K_List_Id);
+
+         --  To make the addidition (or the removal) of an implicit CORBA
+         --  method easier, we use the 'Add_Implicit_CORBA_Method' subprogram.
+         --  This subprogram takes the method name, the corresponding Handle_XX
+         --  procedure and the profile of this procedure.
+
+         procedure Add_Implicit_CORBA_Method
+           (Method_Name : String;
+            Method_Handle : Node_Id;
+            Method_Profile : List_Id);
+
+         -------------------------------
+         -- Add_Implicit_CORBA_Method --
+         -------------------------------
+
+         procedure Add_Implicit_CORBA_Method
+           (Method_Name : String;
+            Method_Handle : Node_Id;
+            Method_Profile : List_Id)
+         is
+            N                    : Node_Id;
+            Discret_Choice_Value : Value_Id;
+            Op_Name              : Name_Id;
+            C                    : Node_Id;
+         begin
+            N := Make_Subprogram_Call
+              (Method_Handle,
+               Method_Profile);
+
+            --  If no optimization is requested by the user, we generate an
+            --  elsif statement. Else, we generate a case alternative statement
+
+            if not Use_Minimal_Hash_Function then
+
+               Set_Str_To_Name_Buffer (Method_Name);
+               Op_Name := Name_Find;
+
+               C := Make_Expression
+                 (Make_Defining_Identifier (VN (V_Operation)),
+                  Op_Equal,
+                  Make_Literal
+                  (New_String_Value
+                   (Op_Name, False)));
+
+               N := Make_Block_Statement
+                 (Declarative_Part => No_List,
+                  Statements       => Make_List_Id (N));
+
+               N := Make_Elsif_Statement
+                 (C, Make_List_Id (N));
+            else
+               --  Insert the subprogram name into the hash function generator
+               --  and add a call to Register_Procedure
+               Set_Str_To_Name_Buffer (Method_Name);
+               Insert_And_Register_Statements
+                 (Name_Find);
+
+               --  Prepare the case alternative
+               --  * Discret Choice : value of N_Subprogram minus 1
+
+               Discret_Choice_Value := New_Integer_Value
+                 (N_Subprograms - 1, 1, 10);
+
+               N := Make_Block_Statement
+                 (Declarative_Part => No_List,
+                  Statements       => Make_List_Id (N));
+
+               N := Make_Case_Statement_Alternative
+                 (Make_List_Id (Make_Literal (Discret_Choice_Value)),
+                  Make_List_Id (N));
+
+            end if;
+
+            Append_Node_To_List (N, Result_List);
+
+         end Add_Implicit_CORBA_Method;
+
+         Profile : List_Id;
+         N       : Node_Id;
+      begin
+         --  For each implicit CORBA Method, add a similar block
+
+         --  The "Interface" implicit method
+
+         Profile := New_List (K_List_Id);
+
+         N := Make_Designator (PN (P_Request));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Designator (VN (V_Argument_List));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Designator (PN (P_Repository_Id));
+         Append_Node_To_List (N, Profile);
+
+         Add_Implicit_CORBA_Method
+           ("_interface",
+            RE (RE_Handle_Interface),
+            Profile);
+
+         --  The Domain_Managers implicit method
+
+         Profile := New_List (K_List_Id);
+
+         N := Make_Designator (PN (P_Self));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Designator (PN (P_Request));
+         Append_Node_To_List (N, Profile);
+
+         N := Make_Designator (VN (V_Argument_List));
+         Append_Node_To_List (N, Profile);
+
+         Add_Implicit_CORBA_Method
+           ("_domain_managers",
+            RE (RE_Handle_Domain_Managers),
+            Profile);
+
+         --  END
+         return Result_List;
+      end Implicit_CORBA_Methods;
 
       -----------------------
       -- Servant_Is_A_Body --
@@ -1192,10 +1241,10 @@ package body Backend.BE_Ada.Skels is
       end Hash_Package_Name;
 
       -------------------------------------------
-      -- Initialize_Hash_Function_Optimisation --
+      -- Initialize_Hash_Function_Optimization --
       -------------------------------------------
 
-      procedure Initialize_Hash_Function_Optimisation is
+      procedure Initialize_Hash_Function_Optimization is
          Optim : Optimization;
 
          --  This is the random seed used in the generation algorithm. Since
@@ -1230,13 +1279,13 @@ package body Backend.BE_Ada.Skels is
          Register_Procedure_List := New_List (K_List_Id);
          Invoke_Subp_Bodies      := New_List (K_List_Id);
 
-      end Initialize_Hash_Function_Optimisation;
+      end Initialize_Hash_Function_Optimization;
 
       ----------------------------------------
-      -- Achieve_Hash_Function_Optimisation --
+      -- Achieve_Hash_Function_Optimization --
       ----------------------------------------
 
-      procedure Achieve_Hash_Function_Optimisation (E : Node_Id) is
+      procedure Achieve_Hash_Function_Optimization (E : Node_Id) is
          N          : Node_Id;
       begin
          --  We add a "with" clause to be able to use the "Hash" function
@@ -1307,7 +1356,7 @@ package body Backend.BE_Ada.Skels is
          --  Finalize the generator
 
          Finalize;
-      end Achieve_Hash_Function_Optimisation;
+      end Achieve_Hash_Function_Optimization;
 
       ------------------------------------
       -- Insert_And_Register_Statements --
@@ -1527,6 +1576,7 @@ package body Backend.BE_Ada.Skels is
          Invk_Spec      : Node_Id;
          Invk_Body      : Node_Id;
          Is_A_Invk_Part : Node_Id;
+         Implicit_CORBA : List_Id;
 
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
@@ -1541,7 +1591,7 @@ package body Backend.BE_Ada.Skels is
          --  If the user chose to generate optimised skeletons, we initialise
          --  the optimization related lists
          if Use_Minimal_Hash_Function then
-            Initialize_Hash_Function_Optimisation;
+            Initialize_Hash_Function_Optimization;
             Choice_List := Invoke_Subp_Bodies;
          else
             Invoke_Elsif_Statements := New_List (K_List_Id);
@@ -1563,25 +1613,39 @@ package body Backend.BE_Ada.Skels is
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Skel                 => True);
 
-         Is_A_Invk_Part := Is_A_Invoke_Part;
          --  We make a difference between the Is_A Method and the rest of
-         --  CORBA implicit methods bacause in case of non-optimisation
-         --  the _is_a test of the operation is always put at the beginning
-         --  of the if .. elsif .. elsif statement to make the code generation
-         --  of operation simpler.
+         --  CORBA implicit methods for two reasons:
+         --  * Is_A is not implicit since it is declared in the stub.
+         --  * in case of non-optimisation the _is_a test of the operation is
+         --    always put at the beginning of the if .. elsif .. elsif
+         --    statement to make the code generation of operation code simpler.
 
-         --  ASSIGN here the implicit CORBA methods nodes
+         Is_A_Invk_Part := Is_A_Invoke_Part;
+
+         --  Here, we assign the list of the the implicit CORBA methods
+         --  It's important to do this before the finalization of the
+         --  hash function generator (in case of optimisation) so that
+         --  all the hash keys could be inserted before the computation
+         --  pahse of the algorithm.
+
+         Implicit_CORBA := Implicit_CORBA_Methods;
+
 
          --  At this point, all operations and attributes are visited. We
          --  achive the perfect hash function generation and we add the
          --  eventual spec of the Invoke_XXXX procedures
+
          if Use_Minimal_Hash_Function then
-            Achieve_Hash_Function_Optimisation (E);
+            Achieve_Hash_Function_Optimization (E);
          end if;
 
-         --  The eventual bodies of the Invoke_XXXX procedures
+         --  Here, we append the implicit CORBA methods either to the
+         --  elsif statements or to the case statement depending on the
+         --  optimization mode chosen by the developer
 
-         --  ADD the implicit CORBA methods to the statements
+         Append_Node_To_List
+           (First_Node (Implicit_CORBA),
+            Choice_List);
 
          --  Build the Invoke procedure
 

@@ -387,6 +387,14 @@ package body Backend.BE_Ada.Impls is
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Impl_Body;
+
+         --  First of all we add a with clause for the Skel package to fore
+         --  the skeleton elaboration
+         Add_With_Package
+           (Expand_Designator
+            (Skeleton_Package
+             (Current_Entity)));
+
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
