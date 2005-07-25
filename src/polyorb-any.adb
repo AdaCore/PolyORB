@@ -799,8 +799,8 @@ package body PolyORB.Any is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
          K : constant TCKind := Kind (Self);
       begin
-         pragma Debug (O ("member_type: enter, Kind is "
-                          & TCKind'Image (K)));
+         pragma Debug (O ("Member_Type: enter, Kind is " & TCKind'Image (K)
+                          & Param_Nb'Img & " parameters"));
          --  See the big explanation after the declaration of
          --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
