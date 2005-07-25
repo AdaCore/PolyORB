@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -93,14 +93,30 @@ begin
    begin
       Append (Obj_Name, NameComponent'(Id => To_CORBA_String ("object1"),
                                        Kind => To_CORBA_String ("")));
-      bind (Root_Context, Obj_Name,
-            CORBA.Object.Ref (Root_Context));
+
+      bind (Root_Context, Obj_Name, CORBA.Object.Ref (Root_Context));
 
       Output ("Bind Object", True);
+
+      begin
+         bind (Root_Context, Obj_Name, CORBA.Object.Ref (Root_Context));
+
+         Output ("Bind Object (raise Already Bound)", False);
+      exception
+         when AlreadyBound =>
+            Output ("Bind Object (raise Already Bound)", True);
+
+         when others =>
+            Output ("Bind Object (raise Already Bound)", False);
+      end;
 
       Rcvd_Ref := resolve (Root_Context, Obj_Name);
 
       Output ("Resolve Object", True);
+
+      rebind (Root_Context, Obj_Name, CORBA.Object.Ref (Root_Context));
+
+      Output ("Rebind Object", True);
 
       unbind (Root_Context, Obj_Name);
 
