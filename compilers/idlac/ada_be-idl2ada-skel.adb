@@ -494,7 +494,7 @@ package body Ada_Be.Idl2Ada.Skel is
                Is_Class_Wide : constant Boolean
                  := Is_Function
                     and then Kind (O_Type) = K_Scoped_Name
-                    and then S_Type (O_Type) = Parent_Scope (Node);
+                    and then S_Type (O_Type) = Original_Parent_Scope (Node);
                --  For an operation that returns a reference to its own
                --  interface type, the return type is classwide, so we
                --  need to convert it to the corresponding root type in
