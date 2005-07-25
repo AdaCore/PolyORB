@@ -117,13 +117,11 @@ AC_ARG_WITH(idl-compiler,
 ])
 AC_SUBST(IDLAC)
 if test "$CXXCPPFLAGS" = ""; then
-  CXXCPPFLAGS="-C -x c -ansi"
+  CXXCPPFLAGS="-x c++ -ansi"
   # Use default options for the GNU CPP:
-  # -C           do not discard comments
-  # -x c++       use c++ preprocessor semantic
-  # FIXME: The GCC3 preprocessor won't accept '-x c++'
-  # unless the C++ *compiler* has been built as well.
-  # For now, just use '-x c'.
+  # -x c++       force C++ preprocessor mode (even though it cannot be
+  #              inferred from filename extension .idl)
+  # -ansi        disable GCC-specific behaviour
 fi
 AC_SUBST(CXXCPPFLAGS)
 AM_CXXCPP_NEEDS_DOT
@@ -316,10 +314,12 @@ fi
 define(DEBUG_OPTIONS, [dnl
   GNATFLAGS="-g -O2 -gnatfy -gnatwae -gnatoa -fstack-check"
   BARGS=-E
+  DEBUG_ONLY=""
   debug=true])
 define(NODEBUG_OPTIONS, [dnl
   GNATFLAGS="-g -O2 -gnatfy -gnatwae -gnatpn"
   BARGS=
+  DEBUG_ONLY="--  "
   debug=false])
 
 AC_ARG_ENABLE(debug,
@@ -330,9 +330,9 @@ else
   NODEBUG_OPTIONS
 fi],
 [NODEBUG_OPTIONS])
-
 AC_SUBST(GNATFLAGS)
 AC_SUBST(BARGS)
+AC_SUBST(DEBUG_ONLY)
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 ##########################################
@@ -510,6 +510,7 @@ AC_OUTPUT([
 	src/ssl/Makefile
 	src/polyorb-setup-client.adb
 	src/polyorb-setup-server.adb
+	src/debug.adc
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc
 	idls/Makefile
