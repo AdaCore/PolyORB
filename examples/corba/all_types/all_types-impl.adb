@@ -169,7 +169,7 @@ package body all_types.Impl is
    function echoRef
      (Self : access Object;
       arg : in all_types.Ref)
-      return all_types.Ref
+      return all_types.Ref'Class
    is
    begin
       return arg;

@@ -98,7 +98,7 @@ package all_types.Impl is
 
    function echoRef
      (Self : access Object;
-      arg : in all_types.Ref) return all_types.Ref;
+      arg : in all_types.Ref) return all_types.Ref'Class;
 
    function echoObject
      (Self : access Object;
