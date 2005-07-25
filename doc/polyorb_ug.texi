@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#61 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#62 $
 
 @include version.texi
 
@@ -620,8 +620,8 @@ Services are built.
 @item  @option{--enable-shared}: build shared libraries.
 
 @item  @option{--enable-debug}:  enable debugging information generation 
-and supplementary runtime checks.
-
+and supplementary runtime checks. Note that this option has a significant
+space and time cost, and is not recommended for production use.
 
 @end itemize
 
