@@ -174,14 +174,14 @@ private
    type Table_Private is record
       Initialized : Boolean := False;
 
-      Max : Integer;
+      Max : Integer := 0;
       --  Subscript of the maximum entry in the currently allocated table
 
       Length : Integer := 0;
       --  Number of entries in currently allocated table. The value of zero
       --  ensures that we initially allocate the table.
 
-      Last_Val : Integer;
+      Last_Val : Integer := 0;
       --  Current value of Last
    end record;
 
