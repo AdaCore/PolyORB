@@ -669,26 +669,29 @@ package body PolyORB.Representations.CDR is
             declare
                Nb : constant PolyORB.Types.Unsigned_Long
                  := PolyORB.Any.Get_Aggregate_Count (Data);
-               Value : PolyORB.Any.Any;
             begin
                pragma Debug
                (O ("Marshall_From_Any: dealing with a struct or exception"));
 
                if Nb /= 0 then
-                  for J in 0 .. Nb - 1 loop
-                     Value := PolyORB.Any.Get_Aggregate_Element
-                       (Data,
-                        PolyORB.Any.TypeCode.Member_Type
-                        (Data_Type, J), J);
-                     Marshall_From_Any
-                       (CDR_Representation'Class (R),
-                        Buffer,
-                        Value,
-                        Error);
-                     if Found (Error) then
-                        return;
-                     end if;
-                  end loop;
+                  declare
+                     Value : PolyORB.Any.Any;
+                  begin
+                     for J in 0 .. Nb - 1 loop
+                        Value := PolyORB.Any.Get_Aggregate_Element
+                          (Data,
+                           PolyORB.Any.TypeCode.Member_Type
+                           (Data_Type, J), J);
+                        Marshall_From_Any
+                          (CDR_Representation'Class (R),
+                           Buffer,
+                           Value,
+                           Error);
+                        if Found (Error) then
+                           return;
+                        end if;
+                     end loop;
+                  end;
                end if;
             end;
 
