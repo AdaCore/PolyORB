@@ -723,7 +723,15 @@ package body Backend.BE_Ada.Stubs is
                            or else
                            FEN.Kind
                            (Reference (Type_Spec (Type_Spec_Node))) =
-                           K_Complex_Declarator)
+                           K_Complex_Declarator
+                           or else
+                           FEN.Kind
+                           (Reference (Type_Spec (Type_Spec_Node))) =
+                           K_Structure_Type
+                           or else
+                           FEN.Kind
+                           (Reference (Type_Spec (Type_Spec_Node))) =
+                           K_Union_Type)
                then
                   Seq_Package_Name := FEU.Fully_Qualified_Name
                     (FEN.Identifier
@@ -1318,6 +1326,7 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, Statements (Current_Package));
 
       --  Creating the request
+
       Set_Str_To_Name_Buffer
         ("Creating the request");
       Append_Node_To_List
@@ -1507,6 +1516,7 @@ package body Backend.BE_Ada.Stubs is
                   Append_Node_To_List
                     (Make_Ada_Comment (Name_Find),
                      Marshaller_Statements);
+
                   Param_Name := BEN.Name (Defining_Identifier (I));
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
@@ -1516,6 +1526,18 @@ package body Backend.BE_Ada.Stubs is
                   N := Make_Subprogram_Call
                     (From_Any_Helper,
                      Make_List_Id (Make_Designator (New_Name)));
+
+                  --  If the parameter type is a Class wide type, we hace to
+                  --  cast the value of the parameter before assigning it
+                  if BEN.Kind (Parameter_Type (I))
+                    = K_Attribute_Designator
+                  then
+                     N := Make_Subprogram_Call
+                       (Copy_Designator
+                        (Parameter_Type (I)),
+                        Make_List_Id (N));
+                  end if;
+
                   N := Make_Assignment_Statement
                     (Make_Designator (Param_Name),
                      N);

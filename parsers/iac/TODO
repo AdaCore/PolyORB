@@ -7,11 +7,11 @@ Frontend :
 Backend Ada :
 =============
 * Parse the CORBA module
-* Optimizing the forwards
 * Calculate the size of buffers and add it as a comment to the Ada code
-* Generate Code for "ValueType"s
+* Optimizing the forwards
 * Implementing the AMI
 * Implementing the AMH
+* Generate Code for "ValueType"s
 
 TestSuite :
 ===========
