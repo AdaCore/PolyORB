@@ -41,6 +41,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          when FEN.K_Boolean             => return RE (RE_TC_Boolean);
          when FEN.K_Octet               => return RE (RE_TC_Octet);
          when FEN.K_Object              => return RE (RE_TC_Object_0);
+         when FEN.K_Any                 => return RE (RE_TC_Any);
          when others                    =>
             raise Program_Error;
       end case;

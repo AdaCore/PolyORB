@@ -98,6 +98,7 @@ package Backend.BE_Ada.Runtime is
       RE_Wide_String,               --  CORBA.Wide_String
       RE_Boolean,                   --  CORBA.Boolean
       RE_Octet,                     --  CORBA.Octet
+      RE_TC_Any,                    --  CORBA.TC_Any
       RE_TC_Float,                  --  CORBA.TC_Float
       RE_TC_Double,                 --  CORBA.TC_Double
       RE_TC_Long_Double,            --  CORBA.TC_Long_Double
@@ -249,6 +250,7 @@ package Backend.BE_Ada.Runtime is
          RE_Wide_String             => RU_CORBA,
          RE_Boolean                 => RU_CORBA,
          RE_Octet                   => RU_CORBA,
+         RE_TC_Any                  => RU_CORBA,
          RE_TC_Float                => RU_CORBA,
          RE_TC_Double               => RU_CORBA,
          RE_TC_Long_Double          => RU_CORBA,
