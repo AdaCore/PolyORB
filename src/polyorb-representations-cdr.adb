@@ -1883,7 +1883,7 @@ package body PolyORB.Representations.CDR is
                end if;
 
                if Is_Empty (Data)
-                 or else Get_Aggregate_Count (Data) /= Len
+                 or else Get_Aggregate_Count (Data) /= Len + 1
                then
                   Move_Any_Value (Data,
                     Get_Empty_Any_Aggregate (Get_Type (Data)));
@@ -1895,7 +1895,8 @@ package body PolyORB.Representations.CDR is
 
                pragma Debug
                  (O ("Unmarshall_To_Any: unmarshalling"
-                     & Unsigned_Long'Image (Len) & " elements"));
+                     & Unsigned_Long'Image (Len) & " elements, "
+                     & "Add_Elements = " & Boolean'Image (Add_Elements)));
 
                for J in 1 .. Len loop
                   if Add_Elements then
