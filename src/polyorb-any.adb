@@ -343,6 +343,9 @@ package body PolyORB.Any is
      (Object : access Content_Aggregate)
      return Any_Content_Ptr;
 
+   function Allocate_Content_Aggregate return Any_Content_Ptr;
+   --  Allocate and initialize a Content_Aggregate
+
    ---------------
    -- TypeCodes --
    ---------------
@@ -1710,9 +1713,16 @@ package body PolyORB.Any is
 
    end TypeCode;
 
-   -----------
-   --  Any  --
-   -----------
+   --------------------------------
+   -- Allocate_Content_Aggregate --
+   --------------------------------
+
+   function Allocate_Content_Aggregate return Any_Content_Ptr is
+      Result : constant Content_Aggregate_Ptr := new Content_Aggregate;
+   begin
+      Content_Tables.Initialize (Result.Value);
+      return Any_Content_Ptr (Result);
+   end Allocate_Content_Aggregate;
 
    -----------
    -- Image --
@@ -1754,6 +1764,11 @@ package body PolyORB.Any is
                  Tk_Abstract_Interface =>
                   return To_Standard_String (Result);
 
+               when Tk_Alias =>
+                  return To_Standard_String (Result)
+                    & " <" & TCKind'Image (Kind) & ":"
+                    & Image (Content_Type (TC)) & ">";
+
                when
                  Tk_Struct             |
                  Tk_Except             =>
@@ -1765,6 +1780,9 @@ package body PolyORB.Any is
                        := Parameter_Count (TC);
                   begin
                      while I < C loop
+                        if I > 2 then
+                           Result := Result & ", ";
+                        end if;
                         Result := Result & To_PolyORB_String
                           (" " & Image
                            (TypeCode.Object'
@@ -1782,6 +1800,11 @@ package body PolyORB.Any is
                when others =>
                   return "<aggregate:" & TCKind'Image (Kind) & ">";
             end case;
+
+         when Tk_Array | Tk_Sequence =>
+            return TCKind'Image (Kind) & "<"
+              & Image (Content_Type (TC)) & ","
+              & Unsigned_Long'Image (Length (TC)) & " >";
 
          when others =>
             return TCKind'Image (Kind);
@@ -2621,7 +2644,7 @@ package body PolyORB.Any is
       Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (The_Any));
    begin
-      pragma Debug (O ("Get_Type : enter & end"));
+      pragma Debug (O ("Get_Type: enter & end"));
       return Container.The_Type;
    end Get_Type;
 
@@ -3113,7 +3136,7 @@ package body PolyORB.Any is
       pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
 
       if Container.The_Value = null then
-         Container.The_Value := new Content_Aggregate;
+         Container.The_Value := Allocate_Content_Aggregate;
       end if;
 
    end Set_Any_Aggregate_Value;
@@ -3153,13 +3176,8 @@ package body PolyORB.Any is
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
       pragma Debug (O ("Add_Aggregate_Element : element kind is "
-                       & TCKind'Image
-                       (TypeCode.Kind
-                        (Get_Type (Element)))));
-
-      if not Initialized (CA_Ptr.Value) then
-         Initialize (CA_Ptr.Value);
-      end if;
+                       & TCKind'Image (TypeCode.Kind (Get_Type (Element)))));
+      pragma Assert (Initialized (CA_Ptr.Value));
 
       Smart_Pointers.Inc_Usage (
         Smart_Pointers.Entity_Ptr (Element_Container));
@@ -3219,7 +3237,7 @@ package body PolyORB.Any is
       pragma Debug (O ("Get_Empty_Any_Aggregate : begin"));
       Set_Type (Result, Tc);
       if TypeCode.Kind (Unwind_Typedefs (Tc)) in Aggregate_TCKind then
-         Set_Value (Result, new Content_Aggregate);
+         Set_Value (Result, Allocate_Content_Aggregate);
       end if;
 
       pragma Debug (O ("Get_Empty_Any_Aggregate : end"));
