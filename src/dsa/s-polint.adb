@@ -1,3 +1,4 @@
+pragma Debug_Policy (Check);
 ------------------------------------------------------------------------------
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
@@ -436,14 +437,16 @@ package body System.PolyORB_Interface is
                   --  IDL skel.
 
                   declare
+                     package ISNC renames
+                       PolyORB.Services.Naming.SEQUENCE_NameComponent;
+
                      n             : PolyORB.Services.Naming.Name;
-                     pragma Warnings (Off, n);
-                     --  Accessed before it has a value (by To_Any).
 
                      Arg_Name_n  : constant PolyORB.Types.Identifier :=
                        To_PolyORB_String ("n");
                      Argument_n  : constant Any :=
-                       PolyORB.Services.Naming.Helper.To_Any (n);
+                                     Get_Empty_Any (
+                                       PolyORB.Services.Naming.Helper.TC_Name);
 
                      Result      : Object_Ref;
                      Arg_List    : NVList_Ref;
@@ -459,54 +462,17 @@ package body System.PolyORB_Interface is
 
                      Request_Arguments (EMsg.Req, Arg_List);
 
-                     declare
-                        package ISNC renames
-                          PolyORB.Services.Naming.SEQUENCE_NameComponent;
-                     begin
-                        --  Convert arguments from their Any
+                     --  Convert arguments from their Any
 
-                        n := PolyORB.Services.Naming.Helper.From_Any
-                          (Argument_n);
+                     n := PolyORB.Services.Naming.Helper.From_Any (Argument_n);
 
-                        --  Call implementation
-                        Get_RAS_Ref
-                          (Receiving_Stub (Self.Impl_Info.all).Name.all,
-                           PolyORB.Services.Naming.To_Standard_String
-                             (ISNC.Element_Of (ISNC.Sequence (n), 1).id),
-                              Result);
+                     --  Call implementation
 
---                 exception
---                    when E : NotFound =>
---                       declare
---                          Members : NotFound_Members;
---                       begin
---                          Get_Members (E, Members);
---                          CORBA.ServerRequest.Set_Exception
---                            (EMsg.Req,
---                        CosNaming.NamingContext.Helper.To_Any (Members));
---                          return;
---                       end;
---                    when E : CannotProceed =>
---                       declare
---                          Members : CannotProceed_Members;
---                       begin
---                          Get_Members (E, Members);
---                          CORBA.ServerRequest.Set_Exception
---                            (EMsg.Req,
---                        CosNaming.NamingContext.Helper.To_Any (Members));
---                          return;
---                       end;
---                    when E : InvalidName =>
---                       declare
---                          Members : InvalidName_Members;
---                       begin
---                          Get_Members (E, Members);
---                          CORBA.ServerRequest.Set_Exception
---                            (Request,
---                         CosNaming.NamingContext.Helper.To_Any (Members));
---                          return;
---                       end;
-                     end;
+                     Get_RAS_Ref
+                       (Receiving_Stub (Self.Impl_Info.all).Name.all,
+                        PolyORB.Services.Naming.To_Standard_String
+                          (ISNC.Element_Of (ISNC.Sequence (n), 1).id),
+                           Result);
 
                      --  Set Result
 
