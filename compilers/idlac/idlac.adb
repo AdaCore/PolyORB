@@ -169,11 +169,16 @@ begin
    --  If file does not exist, issue an error message unless it works after
    --  adding an "idl" extension.
 
-   File_Name := new String'(Idl_Fe.Files.Locate_IDL_File (File_Name.all));
-   if File_Name.all'Length = 0 then
-      Put_Line (Current_Error, "No such file: " & File_Name.all);
-      Usage;
-   end if;
+   declare
+      File_Loc : constant String :=
+                   Idl_Fe.Files.Locate_IDL_File (File_Name.all);
+   begin
+      if File_Loc'Length = 0 then
+         Put_Line (Current_Error, "No such file: " & File_Name.all);
+         Usage;
+      end if;
+      File_Name := new String'(File_Loc);
+   end;
 
    if Preprocess_Only then
 

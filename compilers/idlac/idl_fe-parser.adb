@@ -7261,23 +7261,22 @@ package body Idl_Fe.Parser is
       end if;
 
       declare
-         File_Name : constant String
-           := Files.Locate_IDL_Specification (Get_Token_String);
+         File_Name : constant String := Get_Token_String;
+         File_Loc  : constant String
+           := Files.Locate_IDL_Specification (File_Name);
 
       begin
-         if File_Name'Length = 0 then
-            Errors.Error
-              ("Can't find '" & File_Name & "' file",
-               Errors.Error,
-               Get_Token_Location);
+         if File_Loc'Length = 0 then
+            Errors.Error ("Can't find IDL specification " & File_Name,
+               Errors.Error, Get_Token_Location);
             Success := False;
             return;
          end if;
 
          --  Process file if it not present in list of processed files.
 
-         if not Is_Processed (File_Name) then
-            Idl_Fe.Parser.Initialize (File_Name);
+         if not Is_Processed (File_Loc) then
+            Idl_Fe.Parser.Initialize (File_Loc);
             Parse_Specification (Repository, True);
             Idl_Fe.Parser.Finalize;
          end if;
