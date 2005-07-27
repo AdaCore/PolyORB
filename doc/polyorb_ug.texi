@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#62 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#63 $
 
 @include version.texi
 
@@ -613,6 +613,8 @@ Available options for the 'configure' script include:
       
       e.g.  @option{--with-services="event naming"} to build only
       COS Event and COS Naming.	
+
+@item  @option{--with-openssl}: build SSL support and SSL dependent features
 
 By default, only the CORBA and GIOP personalities are built, no CORBA
 Services are built.
@@ -1510,7 +1512,7 @@ NAME
        idlac - PolyORB's IDL-to-Ada compiler
 
 SYNOPSIS
-       idlac [-E] [-d] [-i] [-k] [-p] [-q] [-v] [-ir] [-noir] idl_file [-cppargs ...]
+       idlac [-Edikpqv] [-[no]ir] [-gnatW8] [-o DIR] idl_file [-cppargs ...]
 
 DESCRIPTION
        idlac is an IDL-to-Ada compiler, compliant with version 1.2 of the "Ada
@@ -1540,11 +1542,21 @@ OPTIONS
        -gnatW8
                Use UTF8 character encoding
 
+       -o DIR Specify output directory
+
        -cppargs ARGS
                Pass ARGS to the C++ preprocessor.
 
        -I dir  Shortcut for -cppargs -I dir.
 
+EXIT STATUS
+       idlac returns one of the following values upon exit:
+
+       0      Successful completion
+
+       1      Usage error
+
+       2      Illegal IDL specification
 
 @end smallexample
 
@@ -1846,6 +1858,7 @@ distribution.
 @menu
 * Configuring PolyORB::
 * Configuring GIOP protocol stack for PolyORB::
+* Command line arguments::
 @end menu
 
 @noindent
@@ -1871,6 +1884,23 @@ information on PolyORB's configuration.
 The GIOP protocol is separated from the CORBA application
 personality. See @ref{Configuring the GIOP personality} for more
 information on GIOP's configuration.
+
+@c -------------------------------------------------------------------   
+@node Command line arguments
+@subsection Command line arguments
+@c ------------------------------------------------------------------- 
+
+@noindent
+The CORBA specifications define a mechanism to pass command line
+arguments to your application, using the @code{CORBA::ORB:Init}
+method. 
+
+For now, PolyORB supports the following list of arguments:
+
+@itemize @bullet
+@item @code{InitRef} to pass initial reference.
+
+@end itemize
 
 @c -------------------------------------------------------------------
 @node Implementation Notes
