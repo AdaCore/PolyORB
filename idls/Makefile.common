@@ -82,6 +82,15 @@ CLEANFILES = b~*.* *.o *.ali
 all-local:: $(EXTRA)
 
 #
+# Generate Ada source from IDL files
+#
+IDL_STAMPS = $(IDLS:.idl=.idl-stamp)
+
+$(IDL_STAMPS): $(IDLAC)
+
+$(GEN): $(IDL_STAMPS)
+
+#
 # How to compile the various files
 #
 

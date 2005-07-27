@@ -3,7 +3,7 @@ include $(top_srcdir)/idls/Makefile.common
 alidir = $(includedir)/polyorb/corba/cos
 IDLdir = $(includedir)/polyorb/corba/idls/cos/naming
 
-IDL=$(srcdir)/CosNaming.idl
+IDLS=CosNaming.idl
 
 COS_ADAFLAGS = -I$(top_srcdir)/cos/naming
 
@@ -24,10 +24,6 @@ GEN_SPECS_NO_BODY= \
 GEN= \
         $(GEN_SPECS_NO_BODY) \
         $(GEN_SPECS_WITH_BODY)
-
-$(GEN): $(IDL) $(IDLAC)
-	$(IDLAC) $(IDL) -I$(srcdir)
-	touch $@
 
 $(GEN_BODIES): $(GEN)
 

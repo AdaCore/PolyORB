@@ -3,12 +3,14 @@ include $(top_srcdir)/idls/Makefile.common
 alidir = $(includedir)/polyorb/corba/cos
 IDLdir = $(includedir)/polyorb/corba/idls/cos/notification
 
-IDL=$(srcdir)/CosNotification.idl \
-    $(srcdir)/CosNotifyChannelAdmin.idl \
-    $(srcdir)/CosNotifyComm.idl \
-    $(srcdir)/CosNotifyFilter.idl
+IDLS = \
+	CosNotification.idl \
+	CosNotifyChannelAdmin.idl \
+	CosNotifyComm.idl \
+	CosNotifyFilter.idl
 
-IDL_FLAGS=-I$(top_srcdir)/idls/CORBA_IDL \
+IDLAC_FLAGS = \
+	-I$(top_srcdir)/idls/CORBA_IDL \
 	-I$(top_srcdir)/idls/CORBA_PIDL \
 	-I$(top_srcdir)/idls/Interop \
 	-I$(top_srcdir)/idls/Misc \
@@ -148,12 +150,6 @@ GEN_SPECS_NO_BODY=
 GEN= \
         $(GEN_SPECS_NO_BODY) \
         $(GEN_SPECS_WITH_BODY)
-
-$(GEN): $(IDL) $(IDLAC)
-	for i in $(IDL); do \
-	    $(IDLAC) $$i -I$(srcdir) $(IDL_FLAGS); \
-	done
-	touch $@
 
 $(GEN_BODIES): $(GEN)
 

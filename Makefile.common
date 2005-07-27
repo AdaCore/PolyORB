@@ -8,6 +8,7 @@ NATIVE_LINKER=	$(top_builddir)/support/native-linker
 MOVEIFCHANGE=	$(top_builddir)/support/move-if-change
 IDLAC_dir=	$(top_builddir)/compilers/idlac
 IDLAC=		$(IDLAC_dir)/idlac
+IDLAC_WRAPPER=	$(top_srcdir)/contrib/idlac_wrapper/idlac_wrapper
 GEN_CODESET_dir=$(top_builddir)/src/giop
 GEN_CODESET=	$(GEN_CODESET_dir)/gen_codeset
 
@@ -29,6 +30,10 @@ LINK=		$(LINKER) -o $@
                                                                                 
 .idl.adb:
 	$(IDLAC) -I$(srcdir) $(IDLAC_FLAGS) $<
+
+.idl.idl-stamp:
+	$(IDLAC_WRAPPER) --idlac=$(IDLAC) -I$(srcdir) $(IDLAC_FLAGS) $<
+	touch $@
 
 __default__:: all
 

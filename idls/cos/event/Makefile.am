@@ -3,10 +3,11 @@ include $(top_srcdir)/idls/Makefile.common
 alidir = $(includedir)/polyorb/corba/cos
 IDLdir = $(includedir)/polyorb/corba/idls/cos/event
 
-IDL=$(srcdir)/CosEventChannelAdmin.idl \
-    $(srcdir)/CosEventComm.idl \
-    $(srcdir)/CosTypedEventChannelAdmin.idl \
-    $(srcdir)/CosTypedEventComm.idl
+IDLS = \
+	CosEventChannelAdmin.idl \
+	CosEventComm.idl \
+	CosTypedEventChannelAdmin.idl \
+	CosTypedEventComm.idl
 
 COS_ADAFLAGS = -I$(top_srcdir)/cos/event
 
@@ -80,12 +81,6 @@ GEN_SPECS_NO_BODY= \
 GEN= \
         $(GEN_SPECS_NO_BODY) \
         $(GEN_SPECS_WITH_BODY)
-
-$(GEN): $(IDL) $(IDLAC)
-	for i in $(IDL); do \
-	    $(IDLAC) $$i -I$(srcdir); \
-	done
-	touch $@
 
 $(GEN_BODIES): $(GEN)
 
