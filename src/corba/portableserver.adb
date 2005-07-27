@@ -728,7 +728,7 @@ package body PortableServer is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"portablserver",
+      (Name      => +"portableserver",
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => Empty,

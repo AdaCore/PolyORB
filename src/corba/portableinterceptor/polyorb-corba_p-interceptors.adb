@@ -1156,9 +1156,8 @@ begin
       (Name      => +"polyorb.corba_p.interceptors",
        Conflicts => Empty,
        Depends   => +"corba.request"
-       & "portablserver",
+       & "portableserver",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.CORBA_P.Interceptors;
