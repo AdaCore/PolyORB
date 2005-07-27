@@ -47,6 +47,7 @@ with Errors;
 with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
 with Ada_Be.Mappings.CORBA;
+with Ada_Be.Source_Streams;
 
 procedure Idlac is
 
@@ -58,7 +59,7 @@ procedure Idlac is
    procedure Usage is
    begin
       Put_Line (Current_Error, "Usage: " & Command_Name
-                & " [-E] [-d] [-i] [-k] [-p] [-q] [-ir] [-noir]"
+                & " [-Edikpqv] [-[no]ir] [-gnatW8] [-o DIR]"
                 & " idl_file [-cppargs ...]");
       Put_Line (Current_Error, "  -E     Preprocess only.");
       Put_Line (Current_Error, "  -d     Generate delegation package.");
@@ -73,14 +74,15 @@ procedure Idlac is
                 & "interface repository (default).");
       Put_Line (Current_Error, "  -gnatW8");
       Put_Line (Current_Error, "         Use UTF8 character encoding");
+      Put_Line (Current_Error, "  -o DIR Specify output directory");
       Put_Line (Current_Error, "  -cppargs ARGS");
       Put_Line (Current_Error, "         Pass ARGS to the C++ preprocessor.");
       Put_Line (Current_Error, "  -I dir is a shortcut for -cppargs -I dir.");
       OS_Exit (1);
    end Usage;
 
-   File_Name : Idl_Fe.Types.String_Cacc;
-   Rep       : Idl_Fe.Types.Node_Id;
+   File_Name        : Idl_Fe.Types.String_Cacc;
+   Rep              : Idl_Fe.Types.Node_Id;
 
 begin
    begin
@@ -88,18 +90,11 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: d i ir k p q v noir gnatW8") is
+         case Getopt ("E I: d i k p q v ir noir o: gnatW8") is
             when ASCII.Nul => exit;
 
             when 'E' =>
                Preprocess_Only := True;
-
-            when 'I' =>
-               declare
-                  Success : Boolean;
-               begin
-                  Idl_Fe.Files.Add_Search_Path (Parameter, Success);
-               end;
 
             when 'd' =>
                Generate_Delegate := True;
@@ -110,12 +105,6 @@ begin
 
                elsif Full_Switch = "ir" then
                   Generate_IR := True;
-               end if;
-
-            when 'n' =>
-               if Full_Switch = "noir" then
-                  --  For backward compatibility we just ignore this switch
-                  Generate_IR := False;
                end if;
 
             when 'k' =>
@@ -134,8 +123,27 @@ begin
             when 'g' =>
                Character_Encoding := UTF_8;
 
+            when 'n' =>
+               if Full_Switch = "noir" then
+                  --  For backward compatibility we just ignore this switch
+                  Generate_IR := False;
+               end if;
+
+            when 'o' =>
+               if not Ada_Be.Source_Streams.Set_Output_Directory
+                        (Parameter)
+               then
+                  raise Invalid_Parameter;
+               end if;
+
+            when 'I' =>
+               declare
+                  Success : Boolean;
+               begin
+                  Idl_Fe.Files.Add_Search_Path (Parameter, Success);
+               end;
+
             when others =>
-               --  This never happens.
                raise Program_Error;
          end case;
       end loop;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,9 @@ with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Text_IO;
 
+with GNAT.OS_Lib;
+with GNAT.Directory_Operations;
+
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
@@ -57,6 +60,8 @@ package body Ada_Be.Source_Streams is
       No_Warnings : Boolean;
       Next : Dependency;
    end record;
+
+   Output_Directory : Unbounded_String;
 
    -----------------------
    -- Local subprograms --
@@ -374,7 +379,6 @@ package body Ada_Be.Source_Streams is
          end if;
          Put_Line (File, "-------------------------------------------------");
 
-         --  XXX To be removed later on
          Put_Line (File, "pragma Style_Checks (Off);");
          New_Line (File);
       end Emit_Standard_Header;
@@ -476,8 +480,9 @@ package body Ada_Be.Source_Streams is
          Emit_Source_Code (Current_Output);
       else
          declare
-            File_Name : constant String
-              := Ada_File_Name (Unit.Library_Unit_Name.all, Unit.Kind);
+            File_Name : constant String :=
+              To_String (Output_Directory)
+                & Ada_File_Name (Unit.Library_Unit_Name.all, Unit.Kind);
             File : File_Type;
          begin
             Create (File, Out_File, File_Name);
@@ -599,6 +604,24 @@ package body Ada_Be.Source_Streams is
       end loop;
       return True;
    end Is_Empty;
+
+   --------------------------
+   -- Set_Output_Directory --
+   --------------------------
+
+   function Set_Output_Directory (Dir : String) return Boolean is
+      Sep : Character renames GNAT.Directory_Operations.Dir_Separator;
+   begin
+      if not GNAT.OS_Lib.Is_Directory (Dir) then
+         return False;
+      end if;
+
+      Output_Directory := To_Unbounded_String (Dir);
+      if Dir (Dir'Last) /= Sep then
+         Append (Output_Directory, Sep);
+      end if;
+      return True;
+   end Set_Output_Directory;
 
    -----------------------
    -- Set_Template_Mode --

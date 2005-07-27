@@ -6,45 +6,49 @@
 # Contributed to PolyORB by Vadim Godunko <vgodunko@rost.ru>   
 # See README for more details
 
-##  Correct relative file seach paths
+tmp="idlac_wrapper.$$"
+trap "rm -rf ${tmp}" 0 1 2 3 15
 
+IDLAC=idlac
+SED=sed
 while [ $# -ne 0 ]; do
-    case "$1" in
-        -I..*)
-            args="${args} -I../${1#-I}"
-            shift
-            ;;
-        *)
-            args="${args} $1"
-            shift
-            ;;
-    esac
+  case "$1" in
+
+    --idlac=*)
+      echo "Using $1"
+      IDLAC="${1#--idlac=}"
+      shift
+      ;;
+
+    *)
+      args="${args} `echo "$1" | ${SED} 's/./\\\\&/g'`"
+      shift
+      ;;
+  esac
 done
 
-tmp="tmp$$"
-trap "rm -rf ${tmp}" 0 1 2 3 15
 (
-    ##  Create temporary directory and change current working directory to it
+    ##  Create temporary directory
 
     mkdir ${tmp} || exit $?
-    cd ${tmp} || exit $?
 
     ##  Execute idlac
 
-    idlac ${args} || exit $?
+    eval "${IDLAC} -o ${tmp} ${args}" || exit $?
 
-    ##  Replace exists files only if it actually changed, rename new
-    ##  created files and remove files in other case
+    ##  Replace existing files only if actually changed; move newly-created
+    ##  files, and remove files in other case
 
-    for file in *.ad[sb]; do
-        if [ -r ../${file} ]; then
-            if cmp ${file} ../${file} > /dev/null; then
+    for file in ${tmp}/*.ad[sb]; do
+        ofile=`basename ${file}`
+        if [ -r ${ofile} ]; then
+            if cmp ${file} ${ofile} > /dev/null; then
                 rm -f ${file}
             else
-                mv -f ${file} ../${file}
+                mv -f ${file} ${ofile}
             fi
         else
-            mv -f ${file} ../${file}
+            mv -f ${file} ${ofile}
         fi
     done
 )

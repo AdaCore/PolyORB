@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 package Ada_Be.Source_Streams is
 
-   Indent_Size : constant := 3;
+   Indent_Size      : constant := 3;
 
    type Compilation_Unit is private;
    --  A complete compilation unit.
@@ -150,6 +150,10 @@ package Ada_Be.Source_Streams is
    --  Set Unit's template mode. When a unit is in template mode, code
    --  insertion is not taken into account to determine whether the unit
    --  is 'empty' for the purpose of procedure Generate.
+
+   function Set_Output_Directory (Dir : String) return Boolean;
+   --  Set output directory to Dir. False is returned upon failure
+   --  (case of a non-existing directory).
 
    procedure Generate
      (Unit : Compilation_Unit;
