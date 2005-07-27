@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,6 +43,8 @@ package PolyORB.Request_QoS.Service_Contexts is
 
    CodeSets        : constant Service_Id;
    RTCorbaPriority : constant Service_Id;
+   FTGroupVersion  : constant Service_Id;
+   FTRequest       : constant Service_Id;
 
    type Encapsulation_Access is
       access all PolyORB.Representations.CDR.Common.Encapsulation;
@@ -95,5 +97,7 @@ private
 
    CodeSets        : constant Service_Id := 1;
    RTCorbaPriority : constant Service_Id := 10;
+   FTGroupVersion  : constant Service_Id := 12;
+   FTRequest       : constant Service_Id := 13;
 
 end PolyORB.Request_QoS.Service_Contexts;
