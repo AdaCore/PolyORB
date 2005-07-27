@@ -73,8 +73,8 @@ procedure Idlac is
       Put_Line (Current_Error, "  -noir  Don't generate code for "
                 & "interface repository (default).");
       Put_Line (Current_Error, "  -gnatW8");
-      Put_Line (Current_Error, "         Use UTF8 character encoding");
-      Put_Line (Current_Error, "  -o DIR Specify output directory");
+      Put_Line (Current_Error, "         Use UTF8 character encoding.");
+      Put_Line (Current_Error, "  -o DIR Specify output directory.");
       Put_Line (Current_Error, "  -cppargs ARGS");
       Put_Line (Current_Error, "         Pass ARGS to the C++ preprocessor.");
       Put_Line (Current_Error, "  -I dir is a shortcut for -cppargs -I dir.");
