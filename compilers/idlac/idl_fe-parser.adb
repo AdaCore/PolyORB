@@ -7099,6 +7099,7 @@ package body Idl_Fe.Parser is
                           | K_Enum
                           | K_Struct
                           | K_Union
+                          | K_Declarator
                           | K_Sequence
                           | K_Interface
                           | K_Forward_Interface
