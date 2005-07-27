@@ -81,4 +81,7 @@ package CORBA.Policy is
 
    subtype PolicyTypeSeq is IDL_Sequence_PolicyType.Sequence;
 
+   Repository_Id : constant Standard.String
+     := "IDL:omg.org/CORBA/Policy:1.0";
+
 end CORBA.Policy;
