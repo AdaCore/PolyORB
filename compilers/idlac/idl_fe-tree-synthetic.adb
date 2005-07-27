@@ -51,45 +51,38 @@ package body Idl_Fe.Tree.Synthetic is
    procedure O is new Idl_Fe.Debug.Output (Flag);
 
    function Is_Interface_Type
-     (Node : Node_Id)
-     return Boolean is
+     (Node : Node_Id; Or_ValueType : Boolean := False) return Boolean is
    begin
-      pragma Debug (O ("Is_Interface_Type : enter"));
+      pragma Debug (O ("Is_Interface_Type: enter, dealing with a "
+                    & Node_Kind'Image (Kind (Node))));
       case Kind (Node) is
          when
            K_Interface         |
            K_Forward_Interface =>
-            pragma Debug (O ("Is_Interface_Type : dealing with an interface "
-                             & "or value, end"));
             return True;
 
+         when
+           K_ValueType         |
+           K_Forward_ValueType =>
+            return Or_ValueType;
+
          when K_Scoped_Name =>
-            pragma Debug (O ("Is_Interface_Type : dealing with a scoped_name, "
-                             & "end"));
-            return Is_Interface_Type
-              (Node_Id (Value (Node)));
+            return Is_Interface_Type (S_Type (Node));
 
          when K_Declarator =>
             declare
-               P_Node : constant Node_Id
-                 := Parent (Node);
+               P_Node : constant Node_Id := Parent (Node);
             begin
                pragma Assert (Is_Type_Declarator (P_Node));
 
-               if Is_Empty (Array_Bounds (Node)) then
-                  pragma Debug (O ("Is_Interface_Type : end"));
-                  return Is_Interface_Type (T_Type (P_Node));
-               else
-                  pragma Debug (O ("Is_Interface_Type : end"));
-                  return False;
-               end if;
+               return Is_Empty (Array_Bounds (Node))
+                 and then Is_Interface_Type (T_Type (P_Node));
             end;
 
          when others =>
-            pragma Debug (O ("Is_Interface_Type : dealing with something "
-                             & "else, end"));
             return False;
       end case;
+
    end Is_Interface_Type;
 
    function Is_Gen_Scope
@@ -563,38 +556,48 @@ package body Idl_Fe.Tree.Synthetic is
    end Default_Repository_Id;
 
    function S_Type (Node : Node_Id) return Node_Id is
-      A_Name : constant Node_Id := Value (Node);
+      Typ : Node_Id := Value (Node);
    begin
-      if Kind (A_Name) = K_Declarator then
-         if Kind (Parent (A_Name)) = K_Type_Declarator then
-            --  if the declaration was a typedef, we have to
-            --  use the type of it
-            pragma Debug (O ("S_Type: the scoped" &
-                             " name is defined in a typedef"));
-            if Parent (A_Name) /= No_Node and then
-              T_Type (Parent (A_Name)) /= No_Node then
-               if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
-                  return S_Type (T_Type (Parent (A_Name)));
-               else
-                  return T_Type (Parent (A_Name));
-               end if;
+      if Kind (Typ) = K_Declarator then
+
+         --  For a typedef, go back to the original type
+
+         if Kind (Parent (Typ)) = K_Type_Declarator then
+            pragma Debug (O ("S_Type: the name is defined in a typedef"));
+
+            if not Is_Empty (Array_Bounds (Typ)) then
+               return Typ;
             end if;
-         elsif Kind (Parent (A_Name)) = K_Native then
-            return Parent (A_Name);
+
+            Typ := T_Type (Parent (Typ));
+            if Kind (Typ) = K_Scoped_Name then
+               return S_Type (Typ);
+            else
+               return Typ;
+            end if;
+
+         elsif Kind (Parent (Typ)) = K_Native then
+            return Parent (Typ);
          end if;
-      elsif Kind (A_Name) = K_Struct
-        or else Kind (A_Name) = K_Union
-        or else Kind (A_Name) = K_Enum
-        or else Kind (A_Name) = K_Interface
-        or else Kind (A_Name) = K_ValueType
-        or else Kind (A_Name) = K_Forward_Interface
-        or else Kind (A_Name) = K_Boxed_ValueType
-        or else Kind (A_Name) = K_Forward_ValueType then
-         return A_Name;
+
+      elsif Kind (Typ) = K_Struct
+        or else Kind (Typ) = K_Union
+        or else Kind (Typ) = K_Enum
+        or else Kind (Typ) = K_Interface
+        or else Kind (Typ) = K_ValueType
+        or else Kind (Typ) = K_Forward_Interface
+        or else Kind (Typ) = K_Boxed_ValueType
+        or else Kind (Typ) = K_Forward_ValueType
+        or else Kind (Typ) = K_Sequence_Instance
+      then
+         return Typ;
       end if;
 
-      pragma Debug (O ("S_Type: the scoped" &
-                       " name does not denote a type"));
+      Error ("Scoped name does not denote a type",
+             Fatal, Get_Location (Node));
+
+      --  Not reached
+
       return No_Node;
    end S_Type;
 

@@ -50,8 +50,10 @@ package Idl_Fe.Tree.Synthetic is
    --  repository id for Node.
    --  Must be called only by the parser, before the tree is expanded.
 
-   function Is_Interface_Type (Node : Node_Id) return Boolean;
+   function Is_Interface_Type
+     (Node : Node_Id; Or_ValueType : Boolean := False) return Boolean;
    --  True iff Node is a <type_spec> that denotes an object reference type
+   --  If Or_ValueType is True, also return true for valuetype reference types.
 
    function Is_Gen_Scope (Node : Node_Id) return Boolean;
    --  True iff Node is a generable Scope (ie K_Repository, K_Ben_Idl_File,

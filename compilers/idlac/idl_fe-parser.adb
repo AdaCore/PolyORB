@@ -4724,6 +4724,7 @@ package body Idl_Fe.Parser is
                           | K_Enum
                           | K_Struct
                           | K_Union
+                          | K_Declarator
                           | K_Interface
                           | K_Forward_Interface
                           | K_ValueType
@@ -4741,7 +4742,7 @@ package body Idl_Fe.Parser is
                   if Not_A_Type then
                      Errors.Error
                        ("This scoped name does not denote an "
-                        & " acceptable type for a Simple_Type_Spec.",
+                        & "acceptable type for a Simple_Type_Spec.",
                         Errors.Error,
                         Get_Token_Location);
                   end if;

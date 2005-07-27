@@ -70,27 +70,10 @@ package body Ada_Be.Mappings.CORBA is
             return Ada_Helper_Unit_Name (Mapping, Forward (Node));
 
          when K_Declarator =>
-            declare
-               P : constant Node_Id := Parent (Node);
-            begin
-               if Kind (P) = K_Type_Declarator then
-                  declare
-                     T_Node : constant Node_Id := T_Type (P);
-                  begin
-                     case Kind (T_Node) is
-                        when
-                          K_Interface         |
-                          K_Forward_Interface |
-                          K_ValueType         |
-                          K_Scoped_Name       |
-                          K_Forward_ValueType =>
-                           return Ada_Helper_Unit_Name (Mapping, T_Node);
-                        when others =>
-                           null;
-                     end case;
-                  end;
-               end if;
-            end;
+            if Is_Interface_Type (Node, Or_ValueType => True) then
+               return Ada_Helper_Unit_Name (Mapping, T_Type (Parent (Node)));
+            end if;
+
          when
            K_Sequence_Instance |
            K_String_Instance   |
