@@ -38,6 +38,8 @@ New contrib/ directory to store contributed code. (9376)
 Added idlac_wrapper, a script contributed by Vadim Godunko to
 avoid unnecessary recompilation of idlac generated files. (9376)
 
+Added support for the G++ 4.1.1 preprocessor. (9438)
+
 Incompatible changes
 --------------------
 
@@ -59,7 +61,7 @@ Correct handling of nested (anonymous) arrays. (9412)
 
 Correct skeleton generation for functions returning references. (9411, 9424)
 
-Correct helper generation for typedefs (9435)
+Correct helper generation for typedefs. (9435)
 
 * PolyORB 1.3 (released 2005-06-20)
 ===================================

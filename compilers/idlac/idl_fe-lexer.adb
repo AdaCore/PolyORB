@@ -1153,7 +1153,18 @@ package body Idl_Fe.Lexer is
                                New_Line_Number,
                                Last);
                Current_Location.Col := Last;
-               Current_Location.Line := New_Line_Number - 1;
+
+               --  GCC-4.1's C preprocessor output "built-in" section with
+               --  line number 0, so we need to check and workaround this
+               --  situation
+
+               if New_Line_Number /= 0 then
+                  Current_Location.Line := New_Line_Number - 1;
+
+               else
+                  Current_Location.Line := 0;
+               end if;
+
                Skip_Spaces;
                case View_Next_Char is
                   when Quotation =>
