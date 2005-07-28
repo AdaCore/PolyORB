@@ -121,7 +121,7 @@ install-data-local:
         done
 
 	$(INSTALL) -d $(DESTDIR)$(IDLdir)
-	for f in $(IDL); do \
+	for f in $(IDLS); do \
           if test -f $$f; then \
             $(INSTALL) -m 644 $$f $(DESTDIR)$(IDLdir); \
           else \
