@@ -109,11 +109,11 @@ private
    --  package that contains the mapping of
    --  the entity defined by Node.
 
-   function Helper_Unit
-     (Node : Node_Id)
-     return String;
-   --  The name of the Helper unit containing To_Any and
-   --  From_Any for type Node.
+   function Helper_Unit (Node : Node_Id) return String;
+   --  The name of the Helper unit containing To_Any and From_Any for Node
+
+   function TC_Unit (Node : Node_Id) return String;
+   --  The name of the Helper unit containing the TypeCode for Node
 
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;

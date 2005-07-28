@@ -183,8 +183,6 @@ package body Ada_Be.Idl2Ada is
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
 
-   function TC_Name (Node : Node_Id) return String;
-
    procedure Gen_Convert_Forward_Declaration
      (CU : in out Compilation_Unit;
       Node : in Node_Id);
@@ -2227,19 +2225,13 @@ package body Ada_Be.Idl2Ada is
                                        Put (CU, "  (" & Arg_Name & ");");
                                     end if;
                                  else
-                                    declare
-                                       TC_Helper_Name   : constant String
-                                         := Ada_Helper_Unit_Name
-                                         (Mapping, P_Typ);
-                                    begin
-                                       Add_With (CU, TC_Helper_Name);
-                                       PL (CU, "  := "
-                                         & "CORBA.Internals.Get_Empty_Any");
-                                       II (CU);
-                                       PL (CU, "("
-                                         & Ada_Full_TC_Name (P_Typ) & ");");
-                                       DI (CU);
-                                    end;
+                                    Add_With (CU, TC_Unit (P_Typ));
+                                    PL (CU, "  := "
+                                      & "CORBA.Internals.Get_Empty_Any");
+                                    II (CU);
+                                    PL (CU, "("
+                                      & Ada_Full_TC_Name (P_Typ) & ");");
+                                    DI (CU);
                                  end if;
                               end;
                            end if;
@@ -2324,8 +2316,7 @@ package body Ada_Be.Idl2Ada is
                         while not Is_End (It) loop
                            Get_Next_Node (It, R_Node);
                            E_Node := Value (R_Node);
-                           Add_With
-                             (CU, Ada_Helper_Unit_Name (Mapping, E_Node));
+                           Add_With (CU, TC_Unit (E_Node));
                            if First then
                               NL (CU);
                               PL (CU, "--  Create exceptions list.");
@@ -2338,7 +2329,7 @@ package body Ada_Be.Idl2Ada is
                            PL (CU, "CORBA.ExceptionList.Add");
                            PL (CU, "  (" & T_Excp_List & ",");
                            II (CU);
-                           PL (CU, TC_Name (E_Node) & ");");
+                           PL (CU, Ada_Full_TC_Name (E_Node) & ");");
                            DI (CU);
 
                         end loop;
@@ -2353,9 +2344,9 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "      Argument => "
                          & "CORBA.Internals.To_PolyORB_Any ");
 
-                     Add_With (CU, Ada_Helper_Unit_Name (Mapping, Org_O_Type));
+                     Add_With (CU, TC_Unit (Org_O_Type));
                      PL (CU, "  (CORBA.Internals.Get_Empty_Any ("
-                         & TC_Name (Org_O_Type) & ")),");
+                         & Ada_Full_TC_Name (Org_O_Type) & ")),");
                      II (CU);
                      PL (CU, "Arg_Modes => 0);");
                      DI (CU);
@@ -2859,11 +2850,11 @@ package body Ada_Be.Idl2Ada is
       return -Typ;
    end Ada_Type_Name;
 
-   -------------
-   -- TC_Name --
-   -------------
+   ----------------------
+   -- Ada_Full_TC_Name --
+   ----------------------
 
-   function TC_Name (Node : Node_Id) return String is
+   function Ada_Full_TC_Name (Node : Node_Id) return String is
       NK : constant Node_Kind := Kind (Node);
    begin
 
@@ -2872,7 +2863,7 @@ package body Ada_Be.Idl2Ada is
          when
            K_Forward_Interface |
            K_Forward_ValueType =>
-            return TC_Name (Forward (Node));
+            return Ada_Full_TC_Name (Forward (Node));
 
          when
            K_Interface         |
@@ -2888,7 +2879,7 @@ package body Ada_Be.Idl2Ada is
            K_String_Instance =>
 
             return
-              Ada_Helper_Unit_Name (Mapping, Node) & ".TC_" & Ada_Name (Node);
+              Ada_Helper_Unit_Name (Mapping, Node) & "." & Ada_TC_Name (Node);
 
          when K_Declarator =>
             declare
@@ -2905,20 +2896,19 @@ package body Ada_Be.Idl2Ada is
                           K_Interface         |
                           K_Forward_Interface |
                           K_ValueType         |
-                          K_Scoped_Name       |
                           K_Forward_ValueType =>
-                           return TC_Name (T_Node);
+                           return Ada_Full_TC_Name (T_Node);
                         when others =>
                            null;
                      end case;
                   end;
                end if;
                return Ada_Helper_Unit_Name (Mapping, Node)
-                        & ".TC_" & Ada_Name (Node);
+                        & "." & Ada_TC_Name (Node);
             end;
 
          when K_Scoped_Name =>
-            return TC_Name (Value (Node));
+            return Ada_Full_TC_Name (Value (Node));
 
          when K_Void =>
             return "CORBA.TC_Void";
@@ -2987,7 +2977,7 @@ package body Ada_Be.Idl2Ada is
             raise Program_Error;
 
       end case;
-   end TC_Name;
+   end Ada_Full_TC_Name;
 
    -----------------
    -- Helper_Unit --
@@ -3035,6 +3025,20 @@ package body Ada_Be.Idl2Ada is
             return Ada_Helper_Unit_Name (Mapping, Node);
       end case;
    end Helper_Unit;
+
+   -------------
+   -- TC_Unit --
+   -------------
+
+   function TC_Unit (Node : Node_Id) return String is
+      Full_TC : constant String := Ada_Full_TC_Name (Node);
+      Last : Integer := Full_TC'Last;
+   begin
+      while Full_TC (Last) /= '.' loop
+         Last := Last - 1;
+      end loop;
+      return Full_TC (Full_TC'First .. Last - 1);
+   end TC_Unit;
 
    ----------------------
    -- Access_Type_Name --
@@ -3272,12 +3276,6 @@ package body Ada_Be.Idl2Ada is
 
       end case;
    end Ada_TC_Name;
-
-   ----------------------
-   -- Ada_Full_TC_Name --
-   ----------------------
-
-   function Ada_Full_TC_Name (Node : Node_Id) return String renames TC_Name;
 
    -----------------------------
    -- Gen_Module_Init_Prelude --

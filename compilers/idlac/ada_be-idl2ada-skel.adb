@@ -39,7 +39,6 @@ with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Idl2Ada.Impl;
 with Ada_Be.Idl2Ada.Helper;
 with Ada_Be.Idl2Ada.Value_Skel;
-with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 
 with Ada_Be.Debug;
@@ -548,10 +547,7 @@ package body Ada_Be.Idl2Ada.Skel is
                      declare
                         Arg_Name : constant String
                           := Ada_Name (Declarator (P_Node));
-
                         P_Typ : constant Node_Id := Param_Type (P_Node);
-                        Helper_Name : constant String
-                          := Ada_Helper_Unit_Name (Mapping, P_Typ);
 
                      begin
 
@@ -564,7 +560,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, "  CORBA.To_CORBA_String ("""
                                & Arg_Name & """);");
 
-                           Add_With (CU, Helper_Name);
+                           Add_With (CU, TC_Unit (P_Typ));
 
                            PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
                                & " : CORBA.Any := "
