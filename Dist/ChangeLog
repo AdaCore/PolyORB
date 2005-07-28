@@ -1,3 +1,20 @@
+2005-07-28  pautet  <pautet@andromaque.enst.fr>
+
+	* xe_back.ads: Define PCS_Conf_Unit as a PCS unit that gnatdist
+	has to automatically configure on the main partition.
+
+	* xe_back-polyorb.adb: Set PCS_Conf_Unit to PolyORB.DSA_P.Partitions
+	and so configure this RCI unit on the main partition.
+	
+	* xe_sem.adb: Configure a PCS unit when required (PolyORB)
+
+	* xe_front.adb: Hide to the user a unit that would be configured
+	automatically for the PCS.
+
+	* xe_main.adb: Configure backend before analysing configuration
+	since the backend may require a PCS unit to be configured on the
+	main partition.
+	
 2005-05-09  Pascal Obry  <obry@adacore.com>
 
 	* xe_usage.adb: Fix a memory corruption in the check for the
