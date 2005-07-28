@@ -158,8 +158,8 @@ begin
    --  parts of configuration may be missing because we partially
    --  build the distributed system.
 
-   Analyze;
    XE_Back.Initialize (Backend);
+   Analyze;
    XE_Back.Run_Backend (Backend);
 
    --  Everything went fine
