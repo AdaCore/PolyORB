@@ -85,7 +85,7 @@ Available options for the 'configure' script include:
              and SOAP personalities
 
   --with-services="...": CORBA COS services to build
-      Available services: event, ir, naming, time
+      Available services: event, ir, naming, notification, time
       e.g.  --with-services="event naming" to build only
       COS Event and COS Naming.	
 
