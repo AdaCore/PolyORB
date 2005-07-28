@@ -8,7 +8,7 @@ NATIVE_LINKER=	$(top_builddir)/support/native-linker
 MOVEIFCHANGE=	$(top_builddir)/support/move-if-change
 IDLAC_dir=	$(top_builddir)/compilers/idlac
 IDLAC=		$(IDLAC_dir)/idlac
-IDLAC_WRAPPER=	$(top_srcdir)/contrib/idlac_wrapper/idlac_wrapper
+IDLAC_WRAPPER=	$(top_builddir)/contrib/idlac_wrapper/idlac_wrapper
 GEN_CODESET_dir=$(top_builddir)/src/giop
 GEN_CODESET=	$(GEN_CODESET_dir)/gen_codeset
 
