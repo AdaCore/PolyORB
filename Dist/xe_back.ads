@@ -48,6 +48,10 @@ package XE_Back is
    function Find_Backend (PCS_Name : String) return Backend_Access;
    --  Return an instance of the backend appropriate for the specified PCS
 
+   PCS_Conf_Unit : Name_Id := No_Name;
+   --  Define a PCS unit that gnatdist has to automatically configure
+   --  on the main partition.
+
 private
 
    type Backend is abstract tagged limited null record;
