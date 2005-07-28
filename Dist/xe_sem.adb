@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
@@ -29,6 +29,7 @@
 with GNAT.Table;
 
 with XE;               use XE;
+with XE_Back;          use XE_Back;
 with XE_Front;         use XE_Front;
 with XE_Flags;         use XE_Flags;
 with XE_IO;            use XE_IO;
@@ -144,6 +145,13 @@ package body XE_Sem is
          end loop;
          CU := Conf_Units.Table (CU).Next_Unit;
       end loop;
+
+      --  PCS may require to configure one of its units on the main
+      --  partition.
+
+      if PCS_Conf_Unit /= No_Name then
+         Add_Conf_Unit (PCS_Conf_Unit, Main_Partition);
+      end if;
 
       XE_List.Initialize;
       Main_Subprogram := Partitions.Table (Main_Partition).Main_Subprogram;
