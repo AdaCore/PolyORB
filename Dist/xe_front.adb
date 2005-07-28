@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with XE;          use XE;
+with XE_Back;     use XE_Back;
 with XE_Defs;     use XE_Defs;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
@@ -1601,21 +1602,23 @@ package body XE_Front is
          U := Partitions.Table (P).First_Unit;
          while U /= No_Conf_Unit_Id loop
             I := Conf_Units.Table (U).My_Unit;
-            Write_Str ("             - ");
-            Write_Name (Conf_Units.Table (U).Name);
-            if Units.Table (I).RCI then
-               Write_Str (" (rci)");
+            if Conf_Units.Table (U).Name /= PCS_Conf_Unit then
+               Write_Str ("             - ");
+               Write_Name (Conf_Units.Table (U).Name);
+               if Units.Table (I).RCI then
+                  Write_Str (" (rci)");
 
-            elsif Units.Table (I).Remote_Types then
-               Write_Str (" (rt)");
+               elsif Units.Table (I).Remote_Types then
+                  Write_Str (" (rt)");
 
-            elsif Units.Table (I).Shared_Passive then
-               Write_Str (" (sp)");
+               elsif Units.Table (I).Shared_Passive then
+                  Write_Str (" (sp)");
 
-            else
-               Write_Str (" (normal)");
+               else
+                  Write_Str (" (normal)");
+               end if;
+               Write_Eol;
             end if;
-            Write_Eol;
             U := Conf_Units.Table (U).Next_Unit;
          end loop;
          Write_Eol;
