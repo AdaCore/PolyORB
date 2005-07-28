@@ -9,14 +9,15 @@
 tmp="idlac_wrapper.$$"
 trap "rm -rf ${tmp}" 0 1 2 3 15
 
+SED=@SED@
 IDLAC=idlac
-SED=sed
+
 while [ $# -ne 0 ]; do
   case "$1" in
 
     --idlac=*)
       echo "Using $1"
-      IDLAC="${1#--idlac=}"
+      IDLAC=`echo "$1" | ${SED} 's/^--idlac=//'`
       shift
       ;;
 

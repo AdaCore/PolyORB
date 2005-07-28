@@ -524,6 +524,7 @@ AC_OUTPUT([
 	idls/cos/naming/Makefile
 	idls/cos/notification/Makefile
 	idls/cos/time/Makefile
+	contrib/idlac_wrapper/idlac_wrapper
 	cos/Makefile
 	cos/event/Makefile
 	cos/naming/Makefile
@@ -623,9 +624,10 @@ if test ! -f support/move-if-change; then
   cp ${srcdir}/support/move-if-change support/move-if-change
 fi
 
-for a in linker adacompiler move-if-change
+for a in support/linker support/adacompiler support/move-if-change \
+  contrib/idlac_wrapper/idlac_wrapper
 do
-  chmod a+x support/$a
+  chmod a+x $a
 done
 
 ${RM} -f support/native-adacompiler
