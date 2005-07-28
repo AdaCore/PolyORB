@@ -32,6 +32,7 @@ LINK=		$(LINKER) -o $@
 	$(IDLAC) -I$(srcdir) $(IDLAC_FLAGS) $<
 
 .idl.idl-stamp:
+	@chmod a+x $(IDLAC_WRAPPER)
 	$(IDLAC_WRAPPER) --idlac=$(IDLAC) -I$(srcdir) $(IDLAC_FLAGS) $<
 	touch $@
 
