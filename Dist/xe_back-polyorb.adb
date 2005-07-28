@@ -362,6 +362,12 @@ package body XE_Back.PolyORB is
 
    begin
       XE_Back.Initialize;
+
+      --  This RCI unit has to be automatically configured on the main
+      --  partition.
+
+      PCS_Conf_Unit := Id ("polyorb.dsa_p.partitions");
+
       Register_Casing_Rule ("ORB");
 
       for U in RU_Id'First .. RU_Id'Last loop
