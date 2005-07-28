@@ -8,8 +8,8 @@
 	
 	* xe_sem.adb: Configure a PCS unit when required (PolyORB)
 
-	* xe_front.adb: Hide to the user a unit that would be configured
-	automatically for the PCS.
+	* xe_front.adb: Hide to the user any unit automatically configured
+	for the PCS.
 
 	* xe_main.adb: Configure backend before analysing configuration
 	since the backend may require a PCS unit to be configured on the
