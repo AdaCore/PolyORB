@@ -83,8 +83,7 @@ package Ada_Be.Mappings.CORBA is
      (Mapping : access CORBA_Mapping_Type;
       Node    : in     Idl_Fe.Types.Node_Id)
      return String;
-   --  The name of the helper package where the TypeCode and To_Any/From_Any
-   --  subprograms corresponding to Node is defined
+   --  The name of the helper package where the TypeCode for Node is defined
 
    function Ada_Type_Defining_Name
      (Mapping : access CORBA_Mapping_Type;

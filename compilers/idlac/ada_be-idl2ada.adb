@@ -2855,128 +2855,8 @@ package body Ada_Be.Idl2Ada is
    ----------------------
 
    function Ada_Full_TC_Name (Node : Node_Id) return String is
-      NK : constant Node_Kind := Kind (Node);
    begin
-
-      case NK is
-
-         when
-           K_Forward_Interface |
-           K_Forward_ValueType =>
-            return Ada_Full_TC_Name (Forward (Node));
-
-         when
-           K_Interface         |
-           K_ValueType         |
-
-           K_Enum              |
-           K_Union             |
-           K_Struct            |
-           K_Exception         |
-           K_Boxed_ValueType   |
-
-           K_Sequence_Instance |
-           K_String_Instance =>
-
-            return
-              Ada_Helper_Unit_Name (Mapping, Node) & "." & Ada_TC_Name (Node);
-
-         when K_Declarator =>
-            declare
-               P : constant Node_Id := Parent (Node);
-            begin
-               if Kind (P) = K_Type_Declarator
-                    and then Is_Empty (Array_Bounds (Node))
-               then
-                  declare
-                     T_Node : constant Node_Id := T_Type (P);
-                  begin
-                     case Kind (T_Node) is
-                        when
-                          K_Interface         |
-                          K_Forward_Interface |
-                          K_ValueType         |
-                          K_Forward_ValueType =>
-                           return Ada_Full_TC_Name (T_Node);
-                        when others =>
-                           null;
-                     end case;
-                  end;
-               end if;
-               return Ada_Helper_Unit_Name (Mapping, Node)
-                        & "." & Ada_TC_Name (Node);
-            end;
-
-         when K_Scoped_Name =>
-            return Ada_Full_TC_Name (Value (Node));
-
-         when K_Void =>
-            return "CORBA.TC_Void";
-
-         when K_Short =>
-            return "CORBA.TC_Short";
-
-         when K_Long =>
-            return "CORBA.TC_Long";
-
-         when K_Long_Long =>
-            return "CORBA.TC_Long_Long";
-
-         when K_Unsigned_Short =>
-            return "CORBA.TC_Unsigned_Short";
-
-         when K_Unsigned_Long =>
-            return "CORBA.TC_Unsigned_Long";
-
-         when K_Unsigned_Long_Long =>
-            return "CORBA.TC_Unsigned_Long_Long";
-
-         when K_Char =>
-            return "CORBA.TC_Char";
-
-         when K_Wide_Char =>
-            return "CORBA.TC_Wchar";
-
-         when K_Boolean =>
-            return "CORBA.TC_Boolean";
-
-         when K_Float =>
-            return "CORBA.TC_Float";
-
-         when K_Double =>
-            return "CORBA.TC_Double";
-
-         when K_Long_Double =>
-            return "CORBA.TC_Long_Double";
-
-         when K_String =>
-            return "CORBA.TC_String";
-
-         when K_Wide_String =>
-            return "CORBA.TC_Wide_String";
-
-         when K_Octet =>
-            return "CORBA.TC_Octet";
-
-         when K_Any =>
-            return "CORBA.TC_Any";
-
-         when K_Object =>
-            return "CORBA.Object.Helper.TC_Object";
-
-         when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
-
-            Error
-              ("This is TC_Name : A " & Node_Kind'Image (NK)
-               & " does not denote a type.",
-               Fatal, Get_Location (Node));
-
-            --  Keep the compiler happy.
-            raise Program_Error;
-
-      end case;
+      return TC_Unit (Node) & "." & Ada_TC_Name (Node);
    end Ada_Full_TC_Name;
 
    -----------------
@@ -3002,9 +2882,8 @@ package body Ada_Be.Idl2Ada is
                                 or else Kind (P_T_Type) = K_Object);
             begin
                if Is_Ref then
-                  --  This node is mapped to a subtype of the
-                  --  original reference type: use that type's
-                  --  From_Any and To_Any.
+                  --  This node is mapped to a subtype of the original
+                  --  reference type: use that type's From_Any and To_Any.
                   return Helper_Unit (P_T_Type);
                else
                   return Helper_Unit (Parent_Scope (Node));
@@ -3031,13 +2910,8 @@ package body Ada_Be.Idl2Ada is
    -------------
 
    function TC_Unit (Node : Node_Id) return String is
-      Full_TC : constant String := Ada_Full_TC_Name (Node);
-      Last : Integer := Full_TC'Last;
    begin
-      while Full_TC (Last) /= '.' loop
-         Last := Last - 1;
-      end loop;
-      return Full_TC (Full_TC'First .. Last - 1);
+      return Ada_Helper_Unit_Name (Mapping, Node);
    end TC_Unit;
 
    ----------------------
@@ -3196,10 +3070,13 @@ package body Ada_Be.Idl2Ada is
    begin
       case NK is
          when
-           K_Interface         |
            K_Forward_Interface |
+           K_Forward_ValueType =>
+            return Ada_TC_Name (Forward (Node));
+
+         when
+           K_Interface         |
            K_ValueType         |
-           K_Forward_ValueType |
            K_Sequence_Instance |
            K_String_Instance   |
            K_Enum              |
@@ -3262,6 +3139,9 @@ package body Ada_Be.Idl2Ada is
 
          when K_Any =>
             return Prefix & "Any";
+
+         when K_Void =>
+            return Prefix & "Void";
 
          when others =>
             --  Improper use: node N is not

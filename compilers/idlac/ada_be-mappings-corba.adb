@@ -69,14 +69,10 @@ package body Ada_Be.Mappings.CORBA is
          when K_Forward_Interface | K_Forward_ValueType =>
             return Ada_Helper_Unit_Name (Mapping, Forward (Node));
 
-         when K_Declarator =>
-            if Is_Interface_Type (Node, Or_ValueType => True) then
-               return Ada_Helper_Unit_Name (Mapping, T_Type (Parent (Node)));
-            end if;
-
          when
            K_Sequence_Instance |
            K_String_Instance   |
+           K_Declarator        |
            K_Enum              |
            K_Union             |
            K_Struct            |
