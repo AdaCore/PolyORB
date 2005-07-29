@@ -1634,7 +1634,8 @@ package body Ada_Be.Idl2Ada is
                end if;
                Set_Comment_Out_Mode (CU, False);
                if Implicit then
-                  PL (CU, "--  (inherited)");
+                  PL (CU, "--  (inherited from "
+                    & Ada_Type_Name (Original_Parent_Scope (Node)) & ")");
                end if;
             end;
 
