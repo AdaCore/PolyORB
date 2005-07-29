@@ -40,6 +40,11 @@ avoid unnecessary recompilation of idlac generated files. (9376)
 
 Added support for the G++ 4.1.0 preprocessor. (9438)
 
+Idlac now annotates client stubs with comments indicating in which
+interface each inherited operation has been declared (whether it is
+implicitly inherited from the primary parent or redeclared from a
+secondary parent). (9458, 9459, 9460)
+
 Incompatible changes
 --------------------
 
