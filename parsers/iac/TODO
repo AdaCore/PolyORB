@@ -12,6 +12,8 @@ Backend Ada :
 * Implementing the AMI
 * Implementing the AMH
 * Generate Code for "ValueType"s
+* Generate comments that indicate the implicitly inherited operations in 
+  interfaces.
 
 TestSuite :
 ===========
