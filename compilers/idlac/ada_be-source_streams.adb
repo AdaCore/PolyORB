@@ -514,6 +514,10 @@ package body Ada_Be.Source_Streams is
          Append
            (Unit.Diversions (Unit.Current_Diversion).Library_Item,
             Indent_String);
+         if Unit.Comment_Out_Mode then
+            Append
+              (Unit.Diversions (Unit.Current_Diversion).Library_Item, "--  ");
+         end if;
          Unit.Diversions (Unit.Current_Diversion).At_BOL := False;
       end if;
 
@@ -622,6 +626,18 @@ package body Ada_Be.Source_Streams is
       end if;
       return True;
    end Set_Output_Directory;
+
+   --------------------------
+   -- Set_Comment_Out_Mode --
+   --------------------------
+
+   procedure Set_Comment_Out_Mode
+     (Unit : in out Compilation_Unit;
+      Mode : Boolean)
+   is
+   begin
+      Unit.Comment_Out_Mode := Mode;
+   end Set_Comment_Out_Mode;
 
    -----------------------
    -- Set_Template_Mode --

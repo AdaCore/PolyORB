@@ -151,6 +151,12 @@ package Ada_Be.Source_Streams is
    --  insertion is not taken into account to determine whether the unit
    --  is 'empty' for the purpose of procedure Generate.
 
+   procedure Set_Comment_Out_Mode
+     (Unit : in out Compilation_Unit;
+      Mode : Boolean);
+   --  Set Unit's comment out mode. When a unit is in comment out mode,
+   --  any generated code is output as comments.
+
    function Set_Output_Directory (Dir : String) return Boolean;
    --  Set output directory to Dir. False is returned upon failure
    --  (case of a non-existing directory).
@@ -228,6 +234,9 @@ private
 
       No_Warning        : Boolean    := False;
       --  If True, warnings are suppressed on the unit
+
+      Comment_Out_Mode  : Boolean    := False;
+      --  If True, all code inserted in the current diversion is commented out
 
       Template_Mode     : Boolean    := False;
       --  If True, code insertion in the current diversion does not cause
