@@ -1621,7 +1621,8 @@ package body Ada_Be.Idl2Ada is
          when K_Operation =>
 
             declare
-               Implicit : constant Boolean := Is_Implicit_Inherited (Node);
+               Implicit    : constant Boolean := Is_Implicit_Inherited (Node);
+               Original_If : constant Node_Id := Original_Parent_Scope (Node);
             begin
                Set_Comment_Out_Mode (CU, Implicit);
                Gen_Operation_Profile
@@ -1633,9 +1634,14 @@ package body Ada_Be.Idl2Ada is
                   Gen_Repository_Id (Node, CU);
                end if;
                Set_Comment_Out_Mode (CU, False);
-               if Implicit then
-                  PL (CU, "--  (inherited from "
-                    & Ada_Type_Name (Original_Parent_Scope (Node)) & ")");
+               if Original_If /= Parent_Scope (Node) then
+                  Put (CU, "--  ");
+                  if Implicit then
+                     Put (CU, "Implicitly i");
+                  else
+                     Put (CU, "I");
+                  end if;
+                  PL (CU, "nherited from " & Ada_Full_Name (Original_If));
                end if;
             end;
 
