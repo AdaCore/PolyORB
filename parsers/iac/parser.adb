@@ -839,7 +839,8 @@ package body Parser is
             Restore_Lexer (State);
             Definition := P_Exception_Declaration;
 
-         when T_Abstract =>
+         when T_Abstract
+           | T_Local =>
             Scan_Token ((T_Interface, T_Value_Type));
             if Token = T_Interface then
                Restore_Lexer (State);

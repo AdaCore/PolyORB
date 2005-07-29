@@ -14,18 +14,35 @@ pragma Elaborate_Body (Lexer);
       --  About basic keywords
 
       T_Abstract,               --  First keyword
+      T_Component,
       T_Const,
+      T_Consumes,
+      T_Emits,
+      T_Eventtype,
       T_Exception,
+      T_Finder,
+      T_Home,
+      T_Import,
       T_Interface,
+      T_Local,
       T_Module,
+      T_Multiple,
       T_Native,
+      T_Primary_Key,
+      T_Provides,
+      T_Publishes,
       T_Typedef,
+      T_Type_Id,
+      T_Type_Prefix,
+      T_Uses,
       T_Value_Type,
 
       --  About attributes
 
       T_Readonly,
       T_Attribute,
+      T_Get_Raises,
+      T_Set_Raises,
 
       --  About operations
 
@@ -125,26 +142,6 @@ pragma Elaborate_Body (Lexer);
       T_Fixed_Point_Literal,
       T_Floating_Point_Literal,
       T_Boolean_Literal,
-
-      --  CORBA 3.0
-
-      T_Component,
-      T_Consumes,
-      T_Emits,
-      T_Eventtype,
-      T_Finder,
-      T_Get_Raises,
-      T_Home,
-      T_Import,
-      T_Local,
-      T_Multiple,
-      T_Primary_Key,
-      T_Provides,
-      T_Publishes,
-      T_Set_Raises,
-      T_Type_Id,
-      T_Type_Prefix,
-      T_Uses,
 
       T_EOF);
 
