@@ -4,7 +4,7 @@ shift;
 OFILE=$1;
 shift;
 if [ "$CPPEXEC" = "gnu-cpp" ]; then
-    cpp -E -C -x c++ -ansi $* -o $OFILE $IFILE
+    cpp -D_PRE_3_0_COMPILER_ -E -C -x c++ -ansi $* -o $OFILE $IFILE
 else
     mico-cpp $IFILE $OFILE $*
 fi
