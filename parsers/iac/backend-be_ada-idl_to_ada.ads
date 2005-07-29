@@ -106,13 +106,34 @@ package Backend.BE_Ada.IDL_To_Ada is
      (Entity : Node_Id)
      return Node_Id;
 
+   function Map_Impl_Type
+     (Entity : Node_Id)
+     return Node_Id;
+
+   function Map_Impl_Type_Ancestor
+     (Entity : Node_Id)
+     return Node_Id;
+
    function Map_Members_Definition
      (Members : List_Id)
      return List_Id;
 
+   function Map_Narrowing_Designator
+     (E         : Node_Id;
+      Unchecked : Boolean)
+     return Node_Id;
+
    function Map_Range_Constraints
      (Array_Sizes : List_Id)
      return List_Id;
+
+   function Map_Ref_Type
+     (Entity : Node_Id)
+     return Node_Id;
+
+   function Map_Ref_Type_Ancestor
+     (Entity : Node_Id)
+     return Node_Id;
 
    function Map_Repository_Declaration
      (Entity : Node_Id)

@@ -230,6 +230,7 @@ package Backend.BE_Ada.Nutils is
 
    type Subprogram_Id is
      (S_Deferred_Initialization,
+      S_Entity_Of,
       S_Get_Members,
       S_From_Any,
       S_Hash,
@@ -239,8 +240,12 @@ package Backend.BE_Ada.Nutils is
       S_Register_Procedure,
       S_Servant_Is_A,
       S_Set,
+      S_To_Abstract_Ref,
       S_To_Any,
+      S_To_Local_Ref,
       S_To_Ref,
+      S_Unchecked_To_Abstract_Ref,
+      S_Unchecked_To_Local_Ref,
       S_Unchecked_To_Ref);
 
    SN : array (Subprogram_Id) of Name_Id;
@@ -262,11 +267,13 @@ package Backend.BE_Ada.Nutils is
    AN : array (Attribute_Id) of Name_Id;
 
    type Type_Id is
-     (T_Invoke_Record_Type,
-      T_Ref,
+     (T_Abstract_Ref,
+      T_Invoke_Record_Type,
+      T_Local_Ref,
       T_Object,
       T_Object_Ptr,
       T_Procedure_Access,
+      T_Ref,
       T_Sequence,
       T_String_Ptr);
 

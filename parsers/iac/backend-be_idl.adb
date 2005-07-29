@@ -538,6 +538,12 @@ package body Backend.BE_IDL is
          Write (T_Abstract);
          Write_Space;
       end if;
+
+      if Is_Local_Interface (E) then
+         Write (T_Local);
+         Write_Space;
+      end if;
+
       Write (T_Interface);
       Write_Space;
       Generate (Identifier (E));

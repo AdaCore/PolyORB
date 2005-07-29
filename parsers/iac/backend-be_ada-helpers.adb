@@ -203,10 +203,11 @@ package body Backend.BE_Ada.Helpers is
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
             Make_Type_Attribute
-            (RE (RE_Ref_2), A_Class));
+            (Map_Ref_Type_Ancestor (E),
+             A_Class));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
-           (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
+           (Map_Narrowing_Designator (E, True),
             Profile, Expand_Designator
             (Type_Def_Node (BE_Node (Identifier (E)))));
          --  Setting the correct parent unit name, for the future calls of the
@@ -323,10 +324,12 @@ package body Backend.BE_Ada.Helpers is
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
             Make_Type_Attribute
-            (RE (RE_Ref_2), A_Class));
+            (Map_Ref_Type_Ancestor (E),
+             A_Class));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
-           (Make_Defining_Identifier (SN (S_To_Ref)), Profile,
+           (Map_Narrowing_Designator (E, False),
+            Profile,
             Expand_Designator
             (Type_Def_Node (BE_Node (Identifier (E)))));
          --  Setting the correct parent unit name, for the future calls of the
@@ -629,6 +632,7 @@ package body Backend.BE_Ada.Helpers is
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
+         Is_Local : constant Boolean := Is_Local_Interface (E);
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
@@ -640,15 +644,19 @@ package body Backend.BE_Ada.Helpers is
          Bind_FE_To_Helper (Identifier (E), N);
          Bind_FE_To_TC (Identifier (E), N);
 
-         N := From_Any_Spec (E);
-         Append_Node_To_List
-           (N, Visible_Part (Current_Package));
-         Bind_FE_To_From_Any (Identifier (E), N);
+         --  Local interfaces dont have Any conversion methods
 
-         N := To_Any_Spec (E);
-         Append_Node_To_List
-           (N, Visible_Part (Current_Package));
-         Bind_FE_To_To_Any (Identifier (E), N);
+         if not Is_Local then
+            N := From_Any_Spec (E);
+            Append_Node_To_List
+              (N, Visible_Part (Current_Package));
+            Bind_FE_To_From_Any (Identifier (E), N);
+
+            N := To_Any_Spec (E);
+            Append_Node_To_List
+              (N, Visible_Part (Current_Package));
+            Bind_FE_To_To_Any (Identifier (E), N);
+         end if;
 
          N := U_To_Ref_Spec (E);
          Append_Node_To_List
@@ -884,6 +892,7 @@ package body Backend.BE_Ada.Helpers is
             --  If the new type is defined basing on an interface type,
             --  and then if this is not an array type, then we dont generate
             --  From_Any nor To_Any. We use those of the original type.
+
             if FEN.Kind (T) = K_Scoped_Name
               and then
               (FEN.Kind (Reference (T)) = K_Interface_Declaration
@@ -891,11 +900,16 @@ package body Backend.BE_Ada.Helpers is
                FEN.Kind (Reference (T)) = K_Forward_Interface_Declaration)
               and then
               FEN.Kind (D) = K_Simple_Declarator then
-               N := From_Any_Node (BE_Node (Identifier (Reference (T))));
-               Bind_FE_To_From_Any (Identifier (D), N);
 
-               N := To_Any_Node (BE_Node (Identifier (Reference (T))));
-               Bind_FE_To_To_Any (Identifier (D), N);
+               --  For local interface, we generate nothing
+
+               if not Is_Local_Interface (Reference (T)) then
+                  N := From_Any_Node (BE_Node (Identifier (Reference (T))));
+                  Bind_FE_To_From_Any (Identifier (D), N);
+
+                  N := To_Any_Node (BE_Node (Identifier (Reference (T))));
+                  Bind_FE_To_To_Any (Identifier (D), N);
+               end if;
             else
                N := From_Any_Spec (D);
                Append_Node_To_List
@@ -1033,11 +1047,6 @@ package body Backend.BE_Ada.Helpers is
         (E : Node_Id)
         return Node_Id;
 
---        function TC_Designator
---          (E : Node_Id)
---          return Node_Id;
---        --  return a designator for a non-base type
-
       function Raise_Excp_From_Any_Spec
         (Raise_Node : Node_Id)
         return Node_Id;
@@ -1064,26 +1073,6 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Union_Type (E : Node_Id);
       procedure Visit_Exception_Declaration (E : Node_Id);
 
---        -------------------
---        -- TC_Designator --
---        -------------------
---        function TC_Designator
---          (E : Node_Id)
---          return Node_Id
---        is
---           T      : Node_Id;
---           Result : Node_Id;
---           TC     : Name_Id;
---        begin
---           T := E;
---           T := Reference (T);
---           T := Type_Def_Node (BE_Node (Identifier (T)));
---           TC := Add_Prefix_To_Name
---             ("TC_", BEN.Name (Defining_Identifier (T)));
---           Result := Make_Designator (TC);
---           return Result;
---        end TC_Designator;
-
       -----------------------------------
       -- Deferred_Initialization_Block --
       -----------------------------------
@@ -1101,18 +1090,6 @@ package body Backend.BE_Ada.Helpers is
            (Var_Name  : Name_Id;
             Value : Value_Id)
             return Node_Id;
-
---        --  To handle the case of multi-dimension arrays. A TypeCode variable
---           --  is declared for each dimension of an array.
---           function Declare_Dimension
---             (Var_Name  : Name_Id)
---             return Node_Id;
-
---        --  Generation of a new variable name to designate a given dimension
---           --  of the array.
---           function Get_Dimension_Variable_Name
---             (Dimension : Natural)
---             return Name_Id;
 
          --  Generate a TC constant for a fixed point type. We regenerate it
          --  here because there is no simple way to link a K_Fixed_Point_Type
@@ -1164,43 +1141,6 @@ package body Backend.BE_Ada.Helpers is
                 Make_List_Id (Make_Literal (Value))));
             return N;
          end Declare_Name;
-
---           -----------------------
---           -- Declare_Dimension --
---           -----------------------
-
---           function Declare_Dimension
---             (Var_Name  : Name_Id)
---              return Node_Id
---           is
---              N : Node_Id;
---           begin
---              N := Make_Object_Declaration
---                (Defining_Identifier =>
---                   Make_Defining_Identifier (Var_Name),
---                 Object_Definition   => RE (RE_Object),
---                 Expression          =>
---                   Make_Subprogram_Call
---                 (RE (RE_To_CORBA_Object),
---                  Make_List_Id (RE (RE_TC_Array))));
---              return N;
---           end Declare_Dimension;
-
---           ---------------------------------
---           -- Get_Dimension_Variable_Name --
---           ---------------------------------
-
---           function Get_Dimension_Variable_Name
---             (Dimension : Natural)
---             return Name_Id
---           is
---              Result : Name_Id;
---           begin
---              Set_Nat_To_Name_Buffer (Nat (Dimension));
---              Result := Name_Find;
---              Result := Add_Prefix_To_Name ("TC_", Result);
---              return Result;
---           end Get_Dimension_Variable_Name;
 
          ------------------------
          -- Get_TC_Fixed_Point --
@@ -2104,7 +2044,7 @@ package body Backend.BE_Ada.Helpers is
             Spec := From_Any_Node (BE_Node (Identifier (E)));
 
             N := Make_Subprogram_Call
-              (Make_Defining_Identifier (SN (S_To_Ref)),
+              (Map_Narrowing_Designator (E, False),
                Make_List_Id
                (Make_Subprogram_Call
                 (RE (RE_From_Any_1),
@@ -3486,11 +3426,13 @@ package body Backend.BE_Ada.Helpers is
          --  Statements Part
 
          S_Set_Node := Make_Defining_Identifier (SN (S_Set));
+
          --  Depending on the nature of node E :
          --  * If E is an Interface declaration, we use the Set function
          --    inherited from CORBA.Object.Ref
          --  * If E is a forward Interface declaration, we use the Set function
          --    defined in the instanciated package.
+
          if FEN.Kind (E) = K_Forward_Interface_Declaration then
             Set_Correct_Parent_Unit_Name
               (S_Set_Node,
@@ -3570,7 +3512,7 @@ package body Backend.BE_Ada.Helpers is
              (Make_Defining_Identifier (PN (P_The_Ref)),
               Rep_Id)));
          M := Make_Subprogram_Call
-           (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
+           (Map_Narrowing_Designator (E, True),
             Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref))));
          M := Make_Return_Statement (M);
          N := Make_If_Statement
@@ -3806,6 +3748,7 @@ package body Backend.BE_Ada.Helpers is
          N : Node_Id;
          Deferred_Initialization_Body_Backup : List_Id;
          Package_Initializarion_Backup       : List_Id;
+         Is_Local : constant Boolean := Is_Local_Interface (E);
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
@@ -3823,10 +3766,13 @@ package body Backend.BE_Ada.Helpers is
          Deferred_Initialization_Body := New_List (K_List_Id);
          Package_Initializarion       := New_List (K_List_Id);
 
-         Append_Node_To_List
-           (From_Any_Body (E), Statements (Current_Package));
-         Append_Node_To_List
-           (To_Any_Body (E), Statements (Current_Package));
+         if not Is_Local then
+            Append_Node_To_List
+              (From_Any_Body (E), Statements (Current_Package));
+            Append_Node_To_List
+              (To_Any_Body (E), Statements (Current_Package));
+         end if;
+
          Append_Node_To_List
            (U_To_Ref_Body (E), Statements (Current_Package));
          Append_Node_To_List
@@ -3840,8 +3786,10 @@ package body Backend.BE_Ada.Helpers is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+
          --  In case of multiple inheritence, generate the mappings for
          --  the operations and attributes of the parents except the first one.
+
          Map_Inherited_Entities_Bodies
            (Current_interface    => E,
             Visit_Operation_Subp => null,
@@ -3865,6 +3813,7 @@ package body Backend.BE_Ada.Helpers is
            Deferred_Initialization_Body_Backup;
          Package_Initializarion :=
            Package_Initializarion_Backup;
+
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -3881,7 +3830,6 @@ package body Backend.BE_Ada.Helpers is
          D := Stub_Node (BE_Node (Identifier (E)));
          Push_Entity (D);
 
-         --  Deferred initialisation
          Set_Helper_Body;
 
          --  Handling the case of modules nested in modules :
@@ -3905,6 +3853,7 @@ package body Backend.BE_Ada.Helpers is
          --  If no statement have been added to the package before the
          --  deferred initialiazation subprogram, the body is kept empty
          --  and is not generated.
+
          if not Is_Empty (Statements (Current_Package)) then
             N := Make_Subprogram_Implementation
               (Make_Subprogram_Specification
@@ -3963,6 +3912,7 @@ package body Backend.BE_Ada.Helpers is
          --  For each complex declarator, a new type is defined (see the stub
          --  generation for more details). For each defined type, a TC_XXXX
          --  Constant, a From_Any and a To_Any functions must be generated.
+
          Member := First_Entity (Members (E));
          while Present (Member) loop
             Declarator := First_Entity (Declarators (Member));
@@ -4043,6 +3993,7 @@ package body Backend.BE_Ada.Helpers is
             --  are homonymes of those of the instanciated package.
 
             --  From_Any
+
             Renamed_Subp := Make_Defining_Identifier (SN (S_From_Any));
             Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
             Profile  := New_List (K_Parameter_Profile);
@@ -4062,6 +4013,7 @@ package body Backend.BE_Ada.Helpers is
             Append_Node_To_List (N, Statements (Current_Package));
 
             --  To_Any
+
             Renamed_Subp := Make_Defining_Identifier (SN (S_To_Any));
             Set_Correct_Parent_Unit_Name (Renamed_Subp, Package_Id);
             Profile  := New_List (K_Parameter_Profile);
@@ -4134,10 +4086,12 @@ package body Backend.BE_Ada.Helpers is
                (Make_Defining_Identifier (PN (P_Element_To_Any)),
                 To_Any_Helper),
                Profile);
+
             --  Here, we must add manually "with" clauses to :
             --  PolyORB.Sequences.Bounded.CORBA_Helper
             --   or
             --  PolyORB.Sequences.Unbounded.CORBA_Helper
+
             if Present (Max_Size (T)) then
                Add_With_Package
                  (RU (RU_PolyORB_Sequences_Bounded_CORBA_Helper));
@@ -4211,7 +4165,9 @@ package body Backend.BE_Ada.Helpers is
             --  The deferred initialisation part
 
             Init_Block_List := New_List (K_List_Id);
+
             --  Unbounded, sequences have "0" as limit
+
             if Present (Max_Size (T)) then
                Max_Size_Literal := Make_Literal
                  (FEN.Value (Max_Size (T)));
@@ -4262,6 +4218,7 @@ package body Backend.BE_Ada.Helpers is
 
          --  Handling the particular cases such as fixed point types definition
          --  and sequence types definitions
+
          case (FEN.Kind (T)) is
 
             when  K_Fixed_Point_Type =>
@@ -4279,6 +4236,7 @@ package body Backend.BE_Ada.Helpers is
             --  If the new type is defined basing on an interface type, then
             --  we dont generate From_Any nor To_Any. We use those of the
             --  original type.
+
             if FEN.Kind (T) = K_Scoped_Name
               and then
               (FEN.Kind (Reference (T)) = K_Interface_Declaration
@@ -4350,6 +4308,7 @@ package body Backend.BE_Ada.Helpers is
 
          --  Addition of the pragma No_Return
          --  The argument of the pragma No_Return must be a local name
+
          Subp_Body_Node := Make_Subprogram_Call
            (Make_Defining_Identifier (GN (Pragma_No_Return)),
             Make_List_Id
@@ -4373,6 +4332,7 @@ package body Backend.BE_Ada.Helpers is
 
          --  Generation of the corresponding instructions in the
          --  Deferred_initialisation procedure.
+
          Deferred_Init := Deferred_Initialization_Block (E);
          Append_Node_To_List (Deferred_Init, Deferred_Initialization_Body);
 

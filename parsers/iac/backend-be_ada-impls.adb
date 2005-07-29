@@ -8,12 +8,17 @@ with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 with Backend.BE_Ada.Expand;      use Backend.BE_Ada.Expand;
+with Backend.BE_Ada.Stubs;
 
 package body Backend.BE_Ada.Impls is
 
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
    package FEU renames Frontend.Nutils;
+
+   --  This function is used in the case of local interfaces to override the
+   --  Is_A function of the abstract pparent type
+   function Is_A_Spec (E : Node_Id) return Node_Id;
 
    package body Package_Spec is
 
@@ -82,7 +87,7 @@ package body Backend.BE_Ada.Impls is
             Parameter := Make_Parameter_Specification
               (Make_Defining_Identifier (PN (P_Self)),
                Make_Access_Type_Definition
-               (Make_Defining_Identifier (TN (T_Object))));
+               (Map_Impl_Type (Scope_Entity (Identifier (A)))));
             Append_Node_To_List (Parameter, Parameters);
             R := Copy_Node (Defining_Identifier (N));
             R := Make_Subprogram_Specification
@@ -98,7 +103,7 @@ package body Backend.BE_Ada.Impls is
                Parameter := Make_Parameter_Specification
                  (Make_Defining_Identifier (PN (P_Self)),
                   Make_Access_Type_Definition
-                  (Make_Defining_Identifier (TN (T_Object))));
+                  (Map_Impl_Type (Scope_Entity (Identifier (A)))));
                Append_Node_To_List (Parameter, Parameters);
                R := Next_Node (First_Node (Parameter_Profile (N)));
                Parameter := Make_Parameter_Specification
@@ -128,6 +133,11 @@ package body Backend.BE_Ada.Impls is
          L       : List_Id;
          P       : Node_Id;
       begin
+         --  No Impl package is generated for an abstract interface
+         if FEN.Is_Abstract_Interface (E) then
+            return;
+         end if;
+
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Impl_Spec;
@@ -135,7 +145,7 @@ package body Backend.BE_Ada.Impls is
          --  Handling the case of inherited interfaces.
          L := Interface_Spec (E);
          if FEU.Is_Empty (L) then
-            P := RE (RE_Servant_Base);
+            P := Map_Impl_Type_Ancestor (E);
          else
             P := Expand_Designator
               (Impl_Node
@@ -146,7 +156,9 @@ package body Backend.BE_Ada.Impls is
                    (L))))));
          end if;
 
-         I := Make_Defining_Identifier (TN (T_Object));
+         --  The Object (or LocalObject) type
+
+         I := Map_Impl_Type (E);
          N := Make_Full_Type_Declaration
            (I, Make_Derived_Type_Definition
             (Subtype_Indication    => P,
@@ -154,6 +166,9 @@ package body Backend.BE_Ada.Impls is
          Bind_FE_To_Impl (Identifier (E), N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
+
+         --  The Object_Ptr type
+
          D := New_Node (K_Designator);
          Set_Defining_Identifier (D, Copy_Node (I));
          N := Make_Full_Type_Declaration
@@ -163,6 +178,9 @@ package body Backend.BE_Ada.Impls is
              Is_All => True));
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
+
+         --  The record type definition
+
          I := Copy_Node (I);
          Set_Str_To_Name_Buffer
            ("Insert components to hold the state"
@@ -189,6 +207,14 @@ package body Backend.BE_Ada.Impls is
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Impl                 => True);
+
+         --  The Is_A spec in the case of local interfaces
+
+         if Is_Local_Interface (E) then
+            N := Is_A_Spec (E);
+            Append_Node_To_List
+              (N, Visible_Part (Current_Package));
+         end if;
 
          Pop_Entity;
       end Visit_Interface_Declaration;
@@ -235,7 +261,7 @@ package body Backend.BE_Ada.Impls is
          Impl_Param := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Self)),
             Make_Access_Type_Definition
-            (Make_Defining_Identifier (TN (T_Object))));
+            (Map_Impl_Type (Scope_Entity (Identifier (E)))));
          Append_Node_To_List (Impl_Param, Profile);
 
          Stub_Param := Next_Node (First_Node (Parameter_Profile (Stub)));
@@ -384,16 +410,24 @@ package body Backend.BE_Ada.Impls is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N       : Node_Id;
       begin
+         --  No Impl package is generated for an abstract interface
+         if FEN.Is_Abstract_Interface (E) then
+            return;
+         end if;
+
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Impl_Body;
 
-         --  First of all we add a with clause for the Skel package to fore
-         --  the skeleton elaboration
-         Add_With_Package
-           (Expand_Designator
-            (Skeleton_Package
-             (Current_Entity)));
+         --  First of all we add a with clause for the Skel package to force
+         --  the skeleton elaboration (only in the case wether this package
+         --  exists of course)
+         if not FEN.Is_Local_Interface (E) then
+            Add_With_Package
+              (Expand_Designator
+               (Skeleton_Package
+                (Current_Entity)));
+         end if;
 
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
@@ -407,6 +441,13 @@ package body Backend.BE_Ada.Impls is
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Impl                 => True);
+
+         --  For local interfaces, th body of the Is_A function
+
+         if Is_Local_Interface (E) then
+            N := Stubs.Local_Is_A_Body (E, Is_A_Spec (E));
+            Append_Node_To_List (N, Statements (Current_Package));
+         end if;
 
          Pop_Entity;
       end Visit_Interface_Declaration;
@@ -496,4 +537,32 @@ package body Backend.BE_Ada.Impls is
          Pop_Entity;
       end Visit_Specification;
    end Package_Body;
+
+   ---------------
+   -- Is_A_Spec --
+   ---------------
+
+   function Is_A_Spec (E : Node_Id) return Node_Id is
+      N       : Node_Id;
+      Profile : List_Id;
+      Param   : Node_Id;
+   begin
+      Profile := New_List (K_Parameter_Profile);
+
+      Param := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_Self)),
+         Make_Access_Type_Definition (Map_Impl_Type (E)));
+      Append_Node_To_List (Param, Profile);
+
+      Param := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
+         RE (RE_String_2));
+      Append_Node_To_List (Param, Profile);
+
+      N := Make_Subprogram_Specification
+        (Make_Defining_Identifier (SN (S_Is_A)),
+         Profile,
+         RE (RE_Boolean_1));
+      return N;
+   end Is_A_Spec;
 end Backend.BE_Ada.Impls;

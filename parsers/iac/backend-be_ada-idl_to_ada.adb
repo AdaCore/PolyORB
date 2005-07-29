@@ -17,7 +17,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
    package BEN renames Backend.BE_Ada.Nodes;
    package FEU renames Frontend.Nutils;
 
-
    function Base_Type_TC
      (K : FEN.Node_Kind)
      return Node_Id
@@ -410,13 +409,15 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Param_Type : Node_Id;
       Attr_Name  : Name_Id;
       Result     : Node_Id;
+      Container  : constant Node_Id := Scope_Entity (Identifier (Attribute));
    begin
       Parameters := New_List (K_Parameter_Profile);
 
       --  Add the dispatching parameter to the parameter profile
 
       Parameter  := Make_Parameter_Specification
-        (Make_Defining_Identifier (PN (P_Self)), RE (RE_Ref_0));
+        (Make_Defining_Identifier (PN (P_Self)),
+         Map_Ref_Type (Container));
       Append_Node_To_List (Parameter, Parameters);
 
       Param_Type := Map_Designator
@@ -751,14 +752,17 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
             --  Skeleton package
 
-            Set_Str_To_Name_Buffer ("Skel");
-            N := Make_Defining_Identifier (Name_Find);
-            Set_Correct_Parent_Unit_Name (N, I);
-            D := Make_Package_Declaration (N);
-            Set_IDL_Unit (D, P);
-            Set_Parent (D, M);
-            Set_Skeleton_Package (P, D);
-            Append_Node_To_List (D, L);
+            --  No Skel package is generated for local interface
+            if not FEN.Is_Local_Interface (Entity) then
+               Set_Str_To_Name_Buffer ("Skel");
+               N := Make_Defining_Identifier (Name_Find);
+               Set_Correct_Parent_Unit_Name (N, I);
+               D := Make_Package_Declaration (N);
+               Set_IDL_Unit (D, P);
+               Set_Parent (D, M);
+               Set_Skeleton_Package (P, D);
+               Append_Node_To_List (D, L);
+            end if;
 
             --  Implementation package
 
@@ -778,6 +782,53 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       return P;
    end Map_IDL_Unit;
+
+   -------------------
+   -- Map_Impl_Type --
+   -------------------
+
+   function Map_Impl_Type
+     (Entity : Node_Id)
+     return Node_Id
+   is
+      pragma Assert
+        (FEN.Kind (Entity) = K_Interface_Declaration
+         or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+      Ref_Type : Node_Id;
+   begin
+      if Is_Local_Interface (Entity) then
+         --  Here, we use a runtime entity instead of a T_XXX because the
+         --  casing rules in the type name are not standard and have to be
+         --  registered
+         Ref_Type := Defining_Identifier (RE (RE_LocalObject));
+      else
+         Ref_Type := Make_Defining_Identifier (TN (T_Object));
+      end if;
+
+      return Ref_Type;
+   end Map_Impl_Type;
+
+   ----------------------------
+   -- Map_Impl_Type_Ancestor --
+   ----------------------------
+
+   function Map_Impl_Type_Ancestor
+     (Entity : Node_Id)
+     return Node_Id
+   is
+      pragma Assert
+        (FEN.Kind (Entity) = K_Interface_Declaration
+         or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+      Ancestor : Node_Id;
+   begin
+      if Is_Local_Interface (Entity) then
+         Ancestor := RE (RE_Object_2);
+      else
+         Ancestor := RE (RE_Servant_Base);
+      end if;
+
+      return Ancestor;
+   end Map_Impl_Type_Ancestor;
 
    ----------------------------
    -- Map_Members_Definition --
@@ -809,6 +860,42 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end loop;
       return Components;
    end Map_Members_Definition;
+
+   ------------------------------
+   -- Map_Narrowing_Designator --
+   ------------------------------
+
+   function Map_Narrowing_Designator
+     (E         : Node_Id;
+      Unchecked : Boolean)
+     return Node_Id
+   is
+   begin
+      case Unchecked is
+         when True =>
+            if Is_Abstract_Interface (E) then
+               return Make_Defining_Identifier
+                 (SN (S_Unchecked_To_Abstract_Ref));
+            elsif Is_Local_Interface (E) then
+               return Make_Defining_Identifier
+                 (SN (S_Unchecked_To_Local_Ref));
+            else
+               return Make_Defining_Identifier
+                 (SN (S_Unchecked_To_Ref));
+            end if;
+         when False =>
+            if Is_Abstract_Interface (E) then
+               return Make_Defining_Identifier
+                 (SN (S_To_Abstract_Ref));
+            elsif Is_Local_Interface (E) then
+               return Make_Defining_Identifier
+                 (SN (S_To_Local_Ref));
+            else
+               return Make_Defining_Identifier
+                 (SN (S_To_Ref));
+            end if;
+      end case;
+   end Map_Narrowing_Designator;
 
    ---------------------------
    -- Map_Range_Constraints --
@@ -845,6 +932,62 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end loop;
       return L;
    end Map_Range_Constraints;
+
+   ------------------
+   -- Map_Ref_Type --
+   ------------------
+
+   function Map_Ref_Type
+     (Entity : Node_Id)
+     return Node_Id
+   is
+      pragma Assert
+        (FEN.Kind (Entity) = K_Interface_Declaration
+         or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+      Ref_Type : Node_Id;
+   begin
+      if Is_Abstract_Interface (Entity) then
+         Ref_Type := Make_Defining_Identifier (TN (T_Abstract_Ref));
+      elsif Is_Local_Interface (Entity) then
+         Ref_Type := Make_Defining_Identifier (TN (T_Local_Ref));
+      else
+         Ref_Type := Make_Defining_Identifier (TN (T_Ref));
+      end if;
+
+      return Ref_Type;
+   end Map_Ref_Type;
+
+   ---------------------------
+   -- Map_Ref_Type_Ancestor --
+   ---------------------------
+
+   function Map_Ref_Type_Ancestor
+     (Entity : Node_Id)
+     return Node_Id
+   is
+      pragma Assert
+        (FEN.Kind (Entity) = K_Interface_Declaration
+         or else FEN.Kind (Entity) = K_Forward_Interface_Declaration);
+      Ancestor : Node_Id;
+   begin
+      if Is_Abstract_Interface (Entity) then
+
+         --  The abstract interfaces should inherit from CORBA.AbstractBase.Ref
+         --  to allow passing interfaces and valuTypes.
+         --  Since the code generation for valuType is not performed by IAC
+         --  It is useless (for now) to make the abstract interfaces inherit
+         --  from CORBA.AbstractBase.Ref and it causes problems when compiling
+         --  current generated code.
+         --  Ancestor := RE (RE_Ref_1);
+
+         --  XXX : To be replaced when the ValuTypes are implemented
+         Ancestor := RE (RE_Ref_2);
+      else
+         Ancestor := RE (RE_Ref_2);
+      end if;
+
+      return Ancestor;
+   end Map_Ref_Type_Ancestor;
 
    --------------------------------
    -- Map_Repository_Declaration --

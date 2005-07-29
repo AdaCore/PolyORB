@@ -54,6 +54,13 @@ package body Backend.BE_Ada.Skels is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
+         --  No Skel package is generated for an abstract or a local interface
+         if FEN.Is_Abstract_Interface (E) or else
+           FEN.Is_Local_Interface (E)
+         then
+            return;
+         end if;
+
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Skeleton_Spec;
@@ -504,6 +511,8 @@ package body Backend.BE_Ada.Skels is
             N := Corresponding_Entity (FE_Node (S));
             C := Impl_Node (BE_Node (FE_Node (S)));
 
+            --  The case of an Set_XXX of an attribute
+
             if Kind (N) /= K_Operation_Declaration then
                Get_Name_String (BEN.Name (Defining_Identifier (S)));
                K := K_Attribute_Declaration;
@@ -516,6 +525,7 @@ package body Backend.BE_Ada.Skels is
             --  Re-adjusting the parent unit name of the operation. This is
             --  necessary in the case of operations or attributes inherited
             --  from the second until the last parent (multiple inheritence)
+
             Impl_Id := New_Node (K_Designator);
             Set_Defining_Identifier
               (Impl_Id,
@@ -532,24 +542,29 @@ package body Backend.BE_Ada.Skels is
                Inv_Profile);
 
             if Present (Return_Type (S)) then
+
                --  If the return type is a class-wide type, then the node kind
                --  is K_Attribute_Designator, we take only the prefix
+
                if BEN.Kind (Return_Type (S)) = K_Attribute_Designator then
                   Type_Node := Prefix (Return_Type (S));
+
                   --  We cast the result value
+
                   C := Make_Subprogram_Call
                     (Copy_Designator (Type_Node),
                      Make_List_Id (C));
                else
                   Type_Node := Return_Type (S);
                end if;
+
                N := Make_Object_Declaration
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Result)),
                   Object_Definition =>
                     Type_Node);
-
                Append_Node_To_List (N, Declarative_Part);
+
                C := Make_Assignment_Statement
                  (Make_Defining_Identifier (VN (V_Result)),
                   C);
@@ -1579,6 +1594,13 @@ package body Backend.BE_Ada.Skels is
          Implicit_CORBA : List_Id;
 
       begin
+         --  No Skel package is generated for an abstract or a local interface
+         if FEN.Is_Abstract_Interface (E) or else
+           FEN.Is_Local_Interface (E)
+         then
+            return;
+         end if;
+
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
 

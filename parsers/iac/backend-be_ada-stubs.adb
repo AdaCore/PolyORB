@@ -24,9 +24,11 @@ package body Backend.BE_Ada.Stubs is
      (Subp_Spec : Node_Id) return List_Id;
    function Marshaller_Declarations
      (Subp_Spec : Node_Id) return List_Id;
-   function Local_Is_A_Body (E : Node_Id) return Node_Id;
+
+   function Visible_Is_A_Spec (E : Node_Id) return Node_Id;
+   function Visible_Is_A_Body (E : Node_Id) return Node_Id;
+
    function Local_Is_A_Spec return Node_Id;
-   function Visible_Is_A_Body return Node_Id;
 
    package body Package_Spec is
 
@@ -115,6 +117,7 @@ package body Backend.BE_Ada.Stubs is
             --  Insert repository declaration
             --  We don't add the Repository_Id declaration in the case of an
             --  attribute inherited from the second until the last parent.
+
             if Scope_Entity (Identifier (A)) =
               Corresponding_Entity
               (FE_Node (Current_Entity))
@@ -123,6 +126,7 @@ package body Backend.BE_Ada.Stubs is
                  (Map_Repository_Declaration (A),
                   Visible_Part (Current_Package));
             end if;
+
             --  Insert getter specification
 
             N := Map_Accessor_Declaration
@@ -298,13 +302,14 @@ package body Backend.BE_Ada.Stubs is
          --  This workaround is used to permit the use of the Ref type declared
          --  in the instanciated package.
 
-         Identifier := Make_Defining_Identifier (TN (T_Ref));
+         Identifier := Map_Ref_Type (E);
          Set_Correct_Parent_Unit_Name
            (Identifier, Defining_Identifier (N));
          Ref_Type_Node := Make_Full_Type_Declaration
            (Identifier,
             Make_Derived_Type_Definition
-            (Subtype_Indication    => RE (RE_Ref_2),
+            (Subtype_Indication    =>
+               Map_Ref_Type_Ancestor (E),
              Record_Extension_Part =>
                Make_Record_Type_Definition
              (Record_Definition => Make_Record_Definition (No_List))));
@@ -318,10 +323,11 @@ package body Backend.BE_Ada.Stubs is
       ---------------------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
-         P       : Node_Id;
-         N       : Node_Id;
-         L       : List_Id;
-         I       : Node_Id;
+         P        : Node_Id;
+         N        : Node_Id;
+         L        : List_Id;
+         I        : Node_Id;
+         Is_Local : constant Boolean := Is_Local_Interface (E);
       begin
          P := Map_IDL_Unit (E);
          Append_Node_To_List (P, Packages (Current_Entity));
@@ -347,8 +353,13 @@ package body Backend.BE_Ada.Stubs is
          --   IDL compiler must generate additional primitive subprograms that
          --   correspond to the operations inherited from the second and
          --   subsequent parent interfaces listed in the IDL."
+
          if FEU.Is_Empty (L) then
-            N := RE (RE_Ref_2);
+
+            --  The reference type ancestor depends on the nature of the
+            --  interface (unconstrained, local or abstract)
+
+            N := Map_Ref_Type_Ancestor (E);
          else
             N := Expand_Designator
               (Type_Def_Node
@@ -358,7 +369,12 @@ package body Backend.BE_Ada.Stubs is
                   (First_Entity
                    (L))))));
          end if;
-         I := Make_Defining_Identifier (TN (T_Ref));
+
+         --  The designator of the reference type is also dependant of the
+         --  nature of the interface
+
+         I := Map_Ref_Type (E);
+
          N := Make_Full_Type_Declaration
            (I, Make_Derived_Type_Definition
             (Subtype_Indication    => N,
@@ -391,8 +407,11 @@ package body Backend.BE_Ada.Stubs is
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Stub                 => True);
 
-         N := Visible_Is_A_Spec;
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         --  Local interfaces don't have Is_A function
+         if not Is_Local then
+            N := Visible_Is_A_Spec (E);
+            Append_Node_To_List (N, Visible_Part (Current_Package));
+         end if;
 
          --  If we handle a forwarded interfce we must instanciate the
          --  "Interface_Name"_Forward.Convert package
@@ -416,20 +435,23 @@ package body Backend.BE_Ada.Stubs is
 
                --  To guarantee that the "with" clause of the generic package
                --  would be added, we use the Copy_Designator function.
+
                N := Make_Package_Instantiation
                  (Defining_Identifier => Defining_Identifier
                   (Pack_Inst),
                   Generic_Package     => Copy_Designator
                   (Gen_Pack),
                   Parameter_List      => Make_List_Id
-                  (Make_Defining_Identifier
-                   (TN (T_Ref))));
+                  (Map_Ref_Type (E)));
                Append_Node_To_List (N, Visible_Part (Current_Package));
             end;
          end if;
 
-         N := Local_Is_A_Spec;
-         Append_Node_To_List (N, Private_Part (Current_Package));
+         if not Is_Local then
+            N := Local_Is_A_Spec;
+            Append_Node_To_List (N, Private_Part (Current_Package));
+         end if;
+
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -465,13 +487,15 @@ package body Backend.BE_Ada.Stubs is
          Binding : Boolean := True)
       is
 
-         Subp_Spec : Node_Id;
-         Profile   : List_Id;
-         IDL_Param : Node_Id;
-         Ada_Param : Node_Id;
-         Mode      : Mode_Id := Mode_In;
-         Returns   : Node_Id := No_Node;
+         Subp_Spec       : Node_Id;
+         Profile         : List_Id;
+         IDL_Param       : Node_Id;
+         Ada_Param       : Node_Id;
+         Mode            : Mode_Id := Mode_In;
+         Returns         : Node_Id := No_Node;
          Type_Designator : Node_Id;
+         Container       : constant Node_Id := Scope_Entity (Identifier (E));
+
 
          function Map_Correct_Designator (Entity : Node_Id) return Node_Id;
 
@@ -516,7 +540,7 @@ package body Backend.BE_Ada.Stubs is
 
          Ada_Param := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Self)),
-            RE (RE_Ref_0));
+            Map_Ref_Type (Container));
          Append_Node_To_List (Ada_Param, Profile);
 
          --  Create an Ada subprogram parameter for each IDL subprogram
@@ -1051,6 +1075,7 @@ package body Backend.BE_Ada.Stubs is
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N       : Node_Id;
+         Is_Local : constant Boolean := Is_Local_Interface (E);
       begin
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
@@ -1069,10 +1094,13 @@ package body Backend.BE_Ada.Stubs is
             Visit_Attribute_Subp => Visit_Attribute_Declaration'Access,
             Stub                 => True);
 
-         N := Visible_Is_A_Body;
-         Append_Node_To_List (N, Statements (Current_Package));
-         N := Local_Is_A_Body (E);
-         Append_Node_To_List (N, Statements (Current_Package));
+         if not Is_Local then
+            N := Visible_Is_A_Body (E);
+            Append_Node_To_List (N, Statements (Current_Package));
+            N := Local_Is_A_Body (E);
+            Append_Node_To_List (N, Statements (Current_Package));
+         end if;
+
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -1124,7 +1152,7 @@ package body Backend.BE_Ada.Stubs is
 
    function Marshaller_Body
      (Subp_Spec       : Node_Id)
-      return            List_Id
+     return            List_Id
    is
       Marshaller_Statements     : List_Id;
       N                         : Node_Id;
@@ -1139,12 +1167,23 @@ package body Backend.BE_Ada.Stubs is
       Operation_Name            : constant Name_Id
         := BEN.Name (Defining_Identifier (Subp_Spec));
       Declaration               : Node_Id;
+      Container                 : constant Node_Id
+        := Scope_Entity (FE_Node (Subp_Spec));
+      Local_Interface           : constant Boolean :=
+        (FEN.Kind (Container) = K_Interface_Declaration and then
+         Is_Local_Interface (Container));
 
    begin
       Return_T := Return_Type (Subp_Spec);
       Marshaller_Statements := New_List (BEN.K_List_Id);
 
       --  Test if the Self_Ref_U is nil, if it's nil raise exception.
+
+      --  In the case of an abstract interface, we should test wether the
+      --  Object passed is a concrete interface type in which case we pass it
+      --  as a reference, or wether it is a value type in wich case we pass
+      --  it as a value. However, since valuetypes are not supported yet, we
+      --  do only the first test.
 
       C := New_Node (BEN.K_Subprogram_Call);
       Set_Defining_Identifier
@@ -1167,386 +1206,452 @@ package body Backend.BE_Ada.Stubs is
          Then_Statements => S);
       Append_Node_To_List (N, Marshaller_Statements);
 
-      --  Create argument list
-
-      Set_Str_To_Name_Buffer
-        ("Create the Argument list");
-      Append_Node_To_List
-        (Make_Ada_Comment (Name_Find),
-         Marshaller_Statements);
-
-      C := New_Node (K_Subprogram_Call);
-      Set_Defining_Identifier
-        (C, RE (RE_Create));
-      P := New_List (BEN.K_List_Id);
-      Append_Node_To_List
-        (Make_Defining_Identifier (VN (V_Argument_List)), P);
-      Set_Actual_Parameter_Part (C, P);
-      Append_Node_To_List (C, Marshaller_Statements);
-      Count := Length (Parameter_Profile (Subp_Spec));
-
-      --  Add arguments  to argument  list
-
-      if Count > 1 then
-         P :=  BEN.Parameter_Profile (Subp_Spec);
-         I := First_Node (P);
-         I := Next_Node (I);
-         loop
-            P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
-            Get_Name_String (Operation_Name);
-            Add_Str_To_Name_Buffer ("_Arg_Name_U_");
-            Get_Name_String_And_Append (BEN.Name (Defining_Identifier (I)));
-            N := Make_Designator (Name_Find);
-            Append_Node_To_List (N, P);
-            Set_Str_To_Name_Buffer ("Argument_U_");
-            Get_Name_String_And_Append (BEN.Name (Defining_Identifier (I)));
-            N := Make_Designator (Name_Find);
+      if Local_Interface then
+         declare
+            Implem_Node  : Node_Id;
+            Impl_Profile : constant List_Id := New_List (K_List_Id);
+         begin
             N := Make_Subprogram_Call
-              (RE (RE_To_PolyORB_Any),
-               Make_List_Id (N));
-            Append_Node_To_List (N, P);
+              (Make_Defining_Identifier (SN (S_Entity_Of)),
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Self))));
 
-            if BEN.Parameter_Mode (I) = Mode_Out then
-               N := RE (RE_ARG_OUT_1);
-            elsif BEN.Parameter_Mode (I) = Mode_In then
-               N := RE (RE_ARG_IN_1);
-            else
-               N := RE (RE_ARG_INOUT_1);
+            --  Get the Object_Ptr type full name
+            Implem_Node := Expand_Designator
+              (Next_Node
+               (Impl_Node
+                (BE_Node
+                 (Identifier
+                  (Container)))));
+
+            N := Make_Subprogram_Call
+              (Implem_Node,
+               Make_List_Id (N));
+
+            Append_Node_To_List (N, Impl_Profile);
+
+            --  Adding the rest of the parameters
+            Count := Length (Parameter_Profile (Subp_Spec));
+            if Count > 1 then
+               P :=  BEN.Parameter_Profile (Subp_Spec);
+               I := First_Node (P);
+               I := Next_Node (I);
+               loop
+                  Append_Node_To_List
+                    (Copy_Node (Defining_Identifier (I)),
+                     Impl_Profile);
+                  I := Next_Node (I);
+                  exit when No (I);
+               end loop;
             end if;
 
-            Append_Node_To_List (N, P);
+            N := Corresponding_Entity (FE_Node (Subp_Spec));
+            Implem_Node := Impl_Node (BE_Node (FE_Node (Subp_Spec)));
+
+            --  The case of an Set_XXX of an attribute
+
+            if Kind (N) /= K_Operation_Declaration then
+               Get_Name_String (BEN.Name (Defining_Identifier (Subp_Spec)));
+               if Name_Buffer (1) = 'S' then
+                  Implem_Node := Next_Node (Implem_Node);
+               end if;
+            end if;
+            Implem_Node := Expand_Designator (Implem_Node);
+
             N := Make_Subprogram_Call
-              (RE (RE_Add_Item_1),
-               P);
+              (Implem_Node,
+               Impl_Profile);
+
+            if Present (Return_Type (Subp_Spec)) then
+               N := Make_Return_Statement (N);
+            end if;
+
             Append_Node_To_List (N, Marshaller_Statements);
+         end;
+      else
+
+         --  Create argument list
+
+         Set_Str_To_Name_Buffer
+           ("Create the Argument list");
+         Append_Node_To_List
+           (Make_Ada_Comment (Name_Find),
+            Marshaller_Statements);
+
+         C := New_Node (K_Subprogram_Call);
+         Set_Defining_Identifier
+           (C, RE (RE_Create));
+         P := New_List (BEN.K_List_Id);
+         Append_Node_To_List
+           (Make_Defining_Identifier (VN (V_Argument_List)), P);
+         Set_Actual_Parameter_Part (C, P);
+         Append_Node_To_List (C, Marshaller_Statements);
+         Count := Length (Parameter_Profile (Subp_Spec));
+
+         --  Add arguments  to argument  list
+
+         if Count > 1 then
+            P :=  BEN.Parameter_Profile (Subp_Spec);
+            I := First_Node (P);
             I := Next_Node (I);
-            exit when No (I);
-         end loop;
-      end if;
+            loop
+               P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
+               Get_Name_String (Operation_Name);
+               Add_Str_To_Name_Buffer ("_Arg_Name_U_");
+               Get_Name_String_And_Append (BEN.Name (Defining_Identifier (I)));
+               N := Make_Designator (Name_Find);
+               Append_Node_To_List (N, P);
+               Set_Str_To_Name_Buffer ("Argument_U_");
+               Get_Name_String_And_Append (BEN.Name (Defining_Identifier (I)));
+               N := Make_Designator (Name_Find);
+               N := Make_Subprogram_Call
+                 (RE (RE_To_PolyORB_Any),
+                  Make_List_Id (N));
+               Append_Node_To_List (N, P);
 
-      --  Create exception List
-      --  We must verify that we handle an operation
+               if BEN.Parameter_Mode (I) = Mode_Out then
+                  N := RE (RE_ARG_OUT_1);
+               elsif BEN.Parameter_Mode (I) = Mode_In then
+                  N := RE (RE_ARG_IN_1);
+               else
+                  N := RE (RE_ARG_INOUT_1);
+               end if;
 
-      Declaration := FEN.Corresponding_Entity
-        (BEN.FE_Node
-         (Subp_Spec));
+               Append_Node_To_List (N, P);
+               N := Make_Subprogram_Call
+                 (RE (RE_Add_Item_1),
+                  P);
+               Append_Node_To_List (N, Marshaller_Statements);
+               I := Next_Node (I);
+               exit when No (I);
+            end loop;
+         end if;
 
-      if FEN.Kind (Declaration) = K_Operation_Declaration and then
-        not FEU.Is_Empty (Exceptions (Declaration)) then
-         declare
-            Excep_FE : Node_Id;
-            Excep_TC : Node_Id;
-         begin
+         --  Create exception List
+         --  We must verify that we handle an operation
+
+         Declaration := FEN.Corresponding_Entity
+           (BEN.FE_Node
+            (Subp_Spec));
+
+         if FEN.Kind (Declaration) = K_Operation_Declaration and then
+           not FEU.Is_Empty (Exceptions (Declaration)) then
+            declare
+               Excep_FE : Node_Id;
+               Excep_TC : Node_Id;
+            begin
+               Set_Str_To_Name_Buffer
+                 ("Create the Exception list");
+               Append_Node_To_List
+                 (Make_Ada_Comment (Name_Find),
+                  Marshaller_Statements);
+               N := Make_Subprogram_Call
+                 (RE (RE_Create_List_1),
+                  Make_List_Id
+                  (Make_Designator (VN (V_Exception_List))));
+               Append_Node_To_List (N, Marshaller_Statements);
+               Excep_FE := First_Entity (Exceptions (Declaration));
+               while Present (Excep_FE) loop
+                  --  Getting the TC_"Exception_Name" identifier. It is
+                  --  declarated at the first place in the Helper spec.
+                  Excep_TC := TC_Node
+                    (BE_Node (Identifier (Reference (Excep_FE))));
+                  Excep_TC := Expand_Designator (Excep_TC);
+                  N := Make_Subprogram_Call
+                    (RE (RE_Add_1),
+                     Make_List_Id
+                     (Make_Designator
+                      (VN (V_Exception_List)),
+                      Excep_TC));
+                  Append_Node_To_List (N, Marshaller_Statements);
+
+                  Excep_FE := Next_Entity (Excep_FE);
+               end loop;
+            end;
+
+         end if;
+
+         --  Set result type (maybe void)
+
+         Get_Name_String (Operation_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Get_Name_String_And_Append (VN (V_Result_Name));
+         R := Name_Find;
+         C := Make_Subprogram_Call
+           (Defining_Identifier   => RE (RE_Identifier),
+            Actual_Parameter_Part =>
+              Make_List_Id (Make_Defining_Identifier (R)));
+
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
+            Expression    => C);
+         P := Make_List_Id (N);
+
+         if No (Return_T) then
+            Param := RE (RE_TC_Void);
+         else
+            Param := Get_TC_Node (FE_Node (Return_T));
+         end if;
+
+         C := Make_Subprogram_Call
+           (Defining_Identifier  => RE (RE_Get_Empty_Any),
+            Actual_Parameter_Part => Make_List_Id (Param));
+         C := Make_Subprogram_Call
+           (RE (RE_To_PolyORB_Any), Make_List_Id (C));
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
+            Expression    => C);
+         Append_Node_To_List (N, P);
+
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Arg_Modes)),
+            Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
+         Append_Node_To_List (N, P);
+
+         N := Make_Record_Aggregate (P);
+         N := Make_Return_Statement (N);
+         Get_Name_String (Operation_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Get_Name_String_And_Append (VN (V_Result));
+         R := Name_Find;
+
+         I := Make_Subprogram_Call
+           (Make_Defining_Identifier (GN (Pragma_Inline)),
+            Make_List_Id (Make_Designator (R)));
+         C := Make_Subprogram_Specification
+           (Make_Defining_Identifier (R),
+            No_List,
+            RE (RE_NamedValue));
+         N := Make_Subprogram_Implementation
+           (C,
+            Make_List_Id (Make_Pragma_Statement (I)),
+            Make_List_Id (N));
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Creating the request
+
+         Set_Str_To_Name_Buffer
+           ("Creating the request");
+         Append_Node_To_List
+           (Make_Ada_Comment (Name_Find),
+            Marshaller_Statements);
+
+         N := Make_Subprogram_Call
+           (RE (RE_Ref_2),
+            Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
+         N := Make_Subprogram_Call
+           (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Target)),
+            Expression    => N);
+         P := Make_List_Id (N);
+
+         Get_Name_String (Operation_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Get_Name_String_And_Append (VN (V_Operation_Name));
+         R := Name_Find;
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Operation)),
+            Expression    => Make_Defining_Identifier (R));
+         Append_Node_To_List (N, P);
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Arg_List)),
+            Expression    => Make_Defining_Identifier (VN (V_Argument_List)));
+         Append_Node_To_List (N, P);
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Result)),
+            Expression    => Make_Defining_Identifier (VN (V_Result)));
+         Append_Node_To_List (N, P);
+
+         --  If the operation thows an exception, we add an additional flag to
+         --  the Create_Request function.
+
+         if FEN.Kind (Declaration) = K_Operation_Declaration and then
+           not FEU.Is_Empty (Exceptions (Declaration)) then
+            N := Make_Subprogram_Call
+              (RE (RE_To_PolyORB_Ref_1),
+               Make_List_Id
+               (Make_Designator
+                (VN (V_Exception_List))));
+
+            N := Make_Component_Association
+              (Selector_Name => Make_Defining_Identifier (PN (P_Exc_List)),
+               Expression    => N);
+            Append_Node_To_List (N, P);
+         end if;
+
+         N := Make_Component_Association
+           (Selector_Name => Make_Defining_Identifier (PN (P_Req)),
+            Expression    => Make_Defining_Identifier (VN (V_Request)));
+         Append_Node_To_List (N, P);
+
+         --  Handling the case of Oneway Operations.
+         --  Extract from The CORBA mapping specification : "IDL oneway
+         --  operations are mapped the same as other operation; that is, there
+         --  is no indication wether an operation is oneway or not in the
+         --  mapped Ada specification".
+         --
+         --  The extract above means that the call to a onway operation is
+         --  performed in the same way as a call to a classic synchronous
+         --  operation. However, the ORB need to know oneway operations.
+         --  The stub precise that by adding an additional parameter to the
+         --  procedure "PolyORB.Requests.Create_Request". This additional
+         --  parameter indicate the calling way of the operation (see the file
+         --  polyorb-requests.ads for more information about differents ways of
+         --  calls)
+         --
+         --  First of all, verify that we are handling an operation
+         --  decalaration (and not an attribute declaration)
+
+         Declaration := FEN.Corresponding_Entity
+           (BEN.FE_Node
+            (Subp_Spec));
+
+         if FEN.Kind (Declaration) = K_Operation_Declaration and then
+           FEN.Is_Oneway (Declaration) then
+            N := Make_Component_Association
+              (Selector_Name => Make_Defining_Identifier (PN (P_Req_Flags)),
+               Expression    => RE (RE_Sync_With_Transport));
+            Append_Node_To_List (N, P);
+         end if;
+
+         N := Make_Subprogram_Call
+           (RE (RE_Create_Request),
+            P);
+         Append_Node_To_List (N, Marshaller_Statements);
+
+         --  Invoking the request (synchronously or asynchronously), it
+         --  depends on the type of the operation (oneway or not).
+
+         Set_Str_To_Name_Buffer
+           ("Invoking the request (synchronously or asynchronously)");
+         Append_Node_To_List
+           (Make_Ada_Comment (Name_Find),
+            Marshaller_Statements);
+
+         N := Make_Subprogram_Call
+           (RE (RE_Flags),
+            Make_List_Id (Make_Literal (Int0_Val)));
+         N := Make_Subprogram_Call
+           (RE (RE_Client_Invoke),
+            Make_List_Id
+            (Make_Defining_Identifier (VN (V_Request)),
+             N));
+         Append_Node_To_List (N, Marshaller_Statements);
+
+         --  Raise eventual exceptions
+
+         Set_Str_To_Name_Buffer
+           ("Raise eventual exceptions");
+         Append_Node_To_List
+           (Make_Ada_Comment (Name_Find),
+            Marshaller_Statements);
+
+         P := New_List (K_List_Id);
+         C := Make_Designator
+           (Designator => PN (P_Argument),
+            Parent     => VN (V_Result));
+         N := Make_Assignment_Statement
+           (C,
+            Make_Designator
+            (Designator => PN (P_Exception_Info),
+             Parent     => VN (V_Request)));
+         Append_Node_To_List (N, P);
+         N := Make_Subprogram_Call
+           (RE (RE_Destroy_Request),
+            Make_List_Id
+            (Make_Designator (VN (V_Request))));
+         Append_Node_To_List (N, P);
+         N := Make_Subprogram_Call
+           (RE (RE_Raise_From_Any),
+            Make_List_Id (Copy_Node (C)));
+         Append_Node_To_List (N, P);
+         N := Make_Subprogram_Call
+           (RE (RE_Is_Empty),
+            Make_List_Id (Make_Designator
+                          (Designator => PN (P_Exception_Info),
+                           Parent     => VN (V_Request))));
+         N := Make_Expression (N, Op_Not);
+         N := Make_If_Statement
+           (N, P, No_List);
+         Append_Node_To_List (N, Marshaller_Statements);
+         N := Make_Subprogram_Call
+           (RE (RE_Destroy_Request),
+            Make_List_Id (Make_Designator (VN (V_Request))));
+         Append_Node_To_List (N, Marshaller_Statements);
+
+         --  Retrieve return value
+
+         if Present (Return_T) then
             Set_Str_To_Name_Buffer
-              ("Create the Exception list");
+              ("Retrieve the return value");
             Append_Node_To_List
               (Make_Ada_Comment (Name_Find),
                Marshaller_Statements);
-            N := Make_Subprogram_Call
-              (RE (RE_Create_List_1),
-               Make_List_Id
-               (Make_Designator (VN (V_Exception_List))));
+
+            N := Get_From_Any_Node (FE_Node (Return_T));
+
+            C := Make_Subprogram_Call
+              (RE (RE_To_CORBA_Any),
+               Make_List_Id (Copy_Node (C)));
+            N := Make_Return_Statement
+              (Make_Subprogram_Call (N, Make_List_Id (C)));
             Append_Node_To_List (N, Marshaller_Statements);
-            Excep_FE := First_Entity (Exceptions (Declaration));
-            while Present (Excep_FE) loop
-               --  Getting the TC_"Exception_Name" identifier. It is declarated
-               --  at the first place in the Helper spec.
-               Excep_TC := TC_Node
-                 (BE_Node (Identifier (Reference (Excep_FE))));
-               Excep_TC := Expand_Designator (Excep_TC);
-               N := Make_Subprogram_Call
-                 (RE (RE_Add_1),
-                  Make_List_Id
-                  (Make_Designator
-                   (VN (V_Exception_List)),
-                   Excep_TC));
-               Append_Node_To_List (N, Marshaller_Statements);
+         end if;
 
-               Excep_FE := Next_Entity (Excep_FE);
-            end loop;
-         end;
+         --  Retrieve out arguments values
 
-      end if;
-
-      --  Set result type (maybe void)
-
-      Get_Name_String (Operation_Name);
-      Add_Char_To_Name_Buffer ('_');
-      Get_Name_String_And_Append (VN (V_Result_Name));
-      R := Name_Find;
-      C := Make_Subprogram_Call
-        (Defining_Identifier   => RE (RE_Identifier),
-         Actual_Parameter_Part =>
-           Make_List_Id (Make_Defining_Identifier (R)));
-
-      N := Make_Component_Association
-        (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
-         Expression    => C);
-      P := Make_List_Id (N);
-
-      if No (Return_T) then
-         Param := RE (RE_TC_Void);
-      else
-         Param := Get_TC_Node (FE_Node (Return_T));
-      end if;
-
-      C := Make_Subprogram_Call
-        (Defining_Identifier  => RE (RE_Get_Empty_Any),
-         Actual_Parameter_Part => Make_List_Id (Param));
-      C := Make_Subprogram_Call
-        (RE (RE_To_PolyORB_Any), Make_List_Id (C));
-      N := Make_Component_Association
-        (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
-         Expression    => C);
-      Append_Node_To_List (N, P);
-
-      N := Make_Component_Association
-        (Selector_Name => Make_Defining_Identifier (PN (P_Arg_Modes)),
-         Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
-      Append_Node_To_List (N, P);
-
-      N := Make_Record_Aggregate (P);
-      N := Make_Return_Statement (N);
-      Get_Name_String (Operation_Name);
-      Add_Char_To_Name_Buffer ('_');
-      Get_Name_String_And_Append (VN (V_Result));
-      R := Name_Find;
-
-      I := Make_Subprogram_Call
-           (Make_Defining_Identifier (GN (Pragma_Inline)),
-            Make_List_Id (Make_Designator (R)));
-      C := Make_Subprogram_Specification
-        (Make_Defining_Identifier (R),
-         No_List,
-         RE (RE_NamedValue));
-      N := Make_Subprogram_Implementation
-        (C,
-         Make_List_Id (Make_Pragma_Statement (I)),
-         Make_List_Id (N));
-      Append_Node_To_List (N, Statements (Current_Package));
-
-      --  Creating the request
-
-      Set_Str_To_Name_Buffer
-        ("Creating the request");
-      Append_Node_To_List
-        (Make_Ada_Comment (Name_Find),
-         Marshaller_Statements);
-
-      N := Make_Subprogram_Call
-        (RE (RE_Ref_2),
-         Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
-      N := Make_Subprogram_Call
-        (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
-      N := Make_Component_Association
-        (Selector_Name => Make_Defining_Identifier (PN (P_Target)),
-         Expression    => N);
-      P := Make_List_Id (N);
-
-      Get_Name_String (Operation_Name);
-      Add_Char_To_Name_Buffer ('_');
-      Get_Name_String_And_Append (VN (V_Operation_Name));
-      R := Name_Find;
-      N := Make_Component_Association
-        (Selector_Name => Make_Defining_Identifier (PN (P_Operation)),
-         Expression    => Make_Defining_Identifier (R));
-      Append_Node_To_List (N, P);
-      N := Make_Component_Association
-        (Selector_Name => Make_Defining_Identifier (PN (P_Arg_List)),
-         Expression    => Make_Defining_Identifier (VN (V_Argument_List)));
-      Append_Node_To_List (N, P);
-      N := Make_Component_Association
-        (Selector_Name => Make_Defining_Identifier (PN (P_Result)),
-         Expression    => Make_Defining_Identifier (VN (V_Result)));
-      Append_Node_To_List (N, P);
-
-      --  If the operation thows an exception, we add an additional flag to
-      --  the Create_Request function.
-
-      if FEN.Kind (Declaration) = K_Operation_Declaration and then
-        not FEU.Is_Empty (Exceptions (Declaration)) then
-         N := Make_Subprogram_Call
-           (RE (RE_To_PolyORB_Ref_1),
-            Make_List_Id
-            (Make_Designator
-             (VN (V_Exception_List))));
-
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Exc_List)),
-            Expression    => N);
-         Append_Node_To_List (N, P);
-      end if;
-
-      N := Make_Component_Association
-        (Selector_Name => Make_Defining_Identifier (PN (P_Req)),
-         Expression    => Make_Defining_Identifier (VN (V_Request)));
-      Append_Node_To_List (N, P);
-
-      --  Handling the case of Oneway Operations.
-      --  Extract from The CORBA mapping specification : "IDL oneway operations
-      --  are mapped the same as other operation; that is, there is no
-      --  indication wether an operation is oneway or not in the mapeped Ada
-      --  specification".
-      --
-      --  The extract above means that the call to a onway operation is
-      --  performed in the same way as a call to a classic synchronous
-      --  operation. However, the ORB need to know oneway operations.
-      --  The stub precise that by adding an additional parameter to the
-      --  procedure "PolyORB.Requests.Create_Request". This additional
-      --  parameter indicate the calling way of the operation (see the file
-      --  polyorb-requests.ads for more information about differents ways of
-      --  calls)
-      --
-      --  First of all, verify that we are handling an operation decalaration
-      --  (and not an attribute declaration)
-
-      Declaration := FEN.Corresponding_Entity
-        (BEN.FE_Node
-         (Subp_Spec));
-
-      if FEN.Kind (Declaration) = K_Operation_Declaration and then
-        FEN.Is_Oneway (Declaration) then
-         N := Make_Component_Association
-           (Selector_Name => Make_Defining_Identifier (PN (P_Req_Flags)),
-            Expression    => RE (RE_Sync_With_Transport));
-         Append_Node_To_List (N, P);
-      end if;
-
-      N := Make_Subprogram_Call
-        (RE (RE_Create_Request),
-         P);
-      Append_Node_To_List (N, Marshaller_Statements);
-
-      --  Invoking the request (synchronously or asynchronously), it depends on
-      --  the type of the operation (oneway or not).
-
-      Set_Str_To_Name_Buffer
-        ("Invoking the request (synchronously or asynchronously)");
-      Append_Node_To_List
-        (Make_Ada_Comment (Name_Find),
-         Marshaller_Statements);
-
-      N := Make_Subprogram_Call
-        (RE (RE_Flags),
-         Make_List_Id (Make_Literal (Int0_Val)));
-      N := Make_Subprogram_Call
-        (RE (RE_Client_Invoke),
-         Make_List_Id
-         (Make_Defining_Identifier (VN (V_Request)),
-          N));
-      Append_Node_To_List (N, Marshaller_Statements);
-
-      --  Raise eventual exceptions
-
-      Set_Str_To_Name_Buffer
-        ("Raise eventual exceptions");
-      Append_Node_To_List
-        (Make_Ada_Comment (Name_Find),
-         Marshaller_Statements);
-
-      P := New_List (K_List_Id);
-      C := Make_Designator
-        (Designator => PN (P_Argument),
-         Parent     => VN (V_Result));
-      N := Make_Assignment_Statement
-        (C,
-         Make_Designator
-         (Designator => PN (P_Exception_Info),
-          Parent     => VN (V_Request)));
-      Append_Node_To_List (N, P);
-      N := Make_Subprogram_Call
-        (RE (RE_Destroy_Request),
-         Make_List_Id
-         (Make_Designator (VN (V_Request))));
-      Append_Node_To_List (N, P);
-      N := Make_Subprogram_Call
-        (RE (RE_Raise_From_Any),
-         Make_List_Id (Copy_Node (C)));
-      Append_Node_To_List (N, P);
-      N := Make_Subprogram_Call
-        (RE (RE_Is_Empty),
-         Make_List_Id (Make_Designator
-         (Designator => PN (P_Exception_Info),
-          Parent     => VN (V_Request))));
-      N := Make_Expression (N, Op_Not);
-      N := Make_If_Statement
-        (N, P, No_List);
-      Append_Node_To_List (N, Marshaller_Statements);
-      N := Make_Subprogram_Call
-        (RE (RE_Destroy_Request),
-         Make_List_Id (Make_Designator (VN (V_Request))));
-      Append_Node_To_List (N, Marshaller_Statements);
-
-      --  Retrieve return value
-
-      if Present (Return_T) then
-         Set_Str_To_Name_Buffer
-           ("Retrieve the return value");
-         Append_Node_To_List
-           (Make_Ada_Comment (Name_Find),
-         Marshaller_Statements);
-
-         N := Get_From_Any_Node (FE_Node (Return_T));
-
-         C := Make_Subprogram_Call
-           (RE (RE_To_CORBA_Any),
-            Make_List_Id (Copy_Node (C)));
-         N := Make_Return_Statement
-           (Make_Subprogram_Call (N, Make_List_Id (C)));
-         Append_Node_To_List (N, Marshaller_Statements);
-      end if;
-
-      --  Retrieve out arguments values
-
-      if Count > 1 then
-         P :=  BEN.Parameter_Profile (Subp_Spec);
-         I := First_Node (P);
-         I := Next_Node (I);
-         loop
-            if  BEN.Parameter_Mode (I) = Mode_Out
-              or else BEN.Parameter_Mode (I) = Mode_Inout then
-               declare
-                  Param_Name      : Name_Id;
-                  New_Name        : Name_Id;
-                  From_Any_Helper : Node_Id;
-                  Par_Type        : Node_Id;
-               begin
-                  Set_Str_To_Name_Buffer
-                    ("Retrieve out argument");
-                  Append_Node_To_List
-                    (Make_Ada_Comment (Name_Find),
-                     Marshaller_Statements);
-
-                  Param_Name := BEN.Name (Defining_Identifier (I));
-                  New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
-
-                  Par_Type := BEN.FE_Node (Parameter_Type (I));
-                  From_Any_Helper := Get_From_Any_Node (Par_Type);
-
-                  N := Make_Subprogram_Call
-                    (From_Any_Helper,
-                     Make_List_Id (Make_Designator (New_Name)));
-
-                  --  If the parameter type is a Class wide type, we hace to
-                  --  cast the value of the parameter before assigning it
-                  if BEN.Kind (Parameter_Type (I))
-                    = K_Attribute_Designator
-                  then
-                     N := Make_Subprogram_Call
-                       (Copy_Designator
-                        (Parameter_Type (I)),
-                        Make_List_Id (N));
-                  end if;
-
-                  N := Make_Assignment_Statement
-                    (Make_Designator (Param_Name),
-                     N);
-                  Append_Node_To_List (N, Marshaller_Statements);
-               end;
-            end if;
+         if Count > 1 then
+            P :=  BEN.Parameter_Profile (Subp_Spec);
+            I := First_Node (P);
             I := Next_Node (I);
-            exit when No (I);
-         end loop;
+            loop
+               if  BEN.Parameter_Mode (I) = Mode_Out
+                 or else BEN.Parameter_Mode (I) = Mode_Inout then
+                  declare
+                     Param_Name      : Name_Id;
+                     New_Name        : Name_Id;
+                     From_Any_Helper : Node_Id;
+                     Par_Type        : Node_Id;
+                  begin
+                     Set_Str_To_Name_Buffer
+                       ("Retrieve out argument");
+                     Append_Node_To_List
+                       (Make_Ada_Comment (Name_Find),
+                        Marshaller_Statements);
+
+                     Param_Name := BEN.Name (Defining_Identifier (I));
+                     New_Name := Add_Prefix_To_Name
+                       ("Argument_U_", Param_Name);
+
+                     Par_Type := BEN.FE_Node (Parameter_Type (I));
+                     From_Any_Helper := Get_From_Any_Node (Par_Type);
+
+                     N := Make_Subprogram_Call
+                       (From_Any_Helper,
+                        Make_List_Id (Make_Designator (New_Name)));
+
+                     --  If the parameter type is a Class wide type, we hace to
+                     --  cast the value of the parameter before assigning it
+                     if BEN.Kind (Parameter_Type (I))
+                       = K_Attribute_Designator
+                     then
+                        N := Make_Subprogram_Call
+                          (Copy_Designator
+                           (Parameter_Type (I)),
+                           Make_List_Id (N));
+                     end if;
+
+                     N := Make_Assignment_Statement
+                       (Make_Designator (Param_Name),
+                        N);
+                     Append_Node_To_List (N, Marshaller_Statements);
+                  end;
+               end if;
+               I := Next_Node (I);
+               exit when No (I);
+            end loop;
+         end if;
       end if;
 
       return Marshaller_Statements;
@@ -1574,186 +1679,266 @@ package body Backend.BE_Ada.Stubs is
       Declaration      : Node_Id;
       To_Any_Type_Name : Name_Id := No_Name;
       Param_Type_Name  : Name_Id := No_Name;
+      Container        : constant Node_Id
+        := Scope_Entity (FE_Node (Subp_Spec));
+      Local_Interface  : constant Boolean :=
+        (FEN.Kind (Container) = K_Interface_Declaration and then
+         Is_Local_Interface (Container));
    begin
       L := New_List (BEN.K_List_Id);
 
-      --  Arg_List_U declaration
+      if not Local_Interface then
 
-      N := Make_Object_Declaration
-        (Defining_Identifier =>
-           Make_Defining_Identifier (VN (V_Argument_List)),
-         Constant_Present    => False,
-         Object_Definition   => RE (RE_Ref_3),
-         Expression          => No_Node);
-      Append_Node_To_List (N, L);
+         --  Arg_List_U declaration
 
-      P := Parameter_Profile (Subp_Spec);
-      I := First_Node (P);
-      I := Next_Node (I);
-      while Present (I) loop
-
-         --  Operation_Name_Arg_Name_U_X declaration
-         --  Operation_Name_Arg_Name_U_X : PolyORB.Types.Identifier
-         --    := PolyORB.Types.To_PolyORB_String ("X")
-         --  ** where X is the parameter name.
-
-         X := BEN.Name (Defining_Identifier (I));
-         C := Make_Subprogram_Call
-           (Defining_Identifier   => RE (RE_To_PolyORB_String),
-            Actual_Parameter_Part =>
-              Make_List_Id (Make_Literal (New_String_Value (X, False))));
-
-         Get_Name_String (Operation_Name);
-         Add_Str_To_Name_Buffer ("_Arg_Name_U_");
-         Get_Name_String_And_Append (X);
-         R := Name_Find;
          N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (R),
-            Constant_Present => False,
-            Object_Definition => RE (RE_Identifier),
-            Expression => C);
+           (Defining_Identifier =>
+              Make_Defining_Identifier (VN (V_Argument_List)),
+            Constant_Present    => False,
+            Object_Definition   => RE (RE_Ref_3),
+            Expression          => No_Node);
          Append_Node_To_List (N, L);
 
-         --  Argument_U_X declaration
-         --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
-         --  ** where X is the parameter name.
-         --  ** where Y is the fully qualified current package Name.
+         P := Parameter_Profile (Subp_Spec);
+         I := First_Node (P);
+         I := Next_Node (I);
+         while Present (I) loop
 
-         if Is_Base_Type (BEN.FE_Node (Parameter_Type (I))) then
+            --  Operation_Name_Arg_Name_U_X declaration
+            --  Operation_Name_Arg_Name_U_X : PolyORB.Types.Identifier
+            --    := PolyORB.Types.To_PolyORB_String ("X")
+            --  ** where X is the parameter name.
 
-            if BEN.Parameter_Mode (I) = Mode_Out then
-               D := RE (RE_Get_Empty_Any);
+            X := BEN.Name (Defining_Identifier (I));
+            C := Make_Subprogram_Call
+              (Defining_Identifier   => RE (RE_To_PolyORB_String),
+               Actual_Parameter_Part =>
+                 Make_List_Id (Make_Literal (New_String_Value (X, False))));
 
-               --  If we are in this case, we must not give X as a parameter
-               --  to Get_Empty_Any. We must use the TypeCode identifier for
-               --  the type of parameter I.
-               TC_Node := Base_Type_TC
-                 (FEN.Kind
-                  (BEN.FE_Node
-                   (Parameter_Type (I))));
+            Get_Name_String (Operation_Name);
+            Add_Str_To_Name_Buffer ("_Arg_Name_U_");
+            Get_Name_String_And_Append (X);
+            R := Name_Find;
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier (R),
+               Constant_Present => False,
+               Object_Definition => RE (RE_Identifier),
+               Expression => C);
+            Append_Node_To_List (N, L);
+
+            --  Argument_U_X declaration
+            --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
+            --  ** where X is the parameter name.
+            --  ** where Y is the fully qualified current package Name.
+
+            if Is_Base_Type (BEN.FE_Node (Parameter_Type (I))) then
+
+               if BEN.Parameter_Mode (I) = Mode_Out then
+                  D := RE (RE_Get_Empty_Any);
+
+                  --  If we are in this case, we must not give X as a parameter
+                  --  to Get_Empty_Any. We must use the TypeCode identifier for
+                  --  the type of parameter I.
+                  TC_Node := Base_Type_TC
+                    (FEN.Kind
+                     (BEN.FE_Node
+                      (Parameter_Type (I))));
+
+               else
+                  --  The CORBA.Object type has a special conversion
+                  --  functions although it is a base type
+                  if FEN.Kind (BEN.FE_Node (Parameter_Type (I))) =
+                    K_Object
+                  then
+                     D := RE (RE_To_Any_3);
+                  else
+                     D := RE (RE_To_Any_0);
+                  end if;
+               end if;
 
             else
-               --  The CORBA.Object type has a special conversion
-               --  functions although it is a base type
-               if FEN.Kind (BEN.FE_Node (Parameter_Type (I))) = K_Object then
-                  D := RE (RE_To_Any_3);
+               if BEN.Parameter_Mode (I) = Mode_Out then
+                  D := RE (RE_Get_Empty_Any);
+
+                  --  If we are in this case, we must not give X as a parameter
+                  --  to Get_Empty_Any. We must generate a TypeCode identifier
+                  --  for the type of parameter I.
+                  TC_Node := Corresponding_Entity
+                    (Identifier
+                     (BEN.FE_Node
+                      (Parameter_Type (I))));
+                  if FEN.Kind (TC_Node) = K_Scoped_Name then
+                     TC_Node := BEN.TC_Node
+                       (BE_Node
+                        (Identifier
+                         (Reference (TC_Node))));
+                  else
+                     TC_Node := BEN.TC_Node
+                       (BE_Node
+                        (Identifier (TC_Node)));
+                  end if;
+                  TC_Node := Expand_Designator (TC_Node);
                else
-                  D := RE (RE_To_Any_0);
-               end if;
-            end if;
-
-         else
-            if BEN.Parameter_Mode (I) = Mode_Out then
-               D := RE (RE_Get_Empty_Any);
-
-               --  If we are in this case, we must not give X as a parameter
-               --  to Get_Empty_Any. We must generate a TypeCode identifier for
-               --  the type of parameter I.
-               TC_Node := Corresponding_Entity
-                 (Identifier
-                  (BEN.FE_Node
-                   (Parameter_Type (I))));
-               if FEN.Kind (TC_Node) = K_Scoped_Name then
-                  TC_Node := BEN.TC_Node
+                  D := Identifier (FE_Node (Parameter_Type (I)));
+                  D := To_Any_Node
                     (BE_Node
                      (Identifier
-                      (Reference (TC_Node))));
-               else
-                  TC_Node := BEN.TC_Node
-                    (BE_Node
-                     (Identifier (TC_Node)));
-               end if;
-               TC_Node := Expand_Designator (TC_Node);
-            else
-               D := Identifier (FE_Node (Parameter_Type (I)));
-               D := To_Any_Node
-                 (BE_Node (Identifier (Reference (Corresponding_Entity (D)))));
-               --  Get the types of the argument of the To_Any function and
-               --  of the actual parameter
-               To_Any_Type_Name := Fully_Qualified_Name
-                 (Parameter_Type
-                  (First_Node
-                   (Parameter_Profile (D))));
-               Param_Type_Name := Fully_Qualified_Name
-                 (BEN.Parameter_Type (I));
+                      (Reference
+                       (Corresponding_Entity (D)))));
+                  --  Get the types of the argument of the To_Any function and
+                  --  of the actual parameter
+                  To_Any_Type_Name := Fully_Qualified_Name
+                    (Parameter_Type
+                     (First_Node
+                      (Parameter_Profile (D))));
+                  Param_Type_Name := Fully_Qualified_Name
+                    (BEN.Parameter_Type (I));
 
-               D := Expand_Designator (D);
+                  D := Expand_Designator (D);
+               end if;
             end if;
-         end if;
 
-         if BEN.Parameter_Mode (I) = Mode_Out then
-            C :=  Make_Subprogram_Call
-              (Defining_Identifier   => D,
-               Actual_Parameter_Part =>
-                 Make_List_Id (TC_Node));
-         else
-            --  Here, we are in the case where we call the To_Any method.
-            --  If the parameter type is XXX.Ref'Class, we must cast the
-            --  parameter before giving it to the function.
-            --  We just test wether the two type names are equal.
-            declare
-               Cast_Node   : Node_Id;
-            begin
-               if Param_Type_Name /= To_Any_Type_Name then
-                  Cast_Node := Make_Subprogram_Call
-                    (Defining_Identifier =>
-                       Make_Defining_Identifier (To_Any_Type_Name),
-                     Actual_Parameter_Part =>
-                       Make_List_Id (Make_Defining_Identifier (X)));
-               else
-                  Cast_Node := Make_Defining_Identifier (X);
-               end if;
-               C := Make_Subprogram_Call
+            if BEN.Parameter_Mode (I) = Mode_Out then
+               C :=  Make_Subprogram_Call
                  (Defining_Identifier   => D,
                   Actual_Parameter_Part =>
-                    Make_List_Id (Cast_Node));
-            end;
+                    Make_List_Id (TC_Node));
+            else
+               --  Here, we are in the case where we call the To_Any method.
+               --  If the parameter type is XXX.Ref'Class, we must cast the
+               --  parameter before giving it to the function.
+               --  We just test wether the two type names are equal.
+               declare
+                  Cast_Node   : Node_Id;
+               begin
+                  if Param_Type_Name /= To_Any_Type_Name then
+                     Cast_Node := Make_Subprogram_Call
+                       (Defining_Identifier =>
+                          Make_Defining_Identifier (To_Any_Type_Name),
+                        Actual_Parameter_Part =>
+                          Make_List_Id (Make_Defining_Identifier (X)));
+                  else
+                     Cast_Node := Make_Defining_Identifier (X);
+                  end if;
+                  C := Make_Subprogram_Call
+                    (Defining_Identifier   => D,
+                     Actual_Parameter_Part =>
+                       Make_List_Id (Cast_Node));
+               end;
+            end if;
+
+            Set_Str_To_Name_Buffer ("Argument_U_");
+            Get_Name_String_And_Append (X);
+            R := Name_Find;
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier (R),
+               Constant_Present => False,
+               Object_Definition => RE (RE_Any),
+               Expression => C);
+            Append_Node_To_List (N, L);
+            I := Next_Node (I);
+         end loop;
+
+         --  Operation_Name_U declaration
+
+         --  Add underscore to the operation name if the the subprogram is
+         --  an accessor funtion
+
+         if FEN.Kind (FE) = K_Simple_Declarator
+           or else
+           FEN.Kind (FE) = K_Complex_Declarator
+         then
+            V := New_String_Value
+              (Add_Prefix_To_Name ("_", Operation_Name), False);
+         else
+            V := New_String_Value (Operation_Name, False);
          end if;
 
-         Set_Str_To_Name_Buffer ("Argument_U_");
-         Get_Name_String_And_Append (X);
+         Get_Name_String (Operation_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Get_Name_String_And_Append (VN (V_Operation_Name));
          R := Name_Find;
          N := Make_Object_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (R),
-            Constant_Present => False,
-            Object_Definition => RE (RE_Any),
-            Expression => C);
+           (Defining_Identifier =>
+              Make_Defining_Identifier (R),
+            Constant_Present    => True,
+            Object_Definition   => RE (RE_String_2),
+            Expression          => Make_Literal (V));
+         Append_Node_To_List (N, Statements (Current_Package));
+
+         --  Request_U declaration
+
+         N := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (VN (V_Request)),
+            Constant_Present    => False,
+            Object_Definition   => RE (RE_Request_Access),
+            Expression          => No_Node);
          Append_Node_To_List (N, L);
-         I := Next_Node (I);
-      end loop;
 
-      --  Operation_Name_U declaration
+         --  Exception_List_U declaration
+         --  We must verify that we handle an operation
 
-      --  Add underscore to the operation name if the the subprogram is
-      --  an accessor funtion
+         Declaration := FEN.Corresponding_Entity
+           (BEN.FE_Node
+            (Subp_Spec));
 
-      if FEN.Kind (FE) = K_Simple_Declarator
-        or else
-        FEN.Kind (FE) = K_Complex_Declarator
-      then
-         V := New_String_Value
-           (Add_Prefix_To_Name ("_", Operation_Name), False);
-      else
-         V := New_String_Value (Operation_Name, False);
+         if FEN.Kind (Declaration) = K_Operation_Declaration and then
+           not FEU.Is_Empty (Exceptions (Declaration)) then
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Exception_List)),
+               Constant_Present    => False,
+               Object_Definition   => RE (RE_Ref_5),
+               Expression          => No_Node);
+            Append_Node_To_List (N, L);
+         end if;
+
+         --  Result_U declaration
+         --  Result_U : PolyORB.Any.NamedValue := [Operation_Name]_Result_V;
+
+         Get_Name_String (Operation_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Get_Name_String_And_Append (VN (V_Result));
+         R := Name_Find;
+         N := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (VN (V_Result)),
+            Constant_Present    => False,
+            Object_Definition   => RE (RE_NamedValue),
+            Expression          =>
+              Make_Subprogram_Call
+            (Make_Designator (R), No_List));
+         Append_Node_To_List (N, L);
+
+         --  Result_Name_U declaration :
+         --  Result_Name_U : CORBA.String := CORBA.To_CORBA_String ("Result");
+
+         V := New_String_Value (PN (P_Result), False);
+         C := Make_Subprogram_Call
+           (Defining_Identifier   => RE (RE_To_CORBA_String),
+            Actual_Parameter_Part =>
+              Make_List_Id (Make_Literal (V)));
+         Get_Name_String (Operation_Name);
+         Add_Char_To_Name_Buffer ('_');
+         Get_Name_String_And_Append (VN (V_Result_Name));
+         R := Name_Find;
+         N := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (R),
+            Constant_Present    => False,
+            Object_Definition   => RE (RE_String_0),
+            Expression          => C);
+         Append_Node_To_List (N, Statements (Current_Package));
+
       end if;
-
-      Get_Name_String (Operation_Name);
-      Add_Char_To_Name_Buffer ('_');
-      Get_Name_String_And_Append (VN (V_Operation_Name));
-      R := Name_Find;
-      N := Make_Object_Declaration
-        (Defining_Identifier =>
-           Make_Defining_Identifier (R),
-         Constant_Present    => True,
-         Object_Definition   => RE (RE_String_2),
-         Expression          => Make_Literal (V));
-      Append_Node_To_List (N, Statements (Current_Package));
 
       --  Self_Ref_U declaration
       --  Self_Ref_U : CORBA.Object.Ref  := CORBA.Object.Ref (Self);
 
       C := Make_Subprogram_Call
-        (Defining_Identifier   => RE (RE_Ref_2),
+        (Defining_Identifier   =>
+           RE (RE_Ref_2),
          Actual_Parameter_Part =>
            Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
 
@@ -1764,71 +1949,7 @@ package body Backend.BE_Ada.Stubs is
          Object_Definition   => RE (RE_Ref_2),
          Expression          => C);
       Append_Node_To_List (N, L);
-
-      --  Request_U declaration
-
-      N := Make_Object_Declaration
-        (Defining_Identifier =>
-           Make_Defining_Identifier (VN (V_Request)),
-         Constant_Present    => False,
-         Object_Definition   => RE (RE_Request_Access),
-         Expression          => No_Node);
-      Append_Node_To_List (N, L);
-
-      --  Exception_List_U declaration
-      --  We must verify that we handle an operation
-
-      Declaration := FEN.Corresponding_Entity
-        (BEN.FE_Node
-         (Subp_Spec));
-
-      if FEN.Kind (Declaration) = K_Operation_Declaration and then
-        not FEU.Is_Empty (Exceptions (Declaration)) then
-         N := Make_Object_Declaration
-         (Defining_Identifier =>
-            Make_Defining_Identifier (VN (V_Exception_List)),
-          Constant_Present    => False,
-          Object_Definition   => RE (RE_Ref_5),
-          Expression          => No_Node);
-         Append_Node_To_List (N, L);
-      end if;
-
-      --  Result_U declaration
-      --  Result_U : PolyORB.Any.NamedValue := [Operation_Name]_Result_V;
-
-      Get_Name_String (Operation_Name);
-      Add_Char_To_Name_Buffer ('_');
-      Get_Name_String_And_Append (VN (V_Result));
-      R := Name_Find;
-      N := Make_Object_Declaration
-        (Defining_Identifier =>
-           Make_Defining_Identifier (VN (V_Result)),
-         Constant_Present    => False,
-         Object_Definition   => RE (RE_NamedValue),
-         Expression          =>
-           Make_Subprogram_Call
-         (Make_Designator (R), No_List));
-      Append_Node_To_List (N, L);
-
-      --  Result_Name_U declaration :
-      --  Result_Name_U : CORBA.String := CORBA.To_CORBA_String ("Result");
-
-      V := New_String_Value (PN (P_Result), False);
-      C := Make_Subprogram_Call
-        (Defining_Identifier   => RE (RE_To_CORBA_String),
-         Actual_Parameter_Part =>
-           Make_List_Id (Make_Literal (V)));
-      Get_Name_String (Operation_Name);
-      Add_Char_To_Name_Buffer ('_');
-      Get_Name_String_And_Append (VN (V_Result_Name));
-      R := Name_Find;
-      N := Make_Object_Declaration
-        (Defining_Identifier =>
-           Make_Defining_Identifier (R),
-         Constant_Present    => False,
-         Object_Definition   => RE (RE_String_0),
-         Expression          => C);
-      Append_Node_To_List (N, Statements (Current_Package));
+--        Map_Ref_Type_Ancestor (Container),
 
       return L;
    end Marshaller_Declarations;
@@ -1837,7 +1958,10 @@ package body Backend.BE_Ada.Stubs is
    -- Local_Is_A_Body --
    ---------------------
 
-   function Local_Is_A_Body (E : Node_Id) return Node_Id is
+   function Local_Is_A_Body
+     (E    : Node_Id;
+      Spec : Node_Id := No_Node)
+     return Node_Id is
       N                : Node_Id;
       S                : constant List_Id := New_List (K_List_Id);
       M                : Node_Id;
@@ -1886,10 +2010,10 @@ package body Backend.BE_Ada.Stubs is
                        Rep_Id)));
                else
                   Result := Make_Subprogram_Call
-                  (RE (RE_Is_Equivalent),
-                   Make_List_Id
-                   (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
-                    Rep_Id));
+                    (RE (RE_Is_Equivalent),
+                     Make_List_Id
+                     (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
+                      Rep_Id));
                end if;
                --  Adding recursivly the parents of parents.
                Parent_Statement := Is_Equivalent_Statement
@@ -1908,9 +2032,11 @@ package body Backend.BE_Ada.Stubs is
       end Is_Equivalent_Statement;
 
    begin
+      --  getting the Repository_Id constant
       N := Type_Def_Node (BE_Node (Identifier (E)));
       N := Next_Node (N);
       Repository_Id := Expand_Designator (N);
+
       N := Make_Subprogram_Call
         (RE (RE_Is_Equivalent),
          Make_List_Id
@@ -1942,8 +2068,15 @@ package body Backend.BE_Ada.Stubs is
         (N, Op_Or_Else, RE (RE_False));
       N := Make_Return_Statement (N);
       Append_Node_To_List (N, S);
+
+      --  getting the spec of the Is_A function
+      if Spec = No_Node then
+         N := Local_Is_A_Spec;
+      else
+         N := Spec;
+      end if;
       N := Make_Subprogram_Implementation
-        (Local_Is_A_Spec, No_List, S);
+        (N, No_List, S);
       return N;
    end Local_Is_A_Body;
 
@@ -1972,7 +2105,7 @@ package body Backend.BE_Ada.Stubs is
    -- Visible_Is_A_Body --
    -----------------------
 
-   function Visible_Is_A_Body return Node_Id is
+   function Visible_Is_A_Body (E : Node_Id) return Node_Id is
       N : Node_Id;
       M : Node_Id;
       S : constant List_Id := New_List (K_List_Id);
@@ -1996,7 +2129,7 @@ package body Backend.BE_Ada.Stubs is
       N := Make_Return_Statement (N);
       Append_Node_To_List (N, S);
       N := Make_Subprogram_Implementation
-        (Visible_Is_A_Spec, No_List, S);
+        (Visible_Is_A_Spec (E), No_List, S);
       return N;
    end Visible_Is_A_Body;
 
@@ -2004,7 +2137,7 @@ package body Backend.BE_Ada.Stubs is
    -- Visible_Is_A_Spec --
    -----------------------
 
-   function Visible_Is_A_Spec return Node_Id is
+   function Visible_Is_A_Spec (E : Node_Id) return Node_Id is
       N       : Node_Id;
       Profile : List_Id;
       Param   : Node_Id;
@@ -2012,7 +2145,7 @@ package body Backend.BE_Ada.Stubs is
       Profile := New_List (K_Parameter_Profile);
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Self)),
-         Make_Defining_Identifier (TN (T_Ref)));
+         Map_Ref_Type (E));
       Append_Node_To_List (Param, Profile);
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Logical_Type_Id)),

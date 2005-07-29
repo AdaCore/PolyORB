@@ -103,6 +103,7 @@ package body Backend.BE_Ada.Runtime is
       Register_Casing_Rule ("_TC");
       Register_Casing_Rule ("TypeCode");
       Register_Casing_Rule ("ExceptionList");
+      Register_Casing_Rule ("LocalObject");
 
       for U in RU_Id'Succ (RU_Id'First) .. RU_Id'Last loop
          Set_Str_To_Name_Buffer (RU_Id'Image (U));

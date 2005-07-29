@@ -309,6 +309,7 @@ package body Backend.BE_Ada.Generator is
       First_Line : Boolean := True;
       Used_Columns : Natural;
    begin
+      Write_Eol;
       Get_Name_String (Name (Defining_Identifier (N)));
       while Are_There_More_Words loop
          Used_Columns := N_Space;

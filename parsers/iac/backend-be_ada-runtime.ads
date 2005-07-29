@@ -15,6 +15,7 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_Forward,
       RU_CORBA_Fixed_Point,
       RU_CORBA_Internals,
+      RU_CORBA_Local,
       RU_CORBA_Sequences,
       RU_CORBA_Sequences_Bounded,
       RU_CORBA_Sequences_Unbounded,
@@ -66,6 +67,7 @@ package Backend.BE_Ada.Runtime is
       RE_Convert_Forward,           --  Convert_Forward
       RE_Element_TC,                --  Element_TC
       RE_Sequence_TC,               --  Sequence_TC
+      RE_LocalObject,               --  LocalObject
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
@@ -116,6 +118,7 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Octet,                  --  CORBA.TC_Octet
       RE_To_Standard_String,        --  CORBA.To_Standard_String
       RE_IDL_Exception_Members,     --  CORBA.IDL_Exception_Members
+      RE_Object_2,                  --  CORBA.Local.Object
       RE_Object_Is_Nil,             --  CORBA.Object_Is_Nil
       RE_Raise_Inv_Objref,          --  CORBA.Raise_Inv_Objref
       RE_Raise_Bad_Operation,       --  CORBA.Raise_Bad_Operation
@@ -206,6 +209,7 @@ package Backend.BE_Ada.Runtime is
                                     --    Register_Skeleton
       RE_Servant,                   --  PortableServer.Servant
       RE_Servant_Base,              --  PortableServer.Servant_Base
+      RE_Boolean_1,                 --  Standard.Boolean
       RE_Natural,                   --  Standard.Natural
       RE_String_2);                 --  Standard.String
 
@@ -221,6 +225,7 @@ package Backend.BE_Ada.Runtime is
          RE_Convert                 => RU_Null,
          RE_Convert_Forward         => RU_Null,
          RE_Element_TC              => RU_Null,
+         RE_LocalObject             => RU_Null,
          RE_Sequence_TC             => RU_Null,
          RE_Exception_Occurrence    => RU_Ada_Exceptions,
          RE_ARG_IN_0                => RU_CORBA,
@@ -284,6 +289,7 @@ package Backend.BE_Ada.Runtime is
          RE_To_CORBA_Any            => RU_CORBA_Internals,
          RE_To_PolyORB_Any          => RU_CORBA_Internals,
          RE_Move_Any_Value          => RU_CORBA_Internals,
+         RE_Object_2                => RU_CORBA_Local,
          RE_Add_Item_0              => RU_CORBA_NVList,
          RE_Ref_4                   => RU_CORBA_NVList,
          RE_Ref_2                   => RU_CORBA_Object,
@@ -353,6 +359,7 @@ package Backend.BE_Ada.Runtime is
          RE_Register_Skeleton       => RU_PortableServer_Internals,
          RE_Servant                 => RU_PortableServer,
          RE_Servant_Base            => RU_PortableServer,
+         RE_Boolean_1               => RU_Standard,
          RE_Natural                 => RU_Standard,
          RE_String_2                => RU_Standard);
 
