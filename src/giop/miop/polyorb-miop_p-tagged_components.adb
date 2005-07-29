@@ -112,6 +112,15 @@ package body PolyORB.MIOP_P.Tagged_Components is
       pragma Debug (O ("Group Info : " & Image (C.G_I)));
    end Unmarshall;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate (C : TC_Group_Info) return Tagged_Component_Access is
+   begin
+      return new TC_Group_Info'(C);
+   end Duplicate;
+
    ----------------------
    -- Release_Contents --
    ----------------------

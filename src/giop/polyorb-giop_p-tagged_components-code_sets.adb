@@ -63,6 +63,24 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
       return new TC_Code_Sets;
    end Create_Empty_Component;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate (C : TC_Code_Sets) return Tagged_Component_Access is
+      Result : constant Tagged_Component_Access := new TC_Code_Sets;
+
+   begin
+      TC_Code_Sets (Result.all).For_Char_Data :=
+        (C.For_Char_Data.Native_Code_Set,
+         Duplicate (C.For_Char_Data.Conversion_Code_Sets));
+      TC_Code_Sets (Result.all).For_Wchar_Data :=
+        (C.For_Wchar_Data.Native_Code_Set,
+         Duplicate (C.For_Wchar_Data.Conversion_Code_Sets));
+
+      return Result;
+   end Duplicate;
+
    ---------------------
    -- Fetch_Component --
    ---------------------

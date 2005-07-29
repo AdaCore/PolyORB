@@ -61,6 +61,19 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
       return new TC_Policies;
    end Create_Empty_Component;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate (C : TC_Policies) return Tagged_Component_Access is
+      Result : constant Tagged_Component_Access := new TC_Policies;
+   begin
+      TC_Policies (Result.all).Policies
+        := Policy_Value_Seq.Duplicate (C.Policies);
+
+      return Result;
+   end Duplicate;
+
    ---------------------
    -- Fetch_Component --
    ---------------------

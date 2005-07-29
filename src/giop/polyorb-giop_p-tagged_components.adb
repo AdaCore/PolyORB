@@ -349,15 +349,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    begin
       while not Last (Iter) loop
-
-         declare
-            C  : constant Tagged_Component_Access := Value (Iter).all;
-            CC : constant Tagged_Component_Access
-              := new Tagged_Component'Class'(C.all);
-
-         begin
-            Append (Result, CC);
-         end;
+         Append (Result, Duplicate (Value (Iter).all.all));
          Next (Iter);
       end loop;
 
@@ -396,6 +388,23 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
       C.Data := new Stream_Element_Array'(Unmarshall (Buffer));
    end Unmarshall;
+
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate
+     (C : TC_Unknown_Component)
+     return Tagged_Component_Access
+   is
+      Result : constant Tagged_Component_Access := new TC_Unknown_Component;
+
+   begin
+      TC_Unknown_Component (Result.all).Data
+        := new Stream_Element_Array'(C.Data.all);
+
+      return Result;
+   end Duplicate;
 
    ----------------------
    -- Release_Contents --

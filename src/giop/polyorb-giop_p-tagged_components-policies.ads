@@ -49,6 +49,8 @@ package PolyORB.GIOP_P.Tagged_Components.Policies is
 
    procedure Release_Contents (C : access TC_Policies);
 
+   function Duplicate (C : TC_Policies) return Tagged_Component_Access;
+
 private
 
    type Encapsulation_Access is access all

@@ -63,6 +63,8 @@ package PolyORB.MIOP_P.Tagged_Components is
    procedure Release_Contents
      (C : access TC_Group_Info);
 
+   function Duplicate (C : TC_Group_Info) return Tagged_Component_Access;
+
    function To_String
      (C : access TC_Group_Info)
      return String;

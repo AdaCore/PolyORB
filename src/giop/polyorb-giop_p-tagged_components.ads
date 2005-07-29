@@ -71,6 +71,9 @@ package PolyORB.GIOP_P.Tagged_Components is
       is abstract;
    --  Free memory associated with component
 
+   function Duplicate (C : Tagged_Component)
+     return Tagged_Component_Access is abstract;
+
    ---------------------------
    -- Tagged_Component_List --
    ---------------------------
@@ -169,6 +172,10 @@ package PolyORB.GIOP_P.Tagged_Components is
 
    procedure Release_Contents
      (C : access TC_Unknown_Component);
+
+   function Duplicate
+     (C : TC_Unknown_Component)
+     return Tagged_Component_Access;
 
    --------------
    -- Tag List --

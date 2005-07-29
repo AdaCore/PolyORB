@@ -58,4 +58,6 @@ package PolyORB.GIOP_P.Tagged_Components.Code_Sets is
    procedure Release_Contents
      (C : access TC_Code_Sets);
 
+   function Duplicate (C : TC_Code_Sets) return Tagged_Component_Access;
+
 end PolyORB.GIOP_P.Tagged_Components.Code_Sets;
