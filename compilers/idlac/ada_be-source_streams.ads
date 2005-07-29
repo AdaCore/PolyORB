@@ -111,22 +111,20 @@ package Ada_Be.Source_Streams is
       Use_It       :        Boolean             := False;
       Elab_Control :        Elab_Control_Pragma := None;
       No_Warnings  :        Boolean             := False);
-   --  Add Dep to the semantic dependecies of Unit,
-   --  if it is not already present. If Use_It is true,
-   --  a "use" clause will be added for that unit.
-   --  Additionnally, an elaboration control pragma may
-   --  be inserted according to Elab_Control.
-   --  If No_Warnings is True, also emit a
-   --    pragma Warnings (Off, Withed_Unit) (useful e.g.
-   --  when no entities from the withed unit are referenced.)
+   --  Add Dep to the semantic dependecies of Unit, if it is not already
+   --  present. If Use_It is true, a "use" clause will be added for that unit.
+   --  Additionnally, an elaboration control pragma may be inserted according
+   --  to Elab_Control. If No_Warnings is True, also emit a
+   --    pragma Warnings (Off, Withed_Unit) (useful e.g. when no entities
+   --  from the withed unit are referenced.)
 
    --  If Add_With is called several times for the same unit:
-   --    - the unit is use'd if at least one call was made with
-   --      Use_It set to True;
-   --    - the elab control is set to Elaborate_All if any call
-   --      was made with Elab_Control = Elaborate_All,
-   --    - else the elab control is set to Elaborate if any call
-   --      was made with Elab_Control = Elaborate,
+   --    - the unit is use'd if at least one call was made with Use_It set to
+   --      True;
+   --    - the elab control is set to Elaborate_All if any call was made with
+   --      Elab_Control = Elaborate_All,
+   --    - else the elab control is set to Elaborate if any call was made with
+   --      Elab_Control = Elaborate,
    --    - else the elab control is set to None.
 
    procedure Add_Elaborate_Body
@@ -154,8 +152,9 @@ package Ada_Be.Source_Streams is
    procedure Set_Comment_Out_Mode
      (Unit : in out Compilation_Unit;
       Mode : Boolean);
-   --  Set Unit's comment out mode. When a unit is in comment out mode,
-   --  any generated code is output as comments.
+   --  Set Unit's comment out mode. While a unit is in comment out mode,
+   --  any generated code is output as comments, and any Add_With call is
+   --  ignored.
 
    function Set_Output_Directory (Dir : String) return Boolean;
    --  Set output directory to Dir. False is returned upon failure

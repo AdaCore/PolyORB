@@ -110,10 +110,12 @@ package body Ada_Be.Source_Streams is
       if False
         or else Dep = "Standard"
         or else Dep = LU_Name
+        or else Unit.Comment_Out_Mode
       then
          --  No need to with oneself. If Dep is an ancestor of Unit, register
          --  it (even though no 'with' clause will be emitted) for the sake of
-         --  elaboration control.
+         --  elaboration control. If in comment out mode, ignore dependendy as
+         --  well.
          return;
       end if;
 
