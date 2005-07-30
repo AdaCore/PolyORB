@@ -298,7 +298,7 @@ module Backend::BE_Ada::Nodes {
 
   interface Variant : Node_Id {
     List_Id    Discrete_Choices;
-    Node_Id    Component;
+    Node_Id    _Component;
   };
 
 

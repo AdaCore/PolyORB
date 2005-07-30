@@ -310,6 +310,7 @@ package body Backend.BE_Ada.Generator is
       Used_Columns : Natural;
    begin
       Write_Eol;
+      Write_Indentation;
       Get_Name_String (Name (Defining_Identifier (N)));
       while Are_There_More_Words loop
          Used_Columns := N_Space;
