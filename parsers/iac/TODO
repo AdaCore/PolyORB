@@ -12,7 +12,9 @@ Backend Ada :
 * Implementing the AMI
 * Implementing the AMH
 * Generate Code for "ValueType"s
-* Generate comments that indicate the implicitly inherited operations in 
+* Generate comments that indicate the implicitly inherited operations and 
+  attributes (from the first parent) and explicitly added operations and
+  attributes (inherited from the second until the last parent) operations in 
   interfaces.
 
 TestSuite :
