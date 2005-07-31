@@ -114,7 +114,7 @@ package body Ada_Be.Source_Streams is
       then
          --  No need to with oneself. If Dep is an ancestor of Unit, register
          --  it (even though no 'with' clause will be emitted) for the sake of
-         --  elaboration control. If in comment out mode, ignore dependendy as
+         --  elaboration control. If in comment out mode, ignore dependency as
          --  well.
          return;
       end if;
