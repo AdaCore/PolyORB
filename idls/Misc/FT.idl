@@ -292,14 +292,6 @@ module FT {
 	void delete_object(
 	     in FactoryCreationId factory_creation_id)
 	     raises (ObjectNotFound);
-
-        //PolyORB:WACORBA: the following function is not defined in
-        //  OMG's standard FT.idl, it has been added to work around the
-        //  lack of a mechanism to register factories.
-        void register_factory(
-	     in _TypeId type_id,
-             in Criteria the_criteria,
-             in Object the_factory);
 	};
 
     // Specification of ReplicationManager Interface
@@ -376,9 +368,3 @@ module FT {
     };
 };
 #endif          // for #ifndef _FT_IDL_
-
-
-
-
-
-	
