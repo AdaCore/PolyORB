@@ -70,18 +70,6 @@ ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
 #
-# File to be cleaned
-#
-
-CLEANFILES = b~*.* *.o *.ali
-
-#
-# Local targets
-#
-
-all-local:: $(EXTRA)
-
-#
 # Generate Ada source from IDL files
 #
 IDL_STAMPS = $(IDLS:.idl=.idl-stamp)
@@ -89,6 +77,18 @@ IDL_STAMPS = $(IDLS:.idl=.idl-stamp)
 $(IDL_STAMPS): $(IDLAC)
 
 $(GEN): $(IDL_STAMPS)
+
+#
+# File to be cleaned
+#
+
+CLEANFILES = b~*.* *.o *.ali $(IDL_STAMPS)
+
+#
+# Local targets
+#
+
+all-local:: $(EXTRA)
 
 #
 # How to compile the various files
