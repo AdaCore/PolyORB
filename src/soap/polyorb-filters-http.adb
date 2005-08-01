@@ -131,6 +131,7 @@ package body PolyORB.Filters.HTTP is
       pragma Warnings (On);
       Res : constant Filter_Access := new HTTP_Filter;
    begin
+      Initialize (HTTP_Filter (Res.all));
       Filt := Res;
    end Create;
 
