@@ -14,7 +14,8 @@ with Backend.BE_Ada.Expand;
 
 package body Backend.BE_IDL is
 
-   Default_Base : Natural := 0;
+   Default_Base     : Natural := 0;
+   Already_Expanded : Boolean := False;
 
    procedure Generate (V : Value_Id);
    procedure Generate_Abstract_Value_Declaration (E : Node_Id);
@@ -126,8 +127,9 @@ package body Backend.BE_IDL is
 
    procedure Generate (E : Node_Id) is
    begin
-      if Expand_Tree then
+      if Expand_Tree and then not Already_Expanded then
          Backend.BE_Ada.Expand.Expand (E);
+         Already_Expanded := True;
       end if;
       if Print_IDL_Tree then
          Frontend.Debug.W_Node_Id (E);
@@ -629,7 +631,6 @@ package body Backend.BE_IDL is
 
    begin
       if M then
-         Write_Indentation;
          Write (T_Module);
          Write_Space;
          Generate (Identifier (E));

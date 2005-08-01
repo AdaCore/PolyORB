@@ -1,4 +1,6 @@
-with Types;  use Types;
+with Types;     use Types;
+with Namet;     use Namet;
+with Locations; use Locations;
 
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
@@ -54,6 +56,10 @@ package body Backend.BE_Ada.Expand is
    --  * Sets the interface as forwarded
    --  * Returns the new or the already existing node.
    function  Add_Forward_Declaration (Interface : Node_Id) return Node_Id;
+
+   --  This function returns True if the entity passed as parameter should be
+   --  generated in the CORBA.Repository_Root package
+   function Is_CORBA_IR_Entity (Entity : Node_Id) return Boolean;
 
    -----------------------
    -- Expand_Designator --
@@ -474,8 +480,111 @@ package body Backend.BE_Ada.Expand is
    -------------------
 
    procedure Expand_Module (Entity : Node_Id) is
-      D : Node_Id;
+      D                  : Node_Id;
+      New_CORBA_Contents : List_Id;
+      Definition         : Node_Id;
+      CORBA_IR_Root_Node : Node_Id;
+
+      procedure Relocate (Parent : Node_Id; Child : Node_Id);
+      --  Reparent Node and its named subnodes to the new Parent
+      --  This procedure is useful when generating code related to the CORBA
+      --  Module
+
+      --------------
+      -- Relocate --
+      --------------
+
+      procedure Relocate (Parent : Node_Id; Child : Node_Id) is
+         pragma Assert (FEN.Kind (Parent) = K_Module);
+         Definitions        : constant List_Id := FEN.Definitions (Parent);
+         Dcl_Or_Enum_List   : List_Id;
+         Dcl_Or_Enum        : Node_Id;
+         Has_Named_Subnodes : Boolean :=  False;
+
+      begin
+         --  We must be very careful, because Append_Node_To_List don't add
+         --  only the node but all the Next_Entities (for details, see the
+         --  calls to this procedure)
+         FEU.Append_Node_To_List (Child, Definitions);
+
+         if FEN.Kind (Child) = K_Type_Declaration then
+            Has_Named_Subnodes := True;
+            Dcl_Or_Enum_List   := Declarators (Child);
+         else
+            --  changing the parent
+            if Identifier (Child) /= No_Node then
+               Set_Scope_Entity (Identifier (Child), Parent);
+               Set_Potential_Scope (Identifier (Child), Parent);
+            end if;
+
+            if FEN.Kind (Child) = K_Enumeration_Type then
+               Has_Named_Subnodes := True;
+               Dcl_Or_Enum_List   := Enumerators (Child);
+            end if;
+         end if;
+
+         if Has_Named_Subnodes then
+            Dcl_Or_Enum := First_Entity (Dcl_Or_Enum_List);
+            while Present (Dcl_Or_Enum) loop
+               --  changing the parent
+               if Identifier (Dcl_Or_Enum) /= No_Node then
+                  Set_Scope_Entity (Identifier (Dcl_Or_Enum), Parent);
+                  Set_Potential_Scope (Identifier (Dcl_Or_Enum), Parent);
+               end if;
+               Dcl_Or_Enum := Next_Entity (Dcl_Or_Enum);
+            end loop;
+         end if;
+      end Relocate;
    begin
+      --  The parsing of the CORBA module is a very particular case
+      if Get_Name_String (FEN.IDL_Name (Identifier (Entity))) = "CORBA" then
+         New_CORBA_Contents := FEU.New_List (K_List_Id, No_Location);
+
+         --  Creating the CORBA.Repository_Root
+         declare
+            Identifier         : Node_Id;
+            Module_Name        : Name_Id;
+         begin
+            CORBA_IR_Root_Node := FEU.New_Node (K_Module, No_Location);
+            Set_Str_To_Name_Buffer ("Repository_Root");
+            Module_Name := Name_Find;
+            Identifier := FEU.Make_Identifier
+              (Loc          => No_Location,
+               IDL_Name     => Module_Name,
+               Node         => No_Node,
+               Scope_Entity => Entity);
+            FEU.Bind_Identifier_To_Entity (Identifier, CORBA_IR_Root_Node);
+
+            Set_Definitions
+              (CORBA_IR_Root_Node,
+               FEU.New_List
+               (K_Definition_List,
+                No_Location));
+
+            FEU.Append_Node_To_List (CORBA_IR_Root_Node, Definitions (Entity));
+         end;
+
+         --  Relocating the CORBA Module entities
+         D := First_Entity (Definitions (Entity));
+         while Present (D) loop
+            Definition := D;
+            D := Next_Entity (D);
+
+            --  We must alterate the list because we dont want to append all
+            --  the elements before "Definition"
+            Set_Next_Entity (Definition, No_Node);
+
+            if Is_CORBA_IR_Entity (Definition) then
+                  Relocate (CORBA_IR_Root_Node, Definition);
+            else
+               FEU.Append_Node_To_List (Definition, New_CORBA_Contents);
+            end if;
+         end loop;
+
+         Set_Definitions (Entity, New_CORBA_Contents);
+
+      end if; --  Ebd of the CORBA Module special handling
+
       D := First_Entity (Definitions (Entity));
       while Present (D) loop
          Expand (D);
@@ -616,5 +725,128 @@ package body Backend.BE_Ada.Expand is
          Alternative := Next_Entity (Alternative);
       end loop;
    end Expand_Union_Type;
+
+   ------------------------
+   -- Is_CORBA_IR_Entity --
+   ------------------------
+
+   --  CORBA 3.0 Interface Repository entities
+
+   CORBA_IR_Names : constant array (Positive range <>) of String_Ptr
+     := (new String'("CORBA::AbstractInterfaceDef"),       --  interface
+         new String'("CORBA::AbstractInterfaceDefSeq"),    --  typedef/sequence
+         new String'("CORBA::AliasDef"),                   --  interface
+         new String'("CORBA::ArrayDef"),                   --  interface
+         new String'("CORBA::AttrDescriptionSeq"),         --  typedef/sequence
+         new String'("CORBA::AttributeDef"),               --  interface
+         new String'("CORBA::AttributeDescription"),       --  struct
+         new String'("CORBA::AttributeMode"),              --  enum
+         new String'("CORBA::ComponentIR"),                --  module
+         new String'("CORBA::ConstantDef"),                --  interface
+         new String'("CORBA::ConstantDescription"),        --  struct
+         new String'("CORBA::Contained"),                  --  interface
+         new String'("CORBA::ContainedSeq"),               --  typedef/sequence
+         new String'("CORBA::Container"),                  --  interface
+         new String'("CORBA::ContextIdentifier"),          --  typedef
+         new String'("CORBA::ContextIdSeq"),               --  typedef/sequence
+         new String'("CORBA::DefinitionKind"),             --  enum
+         new String'("CORBA::EnumDef"),                    --  interface
+         new String'("CORBA::EnumMemberSeq"),              --  typedef/sequence
+         new String'("CORBA::ExcDescriptionSeq"),          --  typedef/sequence
+         new String'("CORBA::ExceptionDef"),               --  interface
+         new String'("CORBA::ExceptionDefSeq"),            --  typedef/sequence
+         new String'("CORBA::ExceptionDescription"),       --  struct
+         new String'("CORBA::ExtAttrDescriptionSeq"),      --  typedef/sequence
+         new String'("CORBA::ExtAttributeDef"),            --  interface
+         new String'("CORBA::ExtAttributeDescription"),    --  struct
+         new String'("CORBA::ExtAbstractInterfaceDef"),    --  interface
+         new String'("CORBA::ExtAbstractInterfaceDefSeq"), --  typedef/sequence
+         new String'("CORBA::ExtInterfaceDef"),            --  interface
+         new String'("CORBA::ExtInterfaceDefSeq"),         --  typedef/sequence
+         new String'("CORBA::ExtInitializer"),             --  struct
+         new String'("CORBA::ExtInitializerSeq"),          --  typedef/sequence
+         new String'("CORBA::ExtLocalInterfaceDef"),       --  interface
+         new String'("CORBA::ExtLocalInterfaceDefSeq"),    --  typedef/sequence
+         new String'("CORBA::ExtValueDef"),                --  interface
+         new String'("CORBA::ExtValueDefSeq"),             --  typedef/sequence
+         new String'("CORBA::FixedDef"),                   --  interface
+         new String'("CORBA::IDLType"),                    --  interface
+         new String'("CORBA::InterfaceAttrExtension"),     --  interface
+         new String'("CORBA::InterfaceDef"),               --  interface
+         new String'("CORBA::InterfaceDefSeq"),            --  typedef/sequence
+         new String'("CORBA::InterfaceDescription"),       --  struct
+         new String'("CORBA::Initializer"),                --  struct
+         new String'("CORBA::InitializerSeq"),             --  typedef/sequence
+         new String'("CORBA::IRObject"),                   --  interface
+         new String'("CORBA::LocalInterfaceDef"),          --  interface
+         new String'("CORBA::LocalInterfaceDefSeq"),       --  typedef/sequence
+         new String'("CORBA::ModuleDef"),                  --  interface
+         new String'("CORBA::ModuleDescription"),          --  struct
+         new String'("CORBA::NativeDef"),                  --  interface
+         new String'("CORBA::OpDescriptionSeq"),           --  typedef/sequence
+         new String'("CORBA::OperationDef"),               --  interface
+         new String'("CORBA::OperationDescription"),       --  struct
+         new String'("CORBA::OperationMode"),              --  enum
+         new String'("CORBA::ParameterDescription"),       --  struct
+         new String'("CORBA::ParameterMode"),              --  enum
+         new String'("CORBA::ParDescriptionSeq"),          --  typedef/sequence
+         new String'("CORBA::PrimitiveDef"),               --  interface
+         new String'("CORBA::PrimitiveKind"),              --  enum
+         new String'("CORBA::Repository"),                 --  interface
+         new String'("CORBA::RepositoryIdSeq"),            --  typedef/sequence
+         new String'("CORBA::SequenceDef"),                --  interface
+         new String'("CORBA::StringDef"),                  --  interface
+         new String'("CORBA::StructDef"),                  --  interface
+         new String'("CORBA::StructMember"),               --  struct
+         new String'("CORBA::StructMemberSeq"),            --  typedef/sequence
+         new String'("CORBA::TypedefDef"),                 --  interface
+         new String'("CORBA::TypeDescription"),            --  struct
+         new String'("CORBA::UnionDef"),                   --  interface
+         new String'("CORBA::UnionMember"),                --  struct
+         new String'("CORBA::UnionMemberSeq"),             --  typedef/sequence
+         new String'("CORBA::ValueBoxDef"),                --  interface
+         new String'("CORBA::ValueDef"),                   --  interface
+         new String'("CORBA::ValueDefSeq"),                --  typedef/sequence
+         new String'("CORBA::ValueDescription"),           --  struct
+         new String'("CORBA::ValueMember"),                --  struct
+         new String'("CORBA::ValueMemberSeq"),             --  typedef/sequence
+         new String'("CORBA::ValueMemberDef"),             --  interface
+         new String'("CORBA::VersionSpec"),                --  typedef
+         new String'("CORBA::WstringDef"));
+
+   function Is_CORBA_IR_Entity (Entity : Node_Id) return Boolean is
+      NK               : constant FEN.Node_Kind := FEN.Kind (Entity);
+      N                : Node_Id := Entity;
+   begin
+      if NK /= K_Interface_Declaration
+        and then NK /= K_Forward_Interface_Declaration
+        and then NK /= K_Simple_Declarator
+        and then NK /= K_Complex_Declarator
+        and then NK /= K_Type_Declaration
+        and then NK /= K_Structure_Type
+        and then NK /= K_Enumeration_Type
+      then
+         return False;
+      end if;
+
+      if NK = K_Type_Declaration then
+         N := First_Entity (Declarators (Entity));
+      end if;
+
+      declare
+         Name : constant Name_Id := FEU.Fully_Qualified_Name
+           (Identifier (N),
+            Separator => "::");
+      begin
+         for J in CORBA_IR_Names'Range loop
+            if CORBA_IR_Names (J).all = Get_Name_String (Name) then
+               return True;
+            end if;
+         end loop;
+      end;
+
+      return False;
+
+   end Is_CORBA_IR_Entity;
 
 end Backend.BE_Ada.Expand;

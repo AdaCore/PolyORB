@@ -1440,7 +1440,7 @@ package body Parser is
 
    function P_Module return Node_Id is
       Identifier  : Node_Id;
-      Node      : Node_Id;
+      Node        : Node_Id;
       Definitions : List_Id;
       Definition  : Node_Id;
 
