@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#64 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#65 $
 
 @include version.texi
 
@@ -1237,6 +1237,18 @@ OPTIONS
 
        --idls
                Output flags to set up path to CORBA's IDL for idlac.
+
+       --with-appli-perso=P,P,P
+               Restrict output to only those flags relevant to the listed
+               applicative personalities.
+
+       --with-proto-perso=P,P,P
+               Restrict output to only those flags relevant to the listed
+               protocol personalities.
+
+       --with-services=S,S,S
+              Restrict output to only those flags relevant to the listed
+              services.
 
        --help  Print help message.
 
