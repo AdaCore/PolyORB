@@ -30,6 +30,15 @@ Options:
             Output the compiler flags to use for PolyORB.
         [--idls]
             Output flags to set up path to CORBA's IDL for idlac.
+        [--with-appli-perso=P,P,P]
+            Restrict output to only those flags relevant to the listed
+            applicative personalities.
+        [--with-proto-perso=P,P,P]
+            Restrict output to only those flags relevant to the listed
+            protocol personalities.
+        [--with-services=S,S,S]
+            Restrict output to only those flags relevant to the listed
+            services.
         [--help]
             Output this message
 EOF
@@ -81,6 +90,15 @@ while test $# -gt 0; do
     --cflags)
       echo_cflags=true
       ;;
+    --with-appli-perso=*)
+      appli=`echo ${optarg} | tr , ' '`
+      ;;
+    --with-proto-perso=*)
+      proto=`echo ${optarg} | tr , ' '`
+      ;;
+    --with-services=*)
+      services=`echo ${optarg} | tr , ' '`
+      ;;
     *)
       usage 1>&2
       exit 1
@@ -96,9 +114,13 @@ polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb"
 polyorb_lib="@XMLADA_LIBS@ -L${libdir}"
 corba_idl_dir=" -I${includedir}/polyorb/corba/idls"
 
-for P in $appli
-do
- polyorb_dir="$polyorb_dir -I${includedir}/polyorb/${P}"
+for P in $appli; do
+ Pdir="${includedir}/polyorb/${P}"
+ if [ ! -d "${Pdir}" ]; then
+  echo "Applicative personality $P is not available."
+  exit 1
+ fi
+ polyorb_dir="$polyorb_dir -I${Pdir}"
  polyorb_lib="$polyorb_lib -lpolyorb-${P}"
 
  if [ "x$P" = "xcorba" ]
@@ -108,8 +130,13 @@ do
    polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-time"
    for S in $services
    do
-      polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
-      corba_idl_dir="$corba_idl_dir -I${includedir}/polyorb/corba/idls/cos/${S}"
+    Sdir="${includedir}/polyorb/corba/idls/cos/${S}"
+    if [ ! -d "${Sdir}" ]; then
+     echo "Service $S is not available."
+     exit 1
+    fi
+    corba_idl_dir="$corba_idl_dir -I${Sdir}"
+    polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
    done
  fi 
 
@@ -120,9 +147,13 @@ do
  fi 
 done
 
-for P in $proto
-do
- polyorb_dir="$polyorb_dir -I${includedir}/polyorb/${P}"
+for P in $proto; do
+ Pdir="${includedir}/polyorb/${P}"
+ if [ ! -d "${Pdir}" ]; then
+  echo "Protocol personality $P is not available."
+  exit 1
+ fi
+ polyorb_dir="$polyorb_dir -I${Pdir}"
  polyorb_lib="$polyorb_lib -lpolyorb-${P}"
 
  if [ "x$P" = "xgiop" ]
