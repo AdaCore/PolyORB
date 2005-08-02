@@ -34,7 +34,6 @@
 --  Binding data concrete implementation for DIOP.
 
 with PolyORB.Buffers;
-with PolyORB.Sockets;
 with PolyORB.Types;
 
 package PolyORB.Binding_Data.GIOP.DIOP is
@@ -52,17 +51,6 @@ package PolyORB.Binding_Data.GIOP.DIOP is
    function Duplicate_Profile
      (P : DIOP_Profile_Type)
      return Profile_Access;
-
-   function Is_Local_Profile
-     (PF : access DIOP_Profile_Factory;
-      P  : access Profile_Type'Class)
-      return Boolean;
-
-   procedure Bind_Profile
-     (Profile :     DIOP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container);
 
    function Get_Profile_Tag (Profile : DIOP_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
@@ -99,15 +87,8 @@ private
    DIOP_Version_Major : constant Types.Octet := 1;
    DIOP_Version_Minor : constant Types.Octet := 0;
 
-   type DIOP_Profile_Type is new GIOP_Profile_Type with record
+   type DIOP_Profile_Type is new GIOP_Profile_Type with null record;
 
-      --  Socket information
-
-      Address       : Sockets.Sock_Addr_Type;
-   end record;
-
-   type DIOP_Profile_Factory is new GIOP_Profile_Factory with record
-      Address : Sockets.Sock_Addr_Type;
-   end record;
+   type DIOP_Profile_Factory is new GIOP_Profile_Factory with null record;
 
 end PolyORB.Binding_Data.GIOP.DIOP;

@@ -35,7 +35,6 @@
 
 with PolyORB.Buffers;
 with PolyORB.MIOP_P.Groups;
-with PolyORB.Sockets;
 with PolyORB.Types;
 
 package PolyORB.Binding_Data.GIOP.UIPMC is
@@ -55,17 +54,6 @@ package PolyORB.Binding_Data.GIOP.UIPMC is
    function Duplicate_Profile
      (P : UIPMC_Profile_Type)
      return Profile_Access;
-
-   procedure Bind_Profile
-     (Profile :     UIPMC_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container);
-
-   function Is_Local_Profile
-     (PF : access UIPMC_Profile_Factory;
-      P  : access Profile_Type'Class)
-     return Boolean;
 
    function Get_Profile_Tag (Profile : UIPMC_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
@@ -97,26 +85,15 @@ package PolyORB.Binding_Data.GIOP.UIPMC is
 
 private
 
-   --  Default TTL value
-
-   Default_TTL : constant Natural := 15;
-
    --  UIPMC version
 
    UIPMC_Version_Major : constant Types.Octet := 1;
    UIPMC_Version_Minor : constant Types.Octet := 0;
 
    type UIPMC_Profile_Type is new GIOP_Profile_Type with record
-
-      --  Socket information
-
-      Address : Sockets.Sock_Addr_Type;
-
       G_I : PolyORB.MIOP_P.Groups.Group_Info_Access;
    end record;
 
-   type UIPMC_Profile_Factory is new GIOP_Profile_Factory with record
-      Address : Sockets.Sock_Addr_Type;
-   end record;
+   type UIPMC_Profile_Factory is new GIOP_Profile_Factory with null record;
 
 end PolyORB.Binding_Data.GIOP.UIPMC;

@@ -83,6 +83,9 @@ package PolyORB.GIOP_P.Tagged_Components is
    Null_Tagged_Component_List : constant Tagged_Component_List;
    --  Empty list
 
+   type Tagged_Component_Array is
+     array (Positive range <>) of Tagged_Component_Access;
+
    procedure Release_Contents (List : in out Tagged_Component_List);
    --  Free memory for all tags in List
 
@@ -102,6 +105,13 @@ package PolyORB.GIOP_P.Tagged_Components is
      return Tagged_Component_Access;
    --  Search and return a component in a tagged component list
 
+   function Get_Components
+     (List : Tagged_Component_List;
+      Tag  : Tag_Value)
+     return Tagged_Component_Array;
+   --  Search and return all components with specified Tag in a tagged
+   --  component list.
+
    function Fetch_Components
      (Oid : access PolyORB.Objects.Object_Id)
      return Tagged_Component_List;
@@ -112,6 +122,11 @@ package PolyORB.GIOP_P.Tagged_Components is
      (List : in out Tagged_Component_List;
       C    :        Tagged_Component_Access);
    --  Add a component in a tagged component list
+
+   procedure Add
+     (List : in out Tagged_Component_List;
+      CL   :        Tagged_Component_List);
+   --  Add a list of components in a tagged component list
 
    procedure Replace
      (List : in out Tagged_Component_List;

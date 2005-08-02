@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.BINDING_DATA.GIOP.DIOP.PRINT                    --
+--         POLYORB.GIOP_P.TAGGED_COMPONENTS.ALTERNATE_IIOP_ADDRESS          --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,49 +31,82 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Common;
-with Output;
-
-with PolyORB.Binding_Data.Print;
-with PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
 with PolyORB.Initialization;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
-with PolyORB.GIOP_P.Tagged_Components.Print;
+package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
 
-package body PolyORB.Binding_Data.GIOP.DIOP.Print is
+   use PolyORB.Utils.Sockets;
 
-   ------------------------
-   -- Print_DIOP_Profile --
-   ------------------------
+   function Create_Empty_Component return Tagged_Component_Access;
 
-   procedure Print_DIOP_Profile (Prof : Profile_Access) is
-      use Common;
-      use Output;
+--   function Fetch_Component
+--     (Oid : access PolyORB.Objects.Object_Id)
+--      return Tagged_Component_Access;
+--
+--  Alternate_IIOP_Address tag created by IIOP Transport Mechanism factory,
+--  thus no fetch function needed.
 
-      use PolyORB.GIOP_P.Tagged_Components.Print;
-      use PolyORB.GIOP_P.Transport_Mechanisms;
-      use PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
-      use PolyORB.Utils;
+   ----------------------------
+   -- Create_Empty_Component --
+   ----------------------------
 
-      DIOP_Prof : DIOP_Profile_Type renames DIOP_Profile_Type (Prof.all);
-
+   function Create_Empty_Component return Tagged_Component_Access is
    begin
-      Inc_Indent;
+      return new TC_Alternate_IIOP_Address;
+   end Create_Empty_Component;
 
-      Put_Line ("DIOP Version",
-                Trimmed_Image (Integer (DIOP_Prof.Version_Major))
-                & "." & Trimmed_Image (Integer (DIOP_Prof.Version_Minor)));
+   ----------------------
+   -- Release_Contents --
+   ----------------------
 
-      Output_Address_Information
-        (Address_Of
-         (DIOP_Transport_Mechanism
-          (Element (DIOP_Prof.Mechanisms, 0).all.all)));
+   procedure Release_Contents (C : access TC_Alternate_IIOP_Address) is
+      pragma Unreferenced (C);
+   begin
+      null;
+   end Release_Contents;
 
-      Output_Tagged_Components (DIOP_Prof.Components);
+   --------------
+   -- Marshall --
+   --------------
 
-      Dec_Indent;
-   end Print_DIOP_Profile;
+   procedure Marshall
+     (C      : access TC_Alternate_IIOP_Address;
+      Buffer : access Buffer_Type)
+   is
+   begin
+      Marshall_Socket (Buffer, C.Address);
+   end Marshall;
+
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (C      : access TC_Alternate_IIOP_Address;
+      Buffer : access Buffer_Type)
+   is
+   begin
+      Unmarshall_Socket (Buffer, C.Address);
+   end Unmarshall;
+
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate
+     (C : TC_Alternate_IIOP_Address)
+     return Tagged_Component_Access
+   is
+      Result : constant Tagged_Component_Access
+        := new TC_Alternate_IIOP_Address;
+   begin
+      TC_Alternate_IIOP_Address (Result.all).Address := C.Address;
+
+      return Result;
+   end Duplicate;
+
 
    ----------------
    -- Initialize --
@@ -83,21 +116,22 @@ package body PolyORB.Binding_Data.GIOP.DIOP.Print is
 
    procedure Initialize is
    begin
-      PolyORB.Binding_Data.Print.Register
-        (Tag_DIOP, Print_DIOP_Profile'Access);
+      Register
+        (Tag_Alternate_IIOP_Address,
+         Create_Empty_Component'Access,
+         null);
    end Initialize;
 
    use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"polyorb.binding_data.diop.print",
+      (Name      => +"tagged_components.alternate_iiop_address",
        Conflicts => PolyORB.Initialization.String_Lists.Empty,
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
        Init      => Initialize'Access));
-end PolyORB.Binding_Data.GIOP.DIOP.Print;
+end PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;

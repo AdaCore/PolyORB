@@ -6,6 +6,7 @@ alidir = $(includedir)/polyorb/giop/miop
 
 ADA_SPECS_WITH_BODY = \
 	polyorb-binding_data-giop-uipmc.ads \
+	polyorb-giop_p-transport_mechanisms-uipmc.ads \
 	polyorb-setup-uipmc.ads \
 	polyorb-miop_p-groups.ads \
 	polyorb-miop_p-tagged_components.ads \

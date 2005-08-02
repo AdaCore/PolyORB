@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#65 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#66 $
 
 @include version.texi
 
@@ -2508,6 +2508,9 @@ Here is a summary of available parameters for each instance of GIOP.
 
 # IIOP's default port
 #polyorb.protocols.iiop.default_port=2809
+
+# IIOP's alternate addresses
+#polyorb.protocols.iiop.alternate_listen_addresses=127.0.0.1:2810 127.0.0.1:2820
 
 # Default GIOP/IIOP Version
 #polyorb.protocols.iiop.giop.default_version.major=1

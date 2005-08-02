@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 POLYORB.GIOP_P.TAGGED_COMPONENTS.PRINT                   --
+--      POLYORB.GIOP_P.TAGGED_COMPONENTS.ALTERNATE_IIOP_ADDRESS.PRINT       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,78 +31,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Common;
 with Output;
 
-with PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print;
-with PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print;
-with PolyORB.GIOP_P.Tagged_Components.Policies.Print;
+package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print is
 
-with PolyORB.Utils;
+   use Common;
+   use Output;
 
-package body PolyORB.GIOP_P.Tagged_Components.Print is
+   ---------------
+   -- Output_TC --
+   ---------------
 
-   ------------------------------
-   -- Output_Tagged_Components --
-   ------------------------------
-
-   procedure Output_Tagged_Components
-     (TCs : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List)
-   is
-      use Output;
-
-      use PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print;
-      use PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;
-      use PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print;
-      use PolyORB.GIOP_P.Tagged_Components.Code_Sets;
-      use PolyORB.GIOP_P.Tagged_Components.Policies.Print;
-      use PolyORB.GIOP_P.Tagged_Components.Policies;
-
-      use PolyORB.Utils;
-
-      TC : Tagged_Component_Access;
-
-      It : Iterator := First (TCs);
-      J : Natural := 1;
+   procedure Output_TC (TC : TC_Alternate_IIOP_Address) is
    begin
-      Put_Line ("Tagged components",
-                Integer'Image (Length (TCs)));
+      Inc_Indent;
+      Output_Address_Information (TC.Address);
+      Dec_Indent;
+   end Output_TC;
 
-      while not Last (It) loop
-         TC := Value (It).all;
-         Inc_Indent;
-
-         Put_Line ("Component #" & Trimmed_Image (J), "");
-         J := J + 1;
-
-         Inc_Indent;
-
-         Put_Line ("Tag", TC.Tag'Img);
-
-         case TC.Tag is
-            when Tag_Code_Sets =>
-               Put_Line ("Type", "TAG_Code_Sets");
-               Output_TC (TC_Code_Sets (TC.all));
-
-            when Tag_Policies =>
-               Put_Line ("Type", "TAG_Policies");
-               Output_TC (TC_Policies (TC.all));
-
-            when Tag_Alternate_IIOP_Address =>
-               Put_Line ("Type", "TAG_Alternate_IIOP_Address");
-               Output_TC (TC_Alternate_IIOP_Address (TC.all));
-
-            when Tag_Group =>
-               Put_Line ("Type", "TAG_Group");
-
-            when others =>
-               null;
-         end case;
-
-         Dec_Indent;
-
-         Dec_Indent;
-         Next (It);
-      end loop;
-   end Output_Tagged_Components;
-
-end PolyORB.GIOP_P.Tagged_Components.Print;
+end PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print;

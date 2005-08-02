@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,17 +26,97 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 package body PolyORB.Binding_Data.GIOP is
 
+   use PolyORB.Errors;
    use PolyORB.GIOP_P.Tagged_Components;
+   use PolyORB.GIOP_P.Transport_Mechanisms;
 
    use PolyORB.Objects;
    use PolyORB.Types;
+
+   ------------------
+   -- Bind_Profile --
+   ------------------
+
+   procedure Bind_Profile
+     (Profile :     GIOP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
+      Error   : out Errors.Error_Container)
+   is
+      use Transport_Mechanism_Lists;
+
+      Iter : Transport_Mechanism_Lists.Iterator
+        := First (Profile.Mechanisms);
+
+   begin
+      --  Go through all transport mechanism and try to bind it until
+      --  bind successfully complete or no more transport mechanisms.
+
+      --  XXX This is a temporary implementation. It is not conformant
+      --  with PortableInterceptors and RebindPolicy specifications.
+
+      while not Last (Iter) loop
+         Catch (Error);
+         Bind_Mechanism (Value (Iter).all.all, The_ORB, BO_Ref, Error);
+
+         exit when not Found (Error);
+
+         Next (Iter);
+      end loop;
+   end Bind_Profile;
+
+   ----------------------
+   -- Is_Local_Profile --
+   ----------------------
+
+   function Is_Local_Profile
+     (PF : access GIOP_Profile_Factory;
+      P  : access Profile_Type'Class)
+      return Boolean
+   is
+      use Transport_Mechanism_Lists;
+      use Transport_Mechanism_Factory_Lists;
+
+      F_Iter : Transport_Mechanism_Factory_Lists.Iterator
+        := First (PF.Mechanisms);
+
+   begin
+      if P.all not in GIOP_Profile_Type'Class then
+         return False;
+      end if;
+
+      --  Profile designates a local object if at least one of its
+      --  transport mechanism is local.
+
+      while not Last (F_Iter) loop
+         declare
+            M_Iter : Transport_Mechanism_Lists.Iterator
+              := First (GIOP_Profile_Type (P.all).Mechanisms);
+
+         begin
+            while not Last (M_Iter) loop
+               if Is_Local_Mechanism
+                    (Value (F_Iter).all, Value (M_Iter).all)
+               then
+                  return True;
+               end if;
+
+               Next (M_Iter);
+            end loop;
+         end;
+
+         Next (F_Iter);
+      end loop;
+
+      return False;
+   end Is_Local_Profile;
 
    -------------------
    -- Get_Component --
@@ -59,6 +139,7 @@ package body PolyORB.Binding_Data.GIOP is
    begin
       Free (P.Object_Id);
       Release_Contents (P.Components);
+      Release_Contents (P.Mechanisms);
    end Release;
 
 end PolyORB.Binding_Data.GIOP;

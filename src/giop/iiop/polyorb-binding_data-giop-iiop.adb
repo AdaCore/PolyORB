@@ -34,28 +34,28 @@
 --  Binding data concrete implementation for IIOP.
 
 with PolyORB.Binding_Data.GIOP.INET;
-with PolyORB.Binding_Objects;
-with PolyORB.Filters.Slicers;
+with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.Protocols.GIOP.IIOP;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
-with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.GIOP.IIOP is
 
    use PolyORB.Binding_Data.GIOP.INET;
+   use PolyORB.Binding_Data.GIOP.IIOP;
    use PolyORB.GIOP_P.Tagged_Components;
+   use PolyORB.GIOP_P.Transport_Mechanisms;
+   use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.References.Corbaloc;
    use PolyORB.References.IOR;
-   use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log
@@ -72,60 +72,17 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    function Profile_To_Corbaloc (P : Profile_Access) return String;
    function Corbaloc_To_Profile (Str : String) return Profile_Access;
 
-   ------------------
-   -- Bind_Profile --
-   ------------------
+   -------------------------------------
+   -- Add_Transport_Mechanism_Factory --
+   -------------------------------------
 
-   --  Factories
-
-   Sli            : aliased PolyORB.Filters.Slicers.Slicer_Factory;
-   Pro            : aliased PolyORB.Protocols.GIOP.IIOP.IIOP_Protocol;
-   IIOP_Factories : constant PolyORB.Filters.Factory_Array
-     := (0 => Sli'Access, 1 => Pro'Access);
-
-   procedure Bind_Profile
-     (Profile :     IIOP_Profile_Type;
-      The_ORB :     Components.Component_Access;
-      BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Errors.Error_Container)
+   procedure Add_Transport_Mechanism_Factory
+     (PF : in out IIOP_Profile_Factory;
+      MF :        Transport_Mechanism_Factory_Access)
    is
-      use PolyORB.Components;
-      use PolyORB.Errors;
-      use PolyORB.Filters;
-      use PolyORB.ORB;
-      use PolyORB.Protocols;
-      use PolyORB.Protocols.GIOP;
-      use PolyORB.Protocols.GIOP.IIOP;
-      use PolyORB.Sockets;
-
-      Sock        : Socket_Type;
-      Remote_Addr : Sock_Addr_Type := Profile.Address;
-      TE          : constant Transport.Transport_Endpoint_Access :=
-        new Socket_Endpoint;
-
    begin
-      pragma Debug (O ("Bind IIOP profile: enter"));
-
-      Create_Socket (Sock);
-      Connect_Socket (Sock, Remote_Addr);
-      Create (Socket_Endpoint (TE.all), Sock);
-      Set_Allocation_Class (TE.all, Dynamic);
-
-      Binding_Objects.Setup_Binding_Object
-        (ORB.ORB_Access (The_ORB),
-         TE,
-         IIOP_Factories,
-         ORB.Client,
-         BO_Ref);
-
-      pragma Debug (O ("Bind IIOP profile: leave"));
-
-   exception
-      when Sockets.Socket_Error =>
-         Throw (Error, Comm_Failure_E,
-                System_Exception_Members'
-                (Minor => 0, Completed => Completed_Maybe));
-   end Bind_Profile;
+      Append (PF.Mechanisms, MF);
+   end Add_Transport_Mechanism_Factory;
 
    ---------------------
    -- Get_Profile_Tag --
@@ -152,6 +109,20 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       return Preference;
    end Get_Profile_Preference;
 
+   ------------------------------
+   -- Get_Primary_IIOP_Address --
+   ------------------------------
+
+   function Get_Primary_IIOP_Address
+     (Profile : IIOP_Profile_Type)
+     return PolyORB.Sockets.Sock_Addr_Type
+   is
+   begin
+      return
+        Address_Of
+        (IIOP_Transport_Mechanism (Element (Profile.Mechanisms, 0).all.all));
+   end Get_Primary_IIOP_Address;
+
    --------------------
    -- Create_Factory --
    --------------------
@@ -163,8 +134,12 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    is
       pragma Unreferenced (ORB);
 
+      MF : constant Transport_Mechanism_Factory_Access
+        := new IIOP_Transport_Mechanism_Factory;
+
    begin
-      PF.Address := Address_Of (Socket_Access_Point (TAP.all));
+      Create_Factory (MF.all, TAP);
+      Append (PF.Mechanisms, MF);
    end Create_Factory;
 
    --------------------
@@ -177,20 +152,47 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      return Profile_Access
    is
       use PolyORB.GIOP_P.Tagged_Components;
+      use Transport_Mechanism_Factory_Lists;
 
-      Result : constant Profile_Access := new IIOP_Profile_Type;
-
+      Result  : constant Profile_Access := new IIOP_Profile_Type;
       TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
+
+      Iter    : Transport_Mechanism_Factory_Lists.Iterator
+        := First (PF.Mechanisms);
 
    begin
       TResult.Version_Major := IIOP_Version_Major;
       TResult.Version_Minor := IIOP_Version_Minor;
       TResult.Object_Id     := new Object_Id'(Oid);
-      TResult.Address       := PF.Address;
+
+      --  Create primary transport mechanism
+
+      Append
+        (TResult.Mechanisms,
+         Create_Transport_Mechanism
+         (IIOP_Transport_Mechanism_Factory (Value (Iter).all.all)));
 
       --  Fetch tagged components for Oid
 
       TResult.Components := Fetch_Components (TResult.Object_Id);
+
+      --  Create tagged components for additional transport mechanisms
+
+      Next (Iter);
+
+      while not Last (Iter) loop
+         Add
+           (TResult.Components,
+            Create_Tagged_Components (Value (Iter).all.all));
+
+         Next (Iter);
+      end loop;
+
+      --  Calculate additional transport mechanisms
+
+      TResult.Mechanisms :=
+        TResult.Mechanisms
+        & Create_Transport_Mechanisms (TResult.Components, Result);
 
       return Result;
    end Create_Profile;
@@ -199,10 +201,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile
-     (P : IIOP_Profile_Type)
-     return Profile_Access
-   is
+   function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access is
       use PolyORB.Objects;
 
       Result : constant Profile_Access := new IIOP_Profile_Type;
@@ -216,27 +215,11 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       TResult.Version_Major := PP.Version_Major;
       TResult.Version_Minor := PP.Version_Minor;
       TResult.Object_Id     := new Object_Id'(PP.Object_Id.all);
-      TResult.Address       := PP.Address;
       TResult.Components    := Deep_Copy (PP.Components);
+      TResult.Mechanisms    := Deep_Copy (PP.Mechanisms);
 
       return Result;
    end Duplicate_Profile;
-
-   ----------------------
-   -- Is_Local_Profile --
-   ----------------------
-
-   function Is_Local_Profile
-     (PF : access IIOP_Profile_Factory;
-      P  : access Profile_Type'Class)
-      return Boolean
-   is
-      use type PolyORB.Sockets.Sock_Addr_Type;
-
-   begin
-      return P.all in IIOP_Profile_Type
-        and then IIOP_Profile_Type (P.all).Address = PF.Address;
-   end Is_Local_Profile;
 
    --------------------------------
    -- Marshall_IIOP_Profile_Body --
@@ -248,7 +231,10 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    is
    begin
       Common_Marshall_Profile_Body
-        (Buf, Profile, IIOP_Profile_Type (Profile.all).Address, True);
+        (Buf,
+         Profile,
+         Get_Primary_IIOP_Address (IIOP_Profile_Type (Profile.all)),
+         True);
    end Marshall_IIOP_Profile_Body;
 
    ----------------------------------
@@ -259,11 +245,24 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      (Buffer : access Buffer_Type)
       return Profile_Access
    is
-      Result : constant Profile_Access := new IIOP_Profile_Type;
+      Result  : constant Profile_Access := new IIOP_Profile_Type;
+      TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
+      Address : PolyORB.Sockets.Sock_Addr_Type;
 
    begin
-      Common_Unmarshall_Profile_Body
-        (Buffer, Result, IIOP_Profile_Type (Result.all).Address, True, False);
+      Common_Unmarshall_Profile_Body (Buffer, Result, Address, True, False);
+
+      --  Create primary transport mechanism
+
+      Append (TResult.Mechanisms, Create_Transport_Mechanism (Address));
+
+      --  Calculate additional transport mechanisms
+
+      TResult.Mechanisms :=
+        TResult.Mechanisms
+        & Create_Transport_Mechanisms
+        (IIOP_Profile_Type (Result.all).Components,
+         Result);
 
       return Result;
    end Unmarshall_IIOP_Profile_Body;
@@ -275,7 +274,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    function Image (Prof : IIOP_Profile_Type) return String is
    begin
       return "Address : "
-        & PolyORB.Sockets.Image (Prof.Address)
+        & PolyORB.Sockets.Image (Get_Primary_IIOP_Address (Prof))
         & ", Object_Id : "
         & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
@@ -288,7 +287,9 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    begin
       pragma Debug (O ("IIOP Profile to corbaloc"));
       return Common_IIOP_DIOP_Profile_To_Corbaloc
-        (P, IIOP_Profile_Type (P.all).Address, IIOP_Corbaloc_Prefix);
+        (P,
+         Get_Primary_IIOP_Address (IIOP_Profile_Type (P.all)),
+         IIOP_Corbaloc_Prefix);
    end Profile_To_Corbaloc;
 
    -------------------------
@@ -296,11 +297,19 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -------------------------
 
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
-      Result : Profile_Access := new IIOP_Profile_Type;
+      Result  : Profile_Access := new IIOP_Profile_Type;
+      Address : Sockets.Sock_Addr_Type;
+
    begin
       Common_IIOP_DIOP_Corbaloc_To_Profile
-        (Str, IIOP_Version_Major, IIOP_Version_Minor, Result,
-         IIOP_Profile_Type (Result.all).Address);
+        (Str, IIOP_Version_Major, IIOP_Version_Minor, Result, Address);
+
+      --  Create primary transport mechanism
+
+      Append
+        (IIOP_Profile_Type (Result.all).Mechanisms,
+         Create_Transport_Mechanism (Address));
+
       return Result;
    end Corbaloc_To_Profile;
 

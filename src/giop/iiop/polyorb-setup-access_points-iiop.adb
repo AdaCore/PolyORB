@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Setup for IIOP access point.
 
 with PolyORB.Binding_Data.GIOP.IIOP;
+with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Protocols.GIOP.IIOP;
 
@@ -52,8 +53,11 @@ with PolyORB.Utils.TCP_Access_Points;
 
 package body PolyORB.Setup.Access_Points.IIOP is
 
+   use PolyORB.Binding_Data.GIOP.IIOP;
    use PolyORB.Filters;
    use PolyORB.Filters.Slicers;
+   use PolyORB.GIOP_P.Transport_Mechanisms;
+   use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
    use PolyORB.ORB;
    use PolyORB.Sockets;
    use PolyORB.Transport.Connected.Sockets;
@@ -61,7 +65,7 @@ package body PolyORB.Setup.Access_Points.IIOP is
 
    --  The IIOP access point
 
-   IIOP_Access_Point : Access_Point_Info
+   Primary_IIOP_Access_Point : Access_Point_Info
      := (Socket  => No_Socket,
          Address => No_Sock_Addr,
          SAP     => new Socket_Access_Point,
@@ -84,27 +88,127 @@ package body PolyORB.Setup.Access_Points.IIOP is
    begin
       if Get_Conf ("access_points", "iiop", True) then
          declare
-            Port : constant Port_Type
+            Primary_Port : constant Port_Type
               := Port_Type
               (Get_Conf
                ("iiop",
                 "polyorb.protocols.iiop.default_port",
                 Integer (Any_Port)));
 
-            Addr : constant Inet_Addr_Type
+            Primary_Addr : constant Inet_Addr_Type
               := Inet_Addr (String'(Get_Conf
                                     ("iiop",
                                      "polyorb.protocols.iiop.default_addr",
                                      Image (No_Inet_Addr))));
 
+            Alternate_Listen_Addresses : constant String
+              := Get_Conf ("iiop",
+                           "polyorb.protocols.iiop.alternate_listen_addresses",
+                           "");
+
          begin
-            Initialize_Socket (IIOP_Access_Point, Addr, Port);
+            Initialize_Socket
+              (Primary_IIOP_Access_Point, Primary_Addr, Primary_Port);
 
             Register_Access_Point
               (ORB    => The_ORB,
-               TAP    => IIOP_Access_Point.SAP,
+               TAP    => Primary_IIOP_Access_Point.SAP,
                Chain  => IIOP_Factories'Access,
-               PF     => IIOP_Access_Point.PF);
+               PF     => Primary_IIOP_Access_Point.PF);
+
+            if Alternate_Listen_Addresses /= "" then
+               declare
+                  First : Positive := Alternate_Listen_Addresses'First;
+                  Last  : Natural  := 0;
+                  Delim : Natural  := 0;
+
+               begin
+                  while First <= Alternate_Listen_Addresses'Last loop
+                     --  Skip all spaces
+
+                     for J in First .. Alternate_Listen_Addresses'Last loop
+                        if Alternate_Listen_Addresses (J) /= ' ' then
+                           First := J;
+                           exit;
+                        end if;
+                     end loop;
+
+                     --  Find end of address
+
+                     for J in First .. Alternate_Listen_Addresses'Last loop
+                        if Alternate_Listen_Addresses (J) = ' ' then
+                           Last := J - 1;
+                           exit;
+
+                        elsif J = Alternate_Listen_Addresses'Last then
+                           Last := J;
+                        end if;
+                     end loop;
+
+                     --  Find host/port delimiter
+
+                     Delim := Last + 1;
+
+                     for J in First .. Last loop
+                        if Alternate_Listen_Addresses (J) = ':' then
+                           Delim := J;
+                           exit;
+                        end if;
+                     end loop;
+
+                     --  Create transport mechanism factory, create
+                     --  transport access point and register it.
+
+                     declare
+                        Alternate_IIOP_Access_Point : Access_Point_Info
+                          := (Socket  => No_Socket,
+                              Address => No_Sock_Addr,
+                              SAP     => new Socket_Access_Point,
+                              PF      => null);
+
+                        Factory : constant Transport_Mechanism_Factory_Access
+                          := new IIOP_Transport_Mechanism_Factory;
+
+                        Alternate_Addr : constant Inet_Addr_Type
+                          := Inet_Addr
+                          (Alternate_Listen_Addresses (First .. Delim - 1));
+
+                        Alternate_Port : Port_Type := Any_Port;
+
+                     begin
+                        if Delim < Last then
+                           Alternate_Port :=
+                             Port_Type'Value
+                             (Alternate_Listen_Addresses (Delim + 1 .. Last));
+                        end if;
+
+                        if Alternate_Addr /= No_Inet_Addr then
+                           Initialize_Socket
+                             (Alternate_IIOP_Access_Point,
+                              Alternate_Addr,
+                              Alternate_Port);
+
+                           Create_Factory
+                             (IIOP_Transport_Mechanism_Factory (Factory.all),
+                              Alternate_IIOP_Access_Point.SAP);
+
+                           Add_Transport_Mechanism_Factory
+                             (IIOP_Profile_Factory
+                              (Primary_IIOP_Access_Point.PF.all),
+                              Factory);
+
+                           Register_Access_Point
+                             (ORB    => The_ORB,
+                              TAP    => Alternate_IIOP_Access_Point.SAP,
+                              Chain  => IIOP_Factories'Access,
+                              PF     => null);
+                        end if;
+                     end;
+
+                     First := Last + 1;
+                  end loop;
+               end;
+            end if;
          end;
       end if;
    end Initialize_Access_Points;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,17 +26,24 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.GIOP_P.Tagged_Components;
+with PolyORB.GIOP_P.Transport_Mechanisms;
 
 package PolyORB.Binding_Data.GIOP is
 
    type GIOP_Profile_Type is abstract new Profile_Type with private;
    type GIOP_Profile_Factory is abstract new Profile_Factory with private;
+
+   procedure Bind_Profile
+     (Profile :     GIOP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
+      Error   : out Errors.Error_Container);
 
    procedure Release (P : in out GIOP_Profile_Type);
 
@@ -44,6 +51,11 @@ package PolyORB.Binding_Data.GIOP is
      (P : in GIOP_Profile_Type;
       C : in PolyORB.GIOP_P.Tagged_Components.Tag_Value)
       return PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
+
+   function Is_Local_Profile
+     (PF : access GIOP_Profile_Factory;
+      P  : access Profile_Type'Class)
+      return Boolean;
 
 private
 
@@ -54,8 +66,16 @@ private
       --  Tagged components list
 
       Components    : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List;
+
+      --  Transport mechanisms list
+
+      Mechanisms    :
+        PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_List;
    end record;
 
-   type GIOP_Profile_Factory is abstract new Profile_Factory with null record;
+   type GIOP_Profile_Factory is abstract new Profile_Factory with record
+      Mechanisms :
+        PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Factory_List;
+   end record;
 
 end PolyORB.Binding_Data.GIOP;

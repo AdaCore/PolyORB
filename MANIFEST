@@ -942,6 +942,8 @@ src/giop/diop/Makefile.am
 src/giop/diop/Makefile.in
 src/giop/diop/polyorb-binding_data-giop-diop.adb
 src/giop/diop/polyorb-binding_data-giop-diop.ads
+src/giop/diop/polyorb-giop_p-transport_mechanisms-diop.adb
+src/giop/diop/polyorb-giop_p-transport_mechanisms-diop.ads
 src/giop/diop/polyorb-protocols-giop-diop.adb
 src/giop/diop/polyorb-protocols-giop-diop.ads
 src/giop/diop/polyorb-setup-access_points-diop.adb
@@ -953,6 +955,10 @@ src/giop/iiop/Makefile.am
 src/giop/iiop/Makefile.in
 src/giop/iiop/polyorb-binding_data-giop-iiop.adb
 src/giop/iiop/polyorb-binding_data-giop-iiop.ads
+src/giop/iiop/polyorb-giop_p-tagged_components-alternate_iiop_address.adb
+src/giop/iiop/polyorb-giop_p-tagged_components-alternate_iiop_address.ads
+src/giop/iiop/polyorb-giop_p-transport_mechanisms-iiop.adb
+src/giop/iiop/polyorb-giop_p-transport_mechanisms-iiop.ads
 src/giop/iiop/polyorb-protocols-giop-iiop.adb
 src/giop/iiop/polyorb-protocols-giop-iiop.ads
 src/giop/iiop/polyorb-setup-access_points-iiop.adb
@@ -969,6 +975,8 @@ src/giop/miop/polyorb-filters-miop-miop_out.adb
 src/giop/miop/polyorb-filters-miop-miop_out.ads
 src/giop/miop/polyorb-filters-miop.adb
 src/giop/miop/polyorb-filters-miop.ads
+src/giop/miop/polyorb-giop_p-transport_mechanisms-uipmc.adb
+src/giop/miop/polyorb-giop_p-transport_mechanisms-uipmc.ads
 src/giop/miop/polyorb-miop_p-groups.adb
 src/giop/miop/polyorb-miop_p-groups.ads
 src/giop/miop/polyorb-miop_p-tagged_components.adb
@@ -1000,6 +1008,8 @@ src/giop/polyorb-giop_p-tagged_components-policies.adb
 src/giop/polyorb-giop_p-tagged_components-policies.ads
 src/giop/polyorb-giop_p-tagged_components.adb
 src/giop/polyorb-giop_p-tagged_components.ads
+src/giop/polyorb-giop_p-transport_mechanisms.adb
+src/giop/polyorb-giop_p-transport_mechanisms.ads
 src/giop/polyorb-giop_p.ads
 src/giop/polyorb-protocols-giop-common.adb
 src/giop/polyorb-protocols-giop-common.ads
@@ -1589,6 +1599,8 @@ tools/po_catref/polyorb-binding_data-soap-print.adb
 tools/po_catref/polyorb-binding_data-soap-print.ads
 tools/po_catref/polyorb-binding_data-srp-print.adb
 tools/po_catref/polyorb-binding_data-srp-print.ads
+tools/po_catref/polyorb-giop_p-tagged_components-alternate_iiop_address-print.adb
+tools/po_catref/polyorb-giop_p-tagged_components-alternate_iiop_address-print.ads
 tools/po_catref/polyorb-giop_p-tagged_components-code_sets-print.adb
 tools/po_catref/polyorb-giop_p-tagged_components-code_sets-print.ads
 tools/po_catref/polyorb-giop_p-tagged_components-policies-print.adb

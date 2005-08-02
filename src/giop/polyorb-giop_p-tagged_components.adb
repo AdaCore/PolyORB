@@ -265,6 +265,36 @@ package body PolyORB.GIOP_P.Tagged_Components is
       return null;
    end Get_Component;
 
+   --------------------
+   -- Get_Components --
+   --------------------
+
+   function Get_Components
+     (List : Tagged_Component_List;
+      Tag  : Tag_Value)
+     return Tagged_Component_Array
+   is
+      It     : Iterator := First (List);
+      Result : Tagged_Component_Array (1 .. Length (List));
+      RLast  : Natural := 0;
+
+   begin
+      if Tag = Tag_Value'Last then
+         return Result (1 .. 0);
+      end if;
+
+      while not Last (It) loop
+         if Value (It).all.Tag = Tag then
+            RLast := RLast + 1;
+            Result (RLast) := Value (It).all;
+         end if;
+
+         Next (It);
+      end loop;
+
+      return Result (1 .. RLast);
+   end Get_Components;
+
    ----------------------
    -- Fetch_Components --
    ----------------------
@@ -302,6 +332,14 @@ package body PolyORB.GIOP_P.Tagged_Components is
                        (PolyORB.Types.Unsigned_Long (C.Tag))));
 
       Append (List, C);
+   end Add;
+
+   procedure Add
+     (List : in out Tagged_Component_List;
+      CL   :        Tagged_Component_List)
+   is
+   begin
+      List := List & CL;
    end Add;
 
    -------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,11 +35,12 @@ with Common;
 with Output;
 
 with PolyORB.Binding_Data.Print;
+with PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;
 with PolyORB.Initialization;
-
-with PolyORB.GIOP_P.Tagged_Components.Print;
 with PolyORB.MIOP_P.Groups;
 with PolyORB.Utils.Strings;
+
+with PolyORB.GIOP_P.Tagged_Components.Print;
 
 package body PolyORB.Binding_Data.GIOP.UIPMC.Print is
 
@@ -51,21 +52,23 @@ package body PolyORB.Binding_Data.GIOP.UIPMC.Print is
       use Common;
       use Output;
 
-      use PolyORB.MIOP_P.Groups;
-
       use PolyORB.GIOP_P.Tagged_Components.Print;
+      use PolyORB.GIOP_P.Transport_Mechanisms;
+      use PolyORB.GIOP_P.Transport_Mechanisms.UIPMC;
+      use PolyORB.MIOP_P.Groups;
 
       UIPMC_Prof : UIPMC_Profile_Type renames UIPMC_Profile_Type (Prof.all);
 
    begin
       Inc_Indent;
 
-      Output_Address_Information (UIPMC_Prof.Address);
+      Output_Address_Information
+        (Address_Of
+         (UIPMC_Transport_Mechanism
+          (Element (UIPMC_Prof.Mechanisms, 0).all.all)));
 
       Put_Line ("Group info",
                 PolyORB.MIOP_P.Groups.Image (UIPMC_Prof.G_I.all));
-
-      Output_Address_Information (UIPMC_Prof.Address);
 
       Output_Tagged_Components (UIPMC_Prof.Components);
 

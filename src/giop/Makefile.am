@@ -18,6 +18,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-giop_p-tagged_components-code_sets.ads \
 	polyorb-giop_p-tagged_components-policies.ads \
 	polyorb-giop_p-tagged_components-policies-priority_model_policy.ads \
+	polyorb-giop_p-transport_mechanisms.ads \
 	polyorb-protocols-giop-common.ads \
 	polyorb-protocols-giop-giop_1_0.ads \
 	polyorb-protocols-giop-giop_1_1.ads \

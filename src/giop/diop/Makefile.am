@@ -6,6 +6,7 @@ alidir = $(includedir)/polyorb/giop/diop
 
 ADA_SPECS_WITH_BODY = \
 	polyorb-binding_data-giop-diop.ads \
+	polyorb-giop_p-transport_mechanisms-diop.ads \
 	polyorb-protocols-giop-diop.ads \
 	polyorb-setup-diop.ads \
 	polyorb-setup-access_points-diop.ads 

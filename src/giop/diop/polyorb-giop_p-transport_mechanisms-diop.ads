@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       P O L Y O R B . B I N D I N G _ D A T A . G I O P . I I O P        --
+--                POLYORB.GIOP_P.TRANSPORT_MECHANISMS.DIOP                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,73 +31,64 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Binding data concrete implementation for IIOP.
-
-with PolyORB.Buffers;
 with PolyORB.Sockets;
-with PolyORB.Types;
 
-package PolyORB.Binding_Data.GIOP.IIOP is
+package PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
 
-   use PolyORB.Buffers;
+   type DIOP_Transport_Mechanism is new Transport_Mechanism with private;
 
-   type IIOP_Profile_Type is new GIOP_Profile_Type with private;
-   type IIOP_Profile_Factory is new GIOP_Profile_Factory with private;
+   procedure Bind_Mechanism
+     (Mechanism :     DIOP_Transport_Mechanism;
+      The_ORB   :     Components.Component_Access;
+      BO_Ref    : out Smart_Pointers.Ref;
+      Error     : out Errors.Error_Container);
 
-   function Create_Profile
-     (PF  : access IIOP_Profile_Factory;
-      Oid :        Objects.Object_Id)
-      return Profile_Access;
+   procedure Release_Contents (M : access DIOP_Transport_Mechanism);
 
-   function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access;
+   --  DIOP Transport Mechanism specific subprograms
 
-   function Get_Profile_Tag (Profile : IIOP_Profile_Type) return Profile_Tag;
-   pragma Inline (Get_Profile_Tag);
+   function Address_Of (M : DIOP_Transport_Mechanism)
+     return Sockets.Sock_Addr_Type;
+   --  Return address of transport mechanism's transport access point.
 
-   function Get_Profile_Preference
-     (Profile : IIOP_Profile_Type)
-     return Profile_Preference;
-   pragma Inline (Get_Profile_Preference);
-
-   function Get_Primary_IIOP_Address
-     (Profile : IIOP_Profile_Type)
-     return PolyORB.Sockets.Sock_Addr_Type;
-   --  Return primary address of profile (address of the first profile's
-   --  transport mechanims)
+   type DIOP_Transport_Mechanism_Factory is
+     new Transport_Mechanism_Factory with private;
 
    procedure Create_Factory
-     (PF  : out IIOP_Profile_Factory;
-      TAP :     Transport.Transport_Access_Point_Access;
-      ORB :     Components.Component_Access);
+     (MF  : out DIOP_Transport_Mechanism_Factory;
+      TAP :     Transport.Transport_Access_Point_Access);
 
-   procedure Marshall_IIOP_Profile_Body
-     (Buf     : access Buffer_Type;
-      Profile :        Profile_Access);
+   function Is_Local_Mechanism
+     (MF : access DIOP_Transport_Mechanism_Factory;
+      M  : access Transport_Mechanism'Class)
+      return Boolean;
 
-   function Unmarshall_IIOP_Profile_Body
-     (Buffer : access Buffer_Type)
-     return Profile_Access;
+   function Create_Tagged_Components
+     (MF : DIOP_Transport_Mechanism_Factory)
+      return Tagged_Components.Tagged_Component_List;
 
-   function Image (Prof : IIOP_Profile_Type) return String;
+   --  DIOP Transport Mechanism Factory specific subprograms
 
-   function Get_OA
-     (Profile : IIOP_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr;
-   pragma Inline (Get_OA);
+   function Create_Transport_Mechanism
+     (MF : DIOP_Transport_Mechanism_Factory)
+      return Transport_Mechanism_Access;
+   --  Create transport mechanism
 
-   procedure Add_Transport_Mechanism_Factory
-     (PF : in out IIOP_Profile_Factory;
-      MF :
-       PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_Factory_Access);
-   --  Add Transport Mechanism Factory to Profile Factory
+   function Create_Transport_Mechanism
+     (Address : Sockets.Sock_Addr_Type)
+      return Transport_Mechanism_Access;
+   --  Create transport mechanism for specified transport access point address
 
 private
 
-   IIOP_Version_Major : constant Types.Octet := 1;
-   IIOP_Version_Minor : constant Types.Octet := 2;
+   type DIOP_Transport_Mechanism is new Transport_Mechanism with record
+      Address : Sockets.Sock_Addr_Type;
+   end record;
 
-   type IIOP_Profile_Type is new GIOP_Profile_Type with null record;
+   type DIOP_Transport_Mechanism_Factory is
+     new Transport_Mechanism_Factory with
+   record
+      Address : Sockets.Sock_Addr_Type;
+   end record;
 
-   type IIOP_Profile_Factory is new GIOP_Profile_Factory with null record;
-
-end PolyORB.Binding_Data.GIOP.IIOP;
+end PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
